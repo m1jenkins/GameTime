@@ -9,8 +9,8 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M0 complete.** Scaffold, local Supabase, migration and test harness,
-CI. No domain schema yet.
+**Status: M1 complete.** Scaffold, CI, and the social graph — identity,
+friendships, groups, and blocks, with RLS. No contests yet.
 
 ---
 
@@ -51,8 +51,8 @@ DECISIONS.md             Every non-obvious choice and why
 ```bash
 git clone <this repo> && cd GameTime
 
-# 1. Secrets. Apple credentials are only needed once auth is wired up (M1);
-#    the stack starts without them and just warns.
+# 1. Secrets. Apple credentials are only needed once a client actually signs in
+#    (M8); the stack starts without them and just warns.
 cp .env.example .env.local
 
 # 2. Bring up Postgres, PostgREST, Auth, Storage, Studio.
@@ -114,6 +114,53 @@ Two conventions the baseline migration sets up, both asserted by
 - Helper functions used by RLS policies live in `app`, which is not exposed
   through the Data API. A policy can call them; a client cannot.
 
+One trap worth knowing before you write a comparison against `handle` or
+`join_code`. Both are `citext`, and the citext `=` operator lives in the
+`extensions` schema — so inside a function declared `search_path = ''` it is
+invisible, and the comparison silently falls back to case-sensitive `text = text`.
+Write `lower(col::text) = lower($1)`. The unique index is unaffected either way,
+which is what makes the bug quiet: uniqueness stays case-insensitive while
+lookups stop matching. See DECISIONS.md D14.
+
+## The social graph
+
+M1's tables. All five have RLS enabled and no `anon` access at all.
+
+| Table           | Shape                                                        |
+| --------------- | ------------------------------------------------------------ |
+| `profiles`      | One row per onboarded user, keyed to `auth.users`. Its existence *is* the onboarding flag. |
+| `friendships`   | One row per pair, canonically ordered `user_a < user_b`. `requested_by` carries direction. |
+| `groups`        | Durable crews. Flat membership: no owner, no roles, no removing others. |
+| `group_members` | Roster. Joining needs a code; leaving is a delete.           |
+| `blocks`        | Directed. Readable only by the blocker.                      |
+
+Three things are not reachable as table writes, because they cannot be expressed
+as a row policy — RLS answers "may this caller read this row", not "does this
+caller already know a secret":
+
+```sql
+select * from public.find_profile_by_handle('mikej');   -- exact match, never a search
+select public.join_group_by_code('DEVCREW2');           -- idempotent, refuses across a block
+select public.rotate_group_join_code('<group uuid>');   -- any member; the code is generated
+```
+
+Deliberate absences, each enforced by a withheld grant as well as a missing
+policy (DECISIONS.md D21): no DELETE on `profiles` (accounts go through
+`auth.users`), no DELETE on `groups` (the last member leaving reaps it), no
+INSERT on `group_members` (that is `join_group_by_code`), and no UPDATE on
+`groups.join_code` (that is `rotate_group_join_code`).
+
+The seed builds a small graph — `@runner`, `@cyclist`, `@Lifter`, one accepted
+friendship, one pending request, and a `Dev Crew` group whose join code is
+`DEVCREW2`. To browse it as a particular user rather than as superuser:
+
+```sql
+set local role authenticated;
+select set_config('request.jwt.claims',
+  '{"sub":"a1111111-1111-1111-1111-111111111111"}', true);
+select * from public.profiles;   -- now filtered as @runner sees it
+```
+
 ## Test-harness capabilities
 
 The harness proves out the three things later milestones depend on:
@@ -121,6 +168,11 @@ The harness proves out the three things later milestones depend on:
 - **pgTAP** — schema shape, privileges, and that `app.forbid_mutation()`
   genuinely rejects UPDATE and DELETE. Append-only is the property the whole
   evidence ledger rests on, so it is asserted from the first commit.
+  M1 adds RLS coverage, which works by impersonating a user inside the test
+  transaction — `set local role authenticated` plus a `request.jwt.claims` GUC —
+  because superuser bypasses policies entirely and a suite that forgets this
+  asserts nothing. Assertions made after `reset role` see every row in the
+  database, seed included, so scope them to their own fixtures.
 - **Deno** — Edge Function logic, tested by importing handlers directly rather
   than booting the runtime container.
 - **Swift Testing** — portable client logic under Swift 6 strict concurrency.
@@ -153,7 +205,7 @@ changing it is one line in `Package.swift`.
 ## Milestones
 
 - [x] **M0** — Scaffold, local Supabase, migration and test harness, CI
-- [ ] **M1** — Schema and RLS for identity, friendships, groups
+- [x] **M1** — Schema and RLS for identity, friendships, groups
 - [ ] **M2** — Contest creation, invitations, participant state machine
 - [ ] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
 - [ ] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
