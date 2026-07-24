@@ -1,0 +1,36 @@
+# ---- Secrets -------------------------------------------------------------
+.env
+.env.local
+*.p8
+*.p12
+supabase/.env
+supabase/signing_keys.json
+
+# ---- Supabase ------------------------------------------------------------
+supabase/.branches/
+supabase/.temp/
+supabase/.gitignore
+
+# ---- Deno ----------------------------------------------------------------
+.deno/
+deno.lock.tmp
+
+# ---- Swift / Xcode -------------------------------------------------------
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+.netrc
+
+# ---- macOS / editors -----------------------------------------------------
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# ---- Local scratch -------------------------------------------------------
+/tmp/
+*.log

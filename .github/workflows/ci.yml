@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Opt out of Supabase CLI telemetry. Also avoids a false failure: an
+  # unreachable PostHog endpoint makes the CLI exit non-zero on shutdown even
+  # when every test passed.
+  DO_NOT_TRACK: 1
+
+jobs:
+  # Schema, constraints, and RLS. The suite that matters most: access rules and
+  # ledger invariants are asserted here, against a real Postgres.
+  database:
+    name: Database (pgTAP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase
+        run: supabase start -x edge-runtime
+
+      - name: Run pgTAP suite
+        run: ./scripts/db-test.sh
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
+
+  # Edge Functions. Tests run under plain Deno rather than the edge-runtime
+  # container: handlers are written as exported `(Request) => Response`
+  # functions so they can be invoked directly, which is both faster and less
+  # environment-dependent.
+  functions:
+    name: Edge Functions (Deno)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase/functions
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Format check
+        run: deno fmt --check
+
+      - name: Lint
+        run: deno lint
+
+      - name: Type check
+        run: deno check .
+
+      - name: Test
+        run: deno test --allow-env
+
+  # Portable client logic. GameTimeCore imports no Apple frameworks, so it
+  # builds and tests on a Linux runner. The Xcode app target is not built in
+  # CI; that requires a macOS runner and is a later concern.
+  client-core:
+    name: Client Core (Swift Testing)
+    runs-on: ubuntu-latest
+    container: swift:6.3
+    defaults:
+      run:
+        working-directory: ios/GameTimeCore
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        run: swift test
