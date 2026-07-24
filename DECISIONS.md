@@ -244,6 +244,215 @@ proxy CA). It emits a warning and nothing depends on it.
 
 ---
 
+## M1 — Identity, friendships, groups, blocks
+
+### D14. citext is compared as `lower(x::text)`, never with `=`
+
+**What.** Every handle and join-code comparison inside a `search_path = ''`
+function is written `lower(col::text) = lower($1)`. Never `col = $1`, even when
+both sides are citext.
+
+**Why.** citext's `=` operator lives in the `extensions` schema. Under
+`search_path = ''` it is not visible, so the planner falls back to `text = text`
+through citext's implicit cast and the comparison silently becomes
+case-sensitive. No error, no warning, just wrong answers. Verified rather than
+assumed: with `MikeJ` stored, `handle = 'mikej'::extensions.citext` inside such a
+function returns false.
+
+What makes it dangerous is the half that keeps working. A unique index on a
+citext column has its operator class resolved at DDL time and stored in the
+catalog, so handles stay case-insensitively unique regardless of search_path.
+The result would have been a system where `@MikeJ` reliably prevents anyone else
+registering `@mikej`, and where looking up `mikej` finds nobody — friend-adding
+broken for exactly those users with a capital letter in their handle, with
+nothing in any log. There is a regression test pinning this in
+`010_identity.test.sql`.
+
+The ASCII-only handle format constraint is load-bearing here: it is what makes
+`lower(text)` and citext's own case folding provably agree, so the index and
+every lookup mean the same thing by "equal".
+
+**Rejected.** Adding `extensions` to each function's search_path (works, but
+weakens the convention that gives M0's search_path discipline its value, and a
+single omission reintroduces the bug silently). Dropping citext for `text` plus a
+functional unique index on `lower(handle)` (also correct and arguably plainer,
+but discards an extension M0 installed for this purpose and gives up
+case-preserving display).
+
+**Revisit if.** Handles ever admit non-ASCII characters. Then `lower()` and
+citext's folding can diverge, the index and the lookups stop agreeing, and the
+right fix is a generated normalized column rather than either of the above.
+
+### D15. One friendship row per pair, canonically ordered
+
+**What.** `friendships` stores `user_a < user_b` with the pair as its primary
+key. Direction is carried by `requested_by`, not by row identity.
+
+**Why.** Friendship is symmetric, so two mirrored directed rows would make
+"A is friends with B but B is not friends with A" a representable state and leave
+consistency to application code. Under canonical ordering the primary key makes
+the duplicate physically impossible: two people who request each other at the
+same moment collide on the key instead of producing two friendships, in either
+arrival order. That is the hard-invariant-in-SQL split from D6 applied to the
+social graph. Direction still matters for who is allowed to accept, which is a
+column.
+
+**Rejected.** Two directed rows (the common ORM shape, simpler reads, but the
+invariant becomes a job for code that can have bugs). A separate
+`friend_requests` table promoted into `friendships` on accept (clean lifecycle,
+but two tables, two RLS surfaces, and a window where a pair exists in both).
+
+**Revisit if.** Friendship acquires genuinely per-direction state — a mute, or a
+"close friend" marker one side sets. That belongs in its own directed table
+rather than in a reshaping of this one.
+
+### D16. Declining a request deletes the row
+
+**What.** No `declined` status. Cancelling, declining, and unfriending are all
+one DELETE, allowed to either party.
+
+**Why.** A retained `declined` row is a durable record of a social rejection, and
+the only feature it buys is suppressing re-requests — which is what blocking
+does, explicitly and with the user's knowledge. Deleting also keeps the state
+machine at two states, so every policy has two cases to reason about instead of
+three.
+
+**Rejected.** A `declined` status with a cooldown (throttles pestering without
+requiring a block, but stores the rejection indefinitely and adds a state to
+every policy that touches friendships).
+
+**Revisit if.** Repeat-request pestering turns up among people unwilling to block
+a friend outright. A rate limit on requests per pair is the smaller fix and does
+not need a stored status.
+
+### D17. Groups have flat membership
+
+**What.** No owner, no admin, no roles. Any member may rename the group and
+rotate its join code. Nobody can remove anyone else. `created_by` is
+informational and nulls out on account deletion. The group is deleted when its
+last member leaves.
+
+**Why.** Chosen by the owner over a roles-based model. What it commits us to is
+worth stating, because the rest of the design follows from it rather than being
+separate choices: with no role that could authorize removal, "kick" cannot
+exist, so leaving is the only exit. That makes last-one-out the only safe
+deletion rule — a member-initiated delete would let one person destroy contest
+history the others still want, and there is no owner to reserve that power for.
+And `created_by` therefore has to confer nothing at all, or it becomes an owner
+by another name; it is immutable and privilege-free for that reason.
+
+**Rejected.** Owner/admin roles (necessary at organization scale; costs a role
+column, a transfer-on-leave flow, and a policy surface that must answer "what if
+the owner leaves mid-contest"). Member-initiated group deletion (simpler than
+reaping, but unilaterally destroys shared history).
+
+**Revisit if.** Groups outgrow friend-group scale, or moderation becomes a real
+need. Adding roles later is additive — nothing today depends on their absence
+except the deletion rule, which would become "an admin may delete".
+
+### D18. Join codes are generated capabilities, never client-chosen
+
+**What.** `groups.join_code` is eight characters drawn from a 32-symbol alphabet
+via `gen_random_bytes`. Clients hold `UPDATE (name)` — a column-level grant — and
+rotate the code through `public.rotate_group_join_code()`.
+
+**Why.** The code is the only credential for joining a group, which makes it a
+bearer capability and its unguessability a security property rather than a
+nicety. A member free to write the column could set `AAAAAAAA`, and a format
+CHECK cannot distinguish a weak well-formed code from a strong one — so the
+control has to be that clients cannot write the column at all. Hence the
+column-level grant, which is also why the constraint on the column is described
+as a backstop rather than the mechanism.
+
+Three smaller choices inside it: `gen_random_bytes` rather than `random()`, which
+is seeded and predictable; an alphabet of exactly 32 symbols so that 256 divides
+evenly by it and the modulo introduces no bias toward early characters; and
+0/1/O/I excluded so a code survives being read aloud or copied off a screen.
+Rotation exists because a join link outlives the group chat it was pasted into.
+
+**Rejected.** Client-chosen vanity codes (nicer to share, and a guessable-code
+hole in the one credential that matters). A format CHECK alone (catches
+malformed, cannot catch weak). Signed invite links with no stored code (no
+rotation story, and revocation needs server-side state anyway).
+
+**Revisit if.** Groups need to be publicly discoverable. That is a different
+mechanism, not a longer code.
+
+### D19. Blocks are directed, one-sided in visibility, and reach everywhere
+
+**What.** `blocks` is a directed pair. Every policy on it is blocker-only,
+including SELECT. Inserting one severs any friendship between the pair, hides
+both profiles from each other, removes both from handle discovery, and refuses a
+group join in either direction.
+
+**Why.** The reach is the whole point. A block that can be routed around by
+joining a group the other person is in is not a block, so the check sits in
+`join_group_by_code()` as well as in the policies.
+
+One-sided visibility is a separate decision and matters as much. If the blocked
+party can read the row, the block becomes a message — and for a product where
+these two people are friends who may owe each other a donation, delivering that
+message is a worse outcome than not blocking at all.
+
+Severing the friendship on insert, rather than leaving it and filtering it out of
+reads, is what keeps `app.is_friend()` a single honest predicate that M2 through
+M7 can rely on without each remembering to also check for a block.
+
+**Rejected.** Symmetric blocks (fewer rows, but conflates "I want no contact"
+with "they want none"). Retaining the friendship and filtering it (recoverable on
+unblock, but every future consumer of friendship has to remember the filter, and
+the first one that forgets silently reopens contact).
+
+**Revisit if.** Users want unblock to restore the old friendship. It cannot — the
+edge is gone and they must re-request. Retaining a severed edge is the change,
+and it costs the single-predicate property above.
+
+### D20. Nothing auto-creates a profile
+
+**What.** No trigger on `auth.users`. The client inserts its own profile row with
+a chosen handle. An auth user with no profile row is mid-onboarding, which is a
+legitimate state.
+
+**Why.** A handle is user-chosen and unique, so a trigger would have to invent a
+placeholder — and placeholder handles leak into contests, standings, and
+settlement records, where they are indistinguishable from real ones. Letting
+"a profile exists" mean "onboarding finished" also gives the client one
+unambiguous check instead of an `is_onboarded` flag that can disagree with the
+data. `join_group_by_code()` enforces the precondition explicitly rather than
+failing later on a foreign key.
+
+**Rejected.** A trigger minting `user_8f3a`-style handles (one less client round
+trip; permanent junk identities for everyone who abandons signup, with no way to
+tell them from real accounts).
+
+**Revisit if.** Nothing foreseeable.
+
+### D21. Withheld verbs are revoked, not merely unpoliced
+
+**What.** Each table revokes ALL from `anon` and `authenticated`, then grants
+back only the verbs that have a matching policy. Five verbs are withheld
+outright, listed in the migration.
+
+**Why.** Supabase ships default privileges that grant `anon` and `authenticated`
+ALL on new tables in `public`. Without an explicit revoke, `anon` holds DELETE on
+every table in this migration and is stopped only by the absence of a policy —
+so one permissive policy added later for an unrelated reason turns into a live
+delete path. Revoking makes the intent enforced twice and puts it somewhere
+visible: `\dp` shows a grant, whereas a missing policy looks identical to an
+oversight.
+
+The pattern earned itself immediately. `groups.created_by` is refused by the
+column-level grant before its immutability trigger is consulted at all, which
+means two independent mechanisms have to fail before authorship can be
+rewritten — and the test suite asserts both, with the different SQLSTATEs each
+produces.
+
+**Rejected.** Relying on policy absence alone, which is what the default
+Supabase workflow encourages (one less line per table; makes every future policy
+a potential privilege escalation).
+
+---
+
 ## Decisions deferred, with a current default
 
 Recorded so they are not silently made later. Each has a working default;
@@ -265,3 +474,25 @@ each gets its own entry above when it is actually implemented.
 - **Integrity score scale (M5).** Proposed: start at 100, subtract per-flag
   severity weights, floor at 0. Never auto-disqualifies; it is displayed and it
   strengthens a dispute.
+- **Handle change throttling (M8).** Handles are freely editable today. Swapping
+  to a friend's handle shortly before settlement is a plausible impersonation
+  play. Proposed: one change per 30 days, enforced by a `handle_changed_at`
+  column, plus showing the change to anyone in an active contest with them.
+- **Contest co-participants can see each other's profiles (M2).** The
+  `profiles` read policy currently covers friends and group co-members only.
+  M2 adds contest co-participation as a third route, which is the point at
+  which it is needed — a duel between two people who are not friends has to
+  render an opponent.
+- **Group size cap (M2).** Uncapped today. A winner-takes-all group of *n*
+  produces *n-1* settlements (D4), so group size directly bounds how many
+  donation obligations one contest can create. Proposed: cap at contest
+  creation rather than on the group, since the group is not the thing being
+  staked.
+- **A block does not eject either party from a shared group (M2).** Blocking
+  hides the profiles and prevents new joins, but two people already in a group
+  stay in it. Ejecting on block would let anyone remove anyone from a group by
+  blocking them, which is exactly the power flat membership withholds (D17).
+  Revisit alongside contest invitations, where the same tension reappears.
+- **Avatar storage bucket and its policies (M8).** `profiles.avatar_path` holds
+  an object path, but no bucket exists yet and nothing writes it. The bucket
+  and its RLS arrive with the client that uploads to it.
