@@ -1,8 +1,11 @@
 name: CI
 
 on:
+  # Feature branches are covered by `pull_request`. Listing them under `push`
+  # as well runs every suite twice per commit and posts duplicate checks.
+  # `push` is kept for main so post-merge state is verified on its own.
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
 
 concurrency:
