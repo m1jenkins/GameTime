@@ -7,7 +7,7 @@
 --   * nobody can remove anybody else, because nobody holds a role that would
 
 begin;
-select plan(41);
+select plan(42);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'),  -- alice
@@ -381,6 +381,27 @@ select throws_ok(
   'a user with a valid code but no profile cannot join a group'
 );
 
+-- ---------------------------------------------------------------------------
+-- created_by must actually survive its account being deleted
+-- ---------------------------------------------------------------------------
+-- The assertion above proves created_by cannot be *repointed*. This one proves
+-- the other half, which was broken until M2: `on delete set null` is itself an
+-- UPDATE, so a strict immutability trigger on the column refused it and made
+-- deleting the account impossible. That is not a group-lifecycle nicety — it is
+-- D20's "account deletion goes through auth.users and cascades" being true.
 reset role;
+insert into auth.users (id) values ('a8888888-8888-8888-8888-888888888888');
+insert into public.profiles (id, handle, display_name) values
+  ('a8888888-8888-8888-8888-888888888888', 'departing', 'Departing');
+insert into public.groups (id, name, created_by) values
+  ('b8888888-8888-8888-8888-888888888888', 'Outlives Its Founder',
+   'a8888888-8888-8888-8888-888888888888');
+
+select lives_ok(
+  $$ delete from auth.users
+     where id = 'a8888888-8888-8888-8888-888888888888' $$,
+  'deleting the account that created a group clears created_by rather than failing'
+);
+
 select * from finish();
 rollback;

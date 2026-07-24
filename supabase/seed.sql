@@ -89,6 +89,77 @@ begin
     ('d4444444-4444-4444-4444-444444444444', 'c3333333-3333-3333-3333-333333333333')
   on conflict do nothing;
 
+  -- -------------------------------------------------------------------------
+  -- M2 — charities and a contest
+  -- -------------------------------------------------------------------------
+  -- These charities are invented, and the EINs and hosts are deliberately not
+  -- real: `.test` is reserved by RFC 2606 and cannot resolve. A nominated
+  -- charity is where a real donation is meant to go, so a plausible-looking
+  -- wrong EIN in a fixture is worse than an obviously fake one.
+  --
+  -- Note this is the *seed*, which never runs in production. The production list
+  -- is an owner action, not a code change we can make here — see DECISIONS.md
+  -- D26 for why it is not shipped as a data migration full of guessed EINs.
+  insert into public.charities (id, name, ein, slug, url) values
+    ('e5555555-5555-5555-5555-555555555551',
+     'Example Trail Conservancy', '00-0000001', 'example-trail', 'https://trail.example.test'),
+    ('e5555555-5555-5555-5555-555555555552',
+     'Example Food Bank', '00-0000002', 'example-food-bank', 'https://food.example.test'),
+    ('e5555555-5555-5555-5555-555555555553',
+     'Example Retired Fund', '00-0000003', 'example-retired', null)
+  on conflict (id) do nothing;
+
+  -- Retired, so the "an active charity is required to nominate" path has
+  -- something to fail against without editing anything.
+  update public.charities set is_active = false
+  where id = 'e5555555-5555-5555-5555-555555555553';
+
+  -- Inserted directly rather than through public.create_contest(), for the same
+  -- reason group_members is: that function reads auth.uid(), which a seed script
+  -- has no request context to supply.
+  --
+  -- One contest carrying all three interesting roster states at once — accepted
+  -- author, accepted invitee, and an invitation still outstanding — so the
+  -- client has something to render for each without setting anything up.
+  insert into public.contests (
+    id, title, group_id, created_by, metric, cadence, target_value,
+    stake_amount_cents, tie_break, starts_at, ends_at, max_participants
+  ) values (
+    'f6666666-6666-6666-6666-666666666666',
+    'Dev Crew Step Challenge',
+    'd4444444-4444-4444-4444-444444444444',
+    'a1111111-1111-1111-1111-111111111111',
+    'steps', 'daily', 10000, 2500, 'integrity_score',
+    now() + interval '2 days', now() + interval '9 days',
+    4
+  )
+  on conflict (id) do nothing;
+
+  -- Two steps, because the schema will not accept a shortcut: only the author
+  -- may come into being already accepted, and everyone else has to arrive as
+  -- invited and then answer. That is the state machine working, so the seed
+  -- follows the same path a client does rather than trying to route around it.
+  insert into public.contest_participants
+    (contest_id, user_id, status, invited_by, timezone, charity_id) values
+    ('f6666666-6666-6666-6666-666666666666',
+     'a1111111-1111-1111-1111-111111111111', 'accepted', null,
+     'America/New_York', 'e5555555-5555-5555-5555-555555555551'),
+    ('f6666666-6666-6666-6666-666666666666',
+     'b2222222-2222-2222-2222-222222222222', 'invited',
+     'a1111111-1111-1111-1111-111111111111', null, null),
+    ('f6666666-6666-6666-6666-666666666666',
+     'c3333333-3333-3333-3333-333333333333', 'invited',
+     'a1111111-1111-1111-1111-111111111111', null, null)
+  on conflict do nothing;
+
+  update public.contest_participants
+  set status = 'accepted',
+      timezone = 'Europe/Lisbon',
+      charity_id = 'e5555555-5555-5555-5555-555555555552'
+  where contest_id = 'f6666666-6666-6666-6666-666666666666'
+    and user_id = 'b2222222-2222-2222-2222-222222222222'
+    and status = 'invited';
+
 exception when others then
   raise warning 'seed skipped: % (%). Migrations and tests are unaffected.',
     sqlerrm, sqlstate;

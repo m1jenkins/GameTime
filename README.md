@@ -9,8 +9,9 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M1 complete.** Scaffold, CI, and the social graph — identity,
-friendships, groups, and blocks, with RLS. No contests yet.
+**Status: M2 complete.** Scaffold, CI, the social graph, and contests —
+creation, invitations, and the participant state machine, with RLS. No
+measurement ingest yet, so nothing is scored.
 
 ---
 
@@ -152,7 +153,8 @@ INSERT on `group_members` (that is `join_group_by_code`), and no UPDATE on
 
 The seed builds a small graph — `@runner`, `@cyclist`, `@Lifter`, one accepted
 friendship, one pending request, and a `Dev Crew` group whose join code is
-`DEVCREW2`. To browse it as a particular user rather than as superuser:
+`DEVCREW2` — plus M2's charities and one contest carrying three roster states at
+once. To browse it as a particular user rather than as superuser:
 
 ```sql
 set local role authenticated;
@@ -160,6 +162,100 @@ select set_config('request.jwt.claims',
   '{"sub":"a1111111-1111-1111-1111-111111111111"}', true);
 select * from public.profiles;   -- now filtered as @runner sees it
 ```
+
+## Contests
+
+M2's tables. All three have RLS enabled and no `anon` access.
+
+| Table                  | Shape                                                        |
+| ---------------------- | ------------------------------------------------------------ |
+| `charities`            | Curated donation destinations. Read-only to clients; the list is maintained out of band. |
+| `contests`             | The terms and the window. Frozen at creation, status forward-only, never deleted. |
+| `contest_participants` | The roster and the invitation lifecycle in one table. Rows are never deleted. |
+
+A duel is not a separate kind of contest — it is `max_participants = 2`, since
+D4 already made a duel the N=2 case of the same structure. `group_id` is an
+independent, optional scope that decides who may be invited (DECISIONS.md D22).
+
+### The participant state machine
+
+```
+                              ┌──► accepted ──► withdrawn
+                              │    needs a       pending only,
+                              │    timezone      never the author
+   (author) ──► accepted      │    and a
+                              │    charity
+   (invited) ─────────────────┼──► declined
+                              │
+                              └──► lapsed
+                                   system only: activation or cancellation
+```
+
+The author is enrolled as `accepted` when the contest is created. Once the
+contest leaves `pending` the roster is frozen — no new participants, and no
+status, charity, or timezone changes at all. That freeze is what makes blocking
+an opponent useless as a way out of a contest you are losing (D29), and it is
+why `lapsed` is a status no client can write (D31).
+
+### What is not reachable as a table write
+
+Three things, for the same reason M1's join-by-code is a function: they are not
+properties of a row.
+
+```sql
+-- Creation writes two tables atomically, and the author's roster row needs a
+-- timezone and a charity, neither of which is a column on `contests`.
+select public.create_contest(
+  p_title => 'Step Duel', p_metric => 'steps', p_cadence => 'daily',
+  p_target_value => 10000, p_stake_cents => 2500,
+  p_starts_at => now() + interval '1 day',
+  p_ends_at   => now() + interval '8 days',
+  p_timezone => 'America/New_York', p_charity_id => '<charity uuid>',
+  p_max_participants => 2);
+
+-- Author only, pending only. Lapses every outstanding invitation.
+select public.cancel_contest('<contest uuid>');
+
+-- Cron's entry point: opens contests that have come due if two people accepted,
+-- voids the rest. Not callable by `authenticated`, deliberately — see D32.
+select app.activate_due_contests();
+```
+
+Inviting and answering *are* plain table writes, because both are row
+properties and so can be expressed as policies:
+
+```sql
+-- Author only, while pending, to a friend or a co-member of the contest's
+-- group, and never across a block in either direction.
+insert into public.contest_participants (contest_id, user_id, invited_by)
+values ('<contest uuid>', '<invitee uuid>', '<author uuid>');
+
+-- Answering. The charity is required to accept and the timezone freezes here.
+update public.contest_participants
+set status = 'accepted', timezone = 'Europe/London', charity_id = '<charity uuid>'
+where contest_id = '<contest uuid>';
+```
+
+Deliberate absences, each enforced by a withheld grant as well as a missing
+policy (D21, D24): no INSERT, UPDATE, or DELETE on `charities`; no INSERT on
+`contests` (that is `create_contest()`); no UPDATE on `contests` at all, because
+the terms are frozen and the status is not the client's to move; and no DELETE on
+either `contests` or `contest_participants`, because a contest that happened is
+evidence and withdrawal is a status rather than an erasure.
+
+One rule worth knowing before you write a fixture: a participant other than the
+author cannot be inserted already `accepted`. They arrive as `invited` and
+answer, which is what the seed does — see the two-step insert in `seed.sql`.
+
+### Charities are empty in production, on purpose
+
+`seed.sql` populates three openly fictional charities for local development:
+invented names, `00-000000N` EINs, and `.test` hosts, which RFC 2606 reserves so
+they cannot resolve. The production list is an owner action against verified EINs
+and is deliberately *not* shipped as a data migration — a plausible but wrong EIN
+routes a real donation to the wrong organisation and looks correct doing it. See
+DECISIONS.md D26, which also records why an empty table is the right failure mode
+until then.
 
 ## Test-harness capabilities
 
@@ -173,6 +269,11 @@ The harness proves out the three things later milestones depend on:
   because superuser bypasses policies entirely and a suite that forgets this
   asserts nothing. Assertions made after `reset role` see every row in the
   database, seed included, so scope them to their own fixtures.
+  M2 adds lifecycle coverage, which needs one more trick: anything that happens
+  on a schedule takes its clock as a parameter — `app.activate_due_contests(ts)`
+  defaults to `now()` so cron can call it bare, and the suite passes a future
+  timestamp instead. A scheduled job that cannot be tested without waiting for
+  wall-clock time is a job that does not get tested.
 - **Deno** — Edge Function logic, tested by importing handlers directly rather
   than booting the runtime container.
 - **Swift Testing** — portable client logic under Swift 6 strict concurrency.
@@ -206,7 +307,7 @@ changing it is one line in `Package.swift`.
 
 - [x] **M0** — Scaffold, local Supabase, migration and test harness, CI
 - [x] **M1** — Schema and RLS for identity, friendships, groups
-- [ ] **M2** — Contest creation, invitations, participant state machine
+- [x] **M2** — Contest creation, invitations, participant state machine
 - [ ] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
 - [ ] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
 - [ ] **M5** — Anti-cheat rules and integrity scoring
