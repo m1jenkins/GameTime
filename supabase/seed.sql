@@ -1,0 +1,9 @@
+-- Local development seed. Applied by `supabase db reset`.
+--
+-- Deliberately empty at M0: there are no domain tables yet. Reference data
+-- (charities) and developer fixtures (users, contests) arrive with the
+-- migrations that define them.
+--
+-- Rule for this file: seed data is for local development and CI only. It must
+-- never be required for correctness of a test — pgTAP tests build the rows
+-- they assert on, inside their own rolled-back transaction.
