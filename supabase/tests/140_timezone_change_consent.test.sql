@@ -410,8 +410,11 @@ select throws_ok(
   'a conflicting vote retry cannot rewrite history'
 );
 
+-- The authority truncates effective_at to milliseconds, so the bound has to be
+-- truncated the same way. Comparing against a raw microsecond reading fails
+-- whenever the bound and the approval land in the same millisecond.
 create temporary table t_approval_window as
-select clock_timestamp() as lower_bound;
+select date_trunc('milliseconds', clock_timestamp()) as lower_bound;
 
 select set_config(
   'request.jwt.claims',
