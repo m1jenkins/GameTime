@@ -58,6 +58,12 @@ jobs:
         with:
           deno-version: v2.x
 
+      # Resolves the lockfile as its own step. M3 added npm dependencies, and a
+      # resolution failure surfaced from `deno check` reads as a type error,
+      # which sends the next person looking in the wrong place.
+      - name: Install dependencies
+        run: deno install
+
       - name: Format check
         run: deno fmt --check
 

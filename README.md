@@ -9,9 +9,9 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M2 complete.** Scaffold, CI, the social graph, and contests —
-creation, invitations, and the participant state machine, with RLS. No
-measurement ingest yet, so nothing is scored.
+**Status: M3 complete.** Scaffold, CI, the social graph, contests, and the
+evidence ledger — attested ingest of hourly HealthKit measurements with their
+provenance. Nothing is scored yet; M4 is the scoring engine.
 
 ---
 
@@ -23,11 +23,15 @@ supabase/
   migrations/            Hand-written SQL. The only way schema changes.
   tests/                 pgTAP suites: schema, constraints, RLS
   functions/
-    _shared/             Scoring engine, anti-cheat rules, shared utilities
+    _shared/             App Attest, CBOR, ingest plumbing. Scoring lands in M4.
+    _test/               Fixture builders. Never imported by a deployed function.
+    attest-device/       Registers one App Attest key per device install
+    ingest-metrics/      The only route into the evidence ledger
     deno.json            Deno tasks, imports, lint and format config
   seed.sql               Local/CI seed data. Never required by a test.
 ios/
   GameTimeCore/          Portable Swift package. No Apple frameworks.
+                         Bucketing, provenance, and the offline ingest queue.
                          Builds and tests on Linux CI.
   (app target lands in M8)
 scripts/
@@ -257,6 +261,147 @@ routes a real donation to the wrong organisation and looks correct doing it. See
 DECISIONS.md D26, which also records why an empty table is the right failure mode
 until then.
 
+## The evidence ledger
+
+M3's tables. This is the first schema in the repo that records a claim about the
+physical world, which is the only kind of row anyone has a financial motive to
+falsify.
+
+| Table                 | Shape                                                        |
+| --------------------- | ------------------------------------------------------------ |
+| `device_attestations` | One App Attest key per device install, with its replay counter. |
+| `ingest_batches`      | One row per accepted ingest request: the idempotency key and the attestation audit trail. |
+| `metric_snapshots`    | The ledger. One row per observation of one hour of one metric from one source. |
+| `contest_evidence`    | A view: the current admissible figure per bucket. What M4 scores. |
+
+**There is no client write path.** `authenticated` holds `SELECT` on all three
+tables and nothing else. A row appears only through
+`public.record_metric_batch()`, which `service_role` alone may execute, because
+the thing that authorises the write is a signature over the request body and RLS
+cannot check a signature.
+
+### A bucket is a local hour
+
+`bucket_start` is aligned to a whole hour **in the participant's frozen
+timezone**, not in UTC, and the two are not interchangeable. India is +05:30,
+Nepal +05:45, Chatham +13:45 — so a UTC-aligned hour straddles the local day
+boundary for a large fraction of the world, and a daily-cadence goal would credit
+part of Tuesday to Monday for exactly those participants, silently. See
+DECISIONS.md D36.
+
+The server stamps `local_day` and `local_hour` from that zone at insert. A client
+never supplies them; whatever it sends is overwritten.
+
+### A revision appends
+
+HealthKit's figure for an hour grows as a watch syncs late or a workout is written
+after the fact, so there is deliberately **no** unique constraint across
+`(contest_id, user_id, metric, bucket_start)`. Reading it back has two steps, and
+`contest_evidence` is the only place that should do it:
+
+- within one source, the revisions are a monotone series, so the current figure is
+  the **largest**;
+- across sources, the contributions are disjoint, so they **add**.
+
+Getting that backwards in either direction is a scoring bug: summing revisions
+counts a late sync twice, and taking the max across sources discards everything
+but the largest app.
+
+### Provenance, and what counts
+
+```
+device       first-party Apple hardware, not user-entered      admissible
+third_party  another app wrote it to HealthKit                 admissible
+manual       typed into the Health app                         never
+unknown      no usable provenance metadata at all              never
+```
+
+An inadmissible observation is **stored, not refused**. The client reports what
+HealthKit told it and the server decides what counts, because a client that
+filters its own evidence is a client whose silence you have to trust. `manual` and
+`unknown` are excluded by a generated column, so no code path can store a row
+whose admissibility disagrees with its provenance.
+
+Provenance is part of the ledger's key, which is what stops one stray hand-typed
+step from voiding an hour that also holds five thousand genuine ones.
+
+### What is refused, and where
+
+| Rule                                             | Enforced by |
+| ------------------------------------------------ | ----------- |
+| The signature covers this exact payload          | `_shared/appattest.ts` |
+| The chain reaches Apple's root                   | `_shared/appattest.ts` |
+| The assertion counter has advanced               | SQL, under a row lock |
+| The batch is not a replay                        | SQL, before the counter is spent |
+| The bucket is inside the contest window          | SQL |
+| The bucket's hour has finished                   | SQL |
+| The bucket is aligned to the participant's hour  | SQL |
+| A figure is not revised downward                 | SQL |
+| Nothing rewrites the ledger                      | SQL |
+| Whether a *particular* app is trustworthy        | nobody yet — M5 |
+
+The split is DECISIONS.md D6's: crypto in TypeScript, invariants in SQL. The
+counter is the sharpest example — it is checked in SQL specifically because the
+check has to be atomic with consuming it, and in application code it is a read
+followed by a write that two copies of a captured request would both pass.
+
+## Attested ingest
+
+Two endpoints, both `POST`, both requiring a signed-in caller.
+
+```
+POST /functions/v1/attest-device/challenge   -> { challenge, expiresInSeconds }
+POST /functions/v1/attest-device             { keyId, attestation }
+POST /functions/v1/ingest-metrics            { contestId, clientBatchId,
+                                               observedAt, observations[] }
+```
+
+`ingest-metrics` carries its credentials as **headers**, not fields:
+
+```
+x-gametime-key-id:     <base64 of Apple's key id>
+x-gametime-assertion:  <base64 of the CBOR assertion>
+```
+
+because an assertion cannot be a field of the document it signs. The body is
+exactly the bytes the assertion covers; it is read once and hashed before
+anything parses it, since JSON has many encodings of one value and hashing a
+re-serialised body would hash a different document than the client signed.
+
+`clientBatchId` is the idempotency key and it must be **stable across retries**.
+`record_metric_batch()` checks it before it consumes an assertion counter, so a
+request that timed out after the server committed comes back as
+`{ replayed: true }` rather than an error. A reused id with a different payload is
+refused, because silently returning the first result would drop the second
+batch's evidence.
+
+### Configuration
+
+| Variable                       | Notes |
+| ------------------------------ | ----- |
+| `APPLE_TEAM_ID`                | Ten alphanumerics. With the bundle id this is the App ID Apple binds attestations to. |
+| `APPLE_BUNDLE_ID`              | |
+| `APP_ATTEST_ROOT_CA_PEM`       | Apple's App Attest root. **Required**; the functions refuse to start without it. |
+| `APP_ATTEST_ALLOW_DEVELOPMENT` | Accept development-environment attestations. Defaults on in local and test, refused outright in production. |
+| `ATTEST_DEV_BYPASS`            | Accept an unattested batch. Same refusal in staging and production (D11). |
+| `SUPABASE_JWT_SECRET`          | Both endpoints verify the caller's JWT in code as well as at the gateway. |
+
+> **Before launch:** `APP_ATTEST_ROOT_CA_PEM` needs Apple's actual root
+> certificate, from https://www.apple.com/certificateauthority/. It is
+> configuration rather than a constant in the source on purpose — a pinned root
+> that is plausible and wrong either rejects every attestation or accepts a chain
+> Apple never issued, and those bytes should be fetched rather than recalled. See
+> DECISIONS.md D46, which also records the two Apple-format details that need
+> confirming against a real device.
+
+A batch accepted under `ATTEST_DEV_BYPASS` is marked `attested = false` on
+`ingest_batches`, permanently. So this is a real audit query, and it should
+return zero:
+
+```sql
+select count(*) from public.ingest_batches where not attested;
+```
+
 ## Test-harness capabilities
 
 The harness proves out the three things later milestones depend on:
@@ -274,9 +419,24 @@ The harness proves out the three things later milestones depend on:
   defaults to `now()` so cron can call it bare, and the suite passes a future
   timestamp instead. A scheduled job that cannot be tested without waiting for
   wall-clock time is a job that does not get tested.
+  M3 adds one more, and it is the least obvious: a suite that needs a *live*
+  contest has to build the row directly with `contests_assert_future_window`
+  turned off, because `create_contest()` refuses a window that opens in the past
+  (D25) and a contest starting in the future has no finished hour to report into.
+  That is scaffolding rather than a hole — `060_contests.test.sql` is what proves
+  the trigger works — but a suite that quietly skipped it would be asserting
+  against an empty ledger.
 - **Deno** — Edge Function logic, tested by importing handlers directly rather
-  than booting the runtime container.
+  than booting the runtime container. M3's suites mint their own P-256 keys and
+  their own Apple-shaped certificate chain, so every rejection path in the
+  attestation and assertion code runs against real cryptography rather than a
+  stub. What that cannot establish is *conformance* — it proves the verifier
+  agrees with the test's signer, not that either agrees with an iPhone. See the
+  owner action in DECISIONS.md D46.
 - **Swift Testing** — portable client logic under Swift 6 strict concurrency.
+  M3's suites cover the cases a UTC-hour implementation gets wrong: half-hour and
+  45-minute zone offsets, and both daylight-saving transitions, where a local day
+  is 23 or 25 hours long.
 
 ## Known environment constraints
 
@@ -308,7 +468,7 @@ changing it is one line in `Package.swift`.
 - [x] **M0** — Scaffold, local Supabase, migration and test harness, CI
 - [x] **M1** — Schema and RLS for identity, friendships, groups
 - [x] **M2** — Contest creation, invitations, participant state machine
-- [ ] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
+- [x] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
 - [ ] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
 - [ ] **M5** — Anti-cheat rules and integrity scoring
 - [ ] **M6** — Geofence check-ins and workout-overlap validation

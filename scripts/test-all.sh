@@ -24,7 +24,8 @@ run_suite "database (pgTAP)" ./scripts/db-test.sh
 
 run_suite "edge functions (Deno)" bash -c '
   cd supabase/functions
-  deno fmt --check && deno lint && deno check . && deno test --allow-env
+  deno install \
+    && deno fmt --check && deno lint && deno check . && deno test --allow-env
 '
 
 run_suite "client core (Swift Testing)" bash -c '
