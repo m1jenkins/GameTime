@@ -1516,6 +1516,114 @@ belongs with settlement).
 **Revisit if.** The M8 client shell needs live standings before M7 lands. The
 engine is already the hard part; the endpoint is a read and a call.
 
+## M5 — Anti-cheat rules and integrity scoring
+
+### D57. Integrity is a sidecar to scoring, and feeds only the existing seam
+
+**What.** `assessContestIntegrity()` reads the same fixture-shaped input as M4
+and emits flags plus a complete score map. `scoreContestWithIntegrity()` passes
+that map through `ScoringInput.integrityScores`. It does not change
+`scoreContest()`, qualification, totals, or `contest_evidence`.
+
+**Why.** A heuristic and an admissibility rule answer different questions.
+"Manual evidence never counts" is an invariant; "15,000 steps in an hour needs
+review" is a tunable judgment. Letting the second quietly behave like the first
+would create two definitions of evidence and standings whose missing values
+could not be explained from the ledger. The existing M4 seam was designed to
+avoid exactly that change: integrity can decide the declared tie-break without
+becoming a second scoring engine.
+
+Calling M4 once before assessment also gives M5 exactly M4's accepted roster and
+validates the ledger before a flag is produced. A caller-supplied integrity map
+is ignored during assessment, so nobody can seed the result with a score they
+chose themselves.
+
+**Rejected.** Filtering flagged buckets before calling M4 (quietly disqualifies
+admissible evidence). Adding flags to `ContestScoring` (makes the scoring engine
+own heuristics D55 explicitly kept out). Scoring only participants who have at
+least one flag (a missing score loses an integrity tie by accident; D54 requires
+a complete set).
+
+### D58. Every integrity threshold and penalty is versioned configuration
+
+**What.** Launch tuning lives in `DEFAULT_INTEGRITY_TUNING`: per-metric hourly
+ceilings, same-hour corroboration rules, minimum travel distance, maximum travel
+speed and gap, reporting-lag and quarantine thresholds, severities, points per
+flag, and per-rule penalty caps. The default scale starts at 100, subtracts
+capped penalties, and floors at 0. Every assessment names the configuration
+version.
+
+**Why.** These numbers will move against real data. Keeping them in one data
+object makes a tune a reviewed configuration change rather than a rewrite of
+the evaluator, while the version makes old flags reproducible. Per-rule caps
+stop one noisy device generating twenty identical hours from consuming the
+entire score through volume alone.
+
+Invalid tuning raises. A quarantine threshold earlier than the ordinary lag
+threshold, a negative penalty, or a rule that corroborates itself is a broken
+configuration, not an alternate scoring policy to accept quietly.
+
+**Rejected.** SQL CHECKs for ceilings (a migration per tune, and turns judgment
+into rejection). Severity names with hard-coded weights (two tuning surfaces
+that can disagree). Uncapped per-occurrence subtraction (measures sync volume as
+much as integrity).
+
+**Revisit if.** Production calibration wants contest-type or cohort-specific
+profiles. They should still be immutable versioned objects selected before an
+assessment, not branches inside the evaluator.
+
+### D59. Impossible travel requires an explicit location signal
+
+**What.** M5 accepts optional `(user, observed_at, latitude, longitude,
+accuracy)` observations. Consecutive points raise `impossible_travel` only when
+the configured minimum distance and maximum speed are both crossed after both
+accuracy radii are subtracted. M6's attested geofence check-ins are the intended
+producer.
+
+**Why.** Metric buckets contain a time and a frozen timezone, not a physical
+location. Inferring a city from that zone would turn every traveler and every
+large multi-city zone into false evidence, while claiming precision the input
+does not have. Making location an explicit input lets the rule and fixtures
+exist now without laundering an inference into a fact.
+
+**Rejected.** Treating a timezone change as travel (timezone is frozen, and a
+zone is not a point). IP geolocation on ingest (records a network exit, performs
+poorly on cellular relays and VPNs, and adds location collection to an endpoint
+that does not need it).
+
+### D60. Retroactive quarantine is review state, not a new admissibility bit
+
+**What.** `evidence_quarantines` records the exact snapshot, rule version,
+signal key, configured threshold, server-derived reporting lag, and details.
+`evidence_quarantine_reviews` records immutable votes. A duel needs its opponent;
+a group needs a strict majority of the other accepted participants. Silence is
+`pending`; enough no votes to make approval impossible is `rejected`.
+
+The snapshot remains untouched and still appears in `contest_evidence`.
+Quarantine means M7 must not finalize while review is unresolved; it does not
+mean M5 secretly recomputes the score without the value.
+
+**Why.** The ledger must show both facts: "the attested phone reported this
+value" and "it reported it late enough to require review." Overwriting
+`is_admissible`, deleting the row, or filtering the M4 view would erase the
+first fact in order to express the second. Append-only review votes make the
+approval path auditable and prevent someone reversing a vote after seeing the
+emerging outcome.
+
+Creation is service-role-only and derives identity and lag from the snapshot;
+participants cannot manufacture a quarantine against a rival. Review goes
+through one definer function that checks the caller is another accepted
+participant. Identical retries are idempotent and conflicting retries fail.
+
+**Rejected.** A mutable `quarantine_status` column (loses who decided and how).
+The evidence owner self-approving (no review). Timeout-as-approval (silence
+becomes consent in the exact path meant to fail closed). Excluding pending data
+from `contest_evidence` (silent disqualification and a second definition of
+admissibility).
+
+**Revisit if.** Product wants reviewers to revise a mistaken vote. That needs a
+new append-only supersession row and an explicit window, not UPDATE.
+
 ---
 
 ## Decisions deferred, with a current default
@@ -1549,14 +1657,10 @@ is now the gating dependency for settling the most common contest there is.
 The engine already takes the scores as an optional input, so M5 supplies them
 rather than changing the engine.
 
-- **Quarantine approval in group contests (M5).** A retroactively-written sample
-  counts only if approved. In a duel that means the opponent. In a group,
-  proposed rule: a majority of other active participants, failing closed —
-  no response inside the review window means the sample stays excluded.
-  M3 built what this reads: every observation carries `recorded_at` against a
-  `bucket_start`, so the reporting lag of each claim is on the row. What is
-  still open is the threshold at which a lag becomes retroactive, and the
-  approval flow.
+- **Quarantine and group approval (resolved by D60).** A duel needs its opponent;
+  a group needs a strict majority of other accepted participants. Silence stays
+  pending. The row remains admissible and visible; M7 fails closed by refusing
+  finalization while review is unresolved, not by silently removing evidence.
 - **The ingest grace period (M5/M7).** Six hours after `ends_at`, as
   `app.ingest_grace_period()` (D43). It is the one tunable number M3 put in SQL,
   because it gates whether a row may exist, and it trades a slow syncer's last
@@ -1578,9 +1682,9 @@ rather than changing the engine.
 - **Reliability score formula (M7).** Proposed: a decayed ratio of confirmed
   settlements to total obligations, so one old default does not brand someone
   permanently.
-- **Integrity score scale (M5).** Proposed: start at 100, subtract per-flag
-  severity weights, floor at 0. Never auto-disqualifies; it is displayed and it
-  strengthens a dispute.
+- **Integrity score scale (resolved by D58).** Starts at 100, subtracts
+  per-flag configured points with per-rule caps, and floors at 0. It never
+  auto-disqualifies evidence.
 - **Handle change throttling (M8).** Handles are freely editable today. Swapping
   to a friend's handle shortly before settlement is a plausible impersonation
   play. Proposed: one change per 30 days, enforced by a `handle_changed_at`
