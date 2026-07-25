@@ -92,6 +92,10 @@ fixtures in that format now so the option stays open.
 
 ### D4. Group contests are winner-takes-all
 
+**Amended by D75.** A declared `both_donate` tie has no winner. Its
+self-directed obligations are the one explicit exception to the
+winner/loser tuple below.
+
 **What.** One winner per group contest. Every other participant gets their own
 settlement row for the full donation amount, all directed to the winner's chosen
 charity. A group of five produces four settlements.
@@ -333,10 +337,14 @@ not need a stored status.
 
 ### D17. Groups have flat membership
 
+**Amended by D81.** Authentication deletion now retains a pseudonymous durable
+actor, so `created_by` continues to reference that tombstone instead of nulling
+solely because the login was removed. It remains informational and privilege-free.
+
 **What.** No owner, no admin, no roles. Any member may rename the group and
 rotate its join code. Nobody can remove anyone else. `created_by` is
-informational and nulls out on account deletion. The group is deleted when its
-last member leaves.
+informational and, before D81's durable actor, nulled out on account deletion.
+The group is deleted when its last member leaves.
 
 **Why.** Chosen by the owner over a roles-based model. What it commits us to is
 worth stating, because the rest of the design follows from it rather than being
@@ -489,6 +497,9 @@ different product.
 
 ### D23. Invitation and participation are one row, and `declined` is retained
 
+**Amended by D79.** The `declined`/`lapsed` distinction remains useful
+responsiveness history, but neither state enters pledge reliability.
+
 **What.** `contest_participants` carries the whole lifecycle: `invited`,
 `accepted`, `declined`, `withdrawn`, `lapsed`. There is no separate invitations
 table, and no row is ever deleted.
@@ -504,9 +515,10 @@ deletes the row (D16), and the difference is what the row is *for*. A declined
 friend request is a social rejection whose only remaining use is suppressing
 re-requests, which blocking already does explicitly. A contest roster is the
 record of who was asked to pledge money and what they said, and `declined`
-against `lapsed` — an answer against silence — is a distinction M7's reliability
-score has reason to read. Deleting would also make re-invitation silently
-possible where the primary key currently makes it idempotent.
+against `lapsed`—an answer against silence—remains useful responsiveness
+history even though D79 excludes both from pledge reliability. Deleting would
+also make re-invitation silently possible where the primary key currently makes
+it idempotent.
 
 **Rejected.** A `contest_invitations` table promoted on accept (clean lifecycle
 separation, all the costs above). Deleting on decline for consistency with D16
@@ -611,6 +623,10 @@ flow, not a bigger seed.
 
 ### D27. Accepting a contest requires naming a charity
 
+**Amended by D75.** A declared `both_donate` result has no winner; each accepted
+participant's own nomination is the destination of their self-directed
+obligation.
+
 **What.** `contest_participants.charity_id` is required for the `accepted`
 status, checked one-directionally so that a participant who later withdraws
 keeps the nomination they made. The winner's nomination is the destination for
@@ -632,9 +648,9 @@ it means you pledge without knowing the destination). A nullable nomination with
 a default charity (removes the friction and quietly picks where someone else's
 money goes).
 
-**Revisit if.** Users want to change their nomination after a contest ends but
-before settling. That is M7's question, and the answer is probably that the
-settlement snapshots it.
+**Resolved by D74 and D75.** The result-created obligation snapshots the frozen
+nomination; a later profile or charity-list change cannot repoint it. Revisit
+only if the product adds an explicitly consented substitution before donation.
 
 ### D28. Invitation reach is the existing social graph, and only the author invites
 
@@ -685,6 +701,10 @@ mechanism rather than a wider policy.
 
 ### D29. The roster freezes when the window opens, so blocking is not an exit
 
+**Amended by D78.** A documented personal exception may release that
+participant's later obligation; only a defect affecting the shared result can
+make the whole contest inconclusive. Neither is a participant-written exit.
+
 **What.** Once a contest leaves `pending`, nothing on its roster is writable —
 not a status, not a charity, nothing — and no participant can be added.
 Before the window opens, an accepted participant may still withdraw; the author
@@ -716,11 +736,15 @@ that cannot name who owes whom). Allowing withdrawal from an active contest with
 an integrity penalty (turns a hard invariant into a price, and D6 puts prices in
 TypeScript and invariants in SQL).
 
-**Revisit if.** A participant needs a genuine medical or bereavement exit. That
-is a dispute for M7 to resolve into a void, not a status the participant can
-write themselves.
+**Historical note, superseded by D78.** A genuine medical or bereavement
+exception is adjudicated as an individual release unless it invalidates the
+shared result. It is never a status the participant writes themselves.
 
-### D30. Quorum is two, and a contest that misses it voids itself
+### D30. Quorum is two, and a contest that misses it cancels before opening
+
+**Amended by D79.** The distinct cancellation reason remains history and an
+operational signal, but a contest that never produced an obligation does not
+enter pledge reliability.
 
 **What.** `app.activate_due_contests()` opens every pending contest whose
 `starts_at` has passed, provided at least two participants accepted. One or
@@ -730,9 +754,10 @@ Outstanding invitations lapse either way.
 **Why.** A contest is a comparison and there is nothing to compare one person
 against, so a lone author running a contest against themselves is not a degraded
 outcome to be tolerated — it is a state with no meaning that would still produce
-standings, a winner, and no settlement. Voiding says so explicitly, and the
-distinct cancellation reason keeps it from looking like the author called it off,
-which matters because M7's reliability score will read these rows.
+standings, a winner, and no settlement. System cancellation says so explicitly,
+and the distinct reason keeps it from looking like the author called it off.
+That distinction remains useful history and an operational signal even though
+D79 correctly excludes a contest with no obligation from pledge reliability.
 
 Lapsing outstanding invitations at the same moment is what keeps "my open
 invitations" a query on status alone rather than one that has to join contest
@@ -798,8 +823,8 @@ grants EXECUTE on every new function to `PUBLIC`, and the baseline migration
 grants `authenticated` USAGE on the `app` schema so that RLS policies can call
 the predicates living there. Together they mean a SECURITY DEFINER function in
 `app` is callable by any signed-in user unless it is explicitly revoked — and
-this one opens contest windows and voids contests for want of a quorum. Left as
-created, a client could activate a contest early or void one out from under its
+this one opens contest windows and cancels contests for want of a quorum. Left
+as created, a client could activate a contest early or cancel one out from under its
 participants.
 
 The distinction that decides which functions need this is "called by a policy"
@@ -856,6 +881,11 @@ pledged what to whom to everyone else in the group is a different product
 decision.
 
 ### D34. A frozen reference may be cleared but not repointed — and M1's could not be cleared
+
+**Amended by D81.** The clear-but-never-repoint mechanism remains correct when a
+referenced row is actually deleted. M7 account deletion instead retains the
+pseudonymous actor row, so actor references survive auth deletion as tombstones
+and no referential `SET NULL` occurs for them.
 
 **What.** `app.forbid_column_reassignment()` joins
 `app.forbid_column_change()`: it refuses every change to the named columns
@@ -1157,6 +1187,11 @@ quarantine is the better lever than widening it.
 
 ### D44. Append-only stops at UPDATE, because a DELETE trigger would make accounts undeletable
 
+**Amended by D81.** Once M7 removes the account cascade, ordinary deletion can
+be forbidden without blocking account removal. D81's guarded, policy-versioned
+retention worker is the sole deliberate raw-row deletion path, so a blanket
+DELETE prohibition is still too broad.
+
 **What.** `metric_snapshots` and `ingest_batches` carry
 `app.forbid_mutation()` on UPDATE. Neither carries it on DELETE. DELETE is
 withheld from clients by the missing grant and the absent policy only.
@@ -1177,10 +1212,10 @@ permitted". The passing assertion is the regression guard for anyone who later
 decides append-only demands the trigger.
 
 This is the honest state of it rather than a comfortable one. Evidence for a
-settled obligation should outlive the account and today it does not. The deferred
-decision on account deletion versus contest history owns that, and its answer is
-to anonymise rather than cascade; once that lands the cascade path disappears and
-a DELETE trigger here becomes correct.
+settled obligation should outlive the account and today it does not. D81 resolves
+the product choice in favor of pseudonymization; once its M7 migration replaces
+the cascade path, ordinary DELETE can be refused without blocking account
+removal, while D81's explicit retention path remains possible.
 
 **Rejected.** `on delete restrict` along the chain (preserves the evidence, makes
 account deletion impossible on purpose rather than by accident). A trigger that
@@ -1631,6 +1666,11 @@ that does not need it).
 
 ### D60. Retroactive quarantine is review state, not a new admissibility bit
 
+**Amended by D76.** Pending or rejected peer review gates finalization and
+settlement, not provisional scoring. After the bounded independent path ends,
+M7 may record `inconclusive` without treating the evidence as approved or
+filtering it out.
+
 **What.** `evidence_quarantines` records the exact snapshot, rule version,
 signal key, configured threshold, server-derived reporting lag, and details.
 `evidence_quarantine_reviews` records immutable votes. A duel needs its opponent;
@@ -1638,8 +1678,12 @@ a group needs a strict majority of the other accepted participants. Silence is
 `pending`; enough no votes to make approval impossible is `rejected`.
 
 The snapshot remains untouched and still appears in `contest_evidence`.
-Quarantine means M7 must not finalize while review is unresolved; it does not
-mean M5 secretly recomputes the score without the value.
+Provisional standings may still score it. M7 may persist a settlement-bearing
+result only after its complete integrity assessment is recorded and every
+materialized quarantine is either peer-approved or explicitly cleared through
+D76 adjudication. Pending review, rejected review without a clearance, and an
+incomplete assessment all gate finalization; none means M5 secretly recomputes
+the score without the value.
 
 **Why.** The ledger must show both facts: "the attested phone reported this
 value" and "it reported it late enough to require review." Overwriting
@@ -1895,17 +1939,21 @@ authoritative (two engines can diverge). Re-encoding queued JSON on retry
 
 ### D67. Review quorum is an immutable request fact
 
+**Amended by D81.** The roster cascade described below is historical; M7
+preserves the pseudonymous participant row. The snapshotted denominator and
+non-cascading vote identity remain required audit invariants.
+
 **What.** A quarantine or timezone request snapshots the number of eligible
 reviewers when it is created. Votes retain the reviewer's UUID without a
 cascading foreign key to `profiles`; deleting an account cannot erase a vote or
 shrink the stored denominator. Status is derived from the immutable denominator
 and retained votes, never from today's roster.
 
-**Why.** The active roster is frozen for ordinary product writes but account
-deletion still cascades through `contest_participants`. Deriving quorum from that
-live table made deletion a vote: it could reopen a rejection or turn a missing
-approval into consent. A pseudonymous UUID is enough to prove that one eligible
-identity voted once without retaining a profile.
+**Why.** When D67 shipped, account deletion still cascaded through
+`contest_participants`. Deriving quorum from that live table made deletion a
+vote: it could reopen a rejection or turn a missing approval into consent. A
+pseudonymous UUID is enough to prove that one eligible identity voted once
+without retaining a social profile.
 
 **Rejected.** `ON DELETE CASCADE` (rewrites a terminal decision). `RESTRICT`
 (makes account deletion impossible). Recomputing from the surviving roster
@@ -2009,14 +2057,686 @@ contest. Recording the nonsecret staging identity in reviewable source makes
 the mutation target a repository decision rather than an operator assertion at
 the dangerous moment.
 
+## M7 — Settlement and finalization product contract
+
+These decisions are intentionally recorded before the M7 schema. They define
+what the later result, obligation, dispute, reliability, and notification rows
+must mean; they do not bypass M6.5's physical-device gate.
+
+### D74. Honoring a pledge requires a claim plus an independent confirmation path
+
+**What.** GameTime still does not move money. A donation obligation becomes
+actionable only after D78's result-dispute window has closed and every timely
+result dispute is resolved—the later of those events—and is due 30 days later,
+using server timestamps. The debtor may then submit an append-only claim naming
+the obligation, donation time, amount, charity, and evidence kind. The charity
+must match the obligation snapshot, and the allocated amount must cover the
+stake. Launch is USD-only: obligation amounts, claim amounts, receipt totals,
+and receipt allocations are integer US cents. No currency conversion or
+floating-point amount enters confirmation. The claimed donation time must be no
+earlier than the debtor's acceptance of that pledge and no later than the
+claim's server-recorded submission time.
+When the provider or receipt path is used, its evidence must substantiate the
+same time; a future assertion or a receipt predating the pledge cannot qualify.
+A donation receipt here means a redacted proof of a charitable donation; it is
+unrelated to the private App Attest receipt in D71.
+
+A claim becomes confirmed as honored through any one of three independent
+paths:
+
+1. a verified charity or payment-provider integration confirms it;
+2. the winner accepts the claim; or
+3. a receipt-backed claim survives a seven-day challenge window without a
+   dispute.
+
+Self-attestation alone records `claimed`, not `honored`. It can still become
+honored through winner acknowledgement or an adjudicator's decision, which
+keeps cash, employer-match, and other receiptless donations possible without
+turning an unchecked tap into reliability credit. A declared `both_donate`
+result has no winner, so any accepted co-participant may challenge one of its
+self-directed claims; acknowledgement is not available as a shortcut there.
+A receiptless claim not acknowledged within seven days expires and stops
+pausing default. The debtor may dispute that expiration under D78 if independent
+evidence requires adjudication.
+
+The claim's submission time decides whether an eventual confirmation was on
+time. A claim submitted by `due_at` does not default while its challenge or
+dispute is open. No qualifying claim at the deadline records a default. Later
+proof may append a late-honored resolution, but it never erases the fact that
+the pledge first defaulted. During the challenge window, every person authorized
+to challenge under this decision may see the claim fields and a redacted receipt
+preview sufficient to assess charity, amount, date, and reuse. The original
+receipt object remains private to the debtor, a confirming provider, and the
+adjudicator. Receipt objects are immutable and content-digested. Claims allocate
+receipt value to obligations, and the server refuses allocations beyond the
+receipt's total, so one larger donation may legitimately cover several pledges
+without being double-counted.
+
+**Why.** Self-attestation alone makes the product's most important reputation
+fact self-awarded. Requiring the winner to act in every case makes silence a
+veto and fails completely for `both_donate`. Requiring a charity integration at
+launch would make the curated charity list unusable until every destination had
+one. The combined rule gives ordinary receipt-backed donations a bounded path,
+keeps a social acknowledgement path for legitimate receiptless donations, and
+leaves a stronger machine-verification seam without pretending it already
+exists.
+
+The seven-day claim challenge is deliberately separate from both the seven-day
+result-dispute window and the 30-day donation deadline. Nobody is prompted to
+donate while the result can still change. A debtor may act on day 30 and still
+receive a fair claim-review window; submitting on time pauses default rather
+than forcing the counterparty to review instantly.
+
+**Rejected.** Self-attestation as confirmation (the debtor awards their own
+reliability credit). Mandatory winner acknowledgement (silence can hold an
+obligation forever, and there is no winner in `both_donate`). Receipt upload as
+immediate proof (a file can be forged or reused). Timeout with no evidence
+(silence becomes payment). A charity integration as the only launch path
+(coverage would be smaller than the curated list).
+
+**Revisit if.** A donation provider supplies signed, idempotent confirmations
+for most supported charities. That path can then become the preferred UX, but
+the social and receipt paths should remain for donations made elsewhere.
+
+### D75. Every contest that ran finalizes to an explicit result, not necessarily a winner
+
+**What.** `finalized` means the evidence boundary and computation are fixed; it
+does not mean somebody won. A contest that opened gets an immutable result with
+one of four kinds:
+
+- `winner`: one winner, with one normal obligation per other accepted
+  participant under D4;
+- `all_donate`: the declared `both_donate` tie-break, with one full-stake,
+  self-directed obligation for every accepted participant;
+- `void`: the scoring rules answered that nobody owes, because nobody qualified
+  or the declared tie-break was `void`; or
+- `inconclusive`: GameTime could not produce the agreed deterministic answer,
+  including a genuine `tie_break_inconclusive` or D76's review failure.
+
+`void` and `inconclusive` create no donation obligations. A contest that never
+opened remains `cancelled`, with its existing cancellation reason, rather than
+acquiring a result row.
+
+The scoring engine retains `insufficient_participants` as a defensive answer for
+non-open input, but activation cancellation is the only product path for a
+contest that missed quorum. Receiving that answer for an already active contest
+is an invariant failure: M7 retries and alerts without persisting a result. It
+does not reinterpret that failure as `void`.
+
+The `all_donate` mapping deliberately uses the complete accepted roster, not
+only the tied qualifiers currently returned by the M4 shape. Otherwise a group
+participant who missed the target would owe nothing while the participants who
+met it donated. Each person donates to their own preselected charity because
+there is no agreed winner whose nomination could supply a destination, and each
+person's exposure remains exactly the stake they accepted. M7 must update the
+`Outcome` domain contract and its fixtures so `all_donate` carries the complete
+accepted roster. The finalizer validates that exact match and refuses a mismatch;
+it does not reinterpret or repair scoring output while persisting it.
+
+Every result records its evidence cutoff, scoring version, integrity
+configuration version, and finalization time. Result rows are append-only. If
+D78 authorizes a correction, a new row supersedes the old one and matching
+release/replacement obligation events are appended; no historical verdict or
+obligation is rewritten.
+
+`integrity_score_unavailable` is not a fifth result kind. M7 always owns a
+complete integrity assessment, so that reason is an operational failure to
+retry and alert on. Persisting it as a terminal user outcome would turn a
+missing dependency into a product rule.
+
+**Why.** Lifecycle and outcome answer different questions. The row can be
+finished even when its honest answer is "nobody qualified" or "the agreed
+tie-break could not separate them." Keeping `finalized` as the lifecycle state
+lets ingest close once, while the result says whether settlement exists and why.
+It also prevents the two worst fallbacks: leaving an ended contest `active`
+forever or manufacturing a winner merely to reach a terminal state.
+
+**Rejected.** New top-level `void` and `inconclusive` contest statuses
+(duplicates result state across two places). Treating a void result as
+`cancelled` (confuses an earned outcome with a contest that never ran). Treating
+every non-winner result as void (hides the difference between "nobody qualified"
+and "the system could not decide"). Assigning group `all_donate` only to tied
+qualifiers (rewards a nonqualifier for failing).
+
+**Revisit if.** A future contest format legitimately has several winners. It
+should add a new result kind and an explicit obligation mapping rather than
+overload `winner`.
+
+### D76. Grace closes ingest; peer review and adjudication are separately bounded
+
+**What.** The six-hour value returned by `app.ingest_grace_period()` remains the
+earliest possible finalization time. Evidence may arrive until that instant,
+and no result is fixed before it. Quarantine review never shortens or reopens
+ingest.
+
+Before the absence of a quarantine can permit finalization, the trusted path
+serializes with ingest, runs and persists one complete versioned integrity
+assessment over the frozen evidence, and materializes every quarantine that
+assessment requires. A failed or incomplete assessment retries and alerts; zero
+rows is meaningful only after successful completion and never counts as a clean
+result by itself.
+
+Eligible peers may review as soon as a quarantine exists and D77's bounded facts
+are available, including while the contest is live. Its peer deadline is 72
+hours after the later of grace close and that quarantine's creation, so early
+review is useful and a quarantine materialized after grace still receives a full
+window. Finalization may proceed only after grace, successful assessment, and
+approval or explicit operator clearance for every quarantine. A quarantine that
+reaches `rejected` escalates immediately; one still `pending` at its peer
+deadline escalates then. Neither state changes `contest_evidence`, and neither
+silence nor a timer means approval.
+
+Escalation creates an append-only adjudication request for a platform operator
+and a seven-day operator deadline measured from the later of grace close and
+escalation. The adjudicator may explicitly clear the gate, using the existing
+evidence as recorded, or declare the contest `inconclusive` because the evidence
+cannot safely support settlement. The adjudicator may not delete the bucket,
+substitute a value, or pick a winner. An early clearance still cannot bypass
+grace or the complete assessment. If the operator deadline passes unanswered,
+M7 finalizes the contest as `inconclusive` with reason `review_timeout` and
+creates no obligations.
+
+The peer and operator durations are named server configuration, like the ingest
+grace period, rather than copied constants in a worker. Pending timezone-change
+consent is different: if it never reached approval there is no applied epoch,
+so it neither extends finalization nor changes scoring.
+
+**Why.** Finalizing at the six-hour boundary would give a last-second snapshot
+no meaningful review. Waiting forever would let an opponent or an absent
+reviewer hold every other participant in an active contest indefinitely.
+Auto-approving would defeat the fail-closed property D60 exists to provide.
+Bounded peer review followed by independent adjudication gives silence an exit
+without giving it evidentiary force, and the final fallback says the honest
+thing: the system could not verify a settlement-grade result.
+
+Immediate escalation on rejection also avoids making a rival's vote a power to
+void the contest unilaterally. The immutable vote remains part of the audit
+trail, but a separate authority owns its consequence.
+
+**Rejected.** Finalizing exactly at grace close despite pending review (no real
+review opportunity). Timeout-as-approval (silence becomes consent). Automatic
+void on the first rejection (one rival controls the outcome). Unbounded staff
+review (moves the indefinite wait one queue downstream). Excluding rejected
+evidence and rescoring (creates the second admissibility rule D60 rejected).
+
+**Revisit if.** Production response data shows 72 hours is too short for peer
+review or seven days is operationally unrealistic. Change the named durations,
+not the state semantics.
+
+### D77. Standings belong to accepted participants, with integrity detail revealed by role and phase
+
+**What.** Live and final standings are readable only by accepted participants
+in that contest and by the trusted finalization/adjudication service. An invite,
+friendship, shared group, or public profile is not standings access. Access
+survives a later block and, after pseudonymization, continues for the remaining
+accepted participants because neither action may hide the record an obligation
+rests on.
+
+The participant surface is deliberately layered:
+
+- While live, every accepted participant sees ranks, progress, qualification
+  state, whether a review is required, and a prominent `provisional` label.
+  They see their own exact integrity score, flags, and supporting detail. For a
+  rival they see neither exact deductions nor raw flag evidence before the
+  evidence window closes. As soon as a quarantine exists, an eligible reviewer
+  may see only the claim they must judge—participant, metric, bucket, value,
+  provenance class, recorded time and lag, rule/version/threshold, and revision
+  history—and may vote even before contest end. They do not receive coordinates,
+  device or source identifiers, or unrelated flags.
+- From contest end through ingest grace and D76 review, the same result remains
+  `provisional`, with an `awaiting_ingest` or `under_review` reason. Grace close
+  does not reveal rival details by itself; the bounded reviewer access above
+  continues only while that review requires it.
+- Once final, every accepted participant sees the exact totals, qualification,
+  tie-break inputs, integrity score, configuration versions, and bounded
+  rule-level rationale that produced the result. That is enough to explain and
+  dispute the verdict.
+- Raw coordinates, device identifiers, attestation material, donation receipts,
+  third-party source identifiers, and private adjudicator notes are never part
+  of a rival's standings response. The subject may inspect their own raw records
+  while they remain inside D81's retention window, then only the retained
+  aggregate and adjudicated facts; an authorized adjudicator may inspect what
+  the case requires.
+
+M7's standings response is the canonical client read surface. Existing broad
+rival access to audit tables must be narrowed where it would bypass these
+phase- and role-specific disclosures. A live ordering is presentation only and
+must not be described as a predicted winner.
+
+**Why.** A participant must be able to audit the rule that may make them donate,
+but live anti-cheat details are also a tuning oracle: they show exactly which
+behavior changed an integrity tie-break while there is still time to submit
+evidence. The phased surface preserves final explainability without publishing
+a health timeline, a location trail, or a receipt to a group. Restricting the
+audience to people who accepted also preserves M3's rule that an unanswered
+invitation cannot buy access to another person's activity.
+
+**Rejected.** Public or group-wide standings (publishes health-backed pledge
+terms beyond the people who accepted them). Any roster row as authorization
+(includes declined and lapsed invitations). Full rival integrity detail while
+live (a gaming and harassment surface). A final result with no rationale
+(cannot be meaningfully disputed). Raw location in standings (never necessary
+to render rank or explain a derived check-in result).
+
+**Revisit if.** GameTime deliberately launches public leagues. That requires a
+new consent and redaction model; widening this policy is not enough.
+
+### D78. Disputes pause consequences and are resolved by an independent, audited authority
+
+**What.** There are two user-filed scopes:
+
+- any accepted participant may dispute a contest result event whose D78
+  `user_filing_deadline` is open; and
+- the debtor, winner, or other D74-authorized challenger may dispute a pledge
+  claim, claim expiration, confirmation, default, release, or reinstatement
+  event whose `user_filing_deadline` is open.
+
+An initial challengeable event records a deadline seven days after its durable
+notification intent. Events declared user-terminal below record no new deadline;
+the receipt-timeout confirmation exception is also explicit below. Storing the
+nullable deadline on the event makes authorization depend on the decided
+lineage, not on a caller reconstructing which seven-day rule applies.
+
+A platform operator may open a case for a systemic error only while the evidence
+required for that scope remains inside D81's applicable raw-evidence retention
+window and its persisted `operator_open_until` has not passed. Permanently
+retained aggregate or adjudicated facts do not keep that window open. The
+operator acts through an explicit adjudicator authorization and a guarded RPC,
+may not be a party to the case, and never receives direct UPDATE rights on
+results, obligations, claims, or evidence.
+
+Disputes are append-only event streams with a 14-day adjudication deadline from
+filing:
+
+`filed -> under_review | withdrawn | timed_out | superseded`
+
+`under_review -> upheld | denied | withdrawn | timed_out | superseded`
+
+A filer may withdraw their own support before adjudication; the case becomes
+`withdrawn` only after the filing window closes, every user filer has withdrawn,
+and no operator has adopted it. Until then another eligible user may join, and a
+support-free case cannot be adjudicated unless an operator adopts it. Every
+challengeable event has an immutable version. Exactly one user case may ever
+exist for the same `(scope, target, event_version)`: a later eligible filer
+joins it, and no participant may refile after its terminal decision. An
+operator report adopts that case while it is unresolved. After it closes, at
+most one separately keyed operator-origin case may target that event version
+while raw evidence remains. Any case opened before the event's user filing
+deadline remains open and joinable until that deadline, regardless of who opened
+it, and cannot publish a terminal decision earlier. An eligible filer joining an
+operator-origin case consumes the same single user opportunity rather than
+creating another case. No two cases for the same challenged event version may be
+unresolved at once. A correction creates a new event version rather than
+reopening either case. Identical retries are idempotent.
+
+A confirmation recorded while its claim deadline is still open inherits that
+deadline rather than resetting seven days. A receipt-backed claim that
+auto-confirms after surviving the deadline, and a winner acknowledgement by the
+only ordinary counterparty, record no second deadline. A later provider
+confirmation with no open claim window is a materially new event version and
+gets one user deadline.
+
+Obligations remain visible but non-actionable during the initial result-dispute
+window. If no result dispute is filed, they become actionable when that window
+closes and D74 starts their 30-day due clock. A result dispute keeps every
+obligation from that result non-actionable until both the original window has
+closed and every timely case is resolved.
+
+A later operator-opened result case makes every affected obligation
+non-actionable and pauses its due, claim, default, and reliability clocks. If
+the result remains unchanged, actionability is restored and all clocks resume
+with the union of paused intervals added. If it is superseded, release and
+replacement events own the new schedule. Likewise, a denied or withdrawn timely
+result dispute makes its obligations actionable at the later of the original
+window close or case resolution and due 30 days later.
+
+Every challengeable obligation event that would add, replace, or remove a
+reliability contribution remains provisional throughout its seven-day filing
+window. It does not change the published score until the window closes
+uncontested or its case resolves. During review, that obligation keeps its last
+terminal contribution—or none—and the profile is marked `under_review`;
+unrelated terminal contributions continue to recompute normally. A newly
+recorded default therefore cannot lower a score, and a contested release cannot
+inflate one, before the right to challenge it is usable.
+
+Filing an obligation dispute also pauses that obligation's remaining due clock,
+automatic confirmation, default, and other future transitions. A denied or
+withdrawn dispute resumes each clock with the unioned elapsed pause added,
+rather than consuming the user's window while the platform reviewed it.
+
+A result dispute is parent to any open dispute on one of its obligations. The
+obligation case may collect evidence, but cannot resolve until the result case
+does, and its 14-day adjudication clock pauses during that parent case. If a
+superseding result releases or replaces the obligation, the child case closes
+as `superseded` without a reliability effect. Paused time is the union of open
+intervals, not a sum per filing, so overlapping cases can never extend a
+deadline twice.
+
+Upholding a result dispute authorizes only a deterministic rerun from the frozen
+evidence or an `inconclusive` superseding result with released obligations. An
+adjudicator never types in a winner. A `review_timeout` result can be rerun to a
+settlement-bearing result only if the D78 adjudicator first appends an explicit
+D76 clearance for every still-gated quarantine; otherwise it remains
+`inconclusive`. The clearance changes review state, not evidence.
+
+Upholding an obligation dispute may confirm or reject a claim, or release an
+obligation for a documented exception. If an erroneous release is successfully
+challenged, the resolution appends a reinstatement or replacement obligation
+that becomes actionable at case resolution when user-terminal, or after any user
+window granted to an operator-origin correction closes and every timely case
+resolves. It is due 30 days after that actionability instant; the resolution
+never rewrites the release or creates a retroactive default. A rejected claim can
+be replaced while time remains; if its adjusted due time has passed, the
+obligation defaults. Every effect is a new result or obligation event, never an
+edit.
+
+A superseding result emits a durable decision notification. A result produced
+by resolving a result case with a user filer is user-terminal and does not open
+a second seven-day result window; appeals are not a launch feature. A
+materially different superseding result produced by an operator-opened systemic
+case with no user filer is a new event version and receives one user window,
+even when an older version had a user case. That is review of the operator's new
+action, not an appeal of the earlier decision. Replacement obligations wait
+until the applicable window or case closes, then receive a fresh 30-day due
+schedule.
+
+The same per-event-version rule applies to obligation decisions. A confirmation,
+claim rejection, release, reinstatement, default resolution, or timeout release
+produced by a case with a user filer is user-terminal and records no new
+`user_filing_deadline`. A materially different operator-origin correction with
+no user filer is a new event version and receives one user window. A replacement
+claim containing materially new, non-reused evidence is likewise a new claim
+event and receives D74's ordinary challenge window; resubmitting the same
+evidence is an idempotent retry, not an appeal.
+
+If no adjudicator resolves a case within 14 days, `timed_out` ends it
+fail-closed. A result becomes `inconclusive` and its obligations are released;
+an obligation is released without positive or negative reliability credit.
+This is an operator-severity event and notification, not approval of either
+party's factual claim.
+
+Filing, withdrawing, or losing a dispute has no reliability penalty. Only the
+terminal uncontested or adjudicated obligation state contributes under D79,
+which avoids discouraging a participant from reporting a real error.
+
+**Why.** A winner is an interested party and can acknowledge evidence, but
+cannot be the final authority when the evidence is contested. The same is true
+of the contest creator. A separate, auditable operator is the smallest authority
+that works for evidence fraud, engine defects, and genuine hardship without
+giving either side a veto. Pausing consequences makes the right to dispute real;
+a score that falls or a pledge that defaults during review is already a
+punishment even if the filer later wins.
+
+**Rejected.** Winner or creator adjudication (conflicted). Majority vote by the
+contest roster (popularity decides a financial reputation fact). Mutable
+`dispute_status` and corrected result rows (erase the audit trail). Disputes
+that do not pause deadlines or reliability (the harm happens before the answer).
+An adjudicator selecting a winner (replaces the agreed scoring engine with human
+judgment). Unbounded adjudication (lets a filed case freeze consequences
+forever). A separate case per filer (competing verdicts and double-counted
+pause time).
+
+**Revisit if.** Case volume justifies a second appeal tier. An appeal must still
+append to the same history and preserve the no-manual-winner rule.
+
+### D79. Reliability measures confirmed pledge behavior, not popularity or response speed
+
+**What.** Launch reliability is obligation-only and versioned as
+`pledge-reliability-v1`. For each obligation on which the profile is the debtor:
+
+- confirmed on-time honor contributes `1`;
+- confirmed late honor contributes `0.5`; and
+- a current default contributes `0`.
+
+Released obligations and obligations from void or inconclusive results do not
+enter the denominator. A contribution becomes score-bearing only when D78's
+filing window closes uncontested or its case reaches a terminal decision. Until
+then, the obligation retains its prior score-bearing contribution, if any. An
+existing default therefore remains `0` while a late claim is pending; if
+confirmed late honor becomes terminal, the current contribution becomes `0.5`.
+The append-only history still shows both events.
+
+Every score-bearing obligation has equal base weight regardless of dollar
+amount, then receives recency weight with a 365-day half-life from its adjusted
+due time:
+
+`elapsed_days = max(0, as_of - adjusted_due_at) in UTC seconds / 86,400`
+
+`weight = 0.5 ^ (elapsed_days / 365)`
+
+`score = round(100 * sum(weight * contribution) / sum(weight))`
+
+`as_of` is one transaction-stable server timestamp captured for the complete
+calculation, not a client clock or one clock read per row. The canonical server
+evaluator uses fractional elapsed days, returns `calculated_at = as_of` with the
+formula version, and is the only implementation; clients display its result
+rather than recomputing it. Fixtures use a fixed `as_of`.
+
+A history with fewer than three score-bearing obligations displays `Unrated`
+plus that count instead of the numeric score, not a misleading perfect
+percentage.
+The calculation keeps full stored precision until the final expression, clamps
+to 0–100, and rounds once to the nearest whole point with an exact half rounded
+up. Wherever a profile is already visible, its score, rating state, and
+score-bearing-obligation count are visible; the underlying history remains
+limited to its parties and adjudicators.
+
+The half-life compares outcomes by due-time recency; it is not calendar-time
+forgiveness. Once every included due time is in the past, time passing alone
+multiplies all weights by the same factor and cannot change the score. An older
+outcome matters less only relative to a newer score-bearing outcome.
+
+Declining an invitation, letting one lapse, missing a quarantine vote, filing a
+dispute, and losing a contest do not affect this score. Those facts may support
+a separately named responsiveness feature later, but mixing them into pledge
+reliability would make a social refusal look like an unpaid donation.
+
+**Why.** Confirmation semantics and reliability must describe the same event.
+The formula rewards doing what was pledged, gives partial rather than full
+credit for eventually curing a default, and makes older history less influential
+relative to newer behavior without erasing it. Equal obligation weights prevent
+a large stake from turning the score into a wealth measure. The three-obligation
+display threshold makes a new or barely tested account visibly different from a
+long reliable history without inventing a hidden prior.
+
+**Rejected.** Self-attested claims in the numerator (self-awarded reputation).
+Amount weighting (wealth dominates behavior). A lifetime unweighted ratio (one
+old default brands a person forever). Starting every new account at 100 (looks
+proven before any pledge). Invitation and review response in the same number
+(conflates responsiveness with donation behavior).
+
+**Revisit if.** Production data supports a calibrated half-life, minimum sample,
+or late-honor credit. A change creates a new formula version and never changes
+what an old persisted result meant.
+
+### D80. M7 writes durable notification intents; M8 owns delivery
+
+**What.** M7 owns a transactional, append-only notification outbox. A business
+transition and its notification intent commit together, with a semantic
+idempotency key per event, recipient, and reminder stage. M8 owns APNs tokens,
+authorization, presentation, retries, and device delivery. Deadlines use server
+timestamps and never depend on whether Apple reports a push as delivered.
+
+M7 emits intents for:
+
+- contest invitation, activation/cancellation, and final result;
+- quarantine review requested, reminder, escalation, and resolution;
+- timezone consent requested, reminder, and resolution;
+- obligation created, actionable, due reminder, released or reinstated, and
+  default;
+- pledge claim submitted, challenge deadline, expiration, acknowledgement,
+  dispute, and confirmation; and
+- dispute filed, adjudication reminder, status changed, resolved, and timed out.
+
+The outbox payload contains an event type and opaque entity identifiers, not
+health totals, location, integrity allegations, receipt contents, or dispute
+notes. The client fetches authorized detail after opening the app. In-app inbox
+state can therefore share the same event ledger even when push is disabled.
+
+**Why.** Invitation, review, consent, and pledge flows all require another human
+to act. If each feature calls APNs directly, a transaction can commit while its
+only prompt is lost, and retries can send duplicates. The outbox makes
+action-required state queryable and delivery replaceable while preserving the
+M7/M8 boundary. Generic push text also keeps sensitive activity and donation
+facts off lock screens.
+
+**Rejected.** Direct APNs calls inside settlement transactions (split-brain
+failure and no device layer yet). Client-scheduled reminders (disappear on
+reinstall and trust the phone clock). Push delivery as a deadline precondition
+(an external best-effort system controls correctness). Sensitive values in the
+payload (lock-screen disclosure).
+
+**Revisit if.** A second channel such as email is added. It should consume the
+same outbox rather than create another source of business events.
+
+### D81. Account deletion pseudonymizes the actor; it does not erase an agreement
+
+**What.** Authentication identity and durable contest identity become separate
+lifetimes. One guarded, service-only deletion RPC locks the actor and its
+transitionable workflows, creates the scoped capability secrets described below,
+records only their hashes, performs every lifecycle/outbox/revocation change,
+pseudonymizes the stable actor, and removes the auth principal in one database
+transaction. All of it commits or none of it does; the successful response is
+the one opportunity to return the capability plaintexts.
+
+Pseudonymization records `deleted_at`, resets the profile timezone to `UTC`,
+replaces the handle with a random opaque internal tombstone value that is not
+derived from the UUID, replaces the display name with `Deleted member`, and
+removes the avatar, push tokens, friendships, group memberships, and blocks.
+Every authenticated policy rejects an actor with `deleted_at` even if an
+already-issued JWT has not expired. Discovery and `find_profile_by_handle`
+exclude deleted actors. The former normalized handle's plaintext is discarded,
+but a server-keyed digest reserves it against later impersonation for as long as
+the tombstone remains; registration compares digests without exposing the
+reservation. The stable UUID is never reassigned to a new account.
+
+This is deliberately called pseudonymization, not anonymity: someone who shared
+a contest can still infer which former participant the tombstone represents,
+while users outside that retained history cannot discover it.
+
+Deletion first resolves pending participation in the same transaction. A
+pending contest created by the departing actor is cancelled with the existing
+`creator_cancelled` reason and its invitations lapse. In another creator's
+pending contest, the departing actor's accepted row becomes `withdrawn`, while
+an unanswered invitation becomes `lapsed`. Those lifecycle changes and their
+D80 intents are written before auth removal inside the same transaction and
+commit with it. No deleted actor can therefore cross the activation boundary
+later; an actor whose contest is already active receives the retained access
+described below.
+
+Accepted roster rows, results, obligations, claims, dispute events, and immutable
+review votes retain that pseudonymous actor UUID. An outstanding obligation is
+not released merely because its debtor deleted their account; it follows the
+same due and dispute rules, while remaining counterparts see only the tombstone
+identity. Deleting during an active contest revokes further authenticated
+evidence ingest but does not withdraw the accepted stake; the result and an
+obligation may still follow. Deletion is not blocked by either state, and the
+confirmation screen must explain both consequences before the account is
+removed.
+
+Deletion serializes with activation, finalization, and settlement event writes
+so a workflow cannot cross one of those boundaries between the access check and
+auth removal. Every active contest and every finalized contest lineage still
+inside a result, obligation, or D78 operator-open window gets a high-entropy
+contest-lineage capability covering its current and later results, obligations,
+claims, and disputes. An existing standalone obligation or dispute not already
+covered gets an equally scoped case capability. This includes a `void` or
+`inconclusive` result still open to dispute and a winner who may later need to
+acknowledge a claim.
+
+Plaintext is returned once and only its hash is retained. The capability exposes
+the durable event timestamps, the subject's own raw records while D81 still
+retains them, and D77/D74-redacted result, rationale, obligation, claim,
+receipt-preview, and case facts needed for that workflow. When the deleted actor
+is the debtor, it may submit a D74 pledge claim, allocate eligible receipt value,
+and append claim evidence. It may also submit an authorized result or obligation
+dispute, join its shared case, append case evidence, withdraw its own case
+support, and acknowledge or challenge a claim when D74 would have authorized
+the actor. It cannot restore authentication, read a profile, enumerate records
+outside its scope, ingest new contest evidence, or enter a new contest. It
+expires only when no covered workflow is open and the persisted D78 operator
+cutoff has closed, so a later systemic correction cannot create an unreachable
+obligation. No push channel survives deletion, so the capability holder must
+poll and server deadlines continue. Losing or declining this capability does
+not block deletion, but the product warns that no later action will be possible
+without it.
+
+Sensitive raw material follows minimization rather than the tombstone forever.
+Launch policy `raw-evidence-retention-v1` starts only after the relevant result
+or obligation is user-terminal and all child challenge and dispute cases are
+closed:
+
+- exact coordinates and unredacted location samples are deleted after 30 days;
+- raw hourly metric values, source-identifier history, per-contest App Attest
+  public-key and counter observations, and opaque App Attest receipts are
+  deleted after 90 days; and
+- donation-receipt objects are deleted after 90 days.
+
+At user-finality the server persists `operator_open_until` per contest or
+obligation scope as the latest deletion deadline among the raw objects that can
+support that scope. Paused clocks and scoped holds update that cutoff
+transactionally. Case admission checks both the cutoff and the required
+evidence; permanently retained aggregates never extend it. A lineage capability
+uses the maximum cutoff across its covered scopes and remains valid while any
+such cutoff or workflow is open.
+
+An active device registration's current public key and counter are operational
+state, not historical evidence, and remain until the device is revoked,
+replaced, or its account is deleted. Historical pruning must never remove that
+active state. Account deletion revokes each registration in the same transaction
+without cascading its evidence. After revocation, per-contest material remains
+until the last applicable contest clock expires. An open finalization,
+challenge, or dispute pauses the relevant clock. A receipt allocated across
+obligations starts its 90-day clock only after the latest allocation is
+user-terminal and all of its cases are closed. A verified legal or provider
+requirement may create a logged, scoped hold with an expiry; changing these
+defaults requires a new policy version, not an unrecorded exception.
+
+Before a live device row or raw observation can be removed, its current cascade
+must be replaced. Historical ingest, quarantine, and check-in records retain
+only the attested or adjudicated fact, assertion count, payload digest, and
+non-reversible key fingerprint needed for audit. Deleting a registration must
+never cascade through an ingest batch, metric snapshot, quarantine, check-in, or
+result. The accepted roster, immutable result and aggregate totals,
+configuration versions, receipt digest, adjudicated facts, and retention events
+remain so contest and reliability history do not change.
+
+The M7 migration must replace today's `auth.users → profiles →
+contest_participants` cascade and the device-key evidence cascades with this
+explicit pseudonymization path before any durable result can exist.
+
+**Why.** Keeping the current cascade would make account deletion the cheapest
+way to erase a losing pledge and could change a finalized roster underneath its
+result. Refusing deletion forever is not acceptable either. A pseudonymous
+durable actor preserves the minimum relationship needed to explain history
+without retaining a login or a discoverable social identity. Separating bulky,
+sensitive evidence from the small adjudicated fact also avoids treating
+append-only as a reason to retain every raw byte forever. A scoped case
+capability preserves the ability to finish an existing pledge without quietly
+keeping the deleted social account alive.
+
+**Rejected.** Cascading deletion through contest history (rewrites agreements
+and obligations). `ON DELETE RESTRICT` while any contest exists (effectively no
+account deletion). Keeping the old handle and avatar on a disabled profile
+(still personal and discoverable). Releasing every open pledge on deletion
+(makes deletion an exit from a loss). Retaining exact coordinates and receipts
+for the life of the tombstone (unnecessary sensitive data). Deleting a device
+registration through today's cascades (erases the evidence and review history
+the result needs). Keeping a full auth session solely for open cases (the
+account was not actually deleted).
+
+**Revisit if.** A verified legal or provider retention requirement demands a
+different raw-evidence period. That changes the retention schedule, not the
+pseudonymous result and obligation model.
+
 ---
 
 ## Resolved history and decisions still deferred
 
 Recorded so they are not silently made later. Resolved items are retained as
-history. Remaining entries state a working default when one exists; the audit
-section explicitly labels decisions that have no safe default. Each becomes its
-own numbered entry above when it is implemented.
+history. Remaining entries state a working default when one exists. The audit
+section retains the gaps it surfaced and points to the numbered decisions that
+resolved them.
 
 Five entries were resolved by M2 and now have their own decisions above: the
 tie-break menu (D22's enum, declared at creation, defaulting to integrity
@@ -2044,30 +2764,38 @@ producer and geofence/workout signals (D63–D66); D67–D70 record hardening fo
 by the implementation-plan audit, and M6.5 adds the receipt and hosted-key
 boundaries in D71–D72.
 
-- **Quarantine and group approval (resolved by D60).** A duel needs its opponent;
-  a group needs a strict majority of other accepted participants. Silence stays
-  pending. The row remains admissible and visible; M7 fails closed by refusing
-  finalization while review is unresolved, not by silently removing evidence.
-- **The ingest grace period (M5/M7).** Six hours after `ends_at`, as
+M7.1 resolved the settlement product contract before schema work: pledge
+confirmation and deadlines (D74), explicit outcomes and obligation mappings for
+contests that ran (D75), bounded quarantine review (D76), standings disclosure
+(D77), disputes (D78), reliability (D79), notification ownership (D80), and
+durable pseudonymization (D81).
+
+- **Quarantine and group approval (resolved by D60 and D76).** A duel needs its
+  opponent; a group needs a strict majority of other accepted participants.
+  Silence stays pending and the row remains admissible and visible. At the
+  bounded deadline, M7 escalates rather than approving or silently removing
+  evidence.
+- **The ingest grace period (resolved by D76).** Six hours after `ends_at`, as
   `app.ingest_grace_period()` (D43). It is the one tunable number M3 put in SQL,
   because it gates whether a row may exist, and it trades a slow syncer's last
   day against the width of the window in which somebody who already knows they
   lost can still write into the hours they lost it in. M7's finaliser must read
-  the same function rather than its own copy. Default: six hours, narrowed
-  further by M5's quarantine rather than by shortening it.
+  the same function rather than its own copy. Peer review may begin earlier, but
+  its deadline is anchored no earlier than that boundary and never shortens or
+  reopens ingest.
 - **Third-party source reputation (resolved by D61).** `third_party` provenance
   stays admissible. A versioned reviewed allow-list is reputation-clean;
   unrecognized, missing, and malformed identifiers receive tunable, capped
   integrity penalties, and identical retries collapse to the same signal.
-- **Retention on finalized contests (post-M7).** The ledger is one row per
-  observation per source per hour, which is the right grain for evidence and a
-  lot of rows for a contest nobody will dispute again. Nothing prunes it. The
-  answer is retention on finalized contests, not overwriting live ones (D35),
-  and it needs settlement to exist first so that "nobody will dispute this
-  again" is a state the schema can name.
-- **Reliability score formula (M7).** Proposed: a decayed ratio of confirmed
-  settlements to total obligations, so one old default does not brand someone
-  permanently.
+- **Retention on finalized contests (resolved by D81; implementation in M7).**
+  The append-only ledger remains intact while a result can change. After
+  user-finality and closed cases, `raw-evidence-retention-v1` removes exact
+  location after 30 days and raw metric/source plus device-attestation material
+  after 90 days; donation-receipt objects likewise expire 90 days after
+  obligation finality, while aggregate and adjudicated facts remain.
+- **Reliability score formula (resolved by D79).** Equal-weight obligation
+  outcomes decay with a 365-day half-life; timely honor, late honor, and default
+  contribute 1, 0.5, and 0, with fewer than three results shown as `Unrated`.
 - **Integrity score scale (resolved by D58).** Starts at 100, subtracts
   per-flag configured points with per-rule caps, and floors at 0. It never
   auto-disqualifies evidence.
@@ -2078,16 +2806,10 @@ boundaries in D71–D72.
 - **Avatar storage bucket and its policies (M8).** `profiles.avatar_path` holds
   an object path, but no bucket exists yet and nothing writes it. The bucket
   and its RLS arrive with the client that uploads to it.
-- **Account deletion versus contest history (M7).** D34 fixed the half that was
-  broken — a departing account now clears the references that point at it, and
-  the contest survives. The half that remains open is `contest_participants`,
-  whose `user_id` cascades from `profiles`: deleting an account still erases that
-  person's roster rows, including the record of a settlement obligation.
-  `restrict` would preserve the evidence and make account deletion impossible for
-  anyone who has ever entered a contest, which is worse. Cascade is the current
-  default, consistent with `group_members` in M1. The real answer is probably to
-  anonymise the profile rather than delete the row, and it belongs with
-  settlement, where the obligation it would erase actually exists.
+- **Account deletion versus contest history (resolved by D81).** Authentication
+  is deleted and social identity is pseudonymized, while a non-discoverable actor
+  UUID preserves accepted rosters, results, obligations, and votes. Sensitive
+  raw evidence is removed after its active retention purpose ends.
 - **Timezone change mid-contest (resolved by D62).** The accepted zone remains
   the immutable base. A unanimously approved, server-timed event starts a
   prospective epoch; ingest and scoring preserve the earlier zone and drop only
@@ -2105,44 +2827,26 @@ boundaries in D71–D72.
 
 ### Surfaced by the 2026-07-25 plan audit
 
-Six more, and they are a different kind from the ones above: those were deferred
-on purpose with a default that works. These were never written down at all, and
-four of them have no working default — which is the reason they are recorded
-here rather than left for M7 to hit. See PLAN.md for the audit they came from.
+These gaps were recorded before M7 so its schema would not decide the product by
+accident. M7.1 resolves the product gaps in D74–D81. The next backend slice is
+the transactional notification outbox followed by outbox-backed scheduled
+activation; this work may proceed while M6.5 awaits external device proof, but
+no settlement-bearing finalization bypasses that gate.
 
-- **How a donation is confirmed (M7). No default.** D4 fixes the *shape* of a
-  settlement as `(winner, loser, amount, charity)` and the README is precise
-  that the app tracks whether a pledge was honored rather than moving money.
-  Nothing states how it becomes honored. The reliability-score entry above turns
-  on "confirmed settlements" and does not define confirmed. Self-attestation, a
-  receipt upload, the winner acknowledging receipt, a charity-side integration,
-  and a timeout are five different products with five different abuse surfaces,
-  and the anti-cheat programme of M3–M6 exists to protect the number this
-  decision defines. It has to be settled before the settlement schema, not
-  discovered by it.
-- **The terminal state for a contest that ran and cannot be decided (M7). No
-  default.** `contest_status` is `pending → active → cancelled | finalized`, and
-  `active → finalized` is the only forward edge out of `active`. D54's
-  `tie_break_inconclusive` and D51's void outcome have no status between them: as
-  the schema stands an inconclusive contest stays `active` forever, and a void
-  contest is `finalized` and indistinguishable from one that settled. D30's
-  self-voiding case is `cancelled` with `insufficient_participants`, which is a
-  different fact — that contest never ran.
-- **Whether review or the grace period bounds finalization (M7). No default.**
-  D43 gives six hours after `ends_at` in which a snapshot may still arrive; D60
-  requires M7 to refuse finalization while a quarantine review is unresolved.
-  Both are right alone. Together they need a stated order, because a quarantine
-  opened by a row written in the last hour of the grace window extends
-  finalization by however long a reviewer takes.
-- **What happens when a reviewer never votes (M7). No default.** D60 rejects
-  timeout-as-approval for the right reason and pairs it with "M7 must block
-  finalization on unresolved review", which leaves silence holding a contest open
-  indefinitely with no escalation for the person waiting. Proposed: unresolved
-  review at the grace deadline resolves the contest to void, since void is
-  already what happens when the evidence cannot decide — but it is a product
-  decision about whose contest gets cancelled by whose inattention, and it should
-  be made deliberately. D62's timezone consent has the same shape and fails
-  closed harmlessly: silence means the relocation does not happen.
+- **How a donation is confirmed (resolved by D74).** A claim needs provider
+  confirmation, winner acknowledgement, or receipt evidence that survives a
+  seven-day challenge. Self-attestation alone never awards reliability credit.
+- **The terminal state for a contest that ran (resolved by D75).** `finalized`
+  remains the lifecycle state. An append-only result distinguishes `winner`,
+  `all_donate`, `void`, and `inconclusive`, and only the first two create
+  obligations.
+- **Whether review or the grace period bounds finalization (resolved by D76).**
+  Peer review may begin when quarantine materializes, but grace always closes
+  ingest before finalization and each peer deadline is at least 72 hours after
+  grace, followed when needed by bounded independent adjudication.
+- **What happens when a reviewer never votes (resolved by D76).** Silence never
+  approves evidence. It escalates, and unanswered adjudication eventually
+  finalizes to `inconclusive` with no obligations.
 - **The scheduler (M7).** `app.activate_due_contests()` is the only thing that
   moves a contest to `active`, and nothing calls it — no `pg_cron` in
   `config.toml`, no scheduled function, no workflow. This is declared in the
@@ -2151,13 +2855,9 @@ here rather than left for M7 to hit. See PLAN.md for the audit they came from.
   no end-to-end path in a deployed environment, because every contest that M3's
   ingest, M5's integrity rules and M6's check-ins have ever run against was
   forced into `active` by test scaffolding. Default: none; it belongs at the
-  front of M7 rather than beside settlement, so the five milestones underneath it
-  get exercised against a contest that activated on its own.
-- **Where notifications live (M7/M8).** No milestone owns one, and four flows
-  need a specific person to take a specific action: M2's invitations, M5's
-  quarantine review, D62's timezone consent, and M7's settlement confirmation.
-  The invitation-reminder entry above is the only mention in this file and it
-  assumes a layer that does not exist. Default: nothing is delivered, which makes
-  the entry above and the reviewer-silence entry above both worse than they read.
-  APNs also needs an app target and a real device, which ties it to the
-  device-conformance work D46 still requires.
+  front of M7, immediately after the notification-outbox foundation, rather
+  than beside settlement. The milestones underneath it must be exercised
+  against a contest that activated on its own.
+- **Where notifications live (resolved by D80).** M7 transactionally records
+  generic, idempotent notification intents. M8 owns APNs credentials, delivery,
+  presentation, and retries; no deadline depends on push delivery.

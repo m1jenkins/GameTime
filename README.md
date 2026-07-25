@@ -1,20 +1,24 @@
 # GameTime
 
 An iOS social accountability app. Friends stake charitable donations against
-each other's personal goals; the loser donates an agreed amount to a charity the
-winner picks. No cash prizes, no payouts to users, no pots — the stake is a
-pledge, and the app tracks whether it was honored.
+each other's personal goals. Normally each loser donates an agreed amount to a
+charity the winner picked; a declared all-donate tie sends each accepted
+participant's stake to their own nomination. No cash prizes, no payouts to
+users, no pots — the stake is a pledge, and the app tracks whether it was
+honored.
 
 The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M6 complete; M6.5 implementation is ready for its real-device run.**
+**Status: M6 complete; M6.5 awaits device/staging and receipt proof; M7.1 decisions are complete.**
 The staging fixture, conformance-only iOS target, Apple-vector regression,
 receipt quarantine, and fail-closed hosted configuration are implemented. The
 remaining gate is to run the documented smoke test on a provisioned iPhone
 against the staging project and independently validate the captured PKCS#7
-receipt before settlement work begins.
+receipt before settlement implementation begins. The M7 result, pledge,
+dispute, reliability, notification-intent, retention, and pseudonymization
+contract is recorded in DECISIONS.md D74–D81; no M7 schema has been added yet.
 
 ---
 
@@ -236,7 +240,8 @@ select public.create_contest(
 select public.cancel_contest('<contest uuid>');
 
 -- Cron's entry point: opens contests that have come due if two people accepted,
--- voids the rest. Not callable by `authenticated`, deliberately — see D32.
+-- cancels the rest before opening. Not callable by `authenticated`,
+-- deliberately — see D32.
 select app.activate_due_contests();
 
 -- Active accepted participants may request a prospective relocation. Every
@@ -507,8 +512,9 @@ another participant's raw, failed, or trusted coordinate rows.
 `supabase/functions/_shared/scoring.ts` is the only implementation of who won
 (DECISIONS.md D3). It is a pure function — contest terms, the accepted roster,
 and the rows of `contest_evidence` in; standings and an outcome out. No I/O, no
-clock, no randomness, so a disputed contest re-scored years later gives the same
-answer.
+clock, no randomness, so the same frozen input always gives the same answer. M7
+persists the result and configuration versions before later retention may prune
+raw evidence.
 
 **A contest is pass/fail against its own terms, and the comparison is among those
 who passed.** Highest score does not win. This is what the cadence enum already
@@ -633,8 +639,11 @@ Flags never alter totals or qualification. A retroactive quarantine is durable
 review state beside the snapshot: the generated `is_admissible` value stays the
 same and `contest_evidence` still returns the value. In a duel, the opponent must
 approve; in a group, a strict majority of the other accepted participants must.
-Silence stays `pending`. M7 must block finalization on unresolved review rather
-than quietly apply a second evidence filter.
+Silence stays `pending`. M7 must block a settlement-bearing result until a
+complete integrity assessment exists and every quarantine is approved or
+explicitly cleared. Pending review and rejection without clearance follow D76's
+bounded escalation path to `inconclusive`; neither quietly applies a second
+evidence filter.
 
 Timezone consent is deliberately stricter than quarantine review because it
 changes the scoring contract rather than judging one claim: every other accepted
@@ -716,8 +725,8 @@ The product rationale remains in DECISIONS.md D2.
 
 ## Milestones
 
-This is the ledger of what is built. What comes next, which decisions M7 cannot
-start without, and what is in flight but not yet reflected here are in PLAN.md.
+This is the ledger of what is built. What comes next, the remaining
+implementation gates, and work not yet reflected here are in PLAN.md.
 
 - [x] **M0** — Scaffold, local Supabase, migration and test harness, CI
 - [x] **M1** — Schema and RLS for identity, friendships, groups
@@ -730,7 +739,10 @@ start without, and what is in flight but not yet reflected here are in PLAN.md.
 - [x] **M6** — Geofence check-ins, workout-overlap validation, trusted-location
       integrity inputs, and a restorable exact-byte client queue
 - [ ] **M6.5** — Real-device App Attest conformance against staging
-- [ ] **M7** — Scheduler, standings endpoint, finalization gates, settlement,
-      disputes, charity pledge lifecycle, and reliability
+- [x] **M7.1** — Settlement/finalization product contract (D74–D81; decisions
+      only)
+- [ ] **M7** — Scheduler, durable notification intents, standings endpoint,
+      finalization gates, settlement, disputes, charity pledge lifecycle, and
+      reliability
 - [ ] **M8** — iOS app target: auth, HealthKit, Core Location, App Attest,
-      notifications, persistence, and the SwiftUI product loop
+      APNs delivery, persistence, and the SwiftUI product loop

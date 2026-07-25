@@ -11,8 +11,8 @@ why. This file owns sequence, remaining work, and launch blockers.
 | M0–M4 | Complete | Scaffold, social graph, contests, attested metric ledger, deterministic scoring |
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
-| M6.5 | In progress — device gate | Harness and staging procedure implemented; physical-iPhone/staging execution remains |
-| M7 | Not started | Scheduling, standings, finalization, settlement, disputes, pledge lifecycle |
+| M6.5 | In progress — conformance gate | Harness and staging procedure implemented; physical-iPhone/staging proof and independent receipt validation remain |
+| M7 | Started — M7.1 complete | Product contract resolved in D74–D81; scheduler and implementation remain |
 | M8 | Not started | iOS app target and all device/framework integrations |
 
 M6's boundary is backend plus portable client core. It does not include live
@@ -91,50 +91,97 @@ PKCS#7 validation path is implemented and exercised.
 ## M7 — settlement and finalization
 
 M7 starts with decisions, then proves scheduling, then adds money-adjacent state.
+M7.1 is complete as a documentation/product-contract slice. M7.2's outbox and
+activation infrastructure may proceed while M6.5 awaits staging credentials and
+physical-device proof because it creates no settlement-bearing result. M6.5
+remains a hard gate before finalization or settlement is enabled.
 
-### 1. Resolve the product decisions first
+### 1. Resolve the product decisions first — complete
 
-- How a pledge becomes confirmed as honored: self-attestation, receipt evidence,
-  winner acknowledgement, charity integration, or a deliberate combination.
-- How a contest that ran but produced `void` or
-  `tie_break_inconclusive` is represented terminally.
-- How the six-hour ingest grace period interacts with unresolved quarantine
-  review, including what happens when a reviewer never responds.
-- Who may read live/final standings and how much integrity detail each role sees.
-- Who may file a dispute, within what window, which states it moves through, who
-  adjudicates it, and how an open or resolved dispute affects obligations and
-  reliability.
-- Which notification events M7 emits for invitations, review, timezone consent,
-  and pledge confirmation; M8 owns APNs delivery.
+- D74 combines provider confirmation, winner acknowledgement, and
+  receipt-plus-challenge; self-attestation alone never confirms a pledge.
+- D75 makes every contest that ran terminal through an explicit `winner`,
+  `all_donate`, `void`, or `inconclusive` result without fabricating a winner.
+- D76 allows bounded peer review as soon as quarantine materializes, anchors its
+  72-hour deadline no earlier than ingest-grace close, and sends unanswered
+  review through adjudication to `inconclusive`, never approval.
+- D77 limits standings to accepted participants and phases integrity disclosure
+  between provisional live views, self detail, and final rationale.
+- D78 gives affected participants a seven-day dispute window, an append-only
+  state machine, independent adjudication, and paused obligation/reliability
+  effects.
+- D79 fixes the versioned, obligation-only reliability formula.
+- D80 makes durable notification intents M7's responsibility and APNs delivery
+  M8's.
+- D81 fixes pseudonymized account deletion before either results or obligations
+  can leak the old cascade into schema design.
 
-### 2. Make activation real
+### 2. M7.2 — Make activation real
 
+- Build D80's transactional outbox first and retrofit invitations, timezone
+  consent, quarantine review, and activation/cancellation so each transition
+  commits with its durable intent.
 - Enable and configure the scheduler.
 - Call `app.activate_due_contests()` on a tested cadence.
-- Assert the installed schedule and idempotency in pgTAP.
+- Establish one idempotent scheduled-worker pattern and registry. Activation is
+  its first job; later M7 slices add finalization/review escalation, claim
+  expiration/confirmation/default, dispute timeout, reminder, and retention
+  jobs without inventing separate timer semantics.
+- Assert the installed schedule, transition/outbox idempotency, and cancellation
+  semantics in pgTAP.
 - Exercise metric ingest, timezone epochs, and check-ins against a contest the
   scheduler activated rather than a test-forced row.
 
 ### 3. Add the standings/finalization orchestrator
 
+- Implement D81's durable actor before the first result: replace the auth/profile
+  and device-key evidence cascades with pseudonymization and retained audit
+  digests; cover authored and accepted pending contests, active-contest
+  and challenge-horizon capabilities, profile-field clearing, one atomic
+  deletion RPC, case-capability authorization, persisted operator cutoffs,
+  versioned raw-data retention, and the guarded retention worker; prove deletion
+  cannot erase a roster, ingest batch, check-in, quarantine, or result, prune an
+  active device registration, or let a stale JWT authorize the tombstone.
 - Load `contest_evidence`, source reputation, timezone applied events,
   quarantine state, `contest_checkin_integrity`, and trusted location
   observations into the one TypeScript scoring/integrity pipeline.
-- Expose an authorized standings read surface.
-- Do not finalize before `app.ingest_grace_period()` closes.
-- Fail closed on unresolved review according to the decision above.
+- Update the scoring `Outcome` contract and fixtures so `all_donate` returns the
+  complete accepted roster. Reject `insufficient_participants` from an active
+  contest as an operational invariant failure.
+- Expose D77's phase- and role-authorized standings/review surfaces, and narrow
+  direct rival table access that would bypass their redaction.
 - Serialize finalization with both metric and geofence ingest so an in-flight
   request cannot commit evidence after the result is fixed.
+- Before interpreting zero quarantines as clean, persist a complete versioned
+  integrity assessment over the frozen evidence and materialize every required
+  quarantine. Do not finalize before `app.ingest_grace_period()` closes.
+- Implement D76's per-quarantine review deadline, early-rejection escalation,
+  grace-anchored adjudication deadline, explicit clearance, and terminal
+  `review_timeout`.
+- Add explicit adjudicator authorization, guarded operator queues/tools,
+  conflict checks, observability, and an on-call/SLA runbook for the D76/D78
+  deadlines. A schema deadline without an operated queue is not complete.
+- Persist explicit `winner`, `all_donate`, `void`, and `inconclusive` results;
+  only the first two may create obligations.
 - Persist the scoring and integrity configuration versions used for the result.
 
 ### 4. Add settlement, disputes, and reliability
 
-- Append-only winner/loser/amount/charity obligations.
-- Pledge-confirmation evidence plus the decided dispute filing window,
-  transitions, adjudication authority, and obligation effects.
-- Reliability score derived from the chosen confirmation semantics.
-- Account deletion/anonymization that preserves obligations and contest history.
-- Explicit void/inconclusive outcomes with no fabricated winner.
+- Append-only winner/loser/amount/charity obligations, plus D75's explicit
+  self-directed `all_donate` exception.
+- Pledge-confirmation evidence with D74's donation-time and receipt-allocation
+  validation, redacted challenger view, and decided confirmation paths.
+- D78's shared dispute cases, bounded adjudication, unioned pause intervals, and
+  append-only result/obligation effects, including release reinstatement and
+  nullable per-event filing deadlines plus one user adjudication opportunity per
+  result or obligation event version.
+- D79's versioned reliability score from score-bearing obligation outcomes;
+  challengeable changes remain provisional through their filing window and the
+  canonical server calculation returns its fixed `as_of`.
+- Extend D80's outbox to result, actionable-obligation, release, claim, default,
+  and dispute events and every deadline M7 owns.
+- Extend the shared scheduled-worker registry to claim confirmation/expiration,
+  defaults, dispute deadlines, reminders, and retention cutoffs.
 
 ## M8 — iOS product loop
 
@@ -163,7 +210,8 @@ privacy disclosures.
 | Production charity list | Production is intentionally empty; contest creation fails until EINs are verified |
 | App Attest root + real-device proof | Attested endpoints must not launch on the development bypass |
 | Staging environment | Device conformance and scheduled activation need a real target |
-| Notifications | Four flows require another person to act; silence otherwise stalls them |
+| Notifications | Action-required flows need a durable inbox and eventual delivery; deadlines cannot depend on push |
+| Adjudication operations | Review and dispute deadlines need authorized staffing, queues, alerts, and a tested SLA |
 | Observability | Rejected ingest, scheduler failures, and stuck reviews must be measurable |
 | Rate limiting | Signed-in callers can currently create avoidable endpoint load |
 | Privacy and abuse handling | Health, workout, and location data require disclosure, retention rules, and reporting paths |
