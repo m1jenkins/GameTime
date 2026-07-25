@@ -108,3 +108,104 @@ export function attestBypassEnabled(source: EnvSource = denoEnv): boolean {
 export function envFromRecord(record: Record<string, string>): EnvSource {
   return (key) => record[key];
 }
+
+// ---------------------------------------------------------------------------
+// M3 — attested ingest
+// ---------------------------------------------------------------------------
+
+/**
+ * The App ID Apple binds attestations to: `<teamId>.<bundleId>`.
+ *
+ * Assembled from the two halves rather than read as one string because those
+ * are the two values the Apple Developer portal actually shows, and a
+ * hand-concatenated third copy is a third thing to get wrong. The format check
+ * is deliberately loose on the bundle id — Apple permits a lot there — and
+ * strict on the team id, which is always ten alphanumerics.
+ */
+export function appAttestAppId(source: EnvSource = denoEnv): string {
+  const teamId = requireEnv("APPLE_TEAM_ID", source).trim();
+  const bundleId = requireEnv("APPLE_BUNDLE_ID", source).trim();
+
+  if (!/^[A-Z0-9]{10}$/.test(teamId)) {
+    throw new ConfigError(
+      `APPLE_TEAM_ID must be ten uppercase alphanumerics, got ${JSON.stringify(teamId)}`,
+    );
+  }
+  if (!/^[A-Za-z0-9.-]{1,200}$/.test(bundleId) || !bundleId.includes(".")) {
+    throw new ConfigError(
+      `APPLE_BUNDLE_ID does not look like a bundle identifier: ${JSON.stringify(bundleId)}`,
+    );
+  }
+
+  return `${teamId}.${bundleId}`;
+}
+
+/**
+ * Apple's App Attest root certificate, PEM, from configuration.
+ *
+ * Not compiled in, and that is a decision rather than laziness. A pinned root
+ * is the anchor the whole attestation chain hangs from: get its bytes wrong in
+ * the harmless direction and every attestation fails, get them wrong in the
+ * other and the server accepts a chain Apple never issued. Those bytes are
+ * published by Apple and are not something to reproduce from memory, which is
+ * the same reasoning D26 applied to charity EINs — a plausible-but-wrong value
+ * for a security anchor is worse than an absent one, because absent fails
+ * loudly.
+ *
+ * Absent, this throws, so a deployment that cannot verify attestations refuses
+ * to serve rather than quietly accepting them. See the owner action in
+ * DECISIONS.md.
+ */
+export function appAttestRootCertificate(source: EnvSource = denoEnv): string {
+  const pem = requireEnv("APP_ATTEST_ROOT_CA_PEM", source).trim();
+  if (!pem.includes("-----BEGIN CERTIFICATE-----")) {
+    throw new ConfigError(
+      "APP_ATTEST_ROOT_CA_PEM does not contain a PEM certificate block",
+    );
+  }
+  return pem;
+}
+
+/**
+ * Which App Attest environments this deployment will accept attestations from.
+ *
+ * A development attestation can be produced by a debug build on a device its
+ * owner fully controls, so accepting one in production defeats the point of
+ * asking. Permitted where no real contest data exists, refused in production
+ * whatever the flag says — the same shape as the bypass guard above, for the
+ * same reason.
+ */
+export function allowedAttestEnvironments(
+  source: EnvSource = denoEnv,
+): readonly ("development" | "production")[] {
+  const env = runtimeEnv(source);
+  const requested = boolEnv(
+    "APP_ATTEST_ALLOW_DEVELOPMENT",
+    env === "local" || env === "test",
+    source,
+  );
+
+  if (requested && env === "production") {
+    throw new ConfigError(
+      "APP_ATTEST_ALLOW_DEVELOPMENT is enabled in SUPABASE_ENV=production; " +
+        "a development attestation is not evidence of anything there",
+    );
+  }
+
+  return requested ? ["development", "production"] : ["production"];
+}
+
+/** The Data API endpoint and the key that reaches the ingest functions. */
+export function dataApiConfig(
+  source: EnvSource = denoEnv,
+): { url: string; serviceRoleKey: string } {
+  return {
+    url: requireEnv("SUPABASE_URL", source).replace(/\/+$/, ""),
+    serviceRoleKey: requireEnv("SUPABASE_SERVICE_ROLE_KEY", source),
+  };
+}
+
+/** The secret Supabase signs user access tokens with. */
+export function jwtSecret(source: EnvSource = denoEnv): string {
+  return requireEnv("SUPABASE_JWT_SECRET", source);
+}
