@@ -28,7 +28,15 @@ insert into public.profiles (id, handle, display_name) values
 create temporary table t_keys as
 select
   ('\x04' || repeat('a1', 64))::bytea as alice_key,
-  ('\x04' || repeat('b2', 64))::bytea as bob_key;
+  extensions.digest(('\x04' || repeat('a1', 64))::bytea, 'sha256') as alice_key_id,
+  ('\x04' || repeat('b2', 64))::bytea as bob_key,
+  extensions.digest(('\x04' || repeat('b2', 64))::bytea, 'sha256') as bob_key_id;
+
+-- Every assertion below is scoped to this suite's own rows. It runs against a
+-- database that has the seed applied, and the seed registers a device key of its
+-- own, so an unscoped `select ... from device_attestations` reads somebody
+-- else's. The README says this about assertions after `reset role`; it is just
+-- as true of any table the seed writes.
 
 -- ---------------------------------------------------------------------------
 -- Shape
@@ -99,18 +107,21 @@ select throws_ok(
 -- The counter
 -- ---------------------------------------------------------------------------
 select is(
-  (select sign_count from public.device_attestations),
+  (select sign_count from public.device_attestations
+   where key_id = (select alice_key_id from t_keys)),
   0::bigint,
   'a freshly registered key starts at counter zero'
 );
 
 select lives_ok(
-  $$ update public.device_attestations set sign_count = 7 $$,
+  $$ update public.device_attestations set sign_count = 7
+     where key_id = (select alice_key_id from t_keys) $$,
   'the counter moves forward'
 );
 
 select throws_ok(
-  $$ update public.device_attestations set sign_count = 6 $$,
+  $$ update public.device_attestations set sign_count = 6
+     where key_id = (select alice_key_id from t_keys) $$,
   '23001',
   null,
   'the counter cannot move backward'
@@ -121,22 +132,26 @@ select throws_ok(
 -- trigger also has to tolerate the updates that touch other columns. The
 -- strictly-greater rule is asserted in 110.
 select lives_ok(
-  $$ update public.device_attestations set sign_count = 7 $$,
+  $$ update public.device_attestations set sign_count = 7
+     where key_id = (select alice_key_id from t_keys) $$,
   'rewriting the counter to its current value is not itself a violation'
 );
 
 select lives_ok(
-  $$ update public.device_attestations set revoked_at = now() $$,
+  $$ update public.device_attestations set revoked_at = now()
+     where key_id = (select alice_key_id from t_keys) $$,
   'a key can be revoked without touching the counter'
 );
 
 select is(
-  (select sign_count from public.device_attestations),
+  (select sign_count from public.device_attestations
+   where key_id = (select alice_key_id from t_keys)),
   7::bigint,
   'and revoking left the counter where it was'
 );
 
-update public.device_attestations set revoked_at = null;
+update public.device_attestations set revoked_at = null
+where key_id = (select alice_key_id from t_keys);
 
 -- ---------------------------------------------------------------------------
 -- Frozen identity
@@ -146,7 +161,8 @@ update public.device_attestations set revoked_at = null;
 -- the missing grant cannot test.
 select throws_ok(
   $$ update public.device_attestations
-     set user_id = '22222222-2222-2222-2222-222222222222' $$,
+     set user_id = '22222222-2222-2222-2222-222222222222'
+     where key_id = (select alice_key_id from t_keys) $$,
   '23001',
   null,
   'a key cannot be handed to another account'
@@ -154,21 +170,24 @@ select throws_ok(
 
 select throws_ok(
   $$ update public.device_attestations
-     set public_key = (select bob_key from t_keys) $$,
+     set public_key = (select bob_key from t_keys)
+     where key_id = (select alice_key_id from t_keys) $$,
   '23001',
   null,
   'the public key behind a key id is immutable'
 );
 
 select throws_ok(
-  $$ update public.device_attestations set environment = 'development' $$,
+  $$ update public.device_attestations set environment = 'development'
+     where key_id = (select alice_key_id from t_keys) $$,
   '23001',
   null,
   'a production key cannot be relabelled as a development one'
 );
 
 select throws_ok(
-  $$ update public.device_attestations set attested_at = now() - interval '1 year' $$,
+  $$ update public.device_attestations set attested_at = now() - interval '1 year'
+     where key_id = (select alice_key_id from t_keys) $$,
   '23001',
   null,
   'the attestation timestamp cannot be backdated'
@@ -186,14 +205,15 @@ select has_function('public', 'register_device_key',
 select lives_ok(
   $$ select public.register_device_key(
        '11111111-1111-1111-1111-111111111111',
-       (select extensions.digest(alice_key, 'sha256') from t_keys),
+       (select alice_key_id from t_keys),
        (select alice_key from t_keys),
        'production') $$,
   're-registering your own key is idempotent'
 );
 
 select is(
-  (select sign_count from public.device_attestations),
+  (select sign_count from public.device_attestations
+   where key_id = (select alice_key_id from t_keys)),
   7::bigint,
   'and it does not rewind the counter, which would undo the replay defence'
 );
@@ -201,7 +221,7 @@ select is(
 select throws_ok(
   $$ select public.register_device_key(
        '22222222-2222-2222-2222-222222222222',
-       (select extensions.digest(alice_key, 'sha256') from t_keys),
+       (select alice_key_id from t_keys),
        (select alice_key from t_keys),
        'production') $$,
   '23505',
@@ -212,7 +232,7 @@ select throws_ok(
 select throws_ok(
   $$ select public.register_device_key(
        '99999999-9999-9999-9999-999999999999',
-       (select extensions.digest(bob_key, 'sha256') from t_keys),
+       (select bob_key_id from t_keys),
        (select bob_key from t_keys),
        'production') $$,
   '42501',

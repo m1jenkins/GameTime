@@ -160,6 +160,142 @@ begin
     and user_id = 'b2222222-2222-2222-2222-222222222222'
     and status = 'invited';
 
+  -- -------------------------------------------------------------------------
+  -- M3 — a live contest with evidence in it
+  -- -------------------------------------------------------------------------
+  -- The contest above starts in two days, which means it has no finished hour
+  -- inside its window and therefore cannot hold any evidence. So there is a
+  -- second one, already running, purely so that `metric_snapshots` and
+  -- `contest_evidence` have something in them to click around in.
+  --
+  -- Its window is in the past, which create_contest() refuses (D25), so the row
+  -- is built directly with that trigger off. That is a seed convenience and not
+  -- a route a client has: 060_contests.test.sql is what proves the trigger
+  -- refuses a backdated window.
+  --
+  -- Both participants are in whole-hour zones on purpose. A bucket is aligned to
+  -- a whole hour in the participant's *own* zone (D36), so a seed that put
+  -- @cyclist in Asia/Kolkata would need :30-past buckets for him and on-the-hour
+  -- ones for @runner, which is the right behaviour and the wrong thing for a
+  -- fixture to be teaching.
+  alter table public.contests disable trigger contests_assert_future_window;
+
+  insert into public.contests (
+    id, title, created_by, metric, cadence, target_value,
+    stake_amount_cents, tie_break, starts_at, ends_at, max_participants
+  ) values (
+    'f7777777-7777-7777-7777-777777777777',
+    'Live Duel',
+    'a1111111-1111-1111-1111-111111111111',
+    'steps', 'daily', 8000, 1000, 'integrity_score',
+    date_trunc('hour', now()) - interval '2 days',
+    date_trunc('hour', now()) + interval '5 days',
+    2
+  )
+  on conflict (id) do nothing;
+
+  alter table public.contests enable trigger contests_assert_future_window;
+
+  -- The roster is built while it is still pending, because M2 freezes it the
+  -- moment the window opens (D29), and only then is it activated.
+  insert into public.contest_participants
+    (contest_id, user_id, status, invited_by, timezone, charity_id) values
+    ('f7777777-7777-7777-7777-777777777777',
+     'a1111111-1111-1111-1111-111111111111', 'accepted', null,
+     'America/New_York', 'e5555555-5555-5555-5555-555555555551'),
+    ('f7777777-7777-7777-7777-777777777777',
+     'b2222222-2222-2222-2222-222222222222', 'invited',
+     'a1111111-1111-1111-1111-111111111111', null, null)
+  on conflict do nothing;
+
+  update public.contest_participants
+  set status = 'accepted', timezone = 'Europe/Lisbon',
+      charity_id = 'e5555555-5555-5555-5555-555555555552'
+  where contest_id = 'f7777777-7777-7777-7777-777777777777'
+    and user_id = 'b2222222-2222-2222-2222-222222222222'
+    and status = 'invited';
+
+  update public.contests
+  set status = 'active', activated_at = now()
+  where id = 'f7777777-7777-7777-7777-777777777777'
+    and status = 'pending';
+
+  -- A device key for @runner. The public key is nonsense — nothing here does
+  -- elliptic-curve arithmetic — but the *shape* has to be right, because the
+  -- table holds key_id to the digest of public_key with a CHECK, and public_key
+  -- to an uncompressed P-256 point.
+  --
+  -- The byte pattern is 0x5e repeated, distinct from anything a suite uses. A
+  -- key id is the digest of its key, so a seed and a fixture that pick the same
+  -- filler bytes collide on the primary key — which is the seed breaking a test,
+  -- the one direction this file is supposed to make impossible.
+  perform public.register_device_key(
+    'a1111111-1111-1111-1111-111111111111',
+    extensions.digest(('\x04' || repeat('5e', 64))::bytea, 'sha256'),
+    ('\x04' || repeat('5e', 64))::bytea,
+    'development'
+  );
+
+  -- Through record_metric_batch() rather than by inserting rows, so the seed
+  -- takes the same path a client does and the fixtures cannot drift into a shape
+  -- the real path would refuse.
+  --
+  -- @runner's hour carries three sources at once, which is the case worth having
+  -- in front of anyone browsing: the watch and a third-party app both count and
+  -- add, and the hand-typed figure is stored and does not. Look at
+  -- metric_snapshots and then at contest_evidence for the same hour.
+  perform public.record_metric_batch(
+    'a1111111-1111-1111-1111-111111111111',
+    'f7777777-7777-7777-7777-777777777777',
+    '99999999-0000-0000-0000-000000000001',
+    extensions.digest('seed-runner-batch-1', 'sha256'),
+    now(),
+    jsonb_build_array(
+      jsonb_build_object(
+        'metric', 'steps',
+        'bucket_start', date_trunc('hour', now()) - interval '3 hours',
+        'value', 2400, 'provenance', 'device', 'sample_count', 11,
+        'source_bundle_id', 'com.apple.health', 'device_model', 'Watch'),
+      jsonb_build_object(
+        'metric', 'steps',
+        'bucket_start', date_trunc('hour', now()) - interval '3 hours',
+        'value', 180, 'provenance', 'third_party', 'sample_count', 2,
+        'source_bundle_id', 'com.example.runner'),
+      jsonb_build_object(
+        'metric', 'steps',
+        'bucket_start', date_trunc('hour', now()) - interval '3 hours',
+        'value', 9000, 'provenance', 'manual', 'sample_count', 1),
+      jsonb_build_object(
+        'metric', 'steps',
+        'bucket_start', date_trunc('hour', now()) - interval '2 hours',
+        'value', 1750, 'provenance', 'device', 'sample_count', 8,
+        'source_bundle_id', 'com.apple.health', 'device_model', 'Watch')),
+    extensions.digest(('\x04' || repeat('5e', 64))::bytea, 'sha256'),
+    1::bigint
+  );
+
+  -- @cyclist's batch arrives with no key at all, which is what the App Attest
+  -- development bypass looks like on the wire (D11). It lands with
+  -- `attested = false` and stays distinguishable forever.
+  perform public.record_metric_batch(
+    'b2222222-2222-2222-2222-222222222222',
+    'f7777777-7777-7777-7777-777777777777',
+    '99999999-0000-0000-0000-000000000002',
+    extensions.digest('seed-cyclist-batch-1', 'sha256'),
+    now(),
+    jsonb_build_array(
+      jsonb_build_object(
+        'metric', 'steps',
+        'bucket_start', date_trunc('hour', now()) - interval '3 hours',
+        'value', 3100, 'provenance', 'device', 'sample_count', 14,
+        'source_bundle_id', 'com.apple.health', 'device_model', 'iPhone'),
+      jsonb_build_object(
+        'metric', 'distance_meters',
+        'bucket_start', date_trunc('hour', now()) - interval '3 hours',
+        'value', 2350.75, 'provenance', 'device', 'sample_count', 14,
+        'source_bundle_id', 'com.apple.health', 'device_model', 'iPhone'))
+  );
+
 exception when others then
   raise warning 'seed skipped: % (%). Migrations and tests are unaffected.',
     sqlerrm, sqlstate;

@@ -366,21 +366,28 @@ select pg_temp.new_batch('11111111-1111-1111-1111-111111111111', 'manual'),
        ny_bucket, 20000, 'manual', 1, now(), 'epoch', 0
 from t_hours;
 
+-- Scoped to this suite's contest. The seed carries a hand-typed observation of
+-- its own, deliberately, so an unscoped count here would be counting it.
 select is(
-  (select count(*) from public.metric_snapshots where provenance = 'manual'),
+  (select count(*) from public.metric_snapshots
+   where provenance = 'manual'
+     and contest_id = 'a0000001-0000-0000-0000-000000000001'),
   1::bigint,
   'a hand-typed observation is stored rather than refused'
 );
 
 select is(
-  (select is_admissible from public.metric_snapshots where provenance = 'manual'),
+  (select is_admissible from public.metric_snapshots
+   where provenance = 'manual'
+     and contest_id = 'a0000001-0000-0000-0000-000000000001'),
   false,
   'and it is inadmissible'
 );
 
 select is(
   (select bool_and(is_admissible) from public.metric_snapshots
-   where provenance in ('device', 'third_party')),
+   where provenance in ('device', 'third_party')
+     and contest_id = 'a0000001-0000-0000-0000-000000000001'),
   true,
   'device and third-party observations are admissible'
 );

@@ -902,6 +902,424 @@ deletion then means.
 
 ---
 
+## M3 — Evidence ledger, device attestation, attested ingest
+
+### D35. The ledger is append-only, and a revision appends rather than overwrites
+
+**What.** `metric_snapshots` holds one row per *observation*: "at this moment,
+this client reported that this participant's `steps` for this hour, from this
+source, was 812." There is no unique constraint across
+`(contest_id, user_id, metric, bucket_start)`, so a figure that grows as late
+samples arrive accumulates rows. Reading it back has two steps: within one
+source the revisions are a monotone series so the current figure is the largest,
+across sources the contributions are disjoint so they add. `contest_evidence` is
+that reduction.
+
+**Why.** HealthKit's figure for an hour genuinely changes — a watch syncs late, a
+workout is written after the fact — so the ledger has to represent revision
+somehow. Storing one row per bucket and overwriting it would destroy the record
+of what was claimed and *when*, and when is exactly what distinguishes a late
+sync from a fabrication. A row per observation keeps the reporting lag of each
+claim visible, which is what M5's quarantine rule will read.
+
+The monotonicity trigger that refuses a downward revision is deliberately *not*
+framed as anti-cheat, because it would be dishonest to: only the participant may
+write their own rows, so a downward revision harms nobody but its author. What
+it buys is that "the value for this bucket from this source" is single-valued —
+the latest observation and the largest are the same number — so the scoring
+engine, the standings, and a later audit cannot reach different totals from the
+same ledger. It also makes a genuine deletion in the Health app surface as a
+dispute for M7 rather than as a quiet rewrite of banked evidence.
+
+**Rejected.** One row per bucket, updated in place (smaller, and it makes the
+ledger a cache rather than evidence — and it needs UPDATE on an append-only
+table). A separate revisions table (the same data with a join and two RLS
+surfaces). Refusing revisions entirely (simplest, and it discards every late
+sync, which is most of them).
+
+**Revisit if.** The row count becomes a problem. The fix is retention on
+finalized contests, not overwriting live ones.
+
+### D36. A bucket is an hour in the participant's frozen zone, not a UTC hour
+
+**What.** `bucket_start` must be aligned to a whole hour in the timezone frozen
+on the participant's roster row (D5). Enforced by `app.prepare_metric_snapshot()`
+and mirrored in the client's `HourlyBucketer`.
+
+**Why.** Daily cadence asks whether you hit 10,000 steps on *your* Tuesday, so
+every bucket has to lie inside one local day. Not every zone is a whole number of
+hours from UTC: India is +05:30, Nepal +05:45, Chatham +13:45. A UTC-aligned hour
+therefore straddles the local day boundary for something like a fifth of the
+world's population, and daily cadence would silently attribute part of Tuesday to
+Monday for exactly those participants — a wrong answer with no error, in the
+scoring of a money pledge.
+
+A locally-aligned hour lies inside one local day by construction. `Calendar`
+`dateInterval(of: .hour,)` and Postgres's `date_trunc('hour', ts at time zone
+tz)` both truncate to the local hour rather than to a multiple of 3600 seconds
+since the epoch, so both sides get the half-hour and quarter-hour offsets right,
+and both get the 23- and 25-hour days at a daylight-saving transition right.
+
+The unfairness this does leave is at the window edges: a participant whose offset
+is not a whole number of hours relative to the contest's bounds loses part of the
+first and last hour, because a bucket must lie *wholly* inside the window. That
+is bounded at one bucket per end and it fails in the conservative direction.
+
+**Rejected.** UTC hourly buckets (one canonical bucketing, wrong for every
+non-whole-hour zone). Fifteen-minute UTC buckets, which compose exactly into
+every real zone's day (correct, and four times the rows and four times the
+cellular payload). Letting the client send the local date it computed (moves the
+authority for day attribution to the party with the motive to move it).
+
+**Revisit if.** A zone appears whose offset is not a multiple of 15 minutes, or
+one that transitions at a time other than a local hour boundary. Both exist
+historically; neither is live.
+
+### D37. The server stamps the local day; the client never supplies it
+
+**What.** `metric_snapshots.local_day` and `local_hour` are written by
+`app.prepare_metric_snapshot()` from the participant's frozen zone. The insert
+lists them only because they are NOT NULL; whatever a caller passes is
+overwritten.
+
+**Why.** Day attribution is what a daily-cadence settlement turns on, so it is
+not a field the client gets to fill in. But the interesting half is why it is
+*stored* rather than computed on read: the row is append-only and the zone is
+immutable, so the two can never come to disagree, and storing it means the day
+attribution a settlement rests on is the one the server recorded at the time
+rather than whatever a query would compute later. It also makes the decision
+auditable — you can see what the server concluded, not just re-derive it.
+
+**Rejected.** A generated column (cannot reference another table, and the zone
+lives on `contest_participants`). Computing it in the scoring engine (correct
+today, and it means M4 and any dashboard each own a copy of the rule).
+
+### D38. Provenance is part of the ledger's key, and admissibility is generated
+
+**What.** The uniqueness within a batch is
+`(batch_id, metric, bucket_start, provenance)`, monotonicity is keyed on
+provenance too, and `is_admissible` is a stored generated column computing
+`provenance in ('device', 'third_party')`.
+
+**Why.** A real hour routinely holds samples from more than one source: an
+iPhone's pedometer, a watch, a running app, and sometimes a figure typed into the
+Health app years ago. One row per bucket would mean choosing one provenance for
+the whole hour, and the only safe choice is the least trusted one present — so a
+single stray hand-typed step would discard five thousand genuine ones and lose
+somebody a day they actually walked. Splitting keeps each source separately
+admissible.
+
+Generating `is_admissible` rather than storing it means no code path can produce
+a row whose flag disagrees with the provenance it derives from. The line it
+draws is D6's: `manual` and `unknown` have no tuning parameter, so they are
+invariants; whether a *particular* third-party app is trustworthy is a heuristic
+and belongs to M5.
+
+**Rejected.** One row per bucket with the least-trusted provenance (simpler, and
+it is the fairness bug above). Bundle identifier in the key (finer, and it makes
+the key unbounded in something the client controls). A plain boolean column
+(one code path away from disagreeing with itself).
+
+### D39. The client reports everything it sees; the server decides what counts
+
+**What.** An inadmissible observation is *stored*, not refused. The client sends
+`manual` and `unknown` rows, `record_metric_batch()` accepts them, and
+`contest_evidence` leaves them out.
+
+**Why.** A client that filters its own evidence is a client whose silence has to
+be trusted. If hand-typed samples were refused at ingest, a cheating client would
+simply not send them and we would learn nothing; accepting them means an honest
+client's data records the attempt, and 20,000 hand-typed steps become a fact
+about that participant that M5 can weigh and a dispute can cite.
+
+The same reasoning runs through the whole milestone: the client's provenance
+classification is a *report*, not an authorisation. Nothing downstream treats it
+as proof. What makes it worth reading at all is App Attest — an assertion
+establishes that the binary doing the classifying is the one that shipped.
+
+**Rejected.** Refusing inadmissible rows at the API boundary (a smaller ledger,
+and it hands the decision about what is evidence to the party with the motive).
+Refusing them in the client (same, one layer earlier).
+
+### D40. There is no client write path into the ledger at all
+
+**What.** `authenticated` holds SELECT on `metric_snapshots`,
+`ingest_batches` and `device_attestations` and nothing else. Rows appear only
+through `public.record_metric_batch()` and `public.register_device_key()`, which
+have EXECUTE revoked from `public`, `anon` and `authenticated` and granted to
+`service_role` alone.
+
+**Why.** What authorises a write here is an ECDSA signature over the request
+body, and RLS cannot check a signature — so there is no policy that could express
+the rule, and any client write path would be one that skipped it. That makes the
+missing grant load-bearing rather than tidy, which is the third instance of D32's
+trap: Postgres grants EXECUTE on every new function to `PUBLIC`, so a definer
+function that writes the evidence ledger is callable by every signed-in user
+until it is explicitly revoked. Left as created, any client could write any other
+user's evidence, unattested, by passing their uuid. D32 said the revoke should
+become a reviewed default rather than something remembered per function; this
+milestone treats it as one.
+
+`record_metric_batch()` lives in `public` rather than `app` for a specific
+reason: PostgREST can only reach exposed schemas, and the Edge Function calls it
+over the Data API. So it is a public function only `service_role` may execute.
+
+### D41. Signatures are checked in TypeScript; the counter is enforced in SQL
+
+**What.** `verifyAssertion()` checks the ECDSA signature, the rpId hash and the
+authenticator-data shape. It does *not* compare the assertion counter against the
+stored one. `record_metric_batch()` does that, under a row lock, in the same
+transaction as the insert.
+
+**Why.** D6's line, and this is the cleanest example of it in the codebase so
+far. The signature check needs crypto and has no invariant to state. The counter
+check is a monotonic counter — a hard invariant — and it has to be *atomic with
+consuming it*: in application code it is a read followed by a write, so two
+concurrent copies of a captured request would both read the old value and both
+pass. Splitting them puts each half where it can actually be correct.
+
+`device_attestations` carries the same rule twice, deliberately (D21): the
+trigger refuses a decrease from any writer, and `record_metric_batch()` requires
+strictly greater. The trigger tolerates equality because it also fires on updates
+that touch other columns; "no movement" is only a replay in the context of
+consuming an assertion.
+
+**Rejected.** Comparing the counter in the Edge Function (natural, and it is the
+race above). Enforcing it only in the trigger (cannot distinguish "equal" from
+"advanced" without knowing why the row is being written).
+
+### D42. Idempotency is checked before the assertion counter is consumed
+
+**What.** `record_metric_batch()` looks up `(user_id, client_batch_id)` first. If
+the batch exists it returns the original result with `replayed = true`, without
+touching the counter. Only a genuinely new batch consumes one. A repeated batch
+id with a *different* payload digest is an error rather than a silent
+deduplication.
+
+**Why.** A phone that times out mid-request retries, and the retry carries the
+assertion whose counter the first attempt already spent. Checking the counter
+first would turn every timed-out retry into a permanent failure: the client can
+never make progress and the day's evidence is lost through no fault of its own.
+The ordinary idempotency-key contract solves it, and this domain wants it for the
+ordinary reason.
+
+Refusing a reused id with different contents is the other half. Returning the
+first result would drop the second batch's evidence without telling anyone, which
+is the worst available outcome — silent data loss in a ledger.
+
+**Rejected.** Counter first (correct in the abstract, unusable on a real
+network). Returning the first result for any reuse (hides the loss).
+
+### D43. Evidence must lie inside the window, and in an hour that has finished
+
+**What.** Two checks in `app.prepare_metric_snapshot()`. The bucket must be
+wholly inside `[starts_at, ends_at]`, and `bucket_start + 1 hour` must not be in
+the future. Plus: the contest must be `active`, and `now()` must be before
+`ends_at + app.ingest_grace_period()`.
+
+**Why.** The window rule is the other half of D25. That rule stops a contest
+naming a window already in the past; this one stops evidence being tendered for
+hours outside the window it named. Either alone leaves the exploit open from the
+other end and neither is expensive.
+
+The finished-hour rule closes something the window rule cannot. Every hour from
+now until a contest ends is *inside* the agreed window, so without a separate
+check a client could bank a complete winning scoreline for the rest of an open
+contest, in advance, from figures it made up. No tolerance for clock skew, for
+D25's reason: a grace period here is exactly the amount of the future it lets you
+report, and a client that is a second early retries a second later.
+
+The grace period after `ends_at` is the one genuinely tunable number this
+migration puts in SQL, and it is there because it gates whether a row may exist
+at all. Six hours: long enough that a phone which spent the night asleep does not
+cost its owner the last day of a contest, short enough that the window in which
+somebody already knows they lost — and can still write into the hours they lost
+it in — stays small. It is a named function rather than a literal because M7's
+finaliser must not run before it elapses, and two copies of that number would
+eventually differ.
+
+**Revisit if.** Legitimate syncs start failing on the grace period. M5's
+quarantine is the better lever than widening it.
+
+### D44. Append-only stops at UPDATE, because a DELETE trigger would make accounts undeletable
+
+**What.** `metric_snapshots` and `ingest_batches` carry
+`app.forbid_mutation()` on UPDATE. Neither carries it on DELETE. DELETE is
+withheld from clients by the missing grant and the absent policy only.
+
+**Why.** This is the D34 family again, and it would have been the third
+instance. A referential action is a real statement: `metric_snapshots` cascades
+from `ingest_batches`, which cascades from `contest_participants`, which cascades
+from `profiles`, which cascades from `auth.users`. So deleting an account issues a
+genuine DELETE against the ledger, and a blanket BEFORE DELETE prohibition
+refuses it and takes the account deletion down with it — meaning no account that
+had ever recorded a step could be deleted, which is precisely the bug that had
+been live since M1 shipped.
+
+Verified rather than assumed, in both directions: `100_metric_snapshots.test.sql`
+deletes an account with banked evidence and asserts it succeeds, and adding a
+DELETE trigger to that table makes the same deletion fail with "DELETE is not
+permitted". The passing assertion is the regression guard for anyone who later
+decides append-only demands the trigger.
+
+This is the honest state of it rather than a comfortable one. Evidence for a
+settled obligation should outlive the account and today it does not. The deferred
+decision on account deletion versus contest history owns that, and its answer is
+to anonymise rather than cascade; once that lands the cascade path disappears and
+a DELETE trigger here becomes correct.
+
+**Rejected.** `on delete restrict` along the chain (preserves the evidence, makes
+account deletion impossible on purpose rather than by accident). A trigger that
+tries to detect a referential action from `current_user` (D31 is what happens
+when a security trigger depends on that subtlety).
+
+### D45. `contest_evidence` is declared `security_invoker`
+
+**What.** `create view public.contest_evidence with (security_invoker = true)`.
+
+**Why.** A view runs with its *owner's* privileges by default, and the owner here
+owns `metric_snapshots` and is therefore exempt from its policies. Without this
+one option the view would hand every authenticated user the entire ledger — every
+participant's hourly movements, which is a detailed picture of when people sleep,
+work and travel — with RLS enabled and doing nothing. It is a single word whose
+absence is a silent, total read hole, so it is asserted in the suite as a
+privilege test rather than trusted to review.
+
+Worth stating as a repo-wide rule since this is the first view: any view over an
+RLS-protected table declares `security_invoker`, or it is a hole.
+
+### D46. Apple's App Attest root is configuration, not a constant
+
+**What.** `verifyAttestation()` takes the root certificate as a parameter;
+`appAttestRootCertificate()` reads `APP_ATTEST_ROOT_CA_PEM` and throws if it is
+absent or unparseable. The functions therefore refuse to start without it.
+
+**Why.** The pinned root is the anchor the whole certificate chain hangs from.
+Get its bytes wrong in the harmless direction and every attestation fails; get
+them wrong in the other and the server accepts a chain Apple never issued. Those
+bytes are published by Apple and are not something to reproduce from memory —
+which is the same judgement D26 made about charity EINs, for the same reason: a
+plausible-but-wrong value for a security anchor is worse than an absent one,
+because absent fails loudly.
+
+Refusing to boot is the correct failure mode, matching D11: a deployment that
+cannot verify attestations must not accept snapshots.
+
+> **Action for the owner:** download the App Attest root certificate from
+> https://www.apple.com/certificateauthority/ and set
+> `APP_ATTEST_ROOT_CA_PEM`. Until then the ingest functions will not start,
+> which is intended.
+
+> **Action for the owner:** confirm two details against a real device, because
+> no synthetic test can. The suite mints its own certificate chain and its own
+> P-256 keys, so it proves this verifier agrees with this test's signer — it
+> cannot prove either agrees with an iPhone. The two details taken from Apple's
+> published description rather than from an observed attestation are (a) the DER
+> shape of the credCert's nonce extension, which this builds and compares whole,
+> and (b) that an assertion's signature is over the nonce rather than over the
+> concatenation directly. Both are written so that being wrong rejects a good
+> attestation rather than accepting a bad one, so the failure is loud, but one
+> device attestation and one device assertion settle it.
+
+### D47. The attestation challenge is derived, not stored
+
+**What.** `POST /attest-device/challenge` returns
+`HMAC(jwtSecret, "gametime.appattest.v1:<userId>:<10-minute window>")`.
+Registration accepts the current window or the one before it. No table of
+nonces.
+
+**Why.** A challenge exists so a captured attestation cannot be replayed. A
+derived one is verifiable without state, unguessable without the secret, and
+bound to the one account that may present it. What a stored nonce would add over
+that is single use — and here that is already covered from the other side:
+`key_id` is a primary key, so a replayed attestation is a re-registration of a
+key that already exists, and `register_device_key()` refuses that for anyone but
+the key's original owner. The replay a nonce table prevents is a replay that
+cannot achieve anything.
+
+The trade is a ten-minute window in which one challenge is valid more than once
+for one account. All that permits is that account re-registering its own key,
+which is already idempotent.
+
+**Rejected.** A `attestation_challenges` table (textbook, and it is a table, a
+cleanup job, and an RLS surface for a property already held elsewhere). A
+challenge derived from the account id alone (no expiry at all).
+
+**Revisit if.** Registration acquires a side effect that re-running is not
+harmless. The nonce table becomes worth its cost the moment that is true.
+
+### D48. The ingest credentials travel as headers, because the assertion signs the body
+
+**What.** `x-gametime-key-id` and `x-gametime-assertion`. The body is exactly the
+bytes the assertion covers, read once and hashed before anything parses them.
+
+**Why.** An assertion cannot be a field of the document it signs — adding the
+signature changes the document. The alternatives are a canonical subset of the
+body (something for two implementations to disagree about) or an envelope
+carrying the payload as an escaped string (works, and double-encodes every
+request). Headers make the body the document, with nothing to agree on.
+
+Hashing before parsing matters for the same reason. JSON has many encodings of
+one value — key order, whitespace, number formatting — so hashing a parsed and
+re-serialised body would hash a different document than the client signed, and
+every assertion would fail for reasons that look like a crypto bug.
+
+The digest is then stored on the batch, which is what keeps "this evidence was
+attested" checkable after the fact rather than a claim about a payload nobody
+kept.
+
+### D49. CBOR is written here and strict; X.509 is a dependency
+
+**What.** `_shared/cbor.ts` is a small codec supporting text-keyed maps, arrays,
+byte strings and small unsigned integers, and refusing everything else —
+indefinite lengths, tags, floats, non-minimal encodings, non-text map keys,
+duplicate keys, trailing bytes. Certificate chain verification uses
+`npm:@peculiar/x509`.
+
+**Why.** Opposite answers to the same question, because the two problems are not
+the same size. App Attest's CBOR is a fixed, tiny subset, and the valuable
+property is *refusal*: a general parser accepts many encodings of one logical
+value, and each is a way for two parties to disagree about what a document says
+while both believe they parsed it correctly. Owning it means strictness is the
+code rather than a library's configuration flag, and the rejection cases are
+testable — which they are, one per refusal.
+
+X.509 is the other extreme. Hand-rolling DER parsing and chain validation for a
+security boundary is not defensible when a maintained implementation exists, and
+the same library lets the suite mint a synthetic Apple-shaped chain, which is
+what makes the attestation path testable at all without a device.
+
+**Rejected.** A CBOR library (fewer lines, and its behaviour on hostile input
+becomes somebody else's decision). Hand-rolled X.509 (several hundred lines of
+DER parsing between an attacker and the ledger).
+
+### D50. The client prorates straddling samples rather than asking HealthKit to bucket
+
+**What.** `HourlyBucketer` splits a sample across the local hours it covers,
+prorating by overlap. Instantaneous samples land whole in the hour they happened.
+
+**Why.** A HealthKit cumulative sample covers an interval, and an interval can
+cross an hour boundary — a 90-minute walk is one sample spanning three buckets.
+Proration is exact when a sample lies inside one bucket, which is the ordinary
+case since the pedometer records in short spans, and a linear estimate when it
+does not.
+
+The exact alternative is `HKStatisticsCollectionQuery` with an hourly interval
+anchored to local midnight, which buckets without estimating. It was rejected
+because a statistics collection reports sums without saying which source produced
+them, and provenance is the point of this milestone. Recovering it means one
+statistics query per source, so the query count grows with however many health
+apps the user happens to have installed.
+
+**Rejected.** Attributing a straddling sample wholly to the hour it started in
+(no arithmetic, and it misplaces most of a long workout). One statistics query
+per source (exact, and unbounded work per sync).
+
+**Revisit if.** Proration error shows up in a dispute. The per-source statistics
+query is the fix, and it is a client change only.
+
+---
+
 ## Decisions deferred, with a current default
 
 Recorded so they are not silently made later. Each has a working default;
@@ -915,10 +1333,39 @@ cap (D28, resolved as a contest-level ceiling of 20), and whether a block ejects
 either party from something shared (D29, resolved harder for contests than for
 groups).
 
+M3 resolved one more and sharpened a second. Provenance handling now has a
+concrete shape (D38, D39: the client reports everything and the server decides
+what counts), and the timezone-change deferral below is unchanged in its default
+but is now load-bearing in a new place — the frozen zone is what a bucket is
+aligned to (D36), so a mid-contest change would not merely shift a day boundary,
+it would invalidate every bucket already banked.
+
 - **Quarantine approval in group contests (M5).** A retroactively-written sample
   counts only if approved. In a duel that means the opponent. In a group,
   proposed rule: a majority of other active participants, failing closed —
   no response inside the review window means the sample stays excluded.
+  M3 built what this reads: every observation carries `recorded_at` against a
+  `bucket_start`, so the reporting lag of each claim is on the row. What is
+  still open is the threshold at which a lag becomes retroactive, and the
+  approval flow.
+- **The ingest grace period (M5/M7).** Six hours after `ends_at`, as
+  `app.ingest_grace_period()` (D43). It is the one tunable number M3 put in SQL,
+  because it gates whether a row may exist, and it trades a slow syncer's last
+  day against the width of the window in which somebody who already knows they
+  lost can still write into the hours they lost it in. M7's finaliser must read
+  the same function rather than its own copy. Default: six hours, narrowed
+  further by M5's quarantine rather than by shortening it.
+- **Third-party source reputation (M5).** `third_party` provenance is admissible
+  and weighted no differently from `device` today, because telling a genuine
+  running app from a step spoofer is a heuristic with a tuning parameter (D38).
+  Proposed: a curated allow-list of well-known bundle identifiers scoring near
+  first-party, everything else scoring lower, and neither disqualifying.
+- **Retention on finalized contests (post-M7).** The ledger is one row per
+  observation per source per hour, which is the right grain for evidence and a
+  lot of rows for a contest nobody will dispute again. Nothing prunes it. The
+  answer is retention on finalized contests, not overwriting live ones (D35),
+  and it needs settlement to exist first so that "nobody will dispute this
+  again" is a state the schema can name.
 - **Reliability score formula (M7).** Proposed: a decayed ratio of confirmed
   settlements to total obligations, so one old default does not brand someone
   permanently.
