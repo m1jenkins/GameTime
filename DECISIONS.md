@@ -1765,3 +1765,62 @@ below is timezone-change consent.
   independent of the contest window, so an invitation to a contest starting in
   three months stays open for three months. Default: no expiry. A notification
   layer is the natural home for both.
+
+### Surfaced by the 2026-07-25 plan audit
+
+Six more, and they are a different kind from the ones above: those were deferred
+on purpose with a default that works. These were never written down at all, and
+four of them have no working default — which is the reason they are recorded
+here rather than left for M7 to hit. See PLAN.md for the audit they came from.
+
+- **How a donation is confirmed (M7). No default.** D4 fixes the *shape* of a
+  settlement as `(winner, loser, amount, charity)` and the README is precise
+  that the app tracks whether a pledge was honored rather than moving money.
+  Nothing states how it becomes honored. The reliability-score entry above turns
+  on "confirmed settlements" and does not define confirmed. Self-attestation, a
+  receipt upload, the winner acknowledging receipt, a charity-side integration,
+  and a timeout are five different products with five different abuse surfaces,
+  and the anti-cheat programme of M3–M6 exists to protect the number this
+  decision defines. It has to be settled before the settlement schema, not
+  discovered by it.
+- **The terminal state for a contest that ran and cannot be decided (M7). No
+  default.** `contest_status` is `pending → active → cancelled | finalized`, and
+  `active → finalized` is the only forward edge out of `active`. D54's
+  `tie_break_inconclusive` and D51's void outcome have no status between them: as
+  the schema stands an inconclusive contest stays `active` forever, and a void
+  contest is `finalized` and indistinguishable from one that settled. D30's
+  self-voiding case is `cancelled` with `insufficient_participants`, which is a
+  different fact — that contest never ran.
+- **Whether review or the grace period bounds finalization (M7). No default.**
+  D43 gives six hours after `ends_at` in which a snapshot may still arrive; D60
+  requires M7 to refuse finalization while a quarantine review is unresolved.
+  Both are right alone. Together they need a stated order, because a quarantine
+  opened by a row written in the last hour of the grace window extends
+  finalization by however long a reviewer takes.
+- **What happens when a reviewer never votes (M7). No default.** D60 rejects
+  timeout-as-approval for the right reason and pairs it with "M7 must block
+  finalization on unresolved review", which leaves silence holding a contest open
+  indefinitely with no escalation for the person waiting. Proposed: unresolved
+  review at the grace deadline resolves the contest to void, since void is
+  already what happens when the evidence cannot decide — but it is a product
+  decision about whose contest gets cancelled by whose inattention, and it should
+  be made deliberately. D62's timezone consent has the same shape and fails
+  closed harmlessly: silence means the relocation does not happen.
+- **The scheduler (M7).** `app.activate_due_contests()` is the only thing that
+  moves a contest to `active`, and nothing calls it — no `pg_cron` in
+  `config.toml`, no scheduled function, no workflow. This is declared in the
+  function's own comment ("Called by cron, which M7 sets up alongside
+  settlement") but the consequence is not recorded anywhere: through M6 there is
+  no end-to-end path in a deployed environment, because every contest that M3's
+  ingest, M5's integrity rules and M6's check-ins have ever run against was
+  forced into `active` by test scaffolding. Default: none; it belongs at the
+  front of M7 rather than beside settlement, so the five milestones underneath it
+  get exercised against a contest that activated on its own.
+- **Where notifications live (M7/M8).** No milestone owns one, and four flows
+  need a specific person to take a specific action: M2's invitations, M5's
+  quarantine review, D62's timezone consent, and M7's settlement confirmation.
+  The invitation-reminder entry above is the only mention in this file and it
+  assumes a layer that does not exist. Default: nothing is delivered, which makes
+  the entry above and the reviewer-silence entry above both worse than they read.
+  APNs also needs an app target and a real device, which ties it to the
+  device-conformance work D46 and D2 are still waiting on.

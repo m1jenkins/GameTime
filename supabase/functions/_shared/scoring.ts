@@ -445,7 +445,12 @@ export function scoreContest(input: ScoringInput): ContestScoring {
       continue;
     }
 
-    const key = `${row.userId} ${row.metric} ${row.bucketStart}`;
+    // NUL separates the composite key because it cannot occur in a uuid, a
+    // metric name, or a timestamp, so no pair of distinct triples can collide.
+    // Written as an escape rather than as a literal byte: the byte makes this
+    // file `data` to file(1) and binary to grep, which is a poor property for
+    // the only implementation of who won (D3).
+    const key = `${row.userId}\u0000${row.metric}\u0000${row.bucketStart}`;
     const previous = seenLocalDay.get(key);
     if (previous !== undefined && previous !== row.localDay) {
       throw new ScoringError(
