@@ -615,8 +615,7 @@ function sourceReputationFlags(
     const sourceIdentity = classified.normalizedBundleId ??
       source.sourceBundleId ??
       "<missing>";
-    const signalKey =
-      `${source.metric}:${source.bucketStart}:${classified.tier}:${sourceIdentity}`;
+    const signalKey = `${source.metric}:${source.bucketStart}:${classified.tier}:${sourceIdentity}`;
     const deduplicationKey = `${source.userId}\u0000${signalKey}`;
     if (flagsBySignal.has(deduplicationKey)) continue;
 
