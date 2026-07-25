@@ -1320,6 +1320,204 @@ query is the fix, and it is a client change only.
 
 ---
 
+## M4 — Scoring engine
+
+### D51. A contest is pass/fail against its terms, and the comparison is among those who passed
+
+**What.** Every accepted participant either qualified or did not. One qualifier
+wins. Several qualifiers is a tie, resolved by `contests.tie_break`. No
+qualifier voids the contest and nobody donates. Highest score does not win.
+
+**Why.** This is what the cadence enum already says it is: `'cumulative'` means
+hit the target once across the window, `'daily'` means hit it on each day.
+Neither says "whoever did the most", and the difference is a real settlement
+outcome rather than a reading preference. The case that decides it is two friends
+who each pledged $25 against a 100,000-step month, where one walked 40,000 and
+the other 12,000. Under "highest total wins", the participant who missed their
+goal by 60% collects a donation from a friend for a month in which neither of
+them did the thing they staked money on. Voiding says the true thing: they both
+failed, so nobody owes.
+
+The consequence worth stating plainly is that ties become the *ordinary* result
+rather than a rare edge. Two friends who both walk their 10,000 steps every day
+have both qualified, and the tie-break is then the entire settlement. That is
+also the retrospective justification for `tie_break` being declared at creation
+and carrying a default (D22): under a highest-total rule, exact ties are
+freak events and a four-option enum defaulting to `integrity_score` would be
+over-engineering. Under this rule it is the main path.
+
+**Rejected.** Highest score wins outright (one fewer concept, and it turns a
+shared goal into a wager on the one path in the product that moves money).
+Highest score wins among those who reached the target, voiding only when nobody
+did (this is the same rule for cumulative and strictly worse for daily, where it
+would mean a 29-of-30-day record beats a 28-of-30 one and the target has already
+done its work at the day grain). Requiring a perfect record for daily *and*
+ranking on it (already the rule; the note is that "perfect" is per whole local
+day, not per calendar day of the window — see D52).
+
+**Revisit if.** Real contests void often enough that users read it as the app
+failing to pick a winner. The measurement to take first is how often a void is
+"nobody qualified" versus a tie-break, because the fixes are opposite.
+
+### D52. Daily cadence scores whole local days only, and ranks on the rate
+
+**What.** A daily contest asks about the local days the window *wholly* covers in
+the participant's frozen zone. Part-days at either edge are dropped from the
+numerator and the denominator alike. Qualifying means clearing the target on
+every one of those days, and the ranking key is `qualifyingDays /
+scoreableDays`, never the raw count.
+
+**Why.** Two participants in different zones cannot both have whole local days
+inside one instant range. A window that is seven whole days in New York is six
+whole days plus two part-days in Kathmandu (+05:45), because the window's bounds
+land at 10:45 local there. Ranking on the count of qualifying days would cap the
+Kathmandu participant at 6 against the New York participant's 7 and make them
+unable to win a contest they played perfectly — a zone-dependent handicap, in
+the scoring of a money pledge, which is exactly the unfairness D5 froze the
+timezone to avoid. Rating makes the two comparable: 6/6 and 7/7 are both 1.0.
+
+Dropping part-days rather than counting them as failures is the same
+conservative direction D36 already chose one grain down for buckets. A part-day
+cannot be fairly judged against a whole-day target — 18 hours is not a day — and
+the alternative punishes a participant for their offset a second time. It also
+closes an attack that the ledger cannot: evidence in a part-day is legitimately
+writable, so a participant who missed a Wednesday could otherwise stuff the
+edge day and manufacture a qualifying day out of an hour that was never a day.
+Pinned by `fraud/stuffing-the-part-days-at-the-window-edges`.
+
+**Rejected.** Counting every calendar day the window touches (simplest, and it
+scores an 18-hour day against a 24-hour target). Ranking on the raw count (the
+zone handicap above). Recomputing each measurement's local day in the engine
+(D37 already rejected this, and the engine reads the stamped `local_day` for
+exactly that reason — the only thing it derives is the denominator, which is a
+fact about the window rather than about any row).
+
+**Revisit if.** A contest shape appears where the number of days is itself the
+score — "most days hit, no perfection required" — which is a different product
+question than the one D51 settles.
+
+### D53. Scoring is done in integer hundredths
+
+**What.** Every measurement and target is converted to whole hundredths and
+summed as an integer. A value carrying a third decimal place raises rather than
+being rounded.
+
+**Why.** Both columns are `numeric(12, 2)`, so every value is exactly a whole
+number of hundredths, and IEEE doubles cannot represent most of them.
+`8.7 + 0.1` is `8.799999999999999`, and `28.45 + 1.24 + 0.20 + 0.11` is
+`29.999999999999996` — so a participant who logs exactly 30.00 minutes against a
+30-minute target fails a float comparison by four parts in a quadrillion. That
+is not a rounding-display concern; it is the qualification test from D51, and it
+decides whether somebody donates. Landing precisely on the target has to
+qualify, and integer arithmetic is the only way that is true every time rather
+than usually. 12 digits of precision is at most 1e12 hundredths, comfortably
+inside the range where integer arithmetic on doubles is exact.
+
+Raising on a third decimal rather than rounding it is the same instinct as the
+citext trap in D14: the value cannot come from the column it is supposed to come
+from, so something upstream is reading the wrong thing, and rounding it would
+make that invisible while still changing a total.
+
+**Rejected.** Float arithmetic with an epsilon on the comparison (an epsilon is
+a tuning parameter on a settlement rule, and picking it wrong is silent).
+Rounding the total to two places at the end (fixes the display and not the
+comparison — the comparison is the part that matters). `BigInt` (exact and
+unnecessary at this magnitude, and it does not serialise to JSON).
+
+### D54. An unresolvable tie is reported, not guessed
+
+**What.** `integrity_score` is M5's number and does not exist yet, so an
+`integrity_score` tie-break returns `undecided` with reason
+`integrity_score_unavailable` rather than an outcome. Scores may be supplied to
+the engine as an optional input, which is the seam M5 fills. A tie the declared
+tie-break genuinely cannot separate — equal integrity scores, or two people
+crossing the target in the same hour — returns `undecided` too.
+
+**Why.** Every way of manufacturing an answer here is worse than admitting there
+isn't one. Falling back to the higher total silently applies a tie-break the
+participants did not agree to at creation, which is precisely the thing declaring
+it upfront was meant to prevent. Voiding cancels a contest that somebody won.
+Ordering by user id settles a donation by whose UUID sorts lower. `undecided` is
+the only answer that leaves the contest in a state M7's finaliser can refuse to
+settle, which is what should happen to a contest whose winner is not yet
+determinable.
+
+A partial set of integrity scores is treated as none, because otherwise whoever
+is missing a score loses by default — a worse failure than declining to answer,
+and one that would look like a real verdict.
+
+The related rule is that standings *are* fully ordered, including a final
+fallback to user id, because a leaderboard is a list and has to render while a
+contest is live. Ordering and deciding are kept strictly apart: `decide()` never
+consults the ordering, and `scoring.test.ts` pins that two participants identical
+in every respect produce a stable display order and no winner.
+
+**Rejected.** Falling through a fixed chain of tie-breaks (deterministic, and it
+still substitutes rules nobody agreed to). Coin-flip on a seed derived from the
+contest id (reproducible and arbitrary, and impossible to explain to the loser).
+
+**Revisit if.** M5 lands and integrity scores turn out to tie often, at which
+point the question is what the second-order tie-break is — and it should be
+declared at creation like the first, not chosen afterwards.
+
+### D55. The engine scores; it does not flag
+
+**What.** 90,000 steps in one hour scores as 90,000. A bucket first reported
+eleven days after the hour it covers scores too. The engine excludes only what
+the contest's own terms exclude: another metric, a bucket outside the window, a
+part-day under daily cadence, someone not on the accepted roster.
+
+**Why.** Admissibility is already settled before the engine sees a row —
+`contest_evidence` filters `is_admissible` and reduces revisions (D35, D38) — and
+a second opinion about what counts is exactly the drift D3 exists to prevent.
+Plausibility is different in kind: it needs a tuning parameter, which makes it a
+heuristic, which puts it in M5 by D6. An engine that quietly dropped an
+implausible hour would also produce standings nobody could audit, since the
+number it scored would appear nowhere.
+
+What the engine owes M5 instead is the aggregate that makes the judgement
+possible without re-reducing the ledger: per participant, the bucket and sample
+counts, the largest single hour, and the worst reporting lag. Lateness in
+particular cannot disqualify on its own — a watch that syncs on Friday is most
+syncs, not an attack — but the lag between a bucket closing and its being
+reported is what separates a late sync from a fabrication, so it is surfaced
+rather than acted on. Both cases are in the corpus as fixtures that must *pass*,
+so that nobody mistakes the engine's silence for a verdict.
+
+The one thing it refuses outright is a ledger that contradicts itself: a bucket
+carrying two different `local_day` values raises. `contest_evidence` groups
+`local_day` rather than aggregating it precisely so that this arrives as two
+rows (D37), and picking one would decide a day's total with nobody able to tell
+which row was chosen.
+
+**Rejected.** A plausibility ceiling in the engine (needs the tuning parameter
+M5 owns, and a ceiling low enough to catch spoofing is low enough to catch a
+genuine ultramarathon). Returning flags alongside standings (M5's remit, and the
+engine would then have two reasons to change).
+
+### D56. M4 ships the engine and no endpoint
+
+**What.** A pure function and its corpus. No Edge Function, no RPC, no delivery
+surface.
+
+**Why.** Purity is what D3 wanted from TypeScript in the first place — the
+milestone is defined as an engine with fixture tests including fraudulent ones,
+and every case in the corpus is a function call rather than a request. Adding a
+standings endpoint now would fix a response shape before the two milestones that
+change it: M5 adds integrity scores and flags, M6 adds check-in and
+workout-overlap adjustments. M7 owns settlement and is the natural home for the
+read surface, since it needs standings anyway and will have both by then.
+
+**Rejected.** A `score-contest` Edge Function now (gives the milestone something
+reachable, at the cost of a response contract that churns twice before anything
+consumes it, plus an authorization surface — who may read whose standings — that
+belongs with settlement).
+
+**Revisit if.** The M8 client shell needs live standings before M7 lands. The
+engine is already the hard part; the endpoint is a read and a call.
+
+---
+
 ## Decisions deferred, with a current default
 
 Recorded so they are not silently made later. Each has a working default;
@@ -1339,6 +1537,17 @@ what counts), and the timezone-change deferral below is unchanged in its default
 but is now load-bearing in a new place — the frozen zone is what a bucket is
 aligned to (D36), so a mid-contest change would not merely shift a day boundary,
 it would invalidate every bucket already banked.
+
+M4 finished the tie-break menu M2 left half-open: each option now has a
+computation (D51 for when a tie-break is reached at all, D54 for what happens
+when the declared one cannot answer). It also made the integrity-score entry
+below load-bearing rather than merely proposed — `integrity_score` is the
+*default* tie-break, so under D51 it is the ordinary path in a duel both friends
+win, and until M5 supplies a number those contests come back `undecided`. That
+is the correct failure mode and it is not a resting state: M5's integrity score
+is now the gating dependency for settling the most common contest there is.
+The engine already takes the scores as an optional input, so M5 supplies them
+rather than changing the engine.
 
 - **Quarantine approval in group contests (M5).** A retroactively-written sample
   counts only if approved. In a duel that means the opponent. In a group,
