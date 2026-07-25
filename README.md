@@ -40,6 +40,7 @@ scripts/
   db-test.sh             Reset the database and run pgTAP
   test-all.sh            Everything CI runs, in CI's order
 DECISIONS.md             Every non-obvious choice and why
+PLAN.md                  What is next, and what the plan is missing
 ```
 
 ## Prerequisites
@@ -603,6 +604,9 @@ your toolchain with `xcodebuild -version`. The reasoning is in DECISIONS.md D2;
 changing it is one line in `Package.swift`.
 
 ## Milestones
+
+This is the ledger of what is built. What comes next, which decisions M7 cannot
+start without, and what is in flight but not yet reflected here are in PLAN.md.
 
 - [x] **M0** — Scaffold, local Supabase, migration and test harness, CI
 - [x] **M1** — Schema and RLS for identity, friendships, groups
