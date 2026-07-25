@@ -5,6 +5,11 @@
 -- retain reviewer UUIDs as pseudonymous audit identities after account
 -- deletion, and derive state only from those immutable facts.
 
+-- Supabase applies migration statements individually unless the file opens an
+-- explicit transaction. The locks and invariant audits below must cover the
+-- entire upgrade, not just one statement.
+begin;
+
 -- Establish one migration-wide linearization point for review votes and the
 -- roster denominators they were created against. Account-deletion cascades and
 -- ordinary roster/review writes wait until both reviewer FKs are gone and both
@@ -838,3 +843,5 @@ revoke all on function
 grant execute on function
   app.is_invited_or_accepted_contest_participant(uuid, uuid)
   to authenticated;
+
+commit;
