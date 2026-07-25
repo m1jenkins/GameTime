@@ -62,6 +62,55 @@ export interface Database {
   recordMetricBatch(args: RecordMetricBatchArgs): Promise<RecordedBatch>;
 }
 
+/** One raw Core Location observation in the shape the check-in RPC accepts. */
+export interface CheckInLocationInput {
+  readonly observed_at: string;
+  readonly latitude: number;
+  readonly longitude: number;
+  readonly accuracy_meters: number;
+  readonly is_simulated: boolean;
+  readonly is_produced_by_accessory: boolean;
+}
+
+/** What `public.record_geofence_checkin()` needs after request validation. */
+export interface RecordGeofenceCheckInArgs {
+  readonly userId: string;
+  readonly contestId: string;
+  readonly geofenceId: string;
+  readonly clientCheckInId: string;
+  readonly payloadDigest: Bytes;
+  readonly locations: readonly CheckInLocationInput[];
+  readonly workoutId: string;
+  readonly workoutStartedAt: string;
+  readonly workoutEndedAt: string;
+  readonly workoutActivityType: string;
+  readonly workoutProvenance: string;
+  readonly workoutSourceBundleId?: string;
+  /** Absent only under the development bypass. */
+  readonly keyId?: Bytes;
+  readonly signCount?: number;
+}
+
+/** The durable validation result returned by `record_geofence_checkin()`. */
+export interface RecordedGeofenceCheckIn {
+  readonly checkInId: string;
+  readonly outcome: string;
+  readonly dwellSeconds: number;
+  readonly workoutOverlapSeconds: number;
+  readonly replayed: boolean;
+}
+
+/**
+ * Kept separate from {@link Database}: M3's handler fakes implement exactly the
+ * two M3 writes, and adding an M6 method to that interface would make an
+ * unrelated milestone's tests change for type-system bookkeeping alone.
+ */
+export interface CheckInDatabase {
+  recordGeofenceCheckIn(
+    args: RecordGeofenceCheckInArgs,
+  ): Promise<RecordedGeofenceCheckIn>;
+}
+
 export interface PostgrestConfig {
   readonly url: string;
   readonly serviceRoleKey: string;
@@ -107,10 +156,50 @@ function failureFor(code: string | undefined, detail: string): HttpFailure {
   }
 }
 
+/** SQLSTATE mapping whose public messages use the check-in domain's words. */
+function checkInFailureFor(code: string | undefined, detail: string): HttpFailure {
+  switch (code) {
+    case "23P01": // exclusion_violation
+      return new HttpFailure(
+        "rejected",
+        "this check-in overlaps another recorded check-in",
+        detail,
+      );
+    case "23001": // restrict_violation
+    case "23514": // check_violation
+    case "22023": // invalid_parameter_value
+    case "22003": // numeric_value_out_of_range
+      return new HttpFailure(
+        "rejected",
+        "the check-in was refused by a validation rule",
+        detail,
+      );
+    case "23505": // unique_violation
+      return new HttpFailure(
+        "rejected",
+        "this check-in id was already used for a different payload",
+        detail,
+      );
+    case "23503": // foreign_key_violation
+      return new HttpFailure(
+        "forbidden",
+        "the contest or geofence is not available to you",
+        detail,
+      );
+    case "42501": // insufficient_privilege
+      return new HttpFailure("forbidden", "this device is not registered to you", detail);
+    case "54000": // program_limit_exceeded
+      return new HttpFailure("bad_request", "the check-in is too large", detail);
+    default:
+      return new HttpFailure("internal", "the request could not be processed", detail);
+  }
+}
+
 async function rpc(
   config: PostgrestConfig,
   name: string,
   args: Record<string, unknown>,
+  mapFailure: (code: string | undefined, detail: string) => HttpFailure = failureFor,
 ): Promise<unknown> {
   let response: Response;
   try {
@@ -143,7 +232,7 @@ async function rpc(
       // A non-JSON body from PostgREST is itself unexpected; the raw text is
       // the most useful detail available.
     }
-    throw failureFor(code, `${name} failed with ${response.status}: ${message}`);
+    throw mapFailure(code, `${name} failed with ${response.status}: ${message}`);
   }
 
   if (text === "") return null;
@@ -203,6 +292,72 @@ export function postgrestDatabase(config: PostgrestConfig): Database {
       return {
         batchId: row.batch_id,
         observationCount: row.observation_count,
+        replayed: row.replayed,
+      };
+    },
+  };
+}
+
+/** Production adapter for M6's attested geofence check-in RPC. */
+export function postgrestCheckInDatabase(config: PostgrestConfig): CheckInDatabase {
+  return {
+    async recordGeofenceCheckIn(args) {
+      const result = await rpc(
+        config,
+        "record_geofence_checkin",
+        {
+          p_user_id: args.userId,
+          p_contest_id: args.contestId,
+          p_geofence_id: args.geofenceId,
+          p_client_checkin_id: args.clientCheckInId,
+          p_payload_digest: toByteaLiteral(args.payloadDigest),
+          p_locations: args.locations,
+          p_workout_id: args.workoutId,
+          p_workout_started_at: args.workoutStartedAt,
+          p_workout_ended_at: args.workoutEndedAt,
+          p_workout_activity_type: args.workoutActivityType,
+          p_workout_provenance: args.workoutProvenance,
+          p_workout_source_bundle_id: args.workoutSourceBundleId ?? null,
+          p_key_id: args.keyId === undefined ? null : toByteaLiteral(args.keyId),
+          p_sign_count: args.signCount ?? null,
+        },
+        checkInFailureFor,
+      );
+
+      // A set-returning function comes back as an array of rows.
+      const rows = Array.isArray(result) ? result : [result];
+      const row = rows[0] as
+        | {
+          checkin_id?: unknown;
+          outcome?: unknown;
+          dwell_seconds?: unknown;
+          workout_overlap_seconds?: unknown;
+          replayed?: unknown;
+        }
+        | undefined;
+
+      if (
+        row === undefined || typeof row.checkin_id !== "string" ||
+        typeof row.outcome !== "string" || row.outcome.length === 0 ||
+        typeof row.dwell_seconds !== "number" || !Number.isFinite(row.dwell_seconds) ||
+        row.dwell_seconds < 0 ||
+        typeof row.workout_overlap_seconds !== "number" ||
+        !Number.isFinite(row.workout_overlap_seconds) ||
+        row.workout_overlap_seconds < 0 ||
+        typeof row.replayed !== "boolean"
+      ) {
+        throw new HttpFailure(
+          "internal",
+          "the request could not be processed",
+          `record_geofence_checkin returned an unexpected shape: ${JSON.stringify(result)}`,
+        );
+      }
+
+      return {
+        checkInId: row.checkin_id,
+        outcome: row.outcome,
+        dwellSeconds: row.dwell_seconds,
+        workoutOverlapSeconds: row.workout_overlap_seconds,
         replayed: row.replayed,
       };
     },

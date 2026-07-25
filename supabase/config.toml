@@ -413,9 +413,9 @@ s3_access_key = "env(S3_ACCESS_KEY)"
 s3_secret_key = "env(S3_SECRET_KEY)"
 
 # ---------------------------------------------------------------------------
-# Edge Functions (M3)
+# Edge Functions (M3, M6)
 # ---------------------------------------------------------------------------
-# Both endpoints verify the caller's JWT in code as well (see
+# All ingest endpoints verify the caller's JWT in code as well (see
 # functions/_shared/jwt.ts). That is deliberate duplication: the gateway check
 # below is a configuration flag, and the cost of it being flipped is an ingest
 # endpoint trusting an unsigned claim about whose evidence it is writing. Two
@@ -425,6 +425,10 @@ enabled = true
 verify_jwt = true
 
 [functions.ingest-metrics]
+enabled = true
+verify_jwt = true
+
+[functions.ingest-checkin]
 enabled = true
 verify_jwt = true
 

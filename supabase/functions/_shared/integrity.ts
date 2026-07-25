@@ -1,5 +1,5 @@
 /**
- * Tunable anti-cheat signals and integrity scoring (M5).
+ * Tunable anti-cheat signals and integrity scoring (M5–M6).
  *
  * This module judges evidence; it never edits it. `scoreContest()` remains the
  * only definition of qualification and totals, and `contest_evidence` remains
@@ -35,6 +35,8 @@ export type IntegrityFlagCode =
   | "cross_metric_corroboration"
   | "third_party_source_reputation"
   | "timezone_change"
+  | "geofence_checkin_failure"
+  | "workout_overlap_validation"
   | "impossible_travel"
   | "reporting_lag"
   | "retroactive_evidence_quarantine";
@@ -148,16 +150,27 @@ export interface IntegrityTuning {
   readonly corroboration: CorroborationTuning;
   readonly sourceReputation: SourceReputationTuning;
   readonly timezoneChange: RulePenalty;
+  readonly geofenceCheckIn: RulePenalty;
+  readonly workoutOverlap: RulePenalty;
   readonly travel: TravelTuning;
   readonly reportingLag: ReportingLagTuning;
   readonly retroactiveQuarantine: RetroactiveQuarantineTuning;
 }
 
+/** The exact pre-M6 M5 configuration retained for reproducible re-scores. */
+export type IntegrityTuningV3 = Omit<
+  IntegrityTuning,
+  "geofenceCheckIn" | "workoutOverlap"
+>;
+
 /** The exact pre-timezone-change M5 configuration retained for reproducible re-scores. */
-export type IntegrityTuningV2 = Omit<IntegrityTuning, "timezoneChange">;
+export type IntegrityTuningV2 = Omit<IntegrityTuningV3, "timezoneChange">;
 
 /** A persisted tuning document accepted by the assessor. */
-export type IntegrityTuningConfig = IntegrityTuning | IntegrityTuningV2;
+export type IntegrityTuningConfig =
+  | IntegrityTuning
+  | IntegrityTuningV3
+  | IntegrityTuningV2;
 
 const HOUR_MS = 3_600_000;
 const DAY_MS = 86_400_000;
@@ -269,12 +282,8 @@ export const M5_V2_INTEGRITY_TUNING: IntegrityTuningV2 = {
   },
 };
 
-/**
- * Conservative current values, deliberately ordinary data rather than hidden
- * constants in the evaluator. Product tuning changes this object (and its
- * version), not the rules or the schema.
- */
-export const DEFAULT_INTEGRITY_TUNING: IntegrityTuning = {
+/** The exact timezone-aware M5 configuration retained for reproducible re-scores. */
+export const M5_V3_INTEGRITY_TUNING: IntegrityTuningV3 = {
   ...M5_V2_INTEGRITY_TUNING,
   version: "m5-v3",
   timezoneChange: {
@@ -282,6 +291,28 @@ export const DEFAULT_INTEGRITY_TUNING: IntegrityTuning = {
     severity: "medium",
     pointsPerFlag: 10,
     maxPoints: 20,
+  },
+};
+
+/**
+ * M6 adds two auditable validation sidecars. Neither rule changes metric
+ * admissibility, qualification, or totals; their configured penalties can
+ * only flow through M4's already-declared integrity-score tie-break.
+ */
+export const DEFAULT_INTEGRITY_TUNING: IntegrityTuning = {
+  ...M5_V3_INTEGRITY_TUNING,
+  version: "m6-v1",
+  geofenceCheckIn: {
+    enabled: true,
+    severity: "medium",
+    pointsPerFlag: 10,
+    maxPoints: 30,
+  },
+  workoutOverlap: {
+    enabled: true,
+    severity: "high",
+    pointsPerFlag: 15,
+    maxPoints: 30,
   },
 };
 
@@ -315,9 +346,44 @@ export interface SourceEvidence {
   readonly sourceBundleId?: string | null;
 }
 
+export type CheckInValidationOutcome =
+  | "accepted"
+  | "outside_contest_window"
+  | "future_evidence"
+  | "simulated_location"
+  | "low_accuracy"
+  | "outside_geofence"
+  | "insufficient_dwell"
+  | "insufficient_workout_overlap"
+  | "untrusted_workout"
+  | "overlapping_checkin"
+  | "reused_workout"
+  | "overlapping_workout";
+
+/**
+ * One row of `public.contest_checkin_integrity`.
+ *
+ * It is deliberately a validation result, not a scored measurement. The
+ * database has already computed the geofence distance, dwell, and temporal
+ * workout overlap from attested absolute-time observations. Integrity records
+ * a failed result as a flag without removing any metric bucket.
+ */
+export interface CheckInEvidence {
+  readonly userId: string;
+  readonly checkInId: string;
+  readonly geofenceId: string;
+  readonly startedAt: string;
+  readonly endedAt: string;
+  readonly outcome: CheckInValidationOutcome;
+  readonly dwellSeconds: number;
+  readonly workoutOverlapSeconds: number;
+  readonly attested: boolean;
+}
+
 export interface IntegrityInput extends ScoringInput {
   readonly locations?: readonly LocationObservation[];
   readonly sourceEvidence?: readonly SourceEvidence[];
+  readonly checkIns?: readonly CheckInEvidence[];
 }
 
 export interface ParticipantIntegrity {
@@ -395,20 +461,70 @@ const LEGACY_DISABLED_TIMEZONE_CHANGE: RulePenalty = {
   maxPoints: 0,
 };
 
+const LEGACY_DISABLED_GEOFENCE_CHECKIN: RulePenalty = {
+  enabled: false,
+  severity: "medium",
+  pointsPerFlag: 0,
+  maxPoints: 0,
+};
+
+const LEGACY_DISABLED_WORKOUT_OVERLAP: RulePenalty = {
+  enabled: false,
+  severity: "high",
+  pointsPerFlag: 0,
+  maxPoints: 0,
+};
+
 /**
- * Loads the historical m5-v2 shape into the current evaluator without changing
- * its behavior. Other versions must declare the timezone rule explicitly so a
- * partially loaded current configuration cannot fail open.
+ * Loads the historical M5 shapes into the current evaluator without changing
+ * their behavior. A current or unknown version must declare every current rule
+ * explicitly so a partially loaded configuration cannot fail open.
  */
 function materializeTuning(tuning: IntegrityTuningConfig): IntegrityTuning {
-  const timezoneChange = (tuning as Partial<IntegrityTuning>).timezoneChange;
-  if (timezoneChange !== undefined) return tuning as IntegrityTuning;
-  if (tuning.version !== M5_V2_INTEGRITY_TUNING.version) {
+  const partial = tuning as Partial<IntegrityTuning>;
+  let timezoneChange = partial.timezoneChange;
+  if (timezoneChange === undefined) {
+    if (tuning.version !== M5_V2_INTEGRITY_TUNING.version) {
+      throw new ScoringError(
+        `integrity.timezoneChange is required for tuning version ${JSON.stringify(tuning.version)}`,
+      );
+    }
+    timezoneChange = LEGACY_DISABLED_TIMEZONE_CHANGE;
+  }
+
+  let geofenceCheckIn = partial.geofenceCheckIn;
+  let workoutOverlap = partial.workoutOverlap;
+  if (geofenceCheckIn === undefined || workoutOverlap === undefined) {
+    const historicalM5 = tuning.version === M5_V2_INTEGRITY_TUNING.version ||
+      tuning.version === M5_V3_INTEGRITY_TUNING.version;
+    if (!historicalM5) {
+      const missing = [
+        ...(geofenceCheckIn === undefined ? ["geofenceCheckIn"] : []),
+        ...(workoutOverlap === undefined ? ["workoutOverlap"] : []),
+      ].join(" and ");
+      throw new ScoringError(
+        `integrity.${missing} is required for tuning version ${JSON.stringify(tuning.version)}`,
+      );
+    }
+    geofenceCheckIn ??= LEGACY_DISABLED_GEOFENCE_CHECKIN;
+    workoutOverlap ??= LEGACY_DISABLED_WORKOUT_OVERLAP;
+  }
+
+  if (
+    timezoneChange === undefined || geofenceCheckIn === undefined ||
+    workoutOverlap === undefined
+  ) {
     throw new ScoringError(
-      `integrity.timezoneChange is required for tuning version ${JSON.stringify(tuning.version)}`,
+      `integrity tuning version ${JSON.stringify(tuning.version)} is incomplete`,
     );
   }
-  return { ...tuning, timezoneChange: LEGACY_DISABLED_TIMEZONE_CHANGE };
+
+  return {
+    ...tuning,
+    timezoneChange,
+    geofenceCheckIn,
+    workoutOverlap,
+  };
 }
 
 function validateTuning(tuning: IntegrityTuning): void {
@@ -424,6 +540,8 @@ function validateTuning(tuning: IntegrityTuning): void {
   validatePenalty(tuning.plausibility, "integrity.plausibility");
   validatePenalty(tuning.corroboration, "integrity.corroboration");
   validatePenalty(tuning.timezoneChange, "integrity.timezoneChange");
+  validatePenalty(tuning.geofenceCheckIn, "integrity.geofenceCheckIn");
+  validatePenalty(tuning.workoutOverlap, "integrity.workoutOverlap");
   validatePenalty(tuning.travel, "integrity.travel");
   validatePenalty(tuning.reportingLag, "integrity.reportingLag");
   validatePenalty(tuning.retroactiveQuarantine, "integrity.retroactiveQuarantine");
@@ -511,6 +629,10 @@ function standardRuleFor(
       return tuning.corroboration;
     case "timezone_change":
       return tuning.timezoneChange;
+    case "geofence_checkin_failure":
+      return tuning.geofenceCheckIn;
+    case "workout_overlap_validation":
+      return tuning.workoutOverlap;
     case "impossible_travel":
       return tuning.travel;
     case "reporting_lag":
@@ -879,6 +1001,117 @@ function timezoneChangeFlags(
     );
 }
 
+const CHECKIN_OUTCOMES: ReadonlySet<string> = new Set<CheckInValidationOutcome>([
+  "accepted",
+  "outside_contest_window",
+  "future_evidence",
+  "simulated_location",
+  "low_accuracy",
+  "outside_geofence",
+  "insufficient_dwell",
+  "insufficient_workout_overlap",
+  "untrusted_workout",
+  "overlapping_checkin",
+  "reused_workout",
+  "overlapping_workout",
+]);
+
+const WORKOUT_VALIDATION_OUTCOMES: ReadonlySet<CheckInValidationOutcome> = new Set([
+  "insufficient_workout_overlap",
+  "untrusted_workout",
+  "reused_workout",
+  "overlapping_workout",
+]);
+
+function checkInFlags(
+  checkIns: readonly CheckInEvidence[],
+  accepted: ReadonlySet<string>,
+  tuning: IntegrityTuning,
+): IntegrityFlag[] {
+  const seen = new Map<string, string>();
+  const flags: IntegrityFlag[] = [];
+
+  for (const checkIn of checkIns) {
+    // Match every other integrity input: rows for somebody M4 does not score
+    // cannot create a side-channel penalty, and malformed ignored rows do not
+    // turn a wider-than-needed query into a failed assessment.
+    if (!accepted.has(checkIn.userId)) continue;
+
+    if (!CHECKIN_OUTCOMES.has(checkIn.outcome)) {
+      throw new ScoringError(
+        `checkIn.outcome is not known: ${JSON.stringify(checkIn.outcome)}`,
+      );
+    }
+    const startedAt = instant(checkIn.startedAt, "checkIn.startedAt");
+    const endedAt = instant(checkIn.endedAt, "checkIn.endedAt");
+    if (endedAt <= startedAt) {
+      throw new ScoringError("checkIn.endedAt must be after startedAt");
+    }
+    nonNegative(checkIn.dwellSeconds, "checkIn.dwellSeconds");
+    nonNegative(checkIn.workoutOverlapSeconds, "checkIn.workoutOverlapSeconds");
+    if (checkIn.workoutOverlapSeconds > checkIn.dwellSeconds) {
+      throw new ScoringError("checkIn.workoutOverlapSeconds must not exceed dwellSeconds");
+    }
+    if (typeof checkIn.attested !== "boolean") {
+      throw new ScoringError("checkIn.attested must be boolean");
+    }
+
+    const identity = `${checkIn.userId}\u0000${checkIn.checkInId}`;
+    const material = JSON.stringify([
+      checkIn.geofenceId,
+      startedAt,
+      endedAt,
+      checkIn.outcome,
+      checkIn.dwellSeconds,
+      checkIn.workoutOverlapSeconds,
+      checkIn.attested,
+    ]);
+    const prior = seen.get(identity);
+    if (prior !== undefined) {
+      if (prior !== material) {
+        throw new ScoringError(
+          `check-in ${JSON.stringify(checkIn.checkInId)} appears with conflicting validation`,
+        );
+      }
+      continue;
+    }
+    seen.set(identity, material);
+
+    if (checkIn.outcome === "accepted") continue;
+
+    const code: StandardIntegrityFlagCode = WORKOUT_VALIDATION_OUTCOMES.has(
+        checkIn.outcome,
+      )
+      ? "workout_overlap_validation"
+      : "geofence_checkin_failure";
+    const rule = standardRuleFor(tuning, code);
+    if (!rule.enabled) continue;
+
+    flags.push(
+      flag(
+        code,
+        checkIn.userId,
+        `${checkIn.checkInId}:${checkIn.outcome}`,
+        tuning,
+        {
+          observedAt: checkIn.endedAt,
+          details: {
+            checkInId: checkIn.checkInId,
+            geofenceId: checkIn.geofenceId,
+            validationOutcome: checkIn.outcome,
+            dwellSeconds: checkIn.dwellSeconds,
+            workoutOverlapSeconds: checkIn.workoutOverlapSeconds,
+            attested: checkIn.attested,
+            evidenceStillScores: true,
+          },
+        },
+      ),
+    );
+  }
+
+  return flags;
+}
+
 const EARTH_RADIUS_KM = 6_371.0088;
 
 function radians(degrees: number): number {
@@ -981,9 +1214,11 @@ const FLAG_ORDER: Readonly<Record<IntegrityFlagCode, number>> = {
   cross_metric_corroboration: 1,
   third_party_source_reputation: 2,
   timezone_change: 3,
-  impossible_travel: 4,
-  reporting_lag: 5,
-  retroactive_evidence_quarantine: 6,
+  geofence_checkin_failure: 4,
+  workout_overlap_validation: 5,
+  impossible_travel: 6,
+  reporting_lag: 7,
+  retroactive_evidence_quarantine: 8,
 };
 
 function sortFlags(flags: IntegrityFlag[]): IntegrityFlag[] {
@@ -1005,6 +1240,8 @@ function participantAssessment(
     cross_metric_corroboration: 0,
     third_party_source_reputation: 0,
     timezone_change: 0,
+    geofence_checkin_failure: 0,
+    workout_overlap_validation: 0,
     impossible_travel: 0,
     reporting_lag: 0,
     retroactive_evidence_quarantine: 0,
@@ -1056,6 +1293,7 @@ export function assessContestIntegrity(
     ...corroborationFlags(evidence, input.contest.metric, tuning),
     ...sourceReputationFlags(input.sourceEvidence ?? [], evidence, tuning),
     ...timezoneChangeFlags(input.timezoneChanges, accepted, tuning),
+    ...checkInFlags(input.checkIns ?? [], accepted, tuning),
     ...reportingFlags(evidence, tuning),
     ...travelFlags(input.locations ?? [], accepted, windowStart, windowEnd, tuning),
   ]);

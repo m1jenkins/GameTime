@@ -1735,6 +1735,137 @@ move as `impossible_travel` (D59: a zone is not a location).
 an explicit product decision about who may amend shared terms, not reuse of the
 evidence-review quorum by analogy.
 
+### D63. A geofence check-in is immutable evidence, not a client verdict
+
+**What.** `contest_geofences` is service-provisioned before activation and
+immutable thereafter. A contest-row lock makes provisioning atomic with
+activation. The row fixes the center, radius, accepted accuracy, minimum dwell,
+maximum sample gap, and minimum workout overlap. The signed client body reports
+only raw, explicitly located Core Location observations and one HealthKit
+workout; it never reports an `inside` boolean or a dwell total.
+
+Postgres computes and stores every Haversine distance and sample classification,
+then stores one closed, deterministic outcome on the append-only check-in row.
+A cryptographically invalid request never reaches the ledger because its user
+and evidence cannot be authenticated. Once authentication succeeds, a
+well-formed semantic failure is retained rather than disappearing: future or
+out-of-window evidence, simulated or inaccurate locations, an outside venue,
+insufficient dwell, and workout conflicts are all auditable facts.
+
+**Why.** Letting a client send "I was at the gym for ten minutes" makes
+attestation protect a conclusion the same client chose. Recomputing from the
+raw signal under immutable terms gives disputes both the claim and the rule that
+judged it. Keeping failed signed attempts closes the quieter attack in which
+only successful evidence survives and repeated boundary probing leaves no
+trace.
+
+The RPC is executable only by `service_role`, after the Edge Function verifies
+JWT ownership and the App Attest assertion over the exact body bytes. Client
+roles receive no insert, update, delete, or execute path. RLS lets an accepted
+rival inspect shared geofence terms and derived outcomes, but exact raw and
+trusted coordinate rows are owner-only; the server-side integrity consumer
+retains them through `service_role`. The development bypass is permanently
+marked `attested = false` and its locations never enter the trusted-location
+view.
+
+**Rejected.** A mutable venue row (changes what old evidence means). Trusting a
+client-computed distance or dwell (signs an opinion, not evidence). Inferring a
+venue from timezone, IP, or HealthKit totals (none is a location). Storing an
+invalid signature as somebody's attempt (the claimed identity was not proven).
+Appending an alternative venue after activation (changes the allowed terms
+without participant consent).
+
+### D64. Dwell and workout overlap are unions of observed absolute-time segments
+
+**What.** Credited dwell is the sum of consecutive `inside -> inside` sample
+intervals whose gap is no greater than the geofence's configured maximum.
+Outside, low-accuracy, or simulated points break the chain. A long sampling gap
+also breaks it; the server does not fill an unobserved interval.
+
+Workout validation intersects its half-open absolute range with those credited
+segments and sums the intersections. It does not intersect against the
+first-to-last visit envelope, which can contain broken or unobserved gaps.
+All inputs are `timestamptz` instants. Touching `[start, end)` endpoints do not
+overlap, and neither a participant timezone nor a calendar is consulted.
+
+**Why.** Sampling is discrete, so there is no perfectly knowable continuous
+visit. Crediting only bounded adjacent observations is conservative,
+deterministic, and explainable from the ledger. Using the visit envelope would
+award a workout that happened during a ten-minute gap between two otherwise
+valid samples. Absolute half-open arithmetic gives the same answer through DST,
+offset changes, and reordered input.
+
+One workout is attached to one check-in in M6. Supporting a workout set would
+need a canonical union and a product rule for mixed provenance; silently
+inventing either would make the first implementation impossible to reproduce.
+
+**Rejected.** Client-calculated dwell (not authoritative). A fixed number of
+inside samples (depends on sampling frequency). Filling gaps up to the whole
+visit (credits time without evidence). Local wall-clock overlap (ambiguous at
+DST folds and nonexistent at gaps).
+
+### D65. Only accepted check-ins reserve visit and workout evidence
+
+**What.** Accepted rows are subject to three database-enforced replay rules:
+one user cannot have overlapping accepted visit ranges, cannot have overlapping
+accepted workout ranges, and cannot accept the same workout UUID twice. The two
+range rules are partial GiST exclusions using the existing `btree_gist`
+extension. They apply across contests for the user, and half-open boundaries may
+touch. Failed attempts remain in the audit ledger but reserve nothing, so a
+corrected submission can reuse the real workout.
+
+The caller-generated check-in UUID is unique per user. An identical retry is
+recognized by the SHA-256 digest of the exact signed bytes before the shared App
+Attest counter is consumed and returns the original result. Reusing the UUID
+with different bytes fails loudly. A per-user profile lock serializes the
+idempotency lookup, assertion counter, and accepted-range decision, while the
+constraints remain the final concurrency backstop.
+
+**Why.** The same physical presence or workout must not validate two simultaneous
+claims simply because they name different contests or device keys. Making only
+accepted evidence reserve time avoids turning a low-accuracy first attempt into
+a permanent denial of service against its corrected retry. Digest-bound
+idempotency handles the common timeout-after-commit case without weakening the
+monotonic assertion counter.
+
+**Rejected.** A uniqueness check in the Edge Function (races across instances).
+Consuming the assertion counter before checking an identical retry (makes a safe
+network retry look like a replay attack). Excluding failed ranges (lets invalid
+evidence block valid evidence). Treating boundary-touching workouts as overlap
+(half-open intervals share no elapsed time).
+
+### D66. M6 remains an integrity sidecar, and only accepted attested locations travel
+
+**What.** Check-in validation never updates `metric_snapshots`,
+`contest_evidence`, admissibility, qualification, or totals. The
+`contest_checkin_integrity` view supplies two new versioned signals under
+`m6-v1`: `geofence_checkin_failure` for venue/window/dwell/visit failures and
+`workout_overlap_validation` for workout trust, reuse, and overlap failures.
+Historical `m5-v2` and `m5-v3` tuning objects remain loadable with both rules
+disabled, so an old assessment does not acquire a new penalty.
+
+`contest_location_observations` is the concrete producer D59 anticipated. It
+contains only `inside` samples from an `accepted` and `attested` check-in.
+Simulated, inaccurate, outside, failed, and development-bypass observations
+remain visible to their owner and the service in the raw audit ledger but cannot
+raise `impossible_travel` or expose a failed location to a rival.
+The portable Swift evaluator mirrors distance, dwell, and overlap only for
+immediate UX; Postgres remains authoritative. Its retry queue retains the exact
+body bytes that App Attest signed.
+
+**Why.** A geofence result is a useful credibility signal, but it does not prove
+that an otherwise admissible HealthKit total is false. Rewriting the evidence or
+score would create a second scoring engine and erase the distinction between
+"reported activity" and "venue validation failed." Feeding only trusted,
+explicit coordinates into impossible travel finally enables that rule without
+pretending timezone or aggregate exercise data locates a person.
+
+**Rejected.** Deleting or filtering metric evidence after a failed check-in
+(silent disqualification). Feeding every raw location to impossible travel
+(turns spoofed evidence into a penalty). Making Swift's advisory answer
+authoritative (two engines can diverge). Re-encoding queued JSON on retry
+(changes the bytes the assertion covers).
+
 ---
 
 ## Decisions deferred, with a current default
