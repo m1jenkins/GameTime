@@ -453,15 +453,310 @@ a potential privilege escalation).
 
 ---
 
+## M2 — Contests, invitations, participant state machine
+
+### D22. Contest creation and every participant transition is a function
+
+**What.** `contests` and `contest_participants` grant clients `SELECT` and almost
+nothing else. Creation, invitation, acceptance, declining, withdrawal, and
+cancellation are all `SECURITY DEFINER` functions. The only direct write a client
+holds is a column-level `UPDATE` on the creator-editable terms.
+
+**Why.** M1 met this once with `join_group_by_code()` and concluded that RLS
+answers "may this caller read or write this row", not "does this caller already
+know a secret". M2 meets it repeatedly, and the reasons are worth separating
+because they are three different problems:
+
+- **Multi-row atomicity.** Creating a contest also enrols the creator. A contest
+  with an empty roster has no owner and nothing that could clean it up, which is
+  the same reasoning that made a group seed its creator as its first member
+  (D17). It must not be observable.
+- **Cross-row eligibility.** "Is this invitee a friend, a co-member, or blocked
+  by anyone already on the roster" reads rows other than the one being written.
+  A `WITH CHECK` cannot express it, and a policy permissive enough to let a
+  client evaluate it themselves would leak the answer.
+- **Serialization.** `max_participants` bounds a `COUNT`. Two people accepting
+  the last slot concurrently both pass a naive check, so the cap is only real if
+  acceptance takes `FOR UPDATE` on the contest row first — which requires a
+  function body.
+
+**Rejected.** Direct inserts with a trigger seeding the roster, as groups do
+(works for the atomicity problem alone, and the creator's timezone and charity
+nomination are not columns on the contest, so they would have nowhere to arrive
+from). Doing the eligibility checks client-side (the client is the adversary
+here).
+
+**Revisit if.** Nothing foreseeable. The shape follows from the checks.
+
+### D23. Both state machines are allow-lists, declared whole in M2
+
+**What.** `contest_status` and `participant_status` declare every state either
+will ever hold, M7's included. `app.assert_contest_transition()` and
+`app.assert_participant_transition()` reject any pair not on an explicit list.
+M2 implements `open → active` and `open → cancelled`; the edges out of `active`
+are listed as legal and M7 adds the code that walks them.
+
+**Why.** A machine grown one state per milestone is a machine nobody ever reads
+whole, and the failure mode is silent: an enum value added later is reachable
+from every existing state unless somebody remembers to constrain it. Declaring
+the states now costs one migration line each and makes the lifecycle reviewable
+in one place. The allow-list direction matters for the same reason — a deny-list
+of illegal transitions is wrong by default when a state is added.
+
+Two things fall out of writing it down. `active → cancelled` is illegal, because
+once a contest is running there are pledges on the table and cancellation would
+be a losing creator's escape hatch; an active contest ends by being scored.
+And nothing leaves `declined`, `lapsed`, `withdrawn`, or `forfeited` at all.
+
+**Rejected.** Enum values added per milestone (smaller diffs now, and no single
+place where the lifecycle can be checked). A status column with no trigger,
+relying on the functions to be correct (the functions are the only writers today,
+which is exactly the assumption that stops being true the first time a script
+touches the table).
+
+**Revisit if.** A contest needs a pause, or a dispute needs to reopen a settled
+result. Both are new edges, and the point of the allow-list is that they have to
+be written down.
+
+### D24. Terms freeze on the first acceptance by somebody else
+
+**What.** A creator may revise the terms while the contest is `open` and no
+participant other than themselves has accepted. After that the whole terms block
+is immutable. Enforced twice: a narrow `UPDATE` policy plus column grants for
+clients, and `app.forbid_locked_terms_change()` for everybody else.
+
+**Why.** Every column in the terms block is something a participant agreed to.
+Editing the target after somebody accepted is changing a deal they already
+shook on, and in this product the deal ends in one of them donating money. The
+condition is precisely "has anyone else agreed yet" rather than "has anyone been
+invited", because an outstanding invitation is an offer nobody has taken up — a
+creator fixing a typo before anyone answers is not doing anything to anybody.
+
+The second layer is D21's pattern, and it earns itself the same way: the policy
+constrains clients only, so without the trigger a service-role query or a future
+Edge Function could rewrite the target of a running contest. `kind` is frozen
+harder than the rest — unconditionally, from the first instant — because turning
+a duel into a group contest changes how many settlements a result can produce.
+
+**Rejected.** Freezing at creation (simplest, and it makes an unavoidable typo a
+reason to cancel and re-invite everybody). Freezing at first invitation (nearly
+right, but punishes the creator for a state change nobody else has acted on).
+Versioned terms with re-acceptance (honest, and it multiplies the state space of
+every scoring question M4 has to answer).
+
+**Revisit if.** Creators turn out to need one specific late edit — extending
+`ends_at` by mutual consent is the plausible one. That is a consent flow, not a
+loosening of this rule.
+
+### D25. Declining is terminal, and there is no re-invitation
+
+**What.** `invited → declined` is a one-way edge. Re-inviting somebody who
+declined returns their existing status rather than resetting the row.
+
+**Why.** The same reasoning that removed the `declined` friendship status in D16,
+applied to a place where it would have been easier to leave a nag path open. A
+resettable invitation is an unlimited "are you sure?" from somebody who is,
+by construction, a friend — and the mechanism for not being asked again should be
+a block, which the person makes deliberately and knows they made, rather than a
+quirk of how many times a creator is willing to retry.
+
+Idempotency is what makes this practical: `invite_to_contest()` returns the
+status it found, so a client retrying on a flaky connection cannot accidentally
+re-ask, and a creator can tell "already invited" from "they said no" without a
+second read.
+
+**Rejected.** Re-invitation with a cooldown (throttles the nag without removing
+it, and adds a timestamp to reason about in every policy). Deleting the row on
+decline, mirroring D16 exactly (tempting for symmetry, but a friendship has two
+parties and a contest has a creator who would then be able to re-invite freely —
+deletion here *creates* the nag path rather than closing it).
+
+**Revisit if.** Creators legitimately need to re-offer after changing the terms.
+That is a new contest, and it costs nothing to make one.
+
+### D26. A block refuses co-participation but ejects nobody, and co-participation outlives it
+
+**What.** Three parts, and they resolve two things M1 left open:
+
+- Nobody may be invited to a contest if they are blocked, in either direction, by
+  anybody already on the roster. Checked against the whole roster, not just the
+  creator.
+- A block still removes nobody from any group or any running contest.
+- `app.shares_contest()` is a route to reading a profile, and unlike the friend
+  and group routes it sits **outside** the block check.
+
+**Why.** M1 recorded the tension and deferred it: blocking does not eject either
+party from a shared group, because that power is exactly what flat membership
+withholds from everyone (D17). Without a check at invitation time, a group
+contest would therefore be a way to put two people who have blocked each other
+into a mutual donation obligation. Refusing the pairing fixes that without giving
+anybody the removal power D17 denies them.
+
+The third part is the one that looks inconsistent and is not. A block cannot
+create the situation — nobody blocked can be invited, and nobody blocked can
+already be on the roster — so the only way to reach it is a block placed *after*
+an invitation. At that point hiding the profile would replace a live opponent
+with an unknown user in the blocked party's app, which announces the block to
+precisely the person D19 went out of its way not to tell. The contest keeps
+running either way; a pledge does not care how the two of them feel about each
+other. So the block goes on doing everything it can do without leaking —
+severing the friendship, ending discovery, refusing new invitations — and stops
+short of the one action that would speak.
+
+**Rejected.** Ejecting on block (hands every user a way to remove anyone from a
+group by blocking them). Hiding co-participants' profiles behind the block check
+(consistent-looking, and it turns a block into a notification). Leaving
+invitation unchecked and relying on people not to do it (the roster is where the
+money is).
+
+**Revisit if.** Blocking mid-contest becomes a common way to harass an opponent.
+The fix is a reporting path and M5's integrity flags, not a change here.
+
+### D27. Each participant nominates their own charity; the winner's nomination is the destination
+
+**What.** `contest_participants.charity_id`, chosen at acceptance, required.
+Nobody nominates on anybody else's behalf, and the contest itself has no charity.
+
+**Why.** The product is "the loser donates to a charity the winner picks", and
+the winner is not known until scoring. The only way to have a destination ready
+for every possible outcome is for every participant to have declared one, which
+also makes the winner-takes-all group case work unchanged: `n-1` settlements
+(D4), all pointing at the single winner's nomination.
+
+Two smaller choices inside it. The nomination is frozen when the contest starts
+rather than at acceptance — before the start, changing your mind harms nobody;
+after it, a movable nomination is a bait-and-switch once a result is visible.
+And the foreign key is `ON DELETE RESTRICT`, not `CASCADE` or `SET NULL`: a
+nomination is part of the agreed terms, so a charity any contest points at cannot
+be deleted out from under it. Retiring one is `is_active = false`, which stops
+new nominations and leaves historic ones renderable.
+
+**Rejected.** One charity per contest, set by the creator (simpler, and it means
+the winner does not pick — which is the product). Picking at settlement time
+(no frozen agreement, and it lets a winner shop for a destination after the
+fact). Defaulting to a house charity (nobody's choice, and it makes the pledge
+feel like a fee).
+
+**Revisit if.** Participants want to split a donation across charities. That is a
+join table, and the settlement shape in D4 would have to widen with it.
+
+### D28. Charities are seeded reference data with no client write path
+
+**What.** `charities` grants `SELECT` to `authenticated` and nothing else — no
+policy and no grant for insert, update, or delete. The local seed carries three
+obvious placeholders whose EINs use a `00-` prefix the IRS does not issue.
+
+**Why.** If a client could add a row here, "donate to charity" would become "pay
+an arbitrary payee of the winner's invention", which is the one failure mode a
+charitable-pledge product cannot have. Read-only is therefore not a convenience,
+it is the control, and it is a withheld grant rather than a missing policy for
+D21's reasons.
+
+The placeholder seed is a separate deliberate choice. Attaching plausible-looking
+EINs to the names of real organizations would be fabricating official
+registration identifiers, and those rows would be indistinguishable from real
+reference data the moment they appeared in a screenshot or got copied into an
+environment. Unmistakably fake fixtures cost nothing and cannot be mistaken for
+anything. Production reference data is loaded out of band, as briefed — no IRS
+Pub 78 import in v1.
+
+**Revisit if.** The list needs to be large enough that curating it by hand stops
+working. That argues for an import pipeline writing through `service_role`, not
+for a client grant.
+
+### D29. Tie-break is declared at creation, and the incoherent pairing is refused
+
+**What.** `contests.tie_break` defaults to `integrity_score`. A CHECK constraint
+refuses `earliest_to_target` on a `daily` cadence.
+
+**Why.** Declared up front, never chosen once a result is known, which is the
+whole point of putting it in the terms block that D24 freezes — a tie-break
+picked afterwards is picked by whoever it favours. `integrity_score` is the
+default because it makes clean data the thing that wins a tie, which is the
+incentive this product wants to create.
+
+The constraint exists because "first to reach the target" has no meaning when the
+target resets every day. Rather than leave M4 to interpret an incoherent
+combination, the row cannot be written. Resolution logic is still M4's; M2 only
+records the declaration.
+
+**Rejected.** Resolving ties ad hoc (favours whoever argues hardest). Always
+splitting (`both_donate` as the only rule; doubles the obligations a tie creates,
+and it is available as a choice for people who want it).
+
+### D30. Group size is capped at contest creation, not on the group
+
+**What.** `contests.max_participants`, declared by the creator, constrained to
+2–20 by the schema and forced to exactly 2 for a duel. Outstanding invitations
+count against it, and acceptance re-checks it under a lock.
+
+**Why.** The group is not the thing being staked. A winner-takes-all contest
+among *n* produces *n-1* donation obligations (D4), so the number that needs
+bounding is how many people are in the *contest* — the same group can reasonably
+run a duel and a twelve-person challenge. Capping the group instead would limit
+the wrong thing and would also mean one contest's stakes constraining an
+unrelated part of the product.
+
+Two details. Invitations count against the cap rather than only acceptances,
+because the alternative is inviting thirty people to a four-person contest and
+letting the race decide, which is a worse experience than being told it is full.
+And 20 is the schema ceiling rather than the product's answer: at a $1,000 stake
+ceiling it bounds one contest at 19 obligations, which is generous for the
+friend-group scale D17 describes and still finite.
+
+**Revisit if.** Group contests get used at league scale, which is the same
+pressure D4 identifies as the reason to revisit round-robin.
+
+### D31. Stakes are bounded integer cents in a single currency
+
+**What.** `stake_amount_cents` between 100 and 100000. `stake_currency` exists,
+defaults to `USD`, and is constrained to exactly that.
+
+**Why.** Integer cents because a pledge amount is money and binary floating point
+is the wrong representation for money. The floor stops a contest being a joke
+with no stake; the ceiling is a typo guard, and it matters more than it looks
+because a group of 20 turns one mistyped stake into 19 obligations.
+
+The currency column is there this early for one reason: a money field with no
+currency beside it is a latent bug the moment there is a second market, and
+adding it later means backfilling every row and auditing every read. Present and
+constrained, widening v1's assumption is a CHECK change.
+
+**Revisit if.** Non-US charities are supported. That is the constraint change,
+plus a decision about whether a contest's participants may nominate across
+currencies — which they should not, and D27's per-participant nomination is where
+that would have to be enforced.
+
+### D32. Activation is a callable sweep; its scheduler arrives in M7
+
+**What.** `app.activate_due_contests()` resolves every `open` contest whose start
+has passed: `active` with two or more acceptances, `cancelled` otherwise.
+Unanswered invitations become `lapsed`. Granted to `service_role` only.
+
+**Why.** The open → active edge has to exist before M3 has anything to ingest
+against, and a state machine whose transitions nothing can perform is
+aspirational rather than tested. Writing it as a plain function keeps the cron
+question — which belongs with M7's settlement scheduling — separate from the
+transition logic, and makes the edge exercisable in pgTAP today.
+
+Two rules inside it. One acceptance is not a contest, so a due contest with only
+its creator is cancelled rather than won by default. And an unanswered invitation
+becomes `lapsed` rather than `declined`, because they never said no; the
+distinction is visible in the data, since a lapsed row never chose a charity or a
+timezone and the CHECK constraints will not let it have done.
+
+It is not a client function: it acts on every contest that has come due, not on
+one the caller has a claim to, so no client has any business calling it.
+
+**Revisit if.** Nothing foreseeable. M7 adds a scheduler that calls it.
+
+---
+
 ## Decisions deferred, with a current default
 
 Recorded so they are not silently made later. Each has a working default;
 each gets its own entry above when it is actually implemented.
 
-- **Tie-break menu (M2).** Declared at contest creation, never ad hoc. Proposed
-  options: highest integrity score → earliest to reach target → both donate →
-  void. Default: highest integrity score, which makes clean data the
-  tie-breaker.
 - **Quarantine approval in group contests (M5).** A retroactively-written sample
   counts only if approved. In a duel that means the opponent. In a group,
   proposed rule: a majority of other active participants, failing closed —
@@ -469,8 +764,6 @@ each gets its own entry above when it is actually implemented.
 - **Reliability score formula (M7).** Proposed: a decayed ratio of confirmed
   settlements to total obligations, so one old default does not brand someone
   permanently.
-- **Charity reference data (M2).** Seed a small curated list with EIN and
-  donation slug. No IRS Pub 78 import in v1.
 - **Integrity score scale (M5).** Proposed: start at 100, subtract per-flag
   severity weights, floor at 0. Never auto-disqualifies; it is displayed and it
   strengthens a dispute.
@@ -478,21 +771,28 @@ each gets its own entry above when it is actually implemented.
   to a friend's handle shortly before settlement is a plausible impersonation
   play. Proposed: one change per 30 days, enforced by a `handle_changed_at`
   column, plus showing the change to anyone in an active contest with them.
-- **Contest co-participants can see each other's profiles (M2).** The
-  `profiles` read policy currently covers friends and group co-members only.
-  M2 adds contest co-participation as a third route, which is the point at
-  which it is needed — a duel between two people who are not friends has to
-  render an opponent.
-- **Group size cap (M2).** Uncapped today. A winner-takes-all group of *n*
-  produces *n-1* settlements (D4), so group size directly bounds how many
-  donation obligations one contest can create. Proposed: cap at contest
-  creation rather than on the group, since the group is not the thing being
-  staked.
-- **A block does not eject either party from a shared group (M2).** Blocking
-  hides the profiles and prevents new joins, but two people already in a group
-  stay in it. Ejecting on block would let anyone remove anyone from a group by
-  blocking them, which is exactly the power flat membership withholds (D17).
-  Revisit alongside contest invitations, where the same tension reappears.
 - **Avatar storage bucket and its policies (M8).** `profiles.avatar_path` holds
   an object path, but no bucket exists yet and nothing writes it. The bucket
   and its RLS arrive with the client that uploads to it.
+- **A deleted account takes its contest history with it (M7).**
+  `contest_participants.user_id` cascades from `profiles`, which cascades from
+  `auth.users` — so deleting an account erases the roster rows that a settlement
+  would be built from. That is a live escape hatch for a loser in an active
+  contest, and it is inherited from M1 rather than introduced here (D21 withholds
+  a client `DELETE` on `profiles`, but account deletion itself is out of band).
+  Proposed: settlement rows in M7 snapshot the handle and display name they were
+  issued against, and hold the participant reference with `ON DELETE SET NULL`,
+  so an obligation survives the account that incurred it. Deliberately not fixed
+  in M2, because the thing that has to survive is a settlement and settlements do
+  not exist yet.
+- **Contest visibility stops at the roster (M8).** A group contest is readable by
+  its participants, not by the whole group it came from — so members who were not
+  invited are not told it happened. That is the more private default and it is
+  cheap to widen. Revisit when the client has a group screen and it becomes clear
+  whether "3 contests running in this group" is something people expect to see.
+- **Extending `ends_at` by mutual consent (M7).** D24 freezes the terms on the
+  first outside acceptance, which makes a mid-contest extension impossible. It is
+  the one late edit with a plausible honest use. Proposed: a consent flow
+  requiring every accepted participant to agree, not a loosening of the freeze —
+  and it belongs next to M7's dispute handling, which is the other place
+  participants have to agree on something after the fact.

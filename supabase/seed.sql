@@ -89,6 +89,95 @@ begin
     ('d4444444-4444-4444-4444-444444444444', 'c3333333-3333-3333-3333-333333333333')
   on conflict do nothing;
 
+  -- Charities are reference data rather than fixtures, so unlike everything else
+  -- in this file the real table will hold real rows. These are deliberately not
+  -- real organizations: the EINs use a 00- prefix the IRS does not issue, so
+  -- nothing here can be mistaken for a genuine registration if it leaks into a
+  -- screenshot. Production reference data is loaded out of band (D28).
+  insert into public.charities (id, name, ein, donation_slug, mission) values
+    ('e5555555-5555-5555-5555-555555555551', 'Example Food Bank',
+     '00-0000001', 'example-food-bank',
+     'Placeholder local hunger-relief fixture.'),
+    ('e5555555-5555-5555-5555-555555555552', 'Example Trail Conservancy',
+     '00-0000002', 'example-trail-conservancy',
+     'Placeholder parks and trails fixture.'),
+    ('e5555555-5555-5555-5555-555555555553', 'Example Youth Sports Fund',
+     '00-0000003', 'example-youth-sports-fund',
+     'Placeholder youth athletics fixture.')
+  on conflict (id) do nothing;
+
+  -- Two contests, one in each state worth looking at by hand. Inserted directly
+  -- rather than through public.create_contest(), for the same reason the group
+  -- roster above is: the RPC needs a request-scoped auth.uid() that a seed
+  -- script does not have.
+  --
+  -- An open duel, still gathering its opponent. @runner has accepted by virtue
+  -- of having created it; @cyclist has been asked and has not answered.
+  insert into public.contests (
+    id, kind, status, created_by, title, metric, cadence, target_value,
+    starts_at, ends_at, stake_amount_cents, tie_break, max_participants
+  )
+  values (
+    'f6666666-6666-6666-6666-666666666661', 'duel', 'open',
+    'a1111111-1111-1111-1111-111111111111', 'Weekend Step Challenge',
+    'steps', 'total', 70000,
+    now() + interval '2 days', now() + interval '9 days',
+    2500, 'integrity_score', 2
+  )
+  on conflict (id) do nothing;
+
+  insert into public.contest_participants (
+    contest_id, user_id, status, charity_id, timezone, responded_at
+  )
+  values (
+    'f6666666-6666-6666-6666-666666666661',
+    'a1111111-1111-1111-1111-111111111111', 'accepted',
+    'e5555555-5555-5555-5555-555555555551', 'America/New_York', now()
+  )
+  on conflict do nothing;
+
+  insert into public.contest_participants (contest_id, user_id, status) values
+    ('f6666666-6666-6666-6666-666666666661',
+     'b2222222-2222-2222-2222-222222222222', 'invited')
+  on conflict do nothing;
+
+  -- A running group contest, so M3 has something to ingest against without
+  -- anyone having to fabricate a contest first. Daily cadence with all three
+  -- participants in different zones is the case where a day-boundary bug shows
+  -- up (D5); a seed where everyone sits in UTC would hide it.
+  insert into public.contests (
+    id, kind, status, group_id, created_by, title, metric, cadence,
+    target_value, starts_at, ends_at, stake_amount_cents, tie_break,
+    max_participants, activated_at
+  )
+  values (
+    'f6666666-6666-6666-6666-666666666662', 'group', 'active',
+    'd4444444-4444-4444-4444-444444444444',
+    'a1111111-1111-1111-1111-111111111111', 'Dev Crew Daily Steps',
+    'steps', 'daily', 10000,
+    now() - interval '2 days', now() + interval '12 days',
+    5000, 'integrity_score', 20, now() - interval '2 days'
+  )
+  on conflict (id) do nothing;
+
+  insert into public.contest_participants (
+    contest_id, user_id, status, charity_id, timezone, responded_at
+  )
+  values
+    ('f6666666-6666-6666-6666-666666666662',
+     'a1111111-1111-1111-1111-111111111111', 'accepted',
+     'e5555555-5555-5555-5555-555555555551', 'America/New_York',
+     now() - interval '3 days'),
+    ('f6666666-6666-6666-6666-666666666662',
+     'b2222222-2222-2222-2222-222222222222', 'accepted',
+     'e5555555-5555-5555-5555-555555555552', 'Europe/Lisbon',
+     now() - interval '3 days'),
+    ('f6666666-6666-6666-6666-666666666662',
+     'c3333333-3333-3333-3333-333333333333', 'accepted',
+     'e5555555-5555-5555-5555-555555555553', 'Asia/Tokyo',
+     now() - interval '3 days')
+  on conflict do nothing;
+
 exception when others then
   raise warning 'seed skipped: % (%). Migrations and tests are unaffected.',
     sqlerrm, sqlstate;

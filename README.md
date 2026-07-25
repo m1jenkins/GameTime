@@ -9,8 +9,10 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M1 complete.** Scaffold, CI, and the social graph — identity,
-friendships, groups, and blocks, with RLS. No contests yet.
+**Status: M2 complete.** Scaffold, CI, the social graph, and contests — terms,
+invitations, and both state machines, with RLS. No evidence ingest or scoring
+yet: a contest can be created, joined, and started, but nothing measures anything
+until M3.
 
 ---
 
@@ -152,7 +154,9 @@ INSERT on `group_members` (that is `join_group_by_code`), and no UPDATE on
 
 The seed builds a small graph — `@runner`, `@cyclist`, `@Lifter`, one accepted
 friendship, one pending request, and a `Dev Crew` group whose join code is
-`DEVCREW2`. To browse it as a particular user rather than as superuser:
+`DEVCREW2`. It also seeds three placeholder charities and two contests, one open
+and one already running. To browse any of it as a particular user rather than as
+superuser:
 
 ```sql
 set local role authenticated;
@@ -160,6 +164,76 @@ select set_config('request.jwt.claims',
   '{"sub":"a1111111-1111-1111-1111-111111111111"}', true);
 select * from public.profiles;   -- now filtered as @runner sees it
 ```
+
+## Contests
+
+M2's tables. RLS enabled, no `anon` access, and — unlike M1 — almost no direct
+writes at all.
+
+| Table                  | Shape                                                   |
+| ---------------------- | ------------------------------------------------------- |
+| `charities`            | Curated reference data. Readable by anyone signed in, writable by nobody. |
+| `contests`             | The terms. Frozen once a second participant accepts.    |
+| `contest_participants` | Roster and invitation lifecycle. One row per person per contest. |
+
+A duel is the N=2 case of a group contest and settles identically (D4): one
+winner, and every other participant owes the full stake to the winner's nominated
+charity. Nothing here moves money — a settlement is a pledge, and M7 tracks
+whether it was honoured.
+
+Where M1 had three functions that could not be row policies, M2 has six, and for
+three distinct reasons (DECISIONS.md D22): creating a contest writes two tables
+atomically, invitation eligibility reads rows other than the one being written,
+and the participant cap bounds a `COUNT` so it is only real under a lock.
+
+```sql
+-- Terms plus the creator's own acceptance, in one transaction.
+select public.create_contest(
+  p_kind => 'duel', p_title => 'Weekend Steps',
+  p_metric => 'steps', p_cadence => 'total', p_target_value => 70000,
+  p_starts_at => now() + interval '1 day', p_ends_at => now() + interval '8 days',
+  p_stake_amount_cents => 2500,
+  p_charity_id => '<charity uuid>', p_timezone => 'America/New_York');
+
+select public.invite_to_contest('<contest uuid>', '<user uuid>');  -- idempotent
+select public.accept_contest_invitation('<contest uuid>', '<charity uuid>', 'Europe/Lisbon');
+select public.decline_contest_invitation('<contest uuid>');        -- terminal
+select public.withdraw_from_contest('<contest uuid>');             -- before the start only
+select public.cancel_contest('<contest uuid>');                    -- creator, while open
+```
+
+Both lifecycles are allow-lists enforced by triggers, and both are declared whole
+in M2 even though M7 walks the second half of each (D23):
+
+```
+contests              open → active → finalizing → settled
+                        ↓        ↓          ↓
+                    cancelled  voided     voided
+
+contest_participants  invited → accepted → withdrawn | forfeited
+                        ↓
+                    declined | lapsed
+```
+
+`open → active` is driven by `app.activate_due_contests()`, which resolves every
+contest whose start has passed — `active` with two or more acceptances,
+`cancelled` otherwise, with unanswered invitations becoming `lapsed`. It is
+granted to `service_role` only; the cron that calls it hourly arrives with M7's
+settlement scheduling.
+
+Three rules worth knowing before reading the migration, each with its reasoning
+in DECISIONS.md:
+
+- **Terms freeze on the first outside acceptance** (D24), not at creation and not
+  at first invitation. An outstanding invitation is an offer nobody has taken up,
+  so a creator fixing a typo before anyone answers is doing nothing to anybody.
+  Enforced twice — a narrow policy for clients, a trigger for everyone else.
+- **Declining is terminal** (D25). There is no re-invitation; the way to stop
+  being asked is a block.
+- **A block refuses co-participation but ejects nobody** (D26), and
+  co-participation outlives a block placed afterwards. Hiding an opponent's
+  profile mid-contest would announce the block to exactly the person D19 declined
+  to tell.
 
 ## Test-harness capabilities
 
@@ -206,7 +280,7 @@ changing it is one line in `Package.swift`.
 
 - [x] **M0** — Scaffold, local Supabase, migration and test harness, CI
 - [x] **M1** — Schema and RLS for identity, friendships, groups
-- [ ] **M2** — Contest creation, invitations, participant state machine
+- [x] **M2** — Contest creation, invitations, participant state machine
 - [ ] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
 - [ ] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
 - [ ] **M5** — Anti-cheat rules and integrity scoring
