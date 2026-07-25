@@ -126,16 +126,16 @@ struct CheckInQueueTests {
         #expect(queue.isEmpty)
     }
 
-    @Test("capacity drops oldest and surfaces the count")
-    func capacityIsBounded() throws {
+    @Test("capacity refuses new evidence without evicting old evidence")
+    func capacityIsBoundedWithoutDataLoss() throws {
         var queue = CheckInQueue(capacity: 3)
         for n in 1...5 {
             queue.enqueue(try Self.request(id: Self.checkInId(n)))
         }
 
         #expect(queue.count == 3)
-        #expect(queue.pending.map(\.clientCheckInId) == (3...5).map(Self.checkInId))
-        #expect(queue.droppedForCapacity == 2)
+        #expect(queue.pending.map(\.clientCheckInId) == (1...3).map(Self.checkInId))
+        #expect(queue.refusedForCapacity == 2)
     }
 
     @Test("conflicts do not consume capacity or evict evidence")
@@ -149,7 +149,45 @@ struct CheckInQueueTests {
                 == .conflictingPayload
         )
         #expect(queue.count == 1)
-        #expect(queue.droppedForCapacity == 0)
+        #expect(queue.refusedForCapacity == 0)
+    }
+
+    @Test("persisted exact bytes and attempts survive a relaunch")
+    func persistedQueueRestoresByteExactly() throws {
+        var original = CheckInQueue()
+        let first = try Self.request(id: Self.checkInId(1))
+        let second = try Self.request(id: Self.checkInId(2))
+        original.enqueue(first)
+        original.enqueue(second)
+        original.recordAttempt(first.clientCheckInId)
+        original.recordAttempt(first.clientCheckInId)
+
+        let persisted = try JSONEncoder().encode(original.pending)
+        let decoded = try JSONDecoder().decode(
+            [PendingCheckIn].self,
+            from: persisted
+        )
+        let restored = try CheckInQueue(restoring: decoded)
+
+        #expect(restored.pending == original.pending)
+        #expect(restored.next?.body == first.body)
+        #expect(restored.next?.attempts == 2)
+    }
+
+    @Test("invalid persisted queue state fails instead of being repaired")
+    func invalidRestorationFails() throws {
+        let request = try Self.request(id: Self.checkInId(1))
+        let pending = PendingCheckIn(
+            clientCheckInId: request.clientCheckInId,
+            body: request.body
+        )
+
+        #expect(throws: CheckInQueueRestorationError.self) {
+            _ = try CheckInQueue(capacity: 1, restoring: [pending, pending])
+        }
+        #expect(throws: CheckInQueueRestorationError.self) {
+            _ = try CheckInQueue(capacity: 2, restoring: [pending, pending])
+        }
     }
 
     @Test("the queue is a Sendable value type")

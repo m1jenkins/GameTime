@@ -3,7 +3,7 @@
 -- durable quarantine workflow and the unchanged evidence semantics.
 
 begin;
-select plan(30);
+select plan(34);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'), -- alice, evidence owner
@@ -91,6 +91,10 @@ select has_table(
   'public', 'evidence_quarantines',
   'retroactive quarantines have durable state'
 );
+select has_column(
+  'public', 'evidence_quarantines', 'required_reviewer_count',
+  'each quarantine snapshots its immutable review denominator'
+);
 select has_table(
   'public', 'evidence_quarantine_reviews',
   'and reviews are a separate append-only ledger'
@@ -139,6 +143,26 @@ select ok(
     'execute'
   ),
   'signed-in participants can use the guarded review function'
+);
+select ok(
+  not has_table_privilege(
+    'service_role', 'public.evidence_quarantines', 'insert'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.evidence_quarantines', 'update'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.evidence_quarantines', 'delete'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.evidence_quarantine_reviews', 'insert'
+  )
+  and not has_function_privilege(
+    'service_role',
+    'public.review_evidence_quarantine(uuid,boolean)',
+    'execute'
+  ),
+  'service_role must use the recorder and cannot forge review state directly'
 );
 
 -- ---------------------------------------------------------------------------
@@ -341,6 +365,23 @@ select is(
   'an unrelated account cannot enumerate integrity flags'
 );
 reset role;
+
+select lives_ok(
+  $$ delete from auth.users
+     where id = '22222222-2222-2222-2222-222222222222' $$,
+  'reviewer account deletion retains a pseudonymous quarantine vote'
+);
+select ok(
+  (select count(*) = 1
+   from public.evidence_quarantine_reviews
+   where quarantine_id = (select id from t_quarantine))
+  and
+  (select reviewer_count = 1
+          and state = 'approved'::public.evidence_quarantine_state
+   from public.evidence_quarantine_status
+   where id = (select id from t_quarantine)),
+  'account deletion cannot shrink the denominator or reopen approval'
+);
 
 select * from finish();
 rollback;

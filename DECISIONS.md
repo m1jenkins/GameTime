@@ -60,8 +60,9 @@ device base hard for an app that spreads through existing friend groups).
 **Revisit if.** `xcodebuild -version` on the real machine shows something
 unexpected, or a required API turns out to be 26-only.
 
-> **Action for the owner:** run `xcodebuild -version && xcodebuild -showsdks` and
-> confirm. One line in `Package.swift` changes if this is wrong.
+> **Verified 2026-07-25:** Xcode 26.2 exposes the iOS 26.2 SDK, and Swift 6.2.3
+> builds the package and passes all 79 tests. The iOS 18 target remains the
+> deliberate compatibility choice above.
 
 ### D3. One scoring engine, in TypeScript
 
@@ -1437,12 +1438,11 @@ unnecessary at this magnitude, and it does not serialise to JSON).
 
 ### D54. An unresolvable tie is reported, not guessed
 
-**What.** `integrity_score` is M5's number and does not exist yet, so an
-`integrity_score` tie-break returns `undecided` with reason
-`integrity_score_unavailable` rather than an outcome. Scores may be supplied to
-the engine as an optional input, which is the seam M5 fills. A tie the declared
-tie-break genuinely cannot separate — equal integrity scores, or two people
-crossing the target in the same hour — returns `undecided` too.
+**What.** `integrity_score` is supplied by M5 through M4's optional input seam.
+If that map is unavailable, an `integrity_score` tie-break returns `undecided`
+with reason `integrity_score_unavailable` rather than an outcome. A tie the
+declared tie-break genuinely cannot separate — equal integrity scores, or two
+people crossing the target in the same hour — returns `undecided` too.
 
 **Why.** Every way of manufacturing an answer here is worse than admitting there
 isn't one. Falling back to the higher total silently applies a tie-break the
@@ -1467,9 +1467,9 @@ in every respect produce a stable display order and no winner.
 still substitutes rules nobody agreed to). Coin-flip on a seed derived from the
 contest id (reproducible and arbitrary, and impossible to explain to the loser).
 
-**Revisit if.** M5 lands and integrity scores turn out to tie often, at which
-point the question is what the second-order tie-break is — and it should be
-declared at creation like the first, not chosen afterwards.
+**Revisit if.** Production integrity scores tie often, at which point the
+question is what the second-order tie-break is — and it should be declared at
+creation like the first, not chosen afterwards.
 
 ### D55. The engine scores; it does not flag
 
@@ -1591,8 +1591,8 @@ assessment, not branches inside the evaluator.
 **What.** M5 accepts optional `(user, observed_at, latitude, longitude,
 accuracy)` observations. Consecutive points raise `impossible_travel` only when
 the configured minimum distance and maximum speed are both crossed after both
-accuracy radii are subtracted. M6's attested geofence check-ins are the intended
-producer.
+accuracy radii are subtracted. M6's accepted, attested geofence locations are
+the concrete producer.
 
 **Why.** Metric buckets contain a time and a frozen timezone, not a physical
 location. Inferring a city from that zone would turn every traveler and every
@@ -1735,6 +1735,8 @@ move as `impossible_travel` (D59: a zone is not a location).
 an explicit product decision about who may amend shared terms, not reuse of the
 evidence-review quorum by analogy.
 
+## M6 — Geofence check-ins and workout-overlap validation
+
 ### D63. A geofence check-in is immutable evidence, not a client verdict
 
 **What.** `contest_geofences` is service-provisioned before activation and
@@ -1851,7 +1853,8 @@ remain visible to their owner and the service in the raw audit ledger but cannot
 raise `impossible_travel` or expose a failed location to a rival.
 The portable Swift evaluator mirrors distance, dwell, and overlap only for
 immediate UX; Postgres remains authoritative. Its retry queue retains the exact
-body bytes that App Attest signed.
+body bytes that App Attest signed and can restore persisted pending values after
+an app relaunch.
 
 **Why.** A geofence result is a useful credibility signal, but it does not prove
 that an otherwise admissible HealthKit total is false. Rewriting the evidence or
@@ -1866,12 +1869,71 @@ pretending timezone or aggregate exercise data locates a person.
 authoritative (two engines can diverge). Re-encoding queued JSON on retry
 (changes the bytes the assertion covers).
 
+### D67. Review quorum is an immutable request fact
+
+**What.** A quarantine or timezone request snapshots the number of eligible
+reviewers when it is created. Votes retain the reviewer's UUID without a
+cascading foreign key to `profiles`; deleting an account cannot erase a vote or
+shrink the stored denominator. Status is derived from the immutable denominator
+and retained votes, never from today's roster.
+
+**Why.** The active roster is frozen for ordinary product writes but account
+deletion still cascades through `contest_participants`. Deriving quorum from that
+live table made deletion a vote: it could reopen a rejection or turn a missing
+approval into consent. A pseudonymous UUID is enough to prove that one eligible
+identity voted once without retaining a profile.
+
+**Rejected.** `ON DELETE CASCADE` (rewrites a terminal decision). `RESTRICT`
+(makes account deletion impossible). Recomputing from the surviving roster
+(silence becomes consent).
+
+### D68. A timezone epoch must be strictly inside the contest window
+
+**What.** Final approval computes one millisecond-precision server instant,
+validates `starts_at < effective_at < ends_at`, and stores that same value. A
+database trigger enforces both the precision and boundary invariants for
+privileged fixture or maintenance writes too, and the hardening migration
+refuses to certify an existing ledger until any prior violation is reconciled.
+
+**Why.** Reading the clock once for validation and again for insertion allowed a
+contest to end between the two operations. The resulting epoch could not be
+scored, because the scoring engine correctly rejects boundaries outside the
+window. Truncation also means a just-after-start wall clock can equal a
+microsecond-precision start. Failing the transaction and retrying is safer than
+persisting an unscoreable contest.
+
+### D69. `service_role` is a route to guarded RPCs, not a ledger editor
+
+**What.** M5/M6 migrations revoke environment-default table rights from
+`service_role`, then grant back only required reads, geofence-definition insert,
+and guarded RPC execution. Derived consent, quarantine, check-in, and location
+rows cannot be forged or deleted directly by that role.
+
+**Why.** Supabase projects created under different defaults disagree about
+whether `service_role` receives automatic CRUD on new public tables. Security
+must not depend on project age. Security-definer RPCs run as their owner, so the
+caller does not need direct table mutation rights.
+
+### D70. The check-in queue never evicts irreplaceable evidence
+
+**What.** Pending check-ins are codable exact-byte values with a validating
+restore initializer. A full queue refuses the new request and surfaces the
+event; it does not discard the oldest request.
+
+**Why.** HealthKit metric batches can be reconstructed by querying HealthKit
+again. A sampled Core Location visit cannot. A bounded buffer is still useful,
+but eviction would silently destroy the only copy of physical-world evidence.
+Persist-and-restore makes the idempotency contract survive a relaunch rather
+than only a timeout in one process.
+
 ---
 
-## Decisions deferred, with a current default
+## Resolved history and decisions still deferred
 
-Recorded so they are not silently made later. Each has a working default;
-each gets its own entry above when it is actually implemented.
+Recorded so they are not silently made later. Resolved items are retained as
+history. Remaining entries state a working default when one exists; the audit
+section explicitly labels decisions that have no safe default. Each becomes its
+own numbered entry above when it is implemented.
 
 Five entries were resolved by M2 and now have their own decisions above: the
 tie-break menu (D22's enum, declared at creation, defaulting to integrity
@@ -1888,18 +1950,15 @@ that governed every banked bucket.
 
 M4 finished the tie-break menu M2 left half-open: each option now has a
 computation (D51 for when a tie-break is reached at all, D54 for what happens
-when the declared one cannot answer). It also made the integrity-score entry
-below load-bearing rather than merely proposed — `integrity_score` is the
-*default* tie-break, so under D51 it is the ordinary path in a duel both friends
-win, and until M5 supplies a number those contests come back `undecided`. That
-is the correct failure mode and it is not a resting state: M5's integrity score
-is now the gating dependency for settling the most common contest there is.
-The engine already takes the scores as an optional input, so M5 supplies them
-rather than changing the engine.
+when the declared one cannot answer). It also made `integrity_score` a
+load-bearing dependency. M5 now supplies a complete score map through the seam
+M4 left, while genuinely equal integrity scores remain explicitly inconclusive.
 
-M5 resolves the integrity-score configuration (D57–D58), explicit location
+M5 resolved the integrity-score configuration (D57–D58), explicit location
 signals (D59), retroactive review (D60), source reputation (D61), and the
-timezone-change consent path (D62).
+timezone-change consent path (D62). M6 supplied the concrete trusted-location
+producer and geofence/workout signals (D63–D66); D67–D70 record hardening found
+by the implementation-plan audit.
 
 - **Quarantine and group approval (resolved by D60).** A duel needs its opponent;
   a group needs a strict majority of other accepted participants. Silence stays
@@ -1959,3 +2018,62 @@ timezone-change consent path (D62).
   independent of the contest window, so an invitation to a contest starting in
   three months stays open for three months. Default: no expiry. A notification
   layer is the natural home for both.
+
+### Surfaced by the 2026-07-25 plan audit
+
+Six more, and they are a different kind from the ones above: those were deferred
+on purpose with a default that works. These were never written down at all, and
+four of them have no working default — which is the reason they are recorded
+here rather than left for M7 to hit. See PLAN.md for the audit they came from.
+
+- **How a donation is confirmed (M7). No default.** D4 fixes the *shape* of a
+  settlement as `(winner, loser, amount, charity)` and the README is precise
+  that the app tracks whether a pledge was honored rather than moving money.
+  Nothing states how it becomes honored. The reliability-score entry above turns
+  on "confirmed settlements" and does not define confirmed. Self-attestation, a
+  receipt upload, the winner acknowledging receipt, a charity-side integration,
+  and a timeout are five different products with five different abuse surfaces,
+  and the anti-cheat programme of M3–M6 exists to protect the number this
+  decision defines. It has to be settled before the settlement schema, not
+  discovered by it.
+- **The terminal state for a contest that ran and cannot be decided (M7). No
+  default.** `contest_status` is `pending → active → cancelled | finalized`, and
+  `active → finalized` is the only forward edge out of `active`. D54's
+  `tie_break_inconclusive` and D51's void outcome have no status between them: as
+  the schema stands an inconclusive contest stays `active` forever, and a void
+  contest is `finalized` and indistinguishable from one that settled. D30's
+  self-voiding case is `cancelled` with `insufficient_participants`, which is a
+  different fact — that contest never ran.
+- **Whether review or the grace period bounds finalization (M7). No default.**
+  D43 gives six hours after `ends_at` in which a snapshot may still arrive; D60
+  requires M7 to refuse finalization while a quarantine review is unresolved.
+  Both are right alone. Together they need a stated order, because a quarantine
+  opened by a row written in the last hour of the grace window extends
+  finalization by however long a reviewer takes.
+- **What happens when a reviewer never votes (M7). No default.** D60 rejects
+  timeout-as-approval for the right reason and pairs it with "M7 must block
+  finalization on unresolved review", which leaves silence holding a contest open
+  indefinitely with no escalation for the person waiting. Proposed: unresolved
+  review at the grace deadline resolves the contest to void, since void is
+  already what happens when the evidence cannot decide — but it is a product
+  decision about whose contest gets cancelled by whose inattention, and it should
+  be made deliberately. D62's timezone consent has the same shape and fails
+  closed harmlessly: silence means the relocation does not happen.
+- **The scheduler (M7).** `app.activate_due_contests()` is the only thing that
+  moves a contest to `active`, and nothing calls it — no `pg_cron` in
+  `config.toml`, no scheduled function, no workflow. This is declared in the
+  function's own comment ("Called by cron, which M7 sets up alongside
+  settlement") but the consequence is not recorded anywhere: through M6 there is
+  no end-to-end path in a deployed environment, because every contest that M3's
+  ingest, M5's integrity rules and M6's check-ins have ever run against was
+  forced into `active` by test scaffolding. Default: none; it belongs at the
+  front of M7 rather than beside settlement, so the five milestones underneath it
+  get exercised against a contest that activated on its own.
+- **Where notifications live (M7/M8).** No milestone owns one, and four flows
+  need a specific person to take a specific action: M2's invitations, M5's
+  quarantine review, D62's timezone consent, and M7's settlement confirmation.
+  The invitation-reminder entry above is the only mention in this file and it
+  assumes a layer that does not exist. Default: nothing is delivered, which makes
+  the entry above and the reviewer-silence entry above both worse than they read.
+  APNs also needs an app target and a real device, which ties it to the
+  device-conformance work D46 still requires.

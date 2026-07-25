@@ -3,7 +3,7 @@
 -- and ingest resolves the epoch at the bucket rather than at write time.
 
 begin;
-select plan(59);
+select plan(65);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'), -- alice, requester
@@ -118,6 +118,10 @@ select has_type(
 select has_table(
   'public', 'timezone_change_requests',
   'timezone requests are durable'
+);
+select has_column(
+  'public', 'timezone_change_requests', 'required_reviewer_count',
+  'each request snapshots its immutable consent denominator'
 );
 select has_table(
   'public', 'timezone_change_reviews',
@@ -245,6 +249,30 @@ select ok(
     'anon', 'public.review_timezone_change(uuid,boolean)', 'execute'
   ),
   'anonymous callers cannot invoke the consent functions'
+);
+select ok(
+  not has_table_privilege(
+    'service_role', 'public.timezone_change_requests', 'insert'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.timezone_change_requests', 'update'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.timezone_change_requests', 'delete'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.timezone_change_reviews', 'insert'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.timezone_change_applied_events', 'insert'
+  )
+  and not has_function_privilege(
+    'service_role', 'public.request_timezone_change(uuid,text)', 'execute'
+  )
+  and not has_function_privilege(
+    'service_role', 'public.review_timezone_change(uuid,boolean)', 'execute'
+  ),
+  'service_role can inspect consent facts but cannot bypass guarded user writes'
 );
 
 -- ---------------------------------------------------------------------------
@@ -576,14 +604,16 @@ select
     as effective_at;
 
 insert into public.timezone_change_requests (
-  id, contest_id, user_id, from_timezone, to_timezone, requested_at
+  id, contest_id, user_id, from_timezone, to_timezone, requested_at,
+  required_reviewer_count
 ) values (
   'b0000001-0000-0000-0000-000000000001',
   'a0000001-0000-0000-0000-000000000001',
   '22222222-2222-2222-2222-222222222222',
   'UTC',
   'Asia/Kolkata',
-  (select effective_at - interval '1 hour' from t_epochs)
+  (select effective_at - interval '1 hour' from t_epochs),
+  2
 );
 
 insert into public.timezone_change_reviews (
@@ -765,16 +795,72 @@ select throws_ok(
 );
 reset role;
 
+-- The epoch trigger protects privileged fixture/import paths too. This request
+-- also proves that deleting a silent reviewer cannot shrink the denominator.
+insert into public.timezone_change_requests (
+  id, contest_id, user_id, from_timezone, to_timezone,
+  required_reviewer_count
+) values (
+  'b0000001-0000-0000-0000-000000000003',
+  'a0000001-0000-0000-0000-000000000001',
+  '11111111-1111-1111-1111-111111111111',
+  'Asia/Kolkata',
+  'Pacific/Honolulu',
+  2
+);
+insert into public.timezone_change_reviews (
+  request_id, reviewer_user_id, approved
+) values (
+  'b0000001-0000-0000-0000-000000000003',
+  '33333333-3333-3333-3333-333333333333',
+  true
+);
+select throws_ok(
+  $$ insert into public.timezone_change_applied_events (
+       request_id, contest_id, user_id, from_timezone, to_timezone, effective_at
+     ) values (
+       'b0000001-0000-0000-0000-000000000003',
+       'a0000001-0000-0000-0000-000000000001',
+       '11111111-1111-1111-1111-111111111111',
+       'Asia/Kolkata',
+       'Pacific/Honolulu',
+       date_trunc('milliseconds', clock_timestamp())
+         + interval '1 microsecond'
+     ) $$,
+  '23514',
+  null,
+  'a privileged writer cannot persist a sub-millisecond timezone epoch'
+);
+select throws_ok(
+  $$ insert into public.timezone_change_applied_events (
+       request_id, contest_id, user_id, from_timezone, to_timezone, effective_at
+     )
+     select
+       'b0000001-0000-0000-0000-000000000003',
+       id,
+       '11111111-1111-1111-1111-111111111111',
+       'Asia/Kolkata',
+       'Pacific/Honolulu',
+       ends_at
+     from public.contests
+     where id = 'a0000001-0000-0000-0000-000000000001' $$,
+  '23514',
+  null,
+  'an epoch on the contest boundary is rejected even for a privileged writer'
+);
+
 -- A privileged account cascade must be able to remove the request children.
 -- Direct callers still have neither a DELETE grant nor a DELETE policy.
 insert into public.timezone_change_requests (
-  id, contest_id, user_id, from_timezone, to_timezone
+  id, contest_id, user_id, from_timezone, to_timezone,
+  required_reviewer_count
 ) values (
   'b0000001-0000-0000-0000-000000000002',
   'a0000001-0000-0000-0000-000000000001',
   '44444444-4444-4444-4444-444444444444',
   'UTC',
-  'America/Chicago'
+  'America/Chicago',
+  2
 );
 insert into public.timezone_change_reviews (
   request_id, reviewer_user_id, approved
@@ -797,6 +883,21 @@ select lives_ok(
   $$ delete from auth.users
      where id = '44444444-4444-4444-4444-444444444444' $$,
   'account deletion may cascade through all three consent ledgers'
+);
+select lives_ok(
+  $$ delete from auth.users
+     where id = '22222222-2222-2222-2222-222222222222' $$,
+  'account deletion may retain the reviewer UUID as a pseudonymous audit fact'
+);
+select ok(
+  (select state = 'approved'::public.timezone_change_state
+   from public.timezone_change_request_status
+   where id = (select id from t_request))
+  and
+  (select state = 'pending'::public.timezone_change_state
+   from public.timezone_change_request_status
+   where id = 'b0000001-0000-0000-0000-000000000003'),
+  'reviewer deletion neither reopens approval nor turns silence into consent'
 );
 
 select * from finish();

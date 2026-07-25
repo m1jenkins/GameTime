@@ -9,10 +9,10 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M5 complete.** The scoring engine is paired with deterministic,
-versioned integrity assessment, retroactive review, third-party source
-reputation, and opponent-approved prospective timezone changes. Integrity
-remains an auditable sidecar; it never silently rewrites the evidence ledger.
+**Status: M6 complete; M6.5 is next.** The scoring engine now has versioned
+integrity assessment, durable review and timezone consent, source reputation,
+and attested geofence/workout validation. The next step is real-iPhone App
+Attest conformance against staging before settlement work begins.
 
 ---
 
@@ -34,14 +34,15 @@ supabase/
 ios/
   GameTimeCore/          Portable Swift package. No Apple frameworks.
                          Bucketing, provenance, check-in validation, and
-                         exact-byte offline ingest queues.
+                         restorable exact-byte ingest queues.
                          Builds and tests on Linux CI.
-  (app target lands in M8)
+  (M6.5 adds a conformance-only device target; the product app lands in M8)
 scripts/
   dev-up.sh              Start the local stack
   db-test.sh             Reset the database and run pgTAP
   test-all.sh            Everything CI runs, in CI's order
 DECISIONS.md             Every non-obvious choice and why
+PLAN.md                  What is next, and what the plan is missing
 ```
 
 ## Prerequisites
@@ -51,16 +52,16 @@ DECISIONS.md             Every non-obvious choice and why
 | Supabase CLI | 2.109.1        | `brew install supabase/tap/supabase`        |
 | Docker       | 29.x           | Must be running before `dev-up.sh`          |
 | Deno         | 2.9.x          | `brew install deno`                         |
-| Swift        | 6.3.x          | Ships with Xcode 16+; standalone on Linux   |
-| Xcode        | see below      | Only needed from M8, for the app target     |
+| Swift        | 6.2.3 / 6.3 CI | Xcode locally; standalone image in CI       |
+| Xcode        | 26.2            | iOS 26.2 SDK; conformance target in M6.5, product target in M8 |
 
 ## Setup
 
 ```bash
 git clone <this repo> && cd GameTime
 
-# 1. Secrets. Apple credentials are only needed once a client actually signs in
-#    (M8); the stack starts without them and just warns.
+# 1. Secrets. Apple credentials are needed for device conformance and sign-in
+#    work (M6.5/M8); the stack starts without them and just warns.
 cp .env.example .env.local
 
 # 2. Bring up Postgres, PostgREST, Auth, Storage, Studio.
@@ -448,6 +449,11 @@ workout interval:
   retry. An identical replay returns the first result; the same id with different
   bytes is refused.
 
+The portable queue exposes a codable pending-request value and a validating
+restore initializer, so an app relaunch preserves the exact bytes and retry id.
+At capacity it refuses the new request visibly; it never evicts an older
+Core Location claim that cannot be reconstructed later.
+
 The client never declares that it was inside. `contest_geofences` is a
 service-provisioned definition that must be inserted before activation and is
 immutable thereafter. It contains the center, radius, accuracy ceiling, minimum
@@ -608,7 +614,7 @@ The assessor emits explicit flags:
 
 Impossible travel takes explicit location observations; hourly HealthKit totals
 and timezone changes do not contain a location, and the code does not pretend
-otherwise. M6's geofence check-ins are the intended producer.
+otherwise. M6's accepted, attested geofence locations are the concrete producer.
 
 Flags never alter totals or qualification. A retroactive quarantine is durable
 review state beside the snapshot: the generated `is_admissible` value stays the
@@ -691,20 +697,27 @@ afternoon:
 
 ## Client target
 
-iOS 18.0, Swift 6 language mode. This was a reasoned pick rather than a measured
-one — M0 was built in a Linux container with no Xcode — so confirm it against
-your toolchain with `xcodebuild -version`. The reasoning is in DECISIONS.md D2;
-changing it is one line in `Package.swift`.
+iOS 18.0, Swift 6 language mode. Verified on 2026-07-25 with Xcode 26.2, the iOS
+26.2 SDK, and Swift 6.2.3; the portable package builds and its 79 tests pass.
+The product rationale remains in DECISIONS.md D2.
 
 ## Milestones
+
+This is the ledger of what is built. What comes next, which decisions M7 cannot
+start without, and what is in flight but not yet reflected here are in PLAN.md.
 
 - [x] **M0** — Scaffold, local Supabase, migration and test harness, CI
 - [x] **M1** — Schema and RLS for identity, friendships, groups
 - [x] **M2** — Contest creation, invitations, participant state machine
-- [x] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
+- [x] **M3** — Portable HealthKit bucketing/provenance/queue core, attested
+      ingest, and `metric_snapshots` (live HealthKit queries land in M8)
 - [x] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
 - [x] **M5** — Anti-cheat rules, integrity scoring, evidence review, source
       reputation, and opponent-approved timezone changes
-- [ ] **M6** — Geofence check-ins and workout-overlap validation
-- [ ] **M7** — Settlement, disputes, charity pledge lifecycle, cron finalization
-- [ ] **M8** — Minimal SwiftUI shell
+- [x] **M6** — Geofence check-ins, workout-overlap validation, trusted-location
+      integrity inputs, and a restorable exact-byte client queue
+- [ ] **M6.5** — Real-device App Attest conformance against staging
+- [ ] **M7** — Scheduler, standings endpoint, finalization gates, settlement,
+      disputes, charity pledge lifecycle, and reliability
+- [ ] **M8** — iOS app target: auth, HealthKit, Core Location, App Attest,
+      notifications, persistence, and the SwiftUI product loop

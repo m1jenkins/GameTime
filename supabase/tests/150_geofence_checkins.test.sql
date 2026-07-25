@@ -4,7 +4,7 @@
 -- into missing evidence.
 
 begin;
-select plan(58);
+select plan(60);
 
 -- Exercise the RPC outside UTC. JSON samples below are also deliberately sent
 -- out of order so acceptance proves the server sorts absolute timestamptz
@@ -14,7 +14,7 @@ set local timezone = 'America/Chicago';
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'), -- alice, check-in owner
   ('22222222-2222-2222-2222-222222222222'), -- bob, active rival
-  ('33333333-3333-3333-3333-333333333333'); -- carol, unrelated
+  ('33333333-3333-3333-3333-333333333333'); -- carol, declined invitee
 
 insert into public.profiles (id, handle, display_name) values
   ('11111111-1111-1111-1111-111111111111', 'alice', 'Alice'),
@@ -67,6 +67,11 @@ insert into public.contest_participants (
     'invited', '11111111-1111-1111-1111-111111111111', null, null
   ),
   (
+    'a0000001-0000-0000-0000-000000000001',
+    '33333333-3333-3333-3333-333333333333',
+    'invited', '11111111-1111-1111-1111-111111111111', null, null
+  ),
+  (
     'a0000001-0000-0000-0000-000000000002',
     '11111111-1111-1111-1111-111111111111',
     'accepted', null, 'UTC',
@@ -79,6 +84,11 @@ set status = 'accepted',
     charity_id = 'c0000001-0000-0000-0000-000000000001'
 where contest_id = 'a0000001-0000-0000-0000-000000000001'
   and user_id = '22222222-2222-2222-2222-222222222222';
+
+update public.contest_participants
+set status = 'declined'
+where contest_id = 'a0000001-0000-0000-0000-000000000001'
+  and user_id = '33333333-3333-3333-3333-333333333333';
 
 insert into public.contest_geofences (
   id,
@@ -272,6 +282,12 @@ select ok(
      and indexname = 'geofence_checkins_accepted_workout_id_idx'),
   'accepted workout UUID reuse has a partial unique-index backstop'
 );
+select has_index(
+  'public',
+  'geofence_location_observations',
+  'geofence_location_observations_user_contest_time_idx',
+  'cross-contest owner location history has a user-leading time index'
+);
 select ok(
   (select 'security_invoker=true' = any(reloptions)
    from pg_class
@@ -333,6 +349,27 @@ select ok(
     'execute'
   ),
   'only service_role can call the attested check-in RPC'
+);
+select ok(
+  has_table_privilege(
+    'service_role', 'public.geofence_checkins', 'select'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.geofence_checkins', 'insert'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.geofence_checkins', 'update'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.geofence_checkins', 'delete'
+  )
+  and has_table_privilege(
+    'service_role', 'public.geofence_location_observations', 'select'
+  )
+  and not has_table_privilege(
+    'service_role', 'public.geofence_location_observations', 'insert'
+  ),
+  'service_role can inspect M6 facts but must create them through the guarded RPC'
 );
 
 -- ---------------------------------------------------------------------------
@@ -852,7 +889,7 @@ select ok(
   and (select count(*) = 0 from public.geofence_location_observations)
   and (select count(*) = 0 from public.contest_checkin_integrity)
   and (select count(*) = 0 from public.contest_location_observations),
-  'an unrelated signed-in account cannot enumerate venue or location evidence'
+  'a declined participant cannot enumerate venue or location evidence'
 );
 select throws_ok(
   $$ insert into public.geofence_checkins (
