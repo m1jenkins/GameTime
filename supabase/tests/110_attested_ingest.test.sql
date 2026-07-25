@@ -14,7 +14,7 @@
 --   * a batch either lands whole or not at all
 
 begin;
-select plan(41);
+select plan(47);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'),   -- alice
@@ -565,6 +565,94 @@ select is(
      and tablename in ('metric_snapshots', 'ingest_batches', 'device_attestations')),
   3::bigint,
   'three tables, three policies, all of them read-only'
+);
+
+-- ---------------------------------------------------------------------------
+-- One hour, several sources
+-- ---------------------------------------------------------------------------
+-- The case the provenance-keyed ledger exists for. A real hour routinely holds
+-- samples from more than one source: an iPhone's pedometer, a watch, a running
+-- app, and sometimes a figure typed into the Health app years ago. Collapsing
+-- those into one row would mean picking one provenance for the hour, and the
+-- only safe pick is the least trusted present — which would let one stray
+-- hand-typed step discard thousands of genuine ones.
+select lives_ok(
+  $$ select public.record_metric_batch(
+       '22222222-2222-2222-2222-222222222222',
+       'a0000001-0000-0000-0000-000000000001',
+       'b000000f-0000-0000-0000-00000000000f',
+       extensions.digest('payload-f', 'sha256'),
+       now(),
+       jsonb_build_array(
+         jsonb_build_object('metric', 'steps', 'bucket_start', (select h3 from t_hours),
+                            'value', 4000, 'provenance', 'device', 'sample_count', 10),
+         jsonb_build_object('metric', 'steps', 'bucket_start', (select h3 from t_hours),
+                            'value', 500, 'provenance', 'third_party', 'sample_count', 2),
+         jsonb_build_object('metric', 'steps', 'bucket_start', (select h3 from t_hours),
+                            'value', 9000, 'provenance', 'manual', 'sample_count', 1)),
+       (select bob_key_id from t_keys),
+       10::bigint) $$,
+  'one batch may carry the same bucket once per source'
+);
+
+select is(
+  (select count(*) from public.metric_snapshots
+   where user_id = '22222222-2222-2222-2222-222222222222'
+     and bucket_start = (select h3 from t_hours)),
+  3::bigint,
+  'all three land, including the hand-typed one'
+);
+
+select is(
+  (select value from public.contest_evidence
+   where user_id = '22222222-2222-2222-2222-222222222222'
+     and bucket_start = (select h3 from t_hours)),
+  4500::numeric,
+  'the view adds the admissible sources and leaves the hand-typed one out'
+);
+
+-- And a revision to one source is a max within that source, not an addition,
+-- while the other source is untouched. Getting this backwards in either
+-- direction is a scoring bug: summing revisions counts a late sync twice,
+-- taking the max across sources discards all but the largest.
+select lives_ok(
+  $$ select public.record_metric_batch(
+       '22222222-2222-2222-2222-222222222222',
+       'a0000001-0000-0000-0000-000000000001',
+       'b0000010-0000-0000-0000-000000000010',
+       extensions.digest('payload-10', 'sha256'),
+       now(),
+       jsonb_build_array(jsonb_build_object(
+         'metric', 'steps', 'bucket_start', (select h3 from t_hours),
+         'value', 4200, 'provenance', 'device', 'sample_count', 11)),
+       (select bob_key_id from t_keys),
+       11::bigint) $$,
+  'a late sync revises one source upward'
+);
+
+select is(
+  (select value from public.contest_evidence
+   where user_id = '22222222-2222-2222-2222-222222222222'
+     and bucket_start = (select h3 from t_hours)),
+  4700::numeric,
+  'the revision replaced that source''s figure rather than adding to it'
+);
+
+-- Two sources are independent, so a value below the *other* source's figure is
+-- not a downward revision and must not be refused.
+select lives_ok(
+  $$ select public.record_metric_batch(
+       '22222222-2222-2222-2222-222222222222',
+       'a0000001-0000-0000-0000-000000000001',
+       'b0000011-0000-0000-0000-000000000011',
+       extensions.digest('payload-11', 'sha256'),
+       now(),
+       jsonb_build_array(jsonb_build_object(
+         'metric', 'steps', 'bucket_start', (select h3 from t_hours),
+         'value', 600, 'provenance', 'third_party', 'sample_count', 3)),
+       (select bob_key_id from t_keys),
+       12::bigint) $$,
+  'monotonicity is per source, so a smaller figure from a smaller source is fine'
 );
 
 select * from finish();

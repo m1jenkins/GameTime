@@ -17,12 +17,14 @@
 -- The shape of the ledger, in four sentences
 -- ---------------------------------------------------------------------------
 -- A snapshot is one *observation*: "at this moment, this client reported that
--- this participant's `steps` for this hour was 812, and here is where that
--- number came from." Observations are appended, never rewritten, so a bucket
--- whose figure grows as late samples arrive accumulates rows rather than
--- changing one. The current figure for a bucket is therefore the largest value
--- observed for it, which is single-valued because a downward revision is
--- refused. `contest_evidence` is that reduction, and it is what M4 scores.
+-- this participant's `steps` for this hour, from this source, was 812." They are
+-- appended and never rewritten, so a figure that grows as late samples arrive
+-- accumulates rows rather than changing one.
+--
+-- Reading it back therefore has two steps. Within one source a bucket's
+-- revisions are a monotone series, so the current figure is the largest of them;
+-- across sources the contributions are disjoint, so they add.
+-- `contest_evidence` is that reduction, and it is what M4 scores.
 --
 -- ---------------------------------------------------------------------------
 -- Three things that are deliberately absent
@@ -321,10 +323,23 @@ create table public.metric_snapshots (
     foreign key (batch_id, contest_id, user_id)
     references public.ingest_batches (id, contest_id, user_id) on delete cascade,
 
-  -- One observation per bucket per metric within a batch. A batch carrying the
-  -- same bucket twice is a client bug, and this makes it a loud one.
+  -- One observation per bucket per metric per provenance within a batch. A batch
+  -- carrying the same three twice is a client bug, and this makes it a loud one.
+  --
+  -- Provenance is part of the key rather than one value per bucket, and the
+  -- reason is a fairness problem rather than a modelling preference. A single
+  -- hour routinely contains samples from more than one source — an iPhone's
+  -- pedometer, a watch, a running app, and sometimes a figure the user typed
+  -- into the Health app years ago. Collapsing that to one row would mean
+  -- choosing one provenance for the hour, and the only safe choice is the least
+  -- trusted one present — which would make one stray hand-typed step discard
+  -- 5,000 genuine ones and lose somebody a day they actually walked.
+  --
+  -- Splitting keeps each source's contribution separately admissible, so the
+  -- hand-typed part is excluded and the rest counts. `contest_evidence` is what
+  -- puts the parts back together.
   constraint metric_snapshots_one_per_bucket_per_batch
-    unique (batch_id, metric, bucket_start),
+    unique (batch_id, metric, bucket_start, provenance),
 
   constraint metric_snapshots_value_non_negative check (value >= 0),
   constraint metric_snapshots_sample_count_positive check (sample_count > 0),
@@ -515,6 +530,10 @@ begin
   -- genuine deletion in the Health app surface as a dispute for M7 rather than
   -- as a quiet rewrite of banked evidence.
   --
+  -- Keyed on provenance as well, because that is the grain a value has: each
+  -- source's contribution to an hour grows on its own, and comparing a watch's
+  -- figure against a running app's would refuse perfectly ordinary data.
+  --
   -- Rows inserted earlier in the same statement are visible here, so a batch
   -- cannot smuggle a decrease past this by ordering.
   select max(value) into v_highest
@@ -522,12 +541,13 @@ begin
   where contest_id = new.contest_id
     and user_id = new.user_id
     and metric = new.metric
-    and bucket_start = new.bucket_start;
+    and bucket_start = new.bucket_start
+    and provenance = new.provenance;
 
   if v_highest is not null and new.value < v_highest then
     raise exception
-      'bucket % of % already stands at %; a figure cannot be revised down to %',
-      new.bucket_start, new.metric, v_highest, new.value
+      'bucket % of % from % already stands at %; a figure cannot be revised down to %',
+      new.bucket_start, new.metric, new.provenance, v_highest, new.value
       using errcode = 'restrict_violation';
   end if;
 
@@ -691,9 +711,16 @@ create policy metric_snapshots_select_own_or_rival on public.metric_snapshots
 -- TypeScript while the invariants that make it sound live here, and the two
 -- drift. D3 keeps one scoring engine for the same reason.
 --
--- `max(value)` rather than "the most recently recorded" is not a shortcut: the
--- monotonicity trigger makes them the same number, and an aggregate cannot
--- pick the wrong row when two observations share a timestamp.
+-- Two steps, because the ledger has two grains. Within one provenance a bucket's
+-- figure is a monotone series of revisions, so the current value is `max(value)`
+-- — and that is not a shortcut for "the most recently recorded": the
+-- monotonicity trigger makes them the same number, and an aggregate cannot pick
+-- the wrong row when two observations share a timestamp. Across provenances the
+-- contributions are disjoint, so they add.
+--
+-- Getting this backwards in either direction is a scoring bug rather than a
+-- style choice. Summing revisions would count a late sync twice; taking the max
+-- across provenances would discard everything but the largest source.
 --
 -- `local_day` and `local_hour` are grouped rather than aggregated even though
 -- they are functionally dependent on the bucket. Aggregating them would paper
@@ -709,6 +736,24 @@ create policy metric_snapshots_select_own_or_rival on public.metric_snapshots
 create view public.contest_evidence
 with (security_invoker = true)
 as
+with per_source as (
+  select
+    contest_id,
+    user_id,
+    metric,
+    bucket_start,
+    local_day,
+    local_hour,
+    provenance,
+    max(value)          as value,
+    sum(sample_count)   as sample_count,
+    count(*)            as observation_count,
+    min(recorded_at)    as first_recorded_at,
+    max(recorded_at)    as last_recorded_at
+  from public.metric_snapshots
+  where is_admissible
+  group by contest_id, user_id, metric, bucket_start, local_day, local_hour, provenance
+)
 select
   contest_id,
   user_id,
@@ -716,13 +761,12 @@ select
   bucket_start,
   local_day,
   local_hour,
-  max(value)                                as value,
-  sum(sample_count)::bigint                 as sample_count,
-  count(*)::integer                         as observation_count,
-  min(recorded_at)                          as first_recorded_at,
-  max(recorded_at)                          as last_recorded_at
-from public.metric_snapshots
-where is_admissible
+  sum(value)                      as value,
+  sum(sample_count)::bigint       as sample_count,
+  sum(observation_count)::integer as observation_count,
+  min(first_recorded_at)          as first_recorded_at,
+  max(last_recorded_at)           as last_recorded_at
+from per_source
 group by contest_id, user_id, metric, bucket_start, local_day, local_hour;
 
 comment on view public.contest_evidence is

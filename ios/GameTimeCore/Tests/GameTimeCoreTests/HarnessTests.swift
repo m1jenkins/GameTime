@@ -3,7 +3,9 @@ import Testing
 @testable import GameTimeCore
 
 /// Proves the Swift Testing harness runs and the package builds under Swift 6
-/// language mode. Domain suites replace this from M3 onward.
+/// language mode. M3 added the first domain suites alongside it; this stays
+/// because "the toolchain works" and "the logic is right" are different
+/// failures and a green domain suite cannot report the first one.
 @Suite("Harness")
 struct HarnessTests {
     @Test("GameTimeCore builds and exposes its deployment target")
