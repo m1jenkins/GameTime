@@ -9,9 +9,10 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M3 complete.** Scaffold, CI, the social graph, contests, and the
-evidence ledger — attested ingest of hourly HealthKit measurements with their
-provenance. Nothing is scored yet; M4 is the scoring engine.
+**Status: M4 complete.** Scaffold, CI, the social graph, contests, the evidence
+ledger — attested ingest of hourly HealthKit measurements with their provenance —
+and the scoring engine that decides who won. Nothing enforces integrity rules
+yet; M5 is anti-cheat.
 
 ---
 
@@ -23,8 +24,8 @@ supabase/
   migrations/            Hand-written SQL. The only way schema changes.
   tests/                 pgTAP suites: schema, constraints, RLS
   functions/
-    _shared/             App Attest, CBOR, ingest plumbing. Scoring lands in M4.
-    _test/               Fixture builders. Never imported by a deployed function.
+    _shared/             App Attest, CBOR, ingest plumbing, and the scoring engine
+    _test/               Fixture builders and the scoring corpus. Never deployed.
     attest-device/       Registers one App Attest key per device install
     ingest-metrics/      The only route into the evidence ledger
     deno.json            Deno tasks, imports, lint and format config
@@ -402,6 +403,95 @@ return zero:
 select count(*) from public.ingest_batches where not attested;
 ```
 
+## Scoring
+
+`supabase/functions/_shared/scoring.ts` is the only implementation of who won
+(DECISIONS.md D3). It is a pure function — contest terms, the accepted roster,
+and the rows of `contest_evidence` in; standings and an outcome out. No I/O, no
+clock, no randomness, so a disputed contest re-scored years later gives the same
+answer.
+
+**A contest is pass/fail against its own terms, and the comparison is among those
+who passed.** Highest score does not win. This is what the cadence enum already
+says: `cumulative` means reach the target once across the window, `daily` means
+reach it on every day. So:
+
+| Qualifiers | Outcome |
+| --- | --- |
+| exactly one | that participant wins |
+| several | a tie, resolved by `contests.tie_break` |
+| none | void — nobody donates |
+
+The case that settles it: two friends each pledge $25 against a 100,000-step
+month and walk 40,000 and 12,000. Under "highest total wins" somebody who missed
+their goal by 60% collects a donation for a month in which neither of them did
+the thing they staked money on. See D51.
+
+That makes **ties the ordinary result**, not an edge case — which is why
+`tie_break` is declared at creation and defaults to `integrity_score`.
+
+### Daily cadence rates days, it does not count them
+
+A daily contest asks about the local days the window *wholly* covers in the
+participant's frozen zone, and ranks on `qualifyingDays / scoreableDays`.
+
+A window that is seven whole days in New York is six whole days plus two
+part-days in Kathmandu (+05:45). Ranking on the raw count would cap the Kathmandu
+participant at 6 against the New Yorker's 7 and make them unable to win a contest
+they played perfectly. Rating makes them comparable: 6/6 and 7/7 are both 1.0.
+
+Part-days are dropped from the numerator *and* the denominator — an 18-hour day
+cannot be judged against a whole-day target. That also closes an attack the
+ledger cannot: evidence in a part-day is legitimately writable, so otherwise
+somebody who missed a Wednesday could stuff the edge day and manufacture a
+qualifying day out of an hour that was never a day. See D52.
+
+### Totals are integers underneath
+
+Every value is `numeric(12, 2)`, so scoring converts to whole hundredths and sums
+as integers. `28.45 + 1.24 + 0.20 + 0.11` is `29.999999999999996` in doubles, so
+a participant logging exactly 30.00 minutes against a 30-minute target fails a
+float comparison — and that comparison is the qualification test. See D53.
+
+### An unresolvable tie is reported, not guessed
+
+`integrity_score` is M5's number and does not exist yet, so the default
+tie-break currently returns `undecided` with reason
+`integrity_score_unavailable`. The engine accepts scores as an optional input,
+which is the seam M5 fills without changing the engine.
+
+Every alternative is worse: falling back to the higher total substitutes a
+tie-break the participants did not agree to, voiding cancels a contest somebody
+won, and ordering by user id settles a donation by whose UUID sorts lower.
+Standings *are* fully ordered — a leaderboard has to render — but ordering never
+decides the outcome. See D54.
+
+### The engine scores; it does not flag
+
+90,000 steps in one hour scores as 90,000, and a bucket first reported eleven days
+late scores too. Plausibility needs a tuning parameter, which makes it a heuristic,
+which puts it in M5 (D6). The engine carries the aggregates M5 reads — bucket and
+sample counts, the largest single hour, the worst reporting lag — rather than
+acting on them. Both cases are fixtures that must *pass*, so nobody mistakes the
+engine's silence for a verdict. See D55.
+
+The one thing it refuses is a ledger that contradicts itself: a bucket carrying
+two different `local_day` values raises rather than picking one.
+
+### The corpus is the specification
+
+`supabase/functions/_test/scoring_fixtures.ts` holds every case as plain data —
+no functions, no classes. If optimistic offline standings ever force a second
+engine in Swift, the two have to be held to one corpus, and a test asserts the
+fixtures survive a JSON round trip so they cannot quietly stop being portable
+(D3's escape hatch).
+
+Each fixture carries a `why` explaining what it pins, so changing an expectation
+means saying which property is being given up. The fraudulent cases come in two
+kinds, and the split is the point: cross-metric padding, out-of-window backfill
+and part-day stuffing must **not** work; an implausible hour and an eleven-day-late
+report must work, and be visible in the summary.
+
 ## Test-harness capabilities
 
 The harness proves out the three things later milestones depend on:
@@ -433,6 +523,11 @@ The harness proves out the three things later milestones depend on:
   stub. What that cannot establish is *conformance* — it proves the verifier
   agrees with the test's signer, not that either agrees with an iPhone. See the
   owner action in DECISIONS.md D46.
+  M4 adds a different shape again: the scoring engine is pure, so its suite is a
+  data-driven corpus rather than a set of hand-written cases. The harness is
+  deliberately thin — it asserts only what each fixture declares — so behaviour
+  changes surface as changed expectations in the corpus, next to the `why` that
+  says what property is being traded away.
 - **Swift Testing** — portable client logic under Swift 6 strict concurrency.
   M3's suites cover the cases a UTC-hour implementation gets wrong: half-hour and
   45-minute zone offsets, and both daylight-saving transitions, where a local day
@@ -469,8 +564,10 @@ changing it is one line in `Package.swift`.
 - [x] **M1** — Schema and RLS for identity, friendships, groups
 - [x] **M2** — Contest creation, invitations, participant state machine
 - [x] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
-- [ ] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
-- [ ] **M5** — Anti-cheat rules and integrity scoring
+- [x] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
+- [ ] **M5** — Anti-cheat rules and integrity scoring. Also the gating dependency
+      for settling the most common contest there is: `integrity_score` is the
+      default tie-break, and under D51 a duel both friends win is a tie
 - [ ] **M6** — Geofence check-ins and workout-overlap validation
 - [ ] **M7** — Settlement, disputes, charity pledge lifecycle, cron finalization
 - [ ] **M8** — Minimal SwiftUI shell
