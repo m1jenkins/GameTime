@@ -814,6 +814,10 @@ column-and-value list the way `app.forbid_column_change()` does.
 
 ### D32. A definer function in `app` that no policy calls must have PUBLIC EXECUTE revoked
 
+**Amended by D82.** The installed `pg_cron` job runs as the migration owner, not
+as `service_role`. The `service_role` grant remains a narrowly scoped recovery
+and test path; among application roles it is still the only caller.
+
 **What.** `app.activate_due_contests()` revokes EXECUTE from `public`, `anon`,
 and `authenticated`, and grants it to `service_role` alone. M1's predicates in
 `app` do not, and must not.
@@ -2729,6 +2733,38 @@ account was not actually deleted).
 different raw-evidence period. That changes the retention schedule, not the
 pseudonymous result and obligation model.
 
+### D82. Activation is a named one-minute database job
+
+**What.** M7 installs `pg_cron` and one named job,
+`gametime-activate-due-contests`, whose command is
+`select app.activate_due_contests();` every minute. The job is created by and
+runs as the migration owner. Application roles cannot use the `cron` schema;
+`service_role` retains only D32's explicit worker call for guarded recovery and
+tests.
+
+One minute bounds ordinary activation lag without promising exact wall-clock
+execution. Repeated or overlapping sweeps are safe: pg_cron serializes instances
+of one job, the worker locks each due contest, status moves only forward, and
+D80's semantic outbox key makes every recipient/event/stage intent idempotent.
+The database transition and its intents remain one transaction. The migration
+does not backfill old rows as if their historical transitions just happened.
+
+**Why.** Activation is a database state transition with no external I/O. Keeping
+its clock beside the guarded function removes an Edge Function, network hop,
+credential, and split-brain failure from the trust path. A stable job name makes
+the installed schedule inspectable and keeps future timed M7 workers in one
+reviewed registry.
+
+**Rejected.** Client-driven activation (a caller can open or cancel someone
+else's contest early). An Edge Function timer for a database-only transition
+(adds availability and credential failure modes). A once-daily sweep (an
+unacceptable start-time delay). Treating push delivery as the clock (D80 makes
+delivery explicitly best-effort).
+
+**Revisit if.** Activation volume makes a one-minute full pending scan costly.
+The partial `(starts_at) where status = 'pending'` index exists for this query;
+measure it before moving to a queue or sharded workers.
+
 ---
 
 ## Resolved history and decisions still deferred
@@ -2762,13 +2798,17 @@ signals (D59), retroactive review (D60), source reputation (D61), and the
 timezone-change consent path (D62). M6 supplied the concrete trusted-location
 producer and geofence/workout signals (D63–D66); D67–D70 record hardening found
 by the implementation-plan audit, and M6.5 adds the receipt and hosted-key
-boundaries in D71–D72.
+boundaries in D71–D73.
 
 M7.1 resolved the settlement product contract before schema work: pledge
 confirmation and deadlines (D74), explicit outcomes and obligation mappings for
 contests that ran (D75), bounded quarantine review (D76), standings disclosure
 (D77), disputes (D78), reliability (D79), notification ownership (D80), and
 durable pseudonymization (D81).
+
+M7.2 begins the implementation with D80's durable outbox and D82's named
+one-minute activation job. M6.5 remains open and still gates result finalization
+and settlement.
 
 - **Quarantine and group approval (resolved by D60 and D76).** A duel needs its
   opponent; a group needs a strict majority of other accepted participants.
@@ -2847,17 +2887,11 @@ no settlement-bearing finalization bypasses that gate.
 - **What happens when a reviewer never votes (resolved by D76).** Silence never
   approves evidence. It escalates, and unanswered adjudication eventually
   finalizes to `inconclusive` with no obligations.
-- **The scheduler (M7).** `app.activate_due_contests()` is the only thing that
-  moves a contest to `active`, and nothing calls it — no `pg_cron` in
-  `config.toml`, no scheduled function, no workflow. This is declared in the
-  function's own comment ("Called by cron, which M7 sets up alongside
-  settlement") but the consequence is not recorded anywhere: through M6 there is
-  no end-to-end path in a deployed environment, because every contest that M3's
-  ingest, M5's integrity rules and M6's check-ins have ever run against was
-  forced into `active` by test scaffolding. Default: none; it belongs at the
-  front of M7, immediately after the notification-outbox foundation, rather
-  than beside settlement. The milestones underneath it must be exercised
-  against a contest that activated on its own.
+- **The scheduler (resolved by D82).** A named one-minute `pg_cron` job calls
+  `app.activate_due_contests()` as the migration owner. Application roles cannot
+  inspect or mutate the scheduler; `service_role` keeps a guarded recovery path.
+  Staging still must prove an actual cron firing against committed rows because
+  pgTAP transactions cannot be observed by the background worker.
 - **Where notifications live (resolved by D80).** M7 transactionally records
   generic, idempotent notification intents. M8 owns APNs credentials, delivery,
   presentation, and retries; no deadline depends on push delivery.

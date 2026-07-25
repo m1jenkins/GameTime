@@ -3,7 +3,7 @@
 -- durable quarantine workflow and the unchanged evidence semantics.
 
 begin;
-select plan(34);
+select plan(36);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'), -- alice, evidence owner
@@ -235,6 +235,18 @@ select is(
   (select id from t_quarantine),
   'retrying the identical evaluator write is idempotent'
 );
+select ok(
+  (
+    select count(*) = 1
+       and bool_and(
+         recipient_user_id = '22222222-2222-2222-2222-222222222222'
+       )
+    from public.notification_intents
+    where event_type = 'quarantine_review_requested'
+      and entity_id = (select id from t_quarantine)
+  ),
+  'the quarantine and its one opponent-review intent are idempotent together'
+);
 select throws_ok(
   $$ select public.record_evidence_quarantine(
        (select snapshot_id from t_fixture), 'm5-v1', 'different-signal',
@@ -302,6 +314,18 @@ select lives_ok(
   $$ select public.review_evidence_quarantine(
        (select id from t_quarantine), true) $$,
   'retrying the same vote is idempotent'
+);
+select ok(
+  (
+    select count(*) = 1
+       and bool_and(
+         recipient_user_id = '11111111-1111-1111-1111-111111111111'
+       )
+    from public.notification_intents
+    where event_type = 'quarantine_review_resolved'
+      and entity_id = (select id from t_quarantine)
+  ),
+  'approval and its one subject-resolution intent are idempotent together'
 );
 select throws_ok(
   $$ select public.review_evidence_quarantine(

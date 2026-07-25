@@ -11,14 +11,16 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M6 complete; M6.5 awaits device/staging and receipt proof; M7.1 decisions are complete.**
+**Status: M6 complete; M6.5 awaits device/staging and receipt proof; M7.2a is implemented.**
 The staging fixture, conformance-only iOS target, Apple-vector regression,
 receipt quarantine, and fail-closed hosted configuration are implemented. The
 remaining gate is to run the documented smoke test on a provisioned iPhone
 against the staging project and independently validate the captured PKCS#7
 receipt before settlement implementation begins. The M7 result, pledge,
 dispute, reliability, notification-intent, retention, and pseudonymization
-contract is recorded in DECISIONS.md D74–D81; no M7 schema has been added yet.
+contract is recorded in DECISIONS.md D74–D82. The payload-free notification
+outbox and named one-minute activation job are implemented and pgTAP-covered;
+an actual hosted cron firing remains a staging proof.
 
 ---
 
@@ -128,7 +130,9 @@ touch supabase/migrations/$(date -u +%Y%m%d%H%M%S)_add_something.sql
 Two conventions the baseline migration sets up, both asserted by
 `supabase/tests/000_harness.test.sql`:
 
-- Extensions live in the `extensions` schema, never `public`.
+- Ordinary relocatable extensions live in the `extensions` schema, never
+  `public`. M7's non-relocatable `pg_cron` is the documented exception: it is
+  registered in `pg_catalog` and owns a locked-down `cron` schema.
 - Helper functions used by RLS policies live in `app`, which is not exposed
   through the Data API. A policy can call them; a client cannot.
 
@@ -285,6 +289,31 @@ and is deliberately *not* shipped as a data migration — a plausible but wrong 
 routes a real donation to the wrong organisation and looks correct doing it. See
 DECISIONS.md D26, which also records why an empty table is the right failure mode
 until then.
+
+## Transactional notification outbox and activation
+
+M7.2a adds `notification_intents`, an append-only ledger written by the same
+transaction as its business transition. It stores only recipient, event type,
+opaque entity ID, reminder stage, and server timestamps—never health totals,
+location, receipts, integrity allegations, or dispute notes. Authenticated
+users can read only their own intents while their profile is active;
+`service_role` has read-only delivery access, and neither role can call the
+trusted emitter. Delivery attempts, read state, APNs tokens, and presentation
+remain M8 ledgers.
+
+Invitations, contest activation/cancellation, timezone-consent
+request/resolution, and quarantine-review request/approval emit semantic,
+idempotent intents. A rejected quarantine is not mislabeled as resolved: D76's
+later adjudication slice will create the escalation and operator intent
+atomically.
+
+The database installs one named `pg_cron` job,
+`gametime-activate-due-contests`, which calls
+`app.activate_due_contests()` every minute. Application roles cannot use the
+`cron` schema. pgTAP proves the registry entry and manually driven worker
+semantics; a staging run must still observe the background process against
+committed rows because it cannot see fixtures inside a rolled-back test
+transaction.
 
 ## The evidence ledger
 
@@ -741,6 +770,10 @@ implementation gates, and work not yet reflected here are in PLAN.md.
 - [ ] **M6.5** — Real-device App Attest conformance against staging
 - [x] **M7.1** — Settlement/finalization product contract (D74–D81; decisions
       only)
+- [x] **M7.2a** — Payload-free notification outbox, transition emitters, and a
+      named one-minute contest-activation job
+- [ ] **M7.2b** — Observe hosted cron activation and run ingest, timezone, and
+      check-in flows against the scheduler-opened contest
 - [ ] **M7** — Scheduler, durable notification intents, standings endpoint,
       finalization gates, settlement, disputes, charity pledge lifecycle, and
       reliability

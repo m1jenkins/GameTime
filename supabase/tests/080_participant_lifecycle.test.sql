@@ -498,7 +498,7 @@ select ok(
 select ok(
   has_function_privilege('service_role',
     'app.activate_due_contests(timestamptz)', 'execute'),
-  'only the role cron runs as can'
+  'service_role retains guarded operational recovery access'
 );
 
 select * from finish();

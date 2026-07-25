@@ -3,7 +3,7 @@
 -- and ingest resolves the epoch at the bucket rather than at write time.
 
 begin;
-select plan(65);
+select plan(69);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'), -- alice, requester
@@ -367,6 +367,22 @@ select is(
   (select id from t_request),
   'an identical pending request retry returns the same id'
 );
+select ok(
+  (
+    select count(*) = 2
+       and count(distinct recipient_user_id) = 2
+       and bool_and(
+         recipient_user_id in (
+           '22222222-2222-2222-2222-222222222222',
+           '33333333-3333-3333-3333-333333333333'
+         )
+       )
+    from public.notification_intents
+    where event_type = 'timezone_consent_requested'
+      and entity_id = (select id from t_request)
+  ),
+  'the request retry cannot duplicate either opponent-consent intent'
+);
 select throws_ok(
   $$ select public.request_timezone_change(
        'a0000001-0000-0000-0000-000000000001',
@@ -424,6 +440,16 @@ select is(
    where request_id = (select id from t_request)),
   0::bigint,
   'partial approval creates no applied event'
+);
+select is(
+  (
+    select count(*)
+    from public.notification_intents
+    where event_type = 'timezone_consent_resolved'
+      and entity_id = (select id from t_request)
+  ),
+  0::bigint,
+  'partial approval does not tell the requester consent is resolved'
 );
 select lives_ok(
   $$ select public.review_timezone_change(
@@ -487,6 +513,18 @@ select is(
   1::bigint,
   'a final-approval retry cannot duplicate the applied event'
 );
+select ok(
+  (
+    select count(*) = 1
+       and bool_and(
+         recipient_user_id = '11111111-1111-1111-1111-111111111111'
+       )
+    from public.notification_intents
+    where event_type = 'timezone_consent_resolved'
+      and entity_id = (select id from t_request)
+  ),
+  'final approval and its requester-resolution intent are idempotent together'
+);
 select is(
   (select timezone
    from public.contest_participants
@@ -539,6 +577,18 @@ select lives_ok(
   $$ select public.review_timezone_change(
        (select id from t_rejected_request), false) $$,
   'an identical rejection retry is idempotent'
+);
+select ok(
+  (
+    select count(*) = 1
+       and bool_and(
+         recipient_user_id = '11111111-1111-1111-1111-111111111111'
+       )
+    from public.notification_intents
+    where event_type = 'timezone_consent_resolved'
+      and entity_id = (select id from t_rejected_request)
+  ),
+  'rejection and its requester-resolution intent are idempotent together'
 );
 
 select set_config(

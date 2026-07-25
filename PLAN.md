@@ -12,7 +12,7 @@ why. This file owns sequence, remaining work, and launch blockers.
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness and staging procedure implemented; physical-iPhone/staging proof and independent receipt validation remain |
-| M7 | Started — M7.1 complete | Product contract resolved in D74–D81; scheduler and implementation remain |
+| M7 | M7.2a implemented — staging proof open | Product contract D74–D82, transactional outbox, and named activation job are test-covered; hosted cron execution remains |
 | M8 | Not started | iOS app target and all device/framework integrations |
 
 M6's boundary is backend plus portable client core. It does not include live
@@ -118,19 +118,23 @@ remains a hard gate before finalization or settlement is enabled.
 
 ### 2. M7.2 — Make activation real
 
-- Build D80's transactional outbox first and retrofit invitations, timezone
-  consent, quarantine review, and activation/cancellation so each transition
-  commits with its durable intent.
-- Enable and configure the scheduler.
-- Call `app.activate_due_contests()` on a tested cadence.
-- Establish one idempotent scheduled-worker pattern and registry. Activation is
-  its first job; later M7 slices add finalization/review escalation, claim
-  expiration/confirmation/default, dispute timeout, reminder, and retention
-  jobs without inventing separate timer semantics.
-- Assert the installed schedule, transition/outbox idempotency, and cancellation
-  semantics in pgTAP.
-- Exercise metric ingest, timezone epochs, and check-ins against a contest the
-  scheduler activated rather than a test-forced row.
+- [x] Build D80's payload-free transactional outbox and retrofit invitation,
+  timezone-consent request/resolution, quarantine request/approval, and
+  activation/cancellation so each implemented transition commits with its
+  durable intent. D76 rejection escalation waits for its adjudication queue.
+- [x] Enable `pg_cron` and install D82's named one-minute activation job.
+- [x] Call `app.activate_due_contests()` on a tested cadence.
+- [x] Establish one idempotent scheduled-worker pattern and registry.
+  Activation is its first job; later M7 slices add finalization/review
+  escalation, claim expiration/confirmation/default, dispute timeout, reminder,
+  and retention jobs without inventing separate timer semantics.
+- [x] Assert the installed schedule, transition/outbox idempotency, cancellation
+  semantics, least privilege, append-only enforcement, and stale-JWT denial in
+  pgTAP.
+- [ ] In staging, observe the background worker fire against committed rows and
+  exercise metric ingest, timezone epochs, and check-ins against a contest it
+  activated rather than a test-forced row. pgTAP transactions deliberately
+  cannot prove background visibility.
 
 ### 3. Add the standings/finalization orchestrator
 
