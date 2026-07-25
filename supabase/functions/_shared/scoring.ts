@@ -146,10 +146,10 @@ export interface ScoringInput {
   readonly roster: readonly RosterEntry[];
   readonly evidence: readonly EvidenceBucket[];
   /**
-   * Integrity scores keyed by user id, supplied by M5 when it exists.
+   * Integrity scores keyed by user id, supplied by M5's integrity assessor.
    *
-   * Absent today, which is why an `integrity_score` tie-break resolves to
-   * `undecided` rather than to a guess — see `resolveTie`.
+   * Still optional because the M4 engine is independently reusable. A bare
+   * caller gets `undecided` rather than a guess — see `resolveTie`.
    */
   readonly integrityScores?: Readonly<Record<string, number>>;
 }
@@ -693,11 +693,11 @@ function byIntegrity(
   tied: readonly string[],
   integrityScores: Readonly<Record<string, number>> | undefined,
 ): Outcome {
-  // M5 owns the number. Until it exists there is nothing to compare, and the
-  // three wrong answers are all worse than saying so: picking the higher total
-  // silently substitutes a different tie-break than the one the participants
-  // agreed to at creation, voiding cancels a contest somebody won, and ordering
-  // by user id settles money by UUID.
+  // M5 owns the number. A bare M4 caller may still omit it, and the three wrong
+  // answers are all worse than saying so: picking the higher total silently
+  // substitutes a different tie-break than the one the participants agreed to
+  // at creation, voiding cancels a contest somebody won, and ordering by user id
+  // settles money by UUID.
   if (integrityScores === undefined) {
     return { kind: "undecided", reason: "integrity_score_unavailable", tied };
   }

@@ -9,10 +9,10 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M4 complete.** Scaffold, CI, the social graph, contests, the evidence
-ledger — attested ingest of hourly HealthKit measurements with their provenance —
-and the scoring engine that decides who won. Nothing enforces integrity rules
-yet; M5 is anti-cheat.
+**Status: M5 underway.** M4's scoring engine is now paired with a deterministic,
+tunable integrity assessor: plausibility, cross-metric corroboration, impossible
+travel, reporting lag, retroactive review, and the integrity-score tie-break.
+The evidence ledger and its definition of admissibility are unchanged.
 
 ---
 
@@ -24,7 +24,7 @@ supabase/
   migrations/            Hand-written SQL. The only way schema changes.
   tests/                 pgTAP suites: schema, constraints, RLS
   functions/
-    _shared/             App Attest, CBOR, ingest plumbing, and the scoring engine
+    _shared/             App Attest, ingest, scoring, and integrity assessment
     _test/               Fixture builders and the scoring corpus. Never deployed.
     attest-device/       Registers one App Attest key per device install
     ingest-metrics/      The only route into the evidence ledger
@@ -274,6 +274,8 @@ falsify.
 | `ingest_batches`      | One row per accepted ingest request: the idempotency key and the attestation audit trail. |
 | `metric_snapshots`    | The ledger. One row per observation of one hour of one metric from one source. |
 | `contest_evidence`    | A view: the current admissible figure per bucket. What M4 scores. |
+| `evidence_quarantines` | Review-required retroactive observations. Never rewrites the ledger. |
+| `evidence_quarantine_reviews` | Append-only opponent votes on a quarantine. |
 
 **There is no client write path.** `authenticated` holds `SELECT` on all three
 tables and nothing else. A row appears only through
@@ -326,6 +328,16 @@ whose admissibility disagrees with its provenance.
 Provenance is part of the ledger's key, which is what stops one stray hand-typed
 step from voiding an hour that also holds five thousand genuine ones.
 
+M5 reads the same metadata through `contest_evidence_sources`, a
+`security_invoker` sidecar view that selects the current admissible contribution
+for each provenance without changing `contest_evidence`. The `m5-v2` integrity
+configuration carries a reviewed bundle-identifier allow-list and separate,
+tunable penalties for an unrecognized, missing, or malformed third-party
+identifier. Device provenance is not subject to that rule. Every third-party row
+still counts toward the target; reputation can only raise
+`third_party_source_reputation` flags and lower the bounded integrity score used
+by a declared tie-break.
+
 ### What is refused, and where
 
 | Rule                                             | Enforced by |
@@ -339,7 +351,7 @@ step from voiding an hour that also holds five thousand genuine ones.
 | The bucket is aligned to the participant's hour  | SQL |
 | A figure is not revised downward                 | SQL |
 | Nothing rewrites the ledger                      | SQL |
-| Whether a *particular* app is trustworthy        | nobody yet — M5 |
+| Whether a *particular* app is trustworthy        | not refused; M5 integrity-score sidecar |
 
 The split is DECISIONS.md D6's: crypto in TypeScript, invariants in SQL. The
 counter is the sharpest example — it is checked in SQL specifically because the
@@ -455,10 +467,11 @@ float comparison — and that comparison is the qualification test. See D53.
 
 ### An unresolvable tie is reported, not guessed
 
-`integrity_score` is M5's number and does not exist yet, so the default
-tie-break currently returns `undecided` with reason
-`integrity_score_unavailable`. The engine accepts scores as an optional input,
-which is the seam M5 fills without changing the engine.
+The bare M4 engine still reports `integrity_score_unavailable` when it is called
+without scores. M5's `scoreContestWithIntegrity()` computes a complete score map
+for every accepted participant and supplies it through the engine's existing
+optional input. A unique highest score wins; equal scores remain explicitly
+`tie_break_inconclusive`.
 
 Every alternative is worse: falling back to the higher total substitutes a
 tie-break the participants did not agree to, voiding cancels a contest somebody
@@ -491,6 +504,37 @@ means saying which property is being given up. The fraudulent cases come in two
 kinds, and the split is the point: cross-metric padding, out-of-window backfill
 and part-day stuffing must **not** work; an implausible hour and an eleven-day-late
 report must work, and be visible in the summary.
+
+## Integrity assessment
+
+`supabase/functions/_shared/integrity.ts` is a pure sidecar to the M4 engine. Its
+configuration has a version, per-metric hourly ceilings, corroboration rules,
+reviewed third-party bundle identifiers and reputation tiers, travel
+distance/speed limits, lag and quarantine thresholds, severity, points per flag,
+and per-rule penalty caps. The default score starts at 100 and floors at 0, but
+those are configuration too.
+
+The assessor emits explicit flags:
+
+| Flag | Signal |
+| --- | --- |
+| `plausibility_ceiling` | One hourly metric exceeds its configured ceiling. |
+| `cross_metric_corroboration` | A large contest-metric hour has none of its configured companion signals. |
+| `third_party_source_reputation` | An admissible third-party contribution has an unrecognized, missing, or malformed bundle identifier. |
+| `impossible_travel` | Two trusted location observations require travel above the configured speed after subtracting both accuracy radii. |
+| `reporting_lag` | An hour arrived materially after it closed. |
+| `retroactive_evidence_quarantine` | The lag crosses the review-required threshold. |
+
+Impossible travel takes explicit location observations; hourly HealthKit totals
+do not contain a location, and the code does not pretend otherwise. M6's
+geofence check-ins are the intended producer.
+
+Flags never alter totals or qualification. A retroactive quarantine is durable
+review state beside the snapshot: the generated `is_admissible` value stays the
+same and `contest_evidence` still returns the value. In a duel, the opponent must
+approve; in a group, a strict majority of the other accepted participants must.
+Silence stays `pending`. M7 must block finalization on unresolved review rather
+than quietly apply a second evidence filter.
 
 ## Test-harness capabilities
 
@@ -565,9 +609,9 @@ changing it is one line in `Package.swift`.
 - [x] **M2** — Contest creation, invitations, participant state machine
 - [x] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
 - [x] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
-- [ ] **M5** — Anti-cheat rules and integrity scoring. Also the gating dependency
-      for settling the most common contest there is: `integrity_score` is the
-      default tie-break, and under D51 a duel both friends win is a tie
+- [ ] **M5** — Core anti-cheat rules, review quarantine, integrity scoring, and
+      third-party source reputation are implemented. The timezone-change consent
+      flow remains.
 - [ ] **M6** — Geofence check-ins and workout-overlap validation
 - [ ] **M7** — Settlement, disputes, charity pledge lifecycle, cron finalization
 - [ ] **M8** — Minimal SwiftUI shell
