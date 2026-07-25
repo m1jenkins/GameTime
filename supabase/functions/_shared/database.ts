@@ -24,6 +24,8 @@ export interface RegisterDeviceKeyArgs {
   readonly userId: string;
   readonly keyId: Bytes;
   readonly publicKey: Bytes;
+  /** Opaque, untrusted Apple receipt bytes quarantined for later validation. */
+  readonly receipt: Bytes;
   readonly environment: "development" | "production";
 }
 
@@ -114,6 +116,11 @@ export interface CheckInDatabase {
 export interface PostgrestConfig {
   readonly url: string;
   readonly serviceRoleKey: string;
+  /**
+   * Legacy service_role keys are JWTs and travel in both headers. Modern
+   * sb_secret_ keys are opaque and authenticate only through `apikey`.
+   */
+  readonly authorizationBearer?: boolean;
 }
 
 /**
@@ -151,6 +158,31 @@ function failureFor(code: string | undefined, detail: string): HttpFailure {
       return new HttpFailure("bad_request", "the batch is too large", detail);
     case "23514": // check_violation
       return new HttpFailure("rejected", "one of the observations is not acceptable", detail);
+    default:
+      return new HttpFailure("internal", "the request could not be processed", detail);
+  }
+}
+
+/** Registration-specific wording; a duplicate key is not a duplicate batch. */
+function registrationFailureFor(
+  code: string | undefined,
+  detail: string,
+): HttpFailure {
+  switch (code) {
+    case "23505": // unique_violation
+    case "23514": // check_violation
+    case "22023": // invalid_parameter_value
+      return new HttpFailure(
+        "rejected",
+        "this device key cannot be registered",
+        detail,
+      );
+    case "42501": // insufficient_privilege
+      return new HttpFailure(
+        "forbidden",
+        "complete onboarding before registering a device",
+        detail,
+      );
     default:
       return new HttpFailure("internal", "the request could not be processed", detail);
   }
@@ -203,16 +235,19 @@ async function rpc(
 ): Promise<unknown> {
   let response: Response;
   try {
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+      "apikey": config.serviceRoleKey,
+      // Ask for a single object rather than a one-row array where the
+      // function returns one row.
+      "accept": "application/json",
+    };
+    if (config.authorizationBearer !== false) {
+      headers["authorization"] = `Bearer ${config.serviceRoleKey}`;
+    }
     response = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "apikey": config.serviceRoleKey,
-        "authorization": `Bearer ${config.serviceRoleKey}`,
-        // Ask for a single object rather than a one-row array where the
-        // function returns one row.
-        "accept": "application/json",
-      },
+      headers,
       body: JSON.stringify(args),
     });
   } catch (cause) {
@@ -251,13 +286,19 @@ async function rpc(
 export function postgrestDatabase(config: PostgrestConfig): Database {
   return {
     async registerDeviceKey(args) {
-      await rpc(config, "register_device_key", {
-        p_user_id: args.userId,
-        // bytea travels as a Postgres hex literal, since PostgREST speaks JSON.
-        p_key_id: toByteaLiteral(args.keyId),
-        p_public_key: toByteaLiteral(args.publicKey),
-        p_environment: args.environment,
-      });
+      await rpc(
+        config,
+        "register_device_key",
+        {
+          p_user_id: args.userId,
+          // bytea travels as a Postgres hex literal, since PostgREST speaks JSON.
+          p_key_id: toByteaLiteral(args.keyId),
+          p_public_key: toByteaLiteral(args.publicKey),
+          p_attestation_receipt: toByteaLiteral(args.receipt),
+          p_environment: args.environment,
+        },
+        registrationFailureFor,
+      );
     },
 
     async recordMetricBatch(args) {
@@ -388,7 +429,9 @@ export function deviceKeyLookup(
       response = await fetch(`${config.url}/rest/v1/device_attestations?${query}`, {
         headers: {
           "apikey": config.serviceRoleKey,
-          "authorization": `Bearer ${config.serviceRoleKey}`,
+          ...(config.authorizationBearer === false
+            ? {}
+            : { "authorization": `Bearer ${config.serviceRoleKey}` }),
           "accept": "application/json",
         },
       });

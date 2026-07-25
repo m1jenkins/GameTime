@@ -28,7 +28,7 @@ import {
   requireUuid,
   respond,
 } from "../_shared/http.ts";
-import { AuthError, bearerToken, verifyAccessToken } from "../_shared/jwt.ts";
+import { type AccessTokenVerifier, AuthError, bearerToken } from "../_shared/jwt.ts";
 
 /** Apple's key id, base64. Kept byte-for-byte equal to ingest-metrics. */
 export const KEY_ID_HEADER = "x-gametime-key-id";
@@ -56,7 +56,7 @@ const ABSOLUTE_TIMESTAMP =
 export interface IngestCheckInDeps {
   readonly database: CheckInDatabase;
   readonly appId: string;
-  readonly jwtSecret: string;
+  readonly verifyToken: AccessTokenVerifier;
   readonly attestBypass: boolean;
   readonly publicKeyFor?: (keyId: Bytes) => Promise<Bytes | undefined>;
   readonly now?: () => Date;
@@ -298,20 +298,21 @@ export function createIngestCheckInHandler(
     respond("ingest-checkin", async () => {
       requirePost(request);
 
-      // The raw bytes are both the signed client data and the durable digest.
-      const raw = await readBody(request, MAX_BODY_BYTES);
-      const payloadDigest = await sha256(raw);
       const at = clock();
 
       let caller;
       try {
-        caller = await verifyAccessToken(bearerToken(request), deps.jwtSecret, at);
+        caller = await deps.verifyToken(bearerToken(request), at);
       } catch (error) {
         if (error instanceof AuthError) {
           throw new HttpFailure("unauthorized", "sign in again", error.message);
         }
         throw error;
       }
+
+      // The raw bytes are both the signed client data and the durable digest.
+      const raw = await readBody(request, MAX_BODY_BYTES);
+      const payloadDigest = await sha256(raw);
 
       const body = parseJsonObject(raw);
       const contestId = requireUuid(body, "contestId");

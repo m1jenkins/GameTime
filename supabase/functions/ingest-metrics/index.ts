@@ -6,13 +6,14 @@
  */
 
 import {
+  accessTokenVerification,
   appAttestAppId,
   assertAttestConfigIsSafe,
   attestBypassEnabled,
   dataApiConfig,
-  jwtSecret,
 } from "../_shared/env.ts";
 import { deviceKeyLookup, postgrestDatabase } from "../_shared/database.ts";
+import { createAccessTokenVerifier } from "../_shared/jwt.ts";
 import { createIngestMetricsHandler } from "./handler.ts";
 
 assertAttestConfigIsSafe();
@@ -22,7 +23,7 @@ const dataApi = dataApiConfig();
 export const handler: (request: Request) => Promise<Response> = createIngestMetricsHandler({
   database: postgrestDatabase(dataApi),
   appId: appAttestAppId(),
-  jwtSecret: jwtSecret(),
+  verifyToken: createAccessTokenVerifier(accessTokenVerification()),
   attestBypass: attestBypassEnabled(),
   publicKeyFor: deviceKeyLookup(dataApi),
 });

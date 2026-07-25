@@ -1,9 +1,11 @@
+import * as x509 from "@peculiar/x509";
 import { assertEquals, assertRejects, assertThrows } from "@std/assert";
 import {
   AttestationError,
   base64ToBytes,
   derToRawEcdsaSignature,
   environmentFromAaguid,
+  nonceFromExtension,
   parseAuthenticatorData,
   rawToDerEcdsaSignature,
   verifyAssertion,
@@ -26,10 +28,15 @@ import {
   buildAttestation,
   buildAuthenticatorData,
   type Device,
+  encodeCosePublicKey,
   makeDevice,
   makeIntermediate,
   makeRoot,
 } from "../_test/appattest_fixtures.ts";
+import {
+  APPLE_2026_APP_ATTEST_VECTOR,
+  APPLE_APP_ATTESTATION_ROOT_CA_PEM,
+} from "../_test/apple_appattest_2026_vector.ts";
 
 const APP_ID = "ABCDE12345.test.gametime.app";
 
@@ -87,9 +94,40 @@ Deno.test("parses attestation-shaped authenticator data", () => {
     signCount: 0,
     aaguid: AAGUID_PRODUCTION,
     credentialId,
+    credentialPublicKey: device.publicKey,
+    validationCategory: 4,
+    bundleVersion: "27.3.14",
   }));
   assertEquals(parsed.aaguid, AAGUID_PRODUCTION);
   assertEquals(parsed.credentialId, credentialId);
+  assertEquals(parsed.credentialPublicKey, device.publicKey);
+  assertEquals(parsed.validationCategory, 4);
+  assertEquals(parsed.bundleVersion, "27.3.14");
+});
+
+Deno.test("parses the legacy attestation form that ends after credentialId", () => {
+  const credentialId = new Uint8Array(32).fill(3);
+  const legacy = buildAuthenticatorData({
+    rpIdHash: new Uint8Array(32).fill(7),
+    signCount: 0,
+    aaguid: AAGUID_PRODUCTION,
+    credentialId,
+  });
+  const parsed = parseAuthenticatorData(legacy);
+
+  assertEquals(parsed.aaguid, AAGUID_PRODUCTION);
+  assertEquals(parsed.credentialId, credentialId);
+  assertEquals(parsed.credentialPublicKey, undefined);
+  assertEquals(parsed.validationCategory, undefined);
+  assertEquals(parsed.bundleVersion, undefined);
+
+  // Compatibility is exact, not a license to ignore trailing data. Once even
+  // one suffix byte is present, the complete two-value iOS 27 form is required.
+  assertThrows(
+    () => parseAuthenticatorData(new Uint8Array([...legacy, 0x00])),
+    AttestationError,
+    "a COSE key and extensions map are required",
+  );
 });
 
 Deno.test("refuses authenticator data that is short or has trailing bytes", () => {
@@ -99,9 +137,10 @@ Deno.test("refuses authenticator data that is short or has trailing bytes", () =
     "at least 37",
   );
 
-  // 37 bytes of header with no credential flag, plus one stray byte. Trailing
-  // bytes inside a signed structure are a place for two implementations to
-  // disagree about what was signed, so they are refused rather than ignored.
+  // The 2026 conformance change is attestation-only: without a published Apple
+  // assertion vector, a 37-byte assertion plus any suffix remains a refusal.
+  // Trailing bytes inside a signed structure are a place for two
+  // implementations to disagree about what was signed.
   assertThrows(
     () => parseAuthenticatorData(new Uint8Array(38)),
     AttestationError,
@@ -113,11 +152,12 @@ Deno.test("refuses authenticator data that is short or has trailing bytes", () =
     signCount: 0,
     aaguid: AAGUID_PRODUCTION,
     credentialId: new Uint8Array(32),
+    credentialPublicKey: device.publicKey,
   });
   assertThrows(
     () => parseAuthenticatorData(new Uint8Array([...valid, 0x00])),
     AttestationError,
-    "does not account for",
+    "CBOR values",
   );
 });
 
@@ -128,6 +168,110 @@ Deno.test("maps AAGUIDs onto environments and refuses anything else", () => {
     () => environmentFromAaguid(new Uint8Array(16).fill(1)),
     AttestationError,
     "unrecognised AAGUID",
+  );
+});
+
+Deno.test("Apple's official 2026 vector pins the current attestation suffix and root", async () => {
+  const vector = APPLE_2026_APP_ATTEST_VECTOR;
+  const authenticatorData = base64ToBytes(vector.authDataBase64, "official authData");
+  const keyId = base64ToBytes(vector.keyIdBase64, "official key id");
+  const x5c = [
+    base64ToBytes(vector.leafCertificateBase64, "official leaf"),
+    base64ToBytes(vector.intermediateCertificateBase64, "official intermediate"),
+  ];
+
+  const parsed = parseAuthenticatorData(authenticatorData);
+  assertEquals(parsed.flags, 0x40);
+  assertEquals(parsed.signCount, 0);
+  assertEquals(parsed.aaguid, AAGUID_PRODUCTION);
+  assertEquals(parsed.credentialId, keyId);
+  assertEquals(parsed.validationCategory, 1);
+  assertEquals(parsed.bundleVersion, "1");
+  assertEquals(parsed.credentialPublicKey?.length, 65);
+  assertEquals(
+    new Uint8Array(
+      await crypto.subtle.digest("SHA-256", parsed.credentialPublicKey!),
+    ),
+    keyId,
+  );
+
+  const leaf = new x509.X509Certificate(x5c[0]!);
+  const nonceExtension = leaf.getExtension("1.2.840.113635.100.8.2");
+  if (nonceExtension === null) throw new Error("official leaf has no nonce extension");
+  assertEquals(
+    nonceFromExtension(new Uint8Array(nonceExtension.value)),
+    base64ToBytes(vector.nonceBase64, "official nonce"),
+  );
+
+  // The published object is internally inconsistent: its certificate nonce is
+  // SHA256(authData || UTF8(serverChallenge)), while Apple's prose and the
+  // production verifier correctly require
+  // SHA256(authData || SHA256(serverChallenge)). The guide also prints a public
+  // key digest that differs from both its key id and certificate. Reaching the
+  // nonce mismatch proves the official chain rooted at Apple's public App
+  // Attestation root, RP ID, COSE/certificate key, and key-id digest all passed
+  // without weakening the production nonce construction.
+  await assertRejects(
+    () =>
+      verifyAttestation({
+        fmt: "apple-appattest",
+        x5c,
+        authenticatorData,
+        keyId,
+        clientData: utf8(vector.serverChallenge),
+        appId: vector.appId,
+        rootCertificatePem: APPLE_APP_ATTESTATION_ROOT_CA_PEM,
+        allowedEnvironments: ["production"],
+        allowedValidationCategories: [1],
+        allowedBundleVersions: ["1"],
+        at: vector.at,
+      }),
+    AttestationError,
+    "nonce in the leaf certificate does not match",
+  );
+});
+
+Deno.test("strictly validates the COSE key and both Apple extensions", async () => {
+  const built = await buildAttestation(root, intermediate, device);
+  const coseStart = 55 + built.keyId.length;
+
+  const wrongAlgorithm = new Uint8Array(built.authenticatorData);
+  wrongAlgorithm[coseStart + 4] = 0x25; // -6 instead of ES256's -7
+  assertThrows(
+    () => parseAuthenticatorData(wrongAlgorithm),
+    AttestationError,
+    "does not use ES256",
+  );
+
+  const noExtensions = buildAuthenticatorData({
+    rpIdHash: new Uint8Array(32),
+    signCount: 0,
+    aaguid: AAGUID_PRODUCTION,
+    credentialId: device.keyId,
+    attestationSuffix: encodeCosePublicKey(device.publicKey),
+  });
+  assertThrows(
+    () => parseAuthenticatorData(noExtensions),
+    AttestationError,
+    "a COSE key and extensions map are required",
+  );
+
+  const invalidCategory = await buildAttestation(root, intermediate, device, {
+    validationCategory: 7,
+  });
+  assertThrows(
+    () => parseAuthenticatorData(invalidCategory.authenticatorData),
+    AttestationError,
+    "is not an app category",
+  );
+
+  const invalidBundle = await buildAttestation(root, intermediate, device, {
+    bundleVersion: "1-beta",
+  });
+  assertThrows(
+    () => parseAuthenticatorData(invalidBundle.authenticatorData),
+    AttestationError,
+    "not a valid bundle version",
   );
 });
 
@@ -216,6 +360,38 @@ Deno.test("refuses a raw signature that is not 64 bytes", () => {
   );
 });
 
+Deno.test("extracts the nonce octet string from strict DER", () => {
+  const nonce = new Uint8Array(32).fill(0x5a);
+  const extension = new Uint8Array([
+    0x30,
+    0x24,
+    0xa1,
+    0x22,
+    0x04,
+    0x20,
+    ...nonce,
+  ]);
+  assertEquals(nonceFromExtension(extension), nonce);
+
+  const wrongTag = new Uint8Array(extension);
+  wrongTag[2] = 0xa2;
+  assertThrows(() => nonceFromExtension(wrongTag), AttestationError, "context-specific [1]");
+
+  const nonMinimalLength = new Uint8Array([
+    0x30,
+    0x81,
+    0x24,
+    ...extension.slice(2),
+  ]);
+  assertThrows(() => nonceFromExtension(nonMinimalLength), AttestationError, "non-minimal");
+
+  assertThrows(
+    () => nonceFromExtension(new Uint8Array([...extension, 0x00])),
+    AttestationError,
+    "does not account",
+  );
+});
+
 // ---------------------------------------------------------------------------
 // Attestation: the happy path
 // ---------------------------------------------------------------------------
@@ -224,6 +400,8 @@ Deno.test("verifies a well-formed attestation and yields the key to store", asyn
   const verified = await verifyAttestation(attestationRequest(built));
 
   assertEquals(verified.environment, "production");
+  assertEquals(verified.validationCategory, 4);
+  assertEquals(verified.bundleVersion, "1");
   assertEquals(verified.publicKey, device.publicKey);
   assertEquals(verified.publicKey.length, 65);
   assertEquals(verified.publicKey[0], 0x04, "an uncompressed point, as the schema requires");
@@ -232,6 +410,18 @@ Deno.test("verifies a well-formed attestation and yields the key to store", asyn
   // that same relation as a CHECK and the insert would fail otherwise.
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", verified.publicKey));
   assertEquals(digest, built.keyId);
+});
+
+Deno.test("verifies a legacy attestation without iOS 27 app signals", async () => {
+  const built = await buildAttestation(root, intermediate, device, {
+    legacyAuthenticatorData: true,
+  });
+  const verified = await verifyAttestation(attestationRequest(built));
+
+  assertEquals(verified.publicKey, device.publicKey);
+  assertEquals(verified.environment, "production");
+  assertEquals(verified.validationCategory, undefined);
+  assertEquals(verified.bundleVersion, undefined);
 });
 
 Deno.test("accepts a development attestation only where it is allowed", async () => {
@@ -250,6 +440,57 @@ Deno.test("accepts a development attestation only where it is allowed", async ()
     () => verifyAttestation(attestationRequest(built)),
     AttestationError,
     "a development attestation is not accepted",
+  );
+});
+
+Deno.test("applies deployment policy to validation category and bundle version", async () => {
+  const built = await buildAttestation(root, intermediate, device, {
+    validationCategory: 2,
+    bundleVersion: "42.7",
+  });
+
+  const verified = await verifyAttestation(attestationRequest(built, {
+    allowedValidationCategories: [2, 4],
+    allowedBundleVersions: ["42.7", "42.8"],
+  }));
+  assertEquals(verified.validationCategory, 2);
+  assertEquals(verified.bundleVersion, "42.7");
+
+  await assertRejects(
+    () =>
+      verifyAttestation(attestationRequest(built, {
+        allowedValidationCategories: [4],
+      })),
+    AttestationError,
+    "validation category 2 is not accepted",
+  );
+  await assertRejects(
+    () =>
+      verifyAttestation(attestationRequest(built, {
+        allowedBundleVersions: ["42.8"],
+      })),
+    AttestationError,
+    'bundle version "42.7" is not accepted',
+  );
+
+  const legacy = await buildAttestation(root, intermediate, device, {
+    legacyAuthenticatorData: true,
+  });
+  await assertRejects(
+    () =>
+      verifyAttestation(attestationRequest(legacy, {
+        allowedValidationCategories: [4],
+      })),
+    AttestationError,
+    "requires an Apple validation category",
+  );
+  await assertRejects(
+    () =>
+      verifyAttestation(attestationRequest(legacy, {
+        allowedBundleVersions: ["1"],
+      })),
+    AttestationError,
+    "requires an Apple bundle version",
   );
 });
 
@@ -394,8 +635,8 @@ Deno.test("refuses an attestation whose key id is not the digest of the attested
 
 Deno.test("refuses an attestation whose certificate holds a different key than the key id", async () => {
   // The same substitution one step deeper: the authenticator data agrees with
-  // the claimed key id, but the certificate attests to a different key. Only
-  // the final digest comparison catches this one.
+  // the claimed key id, but the certificate attests to a different key. The
+  // signed COSE/certificate comparison catches it before the digest check.
   const other = await makeDevice();
   const built = await buildAttestation(root, intermediate, device, {
     certificateKey: other.keys.publicKey,
@@ -404,7 +645,7 @@ Deno.test("refuses an attestation whose certificate holds a different key than t
   await assertRejects(
     () => verifyAttestation(attestationRequest(built)),
     AttestationError,
-    "not the digest of the attested public key",
+    "COSE credential public key does not match",
   );
 });
 
@@ -567,6 +808,7 @@ Deno.test("refuses an assertion whose authenticator data carries credential data
     signCount: 0,
     aaguid: AAGUID_PRODUCTION,
     credentialId: device.keyId,
+    credentialPublicKey: device.publicKey,
   });
   const built = await buildAssertion(device, payload);
 

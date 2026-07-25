@@ -8,6 +8,7 @@ import {
 import type { Database, RecordMetricBatchArgs } from "../_shared/database.ts";
 import { type Bytes, sha256, toHex, utf8 } from "../_shared/bytes.ts";
 import { HttpFailure } from "../_shared/http.ts";
+import { createAccessTokenVerifier } from "../_shared/jwt.ts";
 import { buildAssertion, type Device, makeDevice } from "../_test/appattest_fixtures.ts";
 import { mintAccessToken, TEST_JWT_SECRET } from "../_test/tokens.ts";
 
@@ -54,7 +55,7 @@ function deps(overrides: Partial<IngestMetricsDeps> = {}): IngestMetricsDeps {
   return {
     database: recorder().database,
     appId: APP_ID,
-    jwtSecret: TEST_JWT_SECRET,
+    verifyToken: createAccessTokenVerifier(TEST_JWT_SECRET),
     attestBypass: false,
     publicKeyFor: () => Promise.resolve(device.publicKey),
     ...overrides,
@@ -352,7 +353,7 @@ Deno.test("refuses to build a handler that can neither verify nor bypass", () =>
     createIngestMetricsHandler({
       database: recorder().database,
       appId: APP_ID,
-      jwtSecret: TEST_JWT_SECRET,
+      verifyToken: createAccessTokenVerifier(TEST_JWT_SECRET),
       attestBypass: false,
     });
   } catch {

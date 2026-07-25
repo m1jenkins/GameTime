@@ -3,10 +3,12 @@ import { fromHex } from "./bytes.ts";
 import {
   asCborBytes,
   asCborBytesArray,
+  asCborKeyMap,
   asCborMap,
   asCborText,
   CborError,
   decodeCbor,
+  decodeCborSequence,
   encodeCbor,
 } from "./cbor.ts";
 
@@ -55,6 +57,53 @@ Deno.test("encoding is byte-stable regardless of key insertion order", () => {
   const a = encodeCbor({ fmt: "x", authData: new Uint8Array([1]) });
   const b = encodeCbor({ authData: new Uint8Array([1]), fmt: "x" });
   assertEquals(a, b);
+});
+
+// App Attest's authenticator-data suffix is a CBOR sequence rather than one
+// document. Its COSE key uses integer labels, including negative ones.
+Deno.test("decodes a deterministic COSE-key and extensions sequence", () => {
+  const [keyValue, extensionValue] = decodeCborSequence(hex(
+    "a5 01 02 03 26 20 01 21 42aabb 22 42ccdd a1 61 78 01",
+  ));
+  const key = asCborKeyMap(keyValue, "COSE key");
+  const extensions = asCborKeyMap(extensionValue, "extensions");
+
+  assertEquals(key.size, 5);
+  assertEquals(key.get(1), 2);
+  assertEquals(key.get(3), -7);
+  assertEquals(key.get(-1), 1);
+  assertEquals(key.get(-2), hex("aabb"));
+  assertEquals(key.get(-3), hex("ccdd"));
+  assertEquals(extensions.get("x"), 1);
+});
+
+Deno.test("the sequence codec requires deterministic map-key order", () => {
+  // Integer key 1 must sort before key 3.
+  assertThrows(
+    () => decodeCborSequence(hex("a2 03 26 01 02")),
+    CborError,
+    "deterministic order",
+  );
+
+  // A shorter text key must sort before a longer one.
+  assertThrows(
+    () => decodeCborSequence(hex("a2 62 6161 01 61 62 02")),
+    CborError,
+    "deterministic order",
+  );
+});
+
+Deno.test("the sequence codec refuses duplicate and non-minimal integer keys", () => {
+  assertThrows(
+    () => decodeCborSequence(hex("a2 01 01 01 02")),
+    CborError,
+    "duplicate map key",
+  );
+  assertThrows(
+    () => decodeCborSequence(hex("a1 38 00 01")),
+    CborError,
+    "non-minimal",
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -159,6 +208,11 @@ Deno.test("narrowing helpers accept the right shapes and reject the rest", () =>
   assertThrows(() => asCborMap(1, "doc"), CborError, "not a CBOR map");
   assertThrows(() => asCborMap(new Uint8Array([1]), "doc"), CborError);
   assertThrows(() => asCborMap([1], "doc"), CborError);
+  assertThrows(
+    () => asCborMap(decodeCborSequence(hex("a0"))[0], "doc"),
+    CborError,
+  );
+  assertThrows(() => asCborKeyMap(map, "key"), CborError);
   assertThrows(() => asCborBytes("x", "a"), CborError, "byte string");
   assertThrows(() => asCborBytes(undefined, "missing"), CborError, "missing");
   assertThrows(() => asCborText(new Uint8Array([1]), "a"), CborError, "text");

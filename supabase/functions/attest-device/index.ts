@@ -9,14 +9,16 @@
  */
 
 import {
+  accessTokenVerification,
   allowedAttestEnvironments,
   appAttestAppId,
   appAttestRootCertificate,
   assertAttestConfigIsSafe,
+  attestChallengeSecret,
   dataApiConfig,
-  jwtSecret,
 } from "../_shared/env.ts";
 import { postgrestDatabase } from "../_shared/database.ts";
+import { createAccessTokenVerifier } from "../_shared/jwt.ts";
 import { createAttestDeviceHandler } from "./handler.ts";
 
 assertAttestConfigIsSafe();
@@ -26,7 +28,8 @@ export const handler: (request: Request) => Promise<Response> = createAttestDevi
   appId: appAttestAppId(),
   rootCertificatePem: appAttestRootCertificate(),
   allowedEnvironments: allowedAttestEnvironments(),
-  jwtSecret: jwtSecret(),
+  verifyToken: createAccessTokenVerifier(accessTokenVerification()),
+  challengeSecret: attestChallengeSecret(),
 });
 
 if (import.meta.main) {

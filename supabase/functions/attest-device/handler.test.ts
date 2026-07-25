@@ -2,7 +2,9 @@ import { assertEquals, assertNotEquals } from "@std/assert";
 import { type AttestDeviceDeps, challengeFor, createAttestDeviceHandler } from "./handler.ts";
 import type { Database, RegisterDeviceKeyArgs } from "../_shared/database.ts";
 import { HttpFailure } from "../_shared/http.ts";
+import { createAccessTokenVerifier } from "../_shared/jwt.ts";
 import { toHex } from "../_shared/bytes.ts";
+import { asCborMap, decodeCbor, encodeCbor } from "../_shared/cbor.ts";
 import {
   AAGUID_DEVELOPMENT,
   type Authority,
@@ -12,7 +14,7 @@ import {
   makeIntermediate,
   makeRoot,
 } from "../_test/appattest_fixtures.ts";
-import { mintAccessToken, TEST_JWT_SECRET } from "../_test/tokens.ts";
+import { mintAccessToken, TEST_CHALLENGE_SECRET, TEST_JWT_SECRET } from "../_test/tokens.ts";
 
 const APP_ID = "ABCDE12345.test.gametime.app";
 const USER = "11111111-1111-1111-1111-111111111111";
@@ -41,7 +43,8 @@ function deps(overrides: Partial<AttestDeviceDeps> = {}): AttestDeviceDeps {
     appId: APP_ID,
     rootCertificatePem: root.pem,
     allowedEnvironments: ["production"],
-    jwtSecret: TEST_JWT_SECRET,
+    verifyToken: createAccessTokenVerifier(TEST_JWT_SECRET),
+    challengeSecret: TEST_CHALLENGE_SECRET,
     ...overrides,
   };
 }
@@ -87,7 +90,7 @@ async function registrationBody(
   at: Date,
   overrides: Parameters<typeof buildAttestation>[3] = {},
 ) {
-  const challenge = await challengeFor(USER, TEST_JWT_SECRET, at);
+  const challenge = await challengeFor(USER, TEST_CHALLENGE_SECRET, at);
   const built = await buildAttestation(root, intermediate, device, {
     appId: APP_ID,
     clientData: challenge,
@@ -116,8 +119,8 @@ Deno.test("a challenge is bound to the account that asked for it", async () => {
   // Otherwise one user could obtain a challenge and hand it to another, which
   // is the only thing binding registration to an identity at all.
   const at = new Date("2026-08-01T12:00:00Z");
-  const mine = await challengeFor(USER, TEST_JWT_SECRET, at);
-  const theirs = await challengeFor(OTHER_USER, TEST_JWT_SECRET, at);
+  const mine = await challengeFor(USER, TEST_CHALLENGE_SECRET, at);
+  const theirs = await challengeFor(OTHER_USER, TEST_CHALLENGE_SECRET, at);
   assertNotEquals(toHex(mine), toHex(theirs));
 
   // And to the secret, so it cannot be computed by a client.
@@ -160,14 +163,45 @@ Deno.test("registers a well-formed attestation against the calling account", asy
   const response = await post(handler, await registrationBody(device, at));
 
   assertEquals(response.status, 200);
-  assertEquals(await response.json(), { registered: true, environment: "production" });
+  assertEquals(await response.json(), {
+    registered: true,
+    environment: "production",
+    validationCategory: 4,
+    bundleVersion: "1",
+  });
 
   // The account comes from the verified token, never from the body — there is
   // no field a client could set to attribute a key to someone else.
   assertEquals(written?.userId, USER);
   assertEquals(toHex(written!.keyId), toHex(device.keyId));
   assertEquals(toHex(written!.publicKey), toHex(device.publicKey));
+  assertEquals(toHex(written!.receipt), "dead");
   assertEquals(written?.environment, "production");
+});
+
+Deno.test("registers a legacy attestation without claiming unavailable app signals", async () => {
+  const device = await makeDevice();
+  const at = new Date();
+  let written: RegisterDeviceKeyArgs | undefined;
+
+  const handler = createAttestDeviceHandler(deps({
+    database: recordingDatabase((args) => {
+      written = args;
+    }),
+    now: () => at,
+  }));
+  const response = await post(
+    handler,
+    await registrationBody(device, at, { legacyAuthenticatorData: true }),
+  );
+
+  assertEquals(response.status, 200);
+  assertEquals(await response.json(), {
+    registered: true,
+    environment: "production",
+  });
+  assertEquals(toHex(written!.keyId), toHex(device.keyId));
+  assertEquals(toHex(written!.publicKey), toHex(device.publicKey));
 });
 
 Deno.test("accepts a challenge from the previous window", async () => {
@@ -204,7 +238,11 @@ Deno.test("refuses an attestation bound to another account's challenge", async (
   // and try to register the key under your own account.
   const device = await makeDevice();
   const at = new Date();
-  const theirChallenge = await challengeFor(OTHER_USER, TEST_JWT_SECRET, at);
+  const theirChallenge = await challengeFor(
+    OTHER_USER,
+    TEST_CHALLENGE_SECRET,
+    at,
+  );
 
   const built = await buildAttestation(root, intermediate, device, {
     appId: APP_ID,
@@ -309,11 +347,32 @@ Deno.test("refuses the wrong method, a missing body, and malformed fields", asyn
   );
 });
 
+Deno.test("refuses an attestation statement that drops Apple's receipt", async () => {
+  const device = await makeDevice();
+  const at = new Date();
+  const body = await registrationBody(device, at);
+  const bytes = Uint8Array.from(atob(body.attestation), (character) => character.charCodeAt(0));
+  const outer = asCborMap(decodeCbor(bytes), "attestation");
+  const statement = asCborMap(outer["attStmt"], "attStmt");
+  delete statement["receipt"];
+  body.attestation = base64(encodeCbor(outer));
+
+  const response = await post(
+    createAttestDeviceHandler(deps({ now: () => at })),
+    body,
+  );
+  assertEquals(response.status, 400);
+  assertEquals(
+    (await response.json()).message,
+    "the attestation is not a well-formed attestation object",
+  );
+});
+
 Deno.test("refuses a body larger than the ceiling", async () => {
   const handler = createAttestDeviceHandler(deps());
   const response = await post(handler, {
     keyId: base64(new Uint8Array(32)),
-    attestation: "A".repeat(20_000),
+    attestation: "A".repeat(80_000),
   });
   assertEquals(response.status, 400);
 });

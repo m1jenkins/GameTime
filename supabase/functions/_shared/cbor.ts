@@ -3,8 +3,10 @@
  *
  * App Attest hands the server two CBOR documents — the attestation object and
  * the assertion — and both use a tiny subset of the format: text-keyed maps,
- * arrays, byte strings, and small unsigned integers. Nothing else is needed,
- * and this module refuses everything else rather than tolerating it.
+ * arrays, byte strings, and small unsigned integers. An attestation's signed
+ * authenticator-data suffix additionally contains a COSE key whose map keys and
+ * algorithm labels are integers. Nothing else is needed, and this module
+ * refuses everything else rather than tolerating it.
  *
  * Refusing is the point. A general CBOR parser accepts many encodings of the
  * same logical value — indefinite-length strings, non-minimal integers,
@@ -15,7 +17,7 @@
  * dependency whose strictness is a configuration flag and whose failure mode on
  * hostile input is somebody else's decision.
  *
- * What is supported:
+ * What is supported by the document codec:
  *   - major 0: unsigned integers, minimally encoded, up to 2^53-1
  *   - major 2: definite-length byte strings
  *   - major 3: definite-length UTF-8 text strings
@@ -23,9 +25,15 @@
  *   - major 5: definite-length maps with text keys, no duplicates
  *   - major 7: false, true, null
  *
- * What is refused, always: indefinite lengths, tags, floats, negative
- * integers, non-minimal length encodings, non-text map keys, duplicate map
- * keys, and trailing bytes after a complete value.
+ * The sequence codec used for the authenticator-data suffix additionally
+ * accepts major 1 negative integers and integer map keys. It returns maps as
+ * `Map` instances so integer 1 and text "1" can never collide, and requires
+ * RFC 8949 deterministic key ordering.
+ *
+ * What is refused, always: indefinite lengths, tags, floats, non-minimal
+ * length encodings, duplicate map keys, and an unsafe integer. The document
+ * codec also refuses negative integers, non-text map keys, and trailing bytes
+ * after a complete value.
  */
 
 import type { Bytes } from "./bytes.ts";
@@ -34,7 +42,10 @@ export class CborError extends Error {
   override readonly name = "CborError";
 }
 
-/** Every value this codec can represent. */
+export type CborMapKey = string | number;
+export type CborKeyMap = Map<CborMapKey, CborValue>;
+
+/** Every value this codec can decode. `encodeCbor` accepts the non-Map subset. */
 export type CborValue =
   | number
   | boolean
@@ -42,9 +53,11 @@ export type CborValue =
   | string
   | Bytes
   | CborValue[]
-  | { [key: string]: CborValue };
+  | { [key: string]: CborValue }
+  | CborKeyMap;
 
 const MAJOR_UNSIGNED = 0;
+const MAJOR_NEGATIVE = 1;
 const MAJOR_BYTES = 2;
 const MAJOR_TEXT = 3;
 const MAJOR_ARRAY = 4;
@@ -86,6 +99,10 @@ class Reader {
     const out = this.#bytes.slice(this.#offset, this.#offset + length);
     this.#offset += length;
     return out;
+  }
+
+  range(start: number, end: number): Bytes {
+    return this.#bytes.slice(start, end);
   }
 }
 
@@ -146,7 +163,17 @@ function readArgument(reader: Reader, additional: number): number {
   throw new CborError(`reserved additional information ${additional}`);
 }
 
-function decodeValue(reader: Reader, depth: number): CborValue {
+type DecodeMode = "document" | "deterministic-sequence";
+
+function compareDeterministicKeys(left: Bytes, right: Bytes): number {
+  if (left.length !== right.length) return left.length - right.length;
+  for (let i = 0; i < left.length; i++) {
+    if (left[i] !== right[i]) return left[i]! - right[i]!;
+  }
+  return 0;
+}
+
+function decodeValue(reader: Reader, depth: number, mode: DecodeMode): CborValue {
   // App Attest documents nest three deep. A bound stops a hostile document
   // from turning recursion into a stack overflow.
   if (depth > 16) {
@@ -160,6 +187,17 @@ function decodeValue(reader: Reader, depth: number): CborValue {
   switch (major) {
     case MAJOR_UNSIGNED:
       return readArgument(reader, additional);
+
+    case MAJOR_NEGATIVE: {
+      if (mode === "document") {
+        throw new CborError(`unsupported major type ${major}`);
+      }
+      const value = -1 - readArgument(reader, additional);
+      if (!Number.isSafeInteger(value)) {
+        throw new CborError("integer exceeds the safe integer range");
+      }
+      return value;
+    }
 
     case MAJOR_BYTES:
       return reader.slice(readArgument(reader, additional));
@@ -175,23 +213,51 @@ function decodeValue(reader: Reader, depth: number): CborValue {
       const length = readArgument(reader, additional);
       const items: CborValue[] = [];
       for (let i = 0; i < length; i++) {
-        items.push(decodeValue(reader, depth + 1));
+        items.push(decodeValue(reader, depth + 1, mode));
       }
       return items;
     }
 
     case MAJOR_MAP: {
       const length = readArgument(reader, additional);
+      if (mode === "deterministic-sequence") {
+        const map: CborKeyMap = new Map();
+        let previousEncoding: Bytes | undefined;
+
+        for (let i = 0; i < length; i++) {
+          const keyStart = reader.offset;
+          const key = decodeValue(reader, depth + 1, mode);
+          const keyEncoding = reader.range(keyStart, reader.offset);
+
+          if (typeof key !== "string" && typeof key !== "number") {
+            throw new CborError("map keys must be text strings or integers");
+          }
+          if (map.has(key)) {
+            throw new CborError(`duplicate map key ${JSON.stringify(key)}`);
+          }
+          if (
+            previousEncoding !== undefined &&
+            compareDeterministicKeys(previousEncoding, keyEncoding) >= 0
+          ) {
+            throw new CborError("map keys are not in deterministic order");
+          }
+
+          map.set(key, decodeValue(reader, depth + 1, mode));
+          previousEncoding = keyEncoding;
+        }
+        return map;
+      }
+
       const map: { [key: string]: CborValue } = {};
       for (let i = 0; i < length; i++) {
-        const key = decodeValue(reader, depth + 1);
+        const key = decodeValue(reader, depth + 1, mode);
         if (typeof key !== "string") {
           throw new CborError("map keys must be text strings");
         }
         if (Object.hasOwn(map, key)) {
           throw new CborError(`duplicate map key ${JSON.stringify(key)}`);
         }
-        map[key] = decodeValue(reader, depth + 1);
+        map[key] = decodeValue(reader, depth + 1, mode);
       }
       return map;
     }
@@ -210,13 +276,35 @@ function decodeValue(reader: Reader, depth: number): CborValue {
 /** Decodes exactly one CBOR value. Trailing bytes are an error. */
 export function decodeCbor(bytes: Bytes): CborValue {
   const reader = new Reader(bytes);
-  const value = decodeValue(reader, 0);
+  const value = decodeValue(reader, 0, "document");
   if (reader.remaining !== 0) {
     throw new CborError(
       `${reader.remaining} trailing byte(s) after a complete value`,
     );
   }
   return value;
+}
+
+/**
+ * Decodes the deterministic CBOR sequence in signed authenticator data.
+ *
+ * App Attest places two adjacent CBOR values there: a COSE key followed by an
+ * extensions map. Unlike `decodeCbor`, this API accepts the integer labels COSE
+ * requires and returns every map as a `Map`. A small item bound prevents a long
+ * run of one-byte values from turning a malformed suffix into a large array.
+ */
+export function decodeCborSequence(bytes: Bytes): CborValue[] {
+  const reader = new Reader(bytes);
+  const values: CborValue[] = [];
+
+  while (reader.remaining !== 0) {
+    if (values.length === 16) {
+      throw new CborError("a CBOR sequence may contain at most 16 values");
+    }
+    values.push(decodeValue(reader, 0, "deterministic-sequence"));
+  }
+
+  return values;
 }
 
 function encodeHead(major: number, argument: number): number[] {
@@ -283,6 +371,9 @@ function encodeValue(value: CborValue, out: number[], depth: number): void {
     for (const item of value) encodeValue(item, out, depth + 1);
     return;
   }
+  if (value instanceof Map) {
+    throw new CborError("integer-keyed maps are decode-only");
+  }
 
   // Keys are sorted so that one logical map has one encoding. That is what
   // makes a round trip byte-stable, which is the property a test comparing
@@ -315,8 +406,19 @@ export function asCborMap(
 ): { [key: string]: CborValue } {
   if (
     value === undefined || value === null || typeof value !== "object" ||
-    value instanceof Uint8Array || Array.isArray(value)
+    value instanceof Uint8Array || Array.isArray(value) || value instanceof Map
   ) {
+    throw new CborError(`${what} is not a CBOR map`);
+  }
+  return value;
+}
+
+/** Narrows a sequence value to a string/integer-keyed map. */
+export function asCborKeyMap(
+  value: CborValue | undefined,
+  what: string,
+): CborKeyMap {
+  if (!(value instanceof Map)) {
     throw new CborError(`${what} is not a CBOR map`);
   }
   return value;

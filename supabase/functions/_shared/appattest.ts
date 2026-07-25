@@ -20,26 +20,39 @@
  * ---------------------------------------------------------------------------
  * What these tests can and cannot establish
  * ---------------------------------------------------------------------------
- * The suite mints its own certificate chain and its own P-256 keys, so it can
- * exercise every rejection path with real cryptography: a tampered payload, a
- * substituted key, a chain that does not reach the configured root, a nonce
- * that does not match, the wrong app id, the wrong environment. Those are
- * genuine properties and they are genuinely tested.
+ * The suite mints its own certificate chain and P-256 keys to exercise every
+ * rejection path with real cryptography. It also consumes Apple's public 2026
+ * attestation vector and App Attestation root to pin the iOS 27 COSE-key and
+ * extensions suffix against data this repository did not produce. The parser
+ * also retains Apple's legacy form for the iOS 18–26 deployment floor.
  *
- * What a self-minted vector cannot establish is *conformance*. It proves this
- * verifier agrees with this test's signer; it cannot prove either of them
- * agrees with an iPhone. Two details in particular are asserted here from
- * Apple's published description rather than from an observed device
- * attestation — the exact DER shape of the nonce extension, and that an
- * assertion signs the nonce rather than the concatenation directly. Both are
- * written so that being wrong fails closed: a mismatch rejects the attestation
- * rather than accepting a bad one. Confirming them against a real device is an
- * owner action, recorded in DECISIONS.md.
+ * Apple's published vector is internally inconsistent with its prose: its
+ * certificate nonce incorporates the raw example challenge where the
+ * documented protocol incorporates SHA-256(challenge), and one printed public
+ * key digest does not match the vector's certificate. The regression therefore
+ * checks the official chain, key binding, suffix, and extension nonce as
+ * separate components without weakening the documented nonce construction.
+ *
+ * Assertions deliberately retain the observed 37-byte form. Apple has not
+ * published a 2026 assertion vector even though newer overview text mentions
+ * assertion extensions. The live-device M6.5 follow-up is to capture one
+ * attestation and assertion from the target deployment, compare their exact
+ * signed bytes to these parsers, and make any assertion-extension change only
+ * with that fixture in hand.
  */
 
 import * as x509 from "@peculiar/x509";
 import { decodeBase64 } from "@std/encoding/base64";
 import { type Bytes, bytesEqual, sha256, toHex, utf8 } from "./bytes.ts";
+import {
+  asCborBytes,
+  asCborKeyMap,
+  asCborText,
+  CborError,
+  type CborKeyMap,
+  type CborMapKey,
+  decodeCborSequence,
+} from "./cbor.ts";
 
 export class AttestationError extends Error {
   override readonly name = "AttestationError";
@@ -92,21 +105,199 @@ export interface AuthenticatorData {
   readonly aaguid?: Bytes;
   /** The key id, as carried inside the authenticator data. */
   readonly credentialId?: Bytes;
+  /** iOS 27+: the COSE EC2 key converted to X9.62 uncompressed-point form. */
+  readonly credentialPublicKey?: Bytes;
+  /** iOS 27+: Apple's launch-validation signal. */
+  readonly validationCategory?: AppleValidationCategory;
+  /** iOS 27+: the attested app's CFBundleVersion. */
+  readonly bundleVersion?: string;
 }
 
 const FLAG_ATTESTED_CREDENTIAL_DATA = 0x40;
+
+const COSE_KEY_TYPE = 1;
+const COSE_ALGORITHM = 3;
+const COSE_CURVE = -1;
+const COSE_X = -2;
+const COSE_Y = -3;
+
+const COSE_KEY_TYPE_EC2 = 2;
+const COSE_ALGORITHM_ES256 = -7;
+const COSE_CURVE_P256 = 1;
+
+const EXTENSION_VALIDATION_CATEGORY = "apple_validation_category_01";
+const EXTENSION_BUNDLE_VERSION = "apple_bundle_version_01";
+
+/**
+ * Launch-validation categories Apple documents as usable app signals.
+ *
+ * Category 0 is invalid and 7–9 are restricted system-only categories. They
+ * fail parsing rather than being surfaced as application policy choices.
+ */
+export type AppleValidationCategory = 1 | 2 | 3 | 4 | 5 | 6 | 10;
+
+const USABLE_VALIDATION_CATEGORIES = new Set<number>([1, 2, 3, 4, 5, 6, 10]);
+const BUNDLE_VERSION_PATTERN = /^\d+(?:\.\d+){0,2}$/;
+
+function requireExactMapKeys(
+  map: CborKeyMap,
+  expected: readonly CborMapKey[],
+  what: string,
+): void {
+  if (map.size !== expected.length || expected.some((key) => !map.has(key))) {
+    throw new AttestationError(
+      `${what} must contain exactly ${expected.map(String).join(", ")}`,
+    );
+  }
+}
+
+function requireCborInteger(value: unknown, what: string): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value)) {
+    throw new AttestationError(`${what} is not a CBOR integer`);
+  }
+  return value;
+}
+
+function parseAttestationSuffix(bytes: Bytes): {
+  credentialPublicKey: Bytes;
+  validationCategory: AppleValidationCategory;
+  bundleVersion: string;
+} {
+  let sequence: ReturnType<typeof decodeCborSequence>;
+  try {
+    sequence = decodeCborSequence(bytes);
+  } catch (cause) {
+    if (cause instanceof CborError) {
+      throw new AttestationError(`authenticator-data suffix is invalid CBOR: ${cause.message}`);
+    }
+    throw cause;
+  }
+
+  if (sequence.length !== 2) {
+    throw new AttestationError(
+      `authenticator-data suffix contains ${sequence.length} CBOR values; ` +
+        "a COSE key and extensions map are required",
+    );
+  }
+
+  let cose: CborKeyMap;
+  let extensions: CborKeyMap;
+  try {
+    cose = asCborKeyMap(sequence[0], "credential public key");
+    extensions = asCborKeyMap(sequence[1], "authenticator extensions");
+  } catch (cause) {
+    if (cause instanceof CborError) {
+      throw new AttestationError(`authenticator-data suffix has the wrong shape: ${cause.message}`);
+    }
+    throw cause;
+  }
+
+  requireExactMapKeys(
+    cose,
+    [COSE_KEY_TYPE, COSE_ALGORITHM, COSE_CURVE, COSE_X, COSE_Y],
+    "the COSE credential public key",
+  );
+  if (requireCborInteger(cose.get(COSE_KEY_TYPE), "COSE key type") !== COSE_KEY_TYPE_EC2) {
+    throw new AttestationError("the COSE credential public key is not an EC2 key");
+  }
+  if (
+    requireCborInteger(cose.get(COSE_ALGORITHM), "COSE algorithm") !==
+      COSE_ALGORITHM_ES256
+  ) {
+    throw new AttestationError("the COSE credential public key does not use ES256");
+  }
+  if (requireCborInteger(cose.get(COSE_CURVE), "COSE curve") !== COSE_CURVE_P256) {
+    throw new AttestationError("the COSE credential public key is not on P-256");
+  }
+
+  let x: Bytes;
+  let y: Bytes;
+  try {
+    x = asCborBytes(cose.get(COSE_X), "COSE x coordinate");
+    y = asCborBytes(cose.get(COSE_Y), "COSE y coordinate");
+  } catch (cause) {
+    if (cause instanceof CborError) {
+      throw new AttestationError(`the COSE credential public key is malformed: ${cause.message}`);
+    }
+    throw cause;
+  }
+  if (x.length !== 32 || y.length !== 32) {
+    throw new AttestationError("the COSE P-256 coordinates must each be 32 bytes");
+  }
+  const credentialPublicKey = new Uint8Array(65);
+  credentialPublicKey[0] = 0x04;
+  credentialPublicKey.set(x, 1);
+  credentialPublicKey.set(y, 33);
+
+  requireExactMapKeys(
+    extensions,
+    [EXTENSION_BUNDLE_VERSION, EXTENSION_VALIDATION_CATEGORY],
+    "the authenticator extensions map",
+  );
+
+  let categoryBytes: Bytes;
+  let bundleVersion: string;
+  try {
+    categoryBytes = asCborBytes(
+      extensions.get(EXTENSION_VALIDATION_CATEGORY),
+      EXTENSION_VALIDATION_CATEGORY,
+    );
+    bundleVersion = asCborText(
+      extensions.get(EXTENSION_BUNDLE_VERSION),
+      EXTENSION_BUNDLE_VERSION,
+    );
+  } catch (cause) {
+    if (cause instanceof CborError) {
+      throw new AttestationError(`an Apple authenticator extension is malformed: ${cause.message}`);
+    }
+    throw cause;
+  }
+
+  // Apple's UInt32 extension is carried as a four-byte little-endian CBOR byte
+  // string in the official vector, rather than as CBOR major type 0.
+  if (categoryBytes.length !== 4) {
+    throw new AttestationError(
+      `${EXTENSION_VALIDATION_CATEGORY} must be a four-byte UInt32`,
+    );
+  }
+  const validationCategory = new DataView(
+    categoryBytes.buffer,
+    categoryBytes.byteOffset,
+    categoryBytes.byteLength,
+  ).getUint32(0, true);
+  if (!USABLE_VALIDATION_CATEGORIES.has(validationCategory)) {
+    throw new AttestationError(
+      `${EXTENSION_VALIDATION_CATEGORY} ${validationCategory} is not an app category`,
+    );
+  }
+
+  // CFBundleVersion is one to three dot-separated non-negative integers. Keep
+  // its original spelling: policy may deliberately distinguish build "1" from
+  // build "1.0", even though the platform interprets missing components as 0.
+  if (!BUNDLE_VERSION_PATTERN.test(bundleVersion)) {
+    throw new AttestationError(
+      `${EXTENSION_BUNDLE_VERSION} is not a valid bundle version`,
+    );
+  }
+
+  return {
+    credentialPublicKey,
+    validationCategory: validationCategory as AppleValidationCategory,
+    bundleVersion,
+  };
+}
 
 /**
  * Parses WebAuthn-shaped authenticator data.
  *
  * Layout: rpIdHash(32) || flags(1) || signCount(4, big endian), then, if the
  * attested-credential-data flag is set, aaguid(16) || credentialIdLength(2, big
- * endian) || credentialId.
+ * endian) || credentialId and, on iOS 27+, COSE_Key || extensions.
  *
- * An assertion's authenticator data is exactly 37 bytes and carries none of the
- * credential half. Anything longer than the structure accounts for is refused
- * rather than ignored: trailing bytes in a signed structure are a place for two
- * implementations to disagree about what was signed.
+ * An assertion's authenticator data remains exactly 37 bytes and carries none
+ * of the credential half. Anything longer than the structure accounts for is
+ * refused rather than ignored: trailing bytes in a signed structure are a place
+ * for two implementations to disagree about what was signed.
  */
 export function parseAuthenticatorData(bytes: Bytes): AuthenticatorData {
   if (bytes.length < 37) {
@@ -139,12 +330,23 @@ export function parseAuthenticatorData(bytes: Bytes): AuthenticatorData {
   const credentialIdLength = view.getUint16(53, false);
   const credentialIdEnd = 55 + credentialIdLength;
 
-  if (bytes.length !== credentialIdEnd) {
+  if (bytes.length < credentialIdEnd) {
     throw new AttestationError(
-      `credential id length ${credentialIdLength} does not account for ` +
+      `credential id length ${credentialIdLength} exceeds ` +
         `${bytes.length - 55} remaining bytes`,
     );
   }
+  if (bytes.length === credentialIdEnd) {
+    return {
+      rpIdHash,
+      flags,
+      signCount,
+      aaguid,
+      credentialId: bytes.slice(55, credentialIdEnd),
+    };
+  }
+
+  const suffix = parseAttestationSuffix(bytes.slice(credentialIdEnd));
 
   return {
     rpIdHash,
@@ -152,6 +354,7 @@ export function parseAuthenticatorData(bytes: Bytes): AuthenticatorData {
     signCount,
     aaguid,
     credentialId: bytes.slice(55, credentialIdEnd),
+    ...suffix,
   };
 }
 
@@ -303,28 +506,88 @@ export async function attestationNonce(
 }
 
 /**
- * Builds the exact DER the credCert's nonce extension should contain.
+ * Decodes the credCert nonce extension and extracts its single octet string.
  *
- * The structure is a SEQUENCE holding a single context-specific [1] element
- * holding a 32-byte OCTET STRING:
- *
- *   30 24            SEQUENCE, 36 bytes
- *      a1 22         [1], 34 bytes
- *         04 20      OCTET STRING, 32 bytes
- *            <nonce>
- *
- * Building the whole thing and comparing all 38 bytes is deliberate, rather
- * than parsing the extension and pulling the nonce out of it. It checks the
- * structure and the value in one comparison, and anything shaped differently is
- * refused instead of being groped for a 32-byte run that looks like a digest.
- * If Apple's shape is not this, the failure is a rejected attestation — which
- * is the direction to be wrong in.
+ * Apple specifies a DER SEQUENCE containing context-specific [1], which in
+ * turn contains one OCTET STRING. Parse that structure instead of comparing a
+ * hardcoded wrapper: the digest is the extension's semantic value, while DER
+ * length validation still refuses truncation, trailing data, and non-minimal
+ * encodings.
  */
-export function expectedNonceExtension(nonce: Bytes): Bytes {
-  if (nonce.length !== 32) {
-    throw new AttestationError("a nonce is a 32-byte digest");
+export function nonceFromExtension(der: Bytes): Bytes {
+  let offset = 0;
+
+  const expectTag = (tag: number, what: string) => {
+    if (der[offset] !== tag) {
+      throw new AttestationError(
+        `Apple nonce extension is not DER: expected ${what} at offset ${offset}`,
+      );
+    }
+    offset += 1;
+  };
+
+  const readLength = (): number => {
+    const first = der[offset++];
+    if (first === undefined) {
+      throw new AttestationError("Apple nonce extension is truncated before a length");
+    }
+    if (first < 0x80) return first;
+
+    const lengthBytes = first & 0x7f;
+    if (lengthBytes === 0) {
+      throw new AttestationError("Apple nonce extension uses an indefinite DER length");
+    }
+    if (lengthBytes > 4 || der[offset] === 0x00) {
+      throw new AttestationError("Apple nonce extension has a non-minimal DER length");
+    }
+
+    let length = 0;
+    for (let i = 0; i < lengthBytes; i++) {
+      const byte = der[offset++];
+      if (byte === undefined) {
+        throw new AttestationError("Apple nonce extension is truncated inside a length");
+      }
+      length = length * 0x100 + byte;
+    }
+    if (length < 0x80) {
+      throw new AttestationError("Apple nonce extension has a non-minimal DER length");
+    }
+    return length;
+  };
+
+  expectTag(0x30, "a SEQUENCE");
+  const sequenceLength = readLength();
+  const sequenceEnd = offset + sequenceLength;
+  if (sequenceEnd !== der.length) {
+    throw new AttestationError(
+      "Apple nonce extension SEQUENCE length does not account for the value",
+    );
   }
-  return new Uint8Array([0x30, 0x24, 0xa1, 0x22, 0x04, 0x20, ...nonce]);
+
+  expectTag(0xa1, "context-specific [1]");
+  const contextLength = readLength();
+  const contextEnd = offset + contextLength;
+  if (contextEnd !== sequenceEnd) {
+    throw new AttestationError(
+      "Apple nonce extension [1] length does not account for the SEQUENCE",
+    );
+  }
+
+  expectTag(0x04, "an OCTET STRING");
+  const nonceLength = readLength();
+  const nonceEnd = offset + nonceLength;
+  if (nonceEnd !== contextEnd) {
+    throw new AttestationError(
+      "Apple nonce extension OCTET STRING length does not account for [1]",
+    );
+  }
+  if (nonceLength !== 32) {
+    throw new AttestationError(
+      `Apple nonce extension contains a ${nonceLength}-byte value, not a digest`,
+    );
+  }
+
+  return der.slice(offset, nonceEnd);
 }
 
 // ---------------------------------------------------------------------------
@@ -422,6 +685,10 @@ export interface AttestationRequest {
   readonly rootCertificatePem: string;
   /** Which environments this deployment will accept. */
   readonly allowedEnvironments: readonly AttestEnvironment[];
+  /** Optional deployment policy for Apple's launch-validation signal. */
+  readonly allowedValidationCategories?: readonly AppleValidationCategory[];
+  /** Optional deployment policy for accepted CFBundleVersion strings. */
+  readonly allowedBundleVersions?: readonly string[];
   /** Injectable for tests; defaults to now. */
   readonly at?: Date;
 }
@@ -431,6 +698,10 @@ export interface VerifiedAttestation {
   /** The uncompressed P-256 point, 0x04 || X || Y. What the database stores. */
   readonly publicKey: Bytes;
   readonly environment: AttestEnvironment;
+  /** Present when Apple supplied the iOS 27 authenticator-data suffix. */
+  readonly validationCategory?: AppleValidationCategory;
+  /** Present when Apple supplied the iOS 27 authenticator-data suffix. */
+  readonly bundleVersion?: string;
 }
 
 /**
@@ -479,6 +750,30 @@ export async function verifyAttestation(
       `a ${environment} attestation is not accepted by this deployment`,
     );
   }
+  if (request.allowedValidationCategories !== undefined) {
+    if (authData.validationCategory === undefined) {
+      throw new AttestationError(
+        "this deployment requires an Apple validation category but the attestation has none",
+      );
+    }
+    if (!request.allowedValidationCategories.includes(authData.validationCategory)) {
+      throw new AttestationError(
+        `validation category ${authData.validationCategory} is not accepted by this deployment`,
+      );
+    }
+  }
+  if (request.allowedBundleVersions !== undefined) {
+    if (authData.bundleVersion === undefined) {
+      throw new AttestationError(
+        "this deployment requires an Apple bundle version but the attestation has none",
+      );
+    }
+    if (!request.allowedBundleVersions.includes(authData.bundleVersion)) {
+      throw new AttestationError(
+        `bundle version "${authData.bundleVersion}" is not accepted by this deployment`,
+      );
+    }
+  }
 
   // A fresh key has produced no assertions. A non-zero counter here means this
   // is not a fresh key, which means it is not a fresh attestation either.
@@ -498,23 +793,6 @@ export async function verifyAttestation(
   if (!bytesEqual(authData.credentialId, request.keyId)) {
     throw new AttestationError(
       "the key id in the authenticator data is not the one the client claims",
-    );
-  }
-
-  // The nonce is what binds this attestation to this challenge. Without it, a
-  // captured attestation could be replayed by anyone who saw it once.
-  const clientDataHash = await sha256(request.clientData);
-  const nonce = await attestationNonce(request.authenticatorData, clientDataHash);
-
-  const extension = credCert.getExtension(OID_APPLE_NONCE);
-  if (extension === null) {
-    throw new AttestationError(
-      "the leaf certificate carries no Apple attestation nonce extension",
-    );
-  }
-  if (!bytesEqual(new Uint8Array(extension.value), expectedNonceExtension(nonce))) {
-    throw new AttestationError(
-      "the nonce in the leaf certificate does not match this challenge",
     );
   }
 
@@ -542,13 +820,45 @@ export async function verifyAttestation(
     throw new AttestationError("the attested public key is not an uncompressed point");
   }
 
+  if (
+    authData.credentialPublicKey !== undefined &&
+    !bytesEqual(authData.credentialPublicKey, publicKey)
+  ) {
+    throw new AttestationError(
+      "the COSE credential public key does not match the certificate public key",
+    );
+  }
+
   if (!bytesEqual(await sha256(publicKey), request.keyId)) {
     throw new AttestationError(
       "the key id is not the digest of the attested public key",
     );
   }
 
-  return { publicKey, environment };
+  // The nonce is what binds this attestation to this challenge. Without it, a
+  // captured attestation could be replayed by anyone who saw it once.
+  const clientDataHash = await sha256(request.clientData);
+  const nonce = await attestationNonce(request.authenticatorData, clientDataHash);
+
+  const extension = credCert.getExtension(OID_APPLE_NONCE);
+  if (extension === null) {
+    throw new AttestationError(
+      "the leaf certificate carries no Apple attestation nonce extension",
+    );
+  }
+  const certificateNonce = nonceFromExtension(new Uint8Array(extension.value));
+  if (!bytesEqual(certificateNonce, nonce)) {
+    throw new AttestationError(
+      "the nonce in the leaf certificate does not match this challenge",
+    );
+  }
+
+  return {
+    publicKey,
+    environment,
+    validationCategory: authData.validationCategory,
+    bundleVersion: authData.bundleVersion,
+  };
 }
 
 // ---------------------------------------------------------------------------

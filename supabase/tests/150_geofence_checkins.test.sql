@@ -152,6 +152,7 @@ select public.register_device_key(
   '11111111-1111-1111-1111-111111111111',
   (select key_id from t_fixture),
   (select public_key from t_fixture),
+  '\x67656f66656e63652d72656365697074',
   'production'
 );
 

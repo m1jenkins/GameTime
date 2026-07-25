@@ -8,14 +8,13 @@
  *
  * This mints its own root, intermediate and leaf, and its own device keys, so
  * every check in `appattest.ts` can be exercised with real cryptography rather
- * than a stub. What it cannot do is establish that Apple produces documents
- * shaped like these — see the header of `appattest.ts` for what that means and
- * DECISIONS.md for the owner action that settles it.
+ * than a stub. Apple's independently produced conformance values live beside
+ * this file in `apple_appattest_2026_vector.ts`.
  */
 
 import * as x509 from "@peculiar/x509";
 import { rawToDerEcdsaSignature } from "../_shared/appattest.ts";
-import { type Bytes, sha256, utf8 } from "../_shared/bytes.ts";
+import { type Bytes, bytesEqual, sha256, utf8 } from "../_shared/bytes.ts";
 import { encodeCbor } from "../_shared/cbor.ts";
 
 const ECDSA_P256 = { name: "ECDSA", namedCurve: "P-256" } as const;
@@ -88,16 +87,75 @@ export async function makeDevice(): Promise<Device> {
   return { keys, publicKey, keyId: await sha256(publicKey) };
 }
 
+function concatenate(...parts: Bytes[]): Bytes {
+  const out = new Uint8Array(parts.reduce((length, part) => length + part.length, 0));
+  let offset = 0;
+  for (const part of parts) {
+    out.set(part, offset);
+    offset += part.length;
+  }
+  return out;
+}
+
+/** Apple's fixed 77-byte EC2/ES256/P-256 COSE key encoding. */
+export function encodeCosePublicKey(publicKey: Bytes): Bytes {
+  if (publicKey.length !== 65 || publicKey[0] !== 0x04) {
+    throw new Error("the test public key must be an uncompressed P-256 point");
+  }
+  return new Uint8Array([
+    0xa5, // five pairs
+    0x01,
+    0x02, // 1 (kty): 2 (EC2)
+    0x03,
+    0x26, // 3 (alg): -7 (ES256)
+    0x20,
+    0x01, // -1 (crv): 1 (P-256)
+    0x21,
+    0x58,
+    0x20,
+    ...publicKey.slice(1, 33), // -2: x
+    0x22,
+    0x58,
+    0x20,
+    ...publicKey.slice(33, 65), // -3: y
+  ]);
+}
+
+/** The two extensions in Apple's iOS 27 attestation authenticator data. */
+export function encodeAttestationExtensions(
+  validationCategory = 4,
+  bundleVersion = "1",
+): Bytes {
+  const category = new Uint8Array(4);
+  new DataView(category.buffer).setUint32(0, validationCategory, true);
+  return encodeCbor({
+    apple_bundle_version_01: bundleVersion,
+    apple_validation_category_01: category,
+  });
+}
+
 /** Assembles authenticator data in the WebAuthn layout App Attest uses. */
 export function buildAuthenticatorData(options: {
   rpIdHash: Bytes;
   signCount: number;
   aaguid?: Bytes;
   credentialId?: Bytes;
+  credentialPublicKey?: Bytes;
+  validationCategory?: number;
+  bundleVersion?: string;
+  attestationSuffix?: Bytes;
 }): Bytes {
   const hasCredential = options.aaguid !== undefined;
   const credentialId = options.credentialId ?? new Uint8Array(0);
-  const length = hasCredential ? 55 + credentialId.length : 37;
+  const suffix = !hasCredential ? new Uint8Array(0) : options.attestationSuffix ??
+    (options.credentialPublicKey === undefined ? new Uint8Array(0) : concatenate(
+      encodeCosePublicKey(options.credentialPublicKey),
+      encodeAttestationExtensions(
+        options.validationCategory,
+        options.bundleVersion,
+      ),
+    ));
+  const length = hasCredential ? 55 + credentialId.length + suffix.length : 37;
   const out = new Uint8Array(length);
   const view = new DataView(out.buffer);
 
@@ -109,6 +167,7 @@ export function buildAuthenticatorData(options: {
     out.set(options.aaguid!, 37);
     view.setUint16(53, credentialId.length, false);
     out.set(credentialId, 55);
+    out.set(suffix, 55 + credentialId.length);
   }
 
   return out;
@@ -126,8 +185,18 @@ export interface AttestationOptions {
   readonly signCount?: number;
   /** Overrides the key id written into the authenticator data. */
   readonly credentialId?: Bytes;
+  /** Overrides the COSE key written into the authenticator data. */
+  readonly credentialPublicKey?: Bytes;
+  readonly validationCategory?: number;
+  readonly bundleVersion?: string;
+  /** Emits the pre-iOS 27 form that ends immediately after credentialId. */
+  readonly legacyAuthenticatorData?: boolean;
+  /** Replaces the complete COSE-key/extensions suffix. */
+  readonly attestationSuffix?: Bytes;
   /** Overrides the nonce placed in the leaf certificate. */
   readonly nonceOverride?: Bytes;
+  /** Replaces the complete DER value of the nonce extension. */
+  readonly nonceExtensionValueOverride?: Bytes;
   /** Leaves the nonce extension off entirely. */
   readonly omitNonceExtension?: boolean;
   /** Signs the leaf with this authority instead of the intermediate. */
@@ -156,12 +225,19 @@ export async function buildAttestation(
   const appId = options.appId ?? "ABCDE12345.test.gametime.app";
   const clientData = options.clientData ?? utf8("a-server-issued-challenge");
   const aaguid = options.aaguid ?? AAGUID_PRODUCTION;
+  const defaultCategory = bytesEqual(aaguid, AAGUID_DEVELOPMENT) ? 3 : 4;
 
   const authenticatorData = buildAuthenticatorData({
     rpIdHash: await sha256(utf8(appId)),
     signCount: options.signCount ?? 0,
     aaguid,
     credentialId: options.credentialId ?? device.keyId,
+    credentialPublicKey: options.credentialPublicKey ?? device.publicKey,
+    validationCategory: options.validationCategory ?? defaultCategory,
+    bundleVersion: options.bundleVersion ?? "1",
+    attestationSuffix: options.legacyAuthenticatorData
+      ? new Uint8Array(0)
+      : options.attestationSuffix,
   });
 
   const nonce = options.nonceOverride ??
@@ -179,7 +255,11 @@ export async function buildAttestation(
     publicKey: options.certificateKey ?? device.keys.publicKey,
     signingKey: issuer.keys.privateKey,
     extensions: options.omitNonceExtension ? [] : [
-      new x509.Extension("1.2.840.113635.100.8.2", false, nonceExtensionValue(nonce)),
+      new x509.Extension(
+        "1.2.840.113635.100.8.2",
+        false,
+        options.nonceExtensionValueOverride ?? nonceExtensionValue(nonce),
+      ),
     ],
   });
 

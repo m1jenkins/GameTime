@@ -12,7 +12,7 @@
 --   * no client holds any verb but SELECT, and only on its own rows
 
 begin;
-select plan(33);
+select plan(46);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'),
@@ -43,6 +43,8 @@ select
 -- ---------------------------------------------------------------------------
 select has_table('public', 'device_attestations',
   'public.device_attestations exists');
+select has_table('app', 'device_attestation_receipts',
+  'the server-only App Attest receipt store exists');
 select col_is_pk('public', 'device_attestations', 'key_id',
   'a key is identified by Apple''s key id');
 select ok(
@@ -197,7 +199,7 @@ select throws_ok(
 -- register_device_key()
 -- ---------------------------------------------------------------------------
 select has_function('public', 'register_device_key',
-  array['uuid', 'bytea', 'bytea', 'public.attestation_environment'],
+  array['uuid', 'bytea', 'bytea', 'bytea', 'public.attestation_environment'],
   'public.register_device_key() exists');
 
 -- Idempotent for its owner: a client whose response was lost retries, and being
@@ -207,8 +209,42 @@ select lives_ok(
        '11111111-1111-1111-1111-111111111111',
        (select alice_key_id from t_keys),
        (select alice_key from t_keys),
+       '\x616c6963652d72656365697074',
        'production') $$,
   're-registering your own key is idempotent'
+);
+
+select is(
+  (select initial_receipt from app.device_attestation_receipts
+   where key_id = (select alice_key_id from t_keys)),
+  '\x616c6963652d72656365697074'::bytea,
+  'registration quarantines the original opaque Apple receipt server-side'
+);
+
+select is(
+  (select current_receipt from app.device_attestation_receipts
+   where key_id = (select alice_key_id from t_keys)),
+  '\x616c6963652d72656365697074'::bytea,
+  'the future refresh candidate begins with the captured receipt'
+);
+
+select is(
+  (select current_receipt_verified_at from app.device_attestation_receipts
+   where key_id = (select alice_key_id from t_keys)),
+  null::timestamptz,
+  'capture does not mislabel an independently unverified receipt as trusted'
+);
+
+select throws_ok(
+  $$ select public.register_device_key(
+       '11111111-1111-1111-1111-111111111111',
+       (select alice_key_id from t_keys),
+       (select alice_key from t_keys),
+       '\x612d646966666572656e742d72656365697074',
+       'production') $$,
+  '23505',
+  null,
+  'an idempotent registration cannot replace its original receipt'
 );
 
 select is(
@@ -223,6 +259,7 @@ select throws_ok(
        '22222222-2222-2222-2222-222222222222',
        (select alice_key_id from t_keys),
        (select alice_key from t_keys),
+       '\x616c6963652d72656365697074',
        'production') $$,
   '23505',
   null,
@@ -234,10 +271,73 @@ select throws_ok(
        '99999999-9999-9999-9999-999999999999',
        (select bob_key_id from t_keys),
        (select bob_key from t_keys),
+       '\x626f622d72656365697074',
        'production') $$,
   '42501',
   null,
   'a device cannot be registered against an account that has not onboarded'
+);
+
+select throws_ok(
+  $$ select public.register_device_key(
+       '22222222-2222-2222-2222-222222222222',
+       (select bob_key_id from t_keys),
+       (select bob_key from t_keys),
+       null,
+       'production') $$,
+  '22023',
+  null,
+  'registration cannot discard the Apple receipt'
+);
+
+select ok(
+  not has_table_privilege(
+    'service_role', 'app.device_attestation_receipts', 'update'
+  ),
+  'service_role cannot mark or replace a quarantined receipt directly'
+);
+
+select throws_ok(
+  $$ update app.device_attestation_receipts
+     set initial_receipt = '\x7265706c61636564'
+     where key_id = (select alice_key_id from t_keys) $$,
+  '23001',
+  null,
+  'even a privileged writer cannot erase the initial receipt audit source'
+);
+
+select lives_ok(
+  $$ update app.device_attestation_receipts
+     set current_receipt_verified_at = now()
+     where key_id = (select alice_key_id from t_keys) $$,
+  'a server-side verifier can mark the current receipt candidate verified'
+);
+
+select throws_ok(
+  $$ update app.device_attestation_receipts
+     set current_receipt = '\x726566726573686564',
+         refreshed_at = now()
+     where key_id = (select alice_key_id from t_keys) $$,
+  '23001',
+  null,
+  'a refreshed receipt cannot inherit the previous receipt verification'
+);
+
+select lives_ok(
+  $$ update app.device_attestation_receipts
+     set current_receipt = '\x726566726573686564',
+         current_receipt_verified_at = null,
+         refreshed_at = now()
+     where key_id = (select alice_key_id from t_keys) $$,
+  'a future refresh writer can replace the current receipt while quarantining it'
+);
+
+select is(
+  (select current_receipt_verified_at
+   from app.device_attestation_receipts
+   where key_id = (select alice_key_id from t_keys)),
+  null::timestamptz,
+  'the refreshed receipt remains untrusted until separately revalidated'
 );
 
 -- ---------------------------------------------------------------------------
@@ -270,15 +370,22 @@ select ok(
 -- register a key against any account.
 select ok(
   not has_function_privilege('authenticated',
-    'public.register_device_key(uuid, bytea, bytea, public.attestation_environment)',
+    'public.register_device_key(uuid, bytea, bytea, bytea, public.attestation_environment)',
     'execute'),
   'authenticated cannot call register_device_key'
 );
 select ok(
   has_function_privilege('service_role',
-    'public.register_device_key(uuid, bytea, bytea, public.attestation_environment)',
+    'public.register_device_key(uuid, bytea, bytea, bytea, public.attestation_environment)',
     'execute'),
   'service_role can, which is how the Edge Function reaches it'
+);
+
+select ok(
+  not has_table_privilege(
+    'service_role', 'app.device_attestation_receipts', 'select'
+  ),
+  'even service_role reaches receipts only through the guarded registration RPC'
 );
 
 -- ---------------------------------------------------------------------------

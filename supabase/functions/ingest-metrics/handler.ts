@@ -49,7 +49,7 @@ import {
   requireUuid,
   respond,
 } from "../_shared/http.ts";
-import { AuthError, bearerToken, verifyAccessToken } from "../_shared/jwt.ts";
+import { type AccessTokenVerifier, AuthError, bearerToken } from "../_shared/jwt.ts";
 
 /**
  * The same ceiling `record_metric_batch()` enforces. Two thousand hourly
@@ -78,7 +78,7 @@ export const ASSERTION_HEADER = "x-gametime-assertion";
 export interface IngestMetricsDeps {
   readonly database: Database;
   readonly appId: string;
-  readonly jwtSecret: string;
+  readonly verifyToken: AccessTokenVerifier;
   /**
    * True only where the App Attest development bypass is both requested and
    * permitted. `assertAttestConfigIsSafe()` is what makes it impossible to set
@@ -197,22 +197,22 @@ export function createIngestMetricsHandler(
     respond("ingest-metrics", async () => {
       requirePost(request);
 
-      // Bytes first, and hashed before anything parses them, because these are
-      // what the assertion covers.
-      const raw = await readBody(request, MAX_BODY_BYTES);
-      const payloadDigest = await sha256(raw);
-
       const at = clock();
 
       let caller;
       try {
-        caller = await verifyAccessToken(bearerToken(request), deps.jwtSecret, at);
+        caller = await deps.verifyToken(bearerToken(request), at);
       } catch (error) {
         if (error instanceof AuthError) {
           throw new HttpFailure("unauthorized", "sign in again", error.message);
         }
         throw error;
       }
+
+      // Bytes first, and hashed before anything parses them, because these are
+      // what the assertion covers.
+      const raw = await readBody(request, MAX_BODY_BYTES);
+      const payloadDigest = await sha256(raw);
 
       const body = parseJsonObject(raw);
 

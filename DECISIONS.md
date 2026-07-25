@@ -208,7 +208,10 @@ which is what makes bucketing and dwell logic testable without a device at all.
 
 **What.** `ATTEST_DEV_BYPASS=true` lets ingest accept a stub assertion.
 `assertAttestConfigIsSafe()` throws at module load if the bypass is on while
-`SUPABASE_ENV` is `staging` or `production`, taking the function down at boot.
+`GAMETIME_ENV` is `staging` or `production`, taking the function down at boot.
+Hosted functions refuse both a missing value and an explicit `local` or `test`
+value, so a deployed function cannot opt itself back into either bypass-capable
+environment.
 
 **Why.** The backend has to be testable without a physical Apple device, and App
 Attest fundamentally cannot be satisfied off-device. The bypass is therefore
@@ -219,7 +222,9 @@ strict (`"1"` and `"yes"` are rejected, not coerced) so a typo in a security fla
 fails loudly instead of landing on a default.
 
 **Revisit if.** We get a device-backed integration environment; the bypass can
-then be restricted to `local` alone.
+then be restricted to `local` alone. `GAMETIME_ENV` deliberately does not use
+the reserved `SUPABASE_` prefix, which hosted projects do not allow for custom
+secrets.
 
 ### D12. Sign in with Apple only; email signup disabled
 
@@ -1201,7 +1206,10 @@ RLS-protected table declares `security_invoker`, or it is a hole.
 
 **What.** `verifyAttestation()` takes the root certificate as a parameter;
 `appAttestRootCertificate()` reads `APP_ATTEST_ROOT_CA_PEM` and throws if it is
-absent or unparseable. The functions therefore refuse to start without it.
+absent or unparseable. The staging setup fetches Apple's direct App Attestation
+Root CA PEM and refuses to upload it unless its SHA-256 fingerprint is
+`1C:B9:82:3B:A2:8B:A6:AD:2D:33:A0:06:94:1D:E2:AE:4F:51:3E:F1:D4:E8:31:B9:F7:E0:FA:7B:62:42:C9:32`.
+The functions therefore refuse to start without a parseable, pinned root.
 
 **Why.** The pinned root is the anchor the whole certificate chain hangs from.
 Get its bytes wrong in the harmless direction and every attestation fails; get
@@ -1214,28 +1222,39 @@ because absent fails loudly.
 Refusing to boot is the correct failure mode, matching D11: a deployment that
 cannot verify attestations must not accept snapshots.
 
-> **Action for the owner:** download the App Attest root certificate from
-> https://www.apple.com/certificateauthority/ and set
-> `APP_ATTEST_ROOT_CA_PEM`. Until then the ingest functions will not start,
-> which is intended.
+The suite now consumes Apple's public 2026 validation vector. It pins the real
+root and chain, strict nonce-extension DER, EC2/ES256/P-256 COSE key, little-
+endian validation category, bundle version, and 65-byte uncompressed public-key
+representation. It also binds the COSE key to the leaf certificate key and the
+key id to `SHA256(public_key)`.
 
-> **Action for the owner:** confirm two details against a real device, because
-> no synthetic test can. The suite mints its own certificate chain and its own
-> P-256 keys, so it proves this verifier agrees with this test's signer — it
-> cannot prove either agrees with an iPhone. The two details taken from Apple's
-> published description rather than from an observed attestation are (a) the DER
-> shape of the credCert's nonce extension, which this builds and compares whole,
-> and (b) that an assertion's signature is over the nonce rather than over the
-> concatenation directly. Both are written so that being wrong rejects a good
-> attestation rather than accepting a bad one, so the failure is loud, but one
-> device attestation and one device assertion settle it.
+The COSE/extensions suffix is new in iOS 27. An iOS 18–26 attestation validly
+ends after `credentialId`; that legacy shape remains accepted and still binds
+the leaf-certificate public key to the key id. If any suffix byte is present,
+the complete deterministic COSE key and both extensions are mandatory and
+strictly checked. A deployment that configures an allowed category or bundle
+version fails closed when a legacy attestation cannot supply that signal.
+
+Apple's vector is internally inconsistent: its certificate nonce uses the raw
+example challenge despite prose that requires the challenge hash, and its
+printed public-key digest does not match the supplied certificate. The test
+records those contradictions component by component; production verification
+does not weaken its challenge or key binding to make the example pass.
+
+> **Remaining M6.5 device gate:** capture one current-device attestation and
+> assertion against staging. Record the category/build signals when the device
+> OS supplies them, or their explicit absence on iOS 18–26. Apple has not
+> published a current assertion vector, so assertions remain the observed
+> strict 37-byte authenticator-data form until a real or published fixture
+> proves an extension shape. The device run must also confirm the receipt bytes
+> and shared monotonic counter in storage.
 
 ### D47. The attestation challenge is derived, not stored
 
 **What.** `POST /attest-device/challenge` returns
-`HMAC(jwtSecret, "gametime.appattest.v1:<userId>:<10-minute window>")`.
-Registration accepts the current window or the one before it. No table of
-nonces.
+`HMAC(GAMETIME_ATTEST_CHALLENGE_SECRET,
+"gametime.appattest.v1:<userId>:<10-minute window>")`. Registration accepts the
+current window or the one before it. No table of nonces.
 
 **Why.** A challenge exists so a captured attestation cannot be replayed. A
 derived one is verifiable without state, unguessable without the secret, and
@@ -1249,6 +1268,11 @@ cannot achieve anything.
 The trade is a ten-minute window in which one challenge is valid more than once
 for one account. All that permits is that account re-registering its own key,
 which is already idempotent.
+
+The HMAC key is deliberately independent from access-token verification.
+Hosted Supabase may verify user sessions with public asymmetric JWKS, which
+cannot supply a secret HMAC key, and rotating an auth signing key should not
+silently rotate or expose the challenge construction.
 
 **Rejected.** A `attestation_challenges` table (textbook, and it is a table, a
 cleanup job, and an RLS surface for a property already held elsewhere). A
@@ -1926,6 +1950,65 @@ but eviction would silently destroy the only copy of physical-world evidence.
 Persist-and-restore makes the idempotency contract survive a relaunch rather
 than only a timeout in one process.
 
+### D71. An App Attest receipt is quarantined outside the client schema
+
+**What.** Registration requires Apple's non-empty `attStmt.receipt` and stores
+the initial and current copies in `app.device_attestation_receipts`, keyed to
+the verified device row. Both are bounded to 32 KiB, cascade only with the
+device identity, and are exposed by no client or `service_role` table grant.
+`current_receipt_verified_at` remains null until a separate server verifier
+checks the PKCS#7 signature and chain, App ID, creation time, and public-key
+binding. No fraud or eligibility decision may use a quarantined receipt.
+
+**Why.** Apple returns the receipt for later fraud-risk assessment. Discarding
+it during registration would make that assessment permanently impossible
+without forcing the user to generate a new device key. It is opaque server
+credential material, not profile data, so keeping it beside the public,
+RLS-readable device-key row would expose it for no product benefit. The
+security-definer registration RPC is the only capture route. The App Attest
+certificate nonce authenticates the key registration, not an arbitrary receipt
+field placed beside it, so successful registration must not be confused with
+receipt validation. Retaining an immutable initial copy and a separately
+rotatable current copy also supports Apple's later receipt-refresh contract
+without erasing the audit source.
+
+### D72. Hosted functions verify user JWTs from JWKS in code
+
+**What.** Hosted functions read `SUPABASE_JWKS` and accept only a uniquely
+selected ES256 or RS256 verification key. Local or explicitly legacy
+deployments may use an HS256 secret. Every accepted token must name this
+project's `${SUPABASE_URL}/auth/v1` issuer and the `authenticated` audience.
+All three endpoints set the gateway's legacy `verify_jwt` option to false,
+authenticate immediately after the method check, and only then read a request
+body. Hosted `SUPABASE_SECRET_KEYS` reach PostgREST through `apikey` only;
+opaque `sb_secret_` values are never treated as bearer JWTs.
+
+**Why.** A new Supabase project can issue asymmetric user sessions while the
+legacy gateway verifier and legacy service-role conventions still assume
+JWT-shaped API keys. Leaving both assumptions in place makes a correct staging
+token fail before application code runs, or makes an opaque admin key fail as
+an invalid JWT. Code-level verification supports the project's actual signing
+keys while preserving the invariant that no unsigned caller reaches an ingest
+write. The configured trust source, not the token header, selects the permitted
+algorithm.
+
+### D73. Staging mutations require a checked-in project identity
+
+**What.** `supabase/staging-project-ref` is the single reviewed allowlist for
+M6.5 staging. It remains `UNCONFIGURED` until the dedicated project exists.
+The secret-upload script refuses a different `SUPABASE_PROJECT_REF`; the
+fixture wrapper additionally requires a direct database URL whose
+`db.<project-ref>.supabase.co` host carries that exact ref. The SQL refuses to
+replace either reserved fixture ID if its existing row does not carry the
+expected synthetic identity.
+
+**Why.** Calling a project “staging” in the same command that selects it is not
+an independent safety check. A mistyped production ref would otherwise enable
+development attestations there, and the fixture intentionally recreates one
+contest. Recording the nonsecret staging identity in reviewable source makes
+the mutation target a repository decision rather than an operator assertion at
+the dangerous moment.
+
 ---
 
 ## Resolved history and decisions still deferred
@@ -1958,7 +2041,8 @@ M5 resolved the integrity-score configuration (D57–D58), explicit location
 signals (D59), retroactive review (D60), source reputation (D61), and the
 timezone-change consent path (D62). M6 supplied the concrete trusted-location
 producer and geofence/workout signals (D63–D66); D67–D70 record hardening found
-by the implementation-plan audit.
+by the implementation-plan audit, and M6.5 adds the receipt and hosted-key
+boundaries in D71–D72.
 
 - **Quarantine and group approval (resolved by D60).** A duel needs its opponent;
   a group needs a strict majority of other accepted participants. Silence stays

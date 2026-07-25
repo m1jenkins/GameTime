@@ -415,22 +415,22 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # ---------------------------------------------------------------------------
 # Edge Functions (M3, M6)
 # ---------------------------------------------------------------------------
-# All ingest endpoints verify the caller's JWT in code as well (see
-# functions/_shared/jwt.ts). That is deliberate duplication: the gateway check
-# below is a configuration flag, and the cost of it being flipped is an ingest
-# endpoint trusting an unsigned claim about whose evidence it is writing. Two
-# checks, one of which cannot be turned off by config.
+# All ingest endpoints verify the caller's JWT in code against the hosted
+# project's injected JWKS (or an explicit local legacy secret). The legacy
+# gateway verifier does not support every asymmetric signing-key rollout, so it
+# is disabled here; this does not make an endpoint public because each handler
+# refuses the request before parsing evidence when its code-level check fails.
 [functions.attest-device]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 
 [functions.ingest-metrics]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 
 [functions.ingest-checkin]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 
 # pg-delta is the schema diff engine for db diff / db pull / db remote commit.
 # Disabled: migrations here are hand-written (DECISIONS.md D13), so nothing in

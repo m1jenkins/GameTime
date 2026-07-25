@@ -83,10 +83,12 @@ select
 
 select public.register_device_key(
   '11111111-1111-1111-1111-111111111111',
-  (select alice_key_id from t_keys), (select alice_key from t_keys), 'production');
+  (select alice_key_id from t_keys), (select alice_key from t_keys),
+  '\x616c6963652d72656365697074', 'production');
 select public.register_device_key(
   '22222222-2222-2222-2222-222222222222',
-  (select bob_key_id from t_keys), (select bob_key from t_keys), 'production');
+  (select bob_key_id from t_keys), (select bob_key from t_keys),
+  '\x626f622d72656365697074', 'production');
 
 create temporary table t_hours as
 select date_trunc('hour', now()) - interval '2 hours' as h2,

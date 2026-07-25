@@ -4,8 +4,10 @@
  *
  * Registration runs once per app install. The client generates a key in the
  * Secure Enclave, asks Apple to attest it, and sends the attestation object
- * here; what comes back is nothing, and what is left behind is a row in
- * `device_attestations` that every later ingest is checked against.
+ * here; the response records the verified environment and, when iOS 27
+ * supplies them, category/build signals for the conformance log. What is left
+ * behind is a row in `device_attestations` that every later ingest is checked
+ * against.
  *
  * Two routes in one function rather than two functions, because they are one
  * exchange: the challenge is meaningless on its own and the client always makes
@@ -17,9 +19,11 @@
  * An attestation is bound to a challenge so that a captured one cannot be
  * replayed. The usual shape is a table of server-issued single-use nonces, and
  * this does not have one: the challenge is an HMAC over the caller's account id
- * and a coarse time window, keyed by the same secret that signs their access
- * token. That makes it verifiable without state, unguessable without the
- * secret, and bound to the one account that may present it.
+ * and a coarse time window, keyed by a dedicated server secret. That makes it
+ * verifiable without state, unguessable without the secret, and bound to the
+ * one account that may present it. Keeping it independent from access-token
+ * verification also works with hosted Supabase's asymmetric signing keys and
+ * avoids turning public JWKS material into challenge key material.
  *
  * What a stored nonce would add is single use, and here that is already covered
  * from the other side: `key_id` is a primary key, so a replayed attestation is a
@@ -57,10 +61,11 @@ import {
   requireString,
   respond,
 } from "../_shared/http.ts";
-import { AuthError, bearerToken, verifyAccessToken } from "../_shared/jwt.ts";
+import { type AccessTokenVerifier, AuthError, bearerToken } from "../_shared/jwt.ts";
 
-/** An attestation object runs to a few kilobytes; eight is generous. */
-export const MAX_BODY_BYTES = 8 * 1024;
+/** Current Apple receipts put the encoded registration near 8 KiB. */
+export const MAX_BODY_BYTES = 64 * 1024;
+export const MAX_RECEIPT_BYTES = 32 * 1024;
 
 /**
  * How long a challenge stays valid. Ten minutes covers a user who is prompted
@@ -73,7 +78,9 @@ export interface AttestDeviceDeps {
   readonly appId: string;
   readonly rootCertificatePem: string;
   readonly allowedEnvironments: readonly AttestEnvironment[];
-  readonly jwtSecret: string;
+  readonly verifyToken: AccessTokenVerifier;
+  /** Independent HMAC key for the derived D47 challenge. */
+  readonly challengeSecret: string;
   /** Injectable so the suites can drive the challenge window. */
   readonly now?: () => Date;
 }
@@ -111,10 +118,17 @@ function openAttestationObject(bytes: Bytes) {
   try {
     const outer = asCborMap(decodeCbor(bytes), "attestation object");
     const statement = asCborMap(outer["attStmt"], "attStmt");
+    const receipt = asCborBytes(statement["receipt"], "receipt");
+    if (receipt.length === 0 || receipt.length > MAX_RECEIPT_BYTES) {
+      throw new CborError(
+        `receipt must contain 1 to ${MAX_RECEIPT_BYTES} bytes`,
+      );
+    }
     return {
       fmt: asCborText(outer["fmt"], "fmt"),
       authenticatorData: asCborBytes(outer["authData"], "authData"),
       x5c: asCborBytesArray(statement["x5c"], "x5c"),
+      receipt,
     };
   } catch (error) {
     if (error instanceof CborError) {
@@ -147,11 +161,11 @@ function decodeBase64Field(
 
 async function callerOf(
   request: Request,
-  secret: string,
+  verifyToken: AccessTokenVerifier,
   at: Date,
 ): Promise<{ userId: string }> {
   try {
-    return await verifyAccessToken(bearerToken(request), secret, at);
+    return await verifyToken(bearerToken(request), at);
   } catch (error) {
     if (error instanceof AuthError) {
       // One message for every way a token can be unacceptable. Which check
@@ -175,10 +189,10 @@ export function createAttestDeviceHandler(
         .endsWith("/challenge");
 
       const at = clock();
+      const caller = await callerOf(request, deps.verifyToken, at);
 
       if (isChallenge) {
-        const caller = await callerOf(request, deps.jwtSecret, at);
-        const challenge = await challengeFor(caller.userId, deps.jwtSecret, at);
+        const challenge = await challengeFor(caller.userId, deps.challengeSecret, at);
         return jsonResponse(200, {
           challenge: btoa(String.fromCharCode(...challenge)),
           expiresInSeconds: CHALLENGE_WINDOW_SECONDS,
@@ -186,7 +200,6 @@ export function createAttestDeviceHandler(
       }
 
       const body = parseJsonObject(await readBody(request, MAX_BODY_BYTES));
-      const caller = await callerOf(request, deps.jwtSecret, at);
 
       // base64ToBytes raises an AttestationError, which `respond` would turn
       // into a 500 — a malformed field is a bad request, not a server fault.
@@ -196,10 +209,10 @@ export function createAttestDeviceHandler(
       // The current window and the one before it, so a request that straddles a
       // boundary is not refused for arriving a second late.
       const challenges = await Promise.all([
-        challengeFor(caller.userId, deps.jwtSecret, at),
+        challengeFor(caller.userId, deps.challengeSecret, at),
         challengeFor(
           caller.userId,
-          deps.jwtSecret,
+          deps.challengeSecret,
           new Date(at.getTime() - CHALLENGE_WINDOW_SECONDS * 1000),
         ),
       ]);
@@ -240,9 +253,17 @@ export function createAttestDeviceHandler(
         userId: caller.userId,
         keyId,
         publicKey: verified.publicKey,
+        receipt: document.receipt,
         environment: verified.environment,
       });
 
-      return jsonResponse(200, { registered: true, environment: verified.environment });
+      return jsonResponse(200, {
+        registered: true,
+        environment: verified.environment,
+        ...(verified.validationCategory === undefined
+          ? {}
+          : { validationCategory: verified.validationCategory }),
+        ...(verified.bundleVersion === undefined ? {} : { bundleVersion: verified.bundleVersion }),
+      });
     });
 }

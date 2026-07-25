@@ -11,7 +11,7 @@ why. This file owns sequence, remaining work, and launch blockers.
 | M0–M4 | Complete | Scaffold, social graph, contests, attested metric ledger, deterministic scoring |
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
-| M6.5 | Next | Real-device App Attest conformance against staging |
+| M6.5 | In progress — device gate | Harness and staging procedure implemented; physical-iPhone/staging execution remains |
 | M7 | Not started | Scheduling, standings, finalization, settlement, disputes, pledge lifecycle |
 | M8 | Not started | iOS app target and all device/framework integrations |
 
@@ -44,9 +44,10 @@ merged again; its tree is already represented in `main`.
 
 ## M6.5 — device-conformance spike
 
-This is the next engineering work because App Attest is the trust root for both
-metric and check-in ingest, while the current cryptographic suites prove only
-that the verifier agrees with the repository's Apple-shaped test signer.
+This is the current engineering work because App Attest is the trust root for
+both metric and check-in ingest. The repository now checks its verifier against
+Apple's public 2026 attestation vector as well as its synthetic signer, but only
+a physical-device run can prove the complete staging exchange.
 
 Definition of done:
 
@@ -63,6 +64,29 @@ Definition of done:
 M6.5 owns a conformance-only device target, not the product app. This spike does
 not need the full UI; its target can become the first thin slice of M8 if
 maintaining a throwaway target would cost more than keeping it.
+
+Implemented locally:
+
+- A conformance-only iOS 18 target that persists one App Attest key, sends the
+  exact production metric and check-in bodies, decodes counters, and replays the
+  identical signed requests.
+- Backward-compatible iOS 18–26 attestation parsing plus strict all-or-nothing
+  parsing of Apple's iOS 27 COSE key/extensions suffix, with
+  certificate/COSE/key-id binding and the published 2026 vector pinned.
+- Private quarantine of Apple's opaque attestation receipt, explicitly
+  untrusted until its independent PKCS#7 validation is implemented.
+- Hosted JWT verification from Supabase's injected JWKS, a separate challenge
+  HMAC secret, and support for opaque hosted admin keys.
+- Fingerprint-pinned, checked-in-project-identity-guarded staging scripts, a
+  deterministic SQL fixture, database verification queries, and a real-device
+  smoke runbook.
+
+Current execution gate: this workstation has no connected physical iPhone and
+no staging project credentials. Do not mark M6.5 complete until the runbook
+records one successful device registration, metric, check-in, exact retry, and
+counter/public-key/receipt audit with `ATTEST_DEV_BYPASS` absent. Receipt bytes
+must remain quarantined and unused until their Apple-required independent
+PKCS#7 validation path is implemented and exercised.
 
 ## M7 — settlement and finalization
 

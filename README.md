@@ -9,10 +9,12 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M6 complete; M6.5 is next.** The scoring engine now has versioned
-integrity assessment, durable review and timezone consent, source reputation,
-and attested geofence/workout validation. The next step is real-iPhone App
-Attest conformance against staging before settlement work begins.
+**Status: M6 complete; M6.5 implementation is ready for its real-device run.**
+The staging fixture, conformance-only iOS target, Apple-vector regression,
+receipt quarantine, and fail-closed hosted configuration are implemented. The
+remaining gate is to run the documented smoke test on a provisioned iPhone
+against the staging project and independently validate the captured PKCS#7
+receipt before settlement work begins.
 
 ---
 
@@ -36,11 +38,14 @@ ios/
                          Bucketing, provenance, check-in validation, and
                          restorable exact-byte ingest queues.
                          Builds and tests on Linux CI.
-  (M6.5 adds a conformance-only device target; the product app lands in M8)
+  GameTimeConformance/   M6.5-only real-device App Attest smoke target.
+                         The product app still lands in M8.
 scripts/
   dev-up.sh              Start the local stack
   db-test.sh             Reset the database and run pgTAP
   test-all.sh            Everything CI runs, in CI's order
+  m6-5-configure-staging.sh  Pin and upload safe App Attest staging secrets
+  m6-5-staging-fixture.sql   Repeatable staging contest/geofence fixture
 DECISIONS.md             Every non-obvious choice and why
 PLAN.md                  What is next, and what the plan is missing
 ```
@@ -382,6 +387,9 @@ Two endpoints, both `POST`, both requiring a signed-in caller.
 ```
 POST /functions/v1/attest-device/challenge   -> { challenge, expiresInSeconds }
 POST /functions/v1/attest-device             { keyId, attestation }
+                                               -> { registered, environment,
+                                                    validationCategory?,
+                                                    bundleVersion? }
 POST /functions/v1/ingest-metrics            { contestId, clientBatchId,
                                                observedAt, observations[] }
 ```
@@ -414,15 +422,20 @@ batch's evidence.
 | `APP_ATTEST_ROOT_CA_PEM`       | Apple's App Attest root. **Required**; the functions refuse to start without it. |
 | `APP_ATTEST_ALLOW_DEVELOPMENT` | Accept development-environment attestations. Defaults on in local and test, refused outright in production. |
 | `ATTEST_DEV_BYPASS`            | Accept an unattested batch or check-in. Same refusal in staging and production (D11). |
-| `SUPABASE_JWT_SECRET`          | All three endpoints verify the caller's JWT in code as well as at the gateway. |
+| `GAMETIME_ENV`                 | `local`, `test`, `staging`, or `production`. Required in hosted functions; the app-owned name avoids Supabase's reserved secret prefix. |
+| `GAMETIME_ATTEST_CHALLENGE_SECRET` | Dedicated 32+ character HMAC key. Required in staging and production. |
+| `SUPABASE_JWKS`                | Hosted Supabase injects the project's asymmetric signing keys; all three handlers verify the signature, project issuer, and authenticated audience in code. |
+| `SUPABASE_SECRET_KEYS`         | Hosted Supabase injects named opaque admin keys. The default key reaches only guarded RPCs and is never put in an Authorization header. |
 
-> **Before launch:** `APP_ATTEST_ROOT_CA_PEM` needs Apple's actual root
-> certificate, from https://www.apple.com/certificateauthority/. It is
-> configuration rather than a constant in the source on purpose — a pinned root
-> that is plausible and wrong either rejects every attestation or accepts a chain
-> Apple never issued, and those bytes should be fetched rather than recalled. See
-> DECISIONS.md D46, which also records the two Apple-format details that need
-> confirming against a real device.
+Apple's current App Attestation Root CA is fetched from the
+[direct Apple PEM](https://www.apple.com/certificateauthority/Apple_App_Attestation_Root_CA.pem),
+checked against its recorded SHA-256 fingerprint, and uploaded by
+`scripts/m6-5-configure-staging.sh`. Both staging scripts refuse to run until
+the reviewed project ref replaces `UNCONFIGURED` in
+`supabase/staging-project-ref`; the fixture wrapper also matches that identity
+against the database URL host. See
+[`docs/M6_5_DEVICE_CONFORMANCE.md`](docs/M6_5_DEVICE_CONFORMANCE.md) for the
+complete staging and real-iPhone procedure.
 
 A batch or check-in accepted under `ATTEST_DEV_BYPASS` is marked
 `attested = false`, permanently. These are real audit queries, and both should
@@ -698,7 +711,7 @@ afternoon:
 ## Client target
 
 iOS 18.0, Swift 6 language mode. Verified on 2026-07-25 with Xcode 26.2, the iOS
-26.2 SDK, and Swift 6.2.3; the portable package builds and its 79 tests pass.
+26.2 SDK, and Swift 6.2.3; the portable package builds and its 88 tests pass.
 The product rationale remains in DECISIONS.md D2.
 
 ## Milestones

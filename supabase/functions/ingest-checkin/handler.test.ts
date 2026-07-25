@@ -7,6 +7,7 @@ import type {
 import { postgrestCheckInDatabase } from "../_shared/database.ts";
 import { type Bytes, sha256, toHex, utf8 } from "../_shared/bytes.ts";
 import { HttpFailure } from "../_shared/http.ts";
+import { createAccessTokenVerifier } from "../_shared/jwt.ts";
 import { buildAssertion, type Device, makeDevice } from "../_test/appattest_fixtures.ts";
 import { mintAccessToken, TEST_JWT_SECRET } from "../_test/tokens.ts";
 import {
@@ -97,7 +98,7 @@ function deps(overrides: Partial<IngestCheckInDeps> = {}): IngestCheckInDeps {
   return {
     database: recorder().database,
     appId: APP_ID,
-    jwtSecret: TEST_JWT_SECRET,
+    verifyToken: createAccessTokenVerifier(TEST_JWT_SECRET),
     attestBypass: false,
     publicKeyFor: () => Promise.resolve(device.publicKey),
     ...overrides,
@@ -322,7 +323,7 @@ Deno.test("refuses to construct a handler with neither verification nor bypass",
     createIngestCheckInHandler({
       database: recorder().database,
       appId: APP_ID,
-      jwtSecret: TEST_JWT_SECRET,
+      verifyToken: createAccessTokenVerifier(TEST_JWT_SECRET),
       attestBypass: false,
     });
   } catch {
@@ -578,10 +579,12 @@ Deno.test("the PostgREST adapter sends the exact RPC shape and parses one row", 
   const originalFetch = globalThis.fetch;
   let capturedUrl = "";
   let capturedBody: Record<string, unknown> = {};
+  let capturedHeaders = new Headers();
   try {
     globalThis.fetch = (input, init) => {
       capturedUrl = String(input);
       capturedBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      capturedHeaders = new Headers(init?.headers);
       return Promise.resolve(
         new Response(
           JSON.stringify([{
@@ -598,7 +601,8 @@ Deno.test("the PostgREST adapter sends the exact RPC shape and parses one row", 
 
     const result = await postgrestCheckInDatabase({
       url: "https://database.example.test",
-      serviceRoleKey: "service-role-secret",
+      serviceRoleKey: "sb_secret_staging",
+      authorizationBearer: false,
     }).recordGeofenceCheckIn({
       userId: USER,
       contestId: CONTEST,
@@ -634,6 +638,8 @@ Deno.test("the PostgREST adapter sends the exact RPC shape and parses one row", 
       capturedUrl,
       "https://database.example.test/rest/v1/rpc/record_geofence_checkin",
     );
+    assertEquals(capturedHeaders.get("apikey"), "sb_secret_staging");
+    assertEquals(capturedHeaders.get("authorization"), null);
     assertEquals(capturedBody["p_user_id"], USER);
     assertEquals(capturedBody["p_client_checkin_id"], CLIENT_CHECK_IN);
     assertEquals(capturedBody["p_locations"], [{
