@@ -9,10 +9,10 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M5 underway.** M4's scoring engine is now paired with a deterministic,
-tunable integrity assessor: plausibility, cross-metric corroboration, impossible
-travel, reporting lag, retroactive review, and the integrity-score tie-break.
-The evidence ledger and its definition of admissibility are unchanged.
+**Status: M5 complete.** The scoring engine is paired with deterministic,
+versioned integrity assessment, retroactive review, third-party source
+reputation, and opponent-approved prospective timezone changes. Integrity
+remains an auditable sidecar; it never silently rewrites the evidence ledger.
 
 ---
 
@@ -28,11 +28,13 @@ supabase/
     _test/               Fixture builders and the scoring corpus. Never deployed.
     attest-device/       Registers one App Attest key per device install
     ingest-metrics/      The only route into the evidence ledger
+    ingest-checkin/      Attested geofence/workout validation sidecar
     deno.json            Deno tasks, imports, lint and format config
   seed.sql               Local/CI seed data. Never required by a test.
 ios/
   GameTimeCore/          Portable Swift package. No Apple frameworks.
-                         Bucketing, provenance, and the offline ingest queue.
+                         Bucketing, provenance, check-in validation, and
+                         exact-byte offline ingest queues.
                          Builds and tests on Linux CI.
   (app target lands in M8)
 scripts/
@@ -198,13 +200,19 @@ independent, optional scope that decides who may be invited (DECISIONS.md D22).
 
 The author is enrolled as `accepted` when the contest is created. Once the
 contest leaves `pending` the roster is frozen — no new participants, and no
-status, charity, or timezone changes at all. That freeze is what makes blocking
-an opponent useless as a way out of a contest you are losing (D29), and it is
-why `lapsed` is a status no client can write (D31).
+status, charity, or base-timezone changes at all. That freeze is what makes
+blocking an opponent useless as a way out of a contest you are losing (D29),
+and it is why `lapsed` is a status no client can write (D31).
+
+A genuine relocation does not loosen that trigger or rewrite the base zone.
+M5 records a separate request, one immutable vote from every other accepted
+participant, and an applied change only after unanimous approval. The server
+chooses the effective instant. Old buckets keep their old zone; future buckets
+use the new one; an hour cut by the transition belongs to neither epoch.
 
 ### What is not reachable as a table write
 
-Three things, for the same reason M1's join-by-code is a function: they are not
+Five things, for the same reason M1's join-by-code is a function: they are not
 properties of a row.
 
 ```sql
@@ -224,6 +232,11 @@ select public.cancel_contest('<contest uuid>');
 -- Cron's entry point: opens contests that have come due if two people accepted,
 -- voids the rest. Not callable by `authenticated`, deliberately — see D32.
 select app.activate_due_contests();
+
+-- Active accepted participants may request a prospective relocation. Every
+-- other accepted participant must consent; retries of the same vote are safe.
+select public.request_timezone_change('<contest uuid>', 'Asia/Kathmandu');
+select public.review_timezone_change('<request uuid>', true);
 ```
 
 Inviting and answering *are* plain table writes, because both are row
@@ -277,16 +290,19 @@ falsify.
 | `evidence_quarantines` | Review-required retroactive observations. Never rewrites the ledger. |
 | `evidence_quarantine_reviews` | Append-only opponent votes on a quarantine. |
 
-**There is no client write path.** `authenticated` holds `SELECT` on all three
-tables and nothing else. A row appears only through
-`public.record_metric_batch()`, which `service_role` alone may execute, because
+**There is no client write path into the evidence ledger.** `authenticated`
+holds `SELECT` on its three underlying relations and nothing else. A row appears
+only through `public.record_metric_batch()`, which `service_role` alone may
+execute, because
 the thing that authorises the write is a signature over the request body and RLS
 cannot check a signature.
 
 ### A bucket is a local hour
 
-`bucket_start` is aligned to a whole hour **in the participant's frozen
-timezone**, not in UTC, and the two are not interchangeable. India is +05:30,
+`bucket_start` is aligned to a whole hour **in the participant's applicable
+timezone epoch**, not in UTC, and the two are not interchangeable. The first
+epoch is the zone frozen at acceptance; later epochs require unanimous opponent
+approval. India is +05:30,
 Nepal +05:45, Chatham +13:45 — so a UTC-aligned hour straddles the local day
 boundary for a large fraction of the world, and a daily-cadence goal would credit
 part of Tuesday to Monday for exactly those participants, silently. See
@@ -330,7 +346,7 @@ step from voiding an hour that also holds five thousand genuine ones.
 
 M5 reads the same metadata through `contest_evidence_sources`, a
 `security_invoker` sidecar view that selects the current admissible contribution
-for each provenance without changing `contest_evidence`. The `m5-v2` integrity
+for each provenance without changing `contest_evidence`. The `m5-v3` integrity
 configuration carries a reviewed bundle-identifier allow-list and separate,
 tunable penalties for an unrecognized, missing, or malformed third-party
 identifier. Device provenance is not subject to that rule. Every third-party row
@@ -396,8 +412,8 @@ batch's evidence.
 | `APPLE_BUNDLE_ID`              | |
 | `APP_ATTEST_ROOT_CA_PEM`       | Apple's App Attest root. **Required**; the functions refuse to start without it. |
 | `APP_ATTEST_ALLOW_DEVELOPMENT` | Accept development-environment attestations. Defaults on in local and test, refused outright in production. |
-| `ATTEST_DEV_BYPASS`            | Accept an unattested batch. Same refusal in staging and production (D11). |
-| `SUPABASE_JWT_SECRET`          | Both endpoints verify the caller's JWT in code as well as at the gateway. |
+| `ATTEST_DEV_BYPASS`            | Accept an unattested batch or check-in. Same refusal in staging and production (D11). |
+| `SUPABASE_JWT_SECRET`          | All three endpoints verify the caller's JWT in code as well as at the gateway. |
 
 > **Before launch:** `APP_ATTEST_ROOT_CA_PEM` needs Apple's actual root
 > certificate, from https://www.apple.com/certificateauthority/. It is
@@ -407,13 +423,65 @@ batch's evidence.
 > DECISIONS.md D46, which also records the two Apple-format details that need
 > confirming against a real device.
 
-A batch accepted under `ATTEST_DEV_BYPASS` is marked `attested = false` on
-`ingest_batches`, permanently. So this is a real audit query, and it should
-return zero:
+A batch or check-in accepted under `ATTEST_DEV_BYPASS` is marked
+`attested = false`, permanently. These are real audit queries, and both should
+return zero outside local development:
 
 ```sql
 select count(*) from public.ingest_batches where not attested;
+select count(*) from public.geofence_checkins where not attested;
 ```
+
+## Geofence check-ins
+
+`POST /functions/v1/ingest-checkin` is the M6 sidecar ingestion path. It uses the
+same JWT ownership, App Attest key, exact-body signature, monotonic counter, and
+stable client-id retry contract as metric ingest. The signed JSON contains an
+explicit contest and geofence id, 2–256 raw Core Location observations, and one
+workout interval:
+
+- Every location carries an absolute RFC 3339 instant, latitude, longitude,
+  horizontal accuracy, and Core Location's simulation/accessory signals.
+- The workout carries an absolute half-open interval, activity type, HealthKit
+  provenance, and optional source bundle id.
+- `clientCheckInId` and the exact signed body bytes stay unchanged across a
+  retry. An identical replay returns the first result; the same id with different
+  bytes is refused.
+
+The client never declares that it was inside. `contest_geofences` is a
+service-provisioned definition that must be inserted before activation and is
+immutable thereafter. It contains the center, radius, accuracy ceiling, minimum
+dwell, maximum sample gap, and minimum workout overlap.
+`record_geofence_checkin()` orders the absolute instants, computes a Haversine
+distance for each raw observation, and records one explicit sample
+classification: `inside`, `outside`, `low_accuracy`, or `simulated`.
+
+Credited dwell is the sum of adjacent `inside -> inside` intervals no longer
+than the configured sample gap. Workout overlap is the intersection of the
+workout with those credited intervals—not with the first-to-last visit envelope.
+Both calculations are timezone-independent and use half-open ranges, so touching
+endpoints do not overlap.
+
+Every well-formed attempt that reaches Postgres is append-only, including failed
+validation. Its primary outcome records whether it was accepted, outside the
+contest window, future-dated, simulated, inaccurate, outside the fence, short on
+dwell or workout overlap, backed by an untrusted workout, or conflicting with
+already accepted visit/workout evidence. Only accepted attempts reserve time:
+partial GiST exclusions prevent one user from accepting overlapping check-in or
+workout ranges, and a partial unique index prevents accepting the same workout
+id twice. A failed attempt therefore remains auditable without blocking a
+corrected retry.
+
+Check-ins never mutate `metric_snapshots`, `contest_evidence`, qualification, or
+totals. `contest_checkin_integrity` feeds the versioned M6 integrity flags, while
+`contest_location_observations` exposes only inside samples from accepted,
+attested attempts to the existing impossible-travel rule. Neither timezone nor
+HealthKit totals is treated as a location.
+
+Exact coordinates are owner-only under RLS and remain available to the
+service-role integrity assessor. Accepted active or finalized rivals can audit
+the immutable geofence terms and derived check-in outcomes, but cannot inspect
+another participant's raw, failed, or trusted coordinate rows.
 
 ## Scoring
 
@@ -444,8 +512,9 @@ That makes **ties the ordinary result**, not an edge case — which is why
 
 ### Daily cadence rates days, it does not count them
 
-A daily contest asks about the local days the window *wholly* covers in the
-participant's frozen zone, and ranks on `qualifyingDays / scoreableDays`.
+A daily contest asks about the local days each timezone epoch *wholly* covers,
+starting with the participant's frozen base zone, and ranks on
+`qualifyingDays / scoreableDays`.
 
 A window that is seven whole days in New York is six whole days plus two
 part-days in Kathmandu (+05:45). Ranking on the raw count would cap the Kathmandu
@@ -457,6 +526,10 @@ cannot be judged against a whole-day target. That also closes an attack the
 ledger cannot: evidence in a part-day is legitimately writable, so otherwise
 somebody who missed a Wednesday could stuff the edge day and manufacture a
 qualifying day out of an hour that was never a day. See D52.
+
+Every scoring call must supply the complete applied timezone-change ledger,
+including an explicit empty array when there are no changes. Omitting it raises
+instead of silently reverting a relocated participant to the base zone.
 
 ### Totals are integers underneath
 
@@ -505,14 +578,19 @@ kinds, and the split is the point: cross-metric padding, out-of-window backfill
 and part-day stuffing must **not** work; an implausible hour and an eleven-day-late
 report must work, and be visible in the summary.
 
+The corpus also crosses the date line: the same civil date can be one whole day
+in each of two timezone epochs, and those days must never be merged.
+
 ## Integrity assessment
 
 `supabase/functions/_shared/integrity.ts` is a pure sidecar to the M4 engine. Its
 configuration has a version, per-metric hourly ceilings, corroboration rules,
-reviewed third-party bundle identifiers and reputation tiers, travel
-distance/speed limits, lag and quarantine thresholds, severity, points per flag,
-and per-rule penalty caps. The default score starts at 100 and floors at 0, but
-those are configuration too.
+reviewed third-party bundle identifiers and reputation tiers, timezone-change
+penalties, geofence/workout validation penalties, travel distance/speed limits,
+lag and quarantine thresholds, severity, points per flag, and per-rule penalty
+caps. The current configuration is `m6-v1`; the exact `m5-v2` and `m5-v3`
+configurations remain loadable for reproducible historical assessment. The
+default score starts at 100 and floors at 0, but those are configuration too.
 
 The assessor emits explicit flags:
 
@@ -521,13 +599,16 @@ The assessor emits explicit flags:
 | `plausibility_ceiling` | One hourly metric exceeds its configured ceiling. |
 | `cross_metric_corroboration` | A large contest-metric hour has none of its configured companion signals. |
 | `third_party_source_reputation` | An admissible third-party contribution has an unrecognized, missing, or malformed bundle identifier. |
+| `timezone_change` | An opponent-approved prospective timezone epoch was applied. |
+| `geofence_checkin_failure` | An attested check-in failed a location, contest-window, dwell, or visit-overlap validation. |
+| `workout_overlap_validation` | A check-in failed workout trust, temporal overlap, reuse, or workout-range overlap validation. |
 | `impossible_travel` | Two trusted location observations require travel above the configured speed after subtracting both accuracy radii. |
 | `reporting_lag` | An hour arrived materially after it closed. |
 | `retroactive_evidence_quarantine` | The lag crosses the review-required threshold. |
 
 Impossible travel takes explicit location observations; hourly HealthKit totals
-do not contain a location, and the code does not pretend otherwise. M6's
-geofence check-ins are the intended producer.
+and timezone changes do not contain a location, and the code does not pretend
+otherwise. M6's geofence check-ins are the intended producer.
 
 Flags never alter totals or qualification. A retroactive quarantine is durable
 review state beside the snapshot: the generated `is_admissible` value stays the
@@ -535,6 +616,11 @@ same and `contest_evidence` still returns the value. In a duel, the opponent mus
 approve; in a group, a strict majority of the other accepted participants must.
 Silence stays `pending`. M7 must block finalization on unresolved review rather
 than quietly apply a second evidence filter.
+
+Timezone consent is deliberately stricter than quarantine review because it
+changes the scoring contract rather than judging one claim: every other accepted
+participant must approve. Scoring computes whole days separately inside each
+approved epoch, and both the server and client drop transition-cut hours.
 
 ## Test-harness capabilities
 
@@ -560,6 +646,9 @@ The harness proves out the three things later milestones depend on:
   That is scaffolding rather than a hole — `060_contests.test.sql` is what proves
   the trigger works — but a suite that quietly skipped it would be asserting
   against an empty ledger.
+  M6 adds exact geofence boundaries, capped dwell gaps, half-open workout
+  intersections, attested retries/counter replay, overlapping accepted ranges,
+  append-only evidence, and owner/rival/unrelated RLS coverage.
 - **Deno** — Edge Function logic, tested by importing handlers directly rather
   than booting the runtime container. M3's suites mint their own P-256 keys and
   their own Apple-shaped certificate chain, so every rejection path in the
@@ -572,10 +661,15 @@ The harness proves out the three things later milestones depend on:
   deliberately thin — it asserts only what each fixture declares — so behaviour
   changes surface as changed expectations in the corpus, next to the `why` that
   says what property is being traded away.
+  M6 exercises the check-in handler with real assertion cryptography, malformed
+  and spoofed locations, stable retries, database-error mapping, and a portable
+  data fixture for the new versioned integrity flags.
 - **Swift Testing** — portable client logic under Swift 6 strict concurrency.
   M3's suites cover the cases a UTC-hour implementation gets wrong: half-hour and
   45-minute zone offsets, and both daylight-saving transitions, where a local day
-  is 23 or 25 hours long.
+  is 23 or 25 hours long. M6 mirrors the server's advisory Haversine
+  classification, adjacent-segment dwell, and workout intersection, then proves
+  the queue reuses a stable request id and the exact body bytes that were signed.
 
 ## Known environment constraints
 
@@ -609,9 +703,8 @@ changing it is one line in `Package.swift`.
 - [x] **M2** — Contest creation, invitations, participant state machine
 - [x] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
 - [x] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
-- [ ] **M5** — Core anti-cheat rules, review quarantine, integrity scoring, and
-      third-party source reputation are implemented. The timezone-change consent
-      flow remains.
+- [x] **M5** — Anti-cheat rules, integrity scoring, evidence review, source
+      reputation, and opponent-approved timezone changes
 - [ ] **M6** — Geofence check-ins and workout-overlap validation
 - [ ] **M7** — Settlement, disputes, charity pledge lifecycle, cron finalization
 - [ ] **M8** — Minimal SwiftUI shell

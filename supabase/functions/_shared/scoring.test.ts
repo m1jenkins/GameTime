@@ -43,6 +43,25 @@ function bucket(userId: string, hour: number, value: number | string): EvidenceB
   };
 }
 
+function bucketAt(
+  userId: string,
+  bucketStart: string,
+  localDay: string,
+  value: number | string,
+  localHour = 8,
+): EvidenceBucket {
+  const startsAt = Date.parse(bucketStart);
+  const recorded = new Date(startsAt + 3_600_000).toISOString();
+  return {
+    ...bucket(userId, localHour, value),
+    bucketStart: new Date(startsAt).toISOString(),
+    localDay,
+    localHour,
+    firstRecordedAt: recorded,
+    lastRecordedAt: recorded,
+  };
+}
+
 function input(overrides: Partial<ScoringInput> = {}): ScoringInput {
   return {
     contest: {
@@ -56,6 +75,7 @@ function input(overrides: Partial<ScoringInput> = {}): ScoringInput {
     },
     roster: [accepted(ALICE), accepted(BOB)],
     evidence: [bucket(ALICE, 8, 12000), bucket(BOB, 9, 3000)],
+    timezoneChanges: [],
     ...overrides,
   };
 }
@@ -80,6 +100,15 @@ Deno.test("refuses an unparseable instant", () => {
     () => scoreContest(input({ contest: { ...input().contest, startsAt: "last Tuesday" } })),
     ScoringError,
     "is not an instant",
+  );
+});
+
+Deno.test("refuses an omitted timezone-change ledger", () => {
+  const { timezoneChanges: _omitted, ...incomplete } = input();
+  assertThrows(
+    () => scoreContest(incomplete as ScoringInput),
+    ScoringError,
+    "timezoneChanges must be supplied as an array",
   );
 });
 
@@ -261,6 +290,182 @@ Deno.test("a bucket reported before it closed has no lag, not a negative one", (
 // Zones
 // ---------------------------------------------------------------------------
 
+Deno.test("daily scoring keeps whole days from each timezone epoch", () => {
+  const scoring = scoreContest(input({
+    contest: {
+      ...input().contest,
+      cadence: "daily",
+      targetValue: 100,
+      startsAt: "2026-01-01T00:00:00Z",
+      endsAt: "2026-01-08T00:00:00Z",
+    },
+    timezoneChanges: [{
+      userId: ALICE,
+      fromTimezone: "UTC",
+      toTimezone: "America/New_York",
+      effectiveAt: "2026-01-04T12:00:00Z",
+    }],
+    evidence: [
+      bucketAt(ALICE, "2026-01-01T08:00:00Z", "2026-01-01", 100),
+      bucketAt(ALICE, "2026-01-02T08:00:00Z", "2026-01-02", 100),
+      bucketAt(ALICE, "2026-01-03T08:00:00Z", "2026-01-03", 100),
+      // Both civil-day fragments touching the transition are excluded.
+      bucketAt(ALICE, "2026-01-04T08:00:00Z", "2026-01-04", 900),
+      bucketAt(ALICE, "2026-01-04T13:00:00Z", "2026-01-04", 900),
+      bucketAt(ALICE, "2026-01-05T13:00:00Z", "2026-01-05", 100),
+      bucketAt(ALICE, "2026-01-06T13:00:00Z", "2026-01-06", 100),
+    ],
+  }));
+  const alice = scoring.standings.find((standing) => standing.userId === ALICE);
+
+  assertEquals(alice?.scoreableDays, 5);
+  assertEquals(alice?.qualifyingDays, 5);
+  assertEquals(alice?.total, 500);
+  assertEquals(
+    alice?.days.map((day) => [day.localDay, day.timezone]),
+    [
+      ["2026-01-01", "UTC"],
+      ["2026-01-02", "UTC"],
+      ["2026-01-03", "UTC"],
+      ["2026-01-05", "America/New_York"],
+      ["2026-01-06", "America/New_York"],
+    ],
+  );
+  assertEquals(scoring.excluded.partial_local_day, 2);
+});
+
+Deno.test("the same civil date in two timezone epochs does not merge", () => {
+  const scoring = scoreContest(input({
+    contest: {
+      ...input().contest,
+      cadence: "daily",
+      targetValue: 100,
+      startsAt: "2026-01-05T10:00:00Z",
+      endsAt: "2026-01-08T10:00:00Z",
+    },
+    roster: [
+      accepted(ALICE, "Pacific/Kiritimati"),
+      accepted(BOB, "Pacific/Kiritimati"),
+    ],
+    timezoneChanges: [{
+      userId: ALICE,
+      fromTimezone: "Pacific/Kiritimati",
+      toTimezone: "Pacific/Honolulu",
+      effectiveAt: "2026-01-06T10:00:00Z",
+    }],
+    evidence: [
+      // January 6 is a whole day immediately before and after this dateline move.
+      bucketAt(ALICE, "2026-01-05T18:00:00Z", "2026-01-06", 60),
+      bucketAt(ALICE, "2026-01-06T18:00:00Z", "2026-01-06", 50),
+      bucketAt(ALICE, "2026-01-07T18:00:00Z", "2026-01-07", 100),
+    ],
+  }));
+  const alice = scoring.standings.find((standing) => standing.userId === ALICE);
+
+  assertEquals(alice?.scoreableDays, 3);
+  assertEquals(alice?.qualifyingDays, 1);
+  assertEquals(
+    alice?.days.map((day) => ({
+      localDay: day.localDay,
+      timezone: day.timezone,
+      value: day.value,
+    })),
+    [
+      { localDay: "2026-01-06", timezone: "Pacific/Kiritimati", value: 60 },
+      { localDay: "2026-01-06", timezone: "Pacific/Honolulu", value: 50 },
+      { localDay: "2026-01-07", timezone: "Pacific/Honolulu", value: 100 },
+    ],
+  );
+});
+
+Deno.test("a bucket that straddles a timezone transition is excluded", () => {
+  const scoring = scoreContest(input({
+    timezoneChanges: [{
+      userId: ALICE,
+      fromTimezone: "UTC",
+      toTimezone: "Europe/London",
+      effectiveAt: "2026-01-05T08:30:00Z",
+    }],
+    evidence: [
+      bucketAt(ALICE, "2026-01-05T08:00:00Z", "2026-01-05", 12_000),
+      bucket(BOB, 9, 3_000),
+    ],
+  }));
+  const alice = scoring.standings.find((standing) => standing.userId === ALICE);
+
+  assertEquals(alice?.total, 0);
+  assertEquals(alice?.evidence.bucketCount, 0);
+  assertEquals(scoring.excluded.timezone_transition, 1);
+});
+
+Deno.test("timezone changes must form a distinct chronological chain inside the window", () => {
+  const valid = {
+    userId: ALICE,
+    fromTimezone: "UTC",
+    toTimezone: "Europe/London",
+    effectiveAt: "2026-01-05T08:00:00Z",
+  };
+
+  const unsorted = scoreContest(input({
+    timezoneChanges: [
+      {
+        userId: ALICE,
+        fromTimezone: "America/New_York",
+        toTimezone: "Europe/London",
+        effectiveAt: "2026-01-05T18:00:00Z",
+      },
+      {
+        userId: ALICE,
+        fromTimezone: "UTC",
+        toTimezone: "America/New_York",
+        effectiveAt: "2026-01-05T12:00:00Z",
+      },
+    ],
+  }));
+  assertEquals(unsorted.excluded.timezone_transition, 0);
+
+  assertThrows(
+    () =>
+      scoreContest(input({
+        timezoneChanges: [{ ...valid, fromTimezone: "Europe/Paris" }],
+      })),
+    ScoringError,
+    "fromTimezone must be",
+  );
+  assertThrows(
+    () =>
+      scoreContest(input({
+        timezoneChanges: [{ ...valid, toTimezone: "UTC" }],
+      })),
+    ScoringError,
+    "distinct timezone",
+  );
+  assertThrows(
+    () =>
+      scoreContest(input({
+        timezoneChanges: [
+          valid,
+          {
+            userId: ALICE,
+            fromTimezone: "Europe/London",
+            toTimezone: "Europe/Paris",
+            effectiveAt: valid.effectiveAt,
+          },
+        ],
+      })),
+    ScoringError,
+    "strictly increasing",
+  );
+  assertThrows(
+    () =>
+      scoreContest(input({
+        timezoneChanges: [{ ...valid, effectiveAt: input().contest.startsAt }],
+      })),
+    ScoringError,
+    "strictly inside",
+  );
+});
+
 Deno.test("an unknown zone on a daily contest raises rather than voiding", () => {
   assertThrows(
     () =>
@@ -277,6 +482,12 @@ Deno.test("a cumulative contest never consults a zone", () => {
   // ICU cannot resolve must not be able to break scoring for it.
   const scoring = scoreContest(input({
     roster: [accepted(ALICE, "Mars/Olympus_Mons"), accepted(BOB)],
+    timezoneChanges: [{
+      userId: ALICE,
+      fromTimezone: "Mars/Olympus_Mons",
+      toTimezone: "Venus/Maxwell_Montes",
+      effectiveAt: "2026-01-05T12:00:00Z",
+    }],
   }));
   assertEquals(scoring.outcome, {
     kind: "winner",

@@ -942,6 +942,10 @@ finalized contests, not overwriting live ones.
 
 ### D36. A bucket is an hour in the participant's frozen zone, not a UTC hour
 
+**Amended by D62.** “Frozen zone” below is the immutable base epoch. After a
+consented relocation, the same alignment rule uses the zone effective for that
+bucket, without relabelling earlier evidence.
+
 **What.** `bucket_start` must be aligned to a whole hour in the timezone frozen
 on the participant's roster row (D5). Enforced by `app.prepare_metric_snapshot()`
 and mirrored in the client's `HourlyBucketer`.
@@ -976,6 +980,10 @@ one that transitions at a time other than a local hour boundary. Both exist
 historically; neither is live.
 
 ### D37. The server stamps the local day; the client never supplies it
+
+**Amended by D62.** The server stamps from the timezone epoch effective at
+`bucket_start`; the roster zone remains the base epoch rather than the only
+epoch.
 
 **What.** `metric_snapshots.local_day` and `local_hour` are written by
 `app.prepare_metric_snapshot()` from the participant's frozen zone. The insert
@@ -1361,6 +1369,9 @@ failing to pick a winner. The measurement to take first is how often a void is
 
 ### D52. Daily cadence scores whole local days only, and ranks on the rate
 
+**Amended by D62.** Whole days are computed separately inside each timezone
+epoch. A consented transition drops the adjoining part-days from both sides.
+
 **What.** A daily contest asks about the local days the window *wholly* covers in
 the participant's frozen zone. Part-days at either edge are dropped from the
 numerator and the denominator alike. Qualifying means clearing the target on
@@ -1546,12 +1557,15 @@ a complete set).
 
 ### D58. Every integrity threshold and penalty is versioned configuration
 
-**What.** Launch tuning lives in `DEFAULT_INTEGRITY_TUNING`: per-metric hourly
+**What.** Current launch tuning lives in `DEFAULT_INTEGRITY_TUNING`; the exact
+pre-timezone `m5-v2` shape remains exported as `M5_V2_INTEGRITY_TUNING` for
+reproducible old assessments. The configuration carries per-metric hourly
 ceilings, same-hour corroboration rules, minimum travel distance, maximum travel
 speed and gap, reviewed third-party bundle identifiers and reputation tiers,
-reporting-lag and quarantine thresholds, severities, points per flag, and
-per-rule penalty caps. The default scale starts at 100, subtracts capped
-penalties, and floors at 0. Every assessment names the configuration version.
+timezone-change handling where the version supports it, reporting-lag and
+quarantine thresholds, severities, points per flag, and per-rule penalty caps.
+The default scale starts at 100, subtracts capped penalties, and floors at 0.
+Every assessment names the configuration version.
 
 **Why.** These numbers will move against real data. Keeping them in one data
 object makes a tune a reviewed configuration change rather than a rewrite of
@@ -1667,6 +1681,191 @@ new flags (makes network behavior change a tie-break).
 cadence. It should become an immutable, signed configuration selected by version,
 not a mutable lookup whose meaning can change underneath an old assessment.
 
+### D62. A timezone relocation is a consented, prospective epoch
+
+**What.** `contest_participants.timezone` remains the immutable zone a
+participant accepted. A relocation is recorded beside it as an append-only
+request, immutable votes, and—only after approval—an immutable applied change.
+The requester must be accepted in an active contest. Every other accepted
+participant must approve: one opponent in a duel, all opponents in a group.
+Silence stays pending and one rejection is final.
+
+The effective instant is server time when the last approval is recorded, never a
+caller-supplied value. Ingest resolves the applicable zone from the latest
+applied change at or before `bucket_start`; a late revision from before the move
+therefore still uses the old zone. An hour cut by the effective instant belongs
+to neither epoch and is refused.
+
+Daily scoring computes whole local days independently inside each timezone
+epoch. A transition cuts the adjoining part-days out of both numerator and
+denominator, and days are keyed by epoch plus civil date so crossing the date
+line cannot merge two different days with the same `YYYY-MM-DD`. The portable
+client bucketer applies the same schedule and drops the same transition-cut
+hours.
+
+The scoring API requires callers to supply the complete applied-event ledger,
+including an explicit empty ledger. Omission fails closed rather than silently
+scoring every hour and day in the base zone.
+
+An applied event raises the distinct `timezone_change` integrity flag under the
+versioned `m5-v3` tuning. It may lower the integrity-score tie-break by 10 points
+per change, capped at 20, but never removes evidence or pretends that a timezone
+is a location.
+
+**Why.** Rewriting the one roster timezone would rewrite history without
+touching a ledger row. A delayed correction to an old bucket could suddenly fail
+alignment or acquire a second `local_day`, while M4 would recompute the entire
+daily denominator in the new zone. The result would depend on when the
+relocation was approved rather than when the activity happened.
+
+Prospective epochs preserve both facts: which zone governed an old claim, and
+that opponents consented to a real move. The participant-row lock shared by
+approval and ingest makes the effective boundary atomic with evidence writes.
+Unanimity is deliberate because the change alters the scoring contract each
+opponent accepted; D60's majority rule reviews a claim, it does not amend terms.
+
+**Rejected.** Updating `contest_participants.timezone` in a definer function
+(triggers still reject it, and bypassing them would relabel history). A
+caller-chosen effective instant (retroactive boundary shopping). Following the
+device's live zone (the original D5 exploit). Majority approval in a group
+(changes an opponent's agreed comparison without their consent). Treating the
+move as `impossible_travel` (D59: a zone is not a location).
+
+**Revisit if.** Group contests need a more available approval rule. That requires
+an explicit product decision about who may amend shared terms, not reuse of the
+evidence-review quorum by analogy.
+
+### D63. A geofence check-in is immutable evidence, not a client verdict
+
+**What.** `contest_geofences` is service-provisioned before activation and
+immutable thereafter. A contest-row lock makes provisioning atomic with
+activation. The row fixes the center, radius, accepted accuracy, minimum dwell,
+maximum sample gap, and minimum workout overlap. The signed client body reports
+only raw, explicitly located Core Location observations and one HealthKit
+workout; it never reports an `inside` boolean or a dwell total.
+
+Postgres computes and stores every Haversine distance and sample classification,
+then stores one closed, deterministic outcome on the append-only check-in row.
+A cryptographically invalid request never reaches the ledger because its user
+and evidence cannot be authenticated. Once authentication succeeds, a
+well-formed semantic failure is retained rather than disappearing: future or
+out-of-window evidence, simulated or inaccurate locations, an outside venue,
+insufficient dwell, and workout conflicts are all auditable facts.
+
+**Why.** Letting a client send "I was at the gym for ten minutes" makes
+attestation protect a conclusion the same client chose. Recomputing from the
+raw signal under immutable terms gives disputes both the claim and the rule that
+judged it. Keeping failed signed attempts closes the quieter attack in which
+only successful evidence survives and repeated boundary probing leaves no
+trace.
+
+The RPC is executable only by `service_role`, after the Edge Function verifies
+JWT ownership and the App Attest assertion over the exact body bytes. Client
+roles receive no insert, update, delete, or execute path. RLS lets an accepted
+rival inspect shared geofence terms and derived outcomes, but exact raw and
+trusted coordinate rows are owner-only; the server-side integrity consumer
+retains them through `service_role`. The development bypass is permanently
+marked `attested = false` and its locations never enter the trusted-location
+view.
+
+**Rejected.** A mutable venue row (changes what old evidence means). Trusting a
+client-computed distance or dwell (signs an opinion, not evidence). Inferring a
+venue from timezone, IP, or HealthKit totals (none is a location). Storing an
+invalid signature as somebody's attempt (the claimed identity was not proven).
+Appending an alternative venue after activation (changes the allowed terms
+without participant consent).
+
+### D64. Dwell and workout overlap are unions of observed absolute-time segments
+
+**What.** Credited dwell is the sum of consecutive `inside -> inside` sample
+intervals whose gap is no greater than the geofence's configured maximum.
+Outside, low-accuracy, or simulated points break the chain. A long sampling gap
+also breaks it; the server does not fill an unobserved interval.
+
+Workout validation intersects its half-open absolute range with those credited
+segments and sums the intersections. It does not intersect against the
+first-to-last visit envelope, which can contain broken or unobserved gaps.
+All inputs are `timestamptz` instants. Touching `[start, end)` endpoints do not
+overlap, and neither a participant timezone nor a calendar is consulted.
+
+**Why.** Sampling is discrete, so there is no perfectly knowable continuous
+visit. Crediting only bounded adjacent observations is conservative,
+deterministic, and explainable from the ledger. Using the visit envelope would
+award a workout that happened during a ten-minute gap between two otherwise
+valid samples. Absolute half-open arithmetic gives the same answer through DST,
+offset changes, and reordered input.
+
+One workout is attached to one check-in in M6. Supporting a workout set would
+need a canonical union and a product rule for mixed provenance; silently
+inventing either would make the first implementation impossible to reproduce.
+
+**Rejected.** Client-calculated dwell (not authoritative). A fixed number of
+inside samples (depends on sampling frequency). Filling gaps up to the whole
+visit (credits time without evidence). Local wall-clock overlap (ambiguous at
+DST folds and nonexistent at gaps).
+
+### D65. Only accepted check-ins reserve visit and workout evidence
+
+**What.** Accepted rows are subject to three database-enforced replay rules:
+one user cannot have overlapping accepted visit ranges, cannot have overlapping
+accepted workout ranges, and cannot accept the same workout UUID twice. The two
+range rules are partial GiST exclusions using the existing `btree_gist`
+extension. They apply across contests for the user, and half-open boundaries may
+touch. Failed attempts remain in the audit ledger but reserve nothing, so a
+corrected submission can reuse the real workout.
+
+The caller-generated check-in UUID is unique per user. An identical retry is
+recognized by the SHA-256 digest of the exact signed bytes before the shared App
+Attest counter is consumed and returns the original result. Reusing the UUID
+with different bytes fails loudly. A per-user profile lock serializes the
+idempotency lookup, assertion counter, and accepted-range decision, while the
+constraints remain the final concurrency backstop.
+
+**Why.** The same physical presence or workout must not validate two simultaneous
+claims simply because they name different contests or device keys. Making only
+accepted evidence reserve time avoids turning a low-accuracy first attempt into
+a permanent denial of service against its corrected retry. Digest-bound
+idempotency handles the common timeout-after-commit case without weakening the
+monotonic assertion counter.
+
+**Rejected.** A uniqueness check in the Edge Function (races across instances).
+Consuming the assertion counter before checking an identical retry (makes a safe
+network retry look like a replay attack). Excluding failed ranges (lets invalid
+evidence block valid evidence). Treating boundary-touching workouts as overlap
+(half-open intervals share no elapsed time).
+
+### D66. M6 remains an integrity sidecar, and only accepted attested locations travel
+
+**What.** Check-in validation never updates `metric_snapshots`,
+`contest_evidence`, admissibility, qualification, or totals. The
+`contest_checkin_integrity` view supplies two new versioned signals under
+`m6-v1`: `geofence_checkin_failure` for venue/window/dwell/visit failures and
+`workout_overlap_validation` for workout trust, reuse, and overlap failures.
+Historical `m5-v2` and `m5-v3` tuning objects remain loadable with both rules
+disabled, so an old assessment does not acquire a new penalty.
+
+`contest_location_observations` is the concrete producer D59 anticipated. It
+contains only `inside` samples from an `accepted` and `attested` check-in.
+Simulated, inaccurate, outside, failed, and development-bypass observations
+remain visible to their owner and the service in the raw audit ledger but cannot
+raise `impossible_travel` or expose a failed location to a rival.
+The portable Swift evaluator mirrors distance, dwell, and overlap only for
+immediate UX; Postgres remains authoritative. Its retry queue retains the exact
+body bytes that App Attest signed.
+
+**Why.** A geofence result is a useful credibility signal, but it does not prove
+that an otherwise admissible HealthKit total is false. Rewriting the evidence or
+score would create a second scoring engine and erase the distinction between
+"reported activity" and "venue validation failed." Feeding only trusted,
+explicit coordinates into impossible travel finally enables that rule without
+pretending timezone or aggregate exercise data locates a person.
+
+**Rejected.** Deleting or filtering metric evidence after a failed check-in
+(silent disqualification). Feeding every raw location to impossible travel
+(turns spoofed evidence into a penalty). Making Swift's advisory answer
+authoritative (two engines can diverge). Re-encoding queued JSON on retry
+(changes the bytes the assertion covers).
+
 ---
 
 ## Decisions deferred, with a current default
@@ -1684,10 +1883,8 @@ groups).
 
 M3 resolved one more and sharpened a second. Provenance handling now has a
 concrete shape (D38, D39: the client reports everything and the server decides
-what counts), and the timezone-change deferral below is unchanged in its default
-but is now load-bearing in a new place — the frozen zone is what a bucket is
-aligned to (D36), so a mid-contest change would not merely shift a day boundary,
-it would invalidate every bucket already banked.
+what counts), while D36 made any later timezone-change design preserve the zone
+that governed every banked bucket.
 
 M4 finished the tie-break menu M2 left half-open: each option now has a
 computation (D51 for when a tie-break is reached at all, D54 for what happens
@@ -1700,10 +1897,9 @@ is now the gating dependency for settling the most common contest there is.
 The engine already takes the scores as an optional input, so M5 supplies them
 rather than changing the engine.
 
-M5 also resolves the source-reputation split M3 left intentionally open.
-`third_party` remains admissible, while D61's versioned allow-list and bounded
-tiers affect only the integrity score. The only M5 product flow still deferred
-below is timezone-change consent.
+M5 resolves the integrity-score configuration (D57–D58), explicit location
+signals (D59), retroactive review (D60), source reputation (D61), and the
+timezone-change consent path (D62).
 
 - **Quarantine and group approval (resolved by D60).** A duel needs its opponent;
   a group needs a strict majority of other accepted participants. Silence stays
@@ -1749,12 +1945,10 @@ below is timezone-change consent.
   default, consistent with `group_members` in M1. The real answer is probably to
   anonymise the profile rather than delete the row, and it belongs with
   settlement, where the obligation it would erase actually exists.
-- **Timezone change mid-contest (M5).** D5 allows a genuine relocation with
-  opponent consent plus an integrity flag. M2 makes
-  `contest_participants.timezone` strictly immutable instead, because there is no
-  flag to raise until M5 and a consent flow with nothing to record is worse than
-  no flow. Default: immutable, and a relocating participant lives with their
-  frozen zone for the rest of the contest.
+- **Timezone change mid-contest (resolved by D62).** The accepted zone remains
+  the immutable base. A unanimously approved, server-timed event starts a
+  prospective epoch; ingest and scoring preserve the earlier zone and drop only
+  transition-cut hours and days.
 - **Group contest visibility to the rest of the group (M8).** `contests` is
   readable by its participants only, so a group contest is invisible to group
   members who are not in it (D33). A group feed is plausibly wanted. It should be

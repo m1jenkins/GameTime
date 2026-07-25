@@ -131,7 +131,7 @@ export interface EvidenceBucket {
   readonly metric: ContestMetric;
   /** ISO instant, aligned to a whole hour in the participant's zone (D36). */
   readonly bucketStart: string;
-  /** `YYYY-MM-DD`, stamped by the server from the frozen zone (D37). */
+  /** `YYYY-MM-DD`, stamped by the server from the applicable zone epoch (D37/D62). */
   readonly localDay: LocalDay;
   readonly localHour: number;
   readonly value: NumericValue;
@@ -141,10 +141,31 @@ export interface EvidenceBucket {
   readonly lastRecordedAt: string;
 }
 
+/**
+ * One approved timezone change, applied prospectively during the contest.
+ *
+ * `RosterEntry.timezone` remains the participant's initial zone. These events
+ * form a chronological chain from that base zone.
+ */
+export interface TimezoneChange {
+  readonly userId: string;
+  readonly fromTimezone: string;
+  readonly toTimezone: string;
+  /** ISO instant strictly inside the contest window. */
+  readonly effectiveAt: string;
+}
+
 export interface ScoringInput {
   readonly contest: ContestTerms;
   readonly roster: readonly RosterEntry[];
   readonly evidence: readonly EvidenceBucket[];
+  /**
+   * The complete applied timezone-change ledger for this contest.
+   *
+   * Callers must provide this even when it is empty: silently treating an
+   * omitted ledger as "no changes" could score an incomplete snapshot.
+   */
+  readonly timezoneChanges: readonly TimezoneChange[];
   /**
    * Integrity scores keyed by user id, supplied by M5's integrity assessor.
    *
@@ -165,6 +186,8 @@ export type ExclusionReason =
   | "outside_window"
   /** In a part-day at a window edge, which daily cadence does not ask about. */
   | "partial_local_day"
+  /** The hour crosses an applied timezone change and belongs to neither epoch. */
+  | "timezone_transition"
   /** Not on the accepted roster. */
   | "unscored_participant";
 
@@ -184,6 +207,8 @@ export interface EvidenceSummary {
 
 export interface DayStanding {
   readonly localDay: LocalDay;
+  /** The timezone epoch in which this civil day was scored. */
+  readonly timezone: string;
   readonly value: number;
   readonly qualified: boolean;
   /** When this day's target was crossed, or `null` if it was not. */
@@ -315,9 +340,117 @@ const BUCKET_MS = 3_600_000;
 // Scoring
 // ---------------------------------------------------------------------------
 
+interface PreparedTimezoneChange {
+  readonly change: TimezoneChange;
+  readonly effectiveAt: number;
+  readonly inputIndex: number;
+}
+
+interface TimezoneEpoch {
+  readonly index: number;
+  readonly startsAt: number;
+  readonly endsAt: number;
+  readonly timezone: string;
+}
+
+interface ScoreableEpochDay {
+  readonly key: string;
+  readonly localDay: LocalDay;
+  readonly timezone: string;
+}
+
+/**
+ * Validates accepted participants' applied events and turns them into
+ * prospective, non-overlapping timezone epochs. Changes for everybody else are
+ * deliberately ignored: they cannot affect standings or integrity.
+ */
+function timezoneEpochsByParticipant(
+  scored: readonly RosterEntry[],
+  changes: readonly TimezoneChange[],
+  windowStart: number,
+  windowEnd: number,
+): ReadonlyMap<string, readonly TimezoneEpoch[]> {
+  const accepted = new Map(scored.map((entry) => [entry.userId, entry]));
+  const byParticipant = new Map<string, PreparedTimezoneChange[]>();
+  for (const entry of scored) byParticipant.set(entry.userId, []);
+
+  changes.forEach((change, inputIndex) => {
+    const participantChanges = byParticipant.get(change.userId);
+    if (participantChanges === undefined) return;
+
+    const effectiveAt = instantOf(
+      change.effectiveAt,
+      `timezoneChanges[${inputIndex}].effectiveAt`,
+    );
+    if (effectiveAt <= windowStart || effectiveAt >= windowEnd) {
+      throw new ScoringError(
+        `timezoneChanges[${inputIndex}].effectiveAt must be strictly inside the contest window`,
+      );
+    }
+    if (change.fromTimezone === change.toTimezone) {
+      throw new ScoringError(
+        `timezoneChanges[${inputIndex}] must change to a distinct timezone`,
+      );
+    }
+
+    participantChanges.push({ change, effectiveAt, inputIndex });
+  });
+
+  const epochsByParticipant = new Map<string, readonly TimezoneEpoch[]>();
+  for (const [userId, participantChanges] of byParticipant) {
+    participantChanges.sort((a, b) => a.effectiveAt - b.effectiveAt);
+    const participant = accepted.get(userId);
+    if (participant === undefined) continue;
+
+    let expectedFrom = participant.timezone;
+    let epochStart = windowStart;
+    const epochs: TimezoneEpoch[] = [];
+
+    participantChanges.forEach((prepared, index) => {
+      const previous = participantChanges[index - 1];
+      if (previous !== undefined && prepared.effectiveAt <= previous.effectiveAt) {
+        throw new ScoringError(
+          `timezone changes for ${userId} must have strictly increasing effectiveAt instants`,
+        );
+      }
+      if (prepared.change.fromTimezone !== expectedFrom) {
+        throw new ScoringError(
+          `timezoneChanges[${prepared.inputIndex}].fromTimezone must be ${
+            JSON.stringify(expectedFrom)
+          }`,
+        );
+      }
+
+      epochs.push({
+        index,
+        startsAt: epochStart,
+        endsAt: prepared.effectiveAt,
+        timezone: expectedFrom,
+      });
+      epochStart = prepared.effectiveAt;
+      expectedFrom = prepared.change.toTimezone;
+    });
+
+    epochs.push({
+      index: participantChanges.length,
+      startsAt: epochStart,
+      endsAt: windowEnd,
+      timezone: expectedFrom,
+    });
+    epochsByParticipant.set(userId, epochs);
+  }
+
+  return epochsByParticipant;
+}
+
+function epochDayKey(epochIndex: number, localDay: LocalDay): string {
+  return `${epochIndex}\u0000${localDay}`;
+}
+
 interface PreparedBucket {
   readonly startsAt: number;
   readonly endsAt: number;
+  readonly epochIndex: number;
   readonly localDay: LocalDay;
   readonly hundredths: number;
   readonly sampleCount: number;
@@ -375,7 +508,10 @@ function sumHundredths(buckets: readonly PreparedBucket[]): number {
 }
 
 export function scoreContest(input: ScoringInput): ContestScoring {
-  const { contest, roster, evidence } = input;
+  const { contest, roster, evidence, timezoneChanges } = input;
+  if (!Array.isArray(timezoneChanges)) {
+    throw new ScoringError("timezoneChanges must be supplied as an array");
+  }
 
   const windowStart = instantOf(contest.startsAt, "contest.startsAt");
   const windowEnd = instantOf(contest.endsAt, "contest.endsAt");
@@ -392,23 +528,47 @@ export function scoreContest(input: ScoringInput): ContestScoring {
   // `lapsed` are all on the roster for M7's reliability score to read, and none
   // of them agreed to a stake that is still live.
   const scored = roster.filter((entry) => entry.status === "accepted");
+  const timezoneEpochs = timezoneEpochsByParticipant(
+    scored,
+    timezoneChanges,
+    windowStart,
+    windowEnd,
+  );
 
   const excluded: Record<ExclusionReason, number> = {
     other_metric: 0,
     outside_window: 0,
     partial_local_day: 0,
+    timezone_transition: 0,
     unscored_participant: 0,
   };
 
-  // Scoreable days per participant, since each has their own frozen zone.
-  const scoreable = new Map<string, readonly LocalDay[]>();
-  const scoreableSet = new Map<string, Set<LocalDay>>();
+  // Scoreable days per participant and timezone epoch. An applied change cuts
+  // both adjoining local days at the transition instant; asking each epoch for
+  // whole days drops those partial edges naturally.
+  const scoreable = new Map<string, readonly ScoreableEpochDay[]>();
+  const scoreableSet = new Map<string, Set<string>>();
   for (const entry of scored) {
-    const days = contest.cadence === "daily"
-      ? scoreableLocalDays(new Date(windowStart), new Date(windowEnd), entry.timezone)
-      : [];
+    const days: ScoreableEpochDay[] = [];
+    if (contest.cadence === "daily") {
+      for (const epoch of timezoneEpochs.get(entry.userId) ?? []) {
+        for (
+          const localDay of scoreableLocalDays(
+            new Date(epoch.startsAt),
+            new Date(epoch.endsAt),
+            epoch.timezone,
+          )
+        ) {
+          days.push({
+            key: epochDayKey(epoch.index, localDay),
+            localDay,
+            timezone: epoch.timezone,
+          });
+        }
+      }
+    }
     scoreable.set(entry.userId, days);
-    scoreableSet.set(entry.userId, new Set(days));
+    scoreableSet.set(entry.userId, new Set(days.map((day) => day.key)));
   }
 
   const byParticipant = new Map<string, PreparedBucket[]>();
@@ -455,7 +615,18 @@ export function scoreContest(input: ScoringInput): ContestScoring {
     }
     seenLocalDay.set(key, row.localDay);
 
-    if (contest.cadence === "daily" && scoreableSet.get(row.userId)?.has(row.localDay) !== true) {
+    const epoch = timezoneEpochs.get(row.userId)?.find(
+      (candidate) => startsAt >= candidate.startsAt && endsAt <= candidate.endsAt,
+    );
+    if (epoch === undefined) {
+      excluded.timezone_transition += 1;
+      continue;
+    }
+
+    if (
+      contest.cadence === "daily" &&
+      scoreableSet.get(row.userId)?.has(epochDayKey(epoch.index, row.localDay)) !== true
+    ) {
       excluded.partial_local_day += 1;
       continue;
     }
@@ -465,6 +636,7 @@ export function scoreContest(input: ScoringInput): ContestScoring {
     buckets.push({
       startsAt,
       endsAt,
+      epochIndex: epoch.index,
       localDay: row.localDay,
       hundredths: toHundredths(row.value, "evidence.value"),
       sampleCount: row.sampleCount,
@@ -499,19 +671,21 @@ export function scoreContest(input: ScoringInput): ContestScoring {
     }
 
     const days = scoreable.get(entry.userId) ?? [];
-    const bucketsByDay = new Map<LocalDay, PreparedBucket[]>();
+    const bucketsByDay = new Map<string, PreparedBucket[]>();
     for (const bucket of buckets) {
-      const existing = bucketsByDay.get(bucket.localDay);
-      if (existing === undefined) bucketsByDay.set(bucket.localDay, [bucket]);
+      const key = epochDayKey(bucket.epochIndex, bucket.localDay);
+      const existing = bucketsByDay.get(key);
+      if (existing === undefined) bucketsByDay.set(key, [bucket]);
       else existing.push(bucket);
     }
 
-    const dayStandings: DayStanding[] = days.map((localDay) => {
-      const dayBuckets = bucketsByDay.get(localDay) ?? [];
+    const dayStandings: DayStanding[] = days.map((day) => {
+      const dayBuckets = bucketsByDay.get(day.key) ?? [];
       const dayHundredths = sumHundredths(dayBuckets);
       const reachedAt = crossingInstant(dayBuckets, targetHundredths);
       return {
-        localDay,
+        localDay: day.localDay,
+        timezone: day.timezone,
         value: fromHundredths(dayHundredths),
         qualified: dayHundredths >= targetHundredths,
         reachedTargetAt: reachedAt === null ? null : new Date(reachedAt).toISOString(),

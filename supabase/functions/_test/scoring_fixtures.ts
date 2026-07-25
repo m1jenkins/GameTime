@@ -87,6 +87,8 @@ const UTC: OffsetMinutes = 0;
 const NY_WINTER: OffsetMinutes = -300;
 const NY_SUMMER: OffsetMinutes = -240;
 const KATHMANDU: OffsetMinutes = 345;
+const KIRITIMATI: OffsetMinutes = 840;
+const HONOLULU: OffsetMinutes = -600;
 
 /** The instant a given local hour starts, for a zone at a known offset. */
 function at(localDay: string, localHour: number, offset: OffsetMinutes): string {
@@ -157,6 +159,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     name: "cumulative/one-reaches-the-target",
     why: "The ordinary win: one participant clears the bar, the other does not.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000001-0000-0000-0000-000000000001",
         metric: "steps",
@@ -190,6 +193,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "did the thing they staked money on. Changing this to 'highest total " +
       "wins' would make a losing participant pay a winner who also failed.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000002-0000-0000-0000-000000000002",
         metric: "steps",
@@ -219,6 +223,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "so a float engine denies this participant a win they earned. This is " +
       "why scoring is done in integer hundredths.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000003-0000-0000-0000-000000000003",
         metric: "exercise_minutes",
@@ -249,6 +254,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     why: "PostgREST can be configured to render numeric as a string to preserve " +
       "precision. A deployment setting must not change who wins.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000004-0000-0000-0000-000000000004",
         metric: "distance_meters",
@@ -286,6 +292,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     why: "Daily cadence means every day, so a single missed day is the whole " +
       "difference between winning and not.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000005-0000-0000-0000-000000000005",
         metric: "steps",
@@ -318,6 +325,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     name: "daily/nobody-perfect-voids",
     why: "Same rule as the cumulative case: no qualifier, no settlement.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000006-0000-0000-0000-000000000006",
         metric: "steps",
@@ -350,6 +358,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "higher total would silently apply a tie-break the participants did not " +
       "agree to.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000007-0000-0000-0000-000000000007",
         metric: "steps",
@@ -382,6 +391,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     name: "daily/both-perfect-with-integrity-scores",
     why: "The same contest once M5 supplies the numbers. Cleaner data wins the tie.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000008-0000-0000-0000-000000000008",
         metric: "steps",
@@ -412,6 +422,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "comparable. Bob's evidence in the part-days at each edge is dropped from " +
       "numerator and denominator alike.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000009-0000-0000-0000-000000000009",
         metric: "steps",
@@ -452,6 +463,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "and it is scored as one, which is what aligning buckets to the local " +
       "hour rather than to multiples of 3600 seconds buys (D36).",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a000000a-0000-0000-0000-00000000000a",
         metric: "steps",
@@ -478,6 +490,54 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     },
   },
 
+  {
+    name: "daily/a-civil-date-repeated-across-timezone-epochs-stays-two-days",
+    why: "Relocating across the date line can repeat the same civil date. Epoch " +
+      "identity keeps those two independently scoreable days from being merged.",
+    input: {
+      timezoneChanges: [{
+        userId: ALICE,
+        fromTimezone: "Pacific/Kiritimati",
+        toTimezone: "Pacific/Honolulu",
+        effectiveAt: "2026-01-06T10:00:00Z",
+      }],
+      contest: {
+        id: "a0000018-0000-0000-0000-000000000018",
+        metric: "steps",
+        cadence: "daily",
+        targetValue: 10000,
+        tieBreak: "integrity_score",
+        startsAt: "2026-01-05T10:00:00Z",
+        endsAt: "2026-01-07T10:00:00Z",
+      },
+      roster: [
+        accepted(ALICE, "Pacific/Kiritimati"),
+        accepted(BOB, "Pacific/Kiritimati"),
+      ],
+      evidence: [
+        bucket(ALICE, "2026-01-06", 8, 6000, KIRITIMATI),
+        bucket(ALICE, "2026-01-06", 8, 6000, HONOLULU),
+        bucket(BOB, "2026-01-06", 8, 10000, KIRITIMATI),
+        bucket(BOB, "2026-01-07", 8, 10000, KIRITIMATI),
+      ],
+    },
+    outcome: { kind: "winner", userId: BOB, decidedBy: "sole_qualifier" },
+    participants: {
+      [ALICE]: {
+        qualified: false,
+        total: 12000,
+        qualifyingDays: 0,
+        scoreableDays: 2,
+      },
+      [BOB]: {
+        qualified: true,
+        total: 20000,
+        qualifyingDays: 2,
+        scoreableDays: 2,
+      },
+    },
+  },
+
   // -------------------------------------------------------------------------
   // Tie-breaks
   // -------------------------------------------------------------------------
@@ -485,6 +545,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     name: "tie/earliest-to-target-separates",
     why: "Both cleared the bar; the one who got there in an earlier hour takes it.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a000000b-0000-0000-0000-00000000000b",
         metric: "steps",
@@ -521,6 +582,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "to, and the engine must not reach for user id — settling a donation by " +
       "whose UUID sorts lower is indefensible.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a000000c-0000-0000-0000-00000000000c",
         metric: "steps",
@@ -547,6 +609,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     name: "tie/void",
     why: "The tie-break the participants chose says nobody donates.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a000000d-0000-0000-0000-00000000000d",
         metric: "steps",
@@ -570,6 +633,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     why: "`both_donate` is named for the duel it was designed around. With three " +
       "qualifiers every one of them donates, each to their own nomination.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a000000e-0000-0000-0000-00000000000e",
         metric: "steps",
@@ -599,6 +663,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "and their evidence — Carol withdrew but her client kept syncing — must " +
       "not appear in standings at all.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a000000f-0000-0000-0000-00000000000f",
         metric: "steps",
@@ -631,6 +696,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "upstream is wrong, and scoring it would invent a winner out of a " +
       "contest with no meaning.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000010-0000-0000-0000-000000000010",
         metric: "steps",
@@ -653,6 +719,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     name: "roster/a-participant-with-no-evidence-at-all",
     why: "Silence is a score of zero, not an error and not a vacuous perfect record.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000011-0000-0000-0000-000000000011",
         metric: "steps",
@@ -692,6 +759,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "enormous active energy into a step contest. Only the contest's own metric " +
       "may be counted.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000012-0000-0000-0000-000000000012",
         metric: "steps",
@@ -726,6 +794,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "also what re-scores a disputed contest years later, from a ledger a " +
       "migration or backfill may since have touched.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000013-0000-0000-0000-000000000013",
         metric: "steps",
@@ -765,6 +834,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "contest asks about, so this buys nothing — which is also what stops the " +
       "same evidence from manufacturing a phantom qualifying day.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000014-0000-0000-0000-000000000014",
         metric: "steps",
@@ -803,6 +873,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "The engine must refuse rather than pick one, because the row it picked " +
       "would decide a day's total and nobody could tell which it chose.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000015-0000-0000-0000-000000000015",
         metric: "steps",
@@ -832,6 +903,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "could audit. What the engine owes M5 is the aggregate that makes the " +
       "call: maxBucketValue carries the hour.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000016-0000-0000-0000-000000000016",
         metric: "steps",
@@ -861,6 +933,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       "reporting lag is exactly what separates a late sync from a fabrication, " +
       "so it is surfaced: maxReportingLagMs is what M5's quarantine rule reads.",
     input: {
+      timezoneChanges: [],
       contest: {
         id: "a0000017-0000-0000-0000-000000000017",
         metric: "steps",

@@ -1,17 +1,16 @@
 /**
- * Which local days a contest window wholly covers, in a participant's frozen
- * zone.
+ * Which local days an instant window wholly covers in one timezone epoch.
  *
  * This is the one piece of timezone arithmetic the scoring engine does, and it
  * is deliberately the *only* piece. Day attribution for a measurement is not
  * computed here: M3 stamps `local_day` onto every ledger row from the
- * participant's frozen zone at insert, and D37 rejected recomputing it in the
+ * applicable timezone epoch at insert, and D37 rejected recomputing it in the
  * engine precisely so that the engine and a dashboard cannot reach different
  * days from the same row. What the engine still has to work out for itself is
- * the *denominator* — the set of days a daily-cadence contest is asking about —
- * because that is a fact about the window and the zone, not about any row, and
- * a participant who submitted nothing would otherwise have a vacuously perfect
- * record.
+ * the *denominator* — the set of days a daily-cadence contest is asking about
+ * within each epoch — because that is a fact about the window and the zone, not
+ * about any row, and a participant who submitted nothing would otherwise have
+ * a vacuously perfect record.
  *
  * Only whole local days count. A participant whose offset does not line the
  * window up with their midnight loses a partial day at each end, which is the
@@ -47,10 +46,11 @@ export type LocalDay = string;
 /**
  * Thrown for a zone ICU does not know.
  *
- * M1 validates `contest_participants.timezone` against `pg_timezone_names`, so
- * a zone reaching here that ICU rejects means Postgres's tzdata and the
- * runtime's have diverged. That is worth failing loudly over: the quiet
- * alternative is scoring a daily contest against zero days, which reads as
+ * The database validates both the base and applied timezones against
+ * `pg_timezone_names`, so a zone reaching here that ICU rejects means
+ * Postgres's tzdata and the runtime's have diverged. That is worth failing
+ * loudly over. The quiet alternative is scoring a daily contest against zero
+ * days, which reads as
  * "nobody qualified" and voids a contest people staked money on.
  */
 export class UnknownTimeZoneError extends Error {
@@ -165,7 +165,11 @@ export function scoreableLocalDays(
   const start = localPartsAt(startsAt, timeZone);
   const end = localPartsAt(endsAt, timeZone);
 
-  const firstDay = civilDayNumber(start) + (isLocalMidnight(start) ? 0 : 1);
+  // Intl exposes wall-clock seconds but not the Date's fractional millisecond.
+  // Treat 00:00:00.001 as a part-day, not as an exact midnight epoch boundary.
+  const startsAtExactMidnight = isLocalMidnight(start) &&
+    startsAt.getUTCMilliseconds() === 0;
+  const firstDay = civilDayNumber(start) + (startsAtExactMidnight ? 0 : 1);
   const lastDay = civilDayNumber(end) - 1;
 
   const days: LocalDay[] = [];
