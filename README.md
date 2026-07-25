@@ -328,6 +328,16 @@ whose admissibility disagrees with its provenance.
 Provenance is part of the ledger's key, which is what stops one stray hand-typed
 step from voiding an hour that also holds five thousand genuine ones.
 
+M5 reads the same metadata through `contest_evidence_sources`, a
+`security_invoker` sidecar view that selects the current admissible contribution
+for each provenance without changing `contest_evidence`. The `m5-v2` integrity
+configuration carries a reviewed bundle-identifier allow-list and separate,
+tunable penalties for an unrecognized, missing, or malformed third-party
+identifier. Device provenance is not subject to that rule. Every third-party row
+still counts toward the target; reputation can only raise
+`third_party_source_reputation` flags and lower the bounded integrity score used
+by a declared tie-break.
+
 ### What is refused, and where
 
 | Rule                                             | Enforced by |
@@ -341,7 +351,7 @@ step from voiding an hour that also holds five thousand genuine ones.
 | The bucket is aligned to the participant's hour  | SQL |
 | A figure is not revised downward                 | SQL |
 | Nothing rewrites the ledger                      | SQL |
-| Whether a *particular* app is trustworthy        | deferred M5 source-reputation rule |
+| Whether a *particular* app is trustworthy        | not refused; M5 integrity-score sidecar |
 
 The split is DECISIONS.md D6's: crypto in TypeScript, invariants in SQL. The
 counter is the sharpest example — it is checked in SQL specifically because the
@@ -499,9 +509,10 @@ report must work, and be visible in the summary.
 
 `supabase/functions/_shared/integrity.ts` is a pure sidecar to the M4 engine. Its
 configuration has a version, per-metric hourly ceilings, corroboration rules,
-travel distance/speed limits, lag and quarantine thresholds, severity, points
-per flag, and per-rule penalty caps. The default score starts at 100 and floors
-at 0, but those are configuration too.
+reviewed third-party bundle identifiers and reputation tiers, travel
+distance/speed limits, lag and quarantine thresholds, severity, points per flag,
+and per-rule penalty caps. The default score starts at 100 and floors at 0, but
+those are configuration too.
 
 The assessor emits explicit flags:
 
@@ -509,6 +520,7 @@ The assessor emits explicit flags:
 | --- | --- |
 | `plausibility_ceiling` | One hourly metric exceeds its configured ceiling. |
 | `cross_metric_corroboration` | A large contest-metric hour has none of its configured companion signals. |
+| `third_party_source_reputation` | An admissible third-party contribution has an unrecognized, missing, or malformed bundle identifier. |
 | `impossible_travel` | Two trusted location observations require travel above the configured speed after subtracting both accuracy radii. |
 | `reporting_lag` | An hour arrived materially after it closed. |
 | `retroactive_evidence_quarantine` | The lag crosses the review-required threshold. |
@@ -597,9 +609,9 @@ changing it is one line in `Package.swift`.
 - [x] **M2** — Contest creation, invitations, participant state machine
 - [x] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
 - [x] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
-- [ ] **M5** — Core anti-cheat rules, review quarantine, and integrity scoring
-      are implemented. Third-party source reputation and the timezone-change
-      consent flow remain.
+- [ ] **M5** — Core anti-cheat rules, review quarantine, integrity scoring, and
+      third-party source reputation are implemented. The timezone-change consent
+      flow remains.
 - [ ] **M6** — Geofence check-ins and workout-overlap validation
 - [ ] **M7** — Settlement, disputes, charity pledge lifecycle, cron finalization
 - [ ] **M8** — Minimal SwiftUI shell

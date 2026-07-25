@@ -7,6 +7,7 @@ import {
   type IntegrityInput,
   type IntegrityTuning,
   scoreContestWithIntegrity,
+  type SourceEvidence,
 } from "./integrity.ts";
 import { ScoringError } from "./scoring.ts";
 
@@ -39,6 +40,46 @@ function withTuning(
   patch: Partial<IntegrityTuning>,
 ): IntegrityTuning {
   return { ...DEFAULT_INTEGRITY_TUNING, ...patch };
+}
+
+function cleanTieInput(): IntegrityInput {
+  const base = corpusInput("daily/both-perfect-with-no-integrity-scores");
+  const aliceEvidence = base.evidence.filter((row) => row.userId === ALICE);
+  return {
+    ...base,
+    evidence: [
+      ...aliceEvidence,
+      ...aliceEvidence.map((row) => ({ ...row, userId: BOB })),
+    ],
+  };
+}
+
+function sourceEvidenceFor(
+  input: IntegrityInput,
+  userId: string,
+  sourceBundleId: string | null,
+  provenance: SourceEvidence["provenance"] = "third_party",
+): SourceEvidence[] {
+  return input.evidence
+    .filter((row) => row.userId === userId)
+    .map((row) => ({
+      userId,
+      metric: row.metric,
+      bucketStart: row.bucketStart,
+      provenance,
+      sourceBundleId,
+    }));
+}
+
+function oneSourceEvidence(
+  input: IntegrityInput,
+  userId: string,
+  sourceBundleId: string | null,
+  provenance: SourceEvidence["provenance"] = "third_party",
+): SourceEvidence {
+  const source = sourceEvidenceFor(input, userId, sourceBundleId, provenance)[0];
+  if (source === undefined) throw new Error(`fixture has no evidence for ${userId}`);
+  return source;
 }
 
 Deno.test("an hourly plausibility ceiling raises a flag and does not discard the bucket", () => {
@@ -107,6 +148,210 @@ Deno.test("corroborating metrics remain excluded from the contest total", () => 
 
   assertEquals(bob?.total, 4_000);
   assertEquals(result.scoring.excluded.other_metric, 2);
+});
+
+Deno.test("a known third-party bundle is reputation-clean", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    sourceEvidence: [
+      oneSourceEvidence(base, BOB, "COM.STRAVA.STRAVARIDE"),
+    ],
+  };
+  const result = assessContestIntegrity(input);
+
+  assertEquals(
+    codes(result, BOB).includes("third_party_source_reputation"),
+    false,
+  );
+  assertEquals(
+    participant(result, BOB).penalties.third_party_source_reputation,
+    0,
+  );
+});
+
+Deno.test("an unknown but well-formed third-party bundle gets the unrecognized tier", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    sourceEvidence: [
+      oneSourceEvidence(base, BOB, "com.example.unreviewed"),
+    ],
+  };
+  const result = assessContestIntegrity(input);
+  const sourceFlag = participant(result, BOB).flags.find(
+    (candidate) => candidate.code === "third_party_source_reputation",
+  );
+
+  assertEquals(sourceFlag?.details.reputationTier, "unrecognized");
+  assertEquals(sourceFlag?.details.evidenceStillScores, true);
+  assertEquals(
+    participant(result, BOB).penalties.third_party_source_reputation,
+    5,
+  );
+});
+
+Deno.test("a missing third-party bundle id gets its own tunable tier", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    sourceEvidence: [oneSourceEvidence(base, BOB, null)],
+  };
+  const result = assessContestIntegrity(input);
+  const sourceFlag = participant(result, BOB).flags.find(
+    (candidate) => candidate.code === "third_party_source_reputation",
+  );
+
+  assertEquals(sourceFlag?.details.reputationTier, "missing");
+  assertEquals(sourceFlag?.details.sourceBundleId, null);
+  assertEquals(
+    participant(result, BOB).penalties.third_party_source_reputation,
+    10,
+  );
+});
+
+Deno.test("a malformed third-party bundle id is flagged without rejecting evidence", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    sourceEvidence: [
+      oneSourceEvidence(base, BOB, "not a bundle id"),
+    ],
+  };
+  const result = scoreContestWithIntegrity(input);
+  const sourceFlag = participant(result.integrity, BOB).flags.find(
+    (candidate) => candidate.code === "third_party_source_reputation",
+  );
+  const bob = result.scoring.standings.find((candidate) => candidate.userId === BOB);
+
+  assertEquals(sourceFlag?.details.reputationTier, "malformed");
+  assertEquals(sourceFlag?.details.evidenceStillScores, true);
+  assertEquals(bob?.total, 20_000);
+  assertEquals(bob?.qualified, true);
+});
+
+Deno.test("device provenance never receives a third-party source penalty", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    sourceEvidence: [
+      oneSourceEvidence(base, BOB, "not a bundle id", "device"),
+    ],
+  };
+  const result = assessContestIntegrity(input);
+
+  assertEquals(
+    codes(result, BOB).includes("third_party_source_reputation"),
+    false,
+  );
+});
+
+Deno.test("the reviewed bundle allow-list is versioned, tunable data", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    sourceEvidence: [
+      oneSourceEvidence(base, BOB, "com.example.unreviewed"),
+    ],
+  };
+  const tuning = withTuning({
+    version: "test-reviewed-source",
+    sourceReputation: {
+      ...DEFAULT_INTEGRITY_TUNING.sourceReputation,
+      knownBundleIds: [
+        ...DEFAULT_INTEGRITY_TUNING.sourceReputation.knownBundleIds,
+        "com.example.unreviewed",
+      ],
+    },
+  });
+  const result = assessContestIntegrity(input, tuning);
+
+  assertEquals(result.ruleVersion, "test-reviewed-source");
+  assertEquals(
+    codes(result, BOB).includes("third_party_source_reputation"),
+    false,
+  );
+});
+
+Deno.test("source reputation can be disabled without changing evidence", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    sourceEvidence: sourceEvidenceFor(base, BOB, null),
+  };
+  const tuning = withTuning({
+    version: "test-disabled-source-reputation",
+    sourceReputation: {
+      ...DEFAULT_INTEGRITY_TUNING.sourceReputation,
+      enabled: false,
+    },
+  });
+  const result = scoreContestWithIntegrity(input, tuning);
+  const bob = result.scoring.standings.find((candidate) => candidate.userId === BOB);
+
+  assertEquals(
+    codes(result.integrity, BOB).includes("third_party_source_reputation"),
+    false,
+  );
+  assertEquals(bob?.total, 20_000);
+});
+
+Deno.test("source reputation penalties are capped across repeated buckets", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    sourceEvidence: sourceEvidenceFor(base, BOB, null),
+  };
+  const result = assessContestIntegrity(input);
+
+  assertEquals(
+    participant(result, BOB).flags.filter(
+      (candidate) => candidate.code === "third_party_source_reputation",
+    ).length,
+    4,
+  );
+  assertEquals(
+    participant(result, BOB).penalties.third_party_source_reputation,
+    30,
+  );
+});
+
+Deno.test("repeated source rows are deterministic evaluator retries", () => {
+  const base = cleanTieInput();
+  const source = oneSourceEvidence(base, BOB, "com.example.unreviewed");
+  const first = assessContestIntegrity({
+    ...base,
+    sourceEvidence: [source],
+  });
+  const retry = assessContestIntegrity({
+    ...base,
+    sourceEvidence: [source, source],
+  });
+
+  assertEquals(retry, first);
+});
+
+Deno.test("third-party source reputation resolves an otherwise clean integrity tie", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    sourceEvidence: [
+      ...sourceEvidenceFor(base, ALICE, "com.strava.stravaride"),
+      ...sourceEvidenceFor(base, BOB, "com.example.unreviewed"),
+    ],
+  };
+  const result = scoreContestWithIntegrity(input);
+  const alice = result.scoring.standings.find((candidate) => candidate.userId === ALICE);
+  const bob = result.scoring.standings.find((candidate) => candidate.userId === BOB);
+
+  assertEquals(alice?.total, bob?.total);
+  assertEquals(result.integrity.scores[ALICE], 100);
+  assertEquals(result.integrity.scores[BOB], 80);
+  assertEquals(result.scoring.outcome, {
+    kind: "winner",
+    userId: ALICE,
+    decidedBy: "integrity_score",
+  });
 });
 
 Deno.test("impossible travel uses conservative distance after location accuracy", () => {

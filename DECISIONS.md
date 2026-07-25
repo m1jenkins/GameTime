@@ -1548,10 +1548,10 @@ a complete set).
 
 **What.** Launch tuning lives in `DEFAULT_INTEGRITY_TUNING`: per-metric hourly
 ceilings, same-hour corroboration rules, minimum travel distance, maximum travel
-speed and gap, reporting-lag and quarantine thresholds, severities, points per
-flag, and per-rule penalty caps. The default scale starts at 100, subtracts
-capped penalties, and floors at 0. Every assessment names the configuration
-version.
+speed and gap, reviewed third-party bundle identifiers and reputation tiers,
+reporting-lag and quarantine thresholds, severities, points per flag, and
+per-rule penalty caps. The default scale starts at 100, subtracts capped
+penalties, and floors at 0. Every assessment names the configuration version.
 
 **Why.** These numbers will move against real data. Keeping them in one data
 object makes a tune a reviewed configuration change rather than a rewrite of
@@ -1624,6 +1624,49 @@ admissibility).
 **Revisit if.** Product wants reviewers to revise a mistaken vote. That needs a
 new append-only supersession row and an explicit window, not UPDATE.
 
+### D61. Third-party reputation is a versioned sidecar, never admissibility
+
+**What.** `contest_evidence_sources` exposes the current M3 `provenance` and
+`source_bundle_id` beside, rather than inside, `contest_evidence`. It is a
+`security_invoker` view over the same RLS-protected ledger. Within one bucket and
+provenance it follows M3's current-value rule; identical current observations
+collapse to one source signal, and equally current observations that disagree
+about their bundle identifier resolve to `NULL` instead of choosing one.
+
+`DEFAULT_INTEGRITY_TUNING.sourceReputation` carries a canonical lower-case
+allow-list plus independently weighted `unrecognized`, `missing`, and
+`malformed` tiers under one participant-level cap. The launch `m5-v2` list
+contains reviewed Garmin Connect, Nike Run Club, and Strava identifiers. A
+known identifier raises no flag. A lower tier raises
+`third_party_source_reputation`, records `evidenceStillScores: true`, and may
+lower only the complete integrity-score map passed through D57's M4 seam.
+Device provenance bypasses this third-party rule.
+
+**Why.** D38 intentionally made `third_party` admissible while reserving the
+reputation of a *particular* app for a heuristic. Bundle identifiers are useful
+signals but not proof: a malicious client has a motive to lie, and even an
+attested honest client can receive missing attribution when two HealthKit
+writers share a bucket. Versioning the list and tier weights makes later
+calibration reproducible. One shared cap prevents a participant's sync volume
+from mattering more than the reputation judgment itself.
+
+The view is deliberately parallel to `contest_evidence`. Adding provenance
+columns to M4's aggregate would either split a scored hour into extra rows or
+force the scoring engine to own a heuristic. Keeping source metadata beside the
+score preserves the one definition of each bucket while making the integrity
+decision auditable.
+
+**Rejected.** Removing unknown sources from `contest_evidence` or rewriting
+`is_admissible` (silent disqualification and a second evidence rule). A database
+CHECK or foreign key allow-list (turns a tunable reputation judgment into an
+ingest invariant). Penalizing device rows for bundle syntax (confuses audit
+metadata with first-party provenance). Counting identical retry observations as
+new flags (makes network behavior change a tie-break).
+
+**Revisit if.** The reviewed list needs an operational owner or faster release
+cadence. It should become an immutable, signed configuration selected by version,
+not a mutable lookup whose meaning can change underneath an old assessment.
+
 ---
 
 ## Decisions deferred, with a current default
@@ -1657,6 +1700,11 @@ is now the gating dependency for settling the most common contest there is.
 The engine already takes the scores as an optional input, so M5 supplies them
 rather than changing the engine.
 
+M5 also resolves the source-reputation split M3 left intentionally open.
+`third_party` remains admissible, while D61's versioned allow-list and bounded
+tiers affect only the integrity score. The only M5 product flow still deferred
+below is timezone-change consent.
+
 - **Quarantine and group approval (resolved by D60).** A duel needs its opponent;
   a group needs a strict majority of other accepted participants. Silence stays
   pending. The row remains admissible and visible; M7 fails closed by refusing
@@ -1668,11 +1716,10 @@ rather than changing the engine.
   lost can still write into the hours they lost it in. M7's finaliser must read
   the same function rather than its own copy. Default: six hours, narrowed
   further by M5's quarantine rather than by shortening it.
-- **Third-party source reputation (M5).** `third_party` provenance is admissible
-  and weighted no differently from `device` today, because telling a genuine
-  running app from a step spoofer is a heuristic with a tuning parameter (D38).
-  Proposed: a curated allow-list of well-known bundle identifiers scoring near
-  first-party, everything else scoring lower, and neither disqualifying.
+- **Third-party source reputation (resolved by D61).** `third_party` provenance
+  stays admissible. A versioned reviewed allow-list is reputation-clean;
+  unrecognized, missing, and malformed identifiers receive tunable, capped
+  integrity penalties, and identical retries collapse to the same signal.
 - **Retention on finalized contests (post-M7).** The ledger is one row per
   observation per source per hour, which is the right grain for evidence and a
   lot of rows for a contest nobody will dispute again. Nothing prunes it. The

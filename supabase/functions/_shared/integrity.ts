@@ -6,10 +6,11 @@
  * the only definition of admissibility. Integrity runs beside that path:
  *
  *   1. validate and score the unchanged M4 input;
- *   2. raise explicit, auditable flags against the same fixture-shaped data;
- *   3. start every accepted participant at the configured score and subtract
+ *   2. join optional M3 provenance metadata beside those same evidence buckets;
+ *   3. raise explicit, auditable flags against the same fixture-shaped data;
+ *   4. start every accepted participant at the configured score and subtract
  *      capped, configured penalties;
- *   4. pass the complete score map through M4's existing `integrityScores` seam.
+ *   5. pass the complete score map through M4's existing `integrityScores` seam.
  *
  * A flag is a reason to review evidence, not a verdict that it is false. Even a
  * bucket marked `retroactive_evidence_quarantine` remains in the scoring input
@@ -31,6 +32,7 @@ import {
 export type IntegrityFlagCode =
   | "plausibility_ceiling"
   | "cross_metric_corroboration"
+  | "third_party_source_reputation"
   | "impossible_travel"
   | "reporting_lag"
   | "retroactive_evidence_quarantine";
@@ -60,6 +62,31 @@ export interface RulePenalty {
   readonly severity: IntegritySeverity;
   readonly pointsPerFlag: number;
   /** Repeated observations cannot subtract more than this for one rule. */
+  readonly maxPoints: number;
+}
+
+export type SourceReputationTier =
+  | "known"
+  | "unrecognized"
+  | "missing"
+  | "malformed";
+
+export interface SourceReputationTierTuning {
+  readonly severity: IntegritySeverity;
+  readonly pointsPerFlag: number;
+}
+
+export interface SourceReputationTuning {
+  readonly enabled: boolean;
+  /**
+   * Canonical, lower-case bundle identifiers that have been reviewed for this
+   * rule version. Matching is case-insensitive after syntax validation.
+   */
+  readonly knownBundleIds: readonly string[];
+  readonly tiers: Readonly<
+    Record<Exclude<SourceReputationTier, "known">, SourceReputationTierTuning>
+  >;
+  /** All source-reputation tiers share one cap per participant. */
   readonly maxPoints: number;
 }
 
@@ -117,6 +144,7 @@ export interface IntegrityTuning {
   readonly floorScore: number;
   readonly plausibility: PlausibilityTuning;
   readonly corroboration: CorroborationTuning;
+  readonly sourceReputation: SourceReputationTuning;
   readonly travel: TravelTuning;
   readonly reportingLag: ReportingLagTuning;
   readonly retroactiveQuarantine: RetroactiveQuarantineTuning;
@@ -131,7 +159,7 @@ const DAY_MS = 86_400_000;
  * version), not the rules or the schema.
  */
 export const DEFAULT_INTEGRITY_TUNING: IntegrityTuning = {
-  version: "m5-v1",
+  version: "m5-v2",
   startingScore: 100,
   floorScore: 0,
   plausibility: {
@@ -184,6 +212,29 @@ export const DEFAULT_INTEGRITY_TUNING: IntegrityTuning = {
       },
     },
   },
+  sourceReputation: {
+    enabled: true,
+    knownBundleIds: [
+      "com.garmin.connect.mobile",
+      "com.nike.nikeplus-gps",
+      "com.strava.stravaride",
+    ],
+    tiers: {
+      unrecognized: {
+        severity: "low",
+        pointsPerFlag: 5,
+      },
+      missing: {
+        severity: "medium",
+        pointsPerFlag: 10,
+      },
+      malformed: {
+        severity: "high",
+        pointsPerFlag: 15,
+      },
+    },
+    maxPoints: 30,
+  },
   travel: {
     enabled: true,
     severity: "critical",
@@ -225,8 +276,23 @@ export interface LocationObservation {
   readonly accuracyMeters: number;
 }
 
+export type AdmissibleMetricProvenance = "device" | "third_party";
+
+/**
+ * One row of `public.contest_evidence_sources`, the M3 metadata sidecar for the
+ * current admissible contribution of one provenance to one evidence bucket.
+ */
+export interface SourceEvidence {
+  readonly userId: string;
+  readonly metric: ContestMetric;
+  readonly bucketStart: string;
+  readonly provenance: AdmissibleMetricProvenance;
+  readonly sourceBundleId?: string | null;
+}
+
 export interface IntegrityInput extends ScoringInput {
   readonly locations?: readonly LocationObservation[];
+  readonly sourceEvidence?: readonly SourceEvidence[];
 }
 
 export interface ParticipantIntegrity {
@@ -281,6 +347,14 @@ function instant(value: string, field: string): number {
   return parsed;
 }
 
+const BUNDLE_IDENTIFIER_PATTERN =
+  /^(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/;
+
+function normalizedBundleIdentifier(value: string): string | null {
+  if (value.length > 200 || !BUNDLE_IDENTIFIER_PATTERN.test(value)) return null;
+  return value.toLowerCase();
+}
+
 function validatePenalty(rule: RulePenalty, field: string): void {
   nonNegative(rule.pointsPerFlag, `${field}.pointsPerFlag`);
   nonNegative(rule.maxPoints, `${field}.maxPoints`);
@@ -304,6 +378,35 @@ function validateTuning(tuning: IntegrityTuning): void {
   validatePenalty(tuning.travel, "integrity.travel");
   validatePenalty(tuning.reportingLag, "integrity.reportingLag");
   validatePenalty(tuning.retroactiveQuarantine, "integrity.retroactiveQuarantine");
+
+  nonNegative(tuning.sourceReputation.maxPoints, "integrity.sourceReputation.maxPoints");
+  for (const [tier, rule] of Object.entries(tuning.sourceReputation.tiers)) {
+    nonNegative(
+      rule.pointsPerFlag,
+      `integrity.sourceReputation.tiers.${tier}.pointsPerFlag`,
+    );
+    if (tuning.sourceReputation.maxPoints < rule.pointsPerFlag) {
+      throw new ScoringError(
+        `integrity.sourceReputation.maxPoints must cover one ${tier} flag`,
+      );
+    }
+  }
+
+  const knownBundleIds = new Set<string>();
+  for (const bundleId of tuning.sourceReputation.knownBundleIds) {
+    const normalized = normalizedBundleIdentifier(bundleId);
+    if (normalized === null || normalized !== bundleId) {
+      throw new ScoringError(
+        "integrity.sourceReputation.knownBundleIds must be canonical bundle identifiers",
+      );
+    }
+    if (knownBundleIds.has(normalized)) {
+      throw new ScoringError(
+        `integrity.sourceReputation.knownBundleIds repeats ${JSON.stringify(bundleId)}`,
+      );
+    }
+    knownBundleIds.add(normalized);
+  }
 
   for (const [metric, ceiling] of Object.entries(tuning.plausibility.hourlyCeilings)) {
     positive(ceiling, `integrity.plausibility.hourlyCeilings.${metric}`);
@@ -343,9 +446,14 @@ function validateTuning(tuning: IntegrityTuning): void {
   }
 }
 
-function ruleFor(
+type StandardIntegrityFlagCode = Exclude<
+  IntegrityFlagCode,
+  "third_party_source_reputation"
+>;
+
+function standardRuleFor(
   tuning: IntegrityTuning,
-  code: IntegrityFlagCode,
+  code: StandardIntegrityFlagCode,
 ): RulePenalty {
   switch (code) {
     case "plausibility_ceiling":
@@ -361,14 +469,23 @@ function ruleFor(
   }
 }
 
-function flag(
+function maxPointsFor(
+  tuning: IntegrityTuning,
+  code: IntegrityFlagCode,
+): number {
+  if (code === "third_party_source_reputation") {
+    return tuning.sourceReputation.maxPoints;
+  }
+  return standardRuleFor(tuning, code).maxPoints;
+}
+
+function weightedFlag(
   code: IntegrityFlagCode,
   userId: string,
   signalKey: string,
-  tuning: IntegrityTuning,
+  rule: SourceReputationTierTuning,
   fields: Omit<IntegrityFlag, "code" | "userId" | "signalKey" | "severity" | "penaltyPoints">,
 ): IntegrityFlag {
-  const rule = ruleFor(tuning, code);
   return {
     code,
     userId,
@@ -377,6 +494,16 @@ function flag(
     penaltyPoints: rule.pointsPerFlag,
     ...fields,
   };
+}
+
+function flag(
+  code: StandardIntegrityFlagCode,
+  userId: string,
+  signalKey: string,
+  tuning: IntegrityTuning,
+  fields: Omit<IntegrityFlag, "code" | "userId" | "signalKey" | "severity" | "penaltyPoints">,
+): IntegrityFlag {
+  return weightedFlag(code, userId, signalKey, standardRuleFor(tuning, code), fields);
 }
 
 interface PreparedEvidence {
@@ -418,6 +545,104 @@ function prepareEvidence(
     if (a.startsAt !== b.startsAt) return a.startsAt - b.startsAt;
     return a.row.metric < b.row.metric ? -1 : a.row.metric > b.row.metric ? 1 : 0;
   });
+}
+
+interface ClassifiedSource {
+  readonly tier: SourceReputationTier;
+  readonly normalizedBundleId: string | null;
+}
+
+function classifySource(
+  sourceBundleId: string | null | undefined,
+  knownBundleIds: ReadonlySet<string>,
+): ClassifiedSource {
+  if (sourceBundleId === null || sourceBundleId === undefined) {
+    return { tier: "missing", normalizedBundleId: null };
+  }
+
+  const normalized = normalizedBundleIdentifier(sourceBundleId);
+  if (normalized === null) {
+    return { tier: "malformed", normalizedBundleId: null };
+  }
+  if (knownBundleIds.has(normalized)) {
+    return { tier: "known", normalizedBundleId: normalized };
+  }
+  return { tier: "unrecognized", normalizedBundleId: normalized };
+}
+
+function sourceEvidenceKey(
+  userId: string,
+  metric: ContestMetric,
+  bucketStart: string,
+): string {
+  return `${userId}\u0000${metric}\u0000${bucketStart}`;
+}
+
+function sourceReputationFlags(
+  sources: readonly SourceEvidence[],
+  evidence: readonly PreparedEvidence[],
+  tuning: IntegrityTuning,
+): IntegrityFlag[] {
+  if (!tuning.sourceReputation.enabled) return [];
+
+  const eligibleBuckets = new Set(
+    evidence.map((item) =>
+      sourceEvidenceKey(item.row.userId, item.row.metric, item.row.bucketStart)
+    ),
+  );
+  const knownBundleIds = new Set(tuning.sourceReputation.knownBundleIds);
+  const flagsBySignal = new Map<string, IntegrityFlag>();
+
+  for (const source of sources) {
+    // Device provenance is first-party by construction. The bundle identifier
+    // remains useful audit metadata, but a malformed copy cannot turn genuine
+    // hardware into a third-party reputation penalty.
+    if (source.provenance === "device") continue;
+    if (
+      !eligibleBuckets.has(
+        sourceEvidenceKey(source.userId, source.metric, source.bucketStart),
+      )
+    ) {
+      // The source sidecar may be loaded for a wider window than M4 scores.
+      // It cannot penalize a row the integrity assessor did not judge.
+      continue;
+    }
+
+    const classified = classifySource(source.sourceBundleId, knownBundleIds);
+    if (classified.tier === "known") continue;
+
+    const tierRule = tuning.sourceReputation.tiers[classified.tier];
+    const sourceIdentity = classified.normalizedBundleId ??
+      source.sourceBundleId ??
+      "<missing>";
+    const signalKey =
+      `${source.metric}:${source.bucketStart}:${classified.tier}:${sourceIdentity}`;
+    const deduplicationKey = `${source.userId}\u0000${signalKey}`;
+    if (flagsBySignal.has(deduplicationKey)) continue;
+
+    flagsBySignal.set(
+      deduplicationKey,
+      weightedFlag(
+        "third_party_source_reputation",
+        source.userId,
+        signalKey,
+        tierRule,
+        {
+          metric: source.metric,
+          bucketStart: source.bucketStart,
+          details: {
+            provenance: source.provenance,
+            sourceBundleId: source.sourceBundleId ?? null,
+            normalizedSourceBundleId: classified.normalizedBundleId,
+            reputationTier: classified.tier,
+            evidenceStillScores: true,
+          },
+        },
+      ),
+    );
+  }
+
+  return [...flagsBySignal.values()];
 }
 
 function plausibilityFlags(
@@ -667,9 +892,10 @@ function travelFlags(
 const FLAG_ORDER: Readonly<Record<IntegrityFlagCode, number>> = {
   plausibility_ceiling: 0,
   cross_metric_corroboration: 1,
-  impossible_travel: 2,
-  reporting_lag: 3,
-  retroactive_evidence_quarantine: 4,
+  third_party_source_reputation: 2,
+  impossible_travel: 3,
+  reporting_lag: 4,
+  retroactive_evidence_quarantine: 5,
 };
 
 function sortFlags(flags: IntegrityFlag[]): IntegrityFlag[] {
@@ -689,15 +915,15 @@ function participantAssessment(
   const penalties: Record<IntegrityFlagCode, number> = {
     plausibility_ceiling: 0,
     cross_metric_corroboration: 0,
+    third_party_source_reputation: 0,
     impossible_travel: 0,
     reporting_lag: 0,
     retroactive_evidence_quarantine: 0,
   };
 
   for (const participantFlag of flags) {
-    const rule = ruleFor(tuning, participantFlag.code);
     penalties[participantFlag.code] = Math.min(
-      rule.maxPoints,
+      maxPointsFor(tuning, participantFlag.code),
       penalties[participantFlag.code] + participantFlag.penaltyPoints,
     );
   }
@@ -737,6 +963,7 @@ export function assessContestIntegrity(
   const allFlags = sortFlags([
     ...plausibilityFlags(evidence, tuning),
     ...corroborationFlags(evidence, input.contest.metric, tuning),
+    ...sourceReputationFlags(input.sourceEvidence ?? [], evidence, tuning),
     ...reportingFlags(evidence, tuning),
     ...travelFlags(input.locations ?? [], accepted, windowStart, windowEnd, tuning),
   ]);
