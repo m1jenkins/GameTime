@@ -23,6 +23,23 @@ struct HourlyBucketerTests {
 
     static let farFuture = epoch.addingTimeInterval(60 * 86400)
 
+    static func relocatedBucketer(
+        effectiveAt: Date,
+        to identifier: String = "Asia/Kolkata"
+    ) throws -> HourlyBucketer {
+        let schedule = try ContestTimeZoneSchedule(
+            initialTimeZoneIdentifier: "UTC",
+            changes: [
+                ContestTimeZoneChange(
+                    fromTimeZoneIdentifier: "UTC",
+                    toTimeZoneIdentifier: identifier,
+                    effectiveAt: effectiveAt
+                )
+            ]
+        )
+        return HourlyBucketer(timeZoneSchedule: schedule)
+    }
+
     // ---------------------------------------------------------------------
     // Alignment
     // ---------------------------------------------------------------------
@@ -92,6 +109,173 @@ struct HourlyBucketerTests {
                     "\(identifier): bucket at \(interval.start) crosses a local midnight"
                 )
             }
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Opponent-approved timezone changes
+    // ---------------------------------------------------------------------
+    @Test("historical hours keep the old zone and future hours use the new one")
+    func approvedChangeIsProspective() throws {
+        let effectiveAt = Self.epoch.addingTimeInterval(6 * 3600 + 20 * 60)
+        let bucketer = try Self.relocatedBucketer(effectiveAt: effectiveAt)
+
+        let oldHour = bucketer.bucket(
+            containing: Self.epoch.addingTimeInterval(5 * 3600 + 15 * 60)
+        )
+        let newHour = bucketer.bucket(
+            containing: Self.epoch.addingTimeInterval(7 * 3600)
+        )
+
+        #expect(oldHour?.start == Self.epoch.addingTimeInterval(5 * 3600))
+        // India is +05:30, so its local hours begin at :30 UTC.
+        #expect(newHour?.start == Self.epoch.addingTimeInterval(6 * 3600 + 30 * 60))
+        #expect(
+            bucketer.timeZoneSchedule.initialTimeZoneIdentifier == "UTC",
+            "the roster's base zone stays frozen"
+        )
+    }
+
+    @Test("hours cut by a timezone transition are dropped")
+    func transitionCutHoursAreDropped() throws {
+        let effectiveAt = Self.epoch.addingTimeInterval(6 * 3600 + 20 * 60)
+        let bucketer = try Self.relocatedBucketer(effectiveAt: effectiveAt)
+
+        // UTC's 06:00 hour crosses the change at 06:20.
+        #expect(
+            bucketer.bucket(
+                containing: Self.epoch.addingTimeInterval(6 * 3600 + 10 * 60)
+            ) == nil
+        )
+        // India's 05:30Z hour began before the change, so its remaining ten
+        // minutes are partial too.
+        #expect(
+            bucketer.bucket(
+                containing: Self.epoch.addingTimeInterval(6 * 3600 + 25 * 60)
+            ) == nil
+        )
+        #expect(
+            bucketer.bucket(
+                containing: Self.epoch.addingTimeInterval(6 * 3600 + 40 * 60)
+            )?.start == Self.epoch.addingTimeInterval(6 * 3600 + 30 * 60)
+        )
+    }
+
+    @Test("a long sample keeps whole hours on both sides of a relocation")
+    func longSampleCrossingChangeKeepsValidHours() throws {
+        let effectiveAt = Self.epoch.addingTimeInterval(6 * 3600 + 20 * 60)
+        let bucketer = try Self.relocatedBucketer(effectiveAt: effectiveAt)
+        let sample = StubSample(
+            start: Self.epoch.addingTimeInterval(4 * 3600),
+            duration: 5.5 * 3600,
+            value: 5500
+        )
+
+        let buckets = bucketer.buckets(
+            from: [sample], window: Self.wideWindow, asOf: Self.farFuture
+        )
+
+        #expect(
+            buckets.map(\.bucketStart) == [
+                Self.epoch.addingTimeInterval(4 * 3600),
+                Self.epoch.addingTimeInterval(5 * 3600),
+                Self.epoch.addingTimeInterval(6 * 3600 + 30 * 60),
+                Self.epoch.addingTimeInterval(7 * 3600 + 30 * 60),
+                Self.epoch.addingTimeInterval(8 * 3600 + 30 * 60),
+            ]
+        )
+        #expect(buckets.allSatisfy { $0.value == 1000 })
+        #expect(
+            buckets.map(\.value).reduce(0, +) == 5000,
+            "only the transition-cut half hour is conservatively dropped"
+        )
+    }
+
+    @Test("a broken timezone-change chain is rejected, not repaired")
+    func brokenScheduleIsRejected() {
+        let change = ContestTimeZoneChange(
+            fromTimeZoneIdentifier: "Europe/London",
+            toTimeZoneIdentifier: "Asia/Kolkata",
+            effectiveAt: Self.epoch
+        )
+
+        do {
+            _ = try ContestTimeZoneSchedule(
+                initialTimeZoneIdentifier: "UTC",
+                changes: [change]
+            )
+            Issue.record("a change disconnected from the base timezone was accepted")
+        } catch let error as ContestTimeZoneScheduleError {
+            #expect(
+                error == .brokenChain(
+                    index: 0,
+                    expected: "UTC",
+                    found: "Europe/London"
+                )
+            )
+        } catch {
+            Issue.record("unexpected schedule error: \(error)")
+        }
+    }
+
+    @Test("timezone-change rows are ordered by their server effective instant")
+    func reversedValidScheduleIsOrdered() throws {
+        let first = ContestTimeZoneChange(
+            fromTimeZoneIdentifier: "UTC",
+            toTimeZoneIdentifier: "Asia/Kolkata",
+            effectiveAt: Self.epoch.addingTimeInterval(2 * 3600 + 20 * 60)
+        )
+        let second = ContestTimeZoneChange(
+            fromTimeZoneIdentifier: "Asia/Kolkata",
+            toTimeZoneIdentifier: "America/New_York",
+            effectiveAt: Self.epoch.addingTimeInterval(8 * 3600 + 20 * 60)
+        )
+
+        let schedule = try ContestTimeZoneSchedule(
+            initialTimeZoneIdentifier: "UTC",
+            changes: [second, first]
+        )
+        let bucketer = HourlyBucketer(timeZoneSchedule: schedule)
+
+        #expect(schedule.changes == [first, second])
+        #expect(
+            bucketer.bucket(
+                containing: Self.epoch.addingTimeInterval(4 * 3600)
+            )?.start == Self.epoch.addingTimeInterval(3 * 3600 + 30 * 60)
+        )
+        #expect(
+            bucketer.bucket(
+                containing: Self.epoch.addingTimeInterval(10 * 3600 + 15 * 60)
+            )?.start == Self.epoch.addingTimeInterval(10 * 3600)
+        )
+    }
+
+    @Test("timezone changes with equal effective instants are rejected")
+    func equalEffectiveInstantsAreRejected() {
+        let effectiveAt = Self.epoch.addingTimeInterval(2 * 3600)
+        let changes = [
+            ContestTimeZoneChange(
+                fromTimeZoneIdentifier: "UTC",
+                toTimeZoneIdentifier: "Asia/Kolkata",
+                effectiveAt: effectiveAt
+            ),
+            ContestTimeZoneChange(
+                fromTimeZoneIdentifier: "Asia/Kolkata",
+                toTimeZoneIdentifier: "America/New_York",
+                effectiveAt: effectiveAt
+            ),
+        ]
+
+        do {
+            _ = try ContestTimeZoneSchedule(
+                initialTimeZoneIdentifier: "UTC",
+                changes: changes
+            )
+            Issue.record("two changes at the same instant were accepted")
+        } catch let error as ContestTimeZoneScheduleError {
+            #expect(error == .nonIncreasingEffectiveAt(index: 1))
+        } catch {
+            Issue.record("unexpected schedule error: \(error)")
         }
     }
 

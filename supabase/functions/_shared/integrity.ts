@@ -27,12 +27,14 @@ import {
   scoreContest,
   ScoringError,
   type ScoringInput,
+  type TimezoneChange,
 } from "./scoring.ts";
 
 export type IntegrityFlagCode =
   | "plausibility_ceiling"
   | "cross_metric_corroboration"
   | "third_party_source_reputation"
+  | "timezone_change"
   | "impossible_travel"
   | "reporting_lag"
   | "retroactive_evidence_quarantine";
@@ -145,20 +147,27 @@ export interface IntegrityTuning {
   readonly plausibility: PlausibilityTuning;
   readonly corroboration: CorroborationTuning;
   readonly sourceReputation: SourceReputationTuning;
+  readonly timezoneChange: RulePenalty;
   readonly travel: TravelTuning;
   readonly reportingLag: ReportingLagTuning;
   readonly retroactiveQuarantine: RetroactiveQuarantineTuning;
 }
 
+/** The exact pre-timezone-change M5 configuration retained for reproducible re-scores. */
+export type IntegrityTuningV2 = Omit<IntegrityTuning, "timezoneChange">;
+
+/** A persisted tuning document accepted by the assessor. */
+export type IntegrityTuningConfig = IntegrityTuning | IntegrityTuningV2;
+
 const HOUR_MS = 3_600_000;
 const DAY_MS = 86_400_000;
 
 /**
- * Conservative launch values, deliberately ordinary data rather than hidden
- * constants in the evaluator. Product tuning changes this object (and its
- * version), not the rules or the schema.
+ * The historical M5 configuration is an explicit object rather than something
+ * synthesized from today's defaults. A disputed contest scored under m5-v2
+ * can therefore load the same shape and thresholds years later.
  */
-export const DEFAULT_INTEGRITY_TUNING: IntegrityTuning = {
+export const M5_V2_INTEGRITY_TUNING: IntegrityTuningV2 = {
   version: "m5-v2",
   startingScore: 100,
   floorScore: 0,
@@ -257,6 +266,22 @@ export const DEFAULT_INTEGRITY_TUNING: IntegrityTuning = {
     pointsPerFlag: 25,
     maxPoints: 50,
     quarantineAfterMs: 3 * DAY_MS,
+  },
+};
+
+/**
+ * Conservative current values, deliberately ordinary data rather than hidden
+ * constants in the evaluator. Product tuning changes this object (and its
+ * version), not the rules or the schema.
+ */
+export const DEFAULT_INTEGRITY_TUNING: IntegrityTuning = {
+  ...M5_V2_INTEGRITY_TUNING,
+  version: "m5-v3",
+  timezoneChange: {
+    enabled: true,
+    severity: "medium",
+    pointsPerFlag: 10,
+    maxPoints: 20,
   },
 };
 
@@ -363,6 +388,29 @@ function validatePenalty(rule: RulePenalty, field: string): void {
   }
 }
 
+const LEGACY_DISABLED_TIMEZONE_CHANGE: RulePenalty = {
+  enabled: false,
+  severity: "medium",
+  pointsPerFlag: 0,
+  maxPoints: 0,
+};
+
+/**
+ * Loads the historical m5-v2 shape into the current evaluator without changing
+ * its behavior. Other versions must declare the timezone rule explicitly so a
+ * partially loaded current configuration cannot fail open.
+ */
+function materializeTuning(tuning: IntegrityTuningConfig): IntegrityTuning {
+  const timezoneChange = (tuning as Partial<IntegrityTuning>).timezoneChange;
+  if (timezoneChange !== undefined) return tuning as IntegrityTuning;
+  if (tuning.version !== M5_V2_INTEGRITY_TUNING.version) {
+    throw new ScoringError(
+      `integrity.timezoneChange is required for tuning version ${JSON.stringify(tuning.version)}`,
+    );
+  }
+  return { ...tuning, timezoneChange: LEGACY_DISABLED_TIMEZONE_CHANGE };
+}
+
 function validateTuning(tuning: IntegrityTuning): void {
   if (tuning.version.trim().length === 0 || tuning.version.length > 80) {
     throw new ScoringError("integrity tuning version must contain 1 to 80 characters");
@@ -375,6 +423,7 @@ function validateTuning(tuning: IntegrityTuning): void {
 
   validatePenalty(tuning.plausibility, "integrity.plausibility");
   validatePenalty(tuning.corroboration, "integrity.corroboration");
+  validatePenalty(tuning.timezoneChange, "integrity.timezoneChange");
   validatePenalty(tuning.travel, "integrity.travel");
   validatePenalty(tuning.reportingLag, "integrity.reportingLag");
   validatePenalty(tuning.retroactiveQuarantine, "integrity.retroactiveQuarantine");
@@ -460,6 +509,8 @@ function standardRuleFor(
       return tuning.plausibility;
     case "cross_metric_corroboration":
       return tuning.corroboration;
+    case "timezone_change":
+      return tuning.timezoneChange;
     case "impossible_travel":
       return tuning.travel;
     case "reporting_lag":
@@ -791,6 +842,43 @@ function reportingFlags(
   return flags;
 }
 
+function timezoneChangeFlags(
+  changes: readonly TimezoneChange[],
+  accepted: ReadonlySet<string>,
+  tuning: IntegrityTuning,
+): IntegrityFlag[] {
+  if (!tuning.timezoneChange.enabled) return [];
+
+  return changes
+    .filter((change) => accepted.has(change.userId))
+    .map((change) => ({
+      change,
+      at: instant(change.effectiveAt, "timezoneChange.effectiveAt"),
+    }))
+    .sort((a, b) => {
+      if (a.change.userId !== b.change.userId) {
+        return a.change.userId < b.change.userId ? -1 : 1;
+      }
+      return a.at - b.at;
+    })
+    .map(({ change }) =>
+      flag(
+        "timezone_change",
+        change.userId,
+        `${change.effectiveAt}:${change.fromTimezone}:${change.toTimezone}`,
+        tuning,
+        {
+          observedAt: change.effectiveAt,
+          details: {
+            fromTimezone: change.fromTimezone,
+            toTimezone: change.toTimezone,
+            effectiveAt: change.effectiveAt,
+          },
+        },
+      )
+    );
+}
+
 const EARTH_RADIUS_KM = 6_371.0088;
 
 function radians(degrees: number): number {
@@ -892,9 +980,10 @@ const FLAG_ORDER: Readonly<Record<IntegrityFlagCode, number>> = {
   plausibility_ceiling: 0,
   cross_metric_corroboration: 1,
   third_party_source_reputation: 2,
-  impossible_travel: 3,
-  reporting_lag: 4,
-  retroactive_evidence_quarantine: 5,
+  timezone_change: 3,
+  impossible_travel: 4,
+  reporting_lag: 5,
+  retroactive_evidence_quarantine: 6,
 };
 
 function sortFlags(flags: IntegrityFlag[]): IntegrityFlag[] {
@@ -915,6 +1004,7 @@ function participantAssessment(
     plausibility_ceiling: 0,
     cross_metric_corroboration: 0,
     third_party_source_reputation: 0,
+    timezone_change: 0,
     impossible_travel: 0,
     reporting_lag: 0,
     retroactive_evidence_quarantine: 0,
@@ -942,8 +1032,9 @@ function participantAssessment(
  */
 export function assessContestIntegrity(
   input: IntegrityInput,
-  tuning: IntegrityTuning = DEFAULT_INTEGRITY_TUNING,
+  tuningConfig: IntegrityTuningConfig = DEFAULT_INTEGRITY_TUNING,
 ): IntegrityAssessment {
+  const tuning = materializeTuning(tuningConfig);
   validateTuning(tuning);
 
   // This validates the M4 input and, critically, gives integrity exactly M4's
@@ -953,6 +1044,7 @@ export function assessContestIntegrity(
     contest: input.contest,
     roster: input.roster,
     evidence: input.evidence,
+    timezoneChanges: input.timezoneChanges,
   });
   const accepted = new Set(baseline.standings.map((standing) => standing.userId));
   const evidence = prepareEvidence(input, accepted);
@@ -963,6 +1055,7 @@ export function assessContestIntegrity(
     ...plausibilityFlags(evidence, tuning),
     ...corroborationFlags(evidence, input.contest.metric, tuning),
     ...sourceReputationFlags(input.sourceEvidence ?? [], evidence, tuning),
+    ...timezoneChangeFlags(input.timezoneChanges, accepted, tuning),
     ...reportingFlags(evidence, tuning),
     ...travelFlags(input.locations ?? [], accepted, windowStart, windowEnd, tuning),
   ]);
@@ -992,13 +1085,14 @@ export function assessContestIntegrity(
  */
 export function scoreContestWithIntegrity(
   input: IntegrityInput,
-  tuning: IntegrityTuning = DEFAULT_INTEGRITY_TUNING,
+  tuning: IntegrityTuningConfig = DEFAULT_INTEGRITY_TUNING,
 ): IntegrityScoring {
   const integrity = assessContestIntegrity(input, tuning);
   const scoring = scoreContest({
     contest: input.contest,
     roster: input.roster,
     evidence: input.evidence,
+    timezoneChanges: input.timezoneChanges,
     integrityScores: integrity.scores,
   });
   return { scoring, integrity };

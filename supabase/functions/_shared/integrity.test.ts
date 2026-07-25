@@ -6,6 +6,8 @@ import {
   type IntegrityFlagCode,
   type IntegrityInput,
   type IntegrityTuning,
+  type IntegrityTuningV2,
+  M5_V2_INTEGRITY_TUNING,
   scoreContestWithIntegrity,
   type SourceEvidence,
 } from "./integrity.ts";
@@ -354,6 +356,136 @@ Deno.test("third-party source reputation resolves an otherwise clean integrity t
   });
 });
 
+Deno.test("an applied timezone change emits one bounded flag without changing totals", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    timezoneChanges: [{
+      userId: BOB,
+      fromTimezone: "UTC",
+      toTimezone: "Europe/London",
+      effectiveAt: "2026-01-06T00:00:00Z",
+    }],
+  };
+  const result = scoreContestWithIntegrity(input);
+  const alice = result.scoring.standings.find((candidate) => candidate.userId === ALICE);
+  const bob = result.scoring.standings.find((candidate) => candidate.userId === BOB);
+  const timezoneFlags = participant(result.integrity, BOB).flags.filter(
+    (candidate) => candidate.code === "timezone_change",
+  );
+
+  assertEquals(DEFAULT_INTEGRITY_TUNING.version, "m5-v3");
+  assertEquals(DEFAULT_INTEGRITY_TUNING.timezoneChange.pointsPerFlag, 10);
+  assertEquals(DEFAULT_INTEGRITY_TUNING.timezoneChange.maxPoints, 20);
+  assertEquals(timezoneFlags.length, 1);
+  assertEquals(timezoneFlags[0]?.severity, "medium");
+  assertEquals(timezoneFlags[0]?.observedAt, "2026-01-06T00:00:00Z");
+  assertEquals(timezoneFlags[0]?.details, {
+    fromTimezone: "UTC",
+    toTimezone: "Europe/London",
+    effectiveAt: "2026-01-06T00:00:00Z",
+  });
+  assertEquals(participant(result.integrity, BOB).penalties.timezone_change, 10);
+  assertEquals(codes(result.integrity, BOB).includes("impossible_travel"), false);
+  assertEquals(alice?.total, 20_000);
+  assertEquals(bob?.total, 20_000);
+  assertEquals(result.integrity.scores[ALICE], 100);
+  assertEquals(result.integrity.scores[BOB], 90);
+  assertEquals(result.scoring.outcome, {
+    kind: "winner",
+    userId: ALICE,
+    decidedBy: "integrity_score",
+  });
+});
+
+Deno.test("a persisted m5-v2 tuning document remains reproducibly loadable", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    timezoneChanges: [{
+      userId: BOB,
+      fromTimezone: "UTC",
+      toTimezone: "Europe/London",
+      effectiveAt: "2026-01-06T00:00:00Z",
+    }],
+  };
+  const loaded = JSON.parse(
+    JSON.stringify(M5_V2_INTEGRITY_TUNING),
+  ) as IntegrityTuningV2;
+  const result = scoreContestWithIntegrity(input, loaded);
+
+  assertEquals(result.integrity.ruleVersion, "m5-v2");
+  assertEquals(codes(result.integrity, BOB).includes("timezone_change"), false);
+  assertEquals(participant(result.integrity, BOB).penalties.timezone_change, 0);
+  assertEquals(result.integrity.scores[ALICE], 100);
+  assertEquals(result.integrity.scores[BOB], 100);
+  assertEquals(result.scoring.outcome.kind, "undecided");
+});
+
+Deno.test("a current tuning document cannot omit its timezone-change rule", () => {
+  const incomplete = {
+    ...M5_V2_INTEGRITY_TUNING,
+    version: "m5-v3",
+  };
+
+  assertThrows(
+    () => assessContestIntegrity(cleanTieInput(), incomplete),
+    ScoringError,
+    "integrity.timezoneChange is required",
+  );
+});
+
+Deno.test("timezone changes for unscored users are ignored completely", () => {
+  const base = cleanTieInput();
+  const result = assessContestIntegrity({
+    ...base,
+    timezoneChanges: [{
+      userId: "99999999-9999-9999-9999-999999999999",
+      fromTimezone: "not even",
+      toTimezone: "not even",
+      effectiveAt: "not an instant",
+    }],
+  });
+
+  assertEquals(
+    result.participants.flatMap((candidate) =>
+      candidate.flags.filter((flag) => flag.code === "timezone_change")
+    ),
+    [],
+  );
+  assertEquals(result.scores[ALICE], 100);
+  assertEquals(result.scores[BOB], 100);
+});
+
+Deno.test("the timezone-change rule can be disabled without changing evidence", () => {
+  const base = cleanTieInput();
+  const input: IntegrityInput = {
+    ...base,
+    timezoneChanges: [{
+      userId: BOB,
+      fromTimezone: "UTC",
+      toTimezone: "Europe/London",
+      effectiveAt: "2026-01-06T00:00:00Z",
+    }],
+  };
+  const tuning = withTuning({
+    version: "test-disabled-timezone-change",
+    timezoneChange: {
+      ...DEFAULT_INTEGRITY_TUNING.timezoneChange,
+      enabled: false,
+    },
+  });
+  const result = scoreContestWithIntegrity(input, tuning);
+  const alice = result.scoring.standings.find((candidate) => candidate.userId === ALICE);
+  const bob = result.scoring.standings.find((candidate) => candidate.userId === BOB);
+
+  assertEquals(codes(result.integrity, BOB).includes("timezone_change"), false);
+  assertEquals(participant(result.integrity, BOB).penalties.timezone_change, 0);
+  assertEquals(alice?.total, 20_000);
+  assertEquals(bob?.total, 20_000);
+  assertEquals(result.scoring.outcome.kind, "undecided");
+});
+
 Deno.test("impossible travel uses conservative distance after location accuracy", () => {
   const base = corpusInput("daily/both-perfect-with-no-integrity-scores");
   const input: IntegrityInput = {
@@ -524,6 +656,24 @@ Deno.test("invalid tuning fails loudly instead of changing scoring semantics", (
     () => assessContestIntegrity(input, tuning),
     ScoringError,
     "must not precede",
+  );
+});
+
+Deno.test("timezone-change tuning must cover at least one configured flag", () => {
+  const input = cleanTieInput();
+  const tuning = withTuning({
+    version: "bad-timezone-change-cap",
+    timezoneChange: {
+      ...DEFAULT_INTEGRITY_TUNING.timezoneChange,
+      pointsPerFlag: 10,
+      maxPoints: 5,
+    },
+  });
+
+  assertThrows(
+    () => assessContestIntegrity(input, tuning),
+    ScoringError,
+    "maxPoints must cover at least one flag",
   );
 });
 

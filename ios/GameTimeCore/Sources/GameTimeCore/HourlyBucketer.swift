@@ -1,5 +1,140 @@
 import Foundation
 
+/// One opponent-approved, server-stamped change to a contest's timezone.
+///
+/// The roster keeps the timezone originally accepted. Changes are separate
+/// events so an old HealthKit sample can still be bucketed under the timezone
+/// that governed it, rather than being relabelled when somebody relocates.
+public struct ContestTimeZoneChange: Sendable, Hashable, Codable {
+    public let fromTimeZoneIdentifier: String
+    public let toTimeZoneIdentifier: String
+    public let effectiveAt: Date
+
+    public init(
+        fromTimeZoneIdentifier: String,
+        toTimeZoneIdentifier: String,
+        effectiveAt: Date
+    ) {
+        self.fromTimeZoneIdentifier = fromTimeZoneIdentifier
+        self.toTimeZoneIdentifier = toTimeZoneIdentifier
+        self.effectiveAt = effectiveAt
+    }
+}
+
+public enum ContestTimeZoneScheduleError: Error, Sendable, Equatable {
+    case invalidTimeZone(String)
+    case unchangedTimeZone(index: Int)
+    case brokenChain(index: Int, expected: String, found: String)
+    case nonIncreasingEffectiveAt(index: Int)
+}
+
+/// The immutable base timezone plus its approved, prospective changes.
+///
+/// API rows may arrive in any order, so the schedule sorts them by their
+/// server-stamped effective instant before validating the chain. Equal instants
+/// are rejected because they do not define an unambiguous epoch order. After
+/// ordering, a broken chain is still rejected rather than repaired locally: the
+/// schedule controls which local day receives evidence, so guessing a link can
+/// change a result.
+public struct ContestTimeZoneSchedule: Sendable {
+    public let initialTimeZoneIdentifier: String
+    public let initialTimeZone: TimeZone
+    public let changes: [ContestTimeZoneChange]
+
+    private let resolvedTimeZones: [TimeZone]
+
+    public init(initialTimeZone: TimeZone) {
+        self.initialTimeZoneIdentifier = initialTimeZone.identifier
+        self.initialTimeZone = initialTimeZone
+        self.changes = []
+        self.resolvedTimeZones = [initialTimeZone]
+    }
+
+    public init(
+        initialTimeZone: TimeZone,
+        changes: [ContestTimeZoneChange]
+    ) throws {
+        try self.init(
+            initialTimeZoneIdentifier: initialTimeZone.identifier,
+            changes: changes
+        )
+    }
+
+    public init(
+        initialTimeZoneIdentifier: String,
+        changes: [ContestTimeZoneChange]
+    ) throws {
+        guard let initialTimeZone = TimeZone(identifier: initialTimeZoneIdentifier) else {
+            throw ContestTimeZoneScheduleError.invalidTimeZone(initialTimeZoneIdentifier)
+        }
+
+        let orderedChanges = changes.sorted { left, right in
+            if left.effectiveAt != right.effectiveAt {
+                return left.effectiveAt < right.effectiveAt
+            }
+            if left.fromTimeZoneIdentifier != right.fromTimeZoneIdentifier {
+                return left.fromTimeZoneIdentifier < right.fromTimeZoneIdentifier
+            }
+            return left.toTimeZoneIdentifier < right.toTimeZoneIdentifier
+        }
+
+        for index in orderedChanges.indices.dropFirst() {
+            if orderedChanges[index].effectiveAt == orderedChanges[index - 1].effectiveAt {
+                throw ContestTimeZoneScheduleError.nonIncreasingEffectiveAt(index: index)
+            }
+        }
+
+        var expectedIdentifier = initialTimeZoneIdentifier
+        var resolved = [initialTimeZone]
+
+        for (index, change) in orderedChanges.enumerated() {
+            guard change.fromTimeZoneIdentifier == expectedIdentifier else {
+                throw ContestTimeZoneScheduleError.brokenChain(
+                    index: index,
+                    expected: expectedIdentifier,
+                    found: change.fromTimeZoneIdentifier
+                )
+            }
+            guard change.toTimeZoneIdentifier != change.fromTimeZoneIdentifier else {
+                throw ContestTimeZoneScheduleError.unchangedTimeZone(index: index)
+            }
+            guard let toTimeZone = TimeZone(identifier: change.toTimeZoneIdentifier) else {
+                throw ContestTimeZoneScheduleError.invalidTimeZone(
+                    change.toTimeZoneIdentifier
+                )
+            }
+
+            resolved.append(toTimeZone)
+            expectedIdentifier = change.toTimeZoneIdentifier
+        }
+
+        self.initialTimeZoneIdentifier = initialTimeZoneIdentifier
+        self.initialTimeZone = initialTimeZone
+        self.changes = orderedChanges
+        self.resolvedTimeZones = resolved
+    }
+
+    fileprivate struct Epoch {
+        let timeZone: TimeZone
+        let startsAt: Date?
+        let endsAt: Date?
+    }
+
+    fileprivate func epoch(containing instant: Date) -> Epoch {
+        var selectedIndex = 0
+        for (index, change) in changes.enumerated() {
+            if change.effectiveAt > instant { break }
+            selectedIndex = index + 1
+        }
+
+        return Epoch(
+            timeZone: resolvedTimeZones[selectedIndex],
+            startsAt: selectedIndex == 0 ? nil : changes[selectedIndex - 1].effectiveAt,
+            endsAt: selectedIndex < changes.count ? changes[selectedIndex].effectiveAt : nil
+        )
+    }
+}
+
 /// One hour of one metric from one source, ready to be sent.
 ///
 /// This is the client's half of a `metric_snapshots` row. The four fields the
@@ -7,7 +142,7 @@ import Foundation
 /// to — are all here except the contest, which the queue attaches.
 public struct HourlyBucket: Sendable, Hashable {
     public let metric: ContestMetric
-    /// Aligned to a whole hour in the participant's frozen timezone.
+    /// Aligned to a whole hour in the applicable approved timezone epoch.
     public let bucketStart: Date
     public let provenance: MetricProvenance
     public let value: Double
@@ -48,10 +183,11 @@ public struct HourlyBucket: Sendable, Hashable {
 /// the world, and those participants would have part of Tuesday counted against
 /// Monday. Aligning to the local hour makes that impossible by construction.
 ///
-/// The zone is the one frozen on the participant's roster row when they
-/// accepted, not the device's current zone. A live zone would let somebody fly
-/// their day boundary backwards to reopen a day they had already lost, which is
-/// exactly what freezing it prevents (DECISIONS.md D5).
+/// The base zone is frozen on the participant's roster row when they accepted,
+/// not read from the device's current zone. An opponent-approved relocation is
+/// an immutable, prospective schedule event. That preserves the zone governing
+/// every old sample while allowing future hours to follow a genuine move
+/// (DECISIONS.md D5).
 ///
 /// ---------------------------------------------------------------------------
 /// Straddling samples, and the approximation
@@ -70,26 +206,47 @@ public struct HourlyBucket: Sendable, Hashable {
 /// per source would recover it, at the cost of a query count that grows with
 /// however many health apps the user happens to have installed.
 public struct HourlyBucketer: Sendable {
-    /// The participant's frozen zone.
-    public let timeZone: TimeZone
+    public let timeZoneSchedule: ContestTimeZoneSchedule
 
-    private let calendar: Calendar
+    /// The participant's originally accepted zone.
+    public var timeZone: TimeZone { timeZoneSchedule.initialTimeZone }
 
     public init(timeZone: TimeZone) {
-        self.timeZone = timeZone
+        self.timeZoneSchedule = ContestTimeZoneSchedule(initialTimeZone: timeZone)
+    }
+
+    public init(timeZoneSchedule: ContestTimeZoneSchedule) {
+        self.timeZoneSchedule = timeZoneSchedule
+    }
+
+    private func calendar(in timeZone: TimeZone) -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
-        self.calendar = calendar
+        return calendar
+    }
+
+    private func rawBucket(containing date: Date, in timeZone: TimeZone) -> DateInterval? {
+        calendar(in: timeZone).dateInterval(of: .hour, for: date)
     }
 
     /// The local-hour bucket containing `date`, or nil if the calendar cannot
-    /// place it.
+    /// place it or an approved timezone change cuts through that local hour.
     ///
     /// `Calendar.dateInterval(of: .hour,)` is what makes this correct across
     /// half-hour offsets and daylight-saving transitions: it truncates to the
     /// local hour rather than to a multiple of 3600 seconds since the epoch.
     public func bucket(containing date: Date) -> DateInterval? {
-        calendar.dateInterval(of: .hour, for: date)
+        let epoch = timeZoneSchedule.epoch(containing: date)
+        guard let interval = rawBucket(containing: date, in: epoch.timeZone) else {
+            return nil
+        }
+        if let startsAt = epoch.startsAt, interval.start < startsAt {
+            return nil
+        }
+        if let endsAt = epoch.endsAt, interval.end > endsAt {
+            return nil
+        }
+        return interval
     }
 
     /// Groups samples into buckets, dropping anything the ledger would refuse.
@@ -122,18 +279,16 @@ public struct HourlyBucketer: Sendable {
             let provenance = ProvenanceClassifier.classify(sample)
 
             for slice in slices(of: sample) {
-                guard let interval = bucket(containing: slice.start) else { continue }
-
                 // Wholly inside the window, and finished. Both mirror a server
                 // rule; see `app.prepare_metric_snapshot()`.
-                guard interval.start >= window.start,
-                      interval.end <= window.end,
-                      interval.end <= asOf
+                guard slice.interval.start >= window.start,
+                      slice.interval.end <= window.end,
+                      slice.interval.end <= asOf
                 else { continue }
 
                 let key = Key(
                     metric: sample.metric,
-                    bucketStart: interval.start,
+                    bucketStart: slice.interval.start,
                     provenance: provenance
                 )
 
@@ -176,11 +331,13 @@ public struct HourlyBucketer: Sendable {
     // MARK: - Splitting
 
     private struct Slice {
-        let start: Date
+        let interval: DateInterval
         let value: Double
     }
 
-    /// Splits a sample across the local hours it covers, prorating by overlap.
+    /// Splits a sample across the valid local hours it covers, prorating by
+    /// overlap. A timezone transition can cut two differently aligned hours;
+    /// those partial pieces are dropped rather than moved into either day.
     private func slices(of sample: some HealthSampleDescriptor) -> [Slice] {
         let duration = sample.end.timeIntervalSince(sample.start)
 
@@ -188,46 +345,47 @@ public struct HourlyBucketer: Sendable {
         // HealthKit reports plenty of these, and dividing by a zero duration to
         // prorate would produce a NaN that then poisons a whole bucket.
         guard duration > 0 else {
-            return [Slice(start: sample.start, value: sample.value)]
-        }
-
-        guard let first = bucket(containing: sample.start) else {
-            return [Slice(start: sample.start, value: sample.value)]
-        }
-
-        // The common case, and worth short-circuiting: no arithmetic, so no
-        // rounding drift on the overwhelming majority of samples.
-        if sample.end <= first.end {
-            return [Slice(start: sample.start, value: sample.value)]
+            guard let interval = bucket(containing: sample.start) else { return [] }
+            return [Slice(interval: interval, value: sample.value)]
         }
 
         var slices: [Slice] = []
-        var cursor = first
+        var cursor = sample.start
 
         // Bounded rather than `while true`. A sample longer than a fortnight is
         // not a walk, and an unbounded loop over a calendar is one clock bug
         // away from never ending.
-        let maximumBuckets = 24 * 15
+        let maximumIterations = 24 * 15 + timeZoneSchedule.changes.count * 2
+        var iterations = 0
 
-        while slices.count < maximumBuckets {
-            let overlapStart = max(cursor.start, sample.start)
-            let overlapEnd = min(cursor.end, sample.end)
+        while cursor < sample.end, iterations < maximumIterations {
+            iterations += 1
+            let epoch = timeZoneSchedule.epoch(containing: cursor)
+            guard let rawInterval = rawBucket(containing: cursor, in: epoch.timeZone) else {
+                break
+            }
+
+            let stepEnd = min(rawInterval.end, epoch.endsAt ?? sample.end, sample.end)
+            guard stepEnd > cursor else { break }
+
+            let startsInsideEpoch = epoch.startsAt.map { rawInterval.start >= $0 } ?? true
+            let endsInsideEpoch = epoch.endsAt.map { rawInterval.end <= $0 } ?? true
+            let isWholeEpochBucket = startsInsideEpoch && endsInsideEpoch
+
+            let overlapStart = max(rawInterval.start, sample.start)
+            let overlapEnd = min(rawInterval.end, sample.end)
             let overlap = overlapEnd.timeIntervalSince(overlapStart)
 
-            if overlap > 0 {
+            if isWholeEpochBucket, overlap > 0 {
                 slices.append(
-                    Slice(start: overlapStart, value: sample.value * (overlap / duration))
+                    Slice(
+                        interval: rawInterval,
+                        value: sample.value * (overlap / duration)
+                    )
                 )
             }
 
-            guard cursor.end < sample.end,
-                  let next = bucket(containing: cursor.end)
-            else { break }
-
-            // Belt and braces against a calendar that fails to advance, which
-            // would otherwise be an infinite loop rather than a wrong answer.
-            guard next.start > cursor.start else { break }
-            cursor = next
+            cursor = stepEnd
         }
 
         return slices

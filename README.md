@@ -9,10 +9,10 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M5 underway.** M4's scoring engine is now paired with a deterministic,
-tunable integrity assessor: plausibility, cross-metric corroboration, impossible
-travel, reporting lag, retroactive review, and the integrity-score tie-break.
-The evidence ledger and its definition of admissibility are unchanged.
+**Status: M5 complete.** The scoring engine is paired with deterministic,
+versioned integrity assessment, retroactive review, third-party source
+reputation, and opponent-approved prospective timezone changes. Integrity
+remains an auditable sidecar; it never silently rewrites the evidence ledger.
 
 ---
 
@@ -198,13 +198,19 @@ independent, optional scope that decides who may be invited (DECISIONS.md D22).
 
 The author is enrolled as `accepted` when the contest is created. Once the
 contest leaves `pending` the roster is frozen — no new participants, and no
-status, charity, or timezone changes at all. That freeze is what makes blocking
-an opponent useless as a way out of a contest you are losing (D29), and it is
-why `lapsed` is a status no client can write (D31).
+status, charity, or base-timezone changes at all. That freeze is what makes
+blocking an opponent useless as a way out of a contest you are losing (D29),
+and it is why `lapsed` is a status no client can write (D31).
+
+A genuine relocation does not loosen that trigger or rewrite the base zone.
+M5 records a separate request, one immutable vote from every other accepted
+participant, and an applied change only after unanimous approval. The server
+chooses the effective instant. Old buckets keep their old zone; future buckets
+use the new one; an hour cut by the transition belongs to neither epoch.
 
 ### What is not reachable as a table write
 
-Three things, for the same reason M1's join-by-code is a function: they are not
+Five things, for the same reason M1's join-by-code is a function: they are not
 properties of a row.
 
 ```sql
@@ -224,6 +230,11 @@ select public.cancel_contest('<contest uuid>');
 -- Cron's entry point: opens contests that have come due if two people accepted,
 -- voids the rest. Not callable by `authenticated`, deliberately — see D32.
 select app.activate_due_contests();
+
+-- Active accepted participants may request a prospective relocation. Every
+-- other accepted participant must consent; retries of the same vote are safe.
+select public.request_timezone_change('<contest uuid>', 'Asia/Kathmandu');
+select public.review_timezone_change('<request uuid>', true);
 ```
 
 Inviting and answering *are* plain table writes, because both are row
@@ -277,16 +288,19 @@ falsify.
 | `evidence_quarantines` | Review-required retroactive observations. Never rewrites the ledger. |
 | `evidence_quarantine_reviews` | Append-only opponent votes on a quarantine. |
 
-**There is no client write path.** `authenticated` holds `SELECT` on all three
-tables and nothing else. A row appears only through
-`public.record_metric_batch()`, which `service_role` alone may execute, because
+**There is no client write path into the evidence ledger.** `authenticated`
+holds `SELECT` on its three underlying relations and nothing else. A row appears
+only through `public.record_metric_batch()`, which `service_role` alone may
+execute, because
 the thing that authorises the write is a signature over the request body and RLS
 cannot check a signature.
 
 ### A bucket is a local hour
 
-`bucket_start` is aligned to a whole hour **in the participant's frozen
-timezone**, not in UTC, and the two are not interchangeable. India is +05:30,
+`bucket_start` is aligned to a whole hour **in the participant's applicable
+timezone epoch**, not in UTC, and the two are not interchangeable. The first
+epoch is the zone frozen at acceptance; later epochs require unanimous opponent
+approval. India is +05:30,
 Nepal +05:45, Chatham +13:45 — so a UTC-aligned hour straddles the local day
 boundary for a large fraction of the world, and a daily-cadence goal would credit
 part of Tuesday to Monday for exactly those participants, silently. See
@@ -330,7 +344,7 @@ step from voiding an hour that also holds five thousand genuine ones.
 
 M5 reads the same metadata through `contest_evidence_sources`, a
 `security_invoker` sidecar view that selects the current admissible contribution
-for each provenance without changing `contest_evidence`. The `m5-v2` integrity
+for each provenance without changing `contest_evidence`. The `m5-v3` integrity
 configuration carries a reviewed bundle-identifier allow-list and separate,
 tunable penalties for an unrecognized, missing, or malformed third-party
 identifier. Device provenance is not subject to that rule. Every third-party row
@@ -444,8 +458,9 @@ That makes **ties the ordinary result**, not an edge case — which is why
 
 ### Daily cadence rates days, it does not count them
 
-A daily contest asks about the local days the window *wholly* covers in the
-participant's frozen zone, and ranks on `qualifyingDays / scoreableDays`.
+A daily contest asks about the local days each timezone epoch *wholly* covers,
+starting with the participant's frozen base zone, and ranks on
+`qualifyingDays / scoreableDays`.
 
 A window that is seven whole days in New York is six whole days plus two
 part-days in Kathmandu (+05:45). Ranking on the raw count would cap the Kathmandu
@@ -457,6 +472,10 @@ cannot be judged against a whole-day target. That also closes an attack the
 ledger cannot: evidence in a part-day is legitimately writable, so otherwise
 somebody who missed a Wednesday could stuff the edge day and manufacture a
 qualifying day out of an hour that was never a day. See D52.
+
+Every scoring call must supply the complete applied timezone-change ledger,
+including an explicit empty array when there are no changes. Omitting it raises
+instead of silently reverting a relocated participant to the base zone.
 
 ### Totals are integers underneath
 
@@ -505,14 +524,17 @@ kinds, and the split is the point: cross-metric padding, out-of-window backfill
 and part-day stuffing must **not** work; an implausible hour and an eleven-day-late
 report must work, and be visible in the summary.
 
+The corpus also crosses the date line: the same civil date can be one whole day
+in each of two timezone epochs, and those days must never be merged.
+
 ## Integrity assessment
 
 `supabase/functions/_shared/integrity.ts` is a pure sidecar to the M4 engine. Its
 configuration has a version, per-metric hourly ceilings, corroboration rules,
-reviewed third-party bundle identifiers and reputation tiers, travel
-distance/speed limits, lag and quarantine thresholds, severity, points per flag,
-and per-rule penalty caps. The default score starts at 100 and floors at 0, but
-those are configuration too.
+reviewed third-party bundle identifiers and reputation tiers, timezone-change
+penalties, travel distance/speed limits, lag and quarantine thresholds,
+severity, points per flag, and per-rule penalty caps. The default score starts
+at 100 and floors at 0, but those are configuration too.
 
 The assessor emits explicit flags:
 
@@ -521,13 +543,14 @@ The assessor emits explicit flags:
 | `plausibility_ceiling` | One hourly metric exceeds its configured ceiling. |
 | `cross_metric_corroboration` | A large contest-metric hour has none of its configured companion signals. |
 | `third_party_source_reputation` | An admissible third-party contribution has an unrecognized, missing, or malformed bundle identifier. |
+| `timezone_change` | An opponent-approved prospective timezone epoch was applied. |
 | `impossible_travel` | Two trusted location observations require travel above the configured speed after subtracting both accuracy radii. |
 | `reporting_lag` | An hour arrived materially after it closed. |
 | `retroactive_evidence_quarantine` | The lag crosses the review-required threshold. |
 
 Impossible travel takes explicit location observations; hourly HealthKit totals
-do not contain a location, and the code does not pretend otherwise. M6's
-geofence check-ins are the intended producer.
+and timezone changes do not contain a location, and the code does not pretend
+otherwise. M6's geofence check-ins are the intended producer.
 
 Flags never alter totals or qualification. A retroactive quarantine is durable
 review state beside the snapshot: the generated `is_admissible` value stays the
@@ -535,6 +558,11 @@ same and `contest_evidence` still returns the value. In a duel, the opponent mus
 approve; in a group, a strict majority of the other accepted participants must.
 Silence stays `pending`. M7 must block finalization on unresolved review rather
 than quietly apply a second evidence filter.
+
+Timezone consent is deliberately stricter than quarantine review because it
+changes the scoring contract rather than judging one claim: every other accepted
+participant must approve. Scoring computes whole days separately inside each
+approved epoch, and both the server and client drop transition-cut hours.
 
 ## Test-harness capabilities
 
@@ -609,9 +637,8 @@ changing it is one line in `Package.swift`.
 - [x] **M2** — Contest creation, invitations, participant state machine
 - [x] **M3** — HealthKit sync, attested ingest, `metric_snapshots`
 - [x] **M4** — Scoring engine with fixture tests, including fraudulent fixtures
-- [ ] **M5** — Core anti-cheat rules, review quarantine, integrity scoring, and
-      third-party source reputation are implemented. The timezone-change consent
-      flow remains.
+- [x] **M5** — Anti-cheat rules, integrity scoring, evidence review, source
+      reputation, and opponent-approved timezone changes
 - [ ] **M6** — Geofence check-ins and workout-overlap validation
 - [ ] **M7** — Settlement, disputes, charity pledge lifecycle, cron finalization
 - [ ] **M8** — Minimal SwiftUI shell

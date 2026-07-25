@@ -112,6 +112,16 @@ Deno.test("the corpus is portable data, not TypeScript", () => {
   assertEquals(roundTripped, SCORING_FIXTURES);
 });
 
+Deno.test("every fixture carries an explicit timezone-change ledger", () => {
+  for (const fixture of SCORING_FIXTURES) {
+    assertEquals(
+      Object.hasOwn(fixture.input, "timezoneChanges"),
+      true,
+      `timezoneChanges for ${fixture.name}`,
+    );
+  }
+});
+
 Deno.test("every fixture says what it pins, and no two share a name", () => {
   const names = new Set<string>();
   for (const fixture of SCORING_FIXTURES) {

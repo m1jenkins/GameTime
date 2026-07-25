@@ -44,6 +44,15 @@ Deno.test("a window starting mid-day drops the part-day at each end", () => {
   assertEquals(days, ["2026-01-06", "2026-01-07"]);
 });
 
+Deno.test("a fractional instant after midnight is still a part-day", () => {
+  const days = scoreableLocalDays(
+    new Date("2026-01-05T00:00:00.001Z"),
+    new Date("2026-01-08T00:00:00Z"),
+    "UTC",
+  );
+  assertEquals(days, ["2026-01-06", "2026-01-07"]);
+});
+
 Deno.test("whole New York days are not whole Kathmandu days", () => {
   // The asymmetry the whole design turns on. One instant range cannot be whole
   // local days in both a -05:00 zone and a +05:45 one, so the two participants
