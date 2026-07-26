@@ -613,7 +613,7 @@ select is(
     from cron.job
     where jobname = 'gametime-activate-due-contests'
   ),
-  current_database(),
+  current_database()::text,
   'the activation job runs in the database that owns the contest state'
 );
 select is(
@@ -622,7 +622,7 @@ select is(
     from cron.job
     where jobname = 'gametime-activate-due-contests'
   ),
-  current_user,
+  current_user::text,
   'the activation job runs as the migration owner'
 );
 select ok(
