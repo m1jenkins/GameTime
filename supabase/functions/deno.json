@@ -7,8 +7,8 @@
     "@std/encoding": "jsr:@std/encoding@^1.0.10",
     "@std/testing": "jsr:@std/testing@^1.0.9",
     "@peculiar/x509": "npm:@peculiar/x509@^1.12.3",
-    "asn1js": "npm:asn1js@^3.0.10",
-    "pkijs": "npm:pkijs@^3.4.0"
+    "asn1js": "https://esm.sh/asn1js@3.0.10?target=deno",
+    "pkijs": "https://esm.sh/pkijs@3.4.0?target=deno&deps=asn1js@3.0.10"
   },
   "tasks": {
     "test": "deno test --allow-env",

@@ -1,0 +1,11 @@
+schemaVersion: 1
+enabledWorkflows:
+  - simulator
+  - device
+  - project-discovery
+  - utilities
+sessionDefaults:
+  projectPath: "./ios/GameTimeConformance/GameTimeConformance.xcodeproj"
+  scheme: "GameTimeConformance"
+  configuration: "Debug"
+  platform: "iOS"

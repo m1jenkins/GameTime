@@ -4,9 +4,11 @@ This procedure is the release gate for M6.5. It exercises the production
 registration, metric, and geofence envelopes against staging with one genuine
 App Attest key. A simulator cannot complete it.
 
-The repository-side harness and automated checks were completed on 2026-07-25.
-The observation record at the end must remain unfilled, and M6.5 must remain
-open, until a connected physical iPhone and staging credentials are available.
+The repository-side harness, staging backend, and automated checks were
+completed on 2026-07-25. The observation record at the end must remain unfilled,
+and M6.5 must remain open, until an App Attest-capable Apple Developer Program
+team provisions the connected iPhone target and a staging Auth user/fixture is
+available.
 
 ## Expected proof
 
@@ -35,12 +37,29 @@ Prerequisites:
 
 - A Supabase staging project, CLI login, project database password, and
   `SUPABASE_PROJECT_REF`.
-- An Apple Developer team and an explicit App ID with App Attest enabled.
+- An active Apple Developer Program or Apple Developer Enterprise Program team
+  and an explicit App ID with App Attest enabled. Xcode Personal Teams cannot
+  provision the App Attest capability.
 - `APPLE_TEAM_ID` and `APPLE_BUNDLE_ID` matching the conformance target.
 - Supabase Auth credentials for one staging user who has completed profile
   onboarding. The iOS target accepts that user's access token at runtime.
 - The staging project's publishable key for the post-deploy rejection probes.
 - Supabase CLI, `psql`, `curl`, and OpenSSL.
+
+Create the ignored local credential file from the checked-in template:
+
+```bash
+cp .env.m6-5-staging.example .env.m6-5-staging
+```
+
+Fill it locally, then load it into the current shell without printing any
+values:
+
+```bash
+set -a
+source .env.m6-5-staging
+set +a
+```
 
 First verify the project in the Supabase dashboard is the dedicated staging
 project. Replace the single `UNCONFIGURED` line in
@@ -75,9 +94,12 @@ Deploy all three functions. The handlers verify user sessions against the
 project's injected JWKS in code, so the legacy gateway verifier stays disabled:
 
 ```bash
-supabase functions deploy attest-device --project-ref "$SUPABASE_PROJECT_REF" --use-api
-supabase functions deploy ingest-metrics --project-ref "$SUPABASE_PROJECT_REF" --use-api
-supabase functions deploy ingest-checkin --project-ref "$SUPABASE_PROJECT_REF" --use-api
+supabase functions deploy attest-device --project-ref "$SUPABASE_PROJECT_REF" --use-api \
+  --import-map supabase/functions/deno.json
+supabase functions deploy ingest-metrics --project-ref "$SUPABASE_PROJECT_REF" --use-api \
+  --import-map supabase/functions/deno.json
+supabase functions deploy ingest-checkin --project-ref "$SUPABASE_PROJECT_REF" --use-api \
+  --import-map supabase/functions/deno.json
 ```
 
 Confirm that the custom secret list names `GAMETIME_ENV`,
@@ -166,6 +188,11 @@ In Signing & Capabilities:
 - Keep the App Attest entitlement at `development`.
 - Select a trusted physical iPhone running iOS 18 or later. Do not select a
   simulator.
+
+If Xcode reports that a Personal Team does not support App Attest, stop there.
+Do not remove the entitlement to force an install: sign in with an account that
+belongs to an Apple Developer Program team, enable App Attest for the explicit
+App ID, and rerun the staging configuration with that team's ID.
 
 Enter these runtime values in the target:
 

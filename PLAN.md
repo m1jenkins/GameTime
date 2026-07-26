@@ -11,7 +11,7 @@ why. This file owns sequence, remaining work, and launch blockers.
 | M0–M4 | Complete | Scaffold, social graph, contests, attested metric ledger, deterministic scoring |
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
-| M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging procedure implemented; physical-iPhone/staging proof remains |
+| M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
 | M7 | M7.2a implemented — staging proof open | Product contract D74–D82, transactional outbox, and named activation job are test-covered; hosted cron execution remains |
 | M8 | Not started | iOS app target and all device/framework integrations |
 
@@ -85,12 +85,19 @@ Implemented locally:
   deterministic SQL fixture, database verification queries, and a real-device
   smoke runbook.
 
-Current execution gate: this workstation has no connected physical iPhone and
-no staging project credentials. Do not mark M6.5 complete until the runbook
-records one successful device registration, metric, check-in, exact retry, and
-counter/public-key/receipt audit with `ATTEST_DEV_BYPASS` absent. That run must
-show the receipt's server-owned verification timestamp; no receipt may influence
-fraud, eligibility, or settlement while that timestamp is absent.
+The staging project is linked, all migrations are applied, the required secrets
+and three Edge Functions are deployed, and the connected iPhone is visible to
+Xcode. The current Apple account exposes only a Personal Team. Xcode refuses to
+provision the target because Personal Teams do not support the App Attest
+capability. Add an Apple Developer Program team with an App Attest-enabled App
+ID, update `APPLE_TEAM_ID` and the target signing team, then create the staging
+Auth user/fixture needed by the smoke run.
+
+Do not mark M6.5 complete until the runbook records one successful device
+registration, metric, check-in, exact retry, and counter/public-key/receipt audit
+with `ATTEST_DEV_BYPASS` absent. That run must show the receipt's server-owned
+verification timestamp; no receipt may influence fraud, eligibility, or
+settlement while that timestamp is absent.
 
 ## M7 — settlement and finalization
 
