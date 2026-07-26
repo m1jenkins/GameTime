@@ -52,7 +52,11 @@ import {
   CborError,
   decodeCbor,
 } from "../_shared/cbor.ts";
-import type { Database, ReceiptVerificationDatabase } from "../_shared/database.ts";
+import type {
+  ActiveActorDatabase,
+  Database,
+  ReceiptVerificationDatabase,
+} from "../_shared/database.ts";
 import {
   HttpFailure,
   jsonResponse,
@@ -75,7 +79,7 @@ export const MAX_RECEIPT_BYTES = 32 * 1024;
 export const CHALLENGE_WINDOW_SECONDS = 600;
 
 export interface AttestDeviceDeps {
-  readonly database: Database & ReceiptVerificationDatabase;
+  readonly database: Database & ReceiptVerificationDatabase & ActiveActorDatabase;
   readonly appId: string;
   /** Apple App Attestation Root CA, used only for the attestation x5c chain. */
   readonly rootCertificatePem: string;
@@ -199,6 +203,7 @@ export function createAttestDeviceHandler(
       const caller = await callerOf(request, deps.verifyToken, at);
 
       if (isChallenge) {
+        await deps.database.assertActiveActor(caller.userId);
         const challenge = await challengeFor(caller.userId, deps.challengeSecret, at);
         return jsonResponse(200, {
           challenge: btoa(String.fromCharCode(...challenge)),

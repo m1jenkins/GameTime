@@ -1,9 +1,10 @@
 /**
- * The two writes M3 makes, behind an interface.
+ * Privileged Edge Function database calls, behind narrow interfaces.
  *
- * Both go through PostgREST as `service_role`, because both are
- * SECURITY DEFINER functions with EXECUTE revoked from every client role — the
- * thing that authorises them is a signature, and RLS cannot check one.
+ * They go through PostgREST as `service_role`, because they are trusted
+ * SECURITY DEFINER functions with EXECUTE revoked from every client role. The
+ * handler verifies caller identity or cryptographic proof first, while the RPC
+ * owns the transactional database invariant.
  *
  * The interface exists so that the handler suites can exercise real request
  * parsing and real cryptography against a fake, which is the seam D9's
@@ -11,8 +12,8 @@
  * tested here, and the invariants past the write are tested by pgTAP against a
  * real Postgres. Neither suite pretends to cover the other's half.
  *
- * `fetch` rather than supabase-js: two RPC calls do not justify a client
- * library, and a fake for `fetch` is harder to get right than a fake for two
+ * `fetch` rather than supabase-js: this small RPC set does not justify a client
+ * library, and a fake for `fetch` is harder to get right than fakes for narrow
  * named methods.
  */
 
@@ -54,6 +55,16 @@ export interface MarkDeviceReceiptVerifiedArgs {
  */
 export interface ReceiptVerificationDatabase {
   markDeviceReceiptVerified(args: MarkDeviceReceiptVerifiedArgs): Promise<Date>;
+}
+
+/**
+ * The one service-role check needed before issuing an App Attest challenge.
+ *
+ * Kept separate from {@link Database} so ingest fakes do not acquire an
+ * unrelated account-lifecycle method.
+ */
+export interface ActiveActorDatabase {
+  assertActiveActor(userId: string): Promise<void>;
 }
 
 /** One hour of one metric, as the client reports it. */
@@ -215,6 +226,17 @@ function registrationFailureFor(
   }
 }
 
+/** Active-account refusals must not inherit device-registration wording. */
+function activeActorFailureFor(
+  code: string | undefined,
+  detail: string,
+): HttpFailure {
+  if (code === "42501") {
+    return new HttpFailure("forbidden", "this account is not active", detail);
+  }
+  return new HttpFailure("internal", "the request could not be processed", detail);
+}
+
 /**
  * A receipt-marker refusal is never useful to a client.
  *
@@ -347,8 +369,17 @@ function timestampResult(result: unknown, rpcName: string): Date {
 /** The production implementation. */
 export function postgrestDatabase(
   config: PostgrestConfig,
-): Database & ReceiptVerificationDatabase {
+): Database & ReceiptVerificationDatabase & ActiveActorDatabase {
   return {
+    async assertActiveActor(userId) {
+      await rpc(
+        config,
+        "assert_active_actor",
+        { p_user_id: userId },
+        activeActorFailureFor,
+      );
+    },
+
     async registerDeviceKey(args) {
       const result = await rpc(
         config,

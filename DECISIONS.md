@@ -61,8 +61,10 @@ device base hard for an app that spreads through existing friend groups).
 unexpected, or a required API turns out to be 26-only.
 
 > **Verified 2026-07-25:** Xcode 26.2 exposes the iOS 26.2 SDK, and Swift 6.2.3
-> builds the package and passes all 79 tests. The iOS 18 target remains the
-> deliberate compatibility choice above.
+> builds and tests the portable package. The iOS 18 target remains the
+> deliberate compatibility choice above. Changing suite counts and later
+> verification results live in `docs/IMPLEMENTATION_STATUS.md`, not this
+> decision record.
 
 ### D3. One scoring engine, in TypeScript
 
@@ -201,6 +203,10 @@ runtime should run on a host that can start it.
 imports; it builds and tests on Linux CI. The Xcode app target (M8) depends on it
 and holds everything that needs a device: HealthKit, CoreLocation, DeviceCheck,
 SwiftUI.
+
+**Current implementation (2026-07-26).** The M8 product target is still absent.
+M6.5 added a separate conformance-only SwiftUI/DeviceCheck target that depends
+on GameTimeCore. It is not product UI and is not currently built by CI.
 
 **Why.** It makes client domain logic genuinely CI-tested rather than tested only
 when someone opens Xcode. It also forces device dependencies behind protocols,
@@ -2055,12 +2061,18 @@ algorithm.
 ### D73. Staging mutations require a checked-in project identity
 
 **What.** `supabase/staging-project-ref` is the single reviewed allowlist for
-M6.5 staging. It remains `UNCONFIGURED` until the dedicated project exists.
-The secret-upload script refuses a different `SUPABASE_PROJECT_REF`; the
-fixture wrapper additionally requires a direct database URL whose
+M6.5 staging. It contains `UNCONFIGURED` before a dedicated project exists and
+must contain the reviewed nonsecret ref before any staging mutation. The
+secret-upload script refuses a different `SUPABASE_PROJECT_REF`; the fixture
+wrapper additionally requires a direct database URL whose
 `db.<project-ref>.supabase.co` host carries that exact ref. The SQL refuses to
 replace either reserved fixture ID if its existing row does not carry the
 expected synthetic identity.
+
+> **Implemented 2026-07-25 in `cc8f440`:** the dedicated staging identity was
+> reviewed and configured. A working copy that still reads `UNCONFIGURED` is
+> behind `origin/main` and must be reconciled before using either staging
+> script.
 
 **Why.** Calling a project “staging” in the same command that selects it is not
 an independent safety check. A mistyped production ref would otherwise enable
@@ -2717,6 +2729,13 @@ The M7 migration must replace today's `auth.users → profiles →
 contest_participants` cascade and the device-key evidence cascades with this
 explicit pseudonymization path before any durable result can exist.
 
+> **Working-tree implementation 2026-07-26:** the D81 foundation now replaces
+> those cascades, adds durable actors, stale-JWT denial, atomic service-only
+> deletion, scoped capabilities, retention rules/holds/events, and a guarded
+> hourly pruner. It is not yet an integrated or deployed feature: full
+> database/CI/concurrency/staging verification, user-facing capability handoff,
+> and future result/obligation/dispute/receipt child scopes remain open.
+
 **Why.** Keeping the current cascade would make account deletion the cheapest
 way to erase a losing pledge and could change a finalized roster underneath its
 result. Refusing deletion forever is not acceptable either. A pseudonymous
@@ -2814,9 +2833,10 @@ contests that ran (D75), bounded quarantine review (D76), standings disclosure
 (D77), disputes (D78), reliability (D79), notification ownership (D80), and
 durable pseudonymization (D81).
 
-M7.2 begins the implementation with D80's durable outbox and D82's named
-one-minute activation job. M6.5 remains open and still gates result finalization
-and settlement.
+M7.2 has implemented D80's durable outbox and D82's named one-minute activation
+job. The current working tree also implements D81's pre-result durable-actor and
+raw-retention foundation. M6.5 and hosted scheduler observations remain open and
+still gate result finalization and settlement.
 
 - **Quarantine and group approval (resolved by D60 and D76).** A duel needs its
   opponent; a group needs a strict majority of other accepted participants.
@@ -2835,12 +2855,14 @@ and settlement.
   stays admissible. A versioned reviewed allow-list is reputation-clean;
   unrecognized, missing, and malformed identifiers receive tunable, capped
   integrity penalties, and identical retries collapse to the same signal.
-- **Retention on finalized contests (resolved by D81; implementation in M7).**
-  The append-only ledger remains intact while a result can change. After
-  user-finality and closed cases, `raw-evidence-retention-v1` removes exact
-  location after 30 days and raw metric/source plus device-attestation material
-  after 90 days; donation-receipt objects likewise expire 90 days after
-  obligation finality, while aggregate and adjudicated facts remain.
+- **Retention on finalized contests (resolved by D81; foundation implemented).**
+  The working tree implements versioned rules, holds, cutoffs, immutable
+  pruning events, and the raw metric/location/device worker. The append-only
+  ledger remains intact while a result can change. After user-finality and
+  closed cases, `raw-evidence-retention-v1` removes exact location after 30 days
+  and raw metric/source plus device-attestation material after 90 days.
+  Result, obligation, dispute, and donation-receipt scopes attach when those M7
+  ledgers exist.
 - **Reliability score formula (resolved by D79).** Equal-weight obligation
   outcomes decay with a 365-day half-life; timely honor, late honor, and default
   contribute 1, 0.5, and 0, with fewer than three results shown as `Unrated`.
@@ -2876,10 +2898,12 @@ and settlement.
 ### Surfaced by the 2026-07-25 plan audit
 
 These gaps were recorded before M7 so its schema would not decide the product by
-accident. M7.1 resolves the product gaps in D74–D81. The next backend slice is
-the transactional notification outbox followed by outbox-backed scheduled
-activation; this work may proceed while M6.5 awaits external device proof, but
-no settlement-bearing finalization bypasses that gate.
+accident. M7.1 resolves the product gaps in D74–D82. The transactional outbox,
+scheduled activation, and D81 pre-result foundation are now implemented at the
+repository/working-tree stages described above. The next backend slice is the
+standings/finalization orchestrator and its bounded adjudication path. It may be
+developed while M6.5 awaits external device proof, but no settlement-bearing
+finalization bypasses that gate.
 
 - **How a donation is confirmed (resolved by D74).** A claim needs provider
   confirmation, winner acknowledgement, or receipt evidence that survives a

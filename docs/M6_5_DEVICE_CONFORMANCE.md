@@ -4,9 +4,11 @@ This procedure is the release gate for M6.5. It exercises the production
 registration, metric, and geofence envelopes against staging with one genuine
 App Attest key. A simulator cannot complete it.
 
-The repository-side harness and automated checks were completed on 2026-07-25.
-The observation record at the end must remain unfilled, and M6.5 must remain
-open, until a connected physical iPhone and staging credentials are available.
+The repository-side harness, staging backend, and automated checks were
+completed on 2026-07-25. The observation record at the end must remain unfilled,
+and M6.5 must remain open, until an App Attest-capable Apple Developer Program
+team provisions the connected iPhone target and a staging Auth user/fixture is
+available.
 
 ## Expected proof
 
@@ -35,23 +37,37 @@ Prerequisites:
 
 - A Supabase staging project, CLI login, project database password, and
   `SUPABASE_PROJECT_REF`.
-- An Apple Developer team and an explicit App ID with App Attest enabled.
+- An active Apple Developer Program or Apple Developer Enterprise Program team
+  and an explicit App ID with App Attest enabled. Xcode Personal Teams cannot
+  provision the App Attest capability.
 - `APPLE_TEAM_ID` and `APPLE_BUNDLE_ID` matching the conformance target.
 - Supabase Auth credentials for one staging user who has completed profile
   onboarding. The iOS target accepts that user's access token at runtime.
 - The staging project's publishable key for the post-deploy rejection probes.
 - Supabase CLI, `psql`, `curl`, and OpenSSL.
 
-First verify the project in the Supabase dashboard is the dedicated staging
-project. Replace the single `UNCONFIGURED` line in
-`supabase/staging-project-ref` with its nonsecret 20-character project ref and
-commit that reviewed identity before running either staging script. Then export
-the same ref, link the repository, and apply every migration:
+Create the ignored local credential file from the checked-in template:
 
 ```bash
-export SUPABASE_PROJECT_REF="$(tr -d '\n' < supabase/staging-project-ref)"
+cp .env.m6-5-staging.example .env.m6-5-staging
+set -a
+source .env.m6-5-staging
+set +a
+```
+
+Never print or commit its populated values. First verify the project in the
+Supabase dashboard is the dedicated staging project. The reviewed nonsecret
+20-character identity must already be committed in
+`supabase/staging-project-ref`. If this checkout still contains `UNCONFIGURED`,
+stop and reconcile it with `origin/main`; do not select a project in the same
+step that mutates it. Then link the repository, dry-run every migration against
+that explicit target, review the plan, and apply:
+
+```bash
+export SUPABASE_PROJECT_REF="$(tr -d '\r\n' < supabase/staging-project-ref)"
 supabase link --project-ref "$SUPABASE_PROJECT_REF"
-supabase db push
+supabase db push --linked --dry-run
+supabase db push --linked
 ```
 
 Export the Apple identifiers and a fresh dedicated challenge secret, then run
@@ -75,9 +91,12 @@ Deploy all three functions. The handlers verify user sessions against the
 project's injected JWKS in code, so the legacy gateway verifier stays disabled:
 
 ```bash
-supabase functions deploy attest-device --project-ref "$SUPABASE_PROJECT_REF" --use-api
-supabase functions deploy ingest-metrics --project-ref "$SUPABASE_PROJECT_REF" --use-api
-supabase functions deploy ingest-checkin --project-ref "$SUPABASE_PROJECT_REF" --use-api
+supabase functions deploy attest-device --project-ref "$SUPABASE_PROJECT_REF" --use-api \
+  --import-map supabase/functions/deno.json
+supabase functions deploy ingest-metrics --project-ref "$SUPABASE_PROJECT_REF" --use-api \
+  --import-map supabase/functions/deno.json
+supabase functions deploy ingest-checkin --project-ref "$SUPABASE_PROJECT_REF" --use-api \
+  --import-map supabase/functions/deno.json
 ```
 
 Confirm that the custom secret list names `GAMETIME_ENV`,
@@ -133,6 +152,8 @@ longitude are test-envelope inputs; M6.5 validates App Attest transport, not
 live Core Location collection, which belongs to M8.
 
 ```bash
+export STAGING_DATABASE_URL="postgresql://postgres:<percent-encoded-password>@db.${SUPABASE_PROJECT_REF}.supabase.co:5432/postgres"
+export CONFORMANCE_USER_ID="<access-token sub UUID>"
 export CONFORMANCE_LATITUDE=41.8781136
 export CONFORMANCE_LONGITUDE=-87.6297982
 ./scripts/m6-5-install-staging-fixture.sh
@@ -166,6 +187,11 @@ In Signing & Capabilities:
 - Keep the App Attest entitlement at `development`.
 - Select a trusted physical iPhone running iOS 18 or later. Do not select a
   simulator.
+
+If Xcode reports that a Personal Team does not support App Attest, stop there.
+Do not remove the entitlement to force an install: sign in with an account that
+belongs to an Apple Developer Program team, enable App Attest for the explicit
+App ID, and rerun the staging configuration with that team's ID.
 
 Enter these runtime values in the target:
 

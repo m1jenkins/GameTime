@@ -754,14 +754,14 @@ select is(
 );
 reset role;
 
-delete from auth.users
-where id = '44444444-4444-4444-4444-444444444444';
+select public.delete_account('44444444-4444-4444-4444-444444444444');
 
 select ok(
-  not exists (
+  exists (
     select 1
     from public.profiles
     where id = '44444444-4444-4444-4444-444444444444'
+      and deleted_at is not null
   )
   and (
     select count(*) = 2
@@ -769,7 +769,7 @@ select ok(
     where recipient_user_id = '44444444-4444-4444-4444-444444444444'
       and entity_id = 'e0000001-0000-0000-0000-000000000001'
   ),
-  'account deletion removes the profile but retains its notification history'
+  'account deletion tombstones the profile and retains notification history'
 );
 
 set local role authenticated;

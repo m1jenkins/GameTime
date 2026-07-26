@@ -396,11 +396,19 @@ insert into public.profiles (id, handle, display_name) values
 insert into public.groups (id, name, created_by) values
   ('b8888888-8888-8888-8888-888888888888', 'Outlives Its Founder',
    'a8888888-8888-8888-8888-888888888888');
+insert into public.group_members (group_id, user_id) values
+  ('b8888888-8888-8888-8888-888888888888',
+   '11111111-1111-1111-1111-111111111111');
 
-select lives_ok(
-  $$ delete from auth.users
-     where id = 'a8888888-8888-8888-8888-888888888888' $$,
-  'deleting the account that created a group clears created_by rather than failing'
+select public.delete_account('a8888888-8888-8888-8888-888888888888');
+select is(
+  (
+    select created_by
+    from public.groups
+    where id = 'b8888888-8888-8888-8888-888888888888'
+  ),
+  'a8888888-8888-8888-8888-888888888888'::uuid,
+  'account deletion retains the founder UUID as durable pseudonymous history'
 );
 
 select * from finish();

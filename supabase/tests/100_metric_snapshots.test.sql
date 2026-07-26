@@ -443,14 +443,16 @@ select isnt_empty(
 );
 
 select lives_ok(
-  $$ delete from auth.users where id = '11111111-1111-1111-1111-111111111111' $$,
+  $$ select public.delete_account(
+       '11111111-1111-1111-1111-111111111111'::uuid
+     ) $$,
   'an account with banked evidence can still be deleted'
 );
 
-select is_empty(
+select isnt_empty(
   $$ select 1 from public.metric_snapshots
      where user_id = '11111111-1111-1111-1111-111111111111' $$,
-  'and the cascade reached the ledger'
+  'banked evidence remains available to the retention worker'
 );
 
 -- Bob is untouched, so the cascade was scoped rather than a truncation.

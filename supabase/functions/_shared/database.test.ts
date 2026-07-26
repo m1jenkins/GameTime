@@ -120,6 +120,71 @@ Deno.test("the PostgREST device adapter parses server timestamps and sends scope
   }
 });
 
+Deno.test("the active-actor adapter calls only the service assertion RPC", async () => {
+  const originalFetch = globalThis.fetch;
+  let request:
+    | {
+      url: string;
+      method: string | undefined;
+      headers: Headers;
+      body: Record<string, unknown>;
+    }
+    | undefined;
+
+  try {
+    globalThis.fetch = (input, init) => {
+      request = {
+        url: String(input),
+        method: init?.method,
+        headers: new Headers(init?.headers),
+        body: JSON.parse(String(init?.body)) as Record<string, unknown>,
+      };
+      return Promise.resolve(new Response(null, { status: 204 }));
+    };
+
+    await postgrestDatabase(CONFIG).assertActiveActor(REGISTRATION.userId);
+
+    assertEquals(
+      request?.url,
+      "https://database.example.test/rest/v1/rpc/assert_active_actor",
+    );
+    assertEquals(request?.method, "POST");
+    assertEquals(request?.headers.get("apikey"), "sb_secret_test");
+    assertEquals(request?.headers.get("authorization"), null);
+    assertEquals(request?.body, { p_user_id: REGISTRATION.userId });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("the active-actor adapter maps a deleted account to a private 403", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = () =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            code: "42501",
+            message: `account ${REGISTRATION.userId} was deleted`,
+          }),
+          {
+            status: 403,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+      );
+
+    const failure = await captureFailure(
+      () => postgrestDatabase(CONFIG).assertActiveActor(REGISTRATION.userId),
+    );
+    assertEquals(failure.kind, "forbidden");
+    assertEquals(failure.message, "this account is not active");
+    assertEquals(failure.message.includes(REGISTRATION.userId), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 Deno.test("registration refuses a missing receipt capture timestamp", async () => {
   const originalFetch = globalThis.fetch;
   try {

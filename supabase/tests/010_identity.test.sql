@@ -15,7 +15,8 @@ insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'),  -- alice
   ('22222222-2222-2222-2222-222222222222'),  -- bob
   ('33333333-3333-3333-3333-333333333333'),  -- carol
-  ('44444444-4444-4444-4444-444444444444');  -- dave, never onboards
+  ('44444444-4444-4444-4444-444444444444'),  -- dave, never onboards
+  ('55555555-5555-5555-5555-555555555555');  -- erin, handle-shape fixture
 
 insert into public.profiles (id, handle, display_name, timezone) values
   ('11111111-1111-1111-1111-111111111111', 'alice', 'Alice', 'America/New_York'),
@@ -37,8 +38,24 @@ select ok(
   'row level security is enabled on profiles'
 );
 
--- id references auth.users, so a profile cannot exist without an identity.
-select col_is_fk('public', 'profiles', 'id', 'id is a foreign key to auth.users');
+-- D81 separates authentication lifetime from durable contest identity.
+select ok(
+  not exists (
+    select 1
+    from pg_constraint constraint_row
+    where constraint_row.conrelid = 'public.profiles'::regclass
+      and constraint_row.contype = 'f'
+      and constraint_row.conkey = array[
+        (
+          select attribute.attnum
+          from pg_attribute attribute
+          where attribute.attrelid = 'public.profiles'::regclass
+            and attribute.attname = 'id'
+        )
+      ]::smallint[]
+  ),
+  'profile id is no longer an auth.users FK; the durable actor outlives authentication'
+);
 
 -- ---------------------------------------------------------------------------
 -- Handle rules
@@ -84,19 +101,18 @@ select throws_ok(
   'reserved handles are rejected regardless of case'
 );
 
-select lives_ok(
-  $$ insert into public.profiles (id, handle, display_name)
-     values ('44444444-4444-4444-4444-444444444444', 'Dave_99', 'Dave') $$,
-  'a well-formed mixed-case handle with an underscore is accepted'
-);
-delete from public.profiles where handle = 'Dave_99';
-
 select throws_ok(
   $$ insert into public.profiles (id, handle, display_name)
      values ('44444444-4444-4444-4444-444444444444', 'dave', '') $$,
   '23514',
   null,
   'display_name cannot be empty'
+);
+
+select lives_ok(
+  $$ insert into public.profiles (id, handle, display_name)
+     values ('55555555-5555-5555-5555-555555555555', 'Erin_99', 'Erin') $$,
+  'a well-formed mixed-case handle with an underscore is accepted'
 );
 
 -- ---------------------------------------------------------------------------
@@ -160,8 +176,20 @@ select ok(
   'authenticated is not granted DELETE on profiles'
 );
 select ok(
-  has_table_privilege('authenticated', 'public.profiles', 'update'),
-  'authenticated is granted UPDATE on profiles'
+  not has_table_privilege('authenticated', 'public.profiles', 'update')
+  and has_column_privilege(
+    'authenticated',
+    'public.profiles',
+    'handle',
+    'update'
+  )
+  and not has_column_privilege(
+    'authenticated',
+    'public.profiles',
+    'deleted_at',
+    'update'
+  ),
+  'profile edits are column-scoped and never grant UPDATE on deleted_at'
 );
 select ok(
   not has_function_privilege('anon', 'public.find_profile_by_handle(text)', 'execute'),

@@ -590,16 +590,20 @@ select lives_ok(
 );
 
 select lives_ok(
-  $$ delete from auth.users
-     where id = '88888888-8888-8888-8888-888888888888' $$,
-  'and deleting the author clears created_by rather than failing'
+  $$ select public.delete_account(
+       '88888888-8888-8888-8888-888888888888'::uuid
+     ) $$,
+  'account deletion atomically resolves a pending contest authored by the actor'
 );
 
-select is(
-  (select count(*) from public.contests
-   where id = 'd0000003-0000-0000-0000-000000000003'),
-  1::bigint,
-  'the contest itself survives both, because it is evidence'
+select ok(
+  (
+    select status = 'cancelled'::public.contest_status
+      and created_by = '88888888-8888-8888-8888-888888888888'::uuid
+    from public.contests
+    where id = 'd0000003-0000-0000-0000-000000000003'
+  ),
+  'the pending contest is cancelled and retains its pseudonymous author'
 );
 
 select * from finish();

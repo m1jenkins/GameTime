@@ -11,16 +11,24 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M6 complete; M6.5 awaits physical-device/staging proof; M7.2a is implemented.**
-The staging fixture, conformance-only iOS target, independent App Attest receipt
-verifier, Apple-vector regression, receipt quarantine, and fail-closed hosted
-configuration are implemented. The remaining M6.5 gate is to run the documented
-smoke test on a provisioned iPhone against the staging project before settlement
-implementation begins. The M7 result, pledge,
-dispute, reliability, notification-intent, retention, and pseudonymization
-contract is recorded in DECISIONS.md D74–D82. The payload-free notification
-outbox and named one-minute activation job are implemented and pgTAP-covered;
-an actual hosted cron firing remains a staging proof.
+**Status, audited 2026-07-26: the backend and portable client core are complete
+through M6; this is not yet a shippable iOS app.** M6.5's staging backend,
+conformance-only iOS target, independent App Attest receipt verifier,
+Apple-vector regression, receipt quarantine, and fail-closed hosted
+configuration are implemented and verified. The remaining gate is to provision
+the connected iPhone with an App Attest-capable Apple Developer Program team,
+install the staging Auth fixture, and complete the documented smoke run.
+
+M7's product contract is recorded in DECISIONS.md D74–D82. The payload-free
+notification outbox and named one-minute activation job are implemented. The
+current working tree also implements D81's durable actor tombstones, atomic
+account deletion, scoped continuation capabilities, and versioned raw-evidence
+retention; that uncommitted database slice still needs a clean full pgTAP/CI run
+after the checkout is reconciled with `origin/main`. Hosted cron execution also
+remains an external staging proof. The product iOS target and the remainder of
+finalization, settlement, disputes, delivery, and operations are still open.
+See [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
+evidence, remaining work, and recommended sequence.
 
 ---
 
@@ -41,8 +49,9 @@ supabase/
   seed.sql               Local/CI seed data. Never required by a test.
 ios/
   GameTimeCore/          Portable Swift package. No Apple frameworks.
-                         Bucketing, provenance, check-in validation, and
-                         restorable exact-byte ingest queues.
+                         Bucketing, provenance, check-in validation, metric
+                         retry primitives, and a restorable exact-byte
+                         check-in queue.
                          Builds and tests on Linux CI.
   GameTimeConformance/   M6.5-only real-device App Attest smoke target.
                          The product app still lands in M8.
@@ -52,6 +61,10 @@ scripts/
   test-all.sh            Everything CI runs, in CI's order
   m6-5-configure-staging.sh  Pin and upload safe App Attest staging secrets
   m6-5-staging-fixture.sql   Repeatable staging contest/geofence fixture
+docs/
+  IMPLEMENTATION_STATUS.md  Dated evidence, gaps, and recommended next steps
+  M6_5_DEVICE_CONFORMANCE.md  Physical-iPhone/staging release gate
+  M7_ACCOUNT_DELETION_RETENTION.md  D81 contracts and deployment/operations gate
 DECISIONS.md             Every non-obvious choice and why
 PLAN.md                  What is next, and what the plan is missing
 ```
@@ -62,7 +75,9 @@ PLAN.md                  What is next, and what the plan is missing
 | ------------ | -------------- | ------------------------------------------- |
 | Supabase CLI | 2.109.1        | `brew install supabase/tap/supabase`        |
 | Docker       | 29.x           | Must be running before `dev-up.sh`          |
-| Deno         | 2.9.x          | `brew install deno`                         |
+| PostgreSQL client | 17.x      | `psql` is required by database/staging scripts |
+| Bash         | 5.x            | All repository scripts are Bash             |
+| Deno         | 2.9.4          | `brew install deno`                         |
 | Swift        | 6.2.3 / 6.3 CI | Xcode locally; standalone image in CI       |
 | Xcode        | 26.2            | iOS 26.2 SDK; conformance target in M6.5, product target in M8 |
 
@@ -103,13 +118,17 @@ Or individually:
 
 ```bash
 ./scripts/db-test.sh                                     # pgTAP
-cd supabase/functions && deno test --allow-env           # Edge Functions
-cd ios/GameTimeCore && swift test                        # Client core
+(cd supabase/functions && deno task fmt:check \
+  && deno task lint && deno task check && deno task test) # Edge Functions
+(cd ios/GameTimeCore && swift test)                       # Client core
 ```
 
-Three suites, three jobs in CI, one command locally. They must stay in step:
-if you add a suite, add it to both `scripts/test-all.sh` and
-`.github/workflows/ci.yml`.
+CI has three portable jobs: pgTAP, Deno, and GameTimeCore. The ten XCTest cases
+under `ios/GameTimeConformance` require Xcode and an iOS Simulator; they are
+documented in that target's README but are not yet a CI job. Add a macOS job
+before treating the conformance target as continuously verified. If a portable
+suite is added, keep `scripts/test-all.sh` and `.github/workflows/ci.yml` in
+step.
 
 ## Working on the schema
 
@@ -121,7 +140,7 @@ generated diff would strip.
 
 ```bash
 # New migration
-touch supabase/migrations/$(date -u +%Y%m%d%H%M%S)_add_something.sql
+supabase migration new add_something
 
 # Apply it, plus the seed, and run the suite
 ./scripts/db-test.sh
@@ -150,7 +169,7 @@ M1's tables. All five have RLS enabled and no `anon` access at all.
 
 | Table           | Shape                                                        |
 | --------------- | ------------------------------------------------------------ |
-| `profiles`      | One row per onboarded user, keyed to `auth.users`. Its existence *is* the onboarding flag. |
+| `profiles`      | One durable actor row per onboarded user. Active rows have a private auth binding; deleted rows become non-discoverable tombstones. |
 | `friendships`   | One row per pair, canonically ordered `user_a < user_b`. `requested_by` carries direction. |
 | `groups`        | Durable crews. Flat membership: no owner, no roles, no removing others. |
 | `group_members` | Roster. Joining needs a code; leaving is a delete.           |
@@ -167,8 +186,9 @@ select public.rotate_group_join_code('<group uuid>');   -- any member; the code 
 ```
 
 Deliberate absences, each enforced by a withheld grant as well as a missing
-policy (DECISIONS.md D21): no DELETE on `profiles` (accounts go through
-`auth.users`), no DELETE on `groups` (the last member leaving reaps it), no
+policy (DECISIONS.md D21 and D81): no DELETE on `profiles` (the service-only
+`delete_account()` transaction tombstones the durable actor and then removes
+authentication), no DELETE on `groups` (the last member leaving reaps it), no
 INSERT on `group_members` (that is `join_group_by_code`), and no UPDATE on
 `groups.join_code` (that is `rotate_group_join_code`).
 
@@ -301,11 +321,11 @@ users can read only their own intents while their profile is active;
 trusted emitter. Delivery attempts, read state, APNs tokens, and presentation
 remain M8 ledgers.
 
-Invitations, contest activation/cancellation, timezone-consent
-request/resolution, and quarantine-review request/approval emit semantic,
-idempotent intents. A rejected quarantine is not mislabeled as resolved: D76's
-later adjudication slice will create the escalation and operator intent
-atomically.
+Invitations, contest activation/cancellation, account-deletion participation
+changes, timezone-consent request/resolution, and quarantine-review
+request/approval emit semantic, idempotent intents. A rejected quarantine is
+not mislabeled as resolved: D76's later adjudication slice will create the
+escalation and operator intent atomically.
 
 The database installs one named `pg_cron` job,
 `gametime-activate-due-contests`, which calls
@@ -314,6 +334,35 @@ The database installs one named `pg_cron` job,
 semantics; a staging run must still observe the background process against
 committed rows because it cannot see fixtures inside a rolled-back test
 transaction.
+
+## Durable account deletion and raw-evidence retention
+
+The current working-tree D81 migration separates authentication lifetime from
+contest identity. A service-only `delete_account(uuid)` transaction resolves
+pending participation, creates any still-needed workflow capability, removes
+social state, revokes device registrations, replaces the profile with a random
+non-discoverable tombstone, and finally removes the Auth principal. Accepted
+active-contest rosters and immutable audit facts keep the stable actor UUID.
+Direct Auth deletion and UUID reuse are refused, and every authenticated table
+policy and actor RPC rechecks the active profile so an unexpired JWT cannot act
+after the tombstone commits.
+
+The launch policy `raw-evidence-retention-v1` removes exact location samples
+after 30 days and raw metric/source, device-registration, and opaque App Attest
+receipt material after 90 days. Contest-scoped material waits for persisted
+workflow finality; scoped holds and operator cutoffs delay pruning. The hourly
+`gametime-prune-raw-evidence` job is the only deletion authority: it records an
+immutable digest-only retention event, never removes an active device
+registration, and preserves rosters, ingest audit facts, quarantines, accepted
+check-ins, and key fingerprints. Result-, obligation-, dispute-, and
+donation-receipt tables will attach their child scopes to this foundation as
+those M7 slices land.
+
+This is backend infrastructure, not an end-to-end account-deletion feature yet.
+There is no reauthentication/confirmation flow, user-facing service endpoint,
+one-time capability handoff and recovery path, or client capability API. The
+new migrations and hourly retention job also still require full database/CI,
+concurrency, staging-copy, and hosted-cron verification before deployment.
 
 ## The evidence ledger
 
@@ -416,7 +465,8 @@ followed by a write that two copies of a captured request would both pass.
 
 ## Attested ingest
 
-Two endpoints, both `POST`, both requiring a signed-in caller.
+Four routes across three Edge Functions, all `POST`, all requiring a signed-in
+caller.
 
 ```
 POST /functions/v1/attest-device/challenge   -> { challenge, expiresInSeconds }
@@ -426,6 +476,9 @@ POST /functions/v1/attest-device             { keyId, attestation }
                                                     bundleVersion? }
 POST /functions/v1/ingest-metrics            { contestId, clientBatchId,
                                                observedAt, observations[] }
+POST /functions/v1/ingest-checkin             { contestId, geofenceId,
+                                               clientCheckinId, locations[],
+                                               workout? }
 ```
 
 `ingest-metrics` carries its credentials as **headers**, not fields:
@@ -454,6 +507,7 @@ batch's evidence.
 | `APPLE_TEAM_ID`                | Ten alphanumerics. With the bundle id this is the App ID Apple binds attestations to. |
 | `APPLE_BUNDLE_ID`              | |
 | `APP_ATTEST_ROOT_CA_PEM`       | Apple's App Attest root. **Required**; the functions refuse to start without it. |
+| `APP_ATTEST_RECEIPT_ROOT_CA_PEM` | Apple's Root CA G3 for independent PKCS#7 receipt verification. **Required** by `attest-device`. |
 | `APP_ATTEST_ALLOW_DEVELOPMENT` | Accept development-environment attestations. Defaults on in local and test, refused outright in production. |
 | `ATTEST_DEV_BYPASS`            | Accept an unattested batch or check-in. Same refusal in staging and production (D11). |
 | `GAMETIME_ENV`                 | `local`, `test`, `staging`, or `production`. Required in hosted functions; the app-owned name avoids Supabase's reserved secret prefix. |
@@ -461,13 +515,13 @@ batch's evidence.
 | `SUPABASE_JWKS`                | Hosted Supabase injects the project's asymmetric signing keys; all three handlers verify the signature, project issuer, and authenticated audience in code. |
 | `SUPABASE_SECRET_KEYS`         | Hosted Supabase injects named opaque admin keys. The default key reaches only guarded RPCs and is never put in an Authorization header. |
 
-Apple's current App Attestation Root CA is fetched from the
+Apple's current App Attestation Root CA and Root CA G3 are fetched from the
 [direct Apple PEM](https://www.apple.com/certificateauthority/Apple_App_Attestation_Root_CA.pem),
-checked against its recorded SHA-256 fingerprint, and uploaded by
+and [direct Apple DER](https://www.apple.com/certificateauthority/AppleRootCA-G3.cer),
+checked against their recorded SHA-256 fingerprints, and uploaded by
 `scripts/m6-5-configure-staging.sh`. Both staging scripts refuse to run until
-the reviewed project ref replaces `UNCONFIGURED` in
-`supabase/staging-project-ref`; the fixture wrapper also matches that identity
-against the database URL host. See
+the reviewed project ref is present in `supabase/staging-project-ref`; the
+fixture wrapper also matches that identity against the database URL host. See
 [`docs/M6_5_DEVICE_CONFORMANCE.md`](docs/M6_5_DEVICE_CONFORMANCE.md) for the
 complete staging and real-iPhone procedure.
 
@@ -745,6 +799,10 @@ afternoon:
 - **pg-delta is switched off.** It tried to fetch from npm inside a container on
   every `db reset`, which fails outright on a TLS-intercepting network. Nothing
   here diffs a schema, so it is disabled in `config.toml`.
+- **Deno format checks require LF line endings.** A Windows checkout with
+  `core.autocrlf=true` can make `deno fmt --check` report otherwise unchanged
+  TypeScript files as unformatted. Use an LF checkout (or WSL) before judging
+  the source from that result.
 
 ## Client target
 
@@ -768,14 +826,18 @@ implementation gates, and work not yet reflected here are in PLAN.md.
 - [x] **M6** — Geofence check-ins, workout-overlap validation, trusted-location
       integrity inputs, and a restorable exact-byte client queue
 - [ ] **M6.5** — Real-device App Attest conformance against staging
-- [x] **M7.1** — Settlement/finalization product contract (D74–D81; decisions
+- [x] **M7.1** — Settlement/finalization product contract (D74–D82; decisions
       only)
 - [x] **M7.2a** — Payload-free notification outbox, transition emitters, and a
       named one-minute contest-activation job
+- [x] **M7 / D81 foundation (working tree)** — Durable actor tombstones, atomic
+      service-only account deletion, stale-JWT denial, scoped continuation
+      capabilities, and guarded versioned raw-evidence retention; integration
+      and full database/CI/staging verification remain open
 - [ ] **M7.2b** — Observe hosted cron activation and run ingest, timezone, and
       check-in flows against the scheduler-opened contest
-- [ ] **M7** — Scheduler, durable notification intents, standings endpoint,
-      finalization gates, settlement, disputes, charity pledge lifecycle, and
-      reliability
+- [ ] **M7 remainder** — Standings API, finalization gates and result ledger,
+      settlement, disputes, charity pledge lifecycle, reliability, and
+      deadline/retention operations
 - [ ] **M8** — iOS app target: auth, HealthKit, Core Location, App Attest,
       APNs delivery, persistence, and the SwiftUI product loop

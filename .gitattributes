@@ -1,2 +1,3 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Auto-detect text and keep working-tree line endings deterministic. Bash and
+# Deno format checks both require LF, including on Windows checkouts.
+* text=auto eol=lf

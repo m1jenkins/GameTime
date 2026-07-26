@@ -930,13 +930,15 @@ insert into public.timezone_change_applied_events (
   'America/Chicago'
 );
 select lives_ok(
-  $$ delete from auth.users
-     where id = '44444444-4444-4444-4444-444444444444' $$,
-  'account deletion may cascade through all three consent ledgers'
+  $$ select public.delete_account(
+       '44444444-4444-4444-4444-444444444444'::uuid
+     ) $$,
+  'account deletion retains all three consent ledgers'
 );
 select lives_ok(
-  $$ delete from auth.users
-     where id = '22222222-2222-2222-2222-222222222222' $$,
+  $$ select public.delete_account(
+       '22222222-2222-2222-2222-222222222222'::uuid
+     ) $$,
   'account deletion may retain the reviewer UUID as a pseudonymous audit fact'
 );
 select ok(

@@ -2,6 +2,7 @@ import { assertEquals, assertNotEquals } from "@std/assert";
 import { type AttestDeviceDeps, challengeFor, createAttestDeviceHandler } from "./handler.ts";
 import { ReceiptVerificationError, verifyAppAttestReceipt } from "../_shared/appattest_receipt.ts";
 import type {
+  ActiveActorDatabase,
   Database,
   MarkDeviceReceiptVerifiedArgs,
   ReceiptVerificationDatabase,
@@ -42,8 +43,9 @@ function recordingDatabase(
     args: MarkDeviceReceiptVerifiedArgs,
   ) => void | Promise<void> = () => {},
   receiptReceivedAt = RECEIPT_CAPTURED_AT,
-): Database & ReceiptVerificationDatabase {
+): Database & ReceiptVerificationDatabase & ActiveActorDatabase {
   return {
+    assertActiveActor: () => Promise.resolve(),
     registerDeviceKey: async (args) => {
       await onRegister(args);
       return { receiptReceivedAt };
@@ -133,14 +135,47 @@ async function registrationBody(
 // ---------------------------------------------------------------------------
 // The challenge route
 // ---------------------------------------------------------------------------
-Deno.test("issues a challenge to a signed-in caller", async () => {
-  const handler = createAttestDeviceHandler(deps());
+Deno.test("issues a challenge after confirming the signed-in caller is active", async () => {
+  let checkedUserId: string | undefined;
+  const handler = createAttestDeviceHandler(deps({
+    database: {
+      ...recordingDatabase(),
+      assertActiveActor: (userId) => {
+        checkedUserId = userId;
+        return Promise.resolve();
+      },
+    },
+  }));
   const response = await post(handler, undefined, { path: "/challenge" });
 
   assertEquals(response.status, 200);
   const body = await response.json();
   assertEquals(typeof body.challenge, "string");
   assertEquals(body.expiresInSeconds, 600);
+  assertEquals(checkedUserId, USER);
+});
+
+Deno.test("refuses a challenge when a valid stale token names an inactive account", async () => {
+  const handler = createAttestDeviceHandler(deps({
+    database: {
+      ...recordingDatabase(),
+      assertActiveActor: () => {
+        throw new HttpFailure(
+          "forbidden",
+          "this account is not active",
+          "account was deleted after this JWT was issued",
+        );
+      },
+    },
+  }));
+
+  const response = await post(handler, undefined, { path: "/challenge" });
+
+  assertEquals(response.status, 403);
+  assertEquals(await response.json(), {
+    error: "forbidden",
+    message: "this account is not active",
+  });
 });
 
 Deno.test("a challenge is bound to the account that asked for it", async () => {

@@ -1,8 +1,10 @@
 # Implementation plan
 
-Audited 2026-07-25 against the code, tests, pull-request refs, and every remote
-branch. README.md is the compact ledger of what is built; DECISIONS.md records
-why. This file owns sequence, remaining work, and launch blockers.
+Audited 2026-07-26 against the code, tests, documentation, current working tree,
+and `origin/main`. README.md is the compact ledger of what is built;
+DECISIONS.md records why. This file owns sequence, remaining work, and launch
+blockers. The dated evidence and verification caveats are in
+`docs/IMPLEMENTATION_STATUS.md`.
 
 ## Current state
 
@@ -11,15 +13,49 @@ why. This file owns sequence, remaining work, and launch blockers.
 | M0–M4 | Complete | Scaffold, social graph, contests, attested metric ledger, deterministic scoring |
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
-| M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging procedure implemented; physical-iPhone/staging proof remains |
-| M7 | M7.2a implemented — staging proof open | Product contract D74–D82, transactional outbox, and named activation job are test-covered; hosted cron execution remains |
-| M8 | Not started | iOS app target and all device/framework integrations |
+| M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
+| M7 | M7.2a implemented; D81 foundation in the working tree | Product contract D74–D82, transactional outbox, and activation job are committed; account deletion/retention still need integration and full database/CI/staging verification |
+| M8 | Not started | Product iOS app target and product device/framework integrations |
 
 M6's boundary is backend plus portable client core. It does not include live
 Core Location collection, HealthKit queries, or a production scoring/finalizer
 orchestrator; the first two belong to M8 and the orchestrator belongs to M7.
 
-## What this audit corrected
+## Audit snapshot and immediate repository gate
+
+This checkout is not a single integrated revision: local `main` is at
+`7cadc89`, one commit behind `origin/main` at `cc8f440`, while the D81
+account-deletion/retention migrations, tests, handler hardening, and these
+documentation edits are uncommitted. `cc8f440` contains the hosted PKI.js
+runtime fix and the newer staging configuration. Reconcile that commit before
+reviewing or committing D81 so no test result is mistaken for proof of the
+combined tree.
+
+The 2026-07-26 local audit established:
+
+- Deno lint and type-check pass; all 286 Deno tests pass.
+- All 15 migration files parse with a PostgreSQL 17 parser, and all five Bash
+  scripts pass `bash -n`.
+- The working tree contains 18 pgTAP files planning 733 assertions, but Docker,
+  Supabase CLI, and `psql` were unavailable here, so those assertions were not
+  executed in this audit.
+- Swift and Xcode were unavailable here. The repository contains 88 portable
+  GameTimeCore test cases and ten conformance-target XCTest cases; only the
+  portable package is a current CI job.
+- `deno fmt --check` is blocked on this Windows checkout by CRLF conversion in
+  otherwise unchanged tracked files. Verify from an LF checkout rather than
+  formatting 25 files as audit noise.
+
+Before new feature work:
+
+1. Reconcile `origin/main` with the working tree and review the combined diff.
+2. Enforce LF for scripts/TypeScript or run from an LF checkout.
+3. Run `supabase db reset`, all 733 pgTAP assertions, database lint/advisors,
+   Deno checks, Swift tests, and CI on the integrated revision.
+4. Add a macOS simulator job for the conformance target; the Supabase CLI and
+   Deno CI versions are now pinned to the audited toolchain.
+
+## Corrections retained from the prior audit
 
 - Reconciled the two feature commits that completed M5 and implemented M6.
 - Made timezone and quarantine review quorum immutable. Account deletion cannot
@@ -35,12 +71,6 @@ orchestrator; the first two belong to M8 and the orchestrator belongs to M7.
   separator so normal text-search tools index the file.
 - Confirmed the local toolchain: Xcode 26.2, iOS 26.2 SDK, and Swift 6.2.3.
   The chosen iOS 18 deployment target remains valid.
-
-The audit also found stale repository administration: PRs #5 and #6 point to
-commits already in `main`, and #7 is an obsolete alternate M2 implementation.
-They should be closed and their dead branches deleted after confirming no
-external automation still references them. The old M5 branch must not be
-merged again; its tree is already represented in `main`.
 
 ## M6.5 — device-conformance spike
 
@@ -85,20 +115,28 @@ Implemented locally:
   deterministic SQL fixture, database verification queries, and a real-device
   smoke runbook.
 
-Current execution gate: this workstation has no connected physical iPhone and
-no staging project credentials. Do not mark M6.5 complete until the runbook
-records one successful device registration, metric, check-in, exact retry, and
-counter/public-key/receipt audit with `ATTEST_DEV_BYPASS` absent. That run must
-show the receipt's server-owned verification timestamp; no receipt may influence
-fraud, eligibility, or settlement while that timestamp is absent.
+The staging project is linked, all committed migrations are applied, the
+required secrets and three Edge Functions are deployed, and the connected
+iPhone is visible to Xcode. The current Apple account exposes only a Personal
+Team, which cannot provision App Attest. Add an Apple Developer Program team
+with an App Attest-enabled App ID, update the signing team and Apple
+configuration, then create the staging Auth user/fixture needed by the smoke
+run.
+
+Do not mark M6.5 complete until the runbook records one successful device
+registration, metric, check-in, exact retry, and counter/public-key/receipt audit
+with `ATTEST_DEV_BYPASS` absent. That run must show the receipt's server-owned
+verification timestamp; no receipt may influence fraud, eligibility, or
+settlement while that timestamp is absent.
 
 ## M7 — settlement and finalization
 
 M7 starts with decisions, then proves scheduling, then adds money-adjacent state.
-M7.1 is complete as a documentation/product-contract slice. M7.2's outbox and
-activation infrastructure may proceed while M6.5 awaits staging credentials and
-physical-device proof because it creates no settlement-bearing result. M6.5
-remains a hard gate before finalization or settlement is enabled.
+M7.1 is complete as a documentation/product-contract slice. M7.2's outbox,
+activation infrastructure, and D81's pre-result account-deletion foundation may
+proceed while M6.5 awaits App Attest-capable signing and physical-device proof
+because they create no settlement-bearing result. M6.5 remains a hard gate
+before finalization or settlement is enabled.
 
 ### 1. Resolve the product decisions first — complete
 
@@ -119,6 +157,7 @@ remains a hard gate before finalization or settlement is enabled.
   M8's.
 - D81 fixes pseudonymized account deletion before either results or obligations
   can leak the old cascade into schema design.
+- D82 fixes activation as a named, inspectable one-minute database job.
 
 ### 2. M7.2 — Make activation real
 
@@ -129,9 +168,10 @@ remains a hard gate before finalization or settlement is enabled.
 - [x] Enable `pg_cron` and install D82's named one-minute activation job.
 - [x] Call `app.activate_due_contests()` on a tested cadence.
 - [x] Establish one idempotent scheduled-worker pattern and registry.
-  Activation is its first job; later M7 slices add finalization/review
-  escalation, claim expiration/confirmation/default, dispute timeout, reminder,
-  and retention jobs without inventing separate timer semantics.
+  Activation is the first committed job; the working-tree D81 slice adds raw
+  retention. Later M7 slices add finalization/review escalation, claim
+  expiration/confirmation/default, dispute timeout, and reminders without
+  inventing separate timer semantics.
 - [x] Assert the installed schedule, transition/outbox idempotency, cancellation
   semantics, least privilege, append-only enforcement, and stale-JWT denial in
   pgTAP.
@@ -142,14 +182,32 @@ remains a hard gate before finalization or settlement is enabled.
 
 ### 3. Add the standings/finalization orchestrator
 
-- Implement D81's durable actor before the first result: replace the auth/profile
-  and device-key evidence cascades with pseudonymization and retained audit
-  digests; cover authored and accepted pending contests, active-contest
-  and challenge-horizon capabilities, profile-field clearing, one atomic
-  deletion RPC, case-capability authorization, persisted operator cutoffs,
-  versioned raw-data retention, and the guarded retention worker; prove deletion
-  cannot erase a roster, ingest batch, check-in, quarantine, or result, prune an
-  active device registration, or let a stale JWT authorize the tombstone.
+- [x] Implement D81's pre-result durable-actor foundation: replace the
+  auth/profile and device-key evidence cascades with pseudonymization and
+  retained audit digests; cover authored and accepted pending contests,
+  active-contest and challenge-horizon capabilities, profile-field clearing,
+  one atomic deletion RPC, generic case-capability authorization, persisted
+  operator cutoffs, versioned raw-data retention, and the guarded retention
+  worker. The pending pgTAP coverage is designed to assert that deletion cannot
+  erase a roster, ingest batch, check-in, or quarantine, prune an active device
+  registration, or let a stale JWT authorize the tombstone. Future result,
+  obligation, dispute, and donation-receipt migrations attach their child
+  scopes and retained facts to these seams.
+- [ ] Integrate the D81 work on top of `origin/main`, run the full 733-assertion
+  database suite and CI, and clear database security/performance advisors.
+- [ ] Add multi-session tests for deletion racing activation, invitation
+  acceptance, ingest, receipt marking, hold creation, retention, and future
+  finality writes. A single pgTAP transaction cannot prove lock ordering.
+- [ ] Apply the 2,860-line deletion migration to a production-shaped staging
+  copy, measure migration-wide lock duration, and document backup, deployment
+  window, failure recovery, and rollback limits.
+- [ ] Observe `gametime-prune-raw-evidence` in hosted staging and verify its run
+  history, holds/cutoffs, immutable events, and failed-job recovery.
+- [ ] Add the user-facing deletion service path: reauthentication and
+  confirmation, one-time capability handoff/storage, an explicit
+  lost-capability warning, and capability-authorized APIs. Any recovery
+  mechanism requires a separate reviewed design. Never expose the service-only
+  database RPC directly to the app.
 - Load `contest_evidence`, source reputation, timezone applied events,
   quarantine state, `contest_checkin_integrity`, and trusted location
   observations into the one TypeScript scoring/integrity pipeline.
@@ -216,13 +274,14 @@ privacy disclosures.
 | Item | Why it blocks |
 | --- | --- |
 | Production charity list | Production is intentionally empty; contest creation fails until EINs are verified |
-| App Attest root + real-device proof | Attested endpoints must not launch on the development bypass |
-| Staging environment | Device conformance and scheduled activation need a real target |
+| App Attest device proof | The roots and staging backend exist, but attested endpoints must not launch until the eligible-team physical-device run passes without the bypass |
+| Hosted staging proofs | Activation and retention need recorded committed-row cron executions and failure-recovery evidence |
 | Notifications | Action-required flows need a durable inbox and eventual delivery; deadlines cannot depend on push |
 | Adjudication operations | Review and dispute deadlines need authorized staffing, queues, alerts, and a tested SLA |
 | Observability | Rejected ingest, scheduler failures, and stuck reviews must be measurable |
 | Rate limiting | Signed-in callers can currently create avoidable endpoint load |
 | Privacy and abuse handling | Health, workout, and location data require disclosure, retention rules, and reporting paths |
+| Release engineering | Continuously build the conformance target and document deploy/rollback/restore |
 
 ## Verification policy
 
@@ -233,5 +292,6 @@ Every milestone remains gated by:
 - Swift build and Swift Testing for portable client logic;
 - real-device/staging smoke tests for claims that fixtures cannot establish.
 
-The full database suite remains the merge authority for SQL changes when Docker
-and the Supabase CLI are unavailable locally.
+When Docker and the Supabase CLI are unavailable locally, the CI database job
+remains the merge authority for SQL changes; parser success or a declared pgTAP
+plan is not a substitute for an executed suite.

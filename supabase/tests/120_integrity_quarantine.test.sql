@@ -391,8 +391,9 @@ select is(
 reset role;
 
 select lives_ok(
-  $$ delete from auth.users
-     where id = '22222222-2222-2222-2222-222222222222' $$,
+  $$ select public.delete_account(
+       '22222222-2222-2222-2222-222222222222'::uuid
+     ) $$,
   'reviewer account deletion retains a pseudonymous quarantine vote'
 );
 select ok(

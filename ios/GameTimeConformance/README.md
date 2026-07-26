@@ -35,7 +35,13 @@ APPLE_TEAM_ID=<your-team-id>
 APPLE_BUNDLE_ID=<your-conformance-bundle-id>
 GAMETIME_ATTEST_CHALLENGE_SECRET=<dedicated 32+ character secret>
 APP_ATTEST_ROOT_CA_PEM=<Apple App Attestation Root CA PEM>
+APP_ATTEST_RECEIPT_ROOT_CA_PEM=<Apple Root CA G3 PEM>
 ```
+
+Use `scripts/m6-5-configure-staging.sh` rather than copying certificate text by
+hand; it fetches both public roots from Apple, verifies their recorded SHA-256
+fingerprints, and removes `ATTEST_DEV_BYPASS`. The complete procedure and
+observation record are in `docs/M6_5_DEVICE_CONFORMANCE.md`.
 
 The signed-in user needs a profile and an accepted roster row in an active
 contest. The contest must have at least one fully completed hour in the user's
@@ -45,9 +51,11 @@ coordinate should be inside it.
 ## Provision the iPhone target
 
 Open `GameTimeConformance.xcodeproj`, select the **GameTimeConformance** target,
-and set your own development Team and unique bundle identifier. No team ID,
-certificate, profile, key, URL, or token is committed. The target already has
-the development entitlement:
+and select an active Apple Developer Program or Enterprise Program team with an
+explicit App Attest-enabled App ID. A Personal Team cannot provision this
+capability. Set the matching unique bundle identifier. No team ID, certificate,
+profile, key, URL, or token is committed. The target already has the development
+entitlement:
 
 ```text
 com.apple.developer.devicecheck.appattest-environment = development
@@ -55,6 +63,9 @@ com.apple.developer.devicecheck.appattest-environment = development
 
 Run the `GameTimeConformance` shared scheme on a physical supported iPhone.
 Simulator can compile the target but reports App Attest as unavailable.
+If Xcode reports that the selected Personal Team does not support App Attest,
+stop and change to an eligible team; do not remove the entitlement to force an
+install.
 
 ## Runtime fields
 
@@ -88,6 +99,9 @@ strictly larger check-in counter, and identical metric and check-in replays
 returning HTTP 200 with `replayed=true` and their original record IDs.
 
 ## Local validation
+
+These commands are required local gates, not current CI evidence. The
+conformance target is not continuously built.
 
 Build the app without signing:
 
