@@ -638,21 +638,21 @@ select ok(
 
 select lives_ok(
   $$ select app.emit_notification_intent(
-       '44444444-4444-4444-4444-444444444444',
-       'contest_invitation',
-       'e0000001-0000-0000-0000-000000000001',
-       0,
-       '2030-01-01 00:00:00+00'
+       '44444444-4444-4444-4444-444444444444'::uuid,
+       'contest_invitation'::public.notification_event_type,
+       'e0000001-0000-0000-0000-000000000001'::uuid,
+       0::smallint,
+       '2030-01-01 00:00:00+00'::timestamptz
      ) $$,
   'the trusted emitter appends a semantic event'
 );
 select lives_ok(
   $$ select app.emit_notification_intent(
-       '44444444-4444-4444-4444-444444444444',
-       'contest_invitation',
-       'e0000001-0000-0000-0000-000000000001',
-       0,
-       '2030-01-02 00:00:00+00'
+       '44444444-4444-4444-4444-444444444444'::uuid,
+       'contest_invitation'::public.notification_event_type,
+       'e0000001-0000-0000-0000-000000000001'::uuid,
+       0::smallint,
+       '2030-01-02 00:00:00+00'::timestamptz
      ) $$,
   'an identical semantic event retry is accepted'
 );
@@ -682,11 +682,11 @@ select is(
 );
 select lives_ok(
   $$ select app.emit_notification_intent(
-       '44444444-4444-4444-4444-444444444444',
-       'contest_invitation',
-       'e0000001-0000-0000-0000-000000000001',
-       1,
-       '2030-01-02 00:00:00+00'
+       '44444444-4444-4444-4444-444444444444'::uuid,
+       'contest_invitation'::public.notification_event_type,
+       'e0000001-0000-0000-0000-000000000001'::uuid,
+       1::smallint,
+       '2030-01-02 00:00:00+00'::timestamptz
      ) $$,
   'a distinct reminder stage is a distinct semantic event'
 );
@@ -703,10 +703,10 @@ select is(
 );
 select throws_ok(
   $$ select app.emit_notification_intent(
-       '44444444-4444-4444-4444-444444444444',
-       'contest_invitation',
-       'e0000001-0000-0000-0000-000000000002',
-       -1,
+       '44444444-4444-4444-4444-444444444444'::uuid,
+       'contest_invitation'::public.notification_event_type,
+       'e0000001-0000-0000-0000-000000000002'::uuid,
+       (-1)::smallint,
        now()
      ) $$,
   '22023',
