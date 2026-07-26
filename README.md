@@ -11,7 +11,7 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status, audited 2026-07-26: the backend and portable client core are complete
+**Status, reconciled 2026-07-26: the backend and portable client core are complete
 through M6; this is not yet a shippable iOS app.** M6.5's staging backend,
 conformance-only iOS target, independent App Attest receipt verifier,
 Apple-vector regression, receipt quarantine, and fail-closed hosted
@@ -21,13 +21,13 @@ install the staging Auth fixture, and complete the documented smoke run.
 
 M7's product contract is recorded in DECISIONS.md D74–D82. The payload-free
 notification outbox and named one-minute activation job are implemented. The
-current working tree also implements D81's durable actor tombstones, atomic
+reconciled branch also implements D81's durable actor tombstones, atomic
 account deletion, scoped continuation capabilities, and versioned raw-evidence
-retention; that uncommitted database slice still needs a clean full pgTAP/CI run
-after the checkout is reconciled with `origin/main`. Hosted cron execution also
-remains an external staging proof. The product iOS target and the remainder of
-finalization, settlement, disputes, delivery, and operations are still open.
-See [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
+retention. The combined revision still needs a clean full pgTAP/CI run plus D81
+staging and concurrency proof. Hosted cron execution also remains an external
+staging proof. The product iOS target and the remainder of finalization,
+settlement, disputes, delivery, and operations are still open. See
+[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
 evidence, remaining work, and recommended sequence.
 
 ---
@@ -337,7 +337,7 @@ transaction.
 
 ## Durable account deletion and raw-evidence retention
 
-The current working-tree D81 migration separates authentication lifetime from
+The reconciled D81 migration separates authentication lifetime from
 contest identity. A service-only `delete_account(uuid)` transaction resolves
 pending participation, creates any still-needed workflow capability, removes
 social state, revokes device registrations, replaces the profile with a random
@@ -830,10 +830,10 @@ implementation gates, and work not yet reflected here are in PLAN.md.
       only)
 - [x] **M7.2a** — Payload-free notification outbox, transition emitters, and a
       named one-minute contest-activation job
-- [x] **M7 / D81 foundation (working tree)** — Durable actor tombstones, atomic
+- [x] **M7 / D81 foundation** — Durable actor tombstones, atomic
       service-only account deletion, stale-JWT denial, scoped continuation
-      capabilities, and guarded versioned raw-evidence retention; integration
-      and full database/CI/staging verification remain open
+      capabilities, and guarded versioned raw-evidence retention; full
+      database/CI/concurrency/staging verification remains open
 - [ ] **M7.2b** — Observe hosted cron activation and run ingest, timezone, and
       check-in flows against the scheduler-opened contest
 - [ ] **M7 remainder** — Standings API, finalization gates and result ledger,

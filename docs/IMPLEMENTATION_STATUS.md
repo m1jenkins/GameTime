@@ -16,28 +16,22 @@ M6.5 has a verified staging backend and a purpose-built iPhone conformance
 target, but the eligible-team physical-device observation is still open. M7.2a's
 notification outbox and scheduled activation are implemented, but their hosted
 committed-row proof is open. A large D81 account-deletion/retention foundation
-exists in the current working tree, not yet as an integrated, CI-proven,
-deployed feature. The M7 finalizer/settlement domain and the M8 product iOS app
-remain to be built.
+is integrated into the reconciled branch, but is not yet database/CI-proven,
+staged, or deployed. The M7 finalizer/settlement domain and the M8 product iOS
+app remain to be built.
 
 “Complete” below means the milestone's repository scope is implemented and
 covered by its intended automated tests. It does not mean production deployed,
 externally proven, operationally staffed, or App Store ready.
 
-## Audit baseline
+## Reconciled baseline
 
-The workspace is currently a composite rather than one reviewable revision:
-
-| Source | State on 2026-07-26 | Consequence |
-| --- | --- | --- |
-| Local `main` | `7cadc89` | One commit behind upstream |
-| `origin/main` | `cc8f440` | Contains the hosted PKI.js runtime fix, safer staging configuration, configured staging identity, and newer M6.5 facts |
-| Working tree | README/PLAN, Edge Function, pgTAP, and D81 migration changes; three untracked D81 migrations plus one untracked test | D81 has not run in CI and has not been tested together with `cc8f440` |
-
-The first engineering action is therefore repository reconciliation, not
-another feature slice. Integrate `origin/main`, preserve and review the D81
-changes, then establish one green revision before using any test result as a
-release claim.
+`main` now combines the local audit/D81 commit `c6bfed67` with upstream M6.5
+hardening commit `cc8f440`. The hosted PKI.js Edge Runtime fix, reviewed staging
+identity, safer staging scripts, D81 migrations/tests, documentation, and pinned
+CI toolchains are therefore in one reviewable history. The combined revision
+still needs the database, Swift, CI, concurrency, and staging proof below before
+it can support a release claim.
 
 ## Verification evidence
 
@@ -45,9 +39,9 @@ release claim.
 
 | Check | Result | What it proves |
 | --- | --- | --- |
-| Deno lint | Pass, 37 files checked | Current TypeScript satisfies configured lint rules |
+| Deno lint | Pass, 39 files checked | Current TypeScript satisfies configured lint rules |
 | Deno type-check | Pass | Current Edge Function/shared code type-checks |
-| Deno tests | 286 passed, 0 failed | Handler, cryptography, JWT, scoring, integrity, and adapter unit behavior |
+| Deno tests | 287 passed, 0 failed | Handler, cryptography, JWT, scoring, integrity, and adapter unit behavior |
 | PostgreSQL 17 parse | All 15 migrations parsed | Migration syntax is accepted by the parser; not execution semantics |
 | Bash syntax | All 5 scripts passed `bash -n` | Shell grammar only |
 | Static Supabase security review | 20 exposed public tables have RLS; public views are `security_invoker`; no `auth.role()`/user-metadata authorization; privileged functions use explicit grants/revokes and blank `search_path` | Strong static posture; not a substitute for a live advisor or RLS suite |
@@ -62,7 +56,7 @@ release claim.
 | Conformance Xcode CI | Current CI builds only GameTimeCore on Linux | Add a macOS simulator build/test job |
 | Physical App Attest proof | Current signing account is a Personal Team | Use an App Attest-capable Program team and record the runbook evidence |
 | Hosted cron proof | pgTAP transactions cannot be observed by the background worker | Record committed-row activation and retention job runs in staging |
-| Current private GitHub Actions result | Unauthenticated GitHub API access could not read it | Confirm CI in GitHub after integration |
+| Current private GitHub Actions result | Unauthenticated GitHub API access could not read it | Confirm CI in GitHub on reconciled `main` |
 
 `deno fmt --check` also reported 25 tracked files as different only by line
 endings because this Windows checkout uses `core.autocrlf=true`. Run the check
@@ -73,7 +67,7 @@ format-only diff and call that a source fix.
 
 | Milestone | Status | Delivered | Still open |
 | --- | --- | --- | --- |
-| M0 | Complete baseline | Supabase scaffold, migrations, local scripts, pgTAP/Deno/Swift CI | Working-tree Supabase/Deno version pins need integration/CI; conformance CI; deployment/rollback automation |
+| M0 | Complete baseline | Supabase scaffold, migrations, local scripts, pgTAP/Deno/Swift CI with pinned Supabase/Deno versions | Prove the pins in CI; conformance CI; deployment/rollback automation |
 | M1 | Complete in repo | Profiles, friendships, groups, membership, blocks, RLS and guarded RPCs | Product screens; handle throttling/avatar storage |
 | M2 | Complete in repo | Charities schema, contests, invitations, participant lifecycle, activation primitive | Verified production charity data |
 | M3 | Complete in repo | Attested metric ledger, idempotent ingest, local-hour bucketing/provenance/queue core | Live HealthKit collection and background delivery |
@@ -83,7 +77,7 @@ format-only diff and call that a source fix.
 | M6.5 | Gate open | Staging backend, conformance target, independent receipt verification, runbook | Eligible Apple team, Auth fixture, physical-device observation |
 | M7.1 | Complete | D74–D82 product contract | Implementation of most settlement domain |
 | M7.2a | Implemented | Transactional notification intents and named one-minute activation job | Hosted committed-row activation proof |
-| D81 foundation | Working-tree implementation | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker | Integration, full DB/CI/concurrency/staging proof, user-facing deletion/capability path |
+| D81 foundation | Integrated implementation | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker | Full DB/CI/concurrency/staging proof; user-facing deletion/capability path |
 | M7 finalization/settlement | Mostly not started | Pure scoring/integrity engines and schema seams exist | Standings API, frozen assessments, results, obligations, claims, disputes, reliability, deadline workers |
 | M8 | Not started | Portable GameTimeCore and conformance-only target | Product Xcode target, Auth, HealthKit, Core Location, App Attest lifecycle, persistence, screens, APNs |
 
@@ -105,22 +99,21 @@ The implemented architecture includes:
   real-device conformance target;
 - a payload-free transactional notification-intent ledger and named activation
   scheduler; and
-- in the current working tree, durable pseudonymous actors, stale-JWT denial,
+- in the reconciled branch, durable pseudonymous actors, stale-JWT denial,
   account-deletion capabilities, retention policies/holds/events, and an hourly
   raw-evidence pruner.
 
 ## Remaining work, by priority
 
-### P0 — Produce one trusted repository revision
+### P0 — Prove the reconciled repository revision
 
-1. Reconcile `cc8f440` with the D81 working tree and review the combined diff.
-2. Re-check from a fresh checkout that the new repository-wide LF rule removes
+1. Re-check from a fresh checkout that the new repository-wide LF rule removes
    Windows format/script drift without creating unintended source changes.
-3. Run database reset, all pgTAP assertions, Deno checks, both Swift suites,
+2. Run database reset, all pgTAP assertions, Deno checks, both Swift suites,
    database lint/advisors, and CI.
-4. Add real multi-session concurrency tests for deletion racing activation,
+3. Add real multi-session concurrency tests for deletion racing activation,
    invitation acceptance, ingest, receipt marking, finality/holds, and pruning.
-5. Apply the large D81 migration to a production-shaped staging copy; measure
+4. Apply the large D81 migration to a production-shaped staging copy; measure
    locks and document backup, deployment window, recovery, and rollback limits.
 
 ### P1 — Close the two external backend gates
@@ -130,7 +123,7 @@ The implemented architecture includes:
 2. Create the staging Auth user/fixture and complete every M6.5 observation.
 3. Run M7.2b against committed rows opened by `gametime-activate-due-contests`;
    inspect `cron.job_run_details` and exercise ingest/timezone/check-in paths.
-4. Stage D81 and record a real `gametime-prune-raw-evidence` run, including
+4. Deploy D81 to staging and record a real `gametime-prune-raw-evidence` run, including
    holds, cutoffs, immutable retention events, and failure recovery.
 
 ### P2 — Build one finalization vertical slice

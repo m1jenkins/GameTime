@@ -2834,7 +2834,7 @@ contests that ran (D75), bounded quarantine review (D76), standings disclosure
 durable pseudonymization (D81).
 
 M7.2 has implemented D80's durable outbox and D82's named one-minute activation
-job. The current working tree also implements D81's pre-result durable-actor and
+job. The reconciled branch also implements D81's pre-result durable-actor and
 raw-retention foundation. M6.5 and hosted scheduler observations remain open and
 still gate result finalization and settlement.
 
@@ -2856,7 +2856,7 @@ still gate result finalization and settlement.
   unrecognized, missing, and malformed identifiers receive tunable, capped
   integrity penalties, and identical retries collapse to the same signal.
 - **Retention on finalized contests (resolved by D81; foundation implemented).**
-  The working tree implements versioned rules, holds, cutoffs, immutable
+  The reconciled branch implements versioned rules, holds, cutoffs, immutable
   pruning events, and the raw metric/location/device worker. The append-only
   ledger remains intact while a result can change. After user-finality and
   closed cases, `raw-evidence-retention-v1` removes exact location after 30 days
@@ -2900,7 +2900,7 @@ still gate result finalization and settlement.
 These gaps were recorded before M7 so its schema would not decide the product by
 accident. M7.1 resolves the product gaps in D74–D82. The transactional outbox,
 scheduled activation, and D81 pre-result foundation are now implemented at the
-repository/working-tree stages described above. The next backend slice is the
+repository stages described above. The next backend slice is the
 standings/finalization orchestrator and its bounded adjudication path. It may be
 developed while M6.5 awaits external device proof, but no settlement-bearing
 finalization bypasses that gate.
