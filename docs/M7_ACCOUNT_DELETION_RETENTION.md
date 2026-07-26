@@ -1,8 +1,8 @@
 # M7 account deletion and raw-evidence retention
 
-> Status: D81 foundation implemented in the 2026-07-26 working tree. It is not
-> merged, database/CI-proven on top of current `origin/main`, staged, or exposed
-> as an end-to-end user feature.
+> Status: D81 foundation integrated into the reconciled 2026-07-26 branch. It is
+> not yet database/CI-proven, staged, deployed, or exposed as an end-to-end user
+> feature.
 
 This document describes the implementation boundary and the evidence required
 before deployment. Product rules remain authoritative in DECISIONS.md D81.
@@ -139,7 +139,7 @@ digests/fingerprints, and immutable retention events remain.
 
 Do not apply these migrations to production until all items pass:
 
-- [ ] Reconcile the working tree with `origin/main` and review one combined diff.
+- [x] Reconcile the D81 work with `origin/main` and review one combined diff.
 - [ ] Run a clean local reset and every pgTAP file, then Deno/Swift/CI.
 - [ ] Run database lint plus security and performance advisors.
 - [ ] Test deletion against activation, invitation acceptance, metric/check-in

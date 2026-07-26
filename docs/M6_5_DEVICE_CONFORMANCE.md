@@ -58,10 +58,10 @@ set +a
 Never print or commit its populated values. First verify the project in the
 Supabase dashboard is the dedicated staging project. The reviewed nonsecret
 20-character identity must already be committed in
-`supabase/staging-project-ref`. If this checkout still contains `UNCONFIGURED`,
-stop and reconcile it with `origin/main`; do not select a project in the same
-step that mutates it. Then link the repository, dry-run every migration against
-that explicit target, review the plan, and apply:
+`supabase/staging-project-ref` and must match `SUPABASE_PROJECT_REF`. Stop if
+either value differs; do not select a project in the same step that mutates it.
+Then link the repository, dry-run every migration against that explicit target,
+review the plan, and apply:
 
 ```bash
 export SUPABASE_PROJECT_REF="$(tr -d '\r\n' < supabase/staging-project-ref)"

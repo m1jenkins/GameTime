@@ -17,9 +17,14 @@
  */
 
 import * as asn1js from "asn1js";
-import * as pkijs from "pkijs";
 import * as x509 from "@peculiar/x509";
 import { type Bytes, bytesEqual, sha256 } from "./bytes.ts";
+import { pkijs } from "./pkijs_runtime.ts";
+
+type PkijsContentInfo = InstanceType<typeof pkijs.ContentInfo>;
+type PkijsSignedData = InstanceType<typeof pkijs.SignedData>;
+type PkijsCertificate = InstanceType<typeof pkijs.Certificate>;
+type PkijsSignedDataVerifyResult = Awaited<ReturnType<PkijsSignedData["verify"]>>;
 
 export class ReceiptVerificationError extends Error {
   override readonly name = "ReceiptVerificationError";
@@ -57,7 +62,7 @@ export interface VerifiedAppAttestReceipt {
 }
 
 interface ParsedCms {
-  readonly signedData: pkijs.SignedData;
+  readonly signedData: PkijsSignedData;
   readonly payload: Bytes;
 }
 
@@ -125,7 +130,7 @@ function parseCms(receipt: Bytes): ParsedCms {
     fail(`receipt must contain 1 to ${MAX_RECEIPT_BYTES} bytes`);
   }
 
-  let contentInfo: pkijs.ContentInfo;
+  let contentInfo: PkijsContentInfo;
   try {
     contentInfo = new pkijs.ContentInfo({
       schema: parseBer(receipt, "receipt PKCS#7 container"),
@@ -138,7 +143,7 @@ function parseCms(receipt: Bytes): ParsedCms {
     fail("receipt ContentInfo is not SignedData");
   }
 
-  let signedData: pkijs.SignedData;
+  let signedData: PkijsSignedData;
   try {
     signedData = new pkijs.SignedData({ schema: contentInfo.content });
   } catch (cause) {
@@ -158,7 +163,9 @@ function parseCms(receipt: Bytes): ParsedCms {
     signedData.certificates === undefined ||
     signedData.certificates.length === 0 ||
     signedData.certificates.length > MAX_CERTIFICATES ||
-    signedData.certificates.some((certificate) => !(certificate instanceof pkijs.Certificate))
+    signedData.certificates.some((
+      certificate: unknown,
+    ) => !(certificate instanceof pkijs.Certificate))
   ) {
     fail("receipt has an invalid embedded certificate set");
   }
@@ -281,7 +288,7 @@ function receiptDate(bytes: Bytes): Date {
   return parsed;
 }
 
-function pkijsCertificate(der: Bytes, what: string): pkijs.Certificate {
+function pkijsCertificate(der: Bytes, what: string): PkijsCertificate {
   try {
     return new pkijs.Certificate({ schema: parseBer(der, what) });
   } catch (cause) {
@@ -291,7 +298,7 @@ function pkijsCertificate(der: Bytes, what: string): pkijs.Certificate {
 }
 
 async function verifyCms(
-  signedData: pkijs.SignedData,
+  signedData: PkijsSignedData,
   rootCertificatePem: string,
   creationTime: Date,
 ): Promise<void> {
@@ -303,7 +310,7 @@ async function verifyCms(
   }
   const root = pkijsCertificate(rootDer, "configured App Attest receipt root");
 
-  let verification: pkijs.SignedDataVerifyResult;
+  let verification: PkijsSignedDataVerifyResult;
   try {
     verification = await signedData.verify({
       signer: 0,
@@ -329,7 +336,8 @@ async function verifyCms(
   // Apple chain is therefore insufficient: the exact certificate selected by
   // SignerInfo must carry Apple's dedicated fraud-receipt marker extension.
   const signerMarker = verification.signerCertificate.extensions?.find(
-    (extension) => extension.extnID === APP_ATTEST_RECEIPT_SIGNER_OID,
+    (extension: { readonly extnID: string; readonly extnValue: asn1js.OctetString }) =>
+      extension.extnID === APP_ATTEST_RECEIPT_SIGNER_OID,
   );
   if (
     signerMarker === undefined ||

@@ -73,6 +73,7 @@ attestation_root_pem="${staging_tmp}/Apple_App_Attestation_Root_CA.pem"
 receipt_root_der="${staging_tmp}/AppleRootCA-G3.cer"
 receipt_root_pem="${staging_tmp}/AppleRootCA-G3.pem"
 secret_file="${staging_tmp}/staging-secrets.env"
+existing_secrets_file="${staging_tmp}/existing-secrets.json"
 attestation_root_url="https://www.apple.com/certificateauthority/Apple_App_Attestation_Root_CA.pem"
 receipt_root_url="https://www.apple.com/certificateauthority/AppleRootCA-G3.cer"
 expected_attestation_fingerprint="1C:B9:82:3B:A2:8B:A6:AD:2D:33:A0:06:94:1D:E2:AE:4F:51:3E:F1:D4:E8:31:B9:F7:E0:FA:7B:62:42:C9:32"
@@ -117,7 +118,20 @@ escaped_receipt_root="$(awk '{printf "%s\\n", $0}' "$receipt_root_pem")"
   printf 'APP_ATTEST_RECEIPT_ROOT_CA_PEM="%s"\n' "$escaped_receipt_root"
 } >"$secret_file"
 
-supabase secrets unset ATTEST_DEV_BYPASS --project-ref "$SUPABASE_PROJECT_REF"
-supabase secrets set --env-file "$secret_file" --project-ref "$SUPABASE_PROJECT_REF"
+supabase secrets list \
+  --project-ref "$SUPABASE_PROJECT_REF" \
+  --output-format json \
+  --agent no >"$existing_secrets_file"
+if grep -Eq '"name"[[:space:]]*:[[:space:]]*"ATTEST_DEV_BYPASS"' "$existing_secrets_file"; then
+  supabase secrets unset ATTEST_DEV_BYPASS \
+    --project-ref "$SUPABASE_PROJECT_REF" \
+    --yes \
+    --agent no
+fi
+supabase secrets set \
+  --env-file "$secret_file" \
+  --project-ref "$SUPABASE_PROJECT_REF" \
+  --yes \
+  --agent no
 
 echo "M6.5 staging configuration uploaded; both public roots were fingerprint-verified and ATTEST_DEV_BYPASS is absent."

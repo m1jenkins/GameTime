@@ -1,7 +1,7 @@
 # Implementation plan
 
-Audited 2026-07-26 against the code, tests, documentation, current working tree,
-and `origin/main`. README.md is the compact ledger of what is built;
+Audited and reconciled 2026-07-26 against the code, tests, documentation, local
+history, and `origin/main`. README.md is the compact ledger of what is built;
 DECISIONS.md records why. This file owns sequence, remaining work, and launch
 blockers. The dated evidence and verification caveats are in
 `docs/IMPLEMENTATION_STATUS.md`.
@@ -14,7 +14,7 @@ blockers. The dated evidence and verification caveats are in
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
-| M7 | M7.2a implemented; D81 foundation in the working tree | Product contract D74–D82, transactional outbox, and activation job are committed; account deletion/retention still need integration and full database/CI/staging verification |
+| M7 | M7.2a and D81 foundation implemented | Product contract D74–D82, transactional outbox, activation job, and account deletion/retention foundation are integrated; full database/CI/concurrency/staging verification remains |
 | M8 | Not started | Product iOS app target and product device/framework integrations |
 
 M6's boundary is backend plus portable client core. It does not include live
@@ -23,20 +23,19 @@ orchestrator; the first two belong to M8 and the orchestrator belongs to M7.
 
 ## Audit snapshot and immediate repository gate
 
-This checkout is not a single integrated revision: local `main` is at
-`7cadc89`, one commit behind `origin/main` at `cc8f440`, while the D81
-account-deletion/retention migrations, tests, handler hardening, and these
-documentation edits are uncommitted. `cc8f440` contains the hosted PKI.js
-runtime fix and the newer staging configuration. Reconcile that commit before
-reviewing or committing D81 so no test result is mistaken for proof of the
-combined tree.
+Local audit/D81 commit `c6bfed67` and upstream M6.5 hardening commit `cc8f440`
+are now reconciled on `main`. The combined branch contains D81's
+account-deletion/retention migrations and tests together with the hosted PKI.js
+runtime fix and reviewed staging configuration. Reconciliation removes the
+repository split; it does not substitute for the full database, Swift, CI,
+concurrency, or staging proof still listed below.
 
 The 2026-07-26 local audit established:
 
-- Deno lint and type-check pass; all 286 Deno tests pass.
+- Deno lint and type-check pass; all 287 Deno tests pass.
 - All 15 migration files parse with a PostgreSQL 17 parser, and all five Bash
   scripts pass `bash -n`.
-- The working tree contains 18 pgTAP files planning 733 assertions, but Docker,
+- The repository contains 18 pgTAP files planning 733 assertions, but Docker,
   Supabase CLI, and `psql` were unavailable here, so those assertions were not
   executed in this audit.
 - Swift and Xcode were unavailable here. The repository contains 88 portable
@@ -48,11 +47,10 @@ The 2026-07-26 local audit established:
 
 Before new feature work:
 
-1. Reconcile `origin/main` with the working tree and review the combined diff.
-2. Enforce LF for scripts/TypeScript or run from an LF checkout.
-3. Run `supabase db reset`, all 733 pgTAP assertions, database lint/advisors,
+1. Review the reconciled diff and verify LF behavior from a fresh checkout.
+2. Run `supabase db reset`, all 733 pgTAP assertions, database lint/advisors,
    Deno checks, Swift tests, and CI on the integrated revision.
-4. Add a macOS simulator job for the conformance target; the Supabase CLI and
+3. Add a macOS simulator job for the conformance target; the Supabase CLI and
    Deno CI versions are now pinned to the audited toolchain.
 
 ## Corrections retained from the prior audit
@@ -115,13 +113,14 @@ Implemented locally:
   deterministic SQL fixture, database verification queries, and a real-device
   smoke runbook.
 
-The staging project is linked, all committed migrations are applied, the
-required secrets and three Edge Functions are deployed, and the connected
-iPhone is visible to Xcode. The current Apple account exposes only a Personal
-Team, which cannot provision App Attest. Add an Apple Developer Program team
-with an App Attest-enabled App ID, update the signing team and Apple
-configuration, then create the staging Auth user/fixture needed by the smoke
-run.
+The staging project is linked; migrations through M7.2a, the required secrets,
+and three Edge Functions were deployed and verified before D81 landed. The D81
+migrations remain unstaged. The connected iPhone is visible to Xcode, but the
+current Apple account exposes only a Personal Team. Xcode refuses to provision
+the target because Personal Teams do not support the App Attest capability. Add
+an Apple Developer Program team with an App Attest-enabled App ID, update
+`APPLE_TEAM_ID` and the target signing team, then create the staging Auth
+user/fixture needed by the smoke run.
 
 Do not mark M6.5 complete until the runbook records one successful device
 registration, metric, check-in, exact retry, and counter/public-key/receipt audit
@@ -168,7 +167,7 @@ before finalization or settlement is enabled.
 - [x] Enable `pg_cron` and install D82's named one-minute activation job.
 - [x] Call `app.activate_due_contests()` on a tested cadence.
 - [x] Establish one idempotent scheduled-worker pattern and registry.
-  Activation is the first committed job; the working-tree D81 slice adds raw
+  Activation is the first committed job; the reconciled D81 slice adds raw
   retention. Later M7 slices add finalization/review escalation, claim
   expiration/confirmation/default, dispute timeout, and reminders without
   inventing separate timer semantics.
@@ -193,8 +192,9 @@ before finalization or settlement is enabled.
   registration, or let a stale JWT authorize the tombstone. Future result,
   obligation, dispute, and donation-receipt migrations attach their child
   scopes and retained facts to these seams.
-- [ ] Integrate the D81 work on top of `origin/main`, run the full 733-assertion
-  database suite and CI, and clear database security/performance advisors.
+- [x] Integrate the D81 work on top of `origin/main`.
+- [ ] Run the full 733-assertion database suite and CI, and clear database
+  security/performance advisors.
 - [ ] Add multi-session tests for deletion racing activation, invitation
   acceptance, ingest, receipt marking, hold creation, retention, and future
   finality writes. A single pgTAP transaction cannot prove lock ordering.
