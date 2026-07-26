@@ -1,6 +1,7 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import {
   accessTokenVerification,
+  appAttestReceiptRootCertificate,
   appAttestRootCertificate,
   assertAttestConfigIsSafe,
   attestBypassEnabled,
@@ -124,6 +125,30 @@ Deno.test("the App Attest root is parsed at startup", () => {
       })),
     ConfigError,
     "parseable",
+  );
+});
+
+Deno.test("the independent App Attest receipt root is parsed at startup", () => {
+  assertEquals(
+    appAttestReceiptRootCertificate(
+      envFromRecord({ APP_ATTEST_RECEIPT_ROOT_CA_PEM: root.pem }),
+    ),
+    root.pem.trim(),
+  );
+  assertEquals(
+    appAttestReceiptRootCertificate(envFromRecord({
+      APP_ATTEST_RECEIPT_ROOT_CA_PEM: root.pem.trim().replaceAll("\n", "\\n"),
+    })),
+    root.pem.trim(),
+  );
+  assertThrows(
+    () =>
+      appAttestReceiptRootCertificate(envFromRecord({
+        APP_ATTEST_RECEIPT_ROOT_CA_PEM:
+          "-----BEGIN CERTIFICATE-----\nnot-a-certificate\n-----END CERTIFICATE-----",
+      })),
+    ConfigError,
+    "APP_ATTEST_RECEIPT_ROOT_CA_PEM",
   );
 });
 

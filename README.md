@@ -11,12 +11,12 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status: M6 complete; M6.5 awaits device/staging and receipt proof; M7.2a is implemented.**
-The staging fixture, conformance-only iOS target, Apple-vector regression,
-receipt quarantine, and fail-closed hosted configuration are implemented. The
-remaining gate is to run the documented smoke test on a provisioned iPhone
-against the staging project and independently validate the captured PKCS#7
-receipt before settlement implementation begins. The M7 result, pledge,
+**Status: M6 complete; M6.5 awaits physical-device/staging proof; M7.2a is implemented.**
+The staging fixture, conformance-only iOS target, independent App Attest receipt
+verifier, Apple-vector regression, receipt quarantine, and fail-closed hosted
+configuration are implemented. The remaining M6.5 gate is to run the documented
+smoke test on a provisioned iPhone against the staging project before settlement
+implementation begins. The M7 result, pledge,
 dispute, reliability, notification-intent, retention, and pseudonymization
 contract is recorded in DECISIONS.md D74–D82. The payload-free notification
 outbox and named one-minute activation job are implemented and pgTAP-covered;

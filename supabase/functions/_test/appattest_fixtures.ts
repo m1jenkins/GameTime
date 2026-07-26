@@ -203,6 +203,8 @@ export interface AttestationOptions {
   readonly leafIssuer?: Authority;
   /** Replaces the certificate list sent to the verifier. */
   readonly x5cOverride?: Bytes[];
+  /** Replaces the opaque receipt carried beside the attestation statement. */
+  readonly receipt?: Bytes;
   /** Puts a different public key in the leaf than the device's. */
   readonly certificateKey?: CryptoKey;
 }
@@ -272,7 +274,7 @@ export async function buildAttestation(
     fmt: "apple-appattest",
     attStmt: {
       x5c: x5c,
-      receipt: new Uint8Array([0xde, 0xad]),
+      receipt: options.receipt ?? new Uint8Array([0xde, 0xad]),
     },
     authData: authenticatorData,
   });

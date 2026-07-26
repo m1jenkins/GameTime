@@ -42,6 +42,7 @@ import {
   base64ToBytes,
   verifyAttestation,
 } from "../_shared/appattest.ts";
+import { ReceiptVerificationError, verifyAppAttestReceipt } from "../_shared/appattest_receipt.ts";
 import { type Bytes, utf8 } from "../_shared/bytes.ts";
 import {
   asCborBytes,
@@ -51,7 +52,7 @@ import {
   CborError,
   decodeCbor,
 } from "../_shared/cbor.ts";
-import type { Database } from "../_shared/database.ts";
+import type { Database, ReceiptVerificationDatabase } from "../_shared/database.ts";
 import {
   HttpFailure,
   jsonResponse,
@@ -74,15 +75,20 @@ export const MAX_RECEIPT_BYTES = 32 * 1024;
 export const CHALLENGE_WINDOW_SECONDS = 600;
 
 export interface AttestDeviceDeps {
-  readonly database: Database;
+  readonly database: Database & ReceiptVerificationDatabase;
   readonly appId: string;
+  /** Apple App Attestation Root CA, used only for the attestation x5c chain. */
   readonly rootCertificatePem: string;
+  /** Apple Root CA G3, used independently for the receipt PKCS#7 chain. */
+  readonly receiptRootCertificatePem: string;
   readonly allowedEnvironments: readonly AttestEnvironment[];
   readonly verifyToken: AccessTokenVerifier;
   /** Independent HMAC key for the derived D47 challenge. */
   readonly challengeSecret: string;
   /** Injectable so the suites can drive the challenge window. */
   readonly now?: () => Date;
+  /** Test seam; production always uses the independent PKCS#7 verifier. */
+  readonly verifyReceipt?: typeof verifyAppAttestReceipt;
 }
 
 /**
@@ -180,6 +186,7 @@ export function createAttestDeviceHandler(
   deps: AttestDeviceDeps,
 ): (request: Request) => Promise<Response> {
   const clock = deps.now ?? (() => new Date());
+  const verifyReceipt = deps.verifyReceipt ?? verifyAppAttestReceipt;
 
   return (request) =>
     respond("attest-device", async () => {
@@ -249,12 +256,44 @@ export function createAttestDeviceHandler(
         );
       }
 
-      await deps.database.registerDeviceKey({
+      // Registration is deliberately the first receipt operation. It stores
+      // the untrusted bytes in the private quarantine and returns the
+      // immutable time those exact bytes first arrived. No verifier failure
+      // can therefore make a rejected receipt disappear.
+      const registration = await deps.database.registerDeviceKey({
         userId: caller.userId,
         keyId,
         publicKey: verified.publicKey,
         receipt: document.receipt,
         environment: verified.environment,
+      });
+
+      let verifiedReceipt;
+      try {
+        verifiedReceipt = await verifyReceipt({
+          receipt: document.receipt,
+          appId: deps.appId,
+          publicKey: verified.publicKey,
+          receiptRootCertificatePem: deps.receiptRootCertificatePem,
+          receivedAt: registration.receiptReceivedAt,
+          expectedTypes: ["ATTEST"],
+        });
+      } catch (error) {
+        if (!(error instanceof ReceiptVerificationError)) throw error;
+        // One public answer for signature, chain, payload, freshness, App ID,
+        // and key-binding failures. The durable candidate remains quarantined.
+        throw new HttpFailure(
+          "unauthorized",
+          "the receipt could not be verified",
+          error.message,
+        );
+      }
+
+      // This RPC owns the timestamp and marks only the row whose current
+      // receipt still has this digest. It is the sole path out of quarantine.
+      await deps.database.markDeviceReceiptVerified({
+        keyId,
+        receiptSha256: verifiedReceipt.receiptSha256,
       });
 
       return jsonResponse(200, {

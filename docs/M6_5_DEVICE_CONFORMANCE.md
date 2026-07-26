@@ -18,8 +18,10 @@ One run must establish all of these facts:
    version; on iOS 18–26 it reports those signals as unavailable.
 3. The stored key is a 65-byte uncompressed P-256 point and its SHA-256 digest
    equals Apple's decoded key id.
-4. Apple's opaque receipt is captured only in the private receipt table and is
-   visibly quarantined, not mistaken for independently verified fraud evidence.
+4. Apple's opaque receipt is captured only in the private receipt table,
+   independently verified, and marked verified only after its PKCS#7 signature
+   and Apple chain, receipt-signer purpose, App ID, creation time, and stored
+   public-key binding all pass.
 5. One exact signed metric body and one exact signed check-in body return 201.
 6. Their assertion counters are positive and strictly increasing across the
    shared device key.
@@ -63,11 +65,11 @@ export GAMETIME_ATTEST_CHALLENGE_SECRET="$(openssl rand -hex 32)"
 ./scripts/m6-5-configure-staging.sh
 ```
 
-The script downloads Apple's direct App Attestation Root CA PEM, verifies its
-recorded SHA-256 fingerprint, uploads the required secrets, and unsets
-`ATTEST_DEV_BYPASS`. It intentionally enables development attestations in
-staging because Xcode's debug entitlement produces them. Production still
-refuses them.
+The script downloads Apple's direct App Attestation Root CA and Root CA G3,
+verifies both recorded SHA-256 fingerprints, uploads the public roots with the
+required secrets, and unsets `ATTEST_DEV_BYPASS`. It intentionally enables
+development attestations in staging because Xcode's debug entitlement produces
+them. Production still refuses them.
 
 Deploy all three functions. The handlers verify user sessions against the
 project's injected JWKS in code, so the legacy gateway verifier stays disabled:
@@ -80,8 +82,8 @@ supabase functions deploy ingest-checkin --project-ref "$SUPABASE_PROJECT_REF" -
 
 Confirm that the custom secret list names `GAMETIME_ENV`,
 `GAMETIME_ATTEST_CHALLENGE_SECRET`, `APPLE_TEAM_ID`, `APPLE_BUNDLE_ID`,
-`APP_ATTEST_ROOT_CA_PEM`, and `APP_ATTEST_ALLOW_DEVELOPMENT`, but not
-`ATTEST_DEV_BYPASS`:
+`APP_ATTEST_ROOT_CA_PEM`, `APP_ATTEST_RECEIPT_ROOT_CA_PEM`, and
+`APP_ATTEST_ALLOW_DEVELOPMENT`, but not `ATTEST_DEV_BYPASS`:
 
 ```bash
 supabase secrets list --project-ref "$SUPABASE_PROJECT_REF"
@@ -200,7 +202,7 @@ Capture the complete on-screen result. Expected statuses and invariants:
 | Operation | Expected |
 | --- | --- |
 | Challenge | `200`, 32-byte decoded challenge |
-| Registration | `200`, `registered=true`, `environment=development`; category and bundle version shown on iOS 27+, explicitly unavailable on iOS 18–26 |
+| Registration | `200`, `registered=true`, `environment=development`, returned only after independent receipt verification and its digest-bound database marker; category and bundle version shown on iOS 27+, explicitly unavailable on iOS 18–26 |
 | Metric first send | `201`, `replayed=false`, one observation |
 | Metric exact replay | `200`, same batch id, `replayed=true` |
 | Check-in first send | `201`, `replayed=false`; with the fixture samples its outcome is `accepted` |
@@ -237,6 +239,7 @@ select
   d.sign_count as stored_counter,
   octet_length(r.initial_receipt) as initial_receipt_bytes,
   octet_length(r.current_receipt) as current_receipt_bytes,
+  r.received_at as receipt_received_at,
   r.current_receipt_verified_at
 from expected
 join public.device_attestations d using (key_id)
@@ -273,8 +276,8 @@ Required results:
 - `owner_matches` and `key_id_matches` are true.
 - `public_key_bytes = 65`, `public_key_prefix = 4`, and both receipt byte counts
   are positive.
-- `current_receipt_verified_at` is null: this run proves safe capture, not
-  Apple's independent PKCS#7 receipt checks.
+- `current_receipt_verified_at` is non-null and is greater than or equal to
+  `receipt_received_at`. A null value means registration did not complete.
 - Exactly one metric batch and one check-in exist for the fixed contest.
 - Both are attested, and `0 < metric_counter < checkin_counter = stored_counter`.
 - Both unattested counts are zero.
@@ -305,13 +308,16 @@ Unattested metric/check-in counts:
 Operator:
 ```
 
-The device observation alone does not make the quarantined receipt trustworthy.
-Before marking M6.5 complete, implement and exercise Apple's independent
-receipt checks: PKCS#7 signature and chain, App ID, creation time, and
-public-key binding, followed by a narrowly scoped server-only write of
-`current_receipt_verified_at`. Until then the receipt must not influence fraud,
-eligibility, or settlement.
+The receipt verifier is exercised automatically with Apple's published receipt
+vector and generated adversarial certificate/PKCS#7 fixtures. At runtime,
+registration first quarantines the candidate with an immutable database capture
+time. The server then completes every receipt check and calls a
+`service_role`-only marker that row-locks the candidate and compares its SHA-256
+digest before setting `current_receipt_verified_at`. Verification, parsing,
+chain, binding, freshness, race, or marker failures all leave the timestamp
+null. The remaining M6.5 gate is this physical-device/staging observation.
 
-Do not commit access tokens, database URLs, Apple credentials, receipts, or
-staging secret values. The project ref is nonsecret and intentionally committed
-as the operational staging allowlist.
+Do not commit access tokens, database URLs, Apple credentials, device/staging
+receipts, or staging secret values. Apple's already-public documentation vector
+is the only receipt fixture checked in. The project ref is nonsecret and
+intentionally committed as the operational staging allowlist.

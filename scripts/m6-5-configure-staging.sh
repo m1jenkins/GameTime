@@ -69,32 +69,55 @@ done
 staging_tmp="$(mktemp -d "${TMPDIR:-/tmp}/gametime-m65.XXXXXX")"
 trap 'rm -rf -- "$staging_tmp"' EXIT
 
-root_pem="${staging_tmp}/Apple_App_Attestation_Root_CA.pem"
+attestation_root_pem="${staging_tmp}/Apple_App_Attestation_Root_CA.pem"
+receipt_root_der="${staging_tmp}/AppleRootCA-G3.cer"
+receipt_root_pem="${staging_tmp}/AppleRootCA-G3.pem"
 secret_file="${staging_tmp}/staging-secrets.env"
-root_url="https://www.apple.com/certificateauthority/Apple_App_Attestation_Root_CA.pem"
-expected_fingerprint="1C:B9:82:3B:A2:8B:A6:AD:2D:33:A0:06:94:1D:E2:AE:4F:51:3E:F1:D4:E8:31:B9:F7:E0:FA:7B:62:42:C9:32"
+attestation_root_url="https://www.apple.com/certificateauthority/Apple_App_Attestation_Root_CA.pem"
+receipt_root_url="https://www.apple.com/certificateauthority/AppleRootCA-G3.cer"
+expected_attestation_fingerprint="1C:B9:82:3B:A2:8B:A6:AD:2D:33:A0:06:94:1D:E2:AE:4F:51:3E:F1:D4:E8:31:B9:F7:E0:FA:7B:62:42:C9:32"
+expected_receipt_fingerprint="63:34:3A:BF:B8:9A:6A:03:EB:B5:7E:9B:3F:5F:A7:BE:7C:4F:5C:75:6F:30:17:B3:A8:C4:88:C3:65:3E:91:79"
 
-curl --fail --silent --show-error --location "$root_url" --output "$root_pem"
-actual_fingerprint="$(openssl x509 -in "$root_pem" -noout -fingerprint -sha256)"
-actual_fingerprint="${actual_fingerprint#*=}"
-if [[ "$actual_fingerprint" != "$expected_fingerprint" ]]; then
+curl --fail --silent --show-error --location \
+  "$attestation_root_url" --output "$attestation_root_pem"
+actual_attestation_fingerprint="$(
+  openssl x509 -in "$attestation_root_pem" -noout -fingerprint -sha256
+)"
+actual_attestation_fingerprint="${actual_attestation_fingerprint#*=}"
+if [[ "$actual_attestation_fingerprint" != "$expected_attestation_fingerprint" ]]; then
   echo "Apple App Attestation root fingerprint changed; refusing to upload it" >&2
-  echo "Expected: ${expected_fingerprint}" >&2
-  echo "Received: ${actual_fingerprint}" >&2
+  echo "Expected: ${expected_attestation_fingerprint}" >&2
+  echo "Received: ${actual_attestation_fingerprint}" >&2
   exit 1
 fi
 
-escaped_root="$(awk '{printf "%s\\n", $0}' "$root_pem")"
+curl --fail --silent --show-error --location \
+  "$receipt_root_url" --output "$receipt_root_der"
+actual_receipt_fingerprint="$(
+  openssl x509 -inform DER -in "$receipt_root_der" -noout -fingerprint -sha256
+)"
+actual_receipt_fingerprint="${actual_receipt_fingerprint#*=}"
+if [[ "$actual_receipt_fingerprint" != "$expected_receipt_fingerprint" ]]; then
+  echo "Apple receipt root fingerprint changed; refusing to upload it" >&2
+  echo "Expected: ${expected_receipt_fingerprint}" >&2
+  echo "Received: ${actual_receipt_fingerprint}" >&2
+  exit 1
+fi
+openssl x509 -inform DER -in "$receipt_root_der" -out "$receipt_root_pem"
+
+escaped_attestation_root="$(awk '{printf "%s\\n", $0}' "$attestation_root_pem")"
+escaped_receipt_root="$(awk '{printf "%s\\n", $0}' "$receipt_root_pem")"
 {
   printf 'GAMETIME_ENV=staging\n'
   printf 'APPLE_TEAM_ID=%s\n' "$APPLE_TEAM_ID"
   printf 'APPLE_BUNDLE_ID=%s\n' "$APPLE_BUNDLE_ID"
   printf 'GAMETIME_ATTEST_CHALLENGE_SECRET=%s\n' "$GAMETIME_ATTEST_CHALLENGE_SECRET"
   printf 'APP_ATTEST_ALLOW_DEVELOPMENT=true\n'
-  printf 'APP_ATTEST_ROOT_CA_PEM="%s"\n' "$escaped_root"
+  printf 'APP_ATTEST_ROOT_CA_PEM="%s"\n' "$escaped_attestation_root"
+  printf 'APP_ATTEST_RECEIPT_ROOT_CA_PEM="%s"\n' "$escaped_receipt_root"
 } >"$secret_file"
 
 supabase secrets unset ATTEST_DEV_BYPASS --project-ref "$SUPABASE_PROJECT_REF"
 supabase secrets set --env-file "$secret_file" --project-ref "$SUPABASE_PROJECT_REF"
 
-echo "M6.5 staging secrets uploaded; ATTEST_DEV_BYPASS is absent."
+echo "M6.5 staging configuration uploaded; both public roots were fingerprint-verified and ATTEST_DEV_BYPASS is absent."

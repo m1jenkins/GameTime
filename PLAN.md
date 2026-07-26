@@ -11,7 +11,7 @@ why. This file owns sequence, remaining work, and launch blockers.
 | M0–M4 | Complete | Scaffold, social graph, contests, attested metric ledger, deterministic scoring |
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
-| M6.5 | In progress — conformance gate | Harness and staging procedure implemented; physical-iPhone/staging proof and independent receipt validation remain |
+| M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging procedure implemented; physical-iPhone/staging proof remains |
 | M7 | M7.2a implemented — staging proof open | Product contract D74–D82, transactional outbox, and named activation job are test-covered; hosted cron execution remains |
 | M8 | Not started | iOS app target and all device/framework integrations |
 
@@ -52,7 +52,7 @@ a physical-device run can prove the complete staging exchange.
 Definition of done:
 
 1. Provision a staging Supabase project and configure Apple's real App Attest
-   root certificate.
+   attestation and receipt root certificates.
 2. Use a small device target on a real iPhone to register one App Attest key.
 3. Submit one signed metric batch and one signed geofence check-in using the
    exact production envelopes.
@@ -73,8 +73,12 @@ Implemented locally:
 - Backward-compatible iOS 18–26 attestation parsing plus strict all-or-nothing
   parsing of Apple's iOS 27 COSE key/extensions suffix, with
   certificate/COSE/key-id binding and the published 2026 vector pinned.
-- Private quarantine of Apple's opaque attestation receipt, explicitly
-  untrusted until its independent PKCS#7 validation is implemented.
+- Independent, bounded BER/PKCS#7 receipt verification against Apple's
+  fingerprint-pinned Root CA G3, including signature and chain, dedicated
+  receipt-signer purpose, App ID, creation time, and stored public-key binding.
+- Private quarantine of Apple's opaque attestation receipt on every failure.
+  Only a service-role-only, digest-bound RPC can set
+  `current_receipt_verified_at`, and only after the complete verifier succeeds.
 - Hosted JWT verification from Supabase's injected JWKS, a separate challenge
   HMAC secret, and support for opaque hosted admin keys.
 - Fingerprint-pinned, checked-in-project-identity-guarded staging scripts, a
@@ -84,9 +88,9 @@ Implemented locally:
 Current execution gate: this workstation has no connected physical iPhone and
 no staging project credentials. Do not mark M6.5 complete until the runbook
 records one successful device registration, metric, check-in, exact retry, and
-counter/public-key/receipt audit with `ATTEST_DEV_BYPASS` absent. Receipt bytes
-must remain quarantined and unused until their Apple-required independent
-PKCS#7 validation path is implemented and exercised.
+counter/public-key/receipt audit with `ATTEST_DEV_BYPASS` absent. That run must
+show the receipt's server-owned verification timestamp; no receipt may influence
+fraud, eligibility, or settlement while that timestamp is absent.
 
 ## M7 — settlement and finalization
 

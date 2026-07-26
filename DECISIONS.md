@@ -2008,9 +2008,15 @@ than only a timeout in one process.
 the initial and current copies in `app.device_attestation_receipts`, keyed to
 the verified device row. Both are bounded to 32 KiB, cascade only with the
 device identity, and are exposed by no client or `service_role` table grant.
-`current_receipt_verified_at` remains null until a separate server verifier
-checks the PKCS#7 signature and chain, App ID, creation time, and public-key
-binding. No fraud or eligibility decision may use a quarantined receipt.
+The server independently verifies the bounded BER/PKCS#7 signature and Apple
+Root CA G3 chain, the dedicated receipt-signer certificate marker, App ID,
+creation time, and stored public-key binding. It uses the row's immutable first
+capture time as the freshness boundary. Every failure leaves
+`current_receipt_verified_at` null. After all checks pass, only a narrowly
+scoped, `service_role`-only security-definer RPC may set that timestamp; the RPC
+row-locks the candidate and requires the SHA-256 digest of the still-current
+receipt to match. No fraud or eligibility decision may use a quarantined
+receipt.
 
 **Why.** Apple returns the receipt for later fraud-risk assessment. Discarding
 it during registration would make that assessment permanently impossible
@@ -2019,10 +2025,12 @@ credential material, not profile data, so keeping it beside the public,
 RLS-readable device-key row would expose it for no product benefit. The
 security-definer registration RPC is the only capture route. The App Attest
 certificate nonce authenticates the key registration, not an arbitrary receipt
-field placed beside it, so successful registration must not be confused with
-receipt validation. Retaining an immutable initial copy and a separately
-rotatable current copy also supports Apple's later receipt-refresh contract
-without erasing the audit source.
+field placed beside it, so the server captures first, verifies independently,
+and marks only the exact bytes it verified. A generic certificate chaining to
+the same Apple root is insufficient without Apple's receipt-signer marker.
+Retaining an immutable initial copy and a separately rotatable current copy also
+supports Apple's later receipt-refresh contract without erasing the audit
+source.
 
 ### D72. Hosted functions verify user JWTs from JWKS in code
 

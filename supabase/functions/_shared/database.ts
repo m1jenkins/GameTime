@@ -29,6 +29,33 @@ export interface RegisterDeviceKeyArgs {
   readonly environment: "development" | "production";
 }
 
+/** The immutable receipt-capture metadata returned by registration. */
+export interface RegisteredDeviceKey {
+  /**
+   * When the database first quarantined this exact receipt.
+   *
+   * Receipt freshness is measured against capture rather than a later retry,
+   * so a lost marker response cannot turn a fresh receipt into a stale one.
+   */
+  readonly receiptReceivedAt: Date;
+}
+
+/** What the digest-bound receipt marker needs after complete verification. */
+export interface MarkDeviceReceiptVerifiedArgs {
+  readonly keyId: Bytes;
+  readonly receiptSha256: Bytes;
+}
+
+/**
+ * The one database write an independently verified receipt may perform.
+ *
+ * Kept as its own interface so unrelated ingest fakes do not acquire receipt
+ * methods merely because the production adapter implements both seams.
+ */
+export interface ReceiptVerificationDatabase {
+  markDeviceReceiptVerified(args: MarkDeviceReceiptVerifiedArgs): Promise<Date>;
+}
+
 /** One hour of one metric, as the client reports it. */
 export interface ObservationInput {
   readonly metric: string;
@@ -60,7 +87,7 @@ export interface RecordedBatch {
 }
 
 export interface Database {
-  registerDeviceKey(args: RegisterDeviceKeyArgs): Promise<void>;
+  registerDeviceKey(args: RegisterDeviceKeyArgs): Promise<RegisteredDeviceKey>;
   recordMetricBatch(args: RecordMetricBatchArgs): Promise<RecordedBatch>;
 }
 
@@ -188,6 +215,20 @@ function registrationFailureFor(
   }
 }
 
+/**
+ * A receipt-marker refusal is never useful to a client.
+ *
+ * A digest mismatch can mean either a refresh race or a missing private row,
+ * and exposing that distinction would turn the marker into a receipt-existence
+ * oracle. Keep every database detail on the server side.
+ */
+function receiptVerificationFailureFor(
+  _code: string | undefined,
+  detail: string,
+): HttpFailure {
+  return new HttpFailure("internal", "the request could not be processed", detail);
+}
+
 /** SQLSTATE mapping whose public messages use the check-in domain's words. */
 function checkInFailureFor(code: string | undefined, detail: string): HttpFailure {
   switch (code) {
@@ -282,11 +323,34 @@ async function rpc(
   }
 }
 
+/** Narrows a scalar PostgREST `timestamptz` result to a real Date. */
+function timestampResult(result: unknown, rpcName: string): Date {
+  if (typeof result !== "string") {
+    throw new HttpFailure(
+      "internal",
+      "the request could not be processed",
+      `${rpcName} returned an unexpected timestamp: ${JSON.stringify(result)}`,
+    );
+  }
+
+  const timestamp = new Date(result);
+  if (!Number.isFinite(timestamp.getTime())) {
+    throw new HttpFailure(
+      "internal",
+      "the request could not be processed",
+      `${rpcName} returned an invalid timestamp: ${JSON.stringify(result)}`,
+    );
+  }
+  return timestamp;
+}
+
 /** The production implementation. */
-export function postgrestDatabase(config: PostgrestConfig): Database {
+export function postgrestDatabase(
+  config: PostgrestConfig,
+): Database & ReceiptVerificationDatabase {
   return {
     async registerDeviceKey(args) {
-      await rpc(
+      const result = await rpc(
         config,
         "register_device_key",
         {
@@ -299,6 +363,22 @@ export function postgrestDatabase(config: PostgrestConfig): Database {
         },
         registrationFailureFor,
       );
+      return {
+        receiptReceivedAt: timestampResult(result, "register_device_key"),
+      };
+    },
+
+    async markDeviceReceiptVerified(args) {
+      const result = await rpc(
+        config,
+        "mark_device_receipt_verified",
+        {
+          p_key_id: toByteaLiteral(args.keyId),
+          p_receipt_sha256: toByteaLiteral(args.receiptSha256),
+        },
+        receiptVerificationFailureFor,
+      );
+      return timestampResult(result, "mark_device_receipt_verified");
     },
 
     async recordMetricBatch(args) {

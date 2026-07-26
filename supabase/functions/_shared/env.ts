@@ -183,11 +183,14 @@ export function appAttestAppId(source: EnvSource = denoEnv): string {
  * to serve rather than quietly accepting them. See the owner action in
  * DECISIONS.md.
  */
-export function appAttestRootCertificate(source: EnvSource = denoEnv): string {
+function configuredCertificate(
+  name: string,
+  source: EnvSource,
+): string {
   // Supabase secrets are commonly uploaded from a one-line dotenv file. Accept
   // escaped newlines as well as an actual multiline PEM so the documented
   // staging setup round-trips without hand-editing the hosted secret.
-  const pem = requireEnv("APP_ATTEST_ROOT_CA_PEM", source)
+  const pem = requireEnv(name, source)
     .replaceAll("\\n", "\n")
     .trim();
   try {
@@ -196,10 +199,28 @@ export function appAttestRootCertificate(source: EnvSource = denoEnv): string {
     new x509.X509Certificate(pem);
   } catch {
     throw new ConfigError(
-      "APP_ATTEST_ROOT_CA_PEM is not a parseable X.509 certificate",
+      `${name} is not a parseable X.509 certificate`,
     );
   }
   return pem;
+}
+
+export function appAttestRootCertificate(source: EnvSource = denoEnv): string {
+  return configuredCertificate("APP_ATTEST_ROOT_CA_PEM", source);
+}
+
+/**
+ * Apple's public root for App Attest receipt PKCS#7 signing.
+ *
+ * Receipt signing uses Apple's public PKI independently of the private App
+ * Attestation CA above. Keeping distinct configuration prevents a verifier
+ * from silently accepting the attestation root in the wrong trust domain.
+ * Both roots are public certificates; neither is a staging secret.
+ */
+export function appAttestReceiptRootCertificate(
+  source: EnvSource = denoEnv,
+): string {
+  return configuredCertificate("APP_ATTEST_RECEIPT_ROOT_CA_PEM", source);
 }
 
 /**

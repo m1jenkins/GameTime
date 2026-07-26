@@ -12,7 +12,7 @@
 --   * no client holds any verb but SELECT, and only on its own rows
 
 begin;
-select plan(46);
+select plan(61);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'),
@@ -204,14 +204,37 @@ select has_function('public', 'register_device_key',
 
 -- Idempotent for its owner: a client whose response was lost retries, and being
 -- refused would leave it unable to ingest at all.
-select lives_ok(
-  $$ select public.register_device_key(
-       '11111111-1111-1111-1111-111111111111',
-       (select alice_key_id from t_keys),
-       (select alice_key from t_keys),
-       '\x616c6963652d72656365697074',
-       'production') $$,
-  're-registering your own key is idempotent'
+create temporary table t_receipt_capture as
+select public.register_device_key(
+  '11111111-1111-1111-1111-111111111111',
+  (select alice_key_id from t_keys),
+  (select alice_key from t_keys),
+  '\x616c6963652d72656365697074',
+  'production'
+) as received_at;
+
+select ok(
+  (select received_at is not null from t_receipt_capture),
+  'registration returns the server-owned receipt capture time'
+);
+
+select is(
+  (select received_at from t_receipt_capture),
+  (select received_at from app.device_attestation_receipts
+   where key_id = (select alice_key_id from t_keys)),
+  'the returned capture time is the immutable time stored beside the receipt'
+);
+
+select is(
+  public.register_device_key(
+    '11111111-1111-1111-1111-111111111111',
+    (select alice_key_id from t_keys),
+    (select alice_key from t_keys),
+    '\x616c6963652d72656365697074',
+    'production'
+  ),
+  (select received_at from t_receipt_capture),
+  'an idempotent retry returns the original capture time'
 );
 
 select is(
@@ -297,6 +320,17 @@ select ok(
   'service_role cannot mark or replace a quarantined receipt directly'
 );
 
+set local role service_role;
+select throws_ok(
+  $$ update app.device_attestation_receipts
+     set current_receipt_verified_at = clock_timestamp()
+     where false $$,
+  '42501',
+  null,
+  'service_role is actually denied direct receipt-table mutation'
+);
+reset role;
+
 select throws_ok(
   $$ update app.device_attestation_receipts
      set initial_receipt = '\x7265706c61636564'
@@ -306,11 +340,79 @@ select throws_ok(
   'even a privileged writer cannot erase the initial receipt audit source'
 );
 
-select lives_ok(
+select has_function(
+  'public',
+  'mark_device_receipt_verified',
+  array['bytea', 'bytea'],
+  'the server-only receipt marker exists'
+);
+
+select throws_ok(
+  $$ select public.mark_device_receipt_verified(
+       (select alice_key_id from t_keys),
+       '\x00') $$,
+  '22023',
+  null,
+  'the marker refuses anything other than a SHA-256 digest'
+);
+
+select throws_ok(
+  $$ select public.mark_device_receipt_verified(
+       decode(repeat('00', 32), 'hex'),
+       extensions.digest('\x6d697373696e67'::bytea, 'sha256')) $$,
+  '22023',
+  null,
+  'the marker does not reveal whether a missing receipt candidate exists'
+);
+
+select throws_ok(
+  $$ select public.mark_device_receipt_verified(
+       (select alice_key_id from t_keys),
+       extensions.digest('\x7468652d77726f6e672d72656365697074'::bytea, 'sha256')) $$,
+  '22023',
+  null,
+  'a digest for different bytes cannot mark the quarantined candidate'
+);
+
+select is(
+  (select current_receipt_verified_at
+   from app.device_attestation_receipts
+   where key_id = (select alice_key_id from t_keys)),
+  null::timestamptz,
+  'every refused marker attempt leaves the receipt quarantined'
+);
+
+set local role service_role;
+select ok(
+  public.mark_device_receipt_verified(
+    '\x0bef92a15b8194f422bd1d55d76956664fb5493072a748595ea83a982327ccf6',
+    '\xde476232d4bc2e97f754c89ca319fe36302cbcd6185354501d0094f29221111d'
+  ) is not null,
+  'service_role can mark the exact receipt candidate after verification'
+);
+reset role;
+
+create temporary table t_receipt_verification as
+select current_receipt_verified_at as verified_at
+from app.device_attestation_receipts
+where key_id = (select alice_key_id from t_keys);
+
+select is(
+  public.mark_device_receipt_verified(
+    (select alice_key_id from t_keys),
+    extensions.digest('\x616c6963652d72656365697074'::bytea, 'sha256')
+  ),
+  (select verified_at from t_receipt_verification),
+  'an exact marker retry returns the original verification time'
+);
+
+select throws_ok(
   $$ update app.device_attestation_receipts
-     set current_receipt_verified_at = now()
+     set current_receipt_verified_at = received_at - interval '1 microsecond'
      where key_id = (select alice_key_id from t_keys) $$,
-  'a server-side verifier can mark the current receipt candidate verified'
+  '23514',
+  null,
+  'a verification marker cannot predate the exact candidate capture'
 );
 
 select throws_ok(
@@ -327,9 +429,27 @@ select lives_ok(
   $$ update app.device_attestation_receipts
      set current_receipt = '\x726566726573686564',
          current_receipt_verified_at = null,
-         refreshed_at = now()
+         refreshed_at = clock_timestamp()
      where key_id = (select alice_key_id from t_keys) $$,
   'a future refresh writer can replace the current receipt while quarantining it'
+);
+
+select throws_ok(
+  $$ update app.device_attestation_receipts
+     set current_receipt_verified_at = received_at
+     where key_id = (select alice_key_id from t_keys) $$,
+  '23514',
+  null,
+  'a refreshed candidate cannot be marked before its refresh capture time'
+);
+
+select throws_ok(
+  $$ select public.mark_device_receipt_verified(
+       (select alice_key_id from t_keys),
+       extensions.digest('\x616c6963652d72656365697074'::bytea, 'sha256')) $$,
+  '22023',
+  null,
+  'verification of the prior receipt cannot mark a refreshed candidate'
 );
 
 select is(
@@ -380,6 +500,40 @@ select ok(
     'execute'),
   'service_role can, which is how the Edge Function reaches it'
 );
+
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'public.mark_device_receipt_verified(bytea, bytea)',
+    'execute'
+  )
+  and not has_function_privilege(
+    'anon',
+    'public.mark_device_receipt_verified(bytea, bytea)',
+    'execute'
+  ),
+  'client roles cannot mark an App Attest receipt verified'
+);
+
+select ok(
+  has_function_privilege(
+    'service_role',
+    'public.mark_device_receipt_verified(bytea, bytea)',
+    'execute'
+  ),
+  'only the server verifier role can reach the digest-bound marker'
+);
+
+set local role authenticated;
+select throws_ok(
+  $$ select public.mark_device_receipt_verified(
+       '\x0000000000000000000000000000000000000000000000000000000000000000',
+       '\x0000000000000000000000000000000000000000000000000000000000000000') $$,
+  '42501',
+  null,
+  'an authenticated caller is actually denied the receipt marker'
+);
+reset role;
 
 select ok(
   not has_table_privilege(

@@ -1,6 +1,12 @@
 import { assertEquals, assertNotEquals } from "@std/assert";
 import { type AttestDeviceDeps, challengeFor, createAttestDeviceHandler } from "./handler.ts";
-import type { Database, RegisterDeviceKeyArgs } from "../_shared/database.ts";
+import { ReceiptVerificationError, verifyAppAttestReceipt } from "../_shared/appattest_receipt.ts";
+import type {
+  Database,
+  MarkDeviceReceiptVerifiedArgs,
+  ReceiptVerificationDatabase,
+  RegisterDeviceKeyArgs,
+} from "../_shared/database.ts";
 import { HttpFailure } from "../_shared/http.ts";
 import { createAccessTokenVerifier } from "../_shared/jwt.ts";
 import { toHex } from "../_shared/bytes.ts";
@@ -14,6 +20,11 @@ import {
   makeIntermediate,
   makeRoot,
 } from "../_test/appattest_fixtures.ts";
+import {
+  buildReceiptFixture,
+  makeReceiptFixtureContext,
+  RECEIPT_CAPTURED_AT,
+} from "../_test/appattest_receipt_fixtures.ts";
 import { mintAccessToken, TEST_CHALLENGE_SECRET, TEST_JWT_SECRET } from "../_test/tokens.ts";
 
 const APP_ID = "ABCDE12345.test.gametime.app";
@@ -22,14 +33,24 @@ const OTHER_USER = "22222222-2222-2222-2222-222222222222";
 
 const root: Authority = await makeRoot();
 const intermediate: Authority = await makeIntermediate(root);
+const VERIFIED_RECEIPT_DIGEST = new Uint8Array(32).fill(0xa5);
 
 /** Records what the handler tried to write, so the suite can assert on it. */
 function recordingDatabase(
   onRegister: (args: RegisterDeviceKeyArgs) => void | Promise<void> = () => {},
-): Database {
+  onMark: (
+    args: MarkDeviceReceiptVerifiedArgs,
+  ) => void | Promise<void> = () => {},
+  receiptReceivedAt = RECEIPT_CAPTURED_AT,
+): Database & ReceiptVerificationDatabase {
   return {
     registerDeviceKey: async (args) => {
       await onRegister(args);
+      return { receiptReceivedAt };
+    },
+    markDeviceReceiptVerified: async (args) => {
+      await onMark(args);
+      return receiptReceivedAt;
     },
     recordMetricBatch: () => {
       throw new Error("attest-device must not record a batch");
@@ -42,9 +63,16 @@ function deps(overrides: Partial<AttestDeviceDeps> = {}): AttestDeviceDeps {
     database: recordingDatabase(),
     appId: APP_ID,
     rootCertificatePem: root.pem,
+    receiptRootCertificatePem: root.pem,
     allowedEnvironments: ["production"],
     verifyToken: createAccessTokenVerifier(TEST_JWT_SECRET),
     challengeSecret: TEST_CHALLENGE_SECRET,
+    verifyReceipt: (request) =>
+      Promise.resolve({
+        type: "ATTEST",
+        creationTime: request.receivedAt,
+        receiptSha256: VERIFIED_RECEIPT_DIGEST,
+      }),
     ...overrides,
   };
 }
@@ -152,11 +180,17 @@ Deno.test("registers a well-formed attestation against the calling account", asy
   const device = await makeDevice();
   const at = new Date();
   let written: RegisterDeviceKeyArgs | undefined;
+  let marked: MarkDeviceReceiptVerifiedArgs | undefined;
 
   const handler = createAttestDeviceHandler(deps({
-    database: recordingDatabase((args) => {
-      written = args;
-    }),
+    database: recordingDatabase(
+      (args) => {
+        written = args;
+      },
+      (args) => {
+        marked = args;
+      },
+    ),
     now: () => at,
   }));
 
@@ -177,6 +211,143 @@ Deno.test("registers a well-formed attestation against the calling account", asy
   assertEquals(toHex(written!.publicKey), toHex(device.publicKey));
   assertEquals(toHex(written!.receipt), "dead");
   assertEquals(written?.environment, "production");
+  assertEquals(toHex(marked!.keyId), toHex(device.keyId));
+  assertEquals(toHex(marked!.receiptSha256), toHex(VERIFIED_RECEIPT_DIGEST));
+});
+
+Deno.test("quarantines before independent receipt verification and marks only afterward", async () => {
+  const device = await makeDevice();
+  const at = new Date();
+  const events: string[] = [];
+
+  const handler = createAttestDeviceHandler(deps({
+    database: recordingDatabase(
+      () => {
+        events.push("quarantine");
+      },
+      () => {
+        events.push("mark");
+      },
+    ),
+    verifyReceipt: (request) => {
+      events.push("verify");
+      assertEquals(request.receivedAt, RECEIPT_CAPTURED_AT);
+      assertEquals(toHex(request.publicKey), toHex(device.publicKey));
+      assertEquals(request.expectedTypes, ["ATTEST"]);
+      return Promise.resolve({
+        type: "ATTEST",
+        creationTime: request.receivedAt,
+        receiptSha256: VERIFIED_RECEIPT_DIGEST,
+      });
+    },
+    now: () => at,
+  }));
+
+  const response = await post(handler, await registrationBody(device, at));
+
+  assertEquals(response.status, 200);
+  assertEquals(events, ["quarantine", "verify", "mark"]);
+});
+
+Deno.test("keeps every failed receipt quarantined and never calls the marker", async () => {
+  const device = await makeDevice();
+  const at = new Date();
+  const events: string[] = [];
+
+  const handler = createAttestDeviceHandler(deps({
+    database: recordingDatabase(
+      () => {
+        events.push("quarantine");
+      },
+      () => {
+        throw new Error("a failed receipt must never reach the marker");
+      },
+    ),
+    verifyReceipt: () => {
+      events.push("verify");
+      return Promise.reject(
+        new ReceiptVerificationError("private signature failure detail"),
+      );
+    },
+    now: () => at,
+  }));
+
+  const response = await post(handler, await registrationBody(device, at));
+
+  assertEquals(response.status, 401);
+  assertEquals(await response.json(), {
+    error: "unauthorized",
+    message: "the receipt could not be verified",
+  });
+  assertEquals(events, ["quarantine", "verify"]);
+});
+
+Deno.test("a marker failure leaves quarantine retryable with its first capture time", async () => {
+  const device = await makeDevice();
+  const at = new Date();
+  const events: string[] = [];
+  let markerAttempts = 0;
+
+  const handler = createAttestDeviceHandler(deps({
+    database: recordingDatabase(
+      () => {
+        events.push("quarantine");
+      },
+      () => {
+        events.push("mark");
+        markerAttempts++;
+        if (markerAttempts === 1) throw new Error("temporary marker failure");
+      },
+    ),
+    verifyReceipt: (request) => {
+      events.push(`verify:${request.receivedAt.toISOString()}`);
+      return Promise.resolve({
+        type: "ATTEST",
+        creationTime: request.receivedAt,
+        receiptSha256: VERIFIED_RECEIPT_DIGEST,
+      });
+    },
+    now: () => at,
+  }));
+  const body = await registrationBody(device, at);
+
+  assertEquals((await post(handler, body)).status, 500);
+  assertEquals((await post(handler, body)).status, 200);
+  assertEquals(events, [
+    "quarantine",
+    `verify:${RECEIPT_CAPTURED_AT.toISOString()}`,
+    "mark",
+    "quarantine",
+    `verify:${RECEIPT_CAPTURED_AT.toISOString()}`,
+    "mark",
+  ]);
+});
+
+Deno.test("integrates real attestation and receipt cryptography before marking", async () => {
+  const device = await makeDevice();
+  const receiptContext = await makeReceiptFixtureContext(device.keys);
+  const builtReceipt = await buildReceiptFixture(receiptContext);
+  let marked = false;
+
+  const handler = createAttestDeviceHandler(deps({
+    database: recordingDatabase(
+      () => {},
+      () => {
+        marked = true;
+      },
+    ),
+    receiptRootCertificatePem: receiptContext.root.pem,
+    verifyReceipt: verifyAppAttestReceipt,
+    now: () => RECEIPT_CAPTURED_AT,
+  }));
+  const body = await registrationBody(device, RECEIPT_CAPTURED_AT, {
+    receipt: builtReceipt.receipt,
+  });
+
+  const response = await post(handler, body, { at: RECEIPT_CAPTURED_AT });
+
+  assertEquals(response.status, 200);
+  assertEquals(marked, true);
 });
 
 Deno.test("registers a legacy attestation without claiming unavailable app signals", async () => {
@@ -309,7 +480,7 @@ Deno.test("refuses a chain that does not reach the configured root", async () =>
   assertEquals(response.status, 401);
 });
 
-Deno.test("does not write when verification fails", async () => {
+Deno.test("does not quarantine when attestation verification fails", async () => {
   const device = await makeDevice();
   const at = new Date();
 
