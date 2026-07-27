@@ -19,13 +19,13 @@ struct GameTimeApp: App {
                 services = FixtureServicesFactory.make()
             } else {
                 configuration = try .load()
-                services = LiveServicesFactory.make(
+                services = try LiveServicesFactory.make(
                     configuration: configuration
                 )
             }
             #else
             configuration = try .load()
-            services = LiveServicesFactory.make(
+            services = try LiveServicesFactory.make(
                 configuration: configuration
             )
             #endif

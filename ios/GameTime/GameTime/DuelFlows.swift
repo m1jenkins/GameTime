@@ -6,16 +6,40 @@ struct CreateDuelFlow: View {
     @Environment(AppRouter.self) private var router
     @State private var draft = DuelDraft()
     @State private var reviewedTerms: DuelTerms?
+    @State private var showingDiscardConfirmation = false
+
+    private var activeReviewedTerms: DuelTerms? {
+        model.pendingDuel?.terms ?? reviewedTerms
+    }
 
     var body: some View {
         NavigationStack {
-            if let reviewedTerms {
-                review(terms: reviewedTerms)
+            if let activeReviewedTerms {
+                review(terms: activeReviewedTerms)
             } else {
                 editor
             }
         }
         .interactiveDismissDisabled(model.isMutating)
+        .confirmationDialog(
+            "Discard the local retry record?",
+            isPresented: $showingDiscardConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Discard local retry", role: .destructive) {
+                Task {
+                    if await model.discardPendingDuel() {
+                        reviewedTerms = nil
+                        resetDraft()
+                    }
+                }
+            }
+            Button("Keep saved request", role: .cancel) {}
+        } message: {
+            Text(
+                "This deletes only the on-device retry record; it does not cancel a contest or invitation the server may already have created. Starting over after a committed request can create a second duel."
+            )
+        }
     }
 
     private var editor: some View {
@@ -204,6 +228,15 @@ struct CreateDuelFlow: View {
                 )
                 TermRow(label: "Tie-break", value: terms.tieBreak.title)
                 TermRow(label: "Roster", value: "2 people")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Request ID")
+                        .foregroundStyle(.secondary)
+                    Text(terms.requestID.uuidString.lowercased())
+                        .font(.caption.monospaced())
+                        .textSelection(.enabled)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("duel.request-id")
             }
             .listRowBackground(CompetitiveTrustTheme.raisedInk)
 
@@ -229,15 +262,34 @@ struct CreateDuelFlow: View {
                 .disabled(model.isMutating)
                 .accessibilityIdentifier("duel.submit")
 
-                Button("Back to edit") {
-                    reviewedTerms = nil
+                if model.pendingDuel?.terms.requestID == terms.requestID {
+                    Button(
+                        "Discard local retry record",
+                        role: .destructive
+                    ) {
+                        showingDiscardConfirmation = true
+                    }
+                    .disabled(model.isMutating)
+                    .accessibilityIdentifier(
+                        "duel.pending.discard-review"
+                    )
+                } else {
+                    Button("Back to edit") {
+                        reviewedTerms = nil
+                    }
+                    .buttonStyle(TrustSecondaryButtonStyle())
+                    .disabled(model.isMutating)
                 }
-                .buttonStyle(TrustSecondaryButtonStyle())
-                .disabled(model.isMutating)
             } footer: {
-                Text(
-                    "If a response is lost, tapping Submit again reuses this request UUID. The app does not automatically retry the mutation."
-                )
+                if model.pendingDuel?.terms.requestID == terms.requestID {
+                    Text(
+                        "This protected retry survives relaunch. Submit explicitly reuses the saved request UUID and immutable terms; GameTime never retries it automatically."
+                    )
+                } else {
+                    Text(
+                        "Before the request is sent, GameTime saves these immutable terms and request UUID in protected app storage."
+                    )
+                }
             }
             .listRowBackground(Color.clear)
         }
@@ -254,11 +306,18 @@ struct CreateDuelFlow: View {
 
     private func opponentName(for id: UUID) -> String {
         model.acceptedFriendships.first { $0.otherUserID == id }?
-            .displayName ?? "Friend"
+            .displayName ?? "Account \(id.uuidString.lowercased())"
     }
 
     private func charityName(for id: UUID) -> String {
-        model.charities.first { $0.id == id }?.name ?? "Selected charity"
+        model.charities.first { $0.id == id }?.name
+            ?? "Charity \(id.uuidString.lowercased())"
+    }
+
+    private func resetDraft() {
+        draft = DuelDraft()
+        draft.inviteeID = model.acceptedFriendships.first?.otherUserID
+        draft.charityID = model.charities.first?.id
     }
 }
 
@@ -323,8 +382,7 @@ struct AcceptInvitationView: View {
                                 )
                                 if model.contests.first(
                                     where: { $0.id == contest.id }
-                                )?.myStatus == .accepted
-                                {
+                                )?.myStatus == .accepted {
                                     dismiss()
                                 }
                             }

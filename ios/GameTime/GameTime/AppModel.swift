@@ -24,11 +24,15 @@ final class AppModel {
     private(set) var lastSubmittedHandle: String?
     private(set) var isMutating = false
     private(set) var onboardingNamePrefill = ""
+    private(set) var pendingDuel: PendingDuelSubmission?
+    private(set) var hasPendingDuelRecoveryIssue = false
     var presentedError: String?
 
     private let services: AppServices
     @ObservationIgnored private var authObservationTask: Task<Void, Never>?
     @ObservationIgnored private var hasStarted = false
+    @ObservationIgnored private var isPerformingExplicitAuthMutation = false
+    @ObservationIgnored private var authGeneration = UUID()
     @ObservationIgnored private var refreshGeneration = UUID()
 
     init(configuration: AppConfiguration, services: AppServices) {
@@ -45,16 +49,30 @@ final class AppModel {
         hasStarted = true
 
         let stream = await services.auth.authStateChanges()
+        let initialUserID = await services.auth.currentUserID()
         authObservationTask = Task { @MainActor [weak self] in
+            var isFirstSnapshot = true
             for await snapshot in stream {
                 guard let self, !Task.isCancelled else { return }
+                if isFirstSnapshot {
+                    isFirstSnapshot = false
+                    if snapshot.userID == initialUserID {
+                        continue
+                    }
+                }
+                while self.isPerformingExplicitAuthMutation {
+                    try? await Task.sleep(for: .milliseconds(10))
+                    guard !Task.isCancelled else { return }
+                }
                 await self.resolveAuthentication(userID: snapshot.userID)
             }
         }
+        await resolveAuthentication(userID: initialUserID)
 
-        await resolveAuthentication(
-            userID: await services.auth.currentUserID()
-        )
+        let liveUserID = await services.auth.currentUserID()
+        if liveUserID != userID || (phase == .launching && presentedError == nil) {
+            await resolveAuthentication(userID: liveUserID)
+        }
     }
 
     func retryLaunch() async {
@@ -66,8 +84,12 @@ final class AppModel {
     }
 
     func signInWithApple(_ identity: AppleIdentity) async {
+        isPerformingExplicitAuthMutation = true
         isMutating = true
-        defer { isMutating = false }
+        defer {
+            isMutating = false
+            isPerformingExplicitAuthMutation = false
+        }
         do {
             let signedInUserID = try await services.auth.signInWithApple(identity)
             onboardingNamePrefill = identity.firstSignInDisplayName ?? ""
@@ -96,28 +118,42 @@ final class AppModel {
             presentedError = "Use a display name between 1 and 50 characters."
             return
         }
+        let generation = authGeneration
 
         isMutating = true
         defer { isMutating = false }
         do {
-            profile = try await services.profiles.createProfile(
+            let createdProfile = try await services.profiles.createProfile(
                 userID: userID,
                 handle: exactHandle,
                 displayName: cleanName,
                 timezone: TimeZone.current.identifier
             )
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            profile = createdProfile
             onboardingNamePrefill = ""
             phase = .signedIn
             await refresh()
         } catch is CancellationError {
             return
         } catch {
+            guard isCurrentActor(userID, generation: generation) else {
+                return
+            }
             present(error)
         }
     }
 
     func refresh() async {
         guard phase == .signedIn, let userID else { return }
+        let actorGeneration = authGeneration
         let generation = UUID()
         refreshGeneration = generation
         loadState = .loading
@@ -128,19 +164,35 @@ final class AppModel {
                 userID: userID
             )
             let charities = try await services.contests.listCharities()
-            guard generation == refreshGeneration, !Task.isCancelled else {
+            guard
+                generation == refreshGeneration,
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: actorGeneration
+                ),
+                !Task.isCancelled
+            else {
                 return
             }
             friendshipCards = cards
             self.contests = contests
             self.charities = charities
-            loadState = cards.isEmpty && contests.isEmpty
+            loadState =
+                cards.isEmpty && contests.isEmpty
                 ? .empty
                 : .loaded
         } catch is CancellationError {
             return
         } catch {
-            guard generation == refreshGeneration else { return }
+            guard
+                generation == refreshGeneration,
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: actorGeneration
+                )
+            else {
+                return
+            }
             loadState = .failed(
                 AppMutationError.map(error).localizedDescription
             )
@@ -206,11 +258,169 @@ final class AppModel {
                 "Release contest creation stays locked until evidence and App Attest are complete."
             return nil
         }
-        var createdID: UUID?
-        await mutate {
-            createdID = try await services.contests.createDuel(terms)
+        guard let userID else {
+            presentedError = "Your sign-in session is no longer available."
+            return nil
         }
-        return createdID
+        let actorGeneration = authGeneration
+        guard !hasPendingDuelRecoveryIssue else {
+            presentedError =
+                "Resolve or discard the unreadable saved duel before sending another request."
+            return nil
+        }
+        guard !isMutating else { return nil }
+        isMutating = true
+        defer { isMutating = false }
+
+        let submission: PendingDuelSubmission
+        if let pendingDuel {
+            guard pendingDuel.ownerID == userID else {
+                hasPendingDuelRecoveryIssue = true
+                presentedError =
+                    "The saved duel does not belong to the active account."
+                return nil
+            }
+            guard pendingDuel.terms.requestID == terms.requestID else {
+                presentedError =
+                    "Review or discard the saved duel before starting another request."
+                return nil
+            }
+            guard pendingDuel.terms == terms else {
+                presentedError =
+                    AppMutationError.duplicateRequestChanged.localizedDescription
+                return nil
+            }
+            submission = pendingDuel
+        } else {
+            submission = PendingDuelSubmission(
+                ownerID: userID,
+                terms: terms
+            )
+        }
+
+        let attemptedSubmission: PendingDuelSubmission
+        do {
+            attemptedSubmission = try submission.recordingAttempt()
+            try await services.pendingDuels.save(attemptedSubmission)
+            guard isCurrentActor(userID, generation: actorGeneration) else {
+                return nil
+            }
+            pendingDuel = attemptedSubmission
+        } catch {
+            guard isCurrentActor(userID, generation: actorGeneration) else {
+                return nil
+            }
+            hasPendingDuelRecoveryIssue = true
+            present(error)
+            return nil
+        }
+
+        do {
+            guard
+                isCurrentActor(userID, generation: actorGeneration),
+                await services.auth.currentUserID() == userID
+            else {
+                return nil
+            }
+            let createdID = try await services.contests.createDuel(
+                terms,
+                expectedUserID: userID
+            )
+            guard
+                isCurrentActor(userID, generation: actorGeneration),
+                await services.auth.currentUserID() == userID
+            else {
+                return nil
+            }
+            do {
+                try await services.pendingDuels.remove(for: userID)
+            } catch {
+                guard
+                    isCurrentActor(userID, generation: actorGeneration)
+                else {
+                    return nil
+                }
+                hasPendingDuelRecoveryIssue = true
+                presentedError =
+                    "The duel was confirmed, but its saved retry could not be removed. Retry recovery remains locked to prevent a duplicate request."
+                await refresh()
+                return nil
+            }
+            guard isCurrentActor(userID, generation: actorGeneration) else {
+                return nil
+            }
+            pendingDuel = nil
+            hasPendingDuelRecoveryIssue = false
+            await refresh()
+            guard isCurrentActor(userID, generation: actorGeneration) else {
+                return nil
+            }
+            return createdID
+        } catch is CancellationError {
+            return nil
+        } catch {
+            guard isCurrentActor(userID, generation: actorGeneration) else {
+                return nil
+            }
+            let mapped = AppMutationError.map(error)
+            if mapped == .offline || mapped.isUnknownServerFailure {
+                presentedError =
+                    "GameTime couldn’t confirm the duel result. The exact request was saved for a deliberate retry."
+            } else {
+                present(error)
+            }
+            return nil
+        }
+    }
+
+    func discardPendingDuel() async -> Bool {
+        guard let userID else { return false }
+        let actorGeneration = authGeneration
+        guard !isMutating else { return false }
+        isMutating = true
+        defer { isMutating = false }
+        guard
+            await isCurrentAuthenticatedActor(
+                userID,
+                generation: actorGeneration
+            )
+        else {
+            presentedError =
+                "Your sign-in session changed. The saved retry was not discarded."
+            return false
+        }
+        do {
+            try await services.pendingDuels.remove(for: userID)
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: actorGeneration
+                )
+            else {
+                return false
+            }
+            pendingDuel = nil
+            hasPendingDuelRecoveryIssue = false
+            return true
+        } catch {
+            guard isCurrentActor(userID, generation: actorGeneration) else {
+                return false
+            }
+            hasPendingDuelRecoveryIssue = true
+            present(error)
+            return false
+        }
+    }
+
+    func retryPendingDuelRecovery() async {
+        guard let userID, !isMutating else { return }
+        let actorGeneration = authGeneration
+        isMutating = true
+        defer { isMutating = false }
+        await restorePendingDuel(
+            for: userID,
+            generation: actorGeneration
+        )
     }
 
     func acceptInvitation(contestID: UUID, charityID: UUID) async {
@@ -246,8 +456,12 @@ final class AppModel {
     }
 
     func signOut() async {
+        isPerformingExplicitAuthMutation = true
         isMutating = true
-        defer { isMutating = false }
+        defer {
+            isMutating = false
+            isPerformingExplicitAuthMutation = false
+        }
         do {
             try await services.auth.signOut()
             clearUserState()
@@ -299,17 +513,59 @@ final class AppModel {
             return
         }
 
+        let generation = UUID()
+        authGeneration = generation
+        refreshGeneration = UUID()
         self.userID = userID
+        profile = nil
+        friendshipCards = []
+        contests = []
+        charities = []
+        exactHandleResult = nil
+        lastSubmittedHandle = nil
+        onboardingNamePrefill = ""
+        pendingDuel = nil
+        hasPendingDuelRecoveryIssue = false
+        loadState = .idle
+        presentedError = nil
         phase = .launching
         do {
             if let profile = try await services.profiles.currentProfile(
                 userID: userID
             ) {
+                guard
+                    await isCurrentAuthenticatedActor(
+                        userID,
+                        generation: generation
+                    )
+                else {
+                    return
+                }
                 self.profile = profile
                 onboardingNamePrefill = ""
+                await restorePendingDuel(
+                    for: userID,
+                    generation: generation
+                )
+                guard
+                    await isCurrentAuthenticatedActor(
+                        userID,
+                        generation: generation
+                    )
+                else {
+                    return
+                }
                 phase = .signedIn
                 await refresh()
             } else {
+                guard
+                    await isCurrentAuthenticatedActor(
+                        userID,
+                        generation: generation
+                    )
+                else {
+                    return
+                }
                 profile = nil
                 phase = .onboarding
                 loadState = .idle
@@ -317,6 +573,14 @@ final class AppModel {
         } catch is CancellationError {
             return
         } catch {
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
             presentedError = AppMutationError.map(error).localizedDescription
             phase = .launching
         }
@@ -343,7 +607,60 @@ final class AppModel {
         presentedError = mapped.localizedDescription
     }
 
+    private func restorePendingDuel(
+        for userID: UUID,
+        generation: UUID
+    ) async {
+        do {
+            let restored = try await services.pendingDuels.load(for: userID)
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            pendingDuel = restored
+            hasPendingDuelRecoveryIssue = false
+        } catch {
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            pendingDuel = nil
+            hasPendingDuelRecoveryIssue = true
+            if let storeError = error as? PendingDuelStoreError {
+                presentedError = storeError.localizedDescription
+            } else {
+                present(error)
+            }
+        }
+    }
+
+    private func isCurrentActor(
+        _ userID: UUID,
+        generation: UUID
+    ) -> Bool {
+        self.userID == userID && authGeneration == generation
+    }
+
+    private func isCurrentAuthenticatedActor(
+        _ userID: UUID,
+        generation: UUID
+    ) async -> Bool {
+        guard isCurrentActor(userID, generation: generation) else {
+            return false
+        }
+        return await services.auth.currentUserID() == userID
+    }
+
     private func clearUserState() {
+        authGeneration = UUID()
         refreshGeneration = UUID()
         userID = nil
         profile = nil
@@ -353,6 +670,8 @@ final class AppModel {
         exactHandleResult = nil
         lastSubmittedHandle = nil
         onboardingNamePrefill = ""
+        pendingDuel = nil
+        hasPendingDuelRecoveryIssue = false
         loadState = .idle
         presentedError = nil
         phase = .signedOut

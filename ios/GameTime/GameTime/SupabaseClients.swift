@@ -3,7 +3,7 @@ import Supabase
 
 @MainActor
 enum LiveServicesFactory {
-    static func make(configuration: AppConfiguration) -> AppServices {
+    static func make(configuration: AppConfiguration) throws -> AppServices {
         let client = SupabaseClient(
             supabaseURL: configuration.supabaseURL,
             supabaseKey: configuration.supabasePublishableKey
@@ -12,7 +12,8 @@ enum LiveServicesFactory {
             auth: SupabaseAuthClient(client: client),
             profiles: SupabaseProfileClient(client: client),
             friendships: SupabaseFriendshipsClient(client: client),
-            contests: SupabaseContestsClient(client: client)
+            contests: SupabaseContestsClient(client: client),
+            pendingDuels: try FilePendingDuelStore.applicationSupport()
         )
     }
 }
@@ -72,7 +73,8 @@ final class SupabaseProfileClient: ProfileClient {
     }
 
     func currentProfile(userID: UUID) async throws -> UserProfile? {
-        let rows: [UserProfile] = try await client
+        let rows: [UserProfile] =
+            try await client
             .from("profiles")
             .select("id,handle,display_name,timezone")
             .eq("id", value: userID.uuidString.lowercased())
@@ -94,7 +96,8 @@ final class SupabaseProfileClient: ProfileClient {
             displayName: displayName,
             timezone: timezone
         )
-        return try await client
+        return
+            try await client
             .from("profiles")
             .insert(payload)
             .select("id,handle,display_name,timezone")
@@ -123,7 +126,8 @@ final class SupabaseFriendshipsClient: FriendshipsClient {
         guard let exact = ExactHandleSubmission.normalized(handle) else {
             return nil
         }
-        let rows: [ProfileCard] = try await client
+        let rows: [ProfileCard] =
+            try await client
             .rpc("find_profile_by_handle", params: ["p_handle": exact])
             .execute()
             .value
@@ -189,7 +193,8 @@ final class SupabaseContestsClient: ContestsClient {
     }
 
     func listContests(userID: UUID) async throws -> [ContestCard] {
-        let participantRows: [ParticipantRow] = try await client
+        let participantRows: [ParticipantRow] =
+            try await client
             .from("contest_participants")
             .select("contest_id,status")
             .eq("user_id", value: userID.uuidString.lowercased())
@@ -203,7 +208,8 @@ final class SupabaseContestsClient: ContestsClient {
                 ($0.contestID, $0.status)
             }
         )
-        let contestRows: [ContestRow] = try await client
+        let contestRows: [ContestRow] =
+            try await client
             .from("contests")
             .select(
                 """
@@ -231,9 +237,16 @@ final class SupabaseContestsClient: ContestsClient {
             .value
     }
 
-    func createDuel(_ terms: DuelTerms) async throws -> UUID {
+    func createDuel(
+        _ terms: DuelTerms,
+        expectedUserID: UUID
+    ) async throws -> UUID {
+        guard client.auth.currentSession?.user.id == expectedUserID else {
+            throw AppMutationError.permissionDenied
+        }
         let params = CreateContestWithInvitesParameters(terms: terms)
-        let contestID: UUID = try await client
+        let contestID: UUID =
+            try await client
             .rpc("create_contest_with_invites_v1", params: params)
             .execute()
             .value

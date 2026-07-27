@@ -21,6 +21,22 @@ engineering harness.
 
 Debug fixture code is guarded by `#if DEBUG`; Release cannot route to it.
 
+## Restart-safe duel retry
+
+Before the first contest-creation RPC attempt, the app atomically saves one
+versioned pending duel for the authenticated actor under Application Support.
+The file uses complete data protection, is excluded from backup, and preserves
+the request UUID plus canonical millisecond timestamps as exact `Date` bit
+patterns so a relaunched retry hashes to the same immutable backend payload.
+Existing records accept only identical terms and monotonic attempt updates.
+
+An offline, cancelled, or ambiguous response leaves the record in place. The
+Challenges tab restores it only for the same actor and requires an explicit
+manual retry; the app never retries a mutation on its own. Starting another duel
+is blocked until the server returns a confirmed contest UUID or the user accepts
+the warned discard path. Sign-out detaches the record from UI state without
+making it visible to another actor.
+
 ## Safe configuration
 
 The app accepts only a Supabase URL and a current `sb_publishable_…` key. It

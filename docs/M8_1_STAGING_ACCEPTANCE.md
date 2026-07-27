@@ -45,11 +45,18 @@ the affected app before continuing.
    charity, and tie-break. Confirm the review screen presents immutable terms
    before submission.
 6. Simulate a lost response after the server commits the creation request.
-   The review remains visible with the same client request UUID. Tap Submit
+   To make this deterministic, set an Xcode breakpoint on
+   `SupabaseContestsClient.createDuel` immediately after the awaited RPC returns
+   its `contestID` and before the method returns it to `AppModel`. Submit once;
+   when the breakpoint proves the server response arrived, stop the process in
+   Xcode without continuing. Relaunch A, confirm the app shows a saved request
+   and did not retry automatically, then open its immutable review. Verify the
+   visible request UUID and every term match the first attempt. Tap Submit
    manually once more. Confirm the response returns the original contest and
    staging contains exactly one contest, two participant rows, and one private
    idempotency record for that actor/request.
-7. Force-quit and relaunch A. Confirm the pending duel reloads.
+7. Force-quit and relaunch A. Confirm the pending contest reloads and the local
+   saved-retry card is gone after the confirmed response.
 8. Relaunch B. Confirm the invitation and identical immutable terms reload,
    choose B’s charity, and accept.
 9. Force-quit and relaunch both apps. Confirm both users see the same pending
@@ -70,6 +77,7 @@ the affected app before continuing.
 | Gate | Status | Evidence |
 | --- | --- | --- |
 | Repository implementation and automated tests | Implemented | Record CI URL and commit |
+| Restart-safe same-request recovery | Implemented locally | Record force-quit retry UUID and staging observation |
 | Apple product App ID and eligible signing team | Open | Record team-owned verification |
 | Two-user force-quit/reload loop | Open | Record dated observation |
 | Same-request duplicate proof in staging | Open | Record contest/request UUIDs and bounded database observation |

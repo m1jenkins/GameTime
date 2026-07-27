@@ -3,11 +3,19 @@ import SwiftUI
 struct ChallengesView: View {
     @Environment(AppModel.self) private var model
     @Environment(AppRouter.self) private var router
+    @State private var showingDiscardConfirmation = false
 
     private var history: [ContestCard] {
         model.contests.filter {
             $0.status == .cancelled || $0.status == .finalized
         }
+    }
+
+    private var canOpenDuelFlow: Bool {
+        model.configuration.contestMutationsEnabled
+            && !model.hasPendingDuelRecoveryIssue
+            && (model.pendingDuel != nil
+                || !model.acceptedFriendships.isEmpty)
     }
 
     var body: some View {
@@ -20,6 +28,97 @@ struct ChallengesView: View {
                     )
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                }
+                .listRowBackground(CompetitiveTrustTheme.raisedInk)
+            }
+
+            if let pendingDuel = model.pendingDuel {
+                Section("Saved request") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        TrustStatusPill(
+                            text: model.hasPendingDuelRecoveryIssue
+                                ? "Protected storage needs attention"
+                                : "Explicit retry required",
+                            kind: .action
+                        )
+                        Text(pendingDuel.terms.title)
+                            .font(.headline)
+                        Text(
+                            model.hasPendingDuelRecoveryIssue
+                                ? "GameTime kept the saved request, but protected storage must recover before it can be retried safely."
+                                : "GameTime kept the exact immutable terms and request ID after an unconfirmed response. It will never retry automatically."
+                        )
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                        if model.hasPendingDuelRecoveryIssue {
+                            Button("Try protected storage again") {
+                                Task {
+                                    await model.retryPendingDuelRecovery()
+                                }
+                            }
+                            .buttonStyle(TrustSecondaryButtonStyle())
+                            .disabled(model.isMutating)
+                            .accessibilityIdentifier(
+                                "duel.pending.retry-storage"
+                            )
+                        }
+
+                        Button {
+                            router.presentedSheet = .createDuel
+                        } label: {
+                            Label(
+                                "Review saved duel",
+                                systemImage: "arrow.clockwise"
+                            )
+                        }
+                        .buttonStyle(TrustPrimaryButtonStyle())
+                        .disabled(
+                            model.isMutating
+                                || model.hasPendingDuelRecoveryIssue
+                        )
+                        .accessibilityIdentifier("duel.pending.resume")
+
+                        Button(
+                            "Discard local retry record",
+                            role: .destructive
+                        ) {
+                            showingDiscardConfirmation = true
+                        }
+                        .disabled(model.isMutating)
+                        .accessibilityIdentifier(
+                            "duel.pending.discard-list"
+                        )
+                    }
+                    .padding(.vertical, 6)
+                }
+                .listRowBackground(CompetitiveTrustTheme.raisedInk)
+            } else if model.hasPendingDuelRecoveryIssue {
+                Section("Saved request needs attention") {
+                    Label(
+                        "GameTime could not validate protected retry storage. New duel requests stay locked to avoid accidental duplicates.",
+                        systemImage: "exclamationmark.shield"
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                    Button("Try protected storage again") {
+                        Task {
+                            await model.retryPendingDuelRecovery()
+                        }
+                    }
+                    .buttonStyle(TrustSecondaryButtonStyle())
+                    .disabled(model.isMutating)
+                    .accessibilityIdentifier("duel.pending.retry-storage")
+
+                    Button(
+                        "Discard unreadable local retry",
+                        role: .destructive
+                    ) {
+                        showingDiscardConfirmation = true
+                    }
+                    .disabled(model.isMutating)
+                    .accessibilityIdentifier("duel.pending.discard-list")
                 }
                 .listRowBackground(CompetitiveTrustTheme.raisedInk)
             }
@@ -72,17 +171,29 @@ struct ChallengesView: View {
                 Button {
                     router.presentedSheet = .createDuel
                 } label: {
-                    Label("Create a duel", systemImage: "plus")
+                    Label(
+                        model.pendingDuel == nil
+                            ? "Create a duel"
+                            : "Review saved duel",
+                        systemImage: model.pendingDuel == nil
+                            ? "plus"
+                            : "arrow.clockwise"
+                    )
                 }
                 .buttonStyle(TrustPrimaryButtonStyle())
-                .disabled(
-                    !model.configuration.contestMutationsEnabled
-                        || model.acceptedFriendships.isEmpty
-                )
+                .disabled(!canOpenDuelFlow)
                 .accessibilityIdentifier("challenge.create")
                 .listRowBackground(Color.clear)
             } footer: {
-                if model.acceptedFriendships.isEmpty {
+                if model.hasPendingDuelRecoveryIssue {
+                    Text(
+                        "Discard the unreadable retry only after confirming you want to abandon its idempotency key."
+                    )
+                } else if model.pendingDuel != nil {
+                    Text(
+                        "Resume reuses the saved request UUID and terms. Starting a second duel is blocked until this request is confirmed or discarded."
+                    )
+                } else if model.acceptedFriendships.isEmpty {
                     Text("Accept a friendship before creating a duel.")
                 } else {
                     Text(
@@ -102,14 +213,35 @@ struct ChallengesView: View {
                 Button {
                     router.presentedSheet = .createDuel
                 } label: {
-                    Image(systemName: "plus")
+                    Image(
+                        systemName: model.pendingDuel == nil
+                            ? "plus"
+                            : "arrow.clockwise"
+                    )
                 }
-                .disabled(
-                    !model.configuration.contestMutationsEnabled
-                        || model.acceptedFriendships.isEmpty
+                .disabled(!canOpenDuelFlow)
+                .accessibilityLabel(
+                    model.pendingDuel == nil
+                        ? "Create a duel"
+                        : "Review saved duel"
                 )
-                .accessibilityLabel("Create a duel")
             }
+        }
+        .confirmationDialog(
+            "Discard the local retry record?",
+            isPresented: $showingDiscardConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Discard local retry", role: .destructive) {
+                Task {
+                    _ = await model.discardPendingDuel()
+                }
+            }
+            Button("Keep saved request", role: .cancel) {}
+        } message: {
+            Text(
+                "This deletes only the on-device retry record; it does not cancel a contest or invitation the server may already have created. Starting over after a committed request can create a second duel."
+            )
         }
     }
 }

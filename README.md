@@ -11,9 +11,10 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status, reconciled 2026-07-26: the backend and portable client core are
-complete through M6, and the M8.1 product app slice is implemented with staging
-proof open. This is not yet a shippable iOS app.** M6.5's staging backend,
+**Status, reconciled 2026-07-27: the backend and portable client core are
+complete through M6, and the M8.1 product app plus restart-safe duel retry are
+implemented with staging proof open. This is not yet a shippable iOS app.**
+M6.5's staging backend,
 conformance-only iOS target, independent App Attest receipt verifier,
 Apple-vector regression, receipt quarantine, and fail-closed hosted
 configuration are implemented and verified. The remaining M6.5 gate is to
@@ -35,9 +36,11 @@ source-identifier scrub. CI, concurrency, hosted advisors, production-shaped
 migration timing, and retention failure recovery remain open. M8.1 now adds a
 separate product Xcode target, native Apple-auth/onboarding state, the live
 exact-handle friendship loop, atomic idempotent duel invitations, four-tab
-SwiftUI navigation, Debug fixtures, and a Release mutation lock. Its two-user
-Apple staging run remains open, as do later sensors, App Attest, inbox/APNs,
-finalization, settlement, disputes, and operations. See
+SwiftUI navigation, Debug fixtures, a Release mutation lock, and protected
+per-user manual retry recovery that survives relaunch without changing the
+backend payload hash. Its two-user Apple staging run remains open, as do later
+sensors, App Attest, inbox/APNs, evidence queues, finalization, settlement,
+disputes, and operations. See
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
 evidence, remaining work, and recommended sequence.
 
@@ -878,6 +881,11 @@ implementation gates, and work not yet reflected here are in PLAN.md.
         creation/invitation/acceptance, four-tab navigation, fixtures, and
         green PR #11 product/conformance Xcode CI; two-user Apple staging proof
         remains open
+  - [x] **M8.2a pending duel durability** — Versioned, per-actor protected
+        storage preserves canonical immutable terms and the request UUID before
+        an attempt; ambiguous responses survive relaunch for explicit
+        same-request retry, while corruption, changed records, account
+        transitions, and a second request fail closed
   - [ ] **Later M8** — HealthKit, Core Location, product App Attest, durable
         inbox/APNs, evidence persistence, live M7 result/settlement/dispute
         screens, accessibility hardening, and privacy/App Store work

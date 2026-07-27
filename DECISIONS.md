@@ -2897,6 +2897,44 @@ Realtime for convenience (another delivery contract before durable inbox/APNs).
 and M7 exposes finalization/settlement contracts. Realtime still requires a
 separate product and privacy decision.
 
+### D87. Ambiguous duel submissions persist per actor and retry only by explicit action
+
+**What.** Before the product app sends a contest-creation RPC, it atomically
+writes one versioned pending submission for the authenticated actor under
+Application Support. The record uses complete file protection, backup
+exclusion, and an actor-namespaced filename. It preserves every immutable term,
+the caller-generated request UUID, attempt metadata, and canonical millisecond
+timestamps as lossless `Date` bit patterns so relaunch cannot perturb the
+timestamp values used by D84's backend payload hash. An existing record accepts
+only identical terms and a monotonic next-attempt update; corruption or changed
+terms fail closed.
+
+An offline, cancelled, or otherwise ambiguous response retains the record.
+Relaunch restores it only for the matching actor and requires the person to tap
+Submit again. The app never automatically retries a contest mutation and blocks
+a second request while a saved or unreadable record exists. A confirmed contest
+UUID removes the record. The only other removal is a destructive, explicitly
+warned discard that explains the lost idempotent-recovery risk. Sign-out clears
+the in-memory view but not the protected actor-scoped record. Auth-generation
+checks prevent work started for one actor from restoring, sending, or clearing
+another actor's retry.
+
+**Why.** D84 prevents duplicate contests only if the client can reproduce both
+the request UUID and identical terms after a process death. SwiftUI `@State`
+could preserve them while a sheet remained alive but not across force-quit.
+Failing closed on unreadable storage is safer than silently generating a new UUID
+after the server may already have committed the first request.
+
+**Rejected.** `UserDefaults` for commitment terms (weak storage boundary),
+reconstructing a request from a mutable draft (timestamp and payload drift),
+automatic network retry (the user cannot tell that another commitment attempt
+occurred), clearing on sign-out (silently destroys the safe retry), or allowing
+parallel pending duels before the product has a multi-action recovery design.
+
+**Revisit if.** M8 adds a general encrypted pending-action ledger or multiple
+simultaneous contest drafts. Account deletion must explicitly purge this local
+actor-scoped record after its server-side continuation decision is complete.
+
 ---
 
 ## Resolved history and decisions still deferred
@@ -2943,12 +2981,14 @@ job. The reconciled branch also implements D81's pre-result durable-actor and
 raw-retention foundation. M6.5 and hosted scheduler observations remain open and
 still gate result finalization and settlement.
 
-M8.1 implements D83–D86: a separate product target with typed navigation, a
+M8.1 and its first durability follow-up implement D83–D87: a separate product
+target with typed navigation, a
 caller-bounded social-card API, atomic caller-idempotent contest invitations,
 native Apple token exchange, public-only configuration, staging disclosure,
-Release mutation lock, and refresh-driven live clients. Its eligible-team,
-two-user Apple staging observation remains open, and later M8 slices retain the
-sensor, App Attest, inbox/APNs, and release responsibilities.
+Release mutation lock, refresh-driven live clients, and protected manual retry
+recovery across relaunch. Its eligible-team, two-user Apple staging observation
+remains open, and later M8 slices retain the sensor, App Attest, evidence queue,
+inbox/APNs, and release responsibilities.
 
 - **Quarantine and group approval (resolved by D60 and D76).** A duel needs its
   opponent; a group needs a strict majority of other accepted participants.

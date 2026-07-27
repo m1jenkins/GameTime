@@ -14,7 +14,8 @@ struct UserProfile: Codable, Equatable, Identifiable, Sendable {
     }
 
     var initials: String {
-        let words = displayName
+        let words =
+            displayName
             .split(whereSeparator: \.isWhitespace)
             .prefix(2)
         let value = words.compactMap(\.first).map(String.init).joined()
@@ -242,6 +243,8 @@ struct DuelDraft: Equatable, Sendable {
 
     func validated(now: Date = Date()) throws -> DuelTerms {
         let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let canonicalStartsAt = startsAt.canonicalizedToMilliseconds()
+        let canonicalEndsAt = endsAt.canonicalizedToMilliseconds()
         guard (1...80).contains(cleanTitle.count) else {
             throw DuelValidationError.invalidTitle
         }
@@ -254,16 +257,23 @@ struct DuelDraft: Equatable, Sendable {
         guard (100...1_000_000).contains(stakeAmountCents) else {
             throw DuelValidationError.invalidStake
         }
-        guard startsAt > now else {
+        guard canonicalStartsAt > now else {
             throw DuelValidationError.startMustBeFuture
         }
-        guard endsAt > startsAt else {
+        guard canonicalEndsAt > canonicalStartsAt else {
             throw DuelValidationError.endMustFollowStart
         }
-        guard endsAt <= startsAt.addingTimeInterval(366 * 86_400) else {
+        guard
+            canonicalEndsAt
+                <= canonicalStartsAt.addingTimeInterval(366 * 86_400)
+        else {
             throw DuelValidationError.windowTooLong
         }
-        guard cadence != .daily || endsAt >= startsAt.addingTimeInterval(86_400) else {
+        guard
+            cadence != .daily
+                || canonicalEndsAt
+                    >= canonicalStartsAt.addingTimeInterval(86_400)
+        else {
             throw DuelValidationError.dailyNeedsFullDay
         }
         guard !timezone.isEmpty, TimeZone(identifier: timezone) != nil else {
@@ -281,8 +291,8 @@ struct DuelDraft: Equatable, Sendable {
             cadence: cadence,
             targetValue: targetValue,
             stakeAmountCents: stakeAmountCents,
-            startsAt: startsAt,
-            endsAt: endsAt,
+            startsAt: canonicalStartsAt,
+            endsAt: canonicalEndsAt,
             timezone: timezone,
             charityID: charityID,
             tieBreak: tieBreak
@@ -290,7 +300,18 @@ struct DuelDraft: Equatable, Sendable {
     }
 }
 
-struct DuelTerms: Equatable, Sendable {
+extension Date {
+    func canonicalizedToMilliseconds() -> Date {
+        let milliseconds = (timeIntervalSince1970 * 1_000).rounded(.down)
+        return Date(timeIntervalSince1970: milliseconds / 1_000)
+    }
+
+    var isCanonicalMillisecondTimestamp: Bool {
+        self == canonicalizedToMilliseconds()
+    }
+}
+
+struct DuelTerms: Codable, Equatable, Sendable {
     let requestID: UUID
     let title: String
     let inviteeID: UUID
@@ -303,6 +324,107 @@ struct DuelTerms: Equatable, Sendable {
     let timezone: String
     let charityID: UUID
     let tieBreak: ContestTieBreak
+
+    enum CodingKeys: String, CodingKey {
+        case requestID
+        case title
+        case inviteeID
+        case metric
+        case cadence
+        case targetValue
+        case stakeAmountCents
+        case startsAtBitPattern
+        case endsAtBitPattern
+        case timezone
+        case charityID
+        case tieBreak
+    }
+
+    init(
+        requestID: UUID,
+        title: String,
+        inviteeID: UUID,
+        metric: ContestMetric,
+        cadence: ContestCadence,
+        targetValue: Double,
+        stakeAmountCents: Int,
+        startsAt: Date,
+        endsAt: Date,
+        timezone: String,
+        charityID: UUID,
+        tieBreak: ContestTieBreak
+    ) {
+        self.requestID = requestID
+        self.title = title
+        self.inviteeID = inviteeID
+        self.metric = metric
+        self.cadence = cadence
+        self.targetValue = targetValue
+        self.stakeAmountCents = stakeAmountCents
+        self.startsAt = startsAt.canonicalizedToMilliseconds()
+        self.endsAt = endsAt.canonicalizedToMilliseconds()
+        self.timezone = timezone
+        self.charityID = charityID
+        self.tieBreak = tieBreak
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        requestID = try container.decode(UUID.self, forKey: .requestID)
+        title = try container.decode(String.self, forKey: .title)
+        inviteeID = try container.decode(UUID.self, forKey: .inviteeID)
+        metric = try container.decode(ContestMetric.self, forKey: .metric)
+        cadence = try container.decode(ContestCadence.self, forKey: .cadence)
+        targetValue = try container.decode(Double.self, forKey: .targetValue)
+        stakeAmountCents = try container.decode(
+            Int.self,
+            forKey: .stakeAmountCents
+        )
+        startsAt = Date(
+            timeIntervalSinceReferenceDate: Double(
+                bitPattern: try container.decode(
+                    UInt64.self,
+                    forKey: .startsAtBitPattern
+                )
+            )
+        )
+        endsAt = Date(
+            timeIntervalSinceReferenceDate: Double(
+                bitPattern: try container.decode(
+                    UInt64.self,
+                    forKey: .endsAtBitPattern
+                )
+            )
+        )
+        timezone = try container.decode(String.self, forKey: .timezone)
+        charityID = try container.decode(UUID.self, forKey: .charityID)
+        tieBreak = try container.decode(
+            ContestTieBreak.self,
+            forKey: .tieBreak
+        )
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(requestID, forKey: .requestID)
+        try container.encode(title, forKey: .title)
+        try container.encode(inviteeID, forKey: .inviteeID)
+        try container.encode(metric, forKey: .metric)
+        try container.encode(cadence, forKey: .cadence)
+        try container.encode(targetValue, forKey: .targetValue)
+        try container.encode(stakeAmountCents, forKey: .stakeAmountCents)
+        try container.encode(
+            startsAt.timeIntervalSinceReferenceDate.bitPattern,
+            forKey: .startsAtBitPattern
+        )
+        try container.encode(
+            endsAt.timeIntervalSinceReferenceDate.bitPattern,
+            forKey: .endsAtBitPattern
+        )
+        try container.encode(timezone, forKey: .timezone)
+        try container.encode(charityID, forKey: .charityID)
+        try container.encode(tieBreak, forKey: .tieBreak)
+    }
 }
 
 enum DuelValidationError: LocalizedError, Equatable, Sendable {
@@ -346,6 +468,7 @@ enum AppMutationError: LocalizedError, Equatable, Sendable {
     case cancelled
     case duplicateRequestChanged
     case handleUnavailable
+    case localPersistence
     case permissionDenied
     case invalidInput(String)
     case server(String)
@@ -353,6 +476,9 @@ enum AppMutationError: LocalizedError, Equatable, Sendable {
     static func map(_ error: Error) -> AppMutationError {
         if error is CancellationError {
             return .cancelled
+        }
+        if error is PendingDuelStoreError {
+            return .localPersistence
         }
 
         let message = String(describing: error).lowercased()
@@ -389,11 +515,20 @@ enum AppMutationError: LocalizedError, Equatable, Sendable {
         case .duplicateRequestChanged:
             "That request was already used with different duel terms. Start a new duel."
         case .handleUnavailable: "That exact handle is unavailable."
+        case .localPersistence:
+            "GameTime couldn’t safely update the saved duel retry. It was not automatically retried."
         case .permissionDenied: "That action is no longer available."
         case .invalidInput:
             "Check the request details and try again."
         case .server:
             "GameTime couldn’t complete that request. Try again."
         }
+    }
+
+    var isUnknownServerFailure: Bool {
+        if case .server = self {
+            return true
+        }
+        return false
     }
 }

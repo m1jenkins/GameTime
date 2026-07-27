@@ -32,10 +32,14 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Challenge invitations"].exists)
 
         for tab in ["Challenges", "Friends", "You", "Today"] {
-            app.tabBars.buttons[tab].tap()
-            XCTAssertTrue(
-                app.navigationBars[tab].waitForExistence(timeout: 3)
-            )
+            let tabButton = app.tabBars.buttons[tab]
+            XCTAssertTrue(tabButton.waitForExistence(timeout: 3))
+            tabButton.tap()
+            let navigationBar = app.navigationBars[tab]
+            if !navigationBar.waitForExistence(timeout: 3) {
+                tabButton.tap()
+            }
+            XCTAssertTrue(navigationBar.waitForExistence(timeout: 3))
         }
     }
 
@@ -105,6 +109,52 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(
             app.navigationBars["Today"].waitForExistence(timeout: 5)
         )
+    }
+
+    func testSavedDuelCanBeResumedWithoutAutomaticRetry() {
+        let app = launch("--fixture-pending-duel")
+        let challengesTab = app.tabBars.buttons["Challenges"]
+        XCTAssertTrue(challengesTab.waitForExistence(timeout: 5))
+        challengesTab.tap()
+
+        XCTAssertTrue(
+            app.staticTexts["Explicit retry required"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(app.staticTexts["Saved response retry"].exists)
+        let resume = app.buttons["duel.pending.resume"]
+        XCTAssertTrue(resume.exists)
+        resume.tap()
+
+        XCTAssertTrue(
+            app.navigationBars["Review duel"].waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(app.staticTexts["Saved response retry"].exists)
+        let submit = app.buttons["duel.submit"]
+        for _ in 0..<5 where !submit.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(submit.waitForExistence(timeout: 3))
+        XCTAssertTrue(
+            app.descendants(matching: .any)["duel.request-id"].exists
+        )
+        let discard = app.buttons["duel.pending.discard-review"]
+        XCTAssertTrue(discard.waitForExistence(timeout: 3))
+        discard.tap()
+        XCTAssertTrue(
+            app.buttons["Discard local retry"]
+                .waitForExistence(timeout: 3)
+        )
+        XCTAssertTrue(
+            app.staticTexts[
+                "Discard the local retry record?"
+            ].exists
+        )
+        app.buttons["Discard local retry"].tap()
+        XCTAssertTrue(
+            app.navigationBars["Create duel"].waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(app.textFields["duel.title"].exists)
     }
 
     func testLoadingEmptyAndOfflineStates() {

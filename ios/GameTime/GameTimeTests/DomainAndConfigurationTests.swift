@@ -113,13 +113,27 @@ final class DomainAndConfigurationTests: XCTestCase {
         draft.title = "Step duel"
         draft.inviteeID = UUID()
         draft.charityID = UUID()
-        draft.startsAt = now.addingTimeInterval(3_600)
-        draft.endsAt = now.addingTimeInterval(2 * 86_400)
+        draft.startsAt = now.addingTimeInterval(3_600.987_654)
+        draft.endsAt = now.addingTimeInterval((2 * 86_400) + 0.765_432)
 
         let terms = try draft.validated(now: now)
         XCTAssertEqual(terms.title, "Step duel")
         XCTAssertEqual(terms.metric, .steps)
         XCTAssertNotEqual(terms.requestID, UUID())
+        XCTAssertEqual(
+            terms.startsAt,
+            Date(
+                timeIntervalSince1970: (draft.startsAt.timeIntervalSince1970 * 1_000)
+                    .rounded(.down) / 1_000
+            )
+        )
+        XCTAssertEqual(
+            terms.endsAt,
+            Date(
+                timeIntervalSince1970: (draft.endsAt.timeIntervalSince1970 * 1_000)
+                    .rounded(.down) / 1_000
+            )
+        )
 
         draft.cadence = .daily
         draft.endsAt = draft.startsAt.addingTimeInterval(3_600)
