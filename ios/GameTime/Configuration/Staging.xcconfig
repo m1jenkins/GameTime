@@ -1,0 +1,8 @@
+GAMETIME_ENV = staging
+SUPABASE_URL =
+SUPABASE_PUBLISHABLE_KEY =
+GAMETIME_CONTEST_MUTATIONS_ENABLED = YES
+
+// Optional and gitignored. It may contain only SUPABASE_URL and
+// SUPABASE_PUBLISHABLE_KEY.
+#include? "Secrets.xcconfig"

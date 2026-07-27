@@ -204,9 +204,10 @@ imports; it builds and tests on Linux CI. The Xcode app target (M8) depends on i
 and holds everything that needs a device: HealthKit, CoreLocation, DeviceCheck,
 SwiftUI.
 
-**Current implementation (2026-07-26).** The M8 product target is still absent.
-M6.5 added a separate conformance-only SwiftUI/DeviceCheck target that depends
-on GameTimeCore. It is not product UI and is not currently built by CI.
+**Implementation history (2026-07-26).** M6.5 first added a separate
+conformance-only SwiftUI/DeviceCheck target that depends on GameTimeCore. M8.1
+then added the product target and macOS CI while restoring the conformance
+target to harness-only behavior; D83 records that final boundary.
 
 **Why.** It makes client domain logic genuinely CI-tested rather than tested only
 when someone opens Xcode. It also forces device dependencies behind protocols,
@@ -2792,6 +2793,110 @@ delivery explicitly best-effort).
 The partial `(starts_at) where status = 'pending'` index exists for this query;
 measure it before moving to a queue or sharded workers.
 
+## M8 — Product iOS app
+
+### D83. The product app and the device-conformance harness are separate targets
+
+**What.** `ios/GameTime` is the production-shaped SwiftUI app with its own app,
+unit-test, and UI-test targets. `ios/GameTimeConformance` again contains only the
+focused M6.5 App Attest harness. Both target iOS 18 and depend on
+`GameTimeCore`, but the product app additionally pins `supabase-swift` and owns
+authentication, social/contest presentation, and live client adapters.
+
+Each product tab owns an independent typed `NavigationStack`. One observable
+router owns the selected tab, all four paths, and item-driven sheets. The root
+state is explicit (`launching`, `signedOut`, `onboarding`, `signedIn`), and
+leaving `signedIn` clears every route, sheet, and loaded user value.
+
+**Why.** A staging product loop and a security-protocol harness have different
+failure modes and release responsibilities. Keeping them independent prevents
+sample product UI from obscuring conformance behavior, while typed per-tab
+navigation makes sign-out cleanup and deep-link growth testable.
+
+**Rejected.** Continuing to turn the conformance binary into product UI on
+Simulator (one target silently means two products). One untyped navigation path
+for all tabs (cross-tab state and reset behavior become implicit).
+
+**Revisit if.** Never for the target boundary. Navigation ownership may move to
+feature modules when the route surface is large enough to justify modules.
+
+### D84. Social reloads are bounded and contest creation is one idempotent transaction
+
+**What.** `list_my_friendship_cards()` returns only the active caller's pending
+and accepted relationships, the other actor's minimum profile card, direction,
+and timestamps. It takes the same active-actor lock used to defeat stale JWTs
+and removes blocked or tombstoned actors before disclosure.
+
+`create_contest_with_invites_v1(...)` names one immutable payload with a
+caller-generated request UUID. A private `(actor_id, request_id)` ledger stores
+its SHA-256 payload hash and contest ID. An identical retry returns the original
+contest; changed terms fail. Contest terms, the accepted author, initial
+invitations, and the ledger record commit or roll back together. M8.1 sends one
+invitee, while the RPC accepts a bounded array for later group contests.
+
+**Why.** The app must reload its social state without reconstructing private
+profile joins, and a lost mobile response must not create two pledges. The
+transaction is the only place that can make contest and invitation atomic.
+
+**Rejected.** Client-side joins across profiles and friendships (privacy rules
+become query-shape dependent). Creating a contest and then sending invitations
+in separate requests (orphan contests). Automatic retries of a mutation (the
+user cannot tell whether a second commitment was attempted).
+
+**Revisit if.** Group-contest product rules need terms not represented by the
+current contest model. Keep the request UUID and atomic roster boundary.
+
+### D85. Apple identity is exchanged natively and app configuration is public-only
+
+**What.** The product app uses AuthenticationServices with a cryptographically
+random nonce, hashes that nonce for Apple, and sends Apple's ID token plus the
+raw nonce through Supabase's native token exchange. Apple's name is read only
+on first authorization and held only long enough to prefill editable onboarding.
+
+The app accepts only a Supabase HTTPS URL and `sb_publishable_…` key. Missing or
+invalid values fail closed; `sb_secret_…` keys and legacy service-role JWTs are
+rejected. Handles become read-only after onboarding, and the UI uses initials
+rather than collecting avatar objects.
+
+**Why.** Native exchange keeps the Apple credential path inside the supported
+SDK flow without giving the client privileged backend authority. Minimizing
+first-sign-in metadata and postponing mutable identity surfaces reduces
+impersonation and retention risk.
+
+**Rejected.** Embedding a service-role key (total RLS bypass). Persisting Apple
+name as an authoritative profile value (Apple supplies it once and the user
+controls their display identity). Shipping avatar upload before storage policy.
+
+**Revisit if.** Server-enforced handle throttling and an avatar bucket with
+reviewed object policies exist.
+
+### D86. M8.1 is staging-mutable, release-locked, and refresh-driven
+
+**What.** Staging persistently labels every screen
+`Test environment—no real pledge` and permits the social/duel loop. Release
+compiles without fixture routing and cannot create or accept contests until the
+evidence/App Attest slice closes. Account deletion, group feeds, sensor
+permissions, finalization, settlement, and disputes are absent from live M8.1
+routing; Debug fixtures may render later states for design and accessibility
+work.
+
+The app refreshes on launch, foregrounding, pull-to-refresh, and successful
+mutations. It does not add Realtime, does not automatically retry mutations,
+and treats cancellation as a normal outcome.
+
+**Why.** The first product slice proves navigation and the live social contract
+without implying that a pledge can yet be evidenced or settled. Explicit reload
+points match D8's deliberate Realtime boundary and make force-quit recovery part
+of acceptance.
+
+**Rejected.** Hiding the staging nature in copy, enabling Release mutation
+before evidence signing, or exposing nonfunctional settlement/privacy actions.
+Realtime for convenience (another delivery contract before durable inbox/APNs).
+
+**Revisit if.** App Attest/evidence collection passes its device/staging gate
+and M7 exposes finalization/settlement contracts. Realtime still requires a
+separate product and privacy decision.
+
 ---
 
 ## Resolved history and decisions still deferred
@@ -2838,6 +2943,13 @@ job. The reconciled branch also implements D81's pre-result durable-actor and
 raw-retention foundation. M6.5 and hosted scheduler observations remain open and
 still gate result finalization and settlement.
 
+M8.1 implements D83–D86: a separate product target with typed navigation, a
+caller-bounded social-card API, atomic caller-idempotent contest invitations,
+native Apple token exchange, public-only configuration, staging disclosure,
+Release mutation lock, and refresh-driven live clients. Its eligible-team,
+two-user Apple staging observation remains open, and later M8 slices retain the
+sensor, App Attest, inbox/APNs, and release responsibilities.
+
 - **Quarantine and group approval (resolved by D60 and D76).** A duel needs its
   opponent; a group needs a strict majority of other accepted participants.
   Silence stays pending and the row remains admissible and visible. At the
@@ -2869,13 +2981,16 @@ still gate result finalization and settlement.
 - **Integrity score scale (resolved by D58).** Starts at 100, subtracts
   per-flag configured points with per-rule caps, and floors at 0. It never
   auto-disqualifies evidence.
-- **Handle change throttling (M8).** Handles are freely editable today. Swapping
-  to a friend's handle shortly before settlement is a plausible impersonation
-  play. Proposed: one change per 30 days, enforced by a `handle_changed_at`
-  column, plus showing the change to anyone in an active contest with them.
-- **Avatar storage bucket and its policies (M8).** `profiles.avatar_path` holds
-  an object path, but no bucket exists yet and nothing writes it. The bucket
-  and its RLS arrive with the client that uploads to it.
+- **Handle change throttling (later M8).** M8.1 makes handles read-only in the
+  product UI after onboarding, but the server has no throttled rename contract.
+  Swapping to a friend's handle shortly before settlement is a plausible
+  impersonation play. Proposed: one change per 30 days, enforced by a
+  `handle_changed_at` column, plus showing the change to anyone in an active
+  contest with them.
+- **Avatar storage bucket and its policies (later M8).**
+  `profiles.avatar_path` holds an object path, but no bucket exists yet and
+  nothing writes it. M8.1 renders initials. The bucket and its RLS arrive with
+  the client that uploads to it.
 - **Account deletion versus contest history (resolved by D81).** Authentication
   is deleted and social identity is pseudonymized, while a non-discoverable actor
   UUID preserves accepted rosters, results, obligations, and votes. Sensitive

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Run every suite CI runs, in the same order. Keep this file and
-# .github/workflows/ci.yml in step with each other.
+# Run every portable suite CI runs, in the same order. The Xcode product and
+# conformance gates require macOS and live only in .github/workflows/ci.yml.
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."

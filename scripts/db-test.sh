@@ -33,7 +33,8 @@ supabase db reset
 
 echo "==> Installing pgTAP (test-only)"
 psql "${DB_URL}" --quiet --no-psqlrc \
-  -c "create extension if not exists pgtap with schema extensions;"
+  -c "create extension if not exists pgtap with schema extensions;" \
+  -c "create extension if not exists dblink with schema extensions;"
 
 echo "==> Running pgTAP suite"
 supabase test db
