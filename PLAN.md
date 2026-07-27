@@ -15,7 +15,7 @@ blockers. The dated evidence and verification caveats are in
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
 | M7 | M7.2a and D81 foundation implemented | Product contract D74–D82, transactional outbox, activation job, and account deletion/retention foundation are integrated; local database and staging retention proofs pass, while CI/concurrency/production-shaped migration proof remains |
-| M8 | Not started | Product iOS app target and product device/framework integrations |
+| M8 | M8.1 implemented; staging proof open | Separate product app, Apple-auth/onboarding state machine, exact-handle social loop, atomic duel creation/invitation, four-tab SwiftUI system, fixtures, and Xcode tests; two-user Apple staging proof and later device/framework slices remain |
 
 M6's boundary is backend plus portable client core. It does not include live
 Core Location collection, HealthKit queries, or a production scoring/finalizer
@@ -39,20 +39,28 @@ The 2026-07-26 local audit established:
   pgTAP files: 733 assertions passed. Supabase CLI 2.109.1 also reported no
   `public`/`app` lint errors and no local bloat, blockers, or long-running
   queries through the supported inspection commands.
-- Swift and Xcode were unavailable here. The repository contains 88 portable
-  GameTimeCore test cases and ten conformance-target XCTest cases; only the
-  portable package is a current CI job.
+- The original audit host could not execute Xcode. The M8.1 pass later ran all
+  88 GameTimeCore tests, 15 product unit tests, 6 product UI tests, and 10
+  conformance tests locally under Xcode 26.2. Staging and Release both build
+  without signing and warnings.
 - `deno fmt --check` is blocked on this Windows checkout by CRLF conversion in
   otherwise unchanged tracked files. Verify from an LF checkout rather than
   formatting 25 files as audit noise.
 
-Before new feature work:
+The M8.1 pass also completed a clean 18-migration reset and all 20 pgTAP files:
+824 assertions passed, including the bounded friendship, stale-JWT,
+block/tombstone, atomic rollback, idempotent retry, changed-payload, and
+two-session concurrent duplicate cases. The `public` and `app` schemas remain
+clean under `supabase db lint`.
 
-1. Review the reconciled diff and verify LF behavior from a fresh checkout.
-2. Run the remaining Deno checks, Swift tests, and CI on the integrated
-   revision; local database reset, pgTAP, lint, and inspection are complete.
-3. Add a macOS simulator job for the conformance target; the Supabase CLI and
-   Deno CI versions are now pinned to the audited toolchain.
+Remaining repository gates:
+
+1. Require the complete GitHub Actions result, including the new Xcode 26.2
+   `macos-26` product/conformance job, before merging M8.1.
+2. Re-check from a fresh checkout that the repository-wide LF rule removes
+   Windows format/script drift without creating unintended source changes.
+3. Run the hosted Security and Performance Advisors and the remaining
+   production-shaped migration/operations proofs.
 
 ## Corrections retained from the prior audit
 
@@ -263,23 +271,52 @@ before finalization or settlement is enabled.
 
 ## M8 — iOS product loop
 
-The first M8 slice should prove the complete loop, not only render a shell:
+### M8.1 — Live social and contest loop
 
-- Xcode app target and Sign in with Apple.
-- Profile onboarding, exact-handle discovery, friend request, and friend
-  acceptance so contest invitation has a real social-graph path.
+Implemented in `codex/m8-live-social-loop`:
+
+- [x] Separate iOS 18 / Swift 6 product, unit-test, and UI-test targets using
+  `GameTimeCore` and an exact `supabase-swift` package pin.
+- [x] Native Sign in with Apple nonce exchange, editable first-sign-in name
+  prefill, explicit launch/auth/onboarding states, and complete sign-out reset.
+- [x] Independent typed navigation per Today, Challenges, Friends, and You;
+  centralized sheets; action-first Today; competitive-trust light/dark styling.
+- [x] Exact-handle social cards for incoming, outgoing, and accepted
+  relationships, with blocks, tombstones, caller isolation, and stale-JWT denial
+  enforced by the bounded backend API.
+- [x] One-to-one duel editor and immutable review using the four backend
+  metrics, daily/cumulative cadence, future dates, target, staging stake,
+  charity, and tie-break.
+- [x] Atomic, caller-idempotent contest plus invitation creation with
+  same-payload retry and changed-payload rejection.
+- [x] Launch, foreground, pull-to-refresh, and post-mutation reloads; no
+  Realtime and no automatic mutation retry.
+- [x] Debug fixture/live-client parity, loading/empty/offline/future-state
+  coverage, and Release-compilation gates that remove fixture routing and keep
+  contest mutation disabled.
+- [x] A `macos-26` CI job selecting Xcode 26.2 and testing both product and
+  conformance schemes without signing.
+- [ ] Provision the product App ID through an eligible Apple team and complete
+  `docs/M8_1_STAGING_ACCEPTANCE.md` with two Apple-authenticated users,
+  force-quit/relaunch after every mutation, a deliberately lost-response retry,
+  and one shared pending contest.
+
+M8.1 is implemented with staging proof open, not complete. It is an internal
+alpha, not an App Store or production release.
+
+### Later M8 slices
+
 - HealthKit authorization, incremental queries, provenance extraction, and
   background sync into the existing metric queue.
 - Core Location collection and HealthKit workout selection into the persisted
   exact-byte check-in queue.
-- DeviceCheck/App Attest key lifecycle and signed retries.
-- Create, invite, accept, review, view standings, settle, and dispute screens.
-- Local persistence for queues and pending human actions.
-- APNs registration and delivery for action-required events.
-
-After the loop works: handle-change throttling, avatar storage, a privacy-safe
-group feed, invitation expiry/reminders, accessibility polish, and App Store
-privacy disclosures.
+- DeviceCheck/App Attest key lifecycle and signed retries in the product target.
+- Durable in-app action inbox plus APNs registration and delivery.
+- Live standings/review/finalization, settlement, and dispute screens after M7
+  supplies those contracts.
+- Persistent evidence queues and pending human actions.
+- Accessibility hardening, privacy disclosures, handle-change throttling,
+  avatar storage, privacy-safe group-feed policy, and invitation reminders.
 
 ## Launch blockers and cross-cutting work
 
@@ -293,7 +330,7 @@ privacy disclosures.
 | Observability | Rejected ingest, scheduler failures, and stuck reviews must be measurable |
 | Rate limiting | Signed-in callers can currently create avoidable endpoint load |
 | Privacy and abuse handling | Health, workout, and location data require disclosure, retention rules, and reporting paths |
-| Release engineering | Continuously build the conformance target and document deploy/rollback/restore |
+| Release engineering | The macOS product/conformance job is defined; obtain its green branch/main result and document deploy/rollback/restore |
 
 ## Verification policy
 

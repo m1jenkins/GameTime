@@ -4,6 +4,7 @@
 .env.m6-5-staging
 *.p8
 *.p12
+ios/GameTime/Configuration/Secrets.xcconfig
 supabase/.env
 supabase/signing_keys.json
 

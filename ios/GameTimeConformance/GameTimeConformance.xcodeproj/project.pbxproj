@@ -19,9 +19,6 @@
 		10000000000000000000000A /* AssertionCounterDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000A /* AssertionCounterDecoderTests.swift */; };
 		10000000000000000000000B /* ConformanceRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000B /* ConformanceRequestTests.swift */; };
 		10000000000000000000000C /* ConformanceRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000C /* ConformanceRunnerTests.swift */; };
-		10000000000000000000000D /* GameTimePreviewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000010 /* GameTimePreviewModels.swift */; };
-		10000000000000000000000E /* GameTimePreviewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000011 /* GameTimePreviewComponents.swift */; };
-		10000000000000000000000F /* GameTimePreviewApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000012 /* GameTimePreviewApp.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,9 +47,6 @@
 		20000000000000000000000D /* GameTimeConformance.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GameTimeConformance.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		20000000000000000000000E /* GameTimeConformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GameTimeConformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		20000000000000000000000F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		200000000000000000000010 /* GameTimePreviewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTimePreviewModels.swift; sourceTree = "<group>"; };
-		200000000000000000000011 /* GameTimePreviewComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTimePreviewComponents.swift; sourceTree = "<group>"; };
-		200000000000000000000012 /* GameTimePreviewApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTimePreviewApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,9 +89,6 @@
 				200000000000000000000006 /* AssertionCounterDecoder.swift */,
 				200000000000000000000007 /* ConformanceHTTP.swift */,
 				200000000000000000000008 /* ConformanceRunner.swift */,
-				200000000000000000000010 /* GameTimePreviewModels.swift */,
-				200000000000000000000011 /* GameTimePreviewComponents.swift */,
-				200000000000000000000012 /* GameTimePreviewApp.swift */,
 				200000000000000000000009 /* GameTimeConformance.entitlements */,
 			);
 			path = GameTimeConformance;
@@ -234,9 +225,6 @@
 				100000000000000000000006 /* AssertionCounterDecoder.swift in Sources */,
 				100000000000000000000007 /* ConformanceHTTP.swift in Sources */,
 				100000000000000000000008 /* ConformanceRunner.swift in Sources */,
-				10000000000000000000000D /* GameTimePreviewModels.swift in Sources */,
-				10000000000000000000000E /* GameTimePreviewComponents.swift in Sources */,
-				10000000000000000000000F /* GameTimePreviewApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

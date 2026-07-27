@@ -1,0 +1,148 @@
+import Foundation
+
+enum AppEnvironment: String, Equatable, Sendable {
+    case debug
+    case staging
+    case release
+
+    var showsTestEnvironmentBanner: Bool { self == .staging }
+}
+
+struct AppConfiguration: Equatable, Sendable {
+    let environment: AppEnvironment
+    let supabaseURL: URL
+    let supabasePublishableKey: String
+    let contestMutationsEnabled: Bool
+
+    static func load(bundle: Bundle = .main) throws -> AppConfiguration {
+        let environmentValue = bundle.object(
+            forInfoDictionaryKey: "GAMETIME_ENV"
+        ) as? String
+        let urlValue = bundle.object(
+            forInfoDictionaryKey: "SUPABASE_URL"
+        ) as? String
+        let keyValue = bundle.object(
+            forInfoDictionaryKey: "SUPABASE_PUBLISHABLE_KEY"
+        ) as? String
+        let mutationValue = bundle.object(
+            forInfoDictionaryKey: "GAMETIME_CONTEST_MUTATIONS_ENABLED"
+        ) as? String
+
+        return try validated(
+            environmentValue: environmentValue,
+            urlValue: urlValue,
+            keyValue: keyValue,
+            mutationValue: mutationValue
+        )
+    }
+
+    static func validated(
+        environmentValue: String?,
+        urlValue: String?,
+        keyValue: String?,
+        mutationValue: String?
+    ) throws -> AppConfiguration {
+        guard let environment = AppEnvironment(
+            rawValue: environmentValue?.lowercased() ?? ""
+        ) else {
+            throw AppConfigurationError.invalidEnvironment
+        }
+
+        guard
+            let rawURL = normalized(urlValue),
+            let url = URL(string: rawURL),
+            let scheme = url.scheme?.lowercased(),
+            url.host != nil,
+            scheme == "https" || (environment == .debug && scheme == "http")
+        else {
+            throw AppConfigurationError.invalidSupabaseURL
+        }
+
+        guard let key = normalized(keyValue) else {
+            throw AppConfigurationError.missingPublishableKey
+        }
+        guard key.hasPrefix("sb_publishable_") else {
+            if key.hasPrefix("sb_secret_") || jwtRole(in: key) == "service_role" {
+                throw AppConfigurationError.serviceRoleKeyRejected
+            }
+            throw AppConfigurationError.invalidPublishableKey
+        }
+
+        let requestedMutations = mutationValue?.lowercased() == "yes"
+            || mutationValue?.lowercased() == "true"
+            || mutationValue == "1"
+
+        return AppConfiguration(
+            environment: environment,
+            supabaseURL: url,
+            supabasePublishableKey: key,
+            contestMutationsEnabled: environment == .release
+                ? false
+                : requestedMutations
+        )
+    }
+
+    #if DEBUG
+    static let fixture = AppConfiguration(
+        environment: .debug,
+        supabaseURL: URL(string: "http://127.0.0.1:54321")!,
+        supabasePublishableKey: "sb_publishable_fixture_only",
+        contestMutationsEnabled: true
+    )
+    #endif
+
+    private static func normalized(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard
+            !trimmed.isEmpty,
+            trimmed != "UNCONFIGURED",
+            !trimmed.contains("$(")
+        else {
+            return nil
+        }
+        return trimmed
+    }
+
+    private static func jwtRole(in key: String) -> String? {
+        let parts = key.split(separator: ".")
+        guard parts.count == 3 else { return nil }
+        var value = String(parts[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        while value.count.isMultiple(of: 4) == false {
+            value.append("=")
+        }
+        guard
+            let data = Data(base64Encoded: value),
+            let object = try? JSONSerialization.jsonObject(with: data)
+                as? [String: Any]
+        else {
+            return nil
+        }
+        return object["role"] as? String
+    }
+}
+
+enum AppConfigurationError: LocalizedError, Equatable, Sendable {
+    case invalidEnvironment
+    case invalidSupabaseURL
+    case missingPublishableKey
+    case invalidPublishableKey
+    case serviceRoleKeyRejected
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidEnvironment:
+            "GAMETIME_ENV must be Debug, Staging, or Release."
+        case .invalidSupabaseURL:
+            "A valid Supabase HTTPS URL is required."
+        case .missingPublishableKey:
+            "The Supabase publishable key is not configured."
+        case .invalidPublishableKey:
+            "Only a current Supabase publishable key is accepted."
+        case .serviceRoleKeyRejected:
+            "A service-role or secret key must never be embedded in GameTime."
+        }
+    }
+}

@@ -1,4 +1,3 @@
-import Foundation
 import SwiftUI
 
 @main
@@ -8,15 +7,7 @@ struct GameTimeConformanceApp: App {
 
     var body: some Scene {
         WindowGroup {
-#if targetEnvironment(simulator)
-            if ProcessInfo.processInfo.arguments.contains("--conformance") {
-                ContentView(model: model)
-            } else {
-                GameTimePreviewAppView()
-            }
-#else
             ContentView(model: model)
-#endif
         }
     }
 }

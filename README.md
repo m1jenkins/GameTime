@@ -11,13 +11,15 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status, reconciled 2026-07-26: the backend and portable client core are complete
-through M6; this is not yet a shippable iOS app.** M6.5's staging backend,
+**Status, reconciled 2026-07-26: the backend and portable client core are
+complete through M6, and the M8.1 product app slice is implemented with staging
+proof open. This is not yet a shippable iOS app.** M6.5's staging backend,
 conformance-only iOS target, independent App Attest receipt verifier,
 Apple-vector regression, receipt quarantine, and fail-closed hosted
-configuration are implemented and verified. The remaining gate is to provision
-the connected iPhone with an App Attest-capable Apple Developer Program team,
-install the staging Auth fixture, and complete the documented smoke run.
+configuration are implemented and verified. The remaining M6.5 gate is to
+provision the connected iPhone with an App Attest-capable Apple Developer
+Program team, install the staging Auth fixture, and complete the documented
+smoke run.
 
 M7's product contract is recorded in DECISIONS.md D74–D82. The payload-free
 notification outbox and named one-minute activation job are implemented. The
@@ -25,14 +27,17 @@ reconciled branch also implements D81's durable actor tombstones, atomic
 account deletion, scoped continuation capabilities, and versioned raw-evidence
 retention. D77's metric/quarantine evidence boundary is also hardened: direct
 audit reads are owner-only and pending peer review goes through exact-contest,
-phase-aware redacted RPCs. A clean local database reset now passes all 780
+phase-aware redacted RPCs. A clean local database reset now passes all 824
 pgTAP assertions and the supported local lint/advisor checks. D81 and forward
 guard repair `20260726230529` are deployed to staging, where committed manual
 and hosted raw retention cycles prove exact-location pruning and the 90-day
 source-identifier scrub. CI, concurrency, hosted advisors, production-shaped
-migration timing, and retention failure recovery remain open. The product iOS
-target and the remainder of finalization, settlement, disputes, delivery, and
-operations are still open. See
+migration timing, and retention failure recovery remain open. M8.1 now adds a
+separate product Xcode target, native Apple-auth/onboarding state, the live
+exact-handle friendship loop, atomic idempotent duel invitations, four-tab
+SwiftUI navigation, Debug fixtures, and a Release mutation lock. Its two-user
+Apple staging run remains open, as do later sensors, App Attest, inbox/APNs,
+finalization, settlement, disputes, and operations. See
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
 evidence, remaining work, and recommended sequence.
 
@@ -59,9 +64,10 @@ ios/
                          retry primitives, and a restorable exact-byte
                          check-in queue.
                          Builds and tests on Linux CI.
-  GameTimeConformance/   M6.5 real-device App Attest smoke target plus a
-                         simulator-only, sample-data product proof of concept.
-                         The networked production app still lands in M8.
+  GameTime/              M8 product app plus unit/UI targets. Live Supabase
+                         adapters, Apple auth, social/duel loop, and Debug
+                         fixtures; Release contest mutation is locked.
+  GameTimeConformance/   Independent M6.5 App Attest smoke harness only.
 scripts/
   dev-up.sh              Start the local stack
   db-test.sh             Reset the database and run pgTAP
@@ -71,6 +77,7 @@ scripts/
 docs/
   IMPLEMENTATION_STATUS.md  Dated evidence, gaps, and recommended next steps
   M6_5_DEVICE_CONFORMANCE.md  Physical-iPhone/staging release gate
+  M8_1_STAGING_ACCEPTANCE.md  Two-user Apple-authenticated product proof
   M7_ACCOUNT_DELETION_RETENTION.md  D81 contracts and deployment/operations gate
 DECISIONS.md             Every non-obvious choice and why
 PLAN.md                  What is next, and what the plan is missing
@@ -86,7 +93,7 @@ PLAN.md                  What is next, and what the plan is missing
 | Bash         | 5.x            | All repository scripts are Bash             |
 | Deno         | 2.9.4          | `brew install deno`                         |
 | Swift        | 6.2.3 / 6.3 CI | Xcode locally; standalone image in CI       |
-| Xcode        | 26.2            | iOS 26.2 SDK; conformance target in M6.5, product target in M8 |
+| Xcode        | 26.2            | iOS 26.2 SDK; product and conformance targets deploy to iOS 18 |
 
 ## Setup
 
@@ -130,12 +137,11 @@ Or individually:
 (cd ios/GameTimeCore && swift test)                       # Client core
 ```
 
-CI has three portable jobs: pgTAP, Deno, and GameTimeCore. The ten XCTest cases
-under `ios/GameTimeConformance` require Xcode and an iOS Simulator; they are
-documented in that target's README but are not yet a CI job. Add a macOS job
-before treating the conformance target as continuously verified. If a portable
-suite is added, keep `scripts/test-all.sh` and `.github/workflows/ci.yml` in
-step.
+CI has three portable jobs—pgTAP, Deno, and GameTimeCore—plus a `macos-26`
+job that explicitly selects Xcode 26.2. The macOS job tests the product and
+conformance schemes and builds both Staging and Release without signing.
+`scripts/test-all.sh` remains the portable local/CI subset because Xcode is not
+available on Linux.
 
 ## Working on the schema
 
@@ -824,11 +830,13 @@ afternoon:
   TypeScript files as unformatted. Use an LF checkout (or WSL) before judging
   the source from that result.
 
-## Client target
+## Client targets
 
-iOS 18.0, Swift 6 language mode. Verified on 2026-07-25 with Xcode 26.2, the iOS
-26.2 SDK, and Swift 6.2.3; the portable package builds and its 88 tests pass.
-The product rationale remains in DECISIONS.md D2.
+iOS 18.0, Swift 6 language mode. The portable package remains Apple-framework
+free and Linux-testable. `ios/GameTime` is the production-shaped app;
+`ios/GameTimeConformance` remains the focused App Attest harness. Both build and
+test under the explicit Xcode 26.2 macOS job. The target rationale and M8
+boundaries are in DECISIONS.md D2, D10, and D83–D86.
 
 ## Milestones
 
@@ -853,7 +861,7 @@ implementation gates, and work not yet reflected here are in PLAN.md.
 - [x] **M7 / D81 foundation** — Durable actor tombstones, atomic
       service-only account deletion, stale-JWT denial, scoped continuation
       capabilities, and guarded versioned raw-evidence retention; local
-      780-assertion/lint/advisor gates and committed staging retention cycles
+      824-assertion/lint/advisor gates and committed staging retention cycles
       pass, while CI/concurrency/production-shaped migration and hosted-advisor
       gates remain
 - [x] **M7 / D77 evidence boundary** — Owner-only metric/quarantine audit
@@ -864,5 +872,11 @@ implementation gates, and work not yet reflected here are in PLAN.md.
 - [ ] **M7 remainder** — Standings API, finalization gates and result ledger,
       settlement, disputes, charity pledge lifecycle, reliability, and
       deadline/retention operations
-- [ ] **M8** — iOS app target: auth, HealthKit, Core Location, App Attest,
-      APNs delivery, persistence, and the SwiftUI product loop
+- [ ] **M8** — Product iOS program remains in progress
+  - [x] **M8.1 repository slice** — Product target, native Apple-auth exchange,
+        onboarding, exact-handle friendships, atomic one-to-one duel
+        creation/invitation/acceptance, four-tab navigation, fixtures, and
+        product/conformance Xcode CI; two-user Apple staging proof remains open
+  - [ ] **Later M8** — HealthKit, Core Location, product App Attest, durable
+        inbox/APNs, evidence persistence, live M7 result/settlement/dispute
+        screens, accessibility hardening, and privacy/App Store work

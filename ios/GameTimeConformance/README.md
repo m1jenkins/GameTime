@@ -1,22 +1,10 @@
-# GameTime simulator preview and M6.5 conformance target
+# GameTime M6.5 conformance target
 
-The shared scheme now has two intentionally separate entry paths:
-
-- **iOS Simulator:** opens a non-networked GameTime product proof of concept
-  with Today, Challenges, Friends, and You tabs. It uses clearly labeled sample
-  data so the current social-contest, evidence-integrity, and charitable-pledge
-  concepts can be explored before the production M8 app target exists.
-- **Physical iPhone:** opens the original M6.5 App Attest conformance harness
-  described below. Its behavior and provisioning requirements are unchanged.
-
-Open `GameTimeConformance.xcodeproj`, select the **GameTimeConformance** scheme,
-choose an available iPhone Simulator, and press Run. The product preview is the
-default simulator experience. To inspect the engineering harness in Simulator,
-add `--conformance` as a launch argument; App Attest will still report
-unavailable there.
-
-The preview does not connect to Supabase, request HealthKit or Location access,
-or create a real pledge. Those integrations remain M8 work.
+This target is deliberately independent from the production-shaped M8 iOS app
+in `../GameTime`. Its shared scheme always opens the App Attest conformance
+harness on both Simulator and physical iPhone. Simulator runs can build and
+exercise the request/decoding code, while App Attest itself correctly reports
+that a supported physical device is required.
 
 ## Physical-device conformance
 
@@ -120,8 +108,8 @@ returning HTTP 200 with `replayed=true` and their original record IDs.
 
 ## Local validation
 
-These commands are required local gates, not current CI evidence. The
-conformance target is not continuously built.
+These commands are local gates. CI also builds and tests this scheme on the
+audited macOS/Xcode runner.
 
 Build the app without signing:
 
