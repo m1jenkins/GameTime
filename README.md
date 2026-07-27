@@ -862,8 +862,8 @@ implementation gates, and work not yet reflected here are in PLAN.md.
       service-only account deletion, stale-JWT denial, scoped continuation
       capabilities, and guarded versioned raw-evidence retention; local
       824-assertion/lint/advisor gates and committed staging retention cycles
-      pass, while CI/concurrency/production-shaped migration and hosted-advisor
-      gates remain
+      pass, while broader concurrency/production-shaped migration and
+      hosted-advisor gates remain
 - [x] **M7 / D77 evidence boundary** — Owner-only metric/quarantine audit
       relations plus exact-contest, phase-aware, redacted quarantine-review
       surfaces; canonical live/final standings still belong to the M7 remainder
@@ -876,7 +876,8 @@ implementation gates, and work not yet reflected here are in PLAN.md.
   - [x] **M8.1 repository slice** — Product target, native Apple-auth exchange,
         onboarding, exact-handle friendships, atomic one-to-one duel
         creation/invitation/acceptance, four-tab navigation, fixtures, and
-        product/conformance Xcode CI; two-user Apple staging proof remains open
+        green PR #11 product/conformance Xcode CI; two-user Apple staging proof
+        remains open
   - [ ] **Later M8** — HealthKit, Core Location, product App Attest, durable
         inbox/APNs, evidence persistence, live M7 result/settlement/dispute
         screens, accessibility hardening, and privacy/App Store work

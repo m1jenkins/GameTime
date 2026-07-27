@@ -25,7 +25,7 @@ jobs:
     name: Database (pgTAP)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: supabase/setup-cli@v1
         with:
@@ -52,7 +52,7 @@ jobs:
       run:
         working-directory: supabase/functions
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: denoland/setup-deno@v2
         with:
@@ -86,7 +86,7 @@ jobs:
       run:
         working-directory: ios/GameTimeCore
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build
         run: swift build
@@ -102,7 +102,7 @@ jobs:
     name: iOS product and conformance (Xcode 26.2)
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Select audited Xcode
         run: |

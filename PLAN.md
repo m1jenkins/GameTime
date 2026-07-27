@@ -14,7 +14,7 @@ blockers. The dated evidence and verification caveats are in
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
-| M7 | M7.2a and D81 foundation implemented | Product contract D74–D82, transactional outbox, activation job, and account deletion/retention foundation are integrated; local database and staging retention proofs pass, while CI/concurrency/production-shaped migration proof remains |
+| M7 | M7.2a and D81 foundation implemented | Product contract D74–D82, transactional outbox, activation job, and account deletion/retention foundation are integrated; local database and staging retention proofs pass, while broader concurrency and production-shaped migration proof remains |
 | M8 | M8.1 implemented; staging proof open | Separate product app, Apple-auth/onboarding state machine, exact-handle social loop, atomic duel creation/invitation, four-tab SwiftUI system, fixtures, and Xcode tests; two-user Apple staging proof and later device/framework slices remain |
 
 M6's boundary is backend plus portable client core. It does not include live
@@ -53,10 +53,16 @@ block/tombstone, atomic rollback, idempotent retry, changed-payload, and
 two-session concurrent duplicate cases. The `public` and `app` schemas remain
 clean under `supabase db lint`.
 
+PR #11's initial M8.1 head (`c363610`) passed all four GitHub Actions jobs in
+[run 30236956570](https://github.com/m1jenkins/GameTime/actions/runs/30236956570):
+database, Deno, GameTimeCore, and the complete Xcode 26.2 product/configuration/
+conformance job. The checkout runtime maintenance follow-up must also be green
+before merge.
+
 Remaining repository gates:
 
-1. Require the complete GitHub Actions result, including the new Xcode 26.2
-   `macos-26` product/conformance job, before merging M8.1.
+1. Keep the complete GitHub Actions result green for the latest M8.1 head and
+   the post-merge `main` revision.
 2. Re-check from a fresh checkout that the repository-wide LF rule removes
    Windows format/script drift without creating unintended source changes.
 3. Run the hosted Security and Performance Advisors and the remaining
@@ -330,7 +336,7 @@ alpha, not an App Store or production release.
 | Observability | Rejected ingest, scheduler failures, and stuck reviews must be measurable |
 | Rate limiting | Signed-in callers can currently create avoidable endpoint load |
 | Privacy and abuse handling | Health, workout, and location data require disclosure, retention rules, and reporting paths |
-| Release engineering | The macOS product/conformance job is defined; obtain its green branch/main result and document deploy/rollback/restore |
+| Release engineering | PR #11 has a green macOS product/conformance result; preserve the latest-head/main result and document deploy/rollback/restore |
 
 ## Verification policy
 

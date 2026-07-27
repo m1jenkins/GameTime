@@ -20,7 +20,7 @@ target, but the eligible-team physical-device observation is still open. M7.2a's
 notification outbox and scheduled activation are implemented, but their hosted
 committed-row proof is open. A large D81 account-deletion/retention foundation
 is integrated, locally database-proven, deployed to staging, and proven there
-with committed manual and hosted retention cycles. CI, concurrency, hosted
+with committed manual and hosted retention cycles. Broader concurrency, hosted
 advisor, and production-shaped migration proofs remain open. M8.1 implements
 the product target, native Apple-token exchange, onboarding, exact-handle
 friendships, one-to-one duel creation/invitation/acceptance, reload behavior,
@@ -40,8 +40,9 @@ identity, safer staging scripts, D81 migrations/tests, documentation, and pinned
 CI toolchains are therefore in one reviewable history. M8.1 adds the separate
 product target, a bounded social-card API, atomic/idempotent contest creation,
 and a macOS product/conformance job on top of that baseline. The combined
-revision still needs remote CI, hosted-advisor, production-shaped migration,
-and the external proofs below before it can support a release claim.
+revision has a green initial PR #11 suite and still needs hosted-advisor,
+production-shaped migration, and the external proofs below before it can
+support a release claim.
 
 ## Verification evidence
 
@@ -60,6 +61,7 @@ and the external proofs below before it can support a release claim.
 | Product Xcode scheme | Pass, 15 unit and 6 UI tests; no warnings | Auth/onboarding state, route reset, DTOs, exact handles, validation/error mapping, fixture/live boundaries, Release mutation lock, four tabs, friend/duel mutations, state fixtures, Dynamic Type, labels, and Reduce Motion pass together |
 | Product Staging and Release builds | Pass without signing; no warnings | Both live configurations compile; Staging excludes `DEBUG` routing and Release compiles with fixture code absent and contest mutation locked |
 | Conformance Xcode scheme | Pass, 10 tests; no warnings | Removing the product preview preserves the focused request/CBOR/replay harness |
+| M8.1 pull-request CI | PR #11 initial head `c363610` passed all four jobs in [run 30236956570](https://github.com/m1jenkins/GameTime/actions/runs/30236956570); the Xcode 26.2 job completed in 15m 8s | A clean GitHub-hosted run reproduced pgTAP, Deno, GameTimeCore, product tests, Staging/Release builds, and conformance tests; the checkout-runtime follow-up must rerun before merge |
 | Supported local database inspection | Pass; database/index/role stats and outliers reviewed, with no bloat, blocking queries, or long-running queries | Local runtime health after the clean suite; fresh-test index counters are diagnostic and do not justify dropping indexes |
 | Staging migration reconciliation | Migrations through `20260726070000` were already applied; forward repair `20260726230529` applied successfully | The applied migration remains immutable and staging history now carries the generated-column repair as a new migration |
 | Staging manual retention cycle | At 2026-07-26 23:09:47 UTC, 2 exact-location rows were pruned and 1 source-identifier pair was scrubbed; 3 immutable events were appended; immediate rerun returned all zeros | The repaired guard permits only the worker scrub, stored ranges recompute correctly, audit output is durable, and the worker is idempotent |
@@ -73,7 +75,6 @@ and the external proofs below before it can support a release claim.
 | Physical App Attest proof | Current signing account is a Personal Team | Use an App Attest-capable Program team and record the runbook evidence |
 | M8.1 two-user Apple staging proof | Product App ID/team provisioning and two Apple-authenticated users are external | Complete `M8_1_STAGING_ACCEPTANCE.md`, including force-quit reloads and one deliberately lost-response retry |
 | Hosted activation cron proof | pgTAP transactions cannot be observed by the background worker; only the retention job has a committed-row staging proof | Record a committed-row activation run and exercise its downstream paths |
-| M8.1 GitHub Actions result | The `macos-26` product/conformance job is defined locally; branch execution is the merge gate | Require the complete branch check suite before merging |
 
 `deno fmt --check` also reported 25 tracked files as different only by line
 endings because this Windows checkout uses `core.autocrlf=true`. Run the check
@@ -84,7 +85,7 @@ format-only diff and call that a source fix.
 
 | Milestone | Status | Delivered | Still open |
 | --- | --- | --- | --- |
-| M0 | Complete baseline | Supabase scaffold, migrations, local scripts, pgTAP/Deno/Swift CI with pinned Supabase/Deno/Xcode versions | Prove the M8.1 branch job in CI; deployment/rollback automation |
+| M0 | Complete baseline | Supabase scaffold, migrations, local scripts, pgTAP/Deno/Swift CI with pinned Supabase/Deno/Xcode versions | Preserve latest-head/main CI and add deployment/rollback automation |
 | M1 | Complete in repo | Profiles, friendships, groups, membership, blocks, RLS and guarded RPCs | Product screens; handle throttling/avatar storage |
 | M2 | Complete in repo | Charities schema, contests, invitations, participant lifecycle, activation primitive | Verified production charity data |
 | M3 | Complete in repo | Attested metric ledger, idempotent ingest, local-hour bucketing/provenance/queue core | Live HealthKit collection and background delivery |
@@ -94,9 +95,9 @@ format-only diff and call that a source fix.
 | M6.5 | Gate open | Staging backend, conformance target, independent receipt verification, runbook | Eligible Apple team, Auth fixture, physical-device observation |
 | M7.1 | Complete | D74–D82 product contract | Implementation of most settlement domain |
 | M7.2a | Implemented | Transactional notification intents and named one-minute activation job | Hosted committed-row activation proof |
-| D81 foundation | Staged; local and retention-cycle proven | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker, forward generated-column repair | CI/concurrency/production-shaped migration, hosted advisors, hold/failure recovery; user-facing deletion/capability path |
+| D81 foundation | Staged; local and retention-cycle proven | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker, forward generated-column repair | Broader concurrency/production-shaped migration, hosted advisors, hold/failure recovery; user-facing deletion/capability path |
 | M7 finalization/settlement | Mostly not started | Pure scoring/integrity engines and schema seams exist | Standings API, frozen assessments, results, obligations, claims, disputes, reliability, deadline workers |
-| M8 | M8.1 implemented; external proof open | Product Xcode target, native Apple token exchange, onboarding, exact-handle friendship loop, atomic/idempotent duel invitation loop, four-tab navigation, fixtures, local Xcode proof, macOS CI definition | Eligible product App ID/team and two-user staging acceptance; HealthKit, Core Location, product App Attest, persistence, inbox/APNs, M7 result/settlement/dispute screens, privacy/release hardening |
+| M8 | M8.1 implemented; external proof open | Product Xcode target, native Apple token exchange, onboarding, exact-handle friendship loop, atomic/idempotent duel invitation loop, four-tab navigation, fixtures, local Xcode proof, and green PR #11 macOS CI | Eligible product App ID/team and two-user staging acceptance; HealthKit, Core Location, product App Attest, persistence, inbox/APNs, M7 result/settlement/dispute screens, privacy/release hardening |
 
 ## Work already delivered
 
@@ -128,8 +129,8 @@ The implemented architecture includes:
 
 ### P0 — Prove the reconciled repository revision
 
-1. Obtain one green GitHub Actions result for the locally green database,
-   Deno, GameTimeCore, product Xcode, and conformance Xcode suites.
+1. Preserve the green GitHub Actions result on the latest PR head and
+   post-merge `main`.
 2. Re-check from a fresh checkout that the repository-wide LF rule removes
    Windows format/script drift without creating unintended source changes.
 3. Run the hosted Security and Performance Advisors against the staged D81
