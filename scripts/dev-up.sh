@@ -25,4 +25,4 @@ if [[ -n "${EXCLUDE_SERVICES:-}" ]]; then
   args+=(-x "${EXCLUDE_SERVICES}")
 fi
 
-supabase start "${args[@]}"
+supabase start ${args[@]+"${args[@]}"}
