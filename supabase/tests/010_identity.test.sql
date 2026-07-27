@@ -345,11 +345,14 @@ select set_eq(
   'the lookup card exposes only id, handle, display_name, avatar_path'
 );
 
--- Unauthenticated callers get nothing even if they reach the function.
+-- D81 rejects unauthenticated and stale-JWT callers at the RPC boundary rather
+-- than returning an indistinguishable empty discovery result.
 select set_config('request.jwt.claims', '', true);
-select is_empty(
+select throws_ok(
   $$ select * from public.find_profile_by_handle('carol') $$,
-  'an unauthenticated caller resolves no handles'
+  '42501',
+  'authentication required',
+  'an unauthenticated caller is denied handle discovery'
 );
 
 reset role;

@@ -561,12 +561,24 @@ select isnt_empty(
 
 reset role;
 
-select is(
-  (select count(*) from pg_policies
-   where schemaname = 'public'
-     and tablename in ('metric_snapshots', 'ingest_batches', 'device_attestations')),
-  3::bigint,
-  'three tables, three policies, all of them read-only'
+select set_eq(
+  $$ select tablename || ':' || policyname || ':' || permissive || ':' || cmd
+     from pg_policies
+     where schemaname = 'public'
+       and tablename in (
+         'metric_snapshots',
+         'ingest_batches',
+         'device_attestations'
+       ) $$,
+  array[
+    'device_attestations:active_actor_only:RESTRICTIVE:ALL',
+    'device_attestations:device_attestations_select_own:PERMISSIVE:SELECT',
+    'ingest_batches:active_actor_only:RESTRICTIVE:ALL',
+    'ingest_batches:ingest_batches_select_own_or_rival:PERMISSIVE:SELECT',
+    'metric_snapshots:active_actor_only:RESTRICTIVE:ALL',
+    'metric_snapshots:metric_snapshots_select_own_or_rival:PERMISSIVE:SELECT'
+  ],
+  'evidence tables compose read policies with restrictive active-actor guards'
 );
 
 -- ---------------------------------------------------------------------------

@@ -7,6 +7,13 @@
 begin;
 select plan(19);
 
+-- D81 composes the reference-data read policy with active_actor_only, so RLS
+-- checks need a real, non-tombstoned authenticated actor.
+insert into auth.users (id)
+values ('11111111-1111-1111-1111-111111111111');
+insert into public.profiles (id, handle, display_name)
+values ('11111111-1111-1111-1111-111111111111', 'alice', 'Alice');
+
 -- ---------------------------------------------------------------------------
 -- Shape
 -- ---------------------------------------------------------------------------
@@ -134,6 +141,11 @@ insert into public.charities (id, name, ein, slug, is_active) values
    'Retired Fund', '66-3456789', 'retired-fund', false);
 
 set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"11111111-1111-1111-1111-111111111111"}',
+  true
+);
 
 select is(
   (select count(*) from public.charities
@@ -149,15 +161,18 @@ select is(
   'and so is an active one'
 );
 
--- The policy is `using (true)` for authenticated, which is a deliberate choice
--- for reference data rather than an oversight. Pin it so widening or narrowing
--- it later is a visible act.
+-- The feature policy remains `using (true)` reference-data access, but D81's
+-- restrictive policy makes it available only to a currently active actor.
 reset role;
-select is(
-  (select count(*) from pg_policies
-   where schemaname = 'public' and tablename = 'charities'),
-  1::bigint,
-  'charities carries exactly one policy: read'
+select set_eq(
+  $$ select policyname || ':' || permissive || ':' || cmd
+     from pg_policies
+     where schemaname = 'public' and tablename = 'charities' $$,
+  array[
+    'active_actor_only:RESTRICTIVE:ALL',
+    'charities_select_all:PERMISSIVE:SELECT'
+  ],
+  'charities composes reference-data reads with the restrictive active-actor guard'
 );
 
 select * from finish();

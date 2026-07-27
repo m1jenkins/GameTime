@@ -14,7 +14,7 @@ blockers. The dated evidence and verification caveats are in
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
-| M7 | M7.2a and D81 foundation implemented | Product contract D74–D82, transactional outbox, activation job, and account deletion/retention foundation are integrated; full database/CI/concurrency/staging verification remains |
+| M7 | M7.2a and D81 foundation implemented | Product contract D74–D82, transactional outbox, activation job, and account deletion/retention foundation are integrated; local database and staging retention proofs pass, while CI/concurrency/production-shaped migration proof remains |
 | M8 | Not started | Product iOS app target and product device/framework integrations |
 
 M6's boundary is backend plus portable client core. It does not include live
@@ -27,17 +27,18 @@ Local audit/D81 commit `c6bfed67` and upstream M6.5 hardening commit `cc8f440`
 are now reconciled on `main`. The combined branch contains D81's
 account-deletion/retention migrations and tests together with the hosted PKI.js
 runtime fix and reviewed staging configuration. Reconciliation removes the
-repository split; it does not substitute for the full database, Swift, CI,
-concurrency, or staging proof still listed below.
+repository split; it does not substitute for the Swift, CI, concurrency,
+production-shaped migration, or remaining external proofs listed below.
 
 The 2026-07-26 local audit established:
 
 - Deno lint and type-check pass; all 287 Deno tests pass.
-- All 15 migration files parse with a PostgreSQL 17 parser, and all five Bash
+- All 16 migration files execute in a clean PostgreSQL 17 reset, and all five Bash
   scripts pass `bash -n`.
-- The repository contains 18 pgTAP files planning 733 assertions, but Docker,
-  Supabase CLI, and `psql` were unavailable here, so those assertions were not
-  executed in this audit.
+- The later D81 integration pass completed a clean migration reset and all 18
+  pgTAP files: 733 assertions passed. Supabase CLI 2.109.1 also reported no
+  `public`/`app` lint errors and no local bloat, blockers, or long-running
+  queries through the supported inspection commands.
 - Swift and Xcode were unavailable here. The repository contains 88 portable
   GameTimeCore test cases and ten conformance-target XCTest cases; only the
   portable package is a current CI job.
@@ -48,8 +49,8 @@ The 2026-07-26 local audit established:
 Before new feature work:
 
 1. Review the reconciled diff and verify LF behavior from a fresh checkout.
-2. Run `supabase db reset`, all 733 pgTAP assertions, database lint/advisors,
-   Deno checks, Swift tests, and CI on the integrated revision.
+2. Run the remaining Deno checks, Swift tests, and CI on the integrated
+   revision; local database reset, pgTAP, lint, and inspection are complete.
 3. Add a macOS simulator job for the conformance target; the Supabase CLI and
    Deno CI versions are now pinned to the audited toolchain.
 
@@ -113,9 +114,11 @@ Implemented locally:
   deterministic SQL fixture, database verification queries, and a real-device
   smoke runbook.
 
-The staging project is linked; migrations through M7.2a, the required secrets,
-and three Edge Functions were deployed and verified before D81 landed. The D81
-migrations remain unstaged. The connected iPhone is visible to Xcode, but the
+The staging project is linked; all migrations through D81 plus forward repair
+`20260726230529`, the required secrets, and three Edge Functions are deployed.
+A committed synthetic retention lineage proved both the repaired
+source-identifier scrub and exact-location pruning; the hourly hosted worker is
+recorded separately below. The connected iPhone is visible to Xcode, but the
 current Apple account exposes only a Personal Team. Xcode refuses to provision
 the target because Personal Teams do not support the App Attest capability. Add
 an Apple Developer Program team with an App Attest-enabled App ID, update
@@ -193,16 +196,20 @@ before finalization or settlement is enabled.
   obligation, dispute, and donation-receipt migrations attach their child
   scopes and retained facts to these seams.
 - [x] Integrate the D81 work on top of `origin/main`.
-- [ ] Run the full 733-assertion database suite and CI, and clear database
-  security/performance advisors.
+- [x] Run the full 733-assertion database suite and the supported local
+  lint/performance inspection commands.
+- [ ] Run CI and clear the hosted Security and Performance Advisors.
 - [ ] Add multi-session tests for deletion racing activation, invitation
   acceptance, ingest, receipt marking, hold creation, retention, and future
   finality writes. A single pgTAP transaction cannot prove lock ordering.
 - [ ] Apply the 2,860-line deletion migration to a production-shaped staging
   copy, measure migration-wide lock duration, and document backup, deployment
   window, failure recovery, and rollback limits.
-- [ ] Observe `gametime-prune-raw-evidence` in hosted staging and verify its run
-  history, holds/cutoffs, immutable events, and failed-job recovery.
+- [x] Apply D81 and forward repair `20260726230529` to hosted staging; run a
+  committed manual retention cycle plus the next hourly job, and verify
+  cutoffs, source scrubbing, generated ranges, immutable events, and an
+  idempotent rerun.
+- [ ] Exercise a hold-blocked staging cycle and failed-job recovery/alert path.
 - [ ] Add the user-facing deletion service path: reauthentication and
   confirmation, one-time capability handoff/storage, an explicit
   lost-capability warning, and capability-authorized APIs. Any recovery
@@ -275,7 +282,7 @@ privacy disclosures.
 | --- | --- |
 | Production charity list | Production is intentionally empty; contest creation fails until EINs are verified |
 | App Attest device proof | The roots and staging backend exist, but attested endpoints must not launch until the eligible-team physical-device run passes without the bypass |
-| Hosted staging proofs | Activation and retention need recorded committed-row cron executions and failure-recovery evidence |
+| Hosted staging proofs | Retention has committed manual/cron proof; activation still needs a committed-row cron run, and retention still needs hold/failure-recovery evidence |
 | Notifications | Action-required flows need a durable inbox and eventual delivery; deadlines cannot depend on push |
 | Adjudication operations | Review and dispute deadlines need authorized staffing, queues, alerts, and a tested SLA |
 | Observability | Rejected ingest, scheduler failures, and stuck reviews must be measurable |

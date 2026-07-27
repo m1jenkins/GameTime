@@ -16,9 +16,10 @@ M6.5 has a verified staging backend and a purpose-built iPhone conformance
 target, but the eligible-team physical-device observation is still open. M7.2a's
 notification outbox and scheduled activation are implemented, but their hosted
 committed-row proof is open. A large D81 account-deletion/retention foundation
-is integrated into the reconciled branch, but is not yet database/CI-proven,
-staged, or deployed. The M7 finalizer/settlement domain and the M8 product iOS
-app remain to be built.
+is integrated, locally database-proven, deployed to staging, and proven there
+with committed manual and hosted retention cycles. CI, concurrency, hosted
+advisor, and production-shaped migration proofs remain open. The M7
+finalizer/settlement domain and the M8 product iOS app remain to be built.
 
 “Complete” below means the milestone's repository scope is implemented and
 covered by its intended automated tests. It does not mean production deployed,
@@ -30,8 +31,8 @@ externally proven, operationally staffed, or App Store ready.
 hardening commit `cc8f440`. The hosted PKI.js Edge Runtime fix, reviewed staging
 identity, safer staging scripts, D81 migrations/tests, documentation, and pinned
 CI toolchains are therefore in one reviewable history. The combined revision
-still needs the database, Swift, CI, concurrency, and staging proof below before
-it can support a release claim.
+still needs Swift, CI, concurrency, hosted-advisor, production-shaped migration,
+and remaining external proof below before it can support a release claim.
 
 ## Verification evidence
 
@@ -42,20 +43,25 @@ it can support a release claim.
 | Deno lint | Pass, 39 files checked | Current TypeScript satisfies configured lint rules |
 | Deno type-check | Pass | Current Edge Function/shared code type-checks |
 | Deno tests | 287 passed, 0 failed | Handler, cryptography, JWT, scoring, integrity, and adapter unit behavior |
-| PostgreSQL 17 parse | All 15 migrations parsed | Migration syntax is accepted by the parser; not execution semantics |
+| PostgreSQL 17 migration execution | All 16 migrations applied in a clean reset | Migration syntax and execution semantics succeed on the local PostgreSQL 17 stack |
 | Bash syntax | All 5 scripts passed `bash -n` | Shell grammar only |
 | Static Supabase security review | 20 exposed public tables have RLS; public views are `security_invoker`; no `auth.role()`/user-metadata authorization; privileged functions use explicit grants/revokes and blank `search_path` | Strong static posture; not a substitute for a live advisor or RLS suite |
+| Clean local database reset and pgTAP | Pass, 18 files / 733 assertions | Every migration executes and the complete RLS, privilege, lifecycle, D80–D82, deletion, and retention suite passes through the supported runner |
+| Supabase database lint | Pass, no `public` or `app` schema errors | `supabase db lint --local --schema public,app --level warning` found no PL/pgSQL/schema issues |
+| Supported local database inspection | Pass; database/index/role stats and outliers reviewed, with no bloat, blocking queries, or long-running queries | Local runtime health after the clean suite; fresh-test index counters are diagnostic and do not justify dropping indexes |
+| Staging migration reconciliation | Migrations through `20260726070000` were already applied; forward repair `20260726230529` applied successfully | The applied migration remains immutable and staging history now carries the generated-column repair as a new migration |
+| Staging manual retention cycle | At 2026-07-26 23:09:47 UTC, 2 exact-location rows were pruned and 1 source-identifier pair was scrubbed; 3 immutable events were appended; immediate rerun returned all zeros | The repaired guard permits only the worker scrub, stored ranges recompute correctly, audit output is durable, and the worker is idempotent |
+| Hosted retention cron | The 2026-07-26 23:17:00 UTC run succeeded in 28 ms and processed a second committed synthetic probe | The scheduled worker can see committed eligible rows and invoke the repaired retention path |
 
 ### Not executed in this audit
 
 | Check | Why | Required follow-up |
 | --- | --- | --- |
-| Database reset and pgTAP | Docker, Supabase CLI, and `psql` are unavailable on this host | Execute all 18 files / 733 planned assertions on the integrated tree |
-| Database lint/advisors | No live local or connected database tool available | Run lint plus security/performance advisors after applying D81 |
+| Hosted Security and Performance Advisors | Supabase CLI 2.109.1 exposes local lint and `inspect db`, but no local `advisors` command; the product advisors are hosted Dashboard checks | Run both advisors against the staged D81 schema and investigate every finding |
 | Swift build/tests | Swift/Xcode are unavailable on this host | Run 88 GameTimeCore tests and 10 conformance XCTest cases |
 | Conformance Xcode CI | Current CI builds only GameTimeCore on Linux | Add a macOS simulator build/test job |
 | Physical App Attest proof | Current signing account is a Personal Team | Use an App Attest-capable Program team and record the runbook evidence |
-| Hosted cron proof | pgTAP transactions cannot be observed by the background worker | Record committed-row activation and retention job runs in staging |
+| Hosted activation cron proof | pgTAP transactions cannot be observed by the background worker; only the retention job has a committed-row staging proof | Record a committed-row activation run and exercise its downstream paths |
 | Current private GitHub Actions result | Unauthenticated GitHub API access could not read it | Confirm CI in GitHub on reconciled `main` |
 
 `deno fmt --check` also reported 25 tracked files as different only by line
@@ -77,7 +83,7 @@ format-only diff and call that a source fix.
 | M6.5 | Gate open | Staging backend, conformance target, independent receipt verification, runbook | Eligible Apple team, Auth fixture, physical-device observation |
 | M7.1 | Complete | D74–D82 product contract | Implementation of most settlement domain |
 | M7.2a | Implemented | Transactional notification intents and named one-minute activation job | Hosted committed-row activation proof |
-| D81 foundation | Integrated implementation | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker | Full DB/CI/concurrency/staging proof; user-facing deletion/capability path |
+| D81 foundation | Staged; local and retention-cycle proven | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker, forward generated-column repair | CI/concurrency/production-shaped migration, hosted advisors, hold/failure recovery; user-facing deletion/capability path |
 | M7 finalization/settlement | Mostly not started | Pure scoring/integrity engines and schema seams exist | Standings API, frozen assessments, results, obligations, claims, disputes, reliability, deadline workers |
 | M8 | Not started | Portable GameTimeCore and conformance-only target | Product Xcode target, Auth, HealthKit, Core Location, App Attest lifecycle, persistence, screens, APNs |
 
@@ -107,13 +113,15 @@ The implemented architecture includes:
 
 ### P0 — Prove the reconciled repository revision
 
-1. Re-check from a fresh checkout that the new repository-wide LF rule removes
+1. Run the remaining Deno checks, both Swift suites, and CI on the locally
+   database-verified revision.
+2. Re-check from a fresh checkout that the repository-wide LF rule removes
    Windows format/script drift without creating unintended source changes.
-2. Run database reset, all pgTAP assertions, Deno checks, both Swift suites,
-   database lint/advisors, and CI.
-3. Add real multi-session concurrency tests for deletion racing activation,
+3. Run the hosted Security and Performance Advisors against the staged D81
+   schema.
+4. Add real multi-session concurrency tests for deletion racing activation,
    invitation acceptance, ingest, receipt marking, finality/holds, and pruning.
-4. Apply the large D81 migration to a production-shaped staging copy; measure
+5. Apply the large D81 migration to a production-shaped staging copy; measure
    locks and document backup, deployment window, recovery, and rollback limits.
 
 ### P1 — Close the two external backend gates
@@ -123,8 +131,8 @@ The implemented architecture includes:
 2. Create the staging Auth user/fixture and complete every M6.5 observation.
 3. Run M7.2b against committed rows opened by `gametime-activate-due-contests`;
    inspect `cron.job_run_details` and exercise ingest/timezone/check-in paths.
-4. Deploy D81 to staging and record a real `gametime-prune-raw-evidence` run, including
-   holds, cutoffs, immutable retention events, and failure recovery.
+4. Complete retention operations proof with a hold-blocked cycle, deliberate
+   failed-job observation, alerting, and recovery.
 
 ### P2 — Build one finalization vertical slice
 
@@ -167,8 +175,8 @@ release work.
 
 1. **Repository proof:** obtain one green database/Deno/Swift/CI result on the
    reconciled revision.
-2. **External proof sprint:** close M6.5, M7.2b, and the retention-cron staging
-   observation together while the staging environment is active.
+2. **External proof sprint:** close M6.5, M7.2b, and the remaining retention
+   failure-recovery proof while the staging environment is active.
 3. **Finalizer slice:** ship evidence loading through one immutable explicit
    result, including redacted standings and adjudication gates.
 4. **Settlement slice:** obligations, confirmation, disputes, reliability, and
@@ -181,10 +189,9 @@ release work.
 ## Claims that should not be made yet
 
 - The app is usable, beta-ready, or App Store ready.
-- D81 is merged, CI-proven, staged, or safe to deploy at production scale.
-- The 733 pgTAP assertions passed in this audit.
+- D81 is CI-proven or safe to deploy at production scale.
 - M6.5 physical App Attest conformance is complete.
-- Either database cron job has a recorded hosted firing for its current scope.
+- The activation job has a committed-row hosted proof.
 - Account deletion is an end-to-end user feature.
 - Final results, donations, disputes, reliability, push delivery, or operator
   workflows exist merely because their contracts and schema seams do.

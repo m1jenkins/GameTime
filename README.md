@@ -23,10 +23,14 @@ M7's product contract is recorded in DECISIONS.md D74–D82. The payload-free
 notification outbox and named one-minute activation job are implemented. The
 reconciled branch also implements D81's durable actor tombstones, atomic
 account deletion, scoped continuation capabilities, and versioned raw-evidence
-retention. The combined revision still needs a clean full pgTAP/CI run plus D81
-staging and concurrency proof. Hosted cron execution also remains an external
-staging proof. The product iOS target and the remainder of finalization,
-settlement, disputes, delivery, and operations are still open. See
+retention. A clean local database reset now passes all 733 pgTAP assertions and
+the supported local lint/inspection checks. D81 and forward guard repair
+`20260726230529` are deployed to staging, where committed manual and hosted raw
+retention cycles prove exact-location pruning and the 90-day source-identifier
+scrub. CI, concurrency, hosted advisors, production-shaped migration timing,
+and retention failure recovery remain open. The product iOS target and the
+remainder of finalization, settlement, disputes, delivery, and operations are
+still open. See
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
 evidence, remaining work, and recommended sequence.
 
@@ -361,8 +365,12 @@ those M7 slices land.
 This is backend infrastructure, not an end-to-end account-deletion feature yet.
 There is no reauthentication/confirmation flow, user-facing service endpoint,
 one-time capability handoff and recovery path, or client capability API. The
-new migrations and hourly retention job also still require full database/CI,
-concurrency, staging-copy, and hosted-cron verification before deployment.
+D81 migrations and the forward generated-column repair are deployed to staging.
+A committed synthetic lineage passed both a manual retention cycle and the
+hourly hosted job, including source-ID scrubbing, generated-range
+recomputation, exact-location pruning, immutable audit events, and idempotency.
+CI, concurrency, production-shaped staging-copy timing, hosted advisors, and
+hold/failure recovery still gate production deployment.
 
 ## The evidence ledger
 
@@ -832,8 +840,9 @@ implementation gates, and work not yet reflected here are in PLAN.md.
       named one-minute contest-activation job
 - [x] **M7 / D81 foundation** — Durable actor tombstones, atomic
       service-only account deletion, stale-JWT denial, scoped continuation
-      capabilities, and guarded versioned raw-evidence retention; full
-      database/CI/concurrency/staging verification remains open
+      capabilities, and guarded versioned raw-evidence retention; local
+      733-assertion/lint gates and committed staging retention cycles pass,
+      while CI/concurrency/production-shaped migration and advisor gates remain
 - [ ] **M7.2b** — Observe hosted cron activation and run ingest, timezone, and
       check-in flows against the scheduler-opened contest
 - [ ] **M7 remainder** — Standings API, finalization gates and result ledger,

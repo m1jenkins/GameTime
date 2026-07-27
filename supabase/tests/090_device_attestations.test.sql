@@ -570,11 +570,16 @@ select is(
 );
 
 reset role;
-select is(
-  (select count(*) from pg_policies
-   where schemaname = 'public' and tablename = 'device_attestations'),
-  1::bigint,
-  'device_attestations carries exactly one policy: read your own'
+select set_eq(
+  $$ select policyname || ':' || permissive || ':' || cmd
+     from pg_policies
+     where schemaname = 'public'
+       and tablename = 'device_attestations' $$,
+  array[
+    'active_actor_only:RESTRICTIVE:ALL',
+    'device_attestations_select_own:PERMISSIVE:SELECT'
+  ],
+  'device attestations compose owner reads with the restrictive active-actor guard'
 );
 
 select * from finish();

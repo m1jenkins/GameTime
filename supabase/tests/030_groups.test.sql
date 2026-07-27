@@ -35,13 +35,14 @@ select ok(
   'row level security is enabled on group_members'
 );
 
--- created_by is informational: the group must survive the account that made it.
+-- D81 retains created_by as pseudonymous history: the durable actor row and the
+-- group must both survive authentication deletion.
 select ok(
-  (select confdeltype = 'n'  -- 'n' = SET NULL
+  (select confdeltype = 'r'  -- 'r' = RESTRICT
    from pg_constraint
    where conrelid = 'public.groups'::regclass
      and confrelid = 'public.profiles'::regclass),
-  'created_by nulls out on account deletion rather than cascading'
+  'created_by retains the durable founder rather than nulling or cascading'
 );
 
 -- ---------------------------------------------------------------------------
@@ -382,17 +383,21 @@ select throws_ok(
 );
 
 -- ---------------------------------------------------------------------------
--- created_by must actually survive its account being deleted
+-- created_by must actually survive authentication deletion
 -- ---------------------------------------------------------------------------
--- The assertion above proves created_by cannot be *repointed*. This one proves
--- the other half, which was broken until M2: `on delete set null` is itself an
--- UPDATE, so a strict immutability trigger on the column refused it and made
--- deleting the account impossible. That is not a group-lifecycle nicety — it is
--- D20's "account deletion goes through auth.users and cascades" being true.
+-- A preceding no-profile denial intentionally left that actor in the JWT GUC.
+-- Clear it before privileged fixture setup, then carry the departing actor's
+-- valid JWT through the mutations so D81's actor-locking triggers are exercised.
 reset role;
+select set_config('request.jwt.claims', '{}', true);
 insert into auth.users (id) values ('a8888888-8888-8888-8888-888888888888');
 insert into public.profiles (id, handle, display_name) values
   ('a8888888-8888-8888-8888-888888888888', 'departing', 'Departing');
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"a8888888-8888-8888-8888-888888888888"}',
+  true
+);
 insert into public.groups (id, name, created_by) values
   ('b8888888-8888-8888-8888-888888888888', 'Outlives Its Founder',
    'a8888888-8888-8888-8888-888888888888');

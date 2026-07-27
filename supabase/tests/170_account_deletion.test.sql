@@ -566,19 +566,17 @@ select set_config(
   '{"sub":"33333333-3333-3333-3333-333333333333"}',
   true
 );
+with updated as (
+  update public.contest_participants
+  set status = 'accepted',
+      timezone = 'UTC',
+      charity_id = 'c0000001-0000-0000-0000-000000000001'
+  where contest_id = 'a0000001-0000-0000-0000-000000000005'
+    and user_id = '33333333-3333-3333-3333-333333333333'
+  returning 1
+)
 select is(
-  (
-    with updated as (
-      update public.contest_participants
-      set status = 'accepted',
-          timezone = 'UTC',
-          charity_id = 'c0000001-0000-0000-0000-000000000001'
-      where contest_id = 'a0000001-0000-0000-0000-000000000005'
-        and user_id = '33333333-3333-3333-3333-333333333333'
-      returning 1
-    )
-    select count(*) from updated
-  ),
+  (select count(*) from updated),
   1::bigint,
   'ordinary authenticated acceptance crosses the contest-first trigger without private-marker privileges'
 );

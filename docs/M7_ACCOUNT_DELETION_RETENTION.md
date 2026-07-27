@@ -1,8 +1,10 @@
 # M7 account deletion and raw-evidence retention
 
-> Status: D81 foundation integrated into the reconciled 2026-07-26 branch. It is
-> not yet database/CI-proven, staged, deployed, or exposed as an end-to-end user
-> feature.
+> Status: D81 foundation integrated into the reconciled 2026-07-26 branch and
+> locally database-proven at 733/733 assertions. D81 and forward repair
+> `20260726230529` are deployed to staging, where committed manual and hosted
+> retention cycles pass. It is not yet CI- or concurrency-proven,
+> production-shaped staging-tested, or exposed as an end-to-end user feature.
 
 This document describes the implementation boundary and the evidence required
 before deployment. Product rules remain authoritative in DECISIONS.md D81.
@@ -34,11 +36,17 @@ use those capabilities against future result/obligation/dispute APIs.
 | `20260726055000_account_deletion_notification_event.sql` | Adds the participant-change notification event in a separate enum migration/transaction boundary |
 | `20260726060000_account_deletion_foundation.sql` | Durable actors, active Auth bindings, cascade removal, actor guards, pending lifecycle, capability scopes, and atomic deletion |
 | `20260726070000_raw_evidence_retention.sql` | Scope finality/holds, guarded raw pruning, immutable retention summaries/events, and the hourly job |
+| `20260726230529_fix_raw_evidence_generated_column_guard.sql` | Forward-only repair for the check-in source scrub: excludes stored generated ranges from the `BEFORE UPDATE` row comparison while preserving their base timestamps |
 | `170_account_deletion.test.sql` | D81 schema, privilege, lifecycle, stale-JWT, capability, preservation, hold, and retention assertions |
 
 The deletion migration is large and deliberately takes one migration-wide write
 barrier while it rewires foreign keys and triggers. Treat it as a production
 migration exercise, not an ordinary small DDL deploy.
+
+Migration `20260726070000` was already recorded in staging before the
+generated-column defect was found. It is therefore immutable. Never move the
+repair back into that file: every deployed correction must remain represented
+by the forward migration above.
 
 ## Privileged interfaces
 
@@ -135,13 +143,49 @@ registration material, and opaque App Attest receipts use 90-day rules.
 Accepted check-in facts, ingest audit facts, quarantines, roster identities,
 digests/fingerprints, and immutable retention events remain.
 
+## Staging evidence — 2026-07-26
+
+Staging migration history already contained every D81 migration through
+`20260726070000`. Its installed `guard_geofence_checkin_update()` omitted
+`visit_range` and `workout_range`; PostgreSQL supplies those stored generated
+columns as `NULL` in `NEW` during a `BEFORE` trigger, so the otherwise exact
+row comparison blocked the authorized scrub.
+
+Forward migration `20260726230529` replaced only that function. The deployed
+definition now excludes both generated ranges and the two source fields,
+retains the base timestamp comparison, and has ACL `{postgres=X/postgres}`.
+
+A committed synthetic lineage then exercised actual staging state:
+
+- manual worker call at `2026-07-26 23:09:47 UTC`: 2 exact-location rows
+  pruned, 1 source-identifier pair scrubbed, and every other count 0;
+- the accepted check-in, outcome, rule version, base timestamps, and both
+  correctly recomputed generated ranges remained;
+- 2 `exact_location` and 1 `source_identifier` immutable events were appended
+  under `raw-evidence-retention-v1`, all with 32-byte digests;
+- an immediate recovery rerun returned five zero counts and appended no
+  duplicate events; and
+- the `2026-07-26 23:17:00 UTC` hosted run succeeded in 28 ms and processed a
+  second committed probe, proving background visibility and the repaired
+  automatic path.
+
+This is a targeted synthetic staging proof, not the production-shaped migration
+exercise. Hosted advisor review, multi-session concurrency, a hold-blocked
+cycle, deliberate failure/alert recovery, and backup/lock/rollback measurement
+remain open.
+
 ## Deployment gate
 
 Do not apply these migrations to production until all items pass:
 
 - [x] Reconcile the D81 work with `origin/main` and review one combined diff.
-- [ ] Run a clean local reset and every pgTAP file, then Deno/Swift/CI.
-- [ ] Run database lint plus security and performance advisors.
+- [x] Run a clean local reset and every pgTAP file (18 files / 733 assertions).
+- [x] Run database lint and the supported local database inspection commands.
+- [x] Keep deployed `20260726070000` immutable, apply forward repair
+      `20260726230529`, and reconcile staging migration history.
+- [x] Run committed manual and hosted retention probes; verify the source scrub,
+      generated ranges, immutable events, and an idempotent recovery run.
+- [ ] Run Deno/Swift/CI and the hosted Security and Performance Advisors.
 - [ ] Test deletion against activation, invitation acceptance, metric/check-in
       ingest, receipt marking, hold/finality updates, and pruning in separate
       sessions.
@@ -155,7 +199,7 @@ Do not apply these migrations to production until all items pass:
       no-capability deletion paths through the eventual service.
 - [ ] Prove capability plaintext never enters logs, analytics, notifications,
       crash reports, or support tooling.
-- [ ] Observe the hosted retention job and a manual recovery run.
+- [ ] Exercise a hold-blocked cycle and deliberate failed-job alert/recovery.
 
 ## Operator checks
 
