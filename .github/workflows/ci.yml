@@ -77,8 +77,7 @@ jobs:
         run: deno test --allow-env
 
   # Portable client logic. GameTimeCore imports no Apple frameworks, so it
-  # builds and tests on a Linux runner. The Xcode app target is not built in
-  # CI; that requires a macOS runner and is a later concern.
+  # builds and tests on a Linux runner.
   client-core:
     name: Client Core (Swift Testing)
     runs-on: ubuntu-latest
@@ -94,3 +93,75 @@ jobs:
 
       - name: Test
         run: swift test
+
+  # Apple-framework integration and the exact production request envelopes.
+  # Pin both the runner generation and Xcode so the simulator gate does not
+  # silently change underneath the App Attest conformance target.
+  conformance-ios:
+    name: Conformance (iOS Simulator)
+    runs-on: macos-26-intel
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 26.2
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_26.2.app/Contents/Developer
+          xcodebuild -version
+          test "$(xcodebuild -version | sed -n '1s/^Xcode //p')" = "26.2"
+
+      - name: Select iOS 26.2 simulator
+        id: simulator
+        run: |
+          simulator_id="$(
+            xcrun simctl list devices available -j |
+              python3 -c '
+          import json
+          import sys
+
+          devices = json.load(sys.stdin)["devices"].get(
+              "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+              [],
+          )
+          simulator = next(
+              (
+                  device
+                  for device in devices
+                  if device.get("isAvailable")
+                  and device.get("name", "").startswith("iPhone ")
+              ),
+              None,
+          )
+          if simulator is None:
+              raise SystemExit("no available iOS 26.2 iPhone simulator")
+          print(simulator["udid"])
+          '
+          )"
+          echo "id=$simulator_id" >> "$GITHUB_OUTPUT"
+
+      - name: Build without signing
+        run: |
+          xcodebuild \
+            -project ios/GameTimeConformance/GameTimeConformance.xcodeproj \
+            -scheme GameTimeConformance \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Test
+        run: |
+          xcodebuild \
+            -project ios/GameTimeConformance/GameTimeConformance.xcodeproj \
+            -scheme GameTimeConformance \
+            -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' \
+            -resultBundlePath "$RUNNER_TEMP/GameTimeConformance.xcresult" \
+            CODE_SIGNING_ALLOWED=NO \
+            test
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: conformance-ios-xcresult
+          path: ${{ runner.temp }}/GameTimeConformance.xcresult
+          if-no-files-found: ignore

@@ -100,8 +100,9 @@ returning HTTP 200 with `replayed=true` and their original record IDs.
 
 ## Local validation
 
-These commands are required local gates, not current CI evidence. The
-conformance target is not continuously built.
+CI continuously builds and tests the conformance target on an iOS 26.2
+Simulator with Xcode 26.2. These commands remain the equivalent local gates;
+only an observed green workflow run is CI evidence.
 
 Build the app without signing:
 
