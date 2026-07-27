@@ -59,8 +59,9 @@ ios/
                          retry primitives, and a restorable exact-byte
                          check-in queue.
                          Builds and tests on Linux CI.
-  GameTimeConformance/   M6.5-only real-device App Attest smoke target.
-                         The product app still lands in M8.
+  GameTimeConformance/   M6.5 real-device App Attest smoke target plus a
+                         simulator-only, sample-data product proof of concept.
+                         The networked production app still lands in M8.
 scripts/
   dev-up.sh              Start the local stack
   db-test.sh             Reset the database and run pgTAP

@@ -1,4 +1,24 @@
-# GameTime M6.5 App Attest conformance target
+# GameTime simulator preview and M6.5 conformance target
+
+The shared scheme now has two intentionally separate entry paths:
+
+- **iOS Simulator:** opens a non-networked GameTime product proof of concept
+  with Today, Challenges, Friends, and You tabs. It uses clearly labeled sample
+  data so the current social-contest, evidence-integrity, and charitable-pledge
+  concepts can be explored before the production M8 app target exists.
+- **Physical iPhone:** opens the original M6.5 App Attest conformance harness
+  described below. Its behavior and provisioning requirements are unchanged.
+
+Open `GameTimeConformance.xcodeproj`, select the **GameTimeConformance** scheme,
+choose an available iPhone Simulator, and press Run. The product preview is the
+default simulator experience. To inspect the engineering harness in Simulator,
+add `--conformance` as a launch argument; App Attest will still report
+unavailable there.
+
+The preview does not connect to Supabase, request HealthKit or Location access,
+or create a real pledge. Those integrations remain M8 work.
+
+## Physical-device conformance
 
 This is a deliberately small iOS 18 SwiftUI target for one staging smoke test:
 
@@ -62,7 +82,7 @@ com.apple.developer.devicecheck.appattest-environment = development
 ```
 
 Run the `GameTimeConformance` shared scheme on a physical supported iPhone.
-Simulator can compile the target but reports App Attest as unavailable.
+The conformance harness remains the default physical-device experience.
 If Xcode reports that the selected Personal Team does not support App Attest,
 stop and change to an eligible team; do not remove the entitlement to force an
 install.
