@@ -541,22 +541,22 @@ select is_empty(
   'nor through the table'
 );
 
--- Bob is Alice's opponent in an opened contest they both accepted, which is the
--- one relationship that grants a view of somebody else's hours — and it has to,
--- because it is the evidence he is being judged against.
+-- Bob is Alice's accepted opponent, but D77 still keeps raw hourly health data
+-- and attestation audit material owner-only. A bounded review RPC supplies only
+-- the fields he may need for a pending quarantine.
 select set_config('request.jwt.claims',
   '{"sub":"22222222-2222-2222-2222-222222222222"}', true);
 
-select isnt_empty(
+select is_empty(
   $$ select 1 from public.contest_evidence
      where user_id = '11111111-1111-1111-1111-111111111111' $$,
-  'her opponent can, because a settlement he may owe rests on it'
+  'an accepted opponent cannot read her hourly evidence'
 );
 
-select isnt_empty(
+select is_empty(
   $$ select 1 from public.ingest_batches
      where user_id = '11111111-1111-1111-1111-111111111111' $$,
-  'and can see how her batches arrived, which is what a dispute needs'
+  'or her attested ingest audit trail'
 );
 
 reset role;
@@ -574,9 +574,9 @@ select set_eq(
     'device_attestations:active_actor_only:RESTRICTIVE:ALL',
     'device_attestations:device_attestations_select_own:PERMISSIVE:SELECT',
     'ingest_batches:active_actor_only:RESTRICTIVE:ALL',
-    'ingest_batches:ingest_batches_select_own_or_rival:PERMISSIVE:SELECT',
+    'ingest_batches:ingest_batches_select_own:PERMISSIVE:SELECT',
     'metric_snapshots:active_actor_only:RESTRICTIVE:ALL',
-    'metric_snapshots:metric_snapshots_select_own_or_rival:PERMISSIVE:SELECT'
+    'metric_snapshots:metric_snapshots_select_own:PERMISSIVE:SELECT'
   ],
   'evidence tables compose read policies with restrictive active-actor guards'
 );

@@ -325,14 +325,14 @@ select set_config(
 select is(
   (select count(*) from public.contest_evidence_sources
    where contest_id = 'a0000001-0000-0000-0000-000000000001'),
-  5::bigint,
-  'an accepted opponent can inspect all five source contributions'
+  0::bigint,
+  'an accepted opponent cannot inspect source identifiers'
 );
 select is(
   (select count(*) from public.contest_evidence
    where contest_id = 'a0000001-0000-0000-0000-000000000001'),
-  5::bigint,
-  'the same opponent sees the unchanged scoring evidence'
+  0::bigint,
+  'or bypass D77 through the hourly scoring view'
 );
 reset role;
 

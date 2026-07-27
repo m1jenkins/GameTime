@@ -23,14 +23,16 @@ M7's product contract is recorded in DECISIONS.md D74–D82. The payload-free
 notification outbox and named one-minute activation job are implemented. The
 reconciled branch also implements D81's durable actor tombstones, atomic
 account deletion, scoped continuation capabilities, and versioned raw-evidence
-retention. A clean local database reset now passes all 733 pgTAP assertions and
-the supported local lint/inspection checks. D81 and forward guard repair
-`20260726230529` are deployed to staging, where committed manual and hosted raw
-retention cycles prove exact-location pruning and the 90-day source-identifier
-scrub. CI, concurrency, hosted advisors, production-shaped migration timing,
-and retention failure recovery remain open. The product iOS target and the
-remainder of finalization, settlement, disputes, delivery, and operations are
-still open. See
+retention. D77's metric/quarantine evidence boundary is also hardened: direct
+audit reads are owner-only and pending peer review goes through exact-contest,
+phase-aware redacted RPCs. A clean local database reset now passes all 780
+pgTAP assertions and the supported local lint/advisor checks. D81 and forward
+guard repair `20260726230529` are deployed to staging, where committed manual
+and hosted raw retention cycles prove exact-location pruning and the 90-day
+source-identifier scrub. CI, concurrency, hosted advisors, production-shaped
+migration timing, and retention failure recovery remain open. The product iOS
+target and the remainder of finalization, settlement, disputes, delivery, and
+operations are still open. See
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
 evidence, remaining work, and recommended sequence.
 
@@ -736,6 +738,15 @@ explicitly cleared. Pending review and rejection without clearance follow D76's
 bounded escalation path to `inconclusive`; neither quietly applies a second
 evidence filter.
 
+Raw `ingest_batches`, `metric_snapshots`, and `evidence_quarantines` are readable
+only by their subject; quarantine vote rows are readable only by the reviewer
+who cast them. Accepted rivals use `list_contest_quarantine_reviews(contest_id)`
+and `get_quarantine_revision_history(quarantine_id)`, which bind authorization
+to the evidence row's own contest, disclose only a pending claim that caller
+still must judge, and omit device/source identifiers, attestation material,
+arbitrary details, signal keys, and reviewer identities. The subject gets
+aggregate review state through `list_my_evidence_quarantines(contest_id)`.
+
 Timezone consent is deliberately stricter than quarantine review because it
 changes the scoring contract rather than judging one claim: every other accepted
 participant must approve. Scoring computes whole days separately inside each
@@ -841,8 +852,12 @@ implementation gates, and work not yet reflected here are in PLAN.md.
 - [x] **M7 / D81 foundation** — Durable actor tombstones, atomic
       service-only account deletion, stale-JWT denial, scoped continuation
       capabilities, and guarded versioned raw-evidence retention; local
-      733-assertion/lint gates and committed staging retention cycles pass,
-      while CI/concurrency/production-shaped migration and advisor gates remain
+      780-assertion/lint/advisor gates and committed staging retention cycles
+      pass, while CI/concurrency/production-shaped migration and hosted-advisor
+      gates remain
+- [x] **M7 / D77 evidence boundary** — Owner-only metric/quarantine audit
+      relations plus exact-contest, phase-aware, redacted quarantine-review
+      surfaces; canonical live/final standings still belong to the M7 remainder
 - [ ] **M7.2b** — Observe hosted cron activation and run ingest, timezone, and
       check-in flows against the scheduler-opened contest
 - [ ] **M7 remainder** — Standings API, finalization gates and result ledger,

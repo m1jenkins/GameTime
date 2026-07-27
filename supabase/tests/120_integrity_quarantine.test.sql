@@ -375,8 +375,8 @@ select set_config(
 );
 select is(
   (select count(*) from public.evidence_quarantines),
-  1::bigint,
-  'their accepted opponent sees it for review'
+  0::bigint,
+  'their accepted opponent cannot bypass the bounded review surface'
 );
 select set_config(
   'request.jwt.claims',

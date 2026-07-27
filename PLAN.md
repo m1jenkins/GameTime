@@ -63,6 +63,9 @@ Before new feature work:
   millisecond-precision race from the pgTAP assertion.
 - Made `service_role` privileges deterministic and denied direct mutation of
   derived consent/check-in ledgers; writes stay behind their guarded RPCs.
+- Made metric batches, hourly snapshots, and quarantine audit rows owner-only;
+  D77 peer review now binds to the evidence row's exact contest and exposes only
+  phase-labelled, redacted pending-claim facts.
 - Made the portable check-in queue restorable from persisted exact body bytes
   and fail visibly at capacity instead of evicting irreplaceable location
   evidence.
@@ -221,8 +224,10 @@ before finalization or settlement is enabled.
 - Update the scoring `Outcome` contract and fixtures so `all_donate` returns the
   complete accepted roster. Reject `insufficient_participants` from an active
   contest as an operational invariant failure.
-- Expose D77's phase- and role-authorized standings/review surfaces, and narrow
-  direct rival table access that would bypass their redaction.
+- [x] Narrow metric/quarantine direct rival access and expose D77's
+  exact-contest, phase-aware bounded quarantine-review surfaces.
+- Expose D77's remaining phase- and role-authorized live/final standings and
+  bounded final rationale after frozen assessments/results exist.
 - Serialize finalization with both metric and geofence ingest so an in-flight
   request cannot commit evidence after the result is fixed.
 - Before interpreting zero quarantines as clean, persist a complete versioned
