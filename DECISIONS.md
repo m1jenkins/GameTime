@@ -2935,6 +2935,44 @@ parallel pending duels before the product has a multi-action recovery design.
 simultaneous contest drafts. Account deletion must explicitly purge this local
 actor-scoped record after its server-side continuation decision is complete.
 
+### D88. Cross-curve ECDSA certificate verification runs in portable TypeScript
+
+**What.** The Supabase Edge Runtime implements `crypto.subtle.verify` for ECDSA
+only as matched curve/hash pairs — P-256 with SHA-256 and P-384 with SHA-384 —
+and throws `NotSupportedError` for the cross pairs. Apple's App Attest chain
+requires one of them: the P-384 "Apple App Attestation CA 1" intermediate signs
+the P-256 device leaf with SHA-256. `_shared/ecdsa_verify.ts` therefore carries
+a pure-TypeScript ECDSA verifier (Jacobian point arithmetic for both curves,
+DER signature and SPKI point parsing, and a public TBS/signature split of the
+certificate DER). `verifyCertificateChain` in `appattest.ts` tries WebCrypto
+first and falls back to the portable verifier only when the runtime raises
+`NotSupportedError`; signature algorithm and hash come from the certificate
+itself, never from caller input. The receipt path gets the same capability
+through `pkijs_runtime.ts`, which installs a PKI.js `CryptoEngine` whose
+`subtle` is wrapped so an unsupported verify delegates to the same fallback.
+The fallback must reproduce the WebCrypto result bit-for-bit: the suite pins it
+against Apple's official 2026 vector and against synthetic same-pair and
+cross-pair combinations in both directions, including negative cases.
+
+**Why.** Attestation verification cannot weaken to fit the runtime: skipping
+the intermediate's signature or trusting an unverified chain would silently
+accept forged attestations. The fallback runs only where the runtime proves it
+cannot (a thrown `NotSupportedError`), so platforms with a complete WebCrypto
+implementation keep using it, and the edge behavior matches the local Deno
+behavior the suite already pins.
+
+**Rejected.** Skipping the leaf-by-intermediate verification on the edge
+(accepts forged chains), verifying attestations in Postgres or a separate
+service (moves a security boundary for a runtime quirk), a WASM OpenSSL
+dependency (deployment weight and audit surface far beyond two curves), or
+waiting for the runtime to implement cross-pair verification (blocks M6.5's
+device proof indefinitely on a vendor roadmap).
+
+**Revisit if.** The Supabase Edge Runtime ships cross-pair ECDSA verification;
+the fallback then becomes unreachable code that can be retired after the
+deployed runtime is confirmed fixed. Also revisit if Apple's attestation chain
+ever moves off ECDSA.
+
 ---
 
 ## Resolved history and decisions still deferred

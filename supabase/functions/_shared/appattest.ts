@@ -53,6 +53,11 @@ import {
   type CborMapKey,
   decodeCborSequence,
 } from "./cbor.ts";
+import {
+  certificateSignatureParts,
+  isUnsupportedSubtleError,
+  verifyCertificateSignatureEcdsa,
+} from "./ecdsa_verify.ts";
 
 export class AttestationError extends Error {
   override readonly name = "AttestationError";
@@ -651,9 +656,16 @@ async function verifyCertificateChain(
     try {
       ok = await subject.verify({ publicKey: issuer.publicKey, date: at });
     } catch (cause) {
-      throw new AttestationError(
-        `could not check the signature on "${subject.subject}": ${cause}`,
-      );
+      if (!isUnsupportedSubtleError(cause)) {
+        throw new AttestationError(
+          `could not check the signature on "${subject.subject}": ${cause}`,
+        );
+      }
+      // The hosted Edge Runtime implements ECDSA verify only for the matched
+      // (curve, digest) pairs, and Apple's chain signs the P-256 leaf with
+      // SHA-256 under the P-384 intermediate. That cross pair is verified
+      // without WebCrypto (see ecdsa_verify.ts, M6.5 live finding).
+      ok = await verifyCertificateSignatureOffline(subject, issuer);
     }
     if (!ok) {
       throw new AttestationError(
@@ -663,6 +675,46 @@ async function verifyCertificateChain(
   }
 
   return certs[0]!;
+}
+
+/**
+ * One certificate's signature against its issuer's key, computed without
+ * WebCrypto. Only reached when the runtime refuses the (curve, digest) pair
+ * natively, so any failure here still surfaces as the same AttestationError
+ * the native path would have produced.
+ */
+async function verifyCertificateSignatureOffline(
+  subject: x509.X509Certificate,
+  issuer: x509.X509Certificate,
+): Promise<boolean> {
+  const algorithm = subject.signatureAlgorithm;
+  if (algorithm.name?.toUpperCase() !== "ECDSA") {
+    throw new AttestationError(
+      `certificate "${subject.subject}" does not use an ECDSA signature`,
+    );
+  }
+  const hashName = typeof algorithm.hash === "string" ? algorithm.hash : algorithm.hash?.name;
+  if (hashName !== "SHA-256" && hashName !== "SHA-384") {
+    throw new AttestationError(
+      `certificate "${subject.subject}" is signed with ${
+        hashName ?? "an unknown digest"
+      }, not SHA-256/SHA-384`,
+    );
+  }
+  try {
+    const parts = certificateSignatureParts(new Uint8Array(subject.rawData));
+    return await verifyCertificateSignatureEcdsa({
+      tbs: parts.tbs,
+      signatureDer: parts.signatureDer,
+      hash: hashName,
+      issuerSpki: new Uint8Array(issuer.publicKey.rawData),
+    });
+  } catch (cause) {
+    if (cause instanceof AttestationError) throw cause;
+    throw new AttestationError(
+      `could not check the signature on "${subject.subject}": ${cause}`,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
