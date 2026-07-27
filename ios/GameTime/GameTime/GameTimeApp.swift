@@ -92,6 +92,13 @@ struct RootView: View {
             }
         }
         .task {
+            #if DEBUG
+            // Keep the loading UI fixture stable and idle so UI automation can
+            // observe it without racing the normal launch refresh.
+            if ProcessInfo.processInfo.arguments.contains("--fixture-loading") {
+                return
+            }
+            #endif
             await model.start()
         }
         .onChange(of: model.phase) { _, phase in
