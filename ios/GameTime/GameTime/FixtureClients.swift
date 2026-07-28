@@ -5,7 +5,7 @@ import Foundation
 enum FixtureServicesFactory {
     static func make(
         arguments: [String] = ProcessInfo.processInfo.arguments,
-        pendingDuelStore: (any PendingDuelStore)? = nil,
+        pendingChallengeStore: (any PendingChallengeStore)? = nil,
         contestsClient: (any ContestsClient)? = nil
     ) -> AppServices {
         let scenario = FixtureScenario(arguments: arguments)
@@ -15,10 +15,10 @@ enum FixtureServicesFactory {
             profiles: FixtureProfileClient(store: store),
             friendships: FixtureFriendshipsClient(store: store),
             contests: contestsClient ?? FixtureContestsClient(store: store),
-            pendingDuels: pendingDuelStore
-                ?? FixturePendingDuelStore(
-                    submission: scenario.pendingDuel
-                        ? FixtureStore.pendingDuelSubmission()
+            pendingChallenges: pendingChallengeStore
+                ?? FixturePendingChallengeStore(
+                    submission: scenario.pendingChallenge
+                        ? FixtureStore.pendingChallengeSubmission()
                         : nil
                 )
         )
@@ -31,8 +31,8 @@ private struct FixtureScenario {
     let empty: Bool
     let offline: Bool
     let loading: Bool
-    let pendingDuel: Bool
-    let lostDuelResponse: Bool
+    let pendingChallenge: Bool
+    let lostChallengeResponse: Bool
 
     init(arguments: [String]) {
         signedOut = arguments.contains("--fixture-signed-out")
@@ -40,8 +40,12 @@ private struct FixtureScenario {
         empty = arguments.contains("--fixture-empty")
         offline = arguments.contains("--fixture-offline")
         loading = arguments.contains("--fixture-loading")
-        pendingDuel = arguments.contains("--fixture-pending-duel")
-        lostDuelResponse = arguments.contains("--fixture-lost-duel-response")
+        pendingChallenge =
+            arguments.contains("--fixture-pending-challenge")
+            || arguments.contains("--fixture-pending-duel")
+        lostChallengeResponse =
+            arguments.contains("--fixture-lost-challenge-response")
+            || arguments.contains("--fixture-lost-duel-response")
     }
 }
 
@@ -51,6 +55,9 @@ private final class FixtureStore {
     static let incomingID = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
     static let outgoingID = UUID(uuidString: "33333333-3333-3333-3333-333333333333")!
     static let friendID = UUID(uuidString: "44444444-4444-4444-4444-444444444444")!
+    static let secondFriendID = UUID(
+        uuidString: "55555555-5555-5555-5555-555555555555"
+    )!
     static let charityID = UUID(uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")!
     static let invitationID = UUID(uuidString: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")!
     static let activeContestID = UUID(uuidString: "cccccccc-cccc-cccc-cccc-cccccccccccc")!
@@ -60,11 +67,11 @@ private final class FixtureStore {
     var cards: [FriendshipCard]
     var contests: [ContestCard]
     var charities: [Charity]
-    var duelRequests: [UUID: FixtureDuelRequest] = [:]
+    var challengeRequests: [UUID: FixtureChallengeRequest] = [:]
     let offline: Bool
     let loading: Bool
-    let lostDuelResponse: Bool
-    var hasLostDuelResponse = false
+    let lostChallengeResponse: Bool
+    var hasLostChallengeResponse = false
 
     init(scenario: FixtureScenario) {
         userID = scenario.signedOut ? nil : Self.callerID
@@ -79,7 +86,7 @@ private final class FixtureStore {
             )
         offline = scenario.offline
         loading = scenario.loading
-        lostDuelResponse = scenario.lostDuelResponse
+        lostChallengeResponse = scenario.lostChallengeResponse
 
         let now = Date()
         cards =
@@ -116,6 +123,16 @@ private final class FixtureStore {
                     updatedAt: now.addingTimeInterval(-86_000),
                     acceptedAt: now.addingTimeInterval(-86_000)
                 ),
+                FriendshipCard(
+                    otherUserID: Self.secondFriendID,
+                    handle: "priyaruns",
+                    displayName: "Priya Shah",
+                    status: .accepted,
+                    requestedBy: Self.callerID,
+                    createdAt: now.addingTimeInterval(-172_800),
+                    updatedAt: now.addingTimeInterval(-172_000),
+                    acceptedAt: now.addingTimeInterval(-172_000)
+                ),
             ]
 
         contests =
@@ -124,7 +141,7 @@ private final class FixtureStore {
             : [
                 ContestCard(
                     id: Self.invitationID,
-                    title: "Three-day step duel",
+                    title: "Three-day step challenge",
                     createdBy: Self.friendID,
                     metric: .steps,
                     cadence: .daily,
@@ -160,17 +177,17 @@ private final class FixtureStore {
         ]
     }
 
-    static func pendingDuelSubmission(now: Date = Date())
-        -> PendingDuelSubmission
+    static func pendingChallengeSubmission(now: Date = Date())
+        -> PendingChallengeSubmission
     {
-        PendingDuelSubmission(
+        PendingChallengeSubmission(
             ownerID: callerID,
-            terms: DuelTerms(
+            terms: ChallengeTerms(
                 requestID: UUID(
                     uuidString: "dddddddd-dddd-dddd-dddd-dddddddddddd"
                 )!,
                 title: "Saved response retry",
-                inviteeID: friendID,
+                inviteeIDs: [friendID, secondFriendID],
                 metric: .steps,
                 cadence: .cumulative,
                 targetValue: 10_000,
@@ -214,25 +231,25 @@ private enum FixtureFailure: LocalizedError {
     }
 }
 
-private struct FixtureDuelRequest {
-    let terms: DuelTerms
+private struct FixtureChallengeRequest {
+    let terms: ChallengeTerms
     let contestID: UUID
 }
 
-private actor FixturePendingDuelStore: PendingDuelStore {
-    private var submission: PendingDuelSubmission?
+private actor FixturePendingChallengeStore: PendingChallengeStore {
+    private var submission: PendingChallengeSubmission?
 
-    init(submission: PendingDuelSubmission?) {
+    init(submission: PendingChallengeSubmission?) {
         self.submission = submission
     }
 
-    func load(for ownerID: UUID) throws -> PendingDuelSubmission? {
+    func load(for ownerID: UUID) throws -> PendingChallengeSubmission? {
         guard let submission else { return nil }
         try submission.validate(for: ownerID)
         return submission
     }
 
-    func save(_ submission: PendingDuelSubmission) throws {
+    func save(_ submission: PendingChallengeSubmission) throws {
         try submission.validate(for: submission.ownerID)
         self.submission = submission
     }
@@ -425,15 +442,15 @@ private final class FixtureContestsClient: ContestsClient {
         return store.charities
     }
 
-    func createDuel(
-        _ terms: DuelTerms,
+    func createChallenge(
+        _ terms: ChallengeTerms,
         expectedUserID: UUID
     ) async throws -> UUID {
         guard !store.offline else { throw FixtureFailure.offline }
         guard store.userID == expectedUserID else {
             throw AppMutationError.permissionDenied
         }
-        if let existing = store.duelRequests[terms.requestID] {
+        if let existing = store.challengeRequests[terms.requestID] {
             guard existing.terms == terms else {
                 throw FixtureFailure.requestChanged
             }
@@ -441,7 +458,7 @@ private final class FixtureContestsClient: ContestsClient {
         }
 
         let id = UUID()
-        store.duelRequests[terms.requestID] = FixtureDuelRequest(
+        store.challengeRequests[terms.requestID] = FixtureChallengeRequest(
             terms: terms,
             contestID: id
         )
@@ -461,8 +478,8 @@ private final class FixtureContestsClient: ContestsClient {
                 myStatus: .accepted
             )
         )
-        if store.lostDuelResponse, !store.hasLostDuelResponse {
-            store.hasLostDuelResponse = true
+        if store.lostChallengeResponse, !store.hasLostChallengeResponse {
+            store.hasLostChallengeResponse = true
             throw FixtureFailure.lostResponse
         }
         return id

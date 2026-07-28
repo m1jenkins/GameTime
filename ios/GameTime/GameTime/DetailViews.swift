@@ -109,7 +109,7 @@ struct ContestDetailView: View {
                 .background(CompetitiveTrustTheme.ink)
             }
         }
-        .navigationTitle("Duel")
+        .navigationTitle("Challenge")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

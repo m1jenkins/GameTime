@@ -24,8 +24,8 @@ final class AppModel {
     private(set) var lastSubmittedHandle: String?
     private(set) var isMutating = false
     private(set) var onboardingNamePrefill = ""
-    private(set) var pendingDuel: PendingDuelSubmission?
-    private(set) var hasPendingDuelRecoveryIssue = false
+    private(set) var pendingChallenge: PendingChallengeSubmission?
+    private(set) var hasPendingChallengeRecoveryIssue = false
     var presentedError: String?
 
     private let services: AppServices
@@ -252,7 +252,7 @@ final class AppModel {
         }
     }
 
-    func createDuel(_ terms: DuelTerms) async -> UUID? {
+    func createChallenge(_ terms: ChallengeTerms) async -> UUID? {
         guard configuration.contestMutationsEnabled else {
             presentedError =
                 "Release contest creation stays locked until evidence and App Attest are complete."
@@ -263,54 +263,54 @@ final class AppModel {
             return nil
         }
         let actorGeneration = authGeneration
-        guard !hasPendingDuelRecoveryIssue else {
+        guard !hasPendingChallengeRecoveryIssue else {
             presentedError =
-                "Resolve or discard the unreadable saved duel before sending another request."
+                "Resolve or discard the unreadable saved challenge before sending another request."
             return nil
         }
         guard !isMutating else { return nil }
         isMutating = true
         defer { isMutating = false }
 
-        let submission: PendingDuelSubmission
-        if let pendingDuel {
-            guard pendingDuel.ownerID == userID else {
-                hasPendingDuelRecoveryIssue = true
+        let submission: PendingChallengeSubmission
+        if let pendingChallenge {
+            guard pendingChallenge.ownerID == userID else {
+                hasPendingChallengeRecoveryIssue = true
                 presentedError =
-                    "The saved duel does not belong to the active account."
+                    "The saved challenge does not belong to the active account."
                 return nil
             }
-            guard pendingDuel.terms.requestID == terms.requestID else {
+            guard pendingChallenge.terms.requestID == terms.requestID else {
                 presentedError =
-                    "Review or discard the saved duel before starting another request."
+                    "Review or discard the saved challenge before starting another request."
                 return nil
             }
-            guard pendingDuel.terms == terms else {
+            guard pendingChallenge.terms == terms else {
                 presentedError =
                     AppMutationError.duplicateRequestChanged.localizedDescription
                 return nil
             }
-            submission = pendingDuel
+            submission = pendingChallenge
         } else {
-            submission = PendingDuelSubmission(
+            submission = PendingChallengeSubmission(
                 ownerID: userID,
                 terms: terms
             )
         }
 
-        let attemptedSubmission: PendingDuelSubmission
+        let attemptedSubmission: PendingChallengeSubmission
         do {
             attemptedSubmission = try submission.recordingAttempt()
-            try await services.pendingDuels.save(attemptedSubmission)
+            try await services.pendingChallenges.save(attemptedSubmission)
             guard isCurrentActor(userID, generation: actorGeneration) else {
                 return nil
             }
-            pendingDuel = attemptedSubmission
+            pendingChallenge = attemptedSubmission
         } catch {
             guard isCurrentActor(userID, generation: actorGeneration) else {
                 return nil
             }
-            hasPendingDuelRecoveryIssue = true
+            hasPendingChallengeRecoveryIssue = true
             present(error)
             return nil
         }
@@ -322,7 +322,7 @@ final class AppModel {
             else {
                 return nil
             }
-            let createdID = try await services.contests.createDuel(
+            let createdID = try await services.contests.createChallenge(
                 terms,
                 expectedUserID: userID
             )
@@ -333,24 +333,24 @@ final class AppModel {
                 return nil
             }
             do {
-                try await services.pendingDuels.remove(for: userID)
+                try await services.pendingChallenges.remove(for: userID)
             } catch {
                 guard
                     isCurrentActor(userID, generation: actorGeneration)
                 else {
                     return nil
                 }
-                hasPendingDuelRecoveryIssue = true
+                hasPendingChallengeRecoveryIssue = true
                 presentedError =
-                    "The duel was confirmed, but its saved retry could not be removed. Retry recovery remains locked to prevent a duplicate request."
+                    "The challenge was confirmed, but its saved retry could not be removed. Retry recovery remains locked to prevent a duplicate request."
                 await refresh()
                 return nil
             }
             guard isCurrentActor(userID, generation: actorGeneration) else {
                 return nil
             }
-            pendingDuel = nil
-            hasPendingDuelRecoveryIssue = false
+            pendingChallenge = nil
+            hasPendingChallengeRecoveryIssue = false
             await refresh()
             guard isCurrentActor(userID, generation: actorGeneration) else {
                 return nil
@@ -365,7 +365,7 @@ final class AppModel {
             let mapped = AppMutationError.map(error)
             if mapped == .offline || mapped.isUnknownServerFailure {
                 presentedError =
-                    "GameTime couldn’t confirm the duel result. The exact request was saved for a deliberate retry."
+                    "GameTime couldn’t confirm the challenge result. The exact request was saved for a deliberate retry."
             } else {
                 present(error)
             }
@@ -373,7 +373,7 @@ final class AppModel {
         }
     }
 
-    func discardPendingDuel() async -> Bool {
+    func discardPendingChallenge() async -> Bool {
         guard let userID else { return false }
         let actorGeneration = authGeneration
         guard !isMutating else { return false }
@@ -390,7 +390,7 @@ final class AppModel {
             return false
         }
         do {
-            try await services.pendingDuels.remove(for: userID)
+            try await services.pendingChallenges.remove(for: userID)
             guard
                 await isCurrentAuthenticatedActor(
                     userID,
@@ -399,25 +399,25 @@ final class AppModel {
             else {
                 return false
             }
-            pendingDuel = nil
-            hasPendingDuelRecoveryIssue = false
+            pendingChallenge = nil
+            hasPendingChallengeRecoveryIssue = false
             return true
         } catch {
             guard isCurrentActor(userID, generation: actorGeneration) else {
                 return false
             }
-            hasPendingDuelRecoveryIssue = true
+            hasPendingChallengeRecoveryIssue = true
             present(error)
             return false
         }
     }
 
-    func retryPendingDuelRecovery() async {
+    func retryPendingChallengeRecovery() async {
         guard let userID, !isMutating else { return }
         let actorGeneration = authGeneration
         isMutating = true
         defer { isMutating = false }
-        await restorePendingDuel(
+        await restorePendingChallenge(
             for: userID,
             generation: actorGeneration
         )
@@ -524,8 +524,8 @@ final class AppModel {
         exactHandleResult = nil
         lastSubmittedHandle = nil
         onboardingNamePrefill = ""
-        pendingDuel = nil
-        hasPendingDuelRecoveryIssue = false
+        pendingChallenge = nil
+        hasPendingChallengeRecoveryIssue = false
         loadState = .idle
         presentedError = nil
         phase = .launching
@@ -543,7 +543,7 @@ final class AppModel {
                 }
                 self.profile = profile
                 onboardingNamePrefill = ""
-                await restorePendingDuel(
+                await restorePendingChallenge(
                     for: userID,
                     generation: generation
                 )
@@ -607,12 +607,12 @@ final class AppModel {
         presentedError = mapped.localizedDescription
     }
 
-    private func restorePendingDuel(
+    private func restorePendingChallenge(
         for userID: UUID,
         generation: UUID
     ) async {
         do {
-            let restored = try await services.pendingDuels.load(for: userID)
+            let restored = try await services.pendingChallenges.load(for: userID)
             guard
                 await isCurrentAuthenticatedActor(
                     userID,
@@ -621,8 +621,8 @@ final class AppModel {
             else {
                 return
             }
-            pendingDuel = restored
-            hasPendingDuelRecoveryIssue = false
+            pendingChallenge = restored
+            hasPendingChallengeRecoveryIssue = false
         } catch {
             guard
                 await isCurrentAuthenticatedActor(
@@ -632,9 +632,9 @@ final class AppModel {
             else {
                 return
             }
-            pendingDuel = nil
-            hasPendingDuelRecoveryIssue = true
-            if let storeError = error as? PendingDuelStoreError {
+            pendingChallenge = nil
+            hasPendingChallengeRecoveryIssue = true
+            if let storeError = error as? PendingChallengeStoreError {
                 presentedError = storeError.localizedDescription
             } else {
                 present(error)
@@ -670,8 +670,8 @@ final class AppModel {
         exactHandleResult = nil
         lastSubmittedHandle = nil
         onboardingNamePrefill = ""
-        pendingDuel = nil
-        hasPendingDuelRecoveryIssue = false
+        pendingChallenge = nil
+        hasPendingChallengeRecoveryIssue = false
         loadState = .idle
         presentedError = nil
         phase = .signedOut

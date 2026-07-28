@@ -1,6 +1,7 @@
 # GameTime implementation status
 
-> Audit snapshot: 2026-07-27, including the M8.2a restart-safe pending-duel pass.
+> Audit snapshot: 2026-07-28, including the M8.3a challenge-creation and
+> saved-request migration pass.
 > This is a dated evidence record. `README.md` is the compact project overview,
 > `PLAN.md` owns sequence and launch gates, and `DECISIONS.md` owns
 > product/architecture decisions.
@@ -12,7 +13,7 @@ backend and portable client-domain foundation, but it is not yet a usable beta
 or production app. The repository is strongest in schema invariants,
 RLS/least privilege, attested evidence ingestion, deterministic scoring,
 anti-cheat sidecars, exact-byte retry behavior, and the newly tested social
-and duel navigation loop.
+and challenge navigation loop.
 
 Milestones M0–M6 are complete within their deliberately backend-first scope.
 M6.5 has a verified staging backend and a purpose-built iPhone conformance
@@ -23,11 +24,15 @@ is integrated, locally database-proven, deployed to staging, and proven there
 with committed manual and hosted retention cycles. Broader concurrency, hosted
 advisor, and production-shaped migration proofs remain open. M8.1 implements
 the product target, native Apple-token exchange, onboarding, exact-handle
-friendships, one-to-one duel creation/invitation/acceptance, reload behavior,
+friendships, challenge creation/invitation/acceptance, reload behavior,
 and Debug/Release boundaries. M8.2a adds a versioned, per-actor protected
-pending-duel record before the creation RPC, preserves canonical millisecond
-terms losslessly, and exposes only explicit same-request recovery after an
-ambiguous outcome. A 2026-07-27 iPhone 17 staging run now proves paid-team
+pending-challenge record before the creation RPC, preserves canonical
+millisecond terms losslessly, and exposes only explicit same-request recovery
+after an ambiguous outcome. M8.3a moves the product to Challenge terminology,
+supports explicit 1–19-friend selection through one atomic request, and
+migrates version-1 single-invite saved-duel records to the canonical version-2
+roster without changing request identity or timestamps. A 2026-07-27 iPhone 17
+staging run now proves paid-team
 signing, native Apple identity creation, onboarding, the live four-tab shell,
 and session/profile reload for one user. Apple did not return the requested
 first-sign-in full name, so the editable Apple-name prefill observation and the
@@ -47,9 +52,12 @@ identity, safer staging scripts, D81 migrations/tests, documentation, and pinned
 CI toolchains are therefore in one reviewable history. M8.1 adds the separate
 product target, a bounded social-card API, atomic/idempotent contest creation,
 and a macOS product/conformance job on top of that baseline. M8.2a adds
-restart-safe pending-duel persistence, conflict-checked monotonic retry
+restart-safe pending-challenge persistence, conflict-checked monotonic retry
 metadata, and fail-closed account/corruption handling without changing the
-server request contract. The combined revision has a green initial PR #11
+server request contract. M8.3a extends that record to a canonical invitee array,
+adds a lossless version-1 migration, and passes the whole selection through the
+existing atomic multi-invite RPC rather than adding a schema migration. The
+combined revision has a green initial PR #11
 suite plus the current local Swift/Xcode evidence below, and still needs
 hosted-advisor, production-shaped migration, and the external proofs below
 before it can support a release claim.
@@ -66,9 +74,9 @@ before it can support a release claim.
 | PostgreSQL 17 migration execution | All 18 migrations applied in a clean reset | Migration syntax and execution semantics succeed on the local PostgreSQL 17 stack |
 | Bash syntax | All 5 scripts passed `bash -n` | Shell grammar only |
 | Static Supabase security review | 20 exposed public tables have RLS; public views are `security_invoker`; no `auth.role()`/user-metadata authorization; privileged functions use explicit grants/revokes and blank `search_path` | Strong static posture; not a substitute for a live advisor or RLS suite |
-| Clean local database reset and pgTAP | Pass, 20 files / 824 assertions | Every migration executes and the complete RLS, privilege, lifecycle, D80–D86, deletion, retention, bounded friendship, idempotency, atomicity, and two-session duplicate suite passes through the supported runner |
+| Clean local database reset and pgTAP | Pass, 20 files / 824 assertions | Every migration executes and the complete RLS, privilege, lifecycle, D80–D86, deletion, retention, bounded friendship, multi-invite atomicity/idempotency, and two-session duplicate suite passes through the supported runner |
 | Supabase database lint | Pass, no `public` or `app` schema errors | `supabase db lint --local --schema public,app --level warning` found no PL/pgSQL/schema issues |
-| Product Xcode scheme | Pass, 27 unit and 7 UI tests (34 total); no warnings | Auth/onboarding state, route reset, DTOs, exact handles, validation/error mapping, fixture/live boundaries, Release mutation lock, four tabs, friend/duel mutations, restart-safe pending-duel recovery/discard, account-transition isolation, state fixtures, Dynamic Type, labels, and Reduce Motion pass together |
+| Product Xcode scheme | Pass, 30 unit and 7 UI tests (37 total); no warnings | Auth/onboarding state, route reset, DTOs, exact handles, validation/error mapping, fixture/live boundaries, Release mutation lock, four tabs, multi-friend challenge creation, one-call payload construction, version-1 saved-duel migration, restart-safe pending-challenge recovery/discard, account-transition isolation, state fixtures, Dynamic Type, labels, and Reduce Motion pass together |
 | Product Staging and Release simulator builds | Pass without signing; no warnings | Both live configurations compile; Staging excludes `DEBUG` routing and Release compiles with fixture code absent and contest mutation locked |
 | Single-user product staging device | Partial pass on 2026-07-27; Xcode 26.2, iPhone 17, iOS 27.0, app revision `dca1309` | Paid-team signing, install, native Apple identity, linked profile, four tabs, staging banner, live charity request, and force-quit session/profile reload passed. Apple returned no full name, so the name-prefill observation remains open |
 | Conformance Xcode scheme | Pass, 10 tests; no warnings | Removing the product preview preserves the focused request/CBOR/replay harness |
@@ -109,7 +117,7 @@ format-only diff and call that a source fix.
 | M7.2a | Implemented | Transactional notification intents and named one-minute activation job | Hosted committed-row activation proof |
 | D81 foundation | Staged; local and retention-cycle proven | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker, forward generated-column repair | Broader concurrency/production-shaped migration, hosted advisors, hold/failure recovery; user-facing deletion/capability path |
 | M7 finalization/settlement | Mostly not started | Pure scoring/integrity engines and schema seams exist | Standings API, frozen assessments, results, obligations, claims, disputes, reliability, deadline workers |
-| M8 | M8.1 and M8.2a implemented; partial single-user staging proof recorded; full milestone open | Product Xcode target, native Apple token exchange, onboarding, exact-handle friendship loop, atomic/idempotent duel invitation loop, four-tab navigation, fixtures, protected per-actor pending-duel retry, and one-user signed-device/profile reload proof | Apple-name prefill observation, two-user staging acceptance, HealthKit, Core Location, product App Attest, persistence for other pending actions, inbox/APNs, M7 result/settlement/dispute screens, privacy/release hardening |
+| M8 | M8.1, M8.2a, and M8.3a implemented; partial single-user staging proof recorded; full milestone open | Product Xcode target, native Apple token exchange, onboarding, exact-handle friendship loop, atomic/idempotent multi-friend challenge invitation loop, four-tab navigation, fixtures, backward-compatible protected per-actor pending-challenge retry, and one-user signed-device/profile reload proof | Apple-name prefill observation, two-user staging acceptance, live multi-friend observation, HealthKit, Core Location, product App Attest, persistence for other pending actions, inbox/APNs, M7 result/settlement/dispute screens, privacy/release hardening |
 
 ## Work already delivered
 
@@ -129,13 +137,14 @@ The implemented architecture includes:
   real-device conformance target;
 - a separate production-shaped SwiftUI app with native Apple-token exchange,
   explicit auth/onboarding state, typed per-tab navigation, exact-handle social
-  actions, atomic one-to-one duel creation, live/fixture client boundaries, and
-  fail-closed Staging/Release configuration;
-- a versioned per-actor pending-duel record written with complete file
+  actions, atomic multi-friend challenge creation, live/fixture client
+  boundaries, and fail-closed Staging/Release configuration;
+- a versioned per-actor pending-challenge record written with complete file
   protection before the creation RPC, with canonical millisecond terms stored
   losslessly, immutable conflict checks, monotonic attempt metadata, explicit
   same-request retry after ambiguous/offline/cancelled outcomes, fail-closed
-  corruption and account transitions, and a warned local-only discard path;
+  corruption and account transitions, a lossless version-1 single-invite
+  migration, and a warned local-only discard path;
 - a payload-free transactional notification-intent ledger and named activation
   scheduler; and
 - in the reconciled branch, durable pseudonymous actors, stale-JWT denial,
@@ -202,8 +211,8 @@ The implemented architecture includes:
    existing exact-byte queues.
 3. Add product App Attest key lifecycle and evidence signing, then unlock
    Release contest mutation only after its staging gate.
-4. Extend the M8.2a protected pending-action model beyond duels, then add a
-   durable in-app inbox and APNs delivery.
+4. Extend the protected pending-action model beyond challenge creation, then
+   add a durable in-app inbox and APNs delivery.
 5. Add live standings/review/finalization/settlement/dispute screens only after
    M7 supplies those APIs.
 6. Complete accessibility/privacy hardening, avatar/group-feed policy,
@@ -219,9 +228,9 @@ The implemented architecture includes:
    result, including redacted standings and adjudication gates.
 4. **Settlement slice:** obligations, confirmation, disputes, reliability, and
    their operated deadlines.
-5. **Product slice:** close M8.1's external proof, extend M8.2a persistence to
-   the remaining pending actions, then add the sensor, App Attest, inbox/APNs,
-   and M7-backed product slices.
+5. **Product slice:** close M8.1's external proof, extend protected persistence
+   to the remaining pending actions, then add the sensor, App Attest,
+   inbox/APNs, and M7-backed product slices.
 6. **Launch hardening:** charities, monitoring, rate limits, privacy/abuse,
    backup/restore, deployment controls, accessibility, and App Store evidence.
 
@@ -229,8 +238,8 @@ The implemented architecture includes:
 
 - The app is usable, beta-ready, or App Store ready.
 - M8.1 is complete before its two-user Apple staging record exists.
-- Full M8 is complete merely because M8.2a's pending-duel slice is locally
-  implemented and tested.
+- Full M8 is complete merely because M8.3a's challenge-creation and migration
+  slice is locally implemented and tested.
 - D81 is CI-proven or safe to deploy at production scale.
 - M6.5 physical App Attest conformance is complete.
 - The activation job has a committed-row hosted proof.

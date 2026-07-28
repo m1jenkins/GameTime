@@ -228,9 +228,9 @@ struct ContestCard: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
-struct DuelDraft: Equatable, Sendable {
+struct ChallengeDraft: Equatable, Sendable {
     var title = ""
-    var inviteeID: UUID?
+    var inviteeIDs: Set<UUID> = []
     var metric: ContestMetric = .steps
     var cadence: ContestCadence = .cumulative
     var targetValue = ContestMetric.steps.suggestedTarget
@@ -241,52 +241,55 @@ struct DuelDraft: Equatable, Sendable {
     var charityID: UUID?
     var tieBreak: ContestTieBreak = .integrityScore
 
-    func validated(now: Date = Date()) throws -> DuelTerms {
+    func validated(now: Date = Date()) throws -> ChallengeTerms {
         let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let canonicalStartsAt = startsAt.canonicalizedToMilliseconds()
         let canonicalEndsAt = endsAt.canonicalizedToMilliseconds()
         guard (1...80).contains(cleanTitle.count) else {
-            throw DuelValidationError.invalidTitle
+            throw ChallengeValidationError.invalidTitle
         }
-        guard let inviteeID else {
-            throw DuelValidationError.missingOpponent
+        guard !inviteeIDs.isEmpty else {
+            throw ChallengeValidationError.missingFriends
+        }
+        guard inviteeIDs.count <= ChallengeTerms.maximumInvitees else {
+            throw ChallengeValidationError.tooManyFriends
         }
         guard targetValue.isFinite, targetValue > 0 else {
-            throw DuelValidationError.invalidTarget
+            throw ChallengeValidationError.invalidTarget
         }
         guard (100...1_000_000).contains(stakeAmountCents) else {
-            throw DuelValidationError.invalidStake
+            throw ChallengeValidationError.invalidStake
         }
         guard canonicalStartsAt > now else {
-            throw DuelValidationError.startMustBeFuture
+            throw ChallengeValidationError.startMustBeFuture
         }
         guard canonicalEndsAt > canonicalStartsAt else {
-            throw DuelValidationError.endMustFollowStart
+            throw ChallengeValidationError.endMustFollowStart
         }
         guard
             canonicalEndsAt
                 <= canonicalStartsAt.addingTimeInterval(366 * 86_400)
         else {
-            throw DuelValidationError.windowTooLong
+            throw ChallengeValidationError.windowTooLong
         }
         guard
             cadence != .daily
                 || canonicalEndsAt
                     >= canonicalStartsAt.addingTimeInterval(86_400)
         else {
-            throw DuelValidationError.dailyNeedsFullDay
+            throw ChallengeValidationError.dailyNeedsFullDay
         }
         guard !timezone.isEmpty, TimeZone(identifier: timezone) != nil else {
-            throw DuelValidationError.invalidTimezone
+            throw ChallengeValidationError.invalidTimezone
         }
         guard let charityID else {
-            throw DuelValidationError.missingCharity
+            throw ChallengeValidationError.missingCharity
         }
 
-        return DuelTerms(
+        return ChallengeTerms(
             requestID: UUID(),
             title: cleanTitle,
-            inviteeID: inviteeID,
+            inviteeIDs: Array(inviteeIDs),
             metric: metric,
             cadence: cadence,
             targetValue: targetValue,
@@ -311,10 +314,12 @@ extension Date {
     }
 }
 
-struct DuelTerms: Codable, Equatable, Sendable {
+struct ChallengeTerms: Codable, Equatable, Sendable {
+    static let maximumInvitees = 19
+
     let requestID: UUID
     let title: String
-    let inviteeID: UUID
+    let inviteeIDs: [UUID]
     let metric: ContestMetric
     let cadence: ContestCadence
     let targetValue: Double
@@ -325,10 +330,14 @@ struct DuelTerms: Codable, Equatable, Sendable {
     let charityID: UUID
     let tieBreak: ContestTieBreak
 
+    var maxParticipants: Int {
+        inviteeIDs.count + 1
+    }
+
     enum CodingKeys: String, CodingKey {
         case requestID
         case title
-        case inviteeID
+        case inviteeIDs
         case metric
         case cadence
         case targetValue
@@ -343,7 +352,7 @@ struct DuelTerms: Codable, Equatable, Sendable {
     init(
         requestID: UUID,
         title: String,
-        inviteeID: UUID,
+        inviteeIDs: [UUID],
         metric: ContestMetric,
         cadence: ContestCadence,
         targetValue: Double,
@@ -356,7 +365,7 @@ struct DuelTerms: Codable, Equatable, Sendable {
     ) {
         self.requestID = requestID
         self.title = title
-        self.inviteeID = inviteeID
+        self.inviteeIDs = Self.canonicalInviteeIDs(inviteeIDs)
         self.metric = metric
         self.cadence = cadence
         self.targetValue = targetValue
@@ -372,7 +381,9 @@ struct DuelTerms: Codable, Equatable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         requestID = try container.decode(UUID.self, forKey: .requestID)
         title = try container.decode(String.self, forKey: .title)
-        inviteeID = try container.decode(UUID.self, forKey: .inviteeID)
+        inviteeIDs = Self.canonicalInviteeIDs(
+            try container.decode([UUID].self, forKey: .inviteeIDs)
+        )
         metric = try container.decode(ContestMetric.self, forKey: .metric)
         cadence = try container.decode(ContestCadence.self, forKey: .cadence)
         targetValue = try container.decode(Double.self, forKey: .targetValue)
@@ -408,7 +419,7 @@ struct DuelTerms: Codable, Equatable, Sendable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(requestID, forKey: .requestID)
         try container.encode(title, forKey: .title)
-        try container.encode(inviteeID, forKey: .inviteeID)
+        try container.encode(inviteeIDs, forKey: .inviteeIDs)
         try container.encode(metric, forKey: .metric)
         try container.encode(cadence, forKey: .cadence)
         try container.encode(targetValue, forKey: .targetValue)
@@ -425,11 +436,18 @@ struct DuelTerms: Codable, Equatable, Sendable {
         try container.encode(charityID, forKey: .charityID)
         try container.encode(tieBreak, forKey: .tieBreak)
     }
+
+    private static func canonicalInviteeIDs(_ ids: [UUID]) -> [UUID] {
+        ids.sorted {
+            $0.uuidString.lowercased() < $1.uuidString.lowercased()
+        }
+    }
 }
 
-enum DuelValidationError: LocalizedError, Equatable, Sendable {
+enum ChallengeValidationError: LocalizedError, Equatable, Sendable {
     case invalidTitle
-    case missingOpponent
+    case missingFriends
+    case tooManyFriends
     case invalidTarget
     case invalidStake
     case startMustBeFuture
@@ -442,13 +460,15 @@ enum DuelValidationError: LocalizedError, Equatable, Sendable {
     var errorDescription: String? {
         switch self {
         case .invalidTitle: "Use a title between 1 and 80 characters."
-        case .missingOpponent: "Choose one friend for this duel."
+        case .missingFriends: "Choose at least one friend for this challenge."
+        case .tooManyFriends:
+            "Choose no more than \(ChallengeTerms.maximumInvitees) friends."
         case .invalidTarget: "Enter a target greater than zero."
         case .invalidStake: "The test pledge must be between $1 and $10,000."
         case .startMustBeFuture: "Choose a future start time."
         case .endMustFollowStart: "The end time must follow the start time."
-        case .windowTooLong: "A duel cannot run longer than 366 days."
-        case .dailyNeedsFullDay: "A daily duel must include at least one full day."
+        case .windowTooLong: "A challenge cannot run longer than 366 days."
+        case .dailyNeedsFullDay: "A daily challenge must include at least one full day."
         case .invalidTimezone: "Choose a valid timezone."
         case .missingCharity: "Choose a charity before review."
         }
@@ -477,7 +497,7 @@ enum AppMutationError: LocalizedError, Equatable, Sendable {
         if error is CancellationError {
             return .cancelled
         }
-        if error is PendingDuelStoreError {
+        if error is PendingChallengeStoreError {
             return .localPersistence
         }
 
@@ -513,10 +533,10 @@ enum AppMutationError: LocalizedError, Equatable, Sendable {
         case .offline: "You appear to be offline. Your request was not submitted."
         case .cancelled: nil
         case .duplicateRequestChanged:
-            "That request was already used with different duel terms. Start a new duel."
+            "That request was already used with different challenge terms. Start a new challenge."
         case .handleUnavailable: "That exact handle is unavailable."
         case .localPersistence:
-            "GameTime couldn’t safely update the saved duel retry. It was not automatically retried."
+            "GameTime couldn’t safely update the saved challenge retry. It was not automatically retried."
         case .permissionDenied: "That action is no longer available."
         case .invalidInput:
             "Check the request details and try again."

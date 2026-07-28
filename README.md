@@ -11,9 +11,9 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status, reconciled 2026-07-27: the backend and portable client core are
-complete through M6, and the M8.1 product app plus restart-safe duel retry are
-implemented with staging proof open. This is not yet a shippable iOS app.**
+**Status, reconciled 2026-07-28: the backend and portable client core are
+complete through M6, and the M8.1–M8.3a product slices are implemented with
+staging proof open. This is not yet a shippable iOS app.**
 M6.5's staging backend,
 conformance-only iOS target, independent App Attest receipt verifier,
 Apple-vector regression, receipt quarantine, and fail-closed hosted
@@ -33,14 +33,15 @@ pgTAP assertions and the supported local lint/advisor checks. D81 and forward
 guard repair `20260726230529` are deployed to staging, where committed manual
 and hosted raw retention cycles prove exact-location pruning and the 90-day
 source-identifier scrub. CI, concurrency, hosted advisors, production-shaped
-migration timing, and retention failure recovery remain open. M8.1 now adds a
-separate product Xcode target, native Apple-auth/onboarding state, the live
-exact-handle friendship loop, atomic idempotent duel invitations, four-tab
-SwiftUI navigation, Debug fixtures, a Release mutation lock, and protected
-per-user manual retry recovery that survives relaunch without changing the
-backend payload hash. Its two-user Apple staging run remains open, as do later
-sensors, App Attest, inbox/APNs, evidence queues, finalization, settlement,
-disputes, and operations. See
+migration timing, and retention failure recovery remain open. M8.1–M8.3a now
+add a separate product Xcode target, native Apple-auth/onboarding state, the
+live exact-handle friendship loop, atomic idempotent multi-friend challenge
+invitations, four-tab SwiftUI navigation, Debug fixtures, a Release mutation
+lock, and protected per-user manual retry recovery that survives relaunch.
+Version-1 single-invite saved-duel records migrate in place to the version-2
+challenge roster without changing the backend payload hash. The two-user Apple
+staging run remains open, as do later sensors, App Attest, inbox/APNs, evidence
+queues, finalization, settlement, disputes, and operations. See
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
 evidence, remaining work, and recommended sequence.
 
@@ -68,7 +69,7 @@ ios/
                          check-in queue.
                          Builds and tests on Linux CI.
   GameTime/              M8 product app plus unit/UI targets. Live Supabase
-                         adapters, Apple auth, social/duel loop, and Debug
+                         adapters, Apple auth, social/challenge loop, and Debug
                          fixtures; Release contest mutation is locked.
   GameTimeConformance/   Independent M6.5 App Attest smoke harness only.
 scripts/
@@ -230,9 +231,12 @@ M2's tables. All three have RLS enabled and no `anon` access.
 | `contests`             | The terms and the window. Frozen at creation, status forward-only, never deleted. |
 | `contest_participants` | The roster and the invitation lifecycle in one table. Rows are never deleted. |
 
-A duel is not a separate kind of contest — it is `max_participants = 2`, since
-D4 already made a duel the N=2 case of the same structure. `group_id` is an
-independent, optional scope that decides who may be invited (DECISIONS.md D22).
+The product calls the invitation flow a **challenge**; the stable database and
+RPC vocabulary remains **contest**. A two-person challenge is
+`max_participants = 2`, while multi-friend creation closes the roster at the
+creator plus the selected invitees, up to the existing 20-person contest cap.
+`group_id` is an independent, optional scope that decides who may be invited
+(DECISIONS.md D22 and D89).
 
 ### The participant state machine
 
@@ -269,7 +273,7 @@ properties of a row.
 -- Creation writes two tables atomically, and the author's roster row needs a
 -- timezone and a charity, neither of which is a column on `contests`.
 select public.create_contest(
-  p_title => 'Step Duel', p_metric => 'steps', p_cadence => 'daily',
+  p_title => 'Step Challenge', p_metric => 'steps', p_cadence => 'daily',
   p_target_value => 10000, p_stake_cents => 2500,
   p_starts_at => now() + interval '1 day',
   p_ends_at   => now() + interval '8 days',
@@ -877,16 +881,21 @@ implementation gates, and work not yet reflected here are in PLAN.md.
       deadline/retention operations
 - [ ] **M8** — Product iOS program remains in progress
   - [x] **M8.1 repository slice** — Product target, native Apple-auth exchange,
-        onboarding, exact-handle friendships, atomic one-to-one duel
+        onboarding, exact-handle friendships, atomic challenge
         creation/invitation/acceptance, four-tab navigation, fixtures, and
         green PR #11 product/conformance Xcode CI; a signed iPhone
         install/auth/profile-reload observation now passes, while the
         Apple-name prefill and two-user staging proof remain open
-  - [x] **M8.2a pending duel durability** — Versioned, per-actor protected
+  - [x] **M8.2a pending challenge durability** — Versioned, per-actor protected
         storage preserves canonical immutable terms and the request UUID before
         an attempt; ambiguous responses survive relaunch for explicit
         same-request retry, while corruption, changed records, account
         transitions, and a second request fail closed
+  - [x] **M8.3a challenge creation** — Explicitly select 1–19 accepted friends,
+        review the complete closed roster, and submit one canonical
+        `create_contest_with_invites_v1` request; version-2 persistence migrates
+        version-1 single-invite saved-duel records without changing their
+        request identity or timestamps
   - [ ] **Later M8** — HealthKit, Core Location, product App Attest, durable
         inbox/APNs, evidence persistence, live M7 result/settlement/dispute
         screens, accessibility hardening, and privacy/App Store work

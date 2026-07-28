@@ -64,14 +64,15 @@ the affected app before continuing.
    the friend request, force-quit, relaunch, and verify it reloads as outgoing.
 4. As B, relaunch, verify the request is incoming, accept it, force-quit, and
    relaunch. Relaunch A as well; both users must see the accepted relationship.
-5. As A, create a one-to-one duel using one of the four backend metrics,
-   daily or cumulative cadence, future dates, a valid target, staging pledge,
-   charity, and tie-break. Confirm the review screen presents immutable terms
-   before submission.
+5. As A, create a challenge for B using one of the four backend metrics, daily
+   or cumulative cadence, future dates, a valid target, staging pledge,
+   charity, and tie-break. Confirm the review screen presents B and every
+   immutable term before submission.
 6. Simulate a lost response after the server commits the creation request.
    To make this deterministic, set an Xcode breakpoint on
-   `SupabaseContestsClient.createDuel` immediately after the awaited RPC returns
-   its `contestID` and before the method returns it to `AppModel`. Submit once;
+   `SupabaseContestsClient.createChallenge` immediately after the awaited RPC
+   returns its `contestID` and before the method returns it to `AppModel`.
+   Submit once;
    when the breakpoint proves the server response arrived, stop the process in
    Xcode without continuing. Relaunch A, confirm the app shows a saved request
    and did not retry automatically, then open its immutable review. Verify the
@@ -85,6 +86,11 @@ the affected app before continuing.
    choose B’s charity, and accept.
 9. Force-quit and relaunch both apps. Confirm both users see the same pending
    contest UUID and roster state, with no duplicate contest.
+
+M8.3a's repository tests additionally select two friends, verify the complete
+three-person review, and prove that both invitations travel through one atomic
+RPC. This two-account staging gate does not claim a live multi-friend
+observation.
 
 ## Required failure observations
 
@@ -106,6 +112,7 @@ the affected app before continuing.
 | Single-user native auth/onboarding/relaunch | Partial | Install, Apple identity, profile, live shell, and relaunch passed; Apple-name prefill remains open |
 | Two-user force-quit/reload loop | Open | Record dated observation |
 | Same-request duplicate proof in staging | Open | Record contest/request UUIDs and bounded database observation |
+| Live multi-friend challenge | Open beyond M8.1 | Record a separate three-account observation before making a live multi-select claim |
 
 M8.1 is complete only when every row is closed. Full M8 remains in progress
 until sensors, App Attest, durable inbox/APNs, finalization, settlement,

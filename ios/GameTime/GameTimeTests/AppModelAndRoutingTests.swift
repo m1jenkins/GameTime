@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import GameTime
 
 @MainActor
@@ -52,13 +53,13 @@ final class AppModelAndRoutingTests: XCTestCase {
                 arguments: [
                     "GameTimeTests",
                     "--fixture-mode",
-                    "--fixture-pending-duel",
+                    "--fixture-pending-challenge",
                 ]
             )
         )
         await model.start()
         XCTAssertFalse(model.contests.isEmpty)
-        XCTAssertNotNil(model.pendingDuel)
+        XCTAssertNotNil(model.pendingChallenge)
         model.presentedError = "Private prior-session error"
 
         await model.signOut()
@@ -70,8 +71,8 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertTrue(model.contests.isEmpty)
         XCTAssertTrue(model.charities.isEmpty)
         XCTAssertNil(model.exactHandleResult)
-        XCTAssertNil(model.pendingDuel)
-        XCTAssertFalse(model.hasPendingDuelRecoveryIssue)
+        XCTAssertNil(model.pendingChallenge)
+        XCTAssertFalse(model.hasPendingChallengeRecoveryIssue)
         XCTAssertNil(model.presentedError)
     }
 
@@ -82,7 +83,7 @@ final class AppModelAndRoutingTests: XCTestCase {
         router.challengesPath = [.contest(UUID())]
         router.friendsPath = [.profile(UUID())]
         router.youPath = [.trustAndPrivacy]
-        router.presentedSheet = .createDuel
+        router.presentedSheet = .createChallenge
 
         router.reset()
 
@@ -172,18 +173,18 @@ final class AppModelAndRoutingTests: XCTestCase {
         await model.start()
 
         let originalCount = model.contests.count
-        var draft = DuelDraft()
-        draft.title = "Locked duel"
-        draft.inviteeID = try XCTUnwrap(
-            model.acceptedFriendships.first?.otherUserID
+        var draft = ChallengeDraft()
+        draft.title = "Locked challenge"
+        draft.inviteeIDs = Set(
+            model.acceptedFriendships.map(\.otherUserID)
         )
         draft.charityID = try XCTUnwrap(model.charities.first?.id)
         let terms = try draft.validated()
 
-        let createdID = await model.createDuel(terms)
+        let createdID = await model.createChallenge(terms)
         XCTAssertNil(createdID)
         XCTAssertEqual(model.contests.count, originalCount)
-        XCTAssertNil(model.pendingDuel)
+        XCTAssertNil(model.pendingChallenge)
 
         let invitation = try XCTUnwrap(model.invitations.first)
         let charityID = try XCTUnwrap(model.charities.first?.id)
@@ -204,20 +205,20 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertNotNil(model.presentedError)
     }
 
-    func testLostResponsePersistsAndRelaunchRetriesTheSameDuel() async throws {
+    func testLostResponsePersistsAndRelaunchRetriesTheSameChallenge() async throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         addTeardownBlock {
             try? FileManager.default.removeItem(at: directory)
         }
-        let pendingStore = FilePendingDuelStore(directoryURL: directory)
+        let pendingStore = FilePendingChallengeStore(directoryURL: directory)
         let services = FixtureServicesFactory.make(
             arguments: [
                 "GameTimeTests",
                 "--fixture-mode",
-                "--fixture-lost-duel-response",
+                "--fixture-lost-challenge-response",
             ],
-            pendingDuelStore: pendingStore
+            pendingChallengeStore: pendingStore
         )
         let firstModel = AppModel(
             configuration: .fixture,
@@ -225,15 +226,15 @@ final class AppModelAndRoutingTests: XCTestCase {
         )
         await firstModel.start()
 
-        var draft = DuelDraft()
+        var draft = ChallengeDraft()
         draft.title = "Persisted lost response"
-        draft.inviteeID = try XCTUnwrap(
-            firstModel.acceptedFriendships.first?.otherUserID
+        draft.inviteeIDs = Set(
+            firstModel.acceptedFriendships.map(\.otherUserID)
         )
         draft.charityID = try XCTUnwrap(firstModel.charities.first?.id)
         let terms = try draft.validated()
 
-        let firstCreatedID = await firstModel.createDuel(terms)
+        let firstCreatedID = await firstModel.createChallenge(terms)
         XCTAssertNil(firstCreatedID)
         XCTAssertTrue(
             firstModel.presentedError?.localizedCaseInsensitiveContains(
@@ -256,13 +257,13 @@ final class AppModelAndRoutingTests: XCTestCase {
             services: services
         )
         await relaunchedModel.start()
-        let restored = try XCTUnwrap(relaunchedModel.pendingDuel)
+        let restored = try XCTUnwrap(relaunchedModel.pendingChallenge)
         XCTAssertEqual(restored.terms.requestID, terms.requestID)
         XCTAssertEqual(restored.terms, terms)
 
-        let createdID = await relaunchedModel.createDuel(restored.terms)
+        let createdID = await relaunchedModel.createChallenge(restored.terms)
         XCTAssertNotNil(createdID)
-        XCTAssertNil(relaunchedModel.pendingDuel)
+        XCTAssertNil(relaunchedModel.pendingChallenge)
         let clearedSubmission = try await pendingStore.load(
             for: try XCTUnwrap(relaunchedModel.userID)
         )
@@ -276,7 +277,7 @@ final class AppModelAndRoutingTests: XCTestCase {
     }
 
     func testUnreadablePendingRecordBlocksContestRPC() async {
-        let pendingStore = TestPendingDuelStore(
+        let pendingStore = TestPendingChallengeStore(
             submission: nil,
             loadError: .corruptData
         )
@@ -285,25 +286,25 @@ final class AppModelAndRoutingTests: XCTestCase {
             configuration: .fixture,
             services: FixtureServicesFactory.make(
                 arguments: ["GameTimeTests", "--fixture-mode"],
-                pendingDuelStore: pendingStore,
+                pendingChallengeStore: pendingStore,
                 contestsClient: contests
             )
         )
         await model.start()
 
-        XCTAssertTrue(model.hasPendingDuelRecoveryIssue)
-        let createdID = await model.createDuel(makeTerms())
+        XCTAssertTrue(model.hasPendingChallengeRecoveryIssue)
+        let createdID = await model.createChallenge(makeTerms())
         XCTAssertNil(createdID)
         XCTAssertEqual(contests.createCallCount, 0)
     }
 
-    func testDifferentRequestIsBlockedWhilePendingDuelExists() async {
+    func testDifferentRequestIsBlockedWhilePendingChallengeExists() async {
         let ownerID = UUID(
             uuidString: "11111111-1111-1111-1111-111111111111"
         )!
         let pendingTerms = makeTerms()
-        let pendingStore = TestPendingDuelStore(
-            submission: PendingDuelSubmission(
+        let pendingStore = TestPendingChallengeStore(
+            submission: PendingChallengeSubmission(
                 ownerID: ownerID,
                 terms: pendingTerms,
                 createdAt: Date(),
@@ -316,36 +317,37 @@ final class AppModelAndRoutingTests: XCTestCase {
             configuration: .fixture,
             services: FixtureServicesFactory.make(
                 arguments: ["GameTimeTests", "--fixture-mode"],
-                pendingDuelStore: pendingStore,
+                pendingChallengeStore: pendingStore,
                 contestsClient: contests
             )
         )
         await model.start()
 
-        XCTAssertEqual(model.pendingDuel?.terms, pendingTerms)
-        let createdID = await model.createDuel(makeTerms())
+        XCTAssertEqual(model.pendingChallenge?.terms, pendingTerms)
+        let createdID = await model.createChallenge(makeTerms())
         XCTAssertNil(createdID)
         XCTAssertEqual(contests.createCallCount, 0)
     }
 
-    func testCancellationRetainsPendingDuelWithoutAnErrorAlert() async throws {
-        let pendingStore = TestPendingDuelStore(submission: nil)
+    func testCancellationRetainsPendingChallengeWithoutAnErrorAlert() async throws {
+        let pendingStore = TestPendingChallengeStore(submission: nil)
         let contests = RecordingContestsClient(behavior: .cancel)
         let model = AppModel(
             configuration: .fixture,
             services: FixtureServicesFactory.make(
                 arguments: ["GameTimeTests", "--fixture-mode"],
-                pendingDuelStore: pendingStore,
+                pendingChallengeStore: pendingStore,
                 contestsClient: contests
             )
         )
         await model.start()
         let terms = makeTerms()
 
-        let createdID = await model.createDuel(terms)
+        let createdID = await model.createChallenge(terms)
 
         XCTAssertNil(createdID)
         XCTAssertEqual(contests.createCallCount, 1)
+        XCTAssertEqual(contests.submittedTerms, [terms])
         XCTAssertNil(model.presentedError)
         let restored = try await pendingStore.load(
             for: try XCTUnwrap(model.userID)
@@ -354,12 +356,12 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertEqual(restored?.attemptCount, 1)
     }
 
-    func testDiscardClearsSavedRetryAndUnlocksAReplacementDuel() async throws {
+    func testDiscardClearsSavedRetryAndUnlocksAReplacementChallenge() async throws {
         let ownerID = UUID(
             uuidString: "11111111-1111-1111-1111-111111111111"
         )!
-        let pendingStore = TestPendingDuelStore(
-            submission: PendingDuelSubmission(
+        let pendingStore = TestPendingChallengeStore(
+            submission: PendingChallengeSubmission(
                 ownerID: ownerID,
                 terms: makeTerms(),
                 createdAt: Date().addingTimeInterval(-30),
@@ -372,26 +374,26 @@ final class AppModelAndRoutingTests: XCTestCase {
             configuration: .fixture,
             services: FixtureServicesFactory.make(
                 arguments: ["GameTimeTests", "--fixture-mode"],
-                pendingDuelStore: pendingStore,
+                pendingChallengeStore: pendingStore,
                 contestsClient: contests
             )
         )
         await model.start()
 
-        XCTAssertNotNil(model.pendingDuel)
-        let discarded = await model.discardPendingDuel()
+        XCTAssertNotNil(model.pendingChallenge)
+        let discarded = await model.discardPendingChallenge()
         XCTAssertTrue(discarded)
-        XCTAssertNil(model.pendingDuel)
-        XCTAssertFalse(model.hasPendingDuelRecoveryIssue)
+        XCTAssertNil(model.pendingChallenge)
+        XCTAssertFalse(model.hasPendingChallengeRecoveryIssue)
         let storedAfterDiscard = try await pendingStore.load(for: ownerID)
         XCTAssertNil(storedAfterDiscard)
 
-        let replacementID = await model.createDuel(makeTerms())
+        let replacementID = await model.createChallenge(makeTerms())
         XCTAssertNotNil(replacementID)
         XCTAssertEqual(contests.createCallCount, 1)
     }
 
-    func testAccountSwitchCannotAttachAStalePendingDuel() async throws {
+    func testAccountSwitchCannotAttachAStalePendingChallenge() async throws {
         let firstOwnerID = UUID(
             uuidString: "11111111-1111-1111-1111-111111111111"
         )!
@@ -399,9 +401,9 @@ final class AppModelAndRoutingTests: XCTestCase {
             uuidString: "22222222-2222-2222-2222-222222222222"
         )!
         let auth = SwitchingAuthClient(initialUserID: firstOwnerID)
-        let pendingStore = BlockingPendingDuelStore(
+        let pendingStore = BlockingPendingChallengeStore(
             blockedOwnerID: firstOwnerID,
-            submission: PendingDuelSubmission(
+            submission: PendingChallengeSubmission(
                 ownerID: firstOwnerID,
                 terms: makeTerms(),
                 createdAt: Date().addingTimeInterval(-30),
@@ -419,7 +421,7 @@ final class AppModelAndRoutingTests: XCTestCase {
                 profiles: AnyActorProfileClient(),
                 friendships: fixture.friendships,
                 contests: fixture.contests,
-                pendingDuels: pendingStore
+                pendingChallenges: pendingStore
             )
         )
 
@@ -438,8 +440,8 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertEqual(model.userID, secondOwnerID)
         XCTAssertEqual(model.phase, .signedIn)
         XCTAssertEqual(model.profile?.id, secondOwnerID)
-        XCTAssertNil(model.pendingDuel)
-        XCTAssertFalse(model.hasPendingDuelRecoveryIssue)
+        XCTAssertNil(model.pendingChallenge)
+        XCTAssertFalse(model.hasPendingChallengeRecoveryIssue)
     }
 
     func testDiscardRefusesAStaleLoadedActor() async throws {
@@ -450,8 +452,8 @@ final class AppModelAndRoutingTests: XCTestCase {
             uuidString: "22222222-2222-2222-2222-222222222222"
         )!
         let auth = SwitchingAuthClient(initialUserID: firstOwnerID)
-        let pendingStore = TestPendingDuelStore(
-            submission: PendingDuelSubmission(
+        let pendingStore = TestPendingChallengeStore(
+            submission: PendingChallengeSubmission(
                 ownerID: firstOwnerID,
                 terms: makeTerms(),
                 createdAt: Date().addingTimeInterval(-30),
@@ -469,14 +471,14 @@ final class AppModelAndRoutingTests: XCTestCase {
                 profiles: AnyActorProfileClient(),
                 friendships: fixture.friendships,
                 contests: fixture.contests,
-                pendingDuels: pendingStore
+                pendingChallenges: pendingStore
             )
         )
         await model.start()
-        XCTAssertEqual(model.pendingDuel?.ownerID, firstOwnerID)
+        XCTAssertEqual(model.pendingChallenge?.ownerID, firstOwnerID)
 
         auth.setCurrentUserWithoutPublishing(secondOwnerID)
-        let discarded = await model.discardPendingDuel()
+        let discarded = await model.discardPendingChallenge()
 
         XCTAssertFalse(discarded)
         XCTAssertTrue(
@@ -496,7 +498,7 @@ final class AppModelAndRoutingTests: XCTestCase {
         addTeardownBlock {
             try? FileManager.default.removeItem(at: directory)
         }
-        let store = FilePendingDuelStore(directoryURL: directory)
+        let store = FilePendingChallengeStore(directoryURL: directory)
         let ownerID = UUID(
             uuidString: "11111111-1111-1111-1111-111111111111"
         )!
@@ -506,7 +508,7 @@ final class AppModelAndRoutingTests: XCTestCase {
         let terms = makeTerms()
         let now = Date()
         try await store.save(
-            PendingDuelSubmission(
+            PendingChallengeSubmission(
                 ownerID: ownerID,
                 terms: terms,
                 createdAt: now.addingTimeInterval(-30),
@@ -518,15 +520,15 @@ final class AppModelAndRoutingTests: XCTestCase {
             configuration: .fixture,
             services: FixtureServicesFactory.make(
                 arguments: ["GameTimeTests", "--fixture-mode"],
-                pendingDuelStore: store
+                pendingChallengeStore: store
             )
         )
         await model.start()
-        XCTAssertEqual(model.pendingDuel?.terms, terms)
+        XCTAssertEqual(model.pendingChallenge?.terms, terms)
 
         await model.signOut()
 
-        XCTAssertNil(model.pendingDuel)
+        XCTAssertNil(model.pendingChallenge)
         let savedOwnerSubmission = try await store.load(for: ownerID)
         let otherOwnerSubmission = try await store.load(for: otherOwnerID)
         XCTAssertNotNil(savedOwnerSubmission)
@@ -540,7 +542,7 @@ final class AppModelAndRoutingTests: XCTestCase {
             )
         )
         XCTAssertEqual(model.phase, .signedIn)
-        XCTAssertEqual(model.pendingDuel?.terms, terms)
+        XCTAssertEqual(model.pendingChallenge?.terms, terms)
     }
 
     private func assertClientBoundary(_ services: AppServices) {
@@ -549,19 +551,24 @@ final class AppModelAndRoutingTests: XCTestCase {
             services.profiles,
             services.friendships,
             services.contests,
-            services.pendingDuels,
+            services.pendingChallenges,
         ]
         XCTAssertEqual(clients.count, 5)
     }
 
-    private func makeTerms(requestID: UUID = UUID()) -> DuelTerms {
+    private func makeTerms(requestID: UUID = UUID()) -> ChallengeTerms {
         let startsAt = Date().addingTimeInterval(86_400)
-        return DuelTerms(
+        return ChallengeTerms(
             requestID: requestID,
             title: "Blocked duplicate proof",
-            inviteeID: UUID(
-                uuidString: "44444444-4444-4444-4444-444444444444"
-            )!,
+            inviteeIDs: [
+                UUID(
+                    uuidString: "44444444-4444-4444-4444-444444444444"
+                )!,
+                UUID(
+                    uuidString: "55555555-5555-5555-5555-555555555555"
+                )!,
+            ],
             metric: .steps,
             cadence: .cumulative,
             targetValue: 10_000,
@@ -577,19 +584,19 @@ final class AppModelAndRoutingTests: XCTestCase {
     }
 }
 
-private actor TestPendingDuelStore: PendingDuelStore {
-    private var submission: PendingDuelSubmission?
-    private let loadError: PendingDuelStoreError?
+private actor TestPendingChallengeStore: PendingChallengeStore {
+    private var submission: PendingChallengeSubmission?
+    private let loadError: PendingChallengeStoreError?
 
     init(
-        submission: PendingDuelSubmission?,
-        loadError: PendingDuelStoreError? = nil
+        submission: PendingChallengeSubmission?,
+        loadError: PendingChallengeStoreError? = nil
     ) {
         self.submission = submission
         self.loadError = loadError
     }
 
-    func load(for ownerID: UUID) throws -> PendingDuelSubmission? {
+    func load(for ownerID: UUID) throws -> PendingChallengeSubmission? {
         if let loadError {
             throw loadError
         }
@@ -598,7 +605,7 @@ private actor TestPendingDuelStore: PendingDuelStore {
         return submission
     }
 
-    func save(_ submission: PendingDuelSubmission) throws {
+    func save(_ submission: PendingChallengeSubmission) throws {
         try submission.validate(for: submission.ownerID)
         self.submission = submission
     }
@@ -609,9 +616,9 @@ private actor TestPendingDuelStore: PendingDuelStore {
     }
 }
 
-private actor BlockingPendingDuelStore: PendingDuelStore {
+private actor BlockingPendingChallengeStore: PendingChallengeStore {
     private let blockedOwnerID: UUID
-    private var submission: PendingDuelSubmission?
+    private var submission: PendingChallengeSubmission?
     private var blockedLoadStarted = false
     private var blockedLoadReleased = false
     private var startWaiters: [CheckedContinuation<Void, Never>] = []
@@ -619,13 +626,13 @@ private actor BlockingPendingDuelStore: PendingDuelStore {
 
     init(
         blockedOwnerID: UUID,
-        submission: PendingDuelSubmission?
+        submission: PendingChallengeSubmission?
     ) {
         self.blockedOwnerID = blockedOwnerID
         self.submission = submission
     }
 
-    func load(for ownerID: UUID) async throws -> PendingDuelSubmission? {
+    func load(for ownerID: UUID) async throws -> PendingChallengeSubmission? {
         if ownerID == blockedOwnerID {
             if !blockedLoadStarted {
                 blockedLoadStarted = true
@@ -647,7 +654,7 @@ private actor BlockingPendingDuelStore: PendingDuelStore {
         return submission
     }
 
-    func save(_ submission: PendingDuelSubmission) throws {
+    func save(_ submission: PendingChallengeSubmission) throws {
         try submission.validate(for: submission.ownerID)
         self.submission = submission
     }
@@ -758,6 +765,7 @@ private final class RecordingContestsClient: ContestsClient {
     }
 
     private(set) var createCallCount = 0
+    private(set) var submittedTerms: [ChallengeTerms] = []
     private let behavior: Behavior
 
     init(behavior: Behavior = .succeed) {
@@ -773,13 +781,13 @@ private final class RecordingContestsClient: ContestsClient {
         []
     }
 
-    func createDuel(
-        _ terms: DuelTerms,
+    func createChallenge(
+        _ terms: ChallengeTerms,
         expectedUserID: UUID
     ) async throws -> UUID {
-        _ = terms
         _ = expectedUserID
         createCallCount += 1
+        submittedTerms.append(terms)
         if behavior == .cancel {
             throw CancellationError()
         }

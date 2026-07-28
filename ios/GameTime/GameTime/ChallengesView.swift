@@ -11,10 +11,10 @@ struct ChallengesView: View {
         }
     }
 
-    private var canOpenDuelFlow: Bool {
+    private var canOpenChallengeFlow: Bool {
         model.configuration.contestMutationsEnabled
-            && !model.hasPendingDuelRecoveryIssue
-            && (model.pendingDuel != nil
+            && !model.hasPendingChallengeRecoveryIssue
+            && (model.pendingChallenge != nil
                 || !model.acceptedFriendships.isEmpty)
     }
 
@@ -32,52 +32,57 @@ struct ChallengesView: View {
                 .listRowBackground(CompetitiveTrustTheme.raisedInk)
             }
 
-            if let pendingDuel = model.pendingDuel {
+            if let pendingChallenge = model.pendingChallenge {
                 Section("Saved request") {
                     VStack(alignment: .leading, spacing: 10) {
                         TrustStatusPill(
-                            text: model.hasPendingDuelRecoveryIssue
+                            text: model.hasPendingChallengeRecoveryIssue
                                 ? "Protected storage needs attention"
                                 : "Explicit retry required",
                             kind: .action
                         )
-                        Text(pendingDuel.terms.title)
+                        Text(pendingChallenge.terms.title)
                             .font(.headline)
                         Text(
-                            model.hasPendingDuelRecoveryIssue
+                            "\(pendingChallenge.terms.inviteeIDs.count) \(pendingChallenge.terms.inviteeIDs.count == 1 ? "friend" : "friends") invited"
+                        )
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        Text(
+                            model.hasPendingChallengeRecoveryIssue
                                 ? "GameTime kept the saved request, but protected storage must recover before it can be retried safely."
                                 : "GameTime kept the exact immutable terms and request ID after an unconfirmed response. It will never retry automatically."
                         )
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
-                        if model.hasPendingDuelRecoveryIssue {
+                        if model.hasPendingChallengeRecoveryIssue {
                             Button("Try protected storage again") {
                                 Task {
-                                    await model.retryPendingDuelRecovery()
+                                    await model.retryPendingChallengeRecovery()
                                 }
                             }
                             .buttonStyle(TrustSecondaryButtonStyle())
                             .disabled(model.isMutating)
                             .accessibilityIdentifier(
-                                "duel.pending.retry-storage"
+                                "challenge.pending.retry-storage"
                             )
                         }
 
                         Button {
-                            router.presentedSheet = .createDuel
+                            router.presentedSheet = .createChallenge
                         } label: {
                             Label(
-                                "Review saved duel",
+                                "Review saved challenge",
                                 systemImage: "arrow.clockwise"
                             )
                         }
                         .buttonStyle(TrustPrimaryButtonStyle())
                         .disabled(
                             model.isMutating
-                                || model.hasPendingDuelRecoveryIssue
+                                || model.hasPendingChallengeRecoveryIssue
                         )
-                        .accessibilityIdentifier("duel.pending.resume")
+                        .accessibilityIdentifier("challenge.pending.resume")
 
                         Button(
                             "Discard local retry record",
@@ -87,16 +92,16 @@ struct ChallengesView: View {
                         }
                         .disabled(model.isMutating)
                         .accessibilityIdentifier(
-                            "duel.pending.discard-list"
+                            "challenge.pending.discard-list"
                         )
                     }
                     .padding(.vertical, 6)
                 }
                 .listRowBackground(CompetitiveTrustTheme.raisedInk)
-            } else if model.hasPendingDuelRecoveryIssue {
+            } else if model.hasPendingChallengeRecoveryIssue {
                 Section("Saved request needs attention") {
                     Label(
-                        "GameTime could not validate protected retry storage. New duel requests stay locked to avoid accidental duplicates.",
+                        "GameTime could not validate protected retry storage. New challenge requests stay locked to avoid accidental duplicates.",
                         systemImage: "exclamationmark.shield"
                     )
                     .font(.subheadline)
@@ -104,12 +109,12 @@ struct ChallengesView: View {
 
                     Button("Try protected storage again") {
                         Task {
-                            await model.retryPendingDuelRecovery()
+                            await model.retryPendingChallengeRecovery()
                         }
                     }
                     .buttonStyle(TrustSecondaryButtonStyle())
                     .disabled(model.isMutating)
-                    .accessibilityIdentifier("duel.pending.retry-storage")
+                    .accessibilityIdentifier("challenge.pending.retry-storage")
 
                     Button(
                         "Discard unreadable local retry",
@@ -118,7 +123,7 @@ struct ChallengesView: View {
                         showingDiscardConfirmation = true
                     }
                     .disabled(model.isMutating)
-                    .accessibilityIdentifier("duel.pending.discard-list")
+                    .accessibilityIdentifier("challenge.pending.discard-list")
                 }
                 .listRowBackground(CompetitiveTrustTheme.raisedInk)
             }
@@ -135,7 +140,7 @@ struct ChallengesView: View {
             }
 
             if !model.activeAndUpcomingContests.isEmpty {
-                Section("Your duels") {
+                Section("Your challenges") {
                     ForEach(model.activeAndUpcomingContests) { contest in
                         ContestCardRow(contest: contest) {
                             router.challengesPath.append(.contest(contest.id))
@@ -158,9 +163,9 @@ struct ChallengesView: View {
 
             if model.contests.isEmpty, model.loadState != .loading {
                 EmptyTrustState(
-                    title: "No duels yet",
+                    title: "No challenges yet",
                     message:
-                        "Create a one-to-one challenge with an accepted friend. Terms stay fixed after submission.",
+                        "Create a challenge with one or more accepted friends. Terms stay fixed after submission.",
                     systemImage: "flag.checkered"
                 )
                 .listRowBackground(Color.clear)
@@ -169,35 +174,35 @@ struct ChallengesView: View {
 
             Section {
                 Button {
-                    router.presentedSheet = .createDuel
+                    router.presentedSheet = .createChallenge
                 } label: {
                     Label(
-                        model.pendingDuel == nil
-                            ? "Create a duel"
-                            : "Review saved duel",
-                        systemImage: model.pendingDuel == nil
+                        model.pendingChallenge == nil
+                            ? "Create a challenge"
+                            : "Review saved challenge",
+                        systemImage: model.pendingChallenge == nil
                             ? "plus"
                             : "arrow.clockwise"
                     )
                 }
                 .buttonStyle(TrustPrimaryButtonStyle())
-                .disabled(!canOpenDuelFlow)
+                .disabled(!canOpenChallengeFlow)
                 .accessibilityIdentifier("challenge.create")
                 .listRowBackground(Color.clear)
             } footer: {
-                if model.hasPendingDuelRecoveryIssue {
+                if model.hasPendingChallengeRecoveryIssue {
                     Text(
                         "Discard the unreadable retry only after confirming you want to abandon its idempotency key."
                     )
-                } else if model.pendingDuel != nil {
+                } else if model.pendingChallenge != nil {
                     Text(
-                        "Resume reuses the saved request UUID and terms. Starting a second duel is blocked until this request is confirmed or discarded."
+                        "Resume reuses the saved request UUID and terms. Starting a second challenge is blocked until this request is confirmed or discarded."
                     )
                 } else if model.acceptedFriendships.isEmpty {
-                    Text("Accept a friendship before creating a duel.")
+                    Text("Accept a friendship before creating a challenge.")
                 } else {
                     Text(
-                        "M8.1 sends one invitation. No group contest or real pledge is enabled."
+                        "Choose up to \(ChallengeTerms.maximumInvitees) friends. One atomic request creates the challenge and every invitation. No real pledge is enabled."
                     )
                 }
             }
@@ -211,19 +216,19 @@ struct ChallengesView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    router.presentedSheet = .createDuel
+                    router.presentedSheet = .createChallenge
                 } label: {
                     Image(
-                        systemName: model.pendingDuel == nil
+                        systemName: model.pendingChallenge == nil
                             ? "plus"
                             : "arrow.clockwise"
                     )
                 }
-                .disabled(!canOpenDuelFlow)
+                .disabled(!canOpenChallengeFlow)
                 .accessibilityLabel(
-                    model.pendingDuel == nil
-                        ? "Create a duel"
-                        : "Review saved duel"
+                    model.pendingChallenge == nil
+                        ? "Create a challenge"
+                        : "Review saved challenge"
                 )
             }
         }
@@ -234,20 +239,20 @@ struct ChallengesView: View {
         ) {
             Button("Discard local retry", role: .destructive) {
                 Task {
-                    _ = await model.discardPendingDuel()
+                    _ = await model.discardPendingChallenge()
                 }
             }
             Button("Keep saved request", role: .cancel) {}
         } message: {
             Text(
-                "This deletes only the on-device retry record; it does not cancel a contest or invitation the server may already have created. Starting over after a committed request can create a second duel."
+                "This deletes only the on-device retry record; it does not cancel a contest or invitation the server may already have created. Starting over after a committed request can create a second challenge."
             )
         }
     }
 }
 
-private extension View {
-    func challengeListRow() -> some View {
+extension View {
+    fileprivate func challengeListRow() -> some View {
         padding(.vertical, 3)
             .listRowInsets(
                 EdgeInsets(

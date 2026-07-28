@@ -1,15 +1,17 @@
 import SwiftUI
 
-struct CreateDuelFlow: View {
+// MARK: - Challenge creation
+
+struct CreateChallengeFlow: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppModel.self) private var model
     @Environment(AppRouter.self) private var router
-    @State private var draft = DuelDraft()
-    @State private var reviewedTerms: DuelTerms?
+    @State private var draft = ChallengeDraft()
+    @State private var reviewedTerms: ChallengeTerms?
     @State private var showingDiscardConfirmation = false
 
-    private var activeReviewedTerms: DuelTerms? {
-        model.pendingDuel?.terms ?? reviewedTerms
+    private var activeReviewedTerms: ChallengeTerms? {
+        model.pendingChallenge?.terms ?? reviewedTerms
     }
 
     var body: some View {
@@ -28,7 +30,7 @@ struct CreateDuelFlow: View {
         ) {
             Button("Discard local retry", role: .destructive) {
                 Task {
-                    if await model.discardPendingDuel() {
+                    if await model.discardPendingChallenge() {
                         reviewedTerms = nil
                         resetDraft()
                     }
@@ -37,27 +39,45 @@ struct CreateDuelFlow: View {
             Button("Keep saved request", role: .cancel) {}
         } message: {
             Text(
-                "This deletes only the on-device retry record; it does not cancel a contest or invitation the server may already have created. Starting over after a committed request can create a second duel."
+                "This deletes only the on-device retry record; it does not cancel a contest or invitation the server may already have created. Starting over after a committed request can create a second challenge."
             )
         }
     }
 
     private var editor: some View {
         Form {
-            Section("Opponent") {
-                Picker("Friend", selection: $draft.inviteeID) {
-                    Text("Choose a friend").tag(UUID?.none)
-                    ForEach(model.acceptedFriendships) { card in
-                        Text("\(card.displayName) · @\(card.handle)")
-                            .tag(Optional(card.otherUserID))
+            Section {
+                ForEach(model.acceptedFriendships) { card in
+                    Toggle(
+                        isOn: inviteeSelection(for: card.otherUserID)
+                    ) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(card.displayName)
+                            Text("@\(card.handle)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                    .disabled(
+                        !draft.inviteeIDs.contains(card.otherUserID)
+                            && draft.inviteeIDs.count
+                                >= ChallengeTerms.maximumInvitees
+                    )
+                    .accessibilityIdentifier(
+                        "challenge.invitee.\(card.otherUserID.uuidString.lowercased())"
+                    )
                 }
-                .accessibilityIdentifier("duel.opponent")
+            } header: {
+                Text("Friends")
+            } footer: {
+                Text(
+                    "\(draft.inviteeIDs.count) selected · Choose up to \(ChallengeTerms.maximumInvitees). Every invitation is submitted together or none are."
+                )
             }
 
             Section("Challenge") {
-                TextField("Duel title", text: $draft.title)
-                    .accessibilityIdentifier("duel.title")
+                TextField("Challenge title", text: $draft.title)
+                    .accessibilityIdentifier("challenge.title")
 
                 Picker("Metric", selection: $draft.metric) {
                     ForEach(ContestMetric.allCases) { metric in
@@ -151,12 +171,12 @@ struct CreateDuelFlow: View {
                     }
                 }
                 .buttonStyle(TrustPrimaryButtonStyle())
-                .accessibilityIdentifier("duel.review")
+                .accessibilityIdentifier("challenge.review")
             }
             .listRowBackground(Color.clear)
         }
         .trustScreenBackground()
-        .navigationTitle("Create duel")
+        .navigationTitle("Create challenge")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -164,16 +184,13 @@ struct CreateDuelFlow: View {
             }
         }
         .onAppear {
-            if draft.inviteeID == nil {
-                draft.inviteeID = model.acceptedFriendships.first?.otherUserID
-            }
             if draft.charityID == nil {
                 draft.charityID = model.charities.first?.id
             }
         }
     }
 
-    private func review(terms: DuelTerms) -> some View {
+    private func review(terms: ChallengeTerms) -> some View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 10) {
@@ -181,7 +198,7 @@ struct CreateDuelFlow: View {
                     Text(terms.title)
                         .font(.title2.bold())
                     Text(
-                        "Check every term. Submission creates the contest and invitation in one atomic request."
+                        "Check every term. Submission creates one contest and \(terms.inviteeIDs.count) \(terms.inviteeIDs.count == 1 ? "invitation" : "invitations") in a single atomic request."
                     )
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -191,10 +208,14 @@ struct CreateDuelFlow: View {
             .listRowBackground(CompetitiveTrustTheme.raisedInk)
 
             Section("Immutable terms") {
-                TermRow(
-                    label: "Opponent",
-                    value: opponentName(for: terms.inviteeID)
-                )
+                ForEach(terms.inviteeIDs, id: \.self) { inviteeID in
+                    TermRow(
+                        label: terms.inviteeIDs.count == 1
+                            ? "Friend"
+                            : "Invited friend",
+                        value: friendName(for: inviteeID)
+                    )
+                }
                 TermRow(label: "Metric", value: terms.metric.title)
                 TermRow(label: "Cadence", value: terms.cadence.title)
                 TermRow(
@@ -227,7 +248,10 @@ struct CreateDuelFlow: View {
                     value: charityName(for: terms.charityID)
                 )
                 TermRow(label: "Tie-break", value: terms.tieBreak.title)
-                TermRow(label: "Roster", value: "2 people")
+                TermRow(
+                    label: "Roster",
+                    value: "\(terms.maxParticipants) people"
+                )
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Request ID")
                         .foregroundStyle(.secondary)
@@ -236,14 +260,14 @@ struct CreateDuelFlow: View {
                         .textSelection(.enabled)
                 }
                 .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("duel.request-id")
+                .accessibilityIdentifier("challenge.request-id")
             }
             .listRowBackground(CompetitiveTrustTheme.raisedInk)
 
             Section {
                 Button {
                     Task {
-                        if let id = await model.createDuel(terms) {
+                        if let id = await model.createChallenge(terms) {
                             router.selectedTab = .challenges
                             router.challengesPath = [.contest(id)]
                             dismiss()
@@ -253,16 +277,20 @@ struct CreateDuelFlow: View {
                     if model.isMutating {
                         ProgressView()
                             .frame(maxWidth: .infinity)
-                            .accessibilityLabel("Submitting duel")
+                            .accessibilityLabel("Submitting challenge")
                     } else {
-                        Text("Submit duel and invitation")
+                        Text(
+                            terms.inviteeIDs.count == 1
+                                ? "Submit challenge and invitation"
+                                : "Submit challenge and \(terms.inviteeIDs.count) invitations"
+                        )
                     }
                 }
                 .buttonStyle(TrustPrimaryButtonStyle())
                 .disabled(model.isMutating)
-                .accessibilityIdentifier("duel.submit")
+                .accessibilityIdentifier("challenge.submit")
 
-                if model.pendingDuel?.terms.requestID == terms.requestID {
+                if model.pendingChallenge?.terms.requestID == terms.requestID {
                     Button(
                         "Discard local retry record",
                         role: .destructive
@@ -271,7 +299,7 @@ struct CreateDuelFlow: View {
                     }
                     .disabled(model.isMutating)
                     .accessibilityIdentifier(
-                        "duel.pending.discard-review"
+                        "challenge.pending.discard-review"
                     )
                 } else {
                     Button("Back to edit") {
@@ -281,7 +309,7 @@ struct CreateDuelFlow: View {
                     .disabled(model.isMutating)
                 }
             } footer: {
-                if model.pendingDuel?.terms.requestID == terms.requestID {
+                if model.pendingChallenge?.terms.requestID == terms.requestID {
                     Text(
                         "This protected retry survives relaunch. Submit explicitly reuses the saved request UUID and immutable terms; GameTime never retries it automatically."
                     )
@@ -294,7 +322,7 @@ struct CreateDuelFlow: View {
             .listRowBackground(Color.clear)
         }
         .trustScreenBackground()
-        .navigationTitle("Review duel")
+        .navigationTitle("Review challenge")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -304,7 +332,28 @@ struct CreateDuelFlow: View {
         }
     }
 
-    private func opponentName(for id: UUID) -> String {
+    private func inviteeSelection(for id: UUID) -> Binding<Bool> {
+        Binding(
+            get: {
+                draft.inviteeIDs.contains(id)
+            },
+            set: { isSelected in
+                if isSelected {
+                    guard
+                        draft.inviteeIDs.count
+                            < ChallengeTerms.maximumInvitees
+                    else {
+                        return
+                    }
+                    draft.inviteeIDs.insert(id)
+                } else {
+                    draft.inviteeIDs.remove(id)
+                }
+            }
+        )
+    }
+
+    private func friendName(for id: UUID) -> String {
         model.acceptedFriendships.first { $0.otherUserID == id }?
             .displayName ?? "Account \(id.uuidString.lowercased())"
     }
@@ -315,8 +364,7 @@ struct CreateDuelFlow: View {
     }
 
     private func resetDraft() {
-        draft = DuelDraft()
-        draft.inviteeID = model.acceptedFriendships.first?.otherUserID
+        draft = ChallengeDraft()
         draft.charityID = model.charities.first?.id
     }
 }

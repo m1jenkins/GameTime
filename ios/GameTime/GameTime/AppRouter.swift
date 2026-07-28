@@ -31,12 +31,12 @@ enum YouRoute: Hashable {
 }
 
 enum SheetDestination: Identifiable, Hashable {
-    case createDuel
+    case createChallenge
     case acceptInvitation(UUID)
 
     var id: String {
         switch self {
-        case .createDuel: "create-duel"
+        case .createChallenge: "create-challenge"
         case .acceptInvitation(let id): "accept-\(id.uuidString)"
         }
     }

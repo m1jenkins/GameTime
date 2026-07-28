@@ -115,7 +115,7 @@ struct TrustAndPrivacyView: View {
                     systemImage: "at"
                 )
                 Label(
-                    "Immutable duel terms and caller-scoped retries",
+                    "Immutable challenge terms and caller-scoped retries",
                     systemImage: "doc.text.magnifyingglass"
                 )
             }

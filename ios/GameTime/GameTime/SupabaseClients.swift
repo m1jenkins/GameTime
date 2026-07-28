@@ -13,7 +13,7 @@ enum LiveServicesFactory {
             profiles: SupabaseProfileClient(client: client),
             friendships: SupabaseFriendshipsClient(client: client),
             contests: SupabaseContestsClient(client: client),
-            pendingDuels: try FilePendingDuelStore.applicationSupport()
+            pendingChallenges: try FilePendingChallengeStore.applicationSupport()
         )
     }
 }
@@ -243,8 +243,8 @@ final class SupabaseContestsClient: ContestsClient {
             .value
     }
 
-    func createDuel(
-        _ terms: DuelTerms,
+    func createChallenge(
+        _ terms: ChallengeTerms,
         expectedUserID: UUID
     ) async throws -> UUID {
         guard client.auth.currentSession?.user.id == expectedUserID else {
@@ -374,7 +374,7 @@ private struct ContestRow: Decodable {
     }
 }
 
-private struct CreateContestWithInvitesParameters: Encodable {
+struct CreateContestWithInvitesParameters: Encodable {
     let requestID: UUID
     let title: String
     let metric: ContestMetric
@@ -390,7 +390,7 @@ private struct CreateContestWithInvitesParameters: Encodable {
     let tieBreak: ContestTieBreak
     let groupID: UUID?
 
-    init(terms: DuelTerms) {
+    init(terms: ChallengeTerms) {
         requestID = terms.requestID
         title = terms.title
         metric = terms.metric
@@ -401,8 +401,8 @@ private struct CreateContestWithInvitesParameters: Encodable {
         endsAt = terms.endsAt
         timezone = terms.timezone
         charityID = terms.charityID
-        inviteeIDs = [terms.inviteeID]
-        maxParticipants = 2
+        inviteeIDs = terms.inviteeIDs
+        maxParticipants = terms.maxParticipants
         tieBreak = terms.tieBreak
         groupID = nil
     }

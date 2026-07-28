@@ -1,4 +1,5 @@
--- M8.1: bounded friendship reloads and one atomic, idempotent contest request.
+-- M8.1/M8.3a: bounded friendship reloads and one atomic, idempotent
+-- multi-friend challenge request.
 
 begin;
 select plan(44);
@@ -353,7 +354,7 @@ select throws_ok(
 select throws_ok(
   $$ select public.create_contest_with_invites_v1(
        'a5000000-0000-0000-0000-000000000001',
-       'Stale actor duel',
+       'Stale actor challenge',
        'steps',
        'cumulative',
        10000,
@@ -374,11 +375,31 @@ select throws_ok(
 -- ---------------------------------------------------------------------------
 
 reset role;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"81111111-1111-1111-1111-111111111111"}',
+  true
+);
 insert into public.charities (id, name, ein, slug) values (
   'ac000001-0000-0000-0000-000000000001',
   'M8 Test Charity',
   '11-1111111',
   'm8-test-charity'
+);
+insert into auth.users (id) values
+  ('a6666666-6666-6666-6666-666666666666');
+insert into public.profiles (id, handle, display_name, timezone) values
+  ('a6666666-6666-6666-6666-666666666666', 'm8frank', 'M8 Frank', 'UTC');
+insert into public.friendships (
+  user_a,
+  user_b,
+  requested_by,
+  status
+) values (
+  '81111111-1111-1111-1111-111111111111',
+  'a6666666-6666-6666-6666-666666666666',
+  '81111111-1111-1111-1111-111111111111',
+  'accepted'
 );
 
 set local role authenticated;
@@ -391,7 +412,7 @@ select set_config(
 create temporary table t_m8_contest as
 select public.create_contest_with_invites_v1(
   'a1000000-0000-0000-0000-000000000001',
-  'M8 duel',
+  'M8 challenge',
   'steps',
   'cumulative',
   10000,
@@ -400,8 +421,11 @@ select public.create_contest_with_invites_v1(
   '2098-01-03T00:00:00Z',
   'America/Chicago',
   'ac000001-0000-0000-0000-000000000001',
-  array['a4444444-4444-4444-4444-444444444444'::uuid],
-  2::smallint,
+  array[
+    'a6666666-6666-6666-6666-666666666666'::uuid,
+    'a4444444-4444-4444-4444-444444444444'::uuid
+  ],
+  3::smallint,
   'integrity_score',
   null
 ) as id;
@@ -429,8 +453,8 @@ select is(
     from public.contest_participants
     where contest_id = (select id from t_m8_contest)
   ),
-  2::bigint,
-  'the contest and complete duel roster commit together'
+  3::bigint,
+  'the contest and complete multi-friend challenge roster commit together'
 );
 
 select ok(
@@ -446,16 +470,20 @@ select ok(
   'the author is accepted with their frozen timezone and charity'
 );
 
-select ok(
-  exists (
-    select 1
+select is(
+  (
+    select count(*)
     from public.contest_participants
     where contest_id = (select id from t_m8_contest)
-      and user_id = 'a4444444-4444-4444-4444-444444444444'
+      and user_id in (
+        'a4444444-4444-4444-4444-444444444444',
+        'a6666666-6666-6666-6666-666666666666'
+      )
       and status = 'invited'
       and invited_by = '81111111-1111-1111-1111-111111111111'
   ),
-  'the invitee is pending on the same contest'
+  2::bigint,
+  'every selected friend is invited on the same contest'
 );
 
 select is(
@@ -479,7 +507,7 @@ select set_config(
 select is(
   public.create_contest_with_invites_v1(
     'a1000000-0000-0000-0000-000000000001',
-    'M8 duel',
+    'M8 challenge',
     'steps',
     'cumulative',
     10000.00,
@@ -488,8 +516,11 @@ select is(
     '2098-01-03T00:00:00+00:00',
     'America/Chicago',
     'ac000001-0000-0000-0000-000000000001',
-    array['a4444444-4444-4444-4444-444444444444'::uuid],
-    2::smallint,
+    array[
+      'a4444444-4444-4444-4444-444444444444'::uuid,
+      'a6666666-6666-6666-6666-666666666666'::uuid
+    ],
+    3::smallint,
     'integrity_score',
     null
   ),
@@ -502,7 +533,7 @@ select is(
   (
     select count(*)
     from public.contests
-    where title = 'M8 duel'
+    where title = 'M8 challenge'
       and created_by = '81111111-1111-1111-1111-111111111111'
   ),
   1::bigint,
@@ -515,7 +546,7 @@ select is(
     from public.contest_participants
     where contest_id = (select id from t_m8_contest)
   ),
-  2::bigint,
+  3::bigint,
   'an identical retry does not duplicate participants'
 );
 
@@ -547,7 +578,7 @@ select set_config(
 select is(
   public.create_contest_with_invites_v1(
     'a1000000-0000-0000-0000-000000000001',
-    'M8 duel',
+    'M8 challenge',
     'steps',
     'cumulative',
     10000,
@@ -556,8 +587,11 @@ select is(
     '2098-01-03T00:00:00Z',
     'America/Chicago',
     'ac000001-0000-0000-0000-000000000001',
-    array['a4444444-4444-4444-4444-444444444444'::uuid],
-    2::smallint,
+    array[
+      'a4444444-4444-4444-4444-444444444444'::uuid,
+      'a6666666-6666-6666-6666-666666666666'::uuid
+    ],
+    3::smallint,
     'integrity_score',
     null
   ),
@@ -584,8 +618,11 @@ select throws_ok(
        '2098-01-03T00:00:00Z',
        'America/Chicago',
        'ac000001-0000-0000-0000-000000000001',
-       array['a4444444-4444-4444-4444-444444444444'::uuid],
-       2::smallint,
+       array[
+         'a4444444-4444-4444-4444-444444444444'::uuid,
+         'a6666666-6666-6666-6666-666666666666'::uuid
+       ],
+       3::smallint,
        'integrity_score',
        null
      ) $$,
@@ -800,7 +837,7 @@ select ok(
     $request$
       select public.create_contest_with_invites_v1(
         'b1000000-0000-0000-0000-000000000001',
-        'Concurrent duel',
+        'Concurrent challenge',
         'distance_meters',
         'cumulative',
         5000,
@@ -825,7 +862,7 @@ select ok(
     $request$
       select public.create_contest_with_invites_v1(
         'b1000000-0000-0000-0000-000000000001',
-        'Concurrent duel',
+        'Concurrent challenge',
         'distance_meters',
         'cumulative',
         5000.00,
@@ -864,7 +901,7 @@ select is(
   (
     select count(*)
     from public.contests
-    where title = 'Concurrent duel'
+    where title = 'Concurrent challenge'
       and created_by = '91111111-1111-1111-1111-111111111111'
   ),
   1::bigint,
@@ -878,7 +915,7 @@ select is(
     where contest_id = (select id from t_m8_concurrent_one)
   ),
   2::bigint,
-  'the concurrently created contest has one complete duel roster'
+  'the concurrently created contest has one complete challenge roster'
 );
 
 select is(

@@ -1,6 +1,6 @@
 # Implementation plan
 
-Audited and reconciled 2026-07-26 against the code, tests, documentation, local
+Audited and reconciled 2026-07-28 against the code, tests, documentation, local
 history, and `origin/main`. README.md is the compact ledger of what is built;
 DECISIONS.md records why. This file owns sequence, remaining work, and launch
 blockers. The dated evidence and verification caveats are in
@@ -15,7 +15,7 @@ blockers. The dated evidence and verification caveats are in
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
 | M7 | M7.2a and D81 foundation implemented | Product contract D74–D82, transactional outbox, activation job, and account deletion/retention foundation are integrated; local database and staging retention proofs pass, while broader concurrency and production-shaped migration proof remains |
-| M8 | M8.1 plus restart-safe duel retry implemented; partial single-user staging proof recorded | Separate product app, Apple-auth/onboarding state machine, exact-handle social loop, atomic duel creation/invitation, protected per-user pending retries, four-tab SwiftUI system, fixtures, Xcode tests, and one signed iPhone install/auth/profile-reload observation; Apple-name prefill, two-user staging proof, and later device/framework slices remain |
+| M8 | M8.1, M8.2a, and M8.3a implemented; partial single-user staging proof recorded | Separate product app, Apple-auth/onboarding state machine, exact-handle social loop, atomic multi-friend challenge creation, backward-compatible protected per-user pending retries, four-tab SwiftUI system, fixtures, Xcode tests, and one signed iPhone install/auth/profile-reload observation; Apple-name prefill, two-user staging proof, and later device/framework slices remain |
 
 M6's boundary is backend plus portable client core. It does not include live
 Core Location collection, HealthKit queries, or a production scoring/finalizer
@@ -52,6 +52,13 @@ The M8.1 pass also completed a clean 18-migration reset and all 20 pgTAP files:
 block/tombstone, atomic rollback, idempotent retry, changed-payload, and
 two-session concurrent duplicate cases. The `public` and `app` schemas remain
 clean under `supabase db lint`.
+
+The 2026-07-28 M8.3a pass repeated the clean 18-migration / 824-assertion
+database gate, including a two-invitee atomic roster and order-independent
+same-request retry. It also passed 30 product unit tests, 7 product UI tests,
+both unsigned Staging/Release simulator builds, 88 GameTimeCore tests, 10
+conformance tests, strict Swift formatting, and local `public`/`app` schema
+lint without warnings or errors.
 
 PR #11's initial M8.1 head (`c363610`) passed all four GitHub Actions jobs in
 [run 30236956570](https://github.com/m1jenkins/GameTime/actions/runs/30236956570):
@@ -290,9 +297,9 @@ Implemented in `codex/m8-live-social-loop`:
 - [x] Exact-handle social cards for incoming, outgoing, and accepted
   relationships, with blocks, tombstones, caller isolation, and stale-JWT denial
   enforced by the bounded backend API.
-- [x] One-to-one duel editor and immutable review using the four backend
-  metrics, daily/cumulative cadence, future dates, target, staging stake,
-  charity, and tie-break.
+- [x] Challenge editor and immutable review using the four backend metrics,
+  daily/cumulative cadence, future dates, target, staging stake, charity, and
+  tie-break.
 - [x] Atomic, caller-idempotent contest plus invitation creation with
   same-payload retry and changed-payload rejection.
 - [x] Launch, foreground, pull-to-refresh, and post-mutation reloads; no
@@ -310,18 +317,18 @@ Implemented in `codex/m8-live-social-loop`:
 M8.1 is implemented with staging proof open, not complete. It is an internal
 alpha, not an App Store or production release.
 
-### M8.2a — Restart-safe pending duel action
+### M8.2a — Restart-safe pending challenge action
 
-- [x] Persist one immutable pending duel per authenticated actor before its first
-  network attempt, including the exact request UUID and canonical millisecond
-  timestamps stored losslessly for the backend payload hash.
+- [x] Persist one immutable pending challenge per authenticated actor before its
+  first network attempt, including the exact request UUID and canonical
+  millisecond timestamps stored losslessly for the backend payload hash.
 - [x] Store the versioned record atomically under Application Support with
   complete file protection, backup exclusion, account isolation, and
   conflict-checked monotonic attempt updates.
 - [x] Retain ambiguous, offline, and cancelled attempts across relaunch; restore
   them only for the matching actor and require a deliberate retry.
-- [x] Block a second duel while recovery is pending or unreadable. Clear the
-  record only after a confirmed contest UUID or an explicit warned discard;
+- [x] Block a second challenge while recovery is pending or unreadable. Clear
+  the record only after a confirmed contest UUID or an explicit warned discard;
   never retry automatically.
 - [x] Cover file corruption, envelope versions, cross-account copies, exact
   round trips, changed-record rejection, auth-transition races, sign-out
@@ -331,6 +338,30 @@ alpha, not an App Store or production release.
 This closes one pending-human-action durability gap. It does not complete
 persistent metric/check-in evidence queues, the two-user staging proof, or full
 M8.
+
+### M8.3a — Challenge terminology and atomic multi-select creation
+
+- [x] Use Challenge terminology throughout the product domain, routes, clients,
+  fixtures, UI, accessibility identifiers, and current tests while retaining
+  the backend's established contest/RPC vocabulary.
+- [x] Let the creator explicitly select 1–19 accepted friends, disclose the
+  selected count, and review every invitee plus the resulting closed roster
+  size before committing immutable terms.
+- [x] Canonically sort the selected UUIDs and send the complete array,
+  `max_participants = invitees + 1`, and one request UUID through exactly one
+  `create_contest_with_invites_v1` call. There is no per-friend request loop or
+  partial-success client state.
+- [x] Advance the protected pending-request envelope to version 2 and migrate a
+  version-1 single-invite saved duel in place without changing its actor,
+  request UUID, invitee, attempt metadata, or timestamp bit patterns. Future or
+  malformed versions still fail closed.
+- [x] Cover selection bounds, canonical payload construction, one-call model
+  submission, multi-invite atomicity/idempotency, persisted round trips, legacy
+  migration, and explicit-retry UI behavior.
+
+This is a repository implementation slice. It does not substitute for the
+two-user staging run, and the migrated version-1 path remains intentionally
+recognizable as legacy duel data.
 
 ### Later M8 slices
 

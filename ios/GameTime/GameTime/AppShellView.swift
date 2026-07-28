@@ -77,8 +77,8 @@ struct AppShellView: View {
         }
         .sheet(item: $router.presentedSheet) { destination in
             switch destination {
-            case .createDuel:
-                CreateDuelFlow()
+            case .createChallenge:
+                CreateChallengeFlow()
             case .acceptInvitation(let contestID):
                 AcceptInvitationView(contestID: contestID)
             }

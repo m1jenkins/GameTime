@@ -2873,7 +2873,7 @@ reviewed object policies exist.
 ### D86. M8.1 is staging-mutable, release-locked, and refresh-driven
 
 **What.** Staging persistently labels every screen
-`Test environment—no real pledge` and permits the social/duel loop. Release
+`Test environment—no real pledge` and permits the social/challenge loop. Release
 compiles without fixture routing and cannot create or accept contests until the
 evidence/App Attest slice closes. Account deletion, group feeds, sensor
 permissions, finalization, settlement, and disputes are absent from live M8.1
@@ -2897,7 +2897,7 @@ Realtime for convenience (another delivery contract before durable inbox/APNs).
 and M7 exposes finalization/settlement contracts. Realtime still requires a
 separate product and privacy decision.
 
-### D87. Ambiguous duel submissions persist per actor and retry only by explicit action
+### D87. Ambiguous challenge submissions persist per actor and retry only by explicit action
 
 **What.** Before the product app sends a contest-creation RPC, it atomically
 writes one versioned pending submission for the authenticated actor under
@@ -2929,7 +2929,8 @@ after the server may already have committed the first request.
 reconstructing a request from a mutable draft (timestamp and payload drift),
 automatic network retry (the user cannot tell that another commitment attempt
 occurred), clearing on sign-out (silently destroys the safe retry), or allowing
-parallel pending duels before the product has a multi-action recovery design.
+parallel pending challenges before the product has a multi-action recovery
+design.
 
 **Revisit if.** M8 adds a general encrypted pending-action ledger or multiple
 simultaneous contest drafts. Account deletion must explicitly purge this local
@@ -2972,6 +2973,48 @@ device proof indefinitely on a vendor roadmap).
 the fallback then becomes unreachable code that can be retired after the
 deployed runtime is confirmed fixed. Also revisit if Apple's attestation chain
 ever moves off ECDSA.
+
+### D89. Challenge is the product term; a selected roster submits as one contest request
+
+**What.** The product calls the person-created commitment a **challenge**.
+Swift domain models, routes, clients, fixtures, screens, accessibility
+identifiers, and current tests use that term. The stable database schema and RPC
+contract continue to use **contest** because renaming persisted relations and a
+versioned public function would add migration and compatibility risk without
+changing the product behavior.
+
+A creator explicitly selects 1–19 accepted friends. Review names every selected
+friend and shows the closed roster size before submission. The client
+canonically sorts those UUIDs, sets `max_participants` to the selected count
+plus the creator, and makes exactly one
+`public.create_contest_with_invites_v1` call with one request UUID. D84's
+transaction therefore creates the contest, creator row, and every invitation
+together or creates none of them; the client never loops over friends.
+
+D87's protected pending envelope advances to version 2 and stores the complete
+canonical invitee array. A version-1 single-invite saved-duel record is decoded
+through an isolated legacy shape and atomically rewritten as version 2 while
+preserving its actor, request UUID, invitee, attempt metadata, and exact
+timestamp bit patterns. The Application Support directory name remains
+unchanged so installed alpha builds can find their saved request. Unsupported,
+malformed, duplicate, self-invite, empty, or over-capacity records fail closed.
+
+**Why.** Challenge is clearer product language and applies equally to a friend
+or a group of friends. One complete request preserves the backend's existing
+atomicity and idempotency guarantees; request-per-friend submission would allow
+partial rosters and make retry state ambiguous. Lossless in-place migration is
+required because generating a new request UUID or reconstructing dates after an
+ambiguous response can create a second contest.
+
+**Rejected.** Renaming backend contest relations or publishing a cosmetic v2
+RPC; sequential per-friend RPC calls; silently preselecting a friend; allowing
+an open roster after submission; discarding version-1 pending data; or decoding
+legacy and current envelopes through one permissive shape.
+
+**Revisit if.** The product supports editable/open rosters, group-scoped
+discovery, more than 20 participants, or a general encrypted pending-action
+ledger. Each changes the immutable roster or persistence contract and needs a
+new decision rather than an extension of this request.
 
 ---
 
@@ -3019,11 +3062,11 @@ job. The reconciled branch also implements D81's pre-result durable-actor and
 raw-retention foundation. M6.5 and hosted scheduler observations remain open and
 still gate result finalization and settlement.
 
-M8.1 and its first durability follow-up implement D83–D87: a separate product
-target with typed navigation, a
-caller-bounded social-card API, atomic caller-idempotent contest invitations,
-native Apple token exchange, public-only configuration, staging disclosure,
-Release mutation lock, refresh-driven live clients, and protected manual retry
+M8.1 and its first creation/durability follow-ups implement D83–D87 and D89: a
+separate product target with typed navigation, a caller-bounded social-card API,
+atomic caller-idempotent multi-friend challenge invitations, native Apple token
+exchange, public-only configuration, staging disclosure, Release mutation lock,
+refresh-driven live clients, and backward-compatible protected manual retry
 recovery across relaunch. Its eligible-team, two-user Apple staging observation
 remains open, and later M8 slices retain the sensor, App Attest, evidence queue,
 inbox/APNs, and release responsibilities.

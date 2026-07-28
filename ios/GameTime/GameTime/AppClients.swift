@@ -42,8 +42,8 @@ protocol FriendshipsClient: AnyObject {
 protocol ContestsClient: AnyObject {
     func listContests(userID: UUID) async throws -> [ContestCard]
     func listCharities() async throws -> [Charity]
-    func createDuel(
-        _ terms: DuelTerms,
+    func createChallenge(
+        _ terms: ChallengeTerms,
         expectedUserID: UUID
     ) async throws -> UUID
     func acceptInvitation(
@@ -61,5 +61,5 @@ struct AppServices {
     let profiles: any ProfileClient
     let friendships: any FriendshipsClient
     let contests: any ContestsClient
-    let pendingDuels: any PendingDuelStore
+    let pendingChallenges: any PendingChallengeStore
 }

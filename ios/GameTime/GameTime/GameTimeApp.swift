@@ -192,7 +192,7 @@ private struct SignedOutView: View {
                     Text("Commit clearly.\nCompete fairly.")
                         .font(.system(.largeTitle, design: .rounded, weight: .bold))
                     Text(
-                        "A staging alpha for friend-to-friend activity duels with fixed terms and verified progress."
+                        "A staging alpha for friend-to-friend activity challenges with fixed terms and verified progress."
                     )
                     .font(.body)
                     .foregroundStyle(.secondary)
@@ -200,7 +200,7 @@ private struct SignedOutView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     Label(
-                        "Terms are reviewed before an invitation is sent",
+                        "Terms are reviewed before invitations are sent",
                         systemImage: "checkmark.shield"
                     )
                     Label(

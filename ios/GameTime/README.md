@@ -11,7 +11,8 @@ engineering harness.
 - `GameTimeTests`: state, routing, DTO, validation, configuration, and client
   boundary tests.
 - `GameTimeUITests`: signed-out/onboarding roots, four-tab navigation, social
-  and duel mutations, fixture states, Dynamic Type, labels, and Reduce Motion.
+  and challenge mutations, fixture states, Dynamic Type, labels, and Reduce
+  Motion.
 - `Debug`: live clients by default; pass `--fixture-mode` for deterministic
   local and UI-test data.
 - `Staging`: live clients, contest mutations enabled, and a persistent
@@ -21,21 +22,31 @@ engineering harness.
 
 Debug fixture code is guarded by `#if DEBUG`; Release cannot route to it.
 
-## Restart-safe duel retry
+## Atomic multi-friend challenges and restart-safe retry
 
 Before the first contest-creation RPC attempt, the app atomically saves one
-versioned pending duel for the authenticated actor under Application Support.
+versioned pending challenge for the authenticated actor under Application
+Support. Challenge creation explicitly selects 1–19 accepted friends, reviews
+the complete closed roster, and sends the canonical UUID array through one
+`create_contest_with_invites_v1` RPC with
+`max_participants = invitees + 1`. The client never loops over invitees, so it
+cannot expose a partial-submission state.
+
 The file uses complete data protection, is excluded from backup, and preserves
 the request UUID plus canonical millisecond timestamps as exact `Date` bit
 patterns so a relaunched retry hashes to the same immutable backend payload.
-Existing records accept only identical terms and monotonic attempt updates.
+Envelope version 2 stores the complete invitee array. Loading a version-1
+single-invite saved duel migrates it atomically in place while preserving its
+actor, request identity, attempt metadata, invitee, and timestamp bit patterns.
+Existing records accept only identical terms and monotonic attempt updates;
+unsupported or malformed versions fail closed.
 
 An offline, cancelled, or ambiguous response leaves the record in place. The
 Challenges tab restores it only for the same actor and requires an explicit
-manual retry; the app never retries a mutation on its own. Starting another duel
-is blocked until the server returns a confirmed contest UUID or the user accepts
-the warned discard path. Sign-out detaches the record from UI state without
-making it visible to another actor.
+manual retry; the app never retries a mutation on its own. Starting another
+challenge is blocked until the server returns a confirmed contest UUID or the
+user accepts the warned discard path. Sign-out detaches the record from UI
+state without making it visible to another actor.
 
 ## Safe configuration
 

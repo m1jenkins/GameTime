@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import GameTime
 
 final class DomainAndConfigurationTests: XCTestCase {
@@ -84,7 +85,7 @@ final class DomainAndConfigurationTests: XCTestCase {
             """
             {
               "id":"bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-              "title":"Distance duel",
+              "title":"Distance challenge",
               "created_by":"11111111-1111-1111-1111-111111111111",
               "metric":"distance_meters",
               "cadence":"cumulative",
@@ -107,17 +108,25 @@ final class DomainAndConfigurationTests: XCTestCase {
         XCTAssertEqual(card.myStatus, .invited)
     }
 
-    func testDuelValidationRequiresFutureCoherentTerms() throws {
+    func testChallengeValidationRequiresFutureCoherentTerms() throws {
         let now = Date(timeIntervalSince1970: 2_000_000_000)
-        var draft = DuelDraft()
-        draft.title = "Step duel"
-        draft.inviteeID = UUID()
+        var draft = ChallengeDraft()
+        draft.title = "Step challenge"
+        let firstFriendID = UUID(
+            uuidString: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+        )!
+        let secondFriendID = UUID(
+            uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        )!
+        draft.inviteeIDs = [firstFriendID, secondFriendID]
         draft.charityID = UUID()
         draft.startsAt = now.addingTimeInterval(3_600.987_654)
         draft.endsAt = now.addingTimeInterval((2 * 86_400) + 0.765_432)
 
         let terms = try draft.validated(now: now)
-        XCTAssertEqual(terms.title, "Step duel")
+        XCTAssertEqual(terms.title, "Step challenge")
+        XCTAssertEqual(terms.inviteeIDs, [secondFriendID, firstFriendID])
+        XCTAssertEqual(terms.maxParticipants, 3)
         XCTAssertEqual(terms.metric, .steps)
         XCTAssertNotEqual(terms.requestID, UUID())
         XCTAssertEqual(
@@ -139,10 +148,89 @@ final class DomainAndConfigurationTests: XCTestCase {
         draft.endsAt = draft.startsAt.addingTimeInterval(3_600)
         XCTAssertThrowsError(try draft.validated(now: now)) { error in
             XCTAssertEqual(
-                error as? DuelValidationError,
+                error as? ChallengeValidationError,
                 .dailyNeedsFullDay
             )
         }
+    }
+
+    func testChallengeValidationRequiresOneToNineteenUniqueFriends() throws {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        var draft = ChallengeDraft()
+        draft.title = "Roster bounds"
+        draft.charityID = UUID()
+        draft.startsAt = now.addingTimeInterval(3_600)
+        draft.endsAt = now.addingTimeInterval(86_400)
+
+        XCTAssertThrowsError(try draft.validated(now: now)) { error in
+            XCTAssertEqual(
+                error as? ChallengeValidationError,
+                .missingFriends
+            )
+        }
+
+        let friendIDs = (1...20).map { index in
+            UUID(
+                uuidString:
+                    "00000000-0000-0000-0000-\(String(format: "%012d", index))"
+            )!
+        }
+        draft.inviteeIDs = Set(friendIDs.prefix(19))
+        let maximumRoster = try draft.validated(now: now)
+        XCTAssertEqual(maximumRoster.inviteeIDs.count, 19)
+        XCTAssertEqual(maximumRoster.maxParticipants, 20)
+
+        draft.inviteeIDs.insert(friendIDs[19])
+        XCTAssertThrowsError(try draft.validated(now: now)) { error in
+            XCTAssertEqual(
+                error as? ChallengeValidationError,
+                .tooManyFriends
+            )
+        }
+    }
+
+    func testAtomicChallengeParametersContainTheCompleteCanonicalRoster()
+        throws
+    {
+        let laterID = UUID(
+            uuidString: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+        )!
+        let earlierID = UUID(
+            uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        )!
+        let startsAt = Date(timeIntervalSince1970: 2_000_086_400)
+        let terms = ChallengeTerms(
+            requestID: UUID(),
+            title: "One atomic roster",
+            inviteeIDs: [laterID, earlierID],
+            metric: .steps,
+            cadence: .cumulative,
+            targetValue: 10_000,
+            stakeAmountCents: 500,
+            startsAt: startsAt,
+            endsAt: startsAt.addingTimeInterval(86_400),
+            timezone: "America/Chicago",
+            charityID: UUID(),
+            tieBreak: .integrityScore
+        )
+
+        let encoded = try JSONEncoder().encode(
+            CreateContestWithInvitesParameters(terms: terms)
+        )
+        let object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded)
+                as? [String: Any]
+        )
+        let encodedInvitees = try XCTUnwrap(
+            object["p_invitee_ids"] as? [String]
+        )
+
+        XCTAssertEqual(
+            encodedInvitees.map { $0.lowercased() },
+            terms.inviteeIDs.map { $0.uuidString.lowercased() }
+        )
+        XCTAssertEqual(object["p_max_participants"] as? Int, 3)
+        XCTAssertEqual(object["p_request_id"] as? String, terms.requestID.uuidString)
     }
 
     func testMutationErrorMapping() {

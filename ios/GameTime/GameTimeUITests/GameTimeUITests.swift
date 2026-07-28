@@ -61,19 +61,30 @@ final class GameTimeUITests: XCTestCase {
         )
     }
 
-    func testDuelReviewSubmissionAndInvitationAcceptance() {
+    func testChallengeReviewSubmissionAndInvitationAcceptance() {
         let app = launch()
         app.tabBars.buttons["Challenges"].tap()
         app.buttons["challenge.create"].tap()
 
-        let title = app.textFields["duel.title"]
+        let title = app.textFields["challenge.title"]
         XCTAssertTrue(title.waitForExistence(timeout: 4))
         title.tap()
-        title.typeText("UI test duel")
+        title.typeText("UI test challenge")
         if app.keyboards.buttons["Return"].exists {
             app.keyboards.buttons["Return"].tap()
         }
-        let reviewTerms = app.buttons["duel.review"]
+        for friendID in [
+            "44444444-4444-4444-4444-444444444444",
+            "55555555-5555-5555-5555-555555555555",
+        ] {
+            let invitee = app.switches["challenge.invitee.\(friendID)"]
+            XCTAssertTrue(invitee.waitForExistence(timeout: 3))
+            invitee.coordinate(
+                withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)
+            ).tap()
+            XCTAssertEqual(invitee.value as? String, "1")
+        }
+        let reviewTerms = app.buttons["challenge.review"]
         for _ in 0..<4 where !reviewTerms.exists {
             app.swipeUp()
         }
@@ -81,23 +92,30 @@ final class GameTimeUITests: XCTestCase {
         reviewTerms.tap()
 
         XCTAssertTrue(
-            app.navigationBars["Review duel"].waitForExistence(timeout: 4)
+            app.navigationBars["Review challenge"].waitForExistence(timeout: 4)
         )
         XCTAssertTrue(app.staticTexts["Immutable terms"].exists)
-        let submitDuel = app.buttons["duel.submit"]
-        for _ in 0..<5 where !submitDuel.exists {
+        XCTAssertTrue(app.staticTexts["Marcus Green"].exists)
+        XCTAssertTrue(app.staticTexts["Priya Shah"].exists)
+        let rosterSize = app.staticTexts["3 people"]
+        for _ in 0..<5 where !rosterSize.exists {
             app.swipeUp()
         }
-        XCTAssertTrue(submitDuel.waitForExistence(timeout: 3))
-        submitDuel.tap()
+        XCTAssertTrue(rosterSize.waitForExistence(timeout: 3))
+        let submitChallenge = app.buttons["challenge.submit"]
+        for _ in 0..<5 where !submitChallenge.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(submitChallenge.waitForExistence(timeout: 3))
+        submitChallenge.tap()
 
         XCTAssertTrue(
-            app.staticTexts["UI test duel"].waitForExistence(timeout: 5)
+            app.staticTexts["UI test challenge"].waitForExistence(timeout: 5)
         )
 
         app.tabBars.buttons["Today"].tap()
         let review = app.buttons[
-            "Review and accept Three-day step duel"
+            "Review and accept Three-day step challenge"
         ]
         XCTAssertTrue(review.waitForExistence(timeout: 4))
         review.tap()
@@ -111,8 +129,8 @@ final class GameTimeUITests: XCTestCase {
         )
     }
 
-    func testSavedDuelCanBeResumedWithoutAutomaticRetry() {
-        let app = launch("--fixture-pending-duel")
+    func testSavedChallengeCanBeResumedWithoutAutomaticRetry() {
+        let app = launch("--fixture-pending-challenge")
         let challengesTab = app.tabBars.buttons["Challenges"]
         XCTAssertTrue(challengesTab.waitForExistence(timeout: 5))
         challengesTab.tap()
@@ -122,23 +140,24 @@ final class GameTimeUITests: XCTestCase {
                 .waitForExistence(timeout: 5)
         )
         XCTAssertTrue(app.staticTexts["Saved response retry"].exists)
-        let resume = app.buttons["duel.pending.resume"]
+        XCTAssertTrue(app.staticTexts["2 friends invited"].exists)
+        let resume = app.buttons["challenge.pending.resume"]
         XCTAssertTrue(resume.exists)
         resume.tap()
 
         XCTAssertTrue(
-            app.navigationBars["Review duel"].waitForExistence(timeout: 4)
+            app.navigationBars["Review challenge"].waitForExistence(timeout: 4)
         )
         XCTAssertTrue(app.staticTexts["Saved response retry"].exists)
-        let submit = app.buttons["duel.submit"]
+        let submit = app.buttons["challenge.submit"]
         for _ in 0..<5 where !submit.exists {
             app.swipeUp()
         }
         XCTAssertTrue(submit.waitForExistence(timeout: 3))
         XCTAssertTrue(
-            app.descendants(matching: .any)["duel.request-id"].exists
+            app.descendants(matching: .any)["challenge.request-id"].exists
         )
-        let discard = app.buttons["duel.pending.discard-review"]
+        let discard = app.buttons["challenge.pending.discard-review"]
         XCTAssertTrue(discard.waitForExistence(timeout: 3))
         discard.tap()
         XCTAssertTrue(
@@ -152,9 +171,9 @@ final class GameTimeUITests: XCTestCase {
         )
         app.buttons["Discard local retry"].tap()
         XCTAssertTrue(
-            app.navigationBars["Create duel"].waitForExistence(timeout: 4)
+            app.navigationBars["Create challenge"].waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.textFields["duel.title"].exists)
+        XCTAssertTrue(app.textFields["challenge.title"].exists)
     }
 
     func testLoadingEmptyAndOfflineStates() {
