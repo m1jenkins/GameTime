@@ -42,6 +42,10 @@ protocol FriendshipsClient: AnyObject {
 protocol ContestsClient: AnyObject {
     func listContests(userID: UUID) async throws -> [ContestCard]
     func listCharities() async throws -> [Charity]
+    /// Per-duel progress for the rope, keyed by contest id. A client that has no
+    /// progress read path returns an empty dictionary and the rope renders its
+    /// unknown state rather than a fabricated standing.
+    func listStandings(userID: UUID) async throws -> [UUID: DuelStanding]
     func createDuel(
         _ terms: DuelTerms,
         expectedUserID: UUID

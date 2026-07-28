@@ -1,166 +1,283 @@
 import SwiftUI
 
-struct FriendshipCardRow: View {
-    let card: FriendshipCard
-    var actionTitle: String?
-    var action: (() -> Void)?
+// Shared pieces used by the form and list screens: the terms table, glass form
+// fields, roster rows, and the staging banner.
+
+// MARK: - Terms
+
+/// One row of the immutable-terms table.
+struct TermRow: View {
+    let label: String
+    let value: String
+    var emphasis: Color = GlassArena.ink
+    var isMonospaced = false
 
     var body: some View {
-        HStack(spacing: 12) {
-            InitialsAvatar(initials: card.profileCard.initials)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(card.displayName)
-                    .font(.headline)
-                Text("@\(card.handle)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: 8)
-
-            if let actionTitle, let action {
-                Button(actionTitle, action: action)
-                    .font(.subheadline.weight(.semibold))
-                    .buttonStyle(.bordered)
-                    .tint(CompetitiveTrustTheme.teal)
-                    .accessibilityLabel(
-                        "\(actionTitle) \(card.displayName)"
-                    )
-            }
+        HStack(alignment: .firstTextBaseline, spacing: 16) {
+            Text(label)
+                .font(GlassArenaFont.text(14))
+                .foregroundStyle(GlassArena.mutedLight)
+            Spacer(minLength: 12)
+            Text(value)
+                .font(
+                    isMonospaced
+                        ? .system(size: 12, weight: .medium, design: .monospaced)
+                        : GlassArenaFont.text(14, .semibold)
+                )
+                .foregroundStyle(emphasis)
+                .multilineTextAlignment(.trailing)
+                .textSelection(.enabled)
         }
-        .padding(.vertical, 4)
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .combine)
     }
 }
 
-struct ContestCardRow: View {
-    let contest: ContestCard
+/// A glass card holding a labelled group of rows, with hairlines between them.
+struct GlassCardSection<Content: View>: View {
+    var title: String?
+    var footnote: String?
+    var tier: GlassTier = .standard
+    var cornerRadius: CGFloat = 28
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let title {
+                SectionEyebrow(text: title, fontSize: 11, tracking: 0.9)
+            }
+            VStack(alignment: .leading, spacing: 12) {
+                content()
+            }
+            if let footnote {
+                Text(footnote)
+                    .font(GlassArenaFont.text(12))
+                    .foregroundStyle(GlassArena.mutedLight)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .glassPane(tier, cornerRadius: cornerRadius)
+    }
+}
+
+// MARK: - Form fields
+
+/// A glass text field. `prefix` carries the `@` in front of a handle.
+struct GlassTextField: View {
+    let placeholder: String
+    @Binding var text: String
+    var prefix: String?
+    var accessibilityID: String?
+    var accessibilityName: String?
+    var isLowercase = false
+    var submitLabel: SubmitLabel = .done
+    var onSubmit: (() -> Void)?
+
+    var body: some View {
+        HStack(spacing: 2) {
+            if let prefix {
+                Text(prefix)
+                    .font(GlassArenaFont.text(16, .semibold))
+                    .foregroundStyle(GlassArena.mutedLight)
+            }
+            TextField(placeholder, text: $text)
+                .font(GlassArenaFont.text(16, .medium))
+                .foregroundStyle(GlassArena.ink)
+                .textInputAutocapitalization(isLowercase ? .never : .words)
+                .autocorrectionDisabled(isLowercase)
+                .submitLabel(submitLabel)
+                .onSubmit { onSubmit?() }
+                .accessibilityIdentifier(accessibilityID ?? placeholder)
+                .accessibilityLabel(accessibilityName ?? placeholder)
+        }
+        .padding(.horizontal, 16)
+        .frame(height: 52)
+        .glassPane(.standard, cornerRadius: 18)
+    }
+}
+
+/// A selectable chip — metrics, cadence, the chosen opponent.
+struct GlassChip: View {
+    let title: String
+    var systemImage: String?
+    var isSelected: Bool
+    var isDashed = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(contest.title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.leading)
-                    Spacer()
-                    statusPill
+            HStack(spacing: 6) {
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 12, weight: .bold))
                 }
-
-                HStack(spacing: 14) {
-                    Label(contest.metric.title, systemImage: "waveform.path.ecg")
-                    Label(contest.targetText, systemImage: "target")
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-                HStack {
-                    Text(contest.stakeText)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(CompetitiveTrustTheme.amber)
-                    Text("test pledge")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(
-                        contest.startsAt,
-                        format: .dateTime.month(.abbreviated).day()
+                Text(title)
+                    .font(GlassArenaFont.text(14, isSelected ? .bold : .semibold))
+            }
+            .foregroundStyle(
+                isSelected ? GlassArena.tealInk : GlassArena.inkSecondary
+            )
+            .padding(.horizontal, 14)
+            .frame(height: 38)
+            .background {
+                if isSelected {
+                    Capsule().fill(GlassArena.tealButton)
+                } else if isDashed {
+                    Capsule().strokeBorder(
+                        GlassArena.mutedLight.opacity(0.55),
+                        style: StrokeStyle(lineWidth: 1.5, dash: [5, 4])
                     )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                } else {
+                    Capsule()
+                        .fill(.white.opacity(0.5))
+                        .overlay {
+                            Capsule().strokeBorder(
+                                .white.opacity(0.8),
+                                lineWidth: 1
+                            )
+                        }
                 }
             }
-            .trustCard()
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(accessibilitySummary)
-    }
-
-    @ViewBuilder
-    private var statusPill: some View {
-        if contest.myStatus == .invited {
-            TrustStatusPill(text: "Action needed", kind: .action)
-        } else if contest.status == .active {
-            TrustStatusPill(text: "Active", kind: .verified)
-        } else {
-            TrustStatusPill(text: "Upcoming", kind: .neutral)
-        }
-    }
-
-    private var accessibilitySummary: String {
-        let state = contest.myStatus == .invited
-            ? "Invitation, action needed"
-            : contest.status.rawValue
-        return "\(contest.title), \(state), \(contest.targetText), \(contest.stakeText) test pledge"
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
-struct InlineLoadStateView: View {
-    let state: ScreenLoadState
-    let retry: () -> Void
-
-    var body: some View {
-        switch state {
-        case .idle, .loaded, .empty:
-            EmptyView()
-        case .loading:
-            HStack(spacing: 10) {
-                ProgressView()
-                Text("Refreshing live state…")
-                    .foregroundStyle(.secondary)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("state.loading")
-        case .failed(let message):
-            VStack(alignment: .leading, spacing: 10) {
-                Label("Couldn’t refresh", systemImage: "wifi.slash")
-                    .font(.headline)
-                Text(message)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Button("Try again", action: retry)
-                    .font(.subheadline.weight(.semibold))
-            }
-            .accessibilityIdentifier("state.offline")
-        }
-    }
-}
-
-struct EmptyTrustState: View {
-    let title: String
-    let message: String
-    let systemImage: String
-
-    var body: some View {
-        ContentUnavailableView {
-            Label(title, systemImage: systemImage)
-        } description: {
-            Text(message)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
-        .accessibilityIdentifier("state.empty")
-    }
-}
-
-struct TermRow: View {
-    let label: String
+/// A −/+ stepper for the stake.
+struct GlassStepper: View {
     let value: String
-    var emphasis: Color = .primary
+    var tint: Color = GlassArena.amber700
+    var fontSize: CGFloat = 24
+    var valueWidth: CGFloat = 92
+    var decrementLabel = "Decrease"
+    var incrementLabel = "Increase"
+    var canDecrement = true
+    var canIncrement = true
+    let decrement: () -> Void
+    let increment: () -> Void
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(label)
-                .foregroundStyle(.secondary)
-            Spacer(minLength: 16)
+        HStack(spacing: 12) {
+            button("minus", action: decrement, isEnabled: canDecrement)
+                .accessibilityLabel(decrementLabel)
             Text(value)
-                .foregroundStyle(emphasis)
-                .multilineTextAlignment(.trailing)
+                .font(GlassArenaFont.display(fontSize, .heavy))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .frame(minWidth: valueWidth)
+            button("plus", action: increment, isEnabled: canIncrement)
+                .accessibilityLabel(incrementLabel)
         }
-        .font(.subheadline)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
+        .accessibilityValue(value)
+    }
+
+    private func button(
+        _ symbol: String,
+        action: @escaping () -> Void,
+        isEnabled: Bool
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 15, weight: .heavy))
+                .foregroundStyle(GlassArena.inkSecondary)
+                .frame(width: 44, height: 44)
+                .background(
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                        .fill(GlassArena.ink.opacity(0.055))
+                )
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.4)
+    }
+}
+
+// MARK: - Roster
+
+/// A row in "Your roster", or a pending request in either direction.
+struct RosterRow: View {
+    let displayName: String
+    let handle: String
+    var side: GlassAvatar.Side = .them
+    var actionTitle: String?
+    var isDestructiveAction = false
+    var isEnabled = true
+    var action: (() -> Void)?
+    var tap: (() -> Void)?
+
+    var body: some View {
+        HStack(spacing: 12) {
+            GlassAvatar(
+                initials: ProfileCard(
+                    id: UUID(),
+                    handle: handle,
+                    displayName: displayName
+                ).initials,
+                size: 40,
+                side: side
+            )
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(displayName)
+                    .font(GlassArenaFont.text(15, .bold))
+                    .foregroundStyle(GlassArena.ink)
+                Text("@\(handle)")
+                    .font(GlassArenaFont.text(13))
+                    .foregroundStyle(GlassArena.mutedLight)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+
+            if let actionTitle, let action {
+                Button(action: action) {
+                    if isDestructiveAction {
+                        Text(actionTitle)
+                            .font(GlassArenaFont.text(14, .semibold))
+                            .foregroundStyle(GlassArena.inkTertiary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 9)
+                            .background(
+                                RoundedRectangle(
+                                    cornerRadius: 14,
+                                    style: .continuous
+                                )
+                                .fill(GlassArena.ink.opacity(0.055))
+                            )
+                    } else {
+                        TealChip(text: actionTitle)
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(!isEnabled)
+                .accessibilityLabel("\(actionTitle) \(displayName)")
+            }
+        }
+        .padding(.vertical, 13)
+        .padding(.horizontal, 18)
+        .glassPane(.standard, cornerRadius: 26)
+        .contentShape(Rectangle())
+        .onTapGesture { tap?() }
+    }
+}
+
+// MARK: - Staging banner
+
+/// Staging only: this is not a real pledge.
+struct TestEnvironmentBanner: View {
+    var body: some View {
+        Label(
+            "Staging — no real pledge",
+            systemImage: "exclamationmark.shield.fill"
+        )
+        .font(GlassArenaFont.text(12, .bold))
+        .foregroundStyle(GlassArena.amberInk)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 7)
+        .background(GlassArena.amber400)
+        .accessibilityLabel("Staging environment. No real pledge.")
     }
 }

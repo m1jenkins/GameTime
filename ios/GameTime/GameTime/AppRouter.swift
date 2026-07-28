@@ -3,7 +3,7 @@ import Observation
 
 enum AppTab: String, CaseIterable, Identifiable, Sendable {
     case today
-    case challenges
+    case duels
     case friends
     case you
 
@@ -12,11 +12,13 @@ enum AppTab: String, CaseIterable, Identifiable, Sendable {
 
 enum TodayRoute: Hashable {
     case contest(UUID)
+    case result(UUID)
     case friendship(UUID)
 }
 
-enum ChallengesRoute: Hashable {
+enum DuelsRoute: Hashable {
     case contest(UUID)
+    case result(UUID)
 }
 
 enum FriendsRoute: Hashable {
@@ -28,6 +30,24 @@ enum YouRoute: Hashable {
     #if DEBUG
     case futureContestFixtures
     #endif
+}
+
+/// The Duels list is sorted by who needs attention, and the segmented control
+/// picks which partition is showing.
+enum DuelsSegment: String, CaseIterable, Identifiable, Sendable {
+    case live
+    case invites
+    case done
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .live: "Live"
+        case .invites: "Invites"
+        case .done: "Done"
+        }
+    }
 }
 
 enum SheetDestination: Identifiable, Hashable {
@@ -47,17 +67,19 @@ enum SheetDestination: Identifiable, Hashable {
 final class AppRouter {
     var selectedTab: AppTab = .today
     var todayPath: [TodayRoute] = []
-    var challengesPath: [ChallengesRoute] = []
+    var duelsPath: [DuelsRoute] = []
     var friendsPath: [FriendsRoute] = []
     var youPath: [YouRoute] = []
+    var duelsSegment: DuelsSegment = .live
     var presentedSheet: SheetDestination?
 
     func reset() {
         selectedTab = .today
         todayPath = []
-        challengesPath = []
+        duelsPath = []
         friendsPath = []
         youPath = []
+        duelsSegment = .live
         presentedSheet = nil
     }
 }

@@ -243,6 +243,16 @@ final class SupabaseContestsClient: ContestsClient {
             .value
     }
 
+    /// No server read path exists yet for per-participant progress: the metric
+    /// ingest slice writes samples but nothing reads them back per duel, and
+    /// `contest_participants` is not exposed as a roster. Returning nothing is
+    /// deliberate — the rope renders its unknown state rather than a made-up
+    /// standing. Replace this with the real query when that read lands.
+    func listStandings(userID: UUID) async throws -> [UUID: DuelStanding] {
+        _ = userID
+        return [:]
+    }
+
     func createDuel(
         _ terms: DuelTerms,
         expectedUserID: UUID

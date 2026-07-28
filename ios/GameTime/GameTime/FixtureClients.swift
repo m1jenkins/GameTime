@@ -52,8 +52,11 @@ private final class FixtureStore {
     static let outgoingID = UUID(uuidString: "33333333-3333-3333-3333-333333333333")!
     static let friendID = UUID(uuidString: "44444444-4444-4444-4444-444444444444")!
     static let charityID = UUID(uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")!
+    static let secondCharityID = UUID(uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-bbbbbbbbbbbb")!
     static let invitationID = UUID(uuidString: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")!
     static let activeContestID = UUID(uuidString: "cccccccc-cccc-cccc-cccc-cccccccccccc")!
+    static let wonContestID = UUID(uuidString: "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee")!
+    static let lostContestID = UUID(uuidString: "ffffffff-ffff-ffff-ffff-ffffffffffff")!
 
     var userID: UUID?
     var profile: UserProfile?
@@ -146,17 +149,110 @@ private final class FixtureStore {
                     stakeAmountCents: 1_000,
                     tieBreak: .earliestToTarget,
                     startsAt: now.addingTimeInterval(-3_600),
-                    endsAt: now.addingTimeInterval(2 * 86_400),
+                    endsAt: now.addingTimeInterval(2 * 86_400 + 4 * 3_600),
                     status: .active,
+                    myStatus: .accepted
+                ),
+                ContestCard(
+                    id: Self.wonContestID,
+                    title: "June plank streak",
+                    createdBy: Self.callerID,
+                    metric: .exerciseMinutes,
+                    cadence: .cumulative,
+                    targetValue: 200,
+                    stakeAmountCents: 1_500,
+                    tieBreak: .integrityScore,
+                    startsAt: now.addingTimeInterval(-30 * 86_400),
+                    endsAt: now.addingTimeInterval(-9 * 86_400),
+                    status: .finalized,
+                    myStatus: .accepted
+                ),
+                ContestCard(
+                    id: Self.lostContestID,
+                    title: "May stair climb",
+                    createdBy: Self.friendID,
+                    metric: .steps,
+                    cadence: .cumulative,
+                    targetValue: 50_000,
+                    stakeAmountCents: 1_000,
+                    tieBreak: .integrityScore,
+                    startsAt: now.addingTimeInterval(-60 * 86_400),
+                    endsAt: now.addingTimeInterval(-40 * 86_400),
+                    status: .finalized,
                     myStatus: .accepted
                 ),
             ]
         charities = [
             Charity(
                 id: Self.charityID,
-                name: "Fixture Community Fund",
-                slug: "fixture-community-fund"
-            )
+                name: "Trail Fund",
+                slug: "trail-fund"
+            ),
+            Charity(
+                id: Self.secondCharityID,
+                name: "Coast Cleanup",
+                slug: "coast-cleanup"
+            ),
+        ]
+    }
+
+    /// The rope's data. Progress is expressed in the metric's base unit, so the
+    /// design's "6.4 km vs 7.1 km" is 6 400 m against 7 100 m.
+    func standings() -> [UUID: DuelStanding] {
+        let marcus = ProfileCard(
+            id: Self.friendID,
+            handle: "marcusmoves",
+            displayName: "Marcus Green"
+        )
+        return [
+            Self.activeContestID: DuelStanding(
+                opponent: marcus,
+                myProgress: 6_400,
+                theirProgress: 7_100,
+                lastSyncedAt: Date().addingTimeInterval(-900),
+                opponentBest: (value: 4_000, dayLabel: "Fri"),
+                yourStreakDays: 3,
+                events: [
+                    RopeEvent(
+                        direction: .theyPulled,
+                        actor: "Marcus",
+                        detail: "pulled 4.0 km Friday",
+                        age: "3d"
+                    ),
+                    RopeEvent(
+                        direction: .youPulled,
+                        actor: "You",
+                        detail: "clawed back 3.1 km Saturday",
+                        age: "2d"
+                    ),
+                    RopeEvent(
+                        direction: .opened,
+                        actor: nil,
+                        detail: "Duel opened · $10 each way",
+                        age: "4d"
+                    ),
+                ],
+                charityName: "Trail Fund"
+            ),
+            // An invitation has a roster but no progress yet.
+            Self.invitationID: DuelStanding(
+                opponent: marcus,
+                charityName: "Coast Cleanup"
+            ),
+            Self.wonContestID: DuelStanding(
+                opponent: marcus,
+                myProgress: 240,
+                theirProgress: 185,
+                lastSyncedAt: Date().addingTimeInterval(-9 * 86_400),
+                charityName: "Trail Fund"
+            ),
+            Self.lostContestID: DuelStanding(
+                opponent: marcus,
+                myProgress: 42_000,
+                theirProgress: 58_000,
+                lastSyncedAt: Date().addingTimeInterval(-40 * 86_400),
+                charityName: "Coast Cleanup"
+            ),
         ]
     }
 
@@ -423,6 +519,12 @@ private final class FixtureContestsClient: ContestsClient {
     func listCharities() async throws -> [Charity] {
         try await store.prepareRead()
         return store.charities
+    }
+
+    func listStandings(userID: UUID) async throws -> [UUID: DuelStanding] {
+        try await store.prepareRead()
+        _ = userID
+        return store.standings()
     }
 
     func createDuel(

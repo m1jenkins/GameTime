@@ -79,18 +79,20 @@ final class AppModelAndRoutingTests: XCTestCase {
         let router = AppRouter()
         router.selectedTab = .you
         router.todayPath = [.contest(UUID())]
-        router.challengesPath = [.contest(UUID())]
+        router.duelsPath = [.contest(UUID())]
         router.friendsPath = [.profile(UUID())]
         router.youPath = [.trustAndPrivacy]
+        router.duelsSegment = .done
         router.presentedSheet = .createDuel
 
         router.reset()
 
         XCTAssertEqual(router.selectedTab, .today)
         XCTAssertTrue(router.todayPath.isEmpty)
-        XCTAssertTrue(router.challengesPath.isEmpty)
+        XCTAssertTrue(router.duelsPath.isEmpty)
         XCTAssertTrue(router.friendsPath.isEmpty)
         XCTAssertTrue(router.youPath.isEmpty)
+        XCTAssertEqual(router.duelsSegment, .live)
         XCTAssertNil(router.presentedSheet)
     }
 
@@ -771,6 +773,11 @@ private final class RecordingContestsClient: ContestsClient {
 
     func listCharities() async throws -> [Charity] {
         []
+    }
+
+    func listStandings(userID: UUID) async throws -> [UUID: DuelStanding] {
+        _ = userID
+        return [:]
     }
 
     func createDuel(

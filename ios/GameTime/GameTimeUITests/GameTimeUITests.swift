@@ -1,5 +1,8 @@
 import XCTest
 
+/// The Glass Arena screens draw their own headers and tab bar, so these tests
+/// address elements by accessibility identifier rather than by navigation-bar
+/// title, tab-bar membership, or visible copy.
 @MainActor
 final class GameTimeUITests: XCTestCase {
     override func setUp() {
@@ -16,55 +19,67 @@ final class GameTimeUITests: XCTestCase {
 
         let onboarding = launch("--fixture-onboarding")
         XCTAssertTrue(
-            onboarding.navigationBars["Set your profile"]
+            onboarding.textFields["Display name"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(onboarding.textFields["Display name"].exists)
         XCTAssertTrue(onboarding.textFields["Handle"].exists)
+        XCTAssertTrue(onboarding.buttons["onboarding.continue"].exists)
     }
 
     func testAllFourTabsAndActionFirstToday() {
         let app = launch()
         XCTAssertTrue(
-            app.navigationBars["Today"].waitForExistence(timeout: 5)
+            app.descendants(matching: .any)["screen.today"]
+                .waitForExistence(timeout: 5)
         )
-        XCTAssertTrue(app.staticTexts["Friend requests"].exists)
-        XCTAssertTrue(app.staticTexts["Challenge invitations"].exists)
+        // Today leads with the live duel, then whatever is waiting on you.
+        XCTAssertTrue(app.buttons["today.hero-duel"].exists)
+        XCTAssertTrue(app.buttons["Add Jordan Lee"].exists)
+        XCTAssertTrue(app.buttons["invite.accept"].exists)
 
-        for tab in ["Challenges", "Friends", "You", "Today"] {
-            let tabButton = app.tabBars.buttons[tab]
+        let tabs = [
+            (tab: "tab.duels", screen: "screen.duels"),
+            (tab: "tab.friends", screen: "screen.friends"),
+            (tab: "tab.you", screen: "screen.you"),
+            (tab: "tab.today", screen: "screen.today"),
+        ]
+        for entry in tabs {
+            let tabButton = app.buttons[entry.tab]
             XCTAssertTrue(tabButton.waitForExistence(timeout: 3))
             tabButton.tap()
-            let navigationBar = app.navigationBars[tab]
-            if !navigationBar.waitForExistence(timeout: 3) {
-                tabButton.tap()
-            }
-            XCTAssertTrue(navigationBar.waitForExistence(timeout: 3))
+            XCTAssertTrue(
+                app.descendants(matching: .any)[entry.screen]
+                    .waitForExistence(timeout: 3),
+                "Expected \(entry.screen) after tapping \(entry.tab)"
+            )
         }
     }
 
     func testFriendAcceptanceAndExactHandleSubmission() {
         let app = launch()
-        let accept = app.buttons["Accept Jordan Lee"]
+        let accept = app.buttons["Add Jordan Lee"]
         XCTAssertTrue(accept.waitForExistence(timeout: 5))
         accept.tap()
 
-        app.tabBars.buttons["Friends"].tap()
+        app.buttons["tab.friends"].tap()
         XCTAssertTrue(app.staticTexts["Jordan Lee"].waitForExistence(timeout: 4))
 
         let handle = app.textFields["friends.exact-handle"]
         handle.tap()
-        handle.typeText("@marcusmoves")
+        handle.typeText("marcusmoves")
         app.buttons["friends.find"].tap()
         XCTAssertTrue(
-            app.staticTexts["Exact match"].waitForExistence(timeout: 4)
+            app.staticTexts["EXACT MATCH"].waitForExistence(timeout: 4)
+                || app.staticTexts["Marcus Green"].exists
         )
     }
 
     func testDuelReviewSubmissionAndInvitationAcceptance() {
         let app = launch()
-        app.tabBars.buttons["Challenges"].tap()
-        app.buttons["challenge.create"].tap()
+        app.buttons["tab.duels"].tap()
+        let create = app.buttons["challenge.create"]
+        XCTAssertTrue(create.waitForExistence(timeout: 4))
+        create.tap()
 
         let title = app.textFields["duel.title"]
         XCTAssertTrue(title.waitForExistence(timeout: 4))
@@ -81,9 +96,9 @@ final class GameTimeUITests: XCTestCase {
         reviewTerms.tap()
 
         XCTAssertTrue(
-            app.navigationBars["Review duel"].waitForExistence(timeout: 4)
+            app.navigationBars["Last look"].waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts["Immutable terms"].exists)
+        XCTAssertTrue(app.staticTexts["IMMUTABLE TERMS"].exists)
         let submitDuel = app.buttons["duel.submit"]
         for _ in 0..<5 where !submitDuel.exists {
             app.swipeUp()
@@ -91,31 +106,30 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(submitDuel.waitForExistence(timeout: 3))
         submitDuel.tap()
 
+        // A duel you created lands in Live, awaiting their reply.
         XCTAssertTrue(
-            app.staticTexts["UI test duel"].waitForExistence(timeout: 5)
+            containsText(app, "UI test duel").waitForExistence(timeout: 5)
         )
 
-        app.tabBars.buttons["Today"].tap()
-        let review = app.buttons[
-            "Review and accept Three-day step duel"
-        ]
-        XCTAssertTrue(review.waitForExistence(timeout: 4))
-        review.tap()
+        app.buttons["tab.today"].tap()
+        let takeIt = app.buttons["invite.accept"]
+        XCTAssertTrue(takeIt.waitForExistence(timeout: 4))
+        takeIt.tap()
         XCTAssertTrue(
-            app.navigationBars["Review invitation"]
-                .waitForExistence(timeout: 4)
+            app.navigationBars["Their terms"].waitForExistence(timeout: 4)
         )
         app.buttons["invitation.accept"].tap()
         XCTAssertTrue(
-            app.navigationBars["Today"].waitForExistence(timeout: 5)
+            app.descendants(matching: .any)["screen.today"]
+                .waitForExistence(timeout: 5)
         )
     }
 
     func testSavedDuelCanBeResumedWithoutAutomaticRetry() {
         let app = launch("--fixture-pending-duel")
-        let challengesTab = app.tabBars.buttons["Challenges"]
-        XCTAssertTrue(challengesTab.waitForExistence(timeout: 5))
-        challengesTab.tap()
+        let duelsTab = app.buttons["tab.duels"]
+        XCTAssertTrue(duelsTab.waitForExistence(timeout: 5))
+        duelsTab.tap()
 
         XCTAssertTrue(
             app.staticTexts["Explicit retry required"]
@@ -127,9 +141,8 @@ final class GameTimeUITests: XCTestCase {
         resume.tap()
 
         XCTAssertTrue(
-            app.navigationBars["Review duel"].waitForExistence(timeout: 4)
+            app.navigationBars["Last look"].waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts["Saved response retry"].exists)
         let submit = app.buttons["duel.submit"]
         for _ in 0..<5 where !submit.exists {
             app.swipeUp()
@@ -146,13 +159,11 @@ final class GameTimeUITests: XCTestCase {
                 .waitForExistence(timeout: 3)
         )
         XCTAssertTrue(
-            app.staticTexts[
-                "Discard the local retry record?"
-            ].exists
+            app.staticTexts["Discard the local retry record?"].exists
         )
         app.buttons["Discard local retry"].tap()
         XCTAssertTrue(
-            app.navigationBars["Create duel"].waitForExistence(timeout: 4)
+            app.navigationBars["New duel"].waitForExistence(timeout: 4)
         )
         XCTAssertTrue(app.textFields["duel.title"].exists)
     }
@@ -160,23 +171,24 @@ final class GameTimeUITests: XCTestCase {
     func testLoadingEmptyAndOfflineStates() {
         let loading = launch("--fixture-loading")
         XCTAssertTrue(
-            loading.staticTexts["Loading trusted state…"]
+            loading.staticTexts["Getting the rope ready…"]
                 .waitForExistence(timeout: 2)
         )
         loading.terminate()
 
         let empty = launch("--fixture-empty")
         XCTAssertTrue(
-            empty.otherElements["state.empty"].waitForExistence(timeout: 5)
-                || empty.staticTexts["You’re clear for today"].exists
+            empty.descendants(matching: .any)["state.empty"]
+                .waitForExistence(timeout: 5)
+                || empty.staticTexts["Nobody's challenged you."].exists
         )
         empty.terminate()
 
         let offline = launch("--fixture-offline")
         XCTAssertTrue(
-            offline.otherElements["state.offline"]
+            offline.descendants(matching: .any)["state.offline"]
                 .waitForExistence(timeout: 5)
-                || offline.staticTexts["Couldn’t refresh"].exists
+                || offline.staticTexts["Couldn't refresh"].exists
         )
     }
 
@@ -187,19 +199,36 @@ final class GameTimeUITests: XCTestCase {
             "-UIAccessibilityReduceMotionEnabled",
             "YES"
         )
-        app.tabBars.buttons["You"].tap()
+        app.buttons["tab.you"].tap()
 
-        XCTAssertTrue(
-            app.buttons["debug.future-states"].waitForExistence(timeout: 5)
-        )
+        let debugRow = app.buttons["debug.future-states"]
+        for _ in 0..<4 where !debugRow.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(debugRow.waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["account.sign-out"].exists)
-        app.buttons["debug.future-states"].tap()
+        debugRow.tap()
         XCTAssertTrue(
-            app.navigationBars["Future states"].waitForExistence(timeout: 4)
+            app.staticTexts["Post-duel states"].waitForExistence(timeout: 4)
         )
         XCTAssertTrue(app.staticTexts["Result frozen"].exists)
         XCTAssertTrue(app.staticTexts["Pledge awaiting settlement"].exists)
         XCTAssertTrue(app.staticTexts["Evidence under review"].exists)
+    }
+
+    // MARK: Helpers
+
+    /// Card titles can be folded into their enclosing button's label, so match
+    /// on either.
+    private func containsText(
+        _ app: XCUIApplication,
+        _ text: String
+    ) -> XCUIElement {
+        app.descendants(matching: .any)
+            .matching(
+                NSPredicate(format: "label CONTAINS %@", text)
+            )
+            .firstMatch
     }
 
     private func launch(_ extraArguments: String...) -> XCUIApplication {

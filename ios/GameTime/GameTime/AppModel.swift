@@ -18,6 +18,7 @@ final class AppModel {
     private(set) var profile: UserProfile?
     private(set) var friendshipCards: [FriendshipCard] = []
     private(set) var contests: [ContestCard] = []
+    private(set) var standings: [UUID: DuelStanding] = [:]
     private(set) var charities: [Charity] = []
     private(set) var loadState: ScreenLoadState = .idle
     private(set) var exactHandleResult: ProfileCard?
@@ -164,6 +165,9 @@ final class AppModel {
                 userID: userID
             )
             let charities = try await services.contests.listCharities()
+            let standings = try await services.contests.listStandings(
+                userID: userID
+            )
             guard
                 generation == refreshGeneration,
                 await isCurrentAuthenticatedActor(
@@ -177,6 +181,7 @@ final class AppModel {
             friendshipCards = cards
             self.contests = contests
             self.charities = charities
+            self.standings = standings
             loadState =
                 cards.isEmpty && contests.isEmpty
                 ? .empty
@@ -504,6 +509,100 @@ final class AppModel {
         }
     }
 
+    /// Settled duels, most recently ended first — the Duels list's "Done"
+    /// segment and Today's trailing row.
+    var completedContests: [ContestCard] {
+        contests
+            .filter { $0.status == .finalized || $0.status == .cancelled }
+            .sorted { $0.endsAt > $1.endsAt }
+    }
+
+    /// The duel Today leads with: the live one ending soonest.
+    var headlineContest: ContestCard? {
+        activeAndUpcomingContests
+            .filter { $0.status == .active }
+            .min { $0.endsAt < $1.endsAt }
+            ?? activeAndUpcomingContests.first
+    }
+
+    /// Rope data for a duel. Absent progress is represented, not invented — an
+    /// empty standing renders the rope at parity with nothing synced.
+    func standing(for contestID: UUID) -> DuelStanding {
+        standings[contestID] ?? DuelStanding()
+    }
+
+    /// The opponent, preferring the standing's roster and falling back to the
+    /// friend who created the duel.
+    func opponent(for contest: ContestCard) -> ProfileCard? {
+        if let opponent = standings[contest.id]?.opponent {
+            return opponent
+        }
+        guard let createdBy = contest.createdBy, createdBy != userID else {
+            return nil
+        }
+        return friendshipCards
+            .first { $0.otherUserID == createdBy }?
+            .profileCard
+    }
+
+    /// Nil while the result is unknown — a settled duel with no progress read
+    /// should not claim a winner.
+    func didWin(_ contest: ContestCard) -> Bool? {
+        guard let standing = standings[contest.id], standing.hasProgress else {
+            return nil
+        }
+        guard !standing.isLevel else { return nil }
+        return standing.isAhead
+    }
+
+    /// Whether the Create duel flow can be opened. A saved request blocks a
+    /// second duel until it is confirmed or discarded.
+    var canStartDuel: Bool {
+        configuration.contestMutationsEnabled
+            && !hasPendingDuelRecoveryIssue
+            && (pendingDuel != nil || !acceptedFriendships.isEmpty)
+    }
+
+    /// "You won · Marcus paid $15" — the settlement stated plainly.
+    func settlementSummary(for contest: ContestCard) -> String {
+        let opponentName = opponent(for: contest)?.firstName ?? "They"
+        switch didWin(contest) {
+        case true:
+            return "You won · \(opponentName) paid \(contest.stakeCompactText)"
+        case false:
+            return "\(opponentName) won · you paid \(contest.stakeCompactText)"
+        case nil:
+            return contest.status == .cancelled
+                ? "Called off · nothing owed"
+                : "Settled · result not synced"
+        }
+    }
+
+    /// What you have handed over across every duel you lost.
+    var givenCents: Int {
+        completedContests
+            .filter { didWin($0) == false }
+            .reduce(0) { $0 + $1.stakeAmountCents }
+    }
+
+    /// "Because of you and your friends" — every settled stake, either way.
+    var charityTotalCents: Int {
+        completedContests
+            .filter { didWin($0) != nil }
+            .reduce(0) { $0 + $1.stakeAmountCents }
+    }
+
+    /// The "2W · 1L" record on the Duels title row.
+    var record: (won: Int, lost: Int) {
+        completedContests.reduce(into: (won: 0, lost: 0)) { result, contest in
+            switch didWin(contest) {
+            case true: result.won += 1
+            case false: result.lost += 1
+            case nil: break
+            }
+        }
+    }
+
     private func resolveAuthentication(userID: UUID?) async {
         guard let userID else {
             clearUserState()
@@ -520,6 +619,7 @@ final class AppModel {
         profile = nil
         friendshipCards = []
         contests = []
+        standings = [:]
         charities = []
         exactHandleResult = nil
         lastSubmittedHandle = nil
@@ -666,6 +766,7 @@ final class AppModel {
         profile = nil
         friendshipCards = []
         contests = []
+        standings = [:]
         charities = []
         exactHandleResult = nil
         lastSubmittedHandle = nil

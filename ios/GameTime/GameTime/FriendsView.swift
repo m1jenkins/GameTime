@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Exact handles only — GameTime offers no fuzzy or enumerable people search.
 struct FriendsView: View {
     @Environment(AppModel.self) private var model
     @Environment(AppRouter.self) private var router
@@ -7,159 +8,254 @@ struct FriendsView: View {
     @FocusState private var handleFocused: Bool
 
     var body: some View {
-        List {
-            Section {
-                HStack(spacing: 10) {
-                    TextField("Exact handle", text: $handle)
+        GlassArenaScreenScaffold(
+            screen: .today,
+            identifier: "screen.friends",
+            spacing: 13
+        ) {
+            Text("Friends")
+                .font(GlassArenaFont.display(33, .heavy))
+                .foregroundStyle(GlassArena.ink)
+                .padding(.horizontal, 4)
+
+            searchCard
+
+            if case .failed(let message) = model.loadState {
+                GlassRetryRow(message: message) {
+                    Task { await model.refresh() }
+                }
+            }
+
+            if let result = model.exactHandleResult {
+                foundCard(result)
+            } else if let submitted = model.lastSubmittedHandle,
+                ExactHandleSubmission.normalized(submitted) != nil,
+                !model.isMutating
+            {
+                noMatchCard(submitted)
+            }
+
+            if !model.incomingFriendships.isEmpty {
+                SectionEyebrow(text: "Wants in")
+                    .padding(.leading, 8)
+                ForEach(model.incomingFriendships) { card in
+                    RosterRow(
+                        displayName: card.displayName,
+                        handle: card.handle,
+                        actionTitle: "Accept",
+                        isEnabled: !model.isMutating,
+                        action: {
+                            Task {
+                                await model.acceptFriendship(
+                                    with: card.otherUserID
+                                )
+                            }
+                        },
+                        tap: {
+                            router.friendsPath.append(
+                                .profile(card.otherUserID)
+                            )
+                        }
+                    )
+                }
+            }
+
+            if !model.outgoingFriendships.isEmpty {
+                SectionEyebrow(text: "Left on read")
+                    .padding(.leading, 8)
+                ForEach(model.outgoingFriendships) { card in
+                    RosterRow(
+                        displayName: card.displayName,
+                        handle: card.handle,
+                        side: .neutral,
+                        actionTitle: "Cancel",
+                        isDestructiveAction: true,
+                        isEnabled: !model.isMutating,
+                        action: {
+                            Task {
+                                await model.removeFriendship(
+                                    with: card.otherUserID
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+
+            if !model.acceptedFriendships.isEmpty {
+                SectionEyebrow(text: "Your roster")
+                    .padding(.leading, 8)
+                ForEach(model.acceptedFriendships) { card in
+                    RosterRow(
+                        displayName: card.displayName,
+                        handle: card.handle,
+                        actionTitle: "Duel",
+                        isEnabled: model.canStartDuel,
+                        action: {
+                            router.presentedSheet = .createDuel
+                        },
+                        tap: {
+                            router.friendsPath.append(
+                                .profile(card.otherUserID)
+                            )
+                        }
+                    )
+                }
+            }
+
+            if model.friendshipCards.isEmpty, model.loadState != .loading {
+                EmptyDuelsCard(
+                    title: "Nobody here yet.",
+                    message:
+                        "Ask for someone's exact handle and send the request. There is no directory to browse."
+                )
+            }
+        }
+    }
+
+    // MARK: Search
+
+    private var searchCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                HStack(spacing: 2) {
+                    Text("@")
+                        .font(GlassArenaFont.text(16, .semibold))
+                        .foregroundStyle(GlassArena.mutedLight)
+                    TextField("handle", text: $handle)
+                        .font(GlassArenaFont.text(16, .medium))
+                        .foregroundStyle(GlassArena.ink)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .focused($handleFocused)
                         .submitLabel(.search)
                         .onSubmit(submit)
                         .accessibilityIdentifier("friends.exact-handle")
-
-                    Button("Find", action: submit)
-                        .font(.subheadline.weight(.semibold))
-                        .disabled(
-                            model.isMutating
-                                || ExactHandleSubmission.normalized(handle) == nil
-                        )
-                        .accessibilityIdentifier("friends.find")
+                        .accessibilityLabel("Exact handle")
                 }
-            } header: {
-                Text("Find one person")
-            } footer: {
-                Text(
-                    "Exact handles only. GameTime does not offer fuzzy or enumerable people search."
-                )
-            }
-            .listRowBackground(CompetitiveTrustTheme.raisedInk)
+                .padding(.horizontal, 16)
+                .frame(height: 48)
+                .glassPane(.standard, cornerRadius: 16)
 
-            if let result = model.exactHandleResult {
-                Section("Exact match") {
-                    HStack(spacing: 12) {
-                        InitialsAvatar(initials: result.initials)
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(result.displayName)
-                                .font(.headline)
-                            Text("@\(result.handle)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        exactMatchAction(result)
-                    }
-                    .listRowBackground(CompetitiveTrustTheme.raisedInk)
-                }
-            } else if let submitted = model.lastSubmittedHandle,
-                ExactHandleSubmission.normalized(submitted) != nil,
-                !model.isMutating
-            {
-                Section {
-                    Text("No profile matched @\(submitted) exactly.")
-                        .foregroundStyle(.secondary)
-                }
-                .listRowBackground(CompetitiveTrustTheme.raisedInk)
-            }
-
-            if !model.incomingFriendships.isEmpty {
-                Section("Incoming") {
-                    ForEach(model.incomingFriendships) { card in
-                        FriendshipCardRow(
-                            card: card,
-                            actionTitle: "Accept",
-                            action: {
-                                Task {
-                                    await model.acceptFriendship(
-                                        with: card.otherUserID
-                                    )
-                                }
-                            }
-                        )
-                        .listRowBackground(
-                            CompetitiveTrustTheme.raisedInk
-                        )
-                    }
-                }
-            }
-
-            if !model.outgoingFriendships.isEmpty {
-                Section("Sent") {
-                    ForEach(model.outgoingFriendships) { card in
-                        FriendshipCardRow(
-                            card: card,
-                            actionTitle: "Cancel",
-                            action: {
-                                Task {
-                                    await model.removeFriendship(
-                                        with: card.otherUserID
-                                    )
-                                }
-                            }
-                        )
-                        .listRowBackground(
-                            CompetitiveTrustTheme.raisedInk
-                        )
-                    }
-                }
-            }
-
-            if !model.acceptedFriendships.isEmpty {
-                Section("Friends") {
-                    ForEach(model.acceptedFriendships) { card in
-                        FriendshipCardRow(card: card)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                router.friendsPath.append(
-                                    .profile(card.otherUserID)
-                                )
-                            }
-                            .listRowBackground(
-                                CompetitiveTrustTheme.raisedInk
+                Button(action: submit) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(GlassArena.tealInk)
+                        .frame(width: 52, height: 48)
+                        .background(
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
                             )
-                    }
+                            .fill(GlassArena.tealButton)
+                            .shadow(
+                                color: GlassArena.teal800.opacity(0.5),
+                                radius: 12,
+                                y: 10
+                            )
+                        )
                 }
+                .buttonStyle(.plain)
+                .disabled(
+                    model.isMutating
+                        || ExactHandleSubmission.normalized(handle) == nil
+                )
+                .accessibilityIdentifier("friends.find")
+                .accessibilityLabel("Find this handle")
             }
 
-            if model.friendshipCards.isEmpty, model.loadState != .loading {
-                EmptyTrustState(
-                    title: "No relationships yet",
-                    message:
-                        "Submit the exact handle someone shared with you to send a request.",
-                    systemImage: "person.2"
+            Text(
+                "Exact handles only. No fuzzy search, and nobody else's roster is browsable."
+            )
+            .font(GlassArenaFont.text(12))
+            .foregroundStyle(GlassArena.mutedLight)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .glassPane(.hero, cornerRadius: 28)
+    }
+
+    private func foundCard(_ result: ProfileCard) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionEyebrow(text: "Exact match", fontSize: 11, tracking: 0.9)
+            HStack(spacing: 12) {
+                GlassAvatar(
+                    initials: result.initials,
+                    size: 44,
+                    side: .them
                 )
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(result.displayName)
+                        .font(GlassArenaFont.text(16, .bold))
+                        .foregroundStyle(GlassArena.ink)
+                    Text("@\(result.handle)")
+                        .font(GlassArenaFont.text(13))
+                        .foregroundStyle(GlassArena.mutedLight)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityElement(children: .combine)
+
+                exactMatchAction(result)
             }
         }
-        .listStyle(.insetGrouped)
-        .trustScreenBackground()
-        .navigationTitle("Friends")
-        .refreshable {
-            await model.refresh()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .glassPane(
+            .standard,
+            cornerRadius: 28,
+            borderColor: GlassArena.teal700.opacity(0.4)
+        )
+    }
+
+    private func noMatchCard(_ submitted: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "questionmark.circle")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(GlassArena.mutedLight)
+            Text("Nothing matched @\(submitted) exactly.")
+                .font(GlassArenaFont.text(14))
+                .foregroundStyle(GlassArena.inkTertiary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .glassPane(.recessed, cornerRadius: 24)
+        .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder
     private func exactMatchAction(_ result: ProfileCard) -> some View {
         if result.id == model.userID {
-            TrustStatusPill(text: "You", kind: .neutral)
+            Text("That's you")
+                .font(GlassArenaFont.text(13, .semibold))
+                .foregroundStyle(GlassArena.mutedLight)
         } else if let existing = model.friendshipCards.first(
             where: { $0.otherUserID == result.id }
         ) {
-            let text = existing.status == .accepted ? "Friends" : "Pending"
-            TrustStatusPill(
-                text: text,
-                kind: existing.status == .accepted ? .verified : .action
-            )
+            Text(existing.status == .accepted ? "On your roster" : "Pending")
+                .font(GlassArenaFont.text(12, .bold))
+                .foregroundStyle(
+                    existing.status == .accepted
+                        ? GlassArena.teal900
+                        : GlassArena.amber800
+                )
+                .padding(.horizontal, 11)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule().fill(
+                        (existing.status == .accepted
+                            ? GlassArena.teal700
+                            : GlassArena.amber400).opacity(0.16)
+                    )
+                )
         } else {
-            Button("Add") {
-                Task {
-                    await model.requestFriendship(with: result.id)
-                }
+            Button {
+                Task { await model.requestFriendship(with: result.id) }
+            } label: {
+                TealChip(text: "Add")
             }
-            .buttonStyle(.bordered)
-            .tint(CompetitiveTrustTheme.teal)
+            .buttonStyle(.plain)
+            .disabled(model.isMutating)
             .accessibilityLabel("Add \(result.displayName)")
         }
     }
