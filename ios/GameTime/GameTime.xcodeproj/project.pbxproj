@@ -35,6 +35,7 @@
 		B30000000000000000000004 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		B30000000000000000000005 /* Staging.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Staging.xcconfig; sourceTree = "<group>"; };
 		B30000000000000000000006 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		B30000000000000000000007 /* AppInfo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = AppInfo.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -109,6 +110,7 @@
 				B30000000000000000000004 /* Debug.xcconfig */,
 				B30000000000000000000005 /* Staging.xcconfig */,
 				B30000000000000000000006 /* Release.xcconfig */,
+				B30000000000000000000007 /* AppInfo.plist */,
 			);
 			path = Configuration;
 			sourceTree = "<group>";
@@ -438,7 +440,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Configuration/AppInfo.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
 				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
 				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";
@@ -472,7 +475,9 @@
 				CODE_SIGN_ENTITLEMENTS = GameTime/GameTime.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
+				DEVELOPMENT_TEAM = 87Z29RTC26;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Configuration/AppInfo.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "GameTime Staging";
 				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
 				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";
@@ -488,7 +493,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.8.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.gametime.app.staging;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -506,7 +511,8 @@
 				CODE_SIGN_ENTITLEMENTS = GameTime/GameTime.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Configuration/AppInfo.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
 				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
 				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";
@@ -559,6 +565,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 87Z29RTC26;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -566,7 +573,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.gametime.app.staging.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = STAGING;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -616,9 +623,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 87Z29RTC26;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.gametime.app.staging.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = STAGING;
 				SWIFT_STRICT_CONCURRENCY = complete;

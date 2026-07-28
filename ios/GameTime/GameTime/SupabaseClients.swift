@@ -96,14 +96,20 @@ final class SupabaseProfileClient: ProfileClient {
             displayName: displayName,
             timezone: timezone
         )
-        return
-            try await client
+        // The account-deletion RLS boundary makes the actor active in an
+        // AFTER INSERT trigger. Keep RETURNING out of this statement so its
+        // SELECT policy is evaluated only after that binding has committed.
+        try await client
             .from("profiles")
             .insert(payload)
-            .select("id,handle,display_name,timezone")
-            .single()
             .execute()
-            .value
+
+        guard let profile = try await currentProfile(userID: userID) else {
+            throw AppMutationError.server(
+                "Profile creation completed without a readable profile."
+            )
+        }
+        return profile
     }
 }
 
