@@ -27,9 +27,13 @@ friendships, one-to-one duel creation/invitation/acceptance, reload behavior,
 and Debug/Release boundaries. M8.2a adds a versioned, per-actor protected
 pending-duel record before the creation RPC, preserves canonical millisecond
 terms losslessly, and exposes only explicit same-request recovery after an
-ambiguous outcome. Its two-user Apple-authenticated staging proof is open, and
-full M8 remains open. The M7 finalizer/settlement domain and later M8 sensor,
-App Attest, inbox/APNs, and release slices remain to be built.
+ambiguous outcome. A 2026-07-27 iPhone 17 staging run now proves paid-team
+signing, native Apple identity creation, onboarding, the live four-tab shell,
+and session/profile reload for one user. Apple did not return the requested
+first-sign-in full name, so the editable Apple-name prefill observation and the
+complete two-user flow remain open. Full M8 remains open. The M7
+finalizer/settlement domain and later M8 sensor, App Attest, inbox/APNs, and
+release slices remain to be built.
 
 “Complete” below means the milestone's repository scope is implemented and
 covered by its intended automated tests. It does not mean production deployed,
@@ -66,6 +70,7 @@ before it can support a release claim.
 | Supabase database lint | Pass, no `public` or `app` schema errors | `supabase db lint --local --schema public,app --level warning` found no PL/pgSQL/schema issues |
 | Product Xcode scheme | Pass, 27 unit and 7 UI tests (34 total); no warnings | Auth/onboarding state, route reset, DTOs, exact handles, validation/error mapping, fixture/live boundaries, Release mutation lock, four tabs, friend/duel mutations, restart-safe pending-duel recovery/discard, account-transition isolation, state fixtures, Dynamic Type, labels, and Reduce Motion pass together |
 | Product Staging and Release simulator builds | Pass without signing; no warnings | Both live configurations compile; Staging excludes `DEBUG` routing and Release compiles with fixture code absent and contest mutation locked |
+| Single-user product staging device | Partial pass on 2026-07-27; Xcode 26.2, iPhone 17, iOS 27.0, app revision `dca1309` | Paid-team signing, install, native Apple identity, linked profile, four tabs, staging banner, live charity request, and force-quit session/profile reload passed. Apple returned no full name, so the name-prefill observation remains open |
 | Conformance Xcode scheme | Pass, 10 tests; no warnings | Removing the product preview preserves the focused request/CBOR/replay harness |
 | GameTimeCore SwiftPM | Pass, 88 tests; 0 failed | The portable domain, exact-byte queue, validation, request-building, and cryptographic/supporting primitives remain green independently of the app target |
 | M8.1 pull-request CI | PR #11 initial head `c363610` passed all four jobs in [run 30236956570](https://github.com/m1jenkins/GameTime/actions/runs/30236956570); the Xcode 26.2 job completed in 15m 8s | A clean GitHub-hosted run reproduced pgTAP, Deno, GameTimeCore, product tests, Staging/Release builds, and conformance tests; the checkout-runtime follow-up must rerun before merge |
@@ -79,8 +84,8 @@ before it can support a release claim.
 | Check | Why | Required follow-up |
 | --- | --- | --- |
 | Hosted Security and Performance Advisors | Supabase CLI 2.109.1 exposes local lint and `inspect db`, but no local `advisors` command; the product advisors are hosted Dashboard checks | Run both advisors against the staged D81 schema and investigate every finding |
-| Physical App Attest proof | Current signing account is a Personal Team | Use an App Attest-capable Program team and record the runbook evidence |
-| M8.1 two-user Apple staging proof | Product App ID/team provisioning and two Apple-authenticated users are external | Complete `M8_1_STAGING_ACCEPTANCE.md`, including force-quit reloads and one deliberately lost-response retry |
+| Physical App Attest proof | Not exercised in this product-app run; the paid Program team is now verified for signing, but App Attest registration/assertion exchange remains outside this proof | Provision the conformance target with the paid team and record the complete runbook evidence |
+| M8.1 two-user Apple staging proof | Product App ID/team provisioning and a bounded one-user reload proof now pass; Apple-name prefill and the second authenticated user remain open | Re-observe the first-sign-in Apple name with an eligible fresh/re-authorized test account, then complete `M8_1_STAGING_ACCEPTANCE.md`, including force-quit reloads and one deliberately lost-response retry |
 | Hosted activation cron proof | pgTAP transactions cannot be observed by the background worker; only the retention job has a committed-row staging proof | Record a committed-row activation run and exercise its downstream paths |
 
 `deno fmt --check` also reported 25 tracked files as different only by line
@@ -99,12 +104,12 @@ format-only diff and call that a source fix.
 | M4 | Complete in repo | Deterministic TypeScript scoring and fixture corpus | Production data-loading/finalizer orchestrator |
 | M5 | Complete in repo | Integrity scoring, quarantines/reviews, source reputation, timezone epochs | D76 escalation/adjudicator operation |
 | M6 | Complete in repo | Geofences, workout overlap, trusted-location integrity, exact-byte check-in queue | Live Core Location/HealthKit workout collection |
-| M6.5 | Gate open | Staging backend, conformance target, independent receipt verification, runbook | Eligible Apple team, Auth fixture, physical-device observation |
+| M6.5 | Gate open | Staging backend, conformance target, independent receipt verification, runbook, and paid-team product signing | Paid-team conformance provisioning, Auth fixture, and physical App Attest observation |
 | M7.1 | Complete | D74–D82 product contract | Implementation of most settlement domain |
 | M7.2a | Implemented | Transactional notification intents and named one-minute activation job | Hosted committed-row activation proof |
 | D81 foundation | Staged; local and retention-cycle proven | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker, forward generated-column repair | Broader concurrency/production-shaped migration, hosted advisors, hold/failure recovery; user-facing deletion/capability path |
 | M7 finalization/settlement | Mostly not started | Pure scoring/integrity engines and schema seams exist | Standings API, frozen assessments, results, obligations, claims, disputes, reliability, deadline workers |
-| M8 | M8.1 and M8.2a implemented; external proof and full milestone open | Product Xcode target, native Apple token exchange, onboarding, exact-handle friendship loop, atomic/idempotent duel invitation loop, four-tab navigation, fixtures, plus a protected per-actor pending-duel record with explicit same-request retry and warned local-only discard | Eligible product App ID/team and two-user staging acceptance; HealthKit, Core Location, product App Attest, persistence for other pending actions, inbox/APNs, M7 result/settlement/dispute screens, privacy/release hardening |
+| M8 | M8.1 and M8.2a implemented; partial single-user staging proof recorded; full milestone open | Product Xcode target, native Apple token exchange, onboarding, exact-handle friendship loop, atomic/idempotent duel invitation loop, four-tab navigation, fixtures, protected per-actor pending-duel retry, and one-user signed-device/profile reload proof | Apple-name prefill observation, two-user staging acceptance, HealthKit, Core Location, product App Attest, persistence for other pending actions, inbox/APNs, M7 result/settlement/dispute screens, privacy/release hardening |
 
 ## Work already delivered
 

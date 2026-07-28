@@ -26,6 +26,30 @@ project reference, both pseudonymous test handles, and the contest/request UUIDs
 Do not record Apple IDs, access tokens, publishable keys, or private profile
 data.
 
+### 2026-07-27 single-user device observation
+
+This is a bounded Phase 1 observation, not the two-user acceptance run.
+
+| Field | Evidence |
+| --- | --- |
+| Product revision | `dca1309` on `codex/iphone-staging-live` |
+| Toolchain and device | Xcode 26.2; iPhone 17 on iOS 27.0 |
+| Staging identity | Project `jrkzdttophnmkxjoyioo`; bundle `com.mjenkins.gametime.staging`; paid team `87Z29RTC26` |
+| Signing | Automatic Apple Development signing; generated provisioning profile contains the paid team, staging App ID, connected device, and Sign in with Apple entitlement |
+| Local configuration | Staging environment, HTTPS project URL, and modern publishable key resolved in the signed app; values were checked without recording them and `Secrets.xcconfig` remained ignored |
+| Native authentication | Pass: nonce-backed native Apple authorization created exactly one Apple identity in the previously empty staging baseline |
+| Onboarding | Partial: one unique staging handle and one linked profile were created, but Apple returned no full name, so the tester entered the display name manually; the required editable Apple-name prefill observation remains open |
+| Live shell | Pass: tester observed Today, Challenges, Friends, and You; the staging banner remained visible with no offline/error state; the app's live charity read returned 200 against two active staging rows |
+| Relaunch | Pass: the installed process was force-quit and relaunched; the tester confirmed the same signed-in profile and four-tab shell reloaded without Apple authorization or onboarding |
+
+The first installed build also exposed a configuration-plumbing defect: Xcode's
+generated Info.plist omitted custom keys. Revision `dca1309` adds an explicit
+template and verifies the populated values in both simulator and signed-device
+products. The same observation found that an insert-with-returning profile
+request conflicts with the restrictive active-actor policy during onboarding;
+the client now inserts without a returned row and reads the profile in a second
+authorized request, preserving the RLS boundary.
+
 ## Two-account flow
 
 Use User A and User B on separate devices, or erase all app/session state before
@@ -78,7 +102,8 @@ the affected app before continuing.
 | --- | --- | --- |
 | Repository implementation and automated tests | Implemented | Record CI URL and commit |
 | Restart-safe same-request recovery | Implemented locally | Record force-quit retry UUID and staging observation |
-| Apple product App ID and eligible signing team | Open | Record team-owned verification |
+| Apple product App ID and eligible signing team | Verified for one development device | 2026-07-27 observation above |
+| Single-user native auth/onboarding/relaunch | Partial | Install, Apple identity, profile, live shell, and relaunch passed; Apple-name prefill remains open |
 | Two-user force-quit/reload loop | Open | Record dated observation |
 | Same-request duplicate proof in staging | Open | Record contest/request UUIDs and bounded database observation |
 

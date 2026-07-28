@@ -15,7 +15,7 @@ blockers. The dated evidence and verification caveats are in
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
 | M7 | M7.2a and D81 foundation implemented | Product contract D74–D82, transactional outbox, activation job, and account deletion/retention foundation are integrated; local database and staging retention proofs pass, while broader concurrency and production-shaped migration proof remains |
-| M8 | M8.1 plus restart-safe duel retry implemented; staging proof open | Separate product app, Apple-auth/onboarding state machine, exact-handle social loop, atomic duel creation/invitation, protected per-user pending retries, four-tab SwiftUI system, fixtures, and Xcode tests; two-user Apple staging proof and later device/framework slices remain |
+| M8 | M8.1 plus restart-safe duel retry implemented; partial single-user staging proof recorded | Separate product app, Apple-auth/onboarding state machine, exact-handle social loop, atomic duel creation/invitation, protected per-user pending retries, four-tab SwiftUI system, fixtures, Xcode tests, and one signed iPhone install/auth/profile-reload observation; Apple-name prefill, two-user staging proof, and later device/framework slices remain |
 
 M6's boundary is backend plus portable client core. It does not include live
 Core Location collection, HealthKit queries, or a production scoring/finalizer

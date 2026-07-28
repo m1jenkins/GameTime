@@ -879,8 +879,9 @@ implementation gates, and work not yet reflected here are in PLAN.md.
   - [x] **M8.1 repository slice** — Product target, native Apple-auth exchange,
         onboarding, exact-handle friendships, atomic one-to-one duel
         creation/invitation/acceptance, four-tab navigation, fixtures, and
-        green PR #11 product/conformance Xcode CI; two-user Apple staging proof
-        remains open
+        green PR #11 product/conformance Xcode CI; a signed iPhone
+        install/auth/profile-reload observation now passes, while the
+        Apple-name prefill and two-user staging proof remain open
   - [x] **M8.2a pending duel durability** — Versioned, per-actor protected
         storage preserves canonical immutable terms and the request UUID before
         an attempt; ambiguous responses survive relaunch for explicit
