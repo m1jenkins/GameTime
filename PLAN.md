@@ -332,6 +332,33 @@ This closes one pending-human-action durability gap. It does not complete
 persistent metric/check-in evidence queues, the two-user staging proof, or full
 M8.
 
+### M8.3 — Two-to-four-person challenges
+
+The detailed delivery and verification plan is in
+`docs/M8_3_GROUP_CHALLENGES_IMPLEMENTATION_PLAN.md`.
+
+- [ ] **M8.3a — Terminology, creation, and durable submission.** Make Challenge
+  the general product noun, keep Duel as an optional two-person presentation,
+  select one to three accepted friends, send the existing RPC's complete UUID
+  array with an exact two-to-four-person ceiling, and migrate protected pending
+  records from the one-invitee version without changing any committed request.
+- [ ] **M8.3b — Pending roster and invitation experience.** Add a versioned,
+  caller-bounded roster-summary API and show accepted counts, anonymous pending
+  slots, personal maximum exposure, and group-safe invitation copy without
+  widening table access or revealing other pending invitees.
+- [ ] **M8.3c — Provisional standings and final results.** Keep the rope for two
+  accepted participants; render a provisional ranked field for three or four;
+  then show final group results and per-loser obligations. Live enablement waits
+  for M7's canonical D77 standings, result, and obligation contracts.
+- [ ] Prove one four-user Apple-authenticated staging flow, including an exact
+  lost-response retry, force-quit/relaunch after mutations, roster privacy,
+  activation, provisional standings, final result, and a two-person regression.
+
+M8.3a and M8.3b may proceed before the M7 finalizer, with an explicit
+standings-unavailable state. M8.3 is not complete until M8.3c consumes the real
+M7 contracts; fixture leaderboards do not satisfy that gate. Group writes remain
+disabled in distributed builds until group-safe reads are present.
+
 ### Later M8 slices
 
 - HealthKit authorization, incremental queries, provenance extraction, and
@@ -340,8 +367,8 @@ M8.
   exact-byte check-in queue.
 - DeviceCheck/App Attest key lifecycle and signed retries in the product target.
 - Durable in-app action inbox plus APNs registration and delivery.
-- Live standings/review/finalization, settlement, and dispute screens after M7
-  supplies those contracts.
+- M8.3c's live challenge standings and result screens, plus broader settlement
+  and dispute screens, after M7 supplies those contracts.
 - Persistent metric/check-in evidence queues and remaining pending human
   actions.
 - Accessibility hardening, privacy disclosures, handle-change throttling,
