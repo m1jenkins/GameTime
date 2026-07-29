@@ -629,9 +629,10 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
   },
 
   {
-    name: "tie/three-way-all-donate",
-    why: "`both_donate` is named for the duel it was designed around. With three " +
-      "qualifiers every one of them donates, each to their own nomination.",
+    name: "tie/group-all-donate-includes-a-nonqualifier",
+    why: "`both_donate` resolves a tie between qualifiers, but D75 preserves the " +
+      "accepted exposure of the complete roster. A nonqualifier still donates " +
+      "to their own nomination.",
     input: {
       timezoneChanges: [],
       contest: {
@@ -647,10 +648,13 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       evidence: [
         bucket(ALICE, "2026-01-05", 8, 12000, UTC),
         bucket(BOB, "2026-01-05", 9, 11000, UTC),
-        bucket(CAROL, "2026-01-05", 10, 10000, UTC),
+        bucket(CAROL, "2026-01-05", 10, 9000, UTC),
       ],
     },
     outcome: { kind: "all_donate", userIds: [ALICE, BOB, CAROL] },
+    participants: {
+      [CAROL]: { qualified: false, total: 9000 },
+    },
   },
 
   // -------------------------------------------------------------------------

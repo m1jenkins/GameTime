@@ -108,6 +108,132 @@ final class DomainAndConfigurationTests: XCTestCase {
         XCTAssertEqual(card.myStatus, .invited)
     }
 
+    func testProvisionalStandingsDecodeWithRivalIntegrityRedacted() throws {
+        let data = Data(
+            """
+            {
+              "contest_id":"cccccccc-cccc-cccc-cccc-cccccccccccc",
+              "snapshot_id":"15151515-1515-1515-1515-151515151515",
+              "phase":"provisional",
+              "reason":"live",
+              "as_of":"2026-07-28T12:00:00Z",
+              "scoring_version":"m7-scoring-v1",
+              "integrity_configuration_version":"m7-integrity-v1",
+              "standings":[
+                {
+                  "participant_id":"44444444-4444-4444-4444-444444444444",
+                  "display_name":"Marcus Green",
+                  "handle":"marcusmoves",
+                  "display_order":1,
+                  "rank":1,
+                  "qualified":false,
+                  "total":7600,
+                  "qualifying_days":2,
+                  "scoreable_days":3,
+                  "day_rate":0.6667
+                },
+                {
+                  "participant_id":"11111111-1111-1111-1111-111111111111",
+                  "display_name":"Austin",
+                  "handle":"austinmoves",
+                  "display_order":2,
+                  "rank":2,
+                  "qualified":false,
+                  "total":6400,
+                  "qualifying_days":2,
+                  "scoreable_days":3,
+                  "day_rate":0.6667,
+                  "integrity_score":94.5,
+                  "integrity_flags":[],
+                  "rationale":[
+                    {
+                      "code":"trusted_source",
+                      "summary":"Health data passed integrity review.",
+                      "points":0
+                    }
+                  ]
+                }
+              ]
+            }
+            """.utf8
+        )
+        let standings = try standingsDecoder().decode(
+            ChallengeStandings.self,
+            from: data
+        )
+
+        XCTAssertEqual(standings.phase, .provisional)
+        XCTAssertNil(standings.result)
+        XCTAssertNil(standings.standings[0].integrityScore)
+        XCTAssertNil(standings.standings[0].integrityFlags)
+        XCTAssertNil(standings.standings[0].rationale)
+        XCTAssertEqual(standings.standings[1].integrityScore, 94.5)
+    }
+
+    func testFinalStandingsDecodeResultAndPerLoserObligation() throws {
+        let data = Data(
+            """
+            {
+              "contest_id":"cccccccc-cccc-cccc-cccc-cccccccccccc",
+              "snapshot_id":"13131313-1313-1313-1313-131313131313",
+              "phase":"final",
+              "reason":"final",
+              "as_of":"2026-07-28T12:00:00Z",
+              "scoring_version":"m7-scoring-v1",
+              "integrity_configuration_version":"m7-integrity-v1",
+              "result":{
+                "id":"12121212-1212-1212-1212-121212121212",
+                "kind":"winner",
+                "reason":"earliest_to_target",
+                "winner_participant_id":"44444444-4444-4444-4444-444444444444",
+                "evidence_cutoff":"2026-07-28T10:00:00Z",
+                "finalized_at":"2026-07-28T11:00:00Z"
+              },
+              "standings":[
+                {
+                  "participant_id":"11111111-1111-1111-1111-111111111111",
+                  "display_name":"Austin",
+                  "handle":"austinmoves",
+                  "display_order":2,
+                  "rank":2,
+                  "qualified":true,
+                  "total":10100,
+                  "qualifying_days":3,
+                  "scoreable_days":3,
+                  "day_rate":1,
+                  "reached_target_at":"2026-07-28T02:00:00Z",
+                  "integrity_score":95,
+                  "integrity_flags":[],
+                  "rationale":[],
+                  "obligation":{
+                    "id":"14141414-1414-1414-1414-141414141414",
+                    "kind":"loser_to_winner_charity",
+                    "amount_cents":1000,
+                    "charity_id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                    "charity_name":"Fixture Community Fund",
+                    "charity_slug":"fixture-community-fund",
+                    "destination_owner_id":"44444444-4444-4444-4444-444444444444",
+                    "result_dispute_closes_at":"2026-08-04T11:00:00Z"
+                  }
+                }
+              ]
+            }
+            """.utf8
+        )
+        let standings = try standingsDecoder().decode(
+            ChallengeStandings.self,
+            from: data
+        )
+        let obligation = try XCTUnwrap(standings.standings.first?.obligation)
+
+        XCTAssertEqual(standings.phase, .final)
+        XCTAssertEqual(standings.result?.kind, .winner)
+        XCTAssertEqual(standings.result?.reason, .earliestToTarget)
+        XCTAssertEqual(obligation.kind, .loserToWinnerCharity)
+        XCTAssertEqual(obligation.amountCents, 1_000)
+        XCTAssertEqual(obligation.charityName, "Fixture Community Fund")
+    }
+
     func testChallengeValidationRequiresFutureCoherentTerms() throws {
         let now = Date(timeIntervalSince1970: 2_000_000_000)
         var draft = ChallengeDraft()
@@ -152,6 +278,12 @@ final class DomainAndConfigurationTests: XCTestCase {
                 .dailyNeedsFullDay
             )
         }
+    }
+
+    private func standingsDecoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
     }
 
     func testChallengeValidationRequiresOneToNineteenUniqueFriends() throws {

@@ -85,6 +85,8 @@ struct ContestCardRow: View {
             TrustStatusPill(text: "Action needed", kind: .action)
         } else if contest.status == .active {
             TrustStatusPill(text: "Active", kind: .verified)
+        } else if contest.status == .finalized {
+            TrustStatusPill(text: "Final", kind: .verified)
         } else {
             TrustStatusPill(text: "Upcoming", kind: .neutral)
         }

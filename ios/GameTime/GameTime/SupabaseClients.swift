@@ -243,6 +243,20 @@ final class SupabaseContestsClient: ContestsClient {
             .value
     }
 
+    func standings(contestID: UUID) async throws -> ChallengeStandings? {
+        let standings: ChallengeStandings? =
+            try await client
+            .rpc(
+                "get_contest_standings_v1",
+                params: [
+                    "p_contest_id": contestID.uuidString.lowercased()
+                ]
+            )
+            .execute()
+            .value
+        return standings
+    }
+
     func createChallenge(
         _ terms: ChallengeTerms,
         expectedUserID: UUID

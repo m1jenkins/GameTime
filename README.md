@@ -12,7 +12,7 @@ friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
 **Status, reconciled 2026-07-28: the backend and portable client core are
-complete through M6, and the M8.1–M8.3a product slices are implemented with
+complete through M6, and the M8.1–M8.3c product slices are implemented with
 staging proof open. This is not yet a shippable iOS app.**
 M6.5's staging backend,
 conformance-only iOS target, independent App Attest receipt verifier,
@@ -28,20 +28,25 @@ reconciled branch also implements D81's durable actor tombstones, atomic
 account deletion, scoped continuation capabilities, and versioned raw-evidence
 retention. D77's metric/quarantine evidence boundary is also hardened: direct
 audit reads are owner-only and pending peer review goes through exact-contest,
-phase-aware redacted RPCs. A clean local database reset now passes all 824
-pgTAP assertions and the supported local lint/advisor checks. D81 and forward
+phase-aware redacted RPCs. M8.3c adds immutable provisional/final standings
+snapshots, explicit first results, exact per-debtor obligations, and an
+accepted-participant read RPC that redacts rival integrity until final. A clean
+local database reset now passes all 869 pgTAP assertions and the supported
+local lint checks. D81 and forward
 guard repair `20260726230529` are deployed to staging, where committed manual
 and hosted raw retention cycles prove exact-location pruning and the 90-day
 source-identifier scrub. CI, concurrency, hosted advisors, production-shaped
-migration timing, and retention failure recovery remain open. M8.1–M8.3a now
+migration timing, and retention failure recovery remain open. M8.1–M8.3c now
 add a separate product Xcode target, native Apple-auth/onboarding state, the
 live exact-handle friendship loop, atomic idempotent multi-friend challenge
 invitations, four-tab SwiftUI navigation, Debug fixtures, a Release mutation
-lock, and protected per-user manual retry recovery that survives relaunch.
+lock, protected per-user manual retry recovery that survives relaunch, and
+M7-backed challenge-detail standings with final loser obligations.
 Version-1 single-invite saved-duel records migrate in place to the version-2
 challenge roster without changing the backend payload hash. The two-user Apple
 staging run remains open, as do later sensors, App Attest, inbox/APNs, evidence
-queues, finalization, settlement, disputes, and operations. See
+queues, trusted finalizer orchestration/adjudication, actionable settlement,
+disputes, and operations. See
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
 evidence, remaining work, and recommended sequence.
 
@@ -354,6 +359,31 @@ The database installs one named `pg_cron` job,
 semantics; a staging run must still observe the background process against
 committed rows because it cannot see fixtures inside a rolled-back test
 transaction.
+
+## Provisional standings, final results, and obligations
+
+M8.3c adds one service-only `publish_contest_standings_v1` boundary and one
+accepted-participant `get_contest_standings_v1` read surface. The publisher
+stores complete versioned snapshots. Final publication also freezes one
+explicit `winner`, `all_donate`, `void`, or `inconclusive` result and creates
+exactly one obligation per debtor in the same transaction: each loser points to
+the winner's frozen charity, while every accepted participant in an
+`all_donate` result points to their own nomination.
+
+The read RPC never exposes the base ledgers directly. Provisional ordering is
+live progress, not a predicted winner: the caller sees their own exact
+integrity score, flags, and bounded rationale while rivals remain redacted.
+Final rankings reveal the frozen inputs and attach an obligation only to the
+row that owes it. Results, snapshots, entries, and obligations are append-only;
+final publication waits for ingest grace, rejects unresolved quarantine, and
+serializes against both metric and geofence writes. The product renders these
+states in challenge detail with separate loading/error caches that clear on an
+account transition.
+
+This is a dormant first-result foundation, not an enabled finalizer. No cron or
+hosted caller invokes the trusted publisher, and the remaining M7
+evidence-loading, complete-assessment, adjudication, dispute, actionability,
+settlement, M6.5, and staging gates still apply.
 
 ## Durable account deletion and raw-evidence retention
 
@@ -868,17 +898,21 @@ implementation gates, and work not yet reflected here are in PLAN.md.
 - [x] **M7 / D81 foundation** — Durable actor tombstones, atomic
       service-only account deletion, stale-JWT denial, scoped continuation
       capabilities, and guarded versioned raw-evidence retention; local
-      824-assertion/lint/advisor gates and committed staging retention cycles
+      869-assertion/lint gates and committed staging retention cycles
       pass, while broader concurrency/production-shaped migration and
       hosted-advisor gates remain
 - [x] **M7 / D77 evidence boundary** — Owner-only metric/quarantine audit
       relations plus exact-contest, phase-aware, redacted quarantine-review
-      surfaces; canonical live/final standings still belong to the M7 remainder
+      surfaces
+- [x] **M7 first-result foundation** — Append-only provisional/final snapshots,
+      explicit first results, service-only grace/roster/quarantine-gated
+      publication, accepted-participant redacted reads, and exact per-debtor
+      obligations; no hosted finalizer is enabled
 - [ ] **M7.2b** — Observe hosted cron activation and run ingest, timezone, and
       check-in flows against the scheduler-opened contest
-- [ ] **M7 remainder** — Standings API, finalization gates and result ledger,
-      settlement, disputes, charity pledge lifecycle, reliability, and
-      deadline/retention operations
+- [ ] **M7 remainder** — Trusted evidence loading and complete-assessment
+      orchestration, adjudication, actionable settlement, disputes, charity
+      pledge lifecycle, reliability, and deadline/retention operations
 - [ ] **M8** — Product iOS program remains in progress
   - [x] **M8.1 repository slice** — Product target, native Apple-auth exchange,
         onboarding, exact-handle friendships, atomic challenge
@@ -896,6 +930,11 @@ implementation gates, and work not yet reflected here are in PLAN.md.
         `create_contest_with_invites_v1` request; version-2 persistence migrates
         version-1 single-invite saved-duel records without changing their
         request identity or timestamps
+  - [x] **M8.3c M7-backed standings** — Challenge detail distinguishes
+        provisional progress from frozen final rankings, preserves rival
+        integrity redaction until final, displays explicit result rationale,
+        and shows only the participant's own loser/all-donate obligation
   - [ ] **Later M8** — HealthKit, Core Location, product App Attest, durable
-        inbox/APNs, evidence persistence, live M7 result/settlement/dispute
-        screens, accessibility hardening, and privacy/App Store work
+        inbox/APNs, evidence persistence, M7 review/actionable
+        settlement/dispute screens, accessibility hardening, and privacy/App
+        Store work

@@ -65,6 +65,40 @@ struct ContestDetailView: View {
                     }
                     .listRowBackground(CompetitiveTrustTheme.raisedInk)
 
+                    if contest.myStatus == .accepted {
+                        if contest.status == .active
+                            || contest.status == .finalized
+                        {
+                            ChallengeStandingsSection(
+                                contest: contest,
+                                currentUserID: model.userID,
+                                standings: model.standings(
+                                    for: contest.id
+                                ),
+                                loadState: model.standingsLoadState(
+                                    for: contest.id
+                                )
+                            ) {
+                                Task {
+                                    await model.loadStandings(
+                                        contestID: contest.id
+                                    )
+                                }
+                            }
+                        } else if contest.status == .pending {
+                            Section("Standings") {
+                                Label(
+                                    "Standings open when the challenge starts.",
+                                    systemImage: "clock"
+                                )
+                                .foregroundStyle(.secondary)
+                            }
+                            .listRowBackground(
+                                CompetitiveTrustTheme.raisedInk
+                            )
+                        }
+                    }
+
                     if contest.myStatus == .invited {
                         Section {
                             Button("Review and accept") {
@@ -97,6 +131,10 @@ struct ContestDetailView: View {
                     }
                 }
                 .trustScreenBackground()
+                .refreshable {
+                    await model.refresh()
+                    await model.loadStandings(contestID: contest.id)
+                }
             } else {
                 ContentUnavailableView(
                     "Contest unavailable",
@@ -111,6 +149,341 @@ struct ContestDetailView: View {
         }
         .navigationTitle("Challenge")
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: contest?.status.rawValue) {
+            guard
+                let contest,
+                contest.myStatus == .accepted,
+                contest.status == .active || contest.status == .finalized
+            else {
+                return
+            }
+            await model.loadStandings(contestID: contest.id)
+        }
+    }
+}
+
+private struct ChallengeStandingsSection: View {
+    let contest: ContestCard
+    let currentUserID: UUID?
+    let standings: ChallengeStandings?
+    let loadState: ScreenLoadState
+    let retry: () -> Void
+
+    var body: some View {
+        Section {
+            if let standings {
+                phaseHeader(standings)
+
+                if let result = standings.result {
+                    resultSummary(result, standings: standings)
+                }
+
+                ForEach(standings.standings) { standing in
+                    ChallengeStandingRow(
+                        contest: contest,
+                        standing: standing,
+                        isCurrentUser: standing.participantID
+                            == currentUserID,
+                        phase: standings.phase
+                    )
+                }
+
+                if case .loading = loadState {
+                    Label(
+                        "Refreshing standings…",
+                        systemImage: "arrow.clockwise"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                } else if case .failed = loadState {
+                    InlineLoadStateView(state: loadState, retry: retry)
+                }
+            } else {
+                emptyContent
+            }
+        } header: {
+            Text(
+                standings?.phase == .final
+                    ? "Final rankings"
+                    : "Standings"
+            )
+        } footer: {
+            if let standings {
+                Text(
+                    "Scored with \(standings.scoringVersion) · Integrity \(standings.integrityConfigurationVersion)"
+                )
+            }
+        }
+        .listRowBackground(CompetitiveTrustTheme.raisedInk)
+    }
+
+    @ViewBuilder
+    private var emptyContent: some View {
+        switch loadState {
+        case .idle, .loading:
+            HStack(spacing: 10) {
+                ProgressView()
+                Text("Loading standings…")
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("standings.loading")
+        case .empty, .loaded:
+            Label(
+                contest.status == .finalized
+                    ? "Final standings aren’t available yet."
+                    : "Trusted progress has not been published yet.",
+                systemImage: "chart.bar.xaxis"
+            )
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("standings.empty")
+        case .failed:
+            InlineLoadStateView(state: loadState, retry: retry)
+        }
+    }
+
+    private func phaseHeader(_ standings: ChallengeStandings) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                TrustStatusPill(
+                    text: standings.phase == .final ? "Final" : "Provisional",
+                    kind: standings.phase == .final ? .verified : .action
+                )
+                .accessibilityIdentifier("standings.phase")
+                Spacer()
+                Text(
+                    standings.asOf,
+                    format: .dateTime.month(.abbreviated).day().hour().minute()
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+
+            Text(reasonMessage(for: standings.reason))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func resultSummary(
+        _ result: ChallengeResult,
+        standings: ChallengeStandings
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Label(
+                resultTitle(result, standings: standings),
+                systemImage: "flag.checkered"
+            )
+            .font(.headline)
+            Text(resultReason(result.reason))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Text(
+                "Evidence closed \(result.evidenceCutoff.formatted(date: .abbreviated, time: .shortened))."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 4)
+        .accessibilityIdentifier("standings.result")
+    }
+
+    private func resultTitle(
+        _ result: ChallengeResult,
+        standings: ChallengeStandings
+    ) -> String {
+        switch result.kind {
+        case .winner:
+            let winner = standings.standings.first {
+                $0.participantID == result.winnerParticipantID
+            }
+            return "Winner: \(winner?.displayName ?? "Participant")"
+        case .allDonate:
+            return "Everyone has a pledge"
+        case .void:
+            return "No pledge is due"
+        case .inconclusive:
+            return "Result inconclusive"
+        }
+    }
+
+    private func reasonMessage(for reason: ChallengeStandingsReason) -> String {
+        switch reason {
+        case .live:
+            return "Live ordering only — not a predicted winner."
+        case .awaitingIngest:
+            return "Waiting for the evidence grace period to close."
+        case .underReview:
+            return "Evidence is under review; ordering may change."
+        case .final:
+            return "Ranks and result inputs are frozen."
+        }
+    }
+
+    private func resultReason(_ reason: ChallengeResultReason) -> String {
+        switch reason {
+        case .soleQualifier:
+            return "Only one participant met the qualification rules."
+        case .earliestToTarget:
+            return "The winner reached the target first."
+        case .integrityScore:
+            return "The integrity score resolved the tie."
+        case .bothDonate:
+            return "The challenge terms require every participant to pledge."
+        case .noQualifyingParticipant:
+            return "No participant met the qualification rules."
+        case .tieBreakVoid:
+            return "The configured tie-break voided the pledge."
+        case .tieBreakInconclusive:
+            return "The configured tie-break could not resolve the result."
+        case .reviewTimeout:
+            return "The evidence review window expired without a winner."
+        }
+    }
+}
+
+private struct ChallengeStandingRow: View {
+    let contest: ContestCard
+    let standing: ChallengeStanding
+    let isCurrentUser: Bool
+    let phase: ChallengeStandingsPhase
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text("#\(standing.rank)")
+                    .font(.title3.monospacedDigit().bold())
+                    .foregroundStyle(CompetitiveTrustTheme.teal)
+                    .frame(minWidth: 30, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(standing.displayName)
+                            .font(.headline)
+                        if isCurrentUser {
+                            TrustStatusPill(text: "You", kind: .neutral)
+                        }
+                    }
+                    if let handle = standing.handle {
+                        Text("@\(handle)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Spacer(minLength: 8)
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(standing.totalText(metric: contest.metric))
+                        .font(.headline.monospacedDigit())
+                    Text(standing.qualified ? "Qualified" : "Not qualified")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(
+                            standing.qualified
+                                ? CompetitiveTrustTheme.teal
+                                : Color.secondary
+                        )
+                }
+            }
+
+            progressDetail
+
+            integrityDetails
+
+            if let obligation = standing.obligation {
+                VStack(alignment: .leading, spacing: 5) {
+                    Label(
+                        "Pledge \(obligation.amountText) to \(obligation.charityName)",
+                        systemImage: "heart.circle.fill"
+                    )
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(CompetitiveTrustTheme.amber)
+                    .accessibilityIdentifier(
+                        "standings.obligation.\(standing.participantID.uuidString.lowercased())"
+                    )
+                    Text(
+                        "Pending result review until \(obligation.resultDisputeClosesAt.formatted(date: .abbreviated, time: .shortened))."
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+                .padding(.top, 3)
+            }
+        }
+        .padding(.vertical, 4)
+        .accessibilityIdentifier(
+            "standings.row.\(standing.participantID.uuidString.lowercased())"
+        )
+    }
+
+    @ViewBuilder
+    private var progressDetail: some View {
+        if contest.cadence == .daily {
+            Text(
+                "\(standing.qualifyingDays) of \(standing.scoreableDays) scoreable days · \(standing.dayRate.formatted(.percent.precision(.fractionLength(0)))) day rate"
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        } else if phase == .final {
+            if let reachedTargetAt = standing.reachedTargetAt {
+                Text(
+                    "Reached target \(reachedTargetAt.formatted(date: .abbreviated, time: .shortened))"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            } else {
+                Text("Target was not reached.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var integrityDetails: some View {
+        if let score = standing.integrityScore {
+            VStack(alignment: .leading, spacing: 4) {
+                Label(
+                    "Integrity \(score.formatted(.number.precision(.fractionLength(0...2))))",
+                    systemImage: "checkmark.shield"
+                )
+                .font(.caption.weight(.semibold))
+
+                if let flags = standing.integrityFlags, !flags.isEmpty {
+                    Text(
+                        "Flags: \(flags.map(humanized).joined(separator: ", "))"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                } else {
+                    Text("No integrity flags")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if let rationale = standing.rationale {
+                    ForEach(rationale) { item in
+                        Text(
+                            "\(item.summary) (\(item.points.formatted(.number.precision(.fractionLength(0...2)))) points)"
+                        )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } else if phase == .provisional {
+            Label(
+                "Integrity detail stays private until final.",
+                systemImage: "lock"
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+    }
+
+    private func humanized(_ value: String) -> String {
+        value.replacingOccurrences(of: "_", with: " ")
     }
 }
 

@@ -241,7 +241,7 @@ export type Outcome =
     readonly userId: string;
     readonly decidedBy: "sole_qualifier" | "earliest_to_target" | "integrity_score";
   }
-  /** `both_donate`: every tied participant donates to their own nomination. */
+  /** `both_donate`: every accepted participant donates to their own nomination. */
   | { readonly kind: "all_donate"; readonly userIds: readonly string[] }
   | {
     readonly kind: "void";
@@ -808,11 +808,17 @@ function decide(
     return { kind: "winner", userId: sole.userId, decidedBy: "sole_qualifier" };
   }
 
-  return resolveTie(qualifiers, contest.tieBreak, integrityScores);
+  return resolveTie(
+    qualifiers,
+    standings.map((standing) => standing.userId),
+    contest.tieBreak,
+    integrityScores,
+  );
 }
 
 function resolveTie(
   qualifiers: readonly ParticipantStanding[],
+  acceptedRoster: readonly string[],
   tieBreak: ContestTieBreak,
   integrityScores: Readonly<Record<string, number>> | undefined,
 ): Outcome {
@@ -823,9 +829,11 @@ function resolveTie(
       return { kind: "void", reason: "tie_break_void" };
 
     case "both_donate":
-      // Named for the duel it was designed around; with more than two
-      // qualifiers every one of them donates, each to their own nomination.
-      return { kind: "all_donate", userIds: tied };
+      // D75 makes this the one winner/loser exception: every accepted
+      // participant donates to their own nomination, including a participant
+      // who did not qualify. Otherwise failing the target would erase that
+      // person's accepted exposure in a group tie.
+      return { kind: "all_donate", userIds: acceptedRoster };
 
     case "earliest_to_target":
       return byEarliest(qualifiers, tied);

@@ -14,8 +14,8 @@ blockers. The dated evidence and verification caveats are in
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
-| M7 | M7.2a and D81 foundation implemented | Product contract D74–D82, transactional outbox, activation job, and account deletion/retention foundation are integrated; local database and staging retention proofs pass, while broader concurrency and production-shaped migration proof remains |
-| M8 | M8.1, M8.2a, and M8.3a implemented; partial single-user staging proof recorded | Separate product app, Apple-auth/onboarding state machine, exact-handle social loop, atomic multi-friend challenge creation, backward-compatible protected per-user pending retries, four-tab SwiftUI system, fixtures, Xcode tests, and one signed iPhone install/auth/profile-reload observation; Apple-name prefill, two-user staging proof, and later device/framework slices remain |
+| M7 | M7.2a, D81, and the M8.3c first-result foundation implemented | Product contract D74–D82, transactional outbox, activation job, account deletion/retention, immutable standings snapshots, explicit first results, and per-debtor obligations are integrated; the trusted evidence-loading/adjudication orchestrator, disputes, settlement, and external gates remain |
+| M8 | M8.1, M8.2a, M8.3a, and M8.3c implemented; partial single-user staging proof recorded | Separate product app, Apple-auth/onboarding state machine, exact-handle social loop, atomic multi-friend challenge creation, protected per-user pending retries, and M7-backed provisional/final standings with loser obligations; Apple-name prefill, two-user staging proof, and later device/framework/settlement slices remain |
 
 M6's boundary is backend plus portable client core. It does not include live
 Core Location collection, HealthKit queries, or a production scoring/finalizer
@@ -59,6 +59,14 @@ same-request retry. It also passed 30 product unit tests, 7 product UI tests,
 both unsigned Staging/Release simulator builds, 88 GameTimeCore tests, 10
 conformance tests, strict Swift formatting, and local `public`/`app` schema
 lint without warnings or errors.
+
+The M8.3c pass applies 19 migrations and passes all 21 pgTAP files / 869
+assertions, including the accepted-roster, disclosure, first-result,
+idempotency, grace, append-only, and per-debtor obligation contracts. Deno
+format, lint, type-check, and all 305 tests pass. The product target builds and
+launches on an iPhone 17 simulator; 34 product unit tests and 8 UI tests pass,
+including provisional rival-integrity redaction and final loser-obligation
+fixtures. The local `public`/`app` schema lint reports no errors.
 
 PR #11's initial M8.1 head (`c363610`) passed all four GitHub Actions jobs in
 [run 30236956570](https://github.com/m1jenkins/GameTime/actions/runs/30236956570):
@@ -239,30 +247,38 @@ before finalization or settlement is enabled.
   lost-capability warning, and capability-authorized APIs. Any recovery
   mechanism requires a separate reviewed design. Never expose the service-only
   database RPC directly to the app.
-- Load `contest_evidence`, source reputation, timezone applied events,
+- [ ] Load `contest_evidence`, source reputation, timezone applied events,
   quarantine state, `contest_checkin_integrity`, and trusted location
   observations into the one TypeScript scoring/integrity pipeline.
-- Update the scoring `Outcome` contract and fixtures so `all_donate` returns the
+- [x] Update the scoring `Outcome` contract and fixtures so `all_donate` returns the
   complete accepted roster. Reject `insufficient_participants` from an active
   contest as an operational invariant failure.
 - [x] Narrow metric/quarantine direct rival access and expose D77's
   exact-contest, phase-aware bounded quarantine-review surfaces.
-- Expose D77's remaining phase- and role-authorized live/final standings and
+- [x] Expose D77's phase- and role-authorized provisional/final standings and
   bounded final rationale after frozen assessments/results exist.
-- Serialize finalization with both metric and geofence ingest so an in-flight
+- [x] Serialize the trusted first-result write with both metric and geofence
+  ingest so an in-flight
   request cannot commit evidence after the result is fixed.
-- Before interpreting zero quarantines as clean, persist a complete versioned
+- [ ] Before interpreting zero quarantines as clean, persist a complete versioned
   integrity assessment over the frozen evidence and materialize every required
   quarantine. Do not finalize before `app.ingest_grace_period()` closes.
-- Implement D76's per-quarantine review deadline, early-rejection escalation,
+- [ ] Implement D76's per-quarantine review deadline, early-rejection escalation,
   grace-anchored adjudication deadline, explicit clearance, and terminal
   `review_timeout`.
-- Add explicit adjudicator authorization, guarded operator queues/tools,
+- [ ] Add explicit adjudicator authorization, guarded operator queues/tools,
   conflict checks, observability, and an on-call/SLA runbook for the D76/D78
   deadlines. A schema deadline without an operated queue is not complete.
-- Persist explicit `winner`, `all_donate`, `void`, and `inconclusive` results;
+- [x] Persist explicit `winner`, `all_donate`, `void`, and `inconclusive`
+  first results;
   only the first two may create obligations.
-- Persist the scoring and integrity configuration versions used for the result.
+- [x] Persist the scoring and integrity configuration versions used for the
+  result.
+
+M8.3c supplies the immutable first-result storage and trusted publication/read
+boundary, but deliberately installs no finalization cron or hosted caller. The
+service-only publisher cannot make the evidence-loading, complete-assessment,
+adjudication, M6.5 device, or staging gates true by itself.
 
 ### 4. Add settlement, disputes, and reliability
 
@@ -363,6 +379,27 @@ This is a repository implementation slice. It does not substitute for the
 two-user staging run, and the migrated version-1 path remains intentionally
 recognizable as legacy duel data.
 
+### M8.3c — M7-backed standings and first-result obligations
+
+- [x] Decode the canonical accepted-participant standings RPC into typed
+  provisional/final, result, integrity-rationale, and obligation models.
+- [x] Load standings only for the signed-in accepted participant of an active
+  or finalized challenge, with per-challenge loading/error state and complete
+  account-transition clearing.
+- [x] Present provisional ordering as live progress rather than a predicted
+  winner; show the caller's exact integrity detail while keeping rival detail
+  redacted.
+- [x] Present frozen final rankings, explicit result/rationale, exact integrity
+  inputs, and only the signed-in loser's or all-donate participant's recorded
+  obligation and review boundary.
+- [x] Cover DTO decoding, model isolation, sign-out clearing, fixture/live
+  parity, provisional disclosure, final winner display, and the per-loser
+  obligation in product unit/UI tests.
+
+This slice is a read surface over the new service-only M7 first-result boundary.
+It does not enable hosted finalization, make an obligation actionable, settle a
+pledge, resolve a dispute, or close the M6.5/two-user staging gates.
+
 ### Later M8 slices
 
 - HealthKit authorization, incremental queries, provenance extraction, and
@@ -371,8 +408,8 @@ recognizable as legacy duel data.
   exact-byte check-in queue.
 - DeviceCheck/App Attest key lifecycle and signed retries in the product target.
 - Durable in-app action inbox plus APNs registration and delivery.
-- Live standings/review/finalization, settlement, and dispute screens after M7
-  supplies those contracts.
+- Review/adjudication controls plus actionable settlement and dispute screens
+  after the remaining M7 contracts exist.
 - Persistent metric/check-in evidence queues and remaining pending human
   actions.
 - Accessibility hardening, privacy disclosures, handle-change throttling,

@@ -1,7 +1,7 @@
 # GameTime implementation status
 
-> Audit snapshot: 2026-07-28, including the M8.3a challenge-creation and
-> saved-request migration pass.
+> Audit snapshot: 2026-07-28, including the M8.3c M7-backed standings,
+> first-result, and per-loser-obligation pass.
 > This is a dated evidence record. `README.md` is the compact project overview,
 > `PLAN.md` owns sequence and launch gates, and `DECISIONS.md` owns
 > product/architecture decisions.
@@ -31,14 +31,18 @@ millisecond terms losslessly, and exposes only explicit same-request recovery
 after an ambiguous outcome. M8.3a moves the product to Challenge terminology,
 supports explicit 1–19-friend selection through one atomic request, and
 migrates version-1 single-invite saved-duel records to the canonical version-2
-roster without changing request identity or timestamps. A 2026-07-27 iPhone 17
+roster without changing request identity or timestamps. M8.3c adds the
+service-only M7 first-result publication boundary, accepted-participant
+provisional/final standings with phase-aware integrity disclosure, and the
+challenge-detail final ranking/per-loser obligation surface. A 2026-07-27 iPhone 17
 staging run now proves paid-team
 signing, native Apple identity creation, onboarding, the live four-tab shell,
 and session/profile reload for one user. Apple did not return the requested
 first-sign-in full name, so the editable Apple-name prefill observation and the
-complete two-user flow remain open. Full M8 remains open. The M7
-finalizer/settlement domain and later M8 sensor, App Attest, inbox/APNs, and
-release slices remain to be built.
+complete two-user flow remain open. Full M8 remains open. The trusted M7
+evidence-loading/complete-assessment/adjudication orchestrator, actionable
+settlement/disputes, and later M8 sensor, App Attest, inbox/APNs, and release
+slices remain to be built.
 
 “Complete” below means the milestone's repository scope is implemented and
 covered by its intended automated tests. It does not mean production deployed,
@@ -57,7 +61,10 @@ metadata, and fail-closed account/corruption handling without changing the
 server request contract. M8.3a extends that record to a canonical invitee array,
 adds a lossless version-1 migration, and passes the whole selection through the
 existing atomic multi-invite RPC rather than adding a schema migration. The
-combined revision has a green initial PR #11
+M8.3c migration adds immutable standings/result/obligation ledgers, a
+service-only idempotent publisher, and a participant-only redacted read RPC;
+the product consumes that RPC through account-isolated per-challenge state.
+The combined revision has a green initial PR #11
 suite plus the current local Swift/Xcode evidence below, and still needs
 hosted-advisor, production-shaped migration, and the external proofs below
 before it can support a release claim.
@@ -68,15 +75,15 @@ before it can support a release claim.
 
 | Check | Result | What it proves |
 | --- | --- | --- |
-| Deno lint | Pass, 39 files checked | Current TypeScript satisfies configured lint rules |
+| Deno lint | Pass, 41 files checked | Current TypeScript satisfies configured lint rules |
 | Deno type-check | Pass | Current Edge Function/shared code type-checks |
-| Deno tests | 287 passed, 0 failed | Handler, cryptography, JWT, scoring, integrity, and adapter unit behavior |
-| PostgreSQL 17 migration execution | All 18 migrations applied in a clean reset | Migration syntax and execution semantics succeed on the local PostgreSQL 17 stack |
+| Deno tests | 305 passed, 0 failed | Handler, cryptography, JWT, scoring, integrity, and adapter unit behavior, including complete accepted-roster all-donate outcomes |
+| PostgreSQL 17 migration execution | All 19 migrations applied in a clean reset | Migration syntax and execution semantics succeed on the local PostgreSQL 17 stack |
 | Bash syntax | All 5 scripts passed `bash -n` | Shell grammar only |
-| Static Supabase security review | 20 exposed public tables have RLS; public views are `security_invoker`; no `auth.role()`/user-metadata authorization; privileged functions use explicit grants/revokes and blank `search_path` | Strong static posture; not a substitute for a live advisor or RLS suite |
-| Clean local database reset and pgTAP | Pass, 20 files / 824 assertions | Every migration executes and the complete RLS, privilege, lifecycle, D80–D86, deletion, retention, bounded friendship, multi-invite atomicity/idempotency, and two-session duplicate suite passes through the supported runner |
+| Static Supabase security review | Exposed public tables have RLS; public views are `security_invoker`; privileged functions use explicit grants/revokes and blank `search_path`; standings ledgers have no direct client grants | Strong static posture; not a substitute for a live advisor or RLS suite |
+| Clean local database reset and pgTAP | Pass, 21 files / 869 assertions | Every migration executes and the complete prior suite plus accepted-roster disclosure, result idempotency, deterministic-result gates, append-only ledgers, and exact per-debtor obligation mappings pass |
 | Supabase database lint | Pass, no `public` or `app` schema errors | `supabase db lint --local --schema public,app --level warning` found no PL/pgSQL/schema issues |
-| Product Xcode scheme | Pass, 30 unit and 7 UI tests (37 total); no warnings | Auth/onboarding state, route reset, DTOs, exact handles, validation/error mapping, fixture/live boundaries, Release mutation lock, four tabs, multi-friend challenge creation, one-call payload construction, version-1 saved-duel migration, restart-safe pending-challenge recovery/discard, account-transition isolation, state fixtures, Dynamic Type, labels, and Reduce Motion pass together |
+| Product Xcode scheme | Pass, 34 unit and 8 UI tests (42 total); no warnings | Prior product behavior plus provisional rival-integrity redaction, final-result decoding, per-loser obligations, account-transition cache clearing, and provisional/final challenge-detail fixtures pass together |
 | Product Staging and Release simulator builds | Pass without signing; no warnings | Both live configurations compile; Staging excludes `DEBUG` routing and Release compiles with fixture code absent and contest mutation locked |
 | Single-user product staging device | Partial pass on 2026-07-27; Xcode 26.2, iPhone 17, iOS 27.0, app revision `dca1309` | Paid-team signing, install, native Apple identity, linked profile, four tabs, staging banner, live charity request, and force-quit session/profile reload passed. Apple returned no full name, so the name-prefill observation remains open |
 | Conformance Xcode scheme | Pass, 10 tests; no warnings | Removing the product preview preserves the focused request/CBOR/replay harness |
@@ -116,8 +123,8 @@ format-only diff and call that a source fix.
 | M7.1 | Complete | D74–D82 product contract | Implementation of most settlement domain |
 | M7.2a | Implemented | Transactional notification intents and named one-minute activation job | Hosted committed-row activation proof |
 | D81 foundation | Staged; local and retention-cycle proven | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker, forward generated-column repair | Broader concurrency/production-shaped migration, hosted advisors, hold/failure recovery; user-facing deletion/capability path |
-| M7 finalization/settlement | Mostly not started | Pure scoring/integrity engines and schema seams exist | Standings API, frozen assessments, results, obligations, claims, disputes, reliability, deadline workers |
-| M8 | M8.1, M8.2a, and M8.3a implemented; partial single-user staging proof recorded; full milestone open | Product Xcode target, native Apple token exchange, onboarding, exact-handle friendship loop, atomic/idempotent multi-friend challenge invitation loop, four-tab navigation, fixtures, backward-compatible protected per-actor pending-challenge retry, and one-user signed-device/profile reload proof | Apple-name prefill observation, two-user staging acceptance, live multi-friend observation, HealthKit, Core Location, product App Attest, persistence for other pending actions, inbox/APNs, M7 result/settlement/dispute screens, privacy/release hardening |
+| M7 finalization/settlement | First-result foundation implemented but dormant | Immutable provisional/final snapshots, explicit first results, versioned scoring/integrity inputs, accepted-participant redacted reads, ingest serialization, and exact per-debtor obligations | Trusted evidence loading, complete persisted assessments, D76 adjudication, hosted caller, claims, disputes, actionability, reliability, and deadline workers |
+| M8 | M8.1, M8.2a, M8.3a, and M8.3c implemented; partial single-user staging proof recorded; full milestone open | Product Xcode target, native Apple token exchange, exact-handle social/challenge loop, protected pending retry, and M7-backed provisional/final rankings with own-obligation disclosure | Apple-name prefill observation, two-user staging acceptance, live multi-friend/standings observation, HealthKit, Core Location, product App Attest, persistence for other pending actions, inbox/APNs, review/actionable settlement/dispute screens, privacy/release hardening |
 
 ## Work already delivered
 
@@ -145,6 +152,11 @@ The implemented architecture includes:
   same-request retry after ambiguous/offline/cancelled outcomes, fail-closed
   corruption and account transitions, a lossless version-1 single-invite
   migration, and a warned local-only discard path;
+- append-only standings snapshots, explicit first results, configuration
+  versions, per-debtor obligations, and accepted-participant phase-redacted
+  reads behind a service-only publication boundary;
+- challenge-detail provisional/final ranking UI with account-isolated loading
+  state, caller-only live integrity detail, and own-obligation disclosure;
 - a payload-free transactional notification-intent ledger and named activation
   scheduler; and
 - in the reconciled branch, durable pseudonymous actors, stale-JWT denial,
@@ -176,23 +188,22 @@ The implemented architecture includes:
 4. Complete retention operations proof with a hold-blocked cycle, deliberate
    failed-job observation, alerting, and recovery.
 
-### P2 — Build one finalization vertical slice
+### P2 — Complete the finalization vertical slice
 
 1. Load evidence, source reputation, timezone events, quarantine state,
    geofence integrity, and trusted locations into one server orchestrator.
-2. Update the scoring outcome contract for complete `all_donate` rosters and
-   treat an active one-person contest as an invariant failure.
-3. Persist a complete versioned integrity assessment before interpreting
+2. Persist a complete versioned integrity assessment before interpreting
    “zero quarantines” as clean.
-4. Serialize finalization with metric/check-in ingest and wait for ingest grace.
-5. Add D77 role/phase-redacted standings and review surfaces.
-6. Implement bounded D76 escalation/adjudication, then persist explicit
-   `winner`, `all_donate`, `void`, or `inconclusive` results with configuration
-   versions.
+3. Implement bounded D76 escalation/adjudication and explicit clearance.
+4. Invoke the existing serialized, grace-gated first-result publisher only from
+   that trusted pipeline; add multi-session coverage around the finality locks.
+5. Operate the finalizer in staging with authorized queues, observability,
+   alerts, and an on-call/SLA runbook before enabling it.
 
 ### P3 — Complete settlement and operations
 
-- append-only obligations and D74 pledge-confirmation/receipt evidence;
+- make the append-only first-result obligations actionable only after D78's
+  review/dispute boundary, then add D74 pledge-confirmation/receipt evidence;
 - D78 result/obligation disputes, pauses, corrections, and audited authority;
 - D79 reliability calculation and challenge windows;
 - remaining notification events and deadline workers;
@@ -213,8 +224,8 @@ The implemented architecture includes:
    Release contest mutation only after its staging gate.
 4. Extend the protected pending-action model beyond challenge creation, then
    add a durable in-app inbox and APNs delivery.
-5. Add live standings/review/finalization/settlement/dispute screens only after
-   M7 supplies those APIs.
+5. Add review/adjudication and actionable settlement/dispute screens only after
+   M7 supplies those APIs; stage-prove the implemented standings read surface.
 6. Complete accessibility/privacy hardening, avatar/group-feed policy,
    reminders, and App Store release work.
 
@@ -224,8 +235,8 @@ The implemented architecture includes:
    reconciled revision.
 2. **External proof sprint:** close M6.5, M7.2b, and the remaining retention
    failure-recovery proof while the staging environment is active.
-3. **Finalizer slice:** ship evidence loading through one immutable explicit
-   result, including redacted standings and adjudication gates.
+3. **Finalizer slice:** connect evidence loading and complete assessments to the
+   immutable result boundary, including adjudication and operational gates.
 4. **Settlement slice:** obligations, confirmation, disputes, reliability, and
    their operated deadlines.
 5. **Product slice:** close M8.1's external proof, extend protected persistence
@@ -238,14 +249,15 @@ The implemented architecture includes:
 
 - The app is usable, beta-ready, or App Store ready.
 - M8.1 is complete before its two-user Apple staging record exists.
-- Full M8 is complete merely because M8.3a's challenge-creation and migration
-  slice is locally implemented and tested.
+- Full M8 is complete merely because the M8.3a creation and M8.3c standings
+  slices are locally implemented and tested.
 - D81 is CI-proven or safe to deploy at production scale.
 - M6.5 physical App Attest conformance is complete.
 - The activation job has a committed-row hosted proof.
 - Account deletion is an end-to-end user feature.
-- Final results, donations, disputes, reliability, push delivery, or operator
-  workflows exist merely because their contracts and schema seams do.
+- Hosted finalization, actionable donations, disputes, reliability, push
+  delivery, or operator workflows are enabled merely because first-result
+  ledgers and fixture-backed reads exist.
 
 ## Supabase compatibility watch
 

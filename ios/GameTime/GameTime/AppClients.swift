@@ -42,6 +42,7 @@ protocol FriendshipsClient: AnyObject {
 protocol ContestsClient: AnyObject {
     func listContests(userID: UUID) async throws -> [ContestCard]
     func listCharities() async throws -> [Charity]
+    func standings(contestID: UUID) async throws -> ChallengeStandings?
     func createChallenge(
         _ terms: ChallengeTerms,
         expectedUserID: UUID

@@ -22,6 +22,76 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertEqual(model.loadState, .loaded)
     }
 
+    func testFixtureLoadsProvisionalStandingsWithRivalIntegrityRedacted()
+        async throws
+    {
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: ["GameTimeTests", "--fixture-mode"]
+            )
+        )
+        await model.start()
+        let contest = try XCTUnwrap(
+            model.contests.first { $0.status == .active }
+        )
+
+        await model.loadStandings(contestID: contest.id)
+
+        let standings = try XCTUnwrap(model.standings(for: contest.id))
+        let callerID = try XCTUnwrap(model.userID)
+        let caller = try XCTUnwrap(
+            standings.standings.first { $0.participantID == callerID }
+        )
+        let rival = try XCTUnwrap(
+            standings.standings.first { $0.participantID != callerID }
+        )
+        XCTAssertEqual(standings.phase, .provisional)
+        XCTAssertEqual(model.standingsLoadState(for: contest.id), .loaded)
+        XCTAssertNotNil(caller.integrityScore)
+        XCTAssertNil(rival.integrityScore)
+        XCTAssertNil(rival.integrityFlags)
+        XCTAssertNil(rival.rationale)
+    }
+
+    func testFixtureLoadsFinalRankingsAndOnlyLoserObligation() async throws {
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-final-standings",
+                ]
+            )
+        )
+        await model.start()
+        let contest = try XCTUnwrap(
+            model.contests.first { $0.status == .finalized }
+        )
+
+        await model.loadStandings(contestID: contest.id)
+
+        let standings = try XCTUnwrap(model.standings(for: contest.id))
+        let callerID = try XCTUnwrap(model.userID)
+        let caller = try XCTUnwrap(
+            standings.standings.first { $0.participantID == callerID }
+        )
+        let winner = try XCTUnwrap(
+            standings.standings.first {
+                $0.participantID == standings.result?.winnerParticipantID
+            }
+        )
+        XCTAssertEqual(standings.phase, .final)
+        XCTAssertEqual(standings.result?.kind, .winner)
+        XCTAssertNotNil(caller.obligation)
+        XCTAssertEqual(caller.obligation?.amountCents, 1_000)
+        XCTAssertNil(winner.obligation)
+        XCTAssertTrue(
+            standings.standings.allSatisfy { $0.integrityScore != nil }
+        )
+    }
+
     func testAuthenticatedUserWithoutProfileEntersOnboarding() async {
         let services = FixtureServicesFactory.make(
             arguments: [
@@ -60,6 +130,11 @@ final class AppModelAndRoutingTests: XCTestCase {
         await model.start()
         XCTAssertFalse(model.contests.isEmpty)
         XCTAssertNotNil(model.pendingChallenge)
+        let activeContest = try! XCTUnwrap(
+            model.contests.first { $0.status == .active }
+        )
+        await model.loadStandings(contestID: activeContest.id)
+        XCTAssertFalse(model.standingsByContestID.isEmpty)
         model.presentedError = "Private prior-session error"
 
         await model.signOut()
@@ -70,6 +145,8 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertTrue(model.friendshipCards.isEmpty)
         XCTAssertTrue(model.contests.isEmpty)
         XCTAssertTrue(model.charities.isEmpty)
+        XCTAssertTrue(model.standingsByContestID.isEmpty)
+        XCTAssertTrue(model.standingsLoadStates.isEmpty)
         XCTAssertNil(model.exactHandleResult)
         XCTAssertNil(model.pendingChallenge)
         XCTAssertFalse(model.hasPendingChallengeRecoveryIssue)
@@ -779,6 +856,11 @@ private final class RecordingContestsClient: ContestsClient {
 
     func listCharities() async throws -> [Charity] {
         []
+    }
+
+    func standings(contestID: UUID) async throws -> ChallengeStandings? {
+        _ = contestID
+        return nil
     }
 
     func createChallenge(

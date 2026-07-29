@@ -228,6 +228,161 @@ struct ContestCard: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
+enum ChallengeStandingsPhase: String, Codable, Sendable {
+    case provisional
+    case final
+}
+
+enum ChallengeStandingsReason: String, Codable, Sendable {
+    case live
+    case awaitingIngest = "awaiting_ingest"
+    case underReview = "under_review"
+    case final
+}
+
+enum ChallengeResultKind: String, Codable, Sendable {
+    case winner
+    case allDonate = "all_donate"
+    case void
+    case inconclusive
+}
+
+enum ChallengeResultReason: String, Codable, Sendable {
+    case soleQualifier = "sole_qualifier"
+    case earliestToTarget = "earliest_to_target"
+    case integrityScore = "integrity_score"
+    case bothDonate = "both_donate"
+    case noQualifyingParticipant = "no_qualifying_participant"
+    case tieBreakVoid = "tie_break_void"
+    case tieBreakInconclusive = "tie_break_inconclusive"
+    case reviewTimeout = "review_timeout"
+}
+
+enum ChallengeObligationKind: String, Codable, Sendable {
+    case loserToWinnerCharity = "loser_to_winner_charity"
+    case selfDirected = "self_directed"
+}
+
+struct ChallengeResult: Codable, Equatable, Identifiable, Sendable {
+    let id: UUID
+    let kind: ChallengeResultKind
+    let reason: ChallengeResultReason
+    let winnerParticipantID: UUID?
+    let evidenceCutoff: Date
+    let finalizedAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case kind
+        case reason
+        case winnerParticipantID = "winner_participant_id"
+        case evidenceCutoff = "evidence_cutoff"
+        case finalizedAt = "finalized_at"
+    }
+}
+
+struct ChallengeIntegrityRationale: Codable, Equatable, Identifiable, Sendable {
+    let code: String
+    let summary: String
+    let points: Double
+
+    var id: String { code }
+}
+
+struct ChallengeObligation: Codable, Equatable, Identifiable, Sendable {
+    let id: UUID
+    let kind: ChallengeObligationKind
+    let amountCents: Int
+    let charityID: UUID
+    let charityName: String
+    let charitySlug: String
+    let destinationOwnerID: UUID
+    let resultDisputeClosesAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case kind
+        case amountCents = "amount_cents"
+        case charityID = "charity_id"
+        case charityName = "charity_name"
+        case charitySlug = "charity_slug"
+        case destinationOwnerID = "destination_owner_id"
+        case resultDisputeClosesAt = "result_dispute_closes_at"
+    }
+
+    var amountText: String {
+        (Double(amountCents) / 100)
+            .formatted(.currency(code: "USD"))
+    }
+}
+
+struct ChallengeStanding: Codable, Equatable, Identifiable, Sendable {
+    let participantID: UUID
+    let displayName: String
+    let handle: String?
+    let displayOrder: Int
+    let rank: Int
+    let qualified: Bool
+    let total: Double
+    let qualifyingDays: Int
+    let scoreableDays: Int
+    let dayRate: Double
+    let reachedTargetAt: Date?
+    let integrityScore: Double?
+    let integrityFlags: [String]?
+    let rationale: [ChallengeIntegrityRationale]?
+    let obligation: ChallengeObligation?
+
+    enum CodingKeys: String, CodingKey {
+        case participantID = "participant_id"
+        case displayName = "display_name"
+        case handle
+        case displayOrder = "display_order"
+        case rank
+        case qualified
+        case total
+        case qualifyingDays = "qualifying_days"
+        case scoreableDays = "scoreable_days"
+        case dayRate = "day_rate"
+        case reachedTargetAt = "reached_target_at"
+        case integrityScore = "integrity_score"
+        case integrityFlags = "integrity_flags"
+        case rationale
+        case obligation
+    }
+
+    var id: UUID { participantID }
+
+    func totalText(metric: ContestMetric) -> String {
+        "\(total.formatted(.number.precision(.fractionLength(0...2)))) \(metric.unit)"
+    }
+}
+
+struct ChallengeStandings: Codable, Equatable, Sendable {
+    let contestID: UUID
+    let snapshotID: UUID
+    let phase: ChallengeStandingsPhase
+    let reason: ChallengeStandingsReason
+    let asOf: Date
+    let scoringVersion: String
+    let integrityConfigurationVersion: String
+    let result: ChallengeResult?
+    let standings: [ChallengeStanding]
+
+    enum CodingKeys: String, CodingKey {
+        case contestID = "contest_id"
+        case snapshotID = "snapshot_id"
+        case phase
+        case reason
+        case asOf = "as_of"
+        case scoringVersion = "scoring_version"
+        case integrityConfigurationVersion =
+            "integrity_configuration_version"
+        case result
+        case standings
+    }
+}
+
 struct ChallengeDraft: Equatable, Sendable {
     var title = ""
     var inviteeIDs: Set<UUID> = []

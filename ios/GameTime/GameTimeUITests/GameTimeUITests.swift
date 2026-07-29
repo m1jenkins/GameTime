@@ -176,6 +176,50 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(app.textFields["challenge.title"].exists)
     }
 
+    func testProvisionalAndFinalStandingsDisclosure() {
+        let provisional = launch()
+        openWeekendDistance(in: provisional)
+
+        let provisionalPhase = provisional.descendants(matching: .any)[
+            "standings.phase"
+        ]
+        for _ in 0..<5 where !provisionalPhase.exists {
+            provisional.swipeUp()
+        }
+        XCTAssertTrue(provisionalPhase.waitForExistence(timeout: 4))
+        XCTAssertTrue(provisional.staticTexts["Provisional"].exists)
+        XCTAssertTrue(
+            provisional.staticTexts[
+                "Live ordering only — not a predicted winner."
+            ].exists
+        )
+        XCTAssertTrue(
+            provisional.staticTexts[
+                "Integrity detail stays private until final."
+            ].exists
+        )
+        provisional.terminate()
+
+        let final = launch("--fixture-final-standings")
+        openWeekendDistance(in: final)
+
+        let finalPhase = final.descendants(matching: .any)["standings.phase"]
+        for _ in 0..<5 where !finalPhase.exists {
+            final.swipeUp()
+        }
+        XCTAssertTrue(finalPhase.waitForExistence(timeout: 4))
+        XCTAssertTrue(final.staticTexts["Final"].exists)
+        XCTAssertTrue(final.staticTexts["Winner: Marcus Green"].exists)
+
+        let obligation = final.staticTexts[
+            "Pledge $10.00 to Fixture Community Fund"
+        ]
+        for _ in 0..<5 where !obligation.exists {
+            final.swipeUp()
+        }
+        XCTAssertTrue(obligation.waitForExistence(timeout: 4))
+    }
+
     func testLoadingEmptyAndOfflineStates() {
         let loading = launch("--fixture-loading")
         XCTAssertTrue(
@@ -226,5 +270,20 @@ final class GameTimeUITests: XCTestCase {
         app.launchArguments = ["--fixture-mode"] + extraArguments
         app.launch()
         return app
+    }
+
+    private func openWeekendDistance(in app: XCUIApplication) {
+        let challenges = app.tabBars.buttons["Challenges"]
+        XCTAssertTrue(challenges.waitForExistence(timeout: 5))
+        challenges.tap()
+
+        let contest = app.buttons.matching(
+            NSPredicate(format: "label BEGINSWITH %@", "Weekend distance")
+        ).firstMatch
+        XCTAssertTrue(contest.waitForExistence(timeout: 4))
+        contest.tap()
+        XCTAssertTrue(
+            app.navigationBars["Challenge"].waitForExistence(timeout: 4)
+        )
     }
 }

@@ -19,6 +19,8 @@ final class AppModel {
     private(set) var friendshipCards: [FriendshipCard] = []
     private(set) var contests: [ContestCard] = []
     private(set) var charities: [Charity] = []
+    private(set) var standingsByContestID: [UUID: ChallengeStandings] = [:]
+    private(set) var standingsLoadStates: [UUID: ScreenLoadState] = [:]
     private(set) var loadState: ScreenLoadState = .idle
     private(set) var exactHandleResult: ProfileCard?
     private(set) var lastSubmittedHandle: String?
@@ -194,6 +196,65 @@ final class AppModel {
                 return
             }
             loadState = .failed(
+                AppMutationError.map(error).localizedDescription
+            )
+        }
+    }
+
+    func standings(for contestID: UUID) -> ChallengeStandings? {
+        standingsByContestID[contestID]
+    }
+
+    func standingsLoadState(for contestID: UUID) -> ScreenLoadState {
+        standingsLoadStates[contestID] ?? .idle
+    }
+
+    func loadStandings(contestID: UUID) async {
+        guard phase == .signedIn, let userID else { return }
+        guard
+            let contest = contests.first(where: { $0.id == contestID }),
+            contest.myStatus == .accepted,
+            contest.status == .active || contest.status == .finalized
+        else {
+            standingsByContestID[contestID] = nil
+            standingsLoadStates[contestID] = .empty
+            return
+        }
+
+        let generation = authGeneration
+        standingsLoadStates[contestID] = .loading
+        do {
+            let standings = try await services.contests.standings(
+                contestID: contestID
+            )
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                ),
+                !Task.isCancelled
+            else {
+                return
+            }
+            if let standings {
+                standingsByContestID[contestID] = standings
+                standingsLoadStates[contestID] = .loaded
+            } else {
+                standingsByContestID[contestID] = nil
+                standingsLoadStates[contestID] = .empty
+            }
+        } catch is CancellationError {
+            return
+        } catch {
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            standingsLoadStates[contestID] = .failed(
                 AppMutationError.map(error).localizedDescription
             )
         }
@@ -521,6 +582,8 @@ final class AppModel {
         friendshipCards = []
         contests = []
         charities = []
+        standingsByContestID = [:]
+        standingsLoadStates = [:]
         exactHandleResult = nil
         lastSubmittedHandle = nil
         onboardingNamePrefill = ""
@@ -667,6 +730,8 @@ final class AppModel {
         friendshipCards = []
         contests = []
         charities = []
+        standingsByContestID = [:]
+        standingsLoadStates = [:]
         exactHandleResult = nil
         lastSubmittedHandle = nil
         onboardingNamePrefill = ""

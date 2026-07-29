@@ -33,6 +33,7 @@ private struct FixtureScenario {
     let loading: Bool
     let pendingChallenge: Bool
     let lostChallengeResponse: Bool
+    let finalStandings: Bool
 
     init(arguments: [String]) {
         signedOut = arguments.contains("--fixture-signed-out")
@@ -46,6 +47,7 @@ private struct FixtureScenario {
         lostChallengeResponse =
             arguments.contains("--fixture-lost-challenge-response")
             || arguments.contains("--fixture-lost-duel-response")
+        finalStandings = arguments.contains("--fixture-final-standings")
     }
 }
 
@@ -67,6 +69,7 @@ private final class FixtureStore {
     var cards: [FriendshipCard]
     var contests: [ContestCard]
     var charities: [Charity]
+    var standingsByContestID: [UUID: ChallengeStandings]
     var challengeRequests: [UUID: FixtureChallengeRequest] = [:]
     let offline: Bool
     let loading: Bool
@@ -162,9 +165,13 @@ private final class FixtureStore {
                     targetValue: 10_000,
                     stakeAmountCents: 1_000,
                     tieBreak: .earliestToTarget,
-                    startsAt: now.addingTimeInterval(-3_600),
-                    endsAt: now.addingTimeInterval(2 * 86_400),
-                    status: .active,
+                    startsAt: now.addingTimeInterval(
+                        scenario.finalStandings ? -3 * 86_400 : -3_600
+                    ),
+                    endsAt: now.addingTimeInterval(
+                        scenario.finalStandings ? -8 * 3_600 : 2 * 86_400
+                    ),
+                    status: scenario.finalStandings ? .finalized : .active,
                     myStatus: .accepted
                 ),
             ]
@@ -175,6 +182,15 @@ private final class FixtureStore {
                 slug: "fixture-community-fund"
             )
         ]
+        standingsByContestID =
+            scenario.empty
+            ? [:]
+            : [
+                Self.activeContestID: Self.makeStandings(
+                    now: now,
+                    final: scenario.finalStandings
+                )
+            ]
     }
 
     static func pendingChallengeSubmission(now: Date = Date())
@@ -201,6 +217,111 @@ private final class FixtureStore {
             createdAt: now.addingTimeInterval(-120),
             attemptCount: 1,
             lastAttemptAt: now.addingTimeInterval(-60)
+        )
+    }
+
+    private static func makeStandings(
+        now: Date,
+        final: Bool
+    ) -> ChallengeStandings {
+        let resultID = UUID(
+            uuidString: "12121212-1212-1212-1212-121212121212"
+        )!
+        let obligationID = UUID(
+            uuidString: "14141414-1414-1414-1414-141414141414"
+        )!
+        let result =
+            final
+            ? ChallengeResult(
+                id: resultID,
+                kind: .winner,
+                reason: .earliestToTarget,
+                winnerParticipantID: friendID,
+                evidenceCutoff: now.addingTimeInterval(-2 * 3_600),
+                finalizedAt: now.addingTimeInterval(-3_600)
+            )
+            : nil
+        let winnerRationale = [
+            ChallengeIntegrityRationale(
+                code: "trusted_source",
+                summary: "Health data passed integrity review.",
+                points: 0
+            )
+        ]
+        let callerRationale = [
+            ChallengeIntegrityRationale(
+                code: "trusted_source",
+                summary: "Health data passed integrity review.",
+                points: 0
+            )
+        ]
+
+        return ChallengeStandings(
+            contestID: activeContestID,
+            snapshotID: UUID(
+                uuidString: final
+                    ? "13131313-1313-1313-1313-131313131313"
+                    : "15151515-1515-1515-1515-151515151515"
+            )!,
+            phase: final ? .final : .provisional,
+            reason: final ? .final : .live,
+            asOf: now.addingTimeInterval(-300),
+            scoringVersion: "m7-scoring-v1",
+            integrityConfigurationVersion: "m7-integrity-v1",
+            result: result,
+            standings: [
+                ChallengeStanding(
+                    participantID: friendID,
+                    displayName: "Marcus Green",
+                    handle: "marcusmoves",
+                    displayOrder: 1,
+                    rank: 1,
+                    qualified: final,
+                    total: final ? 10_520 : 7_600,
+                    qualifyingDays: final ? 3 : 2,
+                    scoreableDays: 3,
+                    dayRate: final ? 1 : 2.0 / 3.0,
+                    reachedTargetAt: final
+                        ? now.addingTimeInterval(-12 * 3_600)
+                        : nil,
+                    integrityScore: final ? 97 : nil,
+                    integrityFlags: final ? [] : nil,
+                    rationale: final ? winnerRationale : nil,
+                    obligation: nil
+                ),
+                ChallengeStanding(
+                    participantID: callerID,
+                    displayName: "Austin",
+                    handle: "austinmoves",
+                    displayOrder: 2,
+                    rank: 2,
+                    qualified: final,
+                    total: final ? 10_100 : 6_400,
+                    qualifyingDays: final ? 3 : 2,
+                    scoreableDays: 3,
+                    dayRate: final ? 1 : 2.0 / 3.0,
+                    reachedTargetAt: final
+                        ? now.addingTimeInterval(-10 * 3_600)
+                        : nil,
+                    integrityScore: final ? 95 : 94.5,
+                    integrityFlags: [],
+                    rationale: callerRationale,
+                    obligation: final
+                        ? ChallengeObligation(
+                            id: obligationID,
+                            kind: .loserToWinnerCharity,
+                            amountCents: 1_000,
+                            charityID: charityID,
+                            charityName: "Fixture Community Fund",
+                            charitySlug: "fixture-community-fund",
+                            destinationOwnerID: friendID,
+                            resultDisputeClosesAt: now.addingTimeInterval(
+                                7 * 86_400
+                            )
+                        )
+                        : nil
+                ),
+            ]
         )
     }
 
@@ -440,6 +561,11 @@ private final class FixtureContestsClient: ContestsClient {
     func listCharities() async throws -> [Charity] {
         try await store.prepareRead()
         return store.charities
+    }
+
+    func standings(contestID: UUID) async throws -> ChallengeStandings? {
+        try await store.prepareRead()
+        return store.standingsByContestID[contestID]
     }
 
     func createChallenge(
