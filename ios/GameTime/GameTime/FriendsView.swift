@@ -3,6 +3,7 @@ import SwiftUI
 struct FriendsView: View {
     @Environment(AppModel.self) private var model
     @Environment(AppRouter.self) private var router
+    @Environment(\.demoMode) private var demoMode
     @State private var handle = ""
     @FocusState private var handleFocused: Bool
 
@@ -29,9 +30,15 @@ struct FriendsView: View {
             } header: {
                 Text("Find one person")
             } footer: {
-                Text(
-                    "Exact handles only. GameTime does not offer fuzzy or enumerable people search."
-                )
+                if demoMode.isActive {
+                    Text(
+                        "Try @david1 or @david2. Demo requests are accepted immediately so you can create a challenge."
+                    )
+                } else {
+                    Text(
+                        "Exact handles only. GameTime does not offer fuzzy or enumerable people search."
+                    )
+                }
             }
             .listRowBackground(CompetitiveTrustTheme.raisedInk)
 

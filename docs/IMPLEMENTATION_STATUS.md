@@ -1,7 +1,7 @@
 # GameTime implementation status
 
-> Audit snapshot: 2026-07-28, including the M8.3c M7-backed standings,
-> first-result, and per-loser-obligation pass.
+> Audit snapshot: 2026-07-28, including the M8.3c M7-backed standings and
+> M8.3d isolated on-device demo implementation.
 > This is a dated evidence record. `README.md` is the compact project overview,
 > `PLAN.md` owns sequence and launch gates, and `DECISIONS.md` owns
 > product/architecture decisions.
@@ -44,6 +44,13 @@ evidence-loading/complete-assessment/adjudication orchestrator, actionable
 settlement/disputes, and later M8 sensor, App Attest, inbox/APNs, and release
 slices remain to be built.
 
+M8.3d adds a separately labeled, in-memory demo to Debug and Staging. A
+single tester can search `david1` or `david2`, add the synthetic profile with a
+transparent instant demo acceptance, and select the new friend in challenge
+creation. The retained live model and Supabase data are unchanged, demo state
+is discarded on exit, and Release does not compile the fixture factory. This
+does not satisfy the live two-user acceptance gate.
+
 “Complete” below means the milestone's repository scope is implemented and
 covered by its intended automated tests. It does not mean production deployed,
 externally proven, operationally staffed, or App Store ready.
@@ -75,6 +82,7 @@ before it can support a release claim.
 
 | Check | Result | What it proves |
 | --- | --- | --- |
+| M8.3d product compile gates | Debug build, Debug build-for-testing, Staging build, and Release build pass with no warnings | New unit/UI sources compile; Staging includes the explicit demo path, while Release compiles with fixture code absent. Runtime tests still require a booted simulator |
 | Deno lint | Pass, 41 files checked | Current TypeScript satisfies configured lint rules |
 | Deno type-check | Pass | Current Edge Function/shared code type-checks |
 | Deno tests | 305 passed, 0 failed | Handler, cryptography, JWT, scoring, integrity, and adapter unit behavior, including complete accepted-roster all-donate outcomes |
@@ -124,7 +132,7 @@ format-only diff and call that a source fix.
 | M7.2a | Implemented | Transactional notification intents and named one-minute activation job | Hosted committed-row activation proof |
 | D81 foundation | Staged; local and retention-cycle proven | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker, forward generated-column repair | Broader concurrency/production-shaped migration, hosted advisors, hold/failure recovery; user-facing deletion/capability path |
 | M7 finalization/settlement | First-result foundation implemented but dormant | Immutable provisional/final snapshots, explicit first results, versioned scoring/integrity inputs, accepted-participant redacted reads, ingest serialization, and exact per-debtor obligations | Trusted evidence loading, complete persisted assessments, D76 adjudication, hosted caller, claims, disputes, actionability, reliability, and deadline workers |
-| M8 | M8.1, M8.2a, M8.3a, and M8.3c implemented; partial single-user staging proof recorded; full milestone open | Product Xcode target, native Apple token exchange, exact-handle social/challenge loop, protected pending retry, and M7-backed provisional/final rankings with own-obligation disclosure | Apple-name prefill observation, two-user staging acceptance, live multi-friend/standings observation, HealthKit, Core Location, product App Attest, persistence for other pending actions, inbox/APNs, review/actionable settlement/dispute screens, privacy/release hardening |
+| M8 | M8.1, M8.2a, M8.3a, M8.3c, and M8.3d implemented; partial single-user staging proof recorded; full milestone open | Product Xcode target, native Apple token exchange, exact-handle social/challenge loop, protected pending retry, M7-backed provisional/final rankings with own-obligation disclosure, and an isolated one-device demo | Apple-name prefill observation, two-user staging acceptance, live multi-friend/standings observation, HealthKit, Core Location, product App Attest, persistence for other pending actions, inbox/APNs, review/actionable settlement/dispute screens, privacy/release hardening |
 
 ## Work already delivered
 
@@ -146,6 +154,9 @@ The implemented architecture includes:
   explicit auth/onboarding state, typed per-tab navigation, exact-handle social
   actions, atomic multi-friend challenge creation, live/fixture client
   boundaries, and fail-closed Staging/Release configuration;
+- an isolated Debug/Staging on-device demo with synthetic exact handles,
+  single-tester friend acceptance, challenge creation, explicit labeling,
+  retained live-session isolation, and no Release fixture route;
 - a versioned per-actor pending-challenge record written with complete file
   protection before the creation RPC, with canonical millisecond terms stored
   losslessly, immutable conflict checks, monotonic attempt metadata, explicit
@@ -249,8 +260,8 @@ The implemented architecture includes:
 
 - The app is usable, beta-ready, or App Store ready.
 - M8.1 is complete before its two-user Apple staging record exists.
-- Full M8 is complete merely because the M8.3a creation and M8.3c standings
-  slices are locally implemented and tested.
+- Full M8 is complete merely because the M8.3a creation, M8.3c standings, and
+  M8.3d demo slices are locally implemented and tested.
 - D81 is CI-proven or safe to deploy at production scale.
 - M6.5 physical App Attest conformance is complete.
 - The activation job has a committed-row hosted proof.

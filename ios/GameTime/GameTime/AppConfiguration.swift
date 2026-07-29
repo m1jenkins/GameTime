@@ -82,7 +82,7 @@ struct AppConfiguration: Equatable, Sendable {
         )
     }
 
-    #if DEBUG
+    #if DEBUG || STAGING
     static let fixture = AppConfiguration(
         environment: .debug,
         supabaseURL: URL(string: "http://127.0.0.1:54321")!,

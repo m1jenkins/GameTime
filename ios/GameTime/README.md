@@ -16,11 +16,25 @@ engineering harness.
 - `Debug`: live clients by default; pass `--fixture-mode` for deterministic
   local and UI-test data.
 - `Staging`: live clients, contest mutations enabled, and a persistent
-  `Test environment—no real pledge` banner.
+  `Test environment—no real pledge` banner. The signed-out root and You tab
+  can enter an isolated on-device demo without changing the live account.
 - `Release`: live clients, with contest creation and acceptance locked until
   the evidence/App Attest slice is complete.
 
-Debug fixture code is guarded by `#if DEBUG`; Release cannot route to it.
+Fixture code is guarded by `#if DEBUG || STAGING`; Release cannot compile or
+route to it.
+
+## On-device demo
+
+In a Debug or Staging build, open **You → Open demo mode**. If the live account
+is signed out, **Try demo mode** is also available on the sign-in screen.
+
+Demo mode keeps Supabase and the Apple-authenticated staging account untouched.
+It uses a separate in-memory model, displays a persistent teal banner, and
+resets when you exit. In Friends, search `david1` or `david2` and tap **Add**.
+The synthetic friend accepts immediately so that person is available in the
+challenge creator. This shortcut is deliberately local and is not evidence for
+the two-user staging acceptance gate.
 
 ## Atomic multi-friend challenges and restart-safe retry
 

@@ -400,6 +400,23 @@ This slice is a read surface over the new service-only M7 first-result boundary.
 It does not enable hosted finalization, make an obligation actionable, settle a
 pledge, resolve a dispute, or close the M6.5/two-user staging gates.
 
+### M8.3d — Isolated on-device social/challenge demo
+
+- [x] Expose an explicit demo entry from signed-out Staging and the You tab
+  without replacing or signing out the retained live staging model.
+- [x] Keep demo state entirely in memory behind the existing client protocols,
+  label it persistently, discard it on exit, and compile its factory out of
+  Release.
+- [x] Provide exact synthetic handles `david1` and `david2`; accept demo
+  requests immediately so a single tester can add David and select that new
+  friend in the challenge creator.
+- [x] Preserve normal fixture pending-request behavior and cover the interactive
+  demo friend/challenge mutation path in product unit and UI targets.
+
+This is a one-device product-flow simulator. It does not exercise Supabase,
+Apple Auth, RLS, persistence across demo exits, cross-device notifications, or
+the two-user staging acceptance gate.
+
 ### Later M8 slices
 
 - HealthKit authorization, incremental queries, provenance extraction, and

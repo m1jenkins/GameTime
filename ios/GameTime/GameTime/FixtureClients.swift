@@ -1,4 +1,4 @@
-#if DEBUG
+#if DEBUG || STAGING
 import Foundation
 
 @MainActor
@@ -34,6 +34,7 @@ private struct FixtureScenario {
     let pendingChallenge: Bool
     let lostChallengeResponse: Bool
     let finalStandings: Bool
+    let instantlyAcceptFriendRequests: Bool
 
     init(arguments: [String]) {
         signedOut = arguments.contains("--fixture-signed-out")
@@ -48,6 +49,9 @@ private struct FixtureScenario {
             arguments.contains("--fixture-lost-challenge-response")
             || arguments.contains("--fixture-lost-duel-response")
         finalStandings = arguments.contains("--fixture-final-standings")
+        instantlyAcceptFriendRequests = arguments.contains(
+            "--demo-interactive"
+        )
     }
 }
 
@@ -60,6 +64,12 @@ private final class FixtureStore {
     static let secondFriendID = UUID(
         uuidString: "55555555-5555-5555-5555-555555555555"
     )!
+    static let davidID = UUID(
+        uuidString: "66666666-6666-6666-6666-666666666666"
+    )!
+    static let davidTwoID = UUID(
+        uuidString: "77777777-7777-7777-7777-777777777777"
+    )!
     static let charityID = UUID(uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")!
     static let invitationID = UUID(uuidString: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")!
     static let activeContestID = UUID(uuidString: "cccccccc-cccc-cccc-cccc-cccccccccccc")!
@@ -71,9 +81,11 @@ private final class FixtureStore {
     var charities: [Charity]
     var standingsByContestID: [UUID: ChallengeStandings]
     var challengeRequests: [UUID: FixtureChallengeRequest] = [:]
+    let discoverableProfiles: [ProfileCard]
     let offline: Bool
     let loading: Bool
     let lostChallengeResponse: Bool
+    let instantlyAcceptFriendRequests: Bool
     var hasLostChallengeResponse = false
 
     init(scenario: FixtureScenario) {
@@ -90,6 +102,25 @@ private final class FixtureStore {
         offline = scenario.offline
         loading = scenario.loading
         lostChallengeResponse = scenario.lostChallengeResponse
+        instantlyAcceptFriendRequests =
+            scenario.instantlyAcceptFriendRequests
+        discoverableProfiles = [
+            ProfileCard(
+                id: Self.friendID,
+                handle: "marcusmoves",
+                displayName: "Marcus Green"
+            ),
+            ProfileCard(
+                id: Self.davidID,
+                handle: "david1",
+                displayName: "David Chen"
+            ),
+            ProfileCard(
+                id: Self.davidTwoID,
+                handle: "david2",
+                displayName: "David Brooks"
+            ),
+        ]
 
         let now = Date()
         cards =
@@ -474,17 +505,12 @@ private final class FixtureFriendshipsClient: FriendshipsClient {
 
     func findExactHandle(_ handle: String) async throws -> ProfileCard? {
         try await store.prepareRead()
-        guard
-            let exact = ExactHandleSubmission.normalized(handle),
-            exact.caseInsensitiveCompare("marcusmoves") == .orderedSame
-        else {
+        guard let exact = ExactHandleSubmission.normalized(handle) else {
             return nil
         }
-        return ProfileCard(
-            id: FixtureStore.friendID,
-            handle: "marcusmoves",
-            displayName: "Marcus Green"
-        )
+        return store.discoverableProfiles.first {
+            $0.handle.caseInsensitiveCompare(exact) == .orderedSame
+        }
     }
 
     func requestFriendship(
@@ -492,18 +518,27 @@ private final class FixtureFriendshipsClient: FriendshipsClient {
         otherUserID: UUID
     ) async throws {
         guard !store.offline else { throw FixtureFailure.offline }
+        guard
+            let profile = store.discoverableProfiles.first(
+                where: { $0.id == otherUserID }
+            )
+        else {
+            throw AppMutationError.permissionDenied
+        }
         let now = Date()
         store.cards.removeAll { $0.otherUserID == otherUserID }
         store.cards.append(
             FriendshipCard(
                 otherUserID: otherUserID,
-                handle: "marcusmoves",
-                displayName: "Marcus Green",
-                status: .pending,
+                handle: profile.handle,
+                displayName: profile.displayName,
+                status: store.instantlyAcceptFriendRequests
+                    ? .accepted
+                    : .pending,
                 requestedBy: callerID,
                 createdAt: now,
                 updatedAt: now,
-                acceptedAt: nil
+                acceptedAt: store.instantlyAcceptFriendRequests ? now : nil
             )
         )
     }

@@ -3,6 +3,7 @@ import SwiftUI
 struct YouView: View {
     @Environment(AppModel.self) private var model
     @Environment(AppRouter.self) private var router
+    @Environment(\.demoMode) private var demoMode
 
     var body: some View {
         List {
@@ -54,6 +55,39 @@ struct YouView: View {
             }
             .listRowBackground(CompetitiveTrustTheme.raisedInk)
 
+            if demoMode.isAvailable {
+                Section {
+                    if demoMode.isActive {
+                        Button(action: demoMode.exit) {
+                            Label(
+                                "Exit demo mode",
+                                systemImage: "arrow.backward.circle"
+                            )
+                        }
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("demo.exit")
+                    } else {
+                        Button(action: demoMode.enter) {
+                            Label(
+                                "Open demo mode",
+                                systemImage: "play.circle"
+                            )
+                        }
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("demo.enter")
+                    }
+                } header: {
+                    Text("Demo")
+                } footer: {
+                    Text(
+                        demoMode.isActive
+                            ? "Demo friends and challenges reset when you exit. Your staging account is unchanged."
+                            : "Practice adding friends and creating challenges without changing Supabase."
+                    )
+                }
+                .listRowBackground(CompetitiveTrustTheme.raisedInk)
+            }
+
             #if DEBUG
             Section {
                 Button {
@@ -76,25 +110,27 @@ struct YouView: View {
             .listRowBackground(CompetitiveTrustTheme.raisedInk)
             #endif
 
-            Section {
-                Button(role: .destructive) {
-                    Task { await model.signOut() }
-                } label: {
-                    HStack {
-                        Spacer()
-                        if model.isMutating {
-                            ProgressView()
-                                .accessibilityLabel("Signing out")
-                        } else {
-                            Text("Sign out")
+            if !demoMode.isActive {
+                Section {
+                    Button(role: .destructive) {
+                        Task { await model.signOut() }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if model.isMutating {
+                                ProgressView()
+                                    .accessibilityLabel("Signing out")
+                            } else {
+                                Text("Sign out")
+                            }
+                            Spacer()
                         }
-                        Spacer()
                     }
+                    .disabled(model.isMutating)
+                    .accessibilityIdentifier("account.sign-out")
                 }
-                .disabled(model.isMutating)
-                .accessibilityIdentifier("account.sign-out")
+                .listRowBackground(CompetitiveTrustTheme.raisedInk)
             }
-            .listRowBackground(CompetitiveTrustTheme.raisedInk)
         }
         .listStyle(.insetGrouped)
         .trustScreenBackground()

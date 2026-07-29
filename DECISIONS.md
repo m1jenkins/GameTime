@@ -3016,6 +3016,43 @@ discovery, more than 20 participants, or a general encrypted pending-action
 ledger. Each changes the immutable roster or persistence contract and needs a
 new decision rather than an extension of this request.
 
+### D90. Staging includes an isolated on-device demo; Release and Supabase do not
+
+**What.** Debug and Staging builds may enter an explicit local demo mode from
+the signed-out root or the You tab. Entry constructs a separate in-memory
+`AppModel` with the same client protocols and fixture implementations used by
+product tests. The live model remains retained but disconnected from the demo
+view tree, so exiting returns to the same Apple-authenticated staging session.
+A persistent banner says that demo changes stay on the device, and exiting
+discards all demo relationships and challenges.
+
+The demo directory includes memorable synthetic handles such as `david1` and
+`david2`. A demo friendship request is accepted immediately and transparently
+so one person can exercise exact-handle discovery, the Add action, accepted
+friend selection, immutable challenge review, and local challenge creation
+without controlling a second Apple identity. This shortcut exists only in the
+interactive fixture scenario. Normal Debug fixtures retain pending-request
+semantics, and live Staging continues to use the real RLS/RPC boundaries.
+Release does not compile the fixture factory or expose demo entry.
+
+**Why.** The immediate need is repeatable product-flow evaluation on one phone,
+not proof of the two-user backend contract. Hosted login-capable dummy users
+would either weaken D85's Apple-only identity rule or require a privileged Auth
+admin path and credentials that must never be embedded in the app. A clearly
+labeled local simulation provides faster design testing without polluting
+staging data or diluting the separate M8.1 acceptance gate.
+
+**Rejected.** Shipping shared dummy passwords; embedding a service-role key;
+inserting non-login-capable `auth.users` rows and presenting them as accounts;
+silently mixing fixture profiles with live Supabase rows; or treating instant
+demo acceptance as evidence that two authenticated users can complete the
+staging flow.
+
+**Revisit if.** Testing requires cross-device notifications, RLS, relaunch
+persistence, ambiguous network responses, or shared contest observation. Those
+remain live two-user staging work and require real isolated identities rather
+than expanding the local demo into a second authentication system.
+
 ---
 
 ## Resolved history and decisions still deferred

@@ -4,17 +4,30 @@ import SwiftUI
 @main
 @MainActor
 struct GameTimeApp: App {
-    @State private var model: AppModel?
+    @State private var liveModel: AppModel?
+    @State private var demoModel: AppModel?
     @State private var router = AppRouter()
+    @State private var isUsingDemoModel: Bool
     private let configurationFailure: String?
+    private let isFixtureTestLaunch: Bool
 
     init() {
+        let arguments = ProcessInfo.processInfo.arguments
+        let fixtureLaunch = arguments.contains("--fixture-mode")
+        let interactiveDemoLaunch = arguments.contains("--demo-interactive")
+        #if DEBUG || STAGING
+        let usesFixtureModel = fixtureLaunch
+        #else
+        let usesFixtureModel = false
+        #endif
+        isFixtureTestLaunch = usesFixtureModel && !interactiveDemoLaunch
+
         do {
             let configuration: AppConfiguration
             let services: AppServices
 
-            #if DEBUG
-            if ProcessInfo.processInfo.arguments.contains("--fixture-mode") {
+            #if DEBUG || STAGING
+            if usesFixtureModel {
                 configuration = .fixture
                 services = FixtureServicesFactory.make()
             } else {
@@ -30,24 +43,52 @@ struct GameTimeApp: App {
             )
             #endif
 
-            _model = State(
-                initialValue: AppModel(
-                    configuration: configuration,
-                    services: services
-                )
+            let initialModel = AppModel(
+                configuration: configuration,
+                services: services
             )
+            #if DEBUG || STAGING
+            if usesFixtureModel {
+                _liveModel = State(initialValue: nil)
+                _demoModel = State(initialValue: initialModel)
+                _isUsingDemoModel = State(initialValue: true)
+            } else {
+                _liveModel = State(initialValue: initialModel)
+                _demoModel = State(initialValue: nil)
+                _isUsingDemoModel = State(initialValue: false)
+            }
+            #else
+            _liveModel = State(initialValue: initialModel)
+            _demoModel = State(initialValue: nil)
+            _isUsingDemoModel = State(initialValue: false)
+            #endif
             configurationFailure = nil
         } catch {
-            _model = State(initialValue: nil)
+            _liveModel = State(initialValue: nil)
+            _demoModel = State(initialValue: nil)
+            _isUsingDemoModel = State(initialValue: false)
             configurationFailure = error.localizedDescription
         }
     }
 
     var body: some Scene {
         WindowGroup {
-            if let model {
-                RootView(model: model, router: router)
-                    .environment(model)
+            if isUsingDemoModel, let demoModel {
+                RootView(
+                    model: demoModel,
+                    router: router,
+                    demoMode: demoModeAccess
+                )
+                    .environment(demoModel)
+                    .environment(router)
+                    .tint(CompetitiveTrustTheme.teal)
+            } else if let liveModel {
+                RootView(
+                    model: liveModel,
+                    router: router,
+                    demoMode: demoModeAccess
+                )
+                    .environment(liveModel)
                     .environment(router)
                     .tint(CompetitiveTrustTheme.teal)
             } else {
@@ -58,12 +99,45 @@ struct GameTimeApp: App {
             }
         }
     }
+
+    private var demoModeAccess: DemoModeAccess {
+        #if DEBUG || STAGING
+        DemoModeAccess(
+            isAvailable: !isFixtureTestLaunch,
+            isActive: isUsingDemoModel && !isFixtureTestLaunch,
+            enter: enterDemoMode,
+            exit: exitDemoMode
+        )
+        #else
+        .unavailable
+        #endif
+    }
+
+    #if DEBUG || STAGING
+    private func enterDemoMode() {
+        router.reset()
+        demoModel = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: ["GameTime", "--demo-interactive"]
+            )
+        )
+        isUsingDemoModel = true
+    }
+
+    private func exitDemoMode() {
+        router.reset()
+        demoModel = nil
+        isUsingDemoModel = false
+    }
+    #endif
 }
 
 @MainActor
 struct RootView: View {
     @Bindable var model: AppModel
     @Bindable var router: AppRouter
+    let demoMode: DemoModeAccess
 
     var body: some View {
         Group {
@@ -84,8 +158,11 @@ struct RootView: View {
                 AppShellView()
             }
         }
+        .environment(\.demoMode, demoMode)
         .safeAreaInset(edge: .top, spacing: 0) {
-            if model.configuration.environment
+            if demoMode.isActive {
+                DemoEnvironmentBanner()
+            } else if model.configuration.environment
                 .showsTestEnvironmentBanner
             {
                 TestEnvironmentBanner()
@@ -123,6 +200,22 @@ struct RootView: View {
         } message: {
             Text(model.presentedError ?? "")
         }
+    }
+}
+
+private struct DemoEnvironmentBanner: View {
+    var body: some View {
+        Label(
+            "Demo mode — changes stay on this device",
+            systemImage: "play.circle.fill"
+        )
+        .font(.caption.weight(.bold))
+        .foregroundStyle(CompetitiveTrustTheme.ink)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .frame(maxWidth: .infinity)
+        .background(CompetitiveTrustTheme.teal)
+        .accessibilityIdentifier("demo.banner")
     }
 }
 
@@ -177,6 +270,7 @@ private struct LaunchingView: View {
 
 private struct SignedOutView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.demoMode) private var demoMode
 
     var body: some View {
         ScrollView {
@@ -214,6 +308,12 @@ private struct SignedOutView: View {
 
                 NativeAppleSignInButton()
                     .disabled(model.isMutating)
+
+                if demoMode.isAvailable, !demoMode.isActive {
+                    Button("Try demo mode", action: demoMode.enter)
+                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .accessibilityIdentifier("demo.enter")
+                }
 
                 Text(
                     "Sign in creates or restores your private staging account. Apple shares your name only on the first authorization; you can edit it before onboarding."

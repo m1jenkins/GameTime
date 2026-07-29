@@ -12,7 +12,7 @@ friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
 **Status, reconciled 2026-07-28: the backend and portable client core are
-complete through M6, and the M8.1–M8.3c product slices are implemented with
+complete through M6, and the M8.1–M8.3d product slices are implemented with
 staging proof open. This is not yet a shippable iOS app.**
 M6.5's staging backend,
 conformance-only iOS target, independent App Attest receipt verifier,
@@ -36,12 +36,15 @@ local lint checks. D81 and forward
 guard repair `20260726230529` are deployed to staging, where committed manual
 and hosted raw retention cycles prove exact-location pruning and the 90-day
 source-identifier scrub. CI, concurrency, hosted advisors, production-shaped
-migration timing, and retention failure recovery remain open. M8.1–M8.3c now
+migration timing, and retention failure recovery remain open. M8.1–M8.3d now
 add a separate product Xcode target, native Apple-auth/onboarding state, the
 live exact-handle friendship loop, atomic idempotent multi-friend challenge
 invitations, four-tab SwiftUI navigation, Debug fixtures, a Release mutation
 lock, protected per-user manual retry recovery that survives relaunch, and
 M7-backed challenge-detail standings with final loser obligations.
+Debug and Staging also include a labeled in-memory demo where one tester can
+add `david1` or `david2` and create a challenge without changing Supabase; the
+fixture factory is absent from Release.
 Version-1 single-invite saved-duel records migrate in place to the version-2
 challenge roster without changing the backend payload hash. The two-user Apple
 staging run remains open, as do later sensors, App Attest, inbox/APNs, evidence
@@ -74,8 +77,9 @@ ios/
                          check-in queue.
                          Builds and tests on Linux CI.
   GameTime/              M8 product app plus unit/UI targets. Live Supabase
-                         adapters, Apple auth, social/challenge loop, and Debug
-                         fixtures; Release contest mutation is locked.
+                         adapters, Apple auth, social/challenge loop, and an
+                         isolated Debug/Staging demo; Release contest mutation
+                         is locked and fixture code is absent.
   GameTimeConformance/   Independent M6.5 App Attest smoke harness only.
 scripts/
   dev-up.sh              Start the local stack
@@ -934,6 +938,10 @@ implementation gates, and work not yet reflected here are in PLAN.md.
         provisional progress from frozen final rankings, preserves rival
         integrity redaction until final, displays explicit result rationale,
         and shows only the participant's own loser/all-donate obligation
+  - [x] **M8.3d on-device demo** — Debug and Staging can isolate a local fixture
+        model from the retained live session, search `david1` or `david2`,
+        instantly accept the synthetic request for one-tester challenge
+        creation, and discard all demo state on exit; Release excludes it
   - [ ] **Later M8** — HealthKit, Core Location, product App Attest, durable
         inbox/APNs, evidence persistence, M7 review/actionable
         settlement/dispute screens, accessibility hardening, and privacy/App

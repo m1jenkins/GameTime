@@ -195,6 +195,44 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertNil(model.exactHandleResult)
     }
 
+    func testInteractiveDemoAddsDavidAndCreatesChallenge() async throws {
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-empty",
+                    "--demo-interactive",
+                ]
+            )
+        )
+        await model.start()
+
+        await model.submitExactHandle("@david1")
+        let david = try XCTUnwrap(model.exactHandleResult)
+        XCTAssertEqual(david.displayName, "David Chen")
+
+        await model.requestFriendship(with: david.id)
+
+        XCTAssertTrue(model.outgoingFriendships.isEmpty)
+        XCTAssertEqual(model.acceptedFriendships.map(\.handle), ["david1"])
+
+        var draft = ChallengeDraft()
+        draft.title = "Challenge David"
+        draft.inviteeIDs = [david.id]
+        draft.charityID = try XCTUnwrap(model.charities.first?.id)
+        let terms = try draft.validated()
+
+        let createdID = await model.createChallenge(terms)
+
+        XCTAssertNotNil(createdID)
+        XCTAssertEqual(
+            model.contests.filter { $0.title == "Challenge David" }.count,
+            1
+        )
+    }
+
     func testFixtureAndLiveFactoriesExposeTheSameClientBoundaries() throws {
         let fixture = FixtureServicesFactory.make(
             arguments: ["GameTimeTests", "--fixture-mode"]

@@ -61,6 +61,36 @@ final class GameTimeUITests: XCTestCase {
         )
     }
 
+    func testInteractiveDemoAddsDavidForChallengeSelection() {
+        let app = launch("--fixture-empty", "--demo-interactive")
+        XCTAssertTrue(
+            app.descendants(matching: .any)["demo.banner"]
+                .waitForExistence(timeout: 5)
+        )
+
+        app.tabBars.buttons["Friends"].tap()
+        let handle = app.textFields["friends.exact-handle"]
+        XCTAssertTrue(handle.waitForExistence(timeout: 4))
+        handle.tap()
+        handle.typeText("@david1")
+        app.buttons["friends.find"].tap()
+
+        let addDavid = app.buttons["Add David Chen"]
+        XCTAssertTrue(addDavid.waitForExistence(timeout: 4))
+        addDavid.tap()
+        XCTAssertTrue(
+            app.staticTexts["David Chen"].waitForExistence(timeout: 4)
+        )
+
+        app.tabBars.buttons["Challenges"].tap()
+        app.buttons["challenge.create"].tap()
+        XCTAssertTrue(
+            app.switches[
+                "challenge.invitee.66666666-6666-6666-6666-666666666666"
+            ].waitForExistence(timeout: 4)
+        )
+    }
+
     func testChallengeReviewSubmissionAndInvitationAcceptance() {
         let app = launch()
         app.tabBars.buttons["Challenges"].tap()
