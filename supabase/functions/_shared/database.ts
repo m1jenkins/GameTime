@@ -169,35 +169,34 @@ export interface PostgrestConfig {
  * caller's, `22023` for a bad parameter. Mapping on the code rather than the
  * message means a reworded exception does not silently become a 500.
  *
- * The database's own message is *not* forwarded. It names contest ids, counter
- * values, and banked figures, all of which are useful to somebody probing.
+ * The database's own message is discarded before constructing the failure.
+ * `HttpFailure.detail` is loggable, while a metric refusal can name raw health
+ * values, source metadata, contest ids, or counters.
  */
-function failureFor(code: string | undefined, detail: string): HttpFailure {
+function failureFor(code: string | undefined, _detail: string): HttpFailure {
   switch (code) {
     case "23001": // restrict_violation
       return new HttpFailure(
         "rejected",
         "the evidence was refused by a rule of this contest",
-        detail,
       );
     case "22023": // invalid_parameter_value
-      return new HttpFailure("rejected", "one of the observations is not acceptable", detail);
+      return new HttpFailure("rejected", "one of the observations is not acceptable");
     case "23505": // unique_violation
       return new HttpFailure(
         "rejected",
         "this batch id was already used for a different payload",
-        detail,
       );
     case "23503": // foreign_key_violation
-      return new HttpFailure("forbidden", "you are not a participant in that contest", detail);
+      return new HttpFailure("forbidden", "you are not a participant in that contest");
     case "42501": // insufficient_privilege
-      return new HttpFailure("forbidden", "this device is not registered to you", detail);
+      return new HttpFailure("forbidden", "this device is not registered to you");
     case "54000": // program_limit_exceeded
-      return new HttpFailure("bad_request", "the batch is too large", detail);
+      return new HttpFailure("bad_request", "the batch is too large");
     case "23514": // check_violation
-      return new HttpFailure("rejected", "one of the observations is not acceptable", detail);
+      return new HttpFailure("rejected", "one of the observations is not acceptable");
     default:
-      return new HttpFailure("internal", "the request could not be processed", detail);
+      return new HttpFailure("internal", "the request could not be processed");
   }
 }
 

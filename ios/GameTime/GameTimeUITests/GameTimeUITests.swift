@@ -153,7 +153,12 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["Review invitation"]
                 .waitForExistence(timeout: 4)
         )
-        app.buttons["invitation.accept"].tap()
+        let acceptInvitation = app.buttons["invitation.accept"]
+        for _ in 0..<5 where !acceptInvitation.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(acceptInvitation.waitForExistence(timeout: 3))
+        acceptInvitation.tap()
         XCTAssertTrue(
             app.navigationBars["Today"].waitForExistence(timeout: 5)
         )
@@ -206,6 +211,51 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(app.textFields["challenge.title"].exists)
     }
 
+    func testStagingActivityRequiresExplicitEnableAndSyncActions() {
+        let app = launch("--fixture-activity")
+        let challenges = app.tabBars.buttons["Challenges"]
+        XCTAssertTrue(challenges.waitForExistence(timeout: 5))
+        challenges.tap()
+
+        let contest = app.buttons.matching(
+            NSPredicate(format: "label BEGINSWITH %@", "Weekend steps")
+        ).firstMatch
+        XCTAssertTrue(contest.waitForExistence(timeout: 4))
+        contest.tap()
+        XCTAssertTrue(
+            app.navigationBars["Challenge"].waitForExistence(timeout: 4)
+        )
+
+        let enable = app.buttons["activity.enable"]
+        for _ in 0..<5 where !enable.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(enable.waitForExistence(timeout: 3))
+        enable.tap()
+        let permissionMessage = app.staticTexts[
+            "Permission request completed. Read access may still be limited."
+        ]
+        for _ in 0..<3 where !permissionMessage.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(permissionMessage.waitForExistence(timeout: 3))
+        let sync = app.buttons["activity.sync"]
+        for _ in 0..<3 where !sync.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(sync.waitForExistence(timeout: 3))
+        sync.tap()
+        XCTAssertTrue(
+            app.descendants(matching: .any)["activity.status"]
+                .waitForExistence(timeout: 3)
+        )
+        XCTAssertTrue(
+            app.staticTexts[
+                "No completed device-recorded step hours were found. Access may be limited or off."
+            ].exists
+        )
+    }
+
     func testProvisionalAndFinalStandingsDisclosure() {
         let provisional = launch()
         openWeekendDistance(in: provisional)
@@ -223,11 +273,13 @@ final class GameTimeUITests: XCTestCase {
                 "Live ordering only — not a predicted winner."
             ].exists
         )
-        XCTAssertTrue(
-            provisional.staticTexts[
-                "Integrity detail stays private until final."
-            ].exists
-        )
+        let privacy = provisional.staticTexts[
+            "Integrity detail stays private until final."
+        ]
+        for _ in 0..<3 where !privacy.exists {
+            provisional.swipeUp()
+        }
+        XCTAssertTrue(privacy.waitForExistence(timeout: 3))
         provisional.terminate()
 
         let final = launch("--fixture-final-standings")
@@ -239,7 +291,11 @@ final class GameTimeUITests: XCTestCase {
         }
         XCTAssertTrue(finalPhase.waitForExistence(timeout: 4))
         XCTAssertTrue(final.staticTexts["Final"].exists)
-        XCTAssertTrue(final.staticTexts["Winner: Marcus Green"].exists)
+        let winner = final.staticTexts["Winner: Marcus Green"]
+        for _ in 0..<3 where !winner.exists {
+            final.swipeUp()
+        }
+        XCTAssertTrue(winner.waitForExistence(timeout: 3))
 
         let obligation = final.staticTexts[
             "Pledge $10.00 to Fixture Community Fund"

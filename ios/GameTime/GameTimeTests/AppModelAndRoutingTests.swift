@@ -439,6 +439,11 @@ final class AppModelAndRoutingTests: XCTestCase {
         await model.start()
 
         XCTAssertEqual(model.pendingChallenge?.terms, pendingTerms)
+        XCTAssertEqual(
+            contests.createCallCount,
+            0,
+            "Relaunch must restore only; it must not resend automatically."
+        )
         let createdID = await model.createChallenge(makeTerms())
         XCTAssertNil(createdID)
         XCTAssertEqual(contests.createCallCount, 0)
@@ -536,7 +541,8 @@ final class AppModelAndRoutingTests: XCTestCase {
                 profiles: AnyActorProfileClient(),
                 friendships: fixture.friendships,
                 contests: fixture.contests,
-                pendingChallenges: pendingStore
+                pendingChallenges: pendingStore,
+                activitySync: fixture.activitySync
             )
         )
 
@@ -586,7 +592,8 @@ final class AppModelAndRoutingTests: XCTestCase {
                 profiles: AnyActorProfileClient(),
                 friendships: fixture.friendships,
                 contests: fixture.contests,
-                pendingChallenges: pendingStore
+                pendingChallenges: pendingStore,
+                activitySync: fixture.activitySync
             )
         )
         await model.start()

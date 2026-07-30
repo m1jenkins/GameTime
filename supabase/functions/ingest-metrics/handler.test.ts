@@ -13,6 +13,7 @@ import { buildAssertion, type Device, makeDevice } from "../_test/appattest_fixt
 import { mintAccessToken, TEST_JWT_SECRET } from "../_test/tokens.ts";
 
 const APP_ID = "ABCDE12345.test.gametime.app";
+const ADDITIONAL_APP_ID = "ABCDE12345.com.mjenkins.gametime.staging";
 const USER = "11111111-1111-1111-1111-111111111111";
 const CONTEST = "a0000001-0000-0000-0000-000000000001";
 const BATCH = "b0000001-0000-0000-0000-000000000001";
@@ -278,6 +279,26 @@ Deno.test("refuses an assertion produced for another app id", async () => {
     await signedRequest({ appId: "ZZZZZ99999.someone.elses.app" }),
   );
   assertEquals(response.status, 401);
+  assertEquals(await response.json(), {
+    error: "unauthorized",
+    message: "the assertion could not be verified",
+  });
+});
+
+Deno.test("accepts an assertion for an explicitly allowed staging app id", async () => {
+  const sink = recorder();
+  const handler = createIngestMetricsHandler(deps({
+    database: sink.database,
+    additionalAppIds: [ADDITIONAL_APP_ID],
+  }));
+
+  const response = await handler(
+    await signedRequest({ appId: ADDITIONAL_APP_ID }),
+  );
+
+  assertEquals(response.status, 201);
+  assertEquals(sink.calls.length, 1);
+  assertEquals(sink.calls[0]!.signCount, 1);
 });
 
 Deno.test("passes the assertion counter through without judging it", async () => {

@@ -77,7 +77,9 @@ export const ASSERTION_HEADER = "x-gametime-assertion";
 
 export interface IngestMetricsDeps {
   readonly database: Database;
+  /** Primary App ID. Additional identities are a bounded staging-only bridge. */
   readonly appId: string;
+  readonly additionalAppIds?: readonly string[];
   readonly verifyToken: AccessTokenVerifier;
   /**
    * True only where the App Attest development bypass is both requested and
@@ -186,6 +188,7 @@ export function createIngestMetricsHandler(
   deps: IngestMetricsDeps,
 ): (request: Request) => Promise<Response> {
   const clock = deps.now ?? (() => new Date());
+  const appIds = [deps.appId, ...(deps.additionalAppIds ?? [])];
 
   if (!deps.attestBypass && deps.publicKeyFor === undefined) {
     // A misconfiguration that would otherwise surface as "every request is
@@ -266,23 +269,28 @@ export function createIngestMetricsHandler(
           );
         }
 
-        try {
-          const verified = await verifyAssertion({
-            ...assertion,
-            clientData: raw,
-            publicKey,
-            appId: deps.appId,
-          });
-          signCount = verified.signCount;
-        } catch (error) {
-          if (error instanceof AttestationError) {
-            throw new HttpFailure(
-              "unauthorized",
-              "the assertion could not be verified",
-              error.message,
-            );
+        let lastError: unknown;
+        for (const appId of appIds) {
+          try {
+            const verified = await verifyAssertion({
+              ...assertion,
+              clientData: raw,
+              publicKey,
+              appId,
+            });
+            signCount = verified.signCount;
+            break;
+          } catch (error) {
+            if (!(error instanceof AttestationError)) throw error;
+            lastError = error;
           }
-          throw error;
+        }
+        if (signCount === undefined) {
+          throw new HttpFailure(
+            "unauthorized",
+            "the assertion could not be verified",
+            String(lastError),
+          );
         }
       }
 

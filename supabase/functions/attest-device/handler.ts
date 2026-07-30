@@ -80,7 +80,10 @@ export const CHALLENGE_WINDOW_SECONDS = 600;
 
 export interface AttestDeviceDeps {
   readonly database: Database & ReceiptVerificationDatabase & ActiveActorDatabase;
+  /** Primary App ID. Kept first for the conformance target. */
   readonly appId: string;
+  /** Optional non-production product identities, already validated at startup. */
+  readonly additionalAppIds?: readonly string[];
   /** Apple App Attestation Root CA, used only for the attestation x5c chain. */
   readonly rootCertificatePem: string;
   /** Apple Root CA G3, used independently for the receipt PKCS#7 chain. */
@@ -191,6 +194,7 @@ export function createAttestDeviceHandler(
 ): (request: Request) => Promise<Response> {
   const clock = deps.now ?? (() => new Date());
   const verifyReceipt = deps.verifyReceipt ?? verifyAppAttestReceipt;
+  const appIds = [deps.appId, ...(deps.additionalAppIds ?? [])];
 
   return (request) =>
     respond("attest-device", async () => {
@@ -232,26 +236,31 @@ export function createAttestDeviceHandler(
       const document = openAttestationObject(attestationObject);
 
       let verified;
+      let verifiedAppId: string | undefined;
       let lastError: unknown;
-      for (const challenge of challenges) {
-        try {
-          verified = await verifyAttestation({
-            ...document,
-            keyId,
-            clientData: challenge,
-            appId: deps.appId,
-            rootCertificatePem: deps.rootCertificatePem,
-            allowedEnvironments: deps.allowedEnvironments,
-            at,
-          });
-          break;
-        } catch (error) {
-          if (!(error instanceof AttestationError)) throw error;
-          lastError = error;
+      appIdLoop:
+      for (const appId of appIds) {
+        for (const challenge of challenges) {
+          try {
+            verified = await verifyAttestation({
+              ...document,
+              keyId,
+              clientData: challenge,
+              appId,
+              rootCertificatePem: deps.rootCertificatePem,
+              allowedEnvironments: deps.allowedEnvironments,
+              at,
+            });
+            verifiedAppId = appId;
+            break appIdLoop;
+          } catch (error) {
+            if (!(error instanceof AttestationError)) throw error;
+            lastError = error;
+          }
         }
       }
 
-      if (verified === undefined) {
+      if (verified === undefined || verifiedAppId === undefined) {
         // One message for every way an attestation can fail. Naming the check
         // that refused it is a map of what to try next.
         throw new HttpFailure(
@@ -277,7 +286,7 @@ export function createAttestDeviceHandler(
       try {
         verifiedReceipt = await verifyReceipt({
           receipt: document.receipt,
-          appId: deps.appId,
+          appId: verifiedAppId,
           publicKey: verified.publicKey,
           receiptRootCertificatePem: deps.receiptRootCertificatePem,
           receivedAt: registration.receiptReceivedAt,

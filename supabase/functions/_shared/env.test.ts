@@ -1,6 +1,8 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import {
   accessTokenVerification,
+  appAttestAppId,
+  appAttestAppIds,
   appAttestReceiptRootCertificate,
   appAttestRootCertificate,
   assertAttestConfigIsSafe,
@@ -10,6 +12,7 @@ import {
   ConfigError,
   dataApiConfig,
   envFromRecord,
+  MAX_ADDITIONAL_APP_ATTEST_BUNDLE_IDS,
   optionalEnv,
   requireEnv,
   runtimeEnv,
@@ -104,6 +107,90 @@ Deno.test("production without the bypass flag is safe and reports false", () => 
   const source = envFromRecord({ GAMETIME_ENV: "production" });
   assertAttestConfigIsSafe(source);
   assertEquals(attestBypassEnabled(source), false);
+});
+
+Deno.test("the primary App Attest identity remains APPLE_BUNDLE_ID", () => {
+  const source = envFromRecord({
+    GAMETIME_ENV: "production",
+    APPLE_TEAM_ID: "ABCDE12345",
+    APPLE_BUNDLE_ID: "com.gametime.conformance",
+  });
+
+  assertEquals(
+    appAttestAppId(source),
+    "ABCDE12345.com.gametime.conformance",
+  );
+  assertEquals(appAttestAppIds(source), [
+    "ABCDE12345.com.gametime.conformance",
+  ]);
+});
+
+Deno.test("local test and staging may add a bounded App Attest bundle allowlist", () => {
+  for (const environment of ["local", "test", "staging"]) {
+    const source = envFromRecord({
+      GAMETIME_ENV: environment,
+      APPLE_TEAM_ID: "ABCDE12345",
+      APPLE_BUNDLE_ID: "com.gametime.conformance",
+      APPLE_ADDITIONAL_BUNDLE_IDS: "com.mjenkins.gametime.staging,com.gametime.preview",
+    });
+
+    assertEquals(appAttestAppIds(source), [
+      "ABCDE12345.com.gametime.conformance",
+      "ABCDE12345.com.mjenkins.gametime.staging",
+      "ABCDE12345.com.gametime.preview",
+    ]);
+  }
+});
+
+Deno.test("production refuses every additional App Attest bundle identity", () => {
+  const source = envFromRecord({
+    GAMETIME_ENV: "production",
+    APPLE_TEAM_ID: "ABCDE12345",
+    APPLE_BUNDLE_ID: "com.gametime.conformance",
+    APPLE_ADDITIONAL_BUNDLE_IDS: "com.mjenkins.gametime.staging",
+  });
+
+  assertThrows(
+    () => appAttestAppIds(source),
+    ConfigError,
+    "forbidden in GAMETIME_ENV=production",
+  );
+});
+
+Deno.test("additional App Attest bundle IDs are strict unique and bounded", () => {
+  const base = {
+    GAMETIME_ENV: "staging",
+    APPLE_TEAM_ID: "ABCDE12345",
+    APPLE_BUNDLE_ID: "com.gametime.conformance",
+  };
+  const invalid = [
+    "com.gametime.conformance",
+    "com.gametime.product,com.gametime.product",
+    "com.gametime.product,",
+    "com.gametime.product,,com.gametime.preview",
+    " com.gametime.product",
+    "com.gametime.product, com.gametime.preview",
+    ".com.gametime.product",
+    "com..gametime.product",
+    "com_gametime_product",
+    Array.from(
+      { length: MAX_ADDITIONAL_APP_ATTEST_BUNDLE_IDS + 1 },
+      (_, index) => `com.gametime.product${index}`,
+    ).join(","),
+  ];
+
+  for (const configured of invalid) {
+    assertThrows(
+      () =>
+        appAttestAppIds(envFromRecord({
+          ...base,
+          APPLE_ADDITIONAL_BUNDLE_IDS: configured,
+        })),
+      ConfigError,
+      undefined,
+      configured,
+    );
+  }
 });
 
 Deno.test("the App Attest root is parsed at startup", () => {

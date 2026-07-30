@@ -62,8 +62,141 @@ struct ContestDetailView: View {
                             label: "Tie-break",
                             value: contest.tieBreak.title
                         )
+                        if let maxParticipants = contest.maxParticipants {
+                            TermRow(
+                                label: "Closed roster",
+                                value: "\(maxParticipants) people"
+                            )
+                        }
+                        if let timeZone = contest.participantTimeZone {
+                            TermRow(
+                                label: "Your frozen timezone",
+                                value: timeZone
+                            )
+                        }
                     }
                     .listRowBackground(CompetitiveTrustTheme.raisedInk)
+
+                    if model.configuration.activitySyncEnabled,
+                        contest.metric == .steps,
+                        contest.myStatus == .accepted,
+                        contest.status == .active
+                    {
+                        Section {
+                            Button("Enable Activity") {
+                                Task {
+                                    await model.enableActivity()
+                                }
+                            }
+                            .accessibilityIdentifier(
+                                "activity.enable"
+                            )
+                            .disabled(model.isActivityMutating)
+
+                            Button("Sync Activity") {
+                                Task {
+                                    await model.syncActivity(
+                                        contestID: contest.id
+                                    )
+                                }
+                            }
+                            .buttonStyle(TrustPrimaryButtonStyle())
+                            .accessibilityIdentifier(
+                                "activity.sync"
+                            )
+                            .disabled(model.isActivityMutating)
+
+                            if let outcome =
+                                model.activityAuthorizationOutcome
+                            {
+                                Label(
+                                    authorizationMessage(outcome),
+                                    systemImage: outcome
+                                        == .requestCompleted
+                                        ? "checkmark.shield"
+                                        : "heart.slash"
+                                )
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                            }
+
+                            if let message = model.activitySyncState(
+                                for: contest.id
+                            ).message {
+                                Text(message)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityIdentifier(
+                                        "activity.status"
+                                    )
+                            }
+
+                            if model.pendingActivityUploadCount > 0 {
+                                Label(
+                                    "Saved activity retry: \(model.pendingActivityUploadCount)",
+                                    systemImage: "arrow.clockwise.circle"
+                                )
+                                .font(.footnote)
+                                .foregroundStyle(
+                                    CompetitiveTrustTheme.amber
+                                )
+                                .accessibilityIdentifier(
+                                    "activity.pending-count"
+                                )
+                            }
+                        } header: {
+                            Text("Activity")
+                        } footer: {
+                            Text(
+                                "GameTime reads steps only when you tap Sync Activity. It uses HealthKit’s merged Apple-device total so iPhone and Watch overlap is not counted twice. Manual and third-party entries are excluded."
+                            )
+                        }
+                        .listRowBackground(
+                            CompetitiveTrustTheme.raisedInk
+                        )
+                    }
+
+                    #if STAGING
+                    Section("Staging acceptance") {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Challenge ID")
+                                .foregroundStyle(.secondary)
+                            Text(contest.id.uuidString.lowercased())
+                                .font(.caption.monospaced())
+                                .textSelection(.enabled)
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("staging.challenge-id")
+                        TermRow(
+                            label: "Challenge state",
+                            value: contest.status.rawValue
+                        )
+                        TermRow(
+                            label: "Your roster state",
+                            value: contest.myStatus.rawValue
+                        )
+                        TermRow(
+                            label: "Loaded roster",
+                            value:
+                                "\(contest.resolvedParticipants.count) people"
+                        )
+                        ForEach(
+                            contest.resolvedParticipants
+                        ) { participant in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(participant.status.rawValue.capitalized)
+                                    .foregroundStyle(.secondary)
+                                Text(
+                                    participant.userID.uuidString.lowercased()
+                                )
+                                .font(.caption.monospaced())
+                                .textSelection(.enabled)
+                            }
+                            .accessibilityElement(children: .combine)
+                        }
+                    }
+                    .listRowBackground(CompetitiveTrustTheme.raisedInk)
+                    #endif
 
                     if contest.myStatus == .accepted {
                         if contest.status == .active
@@ -158,6 +291,17 @@ struct ContestDetailView: View {
                 return
             }
             await model.loadStandings(contestID: contest.id)
+        }
+    }
+
+    private func authorizationMessage(
+        _ outcome: ActivityAuthorizationOutcome
+    ) -> String {
+        switch outcome {
+        case .requestCompleted:
+            "Permission request completed. Read access may still be limited."
+        case .healthDataUnavailable:
+            "Health data is unavailable on this device."
         }
     }
 }

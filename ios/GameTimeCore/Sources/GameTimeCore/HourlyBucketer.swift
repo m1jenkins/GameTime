@@ -198,13 +198,11 @@ public struct HourlyBucket: Sendable, Hashable {
 /// one bucket (the ordinary case: the pedometer records in short spans) and a
 /// linear estimate when it does not.
 ///
-/// The alternative is to let HealthKit bucket it, with an
-/// `HKStatisticsCollectionQuery` anchored to local midnight on an hourly
-/// interval. That is exact rather than estimated, and it was rejected because a
-/// statistics collection reports sums without saying which source produced them
-/// — and provenance is the point of this milestone. Running one statistics query
-/// per source would recover it, at the cost of a query count that grows with
-/// however many health apps the user happens to have installed.
+/// The M8 Apple-device steps adapter now uses
+/// `HKStatisticsCollectionQuery` for the completed intervals planned below,
+/// after raw samples restrict the statistic to genuine Apple devices (D92).
+/// This portable prorating path remains the rule for callers that need distinct
+/// provenance contributions or metrics without that reconciled adapter.
 public struct HourlyBucketer: Sendable {
     public let timeZoneSchedule: ContestTimeZoneSchedule
 
@@ -247,6 +245,72 @@ public struct HourlyBucketer: Sendable {
             return nil
         }
         return interval
+    }
+
+    /// Every completed local-hour interval that the ledger can accept.
+    ///
+    /// HealthKit's merged statistics queries need the exact same intervals as
+    /// the semantic bucketer. Keeping that calendar walk here prevents the app
+    /// target from inventing a second interpretation of half-hour offsets,
+    /// daylight-saving repeats, contest edges, or approved timezone changes.
+    ///
+    /// Intervals cut by the contest window or a timezone change are omitted.
+    /// The walk is bounded from the requested span so a malformed calendar can
+    /// fail closed rather than loop forever.
+    public func completedBucketIntervals(
+        in window: DateInterval,
+        asOf: Date
+    ) -> [DateInterval] {
+        let completedEnd = min(window.end, asOf)
+        guard completedEnd > window.start else { return [] }
+
+        let span = completedEnd.timeIntervalSince(window.start)
+        guard span.isFinite, span >= 0 else { return [] }
+
+        // A real civil-time hour is much longer than one minute. The generous
+        // bound also covers timezone-change cut hours without assuming every
+        // offset transition is exactly 30 or 60 minutes.
+        let maximumIterations =
+            Int((span / 60).rounded(.up))
+            + timeZoneSchedule.changes.count * 4
+            + 4
+
+        var intervals: [DateInterval] = []
+        var seenStarts: Set<Date> = []
+        var cursor = window.start
+        var iterations = 0
+
+        while cursor < completedEnd, iterations < maximumIterations {
+            iterations += 1
+            let epoch = timeZoneSchedule.epoch(containing: cursor)
+            guard
+                let rawInterval = rawBucket(
+                    containing: cursor,
+                    in: epoch.timeZone
+                )
+            else {
+                break
+            }
+
+            if
+                let interval = bucket(containing: cursor),
+                interval.start >= window.start,
+                interval.end <= window.end,
+                interval.end <= asOf,
+                seenStarts.insert(interval.start).inserted
+            {
+                intervals.append(interval)
+            }
+
+            let nextBoundary = min(
+                rawInterval.end,
+                epoch.endsAt ?? rawInterval.end
+            )
+            guard nextBoundary > cursor else { break }
+            cursor = nextBoundary
+        }
+
+        return intervals.sorted { $0.start < $1.start }
     }
 
     /// Groups samples into buckets, dropping anything the ledger would refuse.

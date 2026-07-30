@@ -6,7 +6,8 @@ enum FixtureServicesFactory {
     static func make(
         arguments: [String] = ProcessInfo.processInfo.arguments,
         pendingChallengeStore: (any PendingChallengeStore)? = nil,
-        contestsClient: (any ContestsClient)? = nil
+        contestsClient: (any ContestsClient)? = nil,
+        activitySync: (any ActivitySyncing)? = nil
     ) -> AppServices {
         let scenario = FixtureScenario(arguments: arguments)
         let store = FixtureStore(scenario: scenario)
@@ -20,6 +21,12 @@ enum FixtureServicesFactory {
                     submission: scenario.pendingChallenge
                         ? FixtureStore.pendingChallengeSubmission()
                         : nil
+                ),
+            activitySync: activitySync
+                ?? (
+                    scenario.activity
+                        ? FixtureActivitySyncCoordinator()
+                        : DisabledActivitySyncCoordinator()
                 )
         )
     }
@@ -34,6 +41,7 @@ private struct FixtureScenario {
     let pendingChallenge: Bool
     let lostChallengeResponse: Bool
     let finalStandings: Bool
+    let activity: Bool
     let instantlyAcceptFriendRequests: Bool
 
     init(arguments: [String]) {
@@ -49,6 +57,7 @@ private struct FixtureScenario {
             arguments.contains("--fixture-lost-challenge-response")
             || arguments.contains("--fixture-lost-duel-response")
         finalStandings = arguments.contains("--fixture-final-standings")
+        activity = arguments.contains("--fixture-activity")
         instantlyAcceptFriendRequests = arguments.contains(
             "--demo-interactive"
         )
@@ -185,13 +194,30 @@ private final class FixtureStore {
                     startsAt: now.addingTimeInterval(86_400),
                     endsAt: now.addingTimeInterval(4 * 86_400),
                     status: .pending,
-                    myStatus: .invited
+                    myStatus: .invited,
+                    maxParticipants: 2,
+                    participantTimeZone: nil,
+                    timeZoneChanges: [],
+                    participants: [
+                        ContestParticipantCard(
+                            userID: Self.friendID,
+                            status: .accepted,
+                            charityID: Self.charityID
+                        ),
+                        ContestParticipantCard(
+                            userID: Self.callerID,
+                            status: .invited,
+                            charityID: nil
+                        ),
+                    ]
                 ),
                 ContestCard(
                     id: Self.activeContestID,
-                    title: "Weekend distance",
+                    title: scenario.activity
+                        ? "Weekend steps"
+                        : "Weekend distance",
                     createdBy: Self.callerID,
-                    metric: .distanceMeters,
+                    metric: scenario.activity ? .steps : .distanceMeters,
                     cadence: .cumulative,
                     targetValue: 10_000,
                     stakeAmountCents: 1_000,
@@ -203,7 +229,22 @@ private final class FixtureStore {
                         scenario.finalStandings ? -8 * 3_600 : 2 * 86_400
                     ),
                     status: scenario.finalStandings ? .finalized : .active,
-                    myStatus: .accepted
+                    myStatus: .accepted,
+                    maxParticipants: 2,
+                    participantTimeZone: "America/Chicago",
+                    timeZoneChanges: [],
+                    participants: [
+                        ContestParticipantCard(
+                            userID: Self.callerID,
+                            status: .accepted,
+                            charityID: Self.charityID
+                        ),
+                        ContestParticipantCard(
+                            userID: Self.friendID,
+                            status: .accepted,
+                            charityID: Self.charityID
+                        ),
+                    ]
                 ),
             ]
         charities = [
@@ -636,7 +677,23 @@ private final class FixtureContestsClient: ContestsClient {
                 startsAt: terms.startsAt,
                 endsAt: terms.endsAt,
                 status: .pending,
-                myStatus: .accepted
+                myStatus: .accepted,
+                maxParticipants: terms.maxParticipants,
+                participantTimeZone: terms.timezone,
+                timeZoneChanges: [],
+                participants: [
+                    ContestParticipantCard(
+                        userID: expectedUserID,
+                        status: .accepted,
+                        charityID: terms.charityID
+                    ),
+                ] + terms.inviteeIDs.map {
+                    ContestParticipantCard(
+                        userID: $0,
+                        status: .invited,
+                        charityID: nil
+                    )
+                }
             )
         )
         if store.lostChallengeResponse, !store.hasLostChallengeResponse {
@@ -653,19 +710,30 @@ private final class FixtureContestsClient: ContestsClient {
         charityID: UUID
     ) async throws {
         guard !store.offline else { throw FixtureFailure.offline }
-        update(contestID: contestID, status: .accepted)
-        _ = (userID, timezone, charityID)
+        update(
+            contestID: contestID,
+            userID: userID,
+            status: .accepted,
+            timezone: timezone,
+            charityID: charityID
+        )
     }
 
     func declineInvitation(contestID: UUID, userID: UUID) async throws {
         guard !store.offline else { throw FixtureFailure.offline }
-        update(contestID: contestID, status: .declined)
-        _ = userID
+        update(
+            contestID: contestID,
+            userID: userID,
+            status: .declined
+        )
     }
 
     private func update(
         contestID: UUID,
-        status: ContestParticipantStatus
+        userID: UUID,
+        status: ContestParticipantStatus,
+        timezone: String? = nil,
+        charityID: UUID? = nil
     ) {
         guard let index = store.contests.firstIndex(where: { $0.id == contestID })
         else {
@@ -684,8 +752,46 @@ private final class FixtureContestsClient: ContestsClient {
             startsAt: original.startsAt,
             endsAt: original.endsAt,
             status: original.status,
-            myStatus: status
+            myStatus: status,
+            maxParticipants: original.maxParticipants,
+            participantTimeZone: status == .accepted
+                ? (timezone ?? original.participantTimeZone)
+                : nil,
+            timeZoneChanges: original.timeZoneChanges,
+            participants: original.resolvedParticipants.map {
+                guard $0.userID == userID else { return $0 }
+                return ContestParticipantCard(
+                    userID: $0.userID,
+                    status: status,
+                    charityID: charityID ?? $0.charityID
+                )
+            }
         )
+    }
+}
+
+@MainActor
+private final class FixtureActivitySyncCoordinator: ActivitySyncing {
+    func requestAuthorization() async throws
+        -> ActivityAuthorizationOutcome
+    {
+        .requestCompleted
+    }
+
+    func pendingUploadCount(for ownerID: UUID) async throws -> Int {
+        _ = ownerID
+        return 0
+    }
+
+    func sync(
+        ownerID: UUID,
+        contest: ContestCard,
+        asOf: Date
+    ) async throws -> ActivitySyncOutcome {
+        _ = ownerID
+        _ = contest
+        _ = asOf
+        return .noReadableData
     }
 }
 #endif

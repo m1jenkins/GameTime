@@ -8,6 +8,41 @@ enum AppPhase: Equatable, Sendable {
     case signedIn
 }
 
+enum ActivitySyncViewState: Equatable, Sendable {
+    case idle
+    case syncing
+    case synced(stepTotal: Double)
+    case replayAccepted(stepTotal: Double)
+    case queuedForRetry(stepTotal: Double)
+    case noReadableData
+    case failed
+
+    var message: String? {
+        switch self {
+        case .idle:
+            nil
+        case .syncing:
+            "Reading and verifying this challenge’s steps…"
+        case let .synced(stepTotal):
+            "\(formatted(stepTotal)) device-recorded steps confirmed in this sync."
+        case let .replayAccepted(stepTotal):
+            "\(formatted(stepTotal)) device-recorded steps confirmed from saved activity."
+        case let .queuedForRetry(stepTotal):
+            "\(formatted(stepTotal)) device-recorded steps are saved for exact retry. Tap Sync Activity to retry."
+        case .noReadableData:
+            "No completed device-recorded step hours were found. Access may be limited or off."
+        case .failed:
+            "Activity sync needs attention before retrying."
+        }
+    }
+
+    private func formatted(_ stepTotal: Double) -> String {
+        stepTotal.formatted(
+            .number.precision(.fractionLength(0...2))
+        )
+    }
+}
+
 @MainActor
 @Observable
 final class AppModel {
@@ -28,6 +63,11 @@ final class AppModel {
     private(set) var onboardingNamePrefill = ""
     private(set) var pendingChallenge: PendingChallengeSubmission?
     private(set) var hasPendingChallengeRecoveryIssue = false
+    private(set) var activityAuthorizationOutcome:
+        ActivityAuthorizationOutcome?
+    private(set) var activitySyncStates: [UUID: ActivitySyncViewState] = [:]
+    private(set) var pendingActivityUploadCount = 0
+    private(set) var isActivityMutating = false
     var presentedError: String?
 
     private let services: AppServices
@@ -141,6 +181,18 @@ final class AppModel {
             }
             profile = createdProfile
             onboardingNamePrefill = ""
+            await restorePendingActivityUploads(
+                for: userID,
+                generation: generation
+            )
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
             phase = .signedIn
             await refresh()
         } catch is CancellationError {
@@ -516,6 +568,135 @@ final class AppModel {
         }
     }
 
+    func enableActivity() async {
+        guard configuration.activitySyncEnabled else {
+            presentedError =
+                "Activity sync is available only in GameTime Staging."
+            return
+        }
+        guard let userID else {
+            presentedError = "Sign in again before enabling activity."
+            return
+        }
+        guard !isActivityMutating else { return }
+        let generation = authGeneration
+        isActivityMutating = true
+        defer { isActivityMutating = false }
+
+        do {
+            let outcome = try await services.activitySync
+                .requestAuthorization()
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            activityAuthorizationOutcome = outcome
+        } catch is CancellationError {
+            return
+        } catch {
+            guard isCurrentActor(userID, generation: generation) else {
+                return
+            }
+            presentedError = error.localizedDescription
+        }
+    }
+
+    func activitySyncState(
+        for contestID: UUID
+    ) -> ActivitySyncViewState {
+        activitySyncStates[contestID] ?? .idle
+    }
+
+    func syncActivity(contestID: UUID) async {
+        guard configuration.activitySyncEnabled else {
+            presentedError =
+                "Activity sync is available only in GameTime Staging."
+            return
+        }
+        guard let userID else {
+            presentedError = "Sign in again before syncing activity."
+            return
+        }
+        guard
+            let contest = contests.first(where: { $0.id == contestID })
+        else {
+            presentedError = "Refresh to load this challenge before syncing."
+            return
+        }
+        guard !isActivityMutating else { return }
+        let generation = authGeneration
+        isActivityMutating = true
+        activitySyncStates[contestID] = .syncing
+        defer { isActivityMutating = false }
+
+        do {
+            let outcome = try await services.activitySync.sync(
+                ownerID: userID,
+                contest: contest,
+                asOf: Date()
+            )
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            switch outcome {
+            case let .synced(replayed, stepTotal):
+                activitySyncStates[contestID] = replayed
+                    ? .replayAccepted(stepTotal: stepTotal)
+                    : .synced(stepTotal: stepTotal)
+            case let .queuedForRetry(stepTotal):
+                activitySyncStates[contestID] = .queuedForRetry(
+                    stepTotal: stepTotal
+                )
+            case .noReadableData:
+                activitySyncStates[contestID] = .noReadableData
+            }
+            let pendingCount = try await services.activitySync
+                .pendingUploadCount(for: userID)
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            pendingActivityUploadCount = pendingCount
+        } catch is CancellationError {
+            guard isCurrentActor(userID, generation: generation) else {
+                return
+            }
+            activitySyncStates[contestID] = .idle
+        } catch {
+            guard isCurrentActor(userID, generation: generation) else {
+                return
+            }
+            activitySyncStates[contestID] = .failed
+            presentedError = error.localizedDescription
+            let pendingCount = try? await services.activitySync
+                .pendingUploadCount(for: userID)
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            if let pendingCount {
+                pendingActivityUploadCount = pendingCount
+            }
+        }
+    }
+
     func signOut() async {
         isPerformingExplicitAuthMutation = true
         isMutating = true
@@ -589,6 +770,10 @@ final class AppModel {
         onboardingNamePrefill = ""
         pendingChallenge = nil
         hasPendingChallengeRecoveryIssue = false
+        activityAuthorizationOutcome = nil
+        activitySyncStates = [:]
+        pendingActivityUploadCount = 0
+        isActivityMutating = false
         loadState = .idle
         presentedError = nil
         phase = .launching
@@ -607,6 +792,18 @@ final class AppModel {
                 self.profile = profile
                 onboardingNamePrefill = ""
                 await restorePendingChallenge(
+                    for: userID,
+                    generation: generation
+                )
+                guard
+                    await isCurrentAuthenticatedActor(
+                        userID,
+                        generation: generation
+                    )
+                else {
+                    return
+                }
+                await restorePendingActivityUploads(
                     for: userID,
                     generation: generation
                 )
@@ -705,6 +902,43 @@ final class AppModel {
         }
     }
 
+    private func restorePendingActivityUploads(
+        for userID: UUID,
+        generation: UUID
+    ) async {
+        guard configuration.activitySyncEnabled else {
+            pendingActivityUploadCount = 0
+            return
+        }
+        do {
+            let count = try await services.activitySync.pendingUploadCount(
+                for: userID
+            )
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            // Restoration is read-only. Uploads move only after an explicit
+            // Sync Activity action.
+            pendingActivityUploadCount = count
+        } catch {
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            pendingActivityUploadCount = 0
+            presentedError = error.localizedDescription
+        }
+    }
+
     private func isCurrentActor(
         _ userID: UUID,
         generation: UUID
@@ -737,6 +971,10 @@ final class AppModel {
         onboardingNamePrefill = ""
         pendingChallenge = nil
         hasPendingChallengeRecoveryIssue = false
+        activityAuthorizationOutcome = nil
+        activitySyncStates = [:]
+        pendingActivityUploadCount = 0
+        isActivityMutating = false
         loadState = .idle
         presentedError = nil
         phase = .signedOut

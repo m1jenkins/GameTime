@@ -1,30 +1,63 @@
 # M8.1 staging acceptance
 
-M8.1 is an internal staging alpha. Repository implementation and fixture proof
-do not complete this gate: completion requires two Apple-authenticated users
-against the staging project and the observations below.
+M8.1 is an internal staging alpha. The current working tree improves immutable
+review and staging diagnostics, and it adds explicit steps-only HealthKit sync
+for source-merged Apple-device totals, product App Attest, exact-byte retries,
+and visible confirmed/retained values. Repository implementation and fixture
+proof do not complete either gate. Completion requires two Apple-authenticated
+accounts on physical devices against the staging project and the observations
+below.
+
+This run stays within the friend, challenge, and explicit steps-sync prototype.
+It has no background HealthKit delivery, workouts, Core Location, settlement,
+donations, disputes, Apple Push Notification service (APNs), or production
+release work. Do not deploy, submit to TestFlight, or push this working tree as
+part of the run.
 
 ## External prerequisites
 
-- an eligible Apple Developer Program or Enterprise Program team;
-- a unique product App ID with Sign in with Apple enabled;
-- matching target signing and Supabase Apple provider configuration;
-- the M8.1 migration applied to staging;
-- a current staging Supabase URL and publishable key in the gitignored product
-  app configuration;
-- at least one active, staging-only charity row; and
-- two test users controlled by the team.
+- An eligible Apple Developer Program or Enterprise Program team
+- The staging App ID `com.mjenkins.gametime.staging` with Sign in with Apple,
+  HealthKit, and App Attest enabled
+- Development provisioning profiles for both physical devices that contain
+  those three capabilities
+- Matching target signing and Supabase Apple provider configuration
+- `APPLE_BUNDLE_ID=com.gametime.conformance` as the reviewed primary identity
+  and `APPLE_ADDITIONAL_BUNDLE_IDS=com.mjenkins.gametime.staging` for product
+  registration and metric assertions
+- Development App Attest acceptance in Staging with
+  `APP_ATTEST_ALLOW_DEVELOPMENT=true` and `ATTEST_DEV_BYPASS` absent
+- The M8.1 migration and existing App Attest Edge Functions available in
+  staging
+- A current staging Supabase URL and publishable key in the gitignored product
+  app configuration
+- At least one active, staging-only charity row
+- The named activation job operating so an accepted challenge can become
+  active after its start time
+- Two controlled test accounts, two provisioned physical devices, and readable
+  step samples recorded inside the challenge window
 
 No service-role key, Apple private key, or provider secret belongs in the app.
-If provisioning is unavailable, record the slice as implemented with staging
-proof open, not complete.
+The working-tree verifier keeps the conformance App ID primary and accepts a
+strict, maximum-three additional bundle list outside production for device
+registration and metric assertions. It binds receipt verification to the exact
+App ID that passed attestation. Check-in remains primary-only, and production
+rejects the additional list. Do not overwrite the primary bundle ID. The hosted
+project still runs the older single-ID functions and does not have the product
+additional-ID secret; its metric bundle also predates the local
+database-conflict-detail redaction. Do not send real step data until a separately
+approved rollout updates that hosted state and rejection/conformance probes
+pass. This run does not itself authorize a hosted configuration change or
+deployment.
 
 ## Evidence record
 
 Record the date, app commit, Xcode version, iOS version, device models, staging
-project reference, both pseudonymous test handles, and the contest/request UUIDs.
-Do not record Apple IDs, access tokens, publishable keys, or private profile
-data.
+project reference, both pseudonymous test handles, challenge/request UUIDs, and
+metric batch UUIDs. Record only pass/fail and bounded row counts for health
+uploads. Do not record Apple IDs, access tokens, keys, assertions, source bundle
+identifiers, device health metadata, sample timestamps, step values, or private
+profile data.
 
 ### 2026-07-27 single-user device observation
 
@@ -50,47 +83,141 @@ request conflicts with the restrictive active-actor policy during onboarding;
 the client now inserts without a returned row and reads the profile in a second
 authorized request, preserving the RLS boundary.
 
+### 2026-07-29 device and hosted-readiness audit
+
+This is readiness evidence only, not a physical acceptance run.
+
+| Field | Evidence |
+| --- | --- |
+| Connected devices | One available physical iPhone was visible. On 2026-07-29 the tester deferred the two-friend run because a second friend/device was not available |
+| Staging profile | A current Apple Development profile contains the paid team, staging App ID, the connected device, Sign in with Apple, HealthKit, and development App Attest |
+| Device build | Pass on retry: Xcode built, signed, installed, and launched `GameTime-Staging` on the connected iPhone |
+| Runtime launch | Pass: the tester confirmed the app was visibly open with the amber Test environment banner and supplied a screenshot of the live four-tab shell. Challenges loaded with no rows and correctly kept creation disabled until an accepted friendship exists |
+| Signature evidence | The build log names the paid-team identity/profile and signs with the generated Staging `.xcent`; the CodeDirectory is version 20400 with nonzero legacy and DER entitlement slots. Host-side certificate-chain verification remains untrusted, so runtime HealthKit/App Attest observations are still required |
+| Hosted schema/data readiness | All 19 local migrations are present in staging; active charity data and the named one-minute activation job exist |
+| Hosted function/configuration state | The three existing functions are active, the primary bundle remains the conformance target, development attestation is enabled for Staging, and `ATTEST_DEV_BYPASS` is absent; the product additional-ID secret and current working-tree function bundles are not deployed |
+| Fail-closed probe | Unauthenticated registration-challenge and metric-ingest requests returned 401 |
+
 ## Two-account flow
 
-Use User A and User B on separate devices, or erase all app/session state before
-switching accounts. After every successful mutation, force-quit and relaunch
+Use Account A and Account B on separate physical devices. Install the signed
+Staging build directly from Xcode. After each mutation, force-quit and relaunch
 the affected app before continuing.
 
-1. Sign in with Apple as User A. Confirm a cryptographic nonce is exchanged,
-   finish onboarding, and verify Apple’s first-sign-in name is only an editable
-   prefill. Record A’s handle.
-2. Repeat for User B and record B’s handle.
-3. As A, submit B’s complete handle. Confirm there are no fuzzy results, send
-   the friend request, force-quit, relaunch, and verify it reloads as outgoing.
-4. As B, relaunch, verify the request is incoming, accept it, force-quit, and
-   relaunch. Relaunch A as well; both users must see the accepted relationship.
-5. As A, create a challenge for B using one of the four backend metrics, daily
-   or cumulative cadence, future dates, a valid target, staging pledge,
-   charity, and tie-break. Confirm the review screen presents B and every
-   immutable term before submission.
-6. Simulate a lost response after the server commits the creation request.
-   To make this deterministic, set an Xcode breakpoint on
-   `SupabaseContestsClient.createChallenge` immediately after the awaited RPC
-   returns its `contestID` and before the method returns it to `AppModel`.
-   Submit once;
-   when the breakpoint proves the server response arrived, stop the process in
-   Xcode without continuing. Relaunch A, confirm the app shows a saved request
-   and did not retry automatically, then open its immutable review. Verify the
-   visible request UUID and every term match the first attempt. Tap Submit
-   manually once more. Confirm the response returns the original contest and
-   staging contains exactly one contest, two participant rows, and one private
-   idempotency record for that actor/request.
-7. Force-quit and relaunch A. Confirm the pending contest reloads and the local
-   saved-retry card is gone after the confirmed response.
-8. Relaunch B. Confirm the invitation and identical immutable terms reload,
-   choose B’s charity, and accept.
-9. Force-quit and relaunch both apps. Confirm both users see the same pending
-   contest UUID and roster state, with no duplicate contest.
+1. Start a Console or Xcode device-log capture filtered to the GameTime Staging
+   process. Do not enable request-body or authorization-header logging.
+2. Sign in with Apple as Account A. Confirm the nonce-backed exchange, finish
+   onboarding, and verify Apple’s first-sign-in name is only an editable
+   prefill. Record A’s exact handle.
+3. Repeat for Account B and record B’s exact handle.
+4. As A, submit B’s complete handle. Confirm there are no fuzzy results, send
+   the request, force-quit, relaunch, and verify the outgoing state reloads.
+5. As B, relaunch, verify the incoming request, accept it, force-quit, and
+   relaunch. Relaunch A. Both accounts must show the accepted friendship.
+6. In Xcode, add a symbolic breakpoint named
+   `StagingAcceptanceDiagnostics.challengeCreationResponseReceived`.
+7. Confirm both accounts use the same frozen IANA timezone for this repeatable
+   run. As A, create a steps challenge for B. Set its start to a future exact
+   local-hour boundary, with minutes and seconds at `00`, and set its end at
+   least two full hours later. Leave enough time for B to accept before the
+   start. On the review screen, record the request UUID and verify the friend,
+   metric, cadence, target, start, end, timezone, test pledge, charity,
+   tie-break, and two-person closed roster. If the stored start is not on the
+   boundary, create a new acceptance challenge instead of using this one.
+8. Submit once. When the symbolic breakpoint proves the server returned a
+   challenge ID, stop the process without continuing. This creates the
+   committed-but-unacknowledged response.
+9. Relaunch A. Confirm the saved request appears without an automatic retry.
+   Open its immutable review and compare every term and the request UUID with
+   step 7.
+10. Tap **Submit challenge and invitation** once. Confirm the original
+    challenge returns. In a bounded private database check, confirm one
+    challenge, two participant rows, and one actor/request idempotency record.
+    Record IDs and counts only.
+11. Force-quit and relaunch A. Confirm the saved-retry card is gone. Open
+    **Staging acceptance** and record the challenge ID, challenge state, A’s
+    roster state, and the two loaded roster members.
+12. Relaunch B. Open the invitation and verify the same start, end, metric,
+    cadence, target, test pledge, tie-break, full roster, and creator. Choose
+    B’s charity and accept.
+13. Force-quit and relaunch both apps. Confirm both show the same challenge ID,
+    both roster members, and accepted roster states. Confirm no duplicate
+    challenge exists.
+14. Wait past the scheduled start and the named staging activation run. Refresh
+    both apps until the same challenge becomes active. Do not force the state
+    with an ad hoc database mutation.
 
-M8.3a's repository tests additionally select two friends, verify the complete
-three-person review, and prove that both invitations travel through one atomic
-RPC. This two-account staging gate does not claim a live multi-friend
+The two-account gate does not claim a live three-account or multi-friend
 observation.
+
+## Explicit steps-sync flow
+
+Run this section only after both accounts show the same active steps challenge.
+The explicit action queries the immutable challenge interval `[start, end)`.
+
+1. On A, tap **Enable Activity** and allow read access to Steps. A completed
+   permission request does not prove HealthKit granted read access.
+2. On B, repeat the permission flow. To observe a denial on a clean device,
+   deny Steps and tap **Sync Activity** once. Expect a no-readable-data state
+   and no queued upload, but do not label that result “denied” because HealthKit
+   does not disclose read denial. Grant Steps in Settings before continuing.
+3. Start the real-step run only after the scheduled local-hour boundary and the
+   challenge activation. Record real steps on both devices during that first
+   in-window local hour.
+4. Wait until the entire local hour has ended on both devices. Confirm the
+   Health app shows the steps. When an iPhone and Apple Watch both contributed,
+   use Health's merged Apple-device total for comparison; do not add the two
+   devices' raw sample totals. Do not tap **Sync Activity** during an unfinished
+   hour because the client drops incomplete buckets.
+5. Before A’s first sync, set a source breakpoint in
+   `ActivitySyncCoordinator.deliver` on the call to
+   `pendingUploads.acknowledge`. The breakpoint occurs only after the staging
+   service accepts the metric response and before the local queue removes it.
+6. On A, tap **Sync Activity** once. When the breakpoint stops execution, record
+   the queued batch UUID in the debugger, then stop the process without
+   continuing. Do not inspect or record the encoded body, assertion, step
+   values, source identifiers, device metadata, or bucket timestamps.
+7. Relaunch A. Confirm **Saved activity retry: 1** appears and no automatic
+   upload occurs. Force-quit and relaunch once more to prove the same retry
+   survives.
+8. If the test setup supports controlled account switching on A’s device, sign
+   in as B and confirm A’s saved count and batch are absent. Return to A and
+   confirm the saved count is still one. If account switching is unavailable,
+   keep physical account-isolation evidence open and rely only on the recorded
+   automated result.
+9. On A, tap **Sync Activity** once. Confirm the app sends the saved exact body
+   and assertion rather than querying new samples, reports an accepted replay
+   with the device-recorded step value confirmed from that saved activity, and
+   clears the saved count. Record only whether the displayed value matches
+   Health's merged completed-hour value, not the health value itself.
+10. In a bounded private database check, confirm the batch UUID appears once and
+   its retry did not duplicate the batch or observations. Record IDs, replay
+   status, and counts only.
+11. On B, record additional steps during another complete in-window local hour
+    if needed. Wait until that hour ends, then tap **Sync
+    Activity** once. Confirm an accepted first upload, a matching
+    device-recorded confirmed total, and no saved retry.
+12. Force-quit and relaunch both apps. Confirm the challenge ID and full roster
+    still match and both saved-upload counts are zero.
+
+Do not tap **Sync Activity** again after a confirmed first upload unless the
+test explicitly targets a saved retry. A new explicit sync creates a new batch;
+the duplicate-prevention proof is the replay of the saved batch UUID.
+
+## Verify app logs contain no raw health data
+
+Stop the GameTime process log capture after both syncs and review only messages
+emitted by the app process:
+
+1. Search for the metric batch UUIDs, `source_bundle_id`, `device_model`,
+   `clientBatchId`, `observations`, `value`, and the known step totals.
+2. Confirm the app emitted no encoded metric body, assertion, authorization
+   header, sample timestamp, source identifier, device metadata, or step value.
+3. Record a pass/fail statement and the log time range. Do not attach raw
+   HealthKit or request data to the evidence record.
+
+Apple’s own HealthKit subsystem may emit system diagnostics. Keep those outside
+the GameTime app-log evidence and never copy health values into this document.
 
 ## Required failure observations
 
@@ -98,22 +225,63 @@ observation.
 - A secret/service-role key is rejected.
 - Offline refresh preserves an explicit retryable state.
 - Cancelling Apple authorization or an in-flight task produces no error alert.
-- Release cannot create or accept a contest.
-- Live builds expose no account deletion, group feed, sensor permission,
-  finalization, settlement, or dispute actions.
+- An empty HealthKit read makes no claim that permission was denied.
+- A retryable metric transport failure retains one exact queued request across
+  relaunch.
+- The retained-status step total matches the values in the exact queued request,
+  and the confirmed-status total matches the values acknowledged in that
+  explicit sync.
+- Overlapping iPhone/Apple Watch data is represented by HealthKit's merged
+  Apple-device value rather than the arithmetic sum of raw samples. A
+  controlled manual entry and any available third-party-only contribution are
+  not presented as device-recorded steps.
+- A different account cannot see or send the first account’s queued metric
+  upload.
+- Release cannot create or accept a challenge, expose fixture routing, request
+  HealthKit permission, or sync activity.
+- The staging activity flow exposes no background delivery, workout, location,
+  settlement, donation, dispute, or APNs action.
 
 ## Result
 
 | Gate | Status | Evidence |
 | --- | --- | --- |
-| Repository implementation and automated tests | Implemented | Record CI URL and commit |
-| Restart-safe same-request recovery | Implemented locally | Record force-quit retry UUID and staging observation |
-| Apple product App ID and eligible signing team | Verified for one development device | 2026-07-27 observation above |
+| Current working-tree automated verification | Passed locally on 2026-07-29 | GameTimeCore 103/103; product unit 68/68; product UI 10/10; conformance 10/10; Deno 313/313 plus format/lint/check; Staging launch and Release build; new-file Swift formatting, plist, scoped safety, script syntax, and diff checks passed. The prior 21-file/869-assertion pgTAP result covers unchanged database SQL; Docker did not return for a fresh final rerun |
+| Immutable creator/invitee review and staging diagnostics | Implemented locally; physical proof open | Record both reviews, same challenge ID, full roster, and breakpoint observation |
+| Restart-safe challenge recovery | Implemented locally; physical proof open | Record request UUID, force-quit restore, original challenge ID, and bounded row counts |
+| Eligible Apple team and prior Sign in with Apple provisioning | Partial | The prior single-device launch observation passed. A fresh final-tree signed build succeeded, but its launch retry was denied while the connected iPhone remained locked; a fresh unlocked launch and second device remain open |
 | Single-user native auth/onboarding/relaunch | Partial | Install, Apple identity, profile, live shell, and relaunch passed; Apple-name prefill remains open |
-| Two-user force-quit/reload loop | Open | Record dated observation |
-| Same-request duplicate proof in staging | Open | Record contest/request UUIDs and bounded database observation |
+| Two-user force-quit/reload loop | Deferred on 2026-07-29; open | Resume when a second friend, Apple account, and provisioned iPhone are available |
+| Same-request challenge duplicate proof | Open | Record challenge/request UUIDs and bounded database observation |
+| Staging App ID HealthKit and App Attest provisioning | Partial | One signed install uses the intended HealthKit and development App Attest entitlement inputs; prove both capabilities at runtime and repeat on the second device |
+| Hosted App Attest identity strategy | Implemented and unit-tested locally; hosted rollout open | Keep conformance primary, configure the staging product additional ID, deploy only the reviewed registration/metric bundles, rerun conformance and 401 probes, and keep development acceptance staging-only with no bypass |
+| Two-account real step uploads | Deferred on 2026-07-29; open | First complete the approved hosted metric rollout, then record one accepted batch UUID per account without raw health values |
+| Merged Apple-device step accuracy | Unit-tested; physical proof open | For at least one completed hour with phone/watch overlap, record pass/fail against Health's merged value; separately confirm controlled manual and available third-party-only values are not labeled device-recorded |
+| Lost metric response, relaunch, and exact replay | Unit-tested; physical proof open | Record one saved batch UUID, two relaunches, accepted replay, and zero duplicate rows |
+| Metric queue account isolation | Unit-tested; physical proof open | Record the controlled account-switch observation |
+| No raw health data in app logs | Static/unit checks pass; physical inspection open | Record filtered app-log time range and pass/fail only |
+| Release safety | Passed locally | Release build, configuration tests, UI gates, entitlement/plist separation, and scoped forbidden-API scans passed; signed distribution remains outside this record |
 | Live multi-friend challenge | Open beyond M8.1 | Record a separate three-account observation before making a live multi-select claim |
+| Background HealthKit delivery | Intentionally out of scope | Do not enable for this prototype |
 
-M8.1 is complete only when every row is closed. Full M8 remains in progress
-until sensors, App Attest, durable inbox/APNs, finalization, settlement,
-disputes, accessibility hardening, and privacy disclosures are delivered.
+Do not mark M8.1 or HealthKit complete until the physical two-account record
+closes every applicable open row. Full M8 remains in progress after this gate.
+This run does not authorize a hosted configuration change, deployment,
+TestFlight submission, production release, git push, settlement, donations,
+disputes, APNs, or Core Location work.
+
+## Handoff after the one-device retry
+
+The 2026-07-29 session stopped deliberately after proving the current
+working-tree Staging build could be signed, installed, launched, and identified
+by its amber banner on one physical iPhone. The live Challenges screen loaded
+with no rows and correctly required an accepted friendship before creation.
+The tester had no second friend/device available, so no friendship, challenge,
+HealthKit permission, metric upload, replay, or account-isolation observation
+was attempted.
+
+The app may remain installed and the iPhone may be disconnected. The next task
+must preserve this uncommitted working tree, inspect current hosted state before
+any mutation, and obtain explicit approval before setting the product App ID
+secret or deploying `attest-device` and `ingest-metrics`. Do not tap **Sync
+Activity** against the older hosted metric bundle.

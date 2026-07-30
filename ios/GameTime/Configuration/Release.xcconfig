@@ -1,11 +1,12 @@
-GAMETIME_ENV = release
 SUPABASE_URL =
 SUPABASE_PUBLISHABLE_KEY =
-
-// This remains locked even if an accidental override requests otherwise;
-// AppConfiguration independently enforces the Release gate at runtime.
-GAMETIME_CONTEST_MUTATIONS_ENABLED = NO
 
 // Optional and gitignored. It may contain only SUPABASE_URL and
 // SUPABASE_PUBLISHABLE_KEY.
 #include? "Secrets.xcconfig"
+
+// These safety assignments must follow the optional include. Activity sync is
+// staging-only through GAMETIME_ENV, and AppConfiguration independently locks
+// Release contest mutations at runtime.
+GAMETIME_ENV = release
+GAMETIME_CONTEST_MUTATIONS_ENABLED = NO

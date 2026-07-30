@@ -491,6 +491,15 @@ whose admissibility disagrees with its provenance.
 Provenance is part of the ledger's key, which is what stops one stray hand-typed
 step from voiding an hour that also holds five thousand genuine ones.
 
+The current M8 explicit-steps adapter is a deliberately narrower bridge into
+that general ledger. Raw samples establish the allowed Apple source revisions
+and devices, while `HKStatisticsCollectionQuery` produces HealthKit's merged
+Apple-device total for each completed local hour. That prevents overlapping
+iPhone and Apple Watch records from being treated as disjoint contributions.
+The adapter sends one `device` row and does not claim manual, unknown, or
+third-party values. Adding those sources later requires a reviewed reconciled
+payload model; summing them into the merged device total would be incorrect.
+
 M5 reads the same metadata through `contest_evidence_sources`, a
 `security_invoker` sidecar view that selects the current admissible contribution
 for each provenance without changing `contest_evidence`. The `m5-v3` integrity
@@ -563,7 +572,8 @@ batch's evidence.
 | Variable                       | Notes |
 | ------------------------------ | ----- |
 | `APPLE_TEAM_ID`                | Ten alphanumerics. With the bundle id this is the App ID Apple binds attestations to. |
-| `APPLE_BUNDLE_ID`              | |
+| `APPLE_BUNDLE_ID`              | Primary reviewed bundle ID. The guarded staging uploader requires `com.gametime.conformance`; check-in verification remains bound to this identity. |
+| `APPLE_ADDITIONAL_BUNDLE_IDS`  | Optional comma-separated product identities for App Attest registration and metric assertions in local, test, or staging only. Strictly unique, at most three, and rejected in production. |
 | `APP_ATTEST_ROOT_CA_PEM`       | Apple's App Attest root. **Required**; the functions refuse to start without it. |
 | `APP_ATTEST_RECEIPT_ROOT_CA_PEM` | Apple's Root CA G3 for independent PKCS#7 receipt verification. **Required** by `attest-device`. |
 | `APP_ATTEST_ALLOW_DEVELOPMENT` | Accept development-environment attestations. Defaults on in local and test, refused outright in production. |
@@ -942,7 +952,14 @@ implementation gates, and work not yet reflected here are in PLAN.md.
         model from the retained live session, search `david1` or `david2`,
         instantly accept the synthetic request for one-tester challenge
         creation, and discard all demo state on exit; Release excludes it
-  - [ ] **Later M8** — HealthKit, Core Location, product App Attest, durable
-        inbox/APNs, evidence persistence, M7 review/actionable
+  - [x] **M8 explicit Apple-device steps slice** — Staging exposes
+        user-initiated HealthKit authorization and sync for active accepted
+        steps challenges, uses HealthKit's merged phone/watch statistics for
+        completed frozen-local-hour buckets, reports confirmed totals, and
+        persists account-isolated exact metric/App Attest bytes for explicit
+        retry; physical two-account and hosted-verifier acceptance remain open
+  - [ ] **Later M8** — Background HealthKit delivery, Core Location/workouts,
+        product App Attest lifecycle hardening, durable inbox/APNs, evidence
+        persistence, M7 review/actionable
         settlement/dispute screens, accessibility hardening, and privacy/App
         Store work

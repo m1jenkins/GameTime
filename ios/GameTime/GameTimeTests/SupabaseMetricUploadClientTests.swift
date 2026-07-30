@@ -1,0 +1,1306 @@
+import CryptoKit
+import GameTimeCore
+import XCTest
+
+@testable import GameTime
+
+@MainActor
+final class SupabaseMetricUploadClientTests: XCTestCase {
+  private let ownerA = UUID(
+    uuidString: "a1000000-0000-0000-0000-000000000001"
+  )!
+  private let ownerB = UUID(
+    uuidString: "b2000000-0000-0000-0000-000000000002"
+  )!
+  private let contestID = UUID(
+    uuidString: "c3000000-0000-0000-0000-000000000003"
+  )!
+  private let batchID = UUID(
+    uuidString: "d4000000-0000-0000-0000-000000000004"
+  )!
+
+  func testPrepareHashesExactBodyAndPersistsRegisteredKeyByOwner()
+    async throws
+  {
+    let session = MetricTransportSessionFake(ownerID: ownerA)
+    let appAttest = MetricTransportAppAttestFake()
+    let stateStore = MetricTransportStateStoreFake()
+    let challenge = Data((0..<32).map(UInt8.init))
+    let transport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "challenge": challenge.base64EncodedString(),
+            "expiresInSeconds": 600,
+          ])
+        )
+      ),
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "registered": true,
+            "environment": "development",
+          ])
+        )
+      ),
+    ])
+    let client = try makeClient(
+      session: session,
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: transport
+    )
+    let body = exactMetricBody()
+
+    let material = try await client.prepare(
+      ownerID: ownerA,
+      body: body
+    )
+
+    XCTAssertEqual(
+      material,
+      MetricSignedMaterial(
+        keyID: appAttest.generatedKeyID,
+        assertion: appAttest.assertion
+      )
+    )
+    XCTAssertEqual(
+      appAttest.attestationHashes,
+      [sha256(challenge)]
+    )
+    XCTAssertEqual(
+      appAttest.assertionHashes,
+      [sha256(body)]
+    )
+    XCTAssertEqual(
+      stateStore.states[ownerA],
+      MetricAppAttestState(
+        ownerID: ownerA,
+        keyID: appAttest.generatedKeyID,
+        registered: true
+      )
+    )
+    XCTAssertNil(stateStore.states[ownerB])
+    XCTAssertEqual(stateStore.savedOwners, [ownerA])
+    XCTAssertEqual(stateStore.registeredOwners, [ownerA])
+    XCTAssertEqual(transport.requests.count, 2)
+    XCTAssertEqual(
+      transport.requests[0].url?.path,
+      "/functions/v1/attest-device/challenge"
+    )
+    XCTAssertEqual(
+      transport.requests[1].url?.path,
+      "/functions/v1/attest-device"
+    )
+
+    let registrationBody = try XCTUnwrap(
+      transport.requests[1].httpBody
+    )
+    let registration = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: registrationBody)
+        as? [String: String]
+    )
+    XCTAssertEqual(
+      registration["keyId"],
+      appAttest.generatedKeyID
+    )
+    XCTAssertEqual(
+      registration["attestation"],
+      appAttest.attestation.base64EncodedString()
+    )
+    XCTAssertFalse(registrationBody.containsSubdata(body))
+  }
+
+  func testLostInitialRegistrationResponseRelaunchReplaysExactPersistedBody()
+    async throws
+  {
+    let suiteName = "GameTimeTests.MetricAppAttest.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer {
+      defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    let session = MetricTransportSessionFake(ownerID: ownerA)
+    let firstAppAttest = MetricTransportAppAttestFake()
+    let challenge = Data((32..<64).map(UInt8.init))
+    let firstTransport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "challenge": challenge.base64EncodedString(),
+            "expiresInSeconds": 600,
+          ])
+        )
+      ),
+      .failure(
+        MetricTransportRawError(
+          description: "registration response was lost"
+        )
+      ),
+    ])
+    let firstStore = UserDefaultsMetricAppAttestStateStore(
+      defaults: defaults
+    )
+    let requestTime = Date(timeIntervalSince1970: 1_785_888_000)
+    let firstClient = try makeClient(
+      session: session,
+      appAttest: firstAppAttest,
+      stateStore: firstStore,
+      transport: firstTransport,
+      now: { requestTime }
+    )
+    let metricBody = exactMetricBody()
+
+    do {
+      _ = try await firstClient.prepare(
+        ownerID: ownerA,
+        body: metricBody
+      )
+      XCTFail("Expected the committed registration response to be lost")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .networkUnavailable
+      )
+    }
+
+    XCTAssertEqual(firstTransport.requests.count, 2)
+    let firstRegistrationBody = try XCTUnwrap(
+      firstTransport.requests[1].httpBody
+    )
+    let persistedBeforeRelaunch = try XCTUnwrap(
+      firstStore.state(for: ownerA)
+    )
+    XCTAssertFalse(persistedBeforeRelaunch.registered)
+    XCTAssertEqual(
+      persistedBeforeRelaunch.pendingRegistrationBody,
+      firstRegistrationBody
+    )
+    XCTAssertEqual(
+      persistedBeforeRelaunch.pendingRegistrationExpiresAt,
+      requestTime.addingTimeInterval(10 * 60)
+    )
+    XCTAssertEqual(
+      firstAppAttest.attestationHashes,
+      [sha256(challenge)]
+    )
+    XCTAssertTrue(firstAppAttest.assertionHashes.isEmpty)
+
+    let relaunchedStore = UserDefaultsMetricAppAttestStateStore(
+      defaults: defaults
+    )
+    let relaunchedAppAttest = MetricTransportAppAttestFake()
+    let relaunchedTransport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "registered": true,
+            "environment": "development",
+          ])
+        )
+      )
+    ])
+    let relaunchedClient = try makeClient(
+      session: session,
+      appAttest: relaunchedAppAttest,
+      stateStore: relaunchedStore,
+      transport: relaunchedTransport,
+      now: { requestTime.addingTimeInterval(60) }
+    )
+
+    let material = try await relaunchedClient.prepare(
+      ownerID: ownerA,
+      body: metricBody
+    )
+
+    XCTAssertEqual(
+      material,
+      MetricSignedMaterial(
+        keyID: firstAppAttest.generatedKeyID,
+        assertion: relaunchedAppAttest.assertion
+      )
+    )
+    XCTAssertEqual(relaunchedTransport.requests.count, 1)
+    XCTAssertEqual(
+      relaunchedTransport.requests[0].url?.path,
+      "/functions/v1/attest-device"
+    )
+    XCTAssertEqual(
+      relaunchedTransport.requests[0].httpBody,
+      firstRegistrationBody
+    )
+    XCTAssertEqual(relaunchedAppAttest.generateKeyCallCount, 0)
+    XCTAssertTrue(relaunchedAppAttest.attestationHashes.isEmpty)
+    XCTAssertEqual(
+      relaunchedAppAttest.assertionHashes,
+      [sha256(metricBody)]
+    )
+
+    let registeredAfterReplay = try XCTUnwrap(
+      relaunchedStore.state(for: ownerA)
+    )
+    XCTAssertTrue(registeredAfterReplay.registered)
+    XCTAssertNil(registeredAfterReplay.pendingRegistrationBody)
+  }
+
+  func testExpiredPendingRegistrationRotatesKeyBeforeFreshAttestation()
+    async throws
+  {
+    let suiteName = "GameTimeTests.MetricAppAttest.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer {
+      defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    let now = Date(timeIntervalSince1970: 1_785_889_000)
+    let oldKeyID = Data("expired-app-attest-key".utf8)
+      .base64EncodedString()
+    let expiredBody = try registrationBody(
+      keyID: oldKeyID,
+      attestation: Data("expired exact attestation".utf8)
+    )
+    let store = UserDefaultsMetricAppAttestStateStore(defaults: defaults)
+    try store.saveGeneratedKey(oldKeyID, ownerID: ownerA)
+    try store.savePendingRegistrationBody(
+      expiredBody,
+      expiresAt: now.addingTimeInterval(-1),
+      keyID: oldKeyID,
+      ownerID: ownerA
+    )
+
+    let challenge = Data((64..<96).map(UInt8.init))
+    let appAttest = MetricTransportAppAttestFake()
+    let transport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "challenge": challenge.base64EncodedString(),
+            "expiresInSeconds": 600,
+          ])
+        )
+      ),
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "registered": true,
+            "environment": "development",
+          ])
+        )
+      ),
+    ])
+    let client = try makeClient(
+      session: MetricTransportSessionFake(ownerID: ownerA),
+      appAttest: appAttest,
+      stateStore: store,
+      transport: transport,
+      now: { now }
+    )
+
+    let material = try await client.prepare(
+      ownerID: ownerA,
+      body: exactMetricBody()
+    )
+
+    XCTAssertEqual(appAttest.generateKeyCallCount, 1)
+    XCTAssertEqual(appAttest.attestationHashes, [sha256(challenge)])
+    XCTAssertEqual(material.keyID, appAttest.generatedKeyID)
+    XCTAssertEqual(transport.requests.count, 2)
+    XCTAssertEqual(
+      transport.requests.map(\.url?.path),
+      [
+        "/functions/v1/attest-device/challenge",
+        "/functions/v1/attest-device",
+      ]
+    )
+    let replacementBody = try XCTUnwrap(transport.requests[1].httpBody)
+    XCTAssertNotEqual(replacementBody, expiredBody)
+    let replacementDocument = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: replacementBody)
+        as? [String: String]
+    )
+    XCTAssertEqual(
+      replacementDocument["keyId"],
+      appAttest.generatedKeyID
+    )
+
+    let registered = try XCTUnwrap(store.state(for: ownerA))
+    XCTAssertEqual(registered.keyID, appAttest.generatedKeyID)
+    XCTAssertTrue(registered.registered)
+    XCTAssertNil(registered.pendingRegistrationBody)
+    XCTAssertNil(registered.pendingRegistrationExpiresAt)
+  }
+
+  func testUnexpiredUnauthorizedRegistrationKeepsExactBodyAndKey()
+    async throws
+  {
+    let suiteName = "GameTimeTests.MetricAppAttest.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer {
+      defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    let now = Date(timeIntervalSince1970: 1_785_889_000)
+    let appAttest = MetricTransportAppAttestFake()
+    let pendingBody = try registrationBody(
+      keyID: appAttest.generatedKeyID,
+      attestation: Data("unexpired exact attestation".utf8)
+    )
+    let expiresAt = now.addingTimeInterval(60)
+    let store = UserDefaultsMetricAppAttestStateStore(defaults: defaults)
+    try store.saveGeneratedKey(
+      appAttest.generatedKeyID,
+      ownerID: ownerA
+    )
+    try store.savePendingRegistrationBody(
+      pendingBody,
+      expiresAt: expiresAt,
+      keyID: appAttest.generatedKeyID,
+      ownerID: ownerA
+    )
+    let transport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 401,
+          body: Data("categorical unauthorized".utf8)
+        )
+      )
+    ])
+    let client = try makeClient(
+      session: MetricTransportSessionFake(ownerID: ownerA),
+      appAttest: appAttest,
+      stateStore: store,
+      transport: transport,
+      now: { now }
+    )
+
+    do {
+      _ = try await client.prepare(
+        ownerID: ownerA,
+        body: exactMetricBody()
+      )
+      XCTFail("Expected the unexpired registration retry to fail closed")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .authenticationRequired
+      )
+    }
+
+    XCTAssertEqual(transport.requests.count, 1)
+    XCTAssertEqual(transport.requests[0].httpBody, pendingBody)
+    XCTAssertEqual(appAttest.generateKeyCallCount, 0)
+    XCTAssertTrue(appAttest.attestationHashes.isEmpty)
+    XCTAssertTrue(appAttest.assertionHashes.isEmpty)
+    let retained = try XCTUnwrap(store.state(for: ownerA))
+    XCTAssertEqual(retained.keyID, appAttest.generatedKeyID)
+    XCTAssertEqual(retained.pendingRegistrationBody, pendingBody)
+    XCTAssertEqual(retained.pendingRegistrationExpiresAt, expiresAt)
+  }
+
+  func testExpiredKeyRotationStopsOnAccountSwitchWithoutChangingState()
+    async throws
+  {
+    let suiteName = "GameTimeTests.MetricAppAttest.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer {
+      defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    let now = Date(timeIntervalSince1970: 1_785_889_000)
+    let oldKeyID = Data("account-switch-expired-key".utf8)
+      .base64EncodedString()
+    let expiredBody = try registrationBody(
+      keyID: oldKeyID,
+      attestation: Data("account switch exact attestation".utf8)
+    )
+    let store = UserDefaultsMetricAppAttestStateStore(defaults: defaults)
+    try store.saveGeneratedKey(oldKeyID, ownerID: ownerA)
+    try store.savePendingRegistrationBody(
+      expiredBody,
+      expiresAt: now.addingTimeInterval(-1),
+      keyID: oldKeyID,
+      ownerID: ownerA
+    )
+    let session = MetricTransportSessionFake(ownerID: ownerA)
+    let appAttest = MetricTransportAppAttestFake()
+    appAttest.onGenerateKey = {
+      session.ownerID = self.ownerB
+    }
+    let transport = MetricTransportHTTPFake(outcomes: [])
+    let client = try makeClient(
+      session: session,
+      appAttest: appAttest,
+      stateStore: store,
+      transport: transport,
+      now: { now }
+    )
+
+    do {
+      _ = try await client.prepare(
+        ownerID: ownerA,
+        body: exactMetricBody()
+      )
+      XCTFail("Expected the account switch to stop key rotation")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .accountChanged
+      )
+    }
+
+    XCTAssertEqual(appAttest.generateKeyCallCount, 1)
+    XCTAssertTrue(transport.requests.isEmpty)
+    let retained = try XCTUnwrap(store.state(for: ownerA))
+    XCTAssertEqual(retained.keyID, oldKeyID)
+    XCTAssertEqual(retained.pendingRegistrationBody, expiredBody)
+    XCTAssertNil(try store.state(for: ownerB))
+  }
+
+  func testPendingRegistrationPersistenceIsAccountIsolatedAndRejectsConflict()
+    throws
+  {
+    let suiteName = "GameTimeTests.MetricAppAttest.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer {
+      defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    let store = UserDefaultsMetricAppAttestStateStore(defaults: defaults)
+    let keyA = MetricTransportAppAttestFake.defaultKeyID
+    let keyB = Data("second-account-app-attest-key".utf8)
+      .base64EncodedString()
+    let bodyA = try registrationBody(
+      keyID: keyA,
+      attestation: Data("first exact attestation".utf8)
+    )
+    let conflictingBodyA = try registrationBody(
+      keyID: keyA,
+      attestation: Data("different attestation".utf8)
+    )
+    let bodyB = try registrationBody(
+      keyID: keyB,
+      attestation: Data("second account attestation".utf8)
+    )
+    let expiresAt = Date(timeIntervalSince1970: 1_785_888_600)
+
+    try store.saveGeneratedKey(keyA, ownerID: ownerA)
+    try store.saveGeneratedKey(keyB, ownerID: ownerB)
+    try store.savePendingRegistrationBody(
+      bodyA,
+      expiresAt: expiresAt,
+      keyID: keyA,
+      ownerID: ownerA
+    )
+    try store.savePendingRegistrationBody(
+      bodyA,
+      expiresAt: expiresAt,
+      keyID: keyA,
+      ownerID: ownerA
+    )
+
+    XCTAssertEqual(
+      try store.state(for: ownerA)?.pendingRegistrationBody,
+      bodyA
+    )
+    XCTAssertNil(
+      try store.state(for: ownerB)?.pendingRegistrationBody
+    )
+
+    XCTAssertThrowsError(
+      try store.savePendingRegistrationBody(
+        conflictingBodyA,
+        expiresAt: expiresAt,
+        keyID: keyA,
+        ownerID: ownerA
+      )
+    )
+    XCTAssertEqual(
+      try store.state(for: ownerA)?.pendingRegistrationBody,
+      bodyA
+    )
+
+    try store.savePendingRegistrationBody(
+      bodyB,
+      expiresAt: expiresAt,
+      keyID: keyB,
+      ownerID: ownerB
+    )
+    XCTAssertEqual(
+      try store.state(for: ownerA)?.pendingRegistrationBody,
+      bodyA
+    )
+    XCTAssertEqual(
+      try store.state(for: ownerB)?.pendingRegistrationBody,
+      bodyB
+    )
+  }
+
+  func testSendPreservesExactBodyAndAssertionForFirstWriteAndReplay()
+    async throws
+  {
+    let session = MetricTransportSessionFake(ownerID: ownerA)
+    let appAttest = MetricTransportAppAttestFake()
+    let stateStore = MetricTransportStateStoreFake()
+    stateStore.seedRegistered(
+      ownerID: ownerA,
+      keyID: appAttest.generatedKeyID
+    )
+    let transport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        try ingestResponse(statusCode: 201, replayed: false)
+      ),
+      .response(
+        try ingestResponse(statusCode: 200, replayed: true)
+      ),
+    ])
+    let client = try makeClient(
+      session: session,
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: transport
+    )
+    let upload = signedUpload(
+      keyID: appAttest.generatedKeyID,
+      assertion: appAttest.assertion
+    )
+
+    let first = try await client.send(
+      ownerID: ownerA,
+      upload: upload
+    )
+    let replay = try await client.send(
+      ownerID: ownerA,
+      upload: upload
+    )
+
+    XCTAssertEqual(
+      first,
+      MetricUploadReceipt(
+        batchID: batchID,
+        replayed: false,
+        observationCount: 1
+      )
+    )
+    XCTAssertEqual(
+      replay,
+      MetricUploadReceipt(
+        batchID: batchID,
+        replayed: true,
+        observationCount: 1
+      )
+    )
+    XCTAssertEqual(transport.requests.count, 2)
+    for request in transport.requests {
+      XCTAssertEqual(request.httpBody, upload.body)
+      XCTAssertEqual(
+        request.value(
+          forHTTPHeaderField: "x-gametime-key-id"
+        ),
+        appAttest.generatedKeyID
+      )
+      XCTAssertEqual(
+        request.value(
+          forHTTPHeaderField: "x-gametime-assertion"
+        ),
+        appAttest.assertion.base64EncodedString()
+      )
+      XCTAssertEqual(
+        request.value(forHTTPHeaderField: "Authorization"),
+        "Bearer metric-transport-access-token"
+      )
+      XCTAssertEqual(
+        request.value(forHTTPHeaderField: "apikey"),
+        "sb_publishable_metric_transport_test"
+      )
+      XCTAssertEqual(
+        request.url?.path,
+        "/functions/v1/ingest-metrics"
+      )
+    }
+    XCTAssertEqual(
+      transport.requests[0].httpBody,
+      transport.requests[1].httpBody
+    )
+    XCTAssertEqual(
+      transport.requests[0].value(
+        forHTTPHeaderField: "x-gametime-assertion"
+      ),
+      transport.requests[1].value(
+        forHTTPHeaderField: "x-gametime-assertion"
+      )
+    )
+  }
+
+  func testSendRefusesAMismatchedObservationCount()
+    async throws
+  {
+    let session = MetricTransportSessionFake(ownerID: ownerA)
+    let appAttest = MetricTransportAppAttestFake()
+    let stateStore = MetricTransportStateStoreFake()
+    stateStore.seedRegistered(
+      ownerID: ownerA,
+      keyID: appAttest.generatedKeyID
+    )
+    let transport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        try ingestResponse(
+          statusCode: 201,
+          replayed: false,
+          observationCount: 2
+        )
+      )
+    ])
+    let client = try makeClient(
+      session: session,
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: transport
+    )
+
+    do {
+      _ = try await client.send(
+        ownerID: ownerA,
+        upload: signedUpload(
+          keyID: appAttest.generatedKeyID,
+          assertion: appAttest.assertion
+        )
+      )
+      XCTFail("Expected the mismatched response to fail")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .invalidServerResponse
+      )
+    }
+  }
+
+  func testAccountSwitchBeforeWorkFailsWithoutTouchingDeviceOrNetwork()
+    async throws
+  {
+    let session = MetricTransportSessionFake(ownerID: ownerB)
+    let appAttest = MetricTransportAppAttestFake()
+    let stateStore = MetricTransportStateStoreFake()
+    let transport = MetricTransportHTTPFake(outcomes: [])
+    let client = try makeClient(
+      session: session,
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: transport
+    )
+
+    do {
+      _ = try await client.prepare(
+        ownerID: ownerA,
+        body: exactMetricBody()
+      )
+      XCTFail("Expected the stale owner to fail closed")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .accountChanged
+      )
+    }
+
+    XCTAssertEqual(appAttest.generateKeyCallCount, 0)
+    XCTAssertTrue(appAttest.assertionHashes.isEmpty)
+    XCTAssertTrue(stateStore.states.isEmpty)
+    XCTAssertTrue(transport.requests.isEmpty)
+  }
+
+  func testAccountSwitchAfterAwaitedAssertionAndHTTPResponseFailsClosed()
+    async throws
+  {
+    let assertionSession = MetricTransportSessionFake(ownerID: ownerA)
+    let assertionAppAttest = MetricTransportAppAttestFake()
+    let assertionStateStore = MetricTransportStateStoreFake()
+    assertionStateStore.seedRegistered(
+      ownerID: ownerA,
+      keyID: assertionAppAttest.generatedKeyID
+    )
+    assertionAppAttest.onGenerateAssertion = {
+      assertionSession.ownerID = self.ownerB
+    }
+    let assertionClient = try makeClient(
+      session: assertionSession,
+      appAttest: assertionAppAttest,
+      stateStore: assertionStateStore,
+      transport: MetricTransportHTTPFake(outcomes: [])
+    )
+
+    do {
+      _ = try await assertionClient.prepare(
+        ownerID: ownerA,
+        body: exactMetricBody()
+      )
+      XCTFail("Expected an account switch after assertion generation")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .accountChanged
+      )
+    }
+
+    let sendSession = MetricTransportSessionFake(ownerID: ownerA)
+    let sendAppAttest = MetricTransportAppAttestFake()
+    let sendStateStore = MetricTransportStateStoreFake()
+    sendStateStore.seedRegistered(
+      ownerID: ownerA,
+      keyID: sendAppAttest.generatedKeyID
+    )
+    let sendTransport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        try ingestResponse(statusCode: 201, replayed: false)
+      )
+    ])
+    sendTransport.onSend = {
+      sendSession.ownerID = self.ownerB
+    }
+    let sendClient = try makeClient(
+      session: sendSession,
+      appAttest: sendAppAttest,
+      stateStore: sendStateStore,
+      transport: sendTransport
+    )
+
+    do {
+      _ = try await sendClient.send(
+        ownerID: ownerA,
+        upload: signedUpload(
+          keyID: sendAppAttest.generatedKeyID,
+          assertion: sendAppAttest.assertion
+        )
+      )
+      XCTFail("Expected an account switch after the response")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .accountChanged
+      )
+    }
+    XCTAssertEqual(sendTransport.requests.count, 1)
+  }
+
+  func testUploadKeyMustMatchTheOwnersRegisteredKey() async throws {
+    let session = MetricTransportSessionFake(ownerID: ownerA)
+    let appAttest = MetricTransportAppAttestFake()
+    let stateStore = MetricTransportStateStoreFake()
+    let otherKeyID = Data("other-owner-key".utf8)
+      .base64EncodedString()
+    stateStore.seedRegistered(
+      ownerID: ownerA,
+      keyID: otherKeyID
+    )
+    let transport = MetricTransportHTTPFake(outcomes: [])
+    let client = try makeClient(
+      session: session,
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: transport
+    )
+
+    do {
+      _ = try await client.send(
+        ownerID: ownerA,
+        upload: signedUpload(
+          keyID: appAttest.generatedKeyID,
+          assertion: appAttest.assertion
+        )
+      )
+      XCTFail("Expected a cross-key upload to fail closed")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .keyStateUnavailable
+      )
+    }
+    XCTAssertTrue(transport.requests.isEmpty)
+  }
+
+  func testRawResponseTransportErrorBodyAndSourceNeverSurface()
+    async throws
+  {
+    let rawResponseSentinel = "RAW_SERVER_RESPONSE_SENTINEL_9371"
+    let rawErrorSentinel = "RAW_TRANSPORT_ERROR_SENTINEL_6204"
+    let sourceSentinel = "com.private.health.source.sentinel"
+    let assertionSentinel = Data(
+      "PRIVATE_ASSERTION_SENTINEL".utf8
+    )
+    let upload = signedUpload(
+      keyID: MetricTransportAppAttestFake.defaultKeyID,
+      assertion: assertionSentinel,
+      sourceBundleID: sourceSentinel
+    )
+    let bodySentinel = try XCTUnwrap(
+      String(data: upload.body, encoding: .utf8)
+    )
+
+    let responseError = try await surfacedError(
+      transportOutcome: .response(
+        MetricUploadHTTPResponse(
+          statusCode: 500,
+          body: Data(
+            """
+            \(rawResponseSentinel)
+            \(sourceSentinel)
+            \(bodySentinel)
+            """.utf8
+          )
+        )
+      ),
+      upload: upload
+    )
+    assertCategorical(
+      responseError,
+      equals: .serviceUnavailable,
+      excludes: [
+        rawResponseSentinel,
+        rawErrorSentinel,
+        sourceSentinel,
+        bodySentinel,
+        assertionSentinel.base64EncodedString(),
+      ]
+    )
+
+    let transportError = try await surfacedError(
+      transportOutcome: .failure(
+        MetricTransportRawError(
+          description: """
+            \(rawErrorSentinel)
+            \(rawResponseSentinel)
+            \(sourceSentinel)
+            \(bodySentinel)
+            """
+        )
+      ),
+      upload: upload
+    )
+    assertCategorical(
+      transportError,
+      equals: .networkUnavailable,
+      excludes: [
+        rawResponseSentinel,
+        rawErrorSentinel,
+        sourceSentinel,
+        bodySentinel,
+        assertionSentinel.base64EncodedString(),
+      ]
+    )
+  }
+
+  func testNonStagingConstructionFailsClosed() {
+    for environment in [AppEnvironment.debug, .release] {
+      XCTAssertThrowsError(
+        try SupabaseMetricUploadClient(
+          configuration: configuration(environment),
+          sessionProvider: MetricTransportSessionFake(
+            ownerID: ownerA
+          ),
+          appAttest: MetricTransportAppAttestFake(),
+          stateStore: MetricTransportStateStoreFake(),
+          transport: MetricTransportHTTPFake(outcomes: [])
+        )
+      ) { error in
+        XCTAssertEqual(
+          error as? MetricUploadClientError,
+          .stagingOnly
+        )
+        XCTAssertEqual(
+          error.localizedDescription,
+          MetricUploadClientError.stagingOnly.errorDescription
+        )
+      }
+    }
+  }
+
+  private func makeClient(
+    session: MetricTransportSessionFake,
+    appAttest: MetricTransportAppAttestFake,
+    stateStore: any MetricAppAttestStateStoring,
+    transport: MetricTransportHTTPFake,
+    now: @escaping () -> Date = Date.init
+  ) throws -> SupabaseMetricUploadClient {
+    try SupabaseMetricUploadClient(
+      configuration: configuration(.staging),
+      sessionProvider: session,
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: transport,
+      now: now
+    )
+  }
+
+  private func configuration(
+    _ environment: AppEnvironment
+  ) -> AppConfiguration {
+    AppConfiguration(
+      environment: environment,
+      supabaseURL: URL(
+        string: "https://metrictransport.supabase.co"
+      )!,
+      supabasePublishableKey:
+        "sb_publishable_metric_transport_test",
+      contestMutationsEnabled: false
+    )
+  }
+
+  private func exactMetricBody(
+    sourceBundleID: String = "com.private.health.source.sentinel"
+  ) -> Data {
+    Data(
+      """
+      {
+        "observations": [{
+          "sourceBundleId": "\(sourceBundleID)",
+          "sampleCount": 7,
+          "value": 9371,
+          "provenance": "device",
+          "bucketStart": "2026-08-03T00:00:00.000Z",
+          "metric": "steps"
+        }],
+        "observedAt": "2026-08-03T01:02:03.456Z",
+        "clientBatchId": "\(batchID.uuidString.lowercased())",
+        "contestId": "\(contestID.uuidString.lowercased())"
+      }
+      """.utf8
+    )
+  }
+
+  private func signedUpload(
+    keyID: String,
+    assertion: Data,
+    sourceBundleID: String = "com.private.health.source.sentinel"
+  ) -> PendingMetricUpload {
+    PendingMetricUpload(
+      clientBatchId: batchID,
+      contestId: contestID,
+      body: exactMetricBody(sourceBundleID: sourceBundleID),
+      keyID: keyID,
+      assertion: assertion
+    )
+  }
+
+  private func ingestResponse(
+    statusCode: Int,
+    replayed: Bool,
+    observationCount: Int = 1
+  ) throws -> MetricUploadHTTPResponse {
+    MetricUploadHTTPResponse(
+      statusCode: statusCode,
+      body: try jsonData([
+        "batchId": batchID.uuidString.lowercased(),
+        "observationCount": observationCount,
+        "replayed": replayed,
+      ])
+    )
+  }
+
+  private func jsonData(
+    _ object: [String: Any]
+  ) throws -> Data {
+    try JSONSerialization.data(
+      withJSONObject: object,
+      options: [.sortedKeys]
+    )
+  }
+
+  private func registrationBody(
+    keyID: String,
+    attestation: Data
+  ) throws -> Data {
+    try jsonData([
+      "keyId": keyID,
+      "attestation": attestation.base64EncodedString(),
+    ])
+  }
+
+  private func sha256(_ data: Data) -> Data {
+    Data(SHA256.hash(data: data))
+  }
+
+  private func surfacedError(
+    transportOutcome: MetricTransportOutcome,
+    upload: PendingMetricUpload
+  ) async throws -> MetricUploadClientError {
+    let session = MetricTransportSessionFake(ownerID: ownerA)
+    let appAttest = MetricTransportAppAttestFake()
+    let stateStore = MetricTransportStateStoreFake()
+    stateStore.seedRegistered(
+      ownerID: ownerA,
+      keyID: appAttest.generatedKeyID
+    )
+    let client = try makeClient(
+      session: session,
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: MetricTransportHTTPFake(
+        outcomes: [transportOutcome]
+      )
+    )
+
+    do {
+      _ = try await client.send(
+        ownerID: ownerA,
+        upload: upload
+      )
+      XCTFail("Expected a categorical transport error")
+      return .invalidServerResponse
+    } catch let error as MetricUploadClientError {
+      return error
+    }
+  }
+
+  private func assertCategorical(
+    _ error: MetricUploadClientError,
+    equals expected: MetricUploadClientError,
+    excludes sentinels: [String],
+    file: StaticString = #filePath,
+    line: UInt = #line
+  ) {
+    XCTAssertEqual(error, expected, file: file, line: line)
+    let description = error.localizedDescription
+    XCTAssertEqual(
+      description,
+      expected.errorDescription,
+      file: file,
+      line: line
+    )
+    for sentinel in sentinels {
+      XCTAssertFalse(
+        description.contains(sentinel),
+        "Categorical error exposed a raw sentinel",
+        file: file,
+        line: line
+      )
+    }
+  }
+}
+
+@MainActor
+private final class MetricTransportSessionFake:
+  MetricUploadSessionProviding
+{
+  var ownerID: UUID?
+  var accessToken = "metric-transport-access-token"
+
+  init(ownerID: UUID?) {
+    self.ownerID = ownerID
+  }
+
+  func currentSession() -> MetricUploadSession? {
+    guard let ownerID else { return nil }
+    return MetricUploadSession(
+      ownerID: ownerID,
+      accessToken: accessToken
+    )
+  }
+}
+
+@MainActor
+private final class MetricTransportAppAttestFake:
+  MetricAppAttestProviding
+{
+  static let defaultKeyID = Data("metric-app-attest-key".utf8)
+    .base64EncodedString()
+
+  var isSupported = true
+  var generatedKeyID = MetricTransportAppAttestFake.defaultKeyID
+  var attestation = Data("metric-attestation".utf8)
+  var assertion = Data("metric-assertion".utf8)
+  var onGenerateKey: (() -> Void)?
+  var onGenerateAssertion: (() -> Void)?
+
+  private(set) var generateKeyCallCount = 0
+  private(set) var attestationHashes: [Data] = []
+  private(set) var assertionHashes: [Data] = []
+
+  func generateKey() async throws -> String {
+    generateKeyCallCount += 1
+    onGenerateKey?()
+    return generatedKeyID
+  }
+
+  func attestKey(
+    _ keyID: String,
+    clientDataHash: Data
+  ) async throws -> Data {
+    XCTAssertEqual(keyID, generatedKeyID)
+    attestationHashes.append(clientDataHash)
+    return attestation
+  }
+
+  func generateAssertion(
+    _ keyID: String,
+    clientDataHash: Data
+  ) async throws -> Data {
+    XCTAssertEqual(keyID, generatedKeyID)
+    assertionHashes.append(clientDataHash)
+    onGenerateAssertion?()
+    return assertion
+  }
+}
+
+@MainActor
+private final class MetricTransportStateStoreFake:
+  MetricAppAttestStateStoring
+{
+  private(set) var states: [UUID: MetricAppAttestState] = [:]
+  private(set) var savedOwners: [UUID] = []
+  private(set) var registeredOwners: [UUID] = []
+
+  func state(
+    for ownerID: UUID
+  ) throws -> MetricAppAttestState? {
+    states[ownerID]
+  }
+
+  func saveGeneratedKey(
+    _ keyID: String,
+    ownerID: UUID
+  ) throws {
+    savedOwners.append(ownerID)
+    states[ownerID] = MetricAppAttestState(
+      ownerID: ownerID,
+      keyID: keyID,
+      registered: false
+    )
+  }
+
+  func savePendingRegistrationBody(
+    _ body: Data,
+    expiresAt: Date,
+    keyID: String,
+    ownerID: UUID
+  ) throws {
+    guard
+      let existing = states[ownerID],
+      existing.keyID == keyID,
+      existing.registered == false
+    else {
+      throw MetricTransportStateError.keyMismatch
+    }
+    if let pending = existing.pendingRegistrationBody {
+      guard
+        pending == body,
+        existing.pendingRegistrationExpiresAt == expiresAt
+      else {
+        throw MetricTransportStateError.registrationConflict
+      }
+      return
+    }
+    states[ownerID] = MetricAppAttestState(
+      ownerID: ownerID,
+      keyID: keyID,
+      registered: false,
+      pendingRegistrationBody: body,
+      pendingRegistrationExpiresAt: expiresAt
+    )
+  }
+
+  func replaceUnregisteredKey(
+    _ newKeyID: String,
+    replacing oldKeyID: String,
+    ownerID: UUID
+  ) throws {
+    guard
+      let existing = states[ownerID],
+      existing.keyID == oldKeyID,
+      existing.registered == false,
+      newKeyID != oldKeyID
+    else {
+      throw MetricTransportStateError.keyMismatch
+    }
+    states[ownerID] = MetricAppAttestState(
+      ownerID: ownerID,
+      keyID: newKeyID,
+      registered: false
+    )
+  }
+
+  func markRegistered(
+    keyID: String,
+    ownerID: UUID
+  ) throws {
+    guard states[ownerID]?.keyID == keyID else {
+      throw MetricTransportStateError.keyMismatch
+    }
+    registeredOwners.append(ownerID)
+    states[ownerID] = MetricAppAttestState(
+      ownerID: ownerID,
+      keyID: keyID,
+      registered: true
+    )
+  }
+
+  func seedRegistered(
+    ownerID: UUID,
+    keyID: String
+  ) {
+    states[ownerID] = MetricAppAttestState(
+      ownerID: ownerID,
+      keyID: keyID,
+      registered: true
+    )
+  }
+}
+
+@MainActor
+private final class MetricTransportHTTPFake: MetricUploadHTTPTransport {
+  private var outcomes: [MetricTransportOutcome]
+  var onSend: (() -> Void)?
+  private(set) var requests: [URLRequest] = []
+
+  init(outcomes: [MetricTransportOutcome]) {
+    self.outcomes = outcomes
+  }
+
+  func send(
+    _ request: URLRequest
+  ) async throws -> MetricUploadHTTPResponse {
+    requests.append(request)
+    onSend?()
+    guard !outcomes.isEmpty else {
+      throw MetricTransportRawError(
+        description: "No deterministic response was configured."
+      )
+    }
+    switch outcomes.removeFirst() {
+    case .response(let response):
+      return response
+    case .failure(let error):
+      throw error
+    }
+  }
+}
+
+private enum MetricTransportOutcome {
+  case response(MetricUploadHTTPResponse)
+  case failure(any Error)
+}
+
+private struct MetricTransportRawError: LocalizedError {
+  let description: String
+
+  var errorDescription: String? { description }
+}
+
+private enum MetricTransportStateError: Error {
+  case keyMismatch
+  case registrationConflict
+}
+
+extension Data {
+  fileprivate func containsSubdata(_ other: Data) -> Bool {
+    range(of: other) != nil
+  }
+}

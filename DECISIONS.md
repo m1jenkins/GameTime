@@ -3200,3 +3200,71 @@ finalization bypasses that gate.
 - **Where notifications live (resolved by D80).** M7 transactionally records
   generic, idempotent notification intents. M8 owns APNs credentials, delivery,
   presentation, and retries; no deadline depends on push delivery.
+
+---
+
+## M8 staging continuation — product App Attest identity
+
+### D91. Keep conformance primary; allow a bounded product identity only outside production
+
+**What.** `APPLE_BUNDLE_ID` remains the reviewed primary App Attest identity,
+`com.gametime.conformance`. Registration and metric assertion verification may
+also try a strict, unique `APPLE_ADDITIONAL_BUNDLE_IDS` list with at most three
+entries in local, test, or staging. Attestation receipt verification uses the
+exact App ID that successfully verified that attestation. Check-in verification
+remains primary-only, and production refuses the additional list.
+
+**Why.** The conformance harness and staging product have distinct Apple App
+IDs but share the same verifier deployment. A bounded staging-only list lets
+both exercise the existing App Attest trust path without changing the
+conformance identity, accepting a caller-supplied identity, or adding a bypass.
+Binding the receipt to the successful identity prevents the verifier from
+attesting one App ID and independently scoring the receipt as another.
+
+**Rejected.** Replacing the global primary with the product bundle and breaking
+conformance; accepting wildcards or request-provided App IDs; enabling
+`ATTEST_DEV_BYPASS`; duplicating the whole service per target; extending the
+product identity to check-in before Core Location is in scope; or allowing a
+multi-ID production verifier without storing and reviewing an explicit device
+identity binding.
+
+**Revisit if.** Production needs more than one shipped App ID, the conformance
+harness moves to its own backend, product check-ins enter scope, or the device
+key record gains an immutable App ID column that can replace bounded
+verification attempts with one stored identity.
+
+### D92. Reconcile Apple step sources in HealthKit before writing one device contribution
+
+**What.** For the M8 explicit Apple-device steps slice, this supersedes D50's
+raw-sample proration; D50 remains the portable rule for provenance-separated
+sample inputs. The product adapter uses raw `HKQuantitySample` rows only to
+identify samples that independently classify as genuine Apple-device data and
+to construct a bounded source-revision/device predicate. It then requests
+`HKStatisticsCollectionQuery` cumulative sums for the exact completed
+frozen-local-hour intervals supplied by `HourlyBucketer`. HealthKit's merged
+statistic becomes one `device` observation per hour. The adapter does not
+include manual, unknown, or third-party contributions in this first slice, and
+the UI names the result as device-recorded steps rather than an all-source
+Health total.
+
+**Why.** iPhone and Apple Watch often record the same walk. Adding their raw
+samples treats overlapping sources as disjoint and can double-count steps.
+HealthKit statistics apply the person's source priority while merging
+cumulative data. The existing evidence view correctly adds genuinely disjoint
+provenance contributions, but it cannot represent both a reconciled all-device
+total and overlapping per-device components without counting them twice.
+Using one merged device row preserves the ledger's revision rule, keeps frozen
+timezone and contest boundaries identical on both sides of the framework
+adapter, and makes the displayed sync total match the exact signed request
+bytes.
+
+**Rejected.** Summing raw phone and watch samples; taking the largest raw
+device total; labeling an all-source HealthKit total as first-party device
+data; silently folding manual or third-party rows into `device`; inventing a
+client-side source-priority algorithm; or uploading both the merged total and
+its overlapping components.
+
+**Revisit if.** The ledger gains a source-reconciled total plus a non-additive
+provenance sidecar, third-party step sources enter the friend-test scope, Apple
+changes statistics-query merge semantics, or physical acceptance shows the
+scoped statistic does not match Health's Apple-device total.

@@ -472,12 +472,12 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = B30000000000000000000005 /* Staging.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = GameTime/GameTime.entitlements;
+				CODE_SIGN_ENTITLEMENTS = GameTime/GameTimeStaging.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 87Z29RTC26;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Configuration/AppInfo.plist;
+				INFOPLIST_FILE = Configuration/StagingAppInfo.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "GameTime Staging";
 				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
 				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";

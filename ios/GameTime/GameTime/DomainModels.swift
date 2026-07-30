@@ -189,6 +189,32 @@ struct Charity: Codable, Equatable, Identifiable, Sendable {
     let slug: String
 }
 
+struct ContestTimeZoneEvent: Codable, Equatable, Sendable {
+    let fromTimeZone: String
+    let toTimeZone: String
+    let effectiveAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case fromTimeZone = "from_timezone"
+        case toTimeZone = "to_timezone"
+        case effectiveAt = "effective_at"
+    }
+}
+
+struct ContestParticipantCard: Codable, Equatable, Identifiable, Sendable {
+    let userID: UUID
+    let status: ContestParticipantStatus
+    let charityID: UUID?
+
+    var id: UUID { userID }
+
+    enum CodingKeys: String, CodingKey {
+        case userID = "user_id"
+        case status
+        case charityID = "charity_id"
+    }
+}
+
 struct ContestCard: Codable, Equatable, Identifiable, Sendable {
     let id: UUID
     let title: String
@@ -202,6 +228,14 @@ struct ContestCard: Codable, Equatable, Identifiable, Sendable {
     let endsAt: Date
     let status: ContestStatus
     let myStatus: ContestParticipantStatus
+    /// The immutable closed-roster ceiling reviewed before creation.
+    let maxParticipants: Int?
+    /// The signed-in participant's own timezone, frozen when they accepted.
+    let participantTimeZone: String?
+    /// Only the signed-in participant's approved prospective timezone epochs.
+    let timeZoneChanges: [ContestTimeZoneEvent]?
+    /// The immutable participant roster visible to members of this contest.
+    let participants: [ContestParticipantCard]?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -216,6 +250,10 @@ struct ContestCard: Codable, Equatable, Identifiable, Sendable {
         case endsAt = "ends_at"
         case status
         case myStatus = "my_status"
+        case maxParticipants = "max_participants"
+        case participantTimeZone = "participant_timezone"
+        case timeZoneChanges = "timezone_changes"
+        case participants
     }
 
     var stakeText: String {
@@ -225,6 +263,14 @@ struct ContestCard: Codable, Equatable, Identifiable, Sendable {
 
     var targetText: String {
         "\(targetValue.formatted(.number.precision(.fractionLength(0...2)))) \(metric.unit)"
+    }
+
+    var resolvedTimeZoneChanges: [ContestTimeZoneEvent] {
+        timeZoneChanges ?? []
+    }
+
+    var resolvedParticipants: [ContestParticipantCard] {
+        participants ?? []
     }
 }
 

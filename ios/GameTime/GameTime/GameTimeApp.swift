@@ -28,7 +28,9 @@ struct GameTimeApp: App {
 
             #if DEBUG || STAGING
             if usesFixtureModel {
-                configuration = .fixture
+                configuration = arguments.contains("--fixture-activity")
+                    ? .activityFixture
+                    : .fixture
                 services = FixtureServicesFactory.make()
             } else {
                 configuration = try .load()
@@ -298,8 +300,8 @@ private struct SignedOutView: View {
                         systemImage: "checkmark.shield"
                     )
                     Label(
-                        "No sensor or payment action is enabled in M8.1",
-                        systemImage: "hand.raised"
+                        "Steps sync only when you choose it; no payment action exists",
+                        systemImage: "figure.walk"
                     )
                 }
                 .font(.subheadline)

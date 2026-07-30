@@ -63,4 +63,5 @@ struct AppServices {
     let friendships: any FriendshipsClient
     let contests: any ContestsClient
     let pendingChallenges: any PendingChallengeStore
+    let activitySync: any ActivitySyncing
 }

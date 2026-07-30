@@ -141,7 +141,7 @@ struct YouView: View {
 struct TrustAndPrivacyView: View {
     var body: some View {
         List {
-            Section("Included in M8.1") {
+            Section("Included in staging") {
                 Label(
                     "Apple ID-token exchange with a cryptographic nonce",
                     systemImage: "apple.logo"
@@ -154,12 +154,16 @@ struct TrustAndPrivacyView: View {
                     "Immutable challenge terms and caller-scoped retries",
                     systemImage: "doc.text.magnifyingglass"
                 )
+                Label(
+                    "Merged Apple-device steps with App Attest",
+                    systemImage: "figure.walk"
+                )
             }
             .listRowBackground(CompetitiveTrustTheme.raisedInk)
 
             Section {
-                Text("Health and location permissions")
-                Text("Evidence submission and App Attest")
+                Text("Background HealthKit delivery")
+                Text("Core Location")
                 Text("Push notifications")
                 Text("Finalization, settlement, and disputes")
                 Text("Account deletion")
@@ -167,7 +171,7 @@ struct TrustAndPrivacyView: View {
                 Text("Deliberately unavailable")
             } footer: {
                 Text(
-                    "These capabilities return in later M8 slices only after their evidence, disclosure, and lifecycle boundaries are complete."
+                    "Only device-recorded step counts are in this prototype. Manual and third-party HealthKit entries are excluded, and raw health data is never sent to analytics."
                 )
             }
             .listRowBackground(CompetitiveTrustTheme.raisedInk)

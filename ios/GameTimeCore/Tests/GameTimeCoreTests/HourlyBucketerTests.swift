@@ -112,6 +112,28 @@ struct HourlyBucketerTests {
         }
     }
 
+    @Test("completed interval planning uses frozen local-hour boundaries")
+    func completedIntervalsUseFrozenZone() {
+        let bucketer = HourlyBucketer(timeZone: Self.zone("Asia/Kolkata"))
+        let window = DateInterval(
+            start: Self.epoch,
+            end: Self.epoch.addingTimeInterval(3 * 3600)
+        )
+
+        let intervals = bucketer.completedBucketIntervals(
+            in: window,
+            asOf: Self.epoch.addingTimeInterval(2 * 3600 + 45 * 60)
+        )
+
+        #expect(
+            intervals.map(\.start) == [
+                Self.epoch.addingTimeInterval(30 * 60),
+                Self.epoch.addingTimeInterval(90 * 60),
+            ]
+        )
+        #expect(intervals.allSatisfy { $0.duration == 3600 })
+    }
+
     // ---------------------------------------------------------------------
     // Opponent-approved timezone changes
     // ---------------------------------------------------------------------
@@ -158,6 +180,31 @@ struct HourlyBucketerTests {
             bucketer.bucket(
                 containing: Self.epoch.addingTimeInterval(6 * 3600 + 40 * 60)
             )?.start == Self.epoch.addingTimeInterval(6 * 3600 + 30 * 60)
+        )
+    }
+
+    @Test("completed interval planning drops both transition-cut hours")
+    func completedIntervalsDropTransitionCuts() throws {
+        let effectiveAt = Self.epoch.addingTimeInterval(
+            6 * 3600 + 20 * 60
+        )
+        let bucketer = try Self.relocatedBucketer(
+            effectiveAt: effectiveAt
+        )
+        let intervals = bucketer.completedBucketIntervals(
+            in: DateInterval(
+                start: Self.epoch.addingTimeInterval(5 * 3600),
+                end: Self.epoch.addingTimeInterval(9 * 3600)
+            ),
+            asOf: Self.epoch.addingTimeInterval(9 * 3600)
+        )
+
+        #expect(
+            intervals.map(\.start) == [
+                Self.epoch.addingTimeInterval(5 * 3600),
+                Self.epoch.addingTimeInterval(6 * 3600 + 30 * 60),
+                Self.epoch.addingTimeInterval(7 * 3600 + 30 * 60),
+            ]
         )
     }
 

@@ -36,7 +36,7 @@ if (
 const {
   accessTokenVerification,
   allowedAttestEnvironments,
-  appAttestAppId,
+  appAttestAppIds,
   appAttestReceiptRootCertificate,
   appAttestRootCertificate,
   assertAttestConfigIsSafe,
@@ -49,9 +49,12 @@ const { createAttestDeviceHandler } = await import("./handler.ts");
 
 assertAttestConfigIsSafe();
 
+const [appId, ...additionalAppIds] = appAttestAppIds();
+
 export const handler: (request: Request) => Promise<Response> = createAttestDeviceHandler({
   database: postgrestDatabase(dataApiConfig()),
-  appId: appAttestAppId(),
+  appId,
+  additionalAppIds,
   rootCertificatePem: appAttestRootCertificate(),
   receiptRootCertificatePem: appAttestReceiptRootCertificate(),
   allowedEnvironments: allowedAttestEnvironments(),

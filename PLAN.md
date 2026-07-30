@@ -1,10 +1,11 @@
 # Implementation plan
 
 Audited and reconciled 2026-07-28 against the code, tests, documentation, local
-history, and `origin/main`. README.md is the compact ledger of what is built;
-DECISIONS.md records why. This file owns sequence, remaining work, and launch
-blockers. The dated evidence and verification caveats are in
-`docs/IMPLEMENTATION_STATUS.md`.
+history, and `origin/main`. The current working tree also contains a narrow,
+staging-only steps sync slice whose local automated verification is green.
+README.md is the compact ledger of what is built; DECISIONS.md records why.
+This file owns sequence, remaining work, and launch blockers. The dated evidence
+and verification caveats are in `docs/IMPLEMENTATION_STATUS.md`.
 
 ## Current state
 
@@ -15,7 +16,7 @@ blockers. The dated evidence and verification caveats are in
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
 | M7 | M7.2a, D81, and the M8.3c first-result foundation implemented | Product contract D74–D82, transactional outbox, activation job, account deletion/retention, immutable standings snapshots, explicit first results, and per-debtor obligations are integrated; the trusted evidence-loading/adjudication orchestrator, disputes, settlement, and external gates remain |
-| M8 | M8.1, M8.2a, M8.3a, and M8.3c implemented; partial single-user staging proof recorded | Separate product app, Apple-auth/onboarding state machine, exact-handle social loop, atomic multi-friend challenge creation, protected per-user pending retries, and M7-backed provisional/final standings with loser obligations; Apple-name prefill, two-user staging proof, and later device/framework/settlement slices remain |
+| M8 | M8.1 code path and later repository slices are present; acceptance remains open | Separate product app, Apple auth, exact-handle friendship, immutable challenge review, staging diagnostics, and locally implemented explicit Apple-device steps sync with HealthKit source merging, product App Attest, visible confirmed totals, and an account-isolated exact-byte retry queue; two-user/device proof, hosted product App Attest identity, background delivery, and later product slices remain |
 
 M6's boundary is backend plus portable client core. It does not include live
 Core Location collection, HealthKit queries, or a production scoring/finalizer
@@ -150,12 +151,14 @@ The staging project is linked; all migrations through D81 plus forward repair
 `20260726230529`, the required secrets, and three Edge Functions are deployed.
 A committed synthetic retention lineage proved both the repaired
 source-identifier scrub and exact-location pruning; the hourly hosted worker is
-recorded separately below. The connected iPhone is visible to Xcode, but the
-current Apple account exposes only a Personal Team. Xcode refuses to provision
-the target because Personal Teams do not support the App Attest capability. Add
-an Apple Developer Program team with an App Attest-enabled App ID, update
-`APPLE_TEAM_ID` and the target signing team, then create the staging Auth
-user/fixture needed by the smoke run.
+recorded separately below. A 2026-07-29 retry used the paid team and a
+development profile containing Sign in with Apple, HealthKit, and development
+App Attest to build, sign, install, and launch `GameTime-Staging` on the
+connected iPhone. The build log shows the intended entitlement file at CodeSign,
+and the resulting CodeDirectory contains both legacy and DER entitlement slots.
+This closes the one-device signing/install prerequisite, not physical HealthKit
+or App Attest proof. A second provisioned device, the approved hosted metric
+rollout, and the complete runbook remain open.
 
 Do not mark M6.5 complete until the runbook records one successful device
 registration, metric, check-in, exact retry, and counter/public-key/receipt audit
@@ -313,9 +316,9 @@ Implemented in `codex/m8-live-social-loop`:
 - [x] Exact-handle social cards for incoming, outgoing, and accepted
   relationships, with blocks, tombstones, caller isolation, and stale-JWT denial
   enforced by the bounded backend API.
-- [x] Challenge editor and immutable review using the four backend metrics,
-  daily/cumulative cadence, future dates, target, staging stake, charity, and
-  tie-break.
+- [x] Challenge editor and immutable creator/invitee review using the four
+  backend metrics, daily/cumulative cadence, complete start/end window,
+  timezone, target, staging stake, charity, tie-break, and full closed roster.
 - [x] Atomic, caller-idempotent contest plus invitation creation with
   same-payload retry and changed-payload rejection.
 - [x] Launch, foreground, pull-to-refresh, and post-mutation reloads; no
@@ -323,6 +326,9 @@ Implemented in `codex/m8-live-social-loop`:
 - [x] Debug fixture/live-client parity, loading/empty/offline/future-state
   coverage, and Release-compilation gates that remove fixture routing and keep
   contest mutation disabled.
+- [x] Staging-only challenge ID, state, and full-roster diagnostics, plus the
+  stable `StagingAcceptanceDiagnostics.challengeCreationResponseReceived`
+  breakpoint hook for a repeatable committed-but-unacknowledged creation run.
 - [x] A `macos-26` CI job selecting Xcode 26.2 and testing both product and
   conformance schemes without signing.
 - [ ] Provision the product App ID through an eligible Apple team and complete
@@ -330,8 +336,8 @@ Implemented in `codex/m8-live-social-loop`:
   force-quit/relaunch after every mutation, a deliberately lost-response retry,
   and one shared pending contest.
 
-M8.1 is implemented with staging proof open, not complete. It is an internal
-alpha, not an App Store or production release.
+The M8.1 repository path is present with staging proof open. M8.1 is not
+complete. It is an internal alpha, not an App Store or production release.
 
 ### M8.2a — Restart-safe pending challenge action
 
@@ -351,9 +357,9 @@ alpha, not an App Store or production release.
   detachment, Release locking, lost-response relaunch, and recovery UI with
   product unit/UI fixtures.
 
-This closes one pending-human-action durability gap. It does not complete
-persistent metric/check-in evidence queues, the two-user staging proof, or full
-M8.
+This closes one pending-human-action durability gap. It does not complete the
+check-in queue integration, other pending human actions, the two-user staging
+proof, or full M8.
 
 ### M8.3a — Challenge terminology and atomic multi-select creation
 
@@ -417,18 +423,88 @@ This is a one-device product-flow simulator. It does not exercise Supabase,
 Apple Auth, RLS, persistence across demo exits, cross-device notifications, or
 the two-user staging acceptance gate.
 
+### M8 staging slice: explicit steps sync
+
+The current working tree implements this slice locally. The consolidated
+repository verification gate passed on 2026-07-28; exact commands and counts are
+recorded in `docs/IMPLEMENTATION_STATUS.md`. The physical two-account acceptance
+gate remains open.
+
+- [x] Expose **Enable Activity** and **Sync Activity** only in Staging for an
+  accepted, active steps challenge. HealthKit reads remain user initiated.
+- [x] Use the frozen timezone schedule plus `HourlyBucketer` to plan only
+  complete, server-admissible local-hour intervals in the immutable challenge
+  window. Use raw samples only to identify genuine Apple source revisions and
+  devices, then query HealthKit cumulative statistics so overlapping iPhone and
+  Apple Watch records are source-merged rather than added twice.
+- [x] Upload the merged Apple-device contribution as `device` provenance.
+  Manual, unknown, and third-party contributions remain outside this first
+  trusted steps slice instead of being mislabeled or combined with a
+  source-reconciled total.
+- [x] Reuse `IngestQueue`, `PendingBatch`, and the
+  `AttestedMetricPayload`/`EncodedMetricRequest` path from
+  `MetricIngestPayload.swift`, then persist the exact encoded body before the
+  first upload attempt.
+- [x] Keep each queue file account-specific, protected, bounded, excluded from
+  backup, and restorable across force-quit/relaunch without re-encoding the
+  payload.
+- [x] Split histories across the endpoint's 2,000-observation and one-megabyte
+  limits, drain every chunk on one explicit sync, abandon only permanent
+  refusals, and retain ambiguous/retryable exact bytes. Verify that each server
+  receipt names the queued batch and exact observation count.
+- [x] Report the exact device-recorded step value confirmed in the current sync
+  or retained for retry, without logging the value or implying it is a live
+  standings snapshot.
+- [x] Generate and register a product App Attest key, persist the exact
+  registration body through a bounded lost-response replay window, and rotate
+  only that account's still-unregistered key on the next explicit sync after
+  the window expires. Persist the exact metric assertion with its body and
+  reuse both for an explicit idempotent retry. No `ATTEST_DEV_BYPASS` path was
+  added.
+- [x] Keep activity sync disabled in Debug and Release. Release retains its
+  existing contest-mutation and fixture-route locks.
+- [x] Introduce no raw sample, bucket, request-body, assertion, or authorization
+  logging, and discard database conflict detail before an Edge metric failure
+  can expose old or new health values. The physical app-log inspection remains
+  an acceptance gate.
+- [x] Keep `com.gametime.conformance` as the primary App Attest identity and add
+  a strict, bounded, non-production-only `APPLE_ADDITIONAL_BUNDLE_IDS` verifier
+  path for product registration and metric assertions. Receipt verification is
+  bound to the exact App ID that passed attestation; check-in remains
+  primary-only; production refuses the additional list.
+- [ ] With separate approval, configure
+  `APPLE_ADDITIONAL_BUNDLE_IDS=com.mjenkins.gametime.staging` and deploy the
+  reviewed `attest-device` and `ingest-metrics` working-tree bundles. Keep
+  `APP_ATTEST_ALLOW_DEVELOPMENT=true` in Staging and `ATTEST_DEV_BYPASS` absent,
+  then rerun conformance and product rejection probes before physical testing.
+- [ ] Record the physical two-account run in
+  `docs/M8_1_STAGING_ACCEPTANCE.md`, including two real step uploads, a lost
+  response, exact retry, replay acceptance, relaunch recovery, account
+  isolation, and an app-log privacy check.
+
+The 2026-07-29 one-device retry passed signed build, install, launch, Staging
+banner, and empty live challenge-state observation. The tester deferred the
+two-account run because a second friend/device was unavailable. That is a
+scheduled handoff, not a failed gate or completion claim.
+
+This slice has no background HealthKit delivery, HealthKit workout collection,
+Core Location, Apple Push Notification service (APNs), settlement, donation,
+dispute, or production-release work. Do not call HealthKit or M8.1 complete
+until the physical staging record closes its open rows.
+
 ### Later M8 slices
 
-- HealthKit authorization, incremental queries, provenance extraction, and
-  background sync into the existing metric queue.
+- Incremental/background HealthKit delivery after the explicit steps flow has
+  physical staging evidence.
 - Core Location collection and HealthKit workout selection into the persisted
   exact-byte check-in queue.
-- DeviceCheck/App Attest key lifecycle and signed retries in the product target.
+- Product App Attest lifecycle hardening after the staging registration,
+  assertion, replay, and counter observations pass on physical devices.
 - Durable in-app action inbox plus APNs registration and delivery.
 - Review/adjudication controls plus actionable settlement and dispute screens
   after the remaining M7 contracts exist.
-- Persistent metric/check-in evidence queues and remaining pending human
-  actions.
+- Product integration for the persistent check-in queue and remaining pending
+  human actions.
 - Accessibility hardening, privacy disclosures, handle-change throttling,
   avatar storage, privacy-safe group-feed policy, and invitation reminders.
 
@@ -437,7 +513,7 @@ the two-user staging acceptance gate.
 | Item | Why it blocks |
 | --- | --- |
 | Production charity list | Production is intentionally empty; contest creation fails until EINs are verified |
-| App Attest device proof | The roots and staging backend exist, but attested endpoints must not launch until the eligible-team physical-device run passes without the bypass |
+| App Attest device proof | Product metric signing is implemented locally, but the hosted App ID must match `com.mjenkins.gametime.staging` and physical registration/assertion/replay must pass without a bypass |
 | Hosted staging proofs | Retention has committed manual/cron proof; activation still needs a committed-row cron run, and retention still needs hold/failure-recovery evidence |
 | Notifications | Action-required flows need a durable inbox and eventual delivery; deadlines cannot depend on push |
 | Adjudication operations | Review and dispute deadlines need authorized staffing, queues, alerts, and a tested SLA |

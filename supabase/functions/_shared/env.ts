@@ -167,6 +167,78 @@ export function appAttestAppId(source: EnvSource = denoEnv): string {
   return `${teamId}.${bundleId}`;
 }
 
+/** A short list keeps invalid verification work bounded on every request. */
+export const MAX_ADDITIONAL_APP_ATTEST_BUNDLE_IDS = 3;
+
+/**
+ * App IDs accepted by product App Attest registration and metric assertions.
+ *
+ * `APPLE_BUNDLE_ID` remains the primary identity. Staging may additionally
+ * name a small comma-separated set of bundle IDs while the product app and
+ * conformance harness coexist. Production refuses the extension entirely;
+ * production identity changes require changing the reviewed primary value.
+ */
+export function appAttestAppIds(
+  source: EnvSource = denoEnv,
+): readonly [string, ...string[]] {
+  const primaryAppId = appAttestAppId(source);
+  const configured = source("APPLE_ADDITIONAL_BUNDLE_IDS");
+  if (configured === undefined || configured.trim() === "") {
+    return [primaryAppId];
+  }
+
+  const env = runtimeEnv(source);
+  if (env === "production") {
+    throw new ConfigError(
+      "APPLE_ADDITIONAL_BUNDLE_IDS is forbidden in GAMETIME_ENV=production",
+    );
+  }
+  if (configured !== configured.trim() || /\s/.test(configured)) {
+    throw new ConfigError(
+      "APPLE_ADDITIONAL_BUNDLE_IDS must not contain whitespace",
+    );
+  }
+
+  const bundleIds = configured.split(",");
+  if (
+    bundleIds.length === 0 ||
+    bundleIds.length > MAX_ADDITIONAL_APP_ATTEST_BUNDLE_IDS
+  ) {
+    throw new ConfigError(
+      `APPLE_ADDITIONAL_BUNDLE_IDS must contain 1 to ${MAX_ADDITIONAL_APP_ATTEST_BUNDLE_IDS} entries`,
+    );
+  }
+
+  const teamId = requireEnv("APPLE_TEAM_ID", source).trim();
+  const primaryBundleId = requireEnv("APPLE_BUNDLE_ID", source).trim();
+  const seen = new Set<string>([primaryBundleId]);
+  const additionalAppIds: string[] = [];
+  for (const bundleId of bundleIds) {
+    if (
+      !/^[A-Za-z0-9.-]{1,200}$/.test(bundleId) ||
+      !bundleId.includes(".") ||
+      bundleId.startsWith(".") ||
+      bundleId.endsWith(".") ||
+      bundleId.includes("..")
+    ) {
+      throw new ConfigError(
+        `APPLE_ADDITIONAL_BUNDLE_IDS contains an invalid bundle identifier: ${
+          JSON.stringify(bundleId)
+        }`,
+      );
+    }
+    if (seen.has(bundleId)) {
+      throw new ConfigError(
+        `APPLE_ADDITIONAL_BUNDLE_IDS repeats bundle identifier ${JSON.stringify(bundleId)}`,
+      );
+    }
+    seen.add(bundleId);
+    additionalAppIds.push(`${teamId}.${bundleId}`);
+  }
+
+  return [primaryAppId, ...additionalAppIds];
+}
+
 /**
  * Apple's App Attest root certificate, PEM, from configuration.
  *

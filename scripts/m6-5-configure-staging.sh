@@ -6,7 +6,8 @@ set -euo pipefail
 #
 #   SUPABASE_PROJECT_REF
 #   APPLE_TEAM_ID
-#   APPLE_BUNDLE_ID
+#   APPLE_BUNDLE_ID                   (must remain com.gametime.conformance)
+#   APPLE_ADDITIONAL_BUNDLE_IDS       (optional, comma-separated, at most 3)
 #   GAMETIME_ATTEST_CHALLENGE_SECRET  (32+ URL-safe characters)
 #
 # A debug-signed conformance target produces App Attest development
@@ -16,6 +17,18 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repository_root="$(cd -- "${script_dir}/.." && pwd)"
 project_ref_file="${repository_root}/supabase/staging-project-ref"
+expected_primary_bundle_id="com.gametime.conformance"
+max_additional_bundle_ids=3
+
+is_bundle_identifier() {
+  local bundle_id="$1"
+  [[ ${#bundle_id} -le 200 ]] &&
+    [[ "$bundle_id" =~ ^[A-Za-z0-9.-]+$ ]] &&
+    [[ "$bundle_id" == *.* ]] &&
+    [[ "$bundle_id" != .* ]] &&
+    [[ "$bundle_id" != *. ]] &&
+    [[ "$bundle_id" != *".."* ]]
+}
 
 for required_name in \
   SUPABASE_PROJECT_REF \
@@ -50,13 +63,51 @@ if [[ ! "$APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]; then
   echo "APPLE_TEAM_ID must be ten uppercase alphanumerics" >&2
   exit 2
 fi
-if [[ ! "$APPLE_BUNDLE_ID" =~ ^[A-Za-z0-9.-]+$ ]] || [[ "$APPLE_BUNDLE_ID" != *.* ]]; then
+if ! is_bundle_identifier "$APPLE_BUNDLE_ID"; then
   echo "APPLE_BUNDLE_ID does not look like a bundle identifier" >&2
+  exit 2
+fi
+if [[ "$APPLE_BUNDLE_ID" != "$expected_primary_bundle_id" ]]; then
+  echo "APPLE_BUNDLE_ID must remain ${expected_primary_bundle_id}; use APPLE_ADDITIONAL_BUNDLE_IDS for staging product apps" >&2
   exit 2
 fi
 if [[ ! "$GAMETIME_ATTEST_CHALLENGE_SECRET" =~ ^[A-Za-z0-9_-]{32,}$ ]]; then
   echo "GAMETIME_ATTEST_CHALLENGE_SECRET must be 32+ URL-safe characters" >&2
   exit 2
+fi
+
+additional_bundle_ids="${APPLE_ADDITIONAL_BUNDLE_IDS:-}"
+additional_bundle_id_values=()
+if [[ -n "$additional_bundle_ids" ]]; then
+  if [[ "$additional_bundle_ids" =~ [[:space:]] ]] ||
+    [[ "$additional_bundle_ids" == ,* ]] ||
+    [[ "$additional_bundle_ids" == *, ]] ||
+    [[ "$additional_bundle_ids" == *,,* ]]
+  then
+    echo "APPLE_ADDITIONAL_BUNDLE_IDS must be a comma-separated list without whitespace or empty entries" >&2
+    exit 2
+  fi
+
+  IFS=',' read -r -a additional_bundle_id_values <<<"$additional_bundle_ids"
+  if [[ ${#additional_bundle_id_values[@]} -gt $max_additional_bundle_ids ]]; then
+    echo "APPLE_ADDITIONAL_BUNDLE_IDS may contain at most ${max_additional_bundle_ids} entries" >&2
+    exit 2
+  fi
+
+  seen_bundle_ids=("$APPLE_BUNDLE_ID")
+  for bundle_id in "${additional_bundle_id_values[@]}"; do
+    if ! is_bundle_identifier "$bundle_id"; then
+      echo "APPLE_ADDITIONAL_BUNDLE_IDS contains an invalid bundle identifier: ${bundle_id}" >&2
+      exit 2
+    fi
+    for seen_bundle_id in "${seen_bundle_ids[@]}"; do
+      if [[ "$bundle_id" == "$seen_bundle_id" ]]; then
+        echo "APPLE_ADDITIONAL_BUNDLE_IDS repeats bundle identifier: ${bundle_id}" >&2
+        exit 2
+      fi
+    done
+    seen_bundle_ids+=("$bundle_id")
+  done
 fi
 
 for command_name in curl openssl supabase; do
@@ -112,6 +163,9 @@ escaped_receipt_root="$(awk '{printf "%s\\n", $0}' "$receipt_root_pem")"
   printf 'GAMETIME_ENV=staging\n'
   printf 'APPLE_TEAM_ID=%s\n' "$APPLE_TEAM_ID"
   printf 'APPLE_BUNDLE_ID=%s\n' "$APPLE_BUNDLE_ID"
+  if [[ -n "$additional_bundle_ids" ]]; then
+    printf 'APPLE_ADDITIONAL_BUNDLE_IDS=%s\n' "$additional_bundle_ids"
+  fi
   printf 'GAMETIME_ATTEST_CHALLENGE_SECRET=%s\n' "$GAMETIME_ATTEST_CHALLENGE_SECRET"
   printf 'APP_ATTEST_ALLOW_DEVELOPMENT=true\n'
   printf 'APP_ATTEST_ROOT_CA_PEM="%s"\n' "$escaped_attestation_root"
@@ -128,10 +182,18 @@ if grep -Eq '"name"[[:space:]]*:[[:space:]]*"ATTEST_DEV_BYPASS"' "$existing_secr
     --yes \
     --agent no
 fi
+if [[ -z "$additional_bundle_ids" ]] &&
+  grep -Eq '"name"[[:space:]]*:[[:space:]]*"APPLE_ADDITIONAL_BUNDLE_IDS"' "$existing_secrets_file"
+then
+  supabase secrets unset APPLE_ADDITIONAL_BUNDLE_IDS \
+    --project-ref "$SUPABASE_PROJECT_REF" \
+    --yes \
+    --agent no
+fi
 supabase secrets set \
   --env-file "$secret_file" \
   --project-ref "$SUPABASE_PROJECT_REF" \
   --yes \
   --agent no
 
-echo "M6.5 staging configuration uploaded; both public roots were fingerprint-verified and ATTEST_DEV_BYPASS is absent."
+echo "M6.5 staging configuration uploaded; roots were fingerprint-verified, the App ID allowlist was validated, and ATTEST_DEV_BYPASS is absent."

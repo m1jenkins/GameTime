@@ -14,6 +14,10 @@ struct AppConfiguration: Equatable, Sendable {
     let supabasePublishableKey: String
     let contestMutationsEnabled: Bool
 
+    /// HealthKit and product App Attest are intentionally limited to the
+    /// internal Staging configuration for this prototype slice.
+    var activitySyncEnabled: Bool { environment == .staging }
+
     static func load(bundle: Bundle = .main) throws -> AppConfiguration {
         let environmentValue = bundle.object(
             forInfoDictionaryKey: "GAMETIME_ENV"
@@ -86,6 +90,13 @@ struct AppConfiguration: Equatable, Sendable {
     static let fixture = AppConfiguration(
         environment: .debug,
         supabaseURL: URL(string: "http://127.0.0.1:54321")!,
+        supabasePublishableKey: "sb_publishable_fixture_only",
+        contestMutationsEnabled: true
+    )
+
+    static let activityFixture = AppConfiguration(
+        environment: .staging,
+        supabaseURL: URL(string: "https://fixture.invalid")!,
         supabasePublishableKey: "sb_publishable_fixture_only",
         contestMutationsEnabled: true
     )

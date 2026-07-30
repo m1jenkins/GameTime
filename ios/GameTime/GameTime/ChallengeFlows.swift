@@ -237,6 +237,7 @@ struct CreateChallengeFlow: View {
                         time: .shortened
                     )
                 )
+                TermRow(label: "Timezone", value: terms.timezone)
                 TermRow(
                     label: "Test pledge",
                     value: (Double(terms.stakeAmountCents) / 100)
@@ -389,6 +390,20 @@ struct AcceptInvitationView: View {
                         TermRow(label: "Cadence", value: contest.cadence.title)
                         TermRow(label: "Target", value: contest.targetText)
                         TermRow(
+                            label: "Starts",
+                            value: contest.startsAt.formatted(
+                                date: .abbreviated,
+                                time: .shortened
+                            )
+                        )
+                        TermRow(
+                            label: "Ends",
+                            value: contest.endsAt.formatted(
+                                date: .abbreviated,
+                                time: .shortened
+                            )
+                        )
+                        TermRow(
                             label: "Test pledge",
                             value: contest.stakeText,
                             emphasis: CompetitiveTrustTheme.amber
@@ -397,6 +412,39 @@ struct AcceptInvitationView: View {
                             label: "Tie-break",
                             value: contest.tieBreak.title
                         )
+                        if let maxParticipants = contest.maxParticipants {
+                            TermRow(
+                                label: "Closed roster",
+                                value: "\(maxParticipants) people"
+                            )
+                        }
+                        ForEach(
+                            contest.resolvedParticipants
+                        ) { participant in
+                            TermRow(
+                                label: participant.userID
+                                    == contest.createdBy
+                                    ? "Creator"
+                                    : "Roster member",
+                                value: participantName(
+                                    participant.userID
+                                )
+                            )
+                        }
+                        if
+                            let creatorID = contest.createdBy,
+                            let creatorCharityID =
+                                contest.resolvedParticipants.first(
+                                    where: {
+                                        $0.userID == creatorID
+                                    }
+                                )?.charityID
+                        {
+                            TermRow(
+                                label: "Creator nomination",
+                                value: charityName(creatorCharityID)
+                            )
+                        }
                     }
                     .listRowBackground(CompetitiveTrustTheme.raisedInk)
 
@@ -472,5 +520,22 @@ struct AcceptInvitationView: View {
             }
         }
         .interactiveDismissDisabled(model.isMutating)
+    }
+
+    private func participantName(_ userID: UUID) -> String {
+        if userID == model.userID {
+            return "You"
+        }
+        if let card = model.friendshipCards.first(where: {
+            $0.otherUserID == userID
+        }) {
+            return card.displayName
+        }
+        return "Account \(userID.uuidString.lowercased())"
+    }
+
+    private func charityName(_ charityID: UUID) -> String {
+        model.charities.first(where: { $0.id == charityID })?.name
+            ?? "Charity \(charityID.uuidString.lowercased())"
     }
 }

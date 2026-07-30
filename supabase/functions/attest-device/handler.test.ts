@@ -29,6 +29,7 @@ import {
 import { mintAccessToken, TEST_CHALLENGE_SECRET, TEST_JWT_SECRET } from "../_test/tokens.ts";
 
 const APP_ID = "ABCDE12345.test.gametime.app";
+const ADDITIONAL_APP_ID = "ABCDE12345.com.mjenkins.gametime.staging";
 const USER = "11111111-1111-1111-1111-111111111111";
 const OTHER_USER = "22222222-2222-2222-2222-222222222222";
 
@@ -248,6 +249,62 @@ Deno.test("registers a well-formed attestation against the calling account", asy
   assertEquals(written?.environment, "production");
   assertEquals(toHex(marked!.keyId), toHex(device.keyId));
   assertEquals(toHex(marked!.receiptSha256), toHex(VERIFIED_RECEIPT_DIGEST));
+});
+
+Deno.test("binds receipt verification to the exact allowed app id that attested", async () => {
+  const device = await makeDevice();
+  const at = new Date();
+  let receiptAppId: string | undefined;
+
+  const handler = createAttestDeviceHandler(deps({
+    additionalAppIds: [ADDITIONAL_APP_ID],
+    verifyReceipt: (request) => {
+      receiptAppId = request.appId;
+      return Promise.resolve({
+        type: "ATTEST",
+        creationTime: request.receivedAt,
+        receiptSha256: VERIFIED_RECEIPT_DIGEST,
+      });
+    },
+    now: () => at,
+  }));
+
+  const response = await post(
+    handler,
+    await registrationBody(device, at, { appId: ADDITIONAL_APP_ID }),
+  );
+
+  assertEquals(response.status, 200);
+  assertEquals(receiptAppId, ADDITIONAL_APP_ID);
+});
+
+Deno.test("refuses an attestation for an app id outside the allowlist", async () => {
+  const device = await makeDevice();
+  const at = new Date();
+  let receiptCalled = false;
+
+  const handler = createAttestDeviceHandler(deps({
+    additionalAppIds: [ADDITIONAL_APP_ID],
+    verifyReceipt: () => {
+      receiptCalled = true;
+      throw new Error("an unlisted app id must not reach receipt verification");
+    },
+    now: () => at,
+  }));
+
+  const response = await post(
+    handler,
+    await registrationBody(device, at, {
+      appId: "ABCDE12345.com.gametime.unlisted",
+    }),
+  );
+
+  assertEquals(response.status, 401);
+  assertEquals(await response.json(), {
+    error: "unauthorized",
+    message: "the attestation could not be verified",
+  });
+  assertEquals(receiptCalled, false);
 });
 
 Deno.test("quarantines before independent receipt verification and marks only afterward", async () => {

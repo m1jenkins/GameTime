@@ -7,7 +7,7 @@
 
 import {
   accessTokenVerification,
-  appAttestAppId,
+  appAttestAppIds,
   assertAttestConfigIsSafe,
   attestBypassEnabled,
   dataApiConfig,
@@ -19,10 +19,12 @@ import { createIngestMetricsHandler } from "./handler.ts";
 assertAttestConfigIsSafe();
 
 const dataApi = dataApiConfig();
+const [appId, ...additionalAppIds] = appAttestAppIds();
 
 export const handler: (request: Request) => Promise<Response> = createIngestMetricsHandler({
   database: postgrestDatabase(dataApi),
-  appId: appAttestAppId(),
+  appId,
+  additionalAppIds,
   verifyToken: createAccessTokenVerifier(accessTokenVerification()),
   attestBypass: attestBypassEnabled(),
   publicKeyFor: deviceKeyLookup(dataApi),

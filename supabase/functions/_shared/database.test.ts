@@ -4,9 +4,10 @@ import {
   type MarkDeviceReceiptVerifiedArgs,
   type PostgrestConfig,
   postgrestDatabase,
+  type RecordMetricBatchArgs,
   type RegisterDeviceKeyArgs,
 } from "./database.ts";
-import { HttpFailure } from "./http.ts";
+import { HttpFailure, respond } from "./http.ts";
 
 const CONFIG: PostgrestConfig = {
   url: "https://database.example.test",
@@ -35,6 +36,27 @@ const REGISTRATION: RegisterDeviceKeyArgs = {
 const MARKER: MarkDeviceReceiptVerifiedArgs = {
   keyId: KEY_ID,
   receiptSha256: RECEIPT_SHA256,
+};
+
+const METRIC_BATCH: RecordMetricBatchArgs = {
+  userId: REGISTRATION.userId,
+  contestId: "22222222-2222-2222-2222-222222222222",
+  clientBatchId: "33333333-3333-3333-3333-333333333333",
+  payloadDigest: new Uint8Array(32).fill(0x44),
+  observedAt: "2026-08-03T03:00:00.000Z",
+  observations: [
+    {
+      metric: "steps",
+      bucket_start: "2026-08-03T02:00:00.000Z",
+      value: 9_876_543.21,
+      provenance: "device",
+      sample_count: 1,
+      source_bundle_id: "com.example.private-health-sentinel",
+      device_model: "Private Health Model",
+    },
+  ],
+  keyId: KEY_ID,
+  signCount: 7,
 };
 
 async function captureFailure(action: () => Promise<unknown>): Promise<HttpFailure> {
@@ -182,6 +204,75 @@ Deno.test("the active-actor adapter maps a deleted account to a private 403", as
     assertEquals(failure.message.includes(REGISTRATION.userId), false);
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("metric RPC failures discard raw health detail before logging", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalWarn = console.warn;
+  const originalError = console.error;
+  const warnings: string[] = [];
+  const errors: string[] = [];
+  const priorValue = "9876543.21";
+  const revisedValue = "1234567.89";
+  const source = "com.example.private-health-sentinel";
+
+  try {
+    globalThis.fetch = () =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            code: "23001",
+            message: `bucket 2026-08-03T02:00:00Z of steps from ${source} ` +
+              `already stands at ${priorValue}; a figure cannot be revised ` +
+              `down to ${revisedValue}`,
+          }),
+          {
+            status: 422,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+      );
+    console.warn = (...values: unknown[]) => {
+      warnings.push(values.map(String).join(" "));
+    };
+    console.error = (...values: unknown[]) => {
+      errors.push(values.map(String).join(" "));
+    };
+
+    const database = postgrestDatabase(CONFIG);
+    const failure = await captureFailure(
+      () => database.recordMetricBatch(METRIC_BATCH),
+    );
+    assertEquals(failure.kind, "rejected");
+    assertEquals(
+      failure.message,
+      "the evidence was refused by a rule of this contest",
+    );
+    assertEquals(failure.detail, undefined);
+
+    const response = await respond("ingest-metrics", async () => {
+      await database.recordMetricBatch(METRIC_BATCH);
+      return new Response(null, { status: 204 });
+    });
+    const observableText = [
+      failure.message,
+      failure.detail ?? "",
+      await response.text(),
+      ...warnings,
+      ...errors,
+    ].join("|");
+
+    assertEquals(response.status, 422);
+    assertEquals(warnings, []);
+    assertEquals(errors, []);
+    assertEquals(observableText.includes(priorValue), false);
+    assertEquals(observableText.includes(revisedValue), false);
+    assertEquals(observableText.includes(source), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    console.warn = originalWarn;
+    console.error = originalError;
   }
 });
 

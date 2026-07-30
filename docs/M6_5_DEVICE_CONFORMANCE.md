@@ -40,7 +40,12 @@ Prerequisites:
 - An active Apple Developer Program or Apple Developer Enterprise Program team
   and an explicit App ID with App Attest enabled. Xcode Personal Teams cannot
   provision the App Attest capability.
-- `APPLE_TEAM_ID` and `APPLE_BUNDLE_ID` matching the conformance target.
+- `APPLE_TEAM_ID` and `APPLE_BUNDLE_ID` matching the conformance target. Keep
+  the primary bundle ID at `com.gametime.conformance`.
+- Optionally, `APPLE_ADDITIONAL_BUNDLE_IDS` containing a reviewed,
+  comma-separated staging product bundle list. It is limited to three unique
+  identities, applies only to registration and metric assertions, and is
+  rejected in production. Check-in verification remains primary-only.
 - Supabase Auth credentials for one staging user who has completed profile
   onboarding. The iOS target accepts that user's access token at runtime.
 - The staging project's publishable key for the post-deploy rejection probes.
@@ -76,16 +81,21 @@ checked-in staging identity:
 
 ```bash
 export APPLE_TEAM_ID="ABCDEFGHIJ"
-export APPLE_BUNDLE_ID="com.example.GameTimeConformance"
+export APPLE_BUNDLE_ID="com.gametime.conformance"
+# Optional for the product staging run:
+export APPLE_ADDITIONAL_BUNDLE_IDS="com.mjenkins.gametime.staging"
 export GAMETIME_ATTEST_CHALLENGE_SECRET="$(openssl rand -hex 32)"
 ./scripts/m6-5-configure-staging.sh
 ```
 
 The script downloads Apple's direct App Attestation Root CA and Root CA G3,
 verifies both recorded SHA-256 fingerprints, uploads the public roots with the
-required secrets, and unsets `ATTEST_DEV_BYPASS`. It intentionally enables
+required secrets, validates the primary and optional additional App IDs, and
+unsets `ATTEST_DEV_BYPASS`. When the optional list is empty, it also removes a
+stale `APPLE_ADDITIONAL_BUNDLE_IDS` secret. It intentionally enables
 development attestations in staging because Xcode's debug entitlement produces
-them. Production still refuses them.
+them. Production still refuses development attestations and the additional App
+ID list.
 
 Deploy all three functions. The handlers verify user sessions against the
 project's injected JWKS in code, so the legacy gateway verifier stays disabled:
@@ -102,7 +112,8 @@ supabase functions deploy ingest-checkin --project-ref "$SUPABASE_PROJECT_REF" -
 Confirm that the custom secret list names `GAMETIME_ENV`,
 `GAMETIME_ATTEST_CHALLENGE_SECRET`, `APPLE_TEAM_ID`, `APPLE_BUNDLE_ID`,
 `APP_ATTEST_ROOT_CA_PEM`, `APP_ATTEST_RECEIPT_ROOT_CA_PEM`, and
-`APP_ATTEST_ALLOW_DEVELOPMENT`, but not `ATTEST_DEV_BYPASS`:
+`APP_ATTEST_ALLOW_DEVELOPMENT`. If configured, it must also name
+`APPLE_ADDITIONAL_BUNDLE_IDS`. It must not name `ATTEST_DEV_BYPASS`:
 
 ```bash
 supabase secrets list --project-ref "$SUPABASE_PROJECT_REF"

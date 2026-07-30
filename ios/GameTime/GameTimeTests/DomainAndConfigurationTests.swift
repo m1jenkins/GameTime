@@ -42,6 +42,25 @@ final class DomainAndConfigurationTests: XCTestCase {
         )
         XCTAssertEqual(configuration.environment, .release)
         XCTAssertFalse(configuration.contestMutationsEnabled)
+        XCTAssertFalse(configuration.activitySyncEnabled)
+    }
+
+    func testOnlyStagingEnablesActivitySync() throws {
+        let staging = try AppConfiguration.validated(
+            environmentValue: "Staging",
+            urlValue: "https://example.supabase.co",
+            keyValue: "sb_publishable_unit_test",
+            mutationValue: "YES"
+        )
+        let debug = try AppConfiguration.validated(
+            environmentValue: "Debug",
+            urlValue: "http://127.0.0.1:54321",
+            keyValue: "sb_publishable_unit_test",
+            mutationValue: "YES"
+        )
+
+        XCTAssertTrue(staging.activitySyncEnabled)
+        XCTAssertFalse(debug.activitySyncEnabled)
     }
 
     func testExactHandleSubmissionDoesNotBecomeFuzzySearch() {
