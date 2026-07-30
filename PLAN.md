@@ -1,9 +1,10 @@
 # Implementation plan
 
 Audited and reconciled 2026-07-30 against the code, tests, documentation, local
-history, `origin/main`, and recent CI. Repository revision `dcb38b8` includes
-the narrow staging-only steps sync slice. The current uncommitted working tree
-adds the device-independent M7 trusted-assessment slice described below.
+history, `origin/main`, and recent CI. Synchronized baseline revision `167d31b`
+includes the narrow staging-only steps sync and device-independent M7
+trusted-assessment slices. Branch `codex/m7-d76-review-deadlines` adds the
+locally verified D76 deadline/escalation slice described below.
 README.md is the compact ledger of what is built; DECISIONS.md records why.
 This file owns sequence, remaining work, and launch blockers. The dated evidence
 and verification caveats are in `docs/IMPLEMENTATION_STATUS.md`.
@@ -16,7 +17,7 @@ and verification caveats are in `docs/IMPLEMENTATION_STATUS.md`.
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
-| M7 | M7.2a, D81, trusted assessment, and the M8.3c first-result foundation implemented locally | Product contract D74–D82, transactional outbox, activation job, account deletion/retention, canonical trusted evidence loading, immutable versioned assessments, quarantine materialization, immutable standings snapshots, explicit first results, and per-debtor obligations are integrated; D76 adjudication, an authorized hosted caller, disputes, settlement, and external gates remain |
+| M7 | M7.2a, D81, trusted assessment, D76 deadlines, and the M8.3c first-result foundation implemented locally | Product contract D74–D82, transactional outbox, activation/deadline jobs, account deletion/retention, canonical trusted evidence loading, immutable versioned assessments, quarantine materialization, bounded escalation/clearance/timeout, immutable standings snapshots, explicit first results, and per-debtor obligations are integrated; operated adjudicator authorization, an authorized hosted caller, disputes, actionable settlement, and external gates remain |
 | M8 | M8.1 code path and later repository slices are present; acceptance remains open | Separate product app, Apple auth, exact-handle friendship, immutable challenge review, staging diagnostics, and locally implemented explicit Apple-device steps sync with HealthKit source merging, product App Attest, visible confirmed totals, and an account-isolated exact-byte retry queue; two-user/device proof, hosted product App Attest identity, background delivery, and later product slices remain |
 
 M6's boundary is backend plus portable client core. It does not include live
@@ -71,13 +72,16 @@ launches on an iPhone 17 simulator; 34 product unit tests and 8 UI tests pass,
 including provisional rival-integrity redaction and final loser-obligation
 fixtures. The local `public`/`app` schema lint reports no errors.
 
-The 2026-07-30 M7 trusted-assessment working tree applies all 20 migrations and
-passes all 24 pgTAP files / 1,004 assertions. That includes 62 focused trusted
-loader/assessment assertions and 13 real two-session concurrency assertions.
-The Deno tree passes format, lint, type-check, and all 323 tests. The
-`public`/`app` schema lint reports no warnings or errors. This is local
-repository evidence only: no handler, finalization cron, hosted mutation,
-deployment, physical-device acceptance, push, or merge was performed.
+The 2026-07-30 D76 branch applies all 21 migrations and passes all 26 pgTAP
+files / 1,104 assertions. The total includes the prior 1,004 assertions plus
+67 focused D76 deadline/authorization/idempotency assertions and 33 real
+two-session D76 concurrency assertions. The Deno tree passes format across 44
+files, lint across 43 files, type-check, and all 323 tests. The `public`/`app`
+schema lint reports no warnings or errors. This is local repository evidence
+only: the named D76 timer exists in the migrated local registry, but no hosted
+cron observation, operated adjudicator, normal finalizer caller, deployment,
+populated-copy backfill/lock measurement, physical-device acceptance, push, or
+merge was performed.
 
 PR #11's initial M8.1 head (`c363610`) passed all four GitHub Actions jobs in
 [run 30236956570](https://github.com/m1jenkins/GameTime/actions/runs/30236956570):
@@ -214,14 +218,15 @@ before finalization or settlement is enabled.
 - [x] Build D80's payload-free transactional outbox and retrofit invitation,
   timezone-consent request/resolution, quarantine request/approval, and
   activation/cancellation so each implemented transition commits with its
-  durable intent. D76 rejection escalation waits for its adjudication queue.
+  durable intent. D76 now adds payload-free escalation and terminal-resolution
+  intents without exposing evidence or operator detail.
 - [x] Enable `pg_cron` and install D82's named one-minute activation job.
 - [x] Call `app.activate_due_contests()` on a tested cadence.
 - [x] Establish one idempotent scheduled-worker pattern and registry.
   Activation is the first committed job; the reconciled D81 slice adds raw
-  retention. Later M7 slices add finalization/review escalation, claim
-  expiration/confirmation/default, dispute timeout, and reminders without
-  inventing separate timer semantics.
+  retention, and D76 adds the bounded quarantine review/adjudication deadline
+  worker. Later M7 slices add claim expiration/confirmation/default, dispute
+  timeout, and reminders without inventing separate timer semantics.
 - [x] Assert the installed schedule, transition/outbox idempotency, cancellation
   semantics, least privilege, append-only enforcement, and stale-JWT denial in
   pgTAP.
@@ -284,9 +289,11 @@ before finalization or settlement is enabled.
   quarantine. The recorder is append-only, retry-idempotent, concurrent-safe,
   and refuses both load and first assessment before
   `app.ingest_grace_period()` closes.
-- [ ] Implement D76's per-quarantine review deadline, early-rejection escalation,
+- [x] Implement D76's per-quarantine review deadline, early-rejection escalation,
   grace-anchored adjudication deadline, explicit clearance, and terminal
-  `review_timeout`.
+  `review_timeout`. The local migration makes timeout fail closed to
+  `inconclusive`, retains the frozen assessment/standings, creates no
+  obligation, and covers retry and real lock races.
 - [ ] Add explicit adjudicator authorization, guarded operator queues/tools,
   conflict checks, observability, and an on-call/SLA runbook for the D76/D78
   deadlines. A schema deadline without an operated queue is not complete.
@@ -297,10 +304,13 @@ before finalization or settlement is enabled.
   result.
 
 M8.3c supplies the immutable first-result storage and trusted publication/read
-boundary. The current M7 slice now binds that boundary to a matching complete
-assessment and freezes the evidence digest, but deliberately installs no
-finalization cron or hosted caller. D76 adjudication, M6.5 device proof, and
-staging operation remain separate gates.
+boundary. The trusted-assessment slice binds that boundary to a matching
+complete assessment and freezes the evidence digest. D76 now installs a local
+named deadline worker that may publish only the fail-closed
+`inconclusive:review_timeout` terminal result from that frozen assessment. It
+does not install a normal result finalizer or hosted operated caller. Explicit
+adjudicator authorization/queues, M6.5 device proof, deployment, and staging
+operation remain separate gates.
 
 ### 4. Add settlement, disputes, and reliability
 

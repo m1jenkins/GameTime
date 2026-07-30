@@ -11,7 +11,7 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status, reconciled 2026-07-28: the backend and portable client core are
+**Status, reconciled 2026-07-30: the backend and portable client core are
 complete through M6, and the M8.1–M8.3d product slices are implemented with
 staging proof open. This is not yet a shippable iOS app.**
 M6.5's staging backend,
@@ -31,12 +31,15 @@ audit reads are owner-only and pending peer review goes through exact-contest,
 phase-aware redacted RPCs. M8.3c adds immutable provisional/final standings
 snapshots, explicit first results, exact per-debtor obligations, and an
 accepted-participant read RPC that redacts rival integrity until final. A clean
-local database reset now passes all 869 pgTAP assertions and the supported
-local lint checks. D81 and forward
+local database reset now applies 21 migrations and passes 26 pgTAP files /
+1,104 assertions, including the trusted assessment and D76 deadline slices;
+the Deno tree remains green at 323 tests and the supported local schema lint
+has no warnings. D81 and forward
 guard repair `20260726230529` are deployed to staging, where committed manual
 and hosted raw retention cycles prove exact-location pruning and the 90-day
-source-identifier scrub. CI, concurrency, hosted advisors, production-shaped
-migration timing, and retention failure recovery remain open. M8.1–M8.3d now
+source-identifier scrub. Latest-head CI, remaining D81 concurrency, hosted
+advisors, production-shaped migration timing, and retention failure recovery
+remain open. M8.1–M8.3d now
 add a separate product Xcode target, native Apple-auth/onboarding state, the
 live exact-handle friendship loop, atomic idempotent multi-friend challenge
 invitations, four-tab SwiftUI navigation, Debug fixtures, a Release mutation
@@ -48,8 +51,11 @@ fixture factory is absent from Release.
 Version-1 single-invite saved-duel records migrate in place to the version-2
 challenge roster without changing the backend payload hash. The two-user Apple
 staging run remains open, as do later sensors, App Attest, inbox/APNs, evidence
-queues, trusted finalizer orchestration/adjudication, actionable settlement,
-disputes, and operations. See
+queues, operated adjudicator/finalizer authorization, actionable settlement,
+disputes, and operations. The D76 database slice is implemented only in the
+local branch: it does not prove a hosted timer, staffed queue, or accepted
+operator workflow, and its deadline-column backfill has not been timed against
+a populated production-shaped copy. See
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
 evidence, remaining work, and recommended sequence.
 
@@ -351,18 +357,18 @@ trusted emitter. Delivery attempts, read state, APNs tokens, and presentation
 remain M8 ledgers.
 
 Invitations, contest activation/cancellation, account-deletion participation
-changes, timezone-consent request/resolution, and quarantine-review
-request/approval emit semantic, idempotent intents. A rejected quarantine is
-not mislabeled as resolved: D76's later adjudication slice will create the
-escalation and operator intent atomically.
+changes, timezone-consent request/resolution, quarantine-review
+request/approval, D76 escalation, and D76 terminal resolution emit semantic,
+idempotent intents. Rejection is never mislabeled as resolution, and no intent
+contains evidence values, integrity allegations, or an operator note.
 
-The database installs one named `pg_cron` job,
-`gametime-activate-due-contests`, which calls
-`app.activate_due_contests()` every minute. Application roles cannot use the
-`cron` schema. pgTAP proves the registry entry and manually driven worker
-semantics; a staging run must still observe the background process against
-committed rows because it cannot see fixtures inside a rolled-back test
-transaction.
+The shared `pg_cron` registry contains named activation, raw-retention, and D76
+deadline jobs. `gametime-activate-due-contests` and
+`gametime-process-quarantine-review-deadlines` run every minute; raw retention
+runs hourly. Application roles cannot use the `cron` schema. pgTAP proves each
+registry entry and manually driven worker semantics. Only activation and
+retention have the separately recorded hosted observations; this D76 branch
+does not deploy or observe its timer against committed hosted rows.
 
 ## Provisional standings, final results, and obligations
 
@@ -384,10 +390,12 @@ serializes against both metric and geofence writes. The product renders these
 states in challenge detail with separate loading/error caches that clear on an
 account transition.
 
-This is a dormant first-result foundation, not an enabled finalizer. No cron or
-hosted caller invokes the trusted publisher, and the remaining M7
-evidence-loading, complete-assessment, adjudication, dispute, actionability,
-settlement, M6.5, and staging gates still apply.
+This is still a dormant normal first-result foundation, not an enabled
+winner/obligation finalizer. The local D76 timer can write only the fail-closed
+`inconclusive:review_timeout` result from a matching frozen assessment and
+creates no obligation. No hosted caller invokes the trusted publisher.
+Operated adjudicator authorization/queues, disputes, actionability, settlement,
+M6.5, deployment, and staging gates still apply.
 
 ## Durable account deletion and raw-evidence retention
 
@@ -796,6 +804,16 @@ explicitly cleared. Pending review and rejection without clearance follow D76's
 bounded escalation path to `inconclusive`; neither quietly applies a second
 evidence filter.
 
+D76 stores one immutable 72-hour peer-review deadline no earlier than
+ingest-grace close. A rejection escalates immediately; unanswered peer review
+escalates at the inclusive boundary. Adjudication gets one bounded seven-day
+deadline anchored no earlier than grace close. Only the service mutation
+boundary can record explicit clearance, using an idempotency key. If no
+clearance wins before the deadline, the named worker appends `review_timeout`,
+reuses the frozen assessment standings, finalizes only as `inconclusive`, and
+creates no donation obligation. The peer vote, escalation, terminal event, and
+payload-free intents remain append-only through participant tombstoning.
+
 Raw `ingest_batches`, `metric_snapshots`, and `evidence_quarantines` are readable
 only by their subject; quarantine vote rows are readable only by the reviewer
 who cast them. Accepted rivals use `list_contest_quarantine_reviews(contest_id)`
@@ -922,11 +940,16 @@ implementation gates, and work not yet reflected here are in PLAN.md.
       explicit first results, service-only grace/roster/quarantine-gated
       publication, accepted-participant redacted reads, and exact per-debtor
       obligations; no hosted finalizer is enabled
+- [x] **M7 / D76 deadline foundation** — Immutable grace-anchored peer and
+      adjudication deadlines, immediate rejection escalation, idempotent
+      service-only clearance, named local worker, payload-free transition
+      intents, and fail-closed `inconclusive:review_timeout`; operated
+      adjudicator authorization and hosted acceptance remain open
 - [ ] **M7.2b** — Observe hosted cron activation and run ingest, timezone, and
       check-in flows against the scheduler-opened contest
-- [ ] **M7 remainder** — Trusted evidence loading and complete-assessment
-      orchestration, adjudication, actionable settlement, disputes, charity
-      pledge lifecycle, reliability, and deadline/retention operations
+- [ ] **M7 remainder** — Operated adjudicator/finalizer authorization and
+      queues, actionable settlement, disputes, charity pledge lifecycle,
+      reliability, and remaining deadline/retention operations
 - [ ] **M8** — Product iOS program remains in progress
   - [x] **M8.1 repository slice** — Product target, native Apple-auth exchange,
         onboarding, exact-handle friendships, atomic challenge
