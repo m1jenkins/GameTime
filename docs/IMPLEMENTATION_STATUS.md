@@ -101,12 +101,16 @@ primary identity and accepts a strict, maximum-three
 `APPLE_ADDITIONAL_BUNDLE_IDS` list for product registration and metric
 assertions outside production only. Receipt verification uses the exact App ID
 that passed attestation; check-in remains primary-only; production rejects the
-additional list. The hosted project has not received this working-tree bundle
-or the product App ID configuration. Its active `ingest-metrics` bundle also
-predates the local database-detail redaction, so real health uploads must wait
-for a separately approved hosted rollout. Development-signed Staging
-verification still requires `APP_ATTEST_ALLOW_DEVELOPMENT=true`, with
-`ATTEST_DEV_BYPASS` absent.
+additional list. The approved Staging rollout added the product App ID,
+preserved the conformance primary identity and development-only acceptance,
+and kept `ATTEST_DEV_BYPASS` absent. The explicit deployment named only
+`attest-device` and `ingest-metrics`; all returned files for those functions
+match the committed source. Supabase's secret propagation also advanced the
+active `ingest-checkin` configuration version without including it in the
+deployment command, and its returned source still matches the commit. Hosted
+fail-closed and authenticated rejection probes passed without sending
+HealthKit data. Physical App Attest conformance and the two-account steps run
+remain open.
 
 “Complete” below means the milestone's repository scope is implemented and
 covered by its intended automated tests. It does not mean production deployed,
@@ -150,7 +154,9 @@ revision evidence to it.
 | `GameTime-Staging` simulator build, Staging, without signing | Pass; no warnings | The staging product compiles with the dedicated HealthKit/App Attest entitlements and activity permission description |
 | `GameTime` simulator build, Release, without signing | Pass; no warnings | Release compiles with its original entitlement/plist path; its environment and mutation locks follow the optional local secrets include, activity sync remains disabled, and fixture routing is absent |
 | `deno fmt --check`, `deno lint`, `deno check .`, and `deno test --allow-env` from `supabase/functions` | Pass; format checked 42 files, lint checked 41 files, 313 tests passed | The Edge/shared TypeScript tree remains formatted, lint-clean, type-safe, and behaviorally green, including metric-failure detail redaction, strict staging-only additional App IDs, exact successful-App-ID receipt binding, and product metric assertion verification |
-| `./scripts/db-test.sh` against the local Supabase stack | Prior current-slice pass after local reset/reseed: 21 pgTAP files / 869 assertions; not rerun after the final client-only edits because Docker health inspection did not return | Existing database ingest idempotency, RLS, challenge, and result invariants passed on the unchanged database SQL; this finalization makes no fresh pgTAP claim and did not exercise or mutate hosted staging |
+| Approved Staging configuration and function verification | Pass; 5/5 required configuration checks, 34/34 returned function files matched, and 2/2 explicitly deployed functions are active | The conformance primary identity, product additional identity, development-only setting, staging environment, and bypass absence match the reviewed configuration. `attest-device` is active at version 29 and `ingest-metrics` at version 22; the configuration-propagated `ingest-checkin` version 21 also remains source-identical |
+| Hosted no-data probes | Pass; 4/4 fail-closed cases and 3/3 authenticated availability/rejection cases | Missing and forged authentication fail closed, a malformed registration is rejected, and a partial App Attest header pair is rejected before metric persistence. No HealthKit upload or physical App Attest conformance was attempted |
+| `./scripts/db-test.sh` against a clean local Supabase stack | Pass, 21 pgTAP files / 869 assertions; cleanup passed | Every migration and database assertion passed after Docker recovery. The gate ran from a verified byte-identical temporary checkout because iCloud-offloaded SQL files could not be read reliably from the workspace; `supabase stop --no-backup` removed the local volumes afterward |
 | Strict `swift-format` lint for the 11 new Swift files; `plutil -lint` for product/Staging plists and entitlements; scoped forbidden-API/log scans; `bash -n`; `git diff --check` | Pass | New Swift files are formatter-clean, configuration files parse, no new App Attest bypass/location/APNs/raw-data logging hook was found in the scoped product files, shell syntax parses, and the patch has no whitespace errors |
 
 These are local simulator, package, static, and local-database results. They do

@@ -42,22 +42,20 @@ The working-tree verifier keeps the conformance App ID primary and accepts a
 strict, maximum-three additional bundle list outside production for device
 registration and metric assertions. It binds receipt verification to the exact
 App ID that passed attestation. Check-in remains primary-only, and production
-rejects the additional list. Do not overwrite the primary bundle ID. The hosted
-project still runs the older single-ID functions and does not have the product
-additional-ID secret; its metric bundle also predates the local
-database-conflict-detail redaction. Do not send real step data until a separately
-approved rollout updates that hosted state and rejection/conformance probes
-pass. This run does not itself authorize a hosted configuration change or
-deployment.
+rejects the additional list. Do not overwrite the primary bundle ID. The
+approved Staging rollout now has the reviewed product additional identity and
+source-identical `attest-device` and `ingest-metrics` bundles. Hosted
+fail-closed and authenticated rejection probes pass. Do not send real step
+data until physical App Attest conformance passes on a provisioned device and
+the two-account prerequisites below are present. No further hosted mutation is
+authorized by this record.
 
 ## Evidence record
 
-Record the date, app commit, Xcode version, iOS version, device models, staging
-project reference, both pseudonymous test handles, challenge/request UUIDs, and
-metric batch UUIDs. Record only pass/fail and bounded row counts for health
-uploads. Do not record Apple IDs, access tokens, keys, assertions, source bundle
-identifiers, device health metadata, sample timestamps, step values, or private
-profile data.
+Record only challenge, request, and metric-batch UUIDs; pass/fail results; and
+bounded counts. Do not record dates or timestamps, tool or device versions,
+handles, Apple IDs, access tokens, keys, assertions, source bundle identifiers,
+device health metadata, step values, or private profile data.
 
 ### 2026-07-27 single-user device observation
 
@@ -95,8 +93,22 @@ This is readiness evidence only, not a physical acceptance run.
 | Runtime launch | Pass: the tester confirmed the app was visibly open with the amber Test environment banner and supplied a screenshot of the live four-tab shell. Challenges loaded with no rows and correctly kept creation disabled until an accepted friendship exists |
 | Signature evidence | The build log names the paid-team identity/profile and signs with the generated Staging `.xcent`; the CodeDirectory is version 20400 with nonzero legacy and DER entitlement slots. Host-side certificate-chain verification remains untrusted, so runtime HealthKit/App Attest observations are still required |
 | Hosted schema/data readiness | All 19 local migrations are present in staging; active charity data and the named one-minute activation job exist |
-| Hosted function/configuration state | The three existing functions are active, the primary bundle remains the conformance target, development attestation is enabled for Staging, and `ATTEST_DEV_BYPASS` is absent; the product additional-ID secret and current working-tree function bundles are not deployed |
+| Historical hosted function/configuration state | Before the approved rollout, the three existing functions were active, the primary bundle remained the conformance target, development attestation was enabled for Staging, and `ATTEST_DEV_BYPASS` was absent; the product additional-ID secret and current working-tree function bundles were not yet deployed |
 | Fail-closed probe | Unauthenticated registration-challenge and metric-ingest requests returned 401 |
+
+### Approved hosted rollout and no-data probes
+
+This is deployment and rejection evidence only, not physical App Attest or
+HealthKit acceptance.
+
+| Gate | Evidence |
+| --- | --- |
+| Required Staging configuration | Pass, 5/5 checks. The conformance primary identity, product additional identity, development-only setting, staging environment, and `ATTEST_DEV_BYPASS` absence match the reviewed configuration |
+| Explicit deployment scope | Pass, 2/2 functions. Only `attest-device` and `ingest-metrics` were named in the deployment command |
+| Deployed source verification | Pass, 34/34 returned files match the commit. `attest-device` is active at version 29, `ingest-metrics` at version 22, and the secret-propagated `ingest-checkin` version 21 remains source-identical |
+| Fail-closed probes | Pass, 4/4 cases across the reviewed endpoints |
+| Authenticated availability and rejection probes | Pass, 3/3 cases. The active challenge path responded, malformed registration was rejected, and a partial App Attest header pair was rejected before metric persistence |
+| HealthKit and physical conformance traffic | Zero HealthKit uploads; physical App Attest conformance not run |
 
 ## Two-account flow
 
@@ -213,8 +225,8 @@ emitted by the app process:
    `clientBatchId`, `observations`, `value`, and the known step totals.
 2. Confirm the app emitted no encoded metric body, assertion, authorization
    header, sample timestamp, source identifier, device metadata, or step value.
-3. Record a pass/fail statement and the log time range. Do not attach raw
-   HealthKit or request data to the evidence record.
+3. Record pass/fail and a bounded count only. Do not record a log time range or
+   attach raw HealthKit or request data to the evidence record.
 
 Apple’s own HealthKit subsystem may emit system diagnostics. Keep those outside
 the GameTime app-log evidence and never copy health values into this document.
@@ -246,7 +258,7 @@ the GameTime app-log evidence and never copy health values into this document.
 
 | Gate | Status | Evidence |
 | --- | --- | --- |
-| Current working-tree automated verification | Passed locally on 2026-07-29 | GameTimeCore 103/103; product unit 68/68; product UI 10/10; conformance 10/10; Deno 313/313 plus format/lint/check; Staging launch and Release build; new-file Swift formatting, plist, scoped safety, script syntax, and diff checks passed. The prior 21-file/869-assertion pgTAP result covers unchanged database SQL; Docker did not return for a fresh final rerun |
+| Current working-tree automated verification | Passed locally and rerun after the hosted rollout | GameTimeCore 103/103; product unit 68/68; product UI 10/10; conformance 10/10; Deno 313/313 plus format/lint/check; Staging and Release builds passed; clean local database reset and 21-file/869-assertion pgTAP passed, followed by successful local-volume cleanup |
 | Immutable creator/invitee review and staging diagnostics | Implemented locally; physical proof open | Record both reviews, same challenge ID, full roster, and breakpoint observation |
 | Restart-safe challenge recovery | Implemented locally; physical proof open | Record request UUID, force-quit restore, original challenge ID, and bounded row counts |
 | Eligible Apple team and prior Sign in with Apple provisioning | Partial | The prior single-device launch observation passed. A fresh final-tree signed build succeeded, but its launch retry was denied while the connected iPhone remained locked; a fresh unlocked launch and second device remain open |
@@ -254,34 +266,32 @@ the GameTime app-log evidence and never copy health values into this document.
 | Two-user force-quit/reload loop | Deferred on 2026-07-29; open | Resume when a second friend, Apple account, and provisioned iPhone are available |
 | Same-request challenge duplicate proof | Open | Record challenge/request UUIDs and bounded database observation |
 | Staging App ID HealthKit and App Attest provisioning | Partial | One signed install uses the intended HealthKit and development App Attest entitlement inputs; prove both capabilities at runtime and repeat on the second device |
-| Hosted App Attest identity strategy | Implemented and unit-tested locally; hosted rollout open | Keep conformance primary, configure the staging product additional ID, deploy only the reviewed registration/metric bundles, rerun conformance and 401 probes, and keep development acceptance staging-only with no bypass |
-| Two-account real step uploads | Deferred on 2026-07-29; open | First complete the approved hosted metric rollout, then record one accepted batch UUID per account without raw health values |
+| Hosted App Attest identity strategy | Staging rollout and no-data probes passed; physical conformance open | The reviewed configuration is present, the two explicitly deployed bundles match the commit, 4/4 fail-closed and 3/3 authenticated availability/rejection cases pass, and no HealthKit data was sent |
+| Two-account real step uploads | Deferred on 2026-07-29; open | First complete physical App Attest conformance, then record one accepted batch UUID per account without raw health values |
 | Merged Apple-device step accuracy | Unit-tested; physical proof open | For at least one completed hour with phone/watch overlap, record pass/fail against Health's merged value; separately confirm controlled manual and available third-party-only values are not labeled device-recorded |
 | Lost metric response, relaunch, and exact replay | Unit-tested; physical proof open | Record one saved batch UUID, two relaunches, accepted replay, and zero duplicate rows |
 | Metric queue account isolation | Unit-tested; physical proof open | Record the controlled account-switch observation |
-| No raw health data in app logs | Static/unit checks pass; physical inspection open | Record filtered app-log time range and pass/fail only |
+| No raw health data in app logs | Static/unit checks pass; physical inspection open | Record pass/fail and a bounded count only |
 | Release safety | Passed locally | Release build, configuration tests, UI gates, entitlement/plist separation, and scoped forbidden-API scans passed; signed distribution remains outside this record |
 | Live multi-friend challenge | Open beyond M8.1 | Record a separate three-account observation before making a live multi-select claim |
 | Background HealthKit delivery | Intentionally out of scope | Do not enable for this prototype |
 
 Do not mark M8.1 or HealthKit complete until the physical two-account record
 closes every applicable open row. Full M8 remains in progress after this gate.
-This run does not authorize a hosted configuration change, deployment,
-TestFlight submission, production release, git push, settlement, donations,
-disputes, APNs, or Core Location work.
+The approved hosted configuration change and two-function deployment are
+complete. This record authorizes no further hosted mutation, TestFlight
+submission, production release, git push, settlement, donations, disputes,
+APNs, or Core Location work.
 
-## Handoff after the one-device retry
+## Current handoff
 
-The 2026-07-29 session stopped deliberately after proving the current
-working-tree Staging build could be signed, installed, launched, and identified
-by its amber banner on one physical iPhone. The live Challenges screen loaded
-with no rows and correctly required an accepted friendship before creation.
-The tester had no second friend/device available, so no friendship, challenge,
-HealthKit permission, metric upload, replay, or account-isolation observation
-was attempted.
+The reviewed Staging configuration and two explicitly deployed function
+bundles are verified. No-data hosted rejection probes and the non-database
+regression suite pass. After Docker recovery, the clean local database reset and
+21-file/869-assertion pgTAP suite passed from a verified byte-identical
+non-iCloud checkout, followed by successful local-volume cleanup.
 
-The app may remain installed and the iPhone may be disconnected. The next task
-must preserve this uncommitted working tree, inspect current hosted state before
-any mutation, and obtain explicit approval before setting the product App ID
-secret or deploying `attest-device` and `ingest-metrics`. Do not tap **Sync
-Activity** against the older hosted metric bundle.
+Do not tap **Sync Activity** yet. The next external step is physical App Attest
+conformance on a user-provided, unlocked, provisioned device, followed by the
+two-device, two-account flow above. Preserve this uncommitted documentation
+update and stop before commit or push.
