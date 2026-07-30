@@ -1,7 +1,8 @@
 # ---- Secrets -------------------------------------------------------------
 .env
-.env.local
-.env.m6-5-staging
+.env.*
+!.env.example
+!.env.*.example
 *.p8
 *.p12
 ios/GameTime/Configuration/Secrets.xcconfig
@@ -19,8 +20,14 @@ deno.lock.tmp
 
 # ---- Swift / Xcode -------------------------------------------------------
 .build/
+build/
 .swiftpm/
 DerivedData/
+*.xcresult
+*.xcarchive
+*.ipa
+*.dSYM
+*.dSYM.zip
 *.xcuserstate
 xcuserdata/
 *.xcscmblueprint

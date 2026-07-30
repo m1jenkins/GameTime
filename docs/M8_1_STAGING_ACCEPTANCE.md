@@ -1,6 +1,6 @@
 # M8.1 staging acceptance
 
-M8.1 is an internal staging alpha. The current working tree improves immutable
+M8.1 is an internal staging alpha. Main revision `b593679` improves immutable
 review and staging diagnostics, and it adds explicit steps-only HealthKit sync
 for source-merged Apple-device totals, product App Attest, exact-byte retries,
 and visible confirmed/retained values. Repository implementation and fixture
@@ -11,8 +11,8 @@ below.
 This run stays within the friend, challenge, and explicit steps-sync prototype.
 It has no background HealthKit delivery, workouts, Core Location, settlement,
 donations, disputes, Apple Push Notification service (APNs), or production
-release work. Do not deploy, submit to TestFlight, or push this working tree as
-part of the run.
+release work. This acceptance run does not authorize a hosted deployment,
+TestFlight submission, or production release.
 
 ## External prerequisites
 
@@ -38,7 +38,7 @@ part of the run.
   step samples recorded inside the challenge window
 
 No service-role key, Apple private key, or provider secret belongs in the app.
-The working-tree verifier keeps the conformance App ID primary and accepts a
+The repository verifier keeps the conformance App ID primary and accepts a
 strict, maximum-three additional bundle list outside production for device
 registration and metric assertions. It binds receipt verification to the exact
 App ID that passed attestation. Check-in remains primary-only, and production
@@ -95,7 +95,7 @@ This is readiness evidence only, not a physical acceptance run.
 | Runtime launch | Pass: the tester confirmed the app was visibly open with the amber Test environment banner and supplied a screenshot of the live four-tab shell. Challenges loaded with no rows and correctly kept creation disabled until an accepted friendship exists |
 | Signature evidence | The build log names the paid-team identity/profile and signs with the generated Staging `.xcent`; the CodeDirectory is version 20400 with nonzero legacy and DER entitlement slots. Host-side certificate-chain verification remains untrusted, so runtime HealthKit/App Attest observations are still required |
 | Hosted schema/data readiness | All 19 local migrations are present in staging; active charity data and the named one-minute activation job exist |
-| Hosted function/configuration state | The three existing functions are active, the primary bundle remains the conformance target, development attestation is enabled for Staging, and `ATTEST_DEV_BYPASS` is absent; the product additional-ID secret and current working-tree function bundles are not deployed |
+| Hosted function/configuration state | The three existing functions are active, the primary bundle remains the conformance target, development attestation is enabled for Staging, and `ATTEST_DEV_BYPASS` is absent; the product additional-ID secret and revision `b593679` function bundles are not deployed |
 | Fail-closed probe | Unauthenticated registration-challenge and metric-ingest requests returned 401 |
 
 ## Two-account flow
@@ -246,9 +246,9 @@ the GameTime app-log evidence and never copy health values into this document.
 
 | Gate | Status | Evidence |
 | --- | --- | --- |
-| Current working-tree automated verification | Passed locally on 2026-07-29 | GameTimeCore 103/103; product unit 68/68; product UI 10/10; conformance 10/10; Deno 313/313 plus format/lint/check; Staging launch and Release build; new-file Swift formatting, plist, scoped safety, script syntax, and diff checks passed. The prior 21-file/869-assertion pgTAP result covers unchanged database SQL; Docker did not return for a fresh final rerun |
-| Immutable creator/invitee review and staging diagnostics | Implemented locally; physical proof open | Record both reviews, same challenge ID, full roster, and breakpoint observation |
-| Restart-safe challenge recovery | Implemented locally; physical proof open | Record request UUID, force-quit restore, original challenge ID, and bounded row counts |
+| Revision `b593679` automated verification | Passed locally on 2026-07-29 | GameTimeCore 103/103; product unit 68/68; product UI 10/10; conformance 10/10; Deno 313/313 plus format/lint/check; Staging and Release builds; new-file Swift formatting, plist, scoped safety, script syntax, and diff checks passed. The prior 21-file/869-assertion pgTAP result covers unchanged database SQL; Docker did not return for a fresh final rerun |
+| Immutable creator/invitee review and staging diagnostics | Implemented in `b593679`; physical proof open | Record both reviews, same challenge ID, full roster, and breakpoint observation |
+| Restart-safe challenge recovery | Implemented in `b593679`; physical proof open | Record request UUID, force-quit restore, original challenge ID, and bounded row counts |
 | Eligible Apple team and prior Sign in with Apple provisioning | Partial | The prior single-device launch observation passed. A fresh final-tree signed build succeeded, but its launch retry was denied while the connected iPhone remained locked; a fresh unlocked launch and second device remain open |
 | Single-user native auth/onboarding/relaunch | Partial | Install, Apple identity, profile, live shell, and relaunch passed; Apple-name prefill remains open |
 | Two-user force-quit/reload loop | Deferred on 2026-07-29; open | Resume when a second friend, Apple account, and provisioned iPhone are available |
@@ -267,21 +267,5 @@ the GameTime app-log evidence and never copy health values into this document.
 Do not mark M8.1 or HealthKit complete until the physical two-account record
 closes every applicable open row. Full M8 remains in progress after this gate.
 This run does not authorize a hosted configuration change, deployment,
-TestFlight submission, production release, git push, settlement, donations,
-disputes, APNs, or Core Location work.
-
-## Handoff after the one-device retry
-
-The 2026-07-29 session stopped deliberately after proving the current
-working-tree Staging build could be signed, installed, launched, and identified
-by its amber banner on one physical iPhone. The live Challenges screen loaded
-with no rows and correctly required an accepted friendship before creation.
-The tester had no second friend/device available, so no friendship, challenge,
-HealthKit permission, metric upload, replay, or account-isolation observation
-was attempted.
-
-The app may remain installed and the iPhone may be disconnected. The next task
-must preserve this uncommitted working tree, inspect current hosted state before
-any mutation, and obtain explicit approval before setting the product App ID
-secret or deploying `attest-device` and `ingest-metrics`. Do not tap **Sync
-Activity** against the older hosted metric bundle.
+TestFlight submission, production release, settlement, donations, disputes,
+APNs, or Core Location work.

@@ -1,13 +1,15 @@
 # M7 account deletion and raw-evidence retention
 
-> Status: D81 foundation integrated into the reconciled 2026-07-26 branch and
-> locally database-proven at 733/733 assertions. D81 and forward repair
-> `20260726230529` are deployed to staging, where committed manual and hosted
-> retention cycles pass. It is not yet CI- or concurrency-proven,
-> production-shaped staging-tested, or exposed as an end-to-end user feature.
+> Status: D81 foundation and forward repair `20260726230529` are integrated on
+> `main`, pass the current clean 21-file/869-assertion database suite, and were
+> included in the green initial PR #11 CI revision. Both migrations are
+> deployed to staging, where committed manual and hosted retention cycles pass.
+> Current-main CI recording, multi-session concurrency, hosted advisors,
+> production-shaped staging proof, and the end-to-end user feature remain open.
 
 This document describes the implementation boundary and the evidence required
-before deployment. Product rules remain authoritative in DECISIONS.md D81.
+before production deployment. Product rules remain authoritative in
+DECISIONS.md D81.
 
 ## Purpose and boundary
 
@@ -27,7 +29,8 @@ auditable. The implementation therefore:
 
 It does not yet implement the service/API/UI that confirms deletion,
 reauthenticates the user, delivers/stores capabilities, or lets a deleted actor
-use those capabilities against future result/obligation/dispute APIs.
+use those capabilities against the implemented result/obligation foundation or
+future claim, dispute, adjudication, and donation-receipt APIs.
 
 ## Migration ownership
 
@@ -37,6 +40,7 @@ use those capabilities against future result/obligation/dispute APIs.
 | `20260726060000_account_deletion_foundation.sql` | Durable actors, active Auth bindings, cascade removal, actor guards, pending lifecycle, capability scopes, and atomic deletion |
 | `20260726070000_raw_evidence_retention.sql` | Scope finality/holds, guarded raw pruning, immutable retention summaries/events, and the hourly job |
 | `20260726230529_fix_raw_evidence_generated_column_guard.sql` | Forward-only repair for the check-in source scrub: excludes stored generated ranges from the `BEFORE UPDATE` row comparison while preserving their base timestamps |
+| `20260728231601_m8_3c_standings_results_obligations.sql` | Immutable standings, first results, per-debtor obligations, and final-result attachment to the contest workflow scope |
 | `170_account_deletion.test.sql` | D81 schema, privilege, lifecycle, stale-JWT, capability, preservation, hold, and retention assertions |
 
 The deletion migration is large and deliberately takes one migration-wide write
@@ -179,13 +183,17 @@ remain open.
 Do not apply these migrations to production until all items pass:
 
 - [x] Reconcile the D81 work with `origin/main` and review one combined diff.
-- [x] Run a clean local reset and every pgTAP file (18 files / 733 assertions).
+- [x] Run a clean local reset and every current pgTAP file (21 files / 869
+      assertions).
 - [x] Run database lint and the supported local database inspection commands.
 - [x] Keep deployed `20260726070000` immutable, apply forward repair
       `20260726230529`, and reconcile staging migration history.
 - [x] Run committed manual and hosted retention probes; verify the source scrub,
       generated ranges, immutable events, and an idempotent recovery run.
-- [ ] Run Deno/Swift/CI and the hosted Security and Performance Advisors.
+- [x] Run Deno, Swift, and all four CI jobs on a revision containing D81 and
+      its forward repair (PR #11 initial head).
+- [ ] Record a current-main CI result and run the hosted Security and
+      Performance Advisors.
 - [ ] Test deletion against activation, invitation acceptance, metric/check-in
       ingest, receipt marking, hold/finality updates, and pruning in separate
       sessions.
@@ -193,8 +201,9 @@ Do not apply these migrations to production until all items pass:
       locks/duration and table rewrite/storage impact.
 - [ ] Document the backup point, quiet deployment window, statement/lock
       timeouts, abort criteria, recovery owner, and rollback limitations.
-- [ ] Confirm all new foreign keys preserve rosters/evidence when Auth and device
-      rows are removed.
+- [x] Confirm in `170_account_deletion.test.sql` that the foreign keys and
+      deletion path preserve rosters/evidence when Auth and device rows are
+      removed.
 - [ ] Exercise pending-author, pending-participant, active-contest, and
       no-capability deletion paths through the eventual service.
 - [ ] Prove capability plaintext never enters logs, analytics, notifications,
@@ -261,8 +270,11 @@ blocked by the retention guards.
 
 ## Required follow-on integration
 
-Every future result, obligation, claim, dispute, adjudication, and
-donation-receipt migration must:
+The implemented first-result/obligation foundation calls
+`app.ensure_contest_workflow_scope()` when a result becomes final. It does not
+yet expose capability-authorized reads or actions for a deleted actor. Every
+future claim, dispute, adjudication, donation-receipt, or obligation-extension
+migration must:
 
 - attach its actors and child scope to the correct contest lineage;
 - define user terminality and the operator-open cutoff;

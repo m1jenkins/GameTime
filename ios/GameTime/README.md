@@ -9,15 +9,18 @@ engineering harness.
 - `GameTime`: iOS 18, Swift 6, SwiftUI, `GameTimeCore`, and the exact
   `supabase-swift` version recorded in `Package.resolved`.
 - `GameTimeTests`: state, routing, DTO, validation, configuration, and client
-  boundary tests.
+  boundary tests, including HealthKit source merging, App Attest registration,
+  and exact-byte activity retry behavior.
 - `GameTimeUITests`: signed-out/onboarding roots, four-tab navigation, social
-  and challenge mutations, fixture states, Dynamic Type, labels, and Reduce
-  Motion.
+  and challenge mutations, fixture states, explicit Staging activity controls,
+  Dynamic Type, labels, and Reduce Motion.
 - `Debug`: live clients by default; pass `--fixture-mode` for deterministic
   local and UI-test data.
 - `Staging`: live clients, contest mutations enabled, and a persistent
   `Test environment—no real pledge` banner. The signed-out root and You tab
   can enter an isolated on-device demo without changing the live account.
+  Accepted active steps challenges expose explicit HealthKit authorization and
+  sync backed by product App Attest and an account-isolated exact-byte queue.
 - `Release`: live clients, with contest creation and acceptance locked until
   the evidence/App Attest slice is complete.
 
@@ -61,6 +64,21 @@ manual retry; the app never retries a mutation on its own. Starting another
 challenge is blocked until the server returns a confirmed contest UUID or the
 user accepts the warned discard path. Sign-out detaches the record from UI
 state without making it visible to another actor.
+
+## Explicit Staging activity sync
+
+For an accepted, active steps challenge, Staging exposes **Enable Activity**
+and **Sync Activity**. Reads are user initiated. The app plans only complete
+hours inside the immutable challenge window, asks HealthKit statistics to merge
+overlapping Apple-device sources, and excludes manual, unknown, and third-party
+contributions from this first trusted slice.
+
+Before upload, the app persists the exact metric body and App Attest assertion
+under the authenticated actor. Retryable or ambiguous outcomes survive
+relaunch and require another explicit tap; another account cannot see or send
+the saved batch. Debug and Release keep activity sync disabled. Background
+delivery, workouts, Core Location, and physical two-account acceptance remain
+open; follow the runbook linked below before using real step data.
 
 ## Safe configuration
 

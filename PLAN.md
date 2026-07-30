@@ -1,8 +1,9 @@
 # Implementation plan
 
-Audited and reconciled 2026-07-28 against the code, tests, documentation, local
-history, and `origin/main`. The current working tree also contains a narrow,
-staging-only steps sync slice whose local automated verification is green.
+Audited and reconciled 2026-07-29 against the code, tests, documentation, local
+history, and `origin/main` at revision `b593679`. The staging-only explicit
+steps-sync slice is committed on `main`; its local automated verification is
+green and its physical two-account acceptance gate remains open.
 README.md is the compact ledger of what is built; DECISIONS.md records why.
 This file owns sequence, remaining work, and launch blockers. The dated evidence
 and verification caveats are in `docs/IMPLEMENTATION_STATUS.md`.
@@ -14,95 +15,31 @@ and verification caveats are in `docs/IMPLEMENTATION_STATUS.md`.
 | M0–M4 | Complete | Scaffold, social graph, contests, attested metric ledger, deterministic scoring |
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
-| M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
+| M6.5 | In progress — conformance gate | Harness, independent receipt verification, staging backend, and one paid-team product sign/install/launch are verified; the focused conformance target still needs App Attest registration, one signed metric and check-in, exact replay/counter checks, and receipt/public-key audit on a physical iPhone |
 | M7 | M7.2a, D81, and the M8.3c first-result foundation implemented | Product contract D74–D82, transactional outbox, activation job, account deletion/retention, immutable standings snapshots, explicit first results, and per-debtor obligations are integrated; the trusted evidence-loading/adjudication orchestrator, disputes, settlement, and external gates remain |
-| M8 | M8.1 code path and later repository slices are present; acceptance remains open | Separate product app, Apple auth, exact-handle friendship, immutable challenge review, staging diagnostics, and locally implemented explicit Apple-device steps sync with HealthKit source merging, product App Attest, visible confirmed totals, and an account-isolated exact-byte retry queue; two-user/device proof, hosted product App Attest identity, background delivery, and later product slices remain |
+| M8 | M8.1 code path and later repository slices are present; acceptance remains open | Separate product app, Apple auth, exact-handle friendship, immutable challenge review, staging diagnostics, and committed explicit Apple-device steps sync with HealthKit source merging, product App Attest, visible confirmed totals, and an account-isolated exact-byte retry queue; two-user/device proof, hosted product App Attest identity, background delivery, and later product slices remain |
 
 M6's boundary is backend plus portable client core. It does not include live
 Core Location collection, HealthKit queries, or a production scoring/finalizer
 orchestrator; the first two belong to M8 and the orchestrator belongs to M7.
 
-## Audit snapshot and immediate repository gate
+## Current repository gate
 
-Local audit/D81 commit `c6bfed67` and upstream M6.5 hardening commit `cc8f440`
-are now reconciled on `main`. The combined branch contains D81's
-account-deletion/retention migrations and tests together with the hosted PKI.js
-runtime fix and reviewed staging configuration. Reconciliation removes the
-repository split; it does not substitute for the Swift, CI, concurrency,
-production-shaped migration, or remaining external proofs listed below.
-
-The 2026-07-26 local audit established:
-
-- Deno lint and type-check pass; all 287 Deno tests pass.
-- All 16 migration files execute in a clean PostgreSQL 17 reset, and all five Bash
-  scripts pass `bash -n`.
-- The later D81 integration pass completed a clean migration reset and all 18
-  pgTAP files: 733 assertions passed. Supabase CLI 2.109.1 also reported no
-  `public`/`app` lint errors and no local bloat, blockers, or long-running
-  queries through the supported inspection commands.
-- The original audit host could not execute Xcode. The M8.1 pass later ran all
-  88 GameTimeCore tests, 15 product unit tests, 6 product UI tests, and 10
-  conformance tests locally under Xcode 26.2. Staging and Release both build
-  without signing and warnings.
-- `deno fmt --check` is blocked on this Windows checkout by CRLF conversion in
-  otherwise unchanged tracked files. Verify from an LF checkout rather than
-  formatting 25 files as audit noise.
-
-The M8.1 pass also completed a clean 18-migration reset and all 20 pgTAP files:
-824 assertions passed, including the bounded friendship, stale-JWT,
-block/tombstone, atomic rollback, idempotent retry, changed-payload, and
-two-session concurrent duplicate cases. The `public` and `app` schemas remain
-clean under `supabase db lint`.
-
-The 2026-07-28 M8.3a pass repeated the clean 18-migration / 824-assertion
-database gate, including a two-invitee atomic roster and order-independent
-same-request retry. It also passed 30 product unit tests, 7 product UI tests,
-both unsigned Staging/Release simulator builds, 88 GameTimeCore tests, 10
-conformance tests, strict Swift formatting, and local `public`/`app` schema
-lint without warnings or errors.
-
-The M8.3c pass applies 19 migrations and passes all 21 pgTAP files / 869
-assertions, including the accepted-roster, disclosure, first-result,
-idempotency, grace, append-only, and per-debtor obligation contracts. Deno
-format, lint, type-check, and all 305 tests pass. The product target builds and
-launches on an iPhone 17 simulator; 34 product unit tests and 8 UI tests pass,
-including provisional rival-integrity redaction and final loser-obligation
-fixtures. The local `public`/`app` schema lint reports no errors.
-
-PR #11's initial M8.1 head (`c363610`) passed all four GitHub Actions jobs in
-[run 30236956570](https://github.com/m1jenkins/GameTime/actions/runs/30236956570):
-database, Deno, GameTimeCore, and the complete Xcode 26.2 product/configuration/
-conformance job. The checkout runtime maintenance follow-up must also be green
-before merge.
+`main` at `b593679` contains the reconciled backend, D81 retention work,
+M8.1/M8.2a/M8.3a/M8.3c/M8.3d product slices, and explicit steps sync. Historical
+test counts and revision-specific caveats live in
+`docs/IMPLEMENTATION_STATUS.md`, not in this forward plan.
 
 Remaining repository gates:
 
-1. Keep the complete GitHub Actions result green for the latest M8.1 head and
-   the post-merge `main` revision.
-2. Re-check from a fresh checkout that the repository-wide LF rule removes
-   Windows format/script drift without creating unintended source changes.
+1. Obtain and record one complete green GitHub Actions run for `b593679` or its
+   direct current-`main` successor. PR #11's initial head is useful historical
+   evidence, but it is not proof of the current revision.
+2. Re-check from a fresh LF checkout that the repository-wide line-ending rule
+   removes Windows format/script drift without creating unintended source
+   changes.
 3. Run the hosted Security and Performance Advisors and the remaining
    production-shaped migration/operations proofs.
-
-## Corrections retained from the prior audit
-
-- Reconciled the two feature commits that completed M5 and implemented M6.
-- Made timezone and quarantine review quorum immutable. Account deletion cannot
-  erase a vote, shrink consent into approval, or reopen a terminal rejection.
-- Enforced timezone epochs strictly inside the contest window and removed a
-  millisecond-precision race from the pgTAP assertion.
-- Made `service_role` privileges deterministic and denied direct mutation of
-  derived consent/check-in ledgers; writes stay behind their guarded RPCs.
-- Made metric batches, hourly snapshots, and quarantine audit rows owner-only;
-  D77 peer review now binds to the evidence row's exact contest and exposes only
-  phase-labelled, redacted pending-claim facts.
-- Made the portable check-in queue restorable from persisted exact body bytes
-  and fail visibly at capacity instead of evicting irreplaceable location
-  evidence.
-- Replaced literal NUL bytes in the scoring source with the equivalent escaped
-  separator so normal text-search tools index the file.
-- Confirmed the local toolchain: Xcode 26.2, iOS 26.2 SDK, and Swift 6.2.3.
-  The chosen iOS 18 deployment target remains valid.
 
 ## M6.5 — device-conformance spike
 
@@ -123,11 +60,10 @@ Definition of done:
 5. Capture a repeatable smoke-test procedure and remove any development bypass
    from staging.
 
-M6.5 owns a conformance-only device target, not the product app. This spike does
-not need the full UI; its target can become the first thin slice of M8 if
-maintaining a throwaway target would cost more than keeping it.
+M6.5 owns the focused conformance-only target. The M8 product app remains a
+separate target under D83.
 
-Implemented locally:
+Implemented in the repository:
 
 - A conformance-only iOS 18 target that persists one App Attest key, sends the
   exact production metric and check-in bodies, decodes counters, and replays the
@@ -157,8 +93,11 @@ App Attest to build, sign, install, and launch `GameTime-Staging` on the
 connected iPhone. The build log shows the intended entitlement file at CodeSign,
 and the resulting CodeDirectory contains both legacy and DER entitlement slots.
 This closes the one-device signing/install prerequisite, not physical HealthKit
-or App Attest proof. A second provisioned device, the approved hosted metric
-rollout, and the complete runbook remain open.
+or App Attest proof. The focused M6.5 gate still needs paid-team provisioning
+for `com.gametime.conformance`, a staging Auth fixture, and the complete
+registration/metric/check-in/replay runbook on a physical iPhone. Separately,
+M8 needs a second provisioned device and the approved hosted product-verifier
+rollout.
 
 Do not mark M6.5 complete until the runbook records one successful device
 registration, metric, check-in, exact retry, and counter/public-key/receipt audit
@@ -171,9 +110,9 @@ settlement while that timestamp is absent.
 M7 starts with decisions, then proves scheduling, then adds money-adjacent state.
 M7.1 is complete as a documentation/product-contract slice. M7.2's outbox,
 activation infrastructure, and D81's pre-result account-deletion foundation may
-proceed while M6.5 awaits App Attest-capable signing and physical-device proof
-because they create no settlement-bearing result. M6.5 remains a hard gate
-before finalization or settlement is enabled.
+proceed while M6.5 awaits focused physical App Attest conformance because they
+create no settlement-bearing result. M6.5 remains a hard gate before
+finalization or settlement is enabled.
 
 ### 1. Resolve the product decisions first — complete
 
@@ -225,15 +164,18 @@ before finalization or settlement is enabled.
   active-contest and challenge-horizon capabilities, profile-field clearing,
   one atomic deletion RPC, generic case-capability authorization, persisted
   operator cutoffs, versioned raw-data retention, and the guarded retention
-  worker. The pending pgTAP coverage is designed to assert that deletion cannot
-  erase a roster, ingest batch, check-in, or quarantine, prune an active device
-  registration, or let a stale JWT authorize the tombstone. Future result,
-  obligation, dispute, and donation-receipt migrations attach their child
-  scopes and retained facts to these seams.
+  worker. The pgTAP suite asserts that deletion cannot erase a roster, ingest
+  batch, check-in, or quarantine, prune an active device registration, or let a
+  stale JWT authorize the tombstone. The implemented first-result and
+  obligation migration attaches its workflow scope and retained facts to these
+  seams; future dispute and donation-receipt migrations must do the same.
 - [x] Integrate the D81 work on top of `origin/main`.
-- [x] Run the full 733-assertion database suite and the supported local
-  lint/performance inspection commands.
-- [ ] Run CI and clear the hosted Security and Performance Advisors.
+- [x] Run the current 21-file/869-assertion database suite and the supported
+  local lint/performance inspection commands.
+- [x] Run Deno, Swift, and all four CI jobs on a revision containing D81 and its
+  forward repair (PR #11 initial head).
+- [ ] Record a current-main CI result and clear the hosted Security and
+  Performance Advisors.
 - [ ] Add multi-session tests for deletion racing activation, invitation
   acceptance, ingest, receipt marking, hold creation, retention, and future
   finality writes. A single pgTAP transaction cannot prove lock ordering.
@@ -285,7 +227,8 @@ adjudication, M6.5 device, or staging gates true by itself.
 
 ### 4. Add settlement, disputes, and reliability
 
-- Append-only winner/loser/amount/charity obligations, plus D75's explicit
+- Make the existing append-only winner/loser/amount/charity obligations
+  actionable only after the review/dispute boundary; preserve D75's explicit
   self-directed `all_donate` exception.
 - Pledge-confirmation evidence with D74's donation-time and receipt-allocation
   validation, redacted challenger view, and decided confirmation paths.
@@ -305,7 +248,7 @@ adjudication, M6.5 device, or staging gates true by itself.
 
 ### M8.1 — Live social and contest loop
 
-Implemented in `codex/m8-live-social-loop`:
+Implemented on `main` (the initial repository slice originated in PR #11):
 
 - [x] Separate iOS 18 / Swift 6 product, unit-test, and UI-test targets using
   `GameTimeCore` and an exact `supabase-swift` package pin.
@@ -331,10 +274,13 @@ Implemented in `codex/m8-live-social-loop`:
   breakpoint hook for a repeatable committed-but-unacknowledged creation run.
 - [x] A `macos-26` CI job selecting Xcode 26.2 and testing both product and
   conformance schemes without signing.
-- [ ] Provision the product App ID through an eligible Apple team and complete
-  `docs/M8_1_STAGING_ACCEPTANCE.md` with two Apple-authenticated users,
-  force-quit/relaunch after every mutation, a deliberately lost-response retry,
-  and one shared pending contest.
+- [x] Provision the paid-team Staging App ID and complete one signed
+  build/install/launch with Sign in with Apple, HealthKit, and development
+  App Attest entitlement inputs.
+- [ ] Complete `docs/M8_1_STAGING_ACCEPTANCE.md` with a second provisioned
+  physical device, two Apple-authenticated users, force-quit/relaunch after
+  every mutation, deliberately lost challenge and metric responses, one shared
+  challenge, accepted step uploads, and App Attest replay evidence.
 
 The M8.1 repository path is present with staging proof open. M8.1 is not
 complete. It is an internal alpha, not an App Store or production release.
@@ -425,8 +371,8 @@ the two-user staging acceptance gate.
 
 ### M8 staging slice: explicit steps sync
 
-The current working tree implements this slice locally. The consolidated
-repository verification gate passed on 2026-07-28; exact commands and counts are
+Main revision `b593679` implements this slice. Its consolidated local repository
+verification gate passed; exact commands, dates, counts, and caveats are
 recorded in `docs/IMPLEMENTATION_STATUS.md`. The physical two-account acceptance
 gate remains open.
 
@@ -474,7 +420,7 @@ gate remains open.
   primary-only; production refuses the additional list.
 - [ ] With separate approval, configure
   `APPLE_ADDITIONAL_BUNDLE_IDS=com.mjenkins.gametime.staging` and deploy the
-  reviewed `attest-device` and `ingest-metrics` working-tree bundles. Keep
+  reviewed `attest-device` and `ingest-metrics` repository bundles. Keep
   `APP_ATTEST_ALLOW_DEVELOPMENT=true` in Staging and `ATTEST_DEV_BYPASS` absent,
   then rerun conformance and product rejection probes before physical testing.
 - [ ] Record the physical two-account run in
@@ -485,7 +431,7 @@ gate remains open.
 The 2026-07-29 one-device retry passed signed build, install, launch, Staging
 banner, and empty live challenge-state observation. The tester deferred the
 two-account run because a second friend/device was unavailable. That is a
-scheduled handoff, not a failed gate or completion claim.
+recorded external blocker, not a failed gate or completion claim.
 
 This slice has no background HealthKit delivery, HealthKit workout collection,
 Core Location, Apple Push Notification service (APNs), settlement, donation,
@@ -513,14 +459,14 @@ until the physical staging record closes its open rows.
 | Item | Why it blocks |
 | --- | --- |
 | Production charity list | Production is intentionally empty; contest creation fails until EINs are verified |
-| App Attest device proof | Product metric signing is implemented locally, but the hosted App ID must match `com.mjenkins.gametime.staging` and physical registration/assertion/replay must pass without a bypass |
+| App Attest device proof | Product metric signing is implemented in the repository, but the hosted verifier must allow `com.mjenkins.gametime.staging` as the bounded Staging-only additional ID while retaining `com.gametime.conformance` as primary; physical registration/assertion/replay must pass without a bypass |
 | Hosted staging proofs | Retention has committed manual/cron proof; activation still needs a committed-row cron run, and retention still needs hold/failure-recovery evidence |
 | Notifications | Action-required flows need a durable inbox and eventual delivery; deadlines cannot depend on push |
 | Adjudication operations | Review and dispute deadlines need authorized staffing, queues, alerts, and a tested SLA |
 | Observability | Rejected ingest, scheduler failures, and stuck reviews must be measurable |
 | Rate limiting | Signed-in callers can currently create avoidable endpoint load |
 | Privacy and abuse handling | Health, workout, and location data require disclosure, retention rules, and reporting paths |
-| Release engineering | PR #11 has a green macOS product/conformance result; preserve the latest-head/main result and document deploy/rollback/restore |
+| Release engineering | PR #11 provides historical green macOS product/conformance evidence; obtain a current-main result and document deploy/rollback/restore |
 
 ## Verification policy
 

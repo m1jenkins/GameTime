@@ -2730,13 +2730,6 @@ The M7 migration must replace today's `auth.users → profiles →
 contest_participants` cascade and the device-key evidence cascades with this
 explicit pseudonymization path before any durable result can exist.
 
-> **Working-tree implementation 2026-07-26:** the D81 foundation now replaces
-> those cascades, adds durable actors, stale-JWT denial, atomic service-only
-> deletion, scoped capabilities, retention rules/holds/events, and a guarded
-> hourly pruner. It is not yet an integrated or deployed feature: full
-> database/CI/concurrency/staging verification, user-facing capability handoff,
-> and future result/obligation/dispute/receipt child scopes remain open.
-
 **Why.** Keeping the current cascade would make account deletion the cheapest
 way to erase a losing pledge and could change a finalized roster underneath its
 result. Refusing deletion forever is not acceptable either. A pseudonymous
@@ -3095,18 +3088,21 @@ contests that ran (D75), bounded quarantine review (D76), standings disclosure
 durable pseudonymization (D81).
 
 M7.2 has implemented D80's durable outbox and D82's named one-minute activation
-job. The reconciled branch also implements D81's pre-result durable-actor and
-raw-retention foundation. M6.5 and hosted scheduler observations remain open and
-still gate result finalization and settlement.
+job. `main` also implements D81's pre-result durable-actor and raw-retention
+foundation. M6.5 physical conformance and the hosted scheduler observation
+remain open and still gate result finalization and settlement.
 
-M8.1 and its first creation/durability follow-ups implement D83–D87 and D89: a
-separate product target with typed navigation, a caller-bounded social-card API,
-atomic caller-idempotent multi-friend challenge invitations, native Apple token
+The current M8 repository slices implement D83–D87 and D89–D92: a separate
+product target with typed navigation, a caller-bounded social-card API, atomic
+caller-idempotent multi-friend challenge invitations, native Apple token
 exchange, public-only configuration, staging disclosure, Release mutation lock,
-refresh-driven live clients, and backward-compatible protected manual retry
-recovery across relaunch. Its eligible-team, two-user Apple staging observation
-remains open, and later M8 slices retain the sensor, App Attest, evidence queue,
-inbox/APNs, and release responsibilities.
+refresh-driven live clients, backward-compatible protected manual retry,
+an isolated on-device demo, a bounded Staging-only product App Attest identity,
+and source-merged explicit Apple-device steps with exact-byte retry. One
+paid-team product sign/install/launch is recorded. The hosted product-verifier
+rollout and physical two-user proof remain open, and later M8 retains background
+sensor delivery, product check-in and remaining queue integration, inbox/APNs,
+and release responsibilities.
 
 - **Quarantine and group approval (resolved by D60 and D76).** A duel needs its
   opponent; a group needs a strict majority of other accepted participants.
@@ -3126,13 +3122,13 @@ inbox/APNs, and release responsibilities.
   unrecognized, missing, and malformed identifiers receive tunable, capped
   integrity penalties, and identical retries collapse to the same signal.
 - **Retention on finalized contests (resolved by D81; foundation implemented).**
-  The reconciled branch implements versioned rules, holds, cutoffs, immutable
+  `main` implements versioned rules, holds, cutoffs, immutable
   pruning events, and the raw metric/location/device worker. The append-only
   ledger remains intact while a result can change. After user-finality and
   closed cases, `raw-evidence-retention-v1` removes exact location after 30 days
   and raw metric/source plus device-attestation material after 90 days.
-  Result, obligation, dispute, and donation-receipt scopes attach when those M7
-  ledgers exist.
+  The first-result path now ensures the contest workflow scope; dispute and
+  donation-receipt child scopes attach when those later M7 ledgers exist.
 - **Reliability score formula (resolved by D79).** Equal-weight obligation
   outcomes decay with a 365-day half-life; timely honor, late honor, and default
   contribute 1, 0.5, and 0, with fewer than three results shown as `Unrated`.

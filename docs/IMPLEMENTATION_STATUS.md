@@ -1,10 +1,9 @@
 # GameTime implementation status
 
-> Audit snapshot: 2026-07-29, including the M8.3c M7-backed standings and
-> M8.3d isolated on-device demo implementation. The current working tree also
-> contains a staging-only explicit steps-sync slice whose local automated
-> verification passed on 2026-07-28 and whose App Attest verifier follow-up
-> passed on 2026-07-29.
+> Audit snapshot: 2026-07-29 at main revision `b593679`, including the M8.3c
+> M7-backed standings, M8.3d isolated on-device demo, and staging-only explicit
+> steps-sync implementation. Local automated verification completed across
+> 2026-07-28–29, including the App Attest verifier follow-up.
 > This is a dated evidence record. `README.md` is the compact project overview,
 > `PLAN.md` owns sequence and launch gates, and `DECISIONS.md` owns
 > product/architecture decisions.
@@ -20,7 +19,8 @@ and challenge navigation loop.
 
 Milestones M0–M6 are complete within their deliberately backend-first scope.
 M6.5 has a verified staging backend and a purpose-built iPhone conformance
-target, but the eligible-team physical-device observation is still open. M7.2a's
+target. One paid-team Staging product sign/install/launch is complete, but the
+focused physical App Attest conformance observation is still open. M7.2a's
 notification outbox and scheduled activation are implemented, but their hosted
 committed-row proof is open. A large D81 account-deletion/retention foundation
 is integrated, locally database-proven, deployed to staging, and proven there
@@ -55,8 +55,8 @@ creation. The retained live model and Supabase data are unchanged, demo state
 is discarded on exit, and Release does not compile the fixture factory. This
 does not satisfy the live two-user acceptance gate.
 
-The current working tree improves the physical acceptance path without closing
-it. Creator and invitee views now expose the immutable window, timezone, and
+Revision `b593679` improves the physical acceptance path without closing it.
+Creator and invitee views now expose the immutable window, timezone, and
 full roster. Staging challenge detail exposes the challenge ID and loaded
 roster, and
 `StagingAcceptanceDiagnostics.challengeCreationResponseReceived` supplies a
@@ -81,17 +81,18 @@ cannot expose old or new step values or source metadata.
 Release activity sync remains disabled, contest mutation remains locked, and
 fixture routes remain absent.
 
-A 2026-07-29 physical-device retry built, signed, installed, and launched this
-working tree on one iPhone. The tester confirmed the amber Staging banner and
-live four-tab shell. The Challenges screen correctly showed no challenges and
-kept creation disabled because this account has no accepted friendship. This is
-current one-device runtime evidence, not the required two-user run. The tester
-then deferred the remaining physical acceptance because a second friend/device
-was unavailable; no HealthKit or metric-upload action was attempted.
+A 2026-07-29 physical-device retry built, signed, installed, and launched the
+then-current steps-sync tree on one iPhone. The tester confirmed the amber
+Staging banner and live four-tab shell. The Challenges screen correctly showed
+no challenges and kept creation disabled because this account has no accepted
+friendship. This is one-device runtime evidence, not proof that exact revision
+`b593679` launched and not the required two-user run. The tester then deferred
+the remaining physical acceptance because a second friend/device was
+unavailable; no HealthKit or metric-upload action was attempted.
 
 During the final source review, the connected iPhone accepted a fresh signed
 Staging build, but the launch request was denied because the device remained
-locked. This confirms current-tree device compilation/signing only; it does not
+locked. This confirms final-source device compilation/signing only; it does not
 replace the earlier launch observation or add any HealthKit/runtime evidence.
 
 This activity slice has no background delivery. It also adds no workouts, Core
@@ -101,8 +102,9 @@ primary identity and accepts a strict, maximum-three
 `APPLE_ADDITIONAL_BUNDLE_IDS` list for product registration and metric
 assertions outside production only. Receipt verification uses the exact App ID
 that passed attestation; check-in remains primary-only; production rejects the
-additional list. The hosted project has not received this working-tree bundle
-or the product App ID configuration. Its active `ingest-metrics` bundle also
+additional list. The hosted project has not received the revision `b593679`
+function bundles or the product App ID configuration. Its active
+`ingest-metrics` bundle also
 predates the local database-detail redaction, so real health uploads must wait
 for a separately approved hosted rollout. Development-signed Staging
 verification still requires `APP_ATTEST_ALLOW_DEVELOPMENT=true`, with
@@ -133,13 +135,13 @@ suite plus the current local Swift/Xcode evidence below, and still needs
 hosted-advisor, production-shaped migration, and the external proofs below
 before it can support a release claim.
 
-The explicit steps-sync work is a current working-tree slice on that baseline.
-Its current local evidence is recorded separately below; do not attribute older
-revision evidence to it.
+The explicit steps-sync work is committed in revision `b593679` on top of that
+baseline. Its local evidence is recorded separately below; do not attribute
+older revision evidence to it.
 
 ## Verification evidence
 
-### Executed for the current explicit steps-sync working tree
+### Executed for explicit steps-sync revision `b593679`
 
 | Check | Result | What it proves |
 | --- | --- | --- |
@@ -158,16 +160,16 @@ not prove Apple provisioning, HealthKit behavior on a physical iPhone, hosted
 product App Attest identity, two-account synchronization, or signed
 distribution.
 
-### Executed in this audit
+### Earlier revision evidence
 
-The rows in this section predate the current explicit steps-sync working tree.
-They remain historical evidence for the named revisions and scopes only.
+The rows in this section predate explicit steps-sync revision `b593679`. They
+remain historical evidence for the named revisions and scopes only.
 
 | Check | Result | What it proves |
 | --- | --- | --- |
 | M8.3d product compile gates | Debug build, Debug build-for-testing, Staging build, and Release build pass with no warnings | New unit/UI sources compile; Staging includes the explicit demo path, while Release compiles with fixture code absent. Runtime tests still require a booted simulator |
-| Deno lint | Pass, 41 files checked | Current TypeScript satisfies configured lint rules |
-| Deno type-check | Pass | Current Edge Function/shared code type-checks |
+| Deno lint | Pass, 41 files checked | That revision's TypeScript satisfies configured lint rules |
+| Deno type-check | Pass | That revision's Edge Function/shared code type-checks |
 | Deno tests | 305 passed, 0 failed | Handler, cryptography, JWT, scoring, integrity, and adapter unit behavior, including complete accepted-roster all-donate outcomes |
 | PostgreSQL 17 migration execution | All 19 migrations applied in a clean reset | Migration syntax and execution semantics succeed on the local PostgreSQL 17 stack |
 | Bash syntax | All 5 scripts passed `bash -n` | Shell grammar only |
@@ -179,7 +181,7 @@ They remain historical evidence for the named revisions and scopes only.
 | Single-user product staging device | Partial pass on 2026-07-27; Xcode 26.2, iPhone 17, iOS 27.0, app revision `dca1309` | Paid-team signing, install, native Apple identity, linked profile, four tabs, staging banner, live charity request, and force-quit session/profile reload passed. Apple returned no full name, so the name-prefill observation remains open |
 | Conformance Xcode scheme | Pass, 10 tests; no warnings | Removing the product preview preserves the focused request/CBOR/replay harness |
 | GameTimeCore SwiftPM | Pass, 88 tests; 0 failed | The portable domain, exact-byte queue, validation, request-building, and cryptographic/supporting primitives remain green independently of the app target |
-| M8.1 pull-request CI | PR #11 initial head `c363610` passed all four jobs in [run 30236956570](https://github.com/m1jenkins/GameTime/actions/runs/30236956570); the Xcode 26.2 job completed in 15m 8s | A clean GitHub-hosted run reproduced pgTAP, Deno, GameTimeCore, product tests, Staging/Release builds, and conformance tests; the checkout-runtime follow-up must rerun before merge |
+| M8.1 pull-request CI | PR #11 initial head `c363610` passed all four jobs in [run 30236956570](https://github.com/m1jenkins/GameTime/actions/runs/30236956570); the Xcode 26.2 job completed in 15m 8s | A clean GitHub-hosted run reproduced pgTAP, Deno, GameTimeCore, product tests, Staging/Release builds, and conformance tests for that historical revision; record a separate current-main result for `b593679` or its direct successor |
 | Supported local database inspection | Pass; database/index/role stats and outliers reviewed, with no bloat, blocking queries, or long-running queries | Local runtime health after the clean suite; fresh-test index counters are diagnostic and do not justify dropping indexes |
 | Staging migration reconciliation | Migrations through `20260726070000` were already applied; forward repair `20260726230529` applied successfully | The applied migration remains immutable and staging history now carries the generated-column repair as a new migration |
 | Staging manual retention cycle | At 2026-07-26 23:09:47 UTC, 2 exact-location rows were pruned and 1 source-identifier pair was scrubbed; 3 immutable events were appended; immediate rerun returned all zeros | The repaired guard permits only the worker scrub, stored ranges recompute correctly, audit output is durable, and the worker is idempotent |
@@ -198,14 +200,14 @@ They remain historical evidence for the named revisions and scopes only.
 
 | Milestone | Status | Delivered | Still open |
 | --- | --- | --- | --- |
-| M0 | Complete baseline | Supabase scaffold, migrations, local scripts, pgTAP/Deno/Swift CI with pinned Supabase/Deno/Xcode versions | Preserve latest-head/main CI and add deployment/rollback automation |
-| M1 | Complete in repo | Profiles, friendships, groups, membership, blocks, RLS and guarded RPCs | Product screens; handle throttling/avatar storage |
+| M0 | Complete baseline | Supabase scaffold, migrations, local scripts, pgTAP/Deno/Swift CI with pinned Supabase/Deno/Xcode versions | Record current-main CI and add deployment/rollback automation |
+| M1 | Complete in repo | Profiles, friendships, groups, membership, blocks, RLS, guarded RPCs, and exact-handle friendship UI | Group/profile-management UI; handle throttling/avatar storage |
 | M2 | Complete in repo | Charities schema, contests, invitations, participant lifecycle, activation primitive | Verified production charity data |
 | M3 | Complete in repo | Attested metric ledger, idempotent ingest, local-hour bucketing/provenance/queue core | Physical product HealthKit/App Attest proof and background delivery |
 | M4 | Complete in repo | Deterministic TypeScript scoring and fixture corpus | Production data-loading/finalizer orchestrator |
 | M5 | Complete in repo | Integrity scoring, quarantines/reviews, source reputation, timezone epochs | D76 escalation/adjudicator operation |
 | M6 | Complete in repo | Geofences, workout overlap, trusted-location integrity, exact-byte check-in queue | Live Core Location/HealthKit workout collection |
-| M6.5 | Gate open | Staging backend, conformance target, independent receipt verification, runbook, paid-team identity, and one signed/installed/launched Staging product build with the required capabilities | Complete the conformance Auth fixture and physical App Attest registration, assertion, replay, and receipt observation |
+| M6.5 | Gate open | Staging backend, conformance target, independent receipt verification, runbook, paid-team identity, and one signed/installed/launched Staging product build with the required capabilities | Provision and run the focused conformance target: App Attest registration, one signed metric and check-in, exact replay/counter checks, and receipt/public-key audit |
 | M7.1 | Complete | D74–D82 product contract | Implementation of most settlement domain |
 | M7.2a | Implemented | Transactional notification intents and named one-minute activation job | Hosted committed-row activation proof |
 | D81 foundation | Staged; local and retention-cycle proven | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker, forward generated-column repair | Broader concurrency/production-shaped migration, hosted advisors, hold/failure recovery; user-facing deletion/capability path |
@@ -244,7 +246,7 @@ The implemented architecture includes:
 - complete immutable creator/invitee review plus staging-only challenge ID and
   roster diagnostics, including a stable breakpoint after the challenge
   creation response;
-- in the current working tree, explicit steps-only HealthKit authorization and
+- in revision `b593679`, explicit steps-only HealthKit authorization and
   sync for active staging challenges, completed frozen-timezone interval
   planning, source-merged Apple-device statistics that avoid phone/watch
   double counting, exact boundary pairing, visible confirmed/retained totals,
@@ -260,98 +262,15 @@ The implemented architecture includes:
   state, caller-only live integrity detail, and own-obligation disclosure;
 - a payload-free transactional notification-intent ledger and named activation
   scheduler; and
-- in the reconciled branch, durable pseudonymous actors, stale-JWT denial,
+- on `main`, durable pseudonymous actors, stale-JWT denial,
   account-deletion capabilities, retention policies/holds/events, and an hourly
   raw-evidence pruner.
 
-## Remaining work, by priority
+## Current plan
 
-### P0 — Prove the reconciled repository revision
-
-1. Preserve the green GitHub Actions result on the latest PR head and
-   post-merge `main`.
-2. Re-check from a fresh checkout that the repository-wide LF rule removes
-   Windows format/script drift without creating unintended source changes.
-3. Run the hosted Security and Performance Advisors against the staged D81
-   schema.
-4. Add real multi-session concurrency tests for deletion racing activation,
-   invitation acceptance, ingest, receipt marking, finality/holds, and pruning.
-5. Apply the large D81 migration to a production-shaped staging copy; measure
-   locks and document backup, deployment window, recovery, and rollback limits.
-
-### P1 — Close the two external backend gates
-
-1. Provision the connected iPhone through an App Attest-capable Apple Developer
-   Program team.
-2. Create the staging Auth user/fixture and complete every M6.5 observation.
-3. Run M7.2b against committed rows opened by `gametime-activate-due-contests`;
-   inspect `cron.job_run_details` and exercise ingest/timezone/check-in paths.
-4. Complete retention operations proof with a hold-blocked cycle, deliberate
-   failed-job observation, alerting, and recovery.
-
-### P2 — Complete the finalization vertical slice
-
-1. Load evidence, source reputation, timezone events, quarantine state,
-   geofence integrity, and trusted locations into one server orchestrator.
-2. Persist a complete versioned integrity assessment before interpreting
-   “zero quarantines” as clean.
-3. Implement bounded D76 escalation/adjudication and explicit clearance.
-4. Invoke the existing serialized, grace-gated first-result publisher only from
-   that trusted pipeline; add multi-session coverage around the finality locks.
-5. Operate the finalizer in staging with authorized queues, observability,
-   alerts, and an on-call/SLA runbook before enabling it.
-
-### P3 — Complete settlement and operations
-
-- make the append-only first-result obligations actionable only after D78's
-  review/dispute boundary, then add D74 pledge-confirmation/receipt evidence;
-- D78 result/obligation disputes, pauses, corrections, and audited authority;
-- D79 reliability calculation and challenge windows;
-- remaining notification events and deadline workers;
-- a guarded account-deletion service with reauthentication, confirmation,
-  one-time capability delivery/storage, and explicit non-recovery UX; any
-  recovery mechanism requires a separate reviewed design;
-- operator queues, authorization, conflicts, SLAs, alerting, and runbooks; and
-- rate limits, structured observability, privacy/abuse processes, retention
-  operations, and production charity curation.
-
-### P4 — Close M8.1 proof and continue the product loop
-
-1. Preserve the successful paid-team Staging install and add a second physical
-   device to a profile containing Sign in with Apple, HealthKit, and App Attest.
-2. With separate approval, configure
-   `APPLE_ADDITIONAL_BUNDLE_IDS=com.mjenkins.gametime.staging`, deploy the
-   reviewed `attest-device` and `ingest-metrics` bundles, and rerun conformance
-   plus fail-closed probes. Keep `APPLE_BUNDLE_ID=com.gametime.conformance`,
-   require `APP_ATTEST_ALLOW_DEVELOPMENT=true` only in Staging, and keep
-   `ATTEST_DEV_BYPASS` absent.
-3. Record the two-account challenge run and two real step uploads, including
-   force-quit restore, lost-response exact retry, replay acceptance, account
-   isolation, and the app-log privacy check. Keep Release locked.
-4. Add HealthKit background delivery and Core Location/workout capture through
-   the existing exact-byte queues.
-5. Extend the protected pending-action model beyond challenge creation, then
-   add a durable in-app inbox and APNs delivery.
-6. Add review/adjudication and actionable settlement/dispute screens only after
-   M7 supplies those APIs; stage-prove the implemented standings read surface.
-7. Complete accessibility/privacy hardening, avatar/group-feed policy,
-   reminders, and App Store release work.
-
-## Recommended next sequence
-
-1. **Repository proof:** obtain one green database/Deno/Swift/CI result on the
-   reconciled revision.
-2. **External proof sprint:** close M6.5, M7.2b, and the remaining retention
-   failure-recovery proof while the staging environment is active.
-3. **Finalizer slice:** connect evidence loading and complete assessments to the
-   immutable result boundary, including adjudication and operational gates.
-4. **Settlement slice:** obligations, confirmation, disputes, reliability, and
-   their operated deadlines.
-5. **Product slice:** close M8.1 and explicit steps-sync external proof, then
-   add background sensor delivery, remaining protected actions, inbox/APNs, and
-   later M7-backed product slices.
-6. **Launch hardening:** charities, monitoring, rate limits, privacy/abuse,
-   backup/restore, deployment controls, accessibility, and App Store evidence.
+This dated status record does not own work priority or sequencing. See
+[`PLAN.md`](../PLAN.md) for the current repository gates, milestone work, and
+recommended next sequence.
 
 ## Claims that should not be made yet
 
@@ -361,7 +280,11 @@ The implemented architecture includes:
   produce accepted step uploads and the lost-response replay is recorded.
 - Full M8 is complete merely because the M8.3a creation, M8.3c standings, and
   M8.3d demo plus explicit steps-sync slices are locally implemented.
-- D81 is CI-proven or safe to deploy at production scale.
+- Revision `b593679` or its current-main successor has a recorded green CI run.
+  Historical PR #11 CI covers a revision containing D81, not the current
+  repository revision.
+- D81 is safe to deploy at production scale before its concurrency,
+  production-shaped staging, advisor, and failure-recovery gates pass.
 - M6.5 physical App Attest conformance is complete.
 - The activation job has a committed-row hosted proof.
 - Account deletion is an end-to-end user feature.

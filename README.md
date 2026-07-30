@@ -11,20 +11,22 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status, reconciled 2026-07-28: the backend and portable client core are
-complete through M6, and the M8.1–M8.3d product slices are implemented with
-staging proof open. This is not yet a shippable iOS app.**
+**Status, reconciled 2026-07-29: the backend and portable client core are
+complete through M6, and the M8.1, M8.2a, M8.3a, M8.3c, M8.3d, and explicit
+steps-sync product slices are implemented with staging proof open. This is not
+yet a shippable iOS app.**
 M6.5's staging backend,
 conformance-only iOS target, independent App Attest receipt verifier,
 Apple-vector regression, receipt quarantine, and fail-closed hosted
-configuration are implemented and verified. The remaining M6.5 gate is to
-provision the connected iPhone with an App Attest-capable Apple Developer
-Program team, install the staging Auth fixture, and complete the documented
-smoke run.
+configuration are implemented and verified. A paid-team Staging product build
+with Sign in with Apple, HealthKit, and development App Attest entitlement
+inputs has been signed, installed, and launched once. The focused M6.5 physical
+conformance run still needs App Attest registration, one signed metric and
+check-in, exact replay/counter checks, and receipt/public-key audit.
 
 M7's product contract is recorded in DECISIONS.md D74–D82. The payload-free
-notification outbox and named one-minute activation job are implemented. The
-reconciled branch also implements D81's durable actor tombstones, atomic
+notification outbox and named one-minute activation job are implemented.
+`main` also implements D81's durable actor tombstones, atomic
 account deletion, scoped continuation capabilities, and versioned raw-evidence
 retention. D77's metric/quarantine evidence boundary is also hardened: direct
 audit reads are owner-only and pending peer review goes through exact-contest,
@@ -35,23 +37,27 @@ local database reset now passes all 869 pgTAP assertions and the supported
 local lint checks. D81 and forward
 guard repair `20260726230529` are deployed to staging, where committed manual
 and hosted raw retention cycles prove exact-location pruning and the 90-day
-source-identifier scrub. CI, concurrency, hosted advisors, production-shaped
-migration timing, and retention failure recovery remain open. M8.1–M8.3d now
-add a separate product Xcode target, native Apple-auth/onboarding state, the
-live exact-handle friendship loop, atomic idempotent multi-friend challenge
-invitations, four-tab SwiftUI navigation, Debug fixtures, a Release mutation
-lock, protected per-user manual retry recovery that survives relaunch, and
-M7-backed challenge-detail standings with final loser obligations.
+source-identifier scrub. Current-main CI recording, concurrency, hosted
+advisors, production-shaped migration timing, and retention failure recovery
+remain open. The M8.1, M8.2a, M8.3a, M8.3c, and M8.3d slices add a separate
+product Xcode target, native
+Apple-auth/onboarding state, the live exact-handle friendship loop, atomic
+idempotent multi-friend challenge invitations, four-tab SwiftUI navigation,
+Debug fixtures, a Release mutation lock, protected per-user manual retry
+recovery that survives relaunch, and M7-backed challenge-detail standings with
+final loser obligations.
 Debug and Staging also include a labeled in-memory demo where one tester can
 add `david1` or `david2` and create a challenge without changing Supabase; the
 fixture factory is absent from Release.
 Version-1 single-invite saved-duel records migrate in place to the version-2
 challenge roster without changing the backend payload hash. The two-user Apple
-staging run remains open, as do later sensors, App Attest, inbox/APNs, evidence
-queues, trusted finalizer orchestration/adjudication, actionable settlement,
-disputes, and operations. See
+staging run remains open, as do the hosted product App Attest rollout and
+physical proof, background HealthKit/Core Location/workout delivery, product
+check-in and remaining pending-action queue integration, inbox/APNs, trusted
+finalizer orchestration/adjudication, actionable settlement, disputes, and
+operations. See
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
-evidence, remaining work, and recommended sequence.
+evidence and caveats, and [PLAN.md](PLAN.md) for remaining work and sequence.
 
 ---
 
@@ -84,11 +90,11 @@ ios/
 scripts/
   dev-up.sh              Start the local stack
   db-test.sh             Reset the database and run pgTAP
-  test-all.sh            Everything CI runs, in CI's order
+  test-all.sh            All portable suites, in CI's order
   m6-5-configure-staging.sh  Pin and upload safe App Attest staging secrets
   m6-5-staging-fixture.sql   Repeatable staging contest/geofence fixture
 docs/
-  IMPLEMENTATION_STATUS.md  Dated evidence, gaps, and recommended next steps
+  IMPLEMENTATION_STATUS.md  Dated verification evidence and caveats
   M6_5_DEVICE_CONFORMANCE.md  Physical-iPhone/staging release gate
   M8_1_STAGING_ACCEPTANCE.md  Two-user Apple-authenticated product proof
   M7_ACCOUNT_DELETION_RETENTION.md  D81 contracts and deployment/operations gate
@@ -138,7 +144,7 @@ Realtime and analytics are switched off on purpose — see DECISIONS.md D8.
 ## Running tests
 
 ```bash
-./scripts/test-all.sh          # everything, in CI's order
+./scripts/test-all.sh          # all portable suites, in CI's order
 ```
 
 Or individually:
@@ -408,9 +414,9 @@ workflow finality; scoped holds and operator cutoffs delay pruning. The hourly
 `gametime-prune-raw-evidence` job is the only deletion authority: it records an
 immutable digest-only retention event, never removes an active device
 registration, and preserves rosters, ingest audit facts, quarantines, accepted
-check-ins, and key fingerprints. Result-, obligation-, dispute-, and
-donation-receipt tables will attach their child scopes to this foundation as
-those M7 slices land.
+check-ins, and key fingerprints. The first-result path now ensures the contest
+workflow scope; dispute and donation-receipt child scopes attach as those later
+ledgers land.
 
 This is backend infrastructure, not an end-to-end account-deletion feature yet.
 There is no reauthentication/confirmation flow, user-facing service endpoint,
@@ -419,8 +425,8 @@ D81 migrations and the forward generated-column repair are deployed to staging.
 A committed synthetic lineage passed both a manual retention cycle and the
 hourly hosted job, including source-ID scrubbing, generated-range
 recomputation, exact-location pruning, immutable audit events, and idempotency.
-CI, concurrency, production-shaped staging-copy timing, hosted advisors, and
-hold/failure recovery still gate production deployment.
+Current-main CI recording, concurrency, production-shaped staging-copy timing,
+hosted advisors, and hold/failure recovery still gate production deployment.
 
 ## The evidence ledger
 
@@ -887,7 +893,7 @@ iOS 18.0, Swift 6 language mode. The portable package remains Apple-framework
 free and Linux-testable. `ios/GameTime` is the production-shaped app;
 `ios/GameTimeConformance` remains the focused App Attest harness. Both build and
 test under the explicit Xcode 26.2 macOS job. The target rationale and M8
-boundaries are in DECISIONS.md D2, D10, and D83–D86.
+boundaries are in DECISIONS.md D2, D10, D83–D87, and D89–D92.
 
 ## Milestones
 
@@ -959,7 +965,7 @@ implementation gates, and work not yet reflected here are in PLAN.md.
         persists account-isolated exact metric/App Attest bytes for explicit
         retry; physical two-account and hosted-verifier acceptance remain open
   - [ ] **Later M8** — Background HealthKit delivery, Core Location/workouts,
-        product App Attest lifecycle hardening, durable inbox/APNs, evidence
-        persistence, M7 review/actionable
+        product App Attest lifecycle hardening, durable inbox/APNs, product
+        check-in and remaining evidence-queue integration, M7 review/actionable
         settlement/dispute screens, accessibility hardening, and privacy/App
         Store work
