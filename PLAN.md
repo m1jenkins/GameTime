@@ -1,8 +1,9 @@
 # Implementation plan
 
-Audited and reconciled 2026-07-28 against the code, tests, documentation, local
-history, and `origin/main`. The current working tree also contains a narrow,
-staging-only steps sync slice whose local automated verification is green.
+Audited and reconciled 2026-07-30 against the code, tests, documentation, local
+history, `origin/main`, and recent CI. Repository revision `dcb38b8` includes
+the narrow staging-only steps sync slice. The current uncommitted working tree
+adds the device-independent M7 trusted-assessment slice described below.
 README.md is the compact ledger of what is built; DECISIONS.md records why.
 This file owns sequence, remaining work, and launch blockers. The dated evidence
 and verification caveats are in `docs/IMPLEMENTATION_STATUS.md`.
@@ -15,12 +16,13 @@ and verification caveats are in `docs/IMPLEMENTATION_STATUS.md`.
 | M5 | Complete | Integrity scoring, quarantine review, source reputation, consented timezone epochs |
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
-| M7 | M7.2a, D81, and the M8.3c first-result foundation implemented | Product contract D74–D82, transactional outbox, activation job, account deletion/retention, immutable standings snapshots, explicit first results, and per-debtor obligations are integrated; the trusted evidence-loading/adjudication orchestrator, disputes, settlement, and external gates remain |
+| M7 | M7.2a, D81, trusted assessment, and the M8.3c first-result foundation implemented locally | Product contract D74–D82, transactional outbox, activation job, account deletion/retention, canonical trusted evidence loading, immutable versioned assessments, quarantine materialization, immutable standings snapshots, explicit first results, and per-debtor obligations are integrated; D76 adjudication, an authorized hosted caller, disputes, settlement, and external gates remain |
 | M8 | M8.1 code path and later repository slices are present; acceptance remains open | Separate product app, Apple auth, exact-handle friendship, immutable challenge review, staging diagnostics, and locally implemented explicit Apple-device steps sync with HealthKit source merging, product App Attest, visible confirmed totals, and an account-isolated exact-byte retry queue; two-user/device proof, hosted product App Attest identity, background delivery, and later product slices remain |
 
 M6's boundary is backend plus portable client core. It does not include live
 Core Location collection, HealthKit queries, or a production scoring/finalizer
-orchestrator; the first two belong to M8 and the orchestrator belongs to M7.
+or hosted finalizer; the first two belong to M8 and the remaining operated
+finalizer boundary belongs to M7.
 
 ## Audit snapshot and immediate repository gate
 
@@ -69,16 +71,27 @@ launches on an iPhone 17 simulator; 34 product unit tests and 8 UI tests pass,
 including provisional rival-integrity redaction and final loser-obligation
 fixtures. The local `public`/`app` schema lint reports no errors.
 
+The 2026-07-30 M7 trusted-assessment working tree applies all 20 migrations and
+passes all 24 pgTAP files / 1,004 assertions. That includes 62 focused trusted
+loader/assessment assertions and 13 real two-session concurrency assertions.
+The Deno tree passes format, lint, type-check, and all 323 tests. The
+`public`/`app` schema lint reports no warnings or errors. This is local
+repository evidence only: no handler, finalization cron, hosted mutation,
+deployment, physical-device acceptance, push, or merge was performed.
+
 PR #11's initial M8.1 head (`c363610`) passed all four GitHub Actions jobs in
 [run 30236956570](https://github.com/m1jenkins/GameTime/actions/runs/30236956570):
 database, Deno, GameTimeCore, and the complete Xcode 26.2 product/configuration/
-conformance job. The checkout runtime maintenance follow-up must also be green
-before merge.
+conformance job. Current `main` run
+[30565946352](https://github.com/m1jenkins/GameTime/actions/runs/30565946352)
+did not start any job because GitHub reported an account payment/spending-limit
+problem. That run is external infrastructure evidence, not a code failure or a
+green latest-head result.
 
 Remaining repository gates:
 
-1. Keep the complete GitHub Actions result green for the latest M8.1 head and
-   the post-merge `main` revision.
+1. Restore GitHub Actions account availability and obtain one complete green
+   run for the reviewed M7 revision before merge.
 2. Re-check from a fresh checkout that the repository-wide LF rule removes
    Windows format/script drift without creating unintended source changes.
 3. Run the hosted Security and Performance Advisors and the remaining
@@ -250,9 +263,12 @@ before finalization or settlement is enabled.
   lost-capability warning, and capability-authorized APIs. Any recovery
   mechanism requires a separate reviewed design. Never expose the service-only
   database RPC directly to the app.
-- [ ] Load `contest_evidence`, source reputation, timezone applied events,
+- [x] Load `contest_evidence`, source reputation, timezone applied events,
   quarantine state, `contest_checkin_integrity`, and trusted location
-  observations into the one TypeScript scoring/integrity pipeline.
+  observations into the one TypeScript scoring/integrity pipeline. The
+  service-only SQL loader supplies exact required arrays and digests; the
+  dormant TypeScript operation strictly decodes, scores, and records them
+  without installing a handler or schedule.
 - [x] Update the scoring `Outcome` contract and fixtures so `all_donate` returns the
   complete accepted roster. Reject `insufficient_participants` from an active
   contest as an operational invariant failure.
@@ -263,9 +279,11 @@ before finalization or settlement is enabled.
 - [x] Serialize the trusted first-result write with both metric and geofence
   ingest so an in-flight
   request cannot commit evidence after the result is fixed.
-- [ ] Before interpreting zero quarantines as clean, persist a complete versioned
+- [x] Before interpreting zero quarantines as clean, persist a complete versioned
   integrity assessment over the frozen evidence and materialize every required
-  quarantine. Do not finalize before `app.ingest_grace_period()` closes.
+  quarantine. The recorder is append-only, retry-idempotent, concurrent-safe,
+  and refuses both load and first assessment before
+  `app.ingest_grace_period()` closes.
 - [ ] Implement D76's per-quarantine review deadline, early-rejection escalation,
   grace-anchored adjudication deadline, explicit clearance, and terminal
   `review_timeout`.
@@ -279,9 +297,10 @@ before finalization or settlement is enabled.
   result.
 
 M8.3c supplies the immutable first-result storage and trusted publication/read
-boundary, but deliberately installs no finalization cron or hosted caller. The
-service-only publisher cannot make the evidence-loading, complete-assessment,
-adjudication, M6.5 device, or staging gates true by itself.
+boundary. The current M7 slice now binds that boundary to a matching complete
+assessment and freezes the evidence digest, but deliberately installs no
+finalization cron or hosted caller. D76 adjudication, M6.5 device proof, and
+staging operation remain separate gates.
 
 ### 4. Add settlement, disputes, and reliability
 

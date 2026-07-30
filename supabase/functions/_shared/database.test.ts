@@ -4,6 +4,7 @@ import {
   type MarkDeviceReceiptVerifiedArgs,
   type PostgrestConfig,
   postgrestDatabase,
+  postgrestIntegrityAssessmentDatabase,
   type RecordMetricBatchArgs,
   type RegisterDeviceKeyArgs,
 } from "./database.ts";
@@ -344,6 +345,128 @@ Deno.test("receipt-marker database refusals expose no private candidate detail",
     assertEquals(failure.message, "the request could not be processed");
     assertEquals(failure.message.includes("deadbeef"), false);
     assertEquals(failure.message.includes("receipt"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("the M7 adapter loads once and records the exact complete assessment envelope", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests: Array<{
+    url: string;
+    body: Record<string, unknown>;
+  }> = [];
+  const assessmentId = "a4000000-0000-4000-8000-000000000001";
+  const loaded = {
+    schemaVersion: "m7-integrity-input-v1",
+    input: { evidence: [] },
+  };
+
+  try {
+    globalThis.fetch = (input, init) => {
+      const url = String(input);
+      requests.push({
+        url,
+        body: JSON.parse(String(init?.body)) as Record<string, unknown>,
+      });
+      return Promise.resolve(
+        new Response(
+          JSON.stringify(
+            url.endsWith("/load_contest_integrity_input_v1") ? loaded : assessmentId,
+          ),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+      );
+    };
+
+    const database = postgrestIntegrityAssessmentDatabase(CONFIG);
+    assertEquals(
+      await database.loadContestIntegrityInput(METRIC_BATCH.contestId),
+      loaded,
+    );
+    assertEquals(
+      await database.recordIntegrityAssessment({
+        contestId: METRIC_BATCH.contestId,
+        evidenceCutoff: "2026-08-03T06:00:00.000Z",
+        scoringVersion: "m4-v1",
+        integrityConfigurationVersion: "m6-v1",
+        evidenceDigestHex: "aa".repeat(32),
+        inputDigestHex: "bb".repeat(32),
+        assessmentDocument: { schema_version: "m7-integrity-assessment-v1" },
+        requiredQuarantines: [{
+          snapshot_id: "a5000000-0000-4000-8000-000000000001",
+          rule_version: "m6-v1",
+          signal_key: "retroactive:alice:steps:2026-08-01T00:00:00.000Z",
+          threshold_ms: 864_000_000,
+          details: {
+            evidence_still_scores: true,
+          },
+        }],
+      }),
+      assessmentId,
+    );
+
+    assertEquals(requests, [
+      {
+        url: "https://database.example.test/rest/v1/rpc/load_contest_integrity_input_v1",
+        body: { p_contest_id: METRIC_BATCH.contestId },
+      },
+      {
+        url: "https://database.example.test/rest/v1/rpc/record_contest_integrity_assessment_v1",
+        body: {
+          p_contest_id: METRIC_BATCH.contestId,
+          p_evidence_cutoff: "2026-08-03T06:00:00.000Z",
+          p_scoring_version: "m4-v1",
+          p_integrity_configuration_version: "m6-v1",
+          p_evidence_digest: `\\x${"aa".repeat(32)}`,
+          p_input_digest: `\\x${"bb".repeat(32)}`,
+          p_assessment_document: {
+            schema_version: "m7-integrity-assessment-v1",
+          },
+          p_required_quarantines: [{
+            snapshot_id: "a5000000-0000-4000-8000-000000000001",
+            rule_version: "m6-v1",
+            signal_key: "retroactive:alice:steps:2026-08-01T00:00:00.000Z",
+            threshold_ms: 864_000_000,
+            details: {
+              evidence_still_scores: true,
+            },
+          }],
+        },
+      },
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("the M7 adapter refuses malformed digests before making a database call", async () => {
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  try {
+    globalThis.fetch = () => {
+      called = true;
+      return Promise.resolve(new Response(null, { status: 204 }));
+    };
+
+    const failure = await captureFailure(() =>
+      postgrestIntegrityAssessmentDatabase(CONFIG).recordIntegrityAssessment({
+        contestId: METRIC_BATCH.contestId,
+        evidenceCutoff: "2026-08-03T06:00:00.000Z",
+        scoringVersion: "m4-v1",
+        integrityConfigurationVersion: "m6-v1",
+        evidenceDigestHex: "not-a-digest",
+        inputDigestHex: "00".repeat(32),
+        assessmentDocument: {},
+        requiredQuarantines: [],
+      })
+    );
+    assertEquals(failure.kind, "internal");
+    assertEquals(failure.message, "the request could not be processed");
+    assertEquals(called, false);
   } finally {
     globalThis.fetch = originalFetch;
   }

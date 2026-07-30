@@ -151,6 +151,33 @@ export interface CheckInDatabase {
   ): Promise<RecordedGeofenceCheckIn>;
 }
 
+export interface RecordIntegrityAssessmentArgs {
+  readonly contestId: string;
+  readonly evidenceCutoff: string;
+  readonly scoringVersion: string;
+  readonly integrityConfigurationVersion: string;
+  readonly evidenceDigestHex: string;
+  readonly inputDigestHex: string;
+  readonly assessmentDocument: Readonly<Record<string, unknown>>;
+  readonly requiredQuarantines: readonly {
+    readonly snapshot_id: string;
+    readonly rule_version: string;
+    readonly signal_key: string;
+    readonly threshold_ms: number;
+    readonly details: Readonly<Record<string, string | number | boolean>>;
+  }[];
+}
+
+/**
+ * The dormant M7 worker seam. No handler or schedule is installed in this
+ * slice; a later, explicitly authorized caller can load, assess, and record
+ * through only these two service-role RPCs.
+ */
+export interface IntegrityAssessmentDatabase {
+  loadContestIntegrityInput(contestId: string): Promise<unknown>;
+  recordIntegrityAssessment(args: RecordIntegrityAssessmentArgs): Promise<string>;
+}
+
 export interface PostgrestConfig {
   readonly url: string;
   readonly serviceRoleKey: string;
@@ -286,6 +313,36 @@ function checkInFailureFor(code: string | undefined, detail: string): HttpFailur
       return new HttpFailure("bad_request", "the check-in is too large", detail);
     default:
       return new HttpFailure("internal", "the request could not be processed", detail);
+  }
+}
+
+/** M7 assessment failures never expose evidence, coordinates, or source data. */
+function integrityAssessmentFailureFor(
+  code: string | undefined,
+  detail: string,
+): HttpFailure {
+  switch (code) {
+    case "23001": // restrict_violation
+      return new HttpFailure(
+        "rejected",
+        "the contest evidence is not ready for a complete assessment",
+      );
+    case "23503": // foreign_key_violation
+    case "22023": // invalid_parameter_value
+    case "23514": // check_violation
+    case "23505": // unique_violation
+      return new HttpFailure(
+        "rejected",
+        "the integrity assessment was refused",
+      );
+    case "42501": // insufficient_privilege
+      return new HttpFailure("forbidden", "the integrity assessment is not authorized");
+    default:
+      return new HttpFailure(
+        "internal",
+        "the request could not be processed",
+        detail,
+      );
   }
 }
 
@@ -511,6 +568,75 @@ export function postgrestCheckInDatabase(config: PostgrestConfig): CheckInDataba
         workoutOverlapSeconds: row.workout_overlap_seconds,
         replayed: row.replayed,
       };
+    },
+  };
+}
+
+/** Production adapter for M7's complete trusted load and immutable recorder. */
+export function postgrestIntegrityAssessmentDatabase(
+  config: PostgrestConfig,
+): IntegrityAssessmentDatabase {
+  return {
+    async loadContestIntegrityInput(contestId) {
+      return await rpc(
+        config,
+        "load_contest_integrity_input_v1",
+        { p_contest_id: contestId },
+        integrityAssessmentFailureFor,
+      );
+    },
+
+    async recordIntegrityAssessment(args) {
+      let evidenceDigest: Bytes;
+      let inputDigest: Bytes;
+      try {
+        evidenceDigest = fromHex(args.evidenceDigestHex);
+        inputDigest = fromHex(args.inputDigestHex);
+      } catch (cause) {
+        throw new HttpFailure(
+          "internal",
+          "the request could not be processed",
+          `integrity assessment digest is invalid: ${cause}`,
+        );
+      }
+      if (evidenceDigest.length !== 32 || inputDigest.length !== 32) {
+        throw new HttpFailure(
+          "internal",
+          "the request could not be processed",
+          "integrity assessment digests must be SHA-256",
+        );
+      }
+
+      const result = await rpc(
+        config,
+        "record_contest_integrity_assessment_v1",
+        {
+          p_contest_id: args.contestId,
+          p_evidence_cutoff: args.evidenceCutoff,
+          p_scoring_version: args.scoringVersion,
+          p_integrity_configuration_version: args.integrityConfigurationVersion,
+          p_evidence_digest: toByteaLiteral(evidenceDigest),
+          p_input_digest: toByteaLiteral(inputDigest),
+          p_assessment_document: args.assessmentDocument,
+          p_required_quarantines: args.requiredQuarantines,
+        },
+        integrityAssessmentFailureFor,
+      );
+
+      if (
+        typeof result !== "string" ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          .test(result)
+      ) {
+        throw new HttpFailure(
+          "internal",
+          "the request could not be processed",
+          `record_contest_integrity_assessment_v1 returned an unexpected id: ${
+            JSON.stringify(result)
+          }`,
+        );
+      }
+      return result;
     },
   };
 }

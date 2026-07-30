@@ -1,10 +1,10 @@
 # GameTime implementation status
 
-> Audit snapshot: repository through `e58332d`, including the M8.3c M7-backed standings and
-> M8.3d isolated on-device demo implementation. The current working tree also
-> contains a staging-only explicit steps-sync slice whose local automated
-> verification passed on 2026-07-28 and whose App Attest verifier follow-up
-> passed on 2026-07-29.
+> Audit snapshot: repository through `dcb38b8`, including the M8.3c M7-backed
+> standings, M8.3d isolated on-device demo, and staging-only explicit steps-sync
+> slice. The current uncommitted working tree adds the device-independent M7
+> trusted evidence-loading and complete-assessment slice; its local database
+> and Deno verification passed on 2026-07-30.
 > This is a dated evidence record. `README.md` is the compact project overview,
 > `PLAN.md` owns sequence and launch gates, and `DECISIONS.md` owns
 > product/architecture decisions.
@@ -43,10 +43,23 @@ staging run now proves paid-team
 signing, native Apple identity creation, onboarding, the live four-tab shell,
 and session/profile reload for one user. Apple did not return the requested
 first-sign-in full name, so the editable Apple-name prefill observation and the
-complete two-user flow remain open. Full M8 remains open. The trusted M7
-evidence-loading/complete-assessment/adjudication orchestrator, actionable
-settlement/disputes, and later M8 background sensor, inbox/APNs, and release
-slices remain to be built.
+complete two-user flow remain open. Full M8 remains open. The current M7
+working tree implements trusted evidence loading, canonical TypeScript
+assessment, complete immutable persistence, exact quarantine materialization,
+and assessment-gated results. D76 adjudication, an authorized operated
+finalizer, actionable settlement/disputes, and later M8 background sensor,
+inbox/APNs, and release slices remain to be built.
+
+The M7 slice reads `contest_evidence`, source metadata for versioned reputation
+rules, applied timezone epochs, complete quarantine state,
+`contest_checkin_integrity`, and trusted accepted/attested inside-location
+observations through one service-only loader. A strict dormant TypeScript
+operation invokes the existing scoring/integrity engine and submits a
+privacy-minimized assessment to an append-only private ledger. PostgreSQL
+rechecks the frozen evidence digest, serializes concurrent attempts,
+materializes every required quarantine before inserting the assessment, and
+requires the exact assessment for a final result and every final standing. No
+hosted caller, finalization cron, deployment, or product UI was added.
 
 M8.3d adds a separately labeled, in-memory demo to Debug and Staging. A
 single tester can search `david1` or `david2`, add the synthetic profile with a
@@ -145,13 +158,27 @@ suite plus the current local Swift/Xcode evidence below, and still needs
 hosted-advisor, production-shaped migration, and the external proofs below
 before it can support a release claim.
 
-The explicit steps-sync work is a current working-tree slice on that baseline.
-Its current local evidence is recorded separately below; do not attribute older
-revision evidence to it.
+The explicit steps-sync work is part of the audited repository baseline. Its
+local evidence is recorded separately below; do not attribute older revision
+evidence to it.
 
 ## Verification evidence
 
-### Executed for the current explicit steps-sync working tree
+### Executed for the current M7 trusted-assessment working tree
+
+| Check | Result | What it proves |
+| --- | --- | --- |
+| `./scripts/db-test.sh` from the workspace | Pass, all 20 migrations and 24 pgTAP files / 1,004 assertions | The complete database suite passes, including 62 focused trusted-loader/assessment assertions and 13 real two-session concurrency assertions |
+| `deno fmt --check`, `deno lint`, `deno check .`, and `deno test --allow-env` from `supabase/functions` | Pass; 44 files format-checked, 43 files linted, all modules type-checked, 323 tests passed | Required sidecars fail closed when absent, the canonical assessment is deterministic and privacy-minimized, the dormant load/assess/record operation is composed, and the service adapter preserves the exact envelope |
+| `supabase db lint --local --schema app,public --level warning --fail-on warning` | Pass, zero warnings or errors | The production schemas contain no PL/pgSQL/schema findings under the local Supabase linter |
+| Scoped M7 privilege/boundary scan | Pass; 7/7 security-definer functions pin blank `search_path`, assessment RLS is enabled, one grant block targets only `service_role`, and no broad execute grant, App Attest bypass, or scheduler reference exists | The new surface remains private, least-privileged, and dormant |
+| Recent GitHub Actions audit | Current `main` run [30565946352](https://github.com/m1jenkins/GameTime/actions/runs/30565946352) stopped before any job started because GitHub reported an account payment/spending-limit problem | Latest-head CI remains externally open; this run supplies neither a code failure nor a green result |
+
+These checks are local database, TypeScript, and static evidence. No hosted
+Supabase state, physical device, Swift product code, deployment, or release
+surface changed in this slice.
+
+### Executed for the explicit steps-sync repository slice
 
 | Check | Result | What it proves |
 | --- | --- | --- |
@@ -218,14 +245,14 @@ They remain historical evidence for the named revisions and scopes only.
 | M1 | Complete in repo | Profiles, friendships, groups, membership, blocks, RLS and guarded RPCs | Product screens; handle throttling/avatar storage |
 | M2 | Complete in repo | Charities schema, contests, invitations, participant lifecycle, activation primitive | Verified production charity data |
 | M3 | Complete in repo | Attested metric ledger, idempotent ingest, local-hour bucketing/provenance/queue core | Physical product HealthKit/App Attest proof and background delivery |
-| M4 | Complete in repo | Deterministic TypeScript scoring and fixture corpus | Production data-loading/finalizer orchestrator |
+| M4 | Complete in repo | Deterministic TypeScript scoring and fixture corpus | Authorized hosted finalizer orchestration |
 | M5 | Complete in repo | Integrity scoring, quarantines/reviews, source reputation, timezone epochs | D76 escalation/adjudicator operation |
 | M6 | Complete in repo | Geofences, workout overlap, trusted-location integrity, exact-byte check-in queue | Live Core Location/HealthKit workout collection |
 | M6.5 | Gate open | Staging backend, conformance target, independent receipt verification, runbook, paid-team identity, and one signed/installed/launched Staging product build with the required capabilities | Complete the conformance Auth fixture and physical App Attest registration, assertion, replay, and receipt observation |
 | M7.1 | Complete | D74–D82 product contract | Implementation of most settlement domain |
 | M7.2a | Implemented | Transactional notification intents and named one-minute activation job | Hosted committed-row activation proof |
 | D81 foundation | Staged; local and retention-cycle proven | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker, forward generated-column repair | Broader concurrency/production-shaped migration, hosted advisors, hold/failure recovery; user-facing deletion/capability path |
-| M7 finalization/settlement | First-result foundation implemented but dormant | Immutable provisional/final snapshots, explicit first results, versioned scoring/integrity inputs, accepted-participant redacted reads, ingest serialization, and exact per-debtor obligations | Trusted evidence loading, complete persisted assessments, D76 adjudication, hosted caller, claims, disputes, actionability, reliability, and deadline workers |
+| M7 finalization/settlement | Trusted assessment and first-result foundation implemented but dormant | Canonical service-only evidence loading, immutable versioned complete assessments, exact quarantine materialization, retry/concurrency safety, assessment-gated final results/standings, accepted-participant redacted reads, and exact per-debtor obligations | D76 adjudication and clearance, authorized hosted caller, claims, disputes, actionability, reliability, and deadline workers |
 | M8 | Repository slices present; partial single-user staging proof recorded; full milestone open | Product Xcode target, native Apple token exchange, exact-handle social/challenge loop, immutable review and staging diagnostics, protected challenge retry, M7-backed rankings, isolated demo, locally verified source-merged Apple-device steps sync with visible exact totals and exact-byte account isolation, and a bounded staging-only product App Attest identity bridge | Apple-name prefill, approved hosted verifier rollout, signed two-device challenge and step-sync acceptance, background HealthKit, Core Location, other pending actions, inbox/APNs, later M7 screens, privacy/release hardening |
 
 ## Work already delivered
@@ -307,14 +334,18 @@ The implemented architecture includes:
 
 ### P2 — Complete the finalization vertical slice
 
-1. Load evidence, source reputation, timezone events, quarantine state,
-   geofence integrity, and trusted locations into one server orchestrator.
-2. Persist a complete versioned integrity assessment before interpreting
-   “zero quarantines” as clean.
-3. Implement bounded D76 escalation/adjudication and explicit clearance.
-4. Invoke the existing serialized, grace-gated first-result publisher only from
-   that trusted pipeline; add multi-session coverage around the finality locks.
-5. Operate the finalizer in staging with authorized queues, observability,
+The trusted load, canonical assessment, quarantine materialization, immutable
+persistence, and real concurrent-assessment proof are complete locally.
+Remaining:
+
+1. Implement bounded D76 escalation/adjudication, terminal timeout, and
+   explicit clearance.
+2. Add explicit adjudicator authorization, guarded queues, conflict handling,
+   and audit/observability boundaries.
+3. Install an authorized hosted caller that invokes the dormant assessment
+   operation and the existing serialized, grace-gated first-result publisher
+   only after D76 permits finality.
+4. Operate the finalizer in staging with authorized queues, observability,
    alerts, and an on-call/SLA runbook before enabling it.
 
 ### P3 — Complete settlement and operations
@@ -361,8 +392,9 @@ The implemented architecture includes:
    reconciled revision.
 2. **External proof sprint:** close M6.5, M7.2b, and the remaining retention
    failure-recovery proof while the staging environment is active.
-3. **Finalizer slice:** connect evidence loading and complete assessments to the
-   immutable result boundary, including adjudication and operational gates.
+3. **Adjudication/finalizer slice:** implement D76 authorization, escalation,
+   clearance, and terminal timeout, then operate the already assessment-gated
+   immutable result boundary through an explicitly approved hosted caller.
 4. **Settlement slice:** obligations, confirmation, disputes, reliability, and
    their operated deadlines.
 5. **Product slice:** close M8.1 and explicit steps-sync external proof, then

@@ -2,7 +2,7 @@
 -- read surface, and a frozen winner creates exactly one obligation per loser.
 
 begin;
-select plan(45);
+select plan(48);
 
 -- ---------------------------------------------------------------------------
 -- API, privilege, and storage shape
@@ -373,11 +373,135 @@ as $$
   );
 $$;
 
+-- M7 now requires a complete trusted assessment before a final result can be
+-- inserted. This older publisher-focused suite seeds that prerequisite through
+-- the real recorder while keeping its intentionally synthetic standing values.
+create or replace function pg_temp.m83c_assess(
+  p_contest_id uuid,
+  p_standings  jsonb,
+  p_outcome    jsonb
+)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_loaded          jsonb;
+  v_cutoff          timestamptz;
+  v_evidence_digest bytea;
+  v_input_digest    bytea;
+  v_quarantine_count integer;
+  v_document        jsonb;
+begin
+  v_loaded := app.build_contest_integrity_input_v1(p_contest_id);
+
+  select contest.ends_at + app.ingest_grace_period()
+    into v_cutoff
+  from public.contests contest
+  where contest.id = p_contest_id;
+
+  v_evidence_digest := extensions.digest(
+    jsonb_build_object(
+      'schemaVersion', 'm7-integrity-input-v1',
+      'input', (v_loaded -> 'input') - 'quarantineState',
+      'quarantineCandidates', v_loaded -> 'quarantineCandidates'
+    )::text,
+    'sha256'
+  );
+  v_input_digest := extensions.digest(
+    jsonb_build_object(
+      'schemaVersion', 'm7-integrity-input-v1',
+      'input', v_loaded -> 'input',
+      'quarantineCandidates', v_loaded -> 'quarantineCandidates'
+    )::text,
+    'sha256'
+  );
+  v_quarantine_count :=
+    jsonb_array_length(v_loaded #> '{input,quarantineState}');
+
+  v_document := jsonb_build_object(
+    'schema_version', 'm7-integrity-assessment-v1',
+    'contest_id', p_contest_id,
+    'evidence_cutoff', v_cutoff,
+    'scoring_version', 'm4-v1',
+    'integrity_configuration_version', 'm7-integrity-v1',
+    'evidence_digest', encode(v_evidence_digest, 'hex'),
+    'input_digest', encode(v_input_digest, 'hex'),
+    'input_counts', jsonb_build_object(
+      'roster', jsonb_array_length(v_loaded #> '{input,roster}'),
+      'contest_evidence',
+        jsonb_array_length(v_loaded #> '{input,evidence}'),
+      'source_reputation',
+        jsonb_array_length(v_loaded #> '{input,sourceEvidence}'),
+      'timezone_events',
+        jsonb_array_length(v_loaded #> '{input,timezoneChanges}'),
+      'quarantine_state', v_quarantine_count,
+      'checkin_integrity',
+        jsonb_array_length(v_loaded #> '{input,checkIns}'),
+      'trusted_locations',
+        jsonb_array_length(v_loaded #> '{input,locations}')
+    ),
+    'quarantine_observation', jsonb_build_object(
+      'total', v_quarantine_count,
+      'pending', 0,
+      'approved', 0,
+      'rejected', 0
+    ),
+    'required_quarantine_count', 0,
+    'clean_zero_quarantines', v_quarantine_count = 0,
+    'standings', p_standings,
+    'outcome', p_outcome,
+    'integrity', (
+      select jsonb_agg(
+        jsonb_build_object(
+          'participant_id', standing ->> 'participant_id',
+          'score', standing -> 'integrity_score',
+          'total_penalty', 0,
+          'penalties', '{}'::jsonb,
+          'flags', '[]'::jsonb
+        )
+        order by (standing ->> 'display_order')::integer
+      )
+      from jsonb_array_elements(p_standings) standing
+    )
+  );
+
+  return public.record_contest_integrity_assessment_v1(
+    p_contest_id,
+    v_cutoff,
+    'm4-v1',
+    'm7-integrity-v1',
+    v_evidence_digest,
+    v_input_digest,
+    v_document,
+    '[]'::jsonb
+  );
+end;
+$$;
+
 -- ---------------------------------------------------------------------------
 -- Provisional publication and D77 redaction
 -- ---------------------------------------------------------------------------
 
 set local role service_role;
+
+select lives_ok(
+  $$ select pg_temp.m83c_assess(
+       '9a000005-0000-0000-0000-000000000005',
+       jsonb_set(
+         pg_temp.m83c_standings(12000, 11000, 8000),
+         '{1,integrity_score}',
+         '98'::jsonb
+       ),
+       jsonb_build_object(
+         'kind', 'inconclusive',
+         'reason', 'tie_break_inconclusive'
+       )
+     ) $$,
+  'a complete tied-integrity assessment is persisted before finalization'
+);
 
 select lives_ok(
   $$ select public.publish_contest_standings_v1(
@@ -573,6 +697,19 @@ select throws_ok(
 );
 
 select lives_ok(
+  $$ select pg_temp.m83c_assess(
+       '9a000002-0000-0000-0000-000000000002',
+       pg_temp.m83c_standings(12000, 9000, 8000),
+       jsonb_build_object(
+         'kind', 'winner',
+         'reason', 'sole_qualifier',
+         'participant_id', '91111111-1111-1111-1111-111111111111'
+       )
+     ) $$,
+  'a complete winner assessment is persisted before finalization'
+);
+
+select lives_ok(
   $$ select public.publish_contest_standings_v1(
        '9a000005-0000-0000-0000-000000000005',
        now(),
@@ -598,6 +735,23 @@ select is(
    where contest_id = '9a000005-0000-0000-0000-000000000005'),
   0::bigint,
   'an inconclusive result creates no obligations'
+);
+
+select lives_ok(
+  $$ select pg_temp.m83c_assess(
+       '9a000003-0000-0000-0000-000000000003',
+       pg_temp.m83c_standings(12000, 11000, 9000),
+       jsonb_build_object(
+         'kind', 'all_donate',
+         'reason', 'both_donate',
+         'participant_ids', jsonb_build_array(
+           '91111111-1111-1111-1111-111111111111',
+           '92222222-2222-2222-2222-222222222222',
+           '93333333-3333-3333-3333-333333333333'
+         )
+       )
+     ) $$,
+  'a complete all-donate assessment is persisted before finalization'
 );
 
 select lives_ok(

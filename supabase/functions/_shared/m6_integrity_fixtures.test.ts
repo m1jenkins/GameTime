@@ -18,6 +18,10 @@ function cleanTieInput(): IntegrityInput {
   const aliceEvidence = fixture.input.evidence.filter((row) => row.userId === ALICE);
   return {
     ...fixture.input,
+    locations: [],
+    sourceEvidence: [],
+    checkIns: [],
+    quarantineState: [],
     evidence: [
       ...aliceEvidence,
       ...aliceEvidence.map((row) => ({ ...row, userId: BOB })),

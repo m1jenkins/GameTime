@@ -378,12 +378,43 @@ export interface CheckInEvidence {
   readonly dwellSeconds: number;
   readonly workoutOverlapSeconds: number;
   readonly attested: boolean;
+  /** Version of the database geometry/overlap rules that produced `outcome`. */
+  readonly ruleVersion: string;
+}
+
+export type QuarantineState = "pending" | "approved" | "rejected";
+
+/**
+ * One complete row of the computed quarantine-status sidecar at assessment
+ * load time. It never changes admissibility or integrity points. Loading it
+ * explicitly prevents an omitted sidecar from masquerading as a clean contest.
+ */
+export interface QuarantineEvidence {
+  readonly id: string;
+  readonly snapshotId: string;
+  readonly userId: string;
+  readonly metric: ContestMetric;
+  readonly bucketStart: string;
+  readonly ruleVersion: string;
+  readonly signalKey: string;
+  readonly thresholdMs: number;
+  readonly reportingLagMs: number;
+  readonly reviewerCount: number;
+  readonly approvalsRequired: number;
+  readonly approvalCount: number;
+  readonly rejectionCount: number;
+  readonly state: QuarantineState;
 }
 
 export interface IntegrityInput extends ScoringInput {
-  readonly locations?: readonly LocationObservation[];
-  readonly sourceEvidence?: readonly SourceEvidence[];
-  readonly checkIns?: readonly CheckInEvidence[];
+  /**
+   * Every sidecar is required, even when empty. A trusted loader must prove it
+   * read all six M7 inputs; absence can never mean "clean."
+   */
+  readonly locations: readonly LocationObservation[];
+  readonly sourceEvidence: readonly SourceEvidence[];
+  readonly checkIns: readonly CheckInEvidence[];
+  readonly quarantineState: readonly QuarantineEvidence[];
 }
 
 export interface ParticipantIntegrity {
@@ -399,6 +430,8 @@ export interface IntegrityAssessment {
   readonly participants: readonly ParticipantIntegrity[];
   /** Complete for every accepted participant, which M4 requires for a tie. */
   readonly scores: Readonly<Record<string, number>>;
+  /** Canonical copy of the review sidecar observed at the evidence cutoff. */
+  readonly quarantineState: readonly QuarantineEvidence[];
 }
 
 export interface IntegrityScoring {
@@ -1055,6 +1088,13 @@ function checkInFlags(
     if (typeof checkIn.attested !== "boolean") {
       throw new ScoringError("checkIn.attested must be boolean");
     }
+    if (
+      typeof checkIn.ruleVersion !== "string" ||
+      checkIn.ruleVersion.trim().length === 0 ||
+      checkIn.ruleVersion.length > 80
+    ) {
+      throw new ScoringError("checkIn.ruleVersion must contain 1 to 80 characters");
+    }
 
     const identity = `${checkIn.userId}\u0000${checkIn.checkInId}`;
     const material = JSON.stringify([
@@ -1065,6 +1105,7 @@ function checkInFlags(
       checkIn.dwellSeconds,
       checkIn.workoutOverlapSeconds,
       checkIn.attested,
+      checkIn.ruleVersion,
     ]);
     const prior = seen.get(identity);
     if (prior !== undefined) {
@@ -1102,6 +1143,7 @@ function checkInFlags(
             dwellSeconds: checkIn.dwellSeconds,
             workoutOverlapSeconds: checkIn.workoutOverlapSeconds,
             attested: checkIn.attested,
+            validationRuleVersion: checkIn.ruleVersion,
             evidenceStillScores: true,
           },
         },
@@ -1274,6 +1316,19 @@ export function assessContestIntegrity(
   const tuning = materializeTuning(tuningConfig);
   validateTuning(tuning);
 
+  for (
+    const [field, value] of [
+      ["locations", input.locations],
+      ["sourceEvidence", input.sourceEvidence],
+      ["checkIns", input.checkIns],
+      ["quarantineState", input.quarantineState],
+    ] as const
+  ) {
+    if (!Array.isArray(value)) {
+      throw new ScoringError(`${field} must be supplied as an array`);
+    }
+  }
+
   // This validates the M4 input and, critically, gives integrity exactly M4's
   // accepted roster. Supplied scores are ignored here: callers cannot seed an
   // assessment with a result they chose themselves.
@@ -1291,11 +1346,11 @@ export function assessContestIntegrity(
   const allFlags = sortFlags([
     ...plausibilityFlags(evidence, tuning),
     ...corroborationFlags(evidence, input.contest.metric, tuning),
-    ...sourceReputationFlags(input.sourceEvidence ?? [], evidence, tuning),
+    ...sourceReputationFlags(input.sourceEvidence, evidence, tuning),
     ...timezoneChangeFlags(input.timezoneChanges, accepted, tuning),
-    ...checkInFlags(input.checkIns ?? [], accepted, tuning),
+    ...checkInFlags(input.checkIns, accepted, tuning),
     ...reportingFlags(evidence, tuning),
-    ...travelFlags(input.locations ?? [], accepted, windowStart, windowEnd, tuning),
+    ...travelFlags(input.locations, accepted, windowStart, windowEnd, tuning),
   ]);
 
   const participants = baseline.standings.map((standing) =>
@@ -1312,6 +1367,9 @@ export function assessContestIntegrity(
     ruleVersion: tuning.version,
     participants,
     scores,
+    quarantineState: [...input.quarantineState].sort((a, b) =>
+      a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+    ),
   };
 }
 

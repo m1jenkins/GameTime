@@ -21,7 +21,13 @@ const BOB = "22222222-2222-2222-2222-222222222222";
 function corpusInput(name: string): IntegrityInput {
   const fixture = SCORING_FIXTURES.find((candidate) => candidate.name === name);
   if (fixture === undefined) throw new Error(`missing scoring fixture ${name}`);
-  return fixture.input;
+  return {
+    ...fixture.input,
+    locations: [],
+    sourceEvidence: [],
+    checkIns: [],
+    quarantineState: [],
+  };
 }
 
 function participant(
@@ -441,6 +447,7 @@ Deno.test("a persisted m5-v3 tuning document disables later M6 rules reproducibl
       dwellSeconds: 0,
       workoutOverlapSeconds: 0,
       attested: true,
+      ruleVersion: "m6-v1",
     }],
   }, loaded);
 
@@ -541,6 +548,7 @@ Deno.test("an accepted check-in is integrity-clean and supplies no invented pena
       dwellSeconds: 1_200,
       workoutOverlapSeconds: 900,
       attested: true,
+      ruleVersion: "m6-v1",
     }],
   });
 
@@ -563,6 +571,7 @@ Deno.test("an out-of-geofence result is explicit and never removes metric eviden
       dwellSeconds: 0,
       workoutOverlapSeconds: 0,
       attested: true,
+      ruleVersion: "m6-v1",
     }],
   });
   const bob = result.scoring.standings.find((candidate) => candidate.userId === BOB);
@@ -591,6 +600,7 @@ Deno.test("workout overlap failures have a separate versioned signal", () => {
       dwellSeconds: 1_200,
       workoutOverlapSeconds: 299,
       attested: true,
+      ruleVersion: "m6-v1",
     }],
   });
   const overlapFlag = participant(result, BOB).flags.find(
@@ -614,6 +624,7 @@ Deno.test("identical check-in rows collapse, while conflicting validation fails 
     dwellSeconds: 0,
     workoutOverlapSeconds: 0,
     attested: true,
+    ruleVersion: "m6-v1",
   };
   const once = assessContestIntegrity({ ...base, checkIns: [checkIn] });
   const retry = assessContestIntegrity({ ...base, checkIns: [checkIn, checkIn] });

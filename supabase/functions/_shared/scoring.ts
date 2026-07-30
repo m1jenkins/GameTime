@@ -74,6 +74,9 @@ import { type LocalDay, scoreableLocalDays } from "./localdays.ts";
 // Domain types, mirroring the schema
 // ---------------------------------------------------------------------------
 
+/** The immutable implementation version persisted beside every M7 assessment. */
+export const SCORING_VERSION = "m4-v1";
+
 export type ContestMetric =
   | "steps"
   | "distance_meters"

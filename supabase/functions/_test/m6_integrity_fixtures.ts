@@ -23,6 +23,7 @@ const BASE = {
   startedAt: "2026-01-06T12:00:00.000Z",
   endedAt: "2026-01-06T12:30:00.000Z",
   attested: true,
+  ruleVersion: "m6-v1",
 } as const;
 
 export const M6_INTEGRITY_FIXTURES: readonly M6IntegrityFixture[] = [
