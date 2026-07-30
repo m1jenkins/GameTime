@@ -1,6 +1,6 @@
 # GameTime implementation status
 
-> Audit snapshot: 2026-07-29, including the M8.3c M7-backed standings and
+> Audit snapshot: repository through `e58332d`, including the M8.3c M7-backed standings and
 > M8.3d isolated on-device demo implementation. The current working tree also
 > contains a staging-only explicit steps-sync slice whose local automated
 > verification passed on 2026-07-28 and whose App Attest verifier follow-up
@@ -112,6 +112,14 @@ fail-closed and authenticated rejection probes passed without sending
 HealthKit data. Physical App Attest conformance and the two-account steps run
 remain open.
 
+A current readiness attempt stopped before execution because 0/2 connected
+physical devices were available. No device session or staging account was
+opened, no App Attest or HealthKit action was attempted, and no sensor data was
+sent. A read-only connector check found the staging project healthy and 3/3
+functions active. The local CLI lacked Management API authentication, so the
+secret-name list was not independently refreshed; the approved rollout remains
+the latest evidence that `ATTEST_DEV_BYPASS` is absent.
+
 “Complete” below means the milestone's repository scope is implemented and
 covered by its intended automated tests. It does not mean production deployed,
 externally proven, operationally staffed, or App Store ready.
@@ -156,6 +164,8 @@ revision evidence to it.
 | `deno fmt --check`, `deno lint`, `deno check .`, and `deno test --allow-env` from `supabase/functions` | Pass; format checked 42 files, lint checked 41 files, 313 tests passed | The Edge/shared TypeScript tree remains formatted, lint-clean, type-safe, and behaviorally green, including metric-failure detail redaction, strict staging-only additional App IDs, exact successful-App-ID receipt binding, and product metric assertion verification |
 | Approved Staging configuration and function verification | Pass; 5/5 required configuration checks, 34/34 returned function files matched, and 2/2 explicitly deployed functions are active | The conformance primary identity, product additional identity, development-only setting, staging environment, and bypass absence match the reviewed configuration. `attest-device` is active at version 29 and `ingest-metrics` at version 22; the configuration-propagated `ingest-checkin` version 21 also remains source-identical |
 | Hosted no-data probes | Pass; 4/4 fail-closed cases and 3/3 authenticated availability/rejection cases | Missing and forged authentication fail closed, a malformed registration is rejected, and a partial App Attest header pair is rejected before metric persistence. No HealthKit upload or physical App Attest conformance was attempted |
+| Current physical readiness inventory | Blocked; 0/2 devices available | The acceptance run stopped before build, launch, account access, App Attest, or HealthKit. Physical proof remains unchanged |
+| Current connected hosted inventory | Partial; project healthy and 3/3 functions active | Read-only status was available, but Management API authentication was unavailable for a fresh secret-name listing. No hosted configuration or deployment changed |
 | `./scripts/db-test.sh` against a clean local Supabase stack | Pass, 21 pgTAP files / 869 assertions; cleanup passed | Every migration and database assertion passed after Docker recovery. The gate ran from a verified byte-identical temporary checkout because iCloud-offloaded SQL files could not be read reliably from the workspace; `supabase stop --no-backup` removed the local volumes afterward |
 | Strict `swift-format` lint for the 11 new Swift files; `plutil -lint` for product/Staging plists and entitlements; scoped forbidden-API/log scans; `bash -n`; `git diff --check` | Pass | New Swift files are formatter-clean, configuration files parse, no new App Attest bypass/location/APNs/raw-data logging hook was found in the scoped product files, shell syntax parses, and the patch has no whitespace errors |
 
@@ -323,14 +333,16 @@ The implemented architecture includes:
 
 ### P4 — Close M8.1 proof and continue the product loop
 
-1. Preserve the successful paid-team Staging install and add a second physical
-   device to a profile containing Sign in with Apple, HealthKit, and App Attest.
-2. With separate approval, configure
-   `APPLE_ADDITIONAL_BUNDLE_IDS=com.mjenkins.gametime.staging`, deploy the
-   reviewed `attest-device` and `ingest-metrics` bundles, and rerun conformance
-   plus fail-closed probes. Keep `APPLE_BUNDLE_ID=com.gametime.conformance`,
-   require `APP_ATTEST_ALLOW_DEVELOPMENT=true` only in Staging, and keep
-   `ATTEST_DEV_BYPASS` absent.
+1. Connect, unlock, trust, and keep awake two physical devices provisioned
+   through the eligible paid team with Sign in with Apple, HealthKit, and
+   development App Attest. The current readiness inventory had 0/2 available.
+2. Do not repeat the completed hosted rollout. Before physical traffic,
+   re-list the secret names read-only and confirm
+   `APPLE_BUNDLE_ID=com.gametime.conformance`,
+   `APPLE_ADDITIONAL_BUNDLE_IDS=com.mjenkins.gametime.staging`,
+   Staging-only `APP_ATTEST_ALLOW_DEVELOPMENT=true`, and
+   `ATTEST_DEV_BYPASS` absence. Obtain explicit approval before any further
+   hosted mutation or deployment.
 3. Record the two-account challenge run and two real step uploads, including
    force-quit restore, lost-response exact retry, replay acceptance, account
    isolation, and the app-log privacy check. Keep Release locked.

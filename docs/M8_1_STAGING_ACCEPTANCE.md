@@ -110,6 +110,18 @@ HealthKit acceptance.
 | Authenticated availability and rejection probes | Pass, 3/3 cases. The active challenge path responded, malformed registration was rejected, and a partial App Attest header pair was rejected before metric persistence |
 | HealthKit and physical conformance traffic | Zero HealthKit uploads; physical App Attest conformance not run |
 
+### Current physical-readiness stop
+
+This is a blocked readiness observation, not an acceptance run.
+
+| Gate | Evidence |
+| --- | --- |
+| Required physical devices | Blocked, 0/2 connected devices were available; the previously known device was disconnected |
+| Two staging accounts | Not observed; no device session was opened and no account identifier was inspected |
+| Physical App Attest | Not started; no key registration, assertion, replay, receipt, or counter observation was attempted |
+| HealthKit | Not started; no permission request, read, or metric upload was attempted |
+| Hosted read-only inventory | Partial: the connected staging project is healthy and 3/3 functions are active. The local CLI had no Management API authentication, so this check could not independently re-list secret names. The approved rollout above remains the latest evidence that `ATTEST_DEV_BYPASS` is absent |
+
 ## Two-account flow
 
 Use Account A and Account B on separate physical devices. Install the signed
@@ -261,13 +273,14 @@ the GameTime app-log evidence and never copy health values into this document.
 | Current working-tree automated verification | Passed locally and rerun after the hosted rollout | GameTimeCore 103/103; product unit 68/68; product UI 10/10; conformance 10/10; Deno 313/313 plus format/lint/check; Staging and Release builds passed; clean local database reset and 21-file/869-assertion pgTAP passed, followed by successful local-volume cleanup |
 | Immutable creator/invitee review and staging diagnostics | Implemented locally; physical proof open | Record both reviews, same challenge ID, full roster, and breakpoint observation |
 | Restart-safe challenge recovery | Implemented locally; physical proof open | Record request UUID, force-quit restore, original challenge ID, and bounded row counts |
-| Eligible Apple team and prior Sign in with Apple provisioning | Partial | The prior single-device launch observation passed. A fresh final-tree signed build succeeded, but its launch retry was denied while the connected iPhone remained locked; a fresh unlocked launch and second device remain open |
+| Eligible Apple team and prior Sign in with Apple provisioning | Prior partial evidence; current readiness blocked | The prior single-device launch observation passed. The current inventory had 0/2 connected devices available, so no fresh build, launch, or provisioning observation was attempted |
 | Single-user native auth/onboarding/relaunch | Partial | Install, Apple identity, profile, live shell, and relaunch passed; Apple-name prefill remains open |
-| Two-user force-quit/reload loop | Deferred on 2026-07-29; open | Resume when a second friend, Apple account, and provisioned iPhone are available |
+| Two-user force-quit/reload loop | Blocked before execution | Connect and unlock two provisioned devices and make two controlled Apple-authenticated staging accounts available |
 | Same-request challenge duplicate proof | Open | Record challenge/request UUIDs and bounded database observation |
 | Staging App ID HealthKit and App Attest provisioning | Partial | One signed install uses the intended HealthKit and development App Attest entitlement inputs; prove both capabilities at runtime and repeat on the second device |
+| Physical App Attest registration/conformance | Blocked before execution | Complete the primary conformance-target registration, signed metric/check-in sends, exact replays, and bounded key/counter/receipt audit before sending real HealthKit data |
 | Hosted App Attest identity strategy | Staging rollout and no-data probes passed; physical conformance open | The reviewed configuration is present, the two explicitly deployed bundles match the commit, 4/4 fail-closed and 3/3 authenticated availability/rejection cases pass, and no HealthKit data was sent |
-| Two-account real step uploads | Deferred on 2026-07-29; open | First complete physical App Attest conformance, then record one accepted batch UUID per account without raw health values |
+| Two-account real step uploads | Blocked before execution | First complete physical App Attest conformance, then record one accepted batch UUID per account without raw health values |
 | Merged Apple-device step accuracy | Unit-tested; physical proof open | For at least one completed hour with phone/watch overlap, record pass/fail against Health's merged value; separately confirm controlled manual and available third-party-only values are not labeled device-recorded |
 | Lost metric response, relaunch, and exact replay | Unit-tested; physical proof open | Record one saved batch UUID, two relaunches, accepted replay, and zero duplicate rows |
 | Metric queue account isolation | Unit-tested; physical proof open | Record the controlled account-switch observation |
@@ -291,7 +304,35 @@ regression suite pass. After Docker recovery, the clean local database reset and
 21-file/869-assertion pgTAP suite passed from a verified byte-identical
 non-iCloud checkout, followed by successful local-volume cleanup.
 
-Do not tap **Sync Activity** yet. The next external step is physical App Attest
-conformance on a user-provided, unlocked, provisioned device, followed by the
-two-device, two-account flow above. Preserve this uncommitted documentation
-update and stop before commit or push.
+The existing documentation commit is already on `origin/main`. This readiness
+attempt stopped with 0/2 connected physical devices available. It did not open
+an account session, launch either target, run App Attest, request HealthKit
+permission, or send metric data. This blocked documentation note remains local
+and uncommitted because the acceptance run did not complete.
+
+Do not tap **Sync Activity** yet. Before resuming:
+
+1. Connect two separate physical iPhones to the Mac, enable Developer Mode,
+   trust the Mac, unlock both devices, and keep both screens awake until Xcode
+   reports 2/2 devices available.
+2. Register both devices with the eligible paid Apple team. Ensure the
+   conformance target can use the explicit primary App ID on at least one
+   device, and ensure both product provisioning profiles contain Sign in with
+   Apple, HealthKit, and development App Attest.
+3. Make two controlled, distinct Apple-authenticated staging accounts available,
+   one per device, without sharing their identifiers in this record. At least
+   one account must be eligible for the still-open first-sign-in editable-name
+   prefill observation.
+4. Restore read-only Supabase Management API access by signing the CLI in
+   interactively or making an authenticated Dashboard secret-name view
+   available. Do not paste a token into chat. Re-list names and confirm the
+   reviewed primary identity, product additional identity, staging-only
+   development acceptance, and `ATTEST_DEV_BYPASS` absence without changing
+   any hosted value.
+5. Provide the onboarded conformance Auth fixture on the first device. Run the
+   physical App Attest registration/conformance sequence and its bounded
+   database audit before opening the product HealthKit flow.
+6. After conformance passes, install and launch the signed Staging product on
+   both devices. Keep enough supervised time for a future exact local-hour
+   start, challenge acceptance before that boundary, and two complete in-window
+   hours. Generate real steps only after the challenge is active.
