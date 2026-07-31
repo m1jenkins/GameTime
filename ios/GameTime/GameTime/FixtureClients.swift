@@ -644,6 +644,17 @@ private final class FixtureContestsClient: ContestsClient {
         return store.standingsByContestID[contestID]
     }
 
+    func sendComebackReaction(
+        contestID: UUID,
+        snapshotID: UUID
+    ) async throws {
+        guard !store.offline else { throw FixtureFailure.offline }
+        guard store.standingsByContestID[contestID]?.snapshotID == snapshotID
+        else {
+            throw AppMutationError.permissionDenied
+        }
+    }
+
     func createChallenge(
         _ terms: ChallengeTerms,
         expectedUserID: UUID

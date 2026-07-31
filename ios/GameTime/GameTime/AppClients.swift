@@ -43,6 +43,10 @@ protocol ContestsClient: AnyObject {
     func listContests(userID: UUID) async throws -> [ContestCard]
     func listCharities() async throws -> [Charity]
     func standings(contestID: UUID) async throws -> ChallengeStandings?
+    func sendComebackReaction(
+        contestID: UUID,
+        snapshotID: UUID
+    ) async throws
     func createChallenge(
         _ terms: ChallengeTerms,
         expectedUserID: UUID
@@ -56,6 +60,23 @@ protocol ContestsClient: AnyObject {
     func declineInvitation(contestID: UUID, userID: UUID) async throws
 }
 
+enum PushTokenEnvironment: String, Codable, Sendable {
+    case development
+    case production
+}
+
+@MainActor
+protocol PushNotificationsClient: AnyObject {
+    func register(_ registration: PushDeviceRegistration) async throws
+    func unregister(_ registration: PushDeviceRegistration) async throws
+}
+
+@MainActor
+final class DisabledPushNotificationsClient: PushNotificationsClient {
+    func register(_ registration: PushDeviceRegistration) async throws {}
+    func unregister(_ registration: PushDeviceRegistration) async throws {}
+}
+
 @MainActor
 struct AppServices {
     let auth: any AuthClient
@@ -64,4 +85,24 @@ struct AppServices {
     let contests: any ContestsClient
     let pendingChallenges: any PendingChallengeStore
     let activitySync: any ActivitySyncing
+    let pushNotifications: any PushNotificationsClient
+
+    init(
+        auth: any AuthClient,
+        profiles: any ProfileClient,
+        friendships: any FriendshipsClient,
+        contests: any ContestsClient,
+        pendingChallenges: any PendingChallengeStore,
+        activitySync: any ActivitySyncing,
+        pushNotifications: any PushNotificationsClient =
+            DisabledPushNotificationsClient()
+    ) {
+        self.auth = auth
+        self.profiles = profiles
+        self.friendships = friendships
+        self.contests = contests
+        self.pendingChallenges = pendingChallenges
+        self.activitySync = activitySync
+        self.pushNotifications = pushNotifications
+    }
 }

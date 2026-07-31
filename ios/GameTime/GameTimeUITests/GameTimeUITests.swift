@@ -273,6 +273,16 @@ final class GameTimeUITests: XCTestCase {
                 "Live ordering only — not a predicted winner."
             ].exists
         )
+        let reaction = provisional.buttons["standings.reaction.comeback"]
+        for _ in 0..<3 where !reaction.exists {
+            provisional.swipeUp()
+        }
+        XCTAssertTrue(reaction.waitForExistence(timeout: 3))
+        reaction.tap()
+        XCTAssertTrue(
+            provisional.staticTexts["Reaction sent 😤"]
+                .waitForExistence(timeout: 3)
+        )
         let privacy = provisional.staticTexts[
             "Integrity detail stays private until final."
         ]

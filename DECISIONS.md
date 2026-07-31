@@ -3268,3 +3268,31 @@ its overlapping components.
 provenance sidecar, third-party step sources enter the friend-test scope, Apple
 changes statistics-query merge semantics, or physical acceptance shows the
 scoped statistic does not match Health's Apple-device total.
+
+### D93. Detect lead loss at standings publication and keep push best effort
+
+**What.** A new provisional standings snapshot detects when the prior rank-one
+participant falls below first and writes one generic `contest_lead_lost`
+notification intent keyed by that snapshot. APNs token and delivery state are
+actor-bound and separate from the append-only intent. The alert contains no
+metric totals or health data, opens the accepted participant's standings, and
+offers an **I’m coming back 😤** action. That reaction is append-only and
+idempotent per participant and latest provisional snapshot; it is accepted only
+while the caller is below first.
+
+**Why.** Standings publication is the first authoritative place that knows a
+lead was actually lost. Detecting there avoids client polling and cross-device
+duplicates. Keeping delivery state separate preserves D80's durable intent
+ledger, while a generic payload limits lock-screen disclosure. Treating APNs as
+presentation rather than correctness keeps scoring and deadlines independent
+of permission, token, provider, or retry failures.
+
+**Rejected.** Client-side rank comparison; embedding activity totals, health
+values, or rival identity in the push; mutating or deleting notification
+intents as delivery state changes; trusting contest/snapshot IDs from the
+client without accepted-participant and latest-snapshot checks; and allowing a
+reaction to affect scoring.
+
+**Revisit if.** Reactions become visible to other participants, a durable
+in-app inbox owns notification actions, multiple reaction types are introduced,
+or a provider abstraction replaces direct APNs delivery.

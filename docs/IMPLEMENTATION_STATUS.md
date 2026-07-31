@@ -5,7 +5,9 @@
 > explicit steps-sync slice, and device-independent M7 trusted assessment.
 > Branch `codex/m7-d76-review-deadlines` adds the bounded D76
 > deadline/escalation slice; its local database and Deno verification passed on
-> 2026-07-30.
+> 2026-07-30. The working tree also adds a locally verified M8.4 lead-loss
+> push/deep-link/reaction slice; no hosted deployment or APNs device proof was
+> performed.
 > This is a dated evidence record. `README.md` is the compact project overview,
 > `PLAN.md` owns sequence and launch gates, and `DECISIONS.md` owns
 > product/architecture decisions.
@@ -51,6 +53,16 @@ results, and the bounded D76 deadline/escalation state machine. Operated
 adjudicator authorization/queues, an authorized hosted normal finalizer,
 actionable settlement/disputes, and later M8 background sensor, inbox/APNs, and
 release slices remain to be built.
+
+The M8.4 working-tree slice converts a rank-1-to-lower-rank standings transition
+into one generic, idempotent M7 notification intent, then leases delivery to a
+secret-authenticated Edge Function that speaks directly to APNs. Device tokens
+are actor-bound, invalid tokens are retired, delivery state does not mutate the
+append-only intent, and notification content carries no metric totals or health
+data. A default tap routes to the accepted participant's standings; the
+notification and standings screen both expose an idempotent **I’m coming back
+😤** reaction. Hosted secrets/function/cron, Apple provisioning, and a real
+two-account lead change remain open.
 
 The M7 slice reads `contest_evidence`, source metadata for versioned reputation
 rules, applied timezone epochs, complete quarantine state,
@@ -188,6 +200,21 @@ reset proves forward migration execution on the local fixture database; it
 does not measure the D76 deadline backfill or table-lock duration on a
 populated production-shaped copy.
 
+### Executed for the M8.4 lead-loss push/reaction working tree
+
+| Check | Result | What it proves |
+| --- | --- | --- |
+| Clean local reset and `./scripts/db-test.sh` | Pass, 27 pgTAP files / 1,130 assertions | The complete database suite remains green with transition detection, intent idempotency, guarded reaction/token RPCs, delivery leasing/retry recording, and the named dispatch job |
+| `deno fmt --check`, lint, type-check, and focused tests for `deliver-push` | Pass, 4 tests | The APNs adapter and secret-authenticated handler are formatted, lint-clean, type-safe, and cover successful delivery plus permanent/retryable failure classification |
+| Product Debug build, unsigned Staging/Release builds, and full `GameTimeTests` on iPhone 16e Simulator | Pass, no build warnings; 70 unit tests | Push registration wiring, direct standings routing, reaction idempotency, and existing product behavior compile and pass together; Staging selects development APNs while Release selects production and retains its fixture lock |
+| Targeted `GameTimeUITests.testProvisionalAndFinalStandingsDisclosure` | Pass, 1 test / 0 failures | A below-first participant sees and sends the comeback reaction in provisional standings, receives the sent state, and the existing final disclosure path remains intact |
+| Entitlement plist lint, focused Swift formatting, and whitespace review | Pass | Development/production APNs entitlement selection parses, new Swift/Edge files satisfy their formatters, and the feature patch has no whitespace errors |
+
+This evidence is local database, simulator, and unit-level APNs-adapter proof.
+It does not prove Apple Developer capability/provisioning, a provider-accepted
+push, hosted Vault/Edge/cron configuration, physical-device notification
+presentation, or a real two-user standings transition.
+
 ### Executed for the explicit steps-sync repository slice
 
 | Check | Result | What it proves |
@@ -263,7 +290,7 @@ They remain historical evidence for the named revisions and scopes only.
 | M7.2a | Implemented | Transactional notification intents and named one-minute activation job | Hosted committed-row activation proof |
 | D81 foundation | Staged; local and retention-cycle proven | Durable actors, atomic service-only deletion, capabilities, holds/cutoffs, raw-retention worker, forward generated-column repair | Broader concurrency/production-shaped migration, hosted advisors, hold/failure recovery; user-facing deletion/capability path |
 | M7 finalization/settlement | Trusted assessment, D76 deadline, and first-result foundations implemented locally but normal finalization remains dormant | Canonical service-only evidence loading, immutable versioned complete assessments, exact quarantine materialization, retry/concurrency safety, D76 peer/adjudication deadlines, explicit clearance, fail-closed timeout, assessment-gated final results/standings, accepted-participant redacted reads, and exact per-debtor obligations | Operated adjudicator authorization/queues, authorized hosted normal-finalizer caller, claims, disputes, actionability, reliability, and remaining deadline workers |
-| M8 | Repository slices present; partial single-user staging proof recorded; full milestone open | Product Xcode target, native Apple token exchange, exact-handle social/challenge loop, immutable review and staging diagnostics, protected challenge retry, M7-backed rankings, isolated demo, locally verified source-merged Apple-device steps sync with visible exact totals and exact-byte account isolation, and a bounded staging-only product App Attest identity bridge | Apple-name prefill, approved hosted verifier rollout, signed two-device challenge and step-sync acceptance, background HealthKit, Core Location, other pending actions, inbox/APNs, later M7 screens, privacy/release hardening |
+| M8 | Repository slices present; partial single-user staging proof recorded; full milestone open | Product Xcode target, native Apple token exchange, exact-handle social/challenge loop, immutable review and staging diagnostics, protected challenge retry, M7-backed rankings, isolated demo, locally verified source-merged Apple-device steps sync, a bounded staging-only product App Attest identity bridge, and a locally verified lead-loss push/deep-link/reaction path | Apple-name prefill, approved hosted verifier and push rollout, signed two-device challenge/step-sync/lead-loss acceptance, background HealthKit, Core Location, remaining inbox actions, later M7 screens, privacy/release hardening |
 
 ## Work already delivered
 
@@ -391,8 +418,9 @@ Remaining:
    isolation, and the app-log privacy check. Keep Release locked.
 4. Add HealthKit background delivery and Core Location/workout capture through
    the existing exact-byte queues.
-5. Extend the protected pending-action model beyond challenge creation, then
-   add a durable in-app inbox and APNs delivery.
+5. Extend the protected pending-action model beyond challenge creation, add a
+   durable in-app inbox, and expand the locally implemented lead-loss APNs path
+   to the remaining action-required events.
 6. Add review/adjudication and actionable settlement/dispute screens only after
    M7 supplies those APIs; stage-prove the implemented standings read surface.
 7. Complete accessibility/privacy hardening, avatar/group-feed policy,
@@ -411,8 +439,9 @@ Remaining:
 4. **Settlement slice:** obligations, confirmation, disputes, reliability, and
    their operated deadlines.
 5. **Product slice:** close M8.1 and explicit steps-sync external proof, then
-   add background sensor delivery, remaining protected actions, inbox/APNs, and
-   later M7-backed product slices.
+   add background sensor delivery, remaining protected actions, the durable
+   inbox and hosted/device proof for lead-loss APNs, and later M7-backed product
+   slices.
 6. **Launch hardening:** charities, monitoring, rate limits, privacy/abuse,
    backup/restore, deployment controls, accessibility, and App Store evidence.
 

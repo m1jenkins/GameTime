@@ -210,14 +210,42 @@ struct ContestDetailView: View {
                                 ),
                                 loadState: model.standingsLoadState(
                                     for: contest.id
-                                )
-                            ) {
-                                Task {
-                                    await model.loadStandings(
-                                        contestID: contest.id
+                                ),
+                                hasReacted: model.standings(
+                                    for: contest.id
+                                ).map {
+                                    model.hasSentComebackReaction(
+                                        snapshotID: $0.snapshotID
                                     )
+                                } ?? false,
+                                isSendingReaction: model
+                                    .reactingStandingsSnapshotID
+                                    == model.standings(
+                                        for: contest.id
+                                    )?.snapshotID,
+                                retry: {
+                                    Task {
+                                        await model.loadStandings(
+                                            contestID: contest.id
+                                        )
+                                    }
+                                },
+                                sendReaction: {
+                                    guard
+                                        let snapshotID = model.standings(
+                                            for: contest.id
+                                        )?.snapshotID
+                                    else {
+                                        return
+                                    }
+                                    Task {
+                                        await model.sendComebackReaction(
+                                            contestID: contest.id,
+                                            snapshotID: snapshotID
+                                        )
+                                    }
                                 }
-                            }
+                            )
                         } else if contest.status == .pending {
                             Section("Standings") {
                                 Label(
@@ -306,17 +334,109 @@ struct ContestDetailView: View {
     }
 }
 
+struct ContestStandingsView: View {
+    @Environment(AppModel.self) private var model
+    let contestID: UUID
+
+    private var contest: ContestCard? {
+        model.contests.first { $0.id == contestID }
+    }
+
+    private var standings: ChallengeStandings? {
+        model.standings(for: contestID)
+    }
+
+    var body: some View {
+        Group {
+            if let contest,
+                contest.myStatus == .accepted,
+                contest.status == .active || contest.status == .finalized
+            {
+                List {
+                    ChallengeStandingsSection(
+                        contest: contest,
+                        currentUserID: model.userID,
+                        standings: standings,
+                        loadState: model.standingsLoadState(
+                            for: contest.id
+                        ),
+                        hasReacted: standings.map {
+                            model.hasSentComebackReaction(
+                                snapshotID: $0.snapshotID
+                            )
+                        } ?? false,
+                        isSendingReaction:
+                            model.reactingStandingsSnapshotID
+                            == standings?.snapshotID,
+                        retry: {
+                            Task {
+                                await model.loadStandings(
+                                    contestID: contest.id
+                                )
+                            }
+                        },
+                        sendReaction: {
+                            guard let snapshotID = standings?.snapshotID
+                            else {
+                                return
+                            }
+                            Task {
+                                await model.sendComebackReaction(
+                                    contestID: contest.id,
+                                    snapshotID: snapshotID
+                                )
+                            }
+                        }
+                    )
+                }
+                .trustScreenBackground()
+                .refreshable {
+                    await model.refresh()
+                    await model.loadStandings(contestID: contest.id)
+                }
+            } else {
+                ContentUnavailableView(
+                    "Standings unavailable",
+                    systemImage: "chart.bar.xaxis",
+                    description: Text(
+                        "This challenge is not active or is no longer available to this account."
+                    )
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(CompetitiveTrustTheme.ink)
+            }
+        }
+        .navigationTitle("Standings")
+        .navigationBarTitleDisplayMode(.inline)
+        .task(id: contest?.status.rawValue) {
+            guard let contest else { return }
+            await model.loadStandings(contestID: contest.id)
+        }
+    }
+}
+
 private struct ChallengeStandingsSection: View {
     let contest: ContestCard
     let currentUserID: UUID?
     let standings: ChallengeStandings?
     let loadState: ScreenLoadState
+    let hasReacted: Bool
+    let isSendingReaction: Bool
     let retry: () -> Void
+    let sendReaction: () -> Void
 
     var body: some View {
         Section {
             if let standings {
                 phaseHeader(standings)
+
+                if standings.phase == .provisional,
+                    standings.standings.first(where: {
+                        $0.participantID == currentUserID
+                    })?.rank ?? 1 > 1
+                {
+                    comebackReaction
+                }
 
                 if let result = standings.result {
                     resultSummary(result, standings: standings)
@@ -359,6 +479,26 @@ private struct ChallengeStandingsSection: View {
             }
         }
         .listRowBackground(CompetitiveTrustTheme.raisedInk)
+    }
+
+    private var comebackReaction: some View {
+        Button(action: sendReaction) {
+            Label(
+                hasReacted ? "Reaction sent 😤" : "I’m coming back 😤",
+                systemImage: hasReacted
+                    ? "checkmark.circle.fill"
+                    : "bubble.left.and.bubble.right.fill"
+            )
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(TrustSecondaryButtonStyle())
+        .disabled(hasReacted || isSendingReaction)
+        .accessibilityIdentifier("standings.reaction.comeback")
+        .accessibilityHint(
+            hasReacted
+                ? "Your reaction was sent."
+                : "Sends a comeback reaction to this challenge."
+        )
     }
 
     @ViewBuilder

@@ -1,5 +1,6 @@
 SUPABASE_URL =
 SUPABASE_PUBLISHABLE_KEY =
+APS_ENVIRONMENT = production
 
 // Optional and gitignored. It may contain only SUPABASE_URL and
 // SUPABASE_PUBLISHABLE_KEY.

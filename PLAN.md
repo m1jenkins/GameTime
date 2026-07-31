@@ -4,7 +4,8 @@ Audited and reconciled 2026-07-30 against the code, tests, documentation, local
 history, `origin/main`, and recent CI. Synchronized baseline revision `167d31b`
 includes the narrow staging-only steps sync and device-independent M7
 trusted-assessment slices. Branch `codex/m7-d76-review-deadlines` adds the
-locally verified D76 deadline/escalation slice described below.
+locally verified D76 deadline/escalation slice and the working-tree M8.4
+lead-loss push/reaction slice described below.
 README.md is the compact ledger of what is built; DECISIONS.md records why.
 This file owns sequence, remaining work, and launch blockers. The dated evidence
 and verification caveats are in `docs/IMPLEMENTATION_STATUS.md`.
@@ -18,7 +19,7 @@ and verification caveats are in `docs/IMPLEMENTATION_STATUS.md`.
 | M6 | Complete | Attested geofence/workout validation, durable check-in queue primitives, trusted-location integrity inputs |
 | M6.5 | In progress — conformance gate | Harness, independent receipt verification, and staging backend are verified; App Attest-capable signing and physical-iPhone proof remain |
 | M7 | M7.2a, D81, trusted assessment, D76 deadlines, and the M8.3c first-result foundation implemented locally | Product contract D74–D82, transactional outbox, activation/deadline jobs, account deletion/retention, canonical trusted evidence loading, immutable versioned assessments, quarantine materialization, bounded escalation/clearance/timeout, immutable standings snapshots, explicit first results, and per-debtor obligations are integrated; operated adjudicator authorization, an authorized hosted caller, disputes, actionable settlement, and external gates remain |
-| M8 | M8.1 code path and later repository slices are present; acceptance remains open | Separate product app, Apple auth, exact-handle friendship, immutable challenge review, staging diagnostics, and locally implemented explicit Apple-device steps sync with HealthKit source merging, product App Attest, visible confirmed totals, and an account-isolated exact-byte retry queue; two-user/device proof, hosted product App Attest identity, background delivery, and later product slices remain |
+| M8 | M8.1 code path and later repository slices are present; acceptance remains open | Separate product app, Apple auth, exact-handle friendship, immutable challenge review, staging diagnostics, explicit Apple-device steps sync, and a locally verified lead-loss push/reaction path; two-user/device proof, hosted product App Attest identity, APNs activation, background delivery, and later product slices remain |
 
 M6's boundary is backend plus portable client core. It does not include live
 Core Location collection, HealthKit queries, or a production scoring/finalizer
@@ -521,6 +522,36 @@ Core Location, Apple Push Notification service (APNs), settlement, donation,
 dispute, or production-release work. Do not call HealthKit or M8.1 complete
 until the physical staging record closes its open rows.
 
+### M8.4 — Lead-loss push and comeback reaction
+
+- [x] Detect the transition from provisional rank 1 to a lower rank when a new
+  immutable standings snapshot is published, and write one generic,
+  snapshot-idempotent `contest_lead_lost` notification intent for the prior
+  leader.
+- [x] Register user-bound APNs device tokens through guarded RPCs, keep mutable
+  delivery/lease state separate from the append-only M7 intent ledger, retry
+  transient failures, and invalidate permanently rejected tokens.
+- [x] Deliver a privacy-minimized alert without metric totals or health data,
+  deep-link its default tap directly to the accepted participant's standings,
+  and expose the notification action **I’m coming back 😤**.
+- [x] Persist that comeback reaction at most once per user and standings
+  snapshot, only for an accepted participant who is currently below first in
+  the latest provisional standings.
+- [x] Show the same reaction control in provisional standings, with local
+  sending/sent state, account-transition clearing, fixture parity, and
+  router/model/UI coverage.
+- [ ] With separate approval, apply the migration to staging, deploy
+  `deliver-push`, provision its APNs and dispatch secrets, and configure the
+  matching Vault dispatch URL/secret.
+- [ ] Prove one real two-account lead change on physical devices, including the
+  APNs receipt, default-tap standings route, notification action, in-app
+  reaction, retry behavior, token invalidation, and account isolation.
+
+This is a local repository slice. Push remains a best-effort presentation
+channel under D80; scoring, contest transitions, and deadlines never depend on
+delivery. It is not live until Apple credentials, hosted secrets/function/cron,
+signed provisioning, and the physical two-account record pass.
+
 ### Later M8 slices
 
 - Incremental/background HealthKit delivery after the explicit steps flow has
@@ -529,7 +560,8 @@ until the physical staging record closes its open rows.
   exact-byte check-in queue.
 - Product App Attest lifecycle hardening after the staging registration,
   assertion, replay, and counter observations pass on physical devices.
-- Durable in-app action inbox plus APNs registration and delivery.
+- Durable in-app action inbox and expansion of the bounded lead-loss APNs path
+  to remaining action-required events.
 - Review/adjudication controls plus actionable settlement and dispute screens
   after the remaining M7 contracts exist.
 - Product integration for the persistent check-in queue and remaining pending
@@ -544,7 +576,7 @@ until the physical staging record closes its open rows.
 | Production charity list | Production is intentionally empty; contest creation fails until EINs are verified |
 | App Attest device proof | Product metric signing is implemented locally, but the hosted App ID must match `com.mjenkins.gametime.staging` and physical registration/assertion/replay must pass without a bypass |
 | Hosted staging proofs | Retention has committed manual/cron proof; activation still needs a committed-row cron run, and retention still needs hold/failure-recovery evidence |
-| Notifications | Action-required flows need a durable inbox and eventual delivery; deadlines cannot depend on push |
+| Notifications | The lead-loss APNs path is locally implemented but not hosted or device-proven; remaining action-required flows still need a durable inbox, and deadlines cannot depend on push |
 | Adjudication operations | Review and dispute deadlines need authorized staffing, queues, alerts, and a tested SLA |
 | Observability | Rejected ingest, scheduler failures, and stuck reviews must be measurable |
 | Rate limiting | Signed-in callers can currently create avoidable endpoint load |
