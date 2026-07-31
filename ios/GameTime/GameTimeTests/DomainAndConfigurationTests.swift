@@ -3,6 +3,23 @@ import XCTest
 @testable import GameTime
 
 final class DomainAndConfigurationTests: XCTestCase {
+    func testInstalledProductContainsValidClientConfiguration() throws {
+        let configuration = try AppConfiguration.load()
+
+        XCTAssertNotNil(configuration.supabaseURL.host)
+        XCTAssertTrue(
+            configuration.supabasePublishableKey.hasPrefix("sb_publishable_")
+        )
+        XCTAssertGreaterThan(
+            configuration.supabasePublishableKey.count,
+            "sb_publishable_".count
+        )
+        XCTAssertEqual(
+            Bundle.main.bundleIdentifier,
+            "com.mjenkins.gametime.staging"
+        )
+    }
+
     func testConfigurationRejectsMissingAndSecretKeys() {
         XCTAssertThrowsError(
             try AppConfiguration.validated(

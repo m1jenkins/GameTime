@@ -3268,3 +3268,30 @@ its overlapping components.
 provenance sidecar, third-party step sources enter the friend-test scope, Apple
 changes statistics-query merge semantics, or physical acceptance shows the
 scoped statistic does not match Health's Apple-device total.
+
+### D93. Installed builds carry public client configuration and one provisioned identity
+
+**What.** A versioned `PublicClient.xcconfig` supplies the hosted Supabase URL
+and modern publishable key to Debug, Staging, and Release. Staging and Release
+have no machine-local configuration include. Debug alone may optionally include
+a gitignored local override. Until a separate production App ID and matching
+Supabase Apple audience are provisioned, all product configurations use the
+already verified `com.mjenkins.gametime.staging` App ID and Apple team. A target
+build phase refuses malformed public configuration or a mismatched bundle ID.
+
+**Why.** A Supabase publishable key is public mobile-client identification, not
+a privileged credential; every installed binary necessarily reveals it.
+Requiring each tester to create an untracked build file made a valid archive
+depend on the machine that compiled it and caused clean installs to stop at a
+configuration screen. A single provisioned bundle identity also keeps Apple's
+ID-token audience equal to the client ID accepted by Supabase Auth.
+
+**Rejected.** Runtime entry of backend settings; distributing xcconfig patches;
+embedding an `sb_secret_…`, service-role key, Apple private key, or database
+credential; silently using a developer's local override in an archive; or
+shipping the unprovisioned production bundle ID and discovering the Apple
+audience mismatch only after installation.
+
+**Revisit if.** A production Supabase project and Apple App ID are provisioned.
+At that point Release receives its own versioned public-client configuration
+and bundle identity, while Debug/Staging remain isolated from production.

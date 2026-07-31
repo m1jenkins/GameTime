@@ -36,6 +36,7 @@
 		B30000000000000000000005 /* Staging.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Staging.xcconfig; sourceTree = "<group>"; };
 		B30000000000000000000006 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		B30000000000000000000007 /* AppInfo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = AppInfo.plist; sourceTree = "<group>"; };
+		B30000000000000000000008 /* PublicClient.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = PublicClient.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -107,6 +108,7 @@
 		B60000000000000000000003 /* Configuration */ = {
 			isa = PBXGroup;
 			children = (
+				B30000000000000000000008 /* PublicClient.xcconfig */,
 				B30000000000000000000004 /* Debug.xcconfig */,
 				B30000000000000000000005 /* Staging.xcconfig */,
 				B30000000000000000000006 /* Release.xcconfig */,
@@ -122,6 +124,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C10000000000000000000002 /* Build configuration list for PBXNativeTarget "GameTime" */;
 			buildPhases = (
+				B00000000000000000000001 /* Validate Installed Configuration */,
 				B70000000000000000000001 /* Sources */,
 				B50000000000000000000001 /* Frameworks */,
 				B80000000000000000000001 /* Resources */,
@@ -259,6 +262,29 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B00000000000000000000001 /* Validate Installed Configuration */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Validate Installed Configuration";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\n\ncase \"${GAMETIME_ENV:-}\" in\n  debug|staging|release) ;;\n  *)\n    echo \"error: GameTime requires a valid product environment.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${SUPABASE_URL:-}\" in\n  https://*) ;;\n  http://*)\n    if [ \"${GAMETIME_ENV}\" != \"debug\" ]; then\n      echo \"error: Installed GameTime products require a Supabase HTTPS URL.\" >&2\n      exit 1\n    fi\n    ;;\n  *)\n    echo \"error: GameTime requires a configured Supabase URL.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${SUPABASE_PUBLISHABLE_KEY:-}\" in\n  sb_publishable_?*) ;;\n  *)\n    echo \"error: GameTime requires a current Supabase publishable key.\" >&2\n    exit 1\n    ;;\nesac\n\nif [ \"${PRODUCT_BUNDLE_IDENTIFIER:-}\" != \"com.mjenkins.gametime.staging\" ]; then\n  echo \"error: The Apple bundle ID must match the client ID accepted by Supabase Auth.\" >&2\n  exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		B70000000000000000000001 /* Sources */ = {
@@ -439,6 +465,7 @@
 				CODE_SIGN_ENTITLEMENTS = GameTime/GameTime.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87Z29RTC26;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configuration/AppInfo.plist;
@@ -457,7 +484,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.8.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -511,6 +538,7 @@
 				CODE_SIGN_ENTITLEMENTS = GameTime/GameTime.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87Z29RTC26;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configuration/AppInfo.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
@@ -528,7 +556,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.8.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;

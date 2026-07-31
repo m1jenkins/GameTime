@@ -62,27 +62,43 @@ challenge is blocked until the server returns a confirmed contest UUID or the
 user accepts the warned discard path. Sign-out detaches the record from UI
 state without making it visible to another actor.
 
-## Safe configuration
+## Installed configuration
 
-The app accepts only a Supabase URL and a current `sb_publishable_…` key. It
-fails closed when either is missing or malformed and explicitly rejects
-`sb_secret_…` and legacy service-role JWTs.
+Every product build includes `Configuration/PublicClient.xcconfig`, containing
+the hosted Supabase URL and its low-privilege `sb_publishable_…` mobile-client
+key. A clone, archive, TestFlight build, or directly installed build therefore
+starts without machine-specific configuration.
 
-Create the gitignored `Configuration/Secrets.xcconfig`:
+The public key is not an application secret: it is recoverable from every
+installed mobile binary and access remains controlled by Supabase Auth, grants,
+and row-level security. Never place Apple secrets, `sb_secret_…` or
+service-role keys, database credentials, or Edge Function secrets in an app
+configuration.
+
+Debug developers may create the gitignored
+`Configuration/LocalOverrides.xcconfig` to point only their Debug build at a
+local or isolated project:
 
 ```xcconfig
 // $() inserts the second slash without starting an xcconfig comment.
-SUPABASE_URL = https:/$()/abcdefghijklmnopqrst.supabase.co
-SUPABASE_PUBLISHABLE_KEY = sb_publishable_replace_me
+SUPABASE_URL = http:/$()/127.0.0.1:54321
+SUPABASE_PUBLISHABLE_KEY = sb_publishable_local_key
 ```
 
-Do not place Apple secrets, service-role keys, database credentials, or Edge
-Function secrets in an app configuration.
+Staging and Release deliberately ignore local overrides so an installed build
+cannot depend on the build machine's private files. The app target also rejects
+the build if the URL/key is invalid or its bundle ID no longer matches the
+Apple client identity accepted by Supabase Auth.
 
 ## Run and test
 
-Open `GameTime.xcodeproj`, select the `GameTime-Staging` scheme for connected
-staging or `GameTime` for Debug fixtures, and choose an iPhone Simulator.
+Open `GameTime.xcodeproj`, select `GameTime-Staging` for the connected product
+or `GameTime` for Debug/Release work, and choose an iPhone Simulator or a
+provisioned device. All configurations use the currently provisioned
+`com.mjenkins.gametime.staging` Sign in with Apple identity.
+
+External testers should receive a signed/TestFlight build. They need no source
+checkout, local configuration, Supabase access, or Apple developer-team access.
 
 ```sh
 xcodebuild \

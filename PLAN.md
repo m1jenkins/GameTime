@@ -181,6 +181,10 @@ settlement while that timestamp is absent.
 
 ## M7 — settlement and finalization
 
+The detailed delivery sequence for charity curation, pledge actionability,
+confirmation, provider-hosted donation, disputes, iOS, and rollout is in
+[docs/CHARITY_PLEDGE_DONATION_IMPLEMENTATION_PLAN.md](docs/CHARITY_PLEDGE_DONATION_IMPLEMENTATION_PLAN.md).
+
 M7 starts with decisions, then proves scheduling, then adds money-adjacent state.
 M7.1 is complete as a documentation/product-contract slice. M7.2's outbox,
 activation infrastructure, and D81's pre-result account-deletion foundation may

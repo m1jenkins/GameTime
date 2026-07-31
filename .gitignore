@@ -5,6 +5,7 @@
 *.p8
 *.p12
 ios/GameTime/Configuration/Secrets.xcconfig
+ios/GameTime/Configuration/LocalOverrides.xcconfig
 supabase/.env
 supabase/signing_keys.json
 

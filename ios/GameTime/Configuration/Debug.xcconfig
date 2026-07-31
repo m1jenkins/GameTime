@@ -1,8 +1,9 @@
+#include "PublicClient.xcconfig"
+
 GAMETIME_ENV = debug
-SUPABASE_URL =
-SUPABASE_PUBLISHABLE_KEY =
 GAMETIME_CONTEST_MUTATIONS_ENABLED = YES
 
-// Optional and gitignored. It may contain only SUPABASE_URL and
-// SUPABASE_PUBLISHABLE_KEY.
-#include? "Secrets.xcconfig"
+// Optional and gitignored. Developers may point Debug at a local or isolated
+// project without changing the installable Staging or Release products. It may
+// contain only SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY.
+#include? "LocalOverrides.xcconfig"

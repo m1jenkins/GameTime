@@ -1,12 +1,6 @@
-SUPABASE_URL =
-SUPABASE_PUBLISHABLE_KEY =
+#include "PublicClient.xcconfig"
 
-// Optional and gitignored. It may contain only SUPABASE_URL and
-// SUPABASE_PUBLISHABLE_KEY.
-#include? "Secrets.xcconfig"
-
-// These safety assignments must follow the optional include. Activity sync is
-// staging-only through GAMETIME_ENV, and AppConfiguration independently locks
-// Release contest mutations at runtime.
+// Activity sync is staging-only through GAMETIME_ENV, and AppConfiguration
+// independently locks Release contest mutations at runtime.
 GAMETIME_ENV = release
 GAMETIME_CONTEST_MUTATIONS_ENABLED = NO

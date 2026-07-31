@@ -124,6 +124,25 @@ cp .env.example .env.local
 ./scripts/db-test.sh
 ```
 
+### Run the iOS product
+
+The installed app carries its public Supabase URL and publishable mobile key;
+there is no per-tester `.env` or xcconfig step. Open
+`ios/GameTime/GameTime.xcodeproj`, select `GameTime-Staging`, choose a simulator
+or provisioned device, and run. A signed archive or TestFlight build contains
+the same configuration and can launch on every compatible device on which it
+is installed. The app target fails its build before compilation if that public
+configuration is missing, malformed, or paired with the wrong Apple bundle ID.
+
+Testers should install one signed build (normally through TestFlight); they do
+not clone the repository, edit configuration, or join the developer team.
+The current product identity is `com.mjenkins.gametime.staging` on Apple team
+`87Z29RTC26`. Developers compiling for a physical device need access to that
+team; people installing an already signed build do not. Only the public
+Supabase URL and `sb_publishable_…` key are compiled into the app. Apple private
+keys, Supabase secret/service-role keys, and database credentials remain
+server-side.
+
 Local endpoints once the stack is up:
 
 | Service          | URL                                                |

@@ -1,0 +1,8 @@
+// Public mobile-client configuration compiled into every installed GameTime
+// build. Supabase publishable keys identify a public client; they are not
+// privileged credentials and remain protected by Auth plus database RLS.
+//
+// Never add an sb_secret_ key, service-role JWT, database password, Apple
+// private key, or Edge Function secret to this file.
+SUPABASE_URL = https:/$()/jrkzdttophnmkxjoyioo.supabase.co
+SUPABASE_PUBLISHABLE_KEY = sb_publishable_lJS21udjGgBWmlGnvsFCDA_Hu8yWhYy
