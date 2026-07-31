@@ -32,6 +32,8 @@ struct AppShellView: View {
                         switch route {
                         case .contest(let id):
                             ContestDetailView(contestID: id)
+                        case .standings(let id):
+                            ContestStandingsView(contestID: id)
                         }
                     }
             }

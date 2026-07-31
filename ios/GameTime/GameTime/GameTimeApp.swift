@@ -1,17 +1,24 @@
 import GameTimeCore
 import SwiftUI
+import UserNotifications
 
 @main
 @MainActor
 struct GameTimeApp: App {
+    @UIApplicationDelegateAdaptor(GameTimeAppDelegate.self)
+    private var appDelegate
     @State private var liveModel: AppModel?
     @State private var demoModel: AppModel?
     @State private var router = AppRouter()
+    @State private var pushCoordinator: PushNotificationCoordinator
     @State private var isUsingDemoModel: Bool
     private let configurationFailure: String?
     private let isFixtureTestLaunch: Bool
 
     init() {
+        let notificationCoordinator = PushNotificationCoordinator()
+        _pushCoordinator = State(initialValue: notificationCoordinator)
+
         let arguments = ProcessInfo.processInfo.arguments
         let fixtureLaunch = arguments.contains("--fixture-mode")
         let interactiveDemoLaunch = arguments.contains("--demo-interactive")
@@ -71,32 +78,48 @@ struct GameTimeApp: App {
             _isUsingDemoModel = State(initialValue: false)
             configurationFailure = error.localizedDescription
         }
+
+        // Notification responses can arrive before SwiftUI view tasks run when
+        // a terminated app is launched from a push tap.
+        UNUserNotificationCenter.current().delegate = notificationCoordinator
     }
 
     var body: some Scene {
         WindowGroup {
-            if isUsingDemoModel, let demoModel {
-                RootView(
-                    model: demoModel,
-                    router: router,
-                    demoMode: demoModeAccess
-                )
+            Group {
+                if isUsingDemoModel, let demoModel {
+                    RootView(
+                        model: demoModel,
+                        router: router,
+                        demoMode: demoModeAccess,
+                        pushCoordinator: pushCoordinator
+                    )
                     .environment(demoModel)
                     .environment(router)
                     .tint(CompetitiveTrustTheme.teal)
-            } else if let liveModel {
-                RootView(
-                    model: liveModel,
-                    router: router,
-                    demoMode: demoModeAccess
-                )
+                } else if let liveModel {
+                    RootView(
+                        model: liveModel,
+                        router: router,
+                        demoMode: demoModeAccess,
+                        pushCoordinator: pushCoordinator
+                    )
                     .environment(liveModel)
                     .environment(router)
                     .tint(CompetitiveTrustTheme.teal)
-            } else {
-                ConfigurationFailureView(
-                    message: configurationFailure
-                        ?? "GameTime configuration is unavailable."
+                } else {
+                    ConfigurationFailureView(
+                        message: configurationFailure
+                            ?? "GameTime configuration is unavailable."
+                    )
+                }
+            }
+            .task(id: isUsingDemoModel) {
+                appDelegate.pushCoordinator = pushCoordinator
+                guard !isUsingDemoModel, let liveModel else { return }
+                await pushCoordinator.configure(
+                    environment: liveModel.configuration.environment,
+                    bundleID: Bundle.main.bundleIdentifier
                 )
             }
         }
@@ -140,6 +163,7 @@ struct RootView: View {
     @Bindable var model: AppModel
     @Bindable var router: AppRouter
     let demoMode: DemoModeAccess
+    let pushCoordinator: PushNotificationCoordinator
 
     var body: some View {
         Group {
@@ -179,11 +203,29 @@ struct RootView: View {
             }
             #endif
             await model.start()
+            if let registration = pushCoordinator.deviceRegistration {
+                await model.receivePushRegistration(registration)
+            }
+            await handlePushDestination()
         }
         .onChange(of: model.phase) { _, phase in
             if phase != .signedIn {
                 router.reset()
+            } else {
+                Task { await handlePushDestination() }
             }
+        }
+        .onChange(of: pushCoordinator.deviceRegistration) {
+            _, registration in
+            guard let registration else { return }
+            Task {
+                await model.receivePushRegistration(registration)
+            }
+        }
+        .onChange(of: pushCoordinator.pendingDestination) {
+            _, destination in
+            guard destination != nil else { return }
+            Task { await handlePushDestination() }
         }
         .alert(
             "GameTime",
@@ -201,6 +243,22 @@ struct RootView: View {
             }
         } message: {
             Text(model.presentedError ?? "")
+        }
+    }
+
+    private func handlePushDestination() async {
+        guard
+            model.phase == .signedIn,
+            let destination = pushCoordinator.pendingDestination
+        else {
+            return
+        }
+        router.openStandings(contestID: destination.contestID)
+        pushCoordinator.consumeDestination()
+        if destination.sendsComebackReaction {
+            await model.reactToLatestStandings(
+                contestID: destination.contestID
+            )
         }
     }
 }

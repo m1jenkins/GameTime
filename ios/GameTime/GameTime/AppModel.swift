@@ -56,6 +56,8 @@ final class AppModel {
     private(set) var charities: [Charity] = []
     private(set) var standingsByContestID: [UUID: ChallengeStandings] = [:]
     private(set) var standingsLoadStates: [UUID: ScreenLoadState] = [:]
+    private(set) var reactedStandingsSnapshotIDs: Set<UUID> = []
+    private(set) var reactingStandingsSnapshotID: UUID?
     private(set) var loadState: ScreenLoadState = .idle
     private(set) var exactHandleResult: ProfileCard?
     private(set) var lastSubmittedHandle: String?
@@ -76,6 +78,8 @@ final class AppModel {
     @ObservationIgnored private var isPerformingExplicitAuthMutation = false
     @ObservationIgnored private var authGeneration = UUID()
     @ObservationIgnored private var refreshGeneration = UUID()
+    @ObservationIgnored private var pushRegistration: PushDeviceRegistration?
+    @ObservationIgnored private var registeredPushActorID: UUID?
 
     init(configuration: AppConfiguration, services: AppServices) {
         self.configuration = configuration
@@ -195,6 +199,7 @@ final class AppModel {
             }
             phase = .signedIn
             await refresh()
+            await registerPushIfPossible()
         } catch is CancellationError {
             return
         } catch {
@@ -310,6 +315,74 @@ final class AppModel {
                 AppMutationError.map(error).localizedDescription
             )
         }
+    }
+
+    func hasSentComebackReaction(snapshotID: UUID) -> Bool {
+        reactedStandingsSnapshotIDs.contains(snapshotID)
+    }
+
+    func sendComebackReaction(
+        contestID: UUID,
+        snapshotID: UUID
+    ) async {
+        guard phase == .signedIn, let userID else { return }
+        guard !reactedStandingsSnapshotIDs.contains(snapshotID) else {
+            return
+        }
+        guard reactingStandingsSnapshotID == nil else { return }
+        let generation = authGeneration
+        reactingStandingsSnapshotID = snapshotID
+        defer {
+            if reactingStandingsSnapshotID == snapshotID {
+                reactingStandingsSnapshotID = nil
+            }
+        }
+
+        do {
+            try await services.contests.sendComebackReaction(
+                contestID: contestID,
+                snapshotID: snapshotID
+            )
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            reactedStandingsSnapshotIDs.insert(snapshotID)
+        } catch is CancellationError {
+            return
+        } catch {
+            guard isCurrentActor(userID, generation: generation) else {
+                return
+            }
+            present(error)
+        }
+    }
+
+    func reactToLatestStandings(contestID: UUID) async {
+        if standingsByContestID[contestID] == nil {
+            await loadStandings(contestID: contestID)
+        }
+        guard
+            let standings = standingsByContestID[contestID],
+            standings.phase == .provisional
+        else {
+            return
+        }
+        await sendComebackReaction(
+            contestID: contestID,
+            snapshotID: standings.snapshotID
+        )
+    }
+
+    func receivePushRegistration(
+        _ registration: PushDeviceRegistration
+    ) async {
+        pushRegistration = registration
+        await registerPushIfPossible()
     }
 
     func submitExactHandle(_ input: String) async {
@@ -705,6 +778,14 @@ final class AppModel {
             isPerformingExplicitAuthMutation = false
         }
         do {
+            if let pushRegistration,
+                registeredPushActorID == userID
+            {
+                try? await services.pushNotifications.unregister(
+                    pushRegistration
+                )
+                registeredPushActorID = nil
+            }
             try await services.auth.signOut()
             clearUserState()
         } catch is CancellationError {
@@ -765,6 +846,8 @@ final class AppModel {
         charities = []
         standingsByContestID = [:]
         standingsLoadStates = [:]
+        reactedStandingsSnapshotIDs = []
+        reactingStandingsSnapshotID = nil
         exactHandleResult = nil
         lastSubmittedHandle = nil
         onboardingNamePrefill = ""
@@ -774,6 +857,7 @@ final class AppModel {
         activitySyncStates = [:]
         pendingActivityUploadCount = 0
         isActivityMutating = false
+        registeredPushActorID = nil
         loadState = .idle
         presentedError = nil
         phase = .launching
@@ -817,6 +901,7 @@ final class AppModel {
                 }
                 phase = .signedIn
                 await refresh()
+                await registerPushIfPossible()
             } else {
                 guard
                     await isCurrentAuthenticatedActor(
@@ -966,6 +1051,8 @@ final class AppModel {
         charities = []
         standingsByContestID = [:]
         standingsLoadStates = [:]
+        reactedStandingsSnapshotIDs = []
+        reactingStandingsSnapshotID = nil
         exactHandleResult = nil
         lastSubmittedHandle = nil
         onboardingNamePrefill = ""
@@ -975,8 +1062,41 @@ final class AppModel {
         activitySyncStates = [:]
         pendingActivityUploadCount = 0
         isActivityMutating = false
+        registeredPushActorID = nil
         loadState = .idle
         presentedError = nil
         phase = .signedOut
+    }
+
+    private func registerPushIfPossible() async {
+        guard
+            phase == .signedIn,
+            let userID,
+            let pushRegistration,
+            registeredPushActorID != userID
+        else {
+            return
+        }
+        let generation = authGeneration
+        do {
+            try await services.pushNotifications.register(pushRegistration)
+            guard
+                await isCurrentAuthenticatedActor(
+                    userID,
+                    generation: generation
+                )
+            else {
+                return
+            }
+            registeredPushActorID = userID
+        } catch is CancellationError {
+            return
+        } catch {
+            guard isCurrentActor(userID, generation: generation) else {
+                return
+            }
+            presentedError =
+                "Push notifications couldn’t be enabled. Standings still work in the app."
+        }
     }
 }

@@ -25,9 +25,10 @@ The alpha does not move money. Every build must retain the staging message that 
 The candidate is cut from current `main` on
 `codex/functional-alpha-candidate`. `main` already contains the App Attest
 ECDSA fallback and current staging App IDs, so no runtime fix needed to be
-ported. The optional M8.4 push and reaction working-tree patch remains outside
-this branch, together with D76 adjudication operations, APNs delivery, comeback
-reactions, and settlement work.
+ported. Consolidation also retains the locally verified D76 deadline/escalation
+foundation and M8.4 lead-loss push/reaction path. They do not expand the alpha
+gate: operated adjudication, hosted D76 timer proof, APNs/device proof, a durable
+action inbox, and settlement remain deferred.
 
 The complete local database, Deno, Swift package, product, configuration, and
 conformance matrix passes. Before merge, the exact reviewed candidate commit
@@ -35,8 +36,8 @@ must also complete one green CI run.
 
 Exit criteria:
 
-- One reviewable branch contains only functional-alpha work
-- No optional notification or settlement feature is mixed into the candidate
+- The functional-alpha path remains reviewable independently of optional foundations
+- Optional notification and review foundations do not become alpha requirements
 - Database migrations, pgTAP, Deno checks, GameTimeCore tests, product tests, conformance tests, and Staging and Release builds pass
 - `git diff --check` passes
 - The reviewed commit is identical to the commit tested by CI
@@ -49,7 +50,7 @@ The backend must open and close a real challenge without test-only row changes.
 2. Exercise friendship, invitation acceptance, metric ingest, and standings against that scheduler-activated challenge.
 3. Connect the existing trusted assessment and first-result publisher to one authorized staging-only caller for clean challenges.
 4. Publish a result only after ingest grace closes and the evidence digest is frozen.
-5. Leave quarantined or failed assessments visibly under review and non-actionable. Do not build the full D76 operator system for alpha.
+5. Leave quarantined or failed assessments visibly under review and non-actionable. The implemented D76 deadlines may escalate and fail closed to `inconclusive`; do not enable an unstaffed hosted operator path for alpha.
 6. Record bounded IDs, counts, job results, and failure recovery. Do not record health values or credentials.
 
 Exit criteria:
@@ -122,7 +123,8 @@ The functional alpha is complete when the repository, hosted lifecycle, and phys
 | Product App Attest | Client and verifier paths implemented | Physical registration, assertion, replay, and counter or receipt observation |
 | Live standings | Implemented with participant-only redaction | Real two-user staging observation |
 | Clean final result | Assessment and first-result foundations implemented | Authorized hosted caller and committed clean-result observation |
-| Notifications and reactions | Optional local working-tree prototype | Excluded from functional alpha |
+| D76 review deadlines | Local 72-hour peer and seven-day adjudication escalation foundation implemented | Excluded from alpha; hosted operation requires authorization, staffing, and proof |
+| Notifications and reactions | Local lead-loss intent, APNs delivery, deep-link, and reaction path implemented | Excluded from alpha; hosted APNs and device proof remain open |
 | Money settlement and disputes | Foundations and decisions exist | Excluded from functional alpha |
 
 ## Deferred until the core loop is validated
@@ -131,7 +133,7 @@ Do not schedule these items before the functional alpha passes:
 
 - Real donation collection, receipt confirmation, defaults, disputes, and reliability scoring
 - Full D76 adjudicator authorization, staffed queues, conflict handling, and service-level agreements
-- APNs lead-loss notifications, comeback reactions, and a durable action inbox
+- Hosted APNs rollout and device proof, a durable action inbox, and remaining notification types
 - Background HealthKit delivery
 - Core Location, workout collection, and product check-in integration
 - Additional group-challenge work beyond the existing atomic roster support

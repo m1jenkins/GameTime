@@ -432,6 +432,12 @@ verify_jwt = false
 enabled = true
 verify_jwt = false
 
+[functions.deliver-push]
+enabled = true
+# Invoked by the named pg_cron/Vault bridge. The function performs its own
+# constant-time shared-secret check before claiming service-role work.
+verify_jwt = false
+
 # pg-delta is the schema diff engine for db diff / db pull / db remote commit.
 # Disabled: migrations here are hand-written (DECISIONS.md D13), so nothing in
 # this repo diffs a schema. Leaving it on makes every `db reset` try to cache a

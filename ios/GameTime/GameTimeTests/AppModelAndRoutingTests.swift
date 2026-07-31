@@ -172,6 +172,64 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertNil(router.presentedSheet)
     }
 
+    func testRouterOpensPushDestinationDirectlyOnStandings() {
+        let contestID = UUID()
+        let router = AppRouter()
+        router.presentedSheet = .createChallenge
+        router.todayPath = [.contest(UUID())]
+
+        router.openStandings(contestID: contestID)
+
+        XCTAssertEqual(router.selectedTab, .challenges)
+        XCTAssertEqual(router.challengesPath, [.standings(contestID)])
+        XCTAssertNil(router.presentedSheet)
+    }
+
+    func testPushEnvironmentIsStagingDevelopmentOnly() {
+        XCTAssertNil(
+            PushNotificationCoordinator.pushEnvironment(for: .debug)
+        )
+        XCTAssertEqual(
+            PushNotificationCoordinator.pushEnvironment(for: .staging)?
+                .rawValue,
+            "development"
+        )
+        XCTAssertNil(
+            PushNotificationCoordinator.pushEnvironment(for: .release)
+        )
+    }
+
+    func testComebackReactionIsIdempotentInTheModel() async throws {
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: ["GameTimeTests", "--fixture-mode"]
+            )
+        )
+        await model.start()
+        let contest = try XCTUnwrap(
+            model.contests.first { $0.status == .active }
+        )
+        await model.loadStandings(contestID: contest.id)
+        let snapshotID = try XCTUnwrap(
+            model.standings(for: contest.id)?.snapshotID
+        )
+
+        await model.sendComebackReaction(
+            contestID: contest.id,
+            snapshotID: snapshotID
+        )
+        await model.sendComebackReaction(
+            contestID: contest.id,
+            snapshotID: snapshotID
+        )
+
+        XCTAssertTrue(
+            model.hasSentComebackReaction(snapshotID: snapshotID)
+        )
+        XCTAssertNil(model.reactingStandingsSnapshotID)
+    }
+
     func testExactHandleRequestMutatesThenRefreshes() async {
         let model = AppModel(
             configuration: .fixture,
@@ -674,8 +732,9 @@ final class AppModelAndRoutingTests: XCTestCase {
             services.friendships,
             services.contests,
             services.pendingChallenges,
+            services.pushNotifications,
         ]
-        XCTAssertEqual(clients.count, 5)
+        XCTAssertEqual(clients.count, 6)
     }
 
     private func makeTerms(requestID: UUID = UUID()) -> ChallengeTerms {
@@ -906,6 +965,13 @@ private final class RecordingContestsClient: ContestsClient {
     func standings(contestID: UUID) async throws -> ChallengeStandings? {
         _ = contestID
         return nil
+    }
+
+    func sendComebackReaction(
+        contestID: UUID,
+        snapshotID: UUID
+    ) async throws {
+        _ = (contestID, snapshotID)
     }
 
     func createChallenge(

@@ -28,7 +28,8 @@ enum LiveServicesFactory {
             friendships: SupabaseFriendshipsClient(client: client),
             contests: SupabaseContestsClient(client: client),
             pendingChallenges: try FilePendingChallengeStore.applicationSupport(),
-            activitySync: activitySync
+            activitySync: activitySync,
+            pushNotifications: SupabasePushNotificationsClient(client: client)
         )
     }
 }
@@ -299,6 +300,23 @@ final class SupabaseContestsClient: ContestsClient {
         return standings
     }
 
+    func sendComebackReaction(
+        contestID: UUID,
+        snapshotID: UUID
+    ) async throws {
+        let _: UUID =
+            try await client
+            .rpc(
+                "send_comeback_reaction_v1",
+                params: StandingsReactionParameters(
+                    contestID: contestID,
+                    snapshotID: snapshotID
+                )
+            )
+            .execute()
+            .value
+    }
+
     func createChallenge(
         _ terms: ChallengeTerms,
         expectedUserID: UUID
@@ -350,6 +368,37 @@ final class SupabaseContestsClient: ContestsClient {
     }
 }
 
+@MainActor
+final class SupabasePushNotificationsClient: PushNotificationsClient {
+    private let client: SupabaseClient
+
+    init(client: SupabaseClient) {
+        self.client = client
+    }
+
+    func register(_ registration: PushDeviceRegistration) async throws {
+        let _: UUID =
+            try await client
+            .rpc(
+                "register_push_device_v1",
+                params: PushDeviceParameters(registration: registration)
+            )
+            .execute()
+            .value
+    }
+
+    func unregister(_ registration: PushDeviceRegistration) async throws {
+        let _: Bool =
+            try await client
+            .rpc(
+                "unregister_push_device_v1",
+                params: PushDeviceParameters(registration: registration)
+            )
+            .execute()
+            .value
+    }
+}
+
 private struct ProfileInsert: Encodable {
     let id: UUID
     let handle: String
@@ -361,6 +410,34 @@ private struct ProfileInsert: Encodable {
         case handle
         case displayName = "display_name"
         case timezone
+    }
+}
+
+private struct StandingsReactionParameters: Encodable {
+    let contestID: UUID
+    let snapshotID: UUID
+
+    enum CodingKeys: String, CodingKey {
+        case contestID = "p_contest_id"
+        case snapshotID = "p_snapshot_id"
+    }
+}
+
+private struct PushDeviceParameters: Encodable {
+    let deviceToken: String
+    let environment: PushTokenEnvironment
+    let bundleID: String
+
+    init(registration: PushDeviceRegistration) {
+        deviceToken = registration.deviceToken
+        environment = registration.environment
+        bundleID = registration.bundleID
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case deviceToken = "p_device_token"
+        case environment = "p_environment"
+        case bundleID = "p_bundle_id"
     }
 }
 
