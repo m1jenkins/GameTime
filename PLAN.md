@@ -22,21 +22,21 @@ The alpha does not move money. Every build must retain the staging message that 
 
 ## Clean alpha candidate
 
-The candidate is cut from current `main` on
-`codex/functional-alpha-candidate`. `main` already contains the App Attest
-ECDSA fallback and current staging App IDs, so no runtime fix needed to be
-ported. Consolidation also retains the locally verified D76 deadline/escalation
+The candidate and its supporting foundations are consolidated on current
+`main`. It contains the App Attest ECDSA fallback and current staging App IDs,
+so no runtime fix needed to be ported. Consolidation also retains the locally
+verified D76 deadline/escalation
 foundation and M8.4 lead-loss push/reaction path. They do not expand the alpha
 gate: operated adjudication, hosted D76 timer proof, APNs/device proof, a durable
 action inbox, and settlement remain deferred.
 
 The complete local database, Deno, Swift package, product, configuration, and
-conformance matrix passes. Before merge, the exact reviewed candidate commit
+conformance matrix passes. Before deployment, the exact reviewed `main` commit
 must also complete one green CI run.
 
 Exit criteria:
 
-- The functional-alpha path remains reviewable independently of optional foundations
+- The functional-alpha commit remains independently reviewable in history
 - Optional notification and review foundations do not become alpha requirements
 - Database migrations, pgTAP, Deno checks, GameTimeCore tests, product tests, conformance tests, and Staging and Release builds pass
 - `git diff --check` passes

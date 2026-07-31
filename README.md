@@ -339,8 +339,8 @@ deadline jobs. `gametime-activate-due-contests` and
 `gametime-process-quarantine-review-deadlines` run every minute; raw retention
 runs hourly. Application roles cannot use the `cron` schema. pgTAP proves each
 registry entry and manually driven worker semantics. Only activation and
-retention have the separately recorded hosted observations; this D76 branch
-does not deploy or observe its timer against committed hosted rows.
+retention have the separately recorded hosted observations; this D76
+implementation has not been deployed or observed against committed hosted rows.
 
 ## Provisional standings, final results, and obligations
 
