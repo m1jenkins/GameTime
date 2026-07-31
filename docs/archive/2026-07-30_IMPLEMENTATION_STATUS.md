@@ -1,4 +1,6 @@
-# GameTime implementation status
+# Archived GameTime implementation audit: 2026-07-30
+
+> Historical evidence snapshot. Do not use this file to select new work. Use `../../PLAN.md`.
 
 > Audit snapshot: synchronized `origin/main` baseline `167d31b`, including the
 > M8.3c M7-backed standings, M8.3d isolated on-device demo, staging-only

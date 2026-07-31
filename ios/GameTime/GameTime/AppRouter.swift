@@ -17,6 +17,7 @@ enum TodayRoute: Hashable {
 
 enum ChallengesRoute: Hashable {
     case contest(UUID)
+    case standings(UUID)
 }
 
 enum FriendsRoute: Hashable {
@@ -59,5 +60,11 @@ final class AppRouter {
         friendsPath = []
         youPath = []
         presentedSheet = nil
+    }
+
+    func openStandings(contestID: UUID) {
+        selectedTab = .challenges
+        presentedSheet = nil
+        challengesPath = [.standings(contestID)]
     }
 }

@@ -11,55 +11,9 @@ The product is verification credibility. These are people betting against
 friends who will try to cheat, so anti-cheat and data provenance are core domain
 logic, built and tested as such — not a later phase.
 
-**Status, reconciled 2026-07-30: the backend and portable client core are
-complete through M6, and the M8.1–M8.3d product slices are implemented with
-staging proof open. This is not yet a shippable iOS app.**
-M6.5's staging backend,
-conformance-only iOS target, independent App Attest receipt verifier,
-Apple-vector regression, receipt quarantine, and fail-closed hosted
-configuration are implemented and verified. The remaining M6.5 gate is to
-provision the connected iPhone with an App Attest-capable Apple Developer
-Program team, install the staging Auth fixture, and complete the documented
-smoke run.
+**Status:** The iOS product, friendship and challenge loop, manual steps sync, privacy-bounded standings, and safe retry foundations are implemented. GameTime is not yet a functional two-user alpha because the hosted lifecycle and physical two-device run remain open. [PLAN.md](PLAN.md) contains the one active path to that result.
 
-M7's product contract is recorded in DECISIONS.md D74–D82. The payload-free
-notification outbox and named one-minute activation job are implemented. The
-reconciled branch also implements D81's durable actor tombstones, atomic
-account deletion, scoped continuation capabilities, and versioned raw-evidence
-retention. D77's metric/quarantine evidence boundary is also hardened: direct
-audit reads are owner-only and pending peer review goes through exact-contest,
-phase-aware redacted RPCs. M8.3c adds immutable provisional/final standings
-snapshots, explicit first results, exact per-debtor obligations, and an
-accepted-participant read RPC that redacts rival integrity until final. A clean
-local database reset now applies 21 migrations and passes 26 pgTAP files /
-1,104 assertions, including the trusted assessment and D76 deadline slices;
-the Deno tree remains green at 323 tests and the supported local schema lint
-has no warnings. D81 and forward
-guard repair `20260726230529` are deployed to staging, where committed manual
-and hosted raw retention cycles prove exact-location pruning and the 90-day
-source-identifier scrub. Latest-head CI, remaining D81 concurrency, hosted
-advisors, production-shaped migration timing, and retention failure recovery
-remain open. M8.1–M8.3d now
-add a separate product Xcode target, native Apple-auth/onboarding state, the
-live exact-handle friendship loop, atomic idempotent multi-friend challenge
-invitations, four-tab SwiftUI navigation, Debug fixtures, a Release mutation
-lock, protected per-user manual retry recovery that survives relaunch, and
-M7-backed challenge-detail standings with final loser obligations.
-Debug and Staging also include a labeled in-memory demo where one tester can
-add `david1` or `david2` and create a challenge without changing Supabase; the
-fixture factory is absent from Release.
-Version-1 single-invite saved-duel records migrate in place to the version-2
-challenge roster without changing the backend payload hash. The two-user Apple
-staging run remains open, as do later sensors, App Attest, inbox/APNs, evidence
-queues, operated adjudicator/finalizer authorization, actionable settlement,
-disputes, and operations. The D76 database slice is implemented only in the
-local branch: it does not prove a hosted timer, staffed queue, or accepted
-operator workflow, and its deadline-column backfill has not been timed against
-a populated production-shaped copy. See
-[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audit
-evidence, remaining work, and recommended sequence.
-
----
+The app does not collect or enforce real donations. Settlement, disputes, push notifications, background sensors, and production release work remain outside the functional-alpha scope. Historical milestone evidence is archived in [docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md](docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md).
 
 ## Repository layout
 
@@ -94,12 +48,11 @@ scripts/
   m6-5-configure-staging.sh  Pin and upload safe App Attest staging secrets
   m6-5-staging-fixture.sql   Repeatable staging contest/geofence fixture
 docs/
-  IMPLEMENTATION_STATUS.md  Dated evidence, gaps, and recommended next steps
   M6_5_DEVICE_CONFORMANCE.md  Physical-iPhone/staging release gate
   M8_1_STAGING_ACCEPTANCE.md  Two-user Apple-authenticated product proof
-  M7_ACCOUNT_DELETION_RETENTION.md  D81 contracts and deployment/operations gate
+  archive/                Historical plans and audit evidence
 DECISIONS.md             Every non-obvious choice and why
-PLAN.md                  What is next, and what the plan is missing
+PLAN.md                  The one active path to a functional two-user alpha
 ```
 
 ## Prerequisites

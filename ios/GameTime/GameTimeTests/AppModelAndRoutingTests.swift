@@ -185,6 +185,20 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertNil(router.presentedSheet)
     }
 
+    func testPushEnvironmentIsStagingDevelopmentOnly() {
+        XCTAssertNil(
+            PushNotificationCoordinator.pushEnvironment(for: .debug)
+        )
+        XCTAssertEqual(
+            PushNotificationCoordinator.pushEnvironment(for: .staging)?
+                .rawValue,
+            "development"
+        )
+        XCTAssertNil(
+            PushNotificationCoordinator.pushEnvironment(for: .release)
+        )
+    }
+
     func testComebackReactionIsIdempotentInTheModel() async throws {
         let model = AppModel(
             configuration: .fixture,

@@ -1,4 +1,6 @@
-# M7 account deletion and raw-evidence retention
+# Archived M7 account deletion and raw-evidence retention design: 2026-07-30
+
+> Retained production design. This work is deferred until the functional two-user alpha passes.
 
 > Status: D81 foundation integrated into the reconciled 2026-07-26 branch and
 > locally database-proven at 733/733 assertions. D81 and forward repair
