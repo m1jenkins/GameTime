@@ -1,9 +1,12 @@
 # Charity pledge and donation implementation plan
 
+> Archived: deferred beyond the functional two-user alpha. This document is
+> historical planning, not an active implementation path.
+>
 > Status: proposed implementation sequence, 2026-07-30.
 >
 > This plan extends the existing M7/M8.3c foundation. Product rules in
-> [DECISIONS.md](../DECISIONS.md), especially D74 through D82, remain
+> [DECISIONS.md](../../DECISIONS.md), especially D74 through D82, remain
 > authoritative. This document does not authorize production payment collection
 > or change the current no-money behavior.
 

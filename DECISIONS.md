@@ -63,7 +63,7 @@ unexpected, or a required API turns out to be 26-only.
 > **Verified 2026-07-25:** Xcode 26.2 exposes the iOS 26.2 SDK, and Swift 6.2.3
 > builds and tests the portable package. The iOS 18 target remains the
 > deliberate compatibility choice above. Changing suite counts and later
-> verification results live in `docs/IMPLEMENTATION_STATUS.md`, not this
+> verification results live in `docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md`, not this
 > decision record.
 
 ### D3. One scoring engine, in TypeScript
