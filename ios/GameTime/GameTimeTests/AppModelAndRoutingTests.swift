@@ -22,6 +22,39 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertEqual(model.loadState, .loaded)
     }
 
+    func testFixtureLaunchFailureRemainsLaunchingAndSupportsExplicitRetry()
+        async
+    {
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-launch-error",
+                ]
+            )
+        )
+
+        await model.start()
+
+        XCTAssertEqual(model.phase, .launching)
+        XCTAssertTrue(
+            model.presentedError?.localizedCaseInsensitiveContains(
+                "offline"
+            ) == true
+        )
+
+        await model.retryLaunch()
+
+        XCTAssertEqual(model.phase, .launching)
+        XCTAssertTrue(
+            model.presentedError?.localizedCaseInsensitiveContains(
+                "offline"
+            ) == true
+        )
+    }
+
     func testFixtureLoadsProvisionalStandingsWithRivalIntegrityRedacted()
         async throws
     {

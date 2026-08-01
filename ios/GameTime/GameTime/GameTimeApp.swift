@@ -217,6 +217,7 @@ struct RootView: View {
                 switch model.phase {
                 case .launching:
                     LaunchingView(
+                        errorMessage: model.presentedError,
                         retry: {
                             Task { await model.retryLaunch() }
                         }
@@ -270,7 +271,10 @@ struct RootView: View {
         .alert(
             "GameTime",
             isPresented: Binding(
-                get: { model.presentedError != nil },
+                get: {
+                    model.phase != .launching
+                        && model.presentedError != nil
+                },
                 set: { isPresented in
                     if !isPresented {
                         model.presentedError = nil
@@ -342,29 +346,6 @@ private struct ConfigurationFailureView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(CompetitiveTrustTheme.ink)
         .accessibilityElement(children: .combine)
-    }
-}
-
-private struct LaunchingView: View {
-    let retry: () -> Void
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        VStack(spacing: 18) {
-            ProgressView()
-                .tint(CompetitiveTrustTheme.teal)
-                .accessibilityLabel("Loading GameTime")
-            Text("Loading trusted state…")
-                .font(.headline)
-            if model.presentedError != nil {
-                Button("Try again", action: retry)
-                    .buttonStyle(TrustSecondaryButtonStyle())
-                    .frame(maxWidth: 260)
-            }
-        }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(CompetitiveTrustTheme.ink)
     }
 }
 

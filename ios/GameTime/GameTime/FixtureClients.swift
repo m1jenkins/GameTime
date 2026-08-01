@@ -38,6 +38,7 @@ private struct FixtureScenario {
     let empty: Bool
     let offline: Bool
     let loading: Bool
+    let launchError: Bool
     let pendingChallenge: Bool
     let lostChallengeResponse: Bool
     let finalStandings: Bool
@@ -50,6 +51,7 @@ private struct FixtureScenario {
         empty = arguments.contains("--fixture-empty")
         offline = arguments.contains("--fixture-offline")
         loading = arguments.contains("--fixture-loading")
+        launchError = arguments.contains("--fixture-launch-error")
         pendingChallenge =
             arguments.contains("--fixture-pending-challenge")
             || arguments.contains("--fixture-pending-duel")
@@ -93,6 +95,7 @@ private final class FixtureStore {
     let discoverableProfiles: [ProfileCard]
     let offline: Bool
     let loading: Bool
+    let launchError: Bool
     let lostChallengeResponse: Bool
     let instantlyAcceptFriendRequests: Bool
     var hasLostChallengeResponse = false
@@ -110,6 +113,7 @@ private final class FixtureStore {
             )
         offline = scenario.offline
         loading = scenario.loading
+        launchError = scenario.launchError
         lostChallengeResponse = scenario.lostChallengeResponse
         instantlyAcceptFriendRequests =
             scenario.instantlyAcceptFriendRequests
@@ -510,6 +514,9 @@ private final class FixtureProfileClient: ProfileClient {
     func currentProfile(userID: UUID) async throws -> UserProfile? {
         if store.loading {
             try await Task.sleep(for: .seconds(2))
+        }
+        if store.launchError {
+            throw FixtureFailure.offline
         }
         return store.profile?.id == userID ? store.profile : nil
     }

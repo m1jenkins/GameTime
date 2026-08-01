@@ -319,10 +319,31 @@ final class GameTimeUITests: XCTestCase {
     func testLoadingEmptyAndOfflineStates() {
         let loading = launch("--fixture-loading")
         XCTAssertTrue(
-            loading.staticTexts["Loading trusted state…"]
+            loading.staticTexts["Loading…"]
                 .waitForExistence(timeout: 2)
         )
+        XCTAssertTrue(
+            loading.otherElements["launch.loading"].exists
+        )
         loading.terminate()
+
+        let launchRetry = launch("--fixture-launch-error")
+        XCTAssertTrue(
+            launchRetry.otherElements["launch.retry"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(
+            launchRetry.staticTexts["Couldn’t load your challenges"].exists
+        )
+        XCTAssertTrue(
+            launchRetry.staticTexts[
+                "Check your connection and try again."
+            ].exists
+        )
+        XCTAssertTrue(launchRetry.buttons["launch.retry.button"].exists)
+        XCTAssertTrue(launchRetry.staticTexts["Offline"].exists)
+        XCTAssertFalse(launchRetry.alerts["GameTime"].exists)
+        launchRetry.terminate()
 
         let empty = launch("--fixture-empty")
         XCTAssertTrue(
