@@ -1,53 +1,119 @@
 import SwiftUI
-import UIKit
 
 enum CompetitiveTrustTheme {
-    static let ink = Color(
-        uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0.03, green: 0.08, blue: 0.10, alpha: 1)
-                : UIColor(red: 0.95, green: 0.97, blue: 0.97, alpha: 1)
+    // Daybreak replaces the original teal-on-ink treatment with warm paper.
+    // The legacy names remain as aliases so non-challenge screens can migrate
+    // without duplicating a second palette.
+    static let paper = Color(red: 1.00, green: 0.969, blue: 0.941)
+    static let paperSunk = Color(red: 0.969, green: 0.925, blue: 0.886)
+    static let card = Color.white
+    static let primaryText = Color(red: 0.110, green: 0.082, blue: 0.137)
+    static let secondaryText = Color(red: 0.431, green: 0.392, blue: 0.471)
+    static let tertiaryText = Color(red: 0.545, green: 0.506, blue: 0.580)
+    static let disabledText = Color(red: 0.655, green: 0.616, blue: 0.686)
+    static let guide = Color(red: 0.788, green: 0.749, blue: 0.820)
+    static let border = Color(red: 0.949, green: 0.902, blue: 0.855)
+    static let strongBorder = Color(red: 0.894, green: 0.827, blue: 0.769)
+    static let rail = Color(red: 0.945, green: 0.922, blue: 0.965)
+
+    static let coral = Color(red: 1.00, green: 0.353, blue: 0.271)
+    static let coralPressed = Color(red: 0.910, green: 0.267, blue: 0.184)
+    static let coralInk = Color(red: 0.851, green: 0.227, blue: 0.145)
+    static let coralTint = Color(red: 1.00, green: 0.941, blue: 0.929)
+    static let coralTintStrong = Color(red: 0.969, green: 0.871, blue: 0.851)
+
+    static let sun = Color(red: 1.00, green: 0.714, blue: 0.153)
+    static let sunInk = Color(red: 0.541, green: 0.384, blue: 0.00)
+    static let sunTint = Color(red: 1.00, green: 0.941, blue: 0.800)
+
+    static let mint = Color(red: 0.071, green: 0.753, blue: 0.541)
+    static let mintInk = Color(red: 0.055, green: 0.604, blue: 0.435)
+
+    private static let participantRamp: [Color] = [
+        Color(red: 0.486, green: 0.361, blue: 0.988),
+        Color(red: 1.00, green: 0.620, blue: 0.106),
+        mint,
+        Color(red: 0.059, green: 0.710, blue: 0.808),
+        Color(red: 0.925, green: 0.282, blue: 0.600),
+        Color(red: 0.961, green: 0.773, blue: 0.094),
+        Color(red: 0.298, green: 0.431, blue: 0.961),
+    ]
+
+    static let ink = paper
+    static let raisedInk = card
+    static let divider = border
+    static let teal = coral
+    static let amber = sun
+    static let subdued = secondaryText
+
+    static func participantColor(
+        for participantID: UUID,
+        participantIDs: [UUID],
+        currentUserID: UUID?
+    ) -> Color {
+        if participantID == currentUserID {
+            return coral
         }
-    )
-    static let raisedInk = Color(
-        uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0.06, green: 0.13, blue: 0.16, alpha: 1)
-                : UIColor.white
+
+        let otherIDs = participantIDs
+            .filter { $0 != currentUserID }
+            .uniqued()
+            .sorted { $0.uuidString < $1.uuidString }
+        guard let index = otherIDs.firstIndex(of: participantID) else {
+            return participantRamp[0]
         }
-    )
-    static let divider = Color(
-        uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor.white.withAlphaComponent(0.10)
-                : UIColor.black.withAlphaComponent(0.08)
-        }
-    )
-    static let teal = Color(
-        red: 0.10,
-        green: 0.72,
-        blue: 0.62
-    )
-    static let amber = Color(
-        red: 0.94,
-        green: 0.64,
-        blue: 0.20
-    )
-    static let subdued = Color.secondary
+        return participantRamp[index % participantRamp.count]
+    }
+
+    static func displayFont(
+        size: CGFloat,
+        relativeTo textStyle: Font.TextStyle
+    ) -> Font {
+        .custom(
+            "BricolageGrotesque-96ptExtraBold",
+            size: size,
+            relativeTo: textStyle
+        )
+    }
+
+    static func uiFont(
+        size: CGFloat,
+        relativeTo textStyle: Font.TextStyle,
+        weight: Font.Weight = .regular
+    ) -> Font {
+        .custom(
+            "HankenGrotesk-Regular",
+            size: size,
+            relativeTo: textStyle
+        )
+        .weight(weight)
+    }
+}
+
+private extension Sequence where Element: Hashable {
+    func uniqued() -> [Element] {
+        var seen: Set<Element> = []
+        return filter { seen.insert($0).inserted }
+    }
 }
 
 struct TrustCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .padding(16)
+            .padding(18)
             .background(
-                CompetitiveTrustTheme.raisedInk,
-                in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+                CompetitiveTrustTheme.card,
+                in: RoundedRectangle(cornerRadius: 24, style: .continuous)
             )
             .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(CompetitiveTrustTheme.divider, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(CompetitiveTrustTheme.border, lineWidth: 1)
             }
+            .shadow(
+                color: CompetitiveTrustTheme.primaryText.opacity(0.05),
+                radius: 7,
+                y: 3
+            )
     }
 }
 
@@ -58,7 +124,7 @@ extension View {
 
     func trustScreenBackground() -> some View {
         scrollContentBackground(.hidden)
-            .background(CompetitiveTrustTheme.ink)
+            .background(CompetitiveTrustTheme.paper)
     }
 }
 
@@ -68,13 +134,20 @@ struct TrustPrimaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.headline)
+            .font(
+                CompetitiveTrustTheme.uiFont(
+                    size: 16,
+                    relativeTo: .headline,
+                    weight: .bold
+                )
+            )
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 13)
-            .foregroundStyle(Color.black.opacity(isEnabled ? 0.9 : 0.45))
+            .frame(minHeight: 44)
+            .padding(.horizontal, 20)
+            .foregroundStyle(Color.white.opacity(isEnabled ? 1 : 0.72))
             .background(
-                CompetitiveTrustTheme.teal.opacity(isEnabled ? 1 : 0.45),
-                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                CompetitiveTrustTheme.coral.opacity(isEnabled ? 1 : 0.42),
+                in: Capsule()
             )
             .scaleEffect(
                 reduceMotion || !configuration.isPressed ? 1 : 0.98
@@ -87,17 +160,68 @@ struct TrustPrimaryButtonStyle: ButtonStyle {
 }
 
 struct TrustSecondaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.headline)
+            .font(
+                CompetitiveTrustTheme.uiFont(
+                    size: 15,
+                    relativeTo: .headline,
+                    weight: .bold
+                )
+            )
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .foregroundStyle(CompetitiveTrustTheme.teal)
+            .frame(minHeight: 42)
+            .padding(.horizontal, 18)
+            .foregroundStyle(
+                CompetitiveTrustTheme.coralInk.opacity(isEnabled ? 1 : 0.45)
+            )
             .background(
-                CompetitiveTrustTheme.teal.opacity(
-                    configuration.isPressed ? 0.20 : 0.10
+                CompetitiveTrustTheme.coralTint.opacity(
+                    configuration.isPressed ? 0.72 : 1
                 ),
-                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                in: Capsule()
+            )
+            .scaleEffect(
+                reduceMotion || !configuration.isPressed ? 1 : 0.98
+            )
+            .animation(
+                reduceMotion ? nil : .easeOut(duration: 0.12),
+                value: configuration.isPressed
+            )
+    }
+}
+
+struct SunPillButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(
+                CompetitiveTrustTheme.uiFont(
+                    size: 14,
+                    relativeTo: .subheadline,
+                    weight: .bold
+                )
+            )
+            .foregroundStyle(
+                CompetitiveTrustTheme.primaryText.opacity(isEnabled ? 1 : 0.45)
+            )
+            .padding(.horizontal, 17)
+            .frame(minHeight: 40)
+            .background(
+                CompetitiveTrustTheme.sun.opacity(isEnabled ? 1 : 0.45),
+                in: Capsule()
+            )
+            .scaleEffect(
+                reduceMotion || !configuration.isPressed ? 1 : 0.98
+            )
+            .animation(
+                reduceMotion ? nil : .easeOut(duration: 0.12),
+                value: configuration.isPressed
             )
     }
 }
@@ -105,45 +229,103 @@ struct TrustSecondaryButtonStyle: ButtonStyle {
 struct InitialsAvatar: View {
     let initials: String
     var size: CGFloat = 44
+    var color: Color = CompetitiveTrustTheme.coral
+    var muted = false
 
     var body: some View {
         Text(initials)
-            .font(.system(.headline, design: .rounded, weight: .bold))
-            .foregroundStyle(CompetitiveTrustTheme.teal)
-            .frame(width: size, height: size)
-            .background(
-                CompetitiveTrustTheme.teal.opacity(0.13),
-                in: Circle()
+            .font(
+                CompetitiveTrustTheme.uiFont(
+                    size: max(9, size * 0.35),
+                    relativeTo: .headline,
+                    weight: .bold
+                )
             )
+            .foregroundStyle(Color.white)
+            .frame(width: size, height: size)
+            .background(color.opacity(muted ? 0.46 : 1), in: Circle())
             .accessibilityHidden(true)
     }
 }
 
 struct TrustStatusPill: View {
-    enum Kind {
+    enum Kind: Equatable {
         case verified
         case action
         case neutral
+        case live
+        case pledge
+        case positive
     }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var liveDotIsDimmed = false
 
     let text: String
     let kind: Kind
 
     private var color: Color {
         switch kind {
-        case .verified: CompetitiveTrustTheme.teal
-        case .action: CompetitiveTrustTheme.amber
-        case .neutral: .secondary
+        case .verified, .positive:
+            CompetitiveTrustTheme.mintInk
+        case .action:
+            CompetitiveTrustTheme.coralInk
+        case .neutral:
+            CompetitiveTrustTheme.secondaryText
+        case .live:
+            CompetitiveTrustTheme.coral
+        case .pledge:
+            CompetitiveTrustTheme.sunInk
+        }
+    }
+
+    private var background: Color {
+        switch kind {
+        case .verified, .positive:
+            CompetitiveTrustTheme.mint.opacity(0.12)
+        case .action:
+            CompetitiveTrustTheme.coralTint
+        case .neutral:
+            CompetitiveTrustTheme.primaryText.opacity(0.06)
+        case .live:
+            .clear
+        case .pledge:
+            CompetitiveTrustTheme.sunTint
         }
     }
 
     var body: some View {
-        Text(text)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(color)
-            .padding(.horizontal, 9)
-            .padding(.vertical, 5)
-            .background(color.opacity(0.12), in: Capsule())
+        HStack(spacing: 6) {
+            if kind == .live {
+                Circle()
+                    .fill(CompetitiveTrustTheme.coral)
+                    .frame(width: 8, height: 8)
+                    .opacity(liveDotIsDimmed ? 0.35 : 1)
+            }
+
+            Text(text)
+                .textCase(kind == .live ? .uppercase : nil)
+        }
+        .font(
+            CompetitiveTrustTheme.uiFont(
+                size: 12,
+                relativeTo: .caption,
+                weight: .bold
+            )
+        )
+        .tracking(kind == .live ? 0.7 : 0)
+        .foregroundStyle(color)
+        .padding(.horizontal, kind == .live ? 0 : 10)
+        .padding(.vertical, kind == .live ? 0 : 5)
+        .background(background, in: Capsule())
+        .onAppear {
+            guard kind == .live, !reduceMotion else { return }
+            withAnimation(
+                .easeInOut(duration: 1).repeatForever(autoreverses: true)
+            ) {
+                liveDotIsDimmed = true
+            }
+        }
     }
 }
 
@@ -153,11 +335,17 @@ struct TestEnvironmentBanner: View {
             "Test environment — no real pledge",
             systemImage: "exclamationmark.shield.fill"
         )
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(Color.black.opacity(0.82))
+        .font(
+            CompetitiveTrustTheme.uiFont(
+                size: 12,
+                relativeTo: .caption,
+                weight: .bold
+            )
+        )
+        .foregroundStyle(CompetitiveTrustTheme.primaryText)
         .frame(maxWidth: .infinity)
         .padding(.vertical, 7)
-        .background(CompetitiveTrustTheme.amber)
+        .background(CompetitiveTrustTheme.sun)
         .accessibilityLabel(
             "Test environment. No real pledge."
         )

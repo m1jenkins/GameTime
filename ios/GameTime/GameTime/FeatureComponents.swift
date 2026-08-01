@@ -36,42 +36,74 @@ struct FriendshipCardRow: View {
 
 struct ContestCardRow: View {
     let contest: ContestCard
+    var currentUserID: UUID? = nil
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .firstTextBaseline) {
+                HStack(alignment: .top, spacing: 12) {
                     Text(contest.title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                        .font(
+                            CompetitiveTrustTheme.displayFont(
+                                size: 18,
+                                relativeTo: .headline
+                            )
+                        )
+                        .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                        .tracking(-0.5)
                         .multilineTextAlignment(.leading)
+                        .lineSpacing(1)
                     Spacer()
                     statusPill
                 }
 
-                HStack(spacing: 14) {
-                    Label(contest.metric.title, systemImage: "waveform.path.ecg")
-                    Label(contest.targetText, systemImage: "target")
+                if !participantColors.isEmpty {
+                    HStack(spacing: 4) {
+                        ForEach(
+                            Array(participantColors.enumerated()),
+                            id: \.offset
+                        ) { _, color in
+                            Capsule()
+                                .fill(color)
+                                .frame(height: 5)
+                        }
+                    }
                 }
-                .font(.caption)
-                .foregroundStyle(.secondary)
 
-                HStack {
-                    Text(contest.stakeText)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(CompetitiveTrustTheme.amber)
-                    Text("test pledge")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
+                HStack(spacing: 10) {
+                    Text("\(contest.metric.title) · \(contest.cadence.title.lowercased())")
+                    Circle()
+                        .fill(CompetitiveTrustTheme.disabledText)
+                        .frame(width: 3, height: 3)
+                        .accessibilityHidden(true)
                     Text(
-                        contest.startsAt,
-                        format: .dateTime.month(.abbreviated).day()
+                        contest.cadence == .daily
+                            ? "\(contest.daybreakTargetText)/day"
+                            : contest.daybreakTargetText
                     )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    Spacer()
+                    TrustStatusPill(
+                        text: "\(contest.stakeText) each",
+                        kind: .pledge
+                    )
                 }
+                .font(
+                    CompetitiveTrustTheme.uiFont(
+                        size: 12.5,
+                        relativeTo: .caption
+                    )
+                )
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+
+                Text(contextText)
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 11.5,
+                            relativeTo: .caption
+                        )
+                    )
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
             .trustCard()
         }
@@ -84,11 +116,35 @@ struct ContestCardRow: View {
         if contest.myStatus == .invited {
             TrustStatusPill(text: "Action needed", kind: .action)
         } else if contest.status == .active {
-            TrustStatusPill(text: "Active", kind: .verified)
+            TrustStatusPill(text: "Live", kind: .live)
         } else if contest.status == .finalized {
-            TrustStatusPill(text: "Final", kind: .verified)
+            TrustStatusPill(text: "Final", kind: .positive)
         } else {
             TrustStatusPill(text: "Upcoming", kind: .neutral)
+        }
+    }
+
+    private var participantColors: [Color] {
+        let participantIDs = contest.resolvedParticipants.map(\.userID)
+        return participantIDs.map {
+            CompetitiveTrustTheme.participantColor(
+                for: $0,
+                participantIDs: participantIDs,
+                currentUserID: currentUserID
+            )
+        }
+    }
+
+    private var contextText: String {
+        switch contest.status {
+        case .pending:
+            return "Starts \(contest.startsAt.formatted(.dateTime.month(.abbreviated).day()))"
+        case .active:
+            return "Ends \(contest.endsAt.formatted(.dateTime.month(.abbreviated).day().hour().minute()))"
+        case .finalized:
+            return "Ended \(contest.endsAt.formatted(.dateTime.month(.abbreviated).day()))"
+        case .cancelled:
+            return "Challenge cancelled"
         }
     }
 
@@ -96,7 +152,7 @@ struct ContestCardRow: View {
         let state = contest.myStatus == .invited
             ? "Invitation, action needed"
             : contest.status.rawValue
-        return "\(contest.title), \(state), \(contest.targetText), \(contest.stakeText) test pledge"
+        return "\(contest.title), \(state), \(contest.daybreakTargetText), \(contest.stakeText) each, \(contextText)"
     }
 }
 

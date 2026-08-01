@@ -223,7 +223,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(contest.waitForExistence(timeout: 4))
         contest.tap()
         XCTAssertTrue(
-            app.navigationBars["Challenge"].waitForExistence(timeout: 4)
+            app.navigationBars["Weekend steps"].waitForExistence(timeout: 4)
         )
 
         let enable = app.buttons["activity.enable"]
@@ -280,7 +280,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(reaction.waitForExistence(timeout: 3))
         reaction.tap()
         XCTAssertTrue(
-            provisional.staticTexts["Reaction sent 😤"]
+            provisional.staticTexts["Reaction sent"]
                 .waitForExistence(timeout: 3)
         )
         let privacy = provisional.staticTexts[
@@ -379,7 +379,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(contest.waitForExistence(timeout: 4))
         contest.tap()
         XCTAssertTrue(
-            app.navigationBars["Challenge"].waitForExistence(timeout: 4)
+            app.navigationBars["Weekend distance"].waitForExistence(timeout: 4)
         )
     }
 }

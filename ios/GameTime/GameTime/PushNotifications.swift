@@ -52,7 +52,7 @@ final class PushNotificationCoordinator: NSObject,
 
     let reaction = UNNotificationAction(
       identifier: Self.comebackAction,
-      title: "I’m coming back 😤",
+      title: "I’m coming back",
       options: [.foreground]
     )
     let category = UNNotificationCategory(

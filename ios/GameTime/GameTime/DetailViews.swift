@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ContestDetailView: View {
+private struct LegacyContestDetailView: View {
     @Environment(AppModel.self) private var model
     @Environment(AppRouter.self) private var router
     let contestID: UUID
@@ -484,7 +484,7 @@ private struct ChallengeStandingsSection: View {
     private var comebackReaction: some View {
         Button(action: sendReaction) {
             Label(
-                hasReacted ? "Reaction sent 😤" : "I’m coming back 😤",
+                hasReacted ? "Reaction sent" : "I’m coming back",
                 systemImage: hasReacted
                     ? "checkmark.circle.fill"
                     : "bubble.left.and.bubble.right.fill"

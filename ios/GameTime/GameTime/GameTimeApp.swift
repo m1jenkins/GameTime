@@ -29,6 +29,38 @@ struct GameTimeApp: App {
         #endif
         isFixtureTestLaunch = usesFixtureModel && !interactiveDemoLaunch
 
+        let initialRouter = AppRouter()
+        #if DEBUG || STAGING
+        if usesFixtureModel,
+            arguments.contains("--fixture-challenges")
+                || arguments.contains("--fixture-open-active-challenge")
+                || arguments.contains("--fixture-open-invitation")
+        {
+            initialRouter.selectedTab = .challenges
+        }
+        if usesFixtureModel,
+            arguments.contains("--fixture-open-active-challenge"),
+            let activeContestID = UUID(
+                uuidString: "cccccccc-cccc-cccc-cccc-cccccccccccc"
+            )
+        {
+            initialRouter.challengesPath = [
+                .contest(activeContestID)
+            ]
+        }
+        if usesFixtureModel,
+            arguments.contains("--fixture-open-invitation"),
+            let invitationID = UUID(
+                uuidString: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+            )
+        {
+            initialRouter.challengesPath = [
+                .contest(invitationID)
+            ]
+        }
+        #endif
+        _router = State(initialValue: initialRouter)
+
         do {
             let configuration: AppConfiguration
             let services: AppServices
@@ -96,7 +128,7 @@ struct GameTimeApp: App {
                     )
                     .environment(demoModel)
                     .environment(router)
-                    .tint(CompetitiveTrustTheme.teal)
+                    .tint(CompetitiveTrustTheme.coral)
                 } else if let liveModel {
                     RootView(
                         model: liveModel,
@@ -106,7 +138,7 @@ struct GameTimeApp: App {
                     )
                     .environment(liveModel)
                     .environment(router)
-                    .tint(CompetitiveTrustTheme.teal)
+                    .tint(CompetitiveTrustTheme.coral)
                 } else {
                     ConfigurationFailureView(
                         message: configurationFailure
@@ -166,34 +198,40 @@ struct RootView: View {
     let pushCoordinator: PushNotificationCoordinator
 
     var body: some View {
-        Group {
-            switch model.phase {
-            case .launching:
-                LaunchingView(
-                    retry: {
-                        Task { await model.retryLaunch() }
-                    }
-                )
-            case .signedOut:
-                SignedOutView()
-            case .onboarding:
-                OnboardingView(
-                    namePrefill: model.onboardingNamePrefill
-                )
-            case .signedIn:
-                AppShellView()
-            }
-        }
-        .environment(\.demoMode, demoMode)
-        .safeAreaInset(edge: .top, spacing: 0) {
+        VStack(spacing: 0) {
             if demoMode.isActive {
                 DemoEnvironmentBanner()
             } else if model.configuration.environment
                 .showsTestEnvironmentBanner
             {
                 TestEnvironmentBanner()
+                    .background(
+                        CompetitiveTrustTheme.sun
+                            .ignoresSafeArea(edges: .top)
+                    )
             }
+
+            Group {
+                switch model.phase {
+                case .launching:
+                    LaunchingView(
+                        retry: {
+                            Task { await model.retryLaunch() }
+                        }
+                    )
+                case .signedOut:
+                    SignedOutView()
+                case .onboarding:
+                    OnboardingView(
+                        namePrefill: model.onboardingNamePrefill
+                    )
+                case .signedIn:
+                    AppShellView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .environment(\.demoMode, demoMode)
         .task {
             #if DEBUG
             // Keep the loading UI fixture stable and idle so UI automation can
