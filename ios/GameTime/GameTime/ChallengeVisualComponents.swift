@@ -5,7 +5,8 @@ struct DaybreakSectionLabel: View {
     let text: String
 
     var body: some View {
-        Text(text.uppercased())
+        Text(text)
+            .textCase(.uppercase)
             .font(
                 CompetitiveTrustTheme.uiFont(
                     size: 11,
@@ -18,6 +19,7 @@ struct DaybreakSectionLabel: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 6)
             .padding(.top, 4)
+            .accessibilityLabel(text)
             .accessibilityAddTraits(.isHeader)
     }
 }
@@ -25,6 +27,7 @@ struct DaybreakSectionLabel: View {
 enum DaybreakCardTone: Equatable {
     case standard
     case inverse
+    case pledge
 }
 
 struct DaybreakCard<Content: View>: View {
@@ -50,9 +53,9 @@ struct DaybreakCard<Content: View>: View {
             )
             .background(background, in: cardShape)
             .overlay {
-                if tone == .standard {
+                if tone != .inverse {
                     cardShape
-                        .stroke(CompetitiveTrustTheme.border, lineWidth: 1)
+                        .stroke(borderColor, lineWidth: 1)
                 }
             }
             .shadow(
@@ -65,9 +68,20 @@ struct DaybreakCard<Content: View>: View {
     }
 
     private var background: Color {
-        tone == .inverse
-            ? CompetitiveTrustTheme.primaryText
-            : CompetitiveTrustTheme.card
+        switch tone {
+        case .standard:
+            CompetitiveTrustTheme.card
+        case .inverse:
+            CompetitiveTrustTheme.primaryText
+        case .pledge:
+            CompetitiveTrustTheme.sunTint
+        }
+    }
+
+    private var borderColor: Color {
+        tone == .pledge
+            ? CompetitiveTrustTheme.sun.opacity(0.34)
+            : CompetitiveTrustTheme.border
     }
 
     private var cardShape: RoundedRectangle {

@@ -7,23 +7,38 @@ struct FriendshipCardRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            InitialsAvatar(initials: card.profileCard.initials)
+            InitialsAvatar(
+                initials: card.profileCard.initials,
+                color: CompetitiveTrustTheme.avatarColor(
+                    for: card.otherUserID
+                )
+            )
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(card.displayName)
-                    .font(.headline)
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 15,
+                            relativeTo: .headline,
+                            weight: .bold
+                        )
+                    )
+                    .foregroundStyle(CompetitiveTrustTheme.primaryText)
                 Text("@\(card.handle)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 13,
+                            relativeTo: .subheadline
+                        )
+                    )
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
 
             Spacer(minLength: 8)
 
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
-                    .font(.subheadline.weight(.semibold))
-                    .buttonStyle(.bordered)
-                    .tint(CompetitiveTrustTheme.teal)
+                    .buttonStyle(TrustCompactButtonStyle())
                     .accessibilityLabel(
                         "\(actionTitle) \(card.displayName)"
                     )
@@ -167,20 +182,40 @@ struct InlineLoadStateView: View {
         case .loading:
             HStack(spacing: 10) {
                 ProgressView()
+                    .tint(CompetitiveTrustTheme.coral)
                 Text("Refreshing live state…")
-                    .foregroundStyle(.secondary)
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 14,
+                            relativeTo: .subheadline,
+                            weight: .semibold
+                        )
+                    )
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("state.loading")
         case .failed(let message):
             VStack(alignment: .leading, spacing: 10) {
                 Label("Couldn’t refresh", systemImage: "wifi.slash")
-                    .font(.headline)
+                    .font(
+                        CompetitiveTrustTheme.displayFont(
+                            size: 18,
+                            relativeTo: .headline
+                        )
+                    )
                 Text(message)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 13,
+                            relativeTo: .subheadline
+                        )
+                    )
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 Button("Try again", action: retry)
-                    .font(.subheadline.weight(.semibold))
+                    .buttonStyle(
+                        TrustCompactButtonStyle(tone: .quiet)
+                    )
             }
             .accessibilityIdentifier("state.offline")
         }
@@ -193,13 +228,38 @@ struct EmptyTrustState: View {
     let systemImage: String
 
     var body: some View {
-        ContentUnavailableView {
-            Label(title, systemImage: systemImage)
-        } description: {
+        VStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundStyle(CompetitiveTrustTheme.coralInk)
+                .frame(width: 52, height: 52)
+                .background(
+                    CompetitiveTrustTheme.coralTint,
+                    in: Circle()
+                )
+                .accessibilityHidden(true)
+            Text(title)
+                .font(
+                    CompetitiveTrustTheme.displayFont(
+                        size: 21,
+                        relativeTo: .title3
+                    )
+                )
+                .tracking(-0.55)
             Text(message)
+                .font(
+                    CompetitiveTrustTheme.uiFont(
+                        size: 13.5,
+                        relativeTo: .subheadline
+                    )
+                )
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .multilineTextAlignment(.center)
+                .lineSpacing(2)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
+        .padding(.vertical, 20)
+        .accessibilityElement(children: .combine)
         .accessibilityIdentifier("state.empty")
     }
 }
@@ -212,13 +272,19 @@ struct TermRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             Spacer(minLength: 16)
             Text(value)
                 .foregroundStyle(emphasis)
+                .fontWeight(.semibold)
                 .multilineTextAlignment(.trailing)
         }
-        .font(.subheadline)
+        .font(
+            CompetitiveTrustTheme.uiFont(
+                size: 14,
+                relativeTo: .subheadline
+            )
+        )
         .accessibilityElement(children: .combine)
     }
 }

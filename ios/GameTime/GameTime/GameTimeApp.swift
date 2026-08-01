@@ -16,6 +16,8 @@ struct GameTimeApp: App {
     private let isFixtureTestLaunch: Bool
 
     init() {
+        DaybreakAppearance.install()
+
         let notificationCoordinator = PushNotificationCoordinator()
         _pushCoordinator = State(initialValue: notificationCoordinator)
 

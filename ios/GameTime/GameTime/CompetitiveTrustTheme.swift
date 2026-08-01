@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum CompetitiveTrustTheme {
     // Daybreak replaces the original teal-on-ink treatment with warm paper.
@@ -65,6 +66,13 @@ enum CompetitiveTrustTheme {
         return participantRamp[index % participantRamp.count]
     }
 
+    static func avatarColor(for id: UUID) -> Color {
+        let index = id.uuidString.utf8.reduce(0) { partialResult, byte in
+            (partialResult + Int(byte)) % participantRamp.count
+        }
+        return participantRamp[index]
+    }
+
     static func displayFont(
         size: CGFloat,
         relativeTo textStyle: Font.TextStyle
@@ -87,6 +95,84 @@ enum CompetitiveTrustTheme {
             relativeTo: textStyle
         )
         .weight(weight)
+    }
+}
+
+@MainActor
+enum DaybreakAppearance {
+    static func install() {
+        let navigationAppearance = UINavigationBarAppearance()
+        navigationAppearance.configureWithOpaqueBackground()
+        navigationAppearance.backgroundColor = UIColor(
+            CompetitiveTrustTheme.paper
+        )
+        navigationAppearance.shadowColor = .clear
+        let largeTitleDescriptor = UIFont.systemFont(
+            ofSize: 34,
+            weight: .heavy
+        ).fontDescriptor.withDesign(.rounded)
+        let inlineTitleDescriptor = UIFont.systemFont(
+            ofSize: 17,
+            weight: .bold
+        ).fontDescriptor.withDesign(.rounded)
+
+        navigationAppearance.largeTitleTextAttributes = [
+            .font: largeTitleDescriptor.map {
+                UIFont(descriptor: $0, size: 34)
+            } ?? UIFont.systemFont(ofSize: 34, weight: .heavy),
+            .foregroundColor: UIColor.black,
+        ]
+        navigationAppearance.titleTextAttributes = [
+            .font: inlineTitleDescriptor.map {
+                UIFont(descriptor: $0, size: 17)
+            } ?? UIFont.systemFont(ofSize: 17, weight: .bold),
+            .foregroundColor: UIColor.black,
+        ]
+
+        let navigationBar = UINavigationBar.appearance()
+        navigationBar.standardAppearance = navigationAppearance
+        navigationBar.compactAppearance = navigationAppearance
+        navigationBar.scrollEdgeAppearance = navigationAppearance
+        navigationBar.tintColor = UIColor(CompetitiveTrustTheme.coralInk)
+
+        let tabAppearance = UITabBarAppearance()
+        tabAppearance.configureWithOpaqueBackground()
+        tabAppearance.backgroundColor = UIColor(CompetitiveTrustTheme.paper)
+        tabAppearance.shadowColor = UIColor(CompetitiveTrustTheme.border)
+
+        let normalAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont(
+                name: "HankenGrotesk-Regular",
+                size: 10.5
+            ) ?? UIFont.systemFont(ofSize: 10.5, weight: .semibold),
+            .foregroundColor: UIColor(CompetitiveTrustTheme.tertiaryText),
+        ]
+        let selectedAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont(
+                name: "HankenGrotesk-Regular",
+                size: 10.5
+            ) ?? UIFont.systemFont(ofSize: 10.5, weight: .semibold),
+            .foregroundColor: UIColor(CompetitiveTrustTheme.coral),
+        ]
+
+        for itemAppearance in [
+            tabAppearance.stackedLayoutAppearance,
+            tabAppearance.inlineLayoutAppearance,
+            tabAppearance.compactInlineLayoutAppearance,
+        ] {
+            itemAppearance.normal.iconColor = UIColor(
+                CompetitiveTrustTheme.tertiaryText
+            )
+            itemAppearance.normal.titleTextAttributes = normalAttributes
+            itemAppearance.selected.iconColor = UIColor(
+                CompetitiveTrustTheme.coral
+            )
+            itemAppearance.selected.titleTextAttributes = selectedAttributes
+        }
+
+        let tabBar = UITabBar.appearance()
+        tabBar.standardAppearance = tabAppearance
+        tabBar.scrollEdgeAppearance = tabAppearance
     }
 }
 
@@ -125,6 +211,17 @@ extension View {
     func trustScreenBackground() -> some View {
         scrollContentBackground(.hidden)
             .background(CompetitiveTrustTheme.paper)
+    }
+
+    func daybreakScreenChrome() -> some View {
+        background(CompetitiveTrustTheme.paper.ignoresSafeArea())
+            .environment(\.colorScheme, .light)
+            .toolbarBackground(
+                CompetitiveTrustTheme.paper,
+                for: .navigationBar
+            )
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.light, for: .navigationBar)
     }
 }
 
@@ -223,6 +320,70 @@ struct SunPillButtonStyle: ButtonStyle {
                 reduceMotion ? nil : .easeOut(duration: 0.12),
                 value: configuration.isPressed
             )
+    }
+}
+
+struct TrustCompactButtonStyle: ButtonStyle {
+    enum Tone {
+        case primary
+        case secondary
+        case quiet
+    }
+
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var tone: Tone = .secondary
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(
+                CompetitiveTrustTheme.uiFont(
+                    size: 13,
+                    relativeTo: .subheadline,
+                    weight: .bold
+                )
+            )
+            .foregroundStyle(foreground.opacity(isEnabled ? 1 : 0.48))
+            .padding(.horizontal, 15)
+            .frame(minHeight: 36)
+            .background(
+                background.opacity(
+                    isEnabled
+                        ? (configuration.isPressed ? 0.72 : 1)
+                        : 0.5
+                ),
+                in: Capsule()
+            )
+            .scaleEffect(
+                reduceMotion || !configuration.isPressed ? 1 : 0.97
+            )
+            .animation(
+                reduceMotion ? nil : .easeOut(duration: 0.12),
+                value: configuration.isPressed
+            )
+    }
+
+    private var foreground: Color {
+        switch tone {
+        case .primary:
+            .white
+        case .secondary:
+            CompetitiveTrustTheme.coralInk
+        case .quiet:
+            CompetitiveTrustTheme.secondaryText
+        }
+    }
+
+    private var background: Color {
+        switch tone {
+        case .primary:
+            CompetitiveTrustTheme.coral
+        case .secondary:
+            CompetitiveTrustTheme.coralTint
+        case .quiet:
+            CompetitiveTrustTheme.primaryText.opacity(0.055)
+        }
     }
 }
 

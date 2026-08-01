@@ -34,6 +34,7 @@ struct ChallengesView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 11) {
+                headerControls
                 releaseLockCard
                 pendingRecoveryCard
 
@@ -76,7 +77,7 @@ struct ChallengesView: View {
         .background(CompetitiveTrustTheme.paper.ignoresSafeArea())
         .environment(\.colorScheme, .light)
         .navigationTitle("Challenges")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(
             CompetitiveTrustTheme.paper,
             for: .navigationBar
@@ -84,31 +85,6 @@ struct ChallengesView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .refreshable {
             await model.refresh()
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    router.presentedSheet = .createChallenge
-                } label: {
-                    Image(
-                        systemName: model.pendingChallenge == nil
-                            ? "plus"
-                            : "arrow.clockwise"
-                    )
-                    .font(.system(size: 15, weight: .bold))
-                    .frame(width: 34, height: 34)
-                    .background(
-                        CompetitiveTrustTheme.coralTint,
-                        in: Circle()
-                    )
-                }
-                .disabled(!canOpenChallengeFlow)
-                .accessibilityLabel(
-                    model.pendingChallenge == nil
-                        ? "Create a challenge"
-                        : "Review saved challenge"
-                )
-            }
         }
         .confirmationDialog(
             "Discard the local retry record?",
@@ -126,6 +102,59 @@ struct ChallengesView: View {
                 "This deletes only the on-device retry record; it does not cancel a challenge or invitation the server may already have created. Starting over after a committed request can create a second challenge."
             )
         }
+    }
+
+    private var headerControls: some View {
+        HStack(spacing: 12) {
+            Text(challengeSummary)
+                .font(
+                    CompetitiveTrustTheme.uiFont(
+                        size: 12.5,
+                        relativeTo: .caption,
+                        weight: .semibold
+                    )
+                )
+                .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+            Spacer(minLength: 8)
+            Button {
+                router.presentedSheet = .createChallenge
+            } label: {
+                Image(
+                    systemName: model.pendingChallenge == nil
+                        ? "plus"
+                        : "arrow.clockwise"
+                )
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(CompetitiveTrustTheme.coralInk)
+                .frame(width: 34, height: 34)
+                .background(
+                    CompetitiveTrustTheme.coralTint,
+                    in: Circle()
+                )
+            }
+            .disabled(!canOpenChallengeFlow)
+            .accessibilityLabel(
+                model.pendingChallenge == nil
+                    ? "Create a challenge"
+                    : "Review saved challenge"
+            )
+        }
+        .padding(.horizontal, 6)
+        .padding(.bottom, 2)
+    }
+
+    private var challengeSummary: String {
+        var parts: [String] = []
+        if !running.isEmpty {
+            parts.append("\(running.count) running")
+        }
+        if !startingSoon.isEmpty {
+            parts.append("\(startingSoon.count) starting soon")
+        }
+        if !model.invitations.isEmpty {
+            parts.append("\(model.invitations.count) needs you")
+        }
+        return parts.isEmpty ? "No challenges yet" : parts.joined(separator: " · ")
     }
 
     @ViewBuilder

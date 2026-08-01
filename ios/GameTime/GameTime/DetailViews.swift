@@ -773,26 +773,63 @@ private struct ChallengeStandingRow: View {
 
 struct FriendshipDetailView: View {
     @Environment(AppModel.self) private var model
+    @Environment(AppRouter.self) private var router
     let userID: UUID
 
     private var card: FriendshipCard? {
         model.friendshipCards.first { $0.otherUserID == userID }
     }
 
+    private var sharedContests: [ContestCard] {
+        model.contests
+            .filter { contest in
+                contest.resolvedParticipants.contains {
+                    $0.userID == userID
+                }
+            }
+            .sorted { lhs, rhs in
+                let lhsRank = statusRank(lhs.status)
+                let rhsRank = statusRank(rhs.status)
+                if lhsRank == rhsRank {
+                    return lhs.endsAt > rhs.endsAt
+                }
+                return lhsRank < rhsRank
+            }
+    }
+
     var body: some View {
         Group {
             if let card {
-                List {
-                    Section {
-                        VStack(spacing: 12) {
+                ScrollView {
+                    LazyVStack(spacing: 11) {
+                        DaybreakCard {
+                            VStack(spacing: 10) {
                             InitialsAvatar(
                                 initials: card.profileCard.initials,
-                                size: 72
+                                    size: 72,
+                                    color: CompetitiveTrustTheme.avatarColor(
+                                        for: card.otherUserID
+                                    )
                             )
                             Text(card.displayName)
-                                .font(.title2.bold())
-                            Text("@\(card.handle)")
-                                .foregroundStyle(.secondary)
+                                    .font(
+                                        CompetitiveTrustTheme.displayFont(
+                                            size: 26,
+                                            relativeTo: .title2
+                                        )
+                                    )
+                                    .tracking(-0.75)
+                                Text(friendContext(card))
+                                    .font(
+                                        CompetitiveTrustTheme.uiFont(
+                                            size: 13.5,
+                                            relativeTo: .subheadline
+                                        )
+                                    )
+                                    .foregroundStyle(
+                                        CompetitiveTrustTheme.secondaryText
+                                    )
+                                    .multilineTextAlignment(.center)
                             TrustStatusPill(
                                 text: card.status == .accepted
                                     ? "Friend"
@@ -801,13 +838,34 @@ struct FriendshipDetailView: View {
                                     ? .verified
                                     : .action
                             )
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                    }
-                    .listRowBackground(CompetitiveTrustTheme.raisedInk)
 
-                    Section {
+                                if card.status == .accepted,
+                                    model.configuration
+                                        .contestMutationsEnabled
+                                {
+                                    Button("Start a challenge") {
+                                        router.presentedSheet = .createChallenge
+                                    }
+                                    .buttonStyle(TrustPrimaryButtonStyle())
+                                    .padding(.top, 4)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+
+                        if card.status == .accepted {
+                            ViewThatFits(in: .horizontal) {
+                                HStack(spacing: 8) {
+                                    relationshipStats
+                                }
+                                VStack(spacing: 8) {
+                                    relationshipStats
+                                }
+                            }
+
+                            sharedChallengeSection
+                        }
+
                         if card.status == .pending,
                             card.direction(
                                 for: model.userID ?? UUID()
@@ -823,36 +881,207 @@ struct FriendshipDetailView: View {
                             .buttonStyle(TrustPrimaryButtonStyle())
                         }
 
-                        Button(
-                            card.status == .accepted
-                                ? "Remove friend"
-                                : "Remove request",
-                            role: .destructive
-                        ) {
+                        Button(role: .destructive) {
                             Task {
                                 await model.removeFriendship(
                                     with: card.otherUserID
                                 )
                             }
+                        } label: {
+                            Text(
+                                card.status == .accepted
+                                    ? "Remove friend"
+                                    : "Remove request"
+                            )
+                            .frame(maxWidth: .infinity)
                         }
-                        .frame(maxWidth: .infinity)
+                        .buttonStyle(
+                            TrustCompactButtonStyle(tone: .quiet)
+                        )
                     }
-                    .listRowBackground(Color.clear)
+                    .padding(.horizontal, 18)
+                    .padding(.top, 14)
+                    .padding(.bottom, 28)
                 }
-                .trustScreenBackground()
+                .daybreakScreenChrome()
             } else {
-                ContentUnavailableView(
-                    "Relationship unavailable",
-                    systemImage: "person.crop.circle.badge.questionmark",
-                    description: Text(
-                        "It may have changed since the last refresh."
+                DaybreakCard {
+                    EmptyTrustState(
+                        title: "Relationship unavailable",
+                        message: "It may have changed since the last refresh.",
+                        systemImage:
+                            "person.crop.circle.badge.questionmark"
                     )
-                )
+                }
+                .padding(18)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(CompetitiveTrustTheme.ink)
+                .daybreakScreenChrome()
             }
         }
         .navigationTitle("Friend")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder
+    private var relationshipStats: some View {
+        ChallengeStatTile(
+            label: "Together",
+            value: sharedContests.count.formatted(),
+            caption: sharedContests.count == 1
+                ? "challenge"
+                : "challenges"
+        )
+        ChallengeStatTile(
+            label: "Live",
+            value: sharedContests.filter {
+                $0.status == .active
+            }.count.formatted(),
+            caption: "running now"
+        )
+        ChallengeStatTile(
+            label: "Finished",
+            value: sharedContests.filter {
+                $0.status == .finalized
+            }.count.formatted(),
+            caption: "frozen results"
+        )
+    }
+
+    @ViewBuilder
+    private var sharedChallengeSection: some View {
+        if !sharedContests.isEmpty {
+            DaybreakSectionLabel(text: "Together")
+            DaybreakCard {
+                VStack(spacing: 0) {
+                    ForEach(sharedContests) { contest in
+                        HStack(alignment: .center, spacing: 12) {
+                            Text(contestStatusMark(contest.status))
+                                .font(
+                                    CompetitiveTrustTheme.displayFont(
+                                        size: 18,
+                                        relativeTo: .headline
+                                    )
+                                )
+                                .foregroundStyle(
+                                    contestStatusColor(contest.status)
+                                )
+                                .frame(width: 34, alignment: .leading)
+
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(contest.title)
+                                    .font(
+                                        CompetitiveTrustTheme.uiFont(
+                                            size: 14.5,
+                                            relativeTo: .headline,
+                                            weight: .bold
+                                        )
+                                    )
+                                Text(contestContext(contest))
+                                    .font(
+                                        CompetitiveTrustTheme.uiFont(
+                                            size: 12,
+                                            relativeTo: .caption
+                                        )
+                                    )
+                                    .foregroundStyle(
+                                        CompetitiveTrustTheme.secondaryText
+                                    )
+                            }
+                            Spacer(minLength: 8)
+                            statusPill(for: contest)
+                        }
+                        .padding(.vertical, 12)
+                        .accessibilityElement(children: .combine)
+
+                        if contest.id != sharedContests.last?.id {
+                            Divider()
+                                .overlay(CompetitiveTrustTheme.border)
+                        }
+                    }
+                }
+            }
+
+            Text(
+                "Only challenges you were both in are shown. GameTime never shows a friend’s raw health data."
+            )
+            .font(
+                CompetitiveTrustTheme.uiFont(
+                    size: 11.5,
+                    relativeTo: .caption
+                )
+            )
+            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            .lineSpacing(2)
+            .padding(.horizontal, 6)
+        }
+    }
+
+    @ViewBuilder
+    private func statusPill(for contest: ContestCard) -> some View {
+        switch contest.status {
+        case .active:
+            TrustStatusPill(text: "Live", kind: .live)
+        case .pending:
+            TrustStatusPill(text: "Upcoming", kind: .neutral)
+        case .finalized:
+            TrustStatusPill(text: "Final", kind: .positive)
+        case .cancelled:
+            TrustStatusPill(text: "Closed", kind: .neutral)
+        }
+    }
+
+    private func friendContext(_ card: FriendshipCard) -> String {
+        let handle = "@\(card.handle)"
+        guard
+            card.status == .accepted,
+            let acceptedAt = card.acceptedAt
+        else {
+            return handle
+        }
+        return "\(handle) · friends since \(acceptedAt.formatted(.dateTime.month(.wide).year()))"
+    }
+
+    private func contestContext(_ contest: ContestCard) -> String {
+        switch contest.status {
+        case .active:
+            "Live · ends \(contest.endsAt.formatted(date: .abbreviated, time: .shortened))"
+        case .pending:
+            "Starts \(contest.startsAt.formatted(date: .abbreviated, time: .shortened))"
+        case .finalized:
+            "Ended \(contest.endsAt.formatted(date: .abbreviated, time: .omitted))"
+        case .cancelled:
+            "Challenge cancelled"
+        }
+    }
+
+    private func contestStatusMark(_ status: ContestStatus) -> String {
+        switch status {
+        case .active: "●"
+        case .pending: "◷"
+        case .finalized: "✓"
+        case .cancelled: "–"
+        }
+    }
+
+    private func contestStatusColor(_ status: ContestStatus) -> Color {
+        switch status {
+        case .active:
+            CompetitiveTrustTheme.coral
+        case .pending:
+            CompetitiveTrustTheme.sunInk
+        case .finalized:
+            CompetitiveTrustTheme.mintInk
+        case .cancelled:
+            CompetitiveTrustTheme.tertiaryText
+        }
+    }
+
+    private func statusRank(_ status: ContestStatus) -> Int {
+        switch status {
+        case .active: 0
+        case .pending: 1
+        case .finalized: 2
+        case .cancelled: 3
+        }
     }
 }
