@@ -1,0 +1,2071 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>GameTime Screen Atlas</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="GameTime Screen Atlas" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;GameTime Screen Atlas&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, transparent);
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --red: light-dark(rgb(186 38 35), rgb(250 66 62));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: var(--border-radius-lg, 12.5px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+    [aria-pressed=&quot;true&quot;],
+    [aria-selected=&quot;true&quot;],
+    .is-selected
+  ) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;gametime-screen-atlas&quot;&gt;
+  &lt;style&gt;
+    #gametime-screen-atlas {
+      color: var(--foreground);
+      width: 100%;
+    }
+
+    #gametime-screen-atlas * {
+      box-sizing: border-box;
+    }
+
+    #gametime-screen-atlas .atlas-legend,
+    #gametime-screen-atlas .atlas-summary,
+    #gametime-screen-atlas .atlas-meta,
+    #gametime-screen-atlas .state-list,
+    #gametime-screen-atlas .wire-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    #gametime-screen-atlas .atlas-legend {
+      margin-bottom: 16px;
+    }
+
+    #gametime-screen-atlas .legend-key {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #gametime-screen-atlas .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    #gametime-screen-atlas .legend-dot.built { background: var(--viz-series-1); }
+    #gametime-screen-atlas .legend-dot.planned { background: var(--viz-series-2); }
+    #gametime-screen-atlas .legend-dot.system { background: var(--viz-series-3); }
+    #gametime-screen-atlas .legend-dot.overlay { background: var(--viz-series-4); }
+
+    #gametime-screen-atlas .atlas-summary {
+      margin-bottom: 18px;
+    }
+
+    #gametime-screen-atlas .atlas-map {
+      display: grid;
+      gap: 18px;
+    }
+
+    #gametime-screen-atlas .flow-group {
+      display: grid;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    #gametime-screen-atlas .flow-group:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    #gametime-screen-atlas .flow-heading {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    #gametime-screen-atlas .flow-heading h3 {
+      margin: 0;
+    }
+
+    #gametime-screen-atlas .flow-nodes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    #gametime-screen-atlas .flow-node {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      align-content: start;
+    }
+
+    #gametime-screen-atlas .node-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+
+    #gametime-screen-atlas .node-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    #gametime-screen-atlas .node-status {
+      width: 9px;
+      height: 9px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    #gametime-screen-atlas .node-status.built { background: var(--viz-series-1); }
+    #gametime-screen-atlas .node-status.planned { background: var(--viz-series-2); }
+    #gametime-screen-atlas .node-status.system { background: var(--viz-series-3); }
+    #gametime-screen-atlas .node-status.overlay { background: var(--viz-series-4); }
+
+    #gametime-screen-atlas .node-title {
+      font-weight: 500;
+    }
+
+    #gametime-screen-atlas .node-states {
+      color: var(--muted-foreground);
+    }
+
+    #gametime-screen-atlas .selection {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    #gametime-screen-atlas .selection-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    #gametime-screen-atlas .wireframe {
+      width: 100%;
+      max-width: 320px;
+      margin-inline: auto;
+    }
+
+    #gametime-screen-atlas .wire-topbar,
+    #gametime-screen-atlas .wire-tabbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    #gametime-screen-atlas .wire-topbar {
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #gametime-screen-atlas .wire-body {
+      display: grid;
+      gap: 14px;
+      padding-block: 14px;
+    }
+
+    #gametime-screen-atlas .wire-state {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    #gametime-screen-atlas .wire-section {
+      display: grid;
+      gap: 6px;
+    }
+
+    #gametime-screen-atlas .wire-section-title {
+      color: var(--muted-foreground);
+      font-weight: 500;
+    }
+
+    #gametime-screen-atlas .wire-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-block: 7px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #gametime-screen-atlas .wire-row:last-child {
+      border-bottom: 0;
+    }
+
+    #gametime-screen-atlas .wire-actions {
+      align-items: stretch;
+    }
+
+    #gametime-screen-atlas .wire-tabbar {
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      color: var(--muted-foreground);
+    }
+
+    #gametime-screen-atlas .wire-tabbar span.active {
+      color: var(--foreground);
+      font-weight: 500;
+    }
+
+    #gametime-screen-atlas .selection-detail {
+      display: grid;
+      gap: 14px;
+    }
+
+    #gametime-screen-atlas .selection-detail h2,
+    #gametime-screen-atlas .selection-detail h3,
+    #gametime-screen-atlas .selection-detail p {
+      margin: 0;
+    }
+
+    #gametime-screen-atlas .route-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding-block: 12px;
+      border-block: 1px solid var(--border);
+    }
+
+    #gametime-screen-atlas .route-item {
+      min-width: 0;
+    }
+
+    #gametime-screen-atlas .route-item div:last-child {
+      overflow-wrap: anywhere;
+    }
+
+    #gametime-screen-atlas .state-list .btn {
+      white-space: normal;
+    }
+
+    #gametime-screen-atlas .coverage-table {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    #gametime-screen-atlas .coverage-table h2 {
+      margin-top: 0;
+    }
+
+    #gametime-screen-atlas .state-kind {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    #gametime-screen-atlas .state-glyph {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    #gametime-screen-atlas .state-glyph.failure { background: var(--destructive); }
+    #gametime-screen-atlas .state-glyph.loading { background: var(--viz-series-3); }
+    #gametime-screen-atlas .state-glyph.empty { background: var(--viz-series-4); }
+    #gametime-screen-atlas .state-glyph.choice { background: var(--viz-series-2); }
+    #gametime-screen-atlas .state-glyph.success { background: var(--viz-series-1); }
+
+    @media (max-width: 640px) {
+      #gametime-screen-atlas .selection-grid,
+      #gametime-screen-atlas .route-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  &lt;/style&gt;
+
+  &lt;div class=&quot;atlas-legend text-small&quot; aria-label=&quot;Implementation legend&quot;&gt;
+    &lt;span class=&quot;legend-key&quot;&gt;&lt;span class=&quot;legend-dot built&quot;&gt;&lt;/span&gt;Implemented route or surface&lt;/span&gt;
+    &lt;span class=&quot;legend-key&quot;&gt;&lt;span class=&quot;legend-dot planned&quot;&gt;&lt;/span&gt;Proposed client page backed by the domain plan&lt;/span&gt;
+    &lt;span class=&quot;legend-key&quot;&gt;&lt;span class=&quot;legend-dot system&quot;&gt;&lt;/span&gt;Apple system surface&lt;/span&gt;
+    &lt;span class=&quot;legend-key&quot;&gt;&lt;span class=&quot;legend-dot overlay&quot;&gt;&lt;/span&gt;Shared overlay or transient state&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;atlas-summary&quot; id=&quot;atlas-summary&quot; aria-label=&quot;Atlas totals&quot;&gt;&lt;/div&gt;
+  &lt;div class=&quot;atlas-map&quot; id=&quot;atlas-map&quot; aria-label=&quot;GameTime navigation map&quot;&gt;&lt;/div&gt;
+
+  &lt;section class=&quot;selection&quot; aria-live=&quot;polite&quot;&gt;
+    &lt;div class=&quot;selection-grid&quot;&gt;
+      &lt;div class=&quot;card wireframe&quot; id=&quot;wireframe&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;selection-detail&quot;&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;atlas-meta text-small&quot; id=&quot;screen-meta&quot;&gt;&lt;/div&gt;
+          &lt;h2 id=&quot;screen-title&quot;&gt;&lt;/h2&gt;
+        &lt;/div&gt;
+        &lt;p id=&quot;screen-purpose&quot;&gt;&lt;/p&gt;
+        &lt;div class=&quot;route-grid&quot;&gt;
+          &lt;div class=&quot;route-item&quot;&gt;
+            &lt;div class=&quot;text-small text-muted&quot;&gt;Entered from&lt;/div&gt;
+            &lt;div id=&quot;screen-entry&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;route-item&quot;&gt;
+            &lt;div class=&quot;text-small text-muted&quot;&gt;Can continue to&lt;/div&gt;
+            &lt;div id=&quot;screen-exits&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;route-item&quot;&gt;
+            &lt;div class=&quot;text-small text-muted&quot;&gt;Implementation source&lt;/div&gt;
+            &lt;div id=&quot;screen-source&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;route-item&quot;&gt;
+            &lt;div class=&quot;text-small text-muted&quot;&gt;State count&lt;/div&gt;
+            &lt;div id=&quot;screen-state-count&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;h3&gt;Choice and failure variants&lt;/h3&gt;
+          &lt;div class=&quot;state-list&quot; id=&quot;state-list&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;text-small text-muted&quot; id=&quot;state-note&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;section class=&quot;coverage-table&quot;&gt;
+    &lt;h2&gt;Cross-app state coverage&lt;/h2&gt;
+    &lt;div class=&quot;table-responsive&quot;&gt;
+      &lt;table class=&quot;table table-sm&quot;&gt;
+        &lt;thead&gt;
+          &lt;tr&gt;&lt;th&gt;State family&lt;/th&gt;&lt;th&gt;Required treatment&lt;/th&gt;&lt;th&gt;Highest-risk destinations&lt;/th&gt;&lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;state-kind&quot;&gt;&lt;span class=&quot;state-glyph loading&quot;&gt;&lt;/span&gt;Loading&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Preserve route, name the operation, prevent duplicate mutations.&lt;/td&gt;&lt;td&gt;Launch, challenge submit, Activity sync, claim upload, deletion.&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;state-kind&quot;&gt;&lt;span class=&quot;state-glyph empty&quot;&gt;&lt;/span&gt;Empty&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Explain why it is empty and expose the next valid action only.&lt;/td&gt;&lt;td&gt;Today, Friends, Challenges, Inbox, Pledges, Cases.&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;state-kind&quot;&gt;&lt;span class=&quot;state-glyph failure&quot;&gt;&lt;/span&gt;Offline or stale&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Keep last trusted data, timestamp it, and offer explicit retry without fabricating success.&lt;/td&gt;&lt;td&gt;Standings, evidence review, consent, obligations, disputes.&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;state-kind&quot;&gt;&lt;span class=&quot;state-glyph choice&quot;&gt;&lt;/span&gt;Permission denied&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Keep the feature understandable, show limited behavior, and deep-link to Settings when useful.&lt;/td&gt;&lt;td&gt;HealthKit, notifications, location, camera/photos.&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;state-kind&quot;&gt;&lt;span class=&quot;state-glyph choice&quot;&gt;&lt;/span&gt;Ambiguous response&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Persist the exact request identity and require explicit replay or discard.&lt;/td&gt;&lt;td&gt;Challenge creation, evidence upload, check-in, claim submission.&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;state-kind&quot;&gt;&lt;span class=&quot;state-glyph failure&quot;&gt;&lt;/span&gt;Authorization lost&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Reset private routes, clear account-bound caches, and return to a neutral entry state.&lt;/td&gt;&lt;td&gt;Deep links, push actions, deleted accounts, expired sessions.&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;state-kind&quot;&gt;&lt;span class=&quot;state-glyph success&quot;&gt;&lt;/span&gt;Terminal&lt;/span&gt;&lt;/td&gt;&lt;td&gt;Freeze the result, show rationale and deadlines, and remove actions that are no longer valid.&lt;/td&gt;&lt;td&gt;Final standings, resolved reviews, confirmed claims, dispute decisions.&lt;/td&gt;&lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;script&gt;
+    (() =&gt; {
+      const root = document.getElementById(&#x27;gametime-screen-atlas&#x27;);
+      const S = (name, kind, detail, note = &#x27;&#x27;) =&gt; ({ name, kind, detail, note });
+      const groups = [
+        { id: &#x27;entry&#x27;, label: &#x27;1 · Entry, authentication, and shell&#x27;, hint: &#x27;Cold launch → identity → signed-in tab shell&#x27; },
+        { id: &#x27;home&#x27;, label: &#x27;2 · Today and action inbox&#x27;, hint: &#x27;What needs attention now&#x27; },
+        { id: &#x27;challenge&#x27;, label: &#x27;3 · Challenges, evidence, and result&#x27;, hint: &#x27;Create → compete → verify → finalize&#x27; },
+        { id: &#x27;social&#x27;, label: &#x27;4 · Friends, groups, and reputation&#x27;, hint: &#x27;Relationship and eligibility surfaces&#x27; },
+        { id: &#x27;pledge&#x27;, label: &#x27;5 · Pledges and donation claims&#x27;, hint: &#x27;Result obligation → proof → confirmation&#x27; },
+        { id: &#x27;case&#x27;, label: &#x27;6 · Disputes and decisions&#x27;, hint: &#x27;Challenge an event without rewriting history&#x27; },
+        { id: &#x27;settings&#x27;, label: &#x27;7 · You, settings, and privacy&#x27;, hint: &#x27;Identity, permissions, and policy controls&#x27; },
+        { id: &#x27;deletion&#x27;, label: &#x27;8 · Account deletion and retained workflow access&#x27;, hint: &#x27;Pseudonymize identity while preserving agreements&#x27; },
+        { id: &#x27;overlay&#x27;, label: &#x27;9 · Shared system and failure surfaces&#x27;, hint: &#x27;Overlays that can interrupt any flow&#x27; }
+      ];
+
+      const screens = [
+        {
+          id: &#x27;A01&#x27;, group: &#x27;entry&#x27;, title: &#x27;Configuration blocked&#x27;, status: &#x27;built&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Fail closed when public client configuration is invalid or a secret-like key is bundled.&#x27;,
+          entry: &#x27;Cold launch before model creation&#x27;, exits: &#x27;A corrected build, then Launch&#x27;, source: &#x27;GameTimeApp · ConfigurationFailureView&#x27;,
+          sections: [[&#x27;Build safety&#x27;, [&#x27;Configuration message&#x27;, &#x27;Allowed public values&#x27;, &#x27;No continue action&#x27;]]], actions: [],
+          states: [S(&#x27;Invalid environment&#x27;, &#x27;failure&#x27;, &#x27;Show the exact public configuration field that failed validation.&#x27;), S(&#x27;Service-role key rejected&#x27;, &#x27;failure&#x27;, &#x27;Block the app and explain that privileged keys never belong on-device.&#x27;), S(&#x27;Missing URL or publishable key&#x27;, &#x27;failure&#x27;, &#x27;Block launch until the installed configuration is fixed.&#x27;)]
+        },
+        {
+          id: &#x27;A02&#x27;, group: &#x27;entry&#x27;, title: &#x27;Launching trusted state&#x27;, status: &#x27;built&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Resolve the current Apple session, profile, pending retries, and initial app phase.&#x27;,
+          entry: &#x27;Configuration passed&#x27;, exits: &#x27;Welcome · Onboarding · Today&#x27;, source: &#x27;RootView · LaunchingView · AppModel.start&#x27;,
+          sections: [[&#x27;Startup&#x27;, [&#x27;Loading trusted state&#x27;, &#x27;Restore account-bound caches&#x27;]]], actions: [&#x27;Try again&#x27;],
+          states: [S(&#x27;Loading&#x27;, &#x27;loading&#x27;, &#x27;Indeterminate progress while auth and local protected state resolve.&#x27;), S(&#x27;Recoverable launch failure&#x27;, &#x27;failure&#x27;, &#x27;Keep the loading context and expose Try again.&#x27;), S(&#x27;Session restored&#x27;, &#x27;success&#x27;, &#x27;Transition directly into the signed-in shell.&#x27;), S(&#x27;Session absent&#x27;, &#x27;choice&#x27;, &#x27;Transition to the welcome screen.&#x27;)]
+        },
+        {
+          id: &#x27;A03&#x27;, group: &#x27;entry&#x27;, title: &#x27;Welcome and sign in&#x27;, status: &#x27;built&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Explain the trust contract before creating or restoring an account.&#x27;,
+          entry: &#x27;Launch with no active session · Sign out&#x27;, exits: &#x27;Apple sign-in · Demo Today&#x27;, source: &#x27;GameTimeApp · SignedOutView&#x27;,
+          sections: [[&#x27;GameTime&#x27;, [&#x27;Commit clearly. Compete fairly.&#x27;, &#x27;Immutable terms&#x27;, &#x27;Manual activity sync&#x27;, &#x27;No real pledge&#x27;]]], actions: [&#x27;Continue with Apple&#x27;, &#x27;Try demo mode&#x27;],
+          states: [S(&#x27;Default&#x27;, &#x27;choice&#x27;, &#x27;Apple sign-in is primary; demo is secondary and debug-only.&#x27;), S(&#x27;Signing in&#x27;, &#x27;loading&#x27;, &#x27;Disable duplicate sign-in and demo entry.&#x27;), S(&#x27;Demo available&#x27;, &#x27;choice&#x27;, &#x27;Explain that demo changes stay only on this device.&#x27;), S(&#x27;Sign-in failed&#x27;, &#x27;failure&#x27;, &#x27;Keep the user on Welcome and show the global error alert.&#x27;)]
+        },
+        {
+          id: &#x27;A04&#x27;, group: &#x27;entry&#x27;, title: &#x27;Sign in with Apple&#x27;, status: &#x27;system&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Authorize Apple identity using the native sheet and cryptographic nonce.&#x27;,
+          entry: &#x27;Welcome&#x27;, exits: &#x27;Onboarding · Today · Welcome&#x27;, source: &#x27;Apple system sheet · NativeAppleSignInButton&#x27;,
+          sections: [[&#x27;Apple authorization&#x27;, [&#x27;Selected Apple ID&#x27;, &#x27;Share or hide email&#x27;, &#x27;Continue with passcode or biometrics&#x27;]]], actions: [&#x27;Continue&#x27;, &#x27;Cancel&#x27;],
+          states: [S(&#x27;Ready&#x27;, &#x27;choice&#x27;, &#x27;System-owned account choice and authorization.&#x27;), S(&#x27;Cancelled&#x27;, &#x27;empty&#x27;, &#x27;Return silently to Welcome; cancellation is not an error.&#x27;), S(&#x27;Credential unavailable&#x27;, &#x27;failure&#x27;, &#x27;Return to Welcome with a concise recovery alert.&#x27;), S(&#x27;Token exchange failed&#x27;, &#x27;failure&#x27;, &#x27;Do not advance until the server session is confirmed.&#x27;)]
+        },
+        {
+          id: &#x27;A05&#x27;, group: &#x27;entry&#x27;, title: &#x27;Set your profile&#x27;, status: &#x27;built&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Create the first profile with a display name and unique exact-match handle.&#x27;,
+          entry: &#x27;First Apple sign-in without profile&#x27;, exits: &#x27;Today&#x27;, source: &#x27;GameTimeApp · OnboardingView&#x27;,
+          sections: [[&#x27;Your profile&#x27;, [&#x27;Display name&#x27;, &#x27;Handle&#x27;]], [&#x27;Policy&#x27;, [&#x27;Handle is read-only after onboarding&#x27;]]], actions: [&#x27;Enter GameTime&#x27;],
+          states: [S(&#x27;Blank&#x27;, &#x27;empty&#x27;, &#x27;Focus display name when Apple supplied no usable name.&#x27;), S(&#x27;Apple name prefilled&#x27;, &#x27;choice&#x27;, &#x27;Focus handle while allowing the name to be edited.&#x27;), S(&#x27;Incomplete&#x27;, &#x27;empty&#x27;, &#x27;Disable Enter GameTime until both fields are valid.&#x27;), S(&#x27;Saving&#x27;, &#x27;loading&#x27;, &#x27;Replace the action label with progress and lock both fields.&#x27;), S(&#x27;Handle unavailable&#x27;, &#x27;failure&#x27;, &#x27;Keep both values and focus the handle after dismissal.&#x27;), S(&#x27;Offline or expired session&#x27;, &#x27;failure&#x27;, &#x27;Keep entered values and offer a safe retry after reauthentication.&#x27;)]
+        },
+        {
+          id: &#x27;B01&#x27;, group: &#x27;home&#x27;, title: &#x27;Today&#x27;, status: &#x27;built&#x27;, tab: &#x27;Today&#x27;,
+          purpose: &#x27;Prioritize friend requests, challenge invitations, and active or upcoming challenges.&#x27;,
+          entry: &#x27;Signed-in shell · tab selection · refresh&#x27;, exits: &#x27;Friend profile · Challenge detail · Invitation review&#x27;, source: &#x27;AppRouter.TodayRoute · TodayView&#x27;,
+          sections: [[&#x27;Friend requests&#x27;, [&#x27;Incoming relationship row&#x27;]], [&#x27;Challenge invitations&#x27;, [&#x27;Challenge card&#x27;, &#x27;Review and accept&#x27;]], [&#x27;Active and upcoming&#x27;, [&#x27;Challenge cards&#x27;]]], actions: [&#x27;Refresh&#x27;],
+          states: [S(&#x27;Refreshing&#x27;, &#x27;loading&#x27;, &#x27;Show inline progress without hiding already loaded sections.&#x27;), S(&#x27;Mixed actions&#x27;, &#x27;choice&#x27;, &#x27;Order friend requests before invitations, then ongoing challenges.&#x27;), S(&#x27;Clear for today&#x27;, &#x27;empty&#x27;, &#x27;Explain where future action-required items will appear.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Show Couldn’t refresh with retry; preserve prior trusted rows if available.&#x27;), S(&#x27;Release locked&#x27;, &#x27;choice&#x27;, &#x27;Allow detail inspection while challenge mutation actions remain disabled.&#x27;)]
+        },
+        {
+          id: &#x27;B02&#x27;, group: &#x27;home&#x27;, title: &#x27;Notification permission&#x27;, status: &#x27;system&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Ask for alerts only after explaining what action reminders contain and omit.&#x27;,
+          entry: &#x27;Inbox education · notification settings · post-onboarding prompt&#x27;, exits: &#x27;Action inbox · iOS Settings&#x27;, source: &#x27;PushNotificationCoordinator · D80/D94 client surface&#x27;,
+          sections: [[&#x27;Before the system prompt&#x27;, [&#x27;Invitations and deadlines&#x27;, &#x27;No health totals on the lock screen&#x27;, &#x27;Inbox works even without push&#x27;]]], actions: [&#x27;Allow notifications&#x27;, &#x27;Not now&#x27;],
+          states: [S(&#x27;Education&#x27;, &#x27;choice&#x27;, &#x27;Explain generic payloads before the OS prompt.&#x27;), S(&#x27;System prompt&#x27;, &#x27;choice&#x27;, &#x27;Apple-owned Allow / Don’t Allow decision.&#x27;), S(&#x27;Allowed&#x27;, &#x27;success&#x27;, &#x27;Register actor-bound device token and return.&#x27;), S(&#x27;Denied&#x27;, &#x27;failure&#x27;, &#x27;Keep the inbox usable and expose Open Settings.&#x27;), S(&#x27;Registration failed&#x27;, &#x27;failure&#x27;, &#x27;Do not imply that server deadlines or inbox state depend on push.&#x27;)]
+        },
+        {
+          id: &#x27;B03&#x27;, group: &#x27;home&#x27;, title: &#x27;Action inbox&#x27;, status: &#x27;planned&#x27;, tab: &#x27;Today&#x27;,
+          purpose: &#x27;Give every durable notification intent a queryable, privacy-bounded in-app home.&#x27;,
+          entry: &#x27;Today bell · push deep link&#x27;, exits: &#x27;Invitation · Standings · Review · Consent · Obligation · Claim · Case&#x27;, source: &#x27;D80 durable outbox · deferred M8 inbox&#x27;,
+          sections: [[&#x27;Needs action&#x27;, [&#x27;Invitation&#x27;, &#x27;Evidence review&#x27;, &#x27;Timezone consent&#x27;, &#x27;Claim challenge&#x27;]], [&#x27;Upcoming&#x27;, [&#x27;Deadlines and reminders&#x27;]], [&#x27;Resolved&#x27;, [&#x27;Decision events&#x27;]]], actions: [&#x27;Open selected item&#x27;],
+          states: [S(&#x27;Action items&#x27;, &#x27;choice&#x27;, &#x27;Group by urgency, not by sensitive event details.&#x27;), S(&#x27;Empty&#x27;, &#x27;empty&#x27;, &#x27;Confirm there are no outstanding actions.&#x27;), S(&#x27;Push disabled&#x27;, &#x27;choice&#x27;, &#x27;Show a quiet banner; inbox correctness is unchanged.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Keep cached event labels and prevent opening stale unauthorized detail.&#x27;), S(&#x27;Deep link no longer authorized&#x27;, &#x27;failure&#x27;, &#x27;Explain that the item was resolved, removed, or belongs to another account.&#x27;)]
+        },
+        {
+          id: &#x27;C01&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Challenges&#x27;, status: &#x27;built&#x27;, tab: &#x27;Challenges&#x27;,
+          purpose: &#x27;List invitations, live/upcoming contests, history, and any protected pending creation retry.&#x27;,
+          entry: &#x27;Challenges tab · detail back navigation&#x27;, exits: &#x27;Create · Review saved · Detail · Discard retry&#x27;, source: &#x27;ChallengesView&#x27;,
+          sections: [[&#x27;Saved request&#x27;, [&#x27;Exact retry state&#x27;]], [&#x27;Invitations&#x27;, [&#x27;Challenge cards&#x27;]], [&#x27;Your challenges&#x27;, [&#x27;Active and upcoming&#x27;]], [&#x27;History&#x27;, [&#x27;Cancelled and finalized&#x27;]]], actions: [&#x27;Create a challenge&#x27;],
+          states: [S(&#x27;Populated&#x27;, &#x27;choice&#x27;, &#x27;Render invitations, active/upcoming, and history independently.&#x27;), S(&#x27;No challenges&#x27;, &#x27;empty&#x27;, &#x27;Explain that accepted friends are required.&#x27;), S(&#x27;No accepted friends&#x27;, &#x27;empty&#x27;, &#x27;Disable create and route the next step toward Friends.&#x27;), S(&#x27;Release mutation lock&#x27;, &#x27;choice&#x27;, &#x27;Show the reason creation and invitation changes are unavailable.&#x27;), S(&#x27;Saved ambiguous request&#x27;, &#x27;choice&#x27;, &#x27;Expose review, exact retry, and dangerous discard.&#x27;), S(&#x27;Protected storage unreadable&#x27;, &#x27;failure&#x27;, &#x27;Block new creation; offer storage retry or explicit discard.&#x27;), S(&#x27;Offline refresh&#x27;, &#x27;failure&#x27;, &#x27;Preserve the list and show retry near the failed refresh state.&#x27;)]
+        },
+        {
+          id: &#x27;C02&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Create challenge&#x27;, status: &#x27;built&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Choose the closed roster and every term before anything becomes immutable.&#x27;,
+          entry: &#x27;Challenges create button&#x27;, exits: &#x27;Review immutable terms · Cancel&#x27;, source: &#x27;SheetDestination.createChallenge · CreateChallengeFlow.editor&#x27;,
+          sections: [[&#x27;Friends&#x27;, [&#x27;1–19 accepted friends&#x27;, &#x27;Atomic invitation count&#x27;]], [&#x27;Challenge&#x27;, [&#x27;Title&#x27;, &#x27;Metric&#x27;, &#x27;Cadence&#x27;, &#x27;Target&#x27;]], [&#x27;Window&#x27;, [&#x27;Starts&#x27;, &#x27;Ends&#x27;]], [&#x27;Commitment&#x27;, [&#x27;Test pledge&#x27;, &#x27;Charity&#x27;, &#x27;Tie-break&#x27;]]], actions: [&#x27;Review immutable terms&#x27;, &#x27;Cancel&#x27;],
+          states: [S(&#x27;Default&#x27;, &#x27;choice&#x27;, &#x27;Start with no invitees and a suggested target for the selected metric.&#x27;), S(&#x27;Maximum roster selected&#x27;, &#x27;choice&#x27;, &#x27;Disable every unselected friend after 19 invitees.&#x27;), S(&#x27;Metric changed&#x27;, &#x27;choice&#x27;, &#x27;Update the suggested target only if the prior suggestion was untouched.&#x27;), S(&#x27;No charities available&#x27;, &#x27;failure&#x27;, &#x27;Explain that curated reference data is required before submission.&#x27;), S(&#x27;Validation error&#x27;, &#x27;failure&#x27;, &#x27;Keep the draft and identify the first invalid term.&#x27;), S(&#x27;No eligible friends&#x27;, &#x27;empty&#x27;, &#x27;Do not open this sheet; send the user to Friends instead.&#x27;)]
+        },
+        {
+          id: &#x27;C03&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Review immutable terms&#x27;, status: &#x27;built&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Display the complete roster, scoring terms, charity, timezone, stake, and stable request ID before commit.&#x27;,
+          entry: &#x27;Create challenge · saved retry review&#x27;, exits: &#x27;Submit · Back to edit · Challenge detail · Discard retry&#x27;, source: &#x27;CreateChallengeFlow.review · D87/D89&#x27;,
+          sections: [[&#x27;Immutable terms&#x27;, [&#x27;Roster&#x27;, &#x27;Metric and cadence&#x27;, &#x27;Target and window&#x27;, &#x27;Timezone&#x27;, &#x27;Test pledge and charity&#x27;, &#x27;Tie-break&#x27;, &#x27;Request ID&#x27;]]], actions: [&#x27;Submit challenge and invitations&#x27;, &#x27;Back to edit&#x27;],
+          states: [S(&#x27;Fresh review&#x27;, &#x27;choice&#x27;, &#x27;Back to edit is available before protected submission begins.&#x27;), S(&#x27;Submitting&#x27;, &#x27;loading&#x27;, &#x27;Lock dismissal and all actions while one request is in flight.&#x27;), S(&#x27;Committed&#x27;, &#x27;success&#x27;, &#x27;Dismiss the sheet and open the created Challenge detail.&#x27;), S(&#x27;Ambiguous response saved&#x27;, &#x27;failure&#x27;, &#x27;Keep exact terms and request ID for explicit replay after relaunch.&#x27;), S(&#x27;Review saved retry&#x27;, &#x27;choice&#x27;, &#x27;Replace Back to edit with Discard local retry record.&#x27;), S(&#x27;Conflict or server rejection&#x27;, &#x27;failure&#x27;, &#x27;Do not change the saved identity; explain whether retry is safe.&#x27;)]
+        },
+        {
+          id: &#x27;C04&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Review invitation&#x27;, status: &#x27;built&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Inspect immutable terms and freeze the invitee’s charity and timezone at acceptance.&#x27;,
+          entry: &#x27;Today · Challenges · Challenge detail&#x27;, exits: &#x27;Challenge detail · Dismiss&#x27;, source: &#x27;SheetDestination.acceptInvitation · AcceptInvitationView&#x27;,
+          sections: [[&#x27;Immutable terms&#x27;, [&#x27;Challenge and roster&#x27;, &#x27;Metric and target&#x27;, &#x27;Window and stake&#x27;, &#x27;Tie-break&#x27;]], [&#x27;Your nomination&#x27;, [&#x27;Charity&#x27;, &#x27;Frozen timezone&#x27;]]], actions: [&#x27;Accept fixed terms&#x27;, &#x27;Cancel&#x27;],
+          states: [S(&#x27;Ready&#x27;, &#x27;choice&#x27;, &#x27;Preselect the first active charity but require an explicit acceptance.&#x27;), S(&#x27;No charity&#x27;, &#x27;failure&#x27;, &#x27;Disable acceptance and explain that nomination is mandatory.&#x27;), S(&#x27;Accepting&#x27;, &#x27;loading&#x27;, &#x27;Lock dismissal and show progress in the primary action.&#x27;), S(&#x27;Accepted&#x27;, &#x27;success&#x27;, &#x27;Dismiss only after refreshed participant state is accepted.&#x27;), S(&#x27;Invitation unavailable&#x27;, &#x27;failure&#x27;, &#x27;Prompt dismissal and refresh if the contest disappeared.&#x27;), S(&#x27;Expired, lapsed, or cancelled&#x27;, &#x27;failure&#x27;, &#x27;Replace mutation controls with the terminal reason.&#x27;)]
+        },
+        {
+          id: &#x27;C05&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Challenge detail&#x27;, status: &#x27;built&#x27;, tab: &#x27;Today / Challenges&#x27;,
+          purpose: &#x27;Provide the canonical immutable terms, roster state, activity controls, and embedded standings.&#x27;,
+          entry: &#x27;Today · Challenges · push/deep link via router&#x27;, exits: &#x27;Invitation review · Standings · Activity · Evidence · Timezone · Check-in · Cancel&#x27;, source: &#x27;TodayRoute.contest · ChallengesRoute.contest · ContestDetailView&#x27;,
+          sections: [[&#x27;Status and title&#x27;, [&#x27;Lifecycle and action-needed state&#x27;]], [&#x27;Terms&#x27;, [&#x27;Metric, cadence, target, stake, window, tie-break, roster, timezone&#x27;]], [&#x27;Participant actions&#x27;, [&#x27;Invitation, activity, standings, future workflow links&#x27;]]], actions: [&#x27;Context-dependent primary action&#x27;],
+          states: [S(&#x27;Invited&#x27;, &#x27;choice&#x27;, &#x27;Show Review and accept plus destructive Decline.&#x27;), S(&#x27;Accepted · upcoming&#x27;, &#x27;empty&#x27;, &#x27;Show that standings open when the challenge starts.&#x27;), S(&#x27;Accepted · active steps&#x27;, &#x27;choice&#x27;, &#x27;Show Activity controls and provisional standings.&#x27;), S(&#x27;Accepted · active other metric&#x27;, &#x27;choice&#x27;, &#x27;Hide steps-only Activity controls.&#x27;), S(&#x27;Finalized&#x27;, &#x27;success&#x27;, &#x27;Show final standings, result rationale, and obligations.&#x27;), S(&#x27;Cancelled&#x27;, &#x27;empty&#x27;, &#x27;Keep immutable terms and explain why the contest never opened.&#x27;), S(&#x27;Release locked&#x27;, &#x27;choice&#x27;, &#x27;Keep detail readable while mutation controls are disabled.&#x27;), S(&#x27;Contest unavailable&#x27;, &#x27;failure&#x27;, &#x27;Use stale-link recovery instead of an empty terms page.&#x27;)]
+        },
+        {
+          id: &#x27;C06&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Standings&#x27;, status: &#x27;built&#x27;, tab: &#x27;Challenges&#x27;,
+          purpose: &#x27;Show privacy-bounded provisional ordering, frozen final ranking, result rationale, and obligations.&#x27;,
+          entry: &#x27;Challenge detail · lead-loss push · action inbox&#x27;, exits: &#x27;Result explanation · Evidence review · Obligation · Comeback reaction&#x27;, source: &#x27;ChallengesRoute.standings · ChallengeStandingsSection · D77/D94&#x27;,
+          sections: [[&#x27;Phase&#x27;, [&#x27;Provisional or Final&#x27;, &#x27;As-of timestamp&#x27;, &#x27;Reason&#x27;]], [&#x27;Rankings&#x27;, [&#x27;Rank, progress, qualification&#x27;, &#x27;Role-bounded integrity detail&#x27;]], [&#x27;Result&#x27;, [&#x27;Kind, reason, evidence cutoff, obligation&#x27;]]], actions: [&#x27;I’m coming back 😤&#x27;, &#x27;Try again&#x27;],
+          states: [S(&#x27;Loading&#x27;, &#x27;loading&#x27;, &#x27;Name the fetch and keep the contest context.&#x27;), S(&#x27;No published progress&#x27;, &#x27;empty&#x27;, &#x27;Differentiate active no-snapshot from final result not yet published.&#x27;), S(&#x27;Live · leading&#x27;, &#x27;choice&#x27;, &#x27;Show provisional ordering with no comeback action.&#x27;), S(&#x27;Live · trailing&#x27;, &#x27;choice&#x27;, &#x27;Offer the idempotent comeback reaction.&#x27;), S(&#x27;Reaction sent&#x27;, &#x27;success&#x27;, &#x27;Disable the action for the latest snapshot.&#x27;), S(&#x27;Awaiting ingest&#x27;, &#x27;loading&#x27;, &#x27;Keep ranks provisional until the evidence grace window closes.&#x27;), S(&#x27;Under review&#x27;, &#x27;choice&#x27;, &#x27;Keep ordering provisional and expose only authorized review facts.&#x27;), S(&#x27;Final winner&#x27;, &#x27;success&#x27;, &#x27;Show winner, final rationale, and loser obligations.&#x27;), S(&#x27;Final all donate&#x27;, &#x27;success&#x27;, &#x27;Show one self-directed obligation for every accepted participant.&#x27;), S(&#x27;Final void&#x27;, &#x27;empty&#x27;, &#x27;Explain that nobody owes under the agreed rule.&#x27;), S(&#x27;Final inconclusive&#x27;, &#x27;failure&#x27;, &#x27;Explain that GameTime could not safely determine a settlement result.&#x27;), S(&#x27;Refresh failed&#x27;, &#x27;failure&#x27;, &#x27;Keep the last snapshot and show inline retry.&#x27;), S(&#x27;Unavailable&#x27;, &#x27;failure&#x27;, &#x27;Handle wrong account, nonaccepted roster state, or inactive contest.&#x27;)]
+        },
+        {
+          id: &#x27;C07&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Activity sync&#x27;, status: &#x27;built&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Manually authorize, read, bucket, attest, and explicitly retry device-recorded step evidence.&#x27;,
+          entry: &#x27;Active accepted steps challenge&#x27;, exits: &#x27;Challenge detail · iOS Health access settings&#x27;, source: &#x27;ContestDetailView Activity section · ActivitySyncCoordinator&#x27;,
+          sections: [[&#x27;Health access&#x27;, [&#x27;Enable Activity&#x27;, &#x27;Read access may be limited&#x27;]], [&#x27;Sync&#x27;, [&#x27;Completed frozen-local-hour buckets&#x27;, &#x27;Pending exact retry count&#x27;]]], actions: [&#x27;Enable Activity&#x27;, &#x27;Sync Activity&#x27;],
+          states: [S(&#x27;Permission not requested&#x27;, &#x27;choice&#x27;, &#x27;Explain Apple-device-only step scope before requesting.&#x27;), S(&#x27;Permission request completed&#x27;, &#x27;success&#x27;, &#x27;Avoid claiming read access was granted; HealthKit does not reveal that directly.&#x27;), S(&#x27;Health data unavailable&#x27;, &#x27;failure&#x27;, &#x27;Keep the challenge readable and disable sync.&#x27;), S(&#x27;Syncing&#x27;, &#x27;loading&#x27;, &#x27;Read, verify, and upload one challenge at a time.&#x27;), S(&#x27;Synced&#x27;, &#x27;success&#x27;, &#x27;Report only the confirmed aggregate for this sync.&#x27;), S(&#x27;No readable data&#x27;, &#x27;empty&#x27;, &#x27;Explain that there may be no completed hours or access may be limited.&#x27;), S(&#x27;Queued for exact retry&#x27;, &#x27;failure&#x27;, &#x27;Show saved count and require another explicit Sync tap.&#x27;), S(&#x27;Replay accepted&#x27;, &#x27;success&#x27;, &#x27;Confirm saved activity without duplicating evidence.&#x27;), S(&#x27;Different challenge pending&#x27;, &#x27;failure&#x27;, &#x27;Route the user to finish the existing queue before another challenge.&#x27;), S(&#x27;Attestation or network failure&#x27;, &#x27;failure&#x27;, &#x27;Preserve exact bytes when safe; discard only terminally rejected material.&#x27;)]
+        },
+        {
+          id: &#x27;C08&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Venue check-in&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Collect a bounded location/workout claim while the server—not the client—decides whether it passes.&#x27;,
+          entry: &#x27;Active challenge with immutable geofence terms&#x27;, exits: &#x27;Check-in result · Challenge detail · iOS Location settings&#x27;, source: &#x27;D63–D70 · ingest-checkin foundation&#x27;,
+          sections: [[&#x27;Venue terms&#x27;, [&#x27;Location, radius, accuracy&#x27;, &#x27;Minimum dwell and workout overlap&#x27;]], [&#x27;Capture&#x27;, [&#x27;Raw observations&#x27;, &#x27;One workout&#x27;, &#x27;Attested submission&#x27;]]], actions: [&#x27;Allow location while using app&#x27;, &#x27;Start check-in&#x27;, &#x27;Submit visit&#x27;],
+          states: [S(&#x27;No venue configured&#x27;, &#x27;empty&#x27;, &#x27;Hide the feature for challenges without service-provisioned terms.&#x27;), S(&#x27;Permission education&#x27;, &#x27;choice&#x27;, &#x27;Explain exact capture scope before the iOS prompt.&#x27;), S(&#x27;Location denied&#x27;, &#x27;failure&#x27;, &#x27;Show Open Settings and keep other challenge features usable.&#x27;), S(&#x27;Collecting visit&#x27;, &#x27;loading&#x27;, &#x27;Display elapsed observation progress without declaring the user inside.&#x27;), S(&#x27;Accepted&#x27;, &#x27;success&#x27;, &#x27;Show derived dwell and workout overlap outcome.&#x27;), S(&#x27;Rejected by terms&#x27;, &#x27;failure&#x27;, &#x27;Show the bounded reason: inaccurate, simulated, outside, short dwell, or overlap failure.&#x27;), S(&#x27;Offline exact retry&#x27;, &#x27;failure&#x27;, &#x27;Queue the signed body without fabricating a check-in verdict.&#x27;), S(&#x27;Attestation failed&#x27;, &#x27;failure&#x27;, &#x27;Explain that an unauthenticated claim never reached the evidence ledger.&#x27;)]
+        },
+        {
+          id: &#x27;C09&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Request timezone change&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Propose a prospective timezone epoch without rewriting previously banked evidence.&#x27;,
+          entry: &#x27;Active Challenge detail · activity settings&#x27;, exits: &#x27;Challenge detail · consent status&#x27;, source: &#x27;D62 · request_timezone_change RPC&#x27;,
+          sections: [[&#x27;Current contract&#x27;, [&#x27;Frozen base timezone&#x27;, &#x27;Applied epochs&#x27;]], [&#x27;Proposed move&#x27;, [&#x27;New IANA timezone&#x27;, &#x27;Prospective only&#x27;, &#x27;Unanimous opponent consent&#x27;]]], actions: [&#x27;Request consent&#x27;],
+          states: [S(&#x27;Eligible&#x27;, &#x27;choice&#x27;, &#x27;Only accepted participants in active contests can request.&#x27;), S(&#x27;Same or invalid timezone&#x27;, &#x27;failure&#x27;, &#x27;Prevent no-op and malformed requests.&#x27;), S(&#x27;Pending request exists&#x27;, &#x27;choice&#x27;, &#x27;Show its reviewers and current votes instead of a second form.&#x27;), S(&#x27;Submitting&#x27;, &#x27;loading&#x27;, &#x27;Keep the proposed zone visible and lock duplicates.&#x27;), S(&#x27;Requested&#x27;, &#x27;success&#x27;, &#x27;Show that the effective instant is server-set only after final approval.&#x27;), S(&#x27;Rejected&#x27;, &#x27;failure&#x27;, &#x27;Keep the base timezone and explain that one rejection is final.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Preserve the proposed zone locally but do not imply it was requested.&#x27;)]
+        },
+        {
+          id: &#x27;C10&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Timezone consent review&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Let each opponent approve or reject a contract-changing prospective timezone epoch.&#x27;,
+          entry: &#x27;Action inbox · Challenge detail&#x27;, exits: &#x27;Challenge detail · resolved inbox item&#x27;, source: &#x27;D62 · D80 timezone intents&#x27;,
+          sections: [[&#x27;Request&#x27;, [&#x27;Requester&#x27;, &#x27;Current zone&#x27;, &#x27;Proposed zone&#x27;, &#x27;Why history is preserved&#x27;]], [&#x27;Your decision&#x27;, [&#x27;Approve&#x27;, &#x27;Reject&#x27;]]], actions: [&#x27;Approve change&#x27;, &#x27;Reject change&#x27;],
+          states: [S(&#x27;Pending your vote&#x27;, &#x27;choice&#x27;, &#x27;Make the unanimity requirement and prospective boundary explicit.&#x27;), S(&#x27;Submitting vote&#x27;, &#x27;loading&#x27;, &#x27;Lock both actions and preserve the selected decision.&#x27;), S(&#x27;Approved by you&#x27;, &#x27;success&#x27;, &#x27;Show remaining reviewers without implying the epoch is active.&#x27;), S(&#x27;Applied&#x27;, &#x27;success&#x27;, &#x27;Show the server effective instant after unanimous approval.&#x27;), S(&#x27;Rejected&#x27;, &#x27;failure&#x27;, &#x27;Show that the original timezone remains in force.&#x27;), S(&#x27;No longer eligible&#x27;, &#x27;failure&#x27;, &#x27;Handle contest finalization, actor removal, or already resolved request.&#x27;)]
+        },
+        {
+          id: &#x27;C11&#x27;, group: &#x27;challenge&#x27;, title: &#x27;My evidence audit&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Let a participant inspect their own retained metric, check-in, quarantine, and attestation facts.&#x27;,
+          entry: &#x27;Challenge detail · Trust and privacy&#x27;, exits: &#x27;Evidence item · Quarantine status&#x27;, source: &#x27;D77/D81 owner-only evidence boundary&#x27;,
+          sections: [[&#x27;Evidence&#x27;, [&#x27;Metric buckets&#x27;, &#x27;Check-ins&#x27;, &#x27;Quarantines&#x27;]], [&#x27;Retention&#x27;, [&#x27;Raw availability cutoff&#x27;, &#x27;Retained aggregates&#x27;]]], actions: [&#x27;Open evidence item&#x27;],
+          states: [S(&#x27;Raw records available&#x27;, &#x27;choice&#x27;, &#x27;Show owner-only records and the applicable retention cutoff.&#x27;), S(&#x27;Aggregate only&#x27;, &#x27;empty&#x27;, &#x27;Explain that raw data was pruned after workflow finality.&#x27;), S(&#x27;No evidence yet&#x27;, &#x27;empty&#x27;, &#x27;Point to manual Activity sync or check-in when eligible.&#x27;), S(&#x27;Under review&#x27;, &#x27;choice&#x27;, &#x27;Show aggregate review state without exposing rival votes beyond authorization.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Do not cache raw health or location records more broadly than required.&#x27;), S(&#x27;Retention hold&#x27;, &#x27;choice&#x27;, &#x27;Explain scoped hold and expiry without exposing operator notes.&#x27;)]
+        },
+        {
+          id: &#x27;C12&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Evidence item detail&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Explain one owner-visible observation, its provenance, revisions, admissibility, and derived review facts.&#x27;,
+          entry: &#x27;My evidence audit&#x27;, exits: &#x27;Quarantine status · Challenge detail&#x27;, source: &#x27;D35–D43 · D60/D77/D81&#x27;,
+          sections: [[&#x27;Observation&#x27;, [&#x27;Metric and local bucket&#x27;, &#x27;Current value and revision history&#x27;, &#x27;Provenance class&#x27;]], [&#x27;Trust&#x27;, [&#x27;Admissibility&#x27;, &#x27;Attestation fact&#x27;, &#x27;Reporting lag&#x27;]], [&#x27;Privacy&#x27;, [&#x27;Raw retention cutoff&#x27;]]], actions: [],
+          states: [S(&#x27;Current admissible metric&#x27;, &#x27;success&#x27;, &#x27;Show the latest admissible contribution and prior append-only revisions.&#x27;), S(&#x27;Stored but inadmissible&#x27;, &#x27;failure&#x27;, &#x27;Explain the server rule that excluded the contribution.&#x27;), S(&#x27;Retroactive quarantine&#x27;, &#x27;choice&#x27;, &#x27;Show that provisional scoring can continue while finalization is gated.&#x27;), S(&#x27;Check-in accepted&#x27;, &#x27;success&#x27;, &#x27;Show derived outcome without expanding rival access to coordinates.&#x27;), S(&#x27;Check-in rejected&#x27;, &#x27;failure&#x27;, &#x27;Show deterministic outcome and bounded failure reason.&#x27;), S(&#x27;Raw pruned&#x27;, &#x27;empty&#x27;, &#x27;Retain digest, aggregate, and adjudicated fact only.&#x27;)]
+        },
+        {
+          id: &#x27;C13&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Evidence quarantine review&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Let an eligible rival judge one bounded late-evidence claim without seeing unrelated health or location detail.&#x27;,
+          entry: &#x27;Action inbox · Standings under review&#x27;, exits: &#x27;Standings · resolved inbox item&#x27;, source: &#x27;D60/D76/D77 · quarantine review RPCs&#x27;,
+          sections: [[&#x27;Claim to review&#x27;, [&#x27;Participant&#x27;, &#x27;Metric bucket and value&#x27;, &#x27;Provenance class&#x27;, &#x27;Recorded time and lag&#x27;, &#x27;Rule/version/threshold&#x27;, &#x27;Revision history&#x27;]], [&#x27;Decision&#x27;, [&#x27;Approve evidence claim&#x27;, &#x27;Reject and escalate&#x27;]]], actions: [&#x27;Approve&#x27;, &#x27;Reject&#x27;],
+          states: [S(&#x27;Pending peer vote&#x27;, &#x27;choice&#x27;, &#x27;Show the immutable 72-hour deadline and quorum.&#x27;), S(&#x27;Submitting vote&#x27;, &#x27;loading&#x27;, &#x27;Prevent a second conflicting vote.&#x27;), S(&#x27;Peer approved&#x27;, &#x27;success&#x27;, &#x27;Show quorum progress; finalization still waits for grace and complete assessment.&#x27;), S(&#x27;Rejected and escalated&#x27;, &#x27;failure&#x27;, &#x27;Explain that a platform adjudicator—not the reviewer—owns the consequence.&#x27;), S(&#x27;Peer deadline passed&#x27;, &#x27;failure&#x27;, &#x27;Show escalation; silence never approves evidence.&#x27;), S(&#x27;Operator cleared&#x27;, &#x27;success&#x27;, &#x27;Show the clearance event without implying evidence changed.&#x27;), S(&#x27;Review timed out&#x27;, &#x27;failure&#x27;, &#x27;Route to the final inconclusive result with no obligation.&#x27;)]
+        },
+        {
+          id: &#x27;C14&#x27;, group: &#x27;challenge&#x27;, title: &#x27;Cancel pending challenge&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Allow only the creator to cancel before activation while preserving the immutable historical record.&#x27;,
+          entry: &#x27;Creator’s pending Challenge detail&#x27;, exits: &#x27;Cancelled Challenge detail · Challenges&#x27;, source: &#x27;cancel_contest RPC · D24/D30/D31&#x27;,
+          sections: [[&#x27;Consequences&#x27;, [&#x27;Invitations lapse&#x27;, &#x27;Contest remains in history&#x27;, &#x27;No result or pledge&#x27;]]], actions: [&#x27;Cancel challenge&#x27;, &#x27;Keep challenge&#x27;],
+          states: [S(&#x27;Eligible&#x27;, &#x27;choice&#x27;, &#x27;Creator can cancel only while the contest is pending.&#x27;), S(&#x27;Cancelling&#x27;, &#x27;loading&#x27;, &#x27;Lock the destructive action until server state resolves.&#x27;), S(&#x27;Cancelled&#x27;, &#x27;success&#x27;, &#x27;Return to immutable detail with cancellation reason.&#x27;), S(&#x27;Already activated&#x27;, &#x27;failure&#x27;, &#x27;Remove cancellation controls; blocking or withdrawal cannot erase the accepted agreement.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Do not optimistically hide the contest or lapse invitations.&#x27;)]
+        },
+        {
+          id: &#x27;D01&#x27;, group: &#x27;social&#x27;, title: &#x27;Friends&#x27;, status: &#x27;built&#x27;, tab: &#x27;Friends&#x27;,
+          purpose: &#x27;Discover exactly one shared handle and manage incoming, outgoing, and accepted relationships.&#x27;,
+          entry: &#x27;Friends tab&#x27;, exits: &#x27;Friend profile · exact-match actions&#x27;, source: &#x27;FriendsView · D14–D16 · D84&#x27;,
+          sections: [[&#x27;Find one person&#x27;, [&#x27;Exact handle field&#x27;, &#x27;Find&#x27;]], [&#x27;Exact match&#x27;, [&#x27;Profile and relationship action&#x27;]], [&#x27;Relationships&#x27;, [&#x27;Incoming&#x27;, &#x27;Sent&#x27;, &#x27;Friends&#x27;]]], actions: [&#x27;Find&#x27;, &#x27;Add&#x27;, &#x27;Accept&#x27;, &#x27;Cancel&#x27;],
+          states: [S(&#x27;Ready to search&#x27;, &#x27;choice&#x27;, &#x27;Require one normalized exact handle; never show enumerable suggestions.&#x27;), S(&#x27;Searching&#x27;, &#x27;loading&#x27;, &#x27;Disable duplicate lookup and relationship mutations.&#x27;), S(&#x27;New exact match&#x27;, &#x27;choice&#x27;, &#x27;Offer Add.&#x27;), S(&#x27;Match is you&#x27;, &#x27;empty&#x27;, &#x27;Show a You pill and no relationship action.&#x27;), S(&#x27;Already friends&#x27;, &#x27;success&#x27;, &#x27;Show Friends status.&#x27;), S(&#x27;Request pending&#x27;, &#x27;choice&#x27;, &#x27;Show Pending rather than a second Add action.&#x27;), S(&#x27;No exact match&#x27;, &#x27;empty&#x27;, &#x27;Echo only the normalized submitted handle.&#x27;), S(&#x27;Lists populated&#x27;, &#x27;choice&#x27;, &#x27;Separate incoming, sent, and accepted relationships.&#x27;), S(&#x27;No relationships&#x27;, &#x27;empty&#x27;, &#x27;Explain exact-handle discovery.&#x27;), S(&#x27;Offline or rate limited&#x27;, &#x27;failure&#x27;, &#x27;Keep existing relationships and show a bounded retry state near search.&#x27;)]
+        },
+        {
+          id: &#x27;D02&#x27;, group: &#x27;social&#x27;, title: &#x27;Friend profile&#x27;, status: &#x27;built&#x27;, tab: &#x27;Today / Friends&#x27;,
+          purpose: &#x27;Show the visible profile and the one relationship action currently allowed.&#x27;,
+          entry: &#x27;Today friend request · Friends list · group member&#x27;, exits: &#x27;Reliability · block confirmation · back&#x27;, source: &#x27;TodayRoute.friendship · FriendsRoute.profile · FriendshipDetailView&#x27;,
+          sections: [[&#x27;Profile&#x27;, [&#x27;Initials/avatar&#x27;, &#x27;Display name&#x27;, &#x27;Handle&#x27;, &#x27;Relationship status&#x27;]], [&#x27;Actions&#x27;, [&#x27;Accept or remove relationship&#x27;, &#x27;Future block and reliability&#x27;]]], actions: [&#x27;Accept request&#x27;, &#x27;Remove friend&#x27;],
+          states: [S(&#x27;Incoming pending&#x27;, &#x27;choice&#x27;, &#x27;Offer Accept request and Remove request.&#x27;), S(&#x27;Outgoing pending&#x27;, &#x27;choice&#x27;, &#x27;Offer Remove request only.&#x27;), S(&#x27;Accepted friend&#x27;, &#x27;success&#x27;, &#x27;Offer Remove friend and future challenge shortcuts.&#x27;), S(&#x27;Deleted member&#x27;, &#x27;empty&#x27;, &#x27;Show pseudonymized identity only where retained contest history permits.&#x27;), S(&#x27;Blocked relationship&#x27;, &#x27;failure&#x27;, &#x27;Hide discovery actions while preserving shared contest access.&#x27;), S(&#x27;Relationship unavailable&#x27;, &#x27;failure&#x27;, &#x27;Explain that it changed since refresh.&#x27;)]
+        },
+        {
+          id: &#x27;D03&#x27;, group: &#x27;social&#x27;, title: &#x27;Groups&#x27;, status: &#x27;planned&#x27;, tab: &#x27;Friends&#x27;,
+          purpose: &#x27;Surface flat memberships and private join-code entry without widening contest visibility.&#x27;,
+          entry: &#x27;Friends secondary destination&#x27;, exits: &#x27;Group detail · Create group · Join group&#x27;, source: &#x27;M1 groups · D17/D18 · deferred M8 group UI&#x27;,
+          sections: [[&#x27;Your groups&#x27;, [&#x27;Group rows&#x27;, &#x27;Member count&#x27;, &#x27;Your role&#x27;]]], actions: [&#x27;Create group&#x27;, &#x27;Join with code&#x27;],
+          states: [S(&#x27;Populated&#x27;, &#x27;choice&#x27;, &#x27;List only groups the signed-in actor belongs to.&#x27;), S(&#x27;No groups&#x27;, &#x27;empty&#x27;, &#x27;Offer create and capability-based join.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Keep cached names but do not expose stale membership actions.&#x27;), S(&#x27;Account blocked from join target&#x27;, &#x27;failure&#x27;, &#x27;Explain the join failed without revealing the blocker’s private state.&#x27;)]
+        },
+        {
+          id: &#x27;D04&#x27;, group: &#x27;social&#x27;, title: &#x27;Create group&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Create a flat-membership group and receive a server-generated join capability.&#x27;,
+          entry: &#x27;Groups&#x27;, exits: &#x27;Group detail · share join code&#x27;, source: &#x27;D17/D18 group foundation&#x27;,
+          sections: [[&#x27;Group&#x27;, [&#x27;Name&#x27;]], [&#x27;Join capability&#x27;, [&#x27;Server generates code after creation&#x27;]]], actions: [&#x27;Create group&#x27;],
+          states: [S(&#x27;Draft&#x27;, &#x27;choice&#x27;, &#x27;Collect only the group name; never let the client choose the code.&#x27;), S(&#x27;Creating&#x27;, &#x27;loading&#x27;, &#x27;Lock duplicate requests.&#x27;), S(&#x27;Created&#x27;, &#x27;success&#x27;, &#x27;Reveal the generated code once and open Group detail.&#x27;), S(&#x27;Name invalid&#x27;, &#x27;failure&#x27;, &#x27;Keep the draft and identify limits.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Do not fabricate a join code.&#x27;)]
+        },
+        {
+          id: &#x27;D05&#x27;, group: &#x27;social&#x27;, title: &#x27;Join group&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Redeem a server-generated join capability idempotently.&#x27;,
+          entry: &#x27;Groups · shared deep link&#x27;, exits: &#x27;Group detail · Groups&#x27;, source: &#x27;join_group_by_code RPC · D18/D19&#x27;,
+          sections: [[&#x27;Join code&#x27;, [&#x27;Exact capability code&#x27;, &#x27;No group enumeration&#x27;]]], actions: [&#x27;Join group&#x27;],
+          states: [S(&#x27;Ready&#x27;, &#x27;choice&#x27;, &#x27;Accept pasted or deep-linked codes.&#x27;), S(&#x27;Joining&#x27;, &#x27;loading&#x27;, &#x27;Lock duplicate redemption.&#x27;), S(&#x27;Joined&#x27;, &#x27;success&#x27;, &#x27;Open the authorized Group detail.&#x27;), S(&#x27;Already a member&#x27;, &#x27;success&#x27;, &#x27;Treat idempotently and open the existing group.&#x27;), S(&#x27;Invalid or expired code&#x27;, &#x27;failure&#x27;, &#x27;Do not reveal whether another inaccessible group exists.&#x27;), S(&#x27;Blocked relationship conflict&#x27;, &#x27;failure&#x27;, &#x27;Refuse across a block without exposing who blocked whom.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Keep the entered code locally only until retry.&#x27;)]
+        },
+        {
+          id: &#x27;D06&#x27;, group: &#x27;social&#x27;, title: &#x27;Group detail&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Show flat membership and only the narrowed group activity the product explicitly chooses to publish.&#x27;,
+          entry: &#x27;Groups · Join success&#x27;, exits: &#x27;Member profile · create group challenge · leave group&#x27;, source: &#x27;D17/D19 · deferred group feed decision&#x27;,
+          sections: [[&#x27;Group&#x27;, [&#x27;Name&#x27;, &#x27;Join code controls for authorized role&#x27;]], [&#x27;Members&#x27;, [&#x27;Visible profile rows&#x27;]], [&#x27;Activity&#x27;, [&#x27;Narrow contest fact only; no pledge terms without consent&#x27;]]], actions: [&#x27;Start challenge&#x27;, &#x27;Share join code&#x27;, &#x27;Leave group&#x27;],
+          states: [S(&#x27;Member view&#x27;, &#x27;choice&#x27;, &#x27;Show flat members and role-bounded controls.&#x27;), S(&#x27;No shared activity&#x27;, &#x27;empty&#x27;, &#x27;Do not widen participant-only challenge terms to fill the page.&#x27;), S(&#x27;Member blocked&#x27;, &#x27;choice&#x27;, &#x27;Remove social visibility where required while shared contest history remains separately reachable.&#x27;), S(&#x27;Membership removed&#x27;, &#x27;failure&#x27;, &#x27;Return to Groups and clear the unauthorized detail route.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Show cached membership as stale and disable mutations.&#x27;)]
+        },
+        {
+          id: &#x27;D07&#x27;, group: &#x27;social&#x27;, title: &#x27;Blocked accounts&#x27;, status: &#x27;planned&#x27;, tab: &#x27;You&#x27;,
+          purpose: &#x27;Let the blocker privately inspect and reverse directed blocks.&#x27;,
+          entry: &#x27;Privacy settings&#x27;, exits: &#x27;Unblock confirmation · profile where still visible&#x27;, source: &#x27;D19 blocks foundation&#x27;,
+          sections: [[&#x27;Blocked by you&#x27;, [&#x27;Private list of blocked profiles&#x27;]]], actions: [&#x27;Unblock&#x27;],
+          states: [S(&#x27;Empty&#x27;, &#x27;empty&#x27;, &#x27;Explain that blocks are private and directed.&#x27;), S(&#x27;Populated&#x27;, &#x27;choice&#x27;, &#x27;List only blocks created by the signed-in actor.&#x27;), S(&#x27;Deleted member&#x27;, &#x27;empty&#x27;, &#x27;Show only retained tombstone context when legally reachable.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Do not infer or display who may have blocked the user.&#x27;)]
+        },
+        {
+          id: &#x27;D08&#x27;, group: &#x27;social&#x27;, title: &#x27;Block or unblock confirmation&#x27;, status: &#x27;overlay&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Explain the exact social visibility change and the agreements a block cannot erase.&#x27;,
+          entry: &#x27;Friend or co-participant profile · Blocked accounts&#x27;, exits: &#x27;Updated profile · Blocked accounts&#x27;, source: &#x27;D19/D29/D33&#x27;,
+          sections: [[&#x27;Consequences&#x27;, [&#x27;Friendship and group effects&#x27;, &#x27;Discovery visibility&#x27;, &#x27;Shared active/final contest history remains&#x27;]]], actions: [&#x27;Block account&#x27;, &#x27;Unblock account&#x27;, &#x27;Cancel&#x27;],
+          states: [S(&#x27;Block ordinary profile&#x27;, &#x27;choice&#x27;, &#x27;Explain friendship and group visibility changes.&#x27;), S(&#x27;Block active co-participant&#x27;, &#x27;choice&#x27;, &#x27;State clearly that the accepted roster and challenge access remain.&#x27;), S(&#x27;Unblock&#x27;, &#x27;choice&#x27;, &#x27;Do not auto-restore removed friendships or group membership.&#x27;), S(&#x27;Mutating&#x27;, &#x27;loading&#x27;, &#x27;Lock the destructive decision until confirmed.&#x27;), S(&#x27;Conflict or offline&#x27;, &#x27;failure&#x27;, &#x27;Keep current relationship state and offer retry.&#x27;)]
+        },
+        {
+          id: &#x27;D09&#x27;, group: &#x27;social&#x27;, title: &#x27;Pledge reliability&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Show the versioned obligation-only score wherever a profile is already visible.&#x27;,
+          entry: &#x27;Visible profile · You&#x27;, exits: &#x27;Own obligation history · explanation&#x27;, source: &#x27;D79 pledge-reliability-v1&#x27;,
+          sections: [[&#x27;Rating&#x27;, [&#x27;Score or Unrated&#x27;, &#x27;Score-bearing obligation count&#x27;, &#x27;Calculated at and formula version&#x27;]], [&#x27;Explanation&#x27;, [&#x27;On-time = 1&#x27;, &#x27;Late = 0.5&#x27;, &#x27;Default = 0&#x27;, &#x27;365-day relative half-life&#x27;]]], actions: [&#x27;View your history&#x27;],
+          states: [S(&#x27;Unrated&#x27;, &#x27;empty&#x27;, &#x27;Fewer than three score-bearing obligations; show the count, not 100.&#x27;), S(&#x27;Rated&#x27;, &#x27;success&#x27;, &#x27;Show the server-calculated 0–100 score and version.&#x27;), S(&#x27;Under review&#x27;, &#x27;choice&#x27;, &#x27;Keep the last terminal contribution and mark the profile under review.&#x27;), S(&#x27;No access to history&#x27;, &#x27;choice&#x27;, &#x27;Other users see only score, rating state, and count—not underlying obligations.&#x27;), S(&#x27;Calculation unavailable&#x27;, &#x27;failure&#x27;, &#x27;Do not recompute on-device or display stale math as current.&#x27;)]
+        },
+        {
+          id: &#x27;E01&#x27;, group: &#x27;pledge&#x27;, title: &#x27;Pledges&#x27;, status: &#x27;planned&#x27;, tab: &#x27;Today / You&#x27;,
+          purpose: &#x27;Collect every obligation the user owes or is authorized to review without implying GameTime moves money.&#x27;,
+          entry: &#x27;Today · Action inbox · You&#x27;, exits: &#x27;Obligation detail · Claim detail&#x27;, source: &#x27;D74/D75/D78 deferred settlement UI&#x27;,
+          sections: [[&#x27;Needs action&#x27;, [&#x27;Actionable and due obligations&#x27;]], [&#x27;Waiting&#x27;, [&#x27;Result window, claim review, dispute pause&#x27;]], [&#x27;History&#x27;, [&#x27;Honored, defaulted, released, reinstated&#x27;]]], actions: [&#x27;Open obligation&#x27;],
+          states: [S(&#x27;Needs action&#x27;, &#x27;choice&#x27;, &#x27;Sort by adjusted server deadline and identify test/non-payment context until real settlement approval.&#x27;), S(&#x27;Waiting on result window&#x27;, &#x27;loading&#x27;, &#x27;Visible but nonactionable until disputes close.&#x27;), S(&#x27;Paused by case&#x27;, &#x27;choice&#x27;, &#x27;Show why clocks are paused and what remains visible.&#x27;), S(&#x27;Empty&#x27;, &#x27;empty&#x27;, &#x27;Explain that void and inconclusive results create no obligations.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Keep cached deadlines visibly stale; never calculate a new due time on-device.&#x27;)]
+        },
+        {
+          id: &#x27;E02&#x27;, group: &#x27;pledge&#x27;, title: &#x27;Obligation detail&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Show the immutable result lineage, destination charity, adjusted deadlines, and current settlement event.&#x27;,
+          entry: &#x27;Pledges · final Standings · Action inbox&#x27;, exits: &#x27;Start claim · Claim detail · File dispute · Case detail&#x27;, source: &#x27;D74/D75/D78&#x27;,
+          sections: [[&#x27;Pledge&#x27;, [&#x27;Amount&#x27;, &#x27;Charity snapshot&#x27;, &#x27;Result and contest&#x27;]], [&#x27;Timeline&#x27;, [&#x27;Actionable at&#x27;, &#x27;Adjusted due at&#x27;, &#x27;Pauses and events&#x27;]], [&#x27;Current status&#x27;, [&#x27;Claim, confirmation, default, release, reinstatement&#x27;]]], actions: [&#x27;Submit donation claim&#x27;, &#x27;Dispute event&#x27;],
+          states: [S(&#x27;Nonactionable result window&#x27;, &#x27;loading&#x27;, &#x27;Show the seven-day result dispute boundary; no due clock yet.&#x27;), S(&#x27;Actionable&#x27;, &#x27;choice&#x27;, &#x27;Start the 30-day server due clock and enable claim submission.&#x27;), S(&#x27;Claim pending&#x27;, &#x27;choice&#x27;, &#x27;Pause default while a qualifying on-time claim is reviewed.&#x27;), S(&#x27;Paused by dispute&#x27;, &#x27;choice&#x27;, &#x27;Show unioned pause intervals without double-counting overlapping cases.&#x27;), S(&#x27;Honored on time&#x27;, &#x27;success&#x27;, &#x27;Freeze the terminal contribution of 1 after its filing window closes.&#x27;), S(&#x27;Honored late&#x27;, &#x27;success&#x27;, &#x27;Preserve the earlier default event and current 0.5 contribution.&#x27;), S(&#x27;Default&#x27;, &#x27;failure&#x27;, &#x27;Show the durable default and any remaining late-proof path.&#x27;), S(&#x27;Released&#x27;, &#x27;empty&#x27;, &#x27;Remove from reliability denominator.&#x27;), S(&#x27;Reinstated&#x27;, &#x27;choice&#x27;, &#x27;Show a fresh actionability instant and due schedule.&#x27;), S(&#x27;Superseded result&#x27;, &#x27;failure&#x27;, &#x27;Link to replacement obligation or terminal release event.&#x27;)]
+        },
+        {
+          id: &#x27;E03&#x27;, group: &#x27;pledge&#x27;, title: &#x27;Choose claim evidence&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Choose an independent confirmation path without treating a self-attested tap as proof.&#x27;,
+          entry: &#x27;Actionable Obligation detail&#x27;, exits: &#x27;Receipt/provider proof · Review claim&#x27;, source: &#x27;D74 claim contract&#x27;,
+          sections: [[&#x27;How will this be confirmed?&#x27;, [&#x27;Verified provider&#x27;, &#x27;Redacted donation receipt&#x27;, &#x27;Receiptless claim for winner acknowledgement&#x27;]]], actions: [&#x27;Continue&#x27;],
+          states: [S(&#x27;Provider available&#x27;, &#x27;choice&#x27;, &#x27;Prefer signed provider confirmation when the charity supports it.&#x27;), S(&#x27;Upload receipt&#x27;, &#x27;choice&#x27;, &#x27;Explain preview visibility, immutable digesting, and seven-day challenge.&#x27;), S(&#x27;Receiptless claim&#x27;, &#x27;choice&#x27;, &#x27;Explain that it remains claimed until winner acknowledgement or adjudication.&#x27;), S(&#x27;Both-donate obligation&#x27;, &#x27;choice&#x27;, &#x27;Remove winner-acknowledgement shortcut; any accepted co-participant may challenge.&#x27;), S(&#x27;Obligation no longer actionable&#x27;, &#x27;failure&#x27;, &#x27;Return to detail if a case, release, or superseding result changed eligibility.&#x27;)]
+        },
+        {
+          id: &#x27;E04&#x27;, group: &#x27;pledge&#x27;, title: &#x27;Receipt or provider proof&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Capture redacted proof, exact USD amounts, charity, donation time, and allocation without double-counting.&#x27;,
+          entry: &#x27;Choose claim evidence&#x27;, exits: &#x27;Review claim · external provider authorization&#x27;, source: &#x27;D74 receipt and provider confirmation path&#x27;,
+          sections: [[&#x27;Donation&#x27;, [&#x27;Date&#x27;, &#x27;Amount in USD cents&#x27;, &#x27;Charity snapshot&#x27;]], [&#x27;Evidence&#x27;, [&#x27;Provider confirmation or file/photo&#x27;, &#x27;Redaction preview&#x27;, &#x27;Receipt digest&#x27;]], [&#x27;Allocation&#x27;, [&#x27;One or more eligible obligations&#x27;, &#x27;Cannot exceed receipt total&#x27;]]], actions: [&#x27;Choose photo or file&#x27;, &#x27;Connect provider&#x27;, &#x27;Continue&#x27;],
+          states: [S(&#x27;Camera or photo permission&#x27;, &#x27;choice&#x27;, &#x27;Use the Apple system picker; app-wide photo enumeration is unnecessary.&#x27;), S(&#x27;Redaction required&#x27;, &#x27;failure&#x27;, &#x27;Keep the original private and show exactly what counterparties can preview.&#x27;), S(&#x27;Allocation valid&#x27;, &#x27;success&#x27;, &#x27;Show allocated and remaining receipt value.&#x27;), S(&#x27;Over-allocated&#x27;, &#x27;failure&#x27;, &#x27;Prevent allocations above the immutable receipt total.&#x27;), S(&#x27;Wrong charity or predates pledge&#x27;, &#x27;failure&#x27;, &#x27;Block evidence that cannot substantiate this obligation.&#x27;), S(&#x27;Uploading&#x27;, &#x27;loading&#x27;, &#x27;Keep local progress and prevent duplicate claim submission.&#x27;), S(&#x27;Provider unavailable&#x27;, &#x27;failure&#x27;, &#x27;Return to other independent evidence paths without losing entered metadata.&#x27;)]
+        },
+        {
+          id: &#x27;E05&#x27;, group: &#x27;pledge&#x27;, title: &#x27;Review donation claim&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Review immutable claim facts and the stable request identity before append-only submission.&#x27;,
+          entry: &#x27;Claim evidence complete&#x27;, exits: &#x27;Claim detail · exact retry&#x27;, source: &#x27;D74 + D87-style idempotent mutation requirement&#x27;,
+          sections: [[&#x27;Claim&#x27;, [&#x27;Obligation&#x27;, &#x27;Donation time&#x27;, &#x27;Amount&#x27;, &#x27;Charity&#x27;, &#x27;Evidence kind&#x27;, &#x27;Redacted preview&#x27;, &#x27;Request ID&#x27;]], [&#x27;Consequences&#x27;, [&#x27;Challenge deadline&#x27;, &#x27;Reliability credit only after terminal confirmation&#x27;]]], actions: [&#x27;Submit claim&#x27;, &#x27;Back&#x27;],
+          states: [S(&#x27;Ready&#x27;, &#x27;choice&#x27;, &#x27;Expose every field the immutable claim will record.&#x27;), S(&#x27;Submitting&#x27;, &#x27;loading&#x27;, &#x27;Persist exact request bytes before network submission.&#x27;), S(&#x27;Submitted&#x27;, &#x27;success&#x27;, &#x27;Open Claim detail and its challenge deadline.&#x27;), S(&#x27;Ambiguous response&#x27;, &#x27;failure&#x27;, &#x27;Require explicit exact replay; never create a second claim.&#x27;), S(&#x27;Deadline passed during review&#x27;, &#x27;failure&#x27;, &#x27;Refresh server state and explain whether late proof remains allowed.&#x27;), S(&#x27;Evidence reused or conflicts&#x27;, &#x27;failure&#x27;, &#x27;Keep the audit facts and prevent double allocation.&#x27;)]
+        },
+        {
+          id: &#x27;E06&#x27;, group: &#x27;pledge&#x27;, title: &#x27;Claim detail&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Show the append-only claim timeline, confirmation route, redacted preview, and challenge window.&#x27;,
+          entry: &#x27;Obligation detail · Action inbox · claim submit success&#x27;, exits: &#x27;Acknowledge/challenge · File dispute · Obligation detail&#x27;, source: &#x27;D74/D78&#x27;,
+          sections: [[&#x27;Claim facts&#x27;, [&#x27;Debtor, obligation, charity, amount, donation time, evidence kind&#x27;]], [&#x27;Confirmation&#x27;, [&#x27;Provider, winner acknowledgement, or receipt timeout&#x27;]], [&#x27;Timeline&#x27;, [&#x27;Submitted, challenged, confirmed, expired, rejected&#x27;]]], actions: [&#x27;Acknowledge&#x27;, &#x27;Challenge claim&#x27;, &#x27;File dispute&#x27;],
+          states: [S(&#x27;Receipt challenge window&#x27;, &#x27;choice&#x27;, &#x27;Authorized counterparties see only the bounded redacted preview.&#x27;), S(&#x27;Awaiting winner acknowledgement&#x27;, &#x27;choice&#x27;, &#x27;Receiptless claim remains claimed; silence is not honor.&#x27;), S(&#x27;Provider pending&#x27;, &#x27;loading&#x27;, &#x27;Keep provider state separate from the immutable claim.&#x27;), S(&#x27;Confirmed&#x27;, &#x27;success&#x27;, &#x27;Show path, effective event, and provisional filing window if applicable.&#x27;), S(&#x27;Expired receiptless claim&#x27;, &#x27;failure&#x27;, &#x27;Stop pausing default; debtor may dispute with independent evidence.&#x27;), S(&#x27;Challenged&#x27;, &#x27;failure&#x27;, &#x27;Link to the shared obligation case and paused clocks.&#x27;), S(&#x27;Rejected&#x27;, &#x27;failure&#x27;, &#x27;Show whether time remains for materially new replacement evidence.&#x27;), S(&#x27;Receipt raw data pruned&#x27;, &#x27;empty&#x27;, &#x27;Keep digest, allocations, confirmation, and bounded adjudicated facts.&#x27;)]
+        },
+        {
+          id: &#x27;E07&#x27;, group: &#x27;pledge&#x27;, title: &#x27;Acknowledge or challenge claim&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Give an authorized counterparty a bounded decision without making them the final authority in a contested case.&#x27;,
+          entry: &#x27;Action inbox · Claim detail&#x27;, exits: &#x27;Claim detail · File dispute&#x27;, source: &#x27;D74/D78&#x27;,
+          sections: [[&#x27;Review&#x27;, [&#x27;Charity, amount, date, redacted receipt preview&#x27;, &#x27;Reuse warning&#x27;, &#x27;Deadline&#x27;]], [&#x27;Decision&#x27;, [&#x27;Acknowledge claim&#x27;, &#x27;Challenge and file case&#x27;]]], actions: [&#x27;Acknowledge claim&#x27;, &#x27;Challenge claim&#x27;],
+          states: [S(&#x27;Winner acknowledgement eligible&#x27;, &#x27;choice&#x27;, &#x27;Acknowledge a receiptless or receipt-backed claim when authorized.&#x27;), S(&#x27;Both-donate reviewer&#x27;, &#x27;choice&#x27;, &#x27;Allow challenge but no winner shortcut.&#x27;), S(&#x27;Submitting acknowledgement&#x27;, &#x27;loading&#x27;, &#x27;Prevent conflicting responses.&#x27;), S(&#x27;Acknowledged&#x27;, &#x27;success&#x27;, &#x27;Record confirmed honor with no second ordinary counterparty deadline.&#x27;), S(&#x27;Challenge window closed&#x27;, &#x27;failure&#x27;, &#x27;Remove actions and show the terminal confirmation path.&#x27;), S(&#x27;Already in dispute&#x27;, &#x27;failure&#x27;, &#x27;Open the shared case instead of creating a duplicate.&#x27;)]
+        },
+        {
+          id: &#x27;F01&#x27;, group: &#x27;case&#x27;, title: &#x27;Cases&#x27;, status: &#x27;planned&#x27;, tab: &#x27;Today / You&#x27;,
+          purpose: &#x27;List result and obligation disputes the user filed, joined, or must respond to.&#x27;,
+          entry: &#x27;Today · You · Action inbox&#x27;, exits: &#x27;Case detail · File dispute&#x27;, source: &#x27;D78 dispute event streams&#x27;,
+          sections: [[&#x27;Open&#x27;, [&#x27;Filed and under review&#x27;]], [&#x27;Waiting&#x27;, [&#x27;Parent case or adjudicator&#x27;]], [&#x27;Closed&#x27;, [&#x27;Upheld, denied, withdrawn, timed out, superseded&#x27;]]], actions: [&#x27;Open case&#x27;],
+          states: [S(&#x27;Open cases&#x27;, &#x27;choice&#x27;, &#x27;Group by affected workflow and server deadline.&#x27;), S(&#x27;No cases&#x27;, &#x27;empty&#x27;, &#x27;Explain that filing a dispute never affects reliability by itself.&#x27;), S(&#x27;Parent/child pause&#x27;, &#x27;choice&#x27;, &#x27;Show obligation cases waiting on a result case.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Keep cached status visibly stale and disable event submission.&#x27;), S(&#x27;Deleted-account capability mode&#x27;, &#x27;choice&#x27;, &#x27;Show only cases covered by the supplied capability.&#x27;)]
+        },
+        {
+          id: &#x27;F02&#x27;, group: &#x27;case&#x27;, title: &#x27;File or join dispute&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Challenge one versioned result or obligation event and join an existing shared case idempotently.&#x27;,
+          entry: &#x27;Standings result · Obligation detail · Claim detail&#x27;, exits: &#x27;Add case evidence · Case detail&#x27;, source: &#x27;D78 authorization and per-event-version rules&#x27;,
+          sections: [[&#x27;Event&#x27;, [&#x27;Scope and immutable version&#x27;, &#x27;Filing deadline&#x27;, &#x27;Current consequence&#x27;]], [&#x27;Your filing&#x27;, [&#x27;Reason category&#x27;, &#x27;Concise statement&#x27;]], [&#x27;Effects&#x27;, [&#x27;Paused obligations, clocks, and reliability treatment&#x27;]]], actions: [&#x27;Continue to evidence&#x27;, &#x27;Join existing case&#x27;],
+          states: [S(&#x27;Eligible new filing&#x27;, &#x27;choice&#x27;, &#x27;Show one target event version and the seven-day deadline.&#x27;), S(&#x27;Existing user case&#x27;, &#x27;choice&#x27;, &#x27;Join it instead of creating a second case.&#x27;), S(&#x27;Operator-origin case join&#x27;, &#x27;choice&#x27;, &#x27;Joining consumes the same single user opportunity.&#x27;), S(&#x27;Deadline closed&#x27;, &#x27;failure&#x27;, &#x27;Remove user filing actions; explain operator-only retention window if relevant.&#x27;), S(&#x27;Not an authorized party&#x27;, &#x27;failure&#x27;, &#x27;Do not reveal private case existence.&#x27;), S(&#x27;Event superseded&#x27;, &#x27;failure&#x27;, &#x27;Route to the new event version and its own eligibility.&#x27;)]
+        },
+        {
+          id: &#x27;F03&#x27;, group: &#x27;case&#x27;, title: &#x27;Add case evidence&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Append bounded supporting facts or files without editing the disputed event.&#x27;,
+          entry: &#x27;File dispute · open Case detail&#x27;, exits: &#x27;Review filing · Case detail&#x27;, source: &#x27;D78 append-only case evidence · D81 retention&#x27;,
+          sections: [[&#x27;Evidence&#x27;, [&#x27;Statement&#x27;, &#x27;Existing owner records&#x27;, &#x27;Optional redacted file&#x27;]], [&#x27;Privacy&#x27;, [&#x27;Who can inspect&#x27;, &#x27;Retention cutoff&#x27;]]], actions: [&#x27;Add evidence&#x27;, &#x27;Submit filing&#x27;],
+          states: [S(&#x27;Ready&#x27;, &#x27;choice&#x27;, &#x27;Prefer references to existing immutable evidence over duplicate upload.&#x27;), S(&#x27;Uploading&#x27;, &#x27;loading&#x27;, &#x27;Digest and append; never replace prior case evidence.&#x27;), S(&#x27;Sensitive data warning&#x27;, &#x27;failure&#x27;, &#x27;Prevent unrelated health, location, or third-party personal data.&#x27;), S(&#x27;Retention cutoff passed&#x27;, &#x27;failure&#x27;, &#x27;Explain that unavailable raw evidence cannot be recreated from aggregates.&#x27;), S(&#x27;Submitted&#x27;, &#x27;success&#x27;, &#x27;Open the shared Case detail.&#x27;), S(&#x27;Ambiguous response&#x27;, &#x27;failure&#x27;, &#x27;Use one idempotent filing identity and explicit retry.&#x27;)]
+        },
+        {
+          id: &#x27;F04&#x27;, group: &#x27;case&#x27;, title: &#x27;Case detail and timeline&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Show the shared append-only event stream, filings, deadlines, pauses, and allowed next action.&#x27;,
+          entry: &#x27;Cases · Action inbox · file success&#x27;, exits: &#x27;Add evidence · Withdraw support · Decision detail · parent/child case&#x27;, source: &#x27;D78 case state machine&#x27;,
+          sections: [[&#x27;Case&#x27;, [&#x27;Scope, target event version, parties, adjudication deadline&#x27;]], [&#x27;Timeline&#x27;, [&#x27;Filed, joined, under review, evidence, decision events&#x27;]], [&#x27;Consequences&#x27;, [&#x27;Paused clocks and provisional reliability&#x27;]]], actions: [&#x27;Add evidence&#x27;, &#x27;Withdraw my support&#x27;],
+          states: [S(&#x27;Filed&#x27;, &#x27;choice&#x27;, &#x27;Wait through the user filing window; other eligible users may join.&#x27;), S(&#x27;Under review&#x27;, &#x27;loading&#x27;, &#x27;Show independent adjudicator status and 14-day deadline.&#x27;), S(&#x27;Support withdrawn but join window open&#x27;, &#x27;choice&#x27;, &#x27;Case remains unresolved while another filer may join.&#x27;), S(&#x27;Waiting on parent result case&#x27;, &#x27;loading&#x27;, &#x27;Pause the child adjudication clock.&#x27;), S(&#x27;Upheld&#x27;, &#x27;success&#x27;, &#x27;Link to deterministic rerun, claim decision, release, or replacement event.&#x27;), S(&#x27;Denied&#x27;, &#x27;failure&#x27;, &#x27;Resume clocks with unioned paused time.&#x27;), S(&#x27;Timed out&#x27;, &#x27;failure&#x27;, &#x27;Fail closed: inconclusive result or released obligation.&#x27;), S(&#x27;Superseded&#x27;, &#x27;empty&#x27;, &#x27;Link to the event that replaced this lineage.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Do not guess deadline progression from the device clock.&#x27;)]
+        },
+        {
+          id: &#x27;F05&#x27;, group: &#x27;case&#x27;, title: &#x27;Decision detail&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Explain the terminal adjudication and every append-only effect without implying a human picked a winner.&#x27;,
+          entry: &#x27;Case detail · Action inbox&#x27;, exits: &#x27;Superseding result · replacement obligation · claim detail&#x27;, source: &#x27;D78 resolution contract&#x27;,
+          sections: [[&#x27;Decision&#x27;, [&#x27;Upheld, denied, withdrawn, timed out, superseded&#x27;, &#x27;Decision timestamp&#x27;, &#x27;Bounded rationale&#x27;]], [&#x27;Effects&#x27;, [&#x27;Deterministic rerun or inconclusive&#x27;, &#x27;Release/replacement events&#x27;, &#x27;Adjusted clocks and reliability&#x27;]]], actions: [&#x27;Open resulting event&#x27;],
+          states: [S(&#x27;Result dispute upheld&#x27;, &#x27;success&#x27;, &#x27;Show deterministic rerun or an inconclusive replacement; never a typed-in winner.&#x27;), S(&#x27;Obligation dispute upheld&#x27;, &#x27;success&#x27;, &#x27;Show claim confirmation/rejection, release, or reinstatement.&#x27;), S(&#x27;Denied or withdrawn&#x27;, &#x27;failure&#x27;, &#x27;Show resumed server deadlines.&#x27;), S(&#x27;Timed out&#x27;, &#x27;failure&#x27;, &#x27;Show fail-closed consequence and operator-severity event.&#x27;), S(&#x27;Operator correction with new user window&#x27;, &#x27;choice&#x27;, &#x27;Expose one new filing deadline for the materially different event version.&#x27;), S(&#x27;User-terminal&#x27;, &#x27;success&#x27;, &#x27;No second ordinary appeal window at launch.&#x27;)]
+        },
+        {
+          id: &#x27;G01&#x27;, group: &#x27;settings&#x27;, title: &#x27;You&#x27;, status: &#x27;built&#x27;, tab: &#x27;You&#x27;,
+          purpose: &#x27;Show the current profile, trust boundary, demo controls, debug fixtures, and account exit.&#x27;,
+          entry: &#x27;You tab&#x27;, exits: &#x27;Trust &amp; privacy · Edit profile · Settings · Reliability · Delete account · Future states&#x27;, source: &#x27;YouView&#x27;,
+          sections: [[&#x27;Profile&#x27;, [&#x27;Initials, display name, handle&#x27;, &#x27;Handle locked&#x27;, &#x27;Contest timezone&#x27;]], [&#x27;Trust&#x27;, [&#x27;Trust and privacy boundaries&#x27;]], [&#x27;Demo and debug&#x27;, [&#x27;Environment controls&#x27;]], [&#x27;Account&#x27;, [&#x27;Sign out&#x27;]]], actions: [&#x27;Open trust and privacy&#x27;, &#x27;Sign out&#x27;],
+          states: [S(&#x27;Signed-in profile&#x27;, &#x27;choice&#x27;, &#x27;Show immutable handle policy and current profile timezone.&#x27;), S(&#x27;Demo inactive&#x27;, &#x27;choice&#x27;, &#x27;Offer isolated on-device demo entry.&#x27;), S(&#x27;Demo active&#x27;, &#x27;choice&#x27;, &#x27;Hide sign-out and offer Exit demo mode.&#x27;), S(&#x27;Debug build&#x27;, &#x27;choice&#x27;, &#x27;Expose fixture-only future contest states.&#x27;), S(&#x27;Signing out&#x27;, &#x27;loading&#x27;, &#x27;Lock duplicate exit and clear account-bound routes on completion.&#x27;), S(&#x27;Profile missing after refresh&#x27;, &#x27;failure&#x27;, &#x27;Return to onboarding or signed-out based on authoritative auth state.&#x27;)]
+        },
+        {
+          id: &#x27;G02&#x27;, group: &#x27;settings&#x27;, title: &#x27;Trust and privacy&#x27;, status: &#x27;built&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Explain which trust features are active, deliberately unavailable, or still planned.&#x27;,
+          entry: &#x27;You&#x27;, exits: &#x27;My evidence · permissions · data export · deletion&#x27;, source: &#x27;YouRoute.trustAndPrivacy · TrustAndPrivacyView&#x27;,
+          sections: [[&#x27;Included&#x27;, [&#x27;Apple token exchange&#x27;, &#x27;Exact-handle discovery&#x27;, &#x27;Immutable request retry&#x27;, &#x27;Attested Apple-device steps&#x27;]], [&#x27;Unavailable or planned&#x27;, [&#x27;Background HealthKit&#x27;, &#x27;Location&#x27;, &#x27;Push&#x27;, &#x27;Settlement/disputes&#x27;, &#x27;Deletion&#x27;]]], actions: [],
+          states: [S(&#x27;Current build&#x27;, &#x27;choice&#x27;, &#x27;Reflect configuration gates so staging, release, and demo claims stay accurate.&#x27;), S(&#x27;Permission granted&#x27;, &#x27;success&#x27;, &#x27;Link to the relevant privacy setting without exposing private values.&#x27;), S(&#x27;Permission limited or denied&#x27;, &#x27;failure&#x27;, &#x27;Explain reduced behavior and an OS Settings path.&#x27;), S(&#x27;Policy updated&#x27;, &#x27;choice&#x27;, &#x27;Version changes need explicit release notes; never silently broaden collection.&#x27;)]
+        },
+        {
+          id: &#x27;G03&#x27;, group: &#x27;settings&#x27;, title: &#x27;Edit profile&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Edit display name, avatar, and other server-approved profile fields while keeping handle policy explicit.&#x27;,
+          entry: &#x27;You&#x27;, exits: &#x27;Avatar picker · Handle change · You&#x27;, source: &#x27;Deferred M8 profile UI · D21/D79 visibility&#x27;,
+          sections: [[&#x27;Public to authorized viewers&#x27;, [&#x27;Display name&#x27;, &#x27;Avatar or initials&#x27;]], [&#x27;Restricted changes&#x27;, [&#x27;Handle cooldown&#x27;, &#x27;Timezone as contest-specific workflow&#x27;]]], actions: [&#x27;Save profile&#x27;, &#x27;Change handle&#x27;],
+          states: [S(&#x27;Ready&#x27;, &#x27;choice&#x27;, &#x27;Preload current values and state where the profile is visible.&#x27;), S(&#x27;Saving&#x27;, &#x27;loading&#x27;, &#x27;Keep unsaved changes and prevent double submission.&#x27;), S(&#x27;Saved&#x27;, &#x27;success&#x27;, &#x27;Refresh visible profile cards.&#x27;), S(&#x27;Invalid display name&#x27;, &#x27;failure&#x27;, &#x27;Keep the draft and show server limits.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Do not optimistically update other users’ cached profile cards.&#x27;), S(&#x27;Deleted or stale session&#x27;, &#x27;failure&#x27;, &#x27;Clear the private edit route.&#x27;)]
+        },
+        {
+          id: &#x27;G04&#x27;, group: &#x27;settings&#x27;, title: &#x27;Avatar picker and crop&#x27;, status: &#x27;system&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Choose and crop one profile image without broad photo-library enumeration.&#x27;,
+          entry: &#x27;Edit profile&#x27;, exits: &#x27;Edit profile&#x27;, source: &#x27;Deferred avatar storage bucket and client&#x27;,
+          sections: [[&#x27;Image&#x27;, [&#x27;Apple photo picker or camera&#x27;, &#x27;Crop preview&#x27;, &#x27;Upload policy&#x27;]]], actions: [&#x27;Choose photo&#x27;, &#x27;Use camera&#x27;, &#x27;Remove avatar&#x27;],
+          states: [S(&#x27;Initials only&#x27;, &#x27;empty&#x27;, &#x27;Current fallback remains stable.&#x27;), S(&#x27;Picker presented&#x27;, &#x27;choice&#x27;, &#x27;Use the Apple system picker.&#x27;), S(&#x27;Uploading&#x27;, &#x27;loading&#x27;, &#x27;Show local preview while server storage confirms.&#x27;), S(&#x27;Upload failed&#x27;, &#x27;failure&#x27;, &#x27;Keep the prior avatar and allow retry.&#x27;), S(&#x27;Content rejected&#x27;, &#x27;failure&#x27;, &#x27;Explain format or size limits without storing the failed object.&#x27;), S(&#x27;Removed&#x27;, &#x27;success&#x27;, &#x27;Return to initials and delete the authorized object reference.&#x27;)]
+        },
+        {
+          id: &#x27;G05&#x27;, group: &#x27;settings&#x27;, title: &#x27;Change handle&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Apply the future throttled rename contract without enabling active-contest impersonation.&#x27;,
+          entry: &#x27;Edit profile&#x27;, exits: &#x27;Edit profile · visible rename notice&#x27;, source: &#x27;Deferred M8 default: one change per 30 days&#x27;,
+          sections: [[&#x27;Current handle&#x27;, [&#x27;Read-only value&#x27;, &#x27;Next eligible date&#x27;]], [&#x27;New handle&#x27;, [&#x27;Exact normalized value&#x27;, &#x27;Active-contest visibility notice&#x27;]]], actions: [&#x27;Change handle&#x27;],
+          states: [S(&#x27;Cooldown active&#x27;, &#x27;empty&#x27;, &#x27;Disable change and show server eligibility date.&#x27;), S(&#x27;Eligible&#x27;, &#x27;choice&#x27;, &#x27;Explain who will see the rename in active contests.&#x27;), S(&#x27;Checking availability&#x27;, &#x27;loading&#x27;, &#x27;Do not expose fuzzy suggestions.&#x27;), S(&#x27;Unavailable&#x27;, &#x27;failure&#x27;, &#x27;Keep entered value for revision.&#x27;), S(&#x27;Changed&#x27;, &#x27;success&#x27;, &#x27;Update visible cards and record the change notice.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Never reserve or claim a handle locally.&#x27;)]
+        },
+        {
+          id: &#x27;G06&#x27;, group: &#x27;settings&#x27;, title: &#x27;Notification settings&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Show OS authorization, device registration, inbox behavior, and privacy-preserving categories.&#x27;,
+          entry: &#x27;You · Trust and privacy · Inbox banner&#x27;, exits: &#x27;Notification permission · iOS Settings · registered devices&#x27;, source: &#x27;D80/D94 · PushNotificationCoordinator&#x27;,
+          sections: [[&#x27;Delivery&#x27;, [&#x27;OS authorization&#x27;, &#x27;This device registration&#x27;, &#x27;Last provider result&#x27;]], [&#x27;Categories&#x27;, [&#x27;Invitations&#x27;, &#x27;Review and consent&#x27;, &#x27;Pledges and cases&#x27;, &#x27;Lead loss reactions&#x27;]], [&#x27;Privacy&#x27;, [&#x27;Generic lock-screen text&#x27;]]], actions: [&#x27;Enable notifications&#x27;, &#x27;Open iOS Settings&#x27;, &#x27;Retry registration&#x27;],
+          states: [S(&#x27;Not requested&#x27;, &#x27;empty&#x27;, &#x27;Show education before the OS prompt.&#x27;), S(&#x27;Allowed and registered&#x27;, &#x27;success&#x27;, &#x27;Show current device state without listing tokens.&#x27;), S(&#x27;Allowed, registration failed&#x27;, &#x27;failure&#x27;, &#x27;Inbox remains authoritative; retry device registration.&#x27;), S(&#x27;Denied&#x27;, &#x27;failure&#x27;, &#x27;Expose Open Settings and keep all deadlines server-driven.&#x27;), S(&#x27;Multiple devices&#x27;, &#x27;choice&#x27;, &#x27;Show actor-bound device names and revocation actions, never raw tokens.&#x27;), S(&#x27;Demo mode&#x27;, &#x27;choice&#x27;, &#x27;Do not register demo identities with APNs.&#x27;)]
+        },
+        {
+          id: &#x27;G07&#x27;, group: &#x27;settings&#x27;, title: &#x27;Activity and location privacy&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Centralize feature explanations, authorization status, and links to Apple privacy settings.&#x27;,
+          entry: &#x27;You · Trust and privacy · failed Activity or check-in&#x27;, exits: &#x27;Health settings · Location settings · Challenge detail&#x27;, source: &#x27;HealthKit client · D63–D66 future check-in UI&#x27;,
+          sections: [[&#x27;Health&#x27;, [&#x27;Manual read only&#x27;, &#x27;Apple-device steps&#x27;, &#x27;Background delivery off&#x27;]], [&#x27;Location&#x27;, [&#x27;Challenge-specific check-ins only&#x27;, &#x27;No passive travel inference&#x27;]], [&#x27;Data handling&#x27;, [&#x27;Raw retention and audit links&#x27;]]], actions: [&#x27;Open Health settings&#x27;, &#x27;Open Location settings&#x27;, &#x27;View my evidence&#x27;],
+          states: [S(&#x27;Health not requested&#x27;, &#x27;empty&#x27;, &#x27;Explain manual challenge sync.&#x27;), S(&#x27;Health request completed&#x27;, &#x27;success&#x27;, &#x27;Avoid asserting read authorization.&#x27;), S(&#x27;Location denied&#x27;, &#x27;failure&#x27;, &#x27;Keep non-location challenges usable.&#x27;), S(&#x27;Device unsupported&#x27;, &#x27;failure&#x27;, &#x27;Explain unavailable sensor or App Attest capability.&#x27;), S(&#x27;Retention window active&#x27;, &#x27;choice&#x27;, &#x27;Link to owner-only evidence and cutoff.&#x27;), S(&#x27;Raw evidence pruned&#x27;, &#x27;empty&#x27;, &#x27;Show retained aggregate policy.&#x27;)]
+        },
+        {
+          id: &#x27;G08&#x27;, group: &#x27;settings&#x27;, title: &#x27;Trusted devices&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Show the user’s active product App Attest registrations and safe revocation controls.&#x27;,
+          entry: &#x27;You · Notification settings · Activity privacy&#x27;, exits: &#x27;Revoke device confirmation&#x27;, source: &#x27;Device attestations · D71/D91/D93&#x27;,
+          sections: [[&#x27;This device&#x27;, [&#x27;Registration state&#x27;, &#x27;Last successful attested use&#x27;]], [&#x27;Other devices&#x27;, [&#x27;Device label&#x27;, &#x27;Registered at&#x27;, &#x27;Revocation state&#x27;]]], actions: [&#x27;Register this device&#x27;, &#x27;Revoke device&#x27;],
+          states: [S(&#x27;Registered&#x27;, &#x27;success&#x27;, &#x27;Show a nonsecret fingerprint label, never key material or counters.&#x27;), S(&#x27;Registration pending&#x27;, &#x27;loading&#x27;, &#x27;Resume exact pending registration material safely.&#x27;), S(&#x27;Unsupported&#x27;, &#x27;failure&#x27;, &#x27;Explain why attested evidence cannot be submitted.&#x27;), S(&#x27;Revoked&#x27;, &#x27;empty&#x27;, &#x27;Keep historical evidence facts while operational access ends.&#x27;), S(&#x27;Counter conflict or receipt failure&#x27;, &#x27;failure&#x27;, &#x27;Route to bounded recovery; do not reset server state silently.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Do not show a local registration as server-confirmed.&#x27;)]
+        },
+        {
+          id: &#x27;G09&#x27;, group: &#x27;settings&#x27;, title: &#x27;Download my data&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Prepare an authorized export of profile, relationships, agreements, retained evidence, and case history.&#x27;,
+          entry: &#x27;Trust and privacy&#x27;, exits: &#x27;Export ready · share sheet&#x27;, source: &#x27;Proposed privacy surface over existing RLS and D81 retention&#x27;,
+          sections: [[&#x27;Included&#x27;, [&#x27;Profile and social state&#x27;, &#x27;Contest terms and results&#x27;, &#x27;Owner-visible retained evidence&#x27;, &#x27;Claims and cases&#x27;]], [&#x27;Not included&#x27;, [&#x27;Other users’ private records&#x27;, &#x27;Already pruned raw data&#x27;]]], actions: [&#x27;Request export&#x27;],
+          states: [S(&#x27;Ready&#x27;, &#x27;choice&#x27;, &#x27;Show scope and current retention limitations.&#x27;), S(&#x27;Preparing&#x27;, &#x27;loading&#x27;, &#x27;Server builds an actor-authorized snapshot.&#x27;), S(&#x27;Ready to download&#x27;, &#x27;success&#x27;, &#x27;Use an expiring capability and Apple share sheet.&#x27;), S(&#x27;Expired download&#x27;, &#x27;failure&#x27;, &#x27;Allow a new request without reusing the old URL.&#x27;), S(&#x27;No longer authenticated&#x27;, &#x27;failure&#x27;, &#x27;Require reauthentication before generating a new export.&#x27;)]
+        },
+        {
+          id: &#x27;G10&#x27;, group: &#x27;settings&#x27;, title: &#x27;Post-contest fixture gallery&#x27;, status: &#x27;built&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Preview finalized, settlement, and dispute treatments in Debug without live mutations.&#x27;,
+          entry: &#x27;You in Debug build&#x27;, exits: &#x27;You&#x27;, source: &#x27;YouRoute.futureContestFixtures · FutureContestFixturesView&#x27;,
+          sections: [[&#x27;Finalized&#x27;, [&#x27;Result frozen&#x27;]], [&#x27;Settlement&#x27;, [&#x27;Pledge awaiting settlement&#x27;]], [&#x27;Dispute&#x27;, [&#x27;Evidence under review&#x27;]]], actions: [],
+          states: [S(&#x27;Debug only&#x27;, &#x27;choice&#x27;, &#x27;Compile out of Release routing.&#x27;), S(&#x27;Finalized fixture&#x27;, &#x27;success&#x27;, &#x27;Visual-only frozen result.&#x27;), S(&#x27;Settlement fixture&#x27;, &#x27;empty&#x27;, &#x27;Explicitly state that no payment action exists.&#x27;), S(&#x27;Dispute fixture&#x27;, &#x27;choice&#x27;, &#x27;Visual-only review state with no mutation.&#x27;)]
+        },
+        {
+          id: &#x27;H01&#x27;, group: &#x27;deletion&#x27;, title: &#x27;Delete account overview&#x27;, status: &#x27;planned&#x27;, tab: &#x27;You&#x27;,
+          purpose: &#x27;Start deletion from a clear privacy explanation rather than a single destructive button.&#x27;,
+          entry: &#x27;You · Trust and privacy&#x27;, exits: &#x27;Reauthenticate · cancel&#x27;, source: &#x27;D81 · account deletion foundation&#x27;,
+          sections: [[&#x27;What is removed&#x27;, [&#x27;Apple auth identity&#x27;, &#x27;Discoverable profile&#x27;, &#x27;Friendships, groups, blocks, push devices&#x27;]], [&#x27;What remains&#x27;, [&#x27;Pseudonymous contest history&#x27;, &#x27;Open obligations and cases&#x27;, &#x27;Retention-limited raw evidence&#x27;]]], actions: [&#x27;Continue&#x27;, &#x27;Cancel&#x27;],
+          states: [S(&#x27;No open workflows&#x27;, &#x27;choice&#x27;, &#x27;Explain tombstone history and retention only.&#x27;), S(&#x27;Active contest&#x27;, &#x27;failure&#x27;, &#x27;Warn that ingest access ends but the accepted stake remains.&#x27;), S(&#x27;Open obligation or dispute&#x27;, &#x27;failure&#x27;, &#x27;Warn that deadlines continue and capability access must be saved.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Block deletion until consequences can be loaded from the server.&#x27;)]
+        },
+        {
+          id: &#x27;H02&#x27;, group: &#x27;deletion&#x27;, title: &#x27;Reauthenticate deletion&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Require fresh Apple authorization before an irreversible identity-removal transaction.&#x27;,
+          entry: &#x27;Delete account overview&#x27;, exits: &#x27;Deletion consequences · cancel&#x27;, source: &#x27;Deferred user-facing reauthentication over D81 RPC&#x27;,
+          sections: [[&#x27;Confirm it’s you&#x27;, [&#x27;Apple reauthentication&#x27;, &#x27;Fresh server session&#x27;]]], actions: [&#x27;Continue with Apple&#x27;, &#x27;Cancel&#x27;],
+          states: [S(&#x27;Ready&#x27;, &#x27;choice&#x27;, &#x27;Explain why fresh authorization is required.&#x27;), S(&#x27;Apple sheet&#x27;, &#x27;choice&#x27;, &#x27;System-owned authentication.&#x27;), S(&#x27;Cancelled&#x27;, &#x27;empty&#x27;, &#x27;Return to overview with no side effects.&#x27;), S(&#x27;Credential mismatch&#x27;, &#x27;failure&#x27;, &#x27;Refuse deletion for a different Apple identity.&#x27;), S(&#x27;Session expired&#x27;, &#x27;failure&#x27;, &#x27;Restart reauthentication; do not reuse stale authorization.&#x27;)]
+        },
+        {
+          id: &#x27;H03&#x27;, group: &#x27;deletion&#x27;, title: &#x27;Deletion consequences&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Show the server-resolved lifecycle effects before the atomic deletion request.&#x27;,
+          entry: &#x27;Reauthentication success&#x27;, exits: &#x27;Save workflow access · Deleting account · cancel&#x27;, source: &#x27;D81 pending participation and active workflow rules&#x27;,
+          sections: [[&#x27;Pending contests&#x27;, [&#x27;Creator contests cancel&#x27;, &#x27;Other pending participation withdraws or lapses&#x27;]], [&#x27;Active and finalized&#x27;, [&#x27;Roster identity becomes Deleted member&#x27;, &#x27;Obligations and cases continue&#x27;]], [&#x27;Access after deletion&#x27;, [&#x27;No push&#x27;, &#x27;Capability polling only&#x27;]]], actions: [&#x27;I understand&#x27;, &#x27;Cancel&#x27;],
+          states: [S(&#x27;Simple deletion&#x27;, &#x27;choice&#x27;, &#x27;No capability is needed when no covered workflow remains open.&#x27;), S(&#x27;Capabilities required&#x27;, &#x27;failure&#x27;, &#x27;List each lineage that must be saved exactly once.&#x27;), S(&#x27;State changed since overview&#x27;, &#x27;failure&#x27;, &#x27;Refresh consequences and require renewed acknowledgement.&#x27;), S(&#x27;Server unavailable&#x27;, &#x27;failure&#x27;, &#x27;Do not proceed with a locally guessed workflow list.&#x27;)]
+        },
+        {
+          id: &#x27;H04&#x27;, group: &#x27;deletion&#x27;, title: &#x27;Save retained-workflow access&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Return high-entropy lineage or case capabilities exactly once before authentication disappears.&#x27;,
+          entry: &#x27;Deletion consequences when open workflows exist&#x27;, exits: &#x27;Deleting account · Apple share/save sheet&#x27;, source: &#x27;D81 one-time plaintext capability handoff&#x27;,
+          sections: [[&#x27;Recovery package&#x27;, [&#x27;Covered contests, obligations, and cases&#x27;, &#x27;Expiry condition&#x27;, &#x27;No account restoration&#x27;]], [&#x27;Storage warning&#x27;, [&#x27;GameTime cannot show the plaintext again&#x27;, &#x27;No push after deletion&#x27;]]], actions: [&#x27;Save recovery package&#x27;, &#x27;Copy codes&#x27;, &#x27;I saved it&#x27;],
+          states: [S(&#x27;Package ready&#x27;, &#x27;choice&#x27;, &#x27;Show scope labels without exposing capabilities to screenshots longer than necessary.&#x27;), S(&#x27;Share sheet&#x27;, &#x27;choice&#x27;, &#x27;Allow encrypted file or password-manager storage.&#x27;), S(&#x27;Not saved&#x27;, &#x27;failure&#x27;, &#x27;Warn that later action will be impossible, but allow deletion if the user explicitly declines.&#x27;), S(&#x27;Copy failed&#x27;, &#x27;failure&#x27;, &#x27;Keep package visible until the transaction can safely continue.&#x27;), S(&#x27;Capability set changed&#x27;, &#x27;failure&#x27;, &#x27;Regenerate from the authoritative deletion transaction boundary.&#x27;)]
+        },
+        {
+          id: &#x27;H05&#x27;, group: &#x27;deletion&#x27;, title: &#x27;Deleting account&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Hold a noninterruptible progress surface while the atomic server deletion transaction resolves.&#x27;,
+          entry: &#x27;Final deletion confirmation&#x27;, exits: &#x27;Account deleted · retry consequences&#x27;, source: &#x27;D81 atomic service-only delete_account transaction&#x27;,
+          sections: [[&#x27;In progress&#x27;, [&#x27;Resolve pending participation&#x27;, &#x27;Create capability hashes&#x27;, &#x27;Pseudonymize actor&#x27;, &#x27;Revoke devices&#x27;, &#x27;Remove auth principal&#x27;]]], actions: [],
+          states: [S(&#x27;Submitting&#x27;, &#x27;loading&#x27;, &#x27;Disable dismissal and duplicate requests.&#x27;), S(&#x27;Committed&#x27;, &#x27;success&#x27;, &#x27;Clear every private route and account-bound cache.&#x27;), S(&#x27;Ambiguous response&#x27;, &#x27;failure&#x27;, &#x27;Resolve authoritative auth and actor state before offering retry.&#x27;), S(&#x27;Failed before commit&#x27;, &#x27;failure&#x27;, &#x27;Return to refreshed consequences; all-or-nothing means identity remains active.&#x27;)]
+        },
+        {
+          id: &#x27;H06&#x27;, group: &#x27;deletion&#x27;, title: &#x27;Account deleted&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Confirm that sign-in identity is gone and explain how retained workflows are reached.&#x27;,
+          entry: &#x27;Deletion commit success&#x27;, exits: &#x27;Welcome · Recover workflow access&#x27;, source: &#x27;D81 post-deletion client state&#x27;,
+          sections: [[&#x27;Complete&#x27;, [&#x27;Account no longer discoverable&#x27;, &#x27;Shared history shows Deleted member&#x27;]], [&#x27;If you saved access&#x27;, [&#x27;Open recovery package&#x27;, &#x27;Deadlines continue without push&#x27;]]], actions: [&#x27;Done&#x27;, &#x27;Open retained workflow&#x27;],
+          states: [S(&#x27;No retained workflows&#x27;, &#x27;success&#x27;, &#x27;Return to the neutral Welcome screen.&#x27;), S(&#x27;Recovery package saved&#x27;, &#x27;success&#x27;, &#x27;Offer the capability entry path without restoring the account.&#x27;), S(&#x27;Package not saved&#x27;, &#x27;failure&#x27;, &#x27;State plainly that later covered actions cannot be recovered.&#x27;), S(&#x27;Local cleanup failed&#x27;, &#x27;failure&#x27;, &#x27;Keep auth signed out and retry cache deletion without contacting the deleted actor scope.&#x27;)]
+        },
+        {
+          id: &#x27;H07&#x27;, group: &#x27;deletion&#x27;, title: &#x27;Recover retained workflow access&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Open one deleted-account lineage or case using a saved high-entropy capability.&#x27;,
+          entry: &#x27;Welcome secondary action · Account deleted · recovery file open&#x27;, exits: &#x27;Deleted workflow dashboard&#x27;, source: &#x27;D81 capability access contract&#x27;,
+          sections: [[&#x27;Recovery access&#x27;, [&#x27;Import package or paste capability&#x27;, &#x27;Scope preview only after validation&#x27;]]], actions: [&#x27;Open recovery package&#x27;, &#x27;Paste code&#x27;],
+          states: [S(&#x27;Ready&#x27;, &#x27;choice&#x27;, &#x27;Keep this separate from Apple sign-in; it cannot restore a profile.&#x27;), S(&#x27;Validating&#x27;, &#x27;loading&#x27;, &#x27;Do not expose scope until server validation succeeds.&#x27;), S(&#x27;Valid&#x27;, &#x27;success&#x27;, &#x27;Open only the covered lineage dashboard.&#x27;), S(&#x27;Invalid&#x27;, &#x27;failure&#x27;, &#x27;Do not reveal whether a nearby workflow exists.&#x27;), S(&#x27;Expired&#x27;, &#x27;failure&#x27;, &#x27;Explain that no covered workflow or operator window remains open.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Never treat a locally parsed capability as authorized.&#x27;)]
+        },
+        {
+          id: &#x27;H08&#x27;, group: &#x27;deletion&#x27;, title: &#x27;Deleted-workflow dashboard&#x27;, status: &#x27;planned&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Provide bounded read and action access to covered results, obligations, claims, disputes, and retained owner evidence.&#x27;,
+          entry: &#x27;Validated recovery capability&#x27;, exits: &#x27;Standings · Obligation · Claim · Case · My retained evidence&#x27;, source: &#x27;D81 lineage and case capability permissions&#x27;,
+          sections: [[&#x27;Covered workflow&#x27;, [&#x27;Contest/result lineage&#x27;, &#x27;Obligations and claims&#x27;, &#x27;Cases&#x27;, &#x27;Raw records while retained&#x27;]], [&#x27;Limitations&#x27;, [&#x27;No profile or discovery&#x27;, &#x27;No new evidence ingest&#x27;, &#x27;No new contests&#x27;, &#x27;No push&#x27;]]], actions: [&#x27;Open covered item&#x27;, &#x27;Forget this capability&#x27;],
+          states: [S(&#x27;Contest lineage open&#x27;, &#x27;choice&#x27;, &#x27;Show redacted result and every covered descendant event.&#x27;), S(&#x27;Debtor claim action&#x27;, &#x27;choice&#x27;, &#x27;Allow claim submission when D74 still authorizes it.&#x27;), S(&#x27;Dispute action&#x27;, &#x27;choice&#x27;, &#x27;Allow file, join, evidence, withdraw, and claim response only within scope.&#x27;), S(&#x27;Raw retention open&#x27;, &#x27;choice&#x27;, &#x27;Show owner records until the persisted cutoff.&#x27;), S(&#x27;Workflow closed&#x27;, &#x27;success&#x27;, &#x27;Capability expires when no covered work or operator window remains.&#x27;), S(&#x27;Capability revoked or malformed&#x27;, &#x27;failure&#x27;, &#x27;Clear the dashboard immediately.&#x27;)]
+        },
+        {
+          id: &#x27;I01&#x27;, group: &#x27;overlay&#x27;, title: &#x27;Global error alert&#x27;, status: &#x27;overlay&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Present a concise blocking mutation error without replacing the user’s current route and draft.&#x27;,
+          entry: &#x27;Any model mutation or authentication action&#x27;, exits: &#x27;Dismiss to current page&#x27;, source: &#x27;RootView.alert · AppModel.presentedError&#x27;,
+          sections: [[&#x27;GameTime&#x27;, [&#x27;Specific recovery-safe message&#x27;]]], actions: [&#x27;OK&#x27;],
+          states: [S(&#x27;Invalid input&#x27;, &#x27;failure&#x27;, &#x27;Name the field or violated term.&#x27;), S(&#x27;Offline&#x27;, &#x27;failure&#x27;, &#x27;Preserve drafts and exact retry material.&#x27;), S(&#x27;Permission denied&#x27;, &#x27;failure&#x27;, &#x27;Avoid repeating the same mutation until state changes.&#x27;), S(&#x27;Session unavailable&#x27;, &#x27;failure&#x27;, &#x27;Dismiss, then resolve auth and reset private navigation.&#x27;), S(&#x27;Server conflict&#x27;, &#x27;failure&#x27;, &#x27;Explain whether refresh, exact retry, or no further action is safe.&#x27;)]
+        },
+        {
+          id: &#x27;I02&#x27;, group: &#x27;overlay&#x27;, title: &#x27;Destructive confirmation&#x27;, status: &#x27;overlay&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Name the exact object being removed and any server state that the local action cannot undo.&#x27;,
+          entry: &#x27;Discard retry · decline · remove friend · block · cancel · delete&#x27;, exits: &#x27;Current page · terminal result&#x27;, source: &#x27;Existing confirmationDialog patterns + proposed destructive flows&#x27;,
+          sections: [[&#x27;Consequences&#x27;, [&#x27;What changes&#x27;, &#x27;What remains immutable&#x27;, &#x27;Whether recovery is possible&#x27;]]], actions: [&#x27;Destructive action&#x27;, &#x27;Cancel&#x27;],
+          states: [S(&#x27;Discard local retry&#x27;, &#x27;failure&#x27;, &#x27;Warn that a server challenge may already exist and a restart can duplicate it.&#x27;), S(&#x27;Remove relationship&#x27;, &#x27;choice&#x27;, &#x27;Explain social visibility without erasing shared contest history.&#x27;), S(&#x27;Cancel pending challenge&#x27;, &#x27;choice&#x27;, &#x27;Explain lapsed invitations and retained history.&#x27;), S(&#x27;Delete account&#x27;, &#x27;failure&#x27;, &#x27;Require fresh auth and multi-step consequence review; never use this generic sheet alone.&#x27;), S(&#x27;Mutation failed&#x27;, &#x27;failure&#x27;, &#x27;Keep the prior state and let the user retry deliberately.&#x27;)]
+        },
+        {
+          id: &#x27;I03&#x27;, group: &#x27;overlay&#x27;, title: &#x27;Environment banner&#x27;, status: &#x27;overlay&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Keep Demo, Staging, and Release trust boundaries visible across every signed-in route.&#x27;,
+          entry: &#x27;Root safe-area inset&#x27;, exits: &#x27;None&#x27;, source: &#x27;RootView · DemoEnvironmentBanner · TestEnvironmentBanner&#x27;,
+          sections: [[&#x27;Environment&#x27;, [&#x27;Demo changes stay on device&#x27;, &#x27;Staging is not real money&#x27;, &#x27;Release mutations may be locked&#x27;]]], actions: [],
+          states: [S(&#x27;Demo&#x27;, &#x27;choice&#x27;, &#x27;Persistent top banner; local synthetic data only.&#x27;), S(&#x27;Staging&#x27;, &#x27;choice&#x27;, &#x27;Persistent test-environment disclosure.&#x27;), S(&#x27;Release&#x27;, &#x27;success&#x27;, &#x27;No test banner; configuration gates must still hide or lock unfinished mutations.&#x27;), S(&#x27;Banner plus system sheet&#x27;, &#x27;choice&#x27;, &#x27;Keep trust context readable without overlapping native sheets.&#x27;)]
+        },
+        {
+          id: &#x27;I04&#x27;, group: &#x27;overlay&#x27;, title: &#x27;Unavailable or stale deep link&#x27;, status: &#x27;overlay&#x27;, tab: &#x27;&#x27;,
+          purpose: &#x27;Recover safely when a push, inbox item, or saved route no longer authorizes a destination.&#x27;,
+          entry: &#x27;Push · inbox · restored navigation path&#x27;, exits: &#x27;Relevant tab root · refresh · Welcome&#x27;, source: &#x27;Existing ContentUnavailableView patterns + future inbox&#x27;,
+          sections: [[&#x27;Unavailable&#x27;, [&#x27;Reason safe to disclose&#x27;, &#x27;Last refresh&#x27;, &#x27;Next authorized destination&#x27;]]], actions: [&#x27;Refresh&#x27;, &#x27;Back to tab&#x27;],
+          states: [S(&#x27;Contest unavailable&#x27;, &#x27;failure&#x27;, &#x27;Could be deleted from local cache, inaccessible, or not yet refreshed.&#x27;), S(&#x27;Standings unauthorized&#x27;, &#x27;failure&#x27;, &#x27;Require accepted active/final participant state.&#x27;), S(&#x27;Invitation resolved&#x27;, &#x27;empty&#x27;, &#x27;Return to Challenge detail if still visible.&#x27;), S(&#x27;Inbox item resolved&#x27;, &#x27;empty&#x27;, &#x27;Move it to resolved history.&#x27;), S(&#x27;Wrong signed-in account&#x27;, &#x27;failure&#x27;, &#x27;Do not switch accounts implicitly or disclose target details.&#x27;), S(&#x27;Session expired&#x27;, &#x27;failure&#x27;, &#x27;Reset private routes and return to Welcome.&#x27;)]
+        }
+      ];
+
+      const map = root.querySelector(&#x27;#atlas-map&#x27;);
+      const summary = root.querySelector(&#x27;#atlas-summary&#x27;);
+      let selectedScreen = screens.find((screen) =&gt; screen.id === &#x27;C06&#x27;);
+      let selectedState = selectedScreen.states[0];
+
+      const statusLabel = { built: &#x27;Implemented&#x27;, planned: &#x27;Planned&#x27;, system: &#x27;Apple system&#x27;, overlay: &#x27;Shared overlay&#x27; };
+      const kindIcon = { loading: &#x27;loader-circle&#x27;, empty: &#x27;circle-off&#x27;, failure: &#x27;triangle-alert&#x27;, choice: &#x27;split&#x27;, success: &#x27;circle-check&#x27; };
+
+      function renderSummary() {
+        const counts = screens.reduce((acc, screen) =&gt; {
+          acc[screen.status] = (acc[screen.status] || 0) + 1;
+          acc.states += screen.states.length;
+          return acc;
+        }, { states: 0 });
+        const values = [
+          [&#x27;Navigation surfaces&#x27;, screens.length],
+          [&#x27;Implemented now&#x27;, counts.built || 0],
+          [&#x27;Planned client pages&#x27;, counts.planned || 0],
+          [&#x27;State variants&#x27;, counts.states]
+        ];
+        summary.innerHTML = values.map(([label, value]) =&gt; `
+          &lt;div class=&quot;card viz-stat&quot;&gt;
+            &lt;div class=&quot;text-muted&quot;&gt;${label}&lt;/div&gt;
+            &lt;div class=&quot;viz-stat-value&quot;&gt;${value}&lt;/div&gt;
+          &lt;/div&gt;`).join(&#x27;&#x27;);
+      }
+
+      function renderMap() {
+        map.innerHTML = &#x27;&#x27;;
+        groups.forEach((group) =&gt; {
+          const groupScreens = screens.filter((screen) =&gt; screen.group === group.id);
+          const section = document.createElement(&#x27;section&#x27;);
+          section.className = &#x27;flow-group&#x27;;
+          section.innerHTML = `
+            &lt;div class=&quot;flow-heading&quot;&gt;
+              &lt;h3&gt;${group.label}&lt;/h3&gt;
+              &lt;span class=&quot;text-small text-muted&quot;&gt;${group.hint} · ${groupScreens.length} surfaces&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;flow-nodes&quot;&gt;&lt;/div&gt;`;
+          const nodes = section.querySelector(&#x27;.flow-nodes&#x27;);
+          groupScreens.forEach((screen) =&gt; {
+            const node = document.createElement(&#x27;div&#x27;);
+            node.className = &#x27;flow-node&#x27;;
+            const button = document.createElement(&#x27;button&#x27;);
+            button.type = &#x27;button&#x27;;
+            button.className = &#x27;btn&#x27;;
+            button.dataset.screenId = screen.id;
+            button.setAttribute(&#x27;aria-pressed&#x27;, screen.id === selectedScreen.id ? &#x27;true&#x27; : &#x27;false&#x27;);
+            button.setAttribute(&#x27;aria-label&#x27;, `${screen.id} ${screen.title}, ${statusLabel[screen.status]}, ${screen.states.length} state variants`);
+            button.textContent = screen.id;
+            button.addEventListener(&#x27;click&#x27;, () =&gt; {
+              selectedScreen = screen;
+              selectedState = screen.states[0];
+              renderMap();
+              renderSelection();
+              root.querySelector(&#x27;#screen-title&#x27;).scrollIntoView({ behavior: &#x27;smooth&#x27;, block: &#x27;nearest&#x27; });
+            });
+            node.innerHTML = `&lt;div class=&quot;node-top&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=&quot;node-status ${screen.status}&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;span class=&quot;node-title&quot;&gt;${screen.title}&lt;/span&gt;&lt;span class=&quot;node-states text-small&quot;&gt;${screen.states.length} variants&lt;/span&gt;`;
+            node.querySelector(&#x27;.node-top span:first-child&#x27;).replaceWith(button);
+            nodes.appendChild(node);
+          });
+          map.appendChild(section);
+        });
+      }
+
+      function currentTabMarkup(tab) {
+        if (!tab) return &#x27;&#x27;;
+        const active = tab.includes(&#x27;/&#x27;) ? tab.split(&#x27;/&#x27;)[0].trim() : tab;
+        return `&lt;div class=&quot;wire-tabbar text-small&quot; aria-label=&quot;Tab bar&quot;&gt;
+          ${[&#x27;Today&#x27;, &#x27;Challenges&#x27;, &#x27;Friends&#x27;, &#x27;You&#x27;].map((item) =&gt; `&lt;span class=&quot;${item === active ? &#x27;active&#x27; : &#x27;&#x27;}&quot;&gt;${item}&lt;/span&gt;`).join(&#x27;&#x27;)}
+        &lt;/div&gt;`;
+      }
+
+      function renderWireframe() {
+        const sections = selectedScreen.sections.map(([title, rows]) =&gt; `
+          &lt;div class=&quot;wire-section&quot;&gt;
+            &lt;div class=&quot;wire-section-title text-small&quot;&gt;${title}&lt;/div&gt;
+            ${rows.map((row) =&gt; `&lt;div class=&quot;wire-row&quot;&gt;&lt;span&gt;${row}&lt;/span&gt;&lt;i data-lucide=&quot;chevron-right&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/div&gt;`).join(&#x27;&#x27;)}
+          &lt;/div&gt;`).join(&#x27;&#x27;);
+        const actions = selectedScreen.actions.length ? `
+          &lt;div class=&quot;wire-actions&quot;&gt;
+            ${selectedScreen.actions.map((action, index) =&gt; `&lt;button type=&quot;button&quot; class=&quot;btn ${index === 0 ? &#x27;btn-primary&#x27; : &#x27;&#x27;}&quot; disabled&gt;${action}&lt;/button&gt;`).join(&#x27;&#x27;)}
+          &lt;/div&gt;` : &#x27;&#x27;;
+        root.querySelector(&#x27;#wireframe&#x27;).innerHTML = `
+          &lt;div class=&quot;wire-topbar&quot;&gt;
+            &lt;span class=&quot;text-small&quot;&gt;${selectedScreen.id}&lt;/span&gt;
+            &lt;span class=&quot;text-small text-muted&quot;&gt;${statusLabel[selectedScreen.status]}&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;wire-body&quot;&gt;
+            &lt;div&gt;
+              &lt;div class=&quot;text-small text-muted&quot;&gt;${selectedScreen.tab || &#x27;Modal / pushed detail&#x27;}&lt;/div&gt;
+              &lt;h3&gt;${selectedScreen.title}&lt;/h3&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;wire-state&quot;&gt;
+              &lt;i data-lucide=&quot;${kindIcon[selectedState.kind] || &#x27;circle&#x27;}&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;
+              &lt;div&gt;&lt;div class=&quot;text-small&quot;&gt;${selectedState.name}&lt;/div&gt;&lt;div&gt;${selectedState.detail}&lt;/div&gt;&lt;/div&gt;
+            &lt;/div&gt;
+            ${sections}
+            ${actions}
+          &lt;/div&gt;
+          ${currentTabMarkup(selectedScreen.tab)}`;
+      }
+
+      function renderSelection() {
+        root.querySelector(&#x27;#screen-meta&#x27;).innerHTML = `&lt;span class=&quot;viz-badge&quot;&gt;${selectedScreen.id}&lt;/span&gt;&lt;span&gt;${statusLabel[selectedScreen.status]}&lt;/span&gt;${selectedScreen.tab ? `&lt;span&gt;${selectedScreen.tab}&lt;/span&gt;` : &#x27;&#x27;}`;
+        root.querySelector(&#x27;#screen-title&#x27;).textContent = selectedScreen.title;
+        root.querySelector(&#x27;#screen-purpose&#x27;).textContent = selectedScreen.purpose;
+        root.querySelector(&#x27;#screen-entry&#x27;).textContent = selectedScreen.entry;
+        root.querySelector(&#x27;#screen-exits&#x27;).textContent = selectedScreen.exits;
+        root.querySelector(&#x27;#screen-source&#x27;).textContent = selectedScreen.source;
+        root.querySelector(&#x27;#screen-state-count&#x27;).textContent = `${selectedScreen.states.length} documented variants`;
+        const list = root.querySelector(&#x27;#state-list&#x27;);
+        list.innerHTML = &#x27;&#x27;;
+        selectedScreen.states.forEach((state) =&gt; {
+          const button = document.createElement(&#x27;button&#x27;);
+          button.type = &#x27;button&#x27;;
+          button.className = &#x27;btn&#x27;;
+          button.setAttribute(&#x27;aria-pressed&#x27;, state === selectedState ? &#x27;true&#x27; : &#x27;false&#x27;);
+          button.innerHTML = `&lt;span class=&quot;state-kind&quot;&gt;&lt;span class=&quot;state-glyph ${state.kind}&quot;&gt;&lt;/span&gt;${state.name}&lt;/span&gt;`;
+          button.addEventListener(&#x27;click&#x27;, () =&gt; {
+            selectedState = state;
+            renderSelection();
+          });
+          list.appendChild(button);
+        });
+        root.querySelector(&#x27;#state-note&#x27;).textContent = selectedState.note || selectedState.detail;
+        renderWireframe();
+        if (window.lucide) window.lucide.createIcons({ attrs: { width: 16, height: 16 } });
+      }
+
+      renderSummary();
+      renderMap();
+      renderSelection();
+      if (window.lucide) window.lucide.createIcons({ attrs: { width: 16, height: 16 } });
+    })();
+  &lt;/script&gt;
+&lt;/div&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handleLeave = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
