@@ -23,7 +23,9 @@ final class SupabaseTrustedActivityDiagnosticClient:
         session: URLSession = .shared,
         now: @escaping () -> Date = Date.init
     ) throws {
-        guard configuration.environment == .staging else {
+        // Reading Health locally only needs activity sync. The attested upload
+        // is gated separately inside `runTrustedDiagnostic`.
+        guard configuration.activitySyncEnabled else {
             throw PersonalAccountabilityClientError.diagnosticUnavailable
         }
         self.client = client
@@ -38,60 +40,40 @@ final class SupabaseTrustedActivityDiagnosticClient:
         try await activity.requestStepReadAuthorization()
     }
 
+    func probeLocalStepAccess(
+        timezone: String
+    ) async throws -> LocalStepAccessProbe {
+        let read = try await localRead(timezone: timezone)
+        return LocalStepAccessProbe(
+            trustedHourCount: read.trustedBuckets.count,
+            positiveTrustedSampleCount: read.trustedSampleCount,
+            observedAt: read.observedAt
+        )
+    }
+
     func runTrustedDiagnostic(
         ownerID: UUID,
         timezone: String
     ) async throws -> TrustedActivityDiagnostic {
+        // App Attest needs a provisioned physical device and the deployed
+        // attested endpoints. Refuse clearly rather than failing deep in the
+        // signing call.
+        guard configuration.attestedUploadEnabled else {
+            throw PersonalAccountabilityClientError.diagnosticUnavailable
+        }
         guard client.auth.currentSession?.user.id == ownerID else {
             throw PersonalAccountabilityClientError.accountChanged
         }
-        guard let zone = TimeZone(identifier: timezone) else {
-            throw PersonalChallengeValidationError.invalidTimezone
-        }
 
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = zone
-        let queryAsOf = now()
-        guard
-            let readEnd = calendar.dateInterval(
-                of: .hour,
-                for: queryAsOf
-            )?.start,
-            let windowStart = calendar.date(
-                byAdding: .hour,
-                value: -24,
-                to: readEnd
-            ),
-            windowStart < readEnd
-        else {
-            throw PersonalAccountabilityClientError.diagnosticUnavailable
-        }
-
-        let readStartedAt = now()
-        let buckets = try await activity.stepBuckets(
-            overlapping: DateInterval(start: windowStart, end: readEnd),
-            timeZoneSchedule: ContestTimeZoneSchedule(initialTimeZone: zone),
-            asOf: queryAsOf
-        )
-        let readEndedAt = max(
-            now(),
-            readStartedAt.addingTimeInterval(0.001)
-        )
-        let observedAt = max(now(), readEndedAt)
-        let trustedBuckets = buckets.filter {
-            $0.provenance == .device && $0.value > 0
-        }
-        let trustedSampleCount = trustedBuckets.reduce(0) {
-            $0 + $1.sampleCount
-        }
+        let read = try await localRead(timezone: timezone)
         let clientDiagnosticID = UUID()
 
-        guard trustedSampleCount > 0 else {
+        guard read.trustedSampleCount > 0 else {
             return TrustedActivityDiagnostic(
                 id: clientDiagnosticID,
                 status: .noPositiveTrustedSample,
-                performedAt: readEndedAt,
-                trustedQueriedHourCount: trustedBuckets.count,
+                performedAt: read.readEndedAt,
+                trustedQueriedHourCount: read.trustedBuckets.count,
                 positiveTrustedSampleCount: 0,
                 clearsEligibilityHold: false
             )
@@ -99,10 +81,10 @@ final class SupabaseTrustedActivityDiagnosticClient:
 
         let body = try DiagnosticRequestBody.encode(
             clientDiagnosticID: clientDiagnosticID,
-            observedAt: observedAt,
-            healthKitReadStartedAt: readStartedAt,
-            healthKitReadEndedAt: readEndedAt,
-            trustedDeviceSampleCount: trustedSampleCount
+            observedAt: read.observedAt,
+            healthKitReadStartedAt: read.readStartedAt,
+            healthKitReadEndedAt: read.readEndedAt,
+            trustedDeviceSampleCount: read.trustedSampleCount
         )
         let signed = try await signer.sign(ownerID: ownerID, body: body)
         guard
@@ -165,9 +147,67 @@ final class SupabaseTrustedActivityDiagnosticClient:
             id: responseBody.diagnosticID,
             status: .trusted,
             performedAt: responseBody.performedAt,
-            trustedQueriedHourCount: trustedBuckets.count,
-            positiveTrustedSampleCount: trustedSampleCount,
+            trustedQueriedHourCount: read.trustedBuckets.count,
+            positiveTrustedSampleCount: read.trustedSampleCount,
             clearsEligibilityHold: responseBody.clearedHold
+        )
+    }
+
+    /// One HealthKit read over the last 24 completed local hours, with the
+    /// timestamps the attested body needs. Shared by the local probe and the
+    /// attested diagnostic so both describe exactly the same query.
+    private struct LocalHealthRead {
+        let trustedBuckets: [HourlyBucket]
+        let trustedSampleCount: Int
+        let readStartedAt: Date
+        let readEndedAt: Date
+        let observedAt: Date
+    }
+
+    private func localRead(timezone: String) async throws -> LocalHealthRead {
+        guard let zone = TimeZone(identifier: timezone) else {
+            throw PersonalChallengeValidationError.invalidTimezone
+        }
+
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = zone
+        let queryAsOf = now()
+        guard
+            let readEnd = calendar.dateInterval(
+                of: .hour,
+                for: queryAsOf
+            )?.start,
+            let windowStart = calendar.date(
+                byAdding: .hour,
+                value: -24,
+                to: readEnd
+            ),
+            windowStart < readEnd
+        else {
+            throw PersonalAccountabilityClientError.diagnosticUnavailable
+        }
+
+        let readStartedAt = now()
+        let buckets = try await activity.stepBuckets(
+            overlapping: DateInterval(start: windowStart, end: readEnd),
+            timeZoneSchedule: ContestTimeZoneSchedule(initialTimeZone: zone),
+            asOf: queryAsOf
+        )
+        let readEndedAt = max(
+            now(),
+            readStartedAt.addingTimeInterval(0.001)
+        )
+        let trustedBuckets = buckets.filter {
+            $0.provenance == .device && $0.value > 0
+        }
+        return LocalHealthRead(
+            trustedBuckets: trustedBuckets,
+            trustedSampleCount: trustedBuckets.reduce(0) {
+                $0 + $1.sampleCount
+            },
+            readStartedAt: readStartedAt,
+            readEndedAt: readEndedAt,
+            observedAt: max(now(), readEndedAt)
         )
     }
 

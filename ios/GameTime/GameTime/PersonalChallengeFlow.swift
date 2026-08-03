@@ -227,12 +227,12 @@ struct CreatePersonalChallengeFlow: View {
     private var diagnosticContent: some View {
         VStack(alignment: .leading, spacing: 14) {
             Label(
-                store.latestDiagnostic?.isTrusted == true
-                    ? "Trusted diagnostic ready"
-                    : "Verify Health access",
-                systemImage: store.latestDiagnostic?.isTrusted == true
+                healthAccessTitle,
+                systemImage: store.healthReadiness.isAttested
                     ? "checkmark.shield.fill"
-                    : "heart.text.square.fill"
+                    : store.healthReadiness.permitsCreation
+                        ? "checkmark.circle.fill"
+                        : "heart.text.square.fill"
             )
             .font(
                 CompetitiveTrustTheme.displayFont(
@@ -241,43 +241,83 @@ struct CreatePersonalChallengeFlow: View {
                 )
             )
             Text(
-                "GameTime checks a recent completed-hour window for at least one positive, first-party Apple-device step sample and sends only an App Attest-signed diagnostic summary."
+                "GameTime checks a recent completed-hour window for at least one positive, first-party Apple-device step sample."
             )
             .font(.subheadline)
             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             if store.eligibilityHoldActive {
                 PersonalEligibilityHoldCard(hold: store.eligibilityHold)
             }
-            if let diagnostic = store.latestDiagnostic {
+            if case .localStepsObserved(let probe) = store.healthReadiness {
                 Text(
-                    "Latest: \(diagnostic.status == .trusted ? "trusted" : "not ready") · \(diagnostic.performedAt.formatted(.relative(presentation: .named)))"
+                    probe.sawTrustedDeviceSteps
+                        ? "Read \(probe.positiveTrustedSampleCount) device step samples across \(probe.trustedHourCount) completed hours."
+                        : "No first-party device step samples in the last 24 completed hours. Walk a little with your phone, then check again."
                 )
                 .font(.caption)
                 .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .accessibilityIdentifier("personal.health.probe-result")
             }
             Button(
-                store.isRunningDiagnostic
-                    ? "Running diagnostic…"
-                    : "Run trusted diagnostic"
+                store.isVerifyingHealthAccess
+                    ? "Checking Health…"
+                    : "Verify Health access"
             ) {
                 Task {
-                    _ = await store.runDiagnostic(timezone: draft.timezone)
+                    _ = await store.verifyHealthAccess(
+                        timezone: draft.timezone
+                    )
                 }
             }
             .buttonStyle(TrustSecondaryButtonStyle())
             .disabled(
-                store.isRunningDiagnostic
+                store.isVerifyingHealthAccess
                     || !store.configuration.activitySyncEnabled
             )
-            .accessibilityIdentifier("personal.diagnostic.run")
+            .accessibilityIdentifier("personal.health.verify")
+
+            if store.configuration.attestedUploadEnabled {
+                if let diagnostic = store.latestDiagnostic {
+                    Text(
+                        "Attested: \(diagnostic.status == .trusted ? "trusted" : "not ready") · \(diagnostic.performedAt.formatted(.relative(presentation: .named)))"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                }
+                Button(
+                    store.isRunningDiagnostic
+                        ? "Running diagnostic…"
+                        : "Run trusted diagnostic"
+                ) {
+                    Task {
+                        _ = await store.runDiagnostic(timezone: draft.timezone)
+                    }
+                }
+                .buttonStyle(TrustSecondaryButtonStyle())
+                .disabled(store.isRunningDiagnostic)
+                .accessibilityIdentifier("personal.diagnostic.run")
+            }
+
             if !store.configuration.activitySyncEnabled {
                 Text(
-                    "Trusted HealthKit and App Attest diagnostics are available only in Staging on a supported physical iPhone."
+                    "HealthKit reads are available in Debug and Staging builds on a physical iPhone."
+                )
+                .font(.caption)
+                .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+            } else if !store.configuration.attestedUploadEnabled {
+                Text(
+                    "Steps are read locally in this build. App Attest-signed upload runs in Staging on a provisioned device."
                 )
                 .font(.caption)
                 .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
             }
         }
+    }
+
+    private var healthAccessTitle: String {
+        if store.healthReadiness.isAttested { return "Trusted diagnostic ready" }
+        if store.healthReadiness.permitsCreation { return "Health access verified" }
+        return "Verify Health access"
     }
 
     private var reviewContent: some View {
@@ -341,7 +381,7 @@ struct CreatePersonalChallengeFlow: View {
                 .buttonStyle(TrustPrimaryButtonStyle())
                 .disabled(
                     store.isMutating
-                        || store.latestDiagnostic?.isTrusted != true
+                        || !store.healthReadiness.permitsCreation
                         || store.eligibilityHoldActive
                         || !isDraftValid
                 )
@@ -408,7 +448,7 @@ struct CreatePersonalChallengeFlow: View {
     private var canAdvance: Bool {
         switch step {
         case .target: PersonalChallengeDraft.targetRange.contains(draft.targetSteps)
-        case .diagnostic: store.latestDiagnostic?.isTrusted == true
+        case .diagnostic: store.healthReadiness.permitsCreation
         default: true
         }
     }

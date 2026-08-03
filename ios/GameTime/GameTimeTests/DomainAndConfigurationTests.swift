@@ -62,7 +62,10 @@ final class DomainAndConfigurationTests: XCTestCase {
         XCTAssertFalse(configuration.activitySyncEnabled)
     }
 
-    func testOnlyStagingEnablesActivitySync() throws {
+    /// Reading Health and attesting that read are separate capabilities.
+    /// Debug reads locally; only Staging may sign and upload; Release does
+    /// neither until the shipping configuration is authorized.
+    func testHealthReadsAndAttestedUploadAreGatedIndependently() throws {
         let staging = try AppConfiguration.validated(
             environmentValue: "Staging",
             urlValue: "https://example.supabase.co",
@@ -75,9 +78,20 @@ final class DomainAndConfigurationTests: XCTestCase {
             keyValue: "sb_publishable_unit_test",
             mutationValue: "YES"
         )
+        let release = try AppConfiguration.validated(
+            environmentValue: "Release",
+            urlValue: "https://example.supabase.co",
+            keyValue: "sb_publishable_unit_test",
+            mutationValue: "YES"
+        )
 
         XCTAssertTrue(staging.activitySyncEnabled)
-        XCTAssertFalse(debug.activitySyncEnabled)
+        XCTAssertTrue(debug.activitySyncEnabled)
+        XCTAssertFalse(release.activitySyncEnabled)
+
+        XCTAssertTrue(staging.attestedUploadEnabled)
+        XCTAssertFalse(debug.attestedUploadEnabled)
+        XCTAssertFalse(release.attestedUploadEnabled)
     }
 
     func testExactHandleSubmissionDoesNotBecomeFuzzySearch() {

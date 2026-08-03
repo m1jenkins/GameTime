@@ -1304,6 +1304,18 @@ private final class FixtureTrustedActivityDiagnosticClient:
         return .requestCompleted
     }
 
+    func probeLocalStepAccess(
+        timezone: String
+    ) async throws -> LocalStepAccessProbe {
+        _ = timezone
+        guard !store.offline else { throw FixtureFailure.offline }
+        return LocalStepAccessProbe(
+            trustedHourCount: 24,
+            positiveTrustedSampleCount: 12,
+            observedAt: Date()
+        )
+    }
+
     func runTrustedDiagnostic(
         ownerID: UUID,
         timezone: String

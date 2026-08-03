@@ -970,6 +970,17 @@ private final class PersonalDiagnosticFake: TrustedActivityDiagnosticClient {
         .requestCompleted
     }
 
+    func probeLocalStepAccess(
+        timezone: String
+    ) async throws -> LocalStepAccessProbe {
+        _ = timezone
+        return LocalStepAccessProbe(
+            trustedHourCount: 24,
+            positiveTrustedSampleCount: 1,
+            observedAt: Date()
+        )
+    }
+
     func runTrustedDiagnostic(
         ownerID: UUID,
         timezone: String

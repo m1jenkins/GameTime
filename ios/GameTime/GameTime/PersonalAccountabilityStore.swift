@@ -5,6 +5,8 @@ enum PersonalActivitySyncViewState: Equatable, Sendable {
     case idle
     case syncing
     case synced(stepTotal: Double)
+    /// Read from HealthKit on this device but never uploaded or attested.
+    case observedLocally(stepTotal: Double)
     case replayAccepted(stepTotal: Double)
     case queuedForRetry(stepTotal: Double)
     case noReadableData
@@ -16,6 +18,8 @@ enum PersonalActivitySyncViewState: Equatable, Sendable {
         case .syncing: "Reading trusted step coverage…"
         case .synced(let total):
             "\(total.formatted(.number.precision(.fractionLength(0)))) trusted steps synced."
+        case .observedLocally(let total):
+            "\(total.formatted(.number.precision(.fractionLength(0)))) steps read on this device — not yet verified."
         case .replayAccepted(let total):
             "\(total.formatted(.number.precision(.fractionLength(0)))) saved trusted steps confirmed."
         case .queuedForRetry(let total):
@@ -42,6 +46,8 @@ final class PersonalAccountabilityStore {
         PendingPersonalCancellationSubmission?
     private(set) var hasPendingCancellationRecoveryIssue = false
     private(set) var latestDiagnostic: TrustedActivityDiagnostic?
+    private(set) var healthReadiness: PersonalHealthReadiness = .unknown
+    private(set) var isVerifyingHealthAccess = false
     private(set) var eligibilityHold: PersonalEligibilityHold?
     private(set) var eligibilityHoldActive = false
     private(set) var activityAuthorizationOutcome: ActivityAuthorizationOutcome?
@@ -150,6 +156,11 @@ final class PersonalAccountabilityStore {
                 $0.terms.startsAt > $1.terms.startsAt
             }
             latestDiagnostic = snapshot.latestDiagnostic ?? latestDiagnostic
+            // A trusted server record is the strongest readiness evidence and
+            // survives relaunch, so it supersedes a local-only probe.
+            if let diagnostic = latestDiagnostic, diagnostic.isTrusted {
+                healthReadiness = .attested(diagnostic)
+            }
             eligibilityHold = snapshot.eligibilityHold
             eligibilityHoldActive = snapshot.eligibilityHoldActive
             loadState = challenges.isEmpty ? .empty : .loaded
@@ -216,8 +227,8 @@ final class PersonalAccountabilityStore {
                 .localizedDescription
             return nil
         }
-        guard latestDiagnostic?.isTrusted == true else {
-            presentedError = "Complete the trusted Health diagnostic before confirming."
+        guard healthReadiness.permitsCreation else {
+            presentedError = "Verify Health access before confirming."
             return nil
         }
         guard !hasPendingCreationRecoveryIssue, !isMutating else { return nil }
@@ -399,6 +410,49 @@ final class PersonalAccountabilityStore {
         }
     }
 
+    /// Requests Health authorization and reads steps locally. This is what
+    /// unlocks creation: it proves GameTime can see first-party device steps on
+    /// this phone, without needing App Attest or a deployed endpoint.
+    ///
+    /// It deliberately does not set `latestDiagnostic` — that stays the
+    /// server's attested record.
+    func verifyHealthAccess(timezone: String) async -> Bool {
+        guard configuration.activitySyncEnabled else {
+            healthReadiness = .unavailable
+            presentedError = PersonalAccountabilityClientError
+                .diagnosticUnavailable.localizedDescription
+            return false
+        }
+        guard !isVerifyingHealthAccess else { return false }
+        let generation = actorGeneration
+        isVerifyingHealthAccess = true
+        defer { isVerifyingHealthAccess = false }
+        do {
+            let outcome = try await diagnosticClient.requestAuthorization()
+            guard actorGeneration == generation else { return false }
+            activityAuthorizationOutcome = outcome
+            guard outcome == .requestCompleted else {
+                healthReadiness = .unavailable
+                return false
+            }
+            backgroundDeliveryRegistration?.retryRegistration()
+            healthReadiness = .authorizationRequested
+
+            let probe = try await diagnosticClient.probeLocalStepAccess(
+                timezone: timezone
+            )
+            guard actorGeneration == generation else { return false }
+            healthReadiness = .localStepsObserved(probe)
+            return probe.sawTrustedDeviceSteps
+        } catch is CancellationError {
+            return false
+        } catch {
+            guard actorGeneration == generation else { return false }
+            presentedError = error.localizedDescription
+            return false
+        }
+    }
+
     func runDiagnostic(timezone: String) async -> Bool {
         guard configuration.activitySyncEnabled, let ownerID else {
             presentedError = PersonalAccountabilityClientError
@@ -423,6 +477,9 @@ final class PersonalAccountabilityStore {
                 await isCurrentAuthenticated(ownerID, generation: generation)
             else { return false }
             latestDiagnostic = diagnostic
+            if diagnostic.isTrusted {
+                healthReadiness = .attested(diagnostic)
+            }
             await refresh()
             return diagnostic.isTrusted
         } catch is CancellationError {
@@ -455,9 +512,14 @@ final class PersonalAccountabilityStore {
             else { return }
             switch outcome {
             case .synced(let replayed, let total):
-                activitySyncStates[challengeID] = replayed
-                    ? .replayAccepted(stepTotal: total)
-                    : .synced(stepTotal: total)
+                activitySyncStates[challengeID] =
+                    if !configuration.attestedUploadEnabled {
+                        .observedLocally(stepTotal: total)
+                    } else if replayed {
+                        .replayAccepted(stepTotal: total)
+                    } else {
+                        .synced(stepTotal: total)
+                    }
             case .queuedForRetry(let total):
                 activitySyncStates[challengeID] = .queuedForRetry(stepTotal: total)
             case .noReadableData:
@@ -578,6 +640,8 @@ final class PersonalAccountabilityStore {
         pendingCancellation = nil
         hasPendingCancellationRecoveryIssue = false
         latestDiagnostic = nil
+        healthReadiness = .unknown
+        isVerifyingHealthAccess = false
         eligibilityHold = nil
         eligibilityHoldActive = false
         activityAuthorizationOutcome = nil

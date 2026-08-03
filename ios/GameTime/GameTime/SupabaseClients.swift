@@ -11,7 +11,24 @@ enum LiveServicesFactory {
         let activitySync: any ActivitySyncing
         let personalActivitySync: any PersonalActivitySyncing
         let trustedActivityDiagnostic: any TrustedActivityDiagnosticClient
-        if configuration.activitySyncEnabled {
+        if configuration.activitySyncEnabled,
+            !configuration.attestedUploadEnabled
+        {
+            // Read Health locally, upload nothing. Lets the product be used
+            // and demoed before the attested stack is live.
+            let health = HealthKitActivityClient()
+            activitySync = DisabledActivitySyncCoordinator()
+            personalActivitySync = LocalOnlyPersonalActivitySyncCoordinator(
+                activity: health
+            )
+            trustedActivityDiagnostic =
+                try SupabaseTrustedActivityDiagnosticClient(
+                    client: client,
+                    configuration: configuration,
+                    activity: health,
+                    signer: UnavailableAppAttestedBodySigner()
+                )
+        } else if configuration.activitySyncEnabled {
             let health = HealthKitActivityClient()
             let uploads = try SupabaseMetricUploadClient(
                 client: client,

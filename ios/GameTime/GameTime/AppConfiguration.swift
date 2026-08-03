@@ -40,9 +40,22 @@ struct AppConfiguration: Equatable, Sendable {
     /// There is deliberately no live-fee configuration in the V1 client.
     var personalSettlementMode: PersonalSettlementMode { .testOnly }
 
-    /// HealthKit and product App Attest are intentionally limited to the
-    /// internal Staging configuration for this prototype slice.
-    var activitySyncEnabled: Bool { environment == .staging }
+    /// Debug and Staging read HealthKit. Release stays off until the shipping
+    /// configuration is separately authorized; it also refuses every personal
+    /// mutation, so a step read there would have nothing to attach to.
+    var activitySyncEnabled: Bool {
+        environment == .debug || environment == .staging
+    }
+
+    /// Whether a step read can be App Attest-signed and delivered to the
+    /// server. Attestation requires a provisioned physical device and the
+    /// deployed attested endpoints; Debug against a local stack has neither.
+    ///
+    /// This is deliberately separate from `activitySyncEnabled`. Reading Health
+    /// data and proving that reading to a server are different capabilities,
+    /// and fusing them is what previously made the product unreachable until
+    /// the entire stack was live.
+    var attestedUploadEnabled: Bool { environment == .staging }
 
     static func load(bundle: Bundle = .main) throws -> AppConfiguration {
         let environmentValue = bundle.object(

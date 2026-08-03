@@ -15,9 +15,65 @@ protocol PersonalAccountabilityClient: AnyObject {
     ) async throws
 }
 
+/// What a purely local HealthKit read observed, with no server round-trip.
+///
+/// This is the evidence that GameTime can actually see first-party device steps
+/// on this phone. It is not a trust claim: nothing here has been attested, and
+/// the server must never treat it as proof.
+struct LocalStepAccessProbe: Equatable, Sendable {
+    let trustedHourCount: Int
+    let positiveTrustedSampleCount: Int
+    let observedAt: Date
+
+    var sawTrustedDeviceSteps: Bool { positiveTrustedSampleCount > 0 }
+}
+
+/// What the device has locally proven about Health access, kept separate from
+/// the server's `PersonalDiagnosticStatus`.
+///
+/// Creating a challenge needs proof that GameTime can read first-party device
+/// steps. It does not need the App Attest round-trip: the server independently
+/// refuses untrusted evidence when it scores, so gating *creation* on
+/// attestation only made the product unreachable until the whole stack was
+/// live. Attestation still gates whether evidence counts — see
+/// `AppConfiguration.attestedUploadEnabled`.
+enum PersonalHealthReadiness: Equatable, Sendable {
+    case unknown
+    case unavailable
+    case authorizationRequested
+    case localStepsObserved(LocalStepAccessProbe)
+    case attested(TrustedActivityDiagnostic)
+
+    /// Whether the person may freeze terms and create a challenge.
+    var permitsCreation: Bool {
+        switch self {
+        case .unknown, .unavailable, .authorizationRequested:
+            false
+        case .localStepsObserved(let probe):
+            probe.sawTrustedDeviceSteps
+        case .attested(let diagnostic):
+            diagnostic.isTrusted
+        }
+    }
+
+    /// Whether the attested path has succeeded. Only this proves the evidence
+    /// pipeline end to end.
+    var isAttested: Bool {
+        if case .attested(let diagnostic) = self { return diagnostic.isTrusted }
+        return false
+    }
+}
+
 @MainActor
 protocol TrustedActivityDiagnosticClient: AnyObject {
     func requestAuthorization() async throws -> ActivityAuthorizationOutcome
+
+    /// Reads HealthKit locally and reports whether first-party device steps are
+    /// visible. Never contacts the server and never signs anything.
+    func probeLocalStepAccess(
+        timezone: String
+    ) async throws -> LocalStepAccessProbe
+
     func runTrustedDiagnostic(
         ownerID: UUID,
         timezone: String
@@ -105,6 +161,13 @@ final class DisabledTrustedActivityDiagnosticClient:
     TrustedActivityDiagnosticClient
 {
     func requestAuthorization() async throws -> ActivityAuthorizationOutcome {
+        throw PersonalAccountabilityClientError.diagnosticUnavailable
+    }
+
+    func probeLocalStepAccess(
+        timezone: String
+    ) async throws -> LocalStepAccessProbe {
+        _ = timezone
         throw PersonalAccountabilityClientError.diagnosticUnavailable
     }
 
