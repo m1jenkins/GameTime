@@ -3651,3 +3651,166 @@ calling the HealthKit completion handler before durable sync processing ends.
 **Revisit if.** A signed physical Staging run shows the platform suspends this
 bounded handler or fails to redeliver after an interrupted wake. Simulator tests
 prove only gating and callback ordering, never real background delivery.
+
+## M10 — Owner-only Solo contract domain
+
+### D105. Solo is a new aggregate, not a reinterpretation of Personal or Social
+
+**What.** Step 2A introduces `solo_contracts`, `solo_evaluations`, and
+`solo_appeals` after the Personal V1 migrations. A Solo row owns its contract
+policy, preliminary-failure, appeal, and logical-settlement lifecycle. It does
+not reuse `personal_challenge_results`, change a `contest` discriminator, or
+rename/drop/disable any historical Social relation. The Solo creation switch is
+seeded off, so the current Personal app and the dormant aggregate cannot both
+create through a normal client path.
+
+**Why.** Personal V1 publishes one terminal test result and deliberately has no
+appeal child workflow. Adding a preliminary result and appeal state to those
+tables would change the meaning of already-reviewed records. Historical Social
+agreements are an even stronger boundary: they include participants, charity,
+standings, and obligations that Solo must never infer or overwrite.
+
+**Rejected.** Renaming `personal_*` tables; treating a one-person contest as a
+Solo contract; adding appeal columns to the Personal result; dropping dormant
+Social RPCs; and hiding a cross-domain conflict behind client routing.
+
+**Revisit if.** A later migration deliberately unifies the Personal evidence
+aggregate with Solo contracts. It must define a one-way mapping, cross-domain
+open-slot ownership, and historical read compatibility before enabling both
+creation paths.
+
+### D106. A contract locks an immutable policy digest and local civil-day window
+
+**What.** The private Solo policy registry is append-only. Creation requires the
+caller's expected version to equal the runtime's active version, then copies
+both the version and its SHA-256 policy digest into the contract. The first
+policy is `solo-test-v1`: steps only, daily or cumulative cadence, a whole-step
+target, integer USD cents from 1,000 through 5,000, `test_only` settlement, one
+through seven local civil days, a 24-hour evidence grace, and a seven-day appeal
+window. Frozen IANA timezone plus local start date derives the absolute start,
+end, and evidence cutoff; duration is not calculated as `N * 24 hours`.
+
+Owner, policy, goal, amount, currency, settlement mode, timezone, window,
+lock time, and creation time are immutable. Evaluation and appeal rows copy the
+same owner and policy version through composite foreign keys.
+
+**Why.** A policy name without immutable content can be silently redefined, and
+an evaluation under a different version is not a decision on the agreement the
+owner accepted. Local civil dates preserve the product's existing DST rule.
+Hard database bounds remain defense in depth even though the policy also stores
+them.
+
+**Rejected.** A client-selected live settlement mode; mutable policy rows;
+unbounded cents or duration; UTC-only/fixed-hour windows; updating a locked term
+in place; and letting an evaluator choose another policy version.
+
+**Revisit if.** A new reviewed policy changes any bound, grace, appeal window,
+or settlement behavior. Add a new immutable policy row and require explicit
+client acknowledgement; do not edit `solo-test-v1`.
+
+### D107. One unsettled slot spans failure and appeal, while facts only append
+
+**What.** A partial unique index permits one `solo_contracts` row with
+`closed_at is null` per owner. That slot remains occupied through scheduled,
+active, evidence grace, preliminary failure, appeal, and settlement readiness.
+Only pre-start cancellation or terminal logical settlement closes it.
+
+The projection moves forward through `scheduled`, `active`,
+`awaiting_evaluation`, and either settlement readiness or
+`preliminary_failure`. A preliminary failure may receive exactly one timely
+`filed` appeal event, moving it to `appeal_pending`; a service decision is a
+second insert-only event and moves it to settlement readiness. Failure without
+an appeal can settle only at or after its locked deadline. Evaluation rows and
+appeal events reject UPDATE, DELETE, and TRUNCATE.
+
+**Why.** Releasing the slot at `ends_at` would permit a new commitment while the
+first still has a live consequence. Updating an appeal row from pending to
+decided would erase the distinction between what the owner filed and what the
+service later decided. Contract-row locking plus unique partial indexes make
+appeal-versus-settlement races choose one valid serialized outcome.
+
+**Rejected.** Multiple open Solo contracts; deleting cancellation history;
+overwriting preliminary evaluation; adding a second ordinary appeal; settling
+before the filing deadline; reversing terminal state; and representing a
+decision as mutable columns on the filing.
+
+**Revisit if.** Policy approves parallel commitments or an independent second
+appeal tier. Either changes the slot and deadline model and requires a new
+policy version plus new lifecycle states.
+
+### D108. Database rollout gates and exact-request RPCs are the write boundary
+
+**What.** The database, not an iOS build flag or JWT metadata, owns two mutable
+creation gates: a singleton runtime switch/active-policy pointer and a positive
+beta-eligibility row. Both are private and service-writable only through
+versioned RPCs. The switch is off and the allowlist empty after migration.
+
+Every owner or service mutation is a narrowly granted versioned RPC and records
+an operation-scoped request UUID, canonical payload hash, and result. Exact
+committed retries return that result before mutable gates or elapsed deadlines
+are rechecked; changing a payload under the same request UUID fails. The sole
+integration exception is account deletion: a versioned trigger function is
+guarded by D81's serialized transaction marker and inherits D81's audit trail,
+instead of manufacturing another request UUID for the historical deletion RPC.
+Authenticated roles receive direct `SELECT` only on the three public tables,
+with active-owner RLS. `anon` and direct `service_role` table writes receive no
+grant.
+
+**Why.** A client-side switch can be removed by a modified build and
+`user_metadata` is user-editable. Network ambiguity is ordinary around creation,
+cancellation, evaluation, appeal, and settlement; a retry must recover an
+already-committed decision without turning into a new policy decision.
+
+**Rejected.** Authorization from JWT `user_metadata`; public config tables;
+direct service inserts; unversioned write RPCs; rechecking beta eligibility on
+an exact creation retry; and using a client read-then-insert query for the open
+slot.
+
+**Revisit if.** Hosted rollout needs cohorts, percentage allocation, or expiry.
+Add a server-authored eligibility policy and preserve the same exact-retry and
+active-policy acknowledgement contract.
+
+### D109. Account deletion closes only an unstarted Solo agreement
+
+**What.** A forward profile-tombstone trigger extends the existing atomic
+`delete_account` transaction without rewriting its historical migration. Every
+Solo RPC follows owner-profile then contract lock order. When deletion owns that
+profile lock, the trigger cancels a scheduled contract only if the trusted
+server time is strictly before `starts_at`, marks beta eligibility false, and
+retains every post-start contract, evaluation, and appeal row. Service lifecycle
+RPCs may finish retained facts for a tombstoned owner; a stale owner JWT reads
+nothing and cannot file an appeal.
+
+**Why.** Deletion must not become a way to escape an agreement after it begins,
+but an unstarted test agreement can be cancelled safely. Retention preserves the
+audit trail while the durable profile UUID is already pseudonymized by D81.
+Using the same lock order prevents deletion/create and deletion/appeal races
+from leaving an orphan or half-transition.
+
+**Rejected.** Cascading Solo history from `auth.users`; cancelling an active or
+appealed contract; blocking deletion on any Solo history; replacing the large
+D81 function; and allowing stale bearer identity to keep owner access.
+
+**Revisit if.** Real-money policy is approved. Before a paid policy can launch,
+deleted-owner review rights, capability handoff, notices, refunds, and legal
+retention need an explicit design rather than inheriting this test-only rule.
+
+### D110. Step 2A has logical dispositions and no authorization interface
+
+**What.** `released`, `forfeited`, and `waived` are test-only logical settlement
+dispositions. Step 2A stores no payment method, processor customer, mandate,
+authorization, hold, capture, charge, transfer, payout, retry, or provider
+identifier. No nullable provider-shaped column is reserved in advance.
+
+**Why.** The contract lifecycle can be reviewed and race-tested without moving
+money. Inventing an authorization shape before even a fake adapter exists would
+silently choose processor semantics and make a dormant schema look closer to
+paid launch than it is.
+
+**Rejected.** A Stripe-shaped foreign key; a seven-day authorization hold;
+collecting a card for future use; treating `forfeited` as a charge instruction;
+and enabling Solo creation merely because the logical domain passes locally.
+
+**Revisit if.** The next reviewed slice adds a fake adapter. It should introduce
+the minimum private processor-neutral authorization aggregate in a forward
+migration, keep real providers absent, and leave hosted/real-money gates closed.

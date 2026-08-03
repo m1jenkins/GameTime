@@ -17,6 +17,11 @@ remain separate approval gates. [PLAN.md](PLAN.md) is the active roadmap and
 [docs/PERSONAL_V1_ACCEPTANCE.md](docs/PERSONAL_V1_ACCEPTANCE.md) defines the
 bounded Stage A acceptance record.
 
+The separate owner-only Solo contract domain from Step 2A is preserved locally
+but dormant. Its database creation switch is off, its beta allowlist is empty,
+and no iOS route, Edge Function, scheduler, provider, or money-moving path uses
+it.
+
 The former friend-and-charity challenge remains dormant, read-compatible legacy
 data and regression code for V2. V1 does not load or expose friends,
 invitations, rosters, standings, winners, charities, reactions, or tie-breaks,
@@ -176,6 +181,58 @@ invisible, and the comparison silently falls back to case-sensitive `text = text
 Write `lower(col::text) = lower($1)`. The unique index is unaffected either way,
 which is what makes the bug quiet: uniqueness stays case-insensitive while
 lookups stop matching. See DECISIONS.md D14.
+
+## Owner-only Solo contracts (Step 2A, local and disabled)
+
+Step 2A adds an isolated owner-only aggregate after the Personal migrations. It
+does not rename, drop, archive, disable, or reinterpret Personal or Social data.
+
+| Record | Contract |
+| --- | --- |
+| `solo_contracts` | Frozen owner, policy version/digest, steps goal, $10–$50 USD commitment, `test_only` settlement mode, timezone, and 1–7-local-day window plus a guarded lifecycle projection. |
+| `solo_evaluations` | One append-only service-authored preliminary evaluation per contract. A failure freezes its appeal deadline from the contract's policy version. |
+| `solo_appeals` | Append-only events: one owner-filed appeal per preliminary failure, then at most one service-authored decision. Decisions are inserted, never updated. |
+
+Authenticated clients have `SELECT` only on these three tables, and active-owner
+RLS prevents cross-owner reads. Mutations are limited to narrowly granted,
+versioned RPCs:
+
+```text
+authenticated
+  create_solo_contract_v1
+  cancel_solo_contract_v1
+  file_solo_appeal_v1
+
+service_role
+  set_solo_contract_runtime_v1
+  set_solo_beta_eligibility_v1
+  advance_solo_contract_v1
+  record_solo_evaluation_v1
+  decide_solo_appeal_v1
+  settle_solo_contract_v1
+```
+
+Every ordinary Solo mutation uses an operation-scoped exact-request record.
+Creation requires an active profile, explicit private beta eligibility, the
+authoritative database switch, and acknowledgement of the active immutable
+policy version. Exact committed retries recover before mutable gates are
+rechecked. The account-deletion bridge is the sole integration exception: it
+inherits the existing serialized deletion transaction and audit trail.
+
+The lifecycle is forward-only. A partial unique index permits one unsettled
+contract per owner. Pre-start cancellation is allowed only while scheduled and
+strictly before `starts_at`; preliminary failure may receive one timely appeal;
+terminal settlement records only the logical `released`, `forfeited`, or
+`waived` disposition. Account deletion cancels only a genuinely pre-start
+contract and retains post-start facts for service finality.
+
+Step 2A deliberately has no authorization interface. It stores no provider,
+credential, payment method, card data, customer, mandate, webhook, hold,
+capture, charge, transfer, payout, or raw sensitive payload. Dollar-denominated
+commitments and logical dispositions remain local `test_only` facts and do not
+reserve funds or move money. Personal and Solo currently have independent open
+slots, so both creation paths must not be enabled until a later migration owns
+the cross-domain rule.
 
 
 ## Dormant legacy social graph (V2/regression)
@@ -986,3 +1043,9 @@ implementation gates, and work not yet reflected here are in PLAN.md.
       complete. Hosted Staging acceptance and signed physical-iPhone
       foreground/background delivery proof remain open. No deployment,
       TestFlight release, or live fee is authorized by the repository slice.
+- [x] **M10 Step 2A owner-only Solo repository slice** — The disabled local
+      aggregate freezes immutable policy and terms, enforces owner-only reads,
+      exact retries, one unsettled slot, append-only evaluation/appeal facts,
+      guarded lifecycle and deletion integration. Its switch remains off and
+      beta allowlist empty; no authorization, provider, app/worker wiring,
+      hosted acceptance, or money movement exists.

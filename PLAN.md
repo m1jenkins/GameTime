@@ -140,6 +140,64 @@ Exit criteria:
   `test_only`.
 
 
++## 2A. Owner-only Solo contract domain — implemented locally
+
+Step 2A adds a new, isolated contract aggregate without rewriting the Personal
+V1 evidence path or any historical Social table. The aggregate is deliberately
+dormant: its authoritative database creation switch is seeded off, no user is
+beta-eligible by default, and the current iOS app does not call it.
+
+Implemented in this reviewable slice:
+
+- `solo_contracts` freezes the active policy version and digest, steps cadence
+  and target, USD commitment, settlement mode, IANA timezone, and a 1–7-local-day
+  window. A partial unique index permits one unsettled Solo contract per owner.
+- Commitments accept integer USD cents from $10 through $50. Every row is
+  structurally `test_only`; there is no processor, payment method,
+  authorization, charge, transfer, payout, or provider identifier.
+- The only lifecycle is `scheduled → active → awaiting_evaluation`, followed by
+  preliminary success/inconclusive settlement readiness or one preliminary
+  failure. A pre-start cancellation, one appeal, an append-only decision, and a
+  terminal logical settlement are the only additional paths.
+- `solo_evaluations` is an append-only service ledger.
+  `solo_appeals` is an append-only event ledger with one `filed` event per
+  preliminary failure and at most one `decided` event per filing.
+- All client and service mutations use explicitly granted versioned RPCs and an
+  exact-request ledger. Authenticated owners receive direct `SELECT` only,
+  bounded by active owner RLS. `anon`, other owners, and direct client/service
+  table writes are refused.
+- New creation requires both the private DB-backed beta allowlist and the
+  authoritative contract-creation switch, and the caller must acknowledge the
+  exact active policy version. Exact committed retries recover before mutable
+  rollout gates are rechecked.
+- Account deletion cancels only a still-scheduled, pre-start Solo contract,
+  disables that owner's beta eligibility, and retains post-start evaluation and
+  appeal facts for service finality. Stale JWTs cannot read or mutate them. This
+  versioned trigger bridge inherits D81's transaction marker and audit trail; it
+  does not invent a second Solo request UUID for the existing deletion RPC.
+
+Exit criteria for 2A:
+
+- Forward migrations apply after every existing migration without modifying or
+  disabling the Personal or Social implementation.
+- pgTAP proves bounds, locked terms, RLS, privileges, exact retries, one-open
+  concurrency, every lifecycle boundary, one-appeal races, and account-deletion
+  boundaries.
+- Full local database, advisor/lint, Deno, Swift package, reference, and
+  whitespace checks pass.
+
+Transitional after 2A:
+
+- No app route or Edge Function uses the Solo RPCs yet.
+- No hosted runtime switch or beta eligibility is changed.
+- Scheduler wiring, a unified Personal-to-Solo client boundary, and
+  hosted/two-actor acceptance remain later reviewable slices. Step 2B implements
+  only the processor-neutral fake authorization adapter identified here.
+- The existing Personal V1 and the dormant Solo aggregate have independent open
+  slots. They must not both be enabled in a client until a later migration owns
+  the cross-domain slot rule.
+
+
 ## 3. Personal iOS
 
 Retain the approved Daybreak visual system and replace the normal app journey:
@@ -201,6 +259,7 @@ App Store submission, or production configuration is authorized by this plan.
 | Personal terms and one-open slot | Implemented; lifecycle, exact-retry, and two-session concurrency tests pass | Hosted Staging observation after approval |
 | Trusted diagnostic and sync coverage | Edge, database, and iOS paths implemented; local service tests and builds pass | Signed physical HealthKit/App Attest and background-delivery proof |
 | Personal scoring and holds | Implemented; DST, completeness, outage, deletion, retention, and recovery tests pass locally | Hosted scheduler/operator run plus physical final sync |
+| Solo contract domain (2A) | Implemented locally; policy-locked owner records, rollout gates, append-only evaluation/appeal facts, lifecycle, and deletion integration | Runtime remains off; client/worker integration and hosted acceptance remain separate slices |
 | Three-tab personal Daybreak app | Personal simulator acceptance passes on a booted iPhone 17 Pro simulator: 103 unit, 10 UI, and 10 conformance tests pass; unsigned Debug/Staging/Release builds pass; D83 accepts the expected Xcode 26.2 no-AppIntents self-skip | Signed physical-device visual, HealthKit, App Attest, and background-delivery acceptance |
 | Hosted Stage A | Not deployed | Separate approval plus hosted acceptance |
 | Physical Stage A | Not run | One provisioned iPhone and bounded evidence record |
@@ -225,6 +284,10 @@ and waives automatically if unresolved by day 14. Injury reporting uses
 structured attestations without medical records. A confirmed miss may be
 charged once; failed collection requires a user-authorized retry and blocks
 another paid challenge without repeated retries or debt collection.
+
+Step 2A remains `test_only`. Dollar-denominated commitments and logical
+settlement are not Stage B clearance. They do not reserve funds, authorize a
+charge, or move money.
 
 ## Deferred V2
 
