@@ -104,6 +104,12 @@ select lives_ok(
   'the author may invite a friend'
 );
 
+-- Roster privacy is self-only: Bob may inspect the invitation addressed to
+-- him, while Alice's ability to create it does not grant her an unbounded
+-- participant-row read.
+select set_config('request.jwt.claims',
+  '{"sub":"22222222-2222-2222-2222-222222222222"}', true);
+
 select is(
   (select status::text from public.contest_participants
    where contest_id = (select id from t_open)
@@ -111,6 +117,9 @@ select is(
   'invited',
   'and the row lands as invited, not accepted'
 );
+
+select set_config('request.jwt.claims',
+  '{"sub":"11111111-1111-1111-1111-111111111111"}', true);
 
 -- dave is reachable by neither route. This is the assertion that keeps contest
 -- invitations from becoming a channel to arbitrary users.
@@ -238,8 +247,8 @@ select is(
 select is(
   (select count(*) from public.contest_participants
    where contest_id = (select id from t_open)),
-  2::bigint,
-  'and the whole roster, so they can see who else is in'
+  1::bigint,
+  'and only their own participant row, never the peer roster'
 );
 
 select is(

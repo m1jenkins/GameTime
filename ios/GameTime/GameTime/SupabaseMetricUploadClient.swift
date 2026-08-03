@@ -9,6 +9,11 @@ struct MetricSignedMaterial: Equatable, Sendable {
   let assertion: Data
 }
 
+@MainActor
+protocol AppAttestedBodySigning: AnyObject {
+  func sign(ownerID: UUID, body: Data) async throws -> MetricSignedMaterial
+}
+
 struct MetricUploadReceipt: Equatable, Sendable {
   let batchID: UUID
   let replayed: Bool
@@ -181,7 +186,9 @@ protocol MetricAppAttestStateStoring: AnyObject {
 }
 
 @MainActor
-final class SupabaseMetricUploadClient: MetricUploadClient {
+final class SupabaseMetricUploadClient: MetricUploadClient,
+  AppAttestedBodySigning
+{
   private static let maximumResponseBytes = 64 * 1024
 
   private let sessionProvider: any MetricUploadSessionProviding
@@ -231,6 +238,16 @@ final class SupabaseMetricUploadClient: MetricUploadClient {
     body: Data
   ) async throws -> MetricSignedMaterial {
     _ = try metricIdentity(in: body)
+    return try await sign(ownerID: ownerID, body: body)
+  }
+
+  func sign(
+    ownerID: UUID,
+    body: Data
+  ) async throws -> MetricSignedMaterial {
+    guard !body.isEmpty, body.count <= 64 * 1024 else {
+      throw MetricUploadClientError.invalidMetricBody
+    }
     guard ownersBeingPrepared.insert(ownerID).inserted else {
       throw MetricUploadClientError.operationInProgress
     }

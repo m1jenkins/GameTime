@@ -67,6 +67,55 @@ export interface ActiveActorDatabase {
   assertActiveActor(userId: string): Promise<void>;
 }
 
+/** One App-Attest-bound coverage upload for a personal challenge. */
+export interface RecordPersonalCoverageArgs {
+  readonly userId: string;
+  readonly challengeId: string;
+  readonly clientCoverageId: string;
+  readonly payloadDigest: Bytes;
+  readonly observedAt: string;
+  readonly coveredIntervalStarts: readonly string[];
+  readonly keyId: Bytes;
+  readonly signCount: number;
+}
+
+export interface RecordedPersonalCoverage {
+  readonly coverageBatchId: string;
+  readonly replayed: boolean;
+}
+
+export interface PersonalCoverageDatabase {
+  recordPersonalCoverage(
+    args: RecordPersonalCoverageArgs,
+  ): Promise<RecordedPersonalCoverage>;
+}
+
+/** One positive trusted-device HealthKit diagnostic, signed by App Attest. */
+export interface RecordActivityDiagnosticArgs {
+  readonly userId: string;
+  readonly clientDiagnosticId: string;
+  readonly payloadDigest: Bytes;
+  readonly observedAt: string;
+  readonly healthKitReadStartedAt: string;
+  readonly healthKitReadEndedAt: string;
+  readonly trustedDeviceSampleCount: number;
+  readonly keyId: Bytes;
+  readonly signCount: number;
+}
+
+export interface RecordedActivityDiagnostic {
+  readonly diagnosticId: string;
+  readonly performedAt: string;
+  readonly replayed: boolean;
+  readonly clearedHold: boolean;
+}
+
+export interface ActivityDiagnosticDatabase {
+  recordActivityDiagnostic(
+    args: RecordActivityDiagnosticArgs,
+  ): Promise<RecordedActivityDiagnostic>;
+}
+
 /** One hour of one metric, as the client reports it. */
 export interface ObservationInput {
   readonly metric: string;
@@ -346,6 +395,33 @@ function integrityAssessmentFailureFor(
   }
 }
 
+/** Personal health-data endpoints never expose row, device, or payload detail. */
+function personalActivityFailureFor(
+  code: string | undefined,
+  _detail: string,
+): HttpFailure {
+  switch (code) {
+    case "23001": // restrict_violation
+    case "22023": // invalid_parameter_value
+    case "23514": // check_violation
+      return new HttpFailure("rejected", "the trusted activity request was refused");
+    case "23505": // unique_violation
+      return new HttpFailure(
+        "rejected",
+        "this request id was already used for different contents",
+      );
+    case "23503": // foreign_key_violation
+    case "42501": // insufficient_privilege
+      return new HttpFailure("forbidden", "the trusted activity request is not authorized");
+    default:
+      // A database refusal can quote source bundle IDs, device metadata, or a
+      // signed interval. Personal activity endpoints deliberately discard that
+      // detail even from application logs; operational correlation belongs in
+      // database-side request IDs, not copied health evidence.
+      return new HttpFailure("internal", "the request could not be processed");
+  }
+}
+
 async function rpc(
   config: PostgrestConfig,
   name: string,
@@ -501,6 +577,102 @@ export function postgrestDatabase(
         batchId: row.batch_id,
         observationCount: row.observation_count,
         replayed: row.replayed,
+      };
+    },
+  };
+}
+
+/** Production adapters for personal coverage and trusted diagnostics. */
+export function postgrestPersonalCoverageDatabase(
+  config: PostgrestConfig,
+): PersonalCoverageDatabase {
+  return {
+    async recordPersonalCoverage(args) {
+      const result = await rpc(
+        config,
+        "record_personal_sync_coverage_v1",
+        {
+          p_user_id: args.userId,
+          p_challenge_id: args.challengeId,
+          p_client_coverage_id: args.clientCoverageId,
+          p_payload_digest: toByteaLiteral(args.payloadDigest),
+          p_observed_at: args.observedAt,
+          p_covered_bucket_starts: args.coveredIntervalStarts,
+          p_key_id: toByteaLiteral(args.keyId),
+          p_sign_count: args.signCount,
+        },
+        personalActivityFailureFor,
+      );
+      const rows = Array.isArray(result) ? result : [result];
+      const row = rows[0] as
+        | { coverage_batch_id?: unknown; replayed?: unknown }
+        | undefined;
+      if (
+        row === undefined || typeof row.coverage_batch_id !== "string" ||
+        typeof row.replayed !== "boolean"
+      ) {
+        throw new HttpFailure(
+          "internal",
+          "the request could not be processed",
+          "record_personal_sync_coverage_v1 returned an unexpected shape",
+        );
+      }
+      return {
+        coverageBatchId: row.coverage_batch_id,
+        replayed: row.replayed,
+      };
+    },
+  };
+}
+
+export function postgrestActivityDiagnosticDatabase(
+  config: PostgrestConfig,
+): ActivityDiagnosticDatabase {
+  return {
+    async recordActivityDiagnostic(args) {
+      const result = await rpc(
+        config,
+        "record_trusted_personal_diagnostic_v1",
+        {
+          p_user_id: args.userId,
+          p_client_diagnostic_id: args.clientDiagnosticId,
+          p_payload_digest: toByteaLiteral(args.payloadDigest),
+          p_observed_at: args.observedAt,
+          p_query_started_at: args.healthKitReadStartedAt,
+          p_query_ended_at: args.healthKitReadEndedAt,
+          p_trusted_device_sample_count: args.trustedDeviceSampleCount,
+          p_key_id: toByteaLiteral(args.keyId),
+          p_sign_count: args.signCount,
+        },
+        personalActivityFailureFor,
+      );
+      const rows = Array.isArray(result) ? result : [result];
+      const row = rows[0] as
+        | {
+          diagnostic_id?: unknown;
+          performed_at?: unknown;
+          replayed?: unknown;
+          cleared_hold?: unknown;
+        }
+        | undefined;
+      if (
+        row === undefined || typeof row.diagnostic_id !== "string" ||
+        typeof row.performed_at !== "string" ||
+        !Number.isFinite(Date.parse(row.performed_at)) ||
+        typeof row.replayed !== "boolean" ||
+        typeof row.cleared_hold !== "boolean"
+      ) {
+        throw new HttpFailure(
+          "internal",
+          "the request could not be processed",
+          "record_trusted_personal_diagnostic_v1 returned an unexpected shape",
+        );
+      }
+      return {
+        diagnosticId: row.diagnostic_id,
+        performedAt: new Date(row.performed_at).toISOString(),
+        replayed: row.replayed,
+        clearedHold: row.cleared_hold,
       };
     },
   };

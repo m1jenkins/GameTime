@@ -2,17 +2,25 @@ import SwiftUI
 
 struct YouView: View {
     @Environment(AppModel.self) private var model
+    @Environment(PersonalAccountabilityStore.self) private var personalStore
     @Environment(AppRouter.self) private var router
     @Environment(\.demoMode) private var demoMode
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 11) {
+            LazyVStack(spacing: 12) {
                 profileCard
-                accountSection
+                TestCommitmentDisclosure()
+                healthSection
+                if personalStore.eligibilityHoldActive {
+                    DaybreakSectionLabel(text: "Eligibility")
+                    PersonalEligibilityHoldCard(
+                        hold: personalStore.eligibilityHold
+                    )
+                }
+                privacySection
                 historySection
                 demoSection
-                debugSection
                 signOutControl
                 availabilityNote
             }
@@ -45,213 +53,136 @@ struct YouView: View {
                             )
                             .tracking(-0.65)
                         Text("@\(profile.handle)")
-                            .font(
-                                CompetitiveTrustTheme.uiFont(
-                                    size: 13,
-                                    relativeTo: .subheadline
-                                )
-                            )
-                            .foregroundStyle(
-                                CompetitiveTrustTheme.secondaryText
-                            )
+                            .font(.subheadline)
+                            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                             .accessibilityLabel(
                                 "Handle \(profile.handle), read only"
                             )
                     }
                     Spacer(minLength: 0)
                 }
+                Divider()
+                    .overlay(CompetitiveTrustTheme.border)
+                    .padding(.vertical, 12)
+                settingRow("Frozen challenge timezone", profile.timezone)
+                settingRow("Handle changes", "Locked")
             }
         }
     }
 
-    @ViewBuilder
-    private var accountSection: some View {
-        if let profile = model.profile {
-            DaybreakSectionLabel(text: "Account")
+    private var healthSection: some View {
+        Group {
+            DaybreakSectionLabel(text: "Health access")
             DaybreakCard {
-                VStack(spacing: 0) {
-                    settingRow(
-                        title: "Contest timezone",
-                        value: profile.timezone
-                    )
-                    Divider()
-                        .overlay(CompetitiveTrustTheme.border)
-                    settingRow(
-                        title: "Handle changes",
-                        value: "Locked"
-                    )
-                    Divider()
-                        .overlay(CompetitiveTrustTheme.border)
-                    Button {
-                        router.youPath.append(.trustAndPrivacy)
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "checkmark.shield")
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundStyle(
-                                    CompetitiveTrustTheme.mintInk
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Label("Apple Health steps", systemImage: "heart.fill")
+                            .font(
+                                CompetitiveTrustTheme.displayFont(
+                                    size: 18,
+                                    relativeTo: .headline
                                 )
-                                .frame(width: 22)
-                                .accessibilityHidden(true)
-                            Text("Trust and privacy boundaries")
-                                .font(
-                                    CompetitiveTrustTheme.uiFont(
-                                        size: 15,
-                                        relativeTo: .body,
-                                        weight: .semibold
-                                    )
-                                )
-                            Spacer(minLength: 8)
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(
-                                    CompetitiveTrustTheme.guide
-                                )
-                                .accessibilityHidden(true)
-                        }
-                        .padding(.vertical, 13)
-                        .contentShape(Rectangle())
+                            )
+                        Spacer(minLength: 8)
+                        TrustStatusPill(
+                            text: diagnosticStatus,
+                            kind: personalStore.latestDiagnostic?.isTrusted == true
+                                ? .verified
+                                : .action
+                        )
                     }
-                    .buttonStyle(.plain)
+                    if let diagnostic = personalStore.latestDiagnostic {
+                        Text(
+                            "Last diagnostic \(diagnostic.performedAt.formatted(.relative(presentation: .named))) · \(diagnostic.positiveTrustedSampleCount) trusted samples"
+                        )
+                        .font(.caption)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    } else {
+                        Text(
+                            "A trusted diagnostic is required before confirming a personal challenge."
+                        )
+                        .font(.caption)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    }
+                    Button("Run trusted diagnostic") {
+                        Task {
+                            _ = await personalStore.runDiagnostic(
+                                timezone: model.profile?.timezone
+                                    ?? TimeZone.current.identifier
+                            )
+                        }
+                    }
+                    .buttonStyle(TrustSecondaryButtonStyle())
+                    .disabled(
+                        personalStore.isRunningDiagnostic
+                            || !personalStore.configuration.activitySyncEnabled
+                    )
+                    .accessibilityIdentifier("personal.diagnostic.run")
+                    if !personalStore.configuration.activitySyncEnabled {
+                        Text(
+                            "This check is locked outside Staging and requires a supported physical iPhone for acceptance."
+                        )
+                        .font(.caption2)
+                        .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                    }
                 }
             }
         }
     }
 
-    private func settingRow(title: String, value: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(title)
-                .font(
-                    CompetitiveTrustTheme.uiFont(
-                        size: 15,
-                        relativeTo: .body,
-                        weight: .semibold
-                    )
-                )
-            Spacer(minLength: 8)
-            Text(value)
-                .font(
-                    CompetitiveTrustTheme.uiFont(
-                        size: 13.5,
-                        relativeTo: .subheadline
-                    )
-                )
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .multilineTextAlignment(.trailing)
+    private var privacySection: some View {
+        Group {
+            DaybreakSectionLabel(text: "Privacy")
+            DaybreakCard {
+                Button {
+                    router.youPath.append(.trustAndPrivacy)
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "checkmark.shield.fill")
+                            .foregroundStyle(CompetitiveTrustTheme.mintInk)
+                            .frame(width: 24)
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Health and account boundaries")
+                                .font(.body.weight(.semibold))
+                            Text("What GameTime reads, sends, and keeps private")
+                                .font(.caption)
+                                .foregroundStyle(
+                                    CompetitiveTrustTheme.secondaryText
+                                )
+                        }
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(CompetitiveTrustTheme.guide)
+                            .accessibilityHidden(true)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("privacy.open")
+            }
         }
-        .padding(.vertical, 13)
-        .accessibilityElement(children: .combine)
     }
 
     private var historySection: some View {
         Group {
-            DaybreakSectionLabel(text: "Challenge history")
+            DaybreakSectionLabel(text: "Personal history")
             DaybreakCard {
-                VStack(alignment: .leading, spacing: 14) {
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 0) {
-                            historyMetric(
-                                value: model.contests.count.formatted(),
-                                label: "Total"
-                            )
-                            historyMetric(
-                                value: liveChallengeCount.formatted(),
-                                label: "Live now"
-                            )
-                            historyMetric(
-                                value: finishedChallengeCount.formatted(),
-                                label: "Finished"
-                            )
-                        }
-                        VStack(alignment: .leading, spacing: 12) {
-                            historyMetric(
-                                value: model.contests.count.formatted(),
-                                label: "Total"
-                            )
-                            historyMetric(
-                                value: liveChallengeCount.formatted(),
-                                label: "Live now"
-                            )
-                            historyMetric(
-                                value: finishedChallengeCount.formatted(),
-                                label: "Finished"
-                            )
-                        }
-                    }
-
-                    HStack(spacing: 4) {
-                        if model.contests.isEmpty {
-                            Capsule()
-                                .fill(CompetitiveTrustTheme.rail)
-                                .frame(height: 6)
-                        } else {
-                            ForEach(model.contests.prefix(9)) { contest in
-                                Capsule()
-                                    .fill(historyColor(for: contest.status))
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 6)
-                                    .accessibilityHidden(true)
-                            }
-                        }
-                    }
-
-                    Text(
-                        model.contests.isEmpty
-                            ? "Your accepted challenges will collect here."
-                            : "Coral is live, gold is upcoming, and green is finished."
+                HStack(spacing: 0) {
+                    historyMetric(
+                        personalStore.challenges.count.formatted(),
+                        "Total"
                     )
-                    .font(
-                        CompetitiveTrustTheme.uiFont(
-                            size: 11.5,
-                            relativeTo: .caption
-                        )
+                    historyMetric(
+                        (personalStore.openChallenge == nil ? 0 : 1).formatted(),
+                        "Open"
                     )
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    historyMetric(
+                        personalStore.history.count.formatted(),
+                        "Completed"
+                    )
                 }
             }
-        }
-    }
-
-    private func historyMetric(value: String, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(value)
-                .font(
-                    CompetitiveTrustTheme.displayFont(
-                        size: 20,
-                        relativeTo: .title3
-                    )
-                )
-            Text(label)
-                .font(
-                    CompetitiveTrustTheme.uiFont(
-                        size: 11.5,
-                        relativeTo: .caption
-                    )
-                )
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-    }
-
-    private var liveChallengeCount: Int {
-        model.contests.filter { $0.status == .active }.count
-    }
-
-    private var finishedChallengeCount: Int {
-        model.contests.filter { $0.status == .finalized }.count
-    }
-
-    private func historyColor(for status: ContestStatus) -> Color {
-        switch status {
-        case .active:
-            CompetitiveTrustTheme.coral
-        case .pending:
-            CompetitiveTrustTheme.sun
-        case .finalized:
-            CompetitiveTrustTheme.mint
-        case .cancelled:
-            CompetitiveTrustTheme.rail
         }
     }
 
@@ -259,108 +190,30 @@ struct YouView: View {
     private var demoSection: some View {
         if demoMode.isAvailable {
             DaybreakSectionLabel(text: "Demo")
-            if demoMode.isActive {
-                demoCard(
-                    title: "Exit demo mode",
-                    detail: "Return to your unchanged staging account.",
-                    buttonTitle: "Exit",
-                    identifier: "demo.exit",
-                    action: demoMode.exit
-                )
-            } else {
-                demoCard(
-                    title: "Open demo mode",
-                    detail: "Practice without changing your account.",
-                    buttonTitle: "Open",
-                    identifier: "demo.enter",
-                    action: demoMode.enter
-                )
-            }
-        }
-    }
-
-    private func demoCard(
-        title: String,
-        detail: String,
-        buttonTitle: String,
-        identifier: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        DaybreakCard {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title)
-                        .font(
-                            CompetitiveTrustTheme.uiFont(
-                                size: 15,
-                                relativeTo: .body,
-                                weight: .semibold
-                            )
-                        )
-                    Text(detail)
-                        .font(
-                            CompetitiveTrustTheme.uiFont(
-                                size: 11.5,
-                                relativeTo: .caption
-                            )
-                        )
-                        .foregroundStyle(
-                            CompetitiveTrustTheme.secondaryText
-                        )
-                }
-                Spacer(minLength: 8)
-                Button(buttonTitle, action: action)
-                    .buttonStyle(TrustCompactButtonStyle())
-                    .accessibilityIdentifier(identifier)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var debugSection: some View {
-        #if DEBUG
-        DaybreakSectionLabel(text: "Debug fixtures")
-        DaybreakCard {
-            Button {
-                router.youPath.append(.futureContestFixtures)
-            } label: {
+            DaybreakCard {
                 HStack(spacing: 12) {
-                    Image(systemName: "wrench.and.screwdriver")
-                        .foregroundStyle(CompetitiveTrustTheme.sunInk)
-                        .frame(width: 22)
-                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Post-contest states")
-                            .font(
-                                CompetitiveTrustTheme.uiFont(
-                                    size: 15,
-                                    relativeTo: .body,
-                                    weight: .semibold
-                                )
-                            )
-                        Text("Fixture-only finalization and review states")
-                            .font(
-                                CompetitiveTrustTheme.uiFont(
-                                    size: 11.5,
-                                    relativeTo: .caption
-                                )
-                            )
-                            .foregroundStyle(
-                                CompetitiveTrustTheme.secondaryText
-                            )
+                        Text(demoMode.isActive ? "Exit demo mode" : "Open demo mode")
+                            .font(.body.weight(.semibold))
+                        Text(
+                            demoMode.isActive
+                                ? "Return to your unchanged staging account."
+                                : "Practice with personal-accountability fixtures."
+                        )
+                        .font(.caption)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                     }
                     Spacer(minLength: 8)
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(CompetitiveTrustTheme.guide)
-                        .accessibilityHidden(true)
+                    Button(demoMode.isActive ? "Exit" : "Open") {
+                        demoMode.isActive ? demoMode.exit() : demoMode.enter()
+                    }
+                    .buttonStyle(TrustCompactButtonStyle())
+                    .accessibilityIdentifier(
+                        demoMode.isActive ? "demo.exit" : "demo.enter"
+                    )
                 }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("debug.future-states")
         }
-        #endif
     }
 
     @ViewBuilder
@@ -371,20 +224,16 @@ struct YouView: View {
             } label: {
                 Group {
                     if model.isMutating {
-                        ProgressView()
-                            .accessibilityLabel("Signing out")
+                        ProgressView().accessibilityLabel("Signing out")
                     } else {
                         Text("Sign out")
                     }
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(
-                TrustCompactButtonStyle(tone: .quiet)
-            )
+            .buttonStyle(TrustCompactButtonStyle(tone: .quiet))
             .disabled(model.isMutating)
             .accessibilityIdentifier("account.sign-out")
-            .padding(.top, 3)
         }
     }
 
@@ -392,120 +241,115 @@ struct YouView: View {
         Text(
             "Handle changes and avatar uploads aren’t available in this alpha."
         )
-        .font(
-            CompetitiveTrustTheme.uiFont(
-                size: 11,
-                relativeTo: .caption2
-            )
-        )
+        .font(.caption2)
         .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
         .multilineTextAlignment(.center)
-        .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)
+    }
+
+    private var diagnosticStatus: String {
+        switch personalStore.latestDiagnostic?.status {
+        case .trusted: "Trusted"
+        case .noPositiveTrustedSample: "Needs positive sample"
+        case .unavailable: "Unavailable"
+        case .failed: "Needs attention"
+        case .notRun, nil: "Not run"
+        }
+    }
+
+    private func settingRow(_ label: String, _ value: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(label).font(.subheadline.weight(.semibold))
+            Spacer(minLength: 8)
+            Text(value)
+                .font(.subheadline)
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .multilineTextAlignment(.trailing)
+        }
+        .padding(.vertical, 5)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func historyMetric(_ value: String, _ label: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(value)
+                .font(
+                    CompetitiveTrustTheme.displayFont(
+                        size: 21,
+                        relativeTo: .title3
+                    )
+                )
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 
 struct TrustAndPrivacyView: View {
     var body: some View {
-        List {
-            Section("Included in staging") {
-                Label(
-                    "Apple ID-token exchange with a cryptographic nonce",
-                    systemImage: "apple.logo"
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                TestCommitmentDisclosure()
+                privacyCard(
+                    title: "Owner-only personal records",
+                    detail:
+                        "Your frozen terms, progress, diagnostic state, result, and eligibility hold are readable only by you. Publishing results and clearing holds remain trusted-service operations.",
+                    icon: "person.crop.circle.badge.checkmark"
                 )
-                Label(
-                    "Exact-handle friendship discovery",
-                    systemImage: "at"
+                privacyCard(
+                    title: "Trusted steps, not raw health history",
+                    detail:
+                        "GameTime uses only first-party Apple-device step evidence from completed hourly intervals. Manual, third-party, and unknown-provenance entries are excluded; only the minimum signed metrics and coverage needed for assessment are sent.",
+                    icon: "heart.text.square.fill"
                 )
-                Label(
-                    "Immutable challenge terms and caller-scoped retries",
-                    systemImage: "doc.text.magnifyingglass"
+                privacyCard(
+                    title: "Inconclusive means waived",
+                    detail:
+                        "Missing, quarantined, conflicting, or unresolved evidence is never treated as a miss. Confirmed GameTime outages waive without placing an eligibility hold.",
+                    icon: "checkmark.shield.fill"
                 )
-                Label(
-                    "Merged Apple-device steps with App Attest",
-                    systemImage: "figure.walk"
-                )
-            }
-            .listRowBackground(CompetitiveTrustTheme.raisedInk)
-
-            Section {
-                Text("Background HealthKit delivery")
-                Text("Core Location")
-                Text("Push notifications")
-                Text("Finalization, settlement, and disputes")
-                Text("Account deletion")
-            } header: {
-                Text("Deliberately unavailable")
-            } footer: {
-                Text(
-                    "Only device-recorded step counts are in this prototype. Manual and third-party HealthKit entries are excluded, and raw health data is never sent to analytics."
+                privacyCard(
+                    title: "No social or payment surface",
+                    detail:
+                        "Your accountability experience is private and individual, with no live payment request.",
+                    icon: "lock.fill"
                 )
             }
-            .listRowBackground(CompetitiveTrustTheme.raisedInk)
+            .padding(18)
         }
-        .trustScreenBackground()
+        .daybreakScreenChrome()
         .navigationTitle("Trust & privacy")
         .navigationBarTitleDisplayMode(.inline)
     }
-}
 
-#if DEBUG
-struct FutureContestFixturesView: View {
-    var body: some View {
-        List {
-            Section("Finalized") {
-                debugCard(
-                    title: "Result frozen",
-                    detail:
-                        "Scoring is complete. This fixture does not invoke a live finalization API.",
-                    icon: "checkmark.seal.fill",
-                    color: CompetitiveTrustTheme.teal
-                )
-            }
-            Section("Settlement") {
-                debugCard(
-                    title: "Pledge awaiting settlement",
-                    detail:
-                        "No payment or donation action exists in M8.1.",
-                    icon: "heart.text.square",
-                    color: CompetitiveTrustTheme.amber
-                )
-            }
-            Section("Dispute") {
-                debugCard(
-                    title: "Evidence under review",
-                    detail:
-                        "This is visual-only. No live dispute mutation is routed from the product app.",
-                    icon: "exclamationmark.bubble",
-                    color: CompetitiveTrustTheme.amber
-                )
-            }
-        }
-        .trustScreenBackground()
-        .navigationTitle("Future states")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func debugCard(
+    private func privacyCard(
         title: String,
         detail: String,
-        icon: String,
-        color: Color
+        icon: String
     ) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .foregroundStyle(color)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                Text(detail)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        DaybreakCard {
+            HStack(alignment: .top, spacing: 13) {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(CompetitiveTrustTheme.coral)
+                    .frame(width: 28)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(title)
+                        .font(
+                            CompetitiveTrustTheme.displayFont(
+                                size: 18,
+                                relativeTo: .headline
+                            )
+                        )
+                    Text(detail)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                }
             }
         }
-        .padding(.vertical, 5)
-        .accessibilityElement(children: .combine)
     }
 }
-#endif

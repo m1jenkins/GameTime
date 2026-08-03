@@ -2,10 +2,14 @@ import { assertEquals } from "@std/assert";
 import { type Bytes } from "./bytes.ts";
 import {
   type MarkDeviceReceiptVerifiedArgs,
+  postgrestActivityDiagnosticDatabase,
   type PostgrestConfig,
   postgrestDatabase,
   postgrestIntegrityAssessmentDatabase,
+  postgrestPersonalCoverageDatabase,
+  type RecordActivityDiagnosticArgs,
   type RecordMetricBatchArgs,
+  type RecordPersonalCoverageArgs,
   type RegisterDeviceKeyArgs,
 } from "./database.ts";
 import { HttpFailure, respond } from "./http.ts";
@@ -58,6 +62,32 @@ const METRIC_BATCH: RecordMetricBatchArgs = {
   ],
   keyId: KEY_ID,
   signCount: 7,
+};
+
+const PERSONAL_COVERAGE: RecordPersonalCoverageArgs = {
+  userId: REGISTRATION.userId,
+  challengeId: METRIC_BATCH.contestId,
+  clientCoverageId: "44444444-4444-4444-4444-444444444444",
+  payloadDigest: new Uint8Array(32).fill(0x55),
+  observedAt: "2026-08-03T03:00:00.000Z",
+  coveredIntervalStarts: [
+    "2026-08-03T01:00:00.000Z",
+    "2026-08-03T02:00:00.000Z",
+  ],
+  keyId: KEY_ID,
+  signCount: 8,
+};
+
+const ACTIVITY_DIAGNOSTIC: RecordActivityDiagnosticArgs = {
+  userId: REGISTRATION.userId,
+  clientDiagnosticId: "55555555-5555-5555-5555-555555555555",
+  payloadDigest: new Uint8Array(32).fill(0x66),
+  observedAt: "2026-08-03T03:00:00.000Z",
+  healthKitReadStartedAt: "2026-08-03T02:59:58.000Z",
+  healthKitReadEndedAt: "2026-08-03T02:59:59.000Z",
+  trustedDeviceSampleCount: 4,
+  keyId: KEY_ID,
+  signCount: 9,
 };
 
 async function captureFailure(action: () => Promise<unknown>): Promise<HttpFailure> {
@@ -270,6 +300,212 @@ Deno.test("metric RPC failures discard raw health detail before logging", async 
     assertEquals(observableText.includes(priorValue), false);
     assertEquals(observableText.includes(revisedValue), false);
     assertEquals(observableText.includes(source), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    console.warn = originalWarn;
+    console.error = originalError;
+  }
+});
+
+Deno.test("personal coverage adapter preserves the signed interval set", async () => {
+  const originalFetch = globalThis.fetch;
+  let request: { url: string; body: Record<string, unknown> } | undefined;
+  try {
+    globalThis.fetch = (input, init) => {
+      request = {
+        url: String(input),
+        body: JSON.parse(String(init?.body)) as Record<string, unknown>,
+      };
+      return Promise.resolve(
+        new Response(
+          JSON.stringify([{
+            coverage_batch_id: "66666666-6666-6666-6666-666666666666",
+            replayed: false,
+          }]),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+    };
+
+    assertEquals(
+      await postgrestPersonalCoverageDatabase(CONFIG).recordPersonalCoverage(
+        PERSONAL_COVERAGE,
+      ),
+      {
+        coverageBatchId: "66666666-6666-6666-6666-666666666666",
+        replayed: false,
+      },
+    );
+    assertEquals(
+      request?.url,
+      "https://database.example.test/rest/v1/rpc/record_personal_sync_coverage_v1",
+    );
+    assertEquals(request?.body, {
+      p_user_id: PERSONAL_COVERAGE.userId,
+      p_challenge_id: PERSONAL_COVERAGE.challengeId,
+      p_client_coverage_id: PERSONAL_COVERAGE.clientCoverageId,
+      p_payload_digest: `\\x${"55".repeat(32)}`,
+      p_observed_at: PERSONAL_COVERAGE.observedAt,
+      p_covered_bucket_starts: PERSONAL_COVERAGE.coveredIntervalStarts,
+      p_key_id: `\\x${"11".repeat(32)}`,
+      p_sign_count: 8,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("trusted diagnostic adapter uses the positive sample contract", async () => {
+  const originalFetch = globalThis.fetch;
+  let request: { url: string; body: Record<string, unknown> } | undefined;
+  try {
+    globalThis.fetch = (input, init) => {
+      request = {
+        url: String(input),
+        body: JSON.parse(String(init?.body)) as Record<string, unknown>,
+      };
+      return Promise.resolve(
+        new Response(
+          JSON.stringify([{
+            diagnostic_id: "77777777-7777-7777-7777-777777777777",
+            performed_at: "2026-08-03T03:00:00.123456Z",
+            replayed: false,
+            cleared_hold: true,
+          }]),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+    };
+
+    assertEquals(
+      await postgrestActivityDiagnosticDatabase(CONFIG).recordActivityDiagnostic(
+        ACTIVITY_DIAGNOSTIC,
+      ),
+      {
+        diagnosticId: "77777777-7777-7777-7777-777777777777",
+        performedAt: "2026-08-03T03:00:00.123Z",
+        replayed: false,
+        clearedHold: true,
+      },
+    );
+    assertEquals(
+      request?.url,
+      "https://database.example.test/rest/v1/rpc/record_trusted_personal_diagnostic_v1",
+    );
+    assertEquals(request?.body, {
+      p_user_id: ACTIVITY_DIAGNOSTIC.userId,
+      p_client_diagnostic_id: ACTIVITY_DIAGNOSTIC.clientDiagnosticId,
+      p_payload_digest: `\\x${"66".repeat(32)}`,
+      p_observed_at: ACTIVITY_DIAGNOSTIC.observedAt,
+      p_query_started_at: ACTIVITY_DIAGNOSTIC.healthKitReadStartedAt,
+      p_query_ended_at: ACTIVITY_DIAGNOSTIC.healthKitReadEndedAt,
+      p_trusted_device_sample_count: 4,
+      p_key_id: `\\x${"11".repeat(32)}`,
+      p_sign_count: 9,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("personal activity adapters do not echo malformed private rows", async () => {
+  const originalFetch = globalThis.fetch;
+  const privateValue = "com.example.private-health-sentinel:9876543.21";
+  try {
+    globalThis.fetch = () =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify([{ unexpected_private_value: privateValue }]),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
+    for (
+      const action of [
+        () =>
+          postgrestPersonalCoverageDatabase(CONFIG).recordPersonalCoverage(
+            PERSONAL_COVERAGE,
+          ),
+        () =>
+          postgrestActivityDiagnosticDatabase(CONFIG).recordActivityDiagnostic(
+            ACTIVITY_DIAGNOSTIC,
+          ),
+      ]
+    ) {
+      const failure = await captureFailure(action);
+      assertEquals(failure.kind, "internal");
+      assertEquals(failure.message, "the request could not be processed");
+      assertEquals((failure.detail ?? "").includes(privateValue), false);
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("personal activity RPC refusals discard private detail before logging", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalWarn = console.warn;
+  const originalError = console.error;
+  const warnings: string[] = [];
+  const errors: string[] = [];
+  const privateValue = "com.example.private-health-sentinel:9876543.21";
+
+  try {
+    console.warn = (...values: unknown[]) => {
+      warnings.push(values.map(String).join(" "));
+    };
+    console.error = (...values: unknown[]) => {
+      errors.push(values.map(String).join(" "));
+    };
+
+    for (
+      const scenario of [
+        {
+          code: "23001",
+          expectedKind: "rejected",
+          expectedStatus: 422,
+          expectedMessage: "the trusted activity request was refused",
+        },
+        {
+          code: "XX999",
+          expectedKind: "internal",
+          expectedStatus: 500,
+          expectedMessage: "the request could not be processed",
+        },
+      ] as const
+    ) {
+      globalThis.fetch = () =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              code: scenario.code,
+              message: `private health evidence ${privateValue}`,
+            }),
+            {
+              status: 422,
+              headers: { "content-type": "application/json" },
+            },
+          ),
+        );
+
+      const database = postgrestPersonalCoverageDatabase(CONFIG);
+      const failure = await captureFailure(
+        () => database.recordPersonalCoverage(PERSONAL_COVERAGE),
+      );
+      assertEquals(failure.kind, scenario.expectedKind);
+      assertEquals(failure.message, scenario.expectedMessage);
+      assertEquals(failure.detail, undefined);
+
+      const response = await respond("personal-sync-coverage", async () => {
+        await database.recordPersonalCoverage(PERSONAL_COVERAGE);
+        return new Response(null, { status: 204 });
+      });
+      assertEquals(response.status, scenario.expectedStatus);
+      assertEquals((await response.text()).includes(privateValue), false);
+    }
+
+    assertEquals(warnings, []);
+    assertEquals(errors, []);
   } finally {
     globalThis.fetch = originalFetch;
     console.warn = originalWarn;

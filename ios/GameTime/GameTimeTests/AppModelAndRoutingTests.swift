@@ -4,6 +4,53 @@ import XCTest
 
 @MainActor
 final class AppModelAndRoutingTests: XCTestCase {
+    func testLegacySummaryDecodesBoundedRosterAndCallerTimezone() throws {
+        let json = Data(
+            #"{"contest_id":"11111111-1111-1111-1111-111111111111","title":"Legacy steps","created_by":"22222222-2222-2222-2222-222222222222","metric":"steps","cadence":"daily","target_value":10000,"stake_amount_cents":1000,"tie_break":"integrity_score","starts_at":"2026-08-03T05:00:00Z","ends_at":"2026-08-10T05:00:00Z","contest_status":"finalized","max_participants":3,"caller_status":"accepted","caller_timezone":"America/Chicago","accepted_count":2,"invited_count":1,"declined_count":0,"withdrawn_count":0,"lapsed_count":0,"author_profile":{"id":"22222222-2222-2222-2222-222222222222","handle":"author","display_name":"Author","is_deleted":false},"accepted_profiles":[{"id":"22222222-2222-2222-2222-222222222222","handle":"author","display_name":"Author","is_deleted":false},{"id":"33333333-3333-3333-3333-333333333333","handle":"member","display_name":"Member","is_deleted":false}]}"#.utf8
+        )
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        let row = try decoder.decode(ChallengeSummaryRow.self, from: json)
+        let summary = row.summary(timeZoneChanges: [])
+
+        XCTAssertEqual(summary.acceptedCount, 2)
+        XCTAssertEqual(summary.invitedCount, 1)
+        XCTAssertEqual(summary.acceptedParticipants.count, 2)
+        XCTAssertEqual(summary.contest.participantTimeZone, "America/Chicago")
+        XCTAssertEqual(summary.contest.resolvedParticipants.count, 2)
+        XCTAssertTrue(
+            summary.contest.resolvedParticipants.allSatisfy {
+                $0.status == .accepted
+            }
+        )
+    }
+
+    func testPersonalV1LaunchDoesNotLoadDormantSocialInventories() async {
+        let friendships = RecordingFriendshipsClient()
+        let contests = RecordingContestsClient()
+        let services = FixtureServicesFactory.make(
+            arguments: ["GameTimeTests", "--fixture-mode"],
+            friendshipsClient: friendships,
+            contestsClient: contests
+        )
+        let model = AppModel(
+            configuration: .personalFixture,
+            services: services
+        )
+
+        await model.start()
+
+        XCTAssertEqual(model.phase, .signedIn)
+        XCTAssertNotNil(model.profile)
+        XCTAssertEqual(friendships.listCallCount, 0)
+        XCTAssertEqual(contests.listChallengeSummariesCallCount, 0)
+        XCTAssertEqual(contests.listCharitiesCallCount, 0)
+        XCTAssertTrue(model.friendshipCards.isEmpty)
+        XCTAssertTrue(model.contests.isEmpty)
+        XCTAssertTrue(model.charities.isEmpty)
+    }
+
     func testFixtureLaunchRestoresSignedInLiveShape() async {
         let services = FixtureServicesFactory.make(
             arguments: ["GameTimeTests", "--fixture-mode"]
@@ -205,27 +252,28 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertNil(router.presentedSheet)
     }
 
-    func testRouterOpensPushDestinationDirectlyOnStandings() {
-        let contestID = UUID()
+    func testRouterOpensPersonalChallengeInChallengesTab() {
+        let challengeID = UUID()
         let router = AppRouter()
         router.presentedSheet = .createChallenge
         router.todayPath = [.contest(UUID())]
 
-        router.openStandings(contestID: contestID)
+        router.openPersonalChallenge(challengeID)
 
         XCTAssertEqual(router.selectedTab, .challenges)
-        XCTAssertEqual(router.challengesPath, [.standings(contestID)])
+        XCTAssertEqual(
+            router.challengesPath,
+            [.personalChallenge(challengeID)]
+        )
         XCTAssertNil(router.presentedSheet)
     }
 
-    func testPushEnvironmentIsStagingDevelopmentOnly() {
+    func testSocialPushRegistrationIsDormantInPersonalV1() {
         XCTAssertNil(
             PushNotificationCoordinator.pushEnvironment(for: .debug)
         )
-        XCTAssertEqual(
-            PushNotificationCoordinator.pushEnvironment(for: .staging)?
-                .rawValue,
-            "development"
+        XCTAssertNil(
+            PushNotificationCoordinator.pushEnvironment(for: .staging)
         )
         XCTAssertNil(
             PushNotificationCoordinator.pushEnvironment(for: .release)
@@ -363,52 +411,55 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertTrue(message.localizedCaseInsensitiveContains("offline"))
     }
 
-    func testReleaseLocksEveryContestMutation() async throws {
+    func testReleaseKeepsEveryDormantContestMutationInert() async throws {
         let configuration = try AppConfiguration.validated(
             environmentValue: "Release",
             urlValue: "https://example.supabase.co",
             keyValue: "sb_publishable_release_test",
             mutationValue: "YES"
         )
+        let contests = RecordingContestsClient()
         let model = AppModel(
             configuration: configuration,
             services: FixtureServicesFactory.make(
-                arguments: ["GameTimeTests", "--fixture-mode"]
+                arguments: ["GameTimeTests", "--fixture-mode"],
+                contestsClient: contests
             )
         )
         await model.start()
 
-        let originalCount = model.contests.count
-        var draft = ChallengeDraft()
-        draft.title = "Locked challenge"
-        draft.inviteeIDs = Set(
-            model.acceptedFriendships.map(\.otherUserID)
+        XCTAssertFalse(configuration.legacySocialRuntimeEnabled)
+        XCTAssertFalse(configuration.contestMutationsEnabled)
+        let now = Date()
+        let terms = ChallengeTerms(
+            requestID: UUID(),
+            title: "Locked challenge",
+            inviteeIDs: [UUID()],
+            metric: .steps,
+            cadence: .cumulative,
+            targetValue: 10_000,
+            stakeAmountCents: 1_000,
+            startsAt: now.addingTimeInterval(86_400),
+            endsAt: now.addingTimeInterval(8 * 86_400),
+            timezone: "America/Chicago",
+            charityID: UUID(),
+            tieBreak: .integrityScore
         )
-        draft.charityID = try XCTUnwrap(model.charities.first?.id)
-        let terms = try draft.validated()
 
         let createdID = await model.createChallenge(terms)
         XCTAssertNil(createdID)
-        XCTAssertEqual(model.contests.count, originalCount)
-        XCTAssertNil(model.pendingChallenge)
-
-        let invitation = try XCTUnwrap(model.invitations.first)
-        let charityID = try XCTUnwrap(model.charities.first?.id)
         await model.acceptInvitation(
-            contestID: invitation.id,
-            charityID: charityID
+            contestID: UUID(),
+            charityID: UUID()
         )
-        XCTAssertEqual(
-            model.contests.first { $0.id == invitation.id }?.myStatus,
-            .invited
-        )
+        await model.declineInvitation(contestID: UUID())
 
-        await model.declineInvitation(contestID: invitation.id)
-        XCTAssertEqual(
-            model.contests.first { $0.id == invitation.id }?.myStatus,
-            .invited
-        )
-        XCTAssertNotNil(model.presentedError)
+        XCTAssertEqual(contests.createCallCount, 0)
+        XCTAssertEqual(contests.acceptInvitationCallCount, 0)
+        XCTAssertEqual(contests.declineInvitationCallCount, 0)
+        XCTAssertTrue(model.contests.isEmpty)
+        XCTAssertNil(model.pendingChallenge)
+        XCTAssertNil(model.presentedError)
     }
 
     func testLostResponsePersistsAndRelaunchRetriesTheSameChallenge() async throws {
@@ -972,6 +1023,42 @@ private final class AnyActorProfileClient: ProfileClient {
 }
 
 @MainActor
+private final class RecordingFriendshipsClient: FriendshipsClient {
+    private(set) var listCallCount = 0
+
+    func listCards() async throws -> [FriendshipCard] {
+        listCallCount += 1
+        return []
+    }
+
+    func findExactHandle(_ handle: String) async throws -> ProfileCard? {
+        _ = handle
+        return nil
+    }
+
+    func requestFriendship(
+        callerID: UUID,
+        otherUserID: UUID
+    ) async throws {
+        _ = (callerID, otherUserID)
+    }
+
+    func acceptFriendship(
+        callerID: UUID,
+        otherUserID: UUID
+    ) async throws {
+        _ = (callerID, otherUserID)
+    }
+
+    func removeFriendship(
+        callerID: UUID,
+        otherUserID: UUID
+    ) async throws {
+        _ = (callerID, otherUserID)
+    }
+}
+
+@MainActor
 private final class RecordingContestsClient: ContestsClient {
     enum Behavior: Equatable {
         case succeed
@@ -979,6 +1066,10 @@ private final class RecordingContestsClient: ContestsClient {
     }
 
     private(set) var createCallCount = 0
+    private(set) var acceptInvitationCallCount = 0
+    private(set) var declineInvitationCallCount = 0
+    private(set) var listChallengeSummariesCallCount = 0
+    private(set) var listCharitiesCallCount = 0
     private(set) var submittedTerms: [ChallengeTerms] = []
     private let behavior: Behavior
 
@@ -986,13 +1077,17 @@ private final class RecordingContestsClient: ContestsClient {
         self.behavior = behavior
     }
 
-    func listContests(userID: UUID) async throws -> [ContestCard] {
+    func listChallengeSummaries(userID: UUID) async throws
+        -> [ChallengeRosterSummary]
+    {
         _ = userID
+        listChallengeSummariesCallCount += 1
         return []
     }
 
     func listCharities() async throws -> [Charity] {
-        []
+        listCharitiesCallCount += 1
+        return []
     }
 
     func standings(contestID: UUID) async throws -> ChallengeStandings? {
@@ -1027,9 +1122,11 @@ private final class RecordingContestsClient: ContestsClient {
         charityID: UUID
     ) async throws {
         _ = (contestID, userID, timezone, charityID)
+        acceptInvitationCallCount += 1
     }
 
     func declineInvitation(contestID: UUID, userID: UUID) async throws {
         _ = (contestID, userID)
+        declineInvitationCallCount += 1
     }
 }

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AppShellView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(AppModel.self) private var model
+    @Environment(PersonalAccountabilityStore.self) private var personalStore
     @Environment(AppRouter.self) private var router
 
     var body: some View {
@@ -13,10 +13,10 @@ struct AppShellView: View {
                 TodayView()
                     .navigationDestination(for: TodayRoute.self) { route in
                         switch route {
-                        case .contest(let id):
-                            ContestDetailView(contestID: id)
-                        case .friendship(let id):
-                            FriendshipDetailView(userID: id)
+                        case .personalChallenge(let id):
+                            PersonalChallengeDetailView(challengeID: id)
+                        case .contest, .friendship:
+                            PersonalV1UnavailableRouteView()
                         }
                     }
             }
@@ -30,10 +30,10 @@ struct AppShellView: View {
                 ChallengesView()
                     .navigationDestination(for: ChallengesRoute.self) { route in
                         switch route {
-                        case .contest(let id):
-                            ContestDetailView(contestID: id)
-                        case .standings(let id):
-                            ContestStandingsView(contestID: id)
+                        case .personalChallenge(let id):
+                            PersonalChallengeDetailView(challengeID: id)
+                        case .contest:
+                            PersonalV1UnavailableRouteView()
                         }
                     }
             }
@@ -43,31 +43,12 @@ struct AppShellView: View {
             }
             .tag(AppTab.challenges)
 
-            NavigationStack(path: $router.friendsPath) {
-                FriendsView()
-                    .navigationDestination(for: FriendsRoute.self) { route in
-                        switch route {
-                        case .profile(let id):
-                            FriendshipDetailView(userID: id)
-                        }
-                    }
-            }
-            .tabItem {
-                Label("Friends", systemImage: "person.2.fill")
-                    .accessibilityIdentifier("tab.friends")
-            }
-            .tag(AppTab.friends)
-
             NavigationStack(path: $router.youPath) {
                 YouView()
                     .navigationDestination(for: YouRoute.self) { route in
                         switch route {
                         case .trustAndPrivacy:
                             TrustAndPrivacyView()
-                        #if DEBUG
-                        case .futureContestFixtures:
-                            FutureContestFixturesView()
-                        #endif
                         }
                     }
             }
@@ -93,18 +74,31 @@ struct AppShellView: View {
         .environment(\.colorScheme, .light)
         .sheet(item: $router.presentedSheet) { destination in
             switch destination {
-            case .createChallenge:
-                CreateChallengeFlow()
-            case .acceptInvitation(let contestID):
-                AcceptInvitationView(contestID: contestID)
+            case .createPersonalChallenge:
+                CreatePersonalChallengeFlow()
+            case .createChallenge, .acceptInvitation:
+                PersonalV1UnavailableRouteView()
             }
         }
         .task {
-            await model.refresh()
+            await personalStore.refresh()
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
-            Task { await model.refresh() }
+            Task { await personalStore.refresh() }
         }
+    }
+}
+
+private struct PersonalV1UnavailableRouteView: View {
+    var body: some View {
+        ContentUnavailableView(
+            "Unavailable in Personal V1",
+            systemImage: "lock.fill",
+            description: Text(
+                "This preserved legacy surface is not reachable from the personal-accountability app."
+            )
+        )
+        .daybreakScreenChrome()
     }
 }

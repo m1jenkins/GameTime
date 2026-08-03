@@ -40,7 +40,8 @@ protocol FriendshipsClient: AnyObject {
 
 @MainActor
 protocol ContestsClient: AnyObject {
-    func listContests(userID: UUID) async throws -> [ContestCard]
+    func listChallengeSummaries(userID: UUID) async throws
+        -> [ChallengeRosterSummary]
     func listCharities() async throws -> [Charity]
     func standings(contestID: UUID) async throws -> ChallengeStandings?
     func sendComebackReaction(
@@ -86,6 +87,11 @@ struct AppServices {
     let pendingChallenges: any PendingChallengeStore
     let activitySync: any ActivitySyncing
     let pushNotifications: any PushNotificationsClient
+    let personalAccountability: any PersonalAccountabilityClient
+    let pendingPersonalChallenges: any PendingPersonalChallengeStore
+    let pendingPersonalCancellations: any PendingPersonalCancellationStore
+    let trustedActivityDiagnostic: any TrustedActivityDiagnosticClient
+    let personalActivitySync: any PersonalActivitySyncing
 
     init(
         auth: any AuthClient,
@@ -95,7 +101,17 @@ struct AppServices {
         pendingChallenges: any PendingChallengeStore,
         activitySync: any ActivitySyncing,
         pushNotifications: any PushNotificationsClient =
-            DisabledPushNotificationsClient()
+            DisabledPushNotificationsClient(),
+        personalAccountability: any PersonalAccountabilityClient =
+            DisabledPersonalAccountabilityClient(),
+        pendingPersonalChallenges: any PendingPersonalChallengeStore =
+            EphemeralPendingPersonalChallengeStore(),
+        pendingPersonalCancellations: any PendingPersonalCancellationStore =
+            EphemeralPendingPersonalCancellationStore(),
+        trustedActivityDiagnostic: any TrustedActivityDiagnosticClient =
+            DisabledTrustedActivityDiagnosticClient(),
+        personalActivitySync: any PersonalActivitySyncing =
+            DisabledPersonalActivitySyncCoordinator()
     ) {
         self.auth = auth
         self.profiles = profiles
@@ -104,5 +120,10 @@ struct AppServices {
         self.pendingChallenges = pendingChallenges
         self.activitySync = activitySync
         self.pushNotifications = pushNotifications
+        self.personalAccountability = personalAccountability
+        self.pendingPersonalChallenges = pendingPersonalChallenges
+        self.pendingPersonalCancellations = pendingPersonalCancellations
+        self.trustedActivityDiagnostic = trustedActivityDiagnostic
+        self.personalActivitySync = personalActivitySync
     }
 }

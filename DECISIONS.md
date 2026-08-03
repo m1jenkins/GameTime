@@ -2801,12 +2801,24 @@ measure it before moving to a queue or sharded workers.
 unit-test, and UI-test targets. `ios/GameTimeConformance` again contains only the
 focused M6.5 App Attest harness. Both target iOS 18 and depend on
 `GameTimeCore`, but the product app additionally pins `supabase-swift` and owns
-authentication, social/contest presentation, and live client adapters.
+authentication, product presentation, and live client adapters. D101 later
+narrows the normal V1 shell to Personal accountability; dormant social paths
+and adapters remain only for V2/regression compatibility.
 
 Each product tab owns an independent typed `NavigationStack`. One observable
-router owns the selected tab, all four paths, and item-driven sheets. The root
-state is explicit (`launching`, `signedOut`, `onboarding`, `signedIn`), and
-leaving `signedIn` clears every route, sheet, and loaded user value.
+router owns the selected tab, the three normal Personal paths, retained dormant
+social path types, and item-driven sheets. The root state is explicit
+(`launching`, `signedOut`, `onboarding`, `signedIn`), and leaving `signedIn`
+clears every route, sheet, and loaded user value.
+
+Xcode 26.2 build 17C52 schedules `ExtractAppIntentsMetadata` for app and test
+bundles even when they intentionally have no `AppIntents.framework` dependency.
+Fresh unsigned Debug, Staging, and Release simulator builds and the product and
+conformance test builds complete successfully while emitting exactly
+`Metadata extraction skipped. No AppIntents.framework dependency found.` The
+projects contain no App Intents import, declaration, extension target, linked
+framework, package, or linker flag. This is an accepted toolchain self-skip, not
+a missing product dependency or incomplete build.
 
 **Why.** A staging product loop and a security-protocol harness have different
 failure modes and release responsibilities. Keeping them independent prevents
@@ -2815,10 +2827,14 @@ navigation makes sign-out cleanup and deep-link growth testable.
 
 **Rejected.** Continuing to turn the conformance binary into product UI on
 Simulator (one target silently means two products). One untyped navigation path
-for all tabs (cross-tab state and reset behavior become implicit).
+for all tabs (cross-tab state and reset behavior become implicit). Adding a
+dummy App Intent or unused framework solely to silence metadata extraction, or
+disabling the extraction task with a broad warning suppression.
 
 **Revisit if.** Never for the target boundary. Navigation ownership may move to
 feature modules when the route surface is large enough to justify modules.
+Recheck the metadata boundary if App Intents become a real feature, a later
+Xcode version changes the diagnostic, or extraction becomes build-failing.
 
 ### D84. Social reloads are bounded and contest creation is one idempotent transaction
 
@@ -3323,3 +3339,315 @@ reaction to affect scoring.
 **Revisit if.** Reactions become visible to other participants, a durable
 in-app inbox owns notification actions, multiple reaction types are introduced,
 or a provider abstraction replaces direct APNs delivery.
+
+## M9 — Personal accountability V1
+
+### D95. A model discriminator preserves history and owns lifecycle dispatch
+
+**What.** Every challenge has exactly one model:
+`legacy_charity_contest`, `personal_accountability`, or the reserved
+`social_accountability`. The migration backfills every existing row as
+`legacy_charity_contest`. Existing social creation also writes that model.
+`social_accountability` has no V1 creation route.
+
+Activation quorum, accepted-participant requirements, ingest grace, assessment,
+result publication, standings, winners, and obligations dispatch on the model.
+A personal challenge activates with one accepted owner and can never create a
+standing, winner, charity obligation, or participant payout. Legacy challenges
+retain their 2–20 participant, six-hour ingest, winner/tie, charity, and
+obligation behavior.
+
+**Why.** Existing social rows are agreements and historical records. Inferring
+"personal" from roster size, a null charity, or a missing invitation would
+reinterpret data whose original meaning was different. One explicit value
+makes compatibility testable and gives every shared service a safe dispatch
+point.
+
+**Rejected.** Treating all old one-person pending rows as personal; overloading
+`max_participants = 1` as the only discriminator; renaming or rewriting legacy
+results; and merging an old feature branch whose assumptions predate current
+account-lifecycle and Daybreak work.
+
+**Revisit if.** A genuinely new challenge model cannot share the base challenge
+identity and evidence ledger. That model should receive a new discriminator or
+separate aggregate through an explicit migration, never inference.
+
+### D96. Personal terms freeze seven local days from the next midnight
+
+**What.** Personal terms are keyed by challenge and owner and freeze cadence,
+whole-step target, commitment amount in USD cents, `USD`, `test_only`, terms
+version, IANA timezone, agreement time, and close time. The base challenge
+mirrors the metric, cadence, target, commitment, and window for evidence-ledger
+compatibility, but the personal terms are authoritative and equality is
+enforced.
+
+The trusted transaction timestamp determines the first local midnight strictly
+after creation in the frozen timezone. The end is local midnight seven civil
+dates later, converted through the same IANA zone. It is not calculated as
+`start + 168 hours`; daylight-saving windows can differ from 168 elapsed hours,
+including by non-whole-hour offsets in zones whose transitions are not 60
+minutes.
+Daily targets apply to each of the seven dates. Cumulative targets apply once to
+their combined window. Targets are integers from 1 through 1,000,000 steps.
+
+**Why.** The user is agreeing to named local days, not an elapsed-seconds
+duration. Server calculation removes client-clock manipulation and ensures the
+stored window and evidence attribution use one timezone database. A generous
+upper bound prevents numeric abuse and obvious input mistakes without choosing
+a recommended fitness level for the user.
+
+**Rejected.** Fixed 24-hour multiplication; a live timezone; client-supplied
+start/end instants; UTC calendar days; fractional steps; and allowing the
+mirrored base terms to drift from the personal record.
+
+**Revisit if.** Product research supports variable duration or travel-timezone
+changes. Either changes the agreement and needs a versioned terms model rather
+than an in-place edit.
+
+### D97. One open slot and exact retries are database invariants
+
+**What.** Personal creation is one transaction: require an active actor, verify
+no active eligibility hold, hash the exact request terms, reserve the user's
+single open slot, create the base challenge, create the accepted owner row,
+freeze personal terms, and record the request UUID. An exact retry returns the
+same challenge even if time has advanced. Reusing the UUID with changed terms
+fails.
+
+The open slot remains occupied while the challenge is scheduled, active, in its
+24-hour grace period, or awaiting its first result. It closes only when a
+pre-start cancellation commits or the first terminal personal result publishes.
+Cancellation takes its own request UUID. An exact retry returns the already
+cancelled challenge even after its former start instant; a new cancellation
+request after the start is refused. A uniqueness constraint or equivalent
+transactional enrollment record, not a client query, prevents concurrent open
+challenges.
+
+**Why.** Duplicate taps, network ambiguity, multiple devices, and scheduler
+races are ordinary conditions. If correctness depends on a read-then-insert
+client flow, two requests can both observe an empty slot. Keeping an unassessed
+challenge open also prevents a user from starting another while the first could
+still produce a hold.
+
+**Rejected.** Client-only availability checks; deleting cancelled rows; changing
+request dates on retry; releasing the slot at `ends_at`; and treating a repeated
+cancellation as a new decision.
+
+**Revisit if.** The product intentionally supports parallel free challenges.
+That would replace, not weaken, the one-open invariant and would need explicit
+resource and notification limits.
+
+### D98. Stage A settlement is server-written `test_only`
+
+**What.** The public personal creation function does not accept a settlement
+mode. It writes `test_only` itself, and the database rejects any other value.
+The only commitment amounts are 1,000, 2,000, 3,000, 4,000, or 5,000 USD cents.
+The Stage A app displays **Test commitment — no money will be charged.** before
+confirmation and on open-challenge surfaces. Local and Staging may mutate;
+Release retains the existing mutation lock.
+
+No Stage A code creates a payment method, authorization, charge, transfer,
+participant payout, charity obligation, collection retry, or debt. Legal,
+processor, and App Store references are risk gates, not clearance.
+
+**Why.** A client flag is not a safety boundary: a modified client can omit or
+change it. Removing the choice from the request and constraining the stored
+value makes the no-charge promise true at the authoritative write layer.
+
+**Rejected.** A hidden `live_fee` option; a seven-day card authorization hold;
+collecting card details "for later"; reusing the legacy charity stake as a
+payment instruction; and enabling Release creation before Stage A acceptance.
+
+**Revisit if.** Every Stage B legal, processor, App Store, HealthKit, age, and
+jurisdiction gate is satisfied in writing. Live fees require a new terms version
+and migration; they are not an enum value to turn on.
+
+### D99. Coverage is decided before success, and holds distinguish fault domains
+
+**What.** Personal sync appends two kinds of trusted facts: admissible metric
+observations and the completed local-hour intervals the signed HealthKit query
+covered. Coverage may exist without a positive step row, so a real zero-step
+period is not mistaken for missing evidence. Across the seven local dates, the
+expected set is every calendar-derived interval wholly contained in
+`[starts_at, ends_at)`. It is generated from the frozen IANA timezone using the
+same authoritative bucketing rule as collection. No fixed bucket count is an
+invariant because offset changes can be non-hour transitions. The expected set
+must also be non-overlapping in absolute time before success or miss is judged.
+If the platform calendar returns overlapping intervals for a transition, V1
+records `inconclusive / gametime_outage` and creates no eligibility hold. It
+must not double-count the overlap or blame the user while a non-overlapping
+personal collection rule is still unproved.
+
+One query may persist metric observations and coverage as separate append-only
+facts, but delivery is ordered: all positive metric batches from that query
+must receive durable acceptance before its coverage batch is eligible to send.
+An ambiguous, queued, or refused metric upload keeps the matching coverage
+queued. This prevents a partial network delivery from certifying an hour whose
+positive observations never reached the ledger.
+
+After `ends_at + 24 hours`, the service first decides completeness. Exact
+coverage plus resolved, non-conflicting trusted evidence may be scored. A daily
+goal is met only at 7/7; a cumulative goal is met at or above its target.
+Outcomes and reason codes are:
+
+- `met_goal` / `target_reached`;
+- `missed_goal` / `target_missed`; or
+- `inconclusive` / `missing_coverage`, `quarantined_evidence`,
+  `conflicting_evidence`, `unresolved_evidence`,
+  `user_device_sync_failure`, or `gametime_outage`.
+
+Every inconclusive result waives the test commitment. A confirmed GameTime
+outage does not create a hold. An unresolved user/device sync failure creates an
+append-only eligibility hold. Only a successful App Attest-backed HealthKit
+diagnostic performed strictly after that hold began can append its clearance.
+
+**Why.** Comparing a target before proving what data was observed turns missing
+data into a false miss and can also turn selective uploads into a false success.
+Separating platform outages from device/user failures avoids punishing someone
+for GameTime while still preventing repeated challenges on an unresolved sync
+path.
+
+**Rejected.** Treating absent step rows as zero; peer voting; letting a client
+declare completeness or outage; silently dropping quarantined evidence; a
+diagnostic timestamp equal to or before its hold; and leaving an inconclusive
+challenge open forever.
+
+**Revisit if.** HealthKit or Apple provides a stronger read-completeness signal.
+It may strengthen the trusted coverage record but cannot retroactively weaken
+the fail-closed rule for stored terms.
+
+### D100. Personal records are owner-readable and service-writable
+
+**What.** The owner may read only their own personal terms, progress, coverage
+summary, diagnostic state, results, and eligibility hold through explicit
+grants, RLS, and caller-bounded RPCs. Clients cannot insert, update, or delete
+those tables directly. Creation and cancellation are the only authenticated
+personal mutations.
+
+App Attest-backed diagnostic and activity recorders, assessment input, evidence
+classification, result publication, and hold clearance are service-only.
+Privileged functions use a blank search path, active-actor checks where a user
+is involved, narrow execute grants, and immutable or append-only tables.
+
+**Why.** Health activity and device state are private even when there is no
+opponent. RLS answers which rows a reachable object may expose; explicit grants
+answer whether the Data API role may reach the object at all. Both are required.
+
+**Rejected.** `TO authenticated` without ownership; user-authored result or hold
+rows; exposing a service key to iOS; relying on an RPC while leaving direct table
+verbs granted; and placing an unguarded `SECURITY DEFINER` function in the
+exposed schema.
+
+**Revisit if.** A support workflow needs bounded operator reads. It must use a
+separate audited capability and must not broaden owner or service-role policies.
+
+### D101. V1 has three personal tabs and an isolated pending envelope
+
+**What.** The normal shell contains Today, Challenges, and You, each with its
+own navigation stack. Friends, invitation acceptance, roster, standings,
+winner, charity, reaction, and tie-break routes are absent. Today and Challenges
+use dedicated personal list/detail/progress models. You keeps public-handle
+profile behavior and adds Health access, latest diagnostic, privacy, and hold
+state. Only steps is offered.
+
+Personal creation uses a new protected store and versioned envelope containing
+only the personal request UUID, cadence, whole-step target, commitment preset,
+timezone, owner, and exact retry metadata. The existing social v1/v2 directory,
+types, and bytes remain untouched for dormant compatibility. A personal decoder
+categorically refuses them. Personal fixtures and previews are the default;
+legacy fixtures are explicitly V2/regression-only.
+
+**Why.** Forcing an empty invitee list through social types keeps forbidden
+concepts alive in validation, retries, copy, and routes. A separate envelope
+prevents an ambiguous response saved by an older app from being reissued under
+new meaning.
+
+**Rejected.** Hiding the Friends tab while retaining deep links to standings;
+decoding social and personal records through a permissive union; overwriting the
+old pending directory; presenting unsupported metrics; and redesigning away
+from the approved Daybreak system.
+
+**Revisit if.** V2 returns social accountability. It gets its own model and
+routes and may read the dormant social envelope only through an explicit
+migration; it does not widen the personal decoder.
+
+### D102. Direct legacy participant reads are self-only
+
+**What.** Authenticated direct SELECT on `contest_participants` returns only the
+active caller's row. A versioned, caller-bounded legacy summary RPC returns
+immutable challenge terms, caller state, aggregate roster counts, socially
+visible author minimum profile before acceptance, and accepted minimum profiles
+after acceptance. It omits pending identities, participant timezones,
+participant charities, evidence, integrity state, and other private fields.
+
+This is a selective reimplementation of the reviewed behavior at `6cfae0b` on
+current `main`; none of that branch's stale UI or documentation is merged.
+
+**Why.** Hiding social UI does not revoke Data API access. An unanswered invite
+must not be enough to enumerate a pending roster or health-adjacent participant
+state. Keeping the bounded summary preserves dormant legacy readability without
+reopening the broad table policy.
+
+**Rejected.** Leaving broad direct reads because V1 has no Friends tab; merging
+the old branch wholesale; returning pending invitee handles; and widening
+profile visibility to make a summary convenient.
+
+**Revisit if.** V2 needs a different roster disclosure. Publish a new versioned
+RPC with explicit acceptance/privacy rules rather than widening direct table
+access.
+
+### D103. Hold causes are durable and clearance is a one-time state transition
+
+**What.** A user/device sync failure inserts one eligibility-hold row with its
+cause, challenge, result, and placement time. Those facts never change. A
+successful trusted diagnostic whose Health query began strictly after the hold
+may set `cleared_at` and `cleared_by_diagnostic_id` exactly once. Deletion,
+cause changes, reopening, client-authored clearance, and clearance by an old or
+overlapping query are forbidden.
+
+This clarifies D99's use of "append-only eligibility hold": hold creation is
+append-only, while the two explicit clearance fields form a guarded one-way
+transition rather than a separate clearance table.
+
+**Why.** Eligibility is queried frequently by creation and profile surfaces. A
+single guarded row makes active-hold enforcement atomic while preserving the
+failure and recovery audit trail through the diagnostic foreign key. A second
+table would add join and uniqueness races without preserving more evidence for
+Stage A.
+
+**Rejected.** Deleting a cleared hold; overwriting its reason or source result;
+letting a diagnostic that began before placement clear it; treating a client
+timestamp alone as proof; or permitting a cleared hold to become active again.
+
+**Revisit if.** Policy requires multiple clearance reviews, operator approval,
+or a complete event-sourced eligibility timeline. Add an append-only clearance
+event then, with an active-state projection that preserves these one-way rules.
+
+### D104. Background step delivery is Staging-only and reuses the durable sync path
+
+**What.** The Staging app installs one long-lived step-count HealthKit observer
+during application launch and requests hourly background delivery. Debug,
+fixture, and Release configurations do not start it. Background enablement is
+idempotently retried after the user completes Health authorization, without
+installing a second observer.
+
+If HealthKit wakes the app before SwiftUI has attached the personal store, the
+coordinator retains one pending completion and coalesces later wakes because the
+eventual sync requeries the entire eligible frozen challenge window. Once the
+handler exists, it drains the same durable exact-byte metric and coverage queues
+used by manual sync, then calls HealthKit's completion handler. An observer
+error completes without asserting coverage.
+
+**Why.** A separate background uploader would create a second ordering and
+retry protocol exactly where evidence completeness must stay deterministic.
+Installing at launch preserves the platform wake contract, while retrying
+enablement after authorization closes the first-launch race. Full-window
+requery makes wake coalescing safe without treating wake count as evidence.
+
+**Rejected.** Enabling background delivery in Release; treating registration
+success as proof a wake occurred; installing another observer after every
+diagnostic; certifying coverage before pending metric bytes are accepted; or
+calling the HealthKit completion handler before durable sync processing ends.
+
+**Revisit if.** A signed physical Staging run shows the platform suspends this
+bounded handler or fails to redeliver after an interrupted wake. Simulator tests
+prove only gating and callback ordering, never real background delivery.

@@ -493,7 +493,7 @@ struct TrustStatusPill: View {
 struct TestEnvironmentBanner: View {
     var body: some View {
         Label(
-            "Test environment — no real pledge",
+            "Test commitment — no money will be charged.",
             systemImage: "exclamationmark.shield.fill"
         )
         .font(
@@ -508,7 +508,7 @@ struct TestEnvironmentBanner: View {
         .padding(.vertical, 7)
         .background(CompetitiveTrustTheme.sun)
         .accessibilityLabel(
-            "Test environment. No real pledge."
+            "Test commitment — no money will be charged."
         )
     }
 }

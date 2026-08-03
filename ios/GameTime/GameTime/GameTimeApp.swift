@@ -9,6 +9,8 @@ struct GameTimeApp: App {
     private var appDelegate
     @State private var liveModel: AppModel?
     @State private var demoModel: AppModel?
+    @State private var livePersonalStore: PersonalAccountabilityStore?
+    @State private var demoPersonalStore: PersonalAccountabilityStore?
     @State private var router = AppRouter()
     @State private var pushCoordinator: PushNotificationCoordinator
     @State private var isUsingDemoModel: Bool
@@ -36,28 +38,17 @@ struct GameTimeApp: App {
         if usesFixtureModel,
             arguments.contains("--fixture-challenges")
                 || arguments.contains("--fixture-open-active-challenge")
-                || arguments.contains("--fixture-open-invitation")
         {
             initialRouter.selectedTab = .challenges
         }
         if usesFixtureModel,
             arguments.contains("--fixture-open-active-challenge"),
-            let activeContestID = UUID(
-                uuidString: "cccccccc-cccc-cccc-cccc-cccccccccccc"
+            let activePersonalID = UUID(
+                uuidString: "18181818-1818-1818-1818-181818181818"
             )
         {
             initialRouter.challengesPath = [
-                .contest(activeContestID)
-            ]
-        }
-        if usesFixtureModel,
-            arguments.contains("--fixture-open-invitation"),
-            let invitationID = UUID(
-                uuidString: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
-            )
-        {
-            initialRouter.challengesPath = [
-                .contest(invitationID)
+                .personalChallenge(activePersonalID)
             ]
         }
         #endif
@@ -71,7 +62,7 @@ struct GameTimeApp: App {
             if usesFixtureModel {
                 configuration = arguments.contains("--fixture-activity")
                     ? .activityFixture
-                    : .fixture
+                    : .personalFixture
                 services = FixtureServicesFactory.make()
             } else {
                 configuration = try .load()
@@ -90,25 +81,47 @@ struct GameTimeApp: App {
                 configuration: configuration,
                 services: services
             )
+            let initialPersonalStore = PersonalAccountabilityStore(
+                configuration: configuration,
+                auth: services.auth,
+                client: services.personalAccountability,
+                pendingStore: services.pendingPersonalChallenges,
+                pendingCancellationStore:
+                    services.pendingPersonalCancellations,
+                diagnosticClient: services.trustedActivityDiagnostic,
+                activitySync: services.personalActivitySync
+            )
             #if DEBUG || STAGING
             if usesFixtureModel {
                 _liveModel = State(initialValue: nil)
                 _demoModel = State(initialValue: initialModel)
+                _livePersonalStore = State(initialValue: nil)
+                _demoPersonalStore = State(
+                    initialValue: initialPersonalStore
+                )
                 _isUsingDemoModel = State(initialValue: true)
             } else {
                 _liveModel = State(initialValue: initialModel)
                 _demoModel = State(initialValue: nil)
+                _livePersonalStore = State(
+                    initialValue: initialPersonalStore
+                )
+                _demoPersonalStore = State(initialValue: nil)
                 _isUsingDemoModel = State(initialValue: false)
             }
             #else
             _liveModel = State(initialValue: initialModel)
             _demoModel = State(initialValue: nil)
+            _livePersonalStore = State(initialValue: initialPersonalStore)
+            _demoPersonalStore = State(initialValue: nil)
             _isUsingDemoModel = State(initialValue: false)
             #endif
             configurationFailure = nil
         } catch {
             _liveModel = State(initialValue: nil)
             _demoModel = State(initialValue: nil)
+            _livePersonalStore = State(initialValue: nil)
+            _demoPersonalStore = State(initialValue: nil)
             _isUsingDemoModel = State(initialValue: false)
             configurationFailure = error.localizedDescription
         }
@@ -121,24 +134,31 @@ struct GameTimeApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if isUsingDemoModel, let demoModel {
+                if isUsingDemoModel,
+                    let demoModel,
+                    let demoPersonalStore
+                {
                     RootView(
                         model: demoModel,
+                        personalStore: demoPersonalStore,
                         router: router,
                         demoMode: demoModeAccess,
                         pushCoordinator: pushCoordinator
                     )
                     .environment(demoModel)
+                    .environment(demoPersonalStore)
                     .environment(router)
                     .tint(CompetitiveTrustTheme.coral)
-                } else if let liveModel {
+                } else if let liveModel, let livePersonalStore {
                     RootView(
                         model: liveModel,
+                        personalStore: livePersonalStore,
                         router: router,
                         demoMode: demoModeAccess,
                         pushCoordinator: pushCoordinator
                     )
                     .environment(liveModel)
+                    .environment(livePersonalStore)
                     .environment(router)
                     .tint(CompetitiveTrustTheme.coral)
                 } else {
@@ -150,6 +170,19 @@ struct GameTimeApp: App {
             }
             .task(id: isUsingDemoModel) {
                 appDelegate.pushCoordinator = pushCoordinator
+                if let livePersonalStore {
+                    livePersonalStore.setBackgroundDeliveryRegistration(
+                        appDelegate.personalHealthBackgroundDelivery
+                    )
+                    await appDelegate.personalHealthBackgroundDelivery
+                        .setUpdateHandler { [weak livePersonalStore] in
+                            await livePersonalStore?
+                                .handleBackgroundActivityUpdate()
+                        }
+                } else {
+                    await appDelegate.personalHealthBackgroundDelivery
+                        .setUpdateHandler({})
+                }
                 guard !isUsingDemoModel, let liveModel else { return }
                 await pushCoordinator.configure(
                     environment: liveModel.configuration.environment,
@@ -175,11 +208,22 @@ struct GameTimeApp: App {
     #if DEBUG || STAGING
     private func enterDemoMode() {
         router.reset()
+        let services = FixtureServicesFactory.make(
+            arguments: ["GameTime", "--demo-interactive"]
+        )
         demoModel = AppModel(
-            configuration: .fixture,
-            services: FixtureServicesFactory.make(
-                arguments: ["GameTime", "--demo-interactive"]
-            )
+            configuration: .personalFixture,
+            services: services
+        )
+        demoPersonalStore = PersonalAccountabilityStore(
+            configuration: .personalFixture,
+            auth: services.auth,
+            client: services.personalAccountability,
+            pendingStore: services.pendingPersonalChallenges,
+            pendingCancellationStore:
+                services.pendingPersonalCancellations,
+            diagnosticClient: services.trustedActivityDiagnostic,
+            activitySync: services.personalActivitySync
         )
         isUsingDemoModel = true
     }
@@ -187,6 +231,7 @@ struct GameTimeApp: App {
     private func exitDemoMode() {
         router.reset()
         demoModel = nil
+        demoPersonalStore = nil
         isUsingDemoModel = false
     }
     #endif
@@ -195,6 +240,7 @@ struct GameTimeApp: App {
 @MainActor
 struct RootView: View {
     @Bindable var model: AppModel
+    @Bindable var personalStore: PersonalAccountabilityStore
     @Bindable var router: AppRouter
     let demoMode: DemoModeAccess
     let pushCoordinator: PushNotificationCoordinator
@@ -244,6 +290,9 @@ struct RootView: View {
             }
             #endif
             await model.start()
+            await personalStore.activate(
+                ownerID: model.phase == .signedIn ? model.userID : nil
+            )
             if let registration = pushCoordinator.deviceRegistration {
                 await model.receivePushRegistration(registration)
             }
@@ -252,8 +301,19 @@ struct RootView: View {
         .onChange(of: model.phase) { _, phase in
             if phase != .signedIn {
                 router.reset()
+                Task { await personalStore.activate(ownerID: nil) }
             } else {
-                Task { await handlePushDestination() }
+                Task {
+                    await personalStore.activate(ownerID: model.userID)
+                    await handlePushDestination()
+                }
+            }
+        }
+        .onChange(of: model.userID) { _, userID in
+            Task {
+                await personalStore.activate(
+                    ownerID: model.phase == .signedIn ? userID : nil
+                )
             }
         }
         .onChange(of: pushCoordinator.deviceRegistration) {
@@ -273,20 +333,29 @@ struct RootView: View {
             isPresented: Binding(
                 get: {
                     model.phase != .launching
-                        && model.presentedError != nil
+                        && (
+                            personalStore.presentedError != nil
+                                || model.presentedError != nil
+                        )
                 },
                 set: { isPresented in
                     if !isPresented {
                         model.presentedError = nil
+                        personalStore.presentedError = nil
                     }
                 }
             )
         ) {
             Button("OK", role: .cancel) {
                 model.presentedError = nil
+                personalStore.presentedError = nil
             }
         } message: {
-            Text(model.presentedError ?? "")
+            Text(
+                personalStore.presentedError
+                    ?? model.presentedError
+                    ?? ""
+            )
         }
     }
 
@@ -297,13 +366,10 @@ struct RootView: View {
         else {
             return
         }
-        router.openStandings(contestID: destination.contestID)
+        // Social standings and reaction destinations are dormant in personal
+        // V1. Consume old payloads without surfacing a hidden route or action.
+        _ = destination
         pushCoordinator.consumeDestination()
-        if destination.sendsComebackReaction {
-            await model.reactToLatestStandings(
-                contestID: destination.contestID
-            )
-        }
     }
 }
 
@@ -364,10 +430,10 @@ private struct SignedOutView: View {
                     .accessibilityLabel("GameTime")
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Commit clearly.\nCompete fairly.")
+                    Text("Commit clearly.\nShow up daily.")
                         .font(.system(.largeTitle, design: .rounded, weight: .bold))
                     Text(
-                        "A staging alpha for friend-to-friend activity challenges with fixed terms and verified progress."
+                        "A personal seven-day step commitment with frozen terms and trusted progress."
                     )
                     .font(.body)
                     .foregroundStyle(.secondary)
@@ -375,11 +441,11 @@ private struct SignedOutView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     Label(
-                        "Terms are reviewed before invitations are sent",
+                        "Daily or cumulative goals begin next local midnight",
                         systemImage: "checkmark.shield"
                     )
                     Label(
-                        "Steps sync only when you choose it; no payment action exists",
+                        "Test commitment — no money will be charged.",
                         systemImage: "figure.walk"
                     )
                 }

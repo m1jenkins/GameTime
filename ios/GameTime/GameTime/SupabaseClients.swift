@@ -9,18 +9,42 @@ enum LiveServicesFactory {
             supabaseKey: configuration.supabasePublishableKey
         )
         let activitySync: any ActivitySyncing
+        let personalActivitySync: any PersonalActivitySyncing
+        let trustedActivityDiagnostic: any TrustedActivityDiagnosticClient
         if configuration.activitySyncEnabled {
-            activitySync = ActivitySyncCoordinator(
-                activity: HealthKitActivityClient(),
-                uploads: try SupabaseMetricUploadClient(
-                    client: client,
-                    configuration: configuration
-                ),
+            let health = HealthKitActivityClient()
+            let uploads = try SupabaseMetricUploadClient(
+                client: client,
+                configuration: configuration
+            )
+            let coordinator = ActivitySyncCoordinator(
+                activity: health,
+                uploads: uploads,
                 pendingUploads: try FilePendingMetricUploadStore
                     .applicationSupport()
             )
+            activitySync = coordinator
+            personalActivitySync = PersonalActivitySyncCoordinator(
+                activity: health,
+                metrics: coordinator,
+                coverage: try SupabasePersonalCoverageClient(
+                    client: client,
+                    configuration: configuration,
+                    signer: uploads
+                ),
+                pendingCoverage: try FilePendingPersonalCoverageStore
+                    .applicationSupport()
+            )
+            trustedActivityDiagnostic = try SupabaseTrustedActivityDiagnosticClient(
+                client: client,
+                configuration: configuration,
+                activity: health,
+                signer: uploads
+            )
         } else {
             activitySync = DisabledActivitySyncCoordinator()
+            personalActivitySync = DisabledPersonalActivitySyncCoordinator()
+            trustedActivityDiagnostic = DisabledTrustedActivityDiagnosticClient()
         }
         return AppServices(
             auth: SupabaseAuthClient(client: client),
@@ -29,7 +53,16 @@ enum LiveServicesFactory {
             contests: SupabaseContestsClient(client: client),
             pendingChallenges: try FilePendingChallengeStore.applicationSupport(),
             activitySync: activitySync,
-            pushNotifications: SupabasePushNotificationsClient(client: client)
+            pushNotifications: SupabasePushNotificationsClient(client: client),
+            personalAccountability: SupabasePersonalAccountabilityClient(
+                client: client
+            ),
+            pendingPersonalChallenges: try FilePendingPersonalChallengeStore
+                .applicationSupport(),
+            pendingPersonalCancellations:
+                try FilePendingPersonalCancellationStore.applicationSupport(),
+            trustedActivityDiagnostic: trustedActivityDiagnostic,
+            personalActivitySync: personalActivitySync
         )
     }
 }
@@ -214,29 +247,13 @@ final class SupabaseContestsClient: ContestsClient {
         self.client = client
     }
 
-    func listContests(userID: UUID) async throws -> [ContestCard] {
-        let participantRows: [ParticipantRow] =
-            try await client
-            .from("contest_participants")
-            .select("contest_id,user_id,status,timezone,charity_id")
-            .eq("user_id", value: userID.uuidString.lowercased())
+    func listChallengeSummaries(userID: UUID) async throws
+        -> [ChallengeRosterSummary]
+    {
+        let rows: [ChallengeSummaryRow] = try await client
+            .rpc("list_my_challenge_summaries_v1")
             .execute()
             .value
-
-        guard !participantRows.isEmpty else { return [] }
-
-        let rosterRows: [ParticipantRow] =
-            try await client
-            .from("contest_participants")
-            .select("contest_id,user_id,status,timezone,charity_id")
-            .execute()
-            .value
-        let ownParticipants = Dictionary(
-            uniqueKeysWithValues: participantRows.map {
-                ($0.contestID, $0)
-            }
-        )
-        let rosters = Dictionary(grouping: rosterRows, by: \.contestID)
         let timeZoneRows: [TimeZoneChangeRow] =
             try await client
             .from("timezone_change_applied_events")
@@ -252,26 +269,9 @@ final class SupabaseContestsClient: ContestsClient {
             grouping: timeZoneRows,
             by: \.contestID
         )
-        let contestRows: [ContestRow] =
-            try await client
-            .from("contests")
-            .select(
-                """
-                id,title,created_by,metric,cadence,target_value,
-                stake_amount_cents,tie_break,starts_at,ends_at,status,
-                max_participants
-                """
-            )
-            .order("starts_at", ascending: true)
-            .execute()
-            .value
-
-        return contestRows.compactMap { row in
-            guard let participant = ownParticipants[row.id] else { return nil }
-            return row.card(
-                participant: participant,
-                timeZoneChanges: timeZoneChanges[row.id, default: []],
-                roster: rosters[row.id, default: []]
+        return rows.map { row in
+            row.summary(
+                timeZoneChanges: timeZoneChanges[row.contestID, default: []]
             )
         }
     }
@@ -457,31 +457,97 @@ private struct FriendshipStatusUpdate: Encodable {
     let status: FriendshipStatus
 }
 
-private struct ParticipantRow: Decodable {
+struct ChallengeSummaryRow: Decodable {
     let contestID: UUID
-    let userID: UUID
-    let status: ContestParticipantStatus
-    let timeZone: String?
-    let charityID: UUID?
+    let title: String
+    let createdBy: UUID?
+    let metric: ContestMetric
+    let cadence: ContestCadence
+    let targetValue: Double
+    let stakeAmountCents: Int
+    let tieBreak: ContestTieBreak
+    let startsAt: Date
+    let endsAt: Date
+    let contestStatus: ContestStatus
+    let maxParticipants: Int
+    let callerStatus: ContestParticipantStatus
+    let callerTimeZone: String?
+    let acceptedCount: Int
+    let invitedCount: Int
+    let declinedCount: Int
+    let withdrawnCount: Int
+    let lapsedCount: Int
+    let authorProfile: ChallengeRosterProfile?
+    let acceptedProfiles: [ChallengeRosterProfile]
 
     enum CodingKeys: String, CodingKey {
         case contestID = "contest_id"
-        case userID = "user_id"
-        case status
-        case timeZone = "timezone"
-        case charityID = "charity_id"
+        case title
+        case createdBy = "created_by"
+        case metric
+        case cadence
+        case targetValue = "target_value"
+        case stakeAmountCents = "stake_amount_cents"
+        case tieBreak = "tie_break"
+        case startsAt = "starts_at"
+        case endsAt = "ends_at"
+        case contestStatus = "contest_status"
+        case maxParticipants = "max_participants"
+        case callerStatus = "caller_status"
+        case callerTimeZone = "caller_timezone"
+        case acceptedCount = "accepted_count"
+        case invitedCount = "invited_count"
+        case declinedCount = "declined_count"
+        case withdrawnCount = "withdrawn_count"
+        case lapsedCount = "lapsed_count"
+        case authorProfile = "author_profile"
+        case acceptedProfiles = "accepted_profiles"
     }
 
-    var card: ContestParticipantCard {
-        ContestParticipantCard(
-            userID: userID,
-            status: status,
-            charityID: charityID
+    func summary(timeZoneChanges: [TimeZoneChangeRow])
+        -> ChallengeRosterSummary
+    {
+        let contest = ContestCard(
+            id: contestID,
+            title: title,
+            createdBy: createdBy,
+            metric: metric,
+            cadence: cadence,
+            targetValue: targetValue,
+            stakeAmountCents: stakeAmountCents,
+            tieBreak: tieBreak,
+            startsAt: startsAt,
+            endsAt: endsAt,
+            status: contestStatus,
+            myStatus: callerStatus,
+            maxParticipants: maxParticipants,
+            participantTimeZone: callerTimeZone,
+            timeZoneChanges: timeZoneChanges
+                .sorted { $0.effectiveAt < $1.effectiveAt }
+                .map(\.cardEvent),
+            participants: acceptedProfiles.map {
+                ContestParticipantCard(
+                    userID: $0.id,
+                    status: .accepted,
+                    charityID: nil
+                )
+            }
+        )
+        return ChallengeRosterSummary(
+            contest: contest,
+            maxParticipants: maxParticipants,
+            acceptedCount: acceptedCount,
+            invitedCount: invitedCount,
+            declinedCount: declinedCount,
+            withdrawnCount: withdrawnCount,
+            lapsedCount: lapsedCount,
+            author: authorProfile,
+            acceptedParticipants: acceptedProfiles
         )
     }
 }
 
-private struct TimeZoneChangeRow: Decodable {
+struct TimeZoneChangeRow: Decodable {
     let contestID: UUID
     let userID: UUID
     let fromTimeZone: String
@@ -501,68 +567,6 @@ private struct TimeZoneChangeRow: Decodable {
             fromTimeZone: fromTimeZone,
             toTimeZone: toTimeZone,
             effectiveAt: effectiveAt
-        )
-    }
-}
-
-private struct ContestRow: Decodable {
-    let id: UUID
-    let title: String
-    let createdBy: UUID?
-    let metric: ContestMetric
-    let cadence: ContestCadence
-    let targetValue: Double
-    let stakeAmountCents: Int
-    let tieBreak: ContestTieBreak
-    let startsAt: Date
-    let endsAt: Date
-    let status: ContestStatus
-    let maxParticipants: Int
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case title
-        case createdBy = "created_by"
-        case metric
-        case cadence
-        case targetValue = "target_value"
-        case stakeAmountCents = "stake_amount_cents"
-        case tieBreak = "tie_break"
-        case startsAt = "starts_at"
-        case endsAt = "ends_at"
-        case status
-        case maxParticipants = "max_participants"
-    }
-
-    func card(
-        participant: ParticipantRow,
-        timeZoneChanges: [TimeZoneChangeRow],
-        roster: [ParticipantRow]
-    ) -> ContestCard {
-        ContestCard(
-            id: id,
-            title: title,
-            createdBy: createdBy,
-            metric: metric,
-            cadence: cadence,
-            targetValue: targetValue,
-            stakeAmountCents: stakeAmountCents,
-            tieBreak: tieBreak,
-            startsAt: startsAt,
-            endsAt: endsAt,
-            status: status,
-            myStatus: participant.status,
-            maxParticipants: maxParticipants,
-            participantTimeZone: participant.timeZone,
-            timeZoneChanges: timeZoneChanges
-                .sorted { $0.effectiveAt < $1.effectiveAt }
-                .map(\.cardEvent),
-            participants: roster
-                .sorted {
-                    $0.userID.uuidString.lowercased()
-                        < $1.userID.uuidString.lowercased()
-                }
-                .map(\.card)
         )
     }
 }

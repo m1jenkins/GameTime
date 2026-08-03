@@ -1,161 +1,258 @@
-# Get GameTime to a functional two-user alpha
+# Ship Personal Accountability V1 as a test-only Stage A
 
-GameTime reaches functional alpha when two real people can sign in, become friends, create and accept a challenge, sync steps from physical iPhones, see trustworthy standings, and finish the challenge without duplicate requests or exposed health data. This file lists only the work required to reach that result.
+GameTime V1 is a solo accountability product. One person commits to a seven-day
+steps goal, chooses daily or cumulative cadence, and selects a test commitment
+of $10, $20, $30, $40, or $50. Stage A never charges money.
 
-`README.md` records what is built. `DECISIONS.md` records why. The dated implementation audit and the previous milestone plan are archived under `docs/archive/`.
+`README.md` records what is built. `DECISIONS.md` records why. Historical social
+implementation records remain under `docs/archive/`. The social schema and
+contracts stay read-compatible for existing challenges, but the V1 app does not
+offer social creation or expose friends, invitations, rosters, standings,
+winners, charities, reactions, or tie-breaks.
 
 ## What functional means
 
-The alpha must let two real users:
+The Stage A product must let one real user:
 
-- Sign in with Apple and restore the same account after relaunch
-- Find each other by exact handle and accept a friendship
-- Create, review, accept, and reload one immutable steps challenge
-- Let the hosted scheduler activate the challenge at its start time
-- Manually sync completed step intervals from each physical iPhone
-- Register and use product App Attest without `ATTEST_DEV_BYPASS`
-- Retry a lost challenge or metric response with the same request bytes and no duplicate rows
-- See participant-only live standings and one frozen final result
-- Keep health values, request bodies, assertions, tokens, and rival integrity details out of logs and unauthorized reads
+- Sign in with Apple, complete public-handle onboarding, and restore the same
+  account after relaunch.
+- Create at most one scheduled or active personal steps challenge.
+- Choose daily or cumulative cadence and edit a positive whole-step target.
+- Start at the next midnight in a frozen IANA timezone and run for seven
+  complete local calendar days, including daylight-saving transitions.
+- Select one of the five test commitment presets, with $10 selected by default.
+- See **Test commitment — no money will be charged.** before confirming.
+- Complete a trusted HealthKit and App Attest diagnostic.
+- Manually sync attested steps and signed coverage for completed hourly buckets.
+- See current progress, remaining steps, the seven-day timeline, sync health,
+  completed history, and a final personal result.
+- Cancel only before the challenge begins.
+- Receive a 24-hour final-sync grace period after the seventh day.
+- Receive `met_goal`, `missed_goal`, or `inconclusive` only after evidence
+  completeness is decided.
+- Recover from a user/device eligibility hold only through a later successful
+  trusted diagnostic.
 
-The alpha does not move money. Every build must retain the staging message that no real pledge is collected or enforced.
+Simulator and fixture behavior does not prove HealthKit or App Attest. One
+physical iPhone must separately prove the trusted device path.
 
-## Clean alpha candidate
+## Locked Stage A boundaries
 
-The candidate and its supporting foundations are consolidated on current
-`main`. It contains the App Attest ECDSA fallback and current staging App IDs,
-so no runtime fix needed to be ported. Consolidation also retains the locally
-verified D76 deadline/escalation
-foundation and M8.4 lead-loss push/reaction path. They do not expand the alpha
-gate: operated adjudication, hosted D76 timer proof, APNs/device proof, a durable
-action inbox, and settlement remain deferred.
+- Steps are the only presented metric. Other metric code remains dormant for a
+  later version.
+- Personal challenges use dedicated terms, result, progress, diagnostic, hold,
+  API, Swift model, and pending-request types. They are never represented as a
+  social challenge with an empty invitation list.
+- Every pre-pivot challenge is `legacy_charity_contest`. Existing social data,
+  results, standings, and obligations retain their historical meaning.
+- `social_accountability` is reserved for V2 and has no V1 creation path.
+- The server writes `test_only`; no personal creation request accepts a live
+  settlement mode and no Stage A client can ask for one.
+- An ended challenge awaiting grace, assessment, or its first result still
+  occupies the user's open slot. Pre-start cancellation or the first published
+  terminal personal result closes it.
+- A complete daily challenge requires all seven local days to meet the target.
+  A complete cumulative challenge requires the seven-day total to meet it.
+- Trusted coverage, not the presence of positive step rows, decides whether a
+  completed local-hour interval was observed. The expected set is generated
+  from the frozen IANA timezone and challenge window; it must not assume every
+  offset transition is a whole hour or that every window has a fixed count.
+- Expected intervals must not overlap in scored evidence. If a platform
+  calendar produces overlapping intervals for a non-hour offset transition,
+  Stage A fails that result closed as `inconclusive / gametime_outage` until a
+  non-overlapping collection rule is implemented and accepted on device.
+- For each query, every positive metric batch must be durably accepted before
+  its coverage batch is submitted. If any metric upload is pending or refused,
+  coverage remains pending too; coverage must never certify a partially
+  delivered query as complete.
+- Missing coverage, unresolved quarantine, conflicting evidence, or unresolved
+  assessment produces `inconclusive` before target comparison.
+- A confirmed GameTime outage waives the test commitment without a hold. An
+  unresolved user/device sync failure waives it and creates an eligibility hold.
+- Release mutations remain disabled in Stage A. Local and Staging are the only
+  mutable environments until a separate release authorization.
 
-The complete local database, Deno, Swift package, product, configuration, and
-conformance matrix passes. Before deployment, the exact reviewed `main` commit
-must also complete one green CI run.
+## Verified starting point
+
+Implementation began from a clean `main` at commit `422e638`, matching the
+cached `origin/main` reference. Old feature branches are reference material
+only; none may be merged wholesale.
+
+The prior privacy fix is isolated at commit `6cfae0b`. Only its self-only direct
+participant access and bounded legacy challenge-summary behavior should be
+reimplemented on current `main`. Its stale social UI and conflicting decision
+numbering must not be imported.
+
+## 1. Foundation — implemented locally
+
+1. Add the challenge-model discriminator and backfill every existing challenge
+   as `legacy_charity_contest`.
+2. Dispatch creation invariants, activation quorum, ingest grace, and
+   finalization by model while leaving legacy behavior unchanged.
+3. Reimplement self-only direct participant reads and the bounded legacy summary
+   RPC from the old privacy branch.
+4. Prove that the backfill does not alter legacy challenges, results, standings,
+   or donation obligations.
+5. Keep the existing social creation RPC callable for older clients and dormant
+   regression tests, but remove every normal V1 app route to it.
 
 Exit criteria:
 
-- The functional-alpha commit remains independently reviewable in history
-- Optional notification and review foundations do not become alpha requirements
-- Database migrations, pgTAP, Deno checks, GameTimeCore tests, product tests, conformance tests, and Staging and Release builds pass
-- `git diff --check` passes
-- The reviewed commit is identical to the commit tested by CI
+- Every preexisting and legacy-created row has the legacy discriminator.
+- Legacy 2–20 participant, charity, six-hour grace, winner, standings, and
+  obligation behavior still passes its existing tests.
+- Direct participant reads return only the caller's row.
+- The bounded legacy summary reveals no pending invitee identity or private
+  participant term.
+- No reserved `social_accountability` creation path exists.
 
-## Next step: prove the hosted challenge lifecycle
+## 2. Personal backend
 
-The backend must open and close a real challenge without test-only row changes.
+Implement the complete server boundary:
 
-1. Observe `gametime-activate-due-contests` activate one committed staging challenge.
-2. Exercise friendship, invitation acceptance, metric ingest, and standings against that scheduler-activated challenge.
-3. Connect the existing trusted assessment and first-result publisher to one authorized staging-only caller for clean challenges.
-4. Publish a result only after ingest grace closes and the evidence digest is frozen.
-5. Leave quarantined or failed assessments visibly under review and non-actionable. The implemented D76 deadlines may escalate and fail closed to `inconclusive`; do not enable an unstaffed hosted operator path for alpha.
-6. Record bounded IDs, counts, job results, and failure recovery. Do not record health values or credentials.
-
-Exit criteria:
-
-- A committed challenge activates through the hosted job
-- A clean challenge receives one idempotent frozen result
-- A retry does not create a second result
-- A failed or quarantined assessment creates no actionable obligation
-- Scheduler and finalizer failures are visible to the operator
-
-## Run the physical two-user acceptance
-
-Use `docs/M8_1_STAGING_ACCEPTANCE.md` as the runbook. The alpha remains incomplete until this record passes.
-
-Prerequisites:
-
-- Two unlocked, trusted, provisioned physical iPhones
-- Two distinct Apple-authenticated staging accounts
-- Sign in with Apple, HealthKit, and development App Attest on both provisioning profiles
-- Read-only confirmation of the reviewed staging bundle IDs and secret names
-- `ATTEST_DEV_BYPASS` absent
-- One active staging charity and the hosted activation worker
-
-Run:
-
-1. Sign in and complete onboarding on both devices.
-2. Add and accept the friendship, relaunch both apps, and confirm it persists.
-3. Create and accept one steps challenge.
-4. Deliberately lose the creator response, relaunch, retry the exact request, and confirm one challenge exists.
-5. Let the hosted worker activate the challenge.
-6. Complete the M6.5 conformance run on the first device, then register product App Attest and upload one accepted step batch from each account.
-7. Lose one metric response, relaunch, replay the exact saved request, and confirm no duplicate observations.
-8. Confirm account isolation, live standings, and the clean frozen result.
-9. Inspect GameTime logs for raw health values, request bodies, assertions, tokens, or private profile data.
+- Frozen personal terms keyed by challenge and owner.
+- Atomic, idempotent creation and a database-enforced one-open slot.
+- Server-derived next-midnight start and seven-local-day end.
+- Pre-start-only idempotent cancellation.
+- Owner-only list and detail RPCs.
+- A separately attested diagnostic upload that stores no raw health values.
+- Append-only trusted sync coverage, including zero-valued periods.
+- A 24-hour personal ingest grace without changing the legacy six-hour grace.
+- Service-only versioned assessment input and append-only first-result publication.
+- Durable eligibility-hold facts with one-time clearance fields set only by a
+  successful trusted diagnostic whose Health query began strictly after the
+  hold.
+- Explicit grants and RLS on every new exposed table and function.
 
 Exit criteria:
 
-- Both users complete the full challenge loop on separate physical devices
-- Apple authentication, friendship, challenge state, and pending retries survive force-quit and relaunch
-- M6.5 conformance plus product App Attest registration, assertion, and exact replay pass without a bypass
-- Both metric uploads are accepted once
-- Both users see the same challenge and privacy-bounded standings
-- The challenge reaches one clean final result
-- The app logs expose no sensitive health or authentication data
+- Exact creation retries return the same challenge; changed terms under the same
+  request UUID fail.
+- Concurrent requests cannot create two open personal challenges.
+- Personal activation succeeds with exactly one accepted owner.
+- Personal scoring creates no standings, winner, charity, donation obligation,
+  or participant payout.
+- Daily, cumulative, DST, late-backfill, evidence-completeness, outage, hold,
+  and cancellation tests pass.
+- Two authenticated database actors cannot read each other's terms, coverage,
+  activity, diagnostic, result, or hold.
+- The server, rather than a client flag, proves every personal term is
+  `test_only`.
 
-If two devices or accounts are unavailable, stop after repository and hosted-lifecycle work. Do not add more product features to compensate for missing physical evidence.
 
-## Finish essential alpha hardening
+## 3. Personal iOS
 
-Complete only the safeguards required to test the core loop:
+Retain the approved Daybreak visual system and replace the normal app journey:
 
-- Add bounded monitoring for activation, metric ingest, App Attest registration, and finalizer failures
-- Add rate limits to exact-handle lookup, challenge creation, and signed ingest
-- Keep clear loading, empty, offline, retry, and under-review states
-- Keep Release fixture routes, activity sync, and challenge mutations disabled until release approval
-- Verify sign-out clears account-bound caches and pending requests
-- Document staging backup and rollback steps for the migrations used by the alpha
+- Use only Today, Challenges, and You tabs, with independent navigation stacks.
+- Today shows the open challenge, remaining steps, seven-day timeline, sync
+  state, manual sync, and a creation call to action when no challenge is open.
+- Challenges separates the current challenge from completed history. Personal
+  detail shows frozen terms, cadence, progress, sync health, and result.
+- Creation walks through steps, cadence, editable target, commitment preset,
+  trusted diagnostic, and frozen-terms review.
+- You preserves handle/profile setup and adds Health access, latest diagnostic,
+  privacy, and eligibility-hold state.
+- Use dedicated personal models and a separate versioned pending-request store.
+  Social v1/v2 envelopes must never decode or retry as personal requests.
+- Ignore dormant social standings push actions in the V1 shell.
+- Make personal fixtures and previews the default; label legacy fixtures as V2
+  or regression-only.
 
-The functional alpha is complete when the repository, hosted lifecycle, and physical acceptance gates all pass. TestFlight, production deployment, and App Store submission require separate approval.
+Exit criteria:
+
+- Only three tabs and personal destinations are reachable in the normal app.
+- Only steps is presented; both cadences and all five commitments work; $10 is
+  the default.
+- The exact no-charge disclosure is visible before confirmation and on active
+  personal surfaces.
+- Reachable UI contains no competitor, rank, winner, charity, invitation,
+  roster, reaction, or tie-break language.
+- Pending request, routing, app-model, configuration, unit, and UI tests pass.
+- Debug, Staging, and Release simulator builds compile without actionable
+  compiler or linker warnings, while Release continues to reject personal
+  mutations. D83 explicitly accepts Xcode 26.2's expected no-AppIntents
+  metadata-extraction self-skip for targets that intentionally have no
+  `AppIntents.framework` dependency.
+
+## 4. Stage A acceptance
+
+Use `docs/PERSONAL_V1_ACCEPTANCE.md`. Keep proof layers separate:
+
+1. Local migration, pgTAP, Deno, Swift package, product unit/UI, conformance,
+   configuration, and build proof.
+2. Hosted Staging migration, function, scheduler, RLS, and test-only proof only
+   after explicit deployment approval.
+3. One physical iPhone proof for HealthKit reads, App Attest, manual/background
+   behavior actually implemented, final sync, scoring, and diagnostic recovery.
+4. Two-actor privacy proof in pgTAP and a controlled account-isolation
+   observation; one phone does not substitute for two authorization identities.
+
+No push, hosted migration, Edge Function deployment, TestFlight publication,
+App Store submission, or production configuration is authorized by this plan.
 
 ## Current implementation status
 
-| Capability | Current state | Remaining alpha proof |
+| Capability | Current state | Remaining proof |
 | --- | --- | --- |
-| Apple sign-in and onboarding | Implemented; one-user signed-device proof exists | Two-user relaunch proof and Apple name-prefill observation |
-| Friendship and challenge creation | Implemented with exact-handle lookup and atomic idempotent creation | Two-user physical acceptance |
-| Restart-safe challenge retry | Implemented and tested locally | One lost-response device observation |
-| Scheduled activation | Implemented and tested locally | Committed-row hosted observation |
-| Manual steps sync | Implemented for Staging with exact-byte persistence | Two physical uploads, replay, and account isolation |
-| Product App Attest | Client and verifier paths implemented | Physical registration, assertion, replay, and counter or receipt observation |
-| Live standings | Implemented with participant-only redaction | Real two-user staging observation |
-| Clean final result | Assessment and first-result foundations implemented | Authorized hosted caller and committed clean-result observation |
-| D76 review deadlines | Local 72-hour peer and seven-day adjudication escalation foundation implemented | Excluded from alpha; hosted operation requires authorization, staffing, and proof |
-| Notifications and reactions | Local lead-loss intent, APNs delivery, deep-link, and reaction path implemented | Excluded from alpha; hosted APNs and device proof remain open |
-| Money settlement and disputes | Foundations and decisions exist | Excluded from functional alpha |
+| Clean pivot baseline | Verified at local/cached `422e638` | Live remote refresh only if publication is later approved |
+| Model discriminator and legacy backfill | Implemented; full local database suite passes | Hosted migration rehearsal after approval |
+| Legacy roster privacy fix | Selectively ported; self-only RLS and bounded RPC pass locally | Hosted two-actor observation after approval |
+| Personal terms and one-open slot | Implemented; lifecycle, exact-retry, and two-session concurrency tests pass | Hosted Staging observation after approval |
+| Trusted diagnostic and sync coverage | Edge, database, and iOS paths implemented; local service tests and builds pass | Signed physical HealthKit/App Attest and background-delivery proof |
+| Personal scoring and holds | Implemented; DST, completeness, outage, deletion, retention, and recovery tests pass locally | Hosted scheduler/operator run plus physical final sync |
+| Three-tab personal Daybreak app | Personal simulator acceptance passes on a booted iPhone 17 Pro simulator: 103 unit, 10 UI, and 10 conformance tests pass; unsigned Debug/Staging/Release builds pass; D83 accepts the expected Xcode 26.2 no-AppIntents self-skip | Signed physical-device visual, HealthKit, App Attest, and background-delivery acceptance |
+| Hosted Stage A | Not deployed | Separate approval plus hosted acceptance |
+| Physical Stage A | Not run | One provisioned iPhone and bounded evidence record |
+| Real fees | Blocked | Every Stage B gate below |
 
-## Deferred until the core loop is validated
+## Stage B real-fee gate
 
-Do not schedule these items before the functional alpha passes:
+Real fees remain prohibited until all of these exist in writing and the product
+is redesigned and reviewed against them:
 
-- Real donation collection, receipt confirmation, defaults, disputes, and reliability scoring
-- Full D76 adjudicator authorization, staffed queues, conflict handling, and service-level agreements
-- Hosted APNs rollout and device proof, a durable action inbox, and remaining notification types
-- Background HealthKit delivery
-- Core Location, workout collection, and product check-in integration
-- Additional group-challenge work beyond the existing atomic roster support
-- Avatar storage, group feeds, reminders, and demo-mode polish
-- User-facing account-deletion recovery and production-scale retention operations
-- Production charity curation
-- TestFlight, production deployment, App Store work, and marketing
+- US counsel memo defining the fee model, 18+ rules, versioned state allowlist,
+  cancellation, waiver, dispute, and refund policies.
+- Processor approval explicitly covering a HealthKit-informed,
+  failure-contingent, off-session fee.
+- App Store/payment and HealthKit policy clearance.
+- Approved age and jurisdiction verification.
+
+Stage B must use a saved approved payment method and explicit off-session
+mandate, never a seven-day authorization hold. A verified miss is provisional
+after grace, receives a seven-day review window, pauses charging during review,
+and waives automatically if unresolved by day 14. Injury reporting uses
+structured attestations without medical records. A confirmed miss may be
+charged once; failed collection requires a user-authorized retry and blocks
+another paid challenge without repeated retries or debt collection.
+
+## Deferred V2
+
+V2 may add `social_accountability`, where people share a challenge but keep
+independent goals, outcomes, and fees. It must not pool money or pay a
+participant. Start with structured reactions and reminders. Free-form comments
+remain blocked until Apple-compliant filtering, reporting, blocking, moderation,
+and support controls exist.
 
 ## Verification rules
 
-- Simulator and fixture tests prove code behavior, not physical Apple services
-- Local database tests prove migrations and policies, not hosted scheduling
-- A signed build proves signing inputs, not App Attest or HealthKit behavior
-- One user does not prove friendship, challenge sharing, or account isolation
-- Never expose a service-role key, Apple private key, access token, assertion, or raw health value
-- Preserve exact request UUIDs and encoded bytes for every retried mutation
-- Require explicit approval before push, merge, deployment, TestFlight, production configuration, or submission
+- Simulator tests prove navigation and fixtures, not Apple services.
+- Local database tests prove migrations and policies, not hosted scheduling.
+- A signed build proves signing inputs, not HealthKit reads or App Attest.
+- Positive step rows do not prove evidence completeness; trusted covered hours
+  do.
+- A seven-day local-calendar window is not always 168 elapsed hours.
+- A one-user device run does not prove two-actor privacy isolation.
+- Preserve exact request UUIDs and encoded bytes for every retried mutation.
+- Never expose a service-role key, Apple private key, access token, assertion,
+  payload body, raw health value, or private profile data in evidence or logs.
+- Require explicit approval before push, merge, deployment, hosted mutation,
+  TestFlight, production configuration, or submission.
 
 ## References
 
-- `docs/M8_1_STAGING_ACCEPTANCE.md`: physical two-user alpha runbook
-- `docs/M6_5_DEVICE_CONFORMANCE.md`: full metric and check-in conformance reference
-- `docs/archive/2026-07-30_M7_ACCOUNT_DELETION_RETENTION.md`: retained account-deletion and data-lifecycle design
-- `docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md`: historical audit evidence
-- `docs/archive/2026-07-30_IMPLEMENTATION_PLAN.md`: previous milestone plan
+- `docs/PERSONAL_V1_ACCEPTANCE.md`: personal Stage A acceptance runbook.
+- `docs/M8_1_STAGING_ACCEPTANCE.md`: retained historical social-alpha runbook.
+- `docs/M6_5_DEVICE_CONFORMANCE.md`: full metric and App Attest conformance reference.
+- `docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md`: historical implementation evidence.
+- `docs/archive/2026-07-30_IMPLEMENTATION_PLAN.md`: previous milestone plan.

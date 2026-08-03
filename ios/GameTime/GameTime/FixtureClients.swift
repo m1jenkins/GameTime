@@ -6,15 +6,25 @@ enum FixtureServicesFactory {
     static func make(
         arguments: [String] = ProcessInfo.processInfo.arguments,
         pendingChallengeStore: (any PendingChallengeStore)? = nil,
+        friendshipsClient: (any FriendshipsClient)? = nil,
         contestsClient: (any ContestsClient)? = nil,
-        activitySync: (any ActivitySyncing)? = nil
+        activitySync: (any ActivitySyncing)? = nil,
+        pendingPersonalChallengeStore:
+            (any PendingPersonalChallengeStore)? = nil,
+        personalAccountabilityClient:
+            (any PersonalAccountabilityClient)? = nil,
+        trustedActivityDiagnosticClient:
+            (any TrustedActivityDiagnosticClient)? = nil,
+        personalActivitySync: (any PersonalActivitySyncing)? = nil
     ) -> AppServices {
         let scenario = FixtureScenario(arguments: arguments)
         let store = FixtureStore(scenario: scenario)
+        let personalStore = FixturePersonalStore(scenario: scenario)
         return AppServices(
             auth: FixtureAuthClient(store: store),
             profiles: FixtureProfileClient(store: store),
-            friendships: FixtureFriendshipsClient(store: store),
+            friendships: friendshipsClient
+                ?? FixtureFriendshipsClient(store: store),
             contests: contestsClient ?? FixtureContestsClient(store: store),
             pendingChallenges: pendingChallengeStore
                 ?? FixturePendingChallengeStore(
@@ -27,6 +37,25 @@ enum FixtureServicesFactory {
                     scenario.activity
                         ? FixtureActivitySyncCoordinator()
                         : DisabledActivitySyncCoordinator()
+                ),
+            personalAccountability: personalAccountabilityClient
+                ?? FixturePersonalAccountabilityClient(
+                    store: personalStore,
+                    authStore: store
+                ),
+            pendingPersonalChallenges: pendingPersonalChallengeStore
+                ?? FixturePendingPersonalChallengeStore(
+                    submission: scenario.pendingPersonalCreation
+                        ? FixturePersonalStore.pendingCreationSubmission()
+                        : nil
+                ),
+            trustedActivityDiagnostic: trustedActivityDiagnosticClient
+                ?? FixtureTrustedActivityDiagnosticClient(
+                    store: personalStore
+                ),
+            personalActivitySync: personalActivitySync
+                ?? FixturePersonalActivitySyncCoordinator(
+                    store: personalStore
                 )
         )
     }
@@ -44,6 +73,9 @@ private struct FixtureScenario {
     let finalStandings: Bool
     let activity: Bool
     let instantlyAcceptFriendRequests: Bool
+    let personalHold: Bool
+    let personalNoDiagnostic: Bool
+    let pendingPersonalCreation: Bool
 
     init(arguments: [String]) {
         signedOut = arguments.contains("--fixture-signed-out")
@@ -62,6 +94,229 @@ private struct FixtureScenario {
         activity = arguments.contains("--fixture-activity")
         instantlyAcceptFriendRequests = arguments.contains(
             "--demo-interactive"
+        )
+        personalHold = arguments.contains("--fixture-personal-hold")
+        personalNoDiagnostic = arguments.contains(
+            "--fixture-personal-no-diagnostic"
+        )
+        pendingPersonalCreation = arguments.contains(
+            "--fixture-personal-pending"
+        )
+    }
+}
+
+@MainActor
+private final class FixturePersonalStore {
+    static let activeChallengeID = UUID(
+        uuidString: "18181818-1818-1818-1818-181818181818"
+    )!
+    static let completedChallengeID = UUID(
+        uuidString: "19191919-1919-1919-1919-191919191919"
+    )!
+    static let diagnosticID = UUID(
+        uuidString: "20202020-2020-2020-2020-202020202020"
+    )!
+    static let holdID = UUID(
+        uuidString: "21212121-2121-2121-2121-212121212121"
+    )!
+
+    var challenges: [PersonalChallengeDetail]
+    var requests: [UUID: (
+        request: PersonalChallengeCreationRequest,
+        challengeID: UUID
+    )] = [:]
+    var latestDiagnostic: TrustedActivityDiagnostic?
+    var eligibilityHold: PersonalEligibilityHold?
+    let offline: Bool
+
+    init(scenario: FixtureScenario, now: Date = Date()) {
+        offline = scenario.offline
+        latestDiagnostic = scenario.personalNoDiagnostic
+            ? nil
+            : Self.trustedDiagnostic(at: now.addingTimeInterval(-1_800))
+        eligibilityHold = scenario.personalHold
+            ? PersonalEligibilityHold(
+                id: Self.holdID,
+                reasonCode: "unresolved_device_sync",
+                createdAt: now.addingTimeInterval(-3_600),
+                clearedAt: nil,
+                clearedByDiagnosticID: nil
+            )
+            : nil
+        challenges = scenario.empty
+            ? []
+            : [
+                Self.activeChallenge(now: now),
+                Self.completedChallenge(now: now),
+            ]
+    }
+
+    static func trustedDiagnostic(at date: Date) -> TrustedActivityDiagnostic {
+        TrustedActivityDiagnostic(
+            id: diagnosticID,
+            status: .trusted,
+            performedAt: date,
+            trustedQueriedHourCount: 24,
+            positiveTrustedSampleCount: 8,
+            clearsEligibilityHold: true
+        )
+    }
+
+    static func pendingCreationSubmission(
+        now: Date = Date()
+    ) -> PendingPersonalChallengeSubmission {
+        PendingPersonalChallengeSubmission(
+            ownerID: FixtureStore.callerID,
+            request: PersonalChallengeCreationRequest(
+                requestID: UUID(
+                    uuidString: "23232323-2323-2323-2323-232323232323"
+                )!,
+                cadence: .cumulative,
+                targetSteps: 70_000,
+                commitmentAmountMinor: 3_000,
+                timezone: "America/Chicago"
+            ),
+            createdAt: now.addingTimeInterval(-300),
+            attemptCount: 1,
+            lastAttemptAt: now.addingTimeInterval(-240)
+        )
+    }
+
+    private static func activeChallenge(now: Date) -> PersonalChallengeDetail {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/Chicago")!
+        let today = calendar.startOfDay(for: now)
+        let start = calendar.date(byAdding: .day, value: -2, to: today)!
+        let end = calendar.date(byAdding: .day, value: 7, to: start)!
+        let cutoff = calendar.date(byAdding: .day, value: 1, to: end)!
+        let days = (0..<7).map { offset -> PersonalDayProgress in
+            let date = calendar.date(byAdding: .day, value: offset, to: start)!
+            let isFuture = date >= today
+            let steps = offset == 0 ? 10_482 : offset == 1 ? 7_350 : 0
+            return PersonalDayProgress(
+                localDate: Self.localDate(date, calendar: calendar),
+                trustedSteps: Double(steps),
+                targetSteps: 10_000,
+                evidenceState: isFuture ? .future : .complete,
+                metTarget: isFuture ? nil : steps >= 10_000
+            )
+        }
+        return PersonalChallengeDetail(
+            id: activeChallengeID,
+            status: .active,
+            terms: FrozenPersonalTerms(
+                challengeID: activeChallengeID,
+                userID: FixtureStore.callerID,
+                cadence: .daily,
+                targetSteps: 10_000,
+                commitmentAmountMinor: 1_000,
+                currency: "USD",
+                settlementMode: .testOnly,
+                termsVersion: "personal-v1",
+                timezone: "America/Chicago",
+                agreementAt: start.addingTimeInterval(-86_400),
+                startsAt: start,
+                endsAt: end,
+                evidenceCutoff: cutoff,
+                closedAt: nil
+            ),
+            progress: PersonalProgress(
+                trustedSteps: days.reduce(0) {
+                    $0 + $1.displayedTrustedSteps
+                },
+                remainingSteps: 2_650,
+                qualifyingDays: 1,
+                completedDays: 2,
+                days: days,
+                evidenceState: .inProgress,
+                lastTrustedSyncAt: now.addingTimeInterval(-600),
+                pendingUploadCount: 0,
+                coveredBucketCount: 47,
+                expectedBucketCount: 48
+            )
+        )
+    }
+
+    private static func completedChallenge(now: Date)
+        -> PersonalChallengeDetail
+    {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/Chicago")!
+        let end = calendar.date(
+            byAdding: .day,
+            value: -9,
+            to: calendar.startOfDay(for: now)
+        )!
+        let start = calendar.date(byAdding: .day, value: -7, to: end)!
+        let cutoff = calendar.date(byAdding: .day, value: 1, to: end)!
+        let days = (0..<7).map { offset -> PersonalDayProgress in
+            let date = calendar.date(byAdding: .day, value: offset, to: start)!
+            return PersonalDayProgress(
+                localDate: Self.localDate(date, calendar: calendar),
+                trustedSteps: Double(10_000 + offset * 190),
+                targetSteps: nil,
+                evidenceState: .complete,
+                metTarget: nil
+            )
+        }
+        return PersonalChallengeDetail(
+            id: completedChallengeID,
+            status: .completed,
+            terms: FrozenPersonalTerms(
+                challengeID: completedChallengeID,
+                userID: FixtureStore.callerID,
+                cadence: .cumulative,
+                targetSteps: 70_000,
+                commitmentAmountMinor: 2_000,
+                currency: "USD",
+                settlementMode: .testOnly,
+                termsVersion: "personal-v1",
+                timezone: "America/Chicago",
+                agreementAt: start.addingTimeInterval(-86_400),
+                startsAt: start,
+                endsAt: end,
+                evidenceCutoff: cutoff,
+                closedAt: cutoff
+            ),
+            progress: PersonalProgress(
+                trustedSteps: days.reduce(0) {
+                    $0 + $1.displayedTrustedSteps
+                },
+                remainingSteps: 0,
+                qualifyingDays: 0,
+                completedDays: 7,
+                days: days,
+                evidenceState: .complete,
+                lastTrustedSyncAt: end.addingTimeInterval(-300),
+                pendingUploadCount: 0,
+                coveredBucketCount: 168,
+                expectedBucketCount: 168
+            ),
+            outcome: PersonalOutcome(
+                id: UUID(
+                    uuidString: "22222222-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                )!,
+                kind: .metGoal,
+                reasonCode: "target_reached_complete_evidence",
+                evidenceCutoff: cutoff,
+                publishedAt: cutoff.addingTimeInterval(60)
+            )
+        )
+    }
+
+    fileprivate static func localDate(
+        _ date: Date,
+        calendar: Calendar
+    ) -> String {
+        let components = calendar.dateComponents(
+            [.year, .month, .day],
+            from: date
+        )
+        return String(
+            format: "%04d-%02d-%02d",
+            components.year ?? 0,
+            components.month ?? 0,
+            components.day ?? 0
         )
     }
 }
@@ -635,10 +890,26 @@ private final class FixtureContestsClient: ContestsClient {
         self.store = store
     }
 
-    func listContests(userID: UUID) async throws -> [ContestCard] {
+    func listChallengeSummaries(userID: UUID) async throws
+        -> [ChallengeRosterSummary]
+    {
         try await store.prepareRead()
         _ = userID
-        return store.contests
+        return store.contests.map { contest in
+            let participants = contest.resolvedParticipants
+            return ChallengeRosterSummary(
+                contest: contest,
+                maxParticipants: contest.maxParticipants
+                    ?? max(participants.count, 2),
+                acceptedCount: participants.filter { $0.status == .accepted }.count,
+                invitedCount: participants.filter { $0.status == .invited }.count,
+                declinedCount: participants.filter { $0.status == .declined }.count,
+                withdrawnCount: participants.filter { $0.status == .withdrawn }.count,
+                lapsedCount: participants.filter { $0.status == .lapsed }.count,
+                author: nil,
+                acceptedParticipants: []
+            )
+        }
     }
 
     func listCharities() async throws -> [Charity] {
@@ -810,6 +1081,274 @@ private final class FixtureActivitySyncCoordinator: ActivitySyncing {
         _ = contest
         _ = asOf
         return .noReadableData
+    }
+}
+
+private actor FixturePendingPersonalChallengeStore:
+    PendingPersonalChallengeStore
+{
+    private var submission: PendingPersonalChallengeSubmission?
+
+    init(submission: PendingPersonalChallengeSubmission?) {
+        self.submission = submission
+    }
+
+    func load(for ownerID: UUID) throws
+        -> PendingPersonalChallengeSubmission?
+    {
+        try submission?.validate(for: ownerID)
+        return submission
+    }
+
+    func save(_ submission: PendingPersonalChallengeSubmission) throws {
+        try submission.validate(for: submission.ownerID)
+        self.submission = submission
+    }
+
+    func remove(for ownerID: UUID) {
+        guard submission?.ownerID == ownerID else { return }
+        submission = nil
+    }
+}
+
+@MainActor
+private final class FixturePersonalAccountabilityClient:
+    PersonalAccountabilityClient
+{
+    private let store: FixturePersonalStore
+    private let authStore: FixtureStore
+
+    init(store: FixturePersonalStore, authStore: FixtureStore) {
+        self.store = store
+        self.authStore = authStore
+    }
+
+    func listMyChallenges() async throws -> PersonalAccountabilitySnapshot {
+        guard !store.offline else { throw FixtureFailure.offline }
+        return PersonalAccountabilitySnapshot(
+            challenges: store.challenges.map(Self.summary),
+            latestDiagnostic: store.latestDiagnostic,
+            eligibilityHold: store.eligibilityHold
+        )
+    }
+
+    func challenge(id: UUID) async throws -> PersonalChallengeDetail? {
+        guard !store.offline else { throw FixtureFailure.offline }
+        return store.challenges.first { $0.id == id }
+    }
+
+    func create(
+        _ request: PersonalChallengeCreationRequest,
+        expectedUserID: UUID
+    ) async throws -> UUID {
+        guard !store.offline else { throw FixtureFailure.offline }
+        guard authStore.userID == expectedUserID else {
+            throw PersonalAccountabilityClientError.accountChanged
+        }
+        if let existing = store.requests[request.requestID] {
+            guard existing.request == request else {
+                throw PendingPersonalChallengeStoreError.conflictingRecord
+            }
+            return existing.challengeID
+        }
+        guard !store.challenges.contains(where: { $0.status.isOpen }) else {
+            throw PersonalAccountabilityClientError.openChallengeExists
+        }
+        guard store.eligibilityHold?.isActive != true else {
+            throw PersonalAccountabilityClientError.eligibilityHold
+        }
+        guard store.latestDiagnostic?.isTrusted == true else {
+            throw PersonalAccountabilityClientError.diagnosticUnavailable
+        }
+
+        let challenge = Self.scheduledChallenge(
+            request: request,
+            ownerID: expectedUserID
+        )
+        store.requests[request.requestID] = (request, challenge.id)
+        store.challenges.insert(challenge, at: 0)
+        return challenge.id
+    }
+
+    func cancel(
+        challengeID: UUID,
+        requestID: UUID,
+        expectedUserID: UUID
+    ) async throws {
+        _ = requestID
+        guard !store.offline else { throw FixtureFailure.offline }
+        guard authStore.userID == expectedUserID else {
+            throw PersonalAccountabilityClientError.accountChanged
+        }
+        guard let index = store.challenges.firstIndex(where: {
+            $0.id == challengeID
+        }) else { return }
+        let original = store.challenges[index]
+        guard original.status == .scheduled, Date() < original.terms.startsAt else {
+            throw PersonalAccountabilityClientError.cancellationClosed
+        }
+        store.challenges[index] = PersonalChallengeDetail(
+            id: original.id,
+            status: .cancelled,
+            terms: FrozenPersonalTerms(
+                challengeID: original.terms.challengeID,
+                userID: original.terms.userID,
+                cadence: original.terms.cadence,
+                targetSteps: original.terms.targetSteps,
+                commitmentAmountMinor: original.terms.commitmentAmountMinor,
+                currency: original.terms.currency,
+                settlementMode: original.terms.settlementMode,
+                termsVersion: original.terms.termsVersion,
+                timezone: original.terms.timezone,
+                agreementAt: original.terms.agreementAt,
+                startsAt: original.terms.startsAt,
+                endsAt: original.terms.endsAt,
+                evidenceCutoff: original.terms.evidenceCutoff,
+                closedAt: Date()
+            ),
+            progress: original.progress,
+            outcome: nil
+        )
+    }
+
+    private static func summary(
+        _ detail: PersonalChallengeDetail
+    ) -> PersonalChallengeSummary {
+        PersonalChallengeSummary(
+            id: detail.id,
+            status: detail.status,
+            terms: detail.terms,
+            progress: detail.progress,
+            outcome: detail.outcome
+        )
+    }
+
+    private static func scheduledChallenge(
+        request: PersonalChallengeCreationRequest,
+        ownerID: UUID,
+        now: Date = Date()
+    ) -> PersonalChallengeDetail {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: request.timezone)
+            ?? TimeZone(secondsFromGMT: 0)!
+        let today = calendar.startOfDay(for: now)
+        let start = calendar.date(byAdding: .day, value: 1, to: today)!
+        let end = calendar.date(byAdding: .day, value: 7, to: start)!
+        let cutoff = calendar.date(byAdding: .day, value: 1, to: end)!
+        let id = UUID()
+        let days = (0..<7).map { offset in
+            PersonalDayProgress(
+                localDate: FixturePersonalStore.localDate(
+                    calendar.date(
+                        byAdding: .day,
+                        value: offset,
+                        to: start
+                    )!,
+                    calendar: calendar
+                ),
+                trustedSteps: 0,
+                targetSteps: request.cadence == .daily
+                    ? request.targetSteps
+                    : nil,
+                evidenceState: .future,
+                metTarget: nil
+            )
+        }
+        return PersonalChallengeDetail(
+            id: id,
+            status: .scheduled,
+            terms: FrozenPersonalTerms(
+                challengeID: id,
+                userID: ownerID,
+                cadence: request.cadence,
+                targetSteps: request.targetSteps,
+                commitmentAmountMinor: request.commitmentAmountMinor,
+                currency: "USD",
+                settlementMode: .testOnly,
+                termsVersion: "personal-v1",
+                timezone: request.timezone,
+                agreementAt: now,
+                startsAt: start,
+                endsAt: end,
+                evidenceCutoff: cutoff,
+                closedAt: nil
+            ),
+            progress: PersonalProgress(
+                trustedSteps: 0,
+                remainingSteps: request.targetSteps,
+                qualifyingDays: 0,
+                completedDays: 0,
+                days: days,
+                evidenceState: .future,
+                lastTrustedSyncAt: nil,
+                pendingUploadCount: 0,
+                coveredBucketCount: 0,
+                expectedBucketCount: 0
+            )
+        )
+    }
+}
+
+@MainActor
+private final class FixtureTrustedActivityDiagnosticClient:
+    TrustedActivityDiagnosticClient
+{
+    private let store: FixturePersonalStore
+
+    init(store: FixturePersonalStore) {
+        self.store = store
+    }
+
+    func requestAuthorization() async throws -> ActivityAuthorizationOutcome {
+        guard !store.offline else { throw FixtureFailure.offline }
+        return .requestCompleted
+    }
+
+    func runTrustedDiagnostic(
+        ownerID: UUID,
+        timezone: String
+    ) async throws -> TrustedActivityDiagnostic {
+        _ = (ownerID, timezone)
+        guard !store.offline else { throw FixtureFailure.offline }
+        let diagnostic = FixturePersonalStore.trustedDiagnostic(at: Date())
+        store.latestDiagnostic = diagnostic
+        store.eligibilityHold = nil
+        return diagnostic
+    }
+}
+
+@MainActor
+private final class FixturePersonalActivitySyncCoordinator:
+    PersonalActivitySyncing
+{
+    private let store: FixturePersonalStore
+
+    init(store: FixturePersonalStore) {
+        self.store = store
+    }
+
+    func requestAuthorization() async throws -> ActivityAuthorizationOutcome {
+        guard !store.offline else { throw FixtureFailure.offline }
+        return .requestCompleted
+    }
+
+    func pendingUploadCount(for ownerID: UUID) async throws -> Int {
+        _ = ownerID
+        guard !store.offline else { throw FixtureFailure.offline }
+        return 0
+    }
+
+    func sync(
+        ownerID: UUID,
+        challenge: PersonalChallengeDetail,
+        asOf: Date
+    ) async throws -> ActivitySyncOutcome {
+        _ = (ownerID, asOf)
+        guard !store.offline else { throw FixtureFailure.offline }
+        return .synced(
+            replayed: false,
+            stepTotal: Double(challenge.progress.trustedSteps)
+        )
     }
 }
 #endif

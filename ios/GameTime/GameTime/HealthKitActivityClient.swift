@@ -42,6 +42,15 @@ protocol ActivityClient: AnyObject {
   ) async throws -> [HourlyBucket]
 }
 
+@MainActor
+protocol PersonalStepCoverageQuerying: AnyObject {
+  func completedTrustedStepIntervalStarts(
+    overlapping challengeWindow: DateInterval,
+    timeZoneSchedule: ContestTimeZoneSchedule,
+    asOf: Date
+  ) async throws -> [Date]
+}
+
 /// A framework-free snapshot of the HealthKit fields used by GameTimeCore.
 ///
 /// Keeping HealthKit objects out of this value makes provenance decisions and
@@ -295,7 +304,9 @@ enum HealthKitStepStatisticsAdapter {
 }
 
 @MainActor
-final class HealthKitActivityClient: ActivityClient {
+final class HealthKitActivityClient: ActivityClient,
+  PersonalStepCoverageQuerying
+{
   private let healthStore: HKHealthStore
 
   init(healthStore: HKHealthStore = HKHealthStore()) {
@@ -393,6 +404,43 @@ final class HealthKitActivityClient: ActivityClient {
       expectedIntervals: intervals,
       deviceSamples: devicePairs.map(\.descriptor)
     )
+  }
+
+  func completedTrustedStepIntervalStarts(
+    overlapping challengeWindow: DateInterval,
+    timeZoneSchedule: ContestTimeZoneSchedule,
+    asOf: Date
+  ) async throws -> [Date] {
+    guard HKHealthStore.isHealthDataAvailable() else {
+      throw ActivityClientError.healthDataUnavailable
+    }
+    guard challengeWindow.duration > 0 else {
+      throw ActivityClientError.invalidChallengeWindow
+    }
+    let intervals = HourlyBucketer(
+      timeZoneSchedule: timeZoneSchedule
+    ).completedBucketIntervals(in: challengeWindow, asOf: asOf)
+    guard !intervals.isEmpty else { return [] }
+
+    let queryWindow = DateInterval(
+      start: intervals[0].start,
+      end: intervals[intervals.count - 1].end
+    )
+    let samples = try await stepSamples(
+      quantityType: try stepType(),
+      overlapping: queryWindow
+    )
+    let hasPositiveTrustedDeviceSample = HealthKitStepSampleAdapter
+      .pairedSamples(from: samples, overlapping: queryWindow)
+      .contains {
+        $0.descriptor.provenance == .device
+          && $0.descriptor.value > 0
+      }
+    // HealthKit intentionally does not reveal read denial. A positive trusted
+    // device sample in this same query is the categorical proof that an empty
+    // interval represents a queried zero rather than hidden data.
+    guard hasPositiveTrustedDeviceSample else { return [] }
+    return intervals.map(\.start)
   }
 
   private func stepSamples(

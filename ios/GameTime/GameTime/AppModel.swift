@@ -53,6 +53,7 @@ final class AppModel {
     private(set) var profile: UserProfile?
     private(set) var friendshipCards: [FriendshipCard] = []
     private(set) var contests: [ContestCard] = []
+    private(set) var challengeSummaries: [UUID: ChallengeRosterSummary] = [:]
     private(set) var charities: [Charity] = []
     private(set) var standingsByContestID: [UUID: ChallengeStandings] = [:]
     private(set) var standingsLoadStates: [UUID: ScreenLoadState] = [:]
@@ -185,10 +186,12 @@ final class AppModel {
             }
             profile = createdProfile
             onboardingNamePrefill = ""
-            await restorePendingActivityUploads(
-                for: userID,
-                generation: generation
-            )
+            if configuration.legacySocialRuntimeEnabled {
+                await restorePendingActivityUploads(
+                    for: userID,
+                    generation: generation
+                )
+            }
             guard
                 await isCurrentAuthenticatedActor(
                     userID,
@@ -212,6 +215,14 @@ final class AppModel {
 
     func refresh() async {
         guard phase == .signedIn, let userID else { return }
+        guard configuration.legacySocialRuntimeEnabled else {
+            friendshipCards = []
+            contests = []
+            challengeSummaries = [:]
+            charities = []
+            loadState = .empty
+            return
+        }
         let actorGeneration = authGeneration
         let generation = UUID()
         refreshGeneration = generation
@@ -219,9 +230,10 @@ final class AppModel {
 
         do {
             let cards = try await services.friendships.listCards()
-            let contests = try await services.contests.listContests(
+            let summaries = try await services.contests.listChallengeSummaries(
                 userID: userID
             )
+            let contests = summaries.map(\.contest)
             let charities = try await services.contests.listCharities()
             guard
                 generation == refreshGeneration,
@@ -235,6 +247,10 @@ final class AppModel {
             }
             friendshipCards = cards
             self.contests = contests
+            challengeSummaries = Dictionary(
+                summaries.map { ($0.id, $0) },
+                uniquingKeysWith: { current, _ in current }
+            )
             self.charities = charities
             loadState =
                 cards.isEmpty && contests.isEmpty
@@ -267,6 +283,7 @@ final class AppModel {
     }
 
     func loadStandings(contestID: UUID) async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         guard phase == .signedIn, let userID else { return }
         guard
             let contest = contests.first(where: { $0.id == contestID }),
@@ -325,6 +342,7 @@ final class AppModel {
         contestID: UUID,
         snapshotID: UUID
     ) async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         guard phase == .signedIn, let userID else { return }
         guard !reactedStandingsSnapshotIDs.contains(snapshotID) else {
             return
@@ -363,6 +381,7 @@ final class AppModel {
     }
 
     func reactToLatestStandings(contestID: UUID) async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         if standingsByContestID[contestID] == nil {
             await loadStandings(contestID: contestID)
         }
@@ -386,6 +405,7 @@ final class AppModel {
     }
 
     func submitExactHandle(_ input: String) async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         exactHandleResult = nil
         guard let exact = ExactHandleSubmission.normalized(input) else {
             lastSubmittedHandle = input
@@ -408,6 +428,7 @@ final class AppModel {
     }
 
     func requestFriendship(with otherUserID: UUID) async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         guard let userID else { return }
         await mutate {
             try await services.friendships.requestFriendship(
@@ -419,6 +440,7 @@ final class AppModel {
     }
 
     func acceptFriendship(with otherUserID: UUID) async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         guard let userID else { return }
         await mutate {
             try await services.friendships.acceptFriendship(
@@ -429,6 +451,7 @@ final class AppModel {
     }
 
     func removeFriendship(with otherUserID: UUID) async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         guard let userID else { return }
         await mutate {
             try await services.friendships.removeFriendship(
@@ -439,6 +462,7 @@ final class AppModel {
     }
 
     func createChallenge(_ terms: ChallengeTerms) async -> UUID? {
+        guard configuration.legacySocialRuntimeEnabled else { return nil }
         guard configuration.contestMutationsEnabled else {
             presentedError =
                 "Release contest creation stays locked until evidence and App Attest are complete."
@@ -560,6 +584,7 @@ final class AppModel {
     }
 
     func discardPendingChallenge() async -> Bool {
+        guard configuration.legacySocialRuntimeEnabled else { return false }
         guard let userID else { return false }
         let actorGeneration = authGeneration
         guard !isMutating else { return false }
@@ -599,6 +624,7 @@ final class AppModel {
     }
 
     func retryPendingChallengeRecovery() async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         guard let userID, !isMutating else { return }
         let actorGeneration = authGeneration
         isMutating = true
@@ -610,6 +636,7 @@ final class AppModel {
     }
 
     func acceptInvitation(contestID: UUID, charityID: UUID) async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         guard let userID, let profile else { return }
         guard configuration.contestMutationsEnabled else {
             presentedError =
@@ -627,6 +654,7 @@ final class AppModel {
     }
 
     func declineInvitation(contestID: UUID) async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         guard let userID else { return }
         guard configuration.contestMutationsEnabled else {
             presentedError =
@@ -642,6 +670,7 @@ final class AppModel {
     }
 
     func enableActivity() async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         guard configuration.activitySyncEnabled else {
             presentedError =
                 "Activity sync is available only in GameTime Staging."
@@ -685,6 +714,7 @@ final class AppModel {
     }
 
     func syncActivity(contestID: UUID) async {
+        guard configuration.legacySocialRuntimeEnabled else { return }
         guard configuration.activitySyncEnabled else {
             presentedError =
                 "Activity sync is available only in GameTime Staging."
@@ -843,6 +873,7 @@ final class AppModel {
         profile = nil
         friendshipCards = []
         contests = []
+        challengeSummaries = [:]
         charities = []
         standingsByContestID = [:]
         standingsLoadStates = [:]
@@ -875,10 +906,12 @@ final class AppModel {
                 }
                 self.profile = profile
                 onboardingNamePrefill = ""
-                await restorePendingChallenge(
-                    for: userID,
-                    generation: generation
-                )
+                if configuration.legacySocialRuntimeEnabled {
+                    await restorePendingChallenge(
+                        for: userID,
+                        generation: generation
+                    )
+                }
                 guard
                     await isCurrentAuthenticatedActor(
                         userID,
@@ -887,10 +920,12 @@ final class AppModel {
                 else {
                     return
                 }
-                await restorePendingActivityUploads(
-                    for: userID,
-                    generation: generation
-                )
+                if configuration.legacySocialRuntimeEnabled {
+                    await restorePendingActivityUploads(
+                        for: userID,
+                        generation: generation
+                    )
+                }
                 guard
                     await isCurrentAuthenticatedActor(
                         userID,
@@ -1048,6 +1083,7 @@ final class AppModel {
         profile = nil
         friendshipCards = []
         contests = []
+        challengeSummaries = [:]
         charities = []
         standingsByContestID = [:]
         standingsLoadStates = [:]

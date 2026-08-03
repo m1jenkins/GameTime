@@ -4,20 +4,22 @@ import Observation
 enum AppTab: String, CaseIterable, Identifiable, Sendable {
     case today
     case challenges
-    case friends
     case you
 
     var id: String { rawValue }
 }
 
 enum TodayRoute: Hashable {
+    case personalChallenge(UUID)
+    // Dormant V2/regression routes. The V1 shell never emits them.
     case contest(UUID)
     case friendship(UUID)
 }
 
 enum ChallengesRoute: Hashable {
+    case personalChallenge(UUID)
+    // Dormant V2/regression routes. The V1 shell never emits them.
     case contest(UUID)
-    case standings(UUID)
 }
 
 enum FriendsRoute: Hashable {
@@ -26,17 +28,17 @@ enum FriendsRoute: Hashable {
 
 enum YouRoute: Hashable {
     case trustAndPrivacy
-    #if DEBUG
-    case futureContestFixtures
-    #endif
 }
 
 enum SheetDestination: Identifiable, Hashable {
+    case createPersonalChallenge
+    // Dormant V2/regression sheets. The V1 shell never emits them.
     case createChallenge
     case acceptInvitation(UUID)
 
     var id: String {
         switch self {
+        case .createPersonalChallenge: "create-personal-challenge"
         case .createChallenge: "create-challenge"
         case .acceptInvitation(let id): "accept-\(id.uuidString)"
         }
@@ -62,9 +64,9 @@ final class AppRouter {
         presentedSheet = nil
     }
 
-    func openStandings(contestID: UUID) {
+    func openPersonalChallenge(_ challengeID: UUID) {
         selectedTab = .challenges
         presentedSheet = nil
-        challengesPath = [.standings(contestID)]
+        challengesPath = [.personalChallenge(challengeID)]
     }
 }

@@ -31,8 +31,10 @@ final class PushNotificationCoordinator: NSObject,
   nonisolated static func pushEnvironment(
     for appEnvironment: AppEnvironment
   ) -> PushTokenEnvironment? {
-    guard appEnvironment == .staging else { return nil }
-    return .development
+    _ = appEnvironment
+    // Social push categories are dormant while Personal V1 is the only
+    // reachable product model.
+    return nil
   }
 
   func configure(
@@ -100,27 +102,40 @@ final class PushNotificationCoordinator: NSObject,
     _ center: UNUserNotificationCenter,
     didReceive response: UNNotificationResponse
   ) async {
-    let userInfo = response.notification.request.content.userInfo
-    guard
-      userInfo["route"] as? String == "standings",
-      let contestValue = userInfo["contest_id"] as? String,
-      let contestID = UUID(uuidString: contestValue)
-    else {
-      return
-    }
-    let sendsReaction =
-      response.actionIdentifier == Self.comebackAction
-    await MainActor.run {
-      pendingDestination = PushStandingsDestination(
-        contestID: contestID,
-        sendsComebackReaction: sendsReaction
-      )
-    }
+    _ = (center, response)
   }
 }
 
+@MainActor
 final class GameTimeAppDelegate: NSObject, UIApplicationDelegate {
   @MainActor weak var pushCoordinator: PushNotificationCoordinator?
+  let personalHealthBackgroundDelivery =
+    PersonalHealthBackgroundDeliveryCoordinator()
+
+  nonisolated static func shouldStartPersonalHealthBackgroundDelivery(
+    environmentValue: String?
+  ) -> Bool {
+    environmentValue?.lowercased() == AppEnvironment.staging.rawValue
+  }
+
+  func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions:
+      [UIApplication.LaunchOptionsKey: Any]? = nil
+  ) -> Bool {
+    _ = (application, launchOptions)
+    let environmentValue = Bundle.main.object(
+      forInfoDictionaryKey: "GAMETIME_ENV"
+    ) as? String
+    if Self.shouldStartPersonalHealthBackgroundDelivery(
+      environmentValue: environmentValue
+    ) {
+      // Apple requires observer queries to be installed during launch so a
+      // HealthKit wake can be delivered before SwiftUI finishes mounting.
+      personalHealthBackgroundDelivery.start()
+    }
+    return true
+  }
 
   func application(
     _ application: UIApplication,

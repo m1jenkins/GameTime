@@ -274,6 +274,48 @@ struct ContestCard: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
+/// The intentionally bounded profile surface returned for dormant social
+/// history. Pending invitee identities are never represented here.
+struct ChallengeRosterProfile: Codable, Equatable, Identifiable, Sendable {
+    let id: UUID
+    let handle: String?
+    let displayName: String
+    let isDeleted: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case handle
+        case displayName = "display_name"
+        case isDeleted = "is_deleted"
+    }
+
+    var initials: String {
+        let words = displayName.split(whereSeparator: \.isWhitespace).prefix(2)
+        let value = words.compactMap(\.first).map(String.init).joined()
+        return value.isEmpty
+            ? String((handle ?? "member").prefix(2)).uppercased()
+            : value.uppercased()
+    }
+}
+
+struct ChallengeRosterSummary: Codable, Equatable, Identifiable, Sendable {
+    let contest: ContestCard
+    let maxParticipants: Int
+    let acceptedCount: Int
+    let invitedCount: Int
+    let declinedCount: Int
+    let withdrawnCount: Int
+    let lapsedCount: Int
+    let author: ChallengeRosterProfile?
+    let acceptedParticipants: [ChallengeRosterProfile]
+
+    var id: UUID { contest.id }
+
+    var acceptanceText: String {
+        "\(acceptedCount) of \(maxParticipants) accepted"
+    }
+}
+
 enum ChallengeStandingsPhase: String, Codable, Sendable {
     case provisional
     case final

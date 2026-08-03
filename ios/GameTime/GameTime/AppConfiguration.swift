@@ -13,6 +13,32 @@ struct AppConfiguration: Equatable, Sendable {
     let supabaseURL: URL
     let supabasePublishableKey: String
     let contestMutationsEnabled: Bool
+    /// Kept only for explicit V2/regression fixtures. Personal V1 runtime must
+    /// not fetch or mutate dormant social inventories.
+    let legacySocialRuntimeEnabled: Bool
+
+    init(
+        environment: AppEnvironment,
+        supabaseURL: URL,
+        supabasePublishableKey: String,
+        contestMutationsEnabled: Bool,
+        legacySocialRuntimeEnabled: Bool = false
+    ) {
+        self.environment = environment
+        self.supabaseURL = supabaseURL
+        self.supabasePublishableKey = supabasePublishableKey
+        self.contestMutationsEnabled = contestMutationsEnabled
+        self.legacySocialRuntimeEnabled = legacySocialRuntimeEnabled
+    }
+
+    /// Personal accountability is Stage A only. The existing build flag may
+    /// unlock local/Staging mutations, but Release always remains read-only.
+    var personalChallengeMutationsEnabled: Bool {
+        environment != .release && contestMutationsEnabled
+    }
+
+    /// There is deliberately no live-fee configuration in the V1 client.
+    var personalSettlementMode: PersonalSettlementMode { .testOnly }
 
     /// HealthKit and product App Attest are intentionally limited to the
     /// internal Staging configuration for this prototype slice.
@@ -87,7 +113,16 @@ struct AppConfiguration: Equatable, Sendable {
     }
 
     #if DEBUG || STAGING
+    /// Explicit opt-in for dormant V2 and historical regression tests.
     static let fixture = AppConfiguration(
+        environment: .debug,
+        supabaseURL: URL(string: "http://127.0.0.1:54321")!,
+        supabasePublishableKey: "sb_publishable_fixture_only",
+        contestMutationsEnabled: true,
+        legacySocialRuntimeEnabled: true
+    )
+
+    static let personalFixture = AppConfiguration(
         environment: .debug,
         supabaseURL: URL(string: "http://127.0.0.1:54321")!,
         supabasePublishableKey: "sb_publishable_fixture_only",

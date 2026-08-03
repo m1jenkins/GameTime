@@ -432,6 +432,14 @@ verify_jwt = false
 enabled = true
 verify_jwt = false
 
+[functions.personal-sync-coverage]
+enabled = true
+verify_jwt = false
+
+[functions.activity-diagnostic]
+enabled = true
+verify_jwt = false
+
 [functions.deliver-push]
 enabled = true
 # Invoked by the named pg_cron/Vault bridge. The function performs its own

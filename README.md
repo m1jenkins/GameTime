@@ -1,19 +1,26 @@
 # GameTime
 
-An iOS social accountability app. Friends stake charitable donations against
-each other's personal goals. Normally each loser donates an agreed amount to a
-charity the winner picked; a declared all-donate tie sends each accepted
-participant's stake to their own nomination. No cash prizes, no payouts to
-users, no pots — the stake is a pledge, and the app tracks whether it was
-honored.
+GameTime V1 is a personal accountability app. One person commits to a seven-day
+steps goal, chooses a daily or cumulative cadence, and selects a $10, $20, $30,
+$40, or $50 test commitment. Stage A is structurally `test_only`: no client or
+server creation interface can request a live fee, and no money is charged.
 
-The product is verification credibility. These are people betting against
-friends who will try to cheat, so anti-cheat and data provenance are core domain
-logic, built and tested as such — not a later phase.
+The product is verification credibility. HealthKit reads, App Attest-backed
+uploads, explicit completed-hour coverage, frozen terms, and fail-closed results
+are core domain logic rather than a later anti-cheat layer.
 
-**Status:** The iOS product, friendship and challenge loop, manual steps sync, privacy-bounded standings, and safe retry foundations are implemented. GameTime is not yet a functional two-user alpha because the hosted lifecycle and physical two-device run remain open. [PLAN.md](PLAN.md) contains the one active path to that result.
+**Status:** Personal V1 is implemented locally across migrations, service
+interfaces, and the three-tab Daybreak iOS app. Local automated verification is
+the first proof layer; hosted Staging, a physical-iPhone HealthKit/App Attest
+run, TestFlight, App Store submission, production configuration, and real fees
+remain separate approval gates. [PLAN.md](PLAN.md) is the active roadmap and
+[docs/PERSONAL_V1_ACCEPTANCE.md](docs/PERSONAL_V1_ACCEPTANCE.md) defines the
+bounded Stage A acceptance record.
 
-The app does not collect or enforce real donations. Settlement, disputes, push notifications, background sensors, and production release work remain outside the functional-alpha scope. Historical milestone evidence is archived in [docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md](docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md).
+The former friend-and-charity challenge remains dormant, read-compatible legacy
+data and regression code for V2. V1 does not load or expose friends,
+invitations, rosters, standings, winners, charities, reactions, or tie-breaks,
+and it never reinterprets a legacy contest as personal accountability.
 
 ## Repository layout
 
@@ -23,11 +30,13 @@ supabase/
   migrations/            Hand-written SQL. The only way schema changes.
   tests/                 pgTAP suites: schema, constraints, RLS
   functions/
-    _shared/             App Attest, ingest, scoring, and integrity assessment
+    _shared/             App Attest, ingest, scoring, and privacy-safe DB adapters
     _test/               Fixture builders and the scoring corpus. Never deployed.
     attest-device/       Registers one App Attest key per device install
     ingest-metrics/      The only route into the evidence ledger
     ingest-checkin/      Attested geofence/workout validation sidecar
+    activity-diagnostic/ Attested trusted-HealthKit diagnostic summary
+    personal-sync-coverage/ Attested completed-hour coverage for Personal V1
     deno.json            Deno tasks, imports, lint and format config
   seed.sql               Local/CI seed data. Never required by a test.
 ios/
@@ -36,10 +45,10 @@ ios/
                          retry primitives, and a restorable exact-byte
                          check-in queue.
                          Builds and tests on Linux CI.
-  GameTime/              M8 product app plus unit/UI targets. Live Supabase
-                         adapters, Apple auth, social/challenge loop, and an
-                         isolated Debug/Staging demo; Release contest mutation
-                         is locked and fixture code is absent.
+  GameTime/              Personal V1 product app plus unit/UI targets. Live
+                         Supabase adapters, Apple auth, personal challenge and
+                         exact-retry activity flows, and isolated fixtures;
+                         Release personal mutation is locked.
   GameTimeConformance/   Independent M6.5 App Attest smoke harness only.
 scripts/
   dev-up.sh              Start the local stack
@@ -49,10 +58,11 @@ scripts/
   m6-5-staging-fixture.sql   Repeatable staging contest/geofence fixture
 docs/
   M6_5_DEVICE_CONFORMANCE.md  Physical-iPhone/staging release gate
-  M8_1_STAGING_ACCEPTANCE.md  Two-user Apple-authenticated product proof
+  PERSONAL_V1_ACCEPTANCE.md   Personal Stage A and two-actor privacy proof
+  M8_1_STAGING_ACCEPTANCE.md  Preserved legacy social acceptance record
   archive/                Historical plans and audit evidence
 DECISIONS.md             Every non-obvious choice and why
-PLAN.md                  The one active path to a functional two-user alpha
+PLAN.md                  The one active path to Personal Accountability V1
 ```
 
 ## Prerequisites
@@ -167,9 +177,12 @@ Write `lower(col::text) = lower($1)`. The unique index is unaffected either way,
 which is what makes the bug quiet: uniqueness stays case-insensitive while
 lookups stop matching. See DECISIONS.md D14.
 
-## The social graph
 
-M1's tables. All five have RLS enabled and no `anon` access at all.
+## Dormant legacy social graph (V2/regression)
+
+These pre-pivot M1 tables remain read-compatible for historical challenges and
+explicit regression tests. Personal V1 does not load this inventory. All five
+have RLS enabled and no `anon` access at all.
 
 | Table           | Shape                                                        |
 | --------------- | ------------------------------------------------------------ |
@@ -208,7 +221,7 @@ select set_config('request.jwt.claims',
 select * from public.profiles;   -- now filtered as @runner sees it
 ```
 
-## Contests
+## Dormant legacy contests (V2/regression)
 
 M2's tables. All three have RLS enabled and no `anon` access.
 
@@ -317,7 +330,7 @@ routes a real donation to the wrong organisation and looks correct doing it. See
 DECISIONS.md D26, which also records why an empty table is the right failure mode
 until then.
 
-## Transactional notification outbox and activation
+## Legacy notification outbox and model-aware activation
 
 M7.2a adds `notification_intents`, an append-only ledger written by the same
 transaction as its business transition. It stores only recipient, event type,
@@ -342,7 +355,7 @@ registry entry and manually driven worker semantics. Only activation and
 retention have the separately recorded hosted observations; this D76
 implementation has not been deployed or observed against committed hosted rows.
 
-## Provisional standings, final results, and obligations
+## Dormant legacy standings, results, and obligations
 
 M8.3c adds one service-only `publish_contest_standings_v1` boundary and one
 accepted-participant `get_contest_standings_v1` read surface. The publisher
@@ -638,7 +651,7 @@ service-role integrity assessor. Accepted active or finalized rivals can audit
 the immutable geofence terms and derived check-in outcomes, but cannot inspect
 another participant's raw, failed, or trusted coordinate rows.
 
-## Scoring
+## Legacy social scoring
 
 `supabase/functions/_shared/scoring.ts` is the only implementation of who won
 (DECISIONS.md D3). It is a pure function — contest terms, the accepted roster,
@@ -953,8 +966,23 @@ implementation gates, and work not yet reflected here are in PLAN.md.
         completed frozen-local-hour buckets, reports confirmed totals, and
         persists account-isolated exact metric/App Attest bytes for explicit
         retry; physical two-account and hosted-verifier acceptance remain open
-  - [ ] **Later M8** — Background HealthKit delivery, Core Location/workouts,
+  - [ ] **Later M8 (legacy/social follow-up)** — Core Location/workouts,
         product App Attest lifecycle hardening, durable inbox/APNs, evidence
         persistence, M7 review/actionable
         settlement/dispute screens, accessibility hardening, and privacy/App
         Store work
+- [x] **M9 personal accountability V1 repository slice** — The implementation adds
+      the three-tab personal experience, atomic test-only challenge lifecycle,
+      private personal evidence/result records, and a Staging-only HealthKit
+      observer path. The local simulator layer passes 103 product unit tests, 10
+      product UI tests, 10 App Attest conformance tests, and unsigned Debug,
+      Staging, and Release builds. The portable local gate also passes 1,293
+      pgTAP assertions across 32 files, 350 Deno tests, 103 GameTimeCore tests,
+      schema lint, and local security/performance advisors with no warning- or
+      error-level findings. Xcode 26.2's expected no-AppIntents
+      metadata self-skip is accepted under D83 rather than hidden or worked
+      around with an unused dependency.
+- [ ] **M9 Stage A acceptance** — The repository-local simulator layer is
+      complete. Hosted Staging acceptance and signed physical-iPhone
+      foreground/background delivery proof remain open. No deployment,
+      TestFlight release, or live fee is authorized by the repository slice.

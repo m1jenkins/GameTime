@@ -198,8 +198,8 @@ select extensions.dblink_exec(
         'cumulative',
         10000,
         100,
-        '2090-01-01T00:00:00Z',
-        '2090-01-03T00:00:00Z',
+        '2000-01-01T00:00:00Z',
+        '2000-01-03T00:00:00Z',
         2
       ),
       (
@@ -210,8 +210,8 @@ select extensions.dblink_exec(
         'cumulative',
         10000,
         100,
-        '2090-02-01T00:00:00Z',
-        '2090-02-03T00:00:00Z',
+        '2000-02-01T00:00:00Z',
+        '2000-02-03T00:00:00Z',
         2
       ),
       (
@@ -416,7 +416,7 @@ from extensions.dblink(
   'p0_first',
   $activate$
     select activation.contest_id, activation.outcome::text
-    from app.activate_due_contests('2090-01-01T00:01:00Z') activation
+    from app.activate_due_contests('2000-01-01T00:01:00Z') activation
     where activation.contest_id =
       'f1000000-0000-0000-0000-000000000001'
   $activate$
@@ -458,7 +458,7 @@ select ok(
   (
     select
       contest.status = 'active'
-      and contest.activated_at = '2090-01-01T00:01:00Z'
+      and contest.activated_at = '2000-01-01T00:01:00Z'
       and contest.cancellation_reason is null
       and contest.cancelled_at is null
     from public.contests contest
@@ -589,7 +589,7 @@ select ok(
     'p0_second',
     $activate$
       select activation.contest_id, activation.outcome::text
-      from app.activate_due_contests('2090-02-01T00:01:00Z') activation
+      from app.activate_due_contests('2000-02-01T00:01:00Z') activation
       where activation.contest_id =
         'f1000000-0000-0000-0000-000000000002'
     $activate$
@@ -622,7 +622,7 @@ select ok(
     select
       contest.status = 'cancelled'
       and contest.cancellation_reason = 'insufficient_participants'
-      and contest.cancelled_at = '2090-02-01T00:01:00Z'
+      and contest.cancelled_at = '2000-02-01T00:01:00Z'
       and contest.activated_at is null
     from public.contests contest
     where contest.id = 'f1000000-0000-0000-0000-000000000002'

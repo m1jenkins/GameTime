@@ -1,105 +1,81 @@
 import SwiftUI
 
 struct TodayView: View {
-    @Environment(AppModel.self) private var model
+    @Environment(PersonalAccountabilityStore.self) private var store
     @Environment(AppRouter.self) private var router
-
-    private var running: [ContestCard] {
-        model.activeAndUpcomingContests.filter { $0.status == .active }
-    }
-
-    private var startingSoon: [ContestCard] {
-        model.activeAndUpcomingContests.filter { $0.status == .pending }
-    }
-
-    private var actionCount: Int {
-        model.incomingFriendships.count + model.invitations.count
-    }
-
-    private var isEmpty: Bool {
-        model.incomingFriendships.isEmpty
-            && model.invitations.isEmpty
-            && model.activeAndUpcomingContests.isEmpty
-            && model.loadState != .loading
-    }
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 11) {
-                subtitle
-                loadStateCard
-                friendRequests
-                challengeInvitations
-                contestSection(label: "Running", contests: running)
-                contestSection(
-                    label: "Starting soon",
-                    contests: startingSoon
-                )
-                emptyState
+            LazyVStack(spacing: 12) {
+                header
+                TestCommitmentDisclosure()
+                loadState
+
+                if store.eligibilityHoldActive {
+                    PersonalEligibilityHoldCard(hold: store.eligibilityHold)
+                }
+
+                if let challenge = store.openChallenge {
+                    currentChallenge(challenge)
+                } else if store.loadState != .loading {
+                    createCard
+                }
             }
             .padding(.horizontal, 18)
-            .padding(.top, 2)
+            .padding(.top, 4)
             .padding(.bottom, 28)
         }
         .daybreakScreenChrome()
         .navigationTitle("Today")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable {
-            await model.refresh()
+            await store.refresh()
         }
     }
 
-    private var subtitle: some View {
+    private var header: some View {
         HStack(spacing: 12) {
-            Text(subtitleText)
-                .font(
-                    CompetitiveTrustTheme.uiFont(
-                        size: 12.5,
-                        relativeTo: .caption,
-                        weight: .semibold
+            VStack(alignment: .leading, spacing: 2) {
+                Text(Date.now.formatted(.dateTime.weekday(.wide)))
+                    .font(
+                        CompetitiveTrustTheme.displayFont(
+                            size: 26,
+                            relativeTo: .title2
+                        )
                     )
-                )
-                .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                Text(Date.now.formatted(.dateTime.month(.wide).day()))
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 13,
+                            relativeTo: .subheadline,
+                            weight: .semibold
+                        )
+                    )
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            }
             Spacer(minLength: 8)
             Button {
-                Task { await model.refresh() }
+                Task { await store.refresh() }
             } label: {
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(CompetitiveTrustTheme.coralInk)
-                    .frame(width: 34, height: 34)
-                    .background(
-                        CompetitiveTrustTheme.coralTint,
-                        in: Circle()
-                    )
+                    .frame(width: 36, height: 36)
+                    .background(CompetitiveTrustTheme.coralTint, in: Circle())
             }
-            .accessibilityLabel("Refresh live state")
+            .accessibilityLabel("Refresh accountability progress")
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 6)
-        .padding(.bottom, 2)
-    }
-
-    private var subtitleText: String {
-        if actionCount == 1 {
-            return "One thing needs you"
-        }
-        if actionCount > 1 {
-            return "\(actionCount) things need you"
-        }
-        return Date.now.formatted(
-            .dateTime.weekday(.wide).month(.wide).day()
-        )
     }
 
     @ViewBuilder
-    private var loadStateCard: some View {
-        switch model.loadState {
+    private var loadState: some View {
+        switch store.loadState {
         case .loading, .failed:
             DaybreakCard {
                 InlineLoadStateView(
-                    state: model.loadState,
-                    retry: { Task { await model.refresh() } }
+                    state: store.loadState,
+                    retry: { Task { await store.refresh() } }
                 )
             }
         case .idle, .loaded, .empty:
@@ -107,116 +83,139 @@ struct TodayView: View {
         }
     }
 
-    @ViewBuilder
-    private var friendRequests: some View {
-        if !model.incomingFriendships.isEmpty {
-            DaybreakSectionLabel(text: "Friend requests")
-            DaybreakCard {
-                VStack(spacing: 0) {
-                    ForEach(model.incomingFriendships) { card in
-                        FriendshipCardRow(
-                            card: card,
-                            actionTitle: "Accept",
-                            action: {
-                                Task {
-                                    await model.acceptFriendship(
-                                        with: card.otherUserID
-                                    )
-                                }
-                            }
+    private func currentChallenge(
+        _ summary: PersonalChallengeSummary
+    ) -> some View {
+        VStack(spacing: 12) {
+            DaybreakSectionLabel(text: "Your seven days")
+            DaybreakCard(tone: .inverse) {
+                VStack(alignment: .leading, spacing: 15) {
+                    HStack {
+                        PersonalStatusPill(
+                            status: summary.presentationStatus(at: Date()),
+                            outcome: summary.outcome?.kind
                         )
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            router.todayPath.append(
-                                .friendship(card.otherUserID)
+                        Spacer(minLength: 8)
+                        Text(summary.terms.commitmentText)
+                            .font(
+                                CompetitiveTrustTheme.displayFont(
+                                    size: 22,
+                                    relativeTo: .headline
+                                )
                             )
-                        }
-                        .padding(.vertical, 9)
-
-                        if card.id != model.incomingFriendships.last?.id {
-                            Divider()
-                                .overlay(CompetitiveTrustTheme.border)
-                        }
                     }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var challengeInvitations: some View {
-        if !model.invitations.isEmpty {
-            DaybreakSectionLabel(text: "Challenge invitations")
-            ForEach(model.invitations) { contest in
-                VStack(spacing: 9) {
-                    ContestCardRow(
-                        contest: contest,
-                        currentUserID: model.userID
-                    ) {
-                        router.todayPath.append(.contest(contest.id))
+                    Text(summary.terms.targetText)
+                        .font(
+                            CompetitiveTrustTheme.displayFont(
+                                size: 28,
+                                relativeTo: .title
+                            )
+                        )
+                        .tracking(-0.7)
+                    if let progress = summary.progress {
+                        PersonalProgressBar(
+                            progress: progress,
+                            terms: summary.terms
+                        )
+                        .colorScheme(.dark)
                     }
-
-                    Button("Review and accept") {
-                        router.presentedSheet = .acceptInvitation(
-                            contest.id
+                    Button("View challenge") {
+                        router.todayPath.append(
+                            .personalChallenge(summary.id)
                         )
                     }
                     .buttonStyle(TrustPrimaryButtonStyle())
-                    .disabled(
-                        !model.configuration.contestMutationsEnabled
-                    )
-                    .accessibilityLabel(
-                        "Review and accept \(contest.title)"
+                    .accessibilityIdentifier("personal.today.open")
+                }
+            }
+
+            if let progress = summary.progress, !progress.days.isEmpty {
+                DaybreakSectionLabel(text: "Seven-day timeline")
+                DaybreakCard {
+                    PersonalSevenDayTimeline(days: progress.days)
+                }
+            }
+
+            syncCard(summary)
+        }
+        .task(id: summary.id) {
+            await store.loadDetail(challengeID: summary.id)
+        }
+    }
+
+    private func syncCard(_ summary: PersonalChallengeSummary) -> some View {
+        DaybreakCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Label("Health sync", systemImage: "heart.text.square.fill")
+                        .font(
+                            CompetitiveTrustTheme.displayFont(
+                                size: 18,
+                                relativeTo: .headline
+                            )
+                        )
+                    Spacer(minLength: 8)
+                    TrustStatusPill(
+                        text: syncStatus(summary),
+                        kind: summary.progress?.lastTrustedSyncAt == nil
+                            ? .action
+                            : .verified
                     )
                 }
+                if let date = summary.progress?.lastTrustedSyncAt {
+                    Text("Last trusted sync \(date.formatted(.relative(presentation: .named)))")
+                        .font(.caption)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                } else {
+                    Text("No trusted activity has been received yet.")
+                        .font(.caption)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                }
+                if let message = store.syncState(for: summary.id).message {
+                    Text(message)
+                        .font(.caption)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                }
+                Button("Sync steps now") {
+                    Task { await store.sync(challengeID: summary.id) }
+                }
+                .buttonStyle(TrustSecondaryButtonStyle())
+                .disabled(
+                    !summary.permitsActivitySync(at: Date())
+                        || !store.configuration.activitySyncEnabled
+                        || store.isSyncingActivity
+                )
+                .accessibilityIdentifier("personal.sync")
             }
         }
     }
 
-    @ViewBuilder
-    private func contestSection(
-        label: String,
-        contests: [ContestCard]
-    ) -> some View {
-        if !contests.isEmpty {
-            DaybreakSectionLabel(text: label)
-            ForEach(contests) { contest in
-                ContestCardRow(
-                    contest: contest,
-                    currentUserID: model.userID
-                ) {
-                    router.todayPath.append(.contest(contest.id))
-                }
-            }
+    private func syncStatus(_ summary: PersonalChallengeSummary) -> String {
+        if summary.progress?.pendingUploadCount ?? 0 > 0
+            || store.pendingActivityUploadCount > 0
+        {
+            return "Retry saved"
         }
+        return summary.progress?.lastTrustedSyncAt == nil
+            ? "Needs sync"
+            : "Up to date"
     }
 
-    @ViewBuilder
-    private var emptyState: some View {
-        if isEmpty {
-            DaybreakCard {
-                VStack(spacing: 16) {
-                    EmptyTrustState(
-                        title: "You’re clear for today",
-                        message:
-                            "Friend requests and challenge invitations land here before your running challenges.",
-                        systemImage: "checkmark"
-                    )
-
-                    if model.configuration.contestMutationsEnabled,
-                        !model.acceptedFriendships.isEmpty
-                    {
-                        Button("Start a challenge") {
-                            router.presentedSheet = .createChallenge
-                        }
-                        .buttonStyle(TrustPrimaryButtonStyle())
-                    } else {
-                        Button("Find a friend") {
-                            router.selectedTab = .friends
-                        }
-                        .buttonStyle(TrustSecondaryButtonStyle())
-                    }
+    private var createCard: some View {
+        DaybreakCard {
+            VStack(alignment: .leading, spacing: 15) {
+                EmptyTrustState(
+                    title: "Make this week count",
+                    message:
+                        "Set one step goal for seven complete days. Your start is frozen at the next midnight in your profile timezone.",
+                    systemImage: "figure.walk"
+                )
+                Button("Create a personal challenge") {
+                    router.presentedSheet = .createPersonalChallenge
                 }
+                .buttonStyle(TrustPrimaryButtonStyle())
+                .disabled(!store.canCreate)
+                .accessibilityIdentifier("personal.create")
             }
         }
     }
