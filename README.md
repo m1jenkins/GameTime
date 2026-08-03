@@ -20,8 +20,8 @@ commitment, and watch real HealthKit steps accumulate.
 | Sign in with Apple → onboarding → create challenge | Works, Debug + local stack |
 | HealthKit step reads | Works, Debug and Staging, physical device |
 | Live step total on an active challenge | Works, labelled **not yet verified** |
-| App Attest-signed upload and server-scored progress | Staging only; endpoints not deployed |
-| Hosted Staging backend | Legacy schema only — Personal V1 migrations not applied |
+| App Attest-signed upload and server-scored progress | Staging only; endpoints deployed, not yet exercised from a device |
+| Hosted Staging backend | Personal V1 schema and all six Edge Functions deployed |
 | Real fees | Blocked behind every Stage B gate in [PLAN.md](PLAN.md) |
 
 **Two capabilities, gated separately.** `activitySyncEnabled` (Debug +
@@ -37,12 +37,18 @@ still refuses untrusted evidence when it scores, so no domain invariant moved.
 ### What is not proven yet
 
 - **The attested pipeline end to end.** `activity-diagnostic` and
-  `personal-sync-coverage` are written and unit-tested but not deployed. Until
-  they are, no evidence reaches the ledger and server-scored progress stays
-  empty.
-- **Hosted Personal V1.** The hosted project has migrations through
-  `20260730195656`. The two Personal V1 migrations and both Solo migrations are
-  local-only. Check with `supabase migration list --linked`.
+  `personal-sync-coverage` were deployed on 2026-08-03 and fail closed to 401
+  without auth, but no device has completed a signed diagnostic or coverage
+  submission against them yet. Until one does, App Attest on this bundle is
+  unproven.
+- **Debug data is not Staging data.** Debug points at your local stack, so a
+  challenge created there does not exist in hosted Staging. Switching schemes
+  switches accounts and challenges.
+- **The Solo domain is deliberately unapplied.** Migrations `20260803001438`,
+  `20260803001455`, and `20260803014252` are local-only by choice; the hosted
+  project stops at `20260802165312`. A plain `supabase db push` will apply
+  them — hold them back if that is not intended. Check with
+  `supabase migration list --linked`.
 - **The Simulator.** It has no first-party device step samples, so the local
   probe finds nothing and creation stays blocked. This is inherent — the
   product scores device-recorded steps.
@@ -74,8 +80,8 @@ supabase/
     attest-device/       Registers one App Attest key per device install [deployed]
     ingest-metrics/      The only route into the evidence ledger [deployed]
     ingest-checkin/      Attested geofence/workout validation sidecar [deployed]
-    activity-diagnostic/ Attested trusted-HealthKit diagnostic summary [NOT deployed]
-    personal-sync-coverage/ Attested completed-hour coverage [NOT deployed]
+    activity-diagnostic/ Attested trusted-HealthKit diagnostic summary [deployed]
+    personal-sync-coverage/ Attested completed-hour coverage [deployed]
     deno.json            Deno tasks, imports, lint and format config
   seed.sql               Local/CI seed data. Never required by a test.
 ios/

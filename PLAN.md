@@ -334,12 +334,12 @@ App Store submission, or production configuration is authorized by this plan.
 | Legacy roster privacy fix | Selectively ported; self-only RLS and bounded RPC pass locally | Hosted two-actor observation after approval |
 | Personal terms and one-open slot | Implemented; lifecycle, exact-retry, and two-session concurrency tests pass | Hosted Staging observation after approval |
 | Local HealthKit reads | Enabled in Debug and Staging; gates challenge creation; live step total shown as unverified | Physical-device observation on a provisioned iPhone |
-| Trusted diagnostic and sync coverage | Edge, database, and iOS paths implemented; local service tests and builds pass. `activity-diagnostic` and `personal-sync-coverage` are **not deployed** | Function deployment, then signed physical App Attest and background-delivery proof |
+| Trusted diagnostic and sync coverage | Edge, database, and iOS paths implemented; local service tests and builds pass. `activity-diagnostic` and `personal-sync-coverage` deployed to hosted Staging 2026-08-03 | Signed physical App Attest run against the deployed endpoints, then background-delivery proof |
 | Personal scoring and holds | Implemented; DST, completeness, outage, deletion, retention, and recovery tests pass locally | Hosted scheduler/operator run plus physical final sync |
 | Solo contract domain (2A) | Implemented locally; policy-locked owner records, rollout gates, append-only evaluation/appeal facts, lifecycle, and deletion integration | Runtime remains off; client/worker integration and hosted acceptance remain separate slices |
 | Solo fake authorization adapter (2B) | Implemented locally; atomic v2 creation, immutable private binding, append-only fake outcomes, exact retries, and deletion integration | Runtime and allowlist remain closed; no provider, app/worker wiring, or hosted acceptance |
 | Three-tab personal Daybreak app | Personal simulator acceptance passes on a booted iPhone 17 Pro simulator: 103 unit, 10 UI, and 10 conformance tests pass; unsigned Debug/Staging/Release builds pass; D83 accepts the expected Xcode 26.2 no-AppIntents self-skip | Signed physical-device visual, HealthKit, App Attest, and background-delivery acceptance |
-| Hosted Stage A | Not deployed | Separate approval plus hosted acceptance |
+| Hosted Stage A | Personal V1 schema (through `20260802165312`) and all six Edge Functions deployed 2026-08-03 with owner approval. Solo migrations deliberately withheld | Hosted acceptance run: signed device, two-actor privacy observation, scheduler |
 | Physical Stage A | Not run | One provisioned iPhone and bounded evidence record |
 | Real fees | Blocked | Every Stage B gate below |
 
