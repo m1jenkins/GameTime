@@ -22,7 +22,12 @@ The Stage A product must let one real user:
   complete local calendar days, including daylight-saving transitions.
 - Select one of the five test commitment presets, with $10 selected by default.
 - See **Test commitment — no money will be charged.** before confirming.
-- Complete a trusted HealthKit and App Attest diagnostic.
+- Verify Health access before creating: a local HealthKit read that observes
+  at least one positive first-party device step sample. Creation does not
+  require the App Attest round-trip, because the server independently refuses
+  untrusted evidence at scoring time.
+- Complete a trusted HealthKit and App Attest diagnostic before evidence
+  counts toward a result.
 - Manually sync attested steps and signed coverage for completed hourly buckets.
 - See current progress, remaining steps, the seven-day timeline, sync health,
   completed history, and a final personal result.
@@ -328,7 +333,8 @@ App Store submission, or production configuration is authorized by this plan.
 | Model discriminator and legacy backfill | Implemented; full local database suite passes | Hosted migration rehearsal after approval |
 | Legacy roster privacy fix | Selectively ported; self-only RLS and bounded RPC pass locally | Hosted two-actor observation after approval |
 | Personal terms and one-open slot | Implemented; lifecycle, exact-retry, and two-session concurrency tests pass | Hosted Staging observation after approval |
-| Trusted diagnostic and sync coverage | Edge, database, and iOS paths implemented; local service tests and builds pass | Signed physical HealthKit/App Attest and background-delivery proof |
+| Local HealthKit reads | Enabled in Debug and Staging; gates challenge creation; live step total shown as unverified | Physical-device observation on a provisioned iPhone |
+| Trusted diagnostic and sync coverage | Edge, database, and iOS paths implemented; local service tests and builds pass. `activity-diagnostic` and `personal-sync-coverage` are **not deployed** | Function deployment, then signed physical App Attest and background-delivery proof |
 | Personal scoring and holds | Implemented; DST, completeness, outage, deletion, retention, and recovery tests pass locally | Hosted scheduler/operator run plus physical final sync |
 | Solo contract domain (2A) | Implemented locally; policy-locked owner records, rollout gates, append-only evaluation/appeal facts, lifecycle, and deletion integration | Runtime remains off; client/worker integration and hosted acceptance remain separate slices |
 | Solo fake authorization adapter (2B) | Implemented locally; atomic v2 creation, immutable private binding, append-only fake outcomes, exact retries, and deletion integration | Runtime and allowlist remain closed; no provider, app/worker wiring, or hosted acceptance |
