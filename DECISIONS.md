@@ -3814,3 +3814,76 @@ and enabling Solo creation merely because the logical domain passes locally.
 **Revisit if.** The next reviewed slice adds a fake adapter. It should introduce
 the minimum private processor-neutral authorization aggregate in a forward
 migration, keep real providers absent, and leave hosted/real-money gates closed.
+
+### D111. Step 2B makes fake authorization atomic, private, and append-only
+
+**What.** Step 2B takes D110's explicit revisit path through one forward
+migration. `app.solo_authorizations` stores one immutable
+`processor_neutral_fake` / `local-fake-v1` fact for a v2-created contract.
+A composite foreign key binds the authorization to the exact contract, owner,
+policy version and SHA-256 digest, commitment amount, `USD` currency, and
+`test_only` settlement mode. `app.solo_authorization_events` repeats that
+binding and permits exactly two append-only positions: an initial `authorized`
+event and at most one terminal `cancelled`, `released`, `forfeited`, or `waived`
+event. Both private tables enable RLS and grant no direct privilege to
+`public`, `anon`, `authenticated`, or `service_role`.
+
+`create_solo_contract_with_fake_authorization_v2` is the new authenticated
+owner boundary. It reuses the complete v1 profile, active-policy, beta,
+runtime-switch, terms, and one-open-slot checks, but atomically commits the
+contract, one authorization, its initial event, and the canonical exact-request
+result. `create_solo_contract_v1` keeps its reviewed contract-only semantics.
+A request UUID already committed through v1 cannot be upgraded into a linked v2
+authorization. Exact v2 retries return the committed result before mutable gates
+are rechecked, while changed terms under that UUID fail.
+
+The pure private adapter reads only typed frozen facts and supports four
+deterministic local scenarios. `authorize` creates the complete linked
+aggregate. `refuse` and `retryable` commit their exact outcomes without leaving
+a contract or authorization. `injected_failure` raises after candidate contract
+creation so the contract, v1 request record, authorization, event, and v2 result
+all roll back. The public v2 RPC selects only `authorize`; callers cannot choose
+a test failure mode.
+
+Contract finality owns fake resolution. A pre-start owner cancellation appends
+`cancelled` in the same `cancel_solo_contract_v1` transaction. D109 account
+deletion appends the same event, sourced to `delete_account`, in the existing
+serialized deletion transaction. A terminal `settle_solo_contract_v1` call
+appends exactly the contract's logical `released`, `forfeited`, or `waived`
+disposition. Evaluation, preliminary failure, appeal filing, and appeal decision
+do not resolve the authorization; it remains open until cancellation or logical
+settlement. Contract and authorization locks plus the unique second-event slot
+make concurrent or repeated resolution choose one committed outcome. A
+contract-only v1 row has no authorization and continues through the original
+lifecycle unchanged.
+
+The adapter accepts and stores no credential, provider secret or identifier,
+payment instrument, card data, customer ID, mandate, webhook body, arbitrary
+payload, or other raw sensitive value. It logs nothing, calls no external API,
+and cannot capture, charge, transfer, or pay out. The Solo creation switch
+remains off and the beta allowlist remains empty.
+
+**Why.** A second RPC version makes the new atomic contract explicit instead of
+silently changing v1. Relationally copying every frozen term prevents a
+different owner, policy, amount, currency, or settlement mode from being linked
+later. An append-only initial fact plus one terminal event is enough to exercise
+authorization, cancellation, settlement, appeal, deletion, idempotency, and
+race behavior without importing processor concepts or pretending that money
+moved. Rolling non-authorized candidates back prevents half-linked contracts,
+while committed refusal/retry results remain exactly recoverable.
+
+**Rejected.** Mutating `create_solo_contract_v1`; linking authorization after
+contract commit; a nullable provider-shaped column; a client-selected fake
+scenario; storing request bodies or instruments; updating an authorization
+status in place; resolving on preliminary failure or appeal; a second
+resolution event; treating `forfeited` as a capture or charge; enabling the
+runtime switch; seeding beta users; and adding an iOS route, public Edge
+endpoint, scheduler, Personal-to-Solo mapping, cross-domain slot rule, hosted
+configuration, provider SDK, credential, webhook, or external call.
+
+**Revisit if.** A reviewed client or worker needs this boundary, or every Stage
+B legal, processor, App Review, HealthKit, age, and jurisdiction gate is
+satisfied in writing. Either requires a new reviewed slice; the fake adapter is
+not a provider abstraction to toggle live. Local fake-adapter tests do not prove
+a real processor, money movement, legal or App Review approval, hosted
+scheduling, physical-device behavior, or hosted multi-user isolation.

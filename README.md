@@ -17,10 +17,11 @@ remain separate approval gates. [PLAN.md](PLAN.md) is the active roadmap and
 [docs/PERSONAL_V1_ACCEPTANCE.md](docs/PERSONAL_V1_ACCEPTANCE.md) defines the
 bounded Stage A acceptance record.
 
-The separate owner-only Solo contract domain from Step 2A is preserved locally
-but dormant. Its database creation switch is off, its beta allowlist is empty,
-and no iOS route, Edge Function, scheduler, provider, or money-moving path uses
-it.
+The separate owner-only Solo contract domain from Steps 2A and 2B, including its
+local fake authorization adapter, is also implemented locally. It is
+policy-locked and test-only, with the database creation switch off by default
+and no beta-eligible users seeded. It is not wired into the current app, has not
+been deployed, and contains no real payment or provider integration.
 
 The former friend-and-charity challenge remains dormant, read-compatible legacy
 data and regression code for V2. V1 does not load or expose friends,
@@ -182,10 +183,11 @@ Write `lower(col::text) = lower($1)`. The unique index is unaffected either way,
 which is what makes the bug quiet: uniqueness stays case-insensitive while
 lookups stop matching. See DECISIONS.md D14.
 
-## Owner-only Solo contracts (Step 2A, local and disabled)
+## Owner-only Solo contracts (Steps 2A–2B, local and disabled)
 
-Step 2A adds an isolated owner-only aggregate after the Personal migrations. It
-does not rename, drop, archive, disable, or reinterpret Personal or Social data.
+Step 2A is an isolated aggregate layered after the Personal V1 migrations. It
+does not rename, drop, archive, disable, or reinterpret the existing Personal or
+Social implementation.
 
 | Record | Contract |
 | --- | --- |
@@ -193,13 +195,23 @@ does not rename, drop, archive, disable, or reinterpret Personal or Social data.
 | `solo_evaluations` | One append-only service-authored preliminary evaluation per contract. A failure freezes its appeal deadline from the contract's policy version. |
 | `solo_appeals` | Append-only events: one owner-filed appeal per preliminary failure, then at most one service-authored decision. Decisions are inserted, never updated. |
 
-Authenticated clients have `SELECT` only on these three tables, and active-owner
-RLS prevents cross-owner reads. Mutations are limited to narrowly granted,
-versioned RPCs:
+Step 2B adds two relations in the unexposed `app` schema:
+
+| Private record | Contract |
+| --- | --- |
+| `app.solo_authorizations` | Exactly one immutable `processor_neutral_fake` / `local-fake-v1` authorization for a v2 contract, bound by composite foreign key to the contract, owner, policy version and digest, amount, `USD`, and `test_only`. |
+| `app.solo_authorization_events` | Exactly one initial `authorized` fact followed by at most one matching `cancelled`, `released`, `forfeited`, or `waived` resolution. Every event repeats and digests the immutable binding. |
+
+Authenticated clients have `SELECT` only on the three public Step 2A tables, and
+RLS limits that read to the active owner. They cannot directly insert, update,
+delete, truncate, settle, evaluate, or decide. The two private Step 2B tables
+have RLS enabled as defense in depth and grant no direct privilege to `public`,
+`anon`, `authenticated`, or `service_role`. Mutations are limited to:
 
 ```text
 authenticated
   create_solo_contract_v1
+  create_solo_contract_with_fake_authorization_v2
   cancel_solo_contract_v1
   file_solo_appeal_v1
 
@@ -212,28 +224,57 @@ service_role
   settle_solo_contract_v1
 ```
 
-Every ordinary Solo mutation uses an operation-scoped exact-request record.
-Creation requires an active profile, explicit private beta eligibility, the
-authoritative database switch, and acknowledgement of the active immutable
-policy version. Exact committed retries recover before mutable gates are
-rechecked. The account-deletion bridge is the sole integration exception: it
-inherits the existing serialized deletion transaction and audit trail.
+Each listed Solo RPC mutation has an exact-request record. Creation requires an
+active profile, an explicit DB beta-eligibility row, an enabled DB runtime
+switch, and the caller's exact acknowledgement of the active immutable policy
+version. Exact committed retries are resolved before those mutable rollout
+gates, so a lost response can still be recovered after a switch or eligibility
+change.
 
-The lifecycle is forward-only. A partial unique index permits one unsettled
-contract per owner. Pre-start cancellation is allowed only while scheduled and
-strictly before `starts_at`; preliminary failure may receive one timely appeal;
-terminal settlement records only the logical `released`, `forfeited`, or
-`waived` disposition. Account deletion cancels only a genuinely pre-start
-contract and retains post-start facts for service finality.
+`create_solo_contract_v1` remains unchanged and contract-only.
+`create_solo_contract_with_fake_authorization_v2` applies the same reviewed
+owner, policy, rollout, and one-open-slot boundary, then creates the contract,
+one immutable fake authorization, its initial `authorized` event, and the
+exact-request result atomically. A request UUID committed through v1 cannot be
+upgraded into v2, and reusing a v2 UUID with changed terms fails.
 
-Step 2A deliberately has no authorization interface. It stores no provider,
-credential, payment method, card data, customer, mandate, webhook, hold,
-capture, charge, transfer, payout, or raw sensitive payload. Dollar-denominated
-commitments and logical dispositions remain local `test_only` facts and do not
-reserve funds or move money. Personal and Solo currently have independent open
-slots, so both creation paths must not be enabled until a later migration owns
-the cross-domain rule.
+The pure private adapter deterministically supports `authorize`, `refuse`,
+`retryable`, and `injected_failure` for local tests; the authenticated public v2
+RPC exposes only `authorize`. Refusal and retryable scenarios commit an exact
+outcome without leaving a contract or authorization. Injected failure occurs
+after the candidate contract is created and proves that the candidate contract
+and request record roll back together. The adapter stores and logs no raw
+payload.
 
+The lifecycle is forward-only. Cancellation is available only while scheduled
+and strictly before `starts_at`; an exact committed cancellation retry remains
+recoverable afterward. One unsettled row per owner is enforced by a partial
+unique index. Account deletion cancels a genuinely pre-start contract and
+retains post-start evaluation/appeal history for service finality while stale
+owner tokens lose all access. That write is the only integration exception to
+the Solo exact-request ledger: a versioned, transaction-marker-guarded trigger
+inherits the existing atomic D81 `delete_account` boundary and audit trail.
+
+For v2 contracts, pre-start owner cancellation and D109 pre-start account
+deletion append `cancelled` in the same transaction that cancels the contract.
+Appeal filing and decision do not resolve the fake authorization; it remains
+open until contract finality. Terminal logical settlement appends exactly one
+matching `released`, `forfeited`, or `waived` event in the settlement
+transaction. Concurrent or repeated resolution attempts serialize to one event.
+Contract-only v1 rows deliberately remain authorization-free.
+
+Every authorization outcome is local and fake. There is no provider SDK,
+credential, secret, payment method, card data, customer identifier, mandate,
+webhook, external API call, authorization hold, capture, charge, transfer,
+payout, log payload, or real-money side effect. The Solo creation switch remains
+off, the beta allowlist remains empty, and there is still no iOS route, public
+Edge endpoint, scheduler, Personal-to-Solo integration, cross-domain slot rule,
+or hosted configuration.
+
+Local fake-adapter tests prove only local schema, transaction, privilege, and
+deterministic-adapter behavior. They do not prove a real processor, money
+movement, legal or App Review approval, hosted scheduling, physical-device
+behavior, or hosted multi-user isolation.
 
 ## Dormant legacy social graph (V2/regression)
 
@@ -1033,19 +1074,19 @@ implementation gates, and work not yet reflected here are in PLAN.md.
       private personal evidence/result records, and a Staging-only HealthKit
       observer path. The local simulator layer passes 103 product unit tests, 10
       product UI tests, 10 App Attest conformance tests, and unsigned Debug,
-      Staging, and Release builds. The portable local gate also passes 1,293
-      pgTAP assertions across 32 files, 350 Deno tests, 103 GameTimeCore tests,
-      schema lint, and local security/performance advisors with no warning- or
-      error-level findings. Xcode 26.2's expected no-AppIntents
+      Staging, and Release builds. The portable local gate also passes 1,617
+      pgTAP assertions, 350 Deno tests, 103 GameTimeCore tests, schema lint, and
+      local security/performance advisors. Xcode 26.2's expected no-AppIntents
       metadata self-skip is accepted under D83 rather than hidden or worked
       around with an unused dependency.
 - [ ] **M9 Stage A acceptance** — The repository-local simulator layer is
       complete. Hosted Staging acceptance and signed physical-iPhone
       foreground/background delivery proof remain open. No deployment,
       TestFlight release, or live fee is authorized by the repository slice.
-- [x] **M10 Step 2A owner-only Solo repository slice** — The disabled local
-      aggregate freezes immutable policy and terms, enforces owner-only reads,
-      exact retries, one unsettled slot, append-only evaluation/appeal facts,
-      guarded lifecycle and deletion integration. Its switch remains off and
-      beta allowlist empty; no authorization, provider, app/worker wiring,
-      hosted acceptance, or money movement exists.
+- [x] **M10 Steps 2A–2B owner-only Solo repository slices** — The disabled Solo
+      aggregate freezes policy-locked test contracts, append-only evaluation and
+      appeal facts, and logical settlement. Its new atomic v2 boundary adds one
+      immutable private processor-neutral fake authorization and append-only
+      fake resolution events while preserving contract-only v1 creation. The
+      runtime switch remains off, the beta allowlist remains empty, and no app,
+      Edge, scheduler, hosted, provider, or money-moving integration is enabled.

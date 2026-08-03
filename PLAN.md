@@ -139,8 +139,7 @@ Exit criteria:
 - The server, rather than a client flag, proves every personal term is
   `test_only`.
 
-
-+## 2A. Owner-only Solo contract domain — implemented locally
+## 2A. Owner-only Solo contract domain — implemented locally
 
 Step 2A adds a new, isolated contract aggregate without rewriting the Personal
 V1 evidence path or any historical Social table. The aggregate is deliberately
@@ -197,6 +196,78 @@ Transitional after 2A:
   slots. They must not both be enabled in a client until a later migration owns
   the cross-domain slot rule.
 
+## 2B. Local fake authorization adapter — implemented locally
+
+Step 2B is a forward-only extension of the disabled Solo aggregate. It provides
+one deterministic processor-neutral fake boundary for reviewing authorization
+linkage, retries, cancellation, logical settlement, and account deletion. It
+does not add a provider or claim that money can move.
+
+Implemented in this reviewable slice:
+
+- Private `app.solo_authorizations` rows bind one contract immutably through a
+  composite foreign key to its owner, policy version and digest, commitment
+  amount, `USD` currency, and `test_only` settlement mode. The fixed adapter is
+  `processor_neutral_fake` version `local-fake-v1`; typed facts and request
+  terms receive SHA-256 digests without storing an instrument or raw payload.
+- Private `app.solo_authorization_events` rows repeat that complete binding and
+  form a two-event append-only lifecycle: `authorized`, then exactly one of
+  `cancelled`, `released`, `forfeited`, or `waived`. Updates, deletes, truncates,
+  out-of-order events, mismatches, and duplicate resolutions are refused.
+- `create_solo_contract_with_fake_authorization_v2` is a new authenticated
+  owner RPC. It retains all Step 2A policy, profile, beta, switch, one-open-slot,
+  and request validation, then atomically commits the contract, one fake
+  authorization, its initial event, and the exact-request result. A missing
+  linked fact rolls the entire transaction back.
+- `create_solo_contract_v1` remains contract-only with unchanged behavior.
+  A request UUID already committed through v1 cannot be upgraded into a v2
+  authorization, and a v2 UUID cannot be reused with changed terms.
+- The pure private fake adapter has deterministic `authorize`, `refuse`,
+  `retryable`, and `injected_failure` scenarios. The public v2 RPC uses only
+  `authorize`. Test-only refusal and retryable outcomes commit an exact result
+  without creating a contract or authorization; injected failure proves the
+  candidate contract and request record roll back together.
+- Pre-start cancellation appends `cancelled` in the same transaction. Terminal
+  Solo settlement appends the matching logical `released`, `forfeited`, or
+  `waived` outcome in the same transaction. Preliminary evaluation and appeal
+  activity leave the fake authorization unresolved until contract finality.
+- D109 account deletion still cancels only a strictly pre-start scheduled
+  contract. That same deletion transaction appends the fake `cancelled` event,
+  disables beta eligibility, and leaves post-start contract, authorization,
+  evaluation, and appeal facts available only for service finality. Stale owner
+  tokens retain no access.
+- RLS is enabled on both private tables and every direct privilege is revoked
+  from `public`, `anon`, `authenticated`, and `service_role`. Versioned
+  functions and guarded triggers are the only write path. The adapter accepts
+  no credential, provider secret or identifier, payment instrument, customer,
+  mandate, card data, arbitrary body, or other raw sensitive payload; it logs
+  nothing and performs no external call.
+
+Exit criteria for 2B:
+
+- Forward migrations preserve all Personal, Social, and Step 2A migration
+  history while proving v1 contract-only compatibility and atomic v2 linkage.
+- pgTAP proves immutable bindings, RLS and complete privilege matrices, denied
+  direct writes, exact retries, changed-payload refusal, all permitted and
+  forbidden transitions, contract/owner/policy/amount/currency/settlement-mode
+  mismatch rejection, simultaneous linkage, duplicate resolution, appeal,
+  cancellation, settlement, and deletion races.
+- Deterministic fake success, refusal, retryable/retry, and injected-failure
+  paths are covered, including proof that no provider secret, payment
+  instrument, or raw sensitive payload is stored or logged.
+- Full local database, advisor/lint, Deno, Swift package, portable, reference,
+  and whitespace checks pass.
+
+Transitional after 2B:
+
+- The Solo creation switch remains off and the beta allowlist remains empty.
+- No iOS route, public Edge endpoint, scheduler, Personal-to-Solo integration,
+  or cross-domain slot rule is added.
+- No hosted configuration, provider SDK, credential, payment method, mandate,
+  webhook, capture, charge, transfer, payout, or external provider call exists.
+- Local fake-adapter tests do not prove a real processor, money movement, legal
+  or App Review approval, hosted scheduling, physical-device behavior, or
+  hosted multi-user isolation.
 
 ## 3. Personal iOS
 
@@ -260,6 +331,7 @@ App Store submission, or production configuration is authorized by this plan.
 | Trusted diagnostic and sync coverage | Edge, database, and iOS paths implemented; local service tests and builds pass | Signed physical HealthKit/App Attest and background-delivery proof |
 | Personal scoring and holds | Implemented; DST, completeness, outage, deletion, retention, and recovery tests pass locally | Hosted scheduler/operator run plus physical final sync |
 | Solo contract domain (2A) | Implemented locally; policy-locked owner records, rollout gates, append-only evaluation/appeal facts, lifecycle, and deletion integration | Runtime remains off; client/worker integration and hosted acceptance remain separate slices |
+| Solo fake authorization adapter (2B) | Implemented locally; atomic v2 creation, immutable private binding, append-only fake outcomes, exact retries, and deletion integration | Runtime and allowlist remain closed; no provider, app/worker wiring, or hosted acceptance |
 | Three-tab personal Daybreak app | Personal simulator acceptance passes on a booted iPhone 17 Pro simulator: 103 unit, 10 UI, and 10 conformance tests pass; unsigned Debug/Staging/Release builds pass; D83 accepts the expected Xcode 26.2 no-AppIntents self-skip | Signed physical-device visual, HealthKit, App Attest, and background-delivery acceptance |
 | Hosted Stage A | Not deployed | Separate approval plus hosted acceptance |
 | Physical Stage A | Not run | One provisioned iPhone and bounded evidence record |
@@ -285,9 +357,9 @@ structured attestations without medical records. A confirmed miss may be
 charged once; failed collection requires a user-authorized retry and blocks
 another paid challenge without repeated retries or debt collection.
 
-Step 2A remains `test_only`. Dollar-denominated commitments and logical
-settlement are not Stage B clearance. They do not reserve funds, authorize a
-charge, or move money.
+Steps 2A and 2B remain `test_only`. Dollar-denominated commitments, logical
+settlement, and fake authorization events are not Stage B clearance. They do
+not reserve funds, authorize a charge, or move money.
 
 ## Deferred V2
 
@@ -306,6 +378,9 @@ and support controls exist.
   do.
 - A seven-day local-calendar window is not always 168 elapsed hours.
 - A one-user device run does not prove two-actor privacy isolation.
+- Local fake-adapter tests do not prove a real processor, money movement, legal
+  or App Review approval, hosted scheduling, physical-device behavior, or
+  hosted multi-user isolation.
 - Preserve exact request UUIDs and encoded bytes for every retried mutation.
 - Never expose a service-role key, Apple private key, access token, assertion,
   payload body, raw health value, or private profile data in evidence or logs.
