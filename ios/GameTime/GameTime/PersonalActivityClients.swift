@@ -87,10 +87,10 @@ final class SupabaseTrustedActivityDiagnosticClient:
             trustedDeviceSampleCount: read.trustedSampleCount
         )
         let signed = try await signer.sign(ownerID: ownerID, body: body)
-        guard
-            let liveSession = client.auth.currentSession,
-            liveSession.user.id == ownerID
-        else {
+        guard let liveSession = try await client.validSession() else {
+            throw MetricUploadClientError.authenticationRequired
+        }
+        guard liveSession.user.id == ownerID else {
             throw PersonalAccountabilityClientError.accountChanged
         }
 
@@ -132,7 +132,15 @@ final class SupabaseTrustedActivityDiagnosticClient:
         }
         guard (200...201).contains(http.statusCode) else {
             if http.statusCode == 401 || http.statusCode == 403 {
-                throw MetricUploadClientError.uploadVerificationFailed
+                // A refused token and a refused assertion both arrive as 401.
+                // Only the response body separates them.
+                let failure: MetricUploadClientError =
+                    switch AttestedEndpointRefusal.decode(data) {
+                    case .authentication: .tokenRefusedByService
+                    case .accountNotActive: .accountNotActive
+                    case .attestation, .unspecified: .uploadVerificationFailed
+                    }
+                throw failure
             }
             throw PersonalAccountabilityClientError.unavailable
         }

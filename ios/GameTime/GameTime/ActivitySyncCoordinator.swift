@@ -510,10 +510,11 @@ extension MetricUploadClientError {
     case .networkUnavailable, .serviceUnavailable,
       .deviceRegistrationUnavailable, .assertionUnavailable,
       .operationInProgress, .uploadVerificationFailed,
-      .invalidServerResponse:
+      .invalidServerResponse, .sessionRefreshFailed:
       .retry
-    case .stagingOnly, .authenticationRequired, .accountChanged,
-      .appAttestUnsupported, .keyStateUnavailable:
+    case .stagingOnly, .authenticationRequired, .tokenRefusedByService,
+      .accountChanged, .appAttestUnsupported, .keyStateUnavailable,
+      .attestationRejected, .accountNotActive, .registrationRefused:
       .retain
     case .invalidMetricBody, .unsignedUpload, .uploadConflict,
       .uploadRejected:

@@ -36,12 +36,17 @@ protocol MetricUploadClient: AnyObject {
 enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
   case stagingOnly
   case authenticationRequired
+  case tokenRefusedByService
+  case sessionRefreshFailed
   case accountChanged
   case operationInProgress
   case appAttestUnsupported
   case keyStateUnavailable
   case invalidMetricBody
   case deviceRegistrationUnavailable
+  case attestationRejected
+  case accountNotActive
+  case registrationRefused
   case assertionUnavailable
   case unsignedUpload
   case networkUnavailable
@@ -57,6 +62,10 @@ enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
       "Activity sync is available only in GameTime Staging."
     case .authenticationRequired:
       "Sign in again before syncing activity."
+    case .tokenRefusedByService:
+      "Staging would not accept this account's access token. Signing in again does not change that — the Edge Function log names the check that refused it."
+    case .sessionRefreshFailed:
+      "GameTime could not refresh this account's sign-in. Check the connection and try again."
     case .accountChanged:
       "The signed-in account changed. Retry activity sync."
     case .operationInProgress:
@@ -69,6 +78,12 @@ enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
       "The queued activity upload is invalid."
     case .deviceRegistrationUnavailable:
       "GameTime could not register this device for staging activity sync."
+    case .attestationRejected:
+      "Staging could not verify this device with App Attest. This is not a sign-in problem."
+    case .accountNotActive:
+      "This account is not active in staging."
+    case .registrationRefused:
+      "Staging refused this device's App Attest registration."
     case .assertionUnavailable:
       "GameTime could not verify this activity upload."
     case .unsignedUpload:
@@ -86,6 +101,55 @@ enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
     case .invalidServerResponse:
       "The staging activity service returned an invalid response."
     }
+  }
+}
+
+/// Which check refused a 401 or 403 from an attested endpoint.
+///
+/// The functions answer with `{ error, message }` and a fixed message per
+/// check; the detail behind it stays in the function log
+/// (`supabase/functions/_shared/http.ts`). Three quite different failures
+/// arrive as 401 — a rejected token, a rejected attestation, and a rejected
+/// receipt — so reading the message is the only thing that keeps a device that
+/// cannot attest from being reported as an account that must sign in again.
+enum AttestedEndpointRefusal: Equatable, Sendable {
+  case authentication
+  case attestation
+  case accountNotActive
+  case unspecified
+
+  private static let maximumBodyBytes = 64 * 1024
+
+  /// Messages the deployed handlers send. Kept as literals rather than matched
+  /// loosely: an unrecognised message stays `.unspecified` instead of being
+  /// filed under whichever case its wording happens to resemble.
+  private static let known: [String: AttestedEndpointRefusal] = [
+    // attest-device and activity-diagnostic, on any unacceptable token.
+    "sign in again": .authentication,
+    // attest-device registration.
+    "the attestation could not be verified": .attestation,
+    "the receipt could not be verified": .attestation,
+    // activity-diagnostic and personal-sync-coverage.
+    "the assertion could not be verified": .attestation,
+    // assert_active_actor, which answers 403 rather than 401.
+    "this account is not active": .accountNotActive,
+  ]
+
+  static func decode(_ body: Data) -> AttestedEndpointRefusal {
+    guard
+      body.count <= maximumBodyBytes,
+      let document = try? JSONDecoder().decode(
+        FailureDocument.self,
+        from: body
+      )
+    else {
+      return .unspecified
+    }
+    return known[document.message] ?? .unspecified
+  }
+
+  private struct FailureDocument: Decodable {
+    let message: String
   }
 }
 
@@ -117,7 +181,20 @@ struct MetricUploadSession: Equatable, Sendable {
 
 @MainActor
 protocol MetricUploadSessionProviding: AnyObject {
-  func currentSession() -> MetricUploadSession?
+  /// A session whose access token is valid *now*, refreshing a stored token
+  /// that has already expired.
+  ///
+  /// `SupabaseClient.auth.currentSession` is the stored session, and the SDK
+  /// documents it as possibly expired. Every request in this file is built by
+  /// hand rather than made through the SDK, so nothing else refreshes the
+  /// token on the way out: reading the stored one sends an expired JWT to an
+  /// Edge Function, which answers 401, which the app then reported as "sign in
+  /// again" to somebody who was signed in the whole time.
+  ///
+  /// Returns nil when signing in again is the only way forward. A refresh that
+  /// merely could not be completed throws instead, because that one is worth
+  /// retrying.
+  func validSession() async throws -> MetricUploadSession?
 }
 
 @MainActor
@@ -253,7 +330,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     }
     defer { ownersBeingPrepared.remove(ownerID) }
 
-    try requireCurrentSession(ownerID: ownerID)
+    try await requireValidSession(ownerID: ownerID)
     guard appAttest.isSupported else {
       throw MetricUploadClientError.appAttestUnsupported
     }
@@ -264,7 +341,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       ownerID: ownerID
     )
 
-    try requireCurrentSession(ownerID: ownerID)
+    try await requireValidSession(ownerID: ownerID)
     let assertion: Data
     do {
       assertion = try await appAttest.generateAssertion(
@@ -276,7 +353,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     } catch {
       throw MetricUploadClientError.assertionUnavailable
     }
-    try requireCurrentSession(ownerID: ownerID)
+    try await requireValidSession(ownerID: ownerID)
     guard !assertion.isEmpty else {
       throw MetricUploadClientError.assertionUnavailable
     }
@@ -307,7 +384,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       throw MetricUploadClientError.unsignedUpload
     }
 
-    let session = try requireCurrentSession(ownerID: ownerID)
+    let session = try await requireValidSession(ownerID: ownerID)
     let state: MetricAppAttestState?
     do {
       state = try stateStore.state(for: ownerID)
@@ -338,7 +415,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     )
 
     let response = try await response(for: request)
-    try requireCurrentSession(ownerID: ownerID)
+    try await requireValidSession(ownerID: ownerID)
     try requireMetricSuccess(response)
 
     guard
@@ -365,7 +442,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
   private func loadOrGenerateState(
     ownerID: UUID
   ) async throws -> MetricAppAttestState {
-    try requireCurrentSession(ownerID: ownerID)
+    try await requireValidSession(ownerID: ownerID)
     let existing: MetricAppAttestState?
     do {
       existing = try stateStore.state(for: ownerID)
@@ -376,7 +453,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       return existing
     }
 
-    try requireCurrentSession(ownerID: ownerID)
+    try await requireValidSession(ownerID: ownerID)
     let keyID: String
     do {
       keyID = try await appAttest.generateKey()
@@ -385,7 +462,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     } catch {
       throw MetricUploadClientError.keyStateUnavailable
     }
-    try requireCurrentSession(ownerID: ownerID)
+    try await requireValidSession(ownerID: ownerID)
     guard Self.isValidKeyID(keyID) else {
       throw MetricUploadClientError.keyStateUnavailable
     }
@@ -446,14 +523,14 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       guard state.pendingRegistrationExpiresAt == nil else {
         throw MetricUploadClientError.keyStateUnavailable
       }
-      let challengeSession = try requireCurrentSession(ownerID: ownerID)
+      let challengeSession = try await requireValidSession(ownerID: ownerID)
       let challengeRequest = try makeRequest(
         endpoint: .attestChallenge,
         accessToken: challengeSession.accessToken
       )
       let challengeResponse = try await response(for: challengeRequest)
       let challengeReceivedAt = now()
-      try requireCurrentSession(ownerID: ownerID)
+      try await requireValidSession(ownerID: ownerID)
       try requireRegistrationSuccess(
         challengeResponse,
         isChallenge: true
@@ -481,7 +558,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
         throw MetricUploadClientError.invalidServerResponse
       }
 
-      try requireCurrentSession(ownerID: ownerID)
+      try await requireValidSession(ownerID: ownerID)
       let attestation: Data
       do {
         attestation = try await appAttest.attestKey(
@@ -493,7 +570,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       } catch {
         throw MetricUploadClientError.deviceRegistrationUnavailable
       }
-      try requireCurrentSession(ownerID: ownerID)
+      try await requireValidSession(ownerID: ownerID)
       guard !attestation.isEmpty else {
         throw MetricUploadClientError.deviceRegistrationUnavailable
       }
@@ -514,14 +591,14 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       }
     }
 
-    let registrationSession = try requireCurrentSession(ownerID: ownerID)
+    let registrationSession = try await requireValidSession(ownerID: ownerID)
     let registrationRequest = try makeRequest(
       endpoint: .attestDevice,
       accessToken: registrationSession.accessToken,
       body: registrationBody
     )
     let registrationResponse = try await response(for: registrationRequest)
-    try requireCurrentSession(ownerID: ownerID)
+    try await requireValidSession(ownerID: ownerID)
     try requireRegistrationSuccess(
       registrationResponse,
       isChallenge: false
@@ -553,7 +630,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     state: MetricAppAttestState,
     ownerID: UUID
   ) async throws -> MetricAppAttestState {
-    try requireCurrentSession(ownerID: ownerID)
+    try await requireValidSession(ownerID: ownerID)
     guard
       state.ownerID == ownerID,
       state.registered == false,
@@ -571,7 +648,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     } catch {
       throw MetricUploadClientError.keyStateUnavailable
     }
-    try requireCurrentSession(ownerID: ownerID)
+    try await requireValidSession(ownerID: ownerID)
     guard
       Self.isValidKeyID(replacementKeyID),
       replacementKeyID != state.keyID
@@ -611,10 +688,10 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
   }
 
   @discardableResult
-  private func requireCurrentSession(
+  private func requireValidSession(
     ownerID: UUID
-  ) throws -> MetricUploadSession {
-    guard let session = sessionProvider.currentSession() else {
+  ) async throws -> MetricUploadSession {
+    guard let session = try await sessionProvider.validSession() else {
       throw MetricUploadClientError.authenticationRequired
     }
     guard session.ownerID == ownerID else {
@@ -680,7 +757,17 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     isChallenge: Bool
   ) throws {
     guard response.statusCode != 401, response.statusCode != 403 else {
-      throw MetricUploadClientError.authenticationRequired
+      // None of these is a device that has no session — that case never gets
+      // this far. A token the service will not accept is its own outcome:
+      // signing in again reissues the same kind of token and changes nothing.
+      let failure: MetricUploadClientError =
+        switch AttestedEndpointRefusal.decode(response.body) {
+        case .authentication: .tokenRefusedByService
+        case .attestation: .attestationRejected
+        case .accountNotActive: .accountNotActive
+        case .unspecified: .registrationRefused
+        }
+      throw failure
     }
     guard response.statusCode < 500 else {
       throw MetricUploadClientError.serviceUnavailable
@@ -731,10 +818,18 @@ private final class SupabaseMetricUploadSessionProvider:
     self.client = client
   }
 
-  func currentSession() -> MetricUploadSession? {
-    guard let session = client.auth.currentSession else {
-      return nil
+  func validSession() async throws -> MetricUploadSession? {
+    let session: Session?
+    do {
+      session = try await client.validSession()
+    } catch is CancellationError {
+      throw CancellationError()
+    } catch {
+      // A refresh that could not be completed is not a refused account, and
+      // the retry disposition differs: this one is worth attempting again.
+      throw MetricUploadClientError.sessionRefreshFailed
     }
+    guard let session else { return nil }
     return MetricUploadSession(
       ownerID: session.user.id,
       accessToken: session.accessToken

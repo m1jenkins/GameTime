@@ -84,6 +84,52 @@ enum LiveServicesFactory {
     }
 }
 
+enum SupabaseSessionError: LocalizedError, Equatable, Sendable {
+    case refreshFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .refreshFailed:
+            "GameTime could not refresh this account's sign-in. Check the connection and try again."
+        }
+    }
+}
+
+extension SupabaseClient {
+    /// The signed-in session, with an access token that is valid *now*.
+    ///
+    /// `auth.currentSession` is whatever is in storage, and the SDK documents
+    /// it as possibly expired. Requests to the Edge Functions are built by hand
+    /// rather than issued through the SDK, so nothing on that path refreshes
+    /// the token: reading the stored one sends an expired JWT, the function
+    /// answers 401, and the app reports a sign-in problem to somebody who never
+    /// had one.
+    ///
+    /// - Returns: nil when there is no usable session and signing in again is
+    ///   the only way forward — either nobody is signed in, or the refresh
+    ///   token itself was refused.
+    /// - Throws: ``SupabaseSessionError/refreshFailed`` when a refresh was
+    ///   needed but could not be completed, which a later attempt may manage.
+    func validSession() async throws -> Session? {
+        do {
+            return try await auth.session
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch AuthError.sessionMissing {
+            return nil
+        } catch {
+            if
+                case AuthError.api(_, _, _, let response) = error,
+                (400...403).contains(response.statusCode)
+            {
+                // The refresh token was refused; there is nothing left to renew.
+                return nil
+            }
+            throw SupabaseSessionError.refreshFailed
+        }
+    }
+}
+
 @MainActor
 final class SupabaseAuthClient: AuthClient {
     private let client: SupabaseClient

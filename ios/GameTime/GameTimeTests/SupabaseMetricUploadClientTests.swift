@@ -391,7 +391,7 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
     } catch {
       XCTAssertEqual(
         error as? MetricUploadClientError,
-        .authenticationRequired
+        .registrationRefused
       )
     }
 
@@ -404,6 +404,194 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
     XCTAssertEqual(retained.keyID, appAttest.generatedKeyID)
     XCTAssertEqual(retained.pendingRegistrationBody, pendingBody)
     XCTAssertEqual(retained.pendingRegistrationExpiresAt, expiresAt)
+  }
+
+  /// The refusal that started this: an attestation the server could not verify
+  /// arrives as 401, and reporting it as an expired session sends somebody to
+  /// the sign-in screen to fix a device that cannot attest.
+  func testUnverifiableAttestationIsNotReportedAsASignInProblem()
+    async throws
+  {
+    for message in [
+      "the attestation could not be verified",
+      "the receipt could not be verified",
+    ] {
+      let surfaced = try await registrationRefusal(
+        statusCode: 401,
+        body: try jsonData([
+          "error": "unauthorized",
+          "message": message,
+        ])
+      )
+      XCTAssertEqual(surfaced, .attestationRejected)
+      XCTAssertEqual(
+        surfaced.errorDescription,
+        MetricUploadClientError.attestationRejected.errorDescription
+      )
+    }
+  }
+
+  func testInactiveAccountIsNotReportedAsASignInProblem() async throws {
+    let surfaced = try await registrationRefusal(
+      statusCode: 403,
+      body: try jsonData([
+        "error": "forbidden",
+        "message": "this account is not active",
+      ])
+    )
+    XCTAssertEqual(surfaced, .accountNotActive)
+  }
+
+  /// A token the service will not accept is not a device without a session.
+  /// Both used to read "sign in again", which is advice that cannot work when
+  /// a fresh token is refused for the same reason the last one was.
+  func testRefusedTokenIsDistinctFromHavingNoSession() async throws {
+    let refused = try await registrationRefusal(
+      statusCode: 401,
+      body: try jsonData([
+        "error": "unauthorized",
+        "message": "sign in again",
+      ])
+    )
+    XCTAssertEqual(refused, .tokenRefusedByService)
+
+    let client = try makeClient(
+      session: MetricTransportSessionFake(ownerID: nil),
+      appAttest: MetricTransportAppAttestFake(),
+      stateStore: MetricTransportStateStoreFake(),
+      transport: MetricTransportHTTPFake(outcomes: [])
+    )
+    do {
+      _ = try await client.prepare(
+        ownerID: ownerA,
+        body: exactMetricBody()
+      )
+      XCTFail("Expected a signed-out device to fail closed")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .authenticationRequired
+      )
+    }
+    XCTAssertNotEqual(
+      MetricUploadClientError.tokenRefusedByService.errorDescription,
+      MetricUploadClientError.authenticationRequired.errorDescription
+    )
+  }
+
+  /// A refresh that could not be completed is not a refused account. Saying
+  /// "sign in again" there asks for credentials when the connection is what
+  /// failed, and it is retryable where a refused account is not.
+  func testUnfinishedSessionRefreshIsNotReportedAsASignInProblem()
+    async throws
+  {
+    let session = MetricTransportSessionFake(ownerID: ownerA)
+    session.refreshFailure = .sessionRefreshFailed
+    let transport = MetricTransportHTTPFake(outcomes: [])
+    let client = try makeClient(
+      session: session,
+      appAttest: MetricTransportAppAttestFake(),
+      stateStore: MetricTransportStateStoreFake(),
+      transport: transport
+    )
+
+    do {
+      _ = try await client.prepare(
+        ownerID: ownerA,
+        body: exactMetricBody()
+      )
+      XCTFail("Expected the unfinished refresh to fail closed")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .sessionRefreshFailed
+      )
+    }
+    XCTAssertTrue(transport.requests.isEmpty)
+    XCTAssertGreaterThan(session.validSessionCallCount, 0)
+  }
+
+  /// Every request carries a token read at the moment it is sent, so a token
+  /// that was refreshed mid-flight is the one that reaches the server.
+  func testEachRequestCarriesTheTokenReadWhenItWasSent() async throws {
+    let appAttest = MetricTransportAppAttestFake()
+    let session = MetricTransportSessionFake(ownerID: ownerA)
+    session.accessToken = "stale-access-token"
+    let challenge = Data(repeating: 0x5A, count: 32)
+    let transport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "challenge": challenge.base64EncodedString(),
+            "expiresInSeconds": 600,
+          ])
+        )
+      ),
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "registered": true,
+            "environment": "development",
+          ])
+        )
+      ),
+    ])
+    // The SDK refreshes a stored token that has expired, so the value read
+    // before the challenge need not be the value read before registration.
+    appAttest.onGenerateKey = { session.accessToken = "refreshed-access-token" }
+    let client = try makeClient(
+      session: session,
+      appAttest: appAttest,
+      stateStore: MetricTransportStateStoreFake(),
+      transport: transport
+    )
+
+    _ = try await client.prepare(
+      ownerID: ownerA,
+      body: exactMetricBody()
+    )
+
+    XCTAssertEqual(transport.requests.count, 2)
+    for request in transport.requests {
+      XCTAssertEqual(
+        request.value(forHTTPHeaderField: "Authorization"),
+        "Bearer refreshed-access-token"
+      )
+    }
+  }
+
+  private func registrationRefusal(
+    statusCode: Int,
+    body: Data
+  ) async throws -> MetricUploadClientError {
+    let appAttest = MetricTransportAppAttestFake()
+    let stateStore = MetricTransportStateStoreFake()
+    let client = try makeClient(
+      session: MetricTransportSessionFake(ownerID: ownerA),
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: MetricTransportHTTPFake(outcomes: [
+        .response(
+          MetricUploadHTTPResponse(
+            statusCode: statusCode,
+            body: body
+          )
+        )
+      ])
+    )
+
+    do {
+      _ = try await client.prepare(
+        ownerID: ownerA,
+        body: exactMetricBody()
+      )
+      XCTFail("Expected the refused registration to fail closed")
+      return .invalidServerResponse
+    } catch let error as MetricUploadClientError {
+      return error
+    }
   }
 
   func testExpiredKeyRotationStopsOnAccountSwitchWithoutChangingState()
@@ -1092,12 +1280,19 @@ private final class MetricTransportSessionFake:
 {
   var ownerID: UUID?
   var accessToken = "metric-transport-access-token"
+  /// Set to simulate a refresh that could not be completed, which is not the
+  /// same outcome as nobody being signed in.
+  var refreshFailure: MetricUploadClientError?
+
+  private(set) var validSessionCallCount = 0
 
   init(ownerID: UUID?) {
     self.ownerID = ownerID
   }
 
-  func currentSession() -> MetricUploadSession? {
+  func validSession() async throws -> MetricUploadSession? {
+    validSessionCallCount += 1
+    if let refreshFailure { throw refreshFailure }
     guard let ownerID else { return nil }
     return MetricUploadSession(
       ownerID: ownerID,

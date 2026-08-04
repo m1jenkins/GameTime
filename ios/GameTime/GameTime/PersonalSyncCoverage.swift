@@ -305,9 +305,15 @@ final class SupabasePersonalCoverageClient: PersonalCoverageClient {
         ownerID: UUID,
         submission: PendingPersonalCoverageSubmission
     ) async throws -> PersonalCoverageReceipt {
+        // Checked before the session is read, so an obviously wrong submission
+        // still fails without reaching the network.
+        guard submission.ownerID == ownerID else {
+            throw PersonalCoverageError.accountChanged
+        }
+        guard let liveSession = try await client.validSession() else {
+            throw MetricUploadClientError.authenticationRequired
+        }
         guard
-            submission.ownerID == ownerID,
-            let liveSession = client.auth.currentSession,
             liveSession.user.id == ownerID,
             let identity = try? JSONDecoder().decode(
                 PersonalCoverageBodyIdentity.self,
@@ -319,9 +325,7 @@ final class SupabasePersonalCoverageClient: PersonalCoverageClient {
             !submission.keyID.isEmpty,
             !submission.assertion.isEmpty
         else {
-            if submission.ownerID != ownerID
-                || client.auth.currentSession?.user.id != ownerID
-            {
+            if liveSession.user.id != ownerID {
                 throw PersonalCoverageError.accountChanged
             }
             throw PersonalCoverageError.invalidRequest
@@ -366,6 +370,13 @@ final class SupabasePersonalCoverageClient: PersonalCoverageClient {
         guard http.statusCode == 200 || http.statusCode == 201 else {
             if http.statusCode >= 500 {
                 throw PersonalCoverageError.unavailable
+            }
+            // A refused token reads as a refused upload unless the body is read.
+            if
+                http.statusCode == 401 || http.statusCode == 403,
+                AttestedEndpointRefusal.decode(data) == .authentication
+            {
+                throw MetricUploadClientError.tokenRefusedByService
             }
             throw PersonalCoverageError.rejected
         }
