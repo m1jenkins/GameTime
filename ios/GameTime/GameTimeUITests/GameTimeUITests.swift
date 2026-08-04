@@ -243,10 +243,13 @@ final class GameTimeUITests: XCTestCase {
                 .waitForExistence(timeout: 5)
         )
         XCTAssertTrue(app.staticTexts["Scheduled"].exists)
+        // The disclosure sits at the top of a LazyVStack, so assert it before
+        // scrolling to the bottom for the cancel control — once the top of the
+        // stack is recycled it is no longer in the hierarchy to find.
+        assertExactDisclosure(in: app)
         let cancel = app.buttons["personal.cancel"]
         for _ in 0..<8 where !cancel.exists { app.swipeUp() }
         XCTAssertTrue(cancel.waitForExistence(timeout: 3))
-        assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
     }
 
