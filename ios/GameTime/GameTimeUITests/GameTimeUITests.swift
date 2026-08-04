@@ -251,6 +251,38 @@ final class GameTimeUITests: XCTestCase {
         assertNoForbiddenLanguage(in: app)
     }
 
+    func testDebugYouVerifiesHealthWithoutTrustedRecoveryAction() {
+        let app = launch(
+            "--fixture-empty",
+            "--fixture-personal-no-diagnostic"
+        )
+        app.tabBars.buttons["You"].waitAndTap()
+
+        let verify = app.buttons["personal.health.verify"]
+        XCTAssertTrue(verify.waitForExistence(timeout: 5))
+        XCTAssertEqual(verify.label, "Verify Health access")
+        XCTAssertFalse(app.buttons["personal.diagnostic.run"].exists)
+        XCTAssertFalse(app.buttons["Run trusted diagnostic"].exists)
+        XCTAssertFalse(app.buttons["Restore trusted access"].exists)
+        XCTAssertFalse(
+            app.staticTexts[
+                "A trusted diagnostic is required before confirming a personal challenge."
+            ].exists
+        )
+
+        verify.tap()
+
+        let result = app.descendants(matching: .any)[
+            "personal.health.probe-result"
+        ]
+        XCTAssertTrue(result.waitForExistence(timeout: 4))
+        XCTAssertEqual(
+            result.label,
+            "Observed 12 positive Apple-device step samples across 24 completed hours."
+        )
+        XCTAssertFalse(app.buttons["personal.diagnostic.run"].exists)
+    }
+
     func testEligibilityHoldAppearsAndFreshDiagnosticClearsIt() {
         let app = launch(
             "--fixture-empty",
@@ -268,11 +300,15 @@ final class GameTimeUITests: XCTestCase {
         )
         let diagnostic = app.buttons["personal.diagnostic.run"]
         for _ in 0..<5 where !diagnostic.isHittable { app.swipeDown() }
+        XCTAssertTrue(diagnostic.waitForExistence(timeout: 4))
+        XCTAssertEqual(diagnostic.label, "Restore trusted access")
+        XCTAssertFalse(app.buttons["Run trusted diagnostic"].exists)
         diagnostic.waitAndTap()
         XCTAssertTrue(
             app.staticTexts["Trusted"].waitForExistence(timeout: 4)
         )
         XCTAssertFalse(hold.exists)
+        XCTAssertFalse(app.buttons["personal.diagnostic.run"].exists)
         app.tabBars.buttons["Today"].waitAndTap()
         let create = app.buttons["personal.create"]
         for _ in 0..<5 where !create.isHittable { app.swipeUp() }

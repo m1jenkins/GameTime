@@ -84,29 +84,47 @@ struct YouView: View {
                                 )
                             )
                         Spacer(minLength: 8)
-                        TrustStatusPill(
-                            text: diagnosticStatus,
-                            kind: personalStore.latestDiagnostic?.isTrusted == true
-                                ? .verified
-                                : .action
-                        )
+                        if personalStore.latestDiagnostic != nil {
+                            TrustStatusPill(
+                                text: diagnosticStatus,
+                                kind: personalStore.latestDiagnostic?.isTrusted
+                                    == true
+                                    ? .verified
+                                    : .action
+                            )
+                        }
                     }
+                    Text(
+                        "GameTime checks a recent completed-hour window for at least one positive, first-party Apple-device step sample."
+                    )
+                    .font(.caption)
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                     if let diagnostic = personalStore.latestDiagnostic {
                         Text(
                             "Last diagnostic \(diagnostic.performedAt.formatted(.relative(presentation: .named))) · \(diagnostic.positiveTrustedSampleCount) trusted samples"
                         )
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                    } else {
+                    }
+                    if case .localStepsObserved(let probe) =
+                        personalStore.healthReadiness
+                    {
                         Text(
-                            "A trusted diagnostic is required before confirming a personal challenge."
+                            probe.sawTrustedDeviceSteps
+                                ? "Observed \(probe.positiveTrustedSampleCount) positive Apple-device step samples across \(probe.trustedHourCount) completed hours."
+                                : "No positive Apple-device step samples were observed across \(probe.trustedHourCount) completed hours."
                         )
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .accessibilityIdentifier("personal.health.probe-result")
                     }
-                    Button("Run trusted diagnostic") {
+                    Button(
+                        personalStore.isVerifyingHealthAccess
+                            ? "Checking Health…"
+                            : "Verify Health access"
+                    ) {
                         Task {
-                            _ = await personalStore.runDiagnostic(
+                            _ = await personalStore.verifyHealthAccess(
                                 timezone: model.profile?.timezone
                                     ?? TimeZone.current.identifier
                             )
@@ -114,13 +132,38 @@ struct YouView: View {
                     }
                     .buttonStyle(TrustSecondaryButtonStyle())
                     .disabled(
-                        personalStore.isRunningDiagnostic
+                        personalStore.isVerifyingHealthAccess
                             || !personalStore.configuration.activitySyncEnabled
                     )
-                    .accessibilityIdentifier("personal.diagnostic.run")
+                    .accessibilityIdentifier("personal.health.verify")
+                    if personalStore.configuration.attestedUploadEnabled,
+                        personalStore.eligibilityHoldActive
+                    {
+                        Button(
+                            personalStore.isRunningDiagnostic
+                                ? "Restoring trusted access…"
+                                : "Restore trusted access"
+                        ) {
+                            Task {
+                                _ = await personalStore.runDiagnostic(
+                                    timezone: model.profile?.timezone
+                                        ?? TimeZone.current.identifier
+                                )
+                            }
+                        }
+                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .disabled(personalStore.isRunningDiagnostic)
+                        .accessibilityIdentifier("personal.diagnostic.run")
+                    }
                     if !personalStore.configuration.activitySyncEnabled {
                         Text(
-                            "This check is locked outside Staging and requires a supported physical iPhone for acceptance."
+                            "HealthKit reads are available in Debug and Staging builds on a physical iPhone."
+                        )
+                        .font(.caption2)
+                        .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                    } else if !personalStore.configuration.attestedUploadEnabled {
+                        Text(
+                            "Steps are read locally in this build. App Attest-signed upload runs in Staging on a provisioned device."
                         )
                         .font(.caption2)
                         .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
