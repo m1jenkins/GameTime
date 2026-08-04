@@ -25,13 +25,13 @@ struct CreatePersonalChallengeFlow: View {
 
         var title: String {
             switch self {
-            case .metric: "Steps goal"
-            case .cadence: "Choose cadence"
-            case .target: "Set your target"
-            case .commitment: "Test commitment"
-            case .start: "Choose your start"
-            case .diagnostic: "Health diagnostic"
-            case .review: "Review frozen terms"
+            case .metric: "What you’ll track"
+            case .cadence: "How it counts"
+            case .target: "Your goal"
+            case .commitment: "Your amount"
+            case .start: "When you start"
+            case .diagnostic: "Health check"
+            case .review: "Check and confirm"
             }
         }
     }
@@ -84,11 +84,11 @@ struct CreatePersonalChallengeFlow: View {
                 }
             }
             .confirmationDialog(
-                "Discard the local retry record?",
+                "Delete this draft?",
                 isPresented: $showingDiscardConfirmation,
                 titleVisibility: .visible
             ) {
-                Button("Discard local retry", role: .destructive) {
+                Button("Delete draft", role: .destructive) {
                     Task {
                         if await store.discardPendingCreation() {
                             requestID = UUID()
@@ -99,7 +99,7 @@ struct CreatePersonalChallengeFlow: View {
                         }
                     }
                 }
-                Button("Keep saved request", role: .cancel) {}
+                Button("Keep it", role: .cancel) {}
             }
         }
     }
@@ -125,7 +125,7 @@ struct CreatePersonalChallengeFlow: View {
                 icon: "figure.walk",
                 title: "Steps",
                 detail:
-                    "Personal Accountability V1 supports trusted Apple Health steps only.",
+                    "Right now, steps from Apple Health are the only thing you can track.",
                 selected: true
             )
             .accessibilityIdentifier("personal.metric.steps")
@@ -142,8 +142,8 @@ struct CreatePersonalChallengeFlow: View {
                                 : "sum",
                             title: cadence.title,
                             detail: cadence == .daily
-                                ? "Meet the target on all seven local days."
-                                : "Reach one total across all seven local days.",
+                                ? "Hit your goal every single day."
+                                : "Hit one total by the end of the week.",
                             selected: draft.cadence == cadence
                         )
                     }
@@ -159,12 +159,12 @@ struct CreatePersonalChallengeFlow: View {
         case .target:
             VStack(alignment: .leading, spacing: 15) {
                 Text(draft.cadence == .daily
-                    ? "Steps required each day"
-                    : "Steps required across seven days")
+                    ? "Steps you’ll walk each day"
+                    : "Steps you’ll walk over the week")
                     .font(.subheadline)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 TextField(
-                    "Step target",
+                    "Step goal",
                     value: $draft.targetSteps,
                     format: .number
                 )
@@ -181,13 +181,13 @@ struct CreatePersonalChallengeFlow: View {
                     in: RoundedRectangle(cornerRadius: 16)
                 )
                 .accessibilityIdentifier("personal.target")
-                Text("Use a positive whole number from 1 to 1,000,000.")
+                Text("Pick any whole number from 1 to 1,000,000.")
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
         case .commitment:
             VStack(alignment: .leading, spacing: 14) {
-                Text("Choose the amount you are testing")
+                Text("How much are you putting on it?")
                     .font(.subheadline)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 LazyVGrid(
@@ -243,7 +243,7 @@ struct CreatePersonalChallengeFlow: View {
     private var startContent: some View {
         VStack(alignment: .leading, spacing: 15) {
             Text(
-                "Pick the day and hour your seven days open, in \(draft.timezone)."
+                "Pick the day and time your week starts (\(draft.timezone))."
             )
             .font(.subheadline)
             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -269,7 +269,7 @@ struct CreatePersonalChallengeFlow: View {
             .accessibilityIdentifier("personal.start.hour")
 
             HStack(spacing: 10) {
-                Button("Tomorrow, midnight") {
+                Button("Tonight at midnight") {
                     draft.startsAt = PersonalChallengeStart.nextLocalMidnight(
                         now: now,
                         timezone: draft.timezone
@@ -378,16 +378,16 @@ struct CreatePersonalChallengeFlow: View {
     /// rather than discovered on day one.
     private var startConsequence: String {
         if firstDayHours == 24 {
-            return "Seven full local days. Day one runs midnight to midnight."
+            return "Seven full days. Day one runs midnight to midnight."
         }
         let shared =
-            "Day one is short: \(firstDayHours) completed \(firstDayHours == 1 ? "hour" : "hours"), from \(hourLabel(PersonalChallengeStart.hour(of: draft.startsAt, timezone: draft.timezone))) to midnight. Days two through seven are full."
+            "Day one is short — \(firstDayHours) \(firstDayHours == 1 ? "hour" : "hours"), from \(hourLabel(PersonalChallengeStart.hour(of: draft.startsAt, timezone: draft.timezone))) until midnight. Days two to seven are full."
         guard draft.cadence == .daily else {
             return shared
-                + " Cumulative counts one total across all seven, so this only shortens the time available."
+                + " You’re going for one total, so this just leaves you less time."
         }
         return shared
-            + " On a daily cadence you still need \(draft.targetSteps.formatted()) steps within it."
+            + " You’ll still need \(draft.targetSteps.formatted()) steps in it."
     }
 
     @ViewBuilder
@@ -408,7 +408,7 @@ struct CreatePersonalChallengeFlow: View {
                 )
             )
             Text(
-                "GameTime checks a recent completed-hour window for at least one positive, first-party Apple-device step sample."
+                "We look at the last day of steps to check that your iPhone or Apple Watch is recording them."
             )
             .font(.subheadline)
             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -418,8 +418,8 @@ struct CreatePersonalChallengeFlow: View {
             if case .localStepsObserved(let probe) = store.healthReadiness {
                 Text(
                     probe.sawTrustedDeviceSteps
-                        ? "Read \(probe.positiveTrustedSampleCount) device step samples across \(probe.trustedHourCount) completed hours."
-                        : "No first-party device step samples in the last 24 completed hours. Walk a little with your phone, then check again."
+                        ? "Found \(probe.positiveTrustedSampleCount) step readings from your devices in the last \(probe.trustedHourCount) hours."
+                        : "No steps from your devices in the last 24 hours. Walk around with your phone for a bit, then check again."
                 )
                 .font(.caption)
                 .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -427,8 +427,8 @@ struct CreatePersonalChallengeFlow: View {
             }
             Button(
                 store.isVerifyingHealthAccess
-                    ? "Checking Health…"
-                    : "Verify Health access"
+                    ? "Checking…"
+                    : "Check Health connection"
             ) {
                 Task {
                     _ = await store.verifyHealthAccess(
@@ -446,15 +446,15 @@ struct CreatePersonalChallengeFlow: View {
             if store.configuration.attestedUploadEnabled {
                 if let diagnostic = store.latestDiagnostic {
                     Text(
-                        "Attested: \(diagnostic.status == .trusted ? "trusted" : "not ready") · \(diagnostic.performedAt.formatted(.relative(presentation: .named)))"
+                        "\(diagnostic.status == .trusted ? "Health check passed" : "Health check didn’t pass") · \(diagnostic.performedAt.formatted(.relative(presentation: .named)))"
                     )
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 }
                 Button(
                     store.isRunningDiagnostic
-                        ? "Running diagnostic…"
-                        : "Run trusted diagnostic"
+                        ? "Checking…"
+                        : "Run Health check"
                 ) {
                     Task {
                         _ = await store.runDiagnostic(timezone: draft.timezone)
@@ -467,13 +467,13 @@ struct CreatePersonalChallengeFlow: View {
 
             if !store.configuration.activitySyncEnabled {
                 Text(
-                    "HealthKit reads are available in Debug and Staging builds on a physical iPhone."
+                    "Reading Health data needs a real iPhone and a development build."
                 )
                 .font(.caption)
                 .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
             } else if !store.configuration.attestedUploadEnabled {
                 Text(
-                    "Steps are read locally in this build. App Attest-signed upload runs in Staging on a provisioned device."
+                    "Steps are read on your phone in this build, but not sent to GameTime yet."
                 )
                 .font(.caption)
                 .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
@@ -482,42 +482,41 @@ struct CreatePersonalChallengeFlow: View {
     }
 
     private var healthAccessTitle: String {
-        if store.healthReadiness.isAttested { return "Trusted diagnostic ready" }
-        if store.healthReadiness.permitsCreation { return "Health access verified" }
-        return "Verify Health access"
+        if store.healthReadiness.isAttested { return "Health check passed" }
+        if store.healthReadiness.permitsCreation { return "Health connected" }
+        return "Check your Health connection"
     }
 
     private var reviewContent: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Label("Terms freeze on confirmation", systemImage: "lock.fill")
+            Label("This locks in when you start", systemImage: "lock.fill")
                 .font(
                     CompetitiveTrustTheme.displayFont(
                         size: 21,
                         relativeTo: .headline
                     )
                 )
-            reviewRow("Metric", "Steps")
-            reviewRow("Cadence", draft.cadence.title)
+            reviewRow("How it counts", draft.cadence.title)
             reviewRow(
                 "Goal",
                 draft.cadence == .daily
-                    ? "\(draft.targetSteps.formatted()) per day"
-                    : "\(draft.targetSteps.formatted()) total"
+                    ? "\(draft.targetSteps.formatted()) steps a day"
+                    : "\(draft.targetSteps.formatted()) steps this week"
             )
             reviewRow(
-                "Commitment",
+                "Amount",
                 (Double(draft.commitmentAmountMinor) / 100)
                     .formatted(.currency(code: "USD"))
             )
             reviewRow(
-                "Length",
+                "How long",
                 firstDayHours == 24
-                    ? "Seven complete local days"
-                    : "Seven local days, day one from \(hourLabel(PersonalChallengeStart.hour(of: draft.startsAt, timezone: draft.timezone)))"
+                    ? "Seven full days"
+                    : "Seven days, starting at \(hourLabel(PersonalChallengeStart.hour(of: draft.startsAt, timezone: draft.timezone))) on day one"
             )
-            reviewRow("Timezone", draft.timezone)
+            reviewRow("Time zone", draft.timezone)
             reviewRow("Starts", startDescription)
-            reviewRow("Final sync", "24 hours after day seven")
+            reviewRow("Last chance to sync", "24 hours after your last day")
             if firstDayHours != 24 {
                 Text(startConsequence)
                     .font(.caption)
@@ -526,7 +525,7 @@ struct CreatePersonalChallengeFlow: View {
             }
             if !startIsStillValid {
                 Text(
-                    "This saved start has passed. Go back and choose a new one, or discard the saved retry."
+                    "That start time has already passed. Go back and pick a new one, or delete this draft."
                 )
                 .font(.caption)
                 .foregroundStyle(CompetitiveTrustTheme.coral)
@@ -534,16 +533,16 @@ struct CreatePersonalChallengeFlow: View {
             }
             Divider().overlay(CompetitiveTrustTheme.border)
             Text(
-                "Daily succeeds only with complete trusted evidence and the target met on all seven days. Cumulative succeeds when complete trusted evidence reaches the seven-day total. Any unresolved evidence is inconclusive and waived."
+                "On a daily challenge you have to hit your goal all seven days. On a weekly one you just have to reach the total by the end. If your steps go missing or don’t add up, the week doesn’t count — and it doesn’t count against you."
             )
             .font(.caption)
             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             if let pending = store.pendingCreation {
-                Text("Saved request ID: \(pending.request.requestID.uuidString.lowercased())")
+                Text("Draft reference: \(pending.request.requestID.uuidString.lowercased())")
                     .font(.caption2.monospaced())
                     .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
                     .accessibilityIdentifier("personal.request-id")
-                Button("Discard saved retry", role: .destructive) {
+                Button("Delete draft", role: .destructive) {
                     showingDiscardConfirmation = true
                 }
                 .frame(maxWidth: .infinity)
@@ -561,7 +560,7 @@ struct CreatePersonalChallengeFlow: View {
                     if store.isMutating {
                         ProgressView().tint(.white)
                     } else {
-                        Text("Confirm test commitment")
+                        Text("Start my challenge")
                     }
                 }
                 .buttonStyle(TrustPrimaryButtonStyle())

@@ -150,13 +150,32 @@ scripts/
   m6-5-configure-staging.sh  Pin and upload safe App Attest staging secrets
   m6-5-staging-fixture.sql   Repeatable staging contest/geofence fixture
 docs/
+  COPY.md                     How the app talks, and the domain-to-plain glossary
   M6_5_DEVICE_CONFORMANCE.md  Physical-iPhone/staging release gate
   PERSONAL_V1_ACCEPTANCE.md   Personal Stage A and two-actor privacy proof
   M8_1_STAGING_ACCEPTANCE.md  Preserved legacy social acceptance record
   archive/                Historical plans and audit evidence
+CLAUDE.md                Repository conventions, for humans and agents alike
 DECISIONS.md             Every non-obvious choice and why
 PLAN.md                  The one active path to Personal Accountability V1
 ```
+
+## What the app says
+
+The domain vocabulary in this README — trusted evidence, frozen terms,
+coverage, eligibility holds, cadence, attestation — is exact, and it stays
+exact in the schema, the ledger, and `DECISIONS.md`. **None of it goes on
+screen.** Verification is what GameTime does for someone; making them learn
+its vocabulary hands them the work instead.
+
+Screen copy says what happened and what to do next, in the words the person
+would use: *steps* rather than trusted steps, *Health check* rather than
+diagnostic, *draft* rather than retry record, *"this one didn't count"* rather
+than inconclusive-and-waived. [docs/COPY.md](docs/COPY.md) holds the rules and
+the full glossary, and it is required reading before changing any user-facing
+string — including the `errorDescription` of a `LocalizedError`, which is copy
+like any other. `GameTimeUITests` asserts on visible copy, so a wording change
+and its assertions belong in the same commit.
 
 ## Prerequisites
 

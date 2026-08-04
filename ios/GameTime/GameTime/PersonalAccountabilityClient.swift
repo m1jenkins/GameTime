@@ -104,21 +104,21 @@ enum PersonalAccountabilityClientError: LocalizedError, Equatable, Sendable {
     var errorDescription: String? {
         switch self {
         case .stagingOnly:
-            "Personal challenge changes are available only in local and Staging builds."
+            "Challenges can’t be changed in this build."
         case .unavailable:
-            "GameTime could not reach personal accountability right now."
+            "We couldn’t reach GameTime right now. Try again in a moment."
         case .invalidResponse:
-            "GameTime received an invalid personal challenge response."
+            "Something came back wrong from GameTime. Try again."
         case .accountChanged:
-            "The signed-in account changed. Try again."
+            "You signed in with a different account. Try again."
         case .openChallengeExists:
-            "Finish or cancel your current challenge before starting another."
+            "Finish or cancel your current challenge before you start another."
         case .eligibilityHold:
-            "Complete a fresh trusted Health diagnostic before starting another challenge."
+            "Run a Health check before you start another challenge."
         case .cancellationClosed:
-            "This challenge has already started and can no longer be cancelled."
+            "Your challenge has already started, so it can’t be cancelled."
         case .diagnosticUnavailable:
-            "A trusted Health diagnostic is not available on this device."
+            "Health checks aren’t available on this device."
         }
     }
 }

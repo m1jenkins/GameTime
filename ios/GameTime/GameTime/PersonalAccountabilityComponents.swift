@@ -3,7 +3,7 @@ import SwiftUI
 struct TestCommitmentDisclosure: View {
     var body: some View {
         Label(
-            "Test commitment — no money will be charged.",
+            "This is a test — no money will be charged.",
             systemImage: "checkmark.shield.fill"
         )
         .font(
@@ -98,11 +98,11 @@ struct PersonalChallengeCard: View {
         case .active:
             "Ends \(PersonalTermsDateFormatter.day(challenge.terms.endsAt, timezoneIdentifier: challenge.terms.timezone))"
         case .awaitingEvidence:
-            "Final sync window ends \(PersonalTermsDateFormatter.dateTime(challenge.terms.evidenceCutoff, timezoneIdentifier: challenge.terms.timezone))"
+            "Last chance to sync: \(PersonalTermsDateFormatter.dateTime(challenge.terms.evidenceCutoff, timezoneIdentifier: challenge.terms.timezone))"
         case .resultPending:
-            "Evidence closed — result pending"
+            "Working out how you did"
         case .cancelled:
-            "Cancelled before start"
+            "Cancelled"
         case .completed:
             "Completed \(PersonalTermsDateFormatter.day(challenge.terms.closedAt ?? challenge.terms.evidenceCutoff, timezoneIdentifier: challenge.terms.timezone))"
         }
@@ -122,16 +122,16 @@ struct PersonalStatusPill: View {
             switch outcome {
             case .metGoal: return "Goal met"
             case .missedGoal: return "Goal missed"
-            case .inconclusive: return "Inconclusive — waived"
+            case .inconclusive: return "Didn’t count"
             }
         }
         switch status {
         case .scheduled: return "Scheduled"
-        case .active: return "Day in progress"
-        case .awaitingEvidence: return "Final sync window"
-        case .resultPending: return "Result pending"
+        case .active: return "In progress"
+        case .awaitingEvidence: return "Waiting on steps"
+        case .resultPending: return "Almost done"
         case .cancelled: return "Cancelled"
-        case .completed: return "Complete"
+        case .completed: return "Done"
         }
     }
 
@@ -162,9 +162,9 @@ struct PersonalProgressBar: View {
                 .tint(CompetitiveTrustTheme.coral)
                 .accessibilityIdentifier("personal.progress")
             HStack(alignment: .firstTextBaseline) {
-                Text("\(progress.trustedSteps.formatted()) trusted steps")
+                Text("\(progress.trustedSteps.formatted()) steps")
                 Spacer(minLength: 8)
-                Text("\(progress.remainingSteps.formatted()) remaining")
+                Text("\(progress.remainingSteps.formatted()) to go")
             }
             .font(
                 CompetitiveTrustTheme.uiFont(
@@ -269,17 +269,17 @@ struct PersonalSevenDayTimeline: View {
 
     private func evidenceLabel(for day: PersonalDayProgress) -> String {
         switch day.evidenceState {
-        case .future: "Upcoming"
+        case .future: "Coming up"
         case .inProgress: "Today so far"
-        case .pending: "Awaiting trusted sync"
-        case .complete where day.metTarget == true: "Target met"
-        case .complete: "Complete evidence · target not met"
-        case .incomplete: "Evidence incomplete"
-        case .missing: "Evidence missing"
-        case .quarantined: "Evidence quarantined"
-        case .conflicting: "Evidence conflicting"
-        case .unresolved: "Evidence unresolved"
-        case .outageWaived: "GameTime outage · waived"
+        case .pending: "Waiting for your steps"
+        case .complete where day.metTarget == true: "Goal met"
+        case .complete: "Goal missed"
+        case .incomplete: "Some steps missing"
+        case .missing: "No steps received"
+        case .quarantined: "Steps we couldn’t use"
+        case .conflicting: "Steps didn’t add up"
+        case .unresolved: "Still checking"
+        case .outageWaived: "Our problem — doesn’t count against you"
         }
     }
 }
@@ -291,7 +291,7 @@ struct PersonalEligibilityHoldCard: View {
         DaybreakCard(tone: .pledge) {
             VStack(alignment: .leading, spacing: 9) {
                 Label(
-                    "New challenge paused",
+                    "New challenges are paused",
                     systemImage: "exclamationmark.shield.fill"
                 )
                 .font(
@@ -301,7 +301,7 @@ struct PersonalEligibilityHoldCard: View {
                     )
                 )
                 Text(
-                    "A user or device sync issue needs a fresh trusted Health diagnostic before another challenge can begin. Your test commitment is waived while evidence is unresolved."
+                    "Something is wrong with the steps coming from your phone. Run a Health check to start another challenge — and don’t worry, your last one doesn’t count against you."
                 )
                 .font(
                     CompetitiveTrustTheme.uiFont(
@@ -310,13 +310,43 @@ struct PersonalEligibilityHoldCard: View {
                     )
                 )
                 .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                if let hold {
-                    Text("Reason: \(hold.reasonCode.replacingOccurrences(of: "_", with: " "))")
+                if let hold, let reason = PersonalReasonText.sentence(
+                    for: hold.reasonCode
+                ) {
+                    Text(reason)
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
                 }
             }
         }
         .accessibilityIdentifier("personal.eligibility-hold")
+    }
+}
+
+/// Server reason codes are stable identifiers, not sentences. Say what each
+/// known one means in plain words; show an unknown code as a support
+/// reference rather than dressing it up as English.
+enum PersonalReasonText {
+    static func sentence(for reasonCode: String) -> String? {
+        let code = reasonCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !code.isEmpty else { return nil }
+        switch code {
+        case "missing":
+            return "We never received steps for part of your week."
+        case "incomplete":
+            return "Some hours of your week never arrived."
+        case "quarantined":
+            return "Some of your steps didn’t look like they came from your Apple devices."
+        case "conflicting":
+            return "The steps we received didn’t add up."
+        case "unresolved":
+            return "We’re still sorting out some of your steps."
+        case "unresolved_device_sync":
+            return "Your phone stopped sending steps for a while."
+        case "outage_waived":
+            return "This was a problem on our end."
+        default:
+            return "Reference: \(code)"
+        }
     }
 }

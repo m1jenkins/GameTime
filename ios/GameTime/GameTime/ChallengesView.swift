@@ -13,7 +13,7 @@ struct ChallengesView: View {
                 pendingRecovery
 
                 if let current = store.openChallenge {
-                    DaybreakSectionLabel(text: "Current challenge")
+                    DaybreakSectionLabel(text: "Your challenge")
                     PersonalChallengeCard(challenge: current) {
                         router.challengesPath.append(
                             .personalChallenge(current.id)
@@ -22,7 +22,7 @@ struct ChallengesView: View {
                 }
 
                 if !store.history.isEmpty {
-                    DaybreakSectionLabel(text: "Completed history")
+                    DaybreakSectionLabel(text: "Finished")
                     ForEach(store.history) { challenge in
                         PersonalChallengeCard(challenge: challenge) {
                             router.challengesPath.append(
@@ -35,16 +35,16 @@ struct ChallengesView: View {
                 if store.challenges.isEmpty, store.loadState != .loading {
                     DaybreakCard {
                         EmptyTrustState(
-                            title: "No personal challenges yet",
+                            title: "No challenges yet",
                             message:
-                                "Your current seven-day commitment and completed history will appear here.",
+                                "The week you’re working on, and every week you’ve finished, will show up here.",
                             systemImage: "flag.checkered"
                         )
                     }
                 }
 
                 if store.openChallenge == nil {
-                    Button("Create a personal challenge") {
+                    Button("Start a challenge") {
                         router.presentedSheet = .createPersonalChallenge
                     }
                     .buttonStyle(TrustPrimaryButtonStyle())
@@ -61,17 +61,17 @@ struct ChallengesView: View {
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await store.refresh() }
         .confirmationDialog(
-            "Discard the local retry record?",
+            "Delete this draft?",
             isPresented: $showingDiscardConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Discard local retry", role: .destructive) {
+            Button("Delete draft", role: .destructive) {
                 Task { _ = await store.discardPendingCreation() }
             }
-            Button("Keep saved request", role: .cancel) {}
+            Button("Keep it", role: .cancel) {}
         } message: {
             Text(
-                "This removes only the exact on-device retry record. It does not cancel a challenge the server may already have created."
+                "This deletes the copy saved on your phone. If your challenge already started, it keeps running."
             )
         }
     }
@@ -94,18 +94,18 @@ struct ChallengesView: View {
     @ViewBuilder
     private var pendingRecovery: some View {
         if let pending = store.pendingCreation {
-            DaybreakSectionLabel(text: "Saved request")
+            DaybreakSectionLabel(text: "Unfinished setup")
             DaybreakCard(tone: .pledge) {
                 VStack(alignment: .leading, spacing: 11) {
                     TrustStatusPill(
                         text: store.hasPendingCreationRecoveryIssue
-                            ? "Protected storage needs attention"
-                            : "Exact retry ready",
+                            ? "We couldn’t save this to your phone"
+                            : "Ready to finish",
                         kind: .action
                     )
                     Text(pending.request.cadence == .daily
-                        ? "\(pending.request.targetSteps.formatted()) steps each day"
-                        : "\(pending.request.targetSteps.formatted()) steps total")
+                        ? "\(pending.request.targetSteps.formatted()) steps a day"
+                        : "\(pending.request.targetSteps.formatted()) steps this week")
                         .font(
                             CompetitiveTrustTheme.displayFont(
                                 size: 20,
@@ -113,17 +113,17 @@ struct ChallengesView: View {
                             )
                         )
                     Text(
-                        "GameTime kept the exact personal terms and request ID for a safe retry."
+                        "We saved exactly what you picked, so you can pick up where you left off."
                     )
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                    Button("Review saved request") {
+                    Button("Pick up where you left off") {
                         router.presentedSheet = .createPersonalChallenge
                     }
                     .buttonStyle(TrustSecondaryButtonStyle())
                     .disabled(store.hasPendingCreationRecoveryIssue)
                     .accessibilityIdentifier("personal.pending.resume")
-                    Button("Discard local retry", role: .destructive) {
+                    Button("Delete draft", role: .destructive) {
                         showingDiscardConfirmation = true
                     }
                     .frame(maxWidth: .infinity)
@@ -131,7 +131,7 @@ struct ChallengesView: View {
             }
         } else if store.hasPendingCreationRecoveryIssue {
             PersonalEligibilityHoldCard(hold: nil)
-            Button("Retry protected storage") {
+            Button("Try saving again") {
                 Task { await store.retryPendingCreationRecovery() }
             }
             .buttonStyle(TrustSecondaryButtonStyle())

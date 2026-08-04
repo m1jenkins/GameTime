@@ -59,47 +59,47 @@ enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
   var errorDescription: String? {
     switch self {
     case .stagingOnly:
-      "Activity sync is available only in GameTime Staging."
+      "Step syncing isn’t available in this build."
     case .authenticationRequired:
-      "Sign in again before syncing activity."
+      "Sign in again to sync your steps."
     case .tokenRefusedByService:
-      "Staging would not accept this account's access token. Signing in again does not change that — the Edge Function log names the check that refused it."
+      "GameTime wouldn’t accept this account. Signing in again won’t fix it — the server logs say which check refused it."
     case .sessionRefreshFailed:
-      "GameTime could not refresh this account's sign-in. Check the connection and try again."
+      "We couldn’t refresh your sign-in. Check your connection and try again."
     case .accountChanged:
-      "The signed-in account changed. Retry activity sync."
+      "You signed in with a different account. Sync your steps again."
     case .operationInProgress:
-      "Activity verification is already in progress."
+      "Already syncing — hang tight."
     case .appAttestUnsupported:
-      "This device cannot verify staging activity uploads."
+      "This device can’t prove your steps came from it."
     case .keyStateUnavailable:
-      "GameTime could not access this account's device verification state."
+      "We couldn’t read this device’s setup."
     case .invalidMetricBody:
-      "The queued activity upload is invalid."
+      "Something is wrong with the steps waiting to send."
     case .deviceRegistrationUnavailable:
-      "GameTime could not register this device for staging activity sync."
+      "We couldn’t set this device up for step syncing."
     case .attestationRejected:
-      "Staging could not verify this device with App Attest. This is not a sign-in problem."
+      "We couldn’t verify this device. This isn’t a sign-in problem."
     case .accountNotActive:
-      "This account is not active in staging."
+      "This account isn’t active."
     case .registrationRefused:
-      "Staging refused this device's App Attest registration."
+      "GameTime wouldn’t register this device."
     case .assertionUnavailable:
-      "GameTime could not verify this activity upload."
+      "We couldn’t verify those steps."
     case .unsignedUpload:
-      "The queued activity upload has not been verified."
+      "The steps waiting to send haven’t been verified yet."
     case .networkUnavailable:
-      "Activity sync could not reach the staging service."
+      "We couldn’t reach GameTime. Check your connection and try again."
     case .serviceUnavailable:
-      "The staging activity service is unavailable."
+      "GameTime is unavailable right now. Try again in a moment."
     case .uploadVerificationFailed:
-      "The staging service could not verify this activity upload."
+      "GameTime couldn’t verify those steps."
     case .uploadConflict:
-      "The staging service found a conflicting activity upload."
+      "Those steps clash with ones we already have."
     case .uploadRejected:
-      "The staging service rejected this activity upload."
+      "GameTime wouldn’t accept those steps."
     case .invalidServerResponse:
-      "The staging activity service returned an invalid response."
+      "Something came back wrong from GameTime. Try again."
     }
   }
 }

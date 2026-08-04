@@ -8,8 +8,8 @@ enum PersonalChallengeCadence: String, Codable, CaseIterable, Identifiable, Send
 
     var title: String {
         switch self {
-        case .daily: "Daily"
-        case .cumulative: "Cumulative"
+        case .daily: "Every day"
+        case .cumulative: "Week total"
         }
     }
 
@@ -486,13 +486,13 @@ enum PersonalChallengeValidationError: LocalizedError, Equatable, Sendable {
     var errorDescription: String? {
         switch self {
         case .invalidTarget:
-            "Enter a whole-number step target from 1 to 1,000,000."
+            "Enter a whole number of steps, from 1 to 1,000,000."
         case .invalidCommitment:
-            "Choose a test commitment from $10, $20, $30, $40, or $50."
+            "Pick $10, $20, $30, $40, or $50."
         case .invalidTimezone:
-            "GameTime could not identify a valid IANA timezone."
+            "We couldn’t work out your time zone. Check Date & Time in your iPhone settings."
         case .invalidStart:
-            "Choose a start on the hour, in the future, within 90 days."
+            "Pick a start time on the hour, in the future, within the next 90 days."
         }
     }
 }
@@ -537,8 +537,8 @@ struct FrozenPersonalTerms: Codable, Equatable, Sendable {
 
     var targetText: String {
         cadence == .daily
-            ? "\(targetSteps.formatted()) steps per day"
-            : "\(targetSteps.formatted()) steps total"
+            ? "\(targetSteps.formatted()) steps a day"
+            : "\(targetSteps.formatted()) steps this week"
     }
 }
 

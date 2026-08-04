@@ -22,17 +22,17 @@ enum ActivitySyncViewState: Equatable, Sendable {
         case .idle:
             nil
         case .syncing:
-            "Reading and verifying this challenge’s steps…"
+            "Checking your steps…"
         case let .synced(stepTotal):
-            "\(formatted(stepTotal)) device-recorded steps confirmed in this sync."
+            "\(formatted(stepTotal)) steps confirmed."
         case let .replayAccepted(stepTotal):
-            "\(formatted(stepTotal)) device-recorded steps confirmed from saved activity."
+            "\(formatted(stepTotal)) saved steps confirmed."
         case let .queuedForRetry(stepTotal):
-            "\(formatted(stepTotal)) device-recorded steps are saved for exact retry. Tap Sync Activity to retry."
+            "\(formatted(stepTotal)) steps are saved and waiting to send. Tap Sync to try again."
         case .noReadableData:
-            "No completed device-recorded step hours were found. Access may be limited or off."
+            "We couldn’t find any steps from your phone. Health access may be off or limited."
         case .failed:
-            "Activity sync needs attention before retrying."
+            "Your steps aren’t syncing. Check your Health connection."
         }
     }
 
@@ -150,19 +150,19 @@ final class AppModel {
 
     func completeOnboarding(handle: String, displayName: String) async {
         guard let userID else {
-            presentedError = "Your sign-in session is no longer available."
+            presentedError = "You’re signed out. Sign in again to continue."
             return
         }
         guard let exactHandle = ExactHandleSubmission.normalized(handle) else {
             presentedError =
-                "Use 3–30 letters, numbers, or underscores, beginning with a letter."
+                "Usernames are 3–30 letters, numbers, or underscores, and start with a letter."
             return
         }
         let cleanName = displayName.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
         guard (1...50).contains(cleanName.count) else {
-            presentedError = "Use a display name between 1 and 50 characters."
+            presentedError = "Your name needs to be between 1 and 50 characters."
             return
         }
         let generation = authGeneration
@@ -410,7 +410,7 @@ final class AppModel {
         guard let exact = ExactHandleSubmission.normalized(input) else {
             lastSubmittedHandle = input
             presentedError =
-                "Enter one exact handle: 3–30 letters, numbers, or underscores."
+                "Enter one username: 3–30 letters, numbers, or underscores."
             return
         }
         lastSubmittedHandle = exact
@@ -465,17 +465,17 @@ final class AppModel {
         guard configuration.legacySocialRuntimeEnabled else { return nil }
         guard configuration.contestMutationsEnabled else {
             presentedError =
-                "Release contest creation stays locked until evidence and App Attest are complete."
+                "Challenges aren’t open yet."
             return nil
         }
         guard let userID else {
-            presentedError = "Your sign-in session is no longer available."
+            presentedError = "You’re signed out. Sign in again to continue."
             return nil
         }
         let actorGeneration = authGeneration
         guard !hasPendingChallengeRecoveryIssue else {
             presentedError =
-                "Resolve or discard the unreadable saved challenge before sending another request."
+                "Sort out or delete your saved draft before starting another one."
             return nil
         }
         guard !isMutating else { return nil }
@@ -487,12 +487,12 @@ final class AppModel {
             guard pendingChallenge.ownerID == userID else {
                 hasPendingChallengeRecoveryIssue = true
                 presentedError =
-                    "The saved challenge does not belong to the active account."
+                    "That saved draft belongs to a different account."
                 return nil
             }
             guard pendingChallenge.terms.requestID == terms.requestID else {
                 presentedError =
-                    "Review or discard the saved challenge before starting another request."
+                    "Finish or delete your saved draft before starting another one."
                 return nil
             }
             guard pendingChallenge.terms == terms else {
@@ -552,7 +552,7 @@ final class AppModel {
                 }
                 hasPendingChallengeRecoveryIssue = true
                 presentedError =
-                    "The challenge was confirmed, but its saved retry could not be removed. Retry recovery remains locked to prevent a duplicate request."
+                    "Your challenge started, but we couldn’t clear the draft from your phone. We’ve locked it so you don’t end up with two."
                 await refresh()
                 return nil
             }
@@ -575,7 +575,7 @@ final class AppModel {
             let mapped = AppMutationError.map(error)
             if mapped == .offline || mapped.isUnknownServerFailure {
                 presentedError =
-                    "GameTime couldn’t confirm the challenge result. The exact request was saved for a deliberate retry."
+                    "We couldn’t confirm your challenge started. We saved exactly what you picked so you can try again."
             } else {
                 present(error)
             }
@@ -597,7 +597,7 @@ final class AppModel {
             )
         else {
             presentedError =
-                "Your sign-in session changed. The saved retry was not discarded."
+                "You signed in with a different account, so the draft wasn’t deleted."
             return false
         }
         do {
@@ -640,7 +640,7 @@ final class AppModel {
         guard let userID, let profile else { return }
         guard configuration.contestMutationsEnabled else {
             presentedError =
-                "Release contest acceptance stays locked until evidence and App Attest are complete."
+                "Challenges aren’t open yet."
             return
         }
         await mutate {
@@ -658,7 +658,7 @@ final class AppModel {
         guard let userID else { return }
         guard configuration.contestMutationsEnabled else {
             presentedError =
-                "Release contest responses stay locked until evidence and App Attest are complete."
+                "Challenges aren’t open yet."
             return
         }
         await mutate {
@@ -673,11 +673,11 @@ final class AppModel {
         guard configuration.legacySocialRuntimeEnabled else { return }
         guard configuration.activitySyncEnabled else {
             presentedError =
-                "Activity sync is available only in GameTime Staging."
+                "Step syncing isn’t available in this build."
             return
         }
         guard let userID else {
-            presentedError = "Sign in again before enabling activity."
+            presentedError = "Sign in again to turn on step syncing."
             return
         }
         guard !isActivityMutating else { return }
@@ -717,17 +717,17 @@ final class AppModel {
         guard configuration.legacySocialRuntimeEnabled else { return }
         guard configuration.activitySyncEnabled else {
             presentedError =
-                "Activity sync is available only in GameTime Staging."
+                "Step syncing isn’t available in this build."
             return
         }
         guard let userID else {
-            presentedError = "Sign in again before syncing activity."
+            presentedError = "Sign in again to sync your steps."
             return
         }
         guard
             let contest = contests.first(where: { $0.id == contestID })
         else {
-            presentedError = "Refresh to load this challenge before syncing."
+            presentedError = "Pull to refresh, then sync again."
             return
         }
         guard !isActivityMutating else { return }
@@ -1132,7 +1132,7 @@ final class AppModel {
                 return
             }
             presentedError =
-                "Push notifications couldn’t be enabled. Standings still work in the app."
+                "We couldn’t turn on notifications. Everything else still works."
         }
     }
 }

@@ -93,10 +93,10 @@ struct AppShellView: View {
 private struct PersonalV1UnavailableRouteView: View {
     var body: some View {
         ContentUnavailableView(
-            "Unavailable in Personal V1",
+            "Not available yet",
             systemImage: "lock.fill",
             description: Text(
-                "This preserved legacy surface is not reachable from the personal-accountability app."
+                "This part of the app isn’t open right now."
             )
         )
         .daybreakScreenChrome()
