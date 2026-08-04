@@ -157,13 +157,13 @@ struct YouView: View {
                     }
                     if !personalStore.configuration.activitySyncEnabled {
                         Text(
-                            "Reading Health data needs a real iPhone and a development build."
+                            "Health connection checks aren’t available yet."
                         )
                         .font(.caption2)
                         .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
                     } else if !personalStore.configuration.attestedUploadEnabled {
                         Text(
-                            "Steps are read on your phone in this build, but not sent to GameTime yet."
+                            "Your steps stay on your phone and aren’t sent to GameTime."
                         )
                         .font(.caption2)
                         .foregroundStyle(CompetitiveTrustTheme.tertiaryText)

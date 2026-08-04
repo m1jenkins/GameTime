@@ -5,6 +5,7 @@ struct PersonalChallengeDetailView: View {
 
     @Environment(PersonalAccountabilityStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingCancelConfirmation = false
 
     private var challenge: PersonalChallengeDetail? {
@@ -62,19 +63,35 @@ struct PersonalChallengeDetailView: View {
     private func hero(_ challenge: PersonalChallengeDetail) -> some View {
         DaybreakCard(tone: .inverse) {
             VStack(alignment: .leading, spacing: 15) {
-                HStack {
-                    PersonalStatusPill(
-                        status: challenge.presentationStatus(at: Date()),
-                        outcome: challenge.outcome?.kind
-                    )
-                    Spacer(minLength: 8)
-                    Text(challenge.terms.commitmentText)
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: 24,
-                                relativeTo: .title2
-                            )
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 8) {
+                        PersonalStatusPill(
+                            status: challenge.presentationStatus(at: Date()),
+                            outcome: challenge.outcome?.kind
                         )
+                        Text(challenge.terms.commitmentText)
+                            .font(
+                                CompetitiveTrustTheme.displayFont(
+                                    size: 24,
+                                    relativeTo: .title2
+                                )
+                            )
+                    }
+                } else {
+                    HStack {
+                        PersonalStatusPill(
+                            status: challenge.presentationStatus(at: Date()),
+                            outcome: challenge.outcome?.kind
+                        )
+                        Spacer(minLength: 8)
+                        Text(challenge.terms.commitmentText)
+                            .font(
+                                CompetitiveTrustTheme.displayFont(
+                                    size: 24,
+                                    relativeTo: .title2
+                                )
+                            )
+                    }
                 }
                 Text(challenge.terms.targetText)
                     .font(
@@ -248,14 +265,28 @@ struct PersonalChallengeDetailView: View {
     }
 
     private func termRow(_ label: String, _ value: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label)
-                .font(.subheadline.weight(.semibold))
-            Spacer(minLength: 8)
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .multilineTextAlignment(.trailing)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(label)
+                        .font(.subheadline.weight(.semibold))
+                    Text(value)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(label)
+                        .font(.subheadline.weight(.semibold))
+                    Spacer(minLength: 8)
+                    Text(value)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
         }
         .padding(.vertical, 11)
         .accessibilityElement(children: .combine)

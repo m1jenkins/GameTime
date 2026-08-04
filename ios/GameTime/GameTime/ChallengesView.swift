@@ -99,7 +99,7 @@ struct ChallengesView: View {
                 VStack(alignment: .leading, spacing: 11) {
                     TrustStatusPill(
                         text: store.hasPendingCreationRecoveryIssue
-                            ? "We couldn’t save this to your phone"
+                            ? "Needs attention"
                             : "Ready to finish",
                         kind: .action
                     )
@@ -117,7 +117,7 @@ struct ChallengesView: View {
                     )
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                    Button("Pick up where you left off") {
+                    Button("Continue setup") {
                         router.presentedSheet = .createPersonalChallenge
                     }
                     .buttonStyle(TrustSecondaryButtonStyle())

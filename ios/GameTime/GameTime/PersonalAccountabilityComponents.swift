@@ -28,24 +28,41 @@ struct TestCommitmentDisclosure: View {
 struct PersonalChallengeCard: View {
     let challenge: PersonalChallengeSummary
     let action: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         Button(action: action) {
             DaybreakCard {
                 VStack(alignment: .leading, spacing: 14) {
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        PersonalStatusPill(
-                            status: challenge.presentationStatus(at: Date()),
-                            outcome: challenge.outcome?.kind
-                        )
-                        Spacer(minLength: 8)
-                        Text(challenge.terms.commitmentText)
-                            .font(
-                                CompetitiveTrustTheme.displayFont(
-                                    size: 20,
-                                    relativeTo: .headline
-                                )
+                    if dynamicTypeSize.isAccessibilitySize {
+                        VStack(alignment: .leading, spacing: 8) {
+                            PersonalStatusPill(
+                                status: challenge.presentationStatus(at: Date()),
+                                outcome: challenge.outcome?.kind
                             )
+                            Text(challenge.terms.commitmentText)
+                                .font(
+                                    CompetitiveTrustTheme.displayFont(
+                                        size: 20,
+                                        relativeTo: .headline
+                                    )
+                                )
+                        }
+                    } else {
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            PersonalStatusPill(
+                                status: challenge.presentationStatus(at: Date()),
+                                outcome: challenge.outcome?.kind
+                            )
+                            Spacer(minLength: 8)
+                            Text(challenge.terms.commitmentText)
+                                .font(
+                                    CompetitiveTrustTheme.displayFont(
+                                        size: 20,
+                                        relativeTo: .headline
+                                    )
+                                )
+                        }
                     }
 
                     Text(challenge.terms.targetText)

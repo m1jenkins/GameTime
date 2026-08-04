@@ -83,6 +83,12 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Steps received"].exists)
         XCTAssertTrue(app.staticTexts["Day by day"].exists)
         assertExactDisclosure(in: app)
+        let syncExplanation = exactStaticText(
+            "Steps can still arrive up to 24 hours after your last day ends. If some never turn up, the challenge simply doesn’t count — and it doesn’t count against you.",
+            in: app
+        )
+        for _ in 0..<8 where !syncExplanation.exists { app.swipeUp() }
+        XCTAssertTrue(syncExplanation.waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Standings"].exists)
         XCTAssertFalse(app.staticTexts["Winner"].exists)
         XCTAssertFalse(app.staticTexts["Charity"].exists)
@@ -295,6 +301,12 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(
             hold.waitForExistence(timeout: 5)
         )
+        XCTAssertTrue(
+            exactStaticText(
+                "Something is wrong with the steps coming from your phone. Run a Health check to start another challenge — and don’t worry, your last one doesn’t count against you.",
+                in: app
+            ).exists
+        )
         let diagnostic = app.buttons["personal.diagnostic.run"]
         for _ in 0..<5 where !diagnostic.isHittable { app.swipeDown() }
         XCTAssertTrue(diagnostic.waitForExistence(timeout: 4))
@@ -326,13 +338,22 @@ final class GameTimeUITests: XCTestCase {
         )
         assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
-        app.buttons["personal.pending.resume"].waitAndTap()
+        let resume = app.buttons["personal.pending.resume"]
+        XCTAssertTrue(resume.waitForExistence(timeout: 4))
+        XCTAssertEqual(resume.label, "Continue setup")
+        resume.tap()
 
         XCTAssertTrue(
             app.navigationBars["Check and confirm"]
                 .waitForExistence(timeout: 4)
         )
         XCTAssertTrue(app.staticTexts["Week total"].exists)
+        XCTAssertTrue(
+            exactStaticText(
+                "On a daily challenge you have to hit your goal all seven days. On a weekly one you just have to reach the total by the end. If your steps go missing or don’t add up, the week doesn’t count — and it doesn’t count against you.",
+                in: app
+            ).exists
+        )
         XCTAssertTrue(
             app.descendants(matching: .any)["personal.request-id"].exists
         )
@@ -422,6 +443,15 @@ final class GameTimeUITests: XCTestCase {
                 "This is a test — no money will be charged."
             ].exists
         )
+    }
+
+    private func exactStaticText(
+        _ label: String,
+        in app: XCUIApplication
+    ) -> XCUIElement {
+        app.staticTexts.matching(
+            NSPredicate(format: "label == %@", label)
+        ).firstMatch
     }
 
     private func assertNoForbiddenLanguage(

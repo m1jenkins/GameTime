@@ -3,6 +3,7 @@ import SwiftUI
 struct TodayView: View {
     @Environment(PersonalAccountabilityStore.self) private var store
     @Environment(AppRouter.self) private var router
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ScrollView {
@@ -90,19 +91,35 @@ struct TodayView: View {
             DaybreakSectionLabel(text: "Your week")
             DaybreakCard(tone: .inverse) {
                 VStack(alignment: .leading, spacing: 15) {
-                    HStack {
-                        PersonalStatusPill(
-                            status: summary.presentationStatus(at: Date()),
-                            outcome: summary.outcome?.kind
-                        )
-                        Spacer(minLength: 8)
-                        Text(summary.terms.commitmentText)
-                            .font(
-                                CompetitiveTrustTheme.displayFont(
-                                    size: 22,
-                                    relativeTo: .headline
-                                )
+                    if dynamicTypeSize.isAccessibilitySize {
+                        VStack(alignment: .leading, spacing: 8) {
+                            PersonalStatusPill(
+                                status: summary.presentationStatus(at: Date()),
+                                outcome: summary.outcome?.kind
                             )
+                            Text(summary.terms.commitmentText)
+                                .font(
+                                    CompetitiveTrustTheme.displayFont(
+                                        size: 22,
+                                        relativeTo: .headline
+                                    )
+                                )
+                        }
+                    } else {
+                        HStack {
+                            PersonalStatusPill(
+                                status: summary.presentationStatus(at: Date()),
+                                outcome: summary.outcome?.kind
+                            )
+                            Spacer(minLength: 8)
+                            Text(summary.terms.commitmentText)
+                                .font(
+                                    CompetitiveTrustTheme.displayFont(
+                                        size: 22,
+                                        relativeTo: .headline
+                                    )
+                                )
+                        }
                     }
                     Text(summary.terms.targetText)
                         .font(

@@ -59,11 +59,11 @@ enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
   var errorDescription: String? {
     switch self {
     case .stagingOnly:
-      "Step syncing isn’t available in this build."
+      "Step syncing isn’t available yet."
     case .authenticationRequired:
       "Sign in again to sync your steps."
     case .tokenRefusedByService:
-      "GameTime wouldn’t accept this account. Signing in again won’t fix it — the server logs say which check refused it."
+      "We couldn’t verify this account. Contact support before trying again."
     case .sessionRefreshFailed:
       "We couldn’t refresh your sign-in. Check your connection and try again."
     case .accountChanged:

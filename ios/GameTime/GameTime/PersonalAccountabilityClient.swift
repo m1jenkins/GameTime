@@ -104,7 +104,7 @@ enum PersonalAccountabilityClientError: LocalizedError, Equatable, Sendable {
     var errorDescription: String? {
         switch self {
         case .stagingOnly:
-            "Challenges can’t be changed in this build."
+            "Challenges can’t be changed yet."
         case .unavailable:
             "We couldn’t reach GameTime right now. Try again in a moment."
         case .invalidResponse:

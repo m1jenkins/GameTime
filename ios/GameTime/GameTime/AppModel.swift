@@ -673,7 +673,7 @@ final class AppModel {
         guard configuration.legacySocialRuntimeEnabled else { return }
         guard configuration.activitySyncEnabled else {
             presentedError =
-                "Step syncing isn’t available in this build."
+                "Step syncing isn’t available yet."
             return
         }
         guard let userID else {
@@ -717,7 +717,7 @@ final class AppModel {
         guard configuration.legacySocialRuntimeEnabled else { return }
         guard configuration.activitySyncEnabled else {
             presentedError =
-                "Step syncing isn’t available in this build."
+                "Step syncing isn’t available yet."
             return
         }
         guard let userID else {

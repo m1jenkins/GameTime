@@ -63,7 +63,7 @@ enum ActivitySyncError: LocalizedError, Equatable, Sendable {
   var errorDescription: String? {
     switch self {
     case .stagingOnly:
-      "Step syncing isn’t available in this build."
+      "Step syncing isn’t available yet."
     case .challengeNotEligible:
       "Only an active steps challenge can sync."
     case .invalidChallengeWindow:
