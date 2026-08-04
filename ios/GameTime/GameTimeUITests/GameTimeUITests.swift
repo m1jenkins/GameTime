@@ -152,6 +152,21 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.continue"].waitAndTap()
 
         XCTAssertTrue(
+            app.navigationBars["Choose your start"]
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(app.descendants(matching: .any)["personal.start.day"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["personal.start.hour"].exists)
+        // The default selection is the unchanged next local midnight, so the
+        // consequence line must say the seven days are full.
+        XCTAssertTrue(
+            app.descendants(matching: .any)["personal.start.consequence"]
+                .waitForExistence(timeout: 3)
+        )
+        assertNoForbiddenLanguage(in: app)
+        app.buttons["personal.continue"].waitAndTap()
+
+        XCTAssertTrue(
             app.navigationBars["Health diagnostic"]
                 .waitForExistence(timeout: 4)
         )
@@ -192,7 +207,8 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-personal-no-diagnostic"
         )
         app.buttons["personal.create"].waitAndTap()
-        for _ in 0..<4 {
+        // metric, cadence, target, commitment, start
+        for _ in 0..<5 {
             app.buttons["personal.continue"].waitAndTap()
         }
 
@@ -347,7 +363,7 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["Steps goal"].waitForExistence(timeout: 4)
         )
         XCTAssertTrue(
-            app.descendants(matching: .any)["Step 1 of 6"].exists
+            app.descendants(matching: .any)["Step 1 of 7"].exists
         )
         XCTAssertEqual(app.buttons["personal.continue"].label, "Continue")
         assertExactDisclosure(in: app)

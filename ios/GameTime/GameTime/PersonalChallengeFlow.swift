@@ -10,12 +10,16 @@ struct CreatePersonalChallengeFlow: View {
     @State private var requestID = UUID()
     @State private var step = Step.metric
     @State private var showingDiscardConfirmation = false
+    /// Resampled whenever the start step is entered, so the hours it offers
+    /// are the hours still open. Submission re-checks against a live clock.
+    @State private var now = Date()
 
     private enum Step: Int, CaseIterable {
         case metric
         case cadence
         case target
         case commitment
+        case start
         case diagnostic
         case review
 
@@ -25,6 +29,7 @@ struct CreatePersonalChallengeFlow: View {
             case .cadence: "Choose cadence"
             case .target: "Set your target"
             case .commitment: "Test commitment"
+            case .start: "Choose your start"
             case .diagnostic: "Health diagnostic"
             case .review: "Review frozen terms"
             }
@@ -53,6 +58,7 @@ struct CreatePersonalChallengeFlow: View {
                 }
             }
             .task {
+                now = Date()
                 if let pending = store.pendingCreation {
                     requestID = pending.request.requestID
                     draft = PersonalChallengeDraft(
@@ -60,12 +66,20 @@ struct CreatePersonalChallengeFlow: View {
                         targetSteps: pending.request.targetSteps,
                         commitmentAmountMinor:
                             pending.request.commitmentAmountMinor,
-                        timezone: pending.request.timezone
+                        timezone: pending.request.timezone,
+                        // An absent start in a saved retry always meant the
+                        // next local midnight, and still does.
+                        startsAt: pending.request.startsAt
+                            ?? PersonalChallengeStart.nextLocalMidnight(
+                                now: now,
+                                timezone: pending.request.timezone
+                            )
                     )
                     step = .review
                 } else {
                     draft = .initial(
-                        profileTimezone: appModel.profile?.timezone
+                        profileTimezone: appModel.profile?.timezone,
+                        now: now
                     )
                 }
             }
@@ -100,7 +114,7 @@ struct CreatePersonalChallengeFlow: View {
                     .frame(height: 6)
             }
         }
-        .accessibilityLabel("Step \(step.rawValue + 1) of 6")
+        .accessibilityLabel("Step \(step.rawValue + 1) of \(Step.allCases.count)")
     }
 
     @ViewBuilder
@@ -216,11 +230,164 @@ struct CreatePersonalChallengeFlow: View {
                     }
                 }
             }
+        case .start:
+            startContent
         case .diagnostic:
             diagnosticContent
         case .review:
             reviewContent
         }
+    }
+
+    @ViewBuilder
+    private var startContent: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text(
+                "Pick the day and hour your seven days open, in \(draft.timezone)."
+            )
+            .font(.subheadline)
+            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+
+            DatePicker(
+                "Start day",
+                selection: startDayBinding,
+                in: PersonalChallengeStart.selectableDayRange(
+                    now: now,
+                    timezone: draft.timezone
+                ),
+                displayedComponents: .date
+            )
+            .datePickerStyle(.compact)
+            .accessibilityIdentifier("personal.start.day")
+
+            Picker("Start time", selection: startHourBinding) {
+                ForEach(selectableHours, id: \.self) { hour in
+                    Text(hourLabel(hour)).tag(hour)
+                }
+            }
+            .pickerStyle(.menu)
+            .accessibilityIdentifier("personal.start.hour")
+
+            HStack(spacing: 10) {
+                Button("Tomorrow, midnight") {
+                    draft.startsAt = PersonalChallengeStart.nextLocalMidnight(
+                        now: now,
+                        timezone: draft.timezone
+                    )
+                }
+                .buttonStyle(TrustSecondaryButtonStyle())
+                .accessibilityIdentifier("personal.start.tomorrow")
+
+                Button("Next hour") {
+                    if let earliest = PersonalChallengeStart
+                        .earliestSelectableInstant(
+                            now: now,
+                            timezone: draft.timezone
+                        )
+                    {
+                        draft.startsAt = earliest
+                    }
+                }
+                .buttonStyle(TrustSecondaryButtonStyle())
+                .accessibilityIdentifier("personal.start.next-hour")
+            }
+
+            Divider().overlay(CompetitiveTrustTheme.border)
+
+            Text(startConsequence)
+                .font(.caption)
+                .foregroundStyle(
+                    firstDayHours == 24
+                        ? CompetitiveTrustTheme.secondaryText
+                        : CompetitiveTrustTheme.primaryText
+                )
+                .accessibilityIdentifier("personal.start.consequence")
+        }
+    }
+
+    private var selectableHours: [Int] {
+        let hours = PersonalChallengeStart.selectableHours(
+            onLocalDay: PersonalChallengeStart.localDay(
+                of: draft.startsAt,
+                timezone: draft.timezone
+            ),
+            now: now,
+            timezone: draft.timezone
+        )
+        // Keep the current selection addressable even if the hour it sits on
+        // has just passed; submission validates against a live clock anyway.
+        let selected = PersonalChallengeStart.hour(
+            of: draft.startsAt,
+            timezone: draft.timezone
+        )
+        return hours.contains(selected) ? hours : ([selected] + hours).sorted()
+    }
+
+    private var startDayBinding: Binding<Date> {
+        Binding(
+            get: {
+                PersonalChallengeStart.localDay(
+                    of: draft.startsAt,
+                    timezone: draft.timezone
+                )
+            },
+            set: { draft.selectStartDay($0, now: now) }
+        )
+    }
+
+    private var startHourBinding: Binding<Int> {
+        Binding(
+            get: {
+                PersonalChallengeStart.hour(
+                    of: draft.startsAt,
+                    timezone: draft.timezone
+                )
+            },
+            set: { draft.selectStartHour($0, now: now) }
+        )
+    }
+
+    private func hourLabel(_ hour: Int) -> String {
+        guard let instant = PersonalChallengeStart.instant(
+            localDay: PersonalChallengeStart.localDay(
+                of: draft.startsAt,
+                timezone: draft.timezone
+            ),
+            hour: hour,
+            timezone: draft.timezone
+        ) else { return "\(hour):00" }
+        return instant.formatted(
+            Date.FormatStyle(
+                date: .omitted,
+                time: .shortened,
+                timeZone: TimeZone(identifier: draft.timezone)
+                    ?? TimeZone(secondsFromGMT: 0)!
+            )
+        )
+    }
+
+    private var firstDayHours: Int {
+        PersonalChallengeStart.firstDayHours(
+            startsAt: draft.startsAt,
+            timezone: draft.timezone
+        )
+    }
+
+    /// The seventh local date always closes at local midnight, so a later
+    /// start shortens day one instead of moving the end. Said plainly here
+    /// rather than discovered on day one.
+    private var startConsequence: String {
+        if firstDayHours == 24 {
+            return "Seven full local days. Day one runs midnight to midnight."
+        }
+        let shared =
+            "Day one is short: \(firstDayHours) completed \(firstDayHours == 1 ? "hour" : "hours"), from \(hourLabel(PersonalChallengeStart.hour(of: draft.startsAt, timezone: draft.timezone))) to midnight. Days two through seven are full."
+        guard draft.cadence == .daily else {
+            return shared
+                + " Cumulative counts one total across all seven, so this only shortens the time available."
+        }
+        return shared
+            + " On a daily cadence you still need \(draft.targetSteps.formatted()) steps within it."
     }
 
     @ViewBuilder
@@ -342,10 +509,29 @@ struct CreatePersonalChallengeFlow: View {
                 (Double(draft.commitmentAmountMinor) / 100)
                     .formatted(.currency(code: "USD"))
             )
-            reviewRow("Length", "Seven complete local days")
+            reviewRow(
+                "Length",
+                firstDayHours == 24
+                    ? "Seven complete local days"
+                    : "Seven local days, day one from \(hourLabel(PersonalChallengeStart.hour(of: draft.startsAt, timezone: draft.timezone)))"
+            )
             reviewRow("Timezone", draft.timezone)
             reviewRow("Starts", startDescription)
             reviewRow("Final sync", "24 hours after day seven")
+            if firstDayHours != 24 {
+                Text(startConsequence)
+                    .font(.caption)
+                    .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                    .accessibilityIdentifier("personal.review.short-first-day")
+            }
+            if !startIsStillValid {
+                Text(
+                    "This saved start has passed. Go back and choose a new one, or discard the saved retry."
+                )
+                .font(.caption)
+                .foregroundStyle(CompetitiveTrustTheme.coral)
+                .accessibilityIdentifier("personal.review.stale-start")
+            }
             Divider().overlay(CompetitiveTrustTheme.border)
             Text(
                 "Daily succeeds only with complete trusted evidence and the target met on all seven days. Cumulative succeeds when complete trusted evidence reaches the seven-day total. Any unresolved evidence is inconclusive and waived."
@@ -448,30 +634,30 @@ struct CreatePersonalChallengeFlow: View {
     private var canAdvance: Bool {
         switch step {
         case .target: PersonalChallengeDraft.targetRange.contains(draft.targetSteps)
+        case .start: startIsStillValid
         case .diagnostic: store.healthReadiness.permitsCreation
         default: true
         }
     }
 
     private var isDraftValid: Bool {
-        (try? draft.validated(requestID: requestID)) != nil
+        (try? draft.validated(requestID: requestID, now: Date())) != nil
+    }
+
+    /// A selection sitting in a draft — or restored from a saved retry — can
+    /// simply age out of validity while the flow is open.
+    private var startIsStillValid: Bool {
+        guard let requested = draft.requestedStart(now: now) else { return true }
+        return PersonalChallengeStart.isSelectable(
+            requested,
+            now: now,
+            timezone: draft.timezone
+        )
     }
 
     private var startDescription: String {
-        guard let zone = TimeZone(identifier: draft.timezone) else {
-            return "Next local midnight"
-        }
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = zone
-        guard let start = calendar.date(
-            byAdding: .day,
-            value: 1,
-            to: calendar.startOfDay(for: Date())
-        ) else {
-            return "Next local midnight"
-        }
-        return PersonalTermsDateFormatter.dateTime(
-            start,
+        PersonalTermsDateFormatter.dateTime(
+            draft.startsAt,
             timezoneIdentifier: draft.timezone
         )
     }
@@ -484,12 +670,27 @@ struct CreatePersonalChallengeFlow: View {
                 .localizedDescription
             return
         }
-        step = Step(rawValue: step.rawValue + 1) ?? .review
+        let next = Step(rawValue: step.rawValue + 1) ?? .review
+        if next == .start {
+            // Offer the hours that are open now, not the ones that were open
+            // when the flow was first presented.
+            now = Date()
+            if !startIsStillValid {
+                draft.startsAt = PersonalChallengeStart.nextLocalMidnight(
+                    now: now,
+                    timezone: draft.timezone
+                )
+            }
+        }
+        step = next
     }
 
     private func submit() {
         do {
-            let request = try draft.validated(requestID: requestID)
+            let request = try draft.validated(
+                requestID: requestID,
+                now: Date()
+            )
             Task {
                 if let id = await store.create(request) {
                     dismiss()
@@ -497,6 +698,7 @@ struct CreatePersonalChallengeFlow: View {
                 }
             }
         } catch {
+            now = Date()
             store.presentedError = error.localizedDescription
         }
     }

@@ -248,6 +248,196 @@ final class PersonalAccountabilityModelTests: XCTestCase {
         XCTAssertFalse(summary.permitsActivitySync(at: cutoff))
     }
 
+    // MARK: - Chosen start day and hour
+
+    /// 2026-08-03 20:37:12 UTC — 15:37 in Chicago, deliberately mid-hour.
+    private var startClock: Date {
+        Date(timeIntervalSince1970: 1_785_789_432)
+    }
+
+    private func chicagoInstant(
+        _ year: Int, _ month: Int, _ day: Int, _ hour: Int
+    ) -> Date {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/Chicago")!
+        return calendar.date(
+            from: DateComponents(
+                year: year, month: month, day: day, hour: hour
+            )
+        )!
+    }
+
+    func testDefaultStartIsStillTheNextLocalMidnightAndTravelsAsOmitted() throws {
+        let draft = PersonalChallengeDraft.initial(
+            profileTimezone: "America/Chicago",
+            now: startClock
+        )
+
+        XCTAssertEqual(draft.startsAt, chicagoInstant(2026, 8, 4, 0))
+        // Omitted, so the server resolves "next local midnight" when the
+        // request commits rather than when the draft was filled in.
+        XCTAssertNil(draft.requestedStart(now: startClock))
+        XCTAssertNil(
+            try draft.validated(requestID: fixedRequestID, now: startClock)
+                .startsAt
+        )
+        XCTAssertEqual(
+            PersonalChallengeStart.firstDayHours(
+                startsAt: draft.startsAt,
+                timezone: "America/Chicago"
+            ),
+            24
+        )
+    }
+
+    func testChosenLaterHourTravelsExplicitlyAndShortensOnlyTheFirstDay() throws {
+        var draft = PersonalChallengeDraft.initial(
+            profileTimezone: "America/Chicago",
+            now: startClock
+        )
+        draft.selectStartDay(chicagoInstant(2026, 8, 5, 0), now: startClock)
+        draft.selectStartHour(15, now: startClock)
+
+        XCTAssertEqual(draft.startsAt, chicagoInstant(2026, 8, 5, 15))
+        XCTAssertEqual(
+            try draft.validated(requestID: fixedRequestID, now: startClock)
+                .startsAt,
+            chicagoInstant(2026, 8, 5, 15)
+        )
+        XCTAssertEqual(
+            PersonalChallengeStart.firstDayHours(
+                startsAt: draft.startsAt,
+                timezone: "America/Chicago"
+            ),
+            9
+        )
+    }
+
+    func testTodayOffersOnlyTheHoursItHasLeft() {
+        let today = chicagoInstant(2026, 8, 3, 0)
+        let hours = PersonalChallengeStart.selectableHours(
+            onLocalDay: today,
+            now: startClock,
+            timezone: "America/Chicago"
+        )
+
+        // 15:37 local: 15:00 has passed, 16:00 has not.
+        XCTAssertEqual(hours, Array(16...23))
+        XCTAssertEqual(
+            PersonalChallengeStart.earliestSelectableInstant(
+                now: startClock,
+                timezone: "America/Chicago"
+            ),
+            chicagoInstant(2026, 8, 3, 16)
+        )
+    }
+
+    func testStartMustBeAWholeFutureLocalHourWithinNinetyDays() {
+        let timezone = "America/Chicago"
+
+        XCTAssertFalse(
+            PersonalChallengeStart.isSelectable(
+                startClock,
+                now: startClock.addingTimeInterval(-3_600),
+                timezone: timezone
+            ),
+            "a mid-hour instant is never a bucket boundary"
+        )
+        XCTAssertFalse(
+            PersonalChallengeStart.isSelectable(
+                chicagoInstant(2026, 8, 3, 12),
+                now: startClock,
+                timezone: timezone
+            ),
+            "an hour already past cannot open a window"
+        )
+        XCTAssertFalse(
+            PersonalChallengeStart.isSelectable(
+                chicagoInstant(2026, 11, 3, 9),
+                now: startClock,
+                timezone: timezone
+            ),
+            "beyond ninety days is refused, matching the server bound"
+        )
+        XCTAssertTrue(
+            PersonalChallengeStart.isSelectable(
+                chicagoInstant(2026, 8, 5, 15),
+                now: startClock,
+                timezone: timezone
+            )
+        )
+    }
+
+    func testDraftRejectsAStartThatHasAlreadyPassed() {
+        var draft = PersonalChallengeDraft.initial(
+            profileTimezone: "America/Chicago",
+            now: startClock
+        )
+        draft.startsAt = chicagoInstant(2026, 8, 3, 12)
+
+        XCTAssertThrowsError(
+            try draft.validated(requestID: fixedRequestID, now: startClock)
+        ) { error in
+            XCTAssertEqual(
+                error as? PersonalChallengeValidationError,
+                .invalidStart
+            )
+        }
+    }
+
+    func testSpringForwardSkippedHourIsNotOffered() {
+        // America/Chicago loses 02:00 on 2026-03-08.
+        let transitionDay = chicagoInstant(2026, 3, 7, 0)
+        let dayBefore = chicagoInstant(2026, 3, 6, 12)
+
+        XCTAssertNil(
+            PersonalChallengeStart.instant(
+                localDay: chicagoInstant(2026, 3, 8, 0),
+                hour: 2,
+                timezone: "America/Chicago"
+            ),
+            "an hour the zone skips cannot be a start"
+        )
+        XCTAssertFalse(
+            PersonalChallengeStart.selectableHours(
+                onLocalDay: chicagoInstant(2026, 3, 8, 0),
+                now: dayBefore,
+                timezone: "America/Chicago"
+            ).contains(2)
+        )
+        XCTAssertEqual(
+            PersonalChallengeStart.selectableHours(
+                onLocalDay: transitionDay,
+                now: dayBefore,
+                timezone: "America/Chicago"
+            ),
+            Array(0...23),
+            "the day before the transition keeps all of its hours"
+        )
+    }
+
+    /// A retry record written before a start could be chosen carries no such
+    /// key. Its absence already meant the next local midnight, so it must load
+    /// unchanged and keep its request identity rather than fail validation.
+    func testRetryRecordWithoutAStartStillDecodesAsTheServerDefault() throws {
+        let legacy = Data(
+            """
+            {"cadence":"cumulative","commitmentAmountMinor":2000,\
+            "requestID":"AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",\
+            "targetSteps":70000,"timezone":"America/Chicago"}
+            """.utf8
+        )
+
+        let request = try JSONDecoder().decode(
+            PersonalChallengeCreationRequest.self,
+            from: legacy
+        )
+
+        XCTAssertEqual(request.requestID, fixedRequestID)
+        XCTAssertNil(request.startsAt)
+        XCTAssertEqual(request.timezone, "America/Chicago")
+    }
+
     private var fixedRequestID: UUID {
         UUID(uuidString: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")!
     }

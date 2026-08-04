@@ -1231,9 +1231,17 @@ private final class FixturePersonalAccountabilityClient:
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: request.timezone)
             ?? TimeZone(secondsFromGMT: 0)!
-        let today = calendar.startOfDay(for: now)
-        let start = calendar.date(byAdding: .day, value: 1, to: today)!
-        let end = calendar.date(byAdding: .day, value: 7, to: start)!
+        // Mirrors `create_personal_challenge_v1`: an omitted start means the
+        // next local midnight, and the window always closes at the local
+        // midnight after the seventh local date. A start later in the day
+        // therefore shortens day one rather than moving the end.
+        let start = request.startsAt
+            ?? PersonalChallengeStart.nextLocalMidnight(
+                now: now,
+                timezone: request.timezone
+            )
+        let firstLocalDay = calendar.startOfDay(for: start)
+        let end = calendar.date(byAdding: .day, value: 7, to: firstLocalDay)!
         let cutoff = calendar.date(byAdding: .day, value: 1, to: end)!
         let id = UUID()
         let days = (0..<7).map { offset in
@@ -1242,7 +1250,7 @@ private final class FixturePersonalAccountabilityClient:
                     calendar.date(
                         byAdding: .day,
                         value: offset,
-                        to: start
+                        to: firstLocalDay
                     )!,
                     calendar: calendar
                 ),

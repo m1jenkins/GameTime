@@ -128,7 +128,10 @@ select has_function(
 
 select has_function(
   'public', 'create_personal_challenge_v1',
-  array['uuid', 'public.contest_cadence', 'integer', 'integer', 'text'],
+  array[
+    'uuid', 'public.contest_cadence', 'integer', 'integer', 'text',
+    'timestamptz'
+  ],
   'personal creation has a dedicated versioned RPC'
 );
 
@@ -148,7 +151,7 @@ select ok(
              < strpos(definition, 'v_now := clock_timestamp();')
     from (
       select pg_get_functiondef(
-        'public.create_personal_challenge_v1(uuid,public.contest_cadence,integer,integer,text)'::regprocedure
+        'public.create_personal_challenge_v1(uuid,public.contest_cadence,integer,integer,text,timestamptz)'::regprocedure
       ) as definition
     ) source
   )
@@ -167,17 +170,17 @@ select ok(
 select ok(
   has_function_privilege(
     'authenticated',
-    'public.create_personal_challenge_v1(uuid,public.contest_cadence,integer,integer,text)',
+    'public.create_personal_challenge_v1(uuid,public.contest_cadence,integer,integer,text,timestamptz)',
     'execute'
   )
   and not has_function_privilege(
     'anon',
-    'public.create_personal_challenge_v1(uuid,public.contest_cadence,integer,integer,text)',
+    'public.create_personal_challenge_v1(uuid,public.contest_cadence,integer,integer,text,timestamptz)',
     'execute'
   )
   and not has_function_privilege(
     'service_role',
-    'public.create_personal_challenge_v1(uuid,public.contest_cadence,integer,integer,text)',
+    'public.create_personal_challenge_v1(uuid,public.contest_cadence,integer,integer,text,timestamptz)',
     'execute'
   ),
   'only an authenticated owner can use the personal creation surface'

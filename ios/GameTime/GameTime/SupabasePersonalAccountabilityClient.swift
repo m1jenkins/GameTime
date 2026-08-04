@@ -133,6 +133,7 @@ private struct CreatePersonalChallengeParameters: Encodable {
     let targetSteps: Int
     let commitmentAmountMinor: Int
     let timezone: String
+    let requestedStartsAt: Date?
 
     init(request: PersonalChallengeCreationRequest) {
         requestID = request.requestID
@@ -140,6 +141,31 @@ private struct CreatePersonalChallengeParameters: Encodable {
         targetSteps = request.targetSteps
         commitmentAmountMinor = request.commitmentAmountMinor
         timezone = request.timezone
+        requestedStartsAt = request.startsAt
+    }
+
+    /// An omitted start must reach the server as an absent key rather than an
+    /// explicit null, so the parameter keeps its default and the request
+    /// hashes exactly as it did before a start could be chosen.
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(requestID, forKey: .requestID)
+        try container.encode(cadence, forKey: .cadence)
+        try container.encode(targetSteps, forKey: .targetSteps)
+        try container.encode(
+            commitmentAmountMinor,
+            forKey: .commitmentAmountMinor
+        )
+        try container.encode(timezone, forKey: .timezone)
+        if let requestedStartsAt {
+            // A whole-second UTC instant. `timestamptz` parses this
+            // unambiguously, which matters because the server compares it
+            // against a whole local hour in the frozen timezone.
+            try container.encode(
+                requestedStartsAt.formatted(.iso8601),
+                forKey: .requestedStartsAt
+            )
+        }
     }
 
     enum CodingKeys: String, CodingKey {
@@ -148,6 +174,7 @@ private struct CreatePersonalChallengeParameters: Encodable {
         case targetSteps = "target_steps"
         case commitmentAmountMinor = "commitment_amount_minor"
         case timezone
+        case requestedStartsAt = "requested_starts_at"
     }
 }
 

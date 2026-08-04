@@ -52,6 +52,20 @@ struct PendingPersonalChallengeSubmission: Codable, Equatable, Sendable {
         else {
             throw PendingPersonalChallengeStoreError.invalidRecord
         }
+        // A saved start is checked for shape, never for freshness. It may well
+        // have passed while the record sat here; that is a submission failure
+        // the flow surfaces and the owner discards, not a corrupt record to
+        // refuse loading. Refusing it would strand the retry it protects.
+        if let startsAt = request.startsAt {
+            guard startsAt.timeIntervalSinceReferenceDate.isFinite,
+                Calendar(identifier: .gregorian).component(
+                    .nanosecond,
+                    from: startsAt
+                ) == 0
+            else {
+                throw PendingPersonalChallengeStoreError.invalidRecord
+            }
+        }
         if let lastAttemptAt {
             guard
                 lastAttemptAt.timeIntervalSinceReferenceDate.isFinite,

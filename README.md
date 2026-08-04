@@ -1,9 +1,10 @@
 # GameTime
 
 GameTime V1 is a personal accountability app. One person commits to a seven-day
-steps goal, chooses a daily or cumulative cadence, and selects a $10, $20, $30,
-$40, or $50 test commitment. Stage A is structurally `test_only`: no client or
-server creation interface can request a live fee, and no money is charged.
+steps goal, chooses a daily or cumulative cadence, selects a $10, $20, $30,
+$40, or $50 test commitment, and chooses the day and hour the seven days open.
+Stage A is structurally `test_only`: no client or server creation interface can
+request a live fee, and no money is charged.
 
 The product is verification credibility. HealthKit reads, App Attest-backed
 uploads, explicit completed-hour coverage, frozen terms, and fail-closed results
@@ -18,6 +19,7 @@ commitment, and watch real HealthKit steps accumulate.
 | Path | State |
 | --- | --- |
 | Sign in with Apple → onboarding → create challenge | Works, Debug + local stack |
+| Choosing the start day and hour | Works, all configurations; deployed to Staging |
 | HealthKit step reads | Works, Debug and Staging, physical device |
 | Live step total on an active challenge | Works, labelled **not yet verified** |
 | App Attest-signed upload and server-scored progress | Staging only; endpoints deployed, not yet exercised from a device |
@@ -34,6 +36,36 @@ Creating a challenge therefore requires a **local** step read that sees
 first-party device steps — not a successful App Attest round-trip. The server
 still refuses untrusted evidence when it scores, so no domain invariant moved.
 
+### When the seven days open
+
+The default is the next local midnight, and choosing it sends *no* start to the
+server, so that default is resolved when the request commits rather than when
+the form was filled in — a draft written before midnight and confirmed after it
+must not ask for a start that has already passed.
+
+A chosen start is any future whole local **hour** within 90 days, today
+included. Whole hours are not a cosmetic restriction: `bucket_start` is a whole
+local hour, and the server discards the partial hour a 15:40 start would open,
+so the evidence for those twenty minutes could never be delivered and the
+window would begin with a silently unscorable gap. On the hour, `starts_at`
+lands exactly on the ledger grid. The client sends an instant rather than a
+local date and hour because a `timestamptz` is unambiguous across a fall-back
+transition, where one wall-clock hour names two different instants; hours a
+spring-forward transition skips are never offered.
+
+The seventh local date still closes at local midnight, so a later start
+shortens **day one** instead of moving the end. A challenge opening at 15:00
+has a first day of nine completed hours, and on a daily cadence that is the
+same target in less time. That is a frozen term like any other, so the start
+step and the review screen both state it before anyone confirms. Keeping the
+end on a local midnight is also what holds the seven scored local dates and the
+expected coverage buckets in agreement — every expected bucket falls inside the
+dates `app.personal_daily_progress_v1` generates, so the aggregate count cannot
+drift from the per-day counts.
+
+This is also the fastest way to reach an active challenge for testing: the next
+whole hour instead of the next midnight.
+
 ### What is not proven yet
 
 - **The attested pipeline end to end.** `activity-diagnostic` and
@@ -44,11 +76,22 @@ still refuses untrusted evidence when it scores, so no domain invariant moved.
 - **Debug data is not Staging data.** Debug points at your local stack, so a
   challenge created there does not exist in hosted Staging. Switching schemes
   switches accounts and challenges.
-- **The Solo domain is deliberately unapplied.** Migrations `20260803001438`,
-  `20260803001455`, and `20260803014252` are local-only by choice; the hosted
-  project stops at `20260802165312`. A plain `supabase db push` will apply
-  them — hold them back if that is not intended. Check with
-  `supabase migration list --linked`.
+- **The Solo domain is applied on hosted Staging, not held back.** An earlier
+  revision of this file claimed migrations `20260803001438`, `20260803001455`,
+  and `20260803014252` were local-only and that the hosted project stopped at
+  `20260802165312`. That was wrong when written. On 2026-08-03
+  `supabase migration list --linked` reported all three as applied remotely,
+  and a hosted schema dump shows `solo_contracts`, `solo_evaluations`, and
+  `solo_appeals` present. The practical consequence is the opposite of the old
+  warning: a `supabase db push` of a later migration no longer drags Solo along,
+  because Solo is already there. Verify with `supabase migration list --linked`
+  before trusting either claim.
+
+  What has **not** been re-checked is the hosted runtime state. The migrations
+  create the domain switched off with an empty beta allowlist, and no app, Edge
+  Function, or scheduler calls the Solo surface, but the current values of
+  `app.solo_contract_runtime` and `app.solo_beta_eligibility` on the hosted
+  project have not been read back. Do that before assuming Solo is inert there.
 - **The Simulator.** It has no first-party device step samples, so the local
   probe finds nothing and creation stays blocked. This is inherent — the
   product scores device-recorded steps.
@@ -67,6 +110,10 @@ reactions, or tie-breaks, and never reinterprets a legacy contest as personal
 accountability. Their documentation lives in
 [docs/archive/2026-08-03_DORMANT_SUBSYSTEMS.md](docs/archive/2026-08-03_DORMANT_SUBSYSTEMS.md).
 
+Switched off is a statement about the runtime switch, not about where the
+schema exists. The Solo tables are present on hosted Staging — see
+"What is not proven yet" above.
+
 ## Repository layout
 
 ```
@@ -82,6 +129,7 @@ supabase/
     ingest-checkin/      Attested geofence/workout validation sidecar [deployed]
     activity-diagnostic/ Attested trusted-HealthKit diagnostic summary [deployed]
     personal-sync-coverage/ Attested completed-hour coverage [deployed]
+    deliver-push/        Payload-free notification outbox dispatcher [deployed]
     deno.json            Deno tasks, imports, lint and format config
   seed.sql               Local/CI seed data. Never required by a test.
 ios/
@@ -168,7 +216,10 @@ This is the fastest working loop and the one that exercises real HealthKit.
    The secret only matters for the web redirect flow, which is unused.
 
 3. **Run the `GameTime` scheme** on a provisioned device. Grant Health access
-   when asked, tap **Verify Health access**, and create a challenge.
+   when asked, tap **Verify Health access**, and create a challenge. Choose a
+   start on the next whole hour rather than the default next midnight if you
+   want an active challenge to test against sooner; the first bucket is
+   syncable once that hour has finished.
 
 If `supabase start` appears to hang, check for a macOS keychain dialog — the
 CLI reads its stored access token and blocks on the prompt.

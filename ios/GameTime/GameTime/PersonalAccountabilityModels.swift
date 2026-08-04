@@ -143,6 +143,168 @@ enum PersonalDiagnosticStatus: String, Codable, Sendable {
     case failed
 }
 
+/// When a challenge opens, expressed in the timezone its terms freeze in.
+///
+/// A start is always a **whole local hour**. That is the ledger's own grid:
+/// `bucket_start` is a whole local hour, and the server discards the partial
+/// hour a 15:40 start would open, so those forty minutes could never be
+/// delivered as evidence. Choosing on the hour puts the window exactly on the
+/// grid instead of beginning it with an unscorable gap.
+///
+/// The seventh local date still closes at local midnight, so a start later
+/// than midnight makes the *first* day short rather than pushing the end out.
+/// `firstDayHours` is what the review screen states before anyone confirms.
+enum PersonalChallengeStart {
+    /// Matches the server's `create_personal_challenge_v1` bound.
+    static let maximumLeadDays = 90
+
+    static func calendar(_ timezoneIdentifier: String) -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: timezoneIdentifier)
+            ?? TimeZone(secondsFromGMT: 0)!
+        return calendar
+    }
+
+    /// The unchanged default: the next local midnight. Sent to the server as
+    /// an omitted start so that it is resolved when the request commits, not
+    /// when the draft was filled in.
+    static func nextLocalMidnight(
+        now: Date,
+        timezone: String
+    ) -> Date {
+        let calendar = calendar(timezone)
+        return calendar.date(
+            byAdding: .day,
+            value: 1,
+            to: calendar.startOfDay(for: now)
+        ) ?? now
+    }
+
+    static func localDay(of instant: Date, timezone: String) -> Date {
+        calendar(timezone).startOfDay(for: instant)
+    }
+
+    static func hour(of instant: Date, timezone: String) -> Int {
+        calendar(timezone).component(.hour, from: instant)
+    }
+
+    /// The instant a local day and hour name, or `nil` when that wall-clock
+    /// hour does not exist — the hour a spring-forward transition skips.
+    static func instant(
+        localDay: Date,
+        hour: Int,
+        timezone: String
+    ) -> Date? {
+        guard (0...23).contains(hour) else { return nil }
+        let calendar = calendar(timezone)
+        var components = calendar.dateComponents(
+            [.year, .month, .day],
+            from: localDay
+        )
+        components.hour = hour
+        components.minute = 0
+        components.second = 0
+        guard let candidate = calendar.date(from: components) else { return nil }
+        // A skipped hour silently resolves to a different one. Refuse it
+        // rather than opening the window an hour from where it was chosen.
+        guard calendar.component(.hour, from: candidate) == hour else {
+            return nil
+        }
+        return candidate
+    }
+
+    /// The soonest a challenge could open: the next whole local hour.
+    ///
+    /// `nextDate(after:matching:)` is what makes this DST-correct — asking for
+    /// the next instant whose local minute and second are zero crosses a
+    /// transition without arithmetic that assumes hours are 3,600 seconds
+    /// apart in wall-clock terms.
+    static func earliestSelectableInstant(
+        now: Date,
+        timezone: String
+    ) -> Date? {
+        calendar(timezone).nextDate(
+            after: now,
+            matching: DateComponents(minute: 0, second: 0),
+            matchingPolicy: .nextTime
+        )
+    }
+
+    /// The local days a challenge may open on, as a range of local midnights.
+    /// Today is offered only while an hour is still left in it.
+    static func selectableDayRange(
+        now: Date,
+        timezone: String
+    ) -> ClosedRange<Date> {
+        let calendar = calendar(timezone)
+        let earliest = earliestSelectableInstant(now: now, timezone: timezone)
+            ?? now
+        let firstDay = calendar.startOfDay(for: earliest)
+        let lastDay = calendar.date(
+            byAdding: .day,
+            value: maximumLeadDays - 1,
+            to: firstDay
+        ) ?? firstDay
+        return firstDay...lastDay
+    }
+
+    /// The hours still open on a given local day. Today loses the hours that
+    /// have already passed, which is why a same-day start is offered at all.
+    static func selectableHours(
+        onLocalDay day: Date,
+        now: Date,
+        timezone: String
+    ) -> [Int] {
+        (0...23).filter { hour in
+            guard let candidate = instant(
+                localDay: day,
+                hour: hour,
+                timezone: timezone
+            ) else { return false }
+            return isSelectable(candidate, now: now, timezone: timezone)
+        }
+    }
+
+    static func isSelectable(
+        _ instant: Date,
+        now: Date,
+        timezone: String
+    ) -> Bool {
+        guard instant > now else { return false }
+        let calendar = calendar(timezone)
+        guard let horizon = calendar.date(
+            byAdding: .day,
+            value: maximumLeadDays,
+            to: now
+        ) else { return false }
+        guard instant <= horizon else { return false }
+        let components = calendar.dateComponents(
+            [.minute, .second, .nanosecond],
+            from: instant
+        )
+        return components.minute == 0
+            && components.second == 0
+            && (components.nanosecond ?? 0) == 0
+    }
+
+    /// How many completed local hours the first day actually contains. Seven
+    /// when the window opens at 17:00; a full 24 only from local midnight.
+    static func firstDayHours(startsAt: Date, timezone: String) -> Int {
+        let calendar = calendar(timezone)
+        let dayAfter = calendar.date(
+            byAdding: .day,
+            value: 1,
+            to: calendar.startOfDay(for: startsAt)
+        ) ?? startsAt
+        let hours = calendar.dateComponents(
+            [.hour],
+            from: startsAt,
+            to: dayAfter
+        ).hour ?? 0
+        return max(0, min(24, hours))
+    }
+}
+
 struct PersonalChallengeDraft: Equatable, Sendable {
     static let allowedCommitmentAmountsMinor = [1_000, 2_000, 3_000, 4_000, 5_000]
     static let targetRange = 1...1_000_000
@@ -151,10 +313,18 @@ struct PersonalChallengeDraft: Equatable, Sendable {
     var targetSteps = PersonalChallengeCadence.daily.defaultTargetSteps
     var commitmentAmountMinor = 1_000
     var timezone = TimeZone.current.identifier
+    /// The selected start, always a concrete whole local hour so the flow has
+    /// something to show. Whether it travels to the server as an explicit
+    /// instant or as the omitted default is `requestedStart(now:)`'s decision.
+    var startsAt = PersonalChallengeStart.nextLocalMidnight(
+        now: Date(),
+        timezone: TimeZone.current.identifier
+    )
 
     static func initial(
         profileTimezone: String?,
-        deviceTimezone: String = TimeZone.current.identifier
+        deviceTimezone: String = TimeZone.current.identifier,
+        now: Date = Date()
     ) -> PersonalChallengeDraft {
         let frozenTimezone: String
         if let profileTimezone,
@@ -164,7 +334,13 @@ struct PersonalChallengeDraft: Equatable, Sendable {
         } else {
             frozenTimezone = deviceTimezone
         }
-        return PersonalChallengeDraft(timezone: frozenTimezone)
+        return PersonalChallengeDraft(
+            timezone: frozenTimezone,
+            startsAt: PersonalChallengeStart.nextLocalMidnight(
+                now: now,
+                timezone: frozenTimezone
+            )
+        )
     }
 
     mutating func selectCadence(_ newCadence: PersonalChallengeCadence) {
@@ -175,9 +351,62 @@ struct PersonalChallengeDraft: Equatable, Sendable {
         }
     }
 
-    func validated(requestID: UUID = UUID()) throws
-        -> PersonalChallengeCreationRequest
-    {
+    /// Moves the start to `hour` on its currently selected local day, or to
+    /// the nearest still-selectable hour when that one has passed.
+    mutating func selectStartDay(_ day: Date, now: Date = Date()) {
+        let hours = PersonalChallengeStart.selectableHours(
+            onLocalDay: day,
+            now: now,
+            timezone: timezone
+        )
+        let preferred = PersonalChallengeStart.hour(
+            of: startsAt,
+            timezone: timezone
+        )
+        guard let hour = hours.contains(preferred) ? preferred : hours.first,
+            let instant = PersonalChallengeStart.instant(
+                localDay: day,
+                hour: hour,
+                timezone: timezone
+            )
+        else { return }
+        startsAt = instant
+    }
+
+    mutating func selectStartHour(_ hour: Int, now: Date = Date()) {
+        guard let instant = PersonalChallengeStart.instant(
+            localDay: PersonalChallengeStart.localDay(
+                of: startsAt,
+                timezone: timezone
+            ),
+            hour: hour,
+            timezone: timezone
+        ), PersonalChallengeStart.isSelectable(
+            instant,
+            now: now,
+            timezone: timezone
+        ) else { return }
+        startsAt = instant
+    }
+
+    /// `nil` when the selection is simply the next local midnight.
+    ///
+    /// Sending nothing lets the server resolve that default at the moment the
+    /// request commits. Pinning it to an instant instead would mean a draft
+    /// filled in before midnight and confirmed after it asked for a start that
+    /// had already passed.
+    func requestedStart(now: Date = Date()) -> Date? {
+        let midnight = PersonalChallengeStart.nextLocalMidnight(
+            now: now,
+            timezone: timezone
+        )
+        return startsAt == midnight ? nil : startsAt
+    }
+
+    func validated(
+        requestID: UUID = UUID(),
+        now: Date = Date()
+    ) throws -> PersonalChallengeCreationRequest {
         guard Self.targetRange.contains(targetSteps) else {
             throw PersonalChallengeValidationError.invalidTarget
         }
@@ -187,12 +416,23 @@ struct PersonalChallengeDraft: Equatable, Sendable {
         guard !timezone.isEmpty, TimeZone(identifier: timezone) != nil else {
             throw PersonalChallengeValidationError.invalidTimezone
         }
+        let requested = requestedStart(now: now)
+        if let requested {
+            guard PersonalChallengeStart.isSelectable(
+                requested,
+                now: now,
+                timezone: timezone
+            ) else {
+                throw PersonalChallengeValidationError.invalidStart
+            }
+        }
         return PersonalChallengeCreationRequest(
             requestID: requestID,
             cadence: cadence,
             targetSteps: targetSteps,
             commitmentAmountMinor: commitmentAmountMinor,
-            timezone: timezone
+            timezone: timezone,
+            startsAt: requested
         )
     }
 }
@@ -203,6 +443,29 @@ struct PersonalChallengeCreationRequest: Codable, Equatable, Sendable {
     let targetSteps: Int
     let commitmentAmountMinor: Int
     let timezone: String
+    /// `nil` means the server's own default: the next local midnight.
+    ///
+    /// Decoding it as optional is also what lets a retry record written before
+    /// a start could be chosen load unchanged — its absence already meant
+    /// exactly this, and the server hashes an omitted start the same way it
+    /// always did, so the saved request keeps its identity.
+    let startsAt: Date?
+
+    init(
+        requestID: UUID,
+        cadence: PersonalChallengeCadence,
+        targetSteps: Int,
+        commitmentAmountMinor: Int,
+        timezone: String,
+        startsAt: Date? = nil
+    ) {
+        self.requestID = requestID
+        self.cadence = cadence
+        self.targetSteps = targetSteps
+        self.commitmentAmountMinor = commitmentAmountMinor
+        self.timezone = timezone
+        self.startsAt = startsAt
+    }
 
     enum CodingKeys: String, CodingKey {
         case requestID
@@ -210,6 +473,7 @@ struct PersonalChallengeCreationRequest: Codable, Equatable, Sendable {
         case targetSteps
         case commitmentAmountMinor
         case timezone
+        case startsAt
     }
 }
 
@@ -217,6 +481,7 @@ enum PersonalChallengeValidationError: LocalizedError, Equatable, Sendable {
     case invalidTarget
     case invalidCommitment
     case invalidTimezone
+    case invalidStart
 
     var errorDescription: String? {
         switch self {
@@ -226,6 +491,8 @@ enum PersonalChallengeValidationError: LocalizedError, Equatable, Sendable {
             "Choose a test commitment from $10, $20, $30, $40, or $50."
         case .invalidTimezone:
             "GameTime could not identify a valid IANA timezone."
+        case .invalidStart:
+            "Choose a start on the hour, in the future, within 90 days."
         }
     }
 }
