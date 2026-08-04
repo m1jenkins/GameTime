@@ -3887,3 +3887,41 @@ satisfied in writing. Either requires a new reviewed slice; the fake adapter is
 not a provider abstraction to toggle live. Local fake-adapter tests do not prove
 a real processor, money movement, legal or App Review approval, hosted
 scheduling, physical-device behavior, or hosted multi-user isolation.
+
+### D112. App Attest extensions are optional after a strict COSE key
+
+**What.** Attestation authenticator data accepts three reviewed shapes after the
+credential id: the existing suffix-free compatibility form, one deterministic
+EC2/ES256/P-256 COSE key, or that same COSE key followed by Apple's exact
+validation-category and bundle-version extensions map. Any non-empty suffix
+must begin with the complete COSE key. A second value, when present, must be the
+complete extensions map; malformed or additional values are refused.
+
+The COSE key remains bound to the leaf-certificate public key and the key id
+remains `SHA256(public_key)`. A deployment that configures a category or bundle
+allowlist still fails closed when the attestation omits that signal.
+
+**Why.** A physical Staging iPhone supplied one well-formed CBOR value after the
+credential id. D46's requirement that every non-empty suffix contain both the
+COSE key and extensions map rejected it before the server could perform the
+existing certificate, nonce, key-id, receipt, or database checks. WebAuthn
+defines the credential public key as attested credential data and extension
+output separately. Apple's published 2026 vector proves the two-value shape,
+but does not prove that every physical attestation includes those extensions.
+
+This decision supersedes only D46's OS-version inference and mandatory-extension
+claim. D46's pinned root, strict deterministic CBOR, certificate chain, nonce,
+COSE/certificate binding, key-id binding, receipt verification, and fail-closed
+deployment policy remain unchanged.
+
+**Rejected.** Making extensions mandatory whenever a COSE key is present;
+ignoring malformed extensions; accepting an incomplete or non-P-256 COSE key;
+inferring extension presence from an OS version; adding an ED-bit gate that
+would reject the pinned Apple vector; and removing the suffix-free compatibility
+path as part of this incident fix.
+
+**Remaining gate.** Local tests prove the parser and handler paths only. After
+an explicitly approved `attest-device` deployment, the trusted diagnostic must
+be rerun on the physical iPhone. A later certificate, nonce, receipt, or
+database refusal would be a separate observed failure, not proof that this
+parser correction was sufficient.

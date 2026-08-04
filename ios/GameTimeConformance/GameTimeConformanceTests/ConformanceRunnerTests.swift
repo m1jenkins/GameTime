@@ -73,8 +73,8 @@ final class ConformanceRunnerTests: XCTestCase {
         }?.detail
         XCTAssertTrue(
             registrationDetail?.contains(
-                "validation category unavailable on this OS, "
-                    + "bundle version unavailable on this OS"
+                "validation category not supplied by attestation, "
+                    + "bundle version not supplied by attestation"
             ) == true
         )
     }

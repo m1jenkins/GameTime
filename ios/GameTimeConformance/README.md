@@ -26,10 +26,11 @@ This is a deliberately small iOS 18 SwiftUI target for one staging smoke test:
 The app decodes each assertion's local big-endian counter from bytes 33–36 of
 `authenticatorData`. It shows counters, request digests, response outcomes, and
 the exact GameTimeCore JSON bodies in the UI. Registration also displays the
-server-verified App Attest validation category and bundle version for D46 when
-the OS supplies those iOS 27 extensions. On earlier supported systems, each
-field is reported explicitly as `unavailable on this OS` and registration
-continues to require `registered=true` and `environment=development`.
+server-verified optional App Attest validation category and bundle version for
+D112 when the attestation supplies them. Otherwise each field is reported as
+`not supplied by attestation`, without inferring an OS version, and
+registration continues to require `registered=true` and
+`environment=development`.
 
 ## Provision staging
 

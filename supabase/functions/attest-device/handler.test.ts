@@ -17,6 +17,7 @@ import {
   type Authority,
   buildAttestation,
   type Device,
+  encodeCosePublicKey,
   makeDevice,
   makeIntermediate,
   makeRoot,
@@ -442,7 +443,7 @@ Deno.test("integrates real attestation and receipt cryptography before marking",
   assertEquals(marked, true);
 });
 
-Deno.test("registers a legacy attestation without claiming unavailable app signals", async () => {
+Deno.test("registers a suffix-free attestation without claiming unavailable app signals", async () => {
   const device = await makeDevice();
   const at = new Date();
   let written: RegisterDeviceKeyArgs | undefined;
@@ -456,6 +457,33 @@ Deno.test("registers a legacy attestation without claiming unavailable app signa
   const response = await post(
     handler,
     await registrationBody(device, at, { legacyAuthenticatorData: true }),
+  );
+
+  assertEquals(response.status, 200);
+  assertEquals(await response.json(), {
+    registered: true,
+    environment: "production",
+  });
+  assertEquals(toHex(written!.keyId), toHex(device.keyId));
+  assertEquals(toHex(written!.publicKey), toHex(device.publicKey));
+});
+
+Deno.test("registers a COSE-only attestation without claiming unavailable app signals", async () => {
+  const device = await makeDevice();
+  const at = new Date();
+  let written: RegisterDeviceKeyArgs | undefined;
+
+  const handler = createAttestDeviceHandler(deps({
+    database: recordingDatabase((args) => {
+      written = args;
+    }),
+    now: () => at,
+  }));
+  const response = await post(
+    handler,
+    await registrationBody(device, at, {
+      attestationSuffix: encodeCosePublicKey(device.publicKey),
+    }),
   );
 
   assertEquals(response.status, 200);

@@ -22,9 +22,11 @@
  * ---------------------------------------------------------------------------
  * The suite mints its own certificate chain and P-256 keys to exercise every
  * rejection path with real cryptography. It also consumes Apple's public 2026
- * attestation vector and App Attestation root to pin the iOS 27 COSE-key and
- * extensions suffix against data this repository did not produce. The parser
- * also retains Apple's legacy form for the iOS 18–26 deployment floor.
+ * attestation vector and App Attestation root to pin a COSE-key-and-extensions
+ * suffix against data this repository did not produce. A physical staging
+ * device supplied a one-value suffix; the parser now accepts that shape only
+ * when the value is a strict COSE key. It also retains the compatibility form
+ * that ends after the credential id.
  *
  * Apple's published vector is internally inconsistent with its prose: its
  * certificate nonce incorporates the raw example challenge where the
@@ -110,11 +112,11 @@ export interface AuthenticatorData {
   readonly aaguid?: Bytes;
   /** The key id, as carried inside the authenticator data. */
   readonly credentialId?: Bytes;
-  /** iOS 27+: the COSE EC2 key converted to X9.62 uncompressed-point form. */
+  /** Present when Apple supplied a COSE EC2 key; converted to an X9.62 point. */
   readonly credentialPublicKey?: Bytes;
-  /** iOS 27+: Apple's launch-validation signal. */
+  /** Present when Apple supplied its launch-validation extension. */
   readonly validationCategory?: AppleValidationCategory;
-  /** iOS 27+: the attested app's CFBundleVersion. */
+  /** Present when Apple supplied the attested app's CFBundleVersion extension. */
   readonly bundleVersion?: string;
 }
 
@@ -165,8 +167,8 @@ function requireCborInteger(value: unknown, what: string): number {
 
 function parseAttestationSuffix(bytes: Bytes): {
   credentialPublicKey: Bytes;
-  validationCategory: AppleValidationCategory;
-  bundleVersion: string;
+  validationCategory?: AppleValidationCategory;
+  bundleVersion?: string;
 } {
   let sequence: ReturnType<typeof decodeCborSequence>;
   try {
@@ -178,18 +180,16 @@ function parseAttestationSuffix(bytes: Bytes): {
     throw cause;
   }
 
-  if (sequence.length !== 2) {
+  if (sequence.length < 1 || sequence.length > 2) {
     throw new AttestationError(
       `authenticator-data suffix contains ${sequence.length} CBOR values; ` +
-        "a COSE key and extensions map are required",
+        "one COSE key and at most one extensions map are allowed",
     );
   }
 
   let cose: CborKeyMap;
-  let extensions: CborKeyMap;
   try {
     cose = asCborKeyMap(sequence[0], "credential public key");
-    extensions = asCborKeyMap(sequence[1], "authenticator extensions");
   } catch (cause) {
     if (cause instanceof CborError) {
       throw new AttestationError(`authenticator-data suffix has the wrong shape: ${cause.message}`);
@@ -233,6 +233,20 @@ function parseAttestationSuffix(bytes: Bytes): {
   credentialPublicKey[0] = 0x04;
   credentialPublicKey.set(x, 1);
   credentialPublicKey.set(y, 33);
+
+  if (sequence.length === 1) {
+    return { credentialPublicKey };
+  }
+
+  let extensions: CborKeyMap;
+  try {
+    extensions = asCborKeyMap(sequence[1], "authenticator extensions");
+  } catch (cause) {
+    if (cause instanceof CborError) {
+      throw new AttestationError(`authenticator-data suffix has the wrong shape: ${cause.message}`);
+    }
+    throw cause;
+  }
 
   requireExactMapKeys(
     extensions,
@@ -297,7 +311,8 @@ function parseAttestationSuffix(bytes: Bytes): {
  *
  * Layout: rpIdHash(32) || flags(1) || signCount(4, big endian), then, if the
  * attested-credential-data flag is set, aaguid(16) || credentialIdLength(2, big
- * endian) || credentialId and, on iOS 27+, COSE_Key || extensions.
+ * endian) || credentialId and, when supplied, COSE_Key followed optionally by
+ * an extensions map.
  *
  * An assertion's authenticator data remains exactly 37 bytes and carries none
  * of the credential half. Anything longer than the structure accounts for is
@@ -750,9 +765,9 @@ export interface VerifiedAttestation {
   /** The uncompressed P-256 point, 0x04 || X || Y. What the database stores. */
   readonly publicKey: Bytes;
   readonly environment: AttestEnvironment;
-  /** Present when Apple supplied the iOS 27 authenticator-data suffix. */
+  /** Present when Apple supplied its launch-validation extension. */
   readonly validationCategory?: AppleValidationCategory;
-  /** Present when Apple supplied the iOS 27 authenticator-data suffix. */
+  /** Present when Apple supplied its CFBundleVersion extension. */
   readonly bundleVersion?: string;
 }
 

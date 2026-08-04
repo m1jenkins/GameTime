@@ -81,7 +81,7 @@ final class ConformanceRequestTests: XCTestCase {
         )
     }
 
-    func testRegistrationResponseAllowsOmittedOrNullIOS27ExtensionFields() throws {
+    func testRegistrationResponseAllowsOmittedOrNullOptionalExtensionFields() throws {
         let responses = [
             #"{"registered":true,"environment":"development"}"#,
             #"{"registered":true,"environment":"development","validationCategory":null,"bundleVersion":null}"#,

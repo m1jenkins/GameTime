@@ -105,7 +105,7 @@ Deno.test("parses attestation-shaped authenticator data", () => {
   assertEquals(parsed.bundleVersion, "27.3.14");
 });
 
-Deno.test("parses the legacy attestation form that ends after credentialId", () => {
+Deno.test("parses the compatibility form that ends after credentialId", () => {
   const credentialId = new Uint8Array(32).fill(3);
   const legacy = buildAuthenticatorData({
     rpIdHash: new Uint8Array(32).fill(7),
@@ -122,11 +122,11 @@ Deno.test("parses the legacy attestation form that ends after credentialId", () 
   assertEquals(parsed.bundleVersion, undefined);
 
   // Compatibility is exact, not a license to ignore trailing data. Once even
-  // one suffix byte is present, the complete two-value iOS 27 form is required.
+  // one suffix byte is present, it must begin a valid COSE credential key.
   assertThrows(
     () => parseAuthenticatorData(new Uint8Array([...legacy, 0x00])),
     AttestationError,
-    "a COSE key and extensions map are required",
+    "credential public key is not a CBOR map",
   );
 });
 
@@ -231,7 +231,7 @@ Deno.test("Apple's official 2026 vector pins the current attestation suffix and 
   );
 });
 
-Deno.test("strictly validates the COSE key and both Apple extensions", async () => {
+Deno.test("strictly validates the COSE key and optional Apple extensions", async () => {
   const built = await buildAttestation(root, intermediate, device);
   const coseStart = 55 + built.keyId.length;
 
@@ -250,10 +250,25 @@ Deno.test("strictly validates the COSE key and both Apple extensions", async () 
     credentialId: device.keyId,
     attestationSuffix: encodeCosePublicKey(device.publicKey),
   });
+  const parsedWithoutExtensions = parseAuthenticatorData(noExtensions);
+  assertEquals(parsedWithoutExtensions.credentialPublicKey, device.publicKey);
+  assertEquals(parsedWithoutExtensions.validationCategory, undefined);
+  assertEquals(parsedWithoutExtensions.bundleVersion, undefined);
+
+  const nonMapExtensions = buildAuthenticatorData({
+    rpIdHash: new Uint8Array(32),
+    signCount: 0,
+    aaguid: AAGUID_PRODUCTION,
+    credentialId: device.keyId,
+    attestationSuffix: new Uint8Array([
+      ...encodeCosePublicKey(device.publicKey),
+      0x00,
+    ]),
+  });
   assertThrows(
-    () => parseAuthenticatorData(noExtensions),
+    () => parseAuthenticatorData(nonMapExtensions),
     AttestationError,
-    "a COSE key and extensions map are required",
+    "authenticator extensions is not a CBOR map",
   );
 
   const invalidCategory = await buildAttestation(root, intermediate, device, {
@@ -412,7 +427,7 @@ Deno.test("verifies a well-formed attestation and yields the key to store", asyn
   assertEquals(digest, built.keyId);
 });
 
-Deno.test("verifies a legacy attestation without iOS 27 app signals", async () => {
+Deno.test("verifies a suffix-free attestation without optional app signals", async () => {
   const built = await buildAttestation(root, intermediate, device, {
     legacyAuthenticatorData: true,
   });
@@ -422,6 +437,35 @@ Deno.test("verifies a legacy attestation without iOS 27 app signals", async () =
   assertEquals(verified.environment, "production");
   assertEquals(verified.validationCategory, undefined);
   assertEquals(verified.bundleVersion, undefined);
+});
+
+Deno.test("verifies a COSE-only attestation without optional app signals", async () => {
+  const built = await buildAttestation(root, intermediate, device, {
+    attestationSuffix: encodeCosePublicKey(device.publicKey),
+  });
+  const verified = await verifyAttestation(attestationRequest(built));
+
+  assertEquals(verified.publicKey, device.publicKey);
+  assertEquals(verified.environment, "production");
+  assertEquals(verified.validationCategory, undefined);
+  assertEquals(verified.bundleVersion, undefined);
+
+  await assertRejects(
+    () =>
+      verifyAttestation(attestationRequest(built, {
+        allowedValidationCategories: [4],
+      })),
+    AttestationError,
+    "requires an Apple validation category",
+  );
+  await assertRejects(
+    () =>
+      verifyAttestation(attestationRequest(built, {
+        allowedBundleVersions: ["1"],
+      })),
+    AttestationError,
+    "requires an Apple bundle version",
+  );
 });
 
 Deno.test("accepts a development attestation only where it is allowed", async () => {

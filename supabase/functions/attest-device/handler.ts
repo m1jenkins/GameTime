@@ -4,10 +4,10 @@
  *
  * Registration runs once per app install. The client generates a key in the
  * Secure Enclave, asks Apple to attest it, and sends the attestation object
- * here; the response records the verified environment and, when iOS 27
- * supplies them, category/build signals for the conformance log. What is left
- * behind is a row in `device_attestations` that every later ingest is checked
- * against.
+ * here; the response records the verified environment and, when the
+ * attestation supplies them, category/build signals for the conformance log.
+ * What is left behind is a row in `device_attestations` that every later ingest
+ * is checked against.
  *
  * Two routes in one function rather than two functions, because they are one
  * exchange: the challenge is meaningless on its own and the client always makes

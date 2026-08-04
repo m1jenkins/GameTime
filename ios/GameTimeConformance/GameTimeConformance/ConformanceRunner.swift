@@ -126,8 +126,8 @@ final class ConformanceRunner {
                 )
             }
             let validationCategory = decoded.validationCategory.map { String($0) }
-                ?? "unavailable on this OS"
-            let bundleVersion = decoded.bundleVersion ?? "unavailable on this OS"
+                ?? "not supplied by attestation"
+            let bundleVersion = decoded.bundleVersion ?? "not supplied by attestation"
             return (
                 (),
                 "SHA-256(challenge)=\(challengeHash.hexString); server accepted a "

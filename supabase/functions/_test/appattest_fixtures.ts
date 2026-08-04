@@ -121,7 +121,7 @@ export function encodeCosePublicKey(publicKey: Bytes): Bytes {
   ]);
 }
 
-/** The two extensions in Apple's iOS 27 attestation authenticator data. */
+/** The two extensions in Apple's published 2026 attestation vector. */
 export function encodeAttestationExtensions(
   validationCategory = 4,
   bundleVersion = "1",
@@ -189,9 +189,9 @@ export interface AttestationOptions {
   readonly credentialPublicKey?: Bytes;
   readonly validationCategory?: number;
   readonly bundleVersion?: string;
-  /** Emits the pre-iOS 27 form that ends immediately after credentialId. */
+  /** Emits the compatibility form that ends immediately after credentialId. */
   readonly legacyAuthenticatorData?: boolean;
-  /** Replaces the complete COSE-key/extensions suffix. */
+  /** Replaces the complete COSE-key and optional-extensions suffix. */
   readonly attestationSuffix?: Bytes;
   /** Overrides the nonce placed in the leaf certificate. */
   readonly nonceOverride?: Bytes;

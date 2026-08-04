@@ -5,10 +5,13 @@ registration, metric, and geofence envelopes against staging with one genuine
 App Attest key. A simulator cannot complete it.
 
 The repository-side harness, staging backend, and automated checks were
-completed on 2026-07-25. The observation record at the end must remain unfilled,
-and M6.5 must remain open, until an App Attest-capable Apple Developer Program
-team provisions the connected iPhone target and a staging Auth user/fixture is
-available.
+completed on 2026-07-25. On 2026-08-03, an authenticated physical Staging
+iPhone reached server-side attestation parsing and exposed a one-value suffix
+consistent with the COSE-only shape covered by D112, but the old count check ran
+before validating that value and the full smoke sequence did not complete. The
+observation record at the end must remain unfilled, and M6.5 must remain open,
+until the corrected function is explicitly deployed and the complete
+registration, receipt, signed-send, replay, counter, and storage audit succeeds.
 
 ## Expected proof
 
@@ -16,8 +19,9 @@ One run must establish all of these facts:
 
 1. Staging boots with Apple's pinned root and with `ATTEST_DEV_BYPASS` absent.
 2. A debug-signed physical-device target registers a development App Attest
-   key. On iOS 27+, the server reports its validation category and bundle
-   version; on iOS 18–26 it reports those signals as unavailable.
+   key. When the attestation supplies a validation category and bundle version,
+   the server reports them; otherwise it reports those optional signals as
+   unavailable without inferring an OS version.
 3. The stored key is a 65-byte uncompressed P-256 point and its SHA-256 digest
    equals Apple's decoded key id.
 4. Apple's opaque receipt is captured only in the private receipt table,
@@ -239,7 +243,7 @@ Capture the complete on-screen result. Expected statuses and invariants:
 | Operation | Expected |
 | --- | --- |
 | Challenge | `200`, 32-byte decoded challenge |
-| Registration | `200`, `registered=true`, `environment=development`, returned only after independent receipt verification and its digest-bound database marker; category and bundle version shown on iOS 27+, explicitly unavailable on iOS 18–26 |
+| Registration | `200`, `registered=true`, `environment=development`, returned only after independent receipt verification and its digest-bound database marker; optional category and bundle version shown when supplied, otherwise explicitly unavailable |
 | Metric first send | `201`, `replayed=false`, one observation |
 | Metric exact replay | `200`, same batch id, `replayed=true` |
 | Check-in first send | `201`, `replayed=false`; with the fixture samples its outcome is `accepted` |
@@ -334,7 +338,9 @@ Apple team / bundle id:
 App build version:
 Key id:
 Attestation environment:
+Optional App Attest signals (present | not supplied):
 Validation category:
+Bundle version:
 Metric assertion counter:
 Check-in assertion counter:
 Receipt byte count:

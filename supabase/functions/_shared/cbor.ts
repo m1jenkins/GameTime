@@ -288,10 +288,10 @@ export function decodeCbor(bytes: Bytes): CborValue {
 /**
  * Decodes the deterministic CBOR sequence in signed authenticator data.
  *
- * App Attest places two adjacent CBOR values there: a COSE key followed by an
- * extensions map. Unlike `decodeCbor`, this API accepts the integer labels COSE
- * requires and returns every map as a `Map`. A small item bound prevents a long
- * run of one-byte values from turning a malformed suffix into a large array.
+ * App Attest places a COSE key there and may follow it with an extensions map.
+ * Unlike `decodeCbor`, this API accepts the integer labels COSE requires and
+ * returns every map as a `Map`. A small item bound prevents a long run of
+ * one-byte values from turning a malformed suffix into a large array.
  */
 export function decodeCborSequence(bytes: Bytes): CborValue[] {
   const reader = new Reader(bytes);
