@@ -15,17 +15,17 @@ enum PersonalActivitySyncViewState: Equatable, Sendable {
     var message: String? {
         switch self {
         case .idle: nil
-        case .syncing: "Reading trusted step coverage…"
+        case .syncing: "Checking your steps…"
         case .synced(let total):
-            "\(total.formatted(.number.precision(.fractionLength(0)))) trusted steps synced."
+            "\(total.formatted(.number.precision(.fractionLength(0)))) steps synced."
         case .observedLocally(let total):
-            "\(total.formatted(.number.precision(.fractionLength(0)))) steps read on this device — not yet verified."
+            "\(total.formatted(.number.precision(.fractionLength(0)))) steps read on this phone — not confirmed yet."
         case .replayAccepted(let total):
-            "\(total.formatted(.number.precision(.fractionLength(0)))) saved trusted steps confirmed."
+            "\(total.formatted(.number.precision(.fractionLength(0)))) saved steps confirmed."
         case .queuedForRetry(let total):
-            "\(total.formatted(.number.precision(.fractionLength(0)))) trusted steps are saved for an exact retry."
+            "\(total.formatted(.number.precision(.fractionLength(0)))) steps are saved and waiting to send."
         case .noReadableData:
-            "The completed-hour query returned no readable step observations."
+            "We couldn’t read any steps for that time."
         case .failed(let message): message
         }
     }
@@ -228,7 +228,7 @@ final class PersonalAccountabilityStore {
             return nil
         }
         guard healthReadiness.permitsCreation else {
-            presentedError = "Verify Health access before confirming."
+            presentedError = "Check your Health connection before you start."
             return nil
         }
         guard !hasPendingCreationRecoveryIssue, !isMutating else { return nil }
@@ -243,7 +243,7 @@ final class PersonalAccountabilityStore {
                 pendingCreation.request.requestID == request.requestID,
                 pendingCreation.request == request
             else {
-                presentedError = "Review or discard the saved personal challenge request first."
+                presentedError = "Finish or delete your saved draft first."
                 return nil
             }
             submission = pendingCreation

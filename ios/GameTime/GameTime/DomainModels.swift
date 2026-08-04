@@ -773,18 +773,18 @@ enum AppMutationError: LocalizedError, Equatable, Sendable {
 
     var errorDescription: String? {
         switch self {
-        case .offline: "You appear to be offline. Your request was not submitted."
+        case .offline: "You’re offline, so we didn’t send that. Check your connection and try again."
         case .cancelled: nil
         case .duplicateRequestChanged:
-            "That request was already used with different challenge terms. Start a new challenge."
-        case .handleUnavailable: "That exact handle is unavailable."
+            "You already used that request for a different challenge. Start a new one."
+        case .handleUnavailable: "That username is taken."
         case .localPersistence:
-            "GameTime couldn’t safely update the saved challenge retry. It was not automatically retried."
-        case .permissionDenied: "That action is no longer available."
+            "We couldn’t update the draft saved on your phone, so we left it alone."
+        case .permissionDenied: "You can’t do that anymore."
         case .invalidInput:
-            "Check the request details and try again."
+            "Check what you entered and try again."
         case .server:
-            "GameTime couldn’t complete that request. Try again."
+            "That didn’t go through. Try again."
         }
     }
 

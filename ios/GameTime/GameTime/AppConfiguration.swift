@@ -193,15 +193,15 @@ enum AppConfigurationError: LocalizedError, Equatable, Sendable {
     var errorDescription: String? {
         switch self {
         case .invalidEnvironment:
-            "GAMETIME_ENV must be Debug, Staging, or Release."
+            "This copy of GameTime isn’t set up correctly."
         case .invalidSupabaseURL:
-            "A valid Supabase HTTPS URL is required."
+            "GameTime can’t connect because it isn’t set up correctly."
         case .missingPublishableKey:
-            "The Supabase publishable key is not configured."
+            "GameTime can’t connect because it isn’t set up correctly."
         case .invalidPublishableKey:
-            "Only a current Supabase publishable key is accepted."
+            "GameTime can’t connect because it isn’t set up correctly."
         case .serviceRoleKeyRejected:
-            "A service-role or secret key must never be embedded in GameTime."
+            "GameTime can’t connect because it isn’t set up correctly."
         }
     }
 }

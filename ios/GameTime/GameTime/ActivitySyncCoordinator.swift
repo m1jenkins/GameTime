@@ -63,25 +63,25 @@ enum ActivitySyncError: LocalizedError, Equatable, Sendable {
   var errorDescription: String? {
     switch self {
     case .stagingOnly:
-      "Activity sync is available only in GameTime Staging."
+      "Step syncing isn’t available yet."
     case .challengeNotEligible:
-      "Only an accepted, active steps challenge can sync activity."
+      "Only an active steps challenge can sync."
     case .invalidChallengeWindow:
-      "The challenge activity window is invalid."
+      "Something is wrong with this challenge’s dates."
     case .missingParticipantTimeZone:
-      "Your frozen challenge timezone is unavailable."
+      "We couldn’t work out your challenge’s time zone."
     case .invalidTimeZoneSchedule:
-      "The challenge timezone history could not be verified."
+      "We couldn’t confirm your challenge’s time zone."
     case .queueAtCapacity:
-      "Saved activity retries must be resolved before adding another."
+      "There are saved steps still waiting to send. Sort those out first."
     case .conflictingQueuedRequest:
-      "A saved activity retry conflicts with this upload."
+      "This doesn’t match the steps already waiting to send."
     case .conflictingSignedMaterial:
-      "Saved device-verification data conflicts with this upload."
+      "This doesn’t match what your phone saved earlier."
     case .queuedRequestUnavailable:
-      "The saved activity retry could not be restored."
+      "We couldn’t restore the steps saved on your phone."
     case .pendingUploadForDifferentChallenge:
-      "Sync the challenge with the saved activity retry first."
+      "Sync the other challenge first — it has steps still waiting."
     }
   }
 }

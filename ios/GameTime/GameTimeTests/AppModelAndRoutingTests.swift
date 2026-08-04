@@ -747,7 +747,7 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertFalse(discarded)
         XCTAssertTrue(
             model.presentedError?.localizedCaseInsensitiveContains(
-                "not discarded"
+                "wasn’t deleted"
             ) == true
         )
         let preserved = try await pendingStore.load(for: firstOwnerID)

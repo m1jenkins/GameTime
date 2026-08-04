@@ -129,7 +129,7 @@ struct ContestCardRow: View {
     @ViewBuilder
     private var statusPill: some View {
         if contest.myStatus == .invited {
-            TrustStatusPill(text: "Action needed", kind: .action)
+            TrustStatusPill(text: "Needs you", kind: .action)
         } else if contest.status == .active {
             TrustStatusPill(text: "Live", kind: .live)
         } else if contest.status == .finalized {
@@ -183,7 +183,7 @@ struct InlineLoadStateView: View {
             HStack(spacing: 10) {
                 ProgressView()
                     .tint(CompetitiveTrustTheme.coral)
-                Text("Refreshing live state…")
+                Text("Updating…")
                     .font(
                         CompetitiveTrustTheme.uiFont(
                             size: 14,

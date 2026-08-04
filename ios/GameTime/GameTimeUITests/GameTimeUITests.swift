@@ -14,7 +14,7 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(
             signedOut.staticTexts[
-                "Test commitment — no money will be charged."
+                "This is a test — no money will be charged."
             ].exists
         )
         XCTAssertFalse(signedOut.staticTexts["Compete fairly."].exists)
@@ -26,8 +26,8 @@ final class GameTimeUITests: XCTestCase {
             onboarding.navigationBars["Set your profile"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(onboarding.textFields["Display name"].exists)
-        XCTAssertTrue(onboarding.textFields["Handle"].exists)
+        XCTAssertTrue(onboarding.textFields["Your name"].exists)
+        XCTAssertTrue(onboarding.textFields["Username"].exists)
         assertNoForbiddenLanguage(in: onboarding)
     }
 
@@ -53,10 +53,10 @@ final class GameTimeUITests: XCTestCase {
         let app = launch("--fixture-activity")
 
         XCTAssertTrue(
-            app.staticTexts["Your seven days"].waitForExistence(timeout: 5)
+            app.staticTexts["Your week"].waitForExistence(timeout: 5)
         )
-        XCTAssertTrue(app.staticTexts["10,000 steps per day"].exists)
-        XCTAssertTrue(app.staticTexts["Seven-day timeline"].exists)
+        XCTAssertTrue(app.staticTexts["10,000 steps a day"].exists)
+        XCTAssertTrue(app.staticTexts["Day by day"].exists)
         assertExactDisclosure(in: app)
         XCTAssertFalse(app.staticTexts["Friend requests"].exists)
         XCTAssertFalse(app.staticTexts["Challenge invitations"].exists)
@@ -68,22 +68,27 @@ final class GameTimeUITests: XCTestCase {
         sync.tap()
         XCTAssertTrue(
             app.staticTexts.matching(
-                NSPredicate(format: "label CONTAINS %@", "trusted steps synced")
+                NSPredicate(format: "label CONTAINS %@", "steps synced")
             ).firstMatch.waitForExistence(timeout: 4)
         )
     }
 
-    func testPersonalDetailContainsFrozenTermsAndNoCompetitiveLanguage() {
+    func testPersonalDetailContainsLockedTermsAndNoCompetitiveLanguage() {
         let app = launch("--fixture-open-active-challenge")
         XCTAssertTrue(
-            app.navigationBars["Personal challenge"]
+            app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
-        XCTAssertTrue(app.staticTexts["Frozen terms"].exists)
-        XCTAssertTrue(app.staticTexts["Evidence completeness"].exists)
-        XCTAssertTrue(app.staticTexts["Steps only"].exists)
-        XCTAssertTrue(app.staticTexts["Test only"].exists)
+        XCTAssertTrue(app.staticTexts["What you signed up for"].exists)
+        XCTAssertTrue(app.staticTexts["Steps received"].exists)
+        XCTAssertTrue(app.staticTexts["Day by day"].exists)
         assertExactDisclosure(in: app)
+        let syncExplanation = exactStaticText(
+            "Steps can still arrive up to 24 hours after your last day ends. If some never turn up, the challenge simply doesn’t count — and it doesn’t count against you.",
+            in: app
+        )
+        for _ in 0..<8 where !syncExplanation.exists { app.swipeUp() }
+        XCTAssertTrue(syncExplanation.waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Standings"].exists)
         XCTAssertFalse(app.staticTexts["Winner"].exists)
         XCTAssertFalse(app.staticTexts["Charity"].exists)
@@ -102,7 +107,7 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.create"].tap()
 
         XCTAssertTrue(
-            app.navigationBars["Steps goal"].waitForExistence(timeout: 4)
+            app.navigationBars["What you’ll track"].waitForExistence(timeout: 4)
         )
         XCTAssertTrue(app.staticTexts["Steps"].exists)
         XCTAssertFalse(app.staticTexts["Distance"].exists)
@@ -112,7 +117,7 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.continue"].tap()
 
         XCTAssertTrue(
-            app.navigationBars["Choose cadence"].waitForExistence(timeout: 3)
+            app.navigationBars["How it counts"].waitForExistence(timeout: 3)
         )
         XCTAssertTrue(app.buttons["personal.cadence.daily"].exists)
         XCTAssertTrue(app.buttons["personal.cadence.cumulative"].exists)
@@ -125,7 +130,7 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.continue"].tap()
 
         XCTAssertTrue(
-            app.navigationBars["Set your target"].waitForExistence(timeout: 3)
+            app.navigationBars["Your goal"].waitForExistence(timeout: 3)
         )
         XCTAssertEqual(
             app.textFields["personal.target"].value as? String,
@@ -135,7 +140,7 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.continue"].tap()
 
         XCTAssertTrue(
-            app.navigationBars["Test commitment"]
+            app.navigationBars["Your amount"]
                 .waitForExistence(timeout: 3)
         )
         XCTAssertEqual(
@@ -152,7 +157,7 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.continue"].waitAndTap()
 
         XCTAssertTrue(
-            app.navigationBars["Choose your start"]
+            app.navigationBars["When you start"]
                 .waitForExistence(timeout: 4)
         )
         XCTAssertTrue(app.descendants(matching: .any)["personal.start.day"].exists)
@@ -167,34 +172,33 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.continue"].waitAndTap()
 
         XCTAssertTrue(
-            app.navigationBars["Apple Health"]
+            app.navigationBars["Health check"]
                 .waitForExistence(timeout: 4)
         )
         let healthCheck = app.buttons["personal.health.verify"]
         XCTAssertTrue(healthCheck.waitForExistence(timeout: 3))
-        XCTAssertEqual(healthCheck.label, "Check Apple Health")
+        XCTAssertEqual(healthCheck.label, "Check Health connection")
         XCTAssertFalse(app.buttons["personal.continue"].isEnabled)
         assertNoCreationDiagnosticLanguage(in: app)
         attachScreenshot(
             of: app,
-            named: "Apple Health - check required"
+            named: "Health check - connection required"
         )
         healthCheck.tap()
         XCTAssertTrue(
-            app.staticTexts["GameTime found recent Apple Health steps."]
+            app.staticTexts["Health connected"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts["Apple Health connected"].exists)
         XCTAssertFalse(healthCheck.exists)
         XCTAssertTrue(app.buttons["personal.continue"].isEnabled)
         assertNoCreationDiagnosticLanguage(in: app)
         app.buttons["personal.continue"].waitAndTap()
 
         XCTAssertTrue(
-            app.navigationBars["Review frozen terms"]
+            app.navigationBars["Check and confirm"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts["Cumulative"].exists)
+        XCTAssertTrue(app.staticTexts["Week total"].exists)
         XCTAssertTrue(
             app.staticTexts.matching(
                 NSPredicate(format: "label BEGINSWITH %@", "$50")
@@ -205,7 +209,7 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.submit"].waitAndTap()
 
         XCTAssertTrue(
-            app.navigationBars["Personal challenge"]
+            app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
         XCTAssertTrue(app.staticTexts["Scheduled"].exists)
@@ -226,16 +230,16 @@ final class GameTimeUITests: XCTestCase {
         }
 
         XCTAssertTrue(
-            app.navigationBars["Apple Health"]
+            app.navigationBars["Health check"]
                 .waitForExistence(timeout: 4)
         )
         let healthCheck = app.buttons["personal.health.verify"]
         XCTAssertTrue(healthCheck.waitForExistence(timeout: 3))
-        XCTAssertEqual(healthCheck.label, "Check Apple Health")
+        XCTAssertEqual(healthCheck.label, "Check Health connection")
         assertNoCreationDiagnosticLanguage(in: app)
         healthCheck.tap()
         XCTAssertTrue(
-            app.staticTexts["GameTime found recent Apple Health steps."]
+            app.staticTexts["Health connected"]
                 .waitForExistence(timeout: 4)
         )
         XCTAssertTrue(app.buttons["personal.continue"].isEnabled)
@@ -243,13 +247,13 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.continue"].waitAndTap()
 
         XCTAssertTrue(
-            app.navigationBars["Review frozen terms"]
+            app.navigationBars["Check and confirm"]
                 .waitForExistence(timeout: 4)
         )
         assertExactDisclosure(in: app)
-        XCTAssertTrue(app.staticTexts["Seven complete local days"].exists)
-        XCTAssertTrue(app.staticTexts["24 hours after day seven"].exists)
-        XCTAssertTrue(app.staticTexts["Daily"].exists)
+        XCTAssertTrue(app.staticTexts["Seven full days"].exists)
+        XCTAssertTrue(app.staticTexts["24 hours after your last day"].exists)
+        XCTAssertTrue(app.staticTexts["Every day"].exists)
         XCTAssertTrue(
             app.staticTexts.matching(
                 NSPredicate(format: "label BEGINSWITH %@", "$10")
@@ -259,14 +263,17 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.submit"].waitAndTap()
 
         XCTAssertTrue(
-            app.navigationBars["Personal challenge"]
+            app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
         XCTAssertTrue(app.staticTexts["Scheduled"].exists)
+        // The disclosure sits at the top of a LazyVStack, so assert it before
+        // scrolling to the bottom for the cancel control — once the top of the
+        // stack is recycled it is no longer in the hierarchy to find.
+        assertExactDisclosure(in: app)
         let cancel = app.buttons["personal.cancel"]
         for _ in 0..<8 where !cancel.exists { app.swipeUp() }
         XCTAssertTrue(cancel.waitForExistence(timeout: 3))
-        assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
 
         app.tabBars.buttons["You"].waitAndTap()
@@ -274,14 +281,14 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["You"].waitForExistence(timeout: 4)
         )
         XCTAssertTrue(
-            app.staticTexts["Apple Health steps"]
+            app.staticTexts["Apple Health"]
                 .waitForExistence(timeout: 4)
         )
         XCTAssertFalse(
             app.staticTexts.matching(
                 NSPredicate(
                     format: "label BEGINSWITH %@",
-                    "Last diagnostic"
+                    "Last checked"
                 )
             ).firstMatch.exists,
             "The local Apple Health creation check must not run or record a trusted diagnostic."
@@ -300,22 +307,22 @@ final class GameTimeUITests: XCTestCase {
         }
 
         XCTAssertTrue(
-            app.navigationBars["Apple Health"]
+            app.navigationBars["Health check"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts["Apple Health connected"].exists)
+        XCTAssertTrue(app.staticTexts["Health connected"].exists)
         XCTAssertFalse(app.buttons["personal.health.verify"].exists)
         assertNoCreationDiagnosticLanguage(in: app)
         attachScreenshot(
             of: app,
-            named: "Apple Health - already connected"
+            named: "Health check - already connected"
         )
 
         let continueButton = app.buttons["personal.continue"]
         XCTAssertTrue(continueButton.isEnabled)
         continueButton.tap()
         XCTAssertTrue(
-            app.navigationBars["Review frozen terms"]
+            app.navigationBars["Check and confirm"]
                 .waitForExistence(timeout: 4)
         )
     }
@@ -329,15 +336,10 @@ final class GameTimeUITests: XCTestCase {
 
         let verify = app.buttons["personal.health.verify"]
         XCTAssertTrue(verify.waitForExistence(timeout: 5))
-        XCTAssertEqual(verify.label, "Verify Health access")
+        XCTAssertEqual(verify.label, "Check Health connection")
         XCTAssertFalse(app.buttons["personal.diagnostic.run"].exists)
-        XCTAssertFalse(app.buttons["Run trusted diagnostic"].exists)
-        XCTAssertFalse(app.buttons["Restore trusted access"].exists)
-        XCTAssertFalse(
-            app.staticTexts[
-                "A trusted diagnostic is required before confirming a personal challenge."
-            ].exists
-        )
+        XCTAssertFalse(app.buttons["Run Health check"].exists)
+        XCTAssertFalse(app.buttons["Reconnect Health"].exists)
 
         verify.tap()
 
@@ -347,7 +349,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(result.waitForExistence(timeout: 4))
         XCTAssertEqual(
             result.label,
-            "Observed 12 positive Apple-device step samples across 24 completed hours."
+            "Found 12 step readings from your Apple devices in the last 24 hours."
         )
         XCTAssertFalse(app.buttons["personal.diagnostic.run"].exists)
     }
@@ -367,14 +369,20 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(
             hold.waitForExistence(timeout: 5)
         )
+        XCTAssertTrue(
+            exactStaticText(
+                "Something is wrong with the steps coming from your phone. Run a Health check to start another challenge — and don’t worry, your last one doesn’t count against you.",
+                in: app
+            ).exists
+        )
         let diagnostic = app.buttons["personal.diagnostic.run"]
         for _ in 0..<5 where !diagnostic.isHittable { app.swipeDown() }
         XCTAssertTrue(diagnostic.waitForExistence(timeout: 4))
-        XCTAssertEqual(diagnostic.label, "Restore trusted access")
-        XCTAssertFalse(app.buttons["Run trusted diagnostic"].exists)
+        XCTAssertEqual(diagnostic.label, "Reconnect Health")
+        XCTAssertFalse(app.buttons["Run Health check"].exists)
         diagnostic.waitAndTap()
         XCTAssertTrue(
-            app.staticTexts["Trusted"].waitForExistence(timeout: 4)
+            app.staticTexts["Connected"].waitForExistence(timeout: 4)
         )
         XCTAssertFalse(hold.exists)
         XCTAssertFalse(app.buttons["personal.diagnostic.run"].exists)
@@ -394,17 +402,26 @@ final class GameTimeUITests: XCTestCase {
         app.tabBars.buttons["Challenges"].waitAndTap()
 
         XCTAssertTrue(
-            app.staticTexts["Exact retry ready"].waitForExistence(timeout: 5)
+            app.staticTexts["Ready to finish"].waitForExistence(timeout: 5)
         )
         assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
-        app.buttons["personal.pending.resume"].waitAndTap()
+        let resume = app.buttons["personal.pending.resume"]
+        XCTAssertTrue(resume.waitForExistence(timeout: 4))
+        XCTAssertEqual(resume.label, "Continue setup")
+        resume.tap()
 
         XCTAssertTrue(
-            app.navigationBars["Review frozen terms"]
+            app.navigationBars["Check and confirm"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts["Cumulative"].exists)
+        XCTAssertTrue(app.staticTexts["Week total"].exists)
+        XCTAssertTrue(
+            exactStaticText(
+                "On a daily challenge you have to hit your goal all seven days. On a weekly one you just have to reach the total by the end. If your steps go missing or don’t add up, the week doesn’t count — and it doesn’t count against you.",
+                in: app
+            ).exists
+        )
         XCTAssertTrue(
             app.descendants(matching: .any)["personal.request-id"].exists
         )
@@ -413,7 +430,7 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.submit"].waitAndTap()
 
         XCTAssertTrue(
-            app.navigationBars["Personal challenge"]
+            app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
         XCTAssertTrue(app.staticTexts["Scheduled"].exists)
@@ -454,7 +471,7 @@ final class GameTimeUITests: XCTestCase {
         )
 
         XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["Refresh accountability progress"].exists)
+        XCTAssertTrue(app.buttons["Refresh your progress"].exists)
         XCTAssertTrue(app.tabBars.buttons["Today"].exists)
         XCTAssertTrue(app.tabBars.buttons["Challenges"].exists)
         XCTAssertTrue(app.tabBars.buttons["You"].exists)
@@ -465,7 +482,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(create.isHittable)
         create.tap()
         XCTAssertTrue(
-            app.navigationBars["Steps goal"].waitForExistence(timeout: 4)
+            app.navigationBars["What you’ll track"].waitForExistence(timeout: 4)
         )
         XCTAssertTrue(
             app.descendants(matching: .any)["Step 1 of 7"].exists
@@ -481,7 +498,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(privacy.isHittable)
         privacy.tap()
         XCTAssertTrue(
-            app.navigationBars["Trust & privacy"]
+            app.navigationBars["Privacy"]
                 .waitForExistence(timeout: 4)
         )
         assertExactDisclosure(in: app)
@@ -529,9 +546,18 @@ final class GameTimeUITests: XCTestCase {
     private func assertExactDisclosure(in app: XCUIApplication) {
         XCTAssertTrue(
             app.staticTexts[
-                "Test commitment — no money will be charged."
+                "This is a test — no money will be charged."
             ].exists
         )
+    }
+
+    private func exactStaticText(
+        _ label: String,
+        in app: XCUIApplication
+    ) -> XCUIElement {
+        app.staticTexts.matching(
+            NSPredicate(format: "label == %@", label)
+        ).firstMatch
     }
 
     private func assertNoForbiddenLanguage(

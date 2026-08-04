@@ -3,6 +3,7 @@ import SwiftUI
 struct TodayView: View {
     @Environment(PersonalAccountabilityStore.self) private var store
     @Environment(AppRouter.self) private var router
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ScrollView {
@@ -63,7 +64,7 @@ struct TodayView: View {
                     .frame(width: 36, height: 36)
                     .background(CompetitiveTrustTheme.coralTint, in: Circle())
             }
-            .accessibilityLabel("Refresh accountability progress")
+            .accessibilityLabel("Refresh your progress")
         }
         .padding(.horizontal, 6)
     }
@@ -87,22 +88,38 @@ struct TodayView: View {
         _ summary: PersonalChallengeSummary
     ) -> some View {
         VStack(spacing: 12) {
-            DaybreakSectionLabel(text: "Your seven days")
+            DaybreakSectionLabel(text: "Your week")
             DaybreakCard(tone: .inverse) {
                 VStack(alignment: .leading, spacing: 15) {
-                    HStack {
-                        PersonalStatusPill(
-                            status: summary.presentationStatus(at: Date()),
-                            outcome: summary.outcome?.kind
-                        )
-                        Spacer(minLength: 8)
-                        Text(summary.terms.commitmentText)
-                            .font(
-                                CompetitiveTrustTheme.displayFont(
-                                    size: 22,
-                                    relativeTo: .headline
-                                )
+                    if dynamicTypeSize.isAccessibilitySize {
+                        VStack(alignment: .leading, spacing: 8) {
+                            PersonalStatusPill(
+                                status: summary.presentationStatus(at: Date()),
+                                outcome: summary.outcome?.kind
                             )
+                            Text(summary.terms.commitmentText)
+                                .font(
+                                    CompetitiveTrustTheme.displayFont(
+                                        size: 22,
+                                        relativeTo: .headline
+                                    )
+                                )
+                        }
+                    } else {
+                        HStack {
+                            PersonalStatusPill(
+                                status: summary.presentationStatus(at: Date()),
+                                outcome: summary.outcome?.kind
+                            )
+                            Spacer(minLength: 8)
+                            Text(summary.terms.commitmentText)
+                                .font(
+                                    CompetitiveTrustTheme.displayFont(
+                                        size: 22,
+                                        relativeTo: .headline
+                                    )
+                                )
+                        }
                     }
                     Text(summary.terms.targetText)
                         .font(
@@ -119,7 +136,7 @@ struct TodayView: View {
                         )
                         .colorScheme(.dark)
                     }
-                    Button("View challenge") {
+                    Button("See details") {
                         router.todayPath.append(
                             .personalChallenge(summary.id)
                         )
@@ -130,7 +147,7 @@ struct TodayView: View {
             }
 
             if let progress = summary.progress, !progress.days.isEmpty {
-                DaybreakSectionLabel(text: "Seven-day timeline")
+                DaybreakSectionLabel(text: "Day by day")
                 DaybreakCard {
                     PersonalSevenDayTimeline(days: progress.days)
                 }
@@ -147,7 +164,7 @@ struct TodayView: View {
         DaybreakCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Label("Health sync", systemImage: "heart.text.square.fill")
+                    Label("Step syncing", systemImage: "heart.text.square.fill")
                         .font(
                             CompetitiveTrustTheme.displayFont(
                                 size: 18,
@@ -163,11 +180,11 @@ struct TodayView: View {
                     )
                 }
                 if let date = summary.progress?.lastTrustedSyncAt {
-                    Text("Last trusted sync \(date.formatted(.relative(presentation: .named)))")
+                    Text("Last synced \(date.formatted(.relative(presentation: .named)))")
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 } else {
-                    Text("No trusted activity has been received yet.")
+                    Text("We haven’t received your steps yet.")
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 }
@@ -176,7 +193,7 @@ struct TodayView: View {
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 }
-                Button("Sync steps now") {
+                Button("Sync my steps") {
                     Task { await store.sync(challengeID: summary.id) }
                 }
                 .buttonStyle(TrustSecondaryButtonStyle())
@@ -194,10 +211,10 @@ struct TodayView: View {
         if summary.progress?.pendingUploadCount ?? 0 > 0
             || store.pendingActivityUploadCount > 0
         {
-            return "Retry saved"
+            return "Waiting to send"
         }
         return summary.progress?.lastTrustedSyncAt == nil
-            ? "Needs sync"
+            ? "Not synced"
             : "Up to date"
     }
 
@@ -207,10 +224,10 @@ struct TodayView: View {
                 EmptyTrustState(
                     title: "Make this week count",
                     message:
-                        "Set one step goal for seven complete days. Your start is frozen at the next midnight in your profile timezone.",
+                        "Pick one step goal and stick to it for seven days. You’ll start at midnight tonight unless you choose another time.",
                     systemImage: "figure.walk"
                 )
-                Button("Create a personal challenge") {
+                Button("Start a challenge") {
                     router.presentedSheet = .createPersonalChallenge
                 }
                 .buttonStyle(TrustPrimaryButtonStyle())

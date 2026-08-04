@@ -51,23 +51,23 @@ enum PersonalCoverageError: LocalizedError, Equatable, Sendable {
     var errorDescription: String? {
         switch self {
         case .invalidRequest:
-            "The personal coverage request is invalid."
+            "Something went wrong with that request."
         case .accountChanged:
-            "The signed-in account changed. Retry the Health sync."
+            "You signed in with a different account. Sync your steps again."
         case .pendingForDifferentChallenge:
-            "Resolve the saved coverage retry before syncing another challenge."
+            "There’s a sync still waiting. Finish that one first."
         case .conflictingPendingRequest:
-            "The saved coverage retry conflicts with this request."
+            "This doesn’t match the sync that’s already waiting."
         case .protectedStorageUnavailable:
-            "Protected coverage retry storage is unavailable."
+            "We couldn’t save this to your phone."
         case .noTrustedCoverage:
-            "GameTime could not prove that completed zero-step hours were readable. Run a fresh trusted diagnostic and retry."
+            "We can’t tell the difference between “no steps” and “no data” right now. Run a Health check and try again."
         case .unavailable:
-            "Personal step coverage could not reach the staging service."
+            "We couldn’t sync your steps. Try again in a moment."
         case .rejected:
-            "The staging service rejected personal step coverage."
+            "GameTime wouldn’t accept those steps. Try again."
         case .invalidResponse:
-            "The staging service returned an invalid coverage response."
+            "Something came back wrong from GameTime. Try again."
         }
     }
 }

@@ -164,7 +164,7 @@ struct GameTimeApp: App {
                 } else {
                     ConfigurationFailureView(
                         message: configurationFailure
-                            ?? "GameTime configuration is unavailable."
+                            ?? "GameTime isn’t set up correctly on this device."
                     )
                 }
             }
@@ -376,7 +376,7 @@ struct RootView: View {
 private struct DemoEnvironmentBanner: View {
     var body: some View {
         Label(
-            "Demo mode — changes stay on this device",
+            "Demo mode — nothing here leaves your phone",
             systemImage: "play.circle.fill"
         )
         .font(.caption.weight(.bold))
@@ -398,12 +398,12 @@ private struct ConfigurationFailureView: View {
                 .font(.system(size: 42, weight: .semibold))
                 .foregroundStyle(CompetitiveTrustTheme.amber)
                 .accessibilityHidden(true)
-            Text("Configuration blocked")
+            Text("GameTime can’t start")
                 .font(.title2.bold())
             Text(message)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-            Text("Only a Supabase URL and publishable key belong in this app.")
+            Text("Contact support for help.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -433,7 +433,7 @@ private struct SignedOutView: View {
                     Text("Commit clearly.\nShow up daily.")
                         .font(.system(.largeTitle, design: .rounded, weight: .bold))
                     Text(
-                        "A personal seven-day step commitment with frozen terms and trusted progress."
+                        "Set one step goal, put a little on the line, and see it through for seven days."
                     )
                     .font(.body)
                     .foregroundStyle(.secondary)
@@ -441,11 +441,11 @@ private struct SignedOutView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     Label(
-                        "Daily or cumulative goals begin next local midnight",
+                        "Hit it every day, or hit a weekly total",
                         systemImage: "checkmark.shield"
                     )
                     Label(
-                        "Test commitment — no money will be charged.",
+                        "This is a test — no money will be charged.",
                         systemImage: "figure.walk"
                     )
                 }
@@ -463,7 +463,7 @@ private struct SignedOutView: View {
                 }
 
                 Text(
-                    "Sign in creates or restores your private staging account. Apple shares your name only on the first authorization; you can edit it before onboarding."
+                    "Signing in creates your private account. Apple only shares your name the first time, and you can change it on the next screen."
                 )
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -494,21 +494,21 @@ private struct OnboardingView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Display name", text: $displayName)
+                    TextField("Your name", text: $displayName)
                         .textContentType(.name)
                         .focused($focusedField, equals: .name)
-                        .accessibilityLabel("Display name")
+                        .accessibilityLabel("Your name")
 
-                    TextField("Handle", text: $handle)
+                    TextField("Username", text: $handle)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .focused($focusedField, equals: .handle)
-                        .accessibilityLabel("Handle")
+                        .accessibilityLabel("Username")
                 } header: {
                     Text("Your profile")
                 } footer: {
                     Text(
-                        "Your handle becomes read-only after onboarding until server-side change limits are available."
+                        "Pick carefully — you can’t change your username yet."
                     )
                 }
 
@@ -525,7 +525,7 @@ private struct OnboardingView: View {
                             Spacer()
                             if model.isMutating {
                                 ProgressView()
-                                    .accessibilityLabel("Saving profile")
+                                    .accessibilityLabel("Saving")
                             } else {
                                 Text("Enter GameTime")
                             }

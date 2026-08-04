@@ -5,6 +5,7 @@ struct PersonalChallengeDetailView: View {
 
     @Environment(PersonalAccountabilityStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingCancelConfirmation = false
 
     private var challenge: PersonalChallengeDetail? {
@@ -24,7 +25,7 @@ struct PersonalChallengeDetailView: View {
                     cancellation(challenge)
                 } else {
                     DaybreakCard {
-                        ProgressView("Loading personal challenge…")
+                        ProgressView("Loading…")
                             .frame(maxWidth: .infinity)
                     }
                 }
@@ -34,27 +35,27 @@ struct PersonalChallengeDetailView: View {
             .padding(.bottom, 28)
         }
         .daybreakScreenChrome()
-        .navigationTitle("Personal challenge")
+        .navigationTitle("Your challenge")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: challengeID) {
             await store.loadDetail(challengeID: challengeID)
         }
         .confirmationDialog(
-            "Cancel before it begins?",
+            "Cancel this challenge?",
             isPresented: $showingCancelConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Cancel personal challenge", role: .destructive) {
+            Button("Yes, cancel it", role: .destructive) {
                 Task {
                     if await store.cancel(challengeID: challengeID) {
                         dismiss()
                     }
                 }
             }
-            Button("Keep challenge", role: .cancel) {}
+            Button("Keep it", role: .cancel) {}
         } message: {
             Text(
-                "Cancellation is available only before the frozen start time. No money can be charged in Stage A."
+                "You can only cancel before your challenge starts. Either way, no money is charged."
             )
         }
     }
@@ -62,19 +63,35 @@ struct PersonalChallengeDetailView: View {
     private func hero(_ challenge: PersonalChallengeDetail) -> some View {
         DaybreakCard(tone: .inverse) {
             VStack(alignment: .leading, spacing: 15) {
-                HStack {
-                    PersonalStatusPill(
-                        status: challenge.presentationStatus(at: Date()),
-                        outcome: challenge.outcome?.kind
-                    )
-                    Spacer(minLength: 8)
-                    Text(challenge.terms.commitmentText)
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: 24,
-                                relativeTo: .title2
-                            )
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 8) {
+                        PersonalStatusPill(
+                            status: challenge.presentationStatus(at: Date()),
+                            outcome: challenge.outcome?.kind
                         )
+                        Text(challenge.terms.commitmentText)
+                            .font(
+                                CompetitiveTrustTheme.displayFont(
+                                    size: 24,
+                                    relativeTo: .title2
+                                )
+                            )
+                    }
+                } else {
+                    HStack {
+                        PersonalStatusPill(
+                            status: challenge.presentationStatus(at: Date()),
+                            outcome: challenge.outcome?.kind
+                        )
+                        Spacer(minLength: 8)
+                        Text(challenge.terms.commitmentText)
+                            .font(
+                                CompetitiveTrustTheme.displayFont(
+                                    size: 24,
+                                    relativeTo: .title2
+                                )
+                            )
+                    }
                 }
                 Text(challenge.terms.targetText)
                     .font(
@@ -95,20 +112,16 @@ struct PersonalChallengeDetailView: View {
 
     private func frozenTerms(_ terms: FrozenPersonalTerms) -> some View {
         Group {
-            DaybreakSectionLabel(text: "Frozen terms")
+            DaybreakSectionLabel(text: "What you signed up for")
             DaybreakCard {
                 VStack(spacing: 0) {
-                    termRow("Metric", "Steps only")
+                    termRow("How it counts", terms.cadence.title)
                     divider
-                    termRow("Cadence", terms.cadence.title)
+                    termRow("Goal", terms.targetText)
                     divider
-                    termRow("Target", terms.targetText)
+                    termRow("Amount", terms.commitmentText)
                     divider
-                    termRow("Commitment", terms.commitmentText)
-                    divider
-                    termRow("Settlement", "Test only")
-                    divider
-                    termRow("Timezone", terms.timezone)
+                    termRow("Time zone", terms.timezone)
                     divider
                     termRow(
                         "Starts",
@@ -127,7 +140,7 @@ struct PersonalChallengeDetailView: View {
                     )
                     divider
                     termRow(
-                        "Final sync cutoff",
+                        "Last chance to sync",
                         PersonalTermsDateFormatter.dateTime(
                             terms.evidenceCutoff,
                             timezoneIdentifier: terms.timezone
@@ -140,10 +153,10 @@ struct PersonalChallengeDetailView: View {
 
     private func progress(_ challenge: PersonalChallengeDetail) -> some View {
         Group {
-            DaybreakSectionLabel(text: "Seven-day evidence")
+            DaybreakSectionLabel(text: "Day by day")
             DaybreakCard {
                 if challenge.progress.days.isEmpty {
-                    Text("Daily evidence will appear after the challenge starts.")
+                    Text("Your daily steps will show up here once you start.")
                         .font(.subheadline)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 } else {
@@ -152,7 +165,7 @@ struct PersonalChallengeDetailView: View {
             }
             DaybreakCard {
                 VStack(alignment: .leading, spacing: 9) {
-                    Label("Evidence completeness", systemImage: "checkmark.shield")
+                    Label("Steps received", systemImage: "checkmark.shield")
                         .font(
                             CompetitiveTrustTheme.displayFont(
                                 size: 18,
@@ -160,7 +173,7 @@ struct PersonalChallengeDetailView: View {
                             )
                         )
                     Text(
-                        "\(challenge.progress.coveredBucketCount.formatted()) of \(challenge.progress.expectedBucketCount.formatted()) completed local-hour intervals covered"
+                        "We have your steps for \(challenge.progress.coveredBucketCount.formatted()) of \(challenge.progress.expectedBucketCount.formatted()) hours so far."
                     )
                     .font(.subheadline)
                     Text(evidenceExplanation(challenge.progress.evidenceState))
@@ -174,7 +187,7 @@ struct PersonalChallengeDetailView: View {
     @ViewBuilder
     private func result(_ challenge: PersonalChallengeDetail) -> some View {
         if let outcome = challenge.outcome {
-            DaybreakSectionLabel(text: "Result")
+            DaybreakSectionLabel(text: "How it went")
             DaybreakCard(tone: outcome.kind == .metGoal ? .standard : .pledge) {
                 VStack(alignment: .leading, spacing: 9) {
                     PersonalStatusPill(
@@ -198,18 +211,18 @@ struct PersonalChallengeDetailView: View {
 
     private func sync(_ challenge: PersonalChallengeDetail) -> some View {
         Group {
-            DaybreakSectionLabel(text: "Sync health")
+            DaybreakSectionLabel(text: "Step syncing")
             DaybreakCard {
                 VStack(alignment: .leading, spacing: 11) {
                     if let date = challenge.progress.lastTrustedSyncAt {
                         Label(
-                            "Trusted sync \(date.formatted(.relative(presentation: .named)))",
+                            "Last synced \(date.formatted(.relative(presentation: .named)))",
                             systemImage: "checkmark.circle.fill"
                         )
                         .foregroundStyle(CompetitiveTrustTheme.mintInk)
                     } else {
                         Label(
-                            "No trusted sync received",
+                            "We haven’t received your steps yet",
                             systemImage: "exclamationmark.circle.fill"
                         )
                         .foregroundStyle(CompetitiveTrustTheme.sunInk)
@@ -219,7 +232,7 @@ struct PersonalChallengeDetailView: View {
                             .font(.caption)
                             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                     }
-                    Button("Sync steps now") {
+                    Button("Sync my steps") {
                         Task { await store.sync(challengeID: challenge.id) }
                     }
                     .buttonStyle(TrustSecondaryButtonStyle())
@@ -230,7 +243,7 @@ struct PersonalChallengeDetailView: View {
                     )
                     .accessibilityIdentifier("personal.sync")
                     Text(
-                        "Final trusted activity can arrive until 24 hours after the seventh local day ends. Missing or unresolved evidence makes the result inconclusive and waives the test commitment."
+                        "Steps can still arrive up to 24 hours after your last day ends. If some never turn up, the challenge simply doesn’t count — and it doesn’t count against you."
                     )
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -242,7 +255,7 @@ struct PersonalChallengeDetailView: View {
     @ViewBuilder
     private func cancellation(_ challenge: PersonalChallengeDetail) -> some View {
         if challenge.status == .scheduled {
-            Button("Cancel before start", role: .destructive) {
+            Button("Cancel this challenge", role: .destructive) {
                 showingCancelConfirmation = true
             }
             .buttonStyle(TrustSecondaryButtonStyle())
@@ -252,14 +265,28 @@ struct PersonalChallengeDetailView: View {
     }
 
     private func termRow(_ label: String, _ value: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label)
-                .font(.subheadline.weight(.semibold))
-            Spacer(minLength: 8)
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .multilineTextAlignment(.trailing)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(label)
+                        .font(.subheadline.weight(.semibold))
+                    Text(value)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(label)
+                        .font(.subheadline.weight(.semibold))
+                    Spacer(minLength: 8)
+                    Text(value)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
         }
         .padding(.vertical, 11)
         .accessibilityElement(children: .combine)
@@ -272,34 +299,41 @@ struct PersonalChallengeDetailView: View {
     private func evidenceExplanation(_ state: PersonalEvidenceState) -> String {
         switch state {
         case .complete:
-            "Trusted coverage is complete for the intervals currently expected."
+            "We have everything we need so far."
         case .future:
-            "Evidence is not expected until the challenge begins."
+            "Nothing to count until your challenge starts."
         case .inProgress, .pending:
-            "Coverage is still arriving. The target is not judged before the final cutoff."
+            "Still counting. Nothing is final until your challenge ends."
         case .outageWaived:
-            "A confirmed GameTime outage waives the commitment without an eligibility hold."
+            "This was a problem on our end, so it doesn’t count against you."
         case .incomplete, .missing, .quarantined, .conflicting, .unresolved:
-            "Evidence cannot support a goal judgment. The commitment is waived and a diagnostic may be required."
+            "We can’t confirm your steps, so this one won’t count either way. You may need to run a Health check."
         }
     }
 
     private func resultTitle(_ kind: PersonalOutcomeKind) -> String {
         switch kind {
-        case .metGoal: "You met your goal"
-        case .missedGoal: "Goal not met"
-        case .inconclusive: "No goal judgment"
+        case .metGoal: "You hit your goal"
+        case .missedGoal: "You came up short"
+        case .inconclusive: "This one didn’t count"
         }
     }
 
     private func resultExplanation(_ outcome: PersonalOutcome) -> String {
         switch outcome.kind {
         case .metGoal:
-            "Complete trusted evidence reached the frozen target."
+            return "Your steps added up and you got there. Nice work."
         case .missedGoal:
-            "Complete trusted evidence did not reach the frozen target. No money is charged in Stage A."
+            return "Your steps added up, but they didn’t reach your goal. Nothing is charged."
         case .inconclusive:
-            "Evidence was missing, quarantined, conflicting, or unresolved. The commitment is waived. Reason: \(outcome.reasonCode.replacingOccurrences(of: "_", with: " "))."
+            let opening =
+                "We couldn’t confirm your steps, so this one doesn’t count — for you or against you."
+            guard let reason = PersonalReasonText.sentence(
+                for: outcome.reasonCode
+            ) else {
+                return opening
+            }
+            return "\(opening) \(reason)"
         }
     }
 }

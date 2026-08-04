@@ -13,7 +13,7 @@ struct YouView: View {
                 TestCommitmentDisclosure()
                 healthSection
                 if personalStore.eligibilityHoldActive {
-                    DaybreakSectionLabel(text: "Eligibility")
+                    DaybreakSectionLabel(text: "Account status")
                     PersonalEligibilityHoldCard(
                         hold: personalStore.eligibilityHold
                     )
@@ -56,7 +56,7 @@ struct YouView: View {
                             .font(.subheadline)
                             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                             .accessibilityLabel(
-                                "Handle \(profile.handle), read only"
+                                "Username \(profile.handle), can’t be changed yet"
                             )
                     }
                     Spacer(minLength: 0)
@@ -64,19 +64,19 @@ struct YouView: View {
                 Divider()
                     .overlay(CompetitiveTrustTheme.border)
                     .padding(.vertical, 12)
-                settingRow("Frozen challenge timezone", profile.timezone)
-                settingRow("Handle changes", "Locked")
+                settingRow("Time zone", profile.timezone)
+                settingRow("Username", "Can’t be changed yet")
             }
         }
     }
 
     private var healthSection: some View {
         Group {
-            DaybreakSectionLabel(text: "Health access")
+            DaybreakSectionLabel(text: "Apple Health")
             DaybreakCard {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Label("Apple Health steps", systemImage: "heart.fill")
+                        Label("Steps", systemImage: "heart.fill")
                             .font(
                                 CompetitiveTrustTheme.displayFont(
                                     size: 18,
@@ -95,13 +95,13 @@ struct YouView: View {
                         }
                     }
                     Text(
-                        "GameTime checks a recent completed-hour window for at least one positive, first-party Apple-device step sample."
+                        "We look at the last day of steps to check that your iPhone or Apple Watch is recording them."
                     )
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                     if let diagnostic = personalStore.latestDiagnostic {
                         Text(
-                            "Last diagnostic \(diagnostic.performedAt.formatted(.relative(presentation: .named))) · \(diagnostic.positiveTrustedSampleCount) trusted samples"
+                            "Last checked \(diagnostic.performedAt.formatted(.relative(presentation: .named))) · \(diagnostic.positiveTrustedSampleCount) step readings found"
                         )
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -111,8 +111,8 @@ struct YouView: View {
                     {
                         Text(
                             probe.sawTrustedDeviceSteps
-                                ? "Observed \(probe.positiveTrustedSampleCount) positive Apple-device step samples across \(probe.trustedHourCount) completed hours."
-                                : "No positive Apple-device step samples were observed across \(probe.trustedHourCount) completed hours."
+                                ? "Found \(probe.positiveTrustedSampleCount) step readings from your Apple devices in the last \(probe.trustedHourCount) hours."
+                                : "No steps from your Apple devices in the last \(probe.trustedHourCount) hours."
                         )
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -120,8 +120,8 @@ struct YouView: View {
                     }
                     Button(
                         personalStore.isVerifyingHealthAccess
-                            ? "Checking Health…"
-                            : "Verify Health access"
+                            ? "Checking…"
+                            : "Check Health connection"
                     ) {
                         Task {
                             _ = await personalStore.verifyHealthAccess(
@@ -141,8 +141,8 @@ struct YouView: View {
                     {
                         Button(
                             personalStore.isRunningDiagnostic
-                                ? "Restoring trusted access…"
-                                : "Restore trusted access"
+                                ? "Reconnecting…"
+                                : "Reconnect Health"
                         ) {
                             Task {
                                 _ = await personalStore.runDiagnostic(
@@ -157,13 +157,13 @@ struct YouView: View {
                     }
                     if !personalStore.configuration.activitySyncEnabled {
                         Text(
-                            "HealthKit reads are available in Debug and Staging builds on a physical iPhone."
+                            "Health connection checks aren’t available yet."
                         )
                         .font(.caption2)
                         .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
                     } else if !personalStore.configuration.attestedUploadEnabled {
                         Text(
-                            "Steps are read locally in this build. App Attest-signed upload runs in Staging on a provisioned device."
+                            "Your steps stay on your phone and aren’t sent to GameTime."
                         )
                         .font(.caption2)
                         .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
@@ -186,9 +186,9 @@ struct YouView: View {
                             .frame(width: 24)
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 3) {
-                            Text("Health and account boundaries")
+                            Text("Your privacy")
                                 .font(.body.weight(.semibold))
-                            Text("What GameTime reads, sends, and keeps private")
+                            Text("What we read, what we send, and what stays on your phone")
                                 .font(.caption)
                                 .foregroundStyle(
                                     CompetitiveTrustTheme.secondaryText
@@ -209,20 +209,20 @@ struct YouView: View {
 
     private var historySection: some View {
         Group {
-            DaybreakSectionLabel(text: "Personal history")
+            DaybreakSectionLabel(text: "Your history")
             DaybreakCard {
                 HStack(spacing: 0) {
                     historyMetric(
                         personalStore.challenges.count.formatted(),
-                        "Total"
+                        "All"
                     )
                     historyMetric(
                         (personalStore.openChallenge == nil ? 0 : 1).formatted(),
-                        "Open"
+                        "Active"
                     )
                     historyMetric(
                         personalStore.history.count.formatted(),
-                        "Completed"
+                        "Finished"
                     )
                 }
             }
@@ -240,8 +240,8 @@ struct YouView: View {
                             .font(.body.weight(.semibold))
                         Text(
                             demoMode.isActive
-                                ? "Return to your unchanged staging account."
-                                : "Practice with personal-accountability fixtures."
+                                ? "Go back to your real account."
+                                : "Try the app out with sample data."
                         )
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -282,7 +282,7 @@ struct YouView: View {
 
     private var availabilityNote: some View {
         Text(
-            "Handle changes and avatar uploads aren’t available in this alpha."
+            "You can’t change your username or add a photo yet."
         )
         .font(.caption2)
         .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
@@ -292,11 +292,11 @@ struct YouView: View {
 
     private var diagnosticStatus: String {
         switch personalStore.latestDiagnostic?.status {
-        case .trusted: "Trusted"
-        case .noPositiveTrustedSample: "Needs positive sample"
+        case .trusted: "Connected"
+        case .noPositiveTrustedSample: "No steps found"
         case .unavailable: "Unavailable"
         case .failed: "Needs attention"
-        case .notRun, nil: "Not run"
+        case .notRun, nil: "Not checked"
         }
     }
 
@@ -337,34 +337,34 @@ struct TrustAndPrivacyView: View {
             LazyVStack(spacing: 12) {
                 TestCommitmentDisclosure()
                 privacyCard(
-                    title: "Owner-only personal records",
+                    title: "Only you can see your challenges",
                     detail:
-                        "Your frozen terms, progress, diagnostic state, result, and eligibility hold are readable only by you. Publishing results and clearing holds remain trusted-service operations.",
+                        "Your goal, your progress, and how each week turned out are yours alone. Nobody else can look them up.",
                     icon: "person.crop.circle.badge.checkmark"
                 )
                 privacyCard(
-                    title: "Trusted steps, not raw health history",
+                    title: "We read steps, not your health history",
                     detail:
-                        "GameTime uses only first-party Apple-device step evidence from completed hourly intervals. Manual, third-party, and unknown-provenance entries are excluded; only the minimum signed metrics and coverage needed for assessment are sent.",
+                        "We only read step counts recorded by your iPhone or Apple Watch. Steps you typed in yourself or that came from another app aren’t counted, and nothing else in Apple Health is ever read.",
                     icon: "heart.text.square.fill"
                 )
                 privacyCard(
-                    title: "Inconclusive means waived",
+                    title: "If we can’t see your data, you don’t lose",
                     detail:
-                        "Missing, quarantined, conflicting, or unresolved evidence is never treated as a miss. Confirmed GameTime outages waive without placing an eligibility hold.",
+                        "When steps go missing or don’t add up, the week doesn’t count — it’s never treated as a miss. If the problem is on our end, that’s on us.",
                     icon: "checkmark.shield.fill"
                 )
                 privacyCard(
-                    title: "No social or payment surface",
+                    title: "Nothing social, nothing to pay",
                     detail:
-                        "Your accountability experience is private and individual, with no live payment request.",
+                        "This is just between you and your goal. There’s nobody else in here, and there’s nothing to pay.",
                     icon: "lock.fill"
                 )
             }
             .padding(18)
         }
         .daybreakScreenChrome()
-        .navigationTitle("Trust & privacy")
+        .navigationTitle("Privacy")
         .navigationBarTitleDisplayMode(.inline)
     }
 
