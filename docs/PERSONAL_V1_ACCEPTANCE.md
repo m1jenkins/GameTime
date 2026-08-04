@@ -200,8 +200,10 @@ Hosted exit criteria:
 7. Edit the target and confirm non-whole, zero, negative, and over-limit values
    cannot be submitted.
 8. Exercise $10, $20, $30, $40, and $50; confirm $10 is the initial default.
-9. Run the Health diagnostic. Confirm a successful state requires a readable
-   device step sample and an accepted App Attest-backed upload.
+9. Check Apple Health access. Confirm a local read finds recent iPhone or Apple
+   Watch steps and then permits Continue without running a trusted diagnostic
+   or waiting for an App Attest-backed upload. If Health access is already
+   confirmed, Continue must be available without another check.
 10. On review, confirm **Test commitment — no money will be charged.** is
     conspicuous before the final action.
 11. Submit once, deliberately lose or ignore the response, relaunch, and retry
@@ -214,8 +216,10 @@ Hosted exit criteria:
 
 Creation exit criteria:
 
-- Diagnostic, review, submission, lost-response recovery, and relaunch work on
-  the physical phone.
+- Apple Health access, review, submission, lost-response recovery, and relaunch
+  work on the physical phone.
+- No trusted diagnostic action or diagnostic status appears during normal
+  creation.
 - One personal challenge and owner participant exist.
 - No invitation, charity, tie-break, roster, or social pending record exists.
 - The challenge is `test_only` and the app consistently uses the exact no-charge
@@ -239,8 +243,8 @@ real accepted request.
 
 ## Run trusted activity sync
 
-1. Confirm Health access and the latest successful diagnostic are visible in
-   You without raw values.
+1. Confirm Health access is visible in You without raw values. Do not run a
+   trusted diagnostic as a prerequisite for normal activity sync.
 2. During the active window, tap manual sync.
 3. Confirm the signed upload records admissible steps and the queried completed
    hourly coverage as separate facts.

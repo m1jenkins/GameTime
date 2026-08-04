@@ -22,13 +22,12 @@ The Stage A product must let one real user:
   complete local calendar days, including daylight-saving transitions.
 - Select one of the five test commitment presets, with $10 selected by default.
 - See **Test commitment — no money will be charged.** before confirming.
-- Verify Health access before creating: a local HealthKit read that observes
-  at least one positive first-party device step sample. Creation does not
-  require the App Attest round-trip, because the server independently refuses
-  untrusted evidence at scoring time.
-- Complete a trusted HealthKit and App Attest diagnostic before evidence
-  counts toward a result.
-- Manually sync attested steps and signed coverage for completed hourly buckets.
+- Verify Apple Health access before creating with a local HealthKit read that
+  observes at least one positive device-recorded step sample. If readiness is
+  already satisfied, creation can continue without another check.
+- Verify normal challenge evidence through the Staging signed metric and
+  coverage sync for completed hourly buckets. A separate trusted diagnostic is
+  recovery-only and never runs as a creation or evidence-sync prerequisite.
 - See current progress, remaining steps, the seven-day timeline, sync health,
   completed history, and a final personal result.
 - Cancel only before the challenge begins.
@@ -120,7 +119,8 @@ Implement the complete server boundary:
 - Server-derived next-midnight start and seven-local-day end.
 - Pre-start-only idempotent cancellation.
 - Owner-only list and detail RPCs.
-- A separately attested diagnostic upload that stores no raw health values.
+- A recovery-only attested diagnostic upload that stores no raw health values
+  and clears only a genuine eligibility hold.
 - Append-only trusted sync coverage, including zero-valued periods.
 - A 24-hour personal ingest grace without changing the legacy six-hour grace.
 - Service-only versioned assessment input and append-only first-result publication.
@@ -284,7 +284,7 @@ Retain the approved Daybreak visual system and replace the normal app journey:
 - Challenges separates the current challenge from completed history. Personal
   detail shows frozen terms, cadence, progress, sync health, and result.
 - Creation walks through steps, cadence, editable target, commitment preset,
-  trusted diagnostic, and frozen-terms review.
+  Apple Health access, and frozen-terms review.
 - You preserves handle/profile setup and adds Health access, latest diagnostic,
   privacy, and eligibility-hold state.
 - Use dedicated personal models and a separate versioned pending-request store.
@@ -334,7 +334,7 @@ App Store submission, or production configuration is authorized by this plan.
 | Legacy roster privacy fix | Selectively ported; self-only RLS and bounded RPC pass locally | Hosted two-actor observation after approval |
 | Personal terms and one-open slot | Implemented; lifecycle, exact-retry, and two-session concurrency tests pass | Hosted Staging observation after approval |
 | Local HealthKit reads | Enabled in Debug and Staging; gates challenge creation; live step total shown as unverified | Physical-device observation on a provisioned iPhone |
-| Trusted diagnostic and sync coverage | Edge, database, and iOS paths implemented; local service tests and builds pass. `activity-diagnostic` and `personal-sync-coverage` deployed to hosted Staging 2026-08-03 | Signed physical App Attest run against the deployed endpoints, then background-delivery proof |
+| Signed metric and coverage sync; recovery-only diagnostic | Evidence sync and diagnostic recovery paths are implemented; local service tests and builds pass. `activity-diagnostic` and `personal-sync-coverage` deployed to hosted Staging 2026-08-03 | Signed physical App Attest evidence sync against the deployed endpoints, background-delivery proof, and diagnostic recovery after a genuine hold |
 | Personal scoring and holds | Implemented; DST, completeness, outage, deletion, retention, and recovery tests pass locally | Hosted scheduler/operator run plus physical final sync |
 | Solo contract domain (2A) | Implemented locally; policy-locked owner records, rollout gates, append-only evaluation/appeal facts, lifecycle, and deletion integration | Runtime remains off; client/worker integration and hosted acceptance remain separate slices |
 | Solo fake authorization adapter (2B) | Implemented locally; atomic v2 creation, immutable private binding, append-only fake outcomes, exact retries, and deletion integration | Runtime and allowlist remain closed; no provider, app/worker wiring, or hosted acceptance |

@@ -20,7 +20,7 @@ struct CreatePersonalChallengeFlow: View {
         case target
         case commitment
         case start
-        case diagnostic
+        case healthAccess
         case review
 
         var title: String {
@@ -30,7 +30,7 @@ struct CreatePersonalChallengeFlow: View {
             case .target: "Set your target"
             case .commitment: "Test commitment"
             case .start: "Choose your start"
-            case .diagnostic: "Health diagnostic"
+            case .healthAccess: "Apple Health"
             case .review: "Review frozen terms"
             }
         }
@@ -124,8 +124,7 @@ struct CreatePersonalChallengeFlow: View {
             choice(
                 icon: "figure.walk",
                 title: "Steps",
-                detail:
-                    "Personal Accountability V1 supports trusted Apple Health steps only.",
+                detail: "This challenge uses steps from Apple Health.",
                 selected: true
             )
             .accessibilityIdentifier("personal.metric.steps")
@@ -232,8 +231,8 @@ struct CreatePersonalChallengeFlow: View {
             }
         case .start:
             startContent
-        case .diagnostic:
-            diagnosticContent
+        case .healthAccess:
+            healthAccessContent
         case .review:
             reviewContent
         }
@@ -391,15 +390,13 @@ struct CreatePersonalChallengeFlow: View {
     }
 
     @ViewBuilder
-    private var diagnosticContent: some View {
+    private var healthAccessContent: some View {
         VStack(alignment: .leading, spacing: 14) {
             Label(
                 healthAccessTitle,
-                systemImage: store.healthReadiness.isAttested
-                    ? "checkmark.shield.fill"
-                    : store.healthReadiness.permitsCreation
-                        ? "checkmark.circle.fill"
-                        : "heart.text.square.fill"
+                systemImage: store.healthReadiness.permitsCreation
+                    ? "checkmark.circle.fill"
+                    : "heart.text.square.fill"
             )
             .font(
                 CompetitiveTrustTheme.displayFont(
@@ -407,84 +404,68 @@ struct CreatePersonalChallengeFlow: View {
                     relativeTo: .headline
                 )
             )
-            Text(
-                "GameTime checks a recent completed-hour window for at least one positive, first-party Apple-device step sample."
-            )
+            Text(healthAccessMessage)
             .font(.subheadline)
             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-            if store.eligibilityHoldActive {
-                PersonalEligibilityHoldCard(hold: store.eligibilityHold)
-            }
-            if case .localStepsObserved(let probe) = store.healthReadiness {
-                Text(
-                    probe.sawTrustedDeviceSteps
-                        ? "Read \(probe.positiveTrustedSampleCount) device step samples across \(probe.trustedHourCount) completed hours."
-                        : "No first-party device step samples in the last 24 completed hours. Walk a little with your phone, then check again."
-                )
-                .font(.caption)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .accessibilityIdentifier("personal.health.probe-result")
-            }
-            Button(
-                store.isVerifyingHealthAccess
-                    ? "Checking Health…"
-                    : "Verify Health access"
-            ) {
-                Task {
-                    _ = await store.verifyHealthAccess(
-                        timezone: draft.timezone
-                    )
-                }
-            }
-            .buttonStyle(TrustSecondaryButtonStyle())
-            .disabled(
-                store.isVerifyingHealthAccess
-                    || !store.configuration.activitySyncEnabled
-            )
-            .accessibilityIdentifier("personal.health.verify")
 
-            if store.configuration.attestedUploadEnabled {
-                if let diagnostic = store.latestDiagnostic {
+            if store.eligibilityHoldActive {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("New challenge paused")
+                        .font(.subheadline.weight(.semibold))
                     Text(
-                        "Attested: \(diagnostic.status == .trusted ? "trusted" : "not ready") · \(diagnostic.performedAt.formatted(.relative(presentation: .named)))"
+                        "Close this screen, open You, and choose Restore trusted access before starting another challenge."
                     )
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 }
+                .accessibilityIdentifier("personal.eligibility-hold")
+            }
+
+            if !store.healthReadiness.permitsCreation {
                 Button(
-                    store.isRunningDiagnostic
-                        ? "Running diagnostic…"
-                        : "Run trusted diagnostic"
+                    store.isVerifyingHealthAccess
+                        ? "Checking Apple Health…"
+                        : "Check Apple Health"
                 ) {
                     Task {
-                        _ = await store.runDiagnostic(timezone: draft.timezone)
+                        _ = await store.verifyHealthAccess(
+                            timezone: draft.timezone
+                        )
                     }
                 }
                 .buttonStyle(TrustSecondaryButtonStyle())
-                .disabled(store.isRunningDiagnostic)
-                .accessibilityIdentifier("personal.diagnostic.run")
+                .disabled(
+                    store.isVerifyingHealthAccess
+                        || !store.configuration.activitySyncEnabled
+                )
+                .accessibilityIdentifier("personal.health.verify")
             }
 
             if !store.configuration.activitySyncEnabled {
-                Text(
-                    "HealthKit reads are available in Debug and Staging builds on a physical iPhone."
-                )
-                .font(.caption)
-                .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
-            } else if !store.configuration.attestedUploadEnabled {
-                Text(
-                    "Steps are read locally in this build. App Attest-signed upload runs in Staging on a provisioned device."
-                )
-                .font(.caption)
-                .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                Text("Apple Health is unavailable right now.")
+                    .font(.caption)
+                    .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
             }
         }
     }
 
     private var healthAccessTitle: String {
-        if store.healthReadiness.isAttested { return "Trusted diagnostic ready" }
-        if store.healthReadiness.permitsCreation { return "Health access verified" }
-        return "Verify Health access"
+        store.healthReadiness.permitsCreation
+            ? "Apple Health connected"
+            : "Connect Apple Health"
+    }
+
+    private var healthAccessMessage: String {
+        if store.healthReadiness.permitsCreation {
+            return "GameTime found recent Apple Health steps."
+        }
+        if store.isVerifyingHealthAccess {
+            return "GameTime is checking for recent Apple Health steps."
+        }
+        if store.healthReadiness == .unknown {
+            return "Check Apple Health so GameTime can confirm it can read your recent steps."
+        }
+        return "GameTime couldn't find recent Apple Health steps. Check your Health permission, walk briefly with your iPhone or Apple Watch, and try again."
     }
 
     private var reviewContent: some View {
@@ -534,7 +515,7 @@ struct CreatePersonalChallengeFlow: View {
             }
             Divider().overlay(CompetitiveTrustTheme.border)
             Text(
-                "Daily succeeds only with complete trusted evidence and the target met on all seven days. Cumulative succeeds when complete trusted evidence reaches the seven-day total. Any unresolved evidence is inconclusive and waived."
+                "Daily succeeds only with complete step data and the target met on all seven days. Cumulative succeeds when complete step data reaches the seven-day total. If GameTime cannot confirm the step data, the test commitment is waived."
             )
             .font(.caption)
             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -635,7 +616,7 @@ struct CreatePersonalChallengeFlow: View {
         switch step {
         case .target: PersonalChallengeDraft.targetRange.contains(draft.targetSteps)
         case .start: startIsStillValid
-        case .diagnostic: store.healthReadiness.permitsCreation
+        case .healthAccess: store.healthReadiness.permitsCreation
         default: true
         }
     }

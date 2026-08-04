@@ -1157,9 +1157,6 @@ private final class FixturePersonalAccountabilityClient:
         guard store.eligibilityHold?.isActive != true else {
             throw PersonalAccountabilityClientError.eligibilityHold
         }
-        guard store.latestDiagnostic?.isTrusted == true else {
-            throw PersonalAccountabilityClientError.diagnosticUnavailable
-        }
 
         let challenge = Self.scheduledChallenge(
             request: request,

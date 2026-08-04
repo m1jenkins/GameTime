@@ -167,14 +167,27 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.continue"].waitAndTap()
 
         XCTAssertTrue(
-            app.navigationBars["Health diagnostic"]
+            app.navigationBars["Apple Health"]
                 .waitForExistence(timeout: 4)
         )
-        app.buttons["personal.diagnostic.run"].waitAndTap()
+        let healthCheck = app.buttons["personal.health.verify"]
+        XCTAssertTrue(healthCheck.waitForExistence(timeout: 3))
+        XCTAssertEqual(healthCheck.label, "Check Apple Health")
+        XCTAssertFalse(app.buttons["personal.continue"].isEnabled)
+        assertNoCreationDiagnosticLanguage(in: app)
+        attachScreenshot(
+            of: app,
+            named: "Apple Health - check required"
+        )
+        healthCheck.tap()
         XCTAssertTrue(
-            app.staticTexts["Trusted diagnostic ready"]
+            app.staticTexts["GameTime found recent Apple Health steps."]
                 .waitForExistence(timeout: 4)
         )
+        XCTAssertTrue(app.staticTexts["Apple Health connected"].exists)
+        XCTAssertFalse(healthCheck.exists)
+        XCTAssertTrue(app.buttons["personal.continue"].isEnabled)
+        assertNoCreationDiagnosticLanguage(in: app)
         app.buttons["personal.continue"].waitAndTap()
 
         XCTAssertTrue(
@@ -200,7 +213,7 @@ final class GameTimeUITests: XCTestCase {
         assertNoForbiddenLanguage(in: app)
     }
 
-    func testDiagnosticThenReviewCanCreateScheduledChallenge() {
+    func testAppleHealthAccessThenReviewCanCreateScheduledChallenge() {
         let app = launch(
             "--fixture-empty",
             "--fixture-activity",
@@ -213,14 +226,20 @@ final class GameTimeUITests: XCTestCase {
         }
 
         XCTAssertTrue(
-            app.navigationBars["Health diagnostic"]
+            app.navigationBars["Apple Health"]
                 .waitForExistence(timeout: 4)
         )
-        app.buttons["personal.diagnostic.run"].waitAndTap()
+        let healthCheck = app.buttons["personal.health.verify"]
+        XCTAssertTrue(healthCheck.waitForExistence(timeout: 3))
+        XCTAssertEqual(healthCheck.label, "Check Apple Health")
+        assertNoCreationDiagnosticLanguage(in: app)
+        healthCheck.tap()
         XCTAssertTrue(
-            app.staticTexts["Trusted diagnostic ready"]
+            app.staticTexts["GameTime found recent Apple Health steps."]
                 .waitForExistence(timeout: 4)
         )
+        XCTAssertTrue(app.buttons["personal.continue"].isEnabled)
+        assertNoCreationDiagnosticLanguage(in: app)
         app.buttons["personal.continue"].waitAndTap()
 
         XCTAssertTrue(
@@ -249,6 +268,56 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(cancel.waitForExistence(timeout: 3))
         assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
+
+        app.tabBars.buttons["You"].waitAndTap()
+        XCTAssertTrue(
+            app.navigationBars["You"].waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            app.staticTexts["Apple Health steps"]
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertFalse(
+            app.staticTexts.matching(
+                NSPredicate(
+                    format: "label BEGINSWITH %@",
+                    "Last diagnostic"
+                )
+            ).firstMatch.exists,
+            "The local Apple Health creation check must not run or record a trusted diagnostic."
+        )
+    }
+
+    func testExistingAppleHealthReadinessCanContinueWithoutAnotherCheck() {
+        let app = launch(
+            "--fixture-empty",
+            "--fixture-activity"
+        )
+        app.buttons["personal.create"].waitAndTap()
+        // metric, cadence, target, commitment, start
+        for _ in 0..<5 {
+            app.buttons["personal.continue"].waitAndTap()
+        }
+
+        XCTAssertTrue(
+            app.navigationBars["Apple Health"]
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(app.staticTexts["Apple Health connected"].exists)
+        XCTAssertFalse(app.buttons["personal.health.verify"].exists)
+        assertNoCreationDiagnosticLanguage(in: app)
+        attachScreenshot(
+            of: app,
+            named: "Apple Health - already connected"
+        )
+
+        let continueButton = app.buttons["personal.continue"]
+        XCTAssertTrue(continueButton.isEnabled)
+        continueButton.tap()
+        XCTAssertTrue(
+            app.navigationBars["Review frozen terms"]
+                .waitForExistence(timeout: 4)
+        )
     }
 
     func testDebugYouVerifiesHealthWithoutTrustedRecoveryAction() {
@@ -417,6 +486,44 @@ final class GameTimeUITests: XCTestCase {
         )
         assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
+    }
+
+    private func assertNoCreationDiagnosticLanguage(
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertFalse(
+            app.buttons["personal.diagnostic.run"].exists,
+            "Challenge creation exposed the trusted recovery action.",
+            file: file,
+            line: line
+        )
+        let labels = app.descendants(matching: .any).allElementsBoundByIndex
+            .map(\.label)
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n")
+        let forbidden =
+            #"health diagnostic|trusted diagnostic|\battested\b|app attest|first[- ]party|\bsample(?: count|s?)\b|completed[- ]hour|provisioned device"#
+        XCTAssertNil(
+            labels.range(
+                of: forbidden,
+                options: [.regularExpression, .caseInsensitive]
+            ),
+            "Challenge creation contains technical diagnostic copy:\n\(labels)",
+            file: file,
+            line: line
+        )
+    }
+
+    private func attachScreenshot(
+        of app: XCUIApplication,
+        named name: String
+    ) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 
     private func assertExactDisclosure(in app: XCUIApplication) {
