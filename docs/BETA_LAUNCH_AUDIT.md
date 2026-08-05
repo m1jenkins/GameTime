@@ -64,8 +64,9 @@ migrations that the active plan still describes as withheld.
 Before any beta deployment:
 
 - Choose **Stage A without Stripe** or **Stripe sandbox beta** explicitly.
-- Reconcile `PLAN.md`, `DECISIONS.md`, the acceptance checklist, app behavior,
-  and the actual hosted migration/function inventory.
+- Reconcile [PLAN.md](../PLAN.md), [DECISIONS.md](../DECISIONS.md),
+  [the acceptance checklist](PERSONAL_V1_ACCEPTANCE.md), app behavior, and the
+  actual hosted migration/function inventory.
 - Review the exact pending migration list. A broad database push can include
   every pending local migration, including payment work.
 - Build from one clean, reviewed, immutable commit.
