@@ -56,10 +56,10 @@ unhosted Stripe sandbox:
 
 ### Freeze one truthful release candidate
 
-The current checkout contains substantial uncommitted custom-start and Stripe
-work. Hosted and written inventories have also drifted: hosted Supabase already
-contains migrations through the custom-start slice, including dormant Solo
-migrations that the active plan still describes as withheld.
+The candidate implementation is now committed on `main`. Hosted and written
+inventories had drifted during the audit: hosted Supabase already contains
+migrations through the custom-start slice, including dormant Solo migrations
+that the active plan still describes as withheld.
 
 Before any beta deployment:
 
@@ -72,7 +72,7 @@ Before any beta deployment:
 - Build from one clean, reviewed, immutable commit.
 - Record the exact app version/build, database migrations, Edge Function
   versions, environment settings, and approval owner.
-- Never archive or deploy from the current mixed working copy.
+- Never archive or deploy from an unreviewed mixed working copy.
 
 ## Founder launch board
 
@@ -507,7 +507,7 @@ Invite external users only when every item below is checked:
 - Six Edge Functions and four scheduled jobs are active.
 - No Personal assessment/result worker or schedule is hosted.
 - The five local Stripe functions and Stripe migration are not hosted.
-- The implementation through commit `7917b04` is published on `main`.
+- The implementation and this audit are published on `main`.
 - `git diff --check` passes.
 
 ### Not proved in this audit
