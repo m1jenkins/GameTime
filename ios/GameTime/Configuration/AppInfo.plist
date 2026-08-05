@@ -29,6 +29,8 @@
 	<string>$(GAMETIME_CONTEST_MUTATIONS_ENABLED)</string>
 	<key>GAMETIME_ENV</key>
 	<string>$(GAMETIME_ENV)</string>
+	<key>GAMETIME_PERSONAL_SETTLEMENT_MODE</key>
+	<string>$(GAMETIME_PERSONAL_SETTLEMENT_MODE)</string>
 	<key>LSApplicationCategoryType</key>
 	<string>$(INFOPLIST_KEY_LSApplicationCategoryType)</string>
 	<key>LSRequiresIPhoneOS</key>

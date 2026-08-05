@@ -54,12 +54,17 @@ final class PersonalAccountabilityStore {
     private(set) var activitySyncStates: [UUID: PersonalActivitySyncViewState] = [:]
     private(set) var pendingActivityUploadCount = 0
     private(set) var isMutating = false
+    private(set) var isPreparingPayment = false
+    private(set) var isRequestingReview = false
+    private(set) var reviewRequestsByChallengeID:
+        [UUID: PersonalReviewRequestResult] = [:]
     private(set) var isRunningDiagnostic = false
     private(set) var isSyncingActivity = false
     var presentedError: String?
 
     private let auth: any AuthClient
     private let client: any PersonalAccountabilityClient
+    private let paymentClient: any PersonalPaymentClient
     private let pendingStore: any PendingPersonalChallengeStore
     private let pendingCancellationStore:
         any PendingPersonalCancellationStore
@@ -74,6 +79,8 @@ final class PersonalAccountabilityStore {
         configuration: AppConfiguration,
         auth: any AuthClient,
         client: any PersonalAccountabilityClient,
+        paymentClient: any PersonalPaymentClient =
+            DisabledPersonalPaymentClient(),
         pendingStore: any PendingPersonalChallengeStore,
         pendingCancellationStore: any PendingPersonalCancellationStore =
             EphemeralPendingPersonalCancellationStore(),
@@ -83,6 +90,7 @@ final class PersonalAccountabilityStore {
         self.configuration = configuration
         self.auth = auth
         self.client = client
+        self.paymentClient = paymentClient
         self.pendingStore = pendingStore
         self.pendingCancellationStore = pendingCancellationStore
         self.diagnosticClient = diagnosticClient
@@ -95,6 +103,16 @@ final class PersonalAccountabilityStore {
 
     var history: [PersonalChallengeSummary] {
         challenges.filter { !$0.status.isOpen }
+    }
+
+    var pendingPaymentIsConfirmed: Bool {
+        pendingCreation?.paymentSetupCompletedAt != nil
+    }
+
+    func reviewRequest(
+        for challengeID: UUID
+    ) -> PersonalReviewRequestResult? {
+        reviewRequestsByChallengeID[challengeID]
     }
 
     var canCreate: Bool {
@@ -247,6 +265,10 @@ final class PersonalAccountabilityStore {
                 return nil
             }
             submission = pendingCreation
+        } else if configuration.personalSettlementMode == .stripeSandbox {
+            presentedError =
+                "Set up your test payment method before starting the challenge."
+            return nil
         } else {
             submission = PendingPersonalChallengeSubmission(
                 ownerID: ownerID,
@@ -263,10 +285,26 @@ final class PersonalAccountabilityStore {
             guard await auth.currentUserID() == ownerID else {
                 throw PersonalAccountabilityClientError.accountChanged
             }
-            let challengeID = try await client.create(
-                request,
-                expectedUserID: ownerID
-            )
+            let challengeID: UUID
+            switch configuration.personalSettlementMode {
+            case .testOnly:
+                challengeID = try await client.create(
+                    request,
+                    expectedUserID: ownerID
+                )
+            case .stripeSandbox:
+                guard
+                    let setupID = attempted.paymentSetupID,
+                    attempted.paymentSetupCompletedAt != nil
+                else {
+                    throw PersonalPaymentClientError.setupNotConfirmed
+                }
+                challengeID = try await paymentClient.commit(
+                    request,
+                    setupID: setupID,
+                    expectedUserID: ownerID
+                )
+            }
             guard
                 await isCurrentAuthenticated(ownerID, generation: generation)
             else { return nil }
@@ -282,6 +320,195 @@ final class PersonalAccountabilityStore {
             guard isCurrent(ownerID, generation: generation) else { return nil }
             presentedError = error.localizedDescription
             return nil
+        }
+    }
+
+    /// Freezes the exact challenge request before asking the server for a
+    /// Stripe SetupIntent. Only GameTime's opaque setup ID is persisted; the
+    /// short-lived client secret stays in memory for PaymentSheet.
+    func preparePayment(
+        _ request: PersonalChallengeCreationRequest
+    ) async -> PersonalPaymentSetup? {
+        guard
+            configuration.personalChallengeMutationsEnabled,
+            configuration.personalSettlementMode == .stripeSandbox
+        else {
+            presentedError = PersonalPaymentClientError.disabled
+                .localizedDescription
+            return nil
+        }
+        guard let ownerID, !isPreparingPayment, !isMutating else {
+            return nil
+        }
+        guard healthReadiness.permitsCreation else {
+            presentedError = "Check your Health connection before you start."
+            return nil
+        }
+        guard !eligibilityHoldActive, !hasPendingCreationRecoveryIssue else {
+            presentedError = PersonalAccountabilityClientError.eligibilityHold
+                .localizedDescription
+            return nil
+        }
+
+        let generation = actorGeneration
+        isPreparingPayment = true
+        defer { isPreparingPayment = false }
+        do {
+            let submission: PendingPersonalChallengeSubmission
+            if let pendingCreation {
+                guard
+                    pendingCreation.ownerID == ownerID,
+                    pendingCreation.request == request
+                else {
+                    throw PendingPersonalChallengeStoreError.conflictingRecord
+                }
+                submission = pendingCreation
+            } else {
+                submission = PendingPersonalChallengeSubmission(
+                    ownerID: ownerID,
+                    request: request
+                )
+                try await pendingStore.save(submission)
+                guard isCurrent(ownerID, generation: generation) else {
+                    return nil
+                }
+                pendingCreation = submission
+            }
+
+            guard await auth.currentUserID() == ownerID else {
+                throw PersonalPaymentClientError.accountChanged
+            }
+            let setup = try await paymentClient.prepare(
+                request,
+                expectedUserID: ownerID
+            )
+            guard
+                await isCurrentAuthenticated(ownerID, generation: generation)
+            else { return nil }
+            let completedAt: Date? =
+                setup.presentation == .alreadyConfirmed ? Date() : nil
+            let updated = try submission.recordingPaymentSetup(
+                id: setup.setupID,
+                completedAt: completedAt
+            )
+            try await pendingStore.save(updated)
+            guard isCurrent(ownerID, generation: generation) else {
+                return nil
+            }
+            pendingCreation = updated
+            return setup
+        } catch is CancellationError {
+            return nil
+        } catch {
+            guard isCurrent(ownerID, generation: generation) else { return nil }
+            presentedError = error.localizedDescription
+            return nil
+        }
+    }
+
+    /// Records local PaymentSheet completion so a relaunch can resume at
+    /// review. The commit endpoint still verifies Stripe independently before
+    /// it creates or replays the challenge.
+    func confirmPaymentSetup(
+        request: PersonalChallengeCreationRequest,
+        setupID: String
+    ) async -> Bool {
+        guard
+            configuration.personalSettlementMode == .stripeSandbox,
+            let ownerID,
+            let pendingCreation,
+            pendingCreation.ownerID == ownerID,
+            pendingCreation.request == request,
+            !isPreparingPayment,
+            !isMutating
+        else { return false }
+        let generation = actorGeneration
+        do {
+            guard await auth.currentUserID() == ownerID else {
+                throw PersonalPaymentClientError.accountChanged
+            }
+            let completed = try pendingCreation.recordingPaymentSetup(
+                id: setupID,
+                completedAt: Date()
+            )
+            try await pendingStore.save(completed)
+            guard
+                await isCurrentAuthenticated(ownerID, generation: generation)
+            else { return false }
+            self.pendingCreation = completed
+            return true
+        } catch is CancellationError {
+            return false
+        } catch {
+            guard isCurrent(ownerID, generation: generation) else {
+                return false
+            }
+            presentedError = error.localizedDescription
+            return false
+        }
+    }
+
+    func requestReview(
+        challengeID: UUID,
+        reason: PersonalReviewReason,
+        now: Date = Date()
+    ) async -> Bool {
+        guard
+            configuration.personalChallengeMutationsEnabled,
+            configuration.personalSettlementMode == .stripeSandbox
+        else {
+            presentedError = PersonalPaymentClientError.disabled
+                .localizedDescription
+            return false
+        }
+        guard
+            let ownerID,
+            let challenge = detail(for: challengeID),
+            challenge.terms.settlementMode == .stripeSandbox,
+            let outcome = challenge.outcome,
+            outcome.kind == .missedGoal
+        else {
+            presentedError = PersonalPaymentClientError.invalidResponse
+                .localizedDescription
+            return false
+        }
+        guard
+            now < outcome.publishedAt.addingTimeInterval(7 * 86_400)
+        else {
+            presentedError = PersonalPaymentClientError.reviewWindowClosed
+                .localizedDescription
+            return false
+        }
+        if reviewRequestsByChallengeID[challengeID]?.state == .underReview {
+            return true
+        }
+        guard !isRequestingReview, !isMutating else { return false }
+
+        let generation = actorGeneration
+        isRequestingReview = true
+        defer { isRequestingReview = false }
+        do {
+            guard await auth.currentUserID() == ownerID else {
+                throw PersonalPaymentClientError.accountChanged
+            }
+            let result = try await paymentClient.requestReview(
+                challengeID: challengeID,
+                reason: reason,
+                expectedUserID: ownerID
+            )
+            guard
+                await isCurrentAuthenticated(ownerID, generation: generation)
+            else { return false }
+            reviewRequestsByChallengeID[challengeID] = result
+            return true
+        } catch is CancellationError {
+            return false
+        } catch {
+            guard isCurrent(ownerID, generation: generation) else {
+                return false
+            }
+            presentedError = error.localizedDescription
+            return false
         }
     }
 
@@ -648,6 +875,9 @@ final class PersonalAccountabilityStore {
         activitySyncStates = [:]
         pendingActivityUploadCount = 0
         isMutating = false
+        isPreparingPayment = false
+        isRequestingReview = false
+        reviewRequestsByChallengeID = [:]
         isRunningDiagnostic = false
         isSyncingActivity = false
         presentedError = nil

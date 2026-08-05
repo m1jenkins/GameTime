@@ -9,7 +9,10 @@ struct TodayView: View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 header
-                TestCommitmentDisclosure()
+                TestCommitmentDisclosure(
+                    settlementMode:
+                        store.configuration.personalSettlementMode
+                )
                 loadState
 
                 if store.eligibilityHoldActive {

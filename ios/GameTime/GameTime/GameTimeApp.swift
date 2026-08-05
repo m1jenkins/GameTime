@@ -1,4 +1,5 @@
 import GameTimeCore
+import StripePaymentSheet
 import SwiftUI
 import UserNotifications
 
@@ -38,6 +39,7 @@ struct GameTimeApp: App {
         if usesFixtureModel,
             arguments.contains("--fixture-challenges")
                 || arguments.contains("--fixture-open-active-challenge")
+                || arguments.contains("--fixture-open-review-challenge")
         {
             initialRouter.selectedTab = .challenges
         }
@@ -51,6 +53,16 @@ struct GameTimeApp: App {
                 .personalChallenge(activePersonalID)
             ]
         }
+        if usesFixtureModel,
+            arguments.contains("--fixture-open-review-challenge"),
+            let reviewChallengeID = UUID(
+                uuidString: "19191919-1919-1919-1919-191919191919"
+            )
+        {
+            initialRouter.challengesPath = [
+                .personalChallenge(reviewChallengeID)
+            ]
+        }
         #endif
         _router = State(initialValue: initialRouter)
 
@@ -60,9 +72,13 @@ struct GameTimeApp: App {
 
             #if DEBUG || STAGING
             if usesFixtureModel {
-                configuration = arguments.contains("--fixture-activity")
-                    ? .activityFixture
-                    : .personalFixture
+                if arguments.contains("--fixture-stripe-sandbox") {
+                    configuration = .stripeSandboxFixture
+                } else {
+                    configuration = arguments.contains("--fixture-activity")
+                        ? .activityFixture
+                        : .personalFixture
+                }
                 services = FixtureServicesFactory.make()
             } else {
                 configuration = try .load()
@@ -85,6 +101,7 @@ struct GameTimeApp: App {
                 configuration: configuration,
                 auth: services.auth,
                 client: services.personalAccountability,
+                paymentClient: services.personalPayments,
                 pendingStore: services.pendingPersonalChallenges,
                 pendingCancellationStore:
                     services.pendingPersonalCancellations,
@@ -189,6 +206,9 @@ struct GameTimeApp: App {
                     bundleID: Bundle.main.bundleIdentifier
                 )
             }
+            .onOpenURL { url in
+                _ = StripeAPI.handleURLCallback(with: url)
+            }
         }
     }
 
@@ -219,6 +239,7 @@ struct GameTimeApp: App {
             configuration: .personalFixture,
             auth: services.auth,
             client: services.personalAccountability,
+            paymentClient: services.personalPayments,
             pendingStore: services.pendingPersonalChallenges,
             pendingCancellationStore:
                 services.pendingPersonalCancellations,
@@ -252,7 +273,10 @@ struct RootView: View {
             } else if model.configuration.environment
                 .showsTestEnvironmentBanner
             {
-                TestEnvironmentBanner()
+                TestEnvironmentBanner(
+                    settlementMode:
+                        model.configuration.personalSettlementMode
+                )
                     .background(
                         CompetitiveTrustTheme.sun
                             .ignoresSafeArea(edges: .top)
@@ -445,7 +469,8 @@ private struct SignedOutView: View {
                         systemImage: "checkmark.shield"
                     )
                     Label(
-                        "This is a test — no money will be charged.",
+                        model.configuration.personalSettlementMode
+                            .disclosureText,
                         systemImage: "figure.walk"
                     )
                 }

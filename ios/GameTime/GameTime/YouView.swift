@@ -10,7 +10,10 @@ struct YouView: View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 profileCard
-                TestCommitmentDisclosure()
+                TestCommitmentDisclosure(
+                    settlementMode:
+                        personalStore.configuration.personalSettlementMode
+                )
                 healthSection
                 if personalStore.eligibilityHoldActive {
                     DaybreakSectionLabel(text: "Account status")
@@ -332,10 +335,16 @@ struct YouView: View {
 }
 
 struct TrustAndPrivacyView: View {
+    @Environment(PersonalAccountabilityStore.self)
+    private var personalStore
+
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                TestCommitmentDisclosure()
+                TestCommitmentDisclosure(
+                    settlementMode:
+                        personalStore.configuration.personalSettlementMode
+                )
                 privacyCard(
                     title: "Only you can see your challenges",
                     detail:

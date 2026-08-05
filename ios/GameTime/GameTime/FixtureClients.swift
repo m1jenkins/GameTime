@@ -13,6 +13,7 @@ enum FixtureServicesFactory {
             (any PendingPersonalChallengeStore)? = nil,
         personalAccountabilityClient:
             (any PersonalAccountabilityClient)? = nil,
+        personalPaymentClient: (any PersonalPaymentClient)? = nil,
         trustedActivityDiagnosticClient:
             (any TrustedActivityDiagnosticClient)? = nil,
         personalActivitySync: (any PersonalActivitySyncing)? = nil
@@ -20,6 +21,14 @@ enum FixtureServicesFactory {
         let scenario = FixtureScenario(arguments: arguments)
         let store = FixtureStore(scenario: scenario)
         let personalStore = FixturePersonalStore(scenario: scenario)
+        let accountability = personalAccountabilityClient
+            ?? FixturePersonalAccountabilityClient(
+                store: personalStore,
+                authStore: store,
+                settlementMode: scenario.stripeSandbox
+                    ? .stripeSandbox
+                    : .testOnly
+            )
         return AppServices(
             auth: FixtureAuthClient(store: store),
             profiles: FixtureProfileClient(store: store),
@@ -38,10 +47,10 @@ enum FixtureServicesFactory {
                         ? FixtureActivitySyncCoordinator()
                         : DisabledActivitySyncCoordinator()
                 ),
-            personalAccountability: personalAccountabilityClient
-                ?? FixturePersonalAccountabilityClient(
-                    store: personalStore,
-                    authStore: store
+            personalAccountability: accountability,
+            personalPayments: personalPaymentClient
+                ?? FixturePersonalPaymentClient(
+                    accountability: accountability
                 ),
             pendingPersonalChallenges: pendingPersonalChallengeStore
                 ?? FixturePendingPersonalChallengeStore(
@@ -76,6 +85,8 @@ private struct FixtureScenario {
     let personalHold: Bool
     let personalNoDiagnostic: Bool
     let pendingPersonalCreation: Bool
+    let stripeSandbox: Bool
+    let stripeReview: Bool
 
     init(arguments: [String]) {
         signedOut = arguments.contains("--fixture-signed-out")
@@ -102,6 +113,8 @@ private struct FixtureScenario {
         pendingPersonalCreation = arguments.contains(
             "--fixture-personal-pending"
         )
+        stripeSandbox = arguments.contains("--fixture-stripe-sandbox")
+        stripeReview = arguments.contains("--fixture-stripe-review")
     }
 }
 
@@ -147,7 +160,10 @@ private final class FixturePersonalStore {
             ? []
             : [
                 Self.activeChallenge(now: now),
-                Self.completedChallenge(now: now),
+                Self.completedChallenge(
+                    now: now,
+                    stripeReview: scenario.stripeReview
+                ),
             ]
     }
 
@@ -237,14 +253,17 @@ private final class FixturePersonalStore {
         )
     }
 
-    private static func completedChallenge(now: Date)
+    private static func completedChallenge(
+        now: Date,
+        stripeReview: Bool
+    )
         -> PersonalChallengeDetail
     {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "America/Chicago")!
         let end = calendar.date(
             byAdding: .day,
-            value: -9,
+            value: stripeReview ? -2 : -9,
             to: calendar.startOfDay(for: now)
         )!
         let start = calendar.date(byAdding: .day, value: -7, to: end)!
@@ -253,7 +272,9 @@ private final class FixturePersonalStore {
             let date = calendar.date(byAdding: .day, value: offset, to: start)!
             return PersonalDayProgress(
                 localDate: Self.localDate(date, calendar: calendar),
-                trustedSteps: Double(10_000 + offset * 190),
+                trustedSteps: stripeReview
+                    ? 8_000
+                    : Double(10_000 + offset * 190),
                 targetSteps: nil,
                 evidenceState: .complete,
                 metTarget: nil
@@ -269,8 +290,12 @@ private final class FixturePersonalStore {
                 targetSteps: 70_000,
                 commitmentAmountMinor: 2_000,
                 currency: "USD",
-                settlementMode: .testOnly,
-                termsVersion: "personal-v1",
+                settlementMode: stripeReview
+                    ? .stripeSandbox
+                    : .testOnly,
+                termsVersion: stripeReview
+                    ? "personal-stripe-sandbox-v1"
+                    : "personal-v1",
                 timezone: "America/Chicago",
                 agreementAt: start.addingTimeInterval(-86_400),
                 startsAt: start,
@@ -282,7 +307,7 @@ private final class FixturePersonalStore {
                 trustedSteps: days.reduce(0) {
                     $0 + $1.displayedTrustedSteps
                 },
-                remainingSteps: 0,
+                remainingSteps: stripeReview ? 14_000 : 0,
                 qualifyingDays: 0,
                 completedDays: 7,
                 days: days,
@@ -296,8 +321,10 @@ private final class FixturePersonalStore {
                 id: UUID(
                     uuidString: "22222222-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
                 )!,
-                kind: .metGoal,
-                reasonCode: "target_reached_complete_evidence",
+                kind: stripeReview ? .missedGoal : .metGoal,
+                reasonCode: stripeReview
+                    ? "target_missed_complete_evidence"
+                    : "target_reached_complete_evidence",
                 evidenceCutoff: cutoff,
                 publishedAt: cutoff.addingTimeInterval(60)
             )
@@ -1117,10 +1144,16 @@ private final class FixturePersonalAccountabilityClient:
 {
     private let store: FixturePersonalStore
     private let authStore: FixtureStore
+    private let settlementMode: PersonalSettlementMode
 
-    init(store: FixturePersonalStore, authStore: FixtureStore) {
+    init(
+        store: FixturePersonalStore,
+        authStore: FixtureStore,
+        settlementMode: PersonalSettlementMode
+    ) {
         self.store = store
         self.authStore = authStore
+        self.settlementMode = settlementMode
     }
 
     func listMyChallenges() async throws -> PersonalAccountabilitySnapshot {
@@ -1160,7 +1193,8 @@ private final class FixturePersonalAccountabilityClient:
 
         let challenge = Self.scheduledChallenge(
             request: request,
-            ownerID: expectedUserID
+            ownerID: expectedUserID,
+            settlementMode: settlementMode
         )
         store.requests[request.requestID] = (request, challenge.id)
         store.challenges.insert(challenge, at: 0)
@@ -1223,6 +1257,7 @@ private final class FixturePersonalAccountabilityClient:
     private static func scheduledChallenge(
         request: PersonalChallengeCreationRequest,
         ownerID: UUID,
+        settlementMode: PersonalSettlementMode,
         now: Date = Date()
     ) -> PersonalChallengeDetail {
         var calendar = Calendar(identifier: .gregorian)
@@ -1269,8 +1304,10 @@ private final class FixturePersonalAccountabilityClient:
                 targetSteps: request.targetSteps,
                 commitmentAmountMinor: request.commitmentAmountMinor,
                 currency: "USD",
-                settlementMode: .testOnly,
-                termsVersion: "personal-v1",
+                settlementMode: settlementMode,
+                termsVersion: settlementMode == .stripeSandbox
+                    ? "personal-stripe-sandbox-v1"
+                    : "personal-v1",
                 timezone: request.timezone,
                 agreementAt: now,
                 startsAt: start,
@@ -1290,6 +1327,53 @@ private final class FixturePersonalAccountabilityClient:
                 coveredBucketCount: 0,
                 expectedBucketCount: 0
             )
+        )
+    }
+}
+
+@MainActor
+private final class FixturePersonalPaymentClient: PersonalPaymentClient {
+    private let accountability: any PersonalAccountabilityClient
+
+    init(accountability: any PersonalAccountabilityClient) {
+        self.accountability = accountability
+    }
+
+    func prepare(
+        _ request: PersonalChallengeCreationRequest,
+        expectedUserID: UUID
+    ) async throws -> PersonalPaymentSetup {
+        _ = (request, expectedUserID)
+        return PersonalPaymentSetup(
+            setupID: "33333333-3333-3333-3333-333333333333",
+            presentation: .alreadyConfirmed
+        )
+    }
+
+    func commit(
+        _ request: PersonalChallengeCreationRequest,
+        setupID: String,
+        expectedUserID: UUID
+    ) async throws -> UUID {
+        guard setupID == "33333333-3333-3333-3333-333333333333" else {
+            throw PersonalPaymentClientError.invalidResponse
+        }
+        return try await accountability.create(
+            request,
+            expectedUserID: expectedUserID
+        )
+    }
+
+    func requestReview(
+        challengeID: UUID,
+        reason: PersonalReviewReason,
+        expectedUserID: UUID
+    ) async throws -> PersonalReviewRequestResult {
+        _ = (challengeID, reason, expectedUserID)
+        return PersonalReviewRequestResult(
+            state: .underReview,
+            reviewDeadline: Date().addingTimeInterval(6 * 86_400),
+            replayed: false
         )
     }
 }

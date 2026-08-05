@@ -669,8 +669,8 @@ Deno.test("refuses a body larger than the ceiling", async () => {
 });
 
 Deno.test("an error carries no detail into the response body", async () => {
-  // The detail is for the log. A refusal that names which of eight checks failed
-  // is a map of what to try next.
+  // Private detail stays separate from the public refusal. Naming which of
+  // eight checks failed would give the caller a map of what to try next.
   const failure = new HttpFailure("unauthorized", "public", "private detail");
   assertEquals(failure.detail, "private detail");
 

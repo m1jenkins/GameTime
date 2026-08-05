@@ -8,7 +8,10 @@ struct ChallengesView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                TestCommitmentDisclosure()
+                TestCommitmentDisclosure(
+                    settlementMode:
+                        store.configuration.personalSettlementMode
+                )
                 loadState
                 pendingRecovery
 

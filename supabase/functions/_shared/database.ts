@@ -246,8 +246,8 @@ export interface PostgrestConfig {
  * message means a reworded exception does not silently become a 500.
  *
  * The database's own message is discarded before constructing the failure.
- * `HttpFailure.detail` is loggable, while a metric refusal can name raw health
- * values, source metadata, contest ids, or counters.
+ * A metric refusal can name raw health values, source metadata, contest ids, or
+ * counters, none of which belongs in the response or automatic application log.
  */
 function failureFor(code: string | undefined, _detail: string): HttpFailure {
   switch (code) {

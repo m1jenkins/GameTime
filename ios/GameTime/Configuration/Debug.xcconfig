@@ -2,6 +2,7 @@
 
 GAMETIME_ENV = debug
 GAMETIME_CONTEST_MUTATIONS_ENABLED = YES
+GAMETIME_PERSONAL_SETTLEMENT_MODE = test_only
 
 // Optional and gitignored. Developers may point Debug at a local or isolated
 // project without changing the installable Staging or Release products. It may

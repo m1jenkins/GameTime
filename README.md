@@ -24,6 +24,7 @@ commitment, and watch real HealthKit steps accumulate.
 | Live step total on an active challenge | Works, labelled **not yet verified** |
 | App Attest-signed upload and server-scored progress | Staging only; endpoints deployed, not yet exercised from a device |
 | Hosted Staging backend | Personal V1 schema and all six Edge Functions deployed |
+| Stripe sandbox payment flow | Implemented and verified locally; not deployed or configured on a hosted target |
 | Real fees | Blocked behind every Stage B gate in [PLAN.md](PLAN.md) |
 
 **Two capabilities, gated separately.** `activitySyncEnabled` (Debug +

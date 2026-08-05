@@ -74,6 +74,13 @@ enum LiveServicesFactory {
             personalAccountability: SupabasePersonalAccountabilityClient(
                 client: client
             ),
+            personalPayments:
+                configuration.personalSettlementMode == .stripeSandbox
+                    ? SupabasePersonalPaymentClient(
+                        client: client,
+                        configuration: configuration
+                    )
+                    : DisabledPersonalPaymentClient(),
             pendingPersonalChallenges: try FilePendingPersonalChallengeStore
                 .applicationSupport(),
             pendingPersonalCancellations:

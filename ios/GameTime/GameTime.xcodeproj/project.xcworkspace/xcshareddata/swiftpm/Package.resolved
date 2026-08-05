@@ -1,6 +1,15 @@
 {
-  "originHash" : "04f74dedf34170b75535ff0360c1e0a99b9bdafb7b238443601038197647ea25",
+  "originHash" : "3f0123905e6377d288fb06003771eb0fdcb964367fc6a85c0fdb03c713fcef35",
   "pins" : [
+    {
+      "identity" : "stripe-ios-spm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stripe/stripe-ios-spm.git",
+      "state" : {
+        "revision" : "aece889db38b420b623d2008063f12308478671b",
+        "version" : "26.4.1"
+      }
+    },
     {
       "identity" : "supabase-swift",
       "kind" : "remoteSourceControl",

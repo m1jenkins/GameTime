@@ -6,19 +6,27 @@ struct PendingPersonalChallengeSubmission: Codable, Equatable, Sendable {
     let createdAt: Date
     let attemptCount: Int
     let lastAttemptAt: Date?
+    /// Opaque database identifier. Stripe customer, SetupIntent, payment
+    /// method, and client-secret values are deliberately never persisted here.
+    let paymentSetupID: String?
+    let paymentSetupCompletedAt: Date?
 
     init(
         ownerID: UUID,
         request: PersonalChallengeCreationRequest,
         createdAt: Date = Date(),
         attemptCount: Int = 0,
-        lastAttemptAt: Date? = nil
+        lastAttemptAt: Date? = nil,
+        paymentSetupID: String? = nil,
+        paymentSetupCompletedAt: Date? = nil
     ) {
         self.ownerID = ownerID
         self.request = request
         self.createdAt = createdAt
         self.attemptCount = attemptCount
         self.lastAttemptAt = lastAttemptAt
+        self.paymentSetupID = paymentSetupID
+        self.paymentSetupCompletedAt = paymentSetupCompletedAt
     }
 
     func recordingAttempt(at date: Date = Date()) throws
@@ -32,7 +40,30 @@ struct PendingPersonalChallengeSubmission: Codable, Equatable, Sendable {
             request: request,
             createdAt: createdAt,
             attemptCount: attemptCount + 1,
-            lastAttemptAt: max(max(date, createdAt), lastAttemptAt ?? createdAt)
+            lastAttemptAt: max(max(date, createdAt), lastAttemptAt ?? createdAt),
+            paymentSetupID: paymentSetupID,
+            paymentSetupCompletedAt: paymentSetupCompletedAt
+        )
+    }
+
+    func recordingPaymentSetup(
+        id: String,
+        completedAt: Date? = nil
+    ) throws -> PendingPersonalChallengeSubmission {
+        if let paymentSetupID, paymentSetupID != id {
+            throw PendingPersonalChallengeStoreError.conflictingRecord
+        }
+        if paymentSetupCompletedAt != nil, completedAt == nil {
+            throw PendingPersonalChallengeStoreError.conflictingRecord
+        }
+        return PendingPersonalChallengeSubmission(
+            ownerID: ownerID,
+            request: request,
+            createdAt: createdAt,
+            attemptCount: attemptCount,
+            lastAttemptAt: lastAttemptAt,
+            paymentSetupID: id,
+            paymentSetupCompletedAt: paymentSetupCompletedAt ?? completedAt
         )
     }
 
@@ -51,6 +82,24 @@ struct PendingPersonalChallengeSubmission: Codable, Equatable, Sendable {
             (attemptCount == 0) == (lastAttemptAt == nil)
         else {
             throw PendingPersonalChallengeStoreError.invalidRecord
+        }
+        if let paymentSetupID {
+            guard
+                !paymentSetupID.trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                ).isEmpty,
+                paymentSetupID.count <= 256
+            else {
+                throw PendingPersonalChallengeStoreError.invalidRecord
+            }
+        } else if paymentSetupCompletedAt != nil {
+            throw PendingPersonalChallengeStoreError.invalidRecord
+        }
+        if let paymentSetupCompletedAt {
+            guard paymentSetupCompletedAt.timeIntervalSinceReferenceDate.isFinite
+            else {
+                throw PendingPersonalChallengeStoreError.invalidRecord
+            }
         }
         // A saved start is checked for shape, never for freshness. It may well
         // have passed while the record sat here; that is a submission failure
@@ -232,13 +281,23 @@ actor FilePendingPersonalChallengeStore: PendingPersonalChallengeStore {
         guard
             existing.ownerID == submission.ownerID,
             existing.request == submission.request,
-            existing.createdAt == submission.createdAt,
-            submission.attemptCount >= existing.attemptCount
+            sameStoredInstant(existing.createdAt, submission.createdAt),
+            submission.attemptCount >= existing.attemptCount,
+            existing.paymentSetupID == nil
+                || existing.paymentSetupID == submission.paymentSetupID,
+            existing.paymentSetupCompletedAt == nil
+                || sameStoredInstant(
+                    existing.paymentSetupCompletedAt,
+                    submission.paymentSetupCompletedAt
+                )
         else {
             throw PendingPersonalChallengeStoreError.conflictingRecord
         }
         if submission.attemptCount == existing.attemptCount {
-            guard submission.lastAttemptAt == existing.lastAttemptAt else {
+            guard sameStoredInstant(
+                submission.lastAttemptAt,
+                existing.lastAttemptAt
+            ) else {
                 throw PendingPersonalChallengeStoreError.conflictingRecord
             }
             return
@@ -249,6 +308,21 @@ actor FilePendingPersonalChallengeStore: PendingPersonalChallengeStore {
             lastAttemptAt >= (existing.lastAttemptAt ?? existing.createdAt)
         else {
             throw PendingPersonalChallengeStoreError.conflictingRecord
+        }
+    }
+
+    /// The envelope deliberately stores dates as milliseconds. Compare at that
+    /// same precision when an in-memory record immediately follows a disk
+    /// write, or harmless sub-millisecond precision looks like a conflict.
+    private func sameStoredInstant(_ lhs: Date?, _ rhs: Date?) -> Bool {
+        switch (lhs, rhs) {
+        case (nil, nil):
+            true
+        case (let lhs?, let rhs?):
+            Int64((lhs.timeIntervalSince1970 * 1_000).rounded())
+                == Int64((rhs.timeIntervalSince1970 * 1_000).rounded())
+        default:
+            false
         }
     }
 

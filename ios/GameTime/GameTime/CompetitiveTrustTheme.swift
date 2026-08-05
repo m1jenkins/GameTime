@@ -491,9 +491,20 @@ struct TrustStatusPill: View {
 }
 
 struct TestEnvironmentBanner: View {
+    let settlementMode: PersonalSettlementMode
+
+    private var message: String {
+        switch settlementMode {
+        case .testOnly:
+            "Test commitment — no money will be charged."
+        case .stripeSandbox:
+            "Payment test mode — no real money moves."
+        }
+    }
+
     var body: some View {
         Label(
-            "Test commitment — no money will be charged.",
+            message,
             systemImage: "exclamationmark.shield.fill"
         )
         .font(
@@ -507,8 +518,6 @@ struct TestEnvironmentBanner: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 7)
         .background(CompetitiveTrustTheme.sun)
-        .accessibilityLabel(
-            "Test commitment — no money will be charged."
-        )
+        .accessibilityLabel(message)
     }
 }

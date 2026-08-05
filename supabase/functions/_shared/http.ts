@@ -4,9 +4,10 @@
  * The rule these helpers exist to keep is that a client never learns anything
  * from an error that it could not have worked out anyway. A refusal says which
  * *kind* of thing went wrong so that the client can decide whether to retry,
- * and the specifics go to the log. "Your assertion counter is 4 but the server
- * has 7" is a useful debugging line and a useful attack aid, and only one of
- * those audiences is reading the response.
+ * and automatic logs record only bounded classification metadata. "Your
+ * assertion counter is 4 but the server has 7" is both useful debugging detail
+ * and a useful attack aid, so neither the response nor the log should contain
+ * it.
  */
 
 export type FailureKind =
@@ -33,7 +34,10 @@ const STATUS: Record<FailureKind, number> = {
 export class HttpFailure extends Error {
   override readonly name = "HttpFailure";
   readonly kind: FailureKind;
-  /** Detail for the log only. Never reaches the client. */
+  /**
+   * Private diagnostic context carried across adapters. It never reaches the
+   * client and `respond` never emits it to automatic logs.
+   */
   readonly detail: string | undefined;
 
   constructor(kind: FailureKind, message: string, detail?: string) {
@@ -67,23 +71,24 @@ export function failureResponse(failure: HttpFailure): Response {
  * 500 that says nothing.
  *
  * An unexpected exception is a bug, and its message may quote a payload, a
- * connection string, or a row. It goes to the log and the client gets the
- * generic form.
+ * connection string, or a row. Automatic logs therefore keep only a trusted
+ * handler label and a bounded classification; the client gets the generic form.
  */
 export async function respond(
   label: string,
   body: () => Promise<Response>,
 ): Promise<Response> {
+  const logLabel = /^[a-z0-9][a-z0-9-]{0,63}$/.test(label) ? label : "edge-handler";
   try {
     return await body();
   } catch (error) {
     if (error instanceof HttpFailure) {
       if (error.detail !== undefined) {
-        console.warn(`${label}: ${error.kind}: ${error.message} (${error.detail})`);
+        console.warn(`${logLabel}: ${error.kind}`);
       }
       return failureResponse(error);
     }
-    console.error(`${label}: unhandled`, error);
+    console.error(`${logLabel}: unhandled exception`);
     return jsonResponse(500, {
       error: "internal",
       message: "the request could not be processed",

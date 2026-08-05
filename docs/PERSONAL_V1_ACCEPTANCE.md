@@ -344,8 +344,55 @@ Inspect every reachable V1 screen and bounded log output:
 - No tokens, assertions, attestation objects, receipts, signed bodies, payload
   digests, private keys, or service credentials.
 - No legacy social challenge is rendered as a personal challenge.
-- Every open personal surface says
+- Every current Stage A open personal surface says
   **Test commitment — no money will be charged.**
+
+## Prove the future Stripe sandbox separately
+
+This section records the forward Stage B acceptance contract. Nothing below has
+run, and none of it changes the Stage A evidence above. Stripe test objects move
+no real money. Do not report this section as hosted, live, legal, processor, or
+App Store proof.
+
+- [ ] A new forward terms version leaves all Stage A and Solo rows, enums,
+      results, and migrations unchanged.
+- [ ] Challenge creation uses one Stripe test-mode `SetupIntent` after Health
+      access succeeds and before final confirmation.
+- [ ] The exact creation request binds the frozen amount, terms version,
+      payment-method reference, and explicit off-session consent without storing
+      card data.
+- [ ] Starting or scheduling a challenge creates no authorization hold,
+      `PaymentIntent`, or charge.
+- [ ] Pre-start cancellation closes with $0 and creates no `PaymentIntent`.
+- [ ] The seven-day challenge retains its 24-hour final-sync period, and no
+      payment decision occurs before the evidence cutoff.
+- [ ] `met_goal` closes with $0 and creates no `PaymentIntent`.
+- [ ] Every `inconclusive` reason closes with $0 and creates no
+      `PaymentIntent`.
+- [ ] A complete `missed_goal` publishes as provisional with
+      `review_deadline = published_at + interval '7 days'`.
+- [ ] No charge occurs before `review_deadline` or while a timely review remains
+      unresolved.
+- [ ] No review by the deadline, or a completed review that confirms the miss,
+      permits exactly one idempotent off-session test-mode `PaymentIntent` for
+      the frozen amount.
+- [ ] A review that overturns the miss, or remains unresolved at the deadline,
+      waives the amount and creates no charge.
+- [ ] Duplicate, delayed, and reordered Stripe webhook events cannot create a
+      second payment or rewrite a terminal payment fact.
+- [ ] A failed payment or customer-action state triggers no automatic retry.
+      Only an explicit user-authorized recovery action may continue payment.
+- [ ] An unresolved review or payment keeps another paid challenge blocked until
+      it is resolved or waived.
+- [ ] Every sandbox screen says
+      **Payment test mode — no real money moves.**
+- [ ] Sandbox result screens distinguish $0, provisional review, test charge,
+      customer action, and failure without implying that real money moved.
+- [ ] Release and live Stripe mode remain disabled.
+- [ ] Hosted sandbox deployment, webhook configuration, and reconciliation occur
+      only after separate approval.
+- [ ] Written Stripe, US legal, App Store, HealthKit, age, and jurisdiction gates
+      remain open and are never inferred from sandbox success.
 
 ## Completion checklist
 
@@ -378,7 +425,8 @@ Inspect every reachable V1 screen and bounded log output:
       local database suite.
 - [ ] Logs and evidence artifacts contain no sensitive data.
 
-Even when every Stage A item passes, real payment, production migration,
-TestFlight publication, App Store submission, and marketing claims remain
-separately blocked. Do not begin Stage B without every written gate in
-`PLAN.md`.
+Even when every Stage A item passes, it does not prove the Stripe sandbox.
+Sandbox implementation may proceed only as a forward, test-mode slice. Hosted
+sandbox deployment requires separate approval. Live payment, production
+migration, TestFlight publication, App Store submission, and payment marketing
+claims remain blocked by every live gate in `PLAN.md`.

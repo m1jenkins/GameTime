@@ -7,6 +7,8 @@ struct PersonalChallengeDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingCancelConfirmation = false
+    @State private var selectedReviewReason:
+        PersonalReviewReason = .userDisputesStepData
 
     private var challenge: PersonalChallengeDetail? {
         store.detail(for: challengeID)
@@ -15,12 +17,16 @@ struct PersonalChallengeDetailView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                TestCommitmentDisclosure()
+                TestCommitmentDisclosure(
+                    settlementMode: challenge?.terms.settlementMode
+                        ?? store.configuration.personalSettlementMode
+                )
                 if let challenge {
                     hero(challenge)
                     frozenTerms(challenge.terms)
                     progress(challenge)
                     result(challenge)
+                    review(challenge)
                     sync(challenge)
                     cancellation(challenge)
                 } else {
@@ -54,9 +60,7 @@ struct PersonalChallengeDetailView: View {
             }
             Button("Keep it", role: .cancel) {}
         } message: {
-            Text(
-                "You can only cancel before your challenge starts. Either way, no money is charged."
-            )
+            Text(cancellationMessage)
         }
     }
 
@@ -253,6 +257,134 @@ struct PersonalChallengeDetailView: View {
     }
 
     @ViewBuilder
+    private func review(_ challenge: PersonalChallengeDetail) -> some View {
+        if challenge.terms.settlementMode == .stripeSandbox,
+            let outcome = challenge.outcome,
+            outcome.kind == .missedGoal
+        {
+            DaybreakSectionLabel(text: "Review")
+            DaybreakCard {
+                if let request = store.reviewRequest(for: challenge.id) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Label(
+                            "Review requested",
+                            systemImage: "checkmark.shield.fill"
+                        )
+                        .font(
+                            CompetitiveTrustTheme.displayFont(
+                                size: 20,
+                                relativeTo: .headline
+                            )
+                        )
+                        Text("No charge while this result is reviewed.")
+                            .font(.subheadline.weight(.semibold))
+                        Text(
+                            "Review ends by \(PersonalTermsDateFormatter.dateTime(request.reviewDeadline, timezoneIdentifier: challenge.terms.timezone))."
+                        )
+                        .font(.caption)
+                        .foregroundStyle(
+                            CompetitiveTrustTheme.secondaryText
+                        )
+                    }
+                    .accessibilityIdentifier("personal.review.requested")
+                } else if Date()
+                    < outcome.publishedAt.addingTimeInterval(7 * 86_400)
+                {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Something doesn’t look right?")
+                            .font(
+                                CompetitiveTrustTheme.displayFont(
+                                    size: 20,
+                                    relativeTo: .headline
+                                )
+                            )
+                        Text(
+                            "Tell us why before the 7-day review window ends. No test charge is created while a review is open."
+                        )
+                        .font(.subheadline)
+                        .foregroundStyle(
+                            CompetitiveTrustTheme.secondaryText
+                        )
+
+                        ForEach(PersonalReviewReason.allCases) { reason in
+                            Button {
+                                selectedReviewReason = reason
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(
+                                        systemName:
+                                            selectedReviewReason == reason
+                                            ? "checkmark.circle.fill"
+                                            : "circle"
+                                    )
+                                    .foregroundStyle(
+                                        selectedReviewReason == reason
+                                            ? CompetitiveTrustTheme.coral
+                                            : CompetitiveTrustTheme.guide
+                                    )
+                                    Text(reason.title)
+                                        .font(.subheadline.weight(.semibold))
+                                    Spacer(minLength: 8)
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier(
+                                "personal.review.reason.\(reason.rawValue)"
+                            )
+                            .accessibilityValue(
+                                selectedReviewReason == reason
+                                    ? "Selected"
+                                    : "Not selected"
+                            )
+                        }
+
+                        Button {
+                            Task {
+                                _ = await store.requestReview(
+                                    challengeID: challenge.id,
+                                    reason: selectedReviewReason
+                                )
+                            }
+                        } label: {
+                            if store.isRequestingReview {
+                                ProgressView().tint(.white)
+                            } else {
+                                Text("Request a review")
+                            }
+                        }
+                        .buttonStyle(TrustPrimaryButtonStyle())
+                        .disabled(store.isRequestingReview)
+                        .accessibilityIdentifier(
+                            "personal.review.request"
+                        )
+
+                        Text(
+                            "Review window ends \(PersonalTermsDateFormatter.dateTime(outcome.publishedAt.addingTimeInterval(7 * 86_400), timezoneIdentifier: challenge.terms.timezone))."
+                        )
+                        .font(.caption)
+                        .foregroundStyle(
+                            CompetitiveTrustTheme.tertiaryText
+                        )
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Review window ended")
+                            .font(.headline)
+                        Text(
+                            "The 7-day window for requesting a review has closed."
+                        )
+                        .font(.subheadline)
+                        .foregroundStyle(
+                            CompetitiveTrustTheme.secondaryText
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
     private func cancellation(_ challenge: PersonalChallengeDetail) -> some View {
         if challenge.status == .scheduled {
             Button("Cancel this challenge", role: .destructive) {
@@ -324,6 +456,9 @@ struct PersonalChallengeDetailView: View {
         case .metGoal:
             return "Your steps added up and you got there. Nice work."
         case .missedGoal:
+            if challenge?.terms.settlementMode == .stripeSandbox {
+                return "Your steps added up, but they didn’t reach your goal. This result is provisional through the 7-day review window; only a confirmed miss can create one simulated test charge."
+            }
             return "Your steps added up, but they didn’t reach your goal. Nothing is charged."
         case .inconclusive:
             let opening =
@@ -335,5 +470,12 @@ struct PersonalChallengeDetailView: View {
             }
             return "\(opening) \(reason)"
         }
+    }
+
+    private var cancellationMessage: String {
+        if challenge?.terms.settlementMode == .stripeSandbox {
+            return "You can only cancel before your challenge starts. Cancelling before it starts is always $0."
+        }
+        return "You can only cancel before your challenge starts. Either way, no money is charged."
     }
 }

@@ -3925,3 +3925,69 @@ an explicitly approved `attest-device` deployment, the trusted diagnostic must
 be rerun on the physical iPhone. A later certificate, nonce, receipt, or
 database refusal would be a separate observed failure, not proof that this
 parser correction was sufficient.
+
+## M11 — Stripe sandbox payment foundation
+
+### D113. Stage B saves a payment method and charges only a confirmed miss
+
+**What.** Stage B begins in Stripe test mode through a new forward terms version.
+During challenge creation, after Health access succeeds and before final
+confirmation, GameTime creates a Stripe `SetupIntent`. It saves an approved
+payment method for later off-session use and binds the provider identifiers,
+frozen amount, terms version, and explicit consent to the exact creation request.
+GameTime stores no card data. Starting a challenge creates no authorization hold,
+`PaymentIntent`, or charge.
+
+The seven-day challenge keeps its 24-hour final-sync period. No payment decision
+occurs before the evidence cutoff. `met_goal`, `inconclusive`, and pre-start
+cancellation resolve with $0 charged. Missing, conflicting, or unresolved step
+data remains fail-closed and cannot become a miss.
+
+A complete `missed_goal` is provisional when published. Its immutable
+`review_deadline` is exactly `published_at + interval '7 days'`; this replaces
+the ambiguous “day 14” wording. No charge may occur before that deadline or
+while a timely review remains unresolved. No review by the deadline, or a
+completed review that confirms the miss, makes the frozen amount chargeable. A
+review that overturns the miss, or remains unresolved at the deadline, waives
+the amount.
+
+One confirmed miss permits exactly one idempotent off-session Stripe
+`PaymentIntent` for the frozen amount. If that attempt fails or requires
+customer action, GameTime does not retry automatically. The owner must take an
+explicit payment-recovery action. The unresolved payment blocks another paid
+challenge until it succeeds or policy waives it; GameTime does not run repeated
+retries or debt collection.
+
+Stripe sandbox objects use test credentials and move no real money. Sandbox UI
+must say **Payment test mode — no real money moves.** Release and live Stripe
+mode remain disabled. A hosted sandbox deployment, live configuration, or real
+charge requires separate approval and evidence.
+
+**Why.** An ordinary card authorization may expire before seven challenge days,
+the 24-hour sync period, and the review gate finish. Charging at creation would
+turn the product into a refundable deposit and would charge people who meet
+their goal or receive an inconclusive result. A `SetupIntent` records the
+payment method and mandate without charging. A later `PaymentIntent` makes the
+single confirmed consequence explicit and independently retry-safe.
+
+The absolute `review_deadline` makes the rule auditable across time zones and
+prevents “day 14” from meaning either a calendar date or elapsed time from an
+unspecified event. Pausing payment until review closes keeps a provisional
+result from producing a financial consequence.
+
+**Rejected.** A seven-day authorization hold; charging or capturing at challenge
+creation; creating a `PaymentIntent` for `met_goal`, `inconclusive`, or
+pre-start cancellation; treating missing data as a miss; charging while review
+is open; client-authored payment status; multiple off-session attempts;
+automatic retries; debt collection; raw card storage; rewriting Stage A or Solo
+history; enabling Release from a client flag; and calling test-mode payment
+objects live-payment proof.
+
+**Remaining gate.** D113 is implemented locally in a sandbox-only client and
+server path. Stage A and Solo remain `test_only`, Release remains unable to use
+Stripe, and no hosted environment was changed. A hosted sandbox still needs a
+dedicated non-production target, tester allowlist and kill switch, test secrets,
+a registered signed webhook, a secure dispatcher, and end-to-end reconciliation
+proof. Live rollout additionally requires written Stripe approval, US legal
+review, App Store and HealthKit clearance, age and jurisdiction controls, and a
+separately approved production rollout.

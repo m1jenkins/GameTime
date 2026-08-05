@@ -390,6 +390,59 @@ final class AppModelAndRoutingTests: XCTestCase {
         assertClientBoundary(live)
     }
 
+    func testPaymentFactoryUsesDisabledClientForDefaultDebugAndReleaseAndSandboxClientForExplicitStaging()
+        throws
+    {
+        let debug = try AppConfiguration.validated(
+            environmentValue: "Debug",
+            urlValue: "http://127.0.0.1:54321",
+            keyValue: "sb_publishable_debug_payment_boundary",
+            mutationValue: "YES"
+        )
+        let release = try AppConfiguration.validated(
+            environmentValue: "Release",
+            urlValue: "https://example.supabase.co",
+            keyValue: "sb_publishable_release_payment_boundary",
+            mutationValue: "YES",
+            settlementModeValue: "stripe_sandbox",
+            stripeReturnURLValue: "gametime-staging://stripe-redirect"
+        )
+        let staging = try AppConfiguration.validated(
+            environmentValue: "Staging",
+            urlValue: "https://example.supabase.co",
+            keyValue: "sb_publishable_staging_payment_boundary",
+            mutationValue: "YES",
+            settlementModeValue: "stripe_sandbox",
+            stripeReturnURLValue: "gametime-staging://stripe-redirect"
+        )
+
+        let debugServices = try LiveServicesFactory.make(
+            configuration: debug
+        )
+        let releaseServices = try LiveServicesFactory.make(
+            configuration: release
+        )
+        let stagingServices = try LiveServicesFactory.make(
+            configuration: staging
+        )
+
+        XCTAssertEqual(debug.personalSettlementMode, .testOnly)
+        XCTAssertTrue(
+            debugServices.personalPayments
+                is DisabledPersonalPaymentClient
+        )
+        XCTAssertEqual(release.personalSettlementMode, .testOnly)
+        XCTAssertTrue(
+            releaseServices.personalPayments
+                is DisabledPersonalPaymentClient
+        )
+        XCTAssertEqual(staging.personalSettlementMode, .stripeSandbox)
+        XCTAssertTrue(
+            stagingServices.personalPayments
+                is SupabasePersonalPaymentClient
+        )
+    }
+
     func testOfflineRefreshSurfacesStateWithoutMutationRetry() async {
         let model = AppModel(
             configuration: .fixture,

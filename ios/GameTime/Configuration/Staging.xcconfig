@@ -2,4 +2,6 @@
 
 GAMETIME_ENV = staging
 GAMETIME_CONTEST_MUTATIONS_ENABLED = YES
+GAMETIME_PERSONAL_SETTLEMENT_MODE = stripe_sandbox
+GAMETIME_STRIPE_RETURN_URL = gametime-staging:/$()/stripe-redirect
 APS_ENVIRONMENT = development

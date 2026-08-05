@@ -60,6 +60,54 @@ final class DomainAndConfigurationTests: XCTestCase {
         XCTAssertEqual(configuration.environment, .release)
         XCTAssertFalse(configuration.contestMutationsEnabled)
         XCTAssertFalse(configuration.activitySyncEnabled)
+        XCTAssertEqual(configuration.personalSettlementMode, .testOnly)
+        XCTAssertNil(configuration.stripeReturnURL)
+    }
+
+    func testStripeSandboxRequiresStagingReturnURLAndReleaseFailsClosed()
+        throws
+    {
+        XCTAssertThrowsError(
+            try AppConfiguration.validated(
+                environmentValue: "Staging",
+                urlValue: "https://example.supabase.co",
+                keyValue: "sb_publishable_unit_test",
+                mutationValue: "YES",
+                settlementModeValue: "stripe_sandbox",
+                stripeReturnURLValue: nil
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? AppConfigurationError,
+                .invalidStripeReturnURL
+            )
+        }
+
+        let staging = try AppConfiguration.validated(
+            environmentValue: "Staging",
+            urlValue: "https://example.supabase.co",
+            keyValue: "sb_publishable_unit_test",
+            mutationValue: "YES",
+            settlementModeValue: "stripe_sandbox",
+            stripeReturnURLValue: "gametime-staging://stripe-redirect"
+        )
+        XCTAssertEqual(staging.personalSettlementMode, .stripeSandbox)
+        XCTAssertEqual(
+            staging.stripeReturnURL?.absoluteString,
+            "gametime-staging://stripe-redirect"
+        )
+
+        let release = try AppConfiguration.validated(
+            environmentValue: "Release",
+            urlValue: "https://example.supabase.co",
+            keyValue: "sb_publishable_unit_test",
+            mutationValue: "YES",
+            settlementModeValue: "stripe_sandbox",
+            stripeReturnURLValue: "gametime-staging://stripe-redirect"
+        )
+        XCTAssertFalse(release.personalChallengeMutationsEnabled)
+        XCTAssertEqual(release.personalSettlementMode, .testOnly)
+        XCTAssertNil(release.stripeReturnURL)
     }
 
     /// Reading Health and attesting that read are separate capabilities.

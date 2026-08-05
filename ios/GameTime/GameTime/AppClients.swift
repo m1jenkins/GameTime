@@ -88,6 +88,7 @@ struct AppServices {
     let activitySync: any ActivitySyncing
     let pushNotifications: any PushNotificationsClient
     let personalAccountability: any PersonalAccountabilityClient
+    let personalPayments: any PersonalPaymentClient
     let pendingPersonalChallenges: any PendingPersonalChallengeStore
     let pendingPersonalCancellations: any PendingPersonalCancellationStore
     let trustedActivityDiagnostic: any TrustedActivityDiagnosticClient
@@ -104,6 +105,8 @@ struct AppServices {
             DisabledPushNotificationsClient(),
         personalAccountability: any PersonalAccountabilityClient =
             DisabledPersonalAccountabilityClient(),
+        personalPayments: any PersonalPaymentClient =
+            DisabledPersonalPaymentClient(),
         pendingPersonalChallenges: any PendingPersonalChallengeStore =
             EphemeralPendingPersonalChallengeStore(),
         pendingPersonalCancellations: any PendingPersonalCancellationStore =
@@ -121,6 +124,7 @@ struct AppServices {
         self.activitySync = activitySync
         self.pushNotifications = pushNotifications
         self.personalAccountability = personalAccountability
+        self.personalPayments = personalPayments
         self.pendingPersonalChallenges = pendingPersonalChallenges
         self.pendingPersonalCancellations = pendingPersonalCancellations
         self.trustedActivityDiagnostic = trustedActivityDiagnostic

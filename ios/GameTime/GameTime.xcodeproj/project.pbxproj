@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		B10000000000000000000001 /* GameTimeCore in Frameworks */ = {isa = PBXBuildFile; productRef = D10000000000000000000003 /* GameTimeCore */; };
 		B10000000000000000000002 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D10000000000000000000004 /* Supabase */; };
+		B10000000000000000000003 /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = D10000000000000000000006 /* StripePaymentSheet */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +65,7 @@
 			files = (
 				B10000000000000000000001 /* GameTimeCore in Frameworks */,
 				B10000000000000000000002 /* Supabase in Frameworks */,
+				B10000000000000000000003 /* StripePaymentSheet in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +142,7 @@
 			packageProductDependencies = (
 				D10000000000000000000003 /* GameTimeCore */,
 				D10000000000000000000004 /* Supabase */,
+				D10000000000000000000006 /* StripePaymentSheet */,
 			);
 			productName = GameTime;
 			productReference = B30000000000000000000001 /* GameTime.app */;
@@ -226,6 +229,7 @@
 			packageReferences = (
 				D10000000000000000000001 /* XCLocalSwiftPackageReference "../GameTimeCore" */,
 				D10000000000000000000002 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				D10000000000000000000005 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B60000000000000000000002 /* Products */;
@@ -740,6 +744,14 @@
 				version = 2.46.0;
 			};
 		};
+		D10000000000000000000005 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-ios-spm.git";
+			requirement = {
+				kind = exactVersion;
+				version = 26.4.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -752,6 +764,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D10000000000000000000002 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		D10000000000000000000006 /* StripePaymentSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D10000000000000000000005 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
+			productName = StripePaymentSheet;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -13,6 +13,8 @@ struct AppConfiguration: Equatable, Sendable {
     let supabaseURL: URL
     let supabasePublishableKey: String
     let contestMutationsEnabled: Bool
+    let personalSettlementMode: PersonalSettlementMode
+    let stripeReturnURL: URL?
     /// Kept only for explicit V2/regression fixtures. Personal V1 runtime must
     /// not fetch or mutate dormant social inventories.
     let legacySocialRuntimeEnabled: Bool
@@ -22,12 +24,20 @@ struct AppConfiguration: Equatable, Sendable {
         supabaseURL: URL,
         supabasePublishableKey: String,
         contestMutationsEnabled: Bool,
+        personalSettlementMode: PersonalSettlementMode = .testOnly,
+        stripeReturnURL: URL? = nil,
         legacySocialRuntimeEnabled: Bool = false
     ) {
         self.environment = environment
         self.supabaseURL = supabaseURL
         self.supabasePublishableKey = supabasePublishableKey
         self.contestMutationsEnabled = contestMutationsEnabled
+        self.personalSettlementMode = environment == .release
+            ? .testOnly
+            : personalSettlementMode
+        self.stripeReturnURL = environment == .release
+            ? nil
+            : stripeReturnURL
         self.legacySocialRuntimeEnabled = legacySocialRuntimeEnabled
     }
 
@@ -36,9 +46,6 @@ struct AppConfiguration: Equatable, Sendable {
     var personalChallengeMutationsEnabled: Bool {
         environment != .release && contestMutationsEnabled
     }
-
-    /// There is deliberately no live-fee configuration in the V1 client.
-    var personalSettlementMode: PersonalSettlementMode { .testOnly }
 
     /// Debug and Staging read HealthKit. Release stays off until the shipping
     /// configuration is separately authorized; it also refuses every personal
@@ -70,12 +77,20 @@ struct AppConfiguration: Equatable, Sendable {
         let mutationValue = bundle.object(
             forInfoDictionaryKey: "GAMETIME_CONTEST_MUTATIONS_ENABLED"
         ) as? String
+        let settlementModeValue = bundle.object(
+            forInfoDictionaryKey: "GAMETIME_PERSONAL_SETTLEMENT_MODE"
+        ) as? String
+        let stripeReturnURLValue = bundle.object(
+            forInfoDictionaryKey: "GAMETIME_STRIPE_RETURN_URL"
+        ) as? String
 
         return try validated(
             environmentValue: environmentValue,
             urlValue: urlValue,
             keyValue: keyValue,
-            mutationValue: mutationValue
+            mutationValue: mutationValue,
+            settlementModeValue: settlementModeValue,
+            stripeReturnURLValue: stripeReturnURLValue
         )
     }
 
@@ -83,7 +98,9 @@ struct AppConfiguration: Equatable, Sendable {
         environmentValue: String?,
         urlValue: String?,
         keyValue: String?,
-        mutationValue: String?
+        mutationValue: String?,
+        settlementModeValue: String? = nil,
+        stripeReturnURLValue: String? = nil
     ) throws -> AppConfiguration {
         guard let environment = AppEnvironment(
             rawValue: environmentValue?.lowercased() ?? ""
@@ -114,6 +131,38 @@ struct AppConfiguration: Equatable, Sendable {
         let requestedMutations = mutationValue?.lowercased() == "yes"
             || mutationValue?.lowercased() == "true"
             || mutationValue == "1"
+        let requestedSettlementMode: PersonalSettlementMode
+        if let normalizedMode = normalized(settlementModeValue) {
+            guard
+                let settlementMode = PersonalSettlementMode(
+                    rawValue: normalizedMode.lowercased()
+                )
+            else {
+                throw AppConfigurationError.invalidPersonalSettlementMode
+            }
+            requestedSettlementMode = settlementMode
+        } else {
+            // An older or local Debug configuration stays on the legacy
+            // no-provider fixture path. Stripe must be explicitly selected.
+            requestedSettlementMode = .testOnly
+        }
+
+        let stripeReturnURL: URL?
+        if environment != .release,
+            requestedSettlementMode == .stripeSandbox
+        {
+            guard
+                let rawReturnURL = normalized(stripeReturnURLValue),
+                let returnURL = URL(string: rawReturnURL),
+                returnURL.scheme?.lowercased() == "gametime-staging",
+                returnURL.host != nil
+            else {
+                throw AppConfigurationError.invalidStripeReturnURL
+            }
+            stripeReturnURL = returnURL
+        } else {
+            stripeReturnURL = nil
+        }
 
         return AppConfiguration(
             environment: environment,
@@ -121,7 +170,11 @@ struct AppConfiguration: Equatable, Sendable {
             supabasePublishableKey: key,
             contestMutationsEnabled: environment == .release
                 ? false
-                : requestedMutations
+                : requestedMutations,
+            personalSettlementMode: environment == .release
+                ? .testOnly
+                : requestedSettlementMode,
+            stripeReturnURL: stripeReturnURL
         )
     }
 
@@ -147,6 +200,17 @@ struct AppConfiguration: Equatable, Sendable {
         supabaseURL: URL(string: "https://fixture.invalid")!,
         supabasePublishableKey: "sb_publishable_fixture_only",
         contestMutationsEnabled: true
+    )
+
+    static let stripeSandboxFixture = AppConfiguration(
+        environment: .staging,
+        supabaseURL: URL(string: "https://fixture.invalid")!,
+        supabasePublishableKey: "sb_publishable_fixture_only",
+        contestMutationsEnabled: true,
+        personalSettlementMode: .stripeSandbox,
+        stripeReturnURL: URL(
+            string: "gametime-staging://stripe-redirect"
+        )!
     )
     #endif
 
@@ -189,6 +253,8 @@ enum AppConfigurationError: LocalizedError, Equatable, Sendable {
     case missingPublishableKey
     case invalidPublishableKey
     case serviceRoleKeyRejected
+    case invalidPersonalSettlementMode
+    case invalidStripeReturnURL
 
     var errorDescription: String? {
         switch self {
@@ -202,6 +268,10 @@ enum AppConfigurationError: LocalizedError, Equatable, Sendable {
             "GameTime can’t connect because it isn’t set up correctly."
         case .serviceRoleKeyRejected:
             "GameTime can’t connect because it isn’t set up correctly."
+        case .invalidPersonalSettlementMode:
+            "GameTime payments aren’t set up correctly."
+        case .invalidStripeReturnURL:
+            "GameTime payments can’t return to the app because this build isn’t set up correctly."
         }
     }
 }

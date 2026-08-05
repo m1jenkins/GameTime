@@ -23,6 +23,7 @@ enum PersonalChallengeCadence: String, Codable, CaseIterable, Identifiable, Send
 
 enum PersonalSettlementMode: String, Codable, Sendable {
     case testOnly = "test_only"
+    case stripeSandbox = "stripe_sandbox"
 }
 
 enum PersonalChallengeStatus: String, Codable, Sendable {
@@ -711,11 +712,11 @@ struct PersonalChallengeSummary: Codable, Equatable, Identifiable, Sendable {
         terms = try container.decode(FrozenPersonalTerms.self, forKey: .terms)
         progress = try container.decodeIfPresent(PersonalProgress.self, forKey: .progress)
         outcome = try container.decodeIfPresent(PersonalOutcome.self, forKey: .outcome)
-        guard terms.challengeID == id, terms.settlementMode == .testOnly else {
+        guard terms.challengeID == id else {
             throw DecodingError.dataCorruptedError(
                 forKey: .terms,
                 in: container,
-                debugDescription: "Personal terms do not match the challenge or Stage A."
+                debugDescription: "Personal terms do not match the challenge."
             )
         }
     }
@@ -795,11 +796,11 @@ struct PersonalChallengeDetail: Codable, Equatable, Identifiable, Sendable {
         progress = try container.decodeIfPresent(PersonalProgress.self, forKey: .progress)
             ?? .empty
         outcome = try container.decodeIfPresent(PersonalOutcome.self, forKey: .outcome)
-        guard terms.challengeID == id, terms.settlementMode == .testOnly else {
+        guard terms.challengeID == id else {
             throw DecodingError.dataCorruptedError(
                 forKey: .terms,
                 in: container,
-                debugDescription: "Personal terms do not match the challenge or Stage A."
+                debugDescription: "Personal terms do not match the challenge."
             )
         }
     }

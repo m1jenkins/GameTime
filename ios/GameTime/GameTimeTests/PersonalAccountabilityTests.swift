@@ -445,6 +445,185 @@ final class PersonalAccountabilityModelTests: XCTestCase {
 
 @MainActor
 final class PersonalAccountabilityStoreTests: XCTestCase {
+    func testLostReviewResponseRetriesTheExactReasonAndShowsUnderReview()
+        async throws
+    {
+        let ownerID = UUID(
+            uuidString: "11111111-1111-1111-1111-111111111111"
+        )!
+        let challengeID = UUID(
+            uuidString: "19191919-1919-1919-1919-191919191919"
+        )!
+        let auth = PersonalAuthFake(ownerID: ownerID)
+        let client = PersonalClientFake(ownerID: ownerID)
+        let payments = PersonalPaymentFake(ownerID: ownerID)
+        payments.loseFirstReviewResponse = true
+        let now = Date()
+        client.setChallenge(
+            PersonalChallengeDetail(
+                id: challengeID,
+                status: .completed,
+                terms: FrozenPersonalTerms(
+                    challengeID: challengeID,
+                    userID: ownerID,
+                    cadence: .cumulative,
+                    targetSteps: 70_000,
+                    commitmentAmountMinor: 2_000,
+                    currency: "USD",
+                    settlementMode: .stripeSandbox,
+                    termsVersion: "personal-stripe-sandbox-v1",
+                    timezone: "America/Chicago",
+                    agreementAt: now.addingTimeInterval(-10 * 86_400),
+                    startsAt: now.addingTimeInterval(-9 * 86_400),
+                    endsAt: now.addingTimeInterval(-2 * 86_400),
+                    evidenceCutoff: now.addingTimeInterval(-86_400),
+                    closedAt: now.addingTimeInterval(-86_400)
+                ),
+                progress: .empty,
+                outcome: PersonalOutcome(
+                    id: UUID(),
+                    kind: .missedGoal,
+                    reasonCode: "target_missed_complete_evidence",
+                    evidenceCutoff: now.addingTimeInterval(-86_400),
+                    publishedAt: now.addingTimeInterval(-3_600)
+                )
+            )
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .stripeSandboxFixture,
+            auth: auth,
+            client: client,
+            paymentClient: payments,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await store.activate(ownerID: ownerID)
+
+        let first = await store.requestReview(
+            challengeID: challengeID,
+            reason: .userDisputesResult,
+            now: now
+        )
+        XCTAssertFalse(first)
+        XCTAssertNil(store.reviewRequest(for: challengeID))
+
+        let retry = await store.requestReview(
+            challengeID: challengeID,
+            reason: .userDisputesResult,
+            now: now
+        )
+
+        XCTAssertTrue(retry)
+        XCTAssertEqual(payments.reviewRequests.count, 2)
+        XCTAssertEqual(
+            payments.reviewRequests.map(\.challengeID),
+            [challengeID, challengeID]
+        )
+        XCTAssertEqual(
+            payments.reviewRequests.map(\.reason),
+            [.userDisputesResult, .userDisputesResult]
+        )
+        XCTAssertEqual(
+            store.reviewRequest(for: challengeID)?.state,
+            .underReview
+        )
+    }
+
+    func testStripeSetupCompletionAndLostCommitRetryExactFrozenRequest()
+        async throws
+    {
+        let ownerID = UUID(
+            uuidString: "11111111-1111-1111-1111-111111111111"
+        )!
+        let auth = PersonalAuthFake(ownerID: ownerID)
+        let client = PersonalClientFake(ownerID: ownerID)
+        let payments = PersonalPaymentFake(ownerID: ownerID)
+        payments.loseFirstCommitResponse = true
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: directory)
+        }
+        let pendingStore = FilePendingPersonalChallengeStore(
+            directoryURL: directory
+        )
+        let request = try PersonalChallengeDraft().validated(
+            requestID: UUID(
+                uuidString: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+            )!
+        )
+        let firstStore = PersonalAccountabilityStore(
+            configuration: .stripeSandboxFixture,
+            auth: auth,
+            client: client,
+            paymentClient: payments,
+            pendingStore: pendingStore,
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await firstStore.activate(ownerID: ownerID)
+
+        let preparedSetup = await firstStore.preparePayment(request)
+        let setup = try XCTUnwrap(
+            preparedSetup,
+            firstStore.presentedError ?? "No store error was presented."
+        )
+        XCTAssertEqual(setup.setupID, payments.setupID)
+        XCTAssertEqual(
+            firstStore.pendingCreation?.paymentSetupID,
+            payments.setupID
+        )
+        XCTAssertNil(
+            firstStore.pendingCreation?.paymentSetupCompletedAt
+        )
+        let persistedSetupURL = await pendingStore.fileURL(for: ownerID)
+        let persistedSetupData = try Data(contentsOf: persistedSetupURL)
+        let persistedSetup = try XCTUnwrap(
+            String(data: persistedSetupData, encoding: .utf8)
+        )
+        XCTAssertTrue(persistedSetup.contains(payments.setupID))
+        XCTAssertFalse(persistedSetup.contains(payments.publishableKey))
+        XCTAssertFalse(
+            persistedSetup.contains(payments.setupIntentClientSecret)
+        )
+        let confirmed = await firstStore.confirmPaymentSetup(
+            request: request,
+            setupID: setup.setupID
+        )
+        XCTAssertTrue(confirmed)
+        XCTAssertNotNil(
+            firstStore.pendingCreation?.paymentSetupCompletedAt
+        )
+
+        let firstChallengeID = await firstStore.create(request)
+        XCTAssertNil(firstChallengeID)
+        let failedPending = try await pendingStore.load(for: ownerID)
+        XCTAssertEqual(failedPending?.request, request)
+        XCTAssertEqual(failedPending?.attemptCount, 1)
+
+        let relaunchedStore = PersonalAccountabilityStore(
+            configuration: .stripeSandboxFixture,
+            auth: auth,
+            client: client,
+            paymentClient: payments,
+            pendingStore: pendingStore,
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await relaunchedStore.activate(ownerID: ownerID)
+        XCTAssertTrue(relaunchedStore.pendingPaymentIsConfirmed)
+
+        let challengeID = await relaunchedStore.create(request)
+
+        XCTAssertEqual(challengeID, payments.challengeID)
+        XCTAssertEqual(payments.preparedRequests, [request])
+        XCTAssertEqual(payments.committedRequests, [request, request])
+        XCTAssertTrue(client.requests.isEmpty)
+        let clearedPending = try await pendingStore.load(for: ownerID)
+        XCTAssertNil(clearedPending)
+    }
+
     func testLostCreateResponseRetriesExactRequestAndClearsPendingRecord()
         async throws
     {
@@ -1048,6 +1227,10 @@ private final class PersonalClientFake: PersonalAccountabilityClient {
         self.ownerID = ownerID
     }
 
+    func setChallenge(_ challenge: PersonalChallengeDetail) {
+        self.challenge = challenge
+    }
+
     func listMyChallenges() async throws -> PersonalAccountabilitySnapshot {
         PersonalAccountabilitySnapshot(
             challenges: challenge.map {
@@ -1150,6 +1333,82 @@ private final class PersonalClientFake: PersonalAccountabilityClient {
                 closedAt: nil
             ),
             progress: .empty
+        )
+    }
+}
+
+@MainActor
+private final class PersonalPaymentFake: PersonalPaymentClient {
+    let ownerID: UUID
+    let setupID = "33333333-3333-3333-3333-333333333333"
+    let publishableKey = "pk_test_fixture"
+    let setupIntentClientSecret = "seti_fixture_secret_fixture"
+    let challengeID = UUID(
+        uuidString: "44444444-4444-4444-4444-444444444444"
+    )!
+    var preparedRequests: [PersonalChallengeCreationRequest] = []
+    var committedRequests: [PersonalChallengeCreationRequest] = []
+    var reviewRequests: [
+        (challengeID: UUID, reason: PersonalReviewReason)
+    ] = []
+    var loseFirstCommitResponse = false
+    var loseFirstReviewResponse = false
+
+    init(ownerID: UUID) {
+        self.ownerID = ownerID
+    }
+
+    func prepare(
+        _ request: PersonalChallengeCreationRequest,
+        expectedUserID: UUID
+    ) async throws -> PersonalPaymentSetup {
+        guard expectedUserID == ownerID else {
+            throw PersonalPaymentClientError.accountChanged
+        }
+        preparedRequests.append(request)
+        return PersonalPaymentSetup(
+            setupID: setupID,
+            presentation: .paymentSheet(
+                publishableKey: publishableKey,
+                setupIntentClientSecret: setupIntentClientSecret
+            )
+        )
+    }
+
+    func commit(
+        _ request: PersonalChallengeCreationRequest,
+        setupID: String,
+        expectedUserID: UUID
+    ) async throws -> UUID {
+        guard expectedUserID == ownerID else {
+            throw PersonalPaymentClientError.accountChanged
+        }
+        guard setupID == self.setupID else {
+            throw PersonalPaymentClientError.termsChanged
+        }
+        committedRequests.append(request)
+        if loseFirstCommitResponse, committedRequests.count == 1 {
+            throw PersonalPaymentClientError.unavailable
+        }
+        return challengeID
+    }
+
+    func requestReview(
+        challengeID: UUID,
+        reason: PersonalReviewReason,
+        expectedUserID: UUID
+    ) async throws -> PersonalReviewRequestResult {
+        guard expectedUserID == ownerID else {
+            throw PersonalPaymentClientError.accountChanged
+        }
+        reviewRequests.append((challengeID, reason))
+        if loseFirstReviewResponse, reviewRequests.count == 1 {
+            throw PersonalPaymentClientError.unavailable
+        }
+        return PersonalReviewRequestResult(
+            state: .underReview,
+            reviewDeadline: Date().addingTimeInterval(7 * 86_400),
+            replayed: reviewRequests.count > 1
         )
     }
 }

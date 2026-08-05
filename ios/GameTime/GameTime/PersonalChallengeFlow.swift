@@ -1,3 +1,4 @@
+import StripePaymentSheet
 import SwiftUI
 
 struct CreatePersonalChallengeFlow: View {
@@ -10,6 +11,10 @@ struct CreatePersonalChallengeFlow: View {
     @State private var requestID = UUID()
     @State private var step = Step.metric
     @State private var showingDiscardConfirmation = false
+    @State private var paymentConsentAccepted = false
+    @State private var paymentSheet: PaymentSheet?
+    @State private var paymentSheetSetupID: String?
+    @State private var showingPaymentSheet = false
     /// Resampled whenever the start step is entered, so the hours it offers
     /// are the hours still open. Submission re-checks against a live clock.
     @State private var now = Date()
@@ -21,6 +26,7 @@ struct CreatePersonalChallengeFlow: View {
         case commitment
         case start
         case healthAccess
+        case payment
         case review
 
         var title: String {
@@ -31,6 +37,7 @@ struct CreatePersonalChallengeFlow: View {
             case .commitment: "Your amount"
             case .start: "When you start"
             case .healthAccess: "Health check"
+            case .payment: "Test payment"
             case .review: "Check and confirm"
             }
         }
@@ -41,7 +48,10 @@ struct CreatePersonalChallengeFlow: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     progressHeader
-                    TestCommitmentDisclosure()
+                    TestCommitmentDisclosure(
+                        settlementMode:
+                            store.configuration.personalSettlementMode
+                    )
                     DaybreakCard {
                         stepContent
                     }
@@ -75,7 +85,15 @@ struct CreatePersonalChallengeFlow: View {
                                 timezone: pending.request.timezone
                             )
                     )
-                    step = .review
+                    step =
+                        if store.configuration.personalSettlementMode
+                            == .stripeSandbox,
+                            pending.paymentSetupCompletedAt == nil
+                        {
+                            .payment
+                        } else {
+                            .review
+                        }
                 } else {
                     draft = .initial(
                         profileTimezone: appModel.profile?.timezone,
@@ -101,20 +119,40 @@ struct CreatePersonalChallengeFlow: View {
                 }
                 Button("Keep it", role: .cancel) {}
             }
+            .background {
+                if let paymentSheet {
+                    PersonalPaymentSheetPresenter(
+                        paymentSheet: paymentSheet,
+                        isPresented: $showingPaymentSheet,
+                        completion: handlePaymentSheetResult
+                    )
+                }
+            }
         }
     }
 
     private var progressHeader: some View {
         HStack(spacing: 6) {
-            ForEach(Step.allCases, id: \.rawValue) { item in
+            ForEach(visibleSteps, id: \.rawValue) { item in
                 Capsule()
-                    .fill(item.rawValue <= step.rawValue
+                    .fill(
+                        (visibleSteps.firstIndex(of: item) ?? 0)
+                            <= (visibleSteps.firstIndex(of: step) ?? 0)
                         ? CompetitiveTrustTheme.coral
-                        : CompetitiveTrustTheme.rail)
+                        : CompetitiveTrustTheme.rail
+                    )
                     .frame(height: 6)
             }
         }
-        .accessibilityLabel("Step \(step.rawValue + 1) of \(Step.allCases.count)")
+        .accessibilityLabel(
+            "Step \((visibleSteps.firstIndex(of: step) ?? 0) + 1) of \(visibleSteps.count)"
+        )
+    }
+
+    private var visibleSteps: [Step] {
+        store.configuration.personalSettlementMode == .stripeSandbox
+            ? Step.allCases
+            : Step.allCases.filter { $0 != .payment }
     }
 
     @ViewBuilder
@@ -234,6 +272,8 @@ struct CreatePersonalChallengeFlow: View {
             startContent
         case .healthAccess:
             healthAccessContent
+        case .payment:
+            paymentContent
         case .review:
             reviewContent
         }
@@ -473,6 +513,73 @@ struct CreatePersonalChallengeFlow: View {
             : "Check your Health connection"
     }
 
+    private var paymentContent: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label(
+                store.pendingPaymentIsConfirmed
+                    ? "Test payment method saved"
+                    : "Save a payment method in Stripe test mode",
+                systemImage: store.pendingPaymentIsConfirmed
+                    ? "checkmark.circle.fill"
+                    : "creditcard.fill"
+            )
+            .font(
+                CompetitiveTrustTheme.displayFont(
+                    size: 21,
+                    relativeTo: .headline
+                )
+            )
+
+            Text("No charge happens today.")
+                .font(.subheadline.weight(.semibold))
+
+            VStack(alignment: .leading, spacing: 8) {
+                paymentRule(
+                    "Meeting your goal, every inconclusive result, and cancelling before the challenge starts are always $0."
+                )
+                paymentRule(
+                    "A complete miss is only provisional after the 24-hour final-sync cutoff."
+                )
+                paymentRule(
+                    "Your review window ends 7 days after the result is published."
+                )
+                paymentRule(
+                    "Only a miss confirmed after review can create one simulated off-session test charge."
+                )
+            }
+
+            Divider().overlay(CompetitiveTrustTheme.border)
+
+            Toggle(isOn: $paymentConsentAccepted) {
+                Text(paymentConsentText)
+                    .font(.caption)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .toggleStyle(.switch)
+            .disabled(store.pendingPaymentIsConfirmed)
+            .accessibilityIdentifier("personal.payment.consent")
+
+            Text(
+                "Stripe’s sandbox accepts test card details only. No real money moves."
+            )
+            .font(.caption)
+            .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+        }
+    }
+
+    private func paymentRule(_ text: String) -> some View {
+        Label(text, systemImage: "checkmark.shield")
+            .font(.caption)
+            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var paymentConsentText: String {
+        let amount = (Double(draft.commitmentAmountMinor) / 100)
+            .formatted(.currency(code: "USD"))
+        return "By starting, you agree that GameTime may create one \(amount) test charge only if this challenge is confirmed missed after the review window. Missing or unclear step data never counts as a miss."
+    }
+
     private var reviewContent: some View {
         VStack(alignment: .leading, spacing: 14) {
             Label("This locks in when you start", systemImage: "lock.fill")
@@ -503,6 +610,13 @@ struct CreatePersonalChallengeFlow: View {
             reviewRow("Time zone", draft.timezone)
             reviewRow("Starts", startDescription)
             reviewRow("Last chance to sync", "24 hours after your last day")
+            if store.configuration.personalSettlementMode == .stripeSandbox {
+                reviewRow("Payment", "Test method saved — no charge today")
+                reviewRow(
+                    "Review window",
+                    "7 days after the result is published"
+                )
+            }
             if firstDayHours != 24 {
                 Text(startConsequence)
                     .font(.caption)
@@ -518,9 +632,7 @@ struct CreatePersonalChallengeFlow: View {
                 .accessibilityIdentifier("personal.review.stale-start")
             }
             Divider().overlay(CompetitiveTrustTheme.border)
-            Text(
-                "On a daily challenge you have to hit your goal all seven days. On a weekly one you just have to reach the total by the end. If your steps go missing or don’t add up, the week doesn’t count — and it doesn’t count against you."
-            )
+            Text(reviewOutcomeExplanation)
             .font(.caption)
             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             if let pending = store.pendingCreation {
@@ -557,6 +669,30 @@ struct CreatePersonalChallengeFlow: View {
                         || !isDraftValid
                 )
                 .accessibilityIdentifier("personal.submit")
+            } else if step == .payment {
+                if store.pendingPaymentIsConfirmed {
+                    Button("Continue") {
+                        advance()
+                    }
+                    .buttonStyle(TrustPrimaryButtonStyle())
+                    .accessibilityIdentifier("personal.continue")
+                } else {
+                    Button {
+                        preparePaymentSheet()
+                    } label: {
+                        if store.isPreparingPayment {
+                            ProgressView().tint(.white)
+                        } else {
+                            Text("Set up test payment")
+                        }
+                    }
+                    .buttonStyle(TrustPrimaryButtonStyle())
+                    .disabled(
+                        !paymentConsentAccepted
+                            || store.isPreparingPayment
+                    )
+                    .accessibilityIdentifier("personal.payment.setup")
+                }
             } else {
                 Button("Continue") {
                     advance()
@@ -568,7 +704,14 @@ struct CreatePersonalChallengeFlow: View {
 
             if step != .metric {
                 Button("Back") {
-                    step = Step(rawValue: step.rawValue - 1) ?? .metric
+                    guard
+                        let index = visibleSteps.firstIndex(of: step),
+                        index > visibleSteps.startIndex
+                    else {
+                        step = .metric
+                        return
+                    }
+                    step = visibleSteps[index - 1]
                 }
                 .buttonStyle(TrustSecondaryButtonStyle())
             }
@@ -655,7 +798,13 @@ struct CreatePersonalChallengeFlow: View {
                 .localizedDescription
             return
         }
-        let next = Step(rawValue: step.rawValue + 1) ?? .review
+        guard let index = visibleSteps.firstIndex(of: step) else {
+            step = .review
+            return
+        }
+        let next = visibleSteps.index(after: index) < visibleSteps.endIndex
+            ? visibleSteps[visibleSteps.index(after: index)]
+            : .review
         if next == .start {
             // Offer the hours that are open now, not the ones that were open
             // when the flow was first presented.
@@ -668,6 +817,94 @@ struct CreatePersonalChallengeFlow: View {
             }
         }
         step = next
+    }
+
+    private var reviewOutcomeExplanation: String {
+        let base =
+            "On a daily challenge you have to hit your goal all seven days. On a weekly one you just have to reach the total by the end. If your steps go missing or don’t add up, the week doesn’t count — and it doesn’t count against you."
+        guard store.configuration.personalSettlementMode == .stripeSandbox else {
+            return base
+        }
+        return base
+            + " A complete miss stays provisional through the review window. Only a confirmed miss can create one simulated test charge."
+    }
+
+    private func preparePaymentSheet() {
+        do {
+            let request = try draft.validated(
+                requestID: requestID,
+                now: Date()
+            )
+            Task {
+                guard let setup = await store.preparePayment(request) else {
+                    return
+                }
+                switch setup.presentation {
+                case .alreadyConfirmed:
+                    paymentConsentAccepted = true
+                    step = .review
+                case .paymentSheet(
+                    let publishableKey,
+                    let setupIntentClientSecret
+                ):
+                    var configuration = PaymentSheet.Configuration()
+                    configuration.apiClient = STPAPIClient(
+                        publishableKey: publishableKey
+                    )
+                    configuration.merchantDisplayName = "GameTime"
+                    configuration.returnURL =
+                        store.configuration.stripeReturnURL?.absoluteString
+                    configuration.primaryButtonLabel =
+                        "Save test payment method"
+                    configuration.allowsDelayedPaymentMethods = false
+                    paymentSheet = PaymentSheet(
+                        setupIntentClientSecret: setupIntentClientSecret,
+                        configuration: configuration
+                    )
+                    paymentSheetSetupID = setup.setupID
+                    await Task.yield()
+                    showingPaymentSheet = true
+                }
+            }
+        } catch {
+            now = Date()
+            store.presentedError = error.localizedDescription
+        }
+    }
+
+    private func handlePaymentSheetResult(_ result: PaymentSheetResult) {
+        switch result {
+        case .completed:
+            guard let setupID = paymentSheetSetupID else {
+                store.presentedError =
+                    PersonalPaymentClientError.invalidResponse
+                    .localizedDescription
+                return
+            }
+            do {
+                let request = try draft.validated(
+                    requestID: requestID,
+                    now: Date()
+                )
+                Task {
+                    if await store.confirmPaymentSetup(
+                        request: request,
+                        setupID: setupID
+                    ) {
+                        paymentConsentAccepted = true
+                        step = .review
+                    }
+                }
+            } catch {
+                now = Date()
+                store.presentedError = error.localizedDescription
+            }
+        case .canceled:
+            break
+        case .failed:
+            store.presentedError =
+                "Stripe couldn’t save that test payment method. Nothing was charged. Try again when you’re ready."
+        }
     }
 
     private func submit() {
@@ -686,5 +923,20 @@ struct CreatePersonalChallengeFlow: View {
             now = Date()
             store.presentedError = error.localizedDescription
         }
+    }
+}
+
+private struct PersonalPaymentSheetPresenter: View {
+    let paymentSheet: PaymentSheet
+    @Binding var isPresented: Bool
+    let completion: @MainActor (PaymentSheetResult) -> Void
+
+    var body: some View {
+        Color.clear
+            .paymentSheet(
+                isPresented: $isPresented,
+                paymentSheet: paymentSheet,
+                onCompletion: completion
+            )
     }
 }

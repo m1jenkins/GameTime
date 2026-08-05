@@ -11,7 +11,8 @@
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@^1.1.5": "1.1.6",
     "jsr:@std/testing@^1.0.9": "1.0.19",
-    "npm:@peculiar/x509@^1.12.3": "1.14.3"
+    "npm:@peculiar/x509@^1.12.3": "1.14.3",
+    "npm:stripe@20.4.1": "20.4.1"
   },
   "jsr": {
     "@std/assert@1.0.19": {
@@ -195,6 +196,9 @@
     "reflect-metadata@0.2.2": {
       "integrity": "sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q=="
     },
+    "stripe@20.4.1": {
+      "integrity": "sha512-axCguHItc8Sxt0HC6aSkdVRPffjYPV7EQqZRb2GkIa8FzWDycE7nHJM19C6xAIynH1Qp1/BHiopSi96jGBxT0w=="
+    },
     "tslib@1.14.1": {
       "integrity": "sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg=="
     },
@@ -361,7 +365,8 @@
       "jsr:@std/assert@^1.0.14",
       "jsr:@std/encoding@^1.0.10",
       "jsr:@std/testing@^1.0.9",
-      "npm:@peculiar/x509@^1.12.3"
+      "npm:@peculiar/x509@^1.12.3",
+      "npm:stripe@20.4.1"
     ]
   }
 }

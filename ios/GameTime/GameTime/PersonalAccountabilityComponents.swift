@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct TestCommitmentDisclosure: View {
+    let settlementMode: PersonalSettlementMode
+
     var body: some View {
         Label(
-            "This is a test — no money will be charged.",
+            settlementMode.disclosureText,
             systemImage: "checkmark.shield.fill"
         )
         .font(
@@ -22,6 +24,17 @@ struct TestCommitmentDisclosure: View {
             in: RoundedRectangle(cornerRadius: 16, style: .continuous)
         )
         .accessibilityIdentifier("personal.test-only-disclosure")
+    }
+}
+
+extension PersonalSettlementMode {
+    var disclosureText: String {
+        switch self {
+        case .testOnly:
+            "This is a test — no money will be charged."
+        case .stripeSandbox:
+            "Payment test mode — no real money moves."
+        }
     }
 }
 

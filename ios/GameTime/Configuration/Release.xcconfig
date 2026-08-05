@@ -4,3 +4,4 @@
 // independently locks Release contest mutations at runtime.
 GAMETIME_ENV = release
 GAMETIME_CONTEST_MUTATIONS_ENABLED = NO
+GAMETIME_PERSONAL_SETTLEMENT_MODE = test_only

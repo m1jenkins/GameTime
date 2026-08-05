@@ -341,27 +341,66 @@ App Store submission, or production configuration is authorized by this plan.
 | Three-tab personal Daybreak app | Personal simulator acceptance passes on a booted iPhone 17 Pro simulator: 103 unit, 10 UI, and 10 conformance tests pass; unsigned Debug/Staging/Release builds pass; D83 accepts the expected Xcode 26.2 no-AppIntents self-skip | Signed physical-device visual, HealthKit, App Attest, and background-delivery acceptance |
 | Hosted Stage A | Personal V1 schema (through `20260802165312`) and all six Edge Functions deployed 2026-08-03 with owner approval. Solo migrations deliberately withheld | Hosted acceptance run: signed device, two-actor privacy observation, scheduler |
 | Physical Stage A | Not run | One provisioned iPhone and bounded evidence record |
-| Real fees | Blocked | Every Stage B gate below |
+| Stripe sandbox Stage B foundation | Implemented and verified locally: native PaymentSheet setup, server-verified challenge commit, signed webhook reconciliation, review, and one idempotent test PaymentIntent | Dedicated non-production target, tester allowlist/kill switch, Stripe test secrets and webhook, secure dispatcher, and hosted sandbox acceptance |
+| Real fees | Disabled | Apple, Stripe, legal, age/jurisdiction, hosted deployment, and production acceptance gates below |
 
-## Stage B real-fee gate
+## Stage B Stripe sandbox foundation and live-fee gate
 
-Real fees remain prohibited until all of these exist in writing and the product
-is redesigned and reviewed against them:
+Stage B now has a local Stripe sandbox implementation. This section locks the
+implemented product contract. Local database, Edge Function, Swift, simulator,
+and conformance checks pass; this does not claim that the sandbox is hosted,
+that end-to-end webhook and dispatch behavior is accepted, or that any live
+payment is permitted.
 
-- US counsel memo defining the fee model, 18+ rules, versioned state allowlist,
-  cancellation, waiver, dispute, and refund policies.
-- Processor approval explicitly covering a HealthKit-informed,
+The sandbox flow is:
+
+1. After Health access is ready and before final confirmation, create a Stripe
+   `SetupIntent` to save an approved payment method for later off-session use.
+   Starting a challenge creates no authorization hold and no charge.
+2. Create the challenge only after payment setup succeeds and the exact amount,
+   terms version, payment-method reference, and explicit off-session consent are
+   bound to the exact creation request. GameTime stores provider identifiers and
+   status, never card data.
+3. Run the seven-day challenge and its existing 24-hour final-sync period. No
+   payment decision occurs before the evidence cutoff.
+4. `met_goal`, `inconclusive`, and pre-start cancellation close with $0 charged.
+   Missing, conflicting, or unresolved step data never becomes a miss.
+5. Publish a complete `missed_goal` as provisional. Set
+   `review_deadline = published_at + interval '7 days'`. No charge may occur
+   before that deadline or while a timely review remains unresolved.
+6. If no review is filed by the deadline, or a completed review confirms the
+   miss, create exactly one idempotent off-session Stripe `PaymentIntent` for the
+   frozen amount. If a review overturns the miss, or remains unresolved at the
+   deadline, waive the amount and charge $0.
+7. If the off-session attempt fails or requires customer action, do not retry it
+   automatically. Require an explicit user-authorized recovery action and block
+   another paid challenge until the payment state is resolved or waived. Do not
+   use repeated retries or debt collection.
+
+All Stripe objects and payment methods in the sandbox use Stripe test mode. A
+sandbox `PaymentIntent` moves no real money. Sandbox UI must say
+**Payment test mode — no real money moves.** Test objects, simulator results, and
+local webhook fixtures do not prove hosted deployment, provider approval, or a
+live charge.
+
+Stage A, Solo 2A, and Solo 2B remain structurally `test_only`. D113 requires a
+new forward terms version and forward migrations. Do not rewrite their enums,
+rows, results, or historical migrations to add Stripe.
+
+Release and live Stripe mode remain disabled until all of these exist:
+
+- A US counsel memo defining the fee model, 18+ rules, versioned state allowlist,
+  cancellation, waiver, review, refund, deletion, and retention policies.
+- Written Stripe approval explicitly covering a HealthKit-informed,
   failure-contingent, off-session fee.
-- App Store/payment and HealthKit policy clearance.
+- App Store payment and HealthKit policy clearance.
 - Approved age and jurisdiction verification.
+- Separately approved hosted deployment, webhook verification, reconciliation,
+  and end-to-end sandbox acceptance before any live configuration.
 
-Stage B must use a saved approved payment method and explicit off-session
-mandate, never a seven-day authorization hold. A verified miss is provisional
-after grace, receives a seven-day review window, pauses charging during review,
-and waives automatically if unresolved by day 14. Injury reporting uses
-structured attestations without medical records. A confirmed miss may be
-charged once; failed collection requires a user-authorized retry and blocks
-another paid challenge without repeated retries or debt collection.
+Injury reporting uses structured attestations without medical records. Its
+policy, review path, and effect on a provisional miss require the same written
+approval as the rest of the live fee model.
 
 Steps 2A and 2B remain `test_only`. Dollar-denominated commitments, logical
 settlement, and fake authorization events are not Stage B clearance. They do

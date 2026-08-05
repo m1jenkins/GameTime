@@ -49,6 +49,108 @@ final class GameTimeUITests: XCTestCase {
         }
     }
 
+    func testStripeSandboxFlowUsesFixturePaymentAndExactConsent() {
+        let app = launch(
+            "--fixture-empty",
+            "--fixture-stripe-sandbox"
+        )
+        XCTAssertTrue(
+            app.staticTexts[
+                "Payment test mode — no real money moves."
+            ].waitForExistence(timeout: 5)
+        )
+        XCTAssertFalse(
+            app.staticTexts[
+                "This is a test — no money will be charged."
+            ].exists
+        )
+
+        app.buttons["personal.create"].waitAndTap()
+        for title in [
+            "How it counts",
+            "Your goal",
+            "Your amount",
+            "When you start",
+            "Health check",
+            "Test payment",
+        ] {
+            app.buttons["personal.continue"].waitAndTap()
+            XCTAssertTrue(
+                app.navigationBars[title].waitForExistence(timeout: 4)
+            )
+        }
+
+        let consent =
+            "By starting, you agree that GameTime may create one $10.00 test charge only if this challenge is confirmed missed after the review window. Missing or unclear step data never counts as a miss."
+        XCTAssertTrue(
+            exactStaticText(consent, in: app)
+                .waitForExistence(timeout: 3)
+        )
+        let setup = app.buttons["personal.payment.setup"]
+        XCTAssertTrue(setup.exists)
+        XCTAssertFalse(setup.isEnabled)
+        app.switches["personal.payment.consent"].waitAndTap()
+        XCTAssertTrue(setup.isEnabled)
+        setup.tap()
+
+        XCTAssertTrue(
+            app.navigationBars["Check and confirm"]
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            app.staticTexts["Test method saved — no charge today"].exists
+        )
+        app.buttons["personal.submit"].waitAndTap()
+        XCTAssertTrue(
+            app.navigationBars["Your challenge"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(
+            app.staticTexts[
+                "Payment test mode — no real money moves."
+            ].exists
+        )
+    }
+
+    func testStripeMissReviewUsesFixedReasonAndShowsNoChargeState() {
+        let app = launch(
+            "--fixture-stripe-sandbox",
+            "--fixture-stripe-review",
+            "--fixture-open-review-challenge"
+        )
+        XCTAssertTrue(
+            app.navigationBars["Your challenge"]
+                .waitForExistence(timeout: 5)
+        )
+
+        let request = app.buttons["personal.review.request"]
+        for _ in 0..<10 where !request.isHittable { app.swipeUp() }
+        XCTAssertTrue(request.waitForExistence(timeout: 3))
+        XCTAssertTrue(
+            app.buttons[
+                "personal.review.reason.user_disputes_step_data"
+            ].exists
+        )
+        let resultReason = app.buttons[
+            "personal.review.reason.user_disputes_result"
+        ]
+        XCTAssertTrue(resultReason.exists)
+        resultReason.tap()
+        XCTAssertEqual(resultReason.value as? String, "Selected")
+
+        request.tap()
+
+        XCTAssertTrue(
+            app.staticTexts["Review requested"]
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            app.staticTexts[
+                "No charge while this result is reviewed."
+            ].exists
+        )
+    }
+
     func testTodayShowsPersonalProgressTimelineAndManualSync() {
         let app = launch("--fixture-activity")
 
