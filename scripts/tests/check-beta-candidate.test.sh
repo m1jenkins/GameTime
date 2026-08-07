@@ -200,6 +200,8 @@ write_safe_public_fixture() {
   cat >"${root}/ios/GameTime/Configuration/PublicClient.xcconfig" <<'EOF'
 SUPABASE_URL = https://fixture-beta.supabase.co
 SUPABASE_PUBLISHABLE_KEY = sb_publishable_fixture_value
+GAMETIME_PRIVACY_POLICY_URL = https://example.com/privacy
+GAMETIME_SUPPORT_EMAIL = support@example.com
 EOF
 }
 
@@ -305,6 +307,8 @@ fi
 assert_contains "$passing_output" "PASS release-bundle-id"
 assert_contains "$passing_output" "PASS iphone-only"
 assert_contains "$passing_output" "PASS watch-isolation"
+assert_contains "$passing_output" "PASS privacy-policy-url"
+assert_contains "$passing_output" "PASS support-contact"
 assert_contains "$passing_output" "0 blocker(s)"
 
 set +e
@@ -326,6 +330,8 @@ for blocker_id in \
   app-icon-catalog \
   privacy-manifest \
   watch-isolation \
+  privacy-policy-url \
+  support-contact \
   public-client-secrets
 do
   assert_contains "$blocked_output" "BLOCKER ${blocker_id}"

@@ -119,6 +119,24 @@ Deno.test("charges only database-approved confirmed misses", async () => {
   ]);
 });
 
+Deno.test("a database kill switch yields no claims or Stripe calls", async () => {
+  const value = fixture({ claims: [] });
+  const handler = createPersonalStripeChargeHandler(value.deps);
+  const response = await handler(request());
+
+  assertEquals(response.status, 200);
+  assertEquals(await response.json(), {
+    claimed: 0,
+    succeeded: 0,
+    processing: 0,
+    requires_action: 0,
+    failed: 0,
+    transport_ambiguous: 0,
+  });
+  assertEquals(value.calls, ["claim:lease-owner:10"]);
+  assertEquals(value.records, []);
+});
+
 Deno.test("a provider decline or action requirement is terminal for automatic dispatch", async () => {
   for (const status of ["failed", "requires_action"] as const) {
     const value = fixture({ status });

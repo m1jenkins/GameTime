@@ -3992,12 +3992,13 @@ objects live-payment proof.
 **Remaining gate.** D113 is implemented locally in a sandbox-only client and
 server path. Stage A and Solo remain `test_only`, and no hosted environment was
 changed. The Release source selects the sandbox contract but is not yet a
-candidate: it still needs the final Apple identity and redirect scheme, tester
-allowlist and kill switch, test secrets, a registered signed webhook, a secure
-dispatcher, and end-to-end reconciliation proof. Live rollout additionally
-requires written Stripe approval, US legal review, App Store and HealthKit
-clearance, age and jurisdiction controls, and a separately approved production
-rollout.
+candidate: D115 adds the local default-off tester allowlist and kill switch, but
+that migration remains unhosted and disabled. The candidate still needs the
+final Apple identity and redirect scheme, test secrets, a registered signed
+webhook, an approved hosted dispatcher, and end-to-end reconciliation proof.
+Live rollout additionally requires written Stripe approval, US legal review,
+App Store and HealthKit clearance, age and jurisdiction controls, and a
+separately approved production rollout.
 
 ### D114. The invite-only Release beta may use Stripe sandbox only
 
@@ -4028,3 +4029,54 @@ preflight, deploy the exact reviewed non-production backend behind database
 allowlist and kill-switch controls, and complete signed physical-iPhone and
 processed-TestFlight proof. Until those gates pass, external invitations remain
 NO-GO.
+
+### D115. Stripe sandbox beta admission is database-owned and default-off
+
+**What.** Personal Stripe sandbox access is controlled by a private singleton
+runtime switch and an exact-owner eligibility table. The migration seeds the
+switch disabled and the allowlist empty. Only service-role versioned RPCs may
+change either control, and an append-only exact-request ledger makes identical
+configuration retries safe while rejecting a changed payload under the same
+request ID.
+
+The shared database mutation paths enforce admission so neither direct
+authenticated RPCs nor Edge Functions can bypass it. Current active ownership,
+the runtime switch, and exact eligibility are required for a new setup, a new
+challenge commitment, a new confirmed-miss decision, automatic confirmation,
+charge-command creation, and dispatch. Every admitted reader takes one shared
+transaction lock before row locks, while every control writer takes its
+exclusive form. This makes an atomic runtime/eligibility change serialize
+without a mixed row-lock deadlock. Charge discovery also holds the currently
+active eligible owners' profile rows through commit, so account deletion either
+wins before discovery or waits until the claim transaction is complete.
+
+New setups and agreements freeze
+`personal-stripe-sandbox-beta-v1` authorization provenance. This allows an exact
+retry of genuinely admitted work after later disablement without grandfathering
+an older or manually created row. Changed retries still fail.
+
+Turning the switch off does not hide state or obstruct risk-reducing work.
+Owner status, review filing, waiver/no-charge resolution, setup-result
+recording, signed webhook reconciliation, and provider-result reconciliation
+remain available where appropriate. The worker performs overdue unresolved
+review waivers before it returns an empty charge batch. No automatic payment
+attempt is made while disabled.
+
+**Why.** A client flag or Edge-only check would be bypassable because some setup
+and commitment RPCs are callable directly. Default-off database enforcement
+gives the founder one authoritative stop control, keeps tester admission
+explicit, and still lets already-started provider facts reconcile without
+creating duplicate or stranded obligations.
+
+**Rejected.** A default-on switch; a JWT-metadata allowlist; Edge-only
+enforcement; retroactively authorizing pre-control rows; blocking signed
+webhooks or owner status while disabled; deleting eligibility rows instead of
+recording a negative state; and treating local green tests as hosted proof.
+
+**Remaining gate.** This decision is implemented and verified only in local
+source. No hosted migration, control change, tester admission, Stripe call,
+webhook change, or Cron change occurred. The prior five-migration rollout packet
+does not contain this sixth migration and must be regenerated and reviewed.
+Hosted deployment, read-back of the seeded disabled/empty state, any named
+tester eligibility, runtime activation, and the full isolated Stripe smoke test
+each require their own approved evidence.

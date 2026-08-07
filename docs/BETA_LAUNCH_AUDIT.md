@@ -1,6 +1,6 @@
 # GameTime lean external beta launch plan — Stripe sandbox
 
-**Revised:** August 6, 2026
+**Revised:** August 7, 2026
 
 **Target:** a small, invite-only external TestFlight beta
 
@@ -123,10 +123,16 @@ rerun in an accelerated hosted smoke test. Do not add a general job platform
 or an operations dashboard.
 
 The source checkpoint includes the bounded result-worker migration, focused
-tests, and an inactive five-minute Cron registration. Treat it as unhosted
-source until the exact five-migration packet passes current local regression,
-owner review, authenticated dry run, isolated hosted smoke, and separate Cron
-activation approval.
+tests, and an inactive five-minute Cron registration. A later local migration,
+`20260807151320_personal_stripe_sandbox_beta_controls`, adds the default-off
+database switch, empty exact-owner allowlist, and replay-safe enforcement
+boundary. Its focused tests and the full local suite pass, but it has not been
+applied to the hosted project.
+
+Treat both workers and controls as unhosted source. The existing hash-locked
+five-migration packet predates the Stripe controls and must be regenerated for
+the six-migration set before owner review, authenticated dry run, isolated
+hosted smoke, and separate Cron or Stripe-control activation approval.
 
 ### 5. Finish deletion, privacy, and support
 
@@ -210,9 +216,11 @@ gaps before the candidate freeze:
 - [ ] Requires-action or failed test settlement has one explicit
       user-authorized recovery or founder-waiver path and cannot block the
       tester forever.
-- [ ] Stripe setup/commit/dispatch is protected by a database-enforced beta
-      allowlist and global kill switch; status, signed webhook reconciliation,
-      and audited no-charge/waiver resolution remain safe when disabled.
+- [x] Local Stripe setup/commit/dispatch source is protected by a
+      database-enforced beta allowlist and global kill switch; status, signed
+      webhook reconciliation, and audited no-charge/waiver resolution remain
+      safe when disabled. Hosted application and activation remain unproven and
+      separately approval-gated.
 - [ ] The complete root journey remains legible when the phone uses dark
       appearance, while GameTime intentionally ships fixed-light for beta.
 - [ ] The exact candidate passes common journeys with VoiceOver, Larger Text,

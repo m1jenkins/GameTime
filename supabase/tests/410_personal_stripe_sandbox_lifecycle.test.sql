@@ -28,6 +28,44 @@ insert into public.profiles (id, handle, display_name, timezone) values
 
 set local role service_role;
 
+select public.set_personal_stripe_sandbox_runtime_v1(
+  'f4100000-0000-0000-0000-000000000001',
+  true
+);
+
+select public.set_personal_stripe_sandbox_beta_eligibility_v1(
+  fixture.request_id,
+  fixture.owner_id,
+  true
+)
+from (
+  values
+    (
+      'f4100000-0000-0000-0000-000000000011'::uuid,
+      'fa111111-1111-1111-1111-111111111111'::uuid
+    ),
+    (
+      'f4100000-0000-0000-0000-000000000012'::uuid,
+      'fa222222-2222-2222-2222-222222222222'::uuid
+    ),
+    (
+      'f4100000-0000-0000-0000-000000000013'::uuid,
+      'fa333333-3333-3333-3333-333333333333'::uuid
+    ),
+    (
+      'f4100000-0000-0000-0000-000000000014'::uuid,
+      'fa444444-4444-4444-4444-444444444444'::uuid
+    ),
+    (
+      'f4100000-0000-0000-0000-000000000015'::uuid,
+      'fa555555-5555-5555-5555-555555555555'::uuid
+    ),
+    (
+      'f4100000-0000-0000-0000-000000000016'::uuid,
+      'fa666666-6666-6666-6666-666666666666'::uuid
+    )
+) fixture(request_id, owner_id);
+
 create temporary table t_api_setup as
 select public.begin_personal_stripe_sandbox_setup_service_v1(
   'fa111111-1111-1111-1111-111111111111',
@@ -272,7 +310,9 @@ begin
     stripe_setup_intent_id,
     stripe_payment_method_id,
     status,
-    succeeded_at
+    succeeded_at,
+    beta_authorization_version,
+    beta_authorized_at
   )
   values (
     v_setup,
@@ -292,7 +332,9 @@ begin
     v_setup_intent,
     v_payment_method,
     'succeeded',
-    v_now - interval '30 minutes'
+    v_now - interval '30 minutes',
+    'personal-stripe-sandbox-beta-v1',
+    v_now - interval '1 hour'
   );
 
   insert into app.personal_stripe_sandbox_agreements (
@@ -312,7 +354,9 @@ begin
     consented_at,
     stripe_customer_id,
     stripe_setup_intent_id,
-    stripe_payment_method_id
+    stripe_payment_method_id,
+    beta_authorization_version,
+    beta_authorized_at
   )
   values (
     v_challenge,
@@ -331,7 +375,9 @@ begin
     v_now - interval '1 hour',
     v_customer,
     v_setup_intent,
-    v_payment_method
+    v_payment_method,
+    'personal-stripe-sandbox-beta-v1',
+    v_now - interval '30 minutes'
   );
 
   update app.personal_stripe_sandbox_setups

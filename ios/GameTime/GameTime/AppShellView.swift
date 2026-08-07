@@ -4,6 +4,8 @@ struct AppShellView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(PersonalAccountabilityStore.self) private var personalStore
     @Environment(AppRouter.self) private var router
+    @State private var foregroundRefreshGate =
+        AppShellForegroundRefreshGate()
 
     var body: some View {
         @Bindable var router = router
@@ -80,13 +82,26 @@ struct AppShellView: View {
                 PersonalV1UnavailableRouteView()
             }
         }
-        .task {
-            await personalStore.refresh()
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            guard newPhase == .active else { return }
+        .onChange(of: scenePhase, initial: true) { _, newPhase in
+            guard foregroundRefreshGate.shouldRefresh(after: newPhase) else {
+                return
+            }
             Task { await personalStore.refresh() }
         }
+    }
+}
+
+struct AppShellForegroundRefreshGate {
+    private var hasEnteredBackground = false
+
+    mutating func shouldRefresh(after phase: ScenePhase) -> Bool {
+        if phase == .background {
+            hasEnteredBackground = true
+            return false
+        }
+        guard phase == .active, hasEnteredBackground else { return false }
+        hasEnteredBackground = false
+        return true
     }
 }
 

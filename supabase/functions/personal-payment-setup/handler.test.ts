@@ -192,6 +192,33 @@ Deno.test("an exact replay retrieves the same SetupIntent", async () => {
   ]);
 });
 
+Deno.test("a database beta-control refusal stops all Stripe setup work", async () => {
+  const calls: string[] = [];
+  const database: PersonalStripeSetupDatabase = {
+    beginSetup() {
+      calls.push("begin");
+      return Promise.reject(new Error("database beta admission refused"));
+    },
+    recordCustomer() {
+      calls.push("customer");
+      return Promise.resolve();
+    },
+    recordSetup() {
+      calls.push("setup");
+      return Promise.resolve();
+    },
+  };
+  const stripe = stripeRecorder();
+  const handler = createPersonalStripeSetupHandler(
+    deps(database, stripe.gateway),
+  );
+
+  const response = await handler(await request());
+  assertEquals(response.status, 500);
+  assertEquals(calls, ["begin"]);
+  assertEquals(stripe.calls, []);
+});
+
 Deno.test("requires explicit current consent", async () => {
   const database = databaseRecorder();
   const stripe = stripeRecorder();

@@ -1,6 +1,7 @@
 import Foundation
 import GameTimeCore
 import HealthKit
+import SwiftUI
 import XCTest
 
 @testable import GameTime
@@ -445,6 +446,213 @@ final class PersonalAccountabilityModelTests: XCTestCase {
 
 @MainActor
 final class PersonalAccountabilityStoreTests: XCTestCase {
+    func testOverlappingSameAccountActivationsRestoreAndListOnce() async {
+        let ownerID = UUID()
+        let pendingStore = CountingPendingPersonalChallengeStore()
+        let pendingCancellationStore =
+            CountingPendingPersonalCancellationStore()
+        let activitySync = StorePersonalActivitySyncFake(
+            pendingCount: 0,
+            pendingChallengeID: nil,
+            results: [],
+            blocksNextPendingCountRead: true
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: pendingStore,
+            pendingCancellationStore: pendingCancellationStore,
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: activitySync
+        )
+
+        let firstActivation = Task {
+            await store.activate(ownerID: ownerID)
+        }
+        await activitySync.waitUntilPendingCountReadStarts()
+        let overlappingActivation = Task {
+            await store.activate(ownerID: ownerID)
+        }
+        await Task.yield()
+        activitySync.releasePendingCountRead()
+        await firstActivation.value
+        await overlappingActivation.value
+
+        let pendingCreationLoadCount = await pendingStore.loadCallCount
+        let pendingCancellationLoadCount =
+            await pendingCancellationStore.loadCallCount
+        XCTAssertEqual(pendingCreationLoadCount, 1)
+        XCTAssertEqual(pendingCancellationLoadCount, 1)
+        XCTAssertEqual(activitySync.pendingCountReadCount, 1)
+        XCTAssertEqual(client.listCallCount, 1)
+
+        await store.activate(ownerID: ownerID)
+
+        XCTAssertEqual(activitySync.pendingCountReadCount, 1)
+        XCTAssertEqual(client.listCallCount, 1)
+    }
+
+    func testCreationStaysFailClosedWhileSavedStateRestores() async {
+        let ownerID = UUID()
+        let activitySync = StorePersonalActivitySyncFake(
+            pendingCount: 0,
+            pendingChallengeID: nil,
+            results: [],
+            blocksNextPendingCountRead: true
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: PersonalClientFake(ownerID: ownerID),
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: activitySync
+        )
+
+        let activation = Task {
+            await store.activate(ownerID: ownerID)
+        }
+        await activitySync.waitUntilPendingCountReadStarts()
+        await store.refresh()
+
+        XCTAssertEqual(store.loadState, .empty)
+        XCTAssertTrue(store.isRestoringSavedState)
+        XCTAssertFalse(store.hasVerifiedCreationState)
+        XCTAssertFalse(store.canCreate)
+
+        activitySync.releasePendingCountRead()
+        await activation.value
+
+        XCTAssertFalse(store.isRestoringSavedState)
+        XCTAssertTrue(store.hasVerifiedCreationState)
+        XCTAssertTrue(store.canCreate)
+    }
+
+    func testSameAccountActivationRetriesActivityRecoveryIssue() async {
+        let ownerID = UUID()
+        let activitySync = StorePersonalActivitySyncFake(
+            pendingCount: 0,
+            pendingChallengeID: nil,
+            results: [],
+            pendingCountError: ActivitySyncError.queuedRequestUnavailable
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: activitySync
+        )
+
+        await store.activate(ownerID: ownerID)
+
+        XCTAssertTrue(store.hasPendingActivityRecoveryIssue)
+        XCTAssertEqual(activitySync.pendingCountReadCount, 1)
+        XCTAssertEqual(client.listCallCount, 1)
+
+        activitySync.setPendingCountError(nil)
+        await store.activate(ownerID: ownerID)
+
+        XCTAssertFalse(store.hasPendingActivityRecoveryIssue)
+        XCTAssertEqual(activitySync.pendingCountReadCount, 2)
+        XCTAssertEqual(client.listCallCount, 2)
+        XCTAssertTrue(store.canCreate)
+    }
+
+    func testGenuineForegroundTransitionPerformsOneNewRefresh() async {
+        let ownerID = UUID()
+        let client = PersonalClientFake(ownerID: ownerID)
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await store.activate(ownerID: ownerID)
+        var gate = AppShellForegroundRefreshGate()
+
+        XCTAssertFalse(gate.shouldRefresh(after: .active))
+        XCTAssertFalse(gate.shouldRefresh(after: .inactive))
+        XCTAssertFalse(gate.shouldRefresh(after: .active))
+        XCTAssertFalse(gate.shouldRefresh(after: .background))
+        XCTAssertFalse(gate.shouldRefresh(after: .inactive))
+        if gate.shouldRefresh(after: .active) {
+            await store.refresh()
+        }
+        XCTAssertFalse(gate.shouldRefresh(after: .active))
+
+        XCTAssertEqual(client.listCallCount, 2)
+    }
+
+    func testExplicitPullToRefreshPerformsOneNewRefresh() async {
+        let ownerID = UUID()
+        let client = PersonalClientFake(ownerID: ownerID)
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await store.activate(ownerID: ownerID)
+
+        await store.refresh()
+
+        XCTAssertEqual(client.listCallCount, 2)
+    }
+
+    func testAccountSwitchDiscardsStaleRefreshResult() async {
+        let ownerA = UUID()
+        let ownerB = UUID()
+        let asOf = Date(timeIntervalSince1970: 1_785_888_000)
+        let challengeA = makeActivityChallenge(
+            ownerID: ownerA,
+            evidenceCutoff: asOf
+        )
+        let challengeB = makeActivityChallenge(
+            ownerID: ownerB,
+            evidenceCutoff: asOf.addingTimeInterval(86_400)
+        )
+        let auth = PersonalAuthFake(ownerID: ownerA)
+        let client = PersonalClientFake(ownerID: ownerA)
+        client.setChallenge(challengeA)
+        client.suspendNextListResponse()
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: auth,
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+
+        let accountAActivation = Task {
+            await store.activate(ownerID: ownerA)
+        }
+        await client.waitUntilListResponseSuspends()
+        auth.ownerID = ownerB
+        client.setChallenge(challengeB)
+
+        await store.activate(ownerID: ownerB)
+
+        XCTAssertEqual(store.ownerID, ownerB)
+        XCTAssertEqual(store.challenges.map(\.id), [challengeB.id])
+
+        client.resumeSuspendedListResponse()
+        await accountAActivation.value
+
+        XCTAssertEqual(store.ownerID, ownerB)
+        XCTAssertEqual(store.challenges.map(\.id), [challengeB.id])
+        XCTAssertEqual(client.listCallCount, 2)
+    }
+
     func testCreationFailsClosedAfterAvailabilityRefreshFails() async throws {
         let ownerID = UUID()
         let client = PersonalClientFake(ownerID: ownerID)
@@ -1850,6 +2058,56 @@ final class PersonalHealthBackgroundDeliveryTests: XCTestCase {
     }
 }
 
+private actor CountingPendingPersonalChallengeStore:
+    PendingPersonalChallengeStore
+{
+    private var submission: PendingPersonalChallengeSubmission?
+    private(set) var loadCallCount = 0
+
+    func load(for ownerID: UUID) throws
+        -> PendingPersonalChallengeSubmission?
+    {
+        loadCallCount += 1
+        try submission?.validate(for: ownerID)
+        return submission
+    }
+
+    func save(_ submission: PendingPersonalChallengeSubmission) throws {
+        try submission.validate(for: submission.ownerID)
+        self.submission = submission
+    }
+
+    func remove(for ownerID: UUID) {
+        guard submission?.ownerID == ownerID else { return }
+        submission = nil
+    }
+}
+
+private actor CountingPendingPersonalCancellationStore:
+    PendingPersonalCancellationStore
+{
+    private var submission: PendingPersonalCancellationSubmission?
+    private(set) var loadCallCount = 0
+
+    func load(for ownerID: UUID) throws
+        -> PendingPersonalCancellationSubmission?
+    {
+        loadCallCount += 1
+        try submission?.validate(for: ownerID)
+        return submission
+    }
+
+    func save(_ submission: PendingPersonalCancellationSubmission) throws {
+        try submission.validate(for: submission.ownerID)
+        self.submission = submission
+    }
+
+    func remove(for ownerID: UUID) {
+        guard submission?.ownerID == ownerID else { return }
+        submission = nil
+    }
+}
+
 @MainActor
 private final class PersonalAuthFake: AuthClient {
     var ownerID: UUID?
@@ -1886,9 +2144,17 @@ private final class PersonalClientFake: PersonalAccountabilityClient {
     var loseFirstCancellationResponse = false
     var hold: PersonalEligibilityHold?
     var listError: PersonalAccountabilityClientError?
+    private(set) var listCallCount = 0
     private(set) var cancellationRequests:
         [(challengeID: UUID, requestID: UUID)] = []
     private var challenge: PersonalChallengeDetail?
+    private var shouldSuspendNextListResponse = false
+    private var suspendedListResponseStarted = false
+    private var suspendedListResponseReleased = false
+    private var suspendedListStartWaiters:
+        [CheckedContinuation<Void, Never>] = []
+    private var suspendedListReleaseWaiters:
+        [CheckedContinuation<Void, Never>] = []
 
     init(ownerID: UUID) {
         self.ownerID = ownerID
@@ -1899,8 +2165,9 @@ private final class PersonalClientFake: PersonalAccountabilityClient {
     }
 
     func listMyChallenges() async throws -> PersonalAccountabilitySnapshot {
+        listCallCount += 1
         if let listError { throw listError }
-        return PersonalAccountabilitySnapshot(
+        let snapshot = PersonalAccountabilitySnapshot(
             challenges: challenge.map {
                 [
                     PersonalChallengeSummary(
@@ -1915,6 +2182,43 @@ private final class PersonalClientFake: PersonalAccountabilityClient {
             latestDiagnostic: trustedDiagnostic,
             eligibilityHold: hold
         )
+        if shouldSuspendNextListResponse {
+            shouldSuspendNextListResponse = false
+            suspendedListResponseStarted = true
+            let startWaiters = suspendedListStartWaiters
+            suspendedListStartWaiters.removeAll()
+            for waiter in startWaiters {
+                waiter.resume()
+            }
+            if !suspendedListResponseReleased {
+                await withCheckedContinuation { continuation in
+                    suspendedListReleaseWaiters.append(continuation)
+                }
+            }
+        }
+        return snapshot
+    }
+
+    func suspendNextListResponse() {
+        shouldSuspendNextListResponse = true
+        suspendedListResponseStarted = false
+        suspendedListResponseReleased = false
+    }
+
+    func waitUntilListResponseSuspends() async {
+        guard !suspendedListResponseStarted else { return }
+        await withCheckedContinuation { continuation in
+            suspendedListStartWaiters.append(continuation)
+        }
+    }
+
+    func resumeSuspendedListResponse() {
+        suspendedListResponseReleased = true
+        let releaseWaiters = suspendedListReleaseWaiters
+        suspendedListReleaseWaiters.removeAll()
+        for waiter in releaseWaiters {
+            waiter.resume()
+        }
     }
 
     func challenge(id: UUID) async throws -> PersonalChallengeDetail? {
@@ -2137,17 +2441,27 @@ private final class StorePersonalActivitySyncFake: PersonalActivitySyncing {
     private var results: [Result]
     private var pendingCountError: (any Error)?
     private(set) var syncedChallengeIDs: [UUID] = []
+    private(set) var pendingCountReadCount = 0
+    private var shouldBlockNextPendingCountRead: Bool
+    private var pendingCountReadStarted = false
+    private var pendingCountReadReleased = false
+    private var pendingCountStartWaiters:
+        [CheckedContinuation<Void, Never>] = []
+    private var pendingCountReleaseWaiters:
+        [CheckedContinuation<Void, Never>] = []
 
     init(
         pendingCount: Int,
         pendingChallengeID: UUID?,
         results: [Result],
-        pendingCountError: (any Error)? = nil
+        pendingCountError: (any Error)? = nil,
+        blocksNextPendingCountRead: Bool = false
     ) {
         self.pendingCount = pendingCount
         queuedChallengeID = pendingChallengeID
         self.results = results
         self.pendingCountError = pendingCountError
+        shouldBlockNextPendingCountRead = blocksNextPendingCountRead
     }
 
     func setPendingCountError(_ error: (any Error)?) {
@@ -2160,10 +2474,41 @@ private final class StorePersonalActivitySyncFake: PersonalActivitySyncing {
 
     func pendingUploadCount(for ownerID: UUID) async throws -> Int {
         _ = ownerID
+        pendingCountReadCount += 1
+        if shouldBlockNextPendingCountRead {
+            shouldBlockNextPendingCountRead = false
+            pendingCountReadStarted = true
+            let startWaiters = pendingCountStartWaiters
+            pendingCountStartWaiters.removeAll()
+            for waiter in startWaiters {
+                waiter.resume()
+            }
+            if !pendingCountReadReleased {
+                await withCheckedContinuation { continuation in
+                    pendingCountReleaseWaiters.append(continuation)
+                }
+            }
+        }
         if let pendingCountError {
             throw pendingCountError
         }
         return pendingCount
+    }
+
+    func waitUntilPendingCountReadStarts() async {
+        guard !pendingCountReadStarted else { return }
+        await withCheckedContinuation { continuation in
+            pendingCountStartWaiters.append(continuation)
+        }
+    }
+
+    func releasePendingCountRead() {
+        pendingCountReadReleased = true
+        let releaseWaiters = pendingCountReleaseWaiters
+        pendingCountReleaseWaiters.removeAll()
+        for waiter in releaseWaiters {
+            waiter.resume()
+        }
     }
 
     func pendingChallengeID(for ownerID: UUID) async throws -> UUID? {

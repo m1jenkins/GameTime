@@ -61,6 +61,7 @@ final class PersonalAccountabilityStore {
     private(set) var pendingActivityUploadCount = 0
     private(set) var pendingActivityChallengeID: UUID?
     private(set) var hasPendingActivityRecoveryIssue = false
+    private(set) var isRestoringSavedState = false
     private(set) var isMutating = false
     private(set) var isPreparingPayment = false
     private(set) var isRequestingReview = false
@@ -118,11 +119,12 @@ final class PersonalAccountabilityStore {
     }
 
     var hasVerifiedCreationState: Bool {
+        guard !isRestoringSavedState else { return false }
         switch loadState {
         case .loaded, .empty:
-            true
+            return true
         case .idle, .loading, .failed:
-            false
+            return false
         }
     }
 
@@ -152,12 +154,12 @@ final class PersonalAccountabilityStore {
 
     func activate(ownerID: UUID?) async {
         guard self.ownerID != ownerID else {
-            if ownerID != nil {
-                if hasPendingActivityRecoveryIssue {
-                    await retryPendingActivityRecovery()
-                } else {
-                    await refresh()
-                }
+            if
+                ownerID != nil,
+                !isRestoringSavedState,
+                hasPendingActivityRecoveryIssue
+            {
+                await retryPendingActivityRecovery()
             }
             return
         }
@@ -167,6 +169,12 @@ final class PersonalAccountabilityStore {
         self.ownerID = ownerID
         guard let ownerID else { return }
         let generation = actorGeneration
+        isRestoringSavedState = true
+        defer {
+            if isCurrent(ownerID, generation: generation) {
+                isRestoringSavedState = false
+            }
+        }
         await restorePendingCreation(for: ownerID, generation: generation)
         guard isCurrent(ownerID, generation: generation) else { return }
         await restorePendingCancellation(for: ownerID, generation: generation)
@@ -181,8 +189,14 @@ final class PersonalAccountabilityStore {
     }
 
     func retryPendingActivityRecovery() async {
-        guard let ownerID else { return }
+        guard let ownerID, !isRestoringSavedState else { return }
         let generation = actorGeneration
+        isRestoringSavedState = true
+        defer {
+            if isCurrent(ownerID, generation: generation) {
+                isRestoringSavedState = false
+            }
+        }
         await restorePendingActivityCount(
             for: ownerID,
             generation: generation
@@ -1028,6 +1042,7 @@ final class PersonalAccountabilityStore {
         pendingActivityUploadCount = 0
         pendingActivityChallengeID = nil
         hasPendingActivityRecoveryIssue = false
+        isRestoringSavedState = false
         isMutating = false
         isPreparingPayment = false
         isRequestingReview = false

@@ -1,7 +1,7 @@
 # Better Bet external beta — handoff
 
 **Written:** August 7, 2026
-**Revised:** August 7, 2026 — Step 4 is closed and the pgTAP suite is green again
+**Revised:** August 7, 2026 — Step 6 is implemented locally and remains unhosted
 **Product head:** `984845f feat: retire the staging identity and name the product Better Bet`
 **Target:** invite-only TestFlight beta, no more than 10 named iPhone testers
 
@@ -31,8 +31,8 @@ The Xcode suites are macOS-only and live in `.github/workflows/ci.yml`.
 
 | Suite | Result |
 | --- | --- |
-| Database (pgTAP) | 44 files, 1,738 assertions, all pass |
-| Backend functions (Deno) | 389 pass; format, lint, and type-check clean |
+| Database (pgTAP) | 46 files, 1,815 assertions, all pass |
+| Backend functions (Deno) | 391 pass; format, lint, and type-check clean |
 | Shared client (GameTimeCore) | 103 pass |
 | iPhone app, Xcode suite | Passes — unit tests plus 14 UI tests |
 | Shipping build settings | `check-beta-candidate.sh`: **16 passed, 0 blockers** |
@@ -40,7 +40,8 @@ The Xcode suites are macOS-only and live in `.github/workflows/ci.yml`.
 
 ### Behind
 
-The hosted backend is **five migrations behind** the repository:
+The last verified hosted snapshot was **five migrations behind** the repository.
+The local Stripe controls add a sixth unhosted migration:
 
 ```
 20260806143539_production_attestation_provenance
@@ -48,6 +49,7 @@ The hosted backend is **five migrations behind** the repository:
 20260806145058_production_diagnostic_provenance_audit
 20260806145502_production_diagnostic_clearance_guard
 20260806173723_personal_result_worker
+20260807151320_personal_stripe_sandbox_beta_controls
 ```
 
 Six Edge Function source files have also changed locally since the hosted
@@ -124,23 +126,39 @@ support email. Do not invent either.
 **Done when:** a tester can delete their account in the app, recreate it, and
 every link in Account & Support resolves.
 
-### Step 6 — Stripe kill switch and beta allowlist
+### Step 6 — Stripe kill switch and beta allowlist — **source done; rollout pending**
 
-No allowlist or kill switch for Stripe exists anywhere in the migrations. The
-only allowlist in the repository belongs to the dormant Solo domain. Earlier
-planning documents assert these controls exist; they do not.
+Migration `20260807151320_personal_stripe_sandbox_beta_controls` now provides a
+database-owned global switch and exact-owner beta allowlist. It is seeded
+disabled with no eligible owners. Only the service role can change either
+control, and each change uses an exact-request ledger so a reused request ID
+cannot silently change meaning.
 
-They must be enforced at the database mutation boundary, not in an Edge
-Function. Authenticated users can execute some Stripe setup and creation RPCs
-directly, so a function-level switch is bypassable.
+The controls sit in the shared database mutation paths, so direct authenticated
+RPC calls cannot bypass an Edge Function. While disabled they stop new payment
+setup, commitments, charge-authorizing miss decisions, automatic confirmation,
+command creation, and dispatch. Rows admitted under these controls carry frozen
+authorization provenance; older rows are not retroactively treated as approved.
 
-Turning the switch off must stop new setup, commitments, charge-authorizing
-decisions, and dispatch, while still allowing owner status reads, signed
-webhook reconciliation, and audited no-charge or waiver resolution for
-obligations that already exist.
+Disabling or revoking access does not strand safe work. Exact authorized retries,
+owner status reads, review filing, waiver/no-charge resolution, setup-result
+recording, signed webhook reconciliation, and provider-result reconciliation
+remain available where appropriate. A disabled worker still performs the
+fail-safe automatic waiver for an overdue unresolved review but returns no
+charge work.
 
-**Done when:** flipping the switch off blocks new payment activity and leaves
-existing obligations resolvable, proven by pgTAP.
+Focused pgTAP coverage proves default-off state, exact allowlisting,
+cross-account refusal, stale-account refusal, direct-RPC enforcement, retry
+semantics, disabled-state behavior, and reconciliation. Real-session races also
+prove an admitted request and an atomic shutdown cannot deadlock, and account
+deletion cannot overlap charge-command creation or leasing. The clean rebuild
+passes 46 database files and 1,815 assertions; the full function suite passes
+391 tests.
+
+**No hosted project was changed.** The migration is unapplied, and the existing
+hash-locked five-migration rollout packet does not include it. Regenerate and
+review that packet before any hosted action; deploying, enabling the switch, and
+adding named tester IDs each remain separately approval-gated.
 
 ### Step 7 — Payment status and a next action on Today
 
@@ -173,14 +191,19 @@ action, a real deadline, and honest payment status.
 
 Only after Steps 4 to 7 pass locally.
 
-1. Push the five pending migrations.
+1. Regenerate the rollout packet for all six pending migrations, obtain the
+   required approvals, and only then push that exact reviewed set.
 2. Redeploy the changed Edge Functions.
 3. Enable the Personal result worker schedule. The worker is written and its
    tests pass, but `20260806173723` creates the job dormant, and nothing
    currently schedules it. Without it a finished challenge never resolves.
 4. Confirm the hosted Stripe secrets, the webhook destination, and its
    signature verification.
-5. Read back `app.solo_contract_runtime` and `app.solo_beta_eligibility` on the
+5. Read back `app.personal_stripe_sandbox_runtime` and
+   `app.personal_stripe_sandbox_beta_eligibility` after migration and prove they
+   are still disabled and empty. Enabling the switch or adding any tester UUID
+   requires a separate explicit approval.
+6. Read back `app.solo_contract_runtime` and `app.solo_beta_eligibility` on the
    hosted project. The Solo tables are present there. The migrations create the
    domain switched off with an empty allowlist, but the hosted runtime values
    have never been read back, so nobody has confirmed Solo is inert.
@@ -285,11 +308,12 @@ pass:
 - Neither records that **the Release build could not open at all**. It threw
   `invalidStripeReturnURL` during configuration loading and rendered its
   failure screen instead of a product. Fixed on `984845f`.
-- *1,678 pgTAP assertions, green* is the right shape but the wrong number. The
-  suite is now 1,738 assertions and green again. It spent August 6–7 with one
-  failing file, from work that was uncommitted when those documents were
-  written; [Step 4](#step-4--fix-the-failing-database-test--done) records what
-  it was.
+- *1,678 pgTAP assertions, green* is the right shape but the wrong number. Step
+  4 restored the then-current 1,738 assertions; the locally implemented Stripe
+  controls and their focused coverage now bring the clean suite to 1,815
+  assertions. [Step 4](#step-4--fix-the-failing-database-test--done) records the
+  earlier fixture repair and [Step 6](#step-6--stripe-kill-switch-and-beta-allowlist--source-done-rollout-pending)
+  records the new local-only control boundary.
 
 The audits also read as though a large amount of engineering remains. It does
 not. The core loop — sign in, create a challenge, read Health, accumulate
