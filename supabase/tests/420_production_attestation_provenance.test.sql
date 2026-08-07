@@ -29,25 +29,40 @@ select
   ) as development_key_id,
   extensions.digest('missing historical key', 'sha256') as unknown_key_id;
 
-insert into public.device_attestations (
-  key_id,
-  user_id,
-  public_key,
-  environment
-)
-select
-  production_key_id,
-  'fa111111-1111-1111-1111-111111111111'::uuid,
-  production_public_key,
-  'production'::public.attestation_environment
-from t_keys
-union all
-select
-  development_key_id,
-  'fa111111-1111-1111-1111-111111111111'::uuid,
-  development_public_key,
-  'development'::public.attestation_environment
-from t_keys;
+-- Register both keys the way a device does, receipt and all. This file tests
+-- what the App Attest environment is allowed to do, so neither key may be
+-- refused earlier for an unrelated reason: a key with no verified receipt is
+-- rejected by app.consume_trusted_personal_assertion before provenance is ever
+-- consulted, which would make every guard below look like it was holding.
+select public.register_device_key(
+  'fa111111-1111-1111-1111-111111111111',
+  (select production_key_id from t_keys),
+  (select production_public_key from t_keys),
+  '\x70726f64756374696f6e2d72656365697074',
+  'production'
+);
+select public.mark_device_receipt_verified(
+  (select production_key_id from t_keys),
+  extensions.digest(
+    '\x70726f64756374696f6e2d72656365697074'::bytea,
+    'sha256'
+  )
+);
+
+select public.register_device_key(
+  'fa111111-1111-1111-1111-111111111111',
+  (select development_key_id from t_keys),
+  (select development_public_key from t_keys),
+  '\x646576656c6f706d656e742d72656365697074',
+  'development'
+);
+select public.mark_device_receipt_verified(
+  (select development_key_id from t_keys),
+  extensions.digest(
+    '\x646576656c6f706d656e742d72656365697074'::bytea,
+    'sha256'
+  )
+);
 
 alter table public.contests disable trigger contests_assert_future_window;
 

@@ -1,7 +1,8 @@
 # Better Bet external beta — handoff
 
 **Written:** August 7, 2026
-**Head commit:** `984845f feat: retire the staging identity and name the product Better Bet`
+**Revised:** August 7, 2026 — Step 4 is closed and the pgTAP suite is green again
+**Product head:** `984845f feat: retire the staging identity and name the product Better Bet`
 **Target:** invite-only TestFlight beta, no more than 10 named iPhone testers
 
 This document is the current state of the work and the order to finish it. It
@@ -30,31 +31,12 @@ The Xcode suites are macOS-only and live in `.github/workflows/ci.yml`.
 
 | Suite | Result |
 | --- | --- |
+| Database (pgTAP) | 44 files, 1,738 assertions, all pass |
 | Backend functions (Deno) | 389 pass; format, lint, and type-check clean |
 | Shared client (GameTimeCore) | 103 pass |
 | iPhone app, Xcode suite | Passes — unit tests plus 14 UI tests |
 | Shipping build settings | `check-beta-candidate.sh`: **16 passed, 0 blockers** |
 | Release build | Installs and opens to the signed-out screen |
-
-### Red
-
-**One database test fails.** `supabase/tests/420_production_attestation_provenance.test.sql`
-fails at test 25 and then aborts, so 26 of a planned 32 assertions run. The
-whole suite is 44 files and 1,732 assertions; this is the only failure.
-
-The test expects `record_trusted_personal_diagnostic_v1` called with a
-development key to reach the hold-clearance trigger added in
-`20260806145502_production_diagnostic_clearance_guard.sql` and raise `23001`
-with *only a production-origin trusted diagnostic may clear Personal
-eligibility*. It instead gets `42501`, *the trusted device assertion could not
-be accepted*, from an assertion check that runs earlier.
-
-Both outcomes refuse the development diagnostic, so the fail-closed guarantee
-holds either way. What is wrong is that the test and the implementation
-disagree about which layer refuses it, and the later assertions never run. The
-fix is a judgment call nobody has made yet: either the test asserts the wrong
-error, or the earlier check makes the trigger unreachable on this path and the
-trigger belongs somewhere else.
 
 ### Behind
 
@@ -88,14 +70,27 @@ None of the following has been demonstrated:
 
 ## Remaining steps, in order
 
-### Step 4 — Fix the failing database test
+### Step 4 — Fix the failing database test — **done**
 
-Decide whether `420_production_attestation_provenance.test.sql` test 25 is
-asserting the wrong error, or whether the clearance trigger is unreachable and
-belongs at a different layer. Fix one side, then confirm the file runs all 32
-assertions.
+Neither side of the judgment call was the problem. The test fixture registered
+its two App Attest keys by inserting straight into `public.device_attestations`,
+so neither key ever got the verified receipt row that
+`app.consume_trusted_personal_assertion` requires. That check runs before
+anything reads provenance, so it refused both keys with `42501` and the
+clearance trigger was never reached.
 
-**Done when:** `./scripts/db-test.sh` exits zero.
+The trigger is not unreachable. `consume_trusted_personal_assertion` checks
+that a key is registered, unrevoked, and receipt-verified; it says nothing
+about environment. A development-environment key that clears it lands on the
+trigger, which is exactly the case the guard exists for. The two are layered,
+not competing.
+
+The fixture now registers both keys through `register_device_key` and
+`mark_device_receipt_verified`, the way a device does. Test 25 fails closed on
+the trigger's own `23001` and message, test 26 exercises a rollback that really
+happens, and tests 27 to 32 run for the first time.
+
+**Done:** `./scripts/db-test.sh` exits zero — 44 files, 1,738 assertions.
 
 > `db-test.sh` resets the local database from migrations. It destroys local dev
 > data. Back it up first if a device-test record matters:
@@ -290,9 +285,11 @@ pass:
 - Neither records that **the Release build could not open at all**. It threw
   `invalidStripeReturnURL` during configuration loading and rendered its
   failure screen instead of a product. Fixed on `984845f`.
-- *1,678 pgTAP assertions, green* no longer holds. The suite is now 1,732
-  assertions with one failing file, introduced by work that was uncommitted
-  when those documents were written.
+- *1,678 pgTAP assertions, green* is the right shape but the wrong number. The
+  suite is now 1,738 assertions and green again. It spent August 6–7 with one
+  failing file, from work that was uncommitted when those documents were
+  written; [Step 4](#step-4--fix-the-failing-database-test--done) records what
+  it was.
 
 The audits also read as though a large amount of engineering remains. It does
 not. The core loop — sign in, create a challenge, read Health, accumulate
