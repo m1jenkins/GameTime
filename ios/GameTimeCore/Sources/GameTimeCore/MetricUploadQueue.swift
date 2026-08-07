@@ -1,5 +1,16 @@
 import Foundation
 
+/// The Apple App Attest service that produced saved assertion material.
+///
+/// Development evidence must never be promoted into production evidence. This
+/// value therefore travels with the exact signed request across app launches.
+public enum MetricUploadAttestationEnvironment: String, Codable, Sendable,
+  Hashable
+{
+  case development
+  case production
+}
+
 /// One byte-exact metric request waiting to be sent or acknowledged.
 ///
 /// The body is the exact value produced by `EncodedMetricRequest`. App Attest
@@ -16,6 +27,9 @@ public struct PendingMetricUpload: Sendable, Hashable, Identifiable, Codable {
   public private(set) var keyID: String?
   /// The exact CBOR assertion bytes generated for `body`.
   public private(set) var assertion: Data?
+  /// Nil only for queues written before App Attest provenance was persisted.
+  public private(set) var attestEnvironment:
+    MetricUploadAttestationEnvironment?
   public private(set) var attempts: Int
 
   public init(
@@ -24,6 +38,7 @@ public struct PendingMetricUpload: Sendable, Hashable, Identifiable, Codable {
     body: Data,
     keyID: String? = nil,
     assertion: Data? = nil,
+    attestEnvironment: MetricUploadAttestationEnvironment? = nil,
     attempts: Int = 0
   ) {
     self.clientBatchId = clientBatchId
@@ -31,15 +46,18 @@ public struct PendingMetricUpload: Sendable, Hashable, Identifiable, Codable {
     self.body = body
     self.keyID = keyID
     self.assertion = assertion
+    self.attestEnvironment = attestEnvironment
     self.attempts = attempts
   }
 
   fileprivate mutating func attach(
     keyID: String,
-    assertion: Data
+    assertion: Data,
+    environment: MetricUploadAttestationEnvironment
   ) {
     self.keyID = keyID
     self.assertion = assertion
+    self.attestEnvironment = environment
   }
 
   fileprivate mutating func recordAttempt() {
@@ -137,12 +155,15 @@ public struct MetricUploadQueue: Sendable {
   @discardableResult
   public mutating func enqueue(
     contestId: UUID,
-    request: EncodedMetricRequest
+    request: EncodedMetricRequest,
+    attestEnvironment: MetricUploadAttestationEnvironment? = nil
   ) -> MetricUploadEnqueueResult {
     if let existing = uploads.first(where: {
       $0.clientBatchId == request.clientBatchId
     }) {
-      return existing.contestId == contestId && existing.body == request.body
+      return existing.contestId == contestId
+        && existing.body == request.body
+        && existing.attestEnvironment == attestEnvironment
         ? .alreadyQueued
         : .conflictingPayload
     }
@@ -156,7 +177,8 @@ public struct MetricUploadQueue: Sendable {
       PendingMetricUpload(
         clientBatchId: request.clientBatchId,
         contestId: contestId,
-        body: request.body
+        body: request.body,
+        attestEnvironment: attestEnvironment
       )
     )
     return .enqueued
@@ -168,7 +190,8 @@ public struct MetricUploadQueue: Sendable {
   public mutating func attachSignedMaterial(
     to clientBatchId: UUID,
     keyID: String,
-    assertion: Data
+    assertion: Data,
+    environment: MetricUploadAttestationEnvironment = .development
   ) -> MetricUploadSigningResult {
     guard !keyID.isEmpty, !assertion.isEmpty else {
       return .invalidMaterial
@@ -183,10 +206,25 @@ public struct MetricUploadQueue: Sendable {
 
     switch (uploads[index].keyID, uploads[index].assertion) {
     case (nil, nil):
-      uploads[index].attach(keyID: keyID, assertion: assertion)
+      guard
+        uploads[index].attestEnvironment == environment
+          || (
+            uploads[index].attestEnvironment == nil
+              && environment == .development
+          )
+      else {
+        return .conflictingMaterial
+      }
+      uploads[index].attach(
+        keyID: keyID,
+        assertion: assertion,
+        environment: environment
+      )
       return .attached
     case (.some(let existingKeyID), .some(let existingAssertion)):
-      return existingKeyID == keyID && existingAssertion == assertion
+      return existingKeyID == keyID
+        && existingAssertion == assertion
+        && uploads[index].attestEnvironment == environment
         ? .alreadyAttached
         : .conflictingMaterial
     case (.some, nil), (nil, .some):

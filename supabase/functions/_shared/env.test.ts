@@ -1,6 +1,7 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import {
   accessTokenVerification,
+  allowedAttestEnvironments,
   appAttestAppId,
   appAttestAppIds,
   appAttestReceiptRootCertificate,
@@ -107,6 +108,46 @@ Deno.test("production without the bypass flag is safe and reports false", () => 
   const source = envFromRecord({ GAMETIME_ENV: "production" });
   assertAttestConfigIsSafe(source);
   assertEquals(attestBypassEnabled(source), false);
+});
+
+Deno.test("App Attest environments fail closed outside explicit development use", () => {
+  for (const environment of ["local", "test"]) {
+    assertEquals(
+      allowedAttestEnvironments(
+        envFromRecord({ GAMETIME_ENV: environment }),
+      ),
+      ["development", "production"],
+    );
+  }
+  for (const environment of ["staging", "production"]) {
+    assertEquals(
+      allowedAttestEnvironments(
+        envFromRecord({ GAMETIME_ENV: environment }),
+      ),
+      ["production"],
+    );
+  }
+
+  assertEquals(
+    allowedAttestEnvironments(
+      envFromRecord({
+        GAMETIME_ENV: "staging",
+        APP_ATTEST_ALLOW_DEVELOPMENT: "true",
+      }),
+    ),
+    ["development", "production"],
+  );
+  assertThrows(
+    () =>
+      allowedAttestEnvironments(
+        envFromRecord({
+          GAMETIME_ENV: "production",
+          APP_ATTEST_ALLOW_DEVELOPMENT: "true",
+        }),
+      ),
+    ConfigError,
+    "development attestation is not evidence",
+  );
 });
 
 Deno.test("the primary App Attest identity remains APPLE_BUNDLE_ID", () => {

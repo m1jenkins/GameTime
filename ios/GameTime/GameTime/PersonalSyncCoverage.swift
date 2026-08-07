@@ -9,9 +9,35 @@ struct PendingPersonalCoverageSubmission: Codable, Equatable, Sendable {
     let body: Data
     let keyID: String
     let assertion: Data
+    /// Nil only for files written before App Attest environment binding.
+    let attestEnvironment: AppAttestEnvironment?
     let createdAt: Date
     let attemptCount: Int
     let lastAttemptAt: Date?
+
+    init(
+        ownerID: UUID,
+        challengeID: UUID,
+        clientCoverageID: UUID,
+        body: Data,
+        keyID: String,
+        assertion: Data,
+        attestEnvironment: AppAttestEnvironment? = nil,
+        createdAt: Date,
+        attemptCount: Int,
+        lastAttemptAt: Date?
+    ) {
+        self.ownerID = ownerID
+        self.challengeID = challengeID
+        self.clientCoverageID = clientCoverageID
+        self.body = body
+        self.keyID = keyID
+        self.assertion = assertion
+        self.attestEnvironment = attestEnvironment
+        self.createdAt = createdAt
+        self.attemptCount = attemptCount
+        self.lastAttemptAt = lastAttemptAt
+    }
 
     func recordingAttempt(at date: Date = Date())
         -> PendingPersonalCoverageSubmission
@@ -23,9 +49,29 @@ struct PendingPersonalCoverageSubmission: Codable, Equatable, Sendable {
             body: body,
             keyID: keyID,
             assertion: assertion,
+            attestEnvironment: attestEnvironment,
             createdAt: createdAt,
             attemptCount: attemptCount + 1,
             lastAttemptAt: max(date, lastAttemptAt ?? createdAt)
+        )
+    }
+
+    /// Adds the environment marker to a legacy Development record without
+    /// changing any byte that was originally signed.
+    func classifyingLegacyDevelopmentEnvironment()
+        -> PendingPersonalCoverageSubmission
+    {
+        PendingPersonalCoverageSubmission(
+            ownerID: ownerID,
+            challengeID: challengeID,
+            clientCoverageID: clientCoverageID,
+            body: body,
+            keyID: keyID,
+            assertion: assertion,
+            attestEnvironment: .development,
+            createdAt: createdAt,
+            attemptCount: attemptCount,
+            lastAttemptAt: lastAttemptAt
         )
     }
 }
@@ -34,6 +80,10 @@ protocol PendingPersonalCoverageStore: AnyObject, Sendable {
     func load(for ownerID: UUID) async throws
         -> PendingPersonalCoverageSubmission?
     func save(_ submission: PendingPersonalCoverageSubmission) async throws
+    func classifyLegacyDevelopment(
+        _ classified: PendingPersonalCoverageSubmission,
+        replacing expected: PendingPersonalCoverageSubmission
+    ) async throws
     func remove(for ownerID: UUID) async throws
 }
 
@@ -44,6 +94,8 @@ enum PersonalCoverageError: LocalizedError, Equatable, Sendable {
     case conflictingPendingRequest
     case protectedStorageUnavailable
     case noTrustedCoverage
+    case savedEvidenceFromDifferentEnvironment
+    case attestationRejected
     case unavailable
     case rejected
     case invalidResponse
@@ -62,6 +114,10 @@ enum PersonalCoverageError: LocalizedError, Equatable, Sendable {
             "We couldn’t save this to your phone."
         case .noTrustedCoverage:
             "We can’t tell the difference between “no steps” and “no data” right now. Run a Health check and try again."
+        case .savedEvidenceFromDifferentEnvironment:
+            "Saved steps from an older test build can’t be used here."
+        case .attestationRejected:
+            "GameTime couldn’t verify the saved step proof."
         case .unavailable:
             "We couldn’t sync your steps. Try again in a moment."
         case .rejected:
@@ -135,6 +191,8 @@ actor FilePendingPersonalCoverageStore: PendingPersonalCoverageStore {
                 existing.body != submission.body
                     || existing.keyID != submission.keyID
                     || existing.assertion != submission.assertion
+                    || existing.attestEnvironment
+                        != submission.attestEnvironment
                     || existing.clientCoverageID != submission.clientCoverageID
                     || existing.challengeID != submission.challengeID
             {
@@ -142,6 +200,42 @@ actor FilePendingPersonalCoverageStore: PendingPersonalCoverageStore {
             }
             let data = try encoder().encode(submission)
             let url = fileURL(submission.ownerID)
+            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            var protectedURL = url
+            try protectedURL.setResourceValues(values)
+        } catch let error as PersonalCoverageError {
+            throw error
+        } catch {
+            throw PersonalCoverageError.protectedStorageUnavailable
+        }
+    }
+
+    func classifyLegacyDevelopment(
+        _ classified: PendingPersonalCoverageSubmission,
+        replacing expected: PendingPersonalCoverageSubmission
+    ) throws {
+        try Self.validate(expected, ownerID: expected.ownerID)
+        try Self.validate(classified, ownerID: classified.ownerID)
+        guard
+            expected.attestEnvironment == nil,
+            classified
+                == expected.classifyingLegacyDevelopmentEnvironment()
+        else {
+            throw PersonalCoverageError.conflictingPendingRequest
+        }
+
+        do {
+            guard try load(for: expected.ownerID) == expected else {
+                throw PersonalCoverageError.conflictingPendingRequest
+            }
+            try FileManager.default.createDirectory(
+                at: directoryURL,
+                withIntermediateDirectories: true
+            )
+            var values = URLResourceValues()
+            values.isExcludedFromBackup = true
+            let data = try encoder().encode(classified)
+            let url = fileURL(classified.ownerID)
             try data.write(to: url, options: [.atomic, .completeFileProtection])
             var protectedURL = url
             try protectedURL.setResourceValues(values)
@@ -219,10 +313,26 @@ actor EphemeralPendingPersonalCoverageStore: PendingPersonalCoverageStore {
             existing.body != submission.body
                 || existing.keyID != submission.keyID
                 || existing.assertion != submission.assertion
+                || existing.attestEnvironment != submission.attestEnvironment
         {
             throw PersonalCoverageError.conflictingPendingRequest
         }
         submissions[submission.ownerID] = submission
+    }
+
+    func classifyLegacyDevelopment(
+        _ classified: PendingPersonalCoverageSubmission,
+        replacing expected: PendingPersonalCoverageSubmission
+    ) throws {
+        guard
+            submissions[expected.ownerID] == expected,
+            expected.attestEnvironment == nil,
+            classified
+                == expected.classifyingLegacyDevelopmentEnvironment()
+        else {
+            throw PersonalCoverageError.conflictingPendingRequest
+        }
+        submissions[expected.ownerID] = classified
     }
 
     func remove(for ownerID: UUID) {
@@ -238,10 +348,24 @@ protocol PersonalCoverageClient: AnyObject {
         intervalStarts: [Date],
         observedAt: Date
     ) async throws -> PendingPersonalCoverageSubmission
+    func prepareForRetry(
+        ownerID: UUID,
+        submission: PendingPersonalCoverageSubmission
+    ) async throws -> PendingPersonalCoverageSubmission
     func send(
         ownerID: UUID,
         submission: PendingPersonalCoverageSubmission
     ) async throws -> PersonalCoverageReceipt
+}
+
+extension PersonalCoverageClient {
+    func prepareForRetry(
+        ownerID: UUID,
+        submission: PendingPersonalCoverageSubmission
+    ) async throws -> PendingPersonalCoverageSubmission {
+        _ = ownerID
+        return submission
+    }
 }
 
 struct PersonalCoverageReceipt: Equatable, Sendable {
@@ -262,7 +386,7 @@ final class SupabasePersonalCoverageClient: PersonalCoverageClient {
         signer: any AppAttestedBodySigning,
         session: URLSession = .shared
     ) throws {
-        guard configuration.environment == .staging else {
+        guard configuration.attestedUploadEnabled else {
             throw PersonalCoverageError.unavailable
         }
         self.client = client
@@ -288,6 +412,15 @@ final class SupabasePersonalCoverageClient: PersonalCoverageClient {
             coveredIntervalStarts: intervalStarts
         )
         let signed = try await signer.sign(ownerID: ownerID, body: body)
+        guard
+            let expectedEnvironment =
+                configuration.expectedAppAttestEnvironment
+        else {
+            throw PersonalCoverageError.unavailable
+        }
+        guard signed.environment == expectedEnvironment else {
+            throw PersonalCoverageError.invalidRequest
+        }
         return PendingPersonalCoverageSubmission(
             ownerID: ownerID,
             challengeID: challengeID,
@@ -295,10 +428,37 @@ final class SupabasePersonalCoverageClient: PersonalCoverageClient {
             body: body,
             keyID: signed.keyID,
             assertion: signed.assertion,
+            attestEnvironment: expectedEnvironment,
             createdAt: Date(),
             attemptCount: 0,
             lastAttemptAt: nil
         )
+    }
+
+    func prepareForRetry(
+        ownerID: UUID,
+        submission: PendingPersonalCoverageSubmission
+    ) async throws -> PendingPersonalCoverageSubmission {
+        guard submission.ownerID == ownerID else {
+            throw PersonalCoverageError.accountChanged
+        }
+        guard
+            let expectedEnvironment =
+                configuration.expectedAppAttestEnvironment
+        else {
+            throw PersonalCoverageError.unavailable
+        }
+        guard submission.attestEnvironment != expectedEnvironment else {
+            return submission
+        }
+        guard
+            expectedEnvironment == .development,
+            submission.attestEnvironment == nil
+        else {
+            throw PersonalCoverageError
+                .savedEvidenceFromDifferentEnvironment
+        }
+        return submission.classifyingLegacyDevelopmentEnvironment()
     }
 
     func send(
@@ -322,6 +482,8 @@ final class SupabasePersonalCoverageClient: PersonalCoverageClient {
             identity.challengeID == submission.challengeID,
             identity.clientCoverageID == submission.clientCoverageID,
             !identity.coveredIntervalStarts.isEmpty,
+            submission.attestEnvironment
+                == configuration.expectedAppAttestEnvironment,
             !submission.keyID.isEmpty,
             !submission.assertion.isEmpty
         else {
@@ -372,11 +534,17 @@ final class SupabasePersonalCoverageClient: PersonalCoverageClient {
                 throw PersonalCoverageError.unavailable
             }
             // A refused token reads as a refused upload unless the body is read.
-            if
-                http.statusCode == 401 || http.statusCode == 403,
-                AttestedEndpointRefusal.decode(data) == .authentication
-            {
-                throw MetricUploadClientError.tokenRefusedByService
+            if http.statusCode == 401 || http.statusCode == 403 {
+                switch AttestedEndpointRefusal.decode(data) {
+                case .authentication:
+                    throw MetricUploadClientError.tokenRefusedByService
+                case .attestation:
+                    throw PersonalCoverageError.attestationRejected
+                case .accountNotActive:
+                    throw MetricUploadClientError.accountNotActive
+                case .unspecified:
+                    break
+                }
             }
             throw PersonalCoverageError.rejected
         }
@@ -387,6 +555,7 @@ final class SupabasePersonalCoverageClient: PersonalCoverageClient {
                 PersonalCoverageResponse.self,
                 from: data
             ),
+            document.coverageBatchID == submission.clientCoverageID,
             (http.statusCode == 200 && document.replayed)
                 || (http.statusCode == 201 && !document.replayed)
         else {
@@ -451,68 +620,140 @@ final class PersonalActivitySyncCoordinator: PersonalActivitySyncing {
         return metricCount + coverageCount
     }
 
+    func pendingChallengeID(for ownerID: UUID) async throws -> UUID? {
+        let coverageID = try await pendingCoverage.load(for: ownerID)?
+            .challengeID
+        let metricID = try await metrics.pendingContestID(for: ownerID)
+        guard
+            coverageID == nil
+                || metricID == nil
+                || coverageID == metricID
+        else {
+            throw PersonalCoverageError.pendingForDifferentChallenge
+        }
+        return coverageID ?? metricID
+    }
+
     func sync(
         ownerID: UUID,
         challenge: PersonalChallengeDetail,
         asOf: Date
     ) async throws -> ActivitySyncOutcome {
-        guard challenge.permitsActivitySync(at: asOf) else {
-            throw ActivitySyncError.challengeNotEligible
-        }
         let savedCoverage = try await pendingCoverage.load(for: ownerID)
         if let savedCoverage, savedCoverage.challengeID != challenge.id {
             throw PersonalCoverageError.pendingForDifferentChallenge
         }
 
         let contest = contestCard(ownerID: ownerID, challenge: challenge)
-        let pendingMetricCountBefore = try await metrics.pendingUploadCount(
+        var replayedMetricOutcome: ActivitySyncOutcome?
+        var discardedSavedEvidence = false
+        var pendingMetricCount = try await metrics.pendingUploadCount(
             for: ownerID
         )
-        var metricOutcome = try await metrics.sync(
-            ownerID: ownerID,
-            contest: contest,
-            asOf: asOf
-        )
-        guard case .synced(_, let firstStepTotal) = metricOutcome else {
-            // Coverage must never certify metric bytes that remain queued, or
-            // turn an unreadable HealthKit query into evidence completeness.
-            return metricOutcome
-        }
-
-        if pendingMetricCountBefore > 0 {
-            guard try await metrics.pendingUploadCount(for: ownerID) == 0 else {
-                return .queuedForRetry(stepTotal: firstStepTotal)
-            }
-            // ActivitySyncCoordinator returns immediately after replaying an
-            // old metric body. A second pass is required to query fresh data
-            // for the `asOf` instant that coverage will describe.
-            metricOutcome = try await metrics.sync(
+        while pendingMetricCount > 0 {
+            let countBefore = pendingMetricCount
+            let metricOutcome = try await metrics.sync(
                 ownerID: ownerID,
                 contest: contest,
                 asOf: asOf
             )
-            guard case .synced(_, let freshStepTotal) = metricOutcome else {
+            let countAfter = try await metrics.pendingUploadCount(
+                for: ownerID
+            )
+            if case .savedRequestUnavailable = metricOutcome {
+                discardedSavedEvidence = true
+                guard countAfter < countBefore else {
+                    return .savedRequestUnavailable
+                }
+                pendingMetricCount = countAfter
+                continue
+            }
+            guard case .synced(_, let stepTotal) = metricOutcome else {
+                // Coverage must never certify metric bytes that remain queued,
+                // or turn an unreadable HealthKit query into completeness.
                 return metricOutcome
             }
-            guard try await metrics.pendingUploadCount(for: ownerID) == 0 else {
-                return .queuedForRetry(stepTotal: freshStepTotal)
+            guard countAfter == 0 else {
+                return .queuedForRetry(stepTotal: stepTotal)
             }
-        } else {
-            guard try await metrics.pendingUploadCount(for: ownerID) == 0 else {
-                return .queuedForRetry(stepTotal: firstStepTotal)
+            replayedMetricOutcome = metricOutcome
+            pendingMetricCount = countAfter
+        }
+
+        var replayedCoverage = false
+        if let savedCoverage {
+            do {
+                // Same-environment retries keep their exact bytes. The only
+                // legacy migration allowed is nil -> development; production
+                // never promotes evidence made by a development build.
+                var ready = try await coverage.prepareForRetry(
+                    ownerID: ownerID,
+                    submission: savedCoverage
+                )
+                if ready != savedCoverage {
+                    guard
+                        savedCoverage.attestEnvironment == nil,
+                        ready
+                            == savedCoverage
+                                .classifyingLegacyDevelopmentEnvironment()
+                    else {
+                        throw PersonalCoverageError.conflictingPendingRequest
+                    }
+                    try await pendingCoverage.classifyLegacyDevelopment(
+                        ready,
+                        replacing: savedCoverage
+                    )
+                }
+                ready = ready.recordingAttempt()
+                let attempted = ready
+                try await pendingCoverage.save(attempted)
+                let receipt = try await coverage.send(
+                    ownerID: ownerID,
+                    submission: attempted
+                )
+                guard
+                    receipt.coverageBatchID == attempted.clientCoverageID
+                else {
+                    throw PersonalCoverageError.invalidResponse
+                }
+                try await pendingCoverage.remove(for: ownerID)
+                replayedCoverage = true
+            } catch let error as PersonalCoverageError
+                where error == .savedEvidenceFromDifferentEnvironment
+                    || error == .attestationRejected
+            {
+                try await pendingCoverage.remove(for: ownerID)
+                discardedSavedEvidence = true
             }
         }
 
-        if let savedCoverage {
-            // Retrying changes attempt metadata only. The signed body and
-            // assertion remain byte-for-byte identical to the saved request.
-            let attempted = savedCoverage.recordingAttempt()
-            try await pendingCoverage.save(attempted)
-            _ = try await coverage.send(
-                ownerID: ownerID,
-                submission: attempted
-            )
-            try await pendingCoverage.remove(for: ownerID)
+        guard challenge.permitsActivitySync(at: asOf) else {
+            // A successful metric replay is useful even after the fresh-read
+            // window closes. Saved coverage has also already been delivered.
+            if let replayedMetricOutcome {
+                return replayedMetricOutcome
+            }
+            if replayedCoverage {
+                return .savedRequestAccepted
+            }
+            if discardedSavedEvidence {
+                return .savedRequestUnavailable
+            }
+            throw ActivitySyncError.challengeNotEligible
+        }
+
+        // With every saved request handled, this pass may ask HealthKit for the
+        // fresh data whose coverage will be described below.
+        let metricOutcome = try await metrics.sync(
+            ownerID: ownerID,
+            contest: contest,
+            asOf: asOf
+        )
+        guard case .synced(_, let stepTotal) = metricOutcome else {
+            return metricOutcome
+        }
+        guard try await metrics.pendingUploadCount(for: ownerID) == 0 else {
+            return .queuedForRetry(stepTotal: stepTotal)
         }
 
         guard let frozenTimeZone = TimeZone(
@@ -544,7 +785,18 @@ final class PersonalActivitySyncCoordinator: PersonalActivitySyncing {
         try await pendingCoverage.save(submission)
         submission = submission.recordingAttempt()
         try await pendingCoverage.save(submission)
-        _ = try await coverage.send(ownerID: ownerID, submission: submission)
+        do {
+            let receipt = try await coverage.send(
+                ownerID: ownerID,
+                submission: submission
+            )
+            guard receipt.coverageBatchID == submission.clientCoverageID else {
+                throw PersonalCoverageError.invalidResponse
+            }
+        } catch PersonalCoverageError.attestationRejected {
+            try await pendingCoverage.remove(for: ownerID)
+            return .savedRequestUnavailable
+        }
         try await pendingCoverage.remove(for: ownerID)
         return metricOutcome
     }

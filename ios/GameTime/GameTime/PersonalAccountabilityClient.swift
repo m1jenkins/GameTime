@@ -84,11 +84,19 @@ protocol TrustedActivityDiagnosticClient: AnyObject {
 protocol PersonalActivitySyncing: AnyObject {
     func requestAuthorization() async throws -> ActivityAuthorizationOutcome
     func pendingUploadCount(for ownerID: UUID) async throws -> Int
+    func pendingChallengeID(for ownerID: UUID) async throws -> UUID?
     func sync(
         ownerID: UUID,
         challenge: PersonalChallengeDetail,
         asOf: Date
     ) async throws -> ActivitySyncOutcome
+}
+
+extension PersonalActivitySyncing {
+    func pendingChallengeID(for ownerID: UUID) async throws -> UUID? {
+        _ = ownerID
+        return nil
+    }
 }
 
 enum PersonalAccountabilityClientError: LocalizedError, Equatable, Sendable {

@@ -163,6 +163,17 @@ behavior, real background delivery, hosted scheduling, hosted multi-user
 isolation, a real processor, money movement, legal approval, or App Review
 approval.
 
+## Scope note for the external sandbox beta
+
+This document remains the acceptance record for the internal `test_only` Stage
+A path. Its Release-lock statements describe that historical/internal contract,
+not the current invite-only external Release source configuration.
+
+The external beta is a separate Stripe test-mode rehearsal controlled by
+[`BETA_LAUNCH_AUDIT.md`](BETA_LAUNCH_AUDIT.md). It requires its own sandbox,
+hosted, production-App-Attest, signed-device, deletion, and TestFlight proof.
+Nothing in the green Stage A checklist proves those gates.
+
 ## Prove hosted Stage A only after approval
 
 1. Record explicit approval and the exact reviewed commit.
@@ -347,12 +358,12 @@ Inspect every reachable V1 screen and bounded log output:
 - Every current Stage A open personal surface says
   **Test commitment — no money will be charged.**
 
-## Prove the future Stripe sandbox separately
+## Prove the external Stripe sandbox separately
 
-This section records the forward Stage B acceptance contract. Nothing below has
-run, and none of it changes the Stage A evidence above. Stripe test objects move
-no real money. Do not report this section as hosted, live, legal, processor, or
-App Store proof.
+This section records the Stage B acceptance contract. Its local foundation is
+present, but this checklist has not passed end to end and does not change the
+Stage A evidence above. Stripe test objects move no real money. Do not report
+this section as hosted, live, legal, processor, or App Store proof.
 
 - [ ] A new forward terms version leaves all Stage A and Solo rows, enums,
       results, and migrations unchanged.
@@ -388,7 +399,8 @@ App Store proof.
       **Payment test mode — no real money moves.**
 - [ ] Sandbox result screens distinguish $0, provisional review, test charge,
       customer action, and failure without implying that real money moved.
-- [ ] Release and live Stripe mode remain disabled.
+- [ ] The invite-only Release build exposes only Stripe sandbox; live Stripe
+      remains disabled.
 - [ ] Hosted sandbox deployment, webhook configuration, and reconciliation occur
       only after separate approval.
 - [ ] Written Stripe, US legal, App Store, HealthKit, age, and jurisdiction gates
@@ -425,8 +437,8 @@ App Store proof.
       local database suite.
 - [ ] Logs and evidence artifacts contain no sensitive data.
 
-Even when every Stage A item passes, it does not prove the Stripe sandbox.
-Sandbox implementation may proceed only as a forward, test-mode slice. Hosted
-sandbox deployment requires separate approval. Live payment, production
-migration, TestFlight publication, App Store submission, and payment marketing
-claims remain blocked by every live gate in `PLAN.md`.
+Even when every Stage A item passes, it does not prove the Stripe sandbox. The
+Release source may carry the forward test-mode slice, but hosted sandbox
+deployment requires separate approval. Live payment, production migration,
+TestFlight publication, App Store submission, and payment marketing claims
+remain blocked by every live gate in `PLAN.md`.

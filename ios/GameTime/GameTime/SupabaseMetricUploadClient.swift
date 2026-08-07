@@ -7,6 +7,17 @@ import Supabase
 struct MetricSignedMaterial: Equatable, Sendable {
   let keyID: String
   let assertion: Data
+  let environment: AppAttestEnvironment
+
+  init(
+    keyID: String,
+    assertion: Data,
+    environment: AppAttestEnvironment = .development
+  ) {
+    self.keyID = keyID
+    self.assertion = assertion
+    self.environment = environment
+  }
 }
 
 @MainActor
@@ -22,6 +33,8 @@ struct MetricUploadReceipt: Equatable, Sendable {
 
 @MainActor
 protocol MetricUploadClient: AnyObject {
+  var expectedAttestationEnvironment: AppAttestEnvironment? { get }
+
   func prepare(
     ownerID: UUID,
     body: Data
@@ -33,6 +46,10 @@ protocol MetricUploadClient: AnyObject {
   ) async throws -> MetricUploadReceipt
 }
 
+extension MetricUploadClient {
+  var expectedAttestationEnvironment: AppAttestEnvironment? { nil }
+}
+
 enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
   case stagingOnly
   case authenticationRequired
@@ -42,6 +59,8 @@ enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
   case operationInProgress
   case appAttestUnsupported
   case keyStateUnavailable
+  case savedSignatureNeedsRefresh
+  case savedEvidenceFromDifferentEnvironment
   case invalidMetricBody
   case deviceRegistrationUnavailable
   case attestationRejected
@@ -74,6 +93,10 @@ enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
       "This device can’t prove your steps came from it."
     case .keyStateUnavailable:
       "We couldn’t read this device’s setup."
+    case .savedSignatureNeedsRefresh:
+      "GameTime needs to refresh the secure signature on saved steps."
+    case .savedEvidenceFromDifferentEnvironment:
+      "Saved steps from an older test build can’t be used here."
     case .invalidMetricBody:
       "Something is wrong with the steps waiting to send."
     case .deviceRegistrationUnavailable:
@@ -226,6 +249,8 @@ struct MetricAppAttestState: Codable, Equatable, Sendable {
   let ownerID: UUID
   let keyID: String
   let registered: Bool
+  /// Nil only for state written by builds that predate environment binding.
+  let environment: AppAttestEnvironment?
   let pendingRegistrationBody: Data?
   let pendingRegistrationExpiresAt: Date?
 
@@ -233,12 +258,14 @@ struct MetricAppAttestState: Codable, Equatable, Sendable {
     ownerID: UUID,
     keyID: String,
     registered: Bool,
+    environment: AppAttestEnvironment? = nil,
     pendingRegistrationBody: Data? = nil,
     pendingRegistrationExpiresAt: Date? = nil
   ) {
     self.ownerID = ownerID
     self.keyID = keyID
     self.registered = registered
+    self.environment = environment
     self.pendingRegistrationBody = pendingRegistrationBody
     self.pendingRegistrationExpiresAt = pendingRegistrationExpiresAt
   }
@@ -247,19 +274,28 @@ struct MetricAppAttestState: Codable, Equatable, Sendable {
 @MainActor
 protocol MetricAppAttestStateStoring: AnyObject {
   func state(for ownerID: UUID) throws -> MetricAppAttestState?
-  func saveGeneratedKey(_ keyID: String, ownerID: UUID) throws
+  func saveGeneratedKey(
+    _ keyID: String,
+    environment: AppAttestEnvironment,
+    ownerID: UUID
+  ) throws
   func savePendingRegistrationBody(
     _ body: Data,
     expiresAt: Date,
     keyID: String,
     ownerID: UUID
   ) throws
-  func replaceUnregisteredKey(
+  func replaceKey(
     _ newKeyID: String,
     replacing oldKeyID: String,
+    environment: AppAttestEnvironment,
     ownerID: UUID
   ) throws
-  func markRegistered(keyID: String, ownerID: UUID) throws
+  func markRegistered(
+    keyID: String,
+    environment: AppAttestEnvironment,
+    ownerID: UUID
+  ) throws
 }
 
 @MainActor
@@ -274,8 +310,13 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
   private let transport: any MetricUploadHTTPTransport
   private let supabaseURL: URL
   private let publishableKey: String
+  private let expectedEnvironment: AppAttestEnvironment
   private let now: () -> Date
   private var ownersBeingPrepared: Set<UUID> = []
+
+  var expectedAttestationEnvironment: AppAttestEnvironment? {
+    expectedEnvironment
+  }
 
   convenience init(
     client: SupabaseClient,
@@ -298,7 +339,10 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     transport: any MetricUploadHTTPTransport,
     now: @escaping () -> Date = Date.init
   ) throws {
-    guard configuration.environment == .staging else {
+    guard
+      configuration.attestedUploadEnabled,
+      let expectedEnvironment = configuration.expectedAppAttestEnvironment
+    else {
       throw MetricUploadClientError.stagingOnly
     }
     self.sessionProvider = sessionProvider
@@ -308,6 +352,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     self.now = now
     supabaseURL = configuration.supabaseURL
     publishableKey = configuration.supabasePublishableKey
+    self.expectedEnvironment = expectedEnvironment
   }
 
   func prepare(
@@ -360,7 +405,8 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
 
     return MetricSignedMaterial(
       keyID: keyID,
-      assertion: assertion
+      assertion: assertion,
+      environment: expectedEnvironment
     )
   }
 
@@ -383,23 +429,26 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     else {
       throw MetricUploadClientError.unsignedUpload
     }
+    let savedEnvironmentMatches =
+      upload.attestEnvironment == expectedEnvironment
+      || (
+        upload.attestEnvironment == nil
+          && expectedEnvironment == .development
+      )
+    guard savedEnvironmentMatches else {
+      throw MetricUploadClientError
+        .savedEvidenceFromDifferentEnvironment
+    }
 
     let session = try await requireValidSession(ownerID: ownerID)
-    let state: MetricAppAttestState?
-    do {
-      state = try stateStore.state(for: ownerID)
-    } catch {
-      throw MetricUploadClientError.keyStateUnavailable
+    guard Self.isValidKeyID(keyID) else {
+      throw MetricUploadClientError.invalidMetricBody
     }
-    guard
-      let state,
-      state.ownerID == ownerID,
-      state.registered,
-      state.keyID == keyID,
-      Self.isValidKeyID(keyID)
-    else {
-      throw MetricUploadClientError.keyStateUnavailable
-    }
+    // The server is authoritative for a saved key's owner, environment, and
+    // assertion counter. A rotated local key must not cause this build to
+    // re-sign bytes that an older build wrote. Legacy nil metadata is accepted
+    // only by Development, where the original key and assertion are still sent
+    // exactly as saved. Production refuses that unknown provenance above.
     var request = try makeRequest(
       endpoint: .ingestMetrics,
       accessToken: session.accessToken,
@@ -450,6 +499,12 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       throw MetricUploadClientError.keyStateUnavailable
     }
     if let existing {
+      guard existing.environment == expectedEnvironment else {
+        return try await replaceKey(
+          state: existing,
+          ownerID: ownerID
+        )
+      }
       return existing
     }
 
@@ -467,14 +522,19 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       throw MetricUploadClientError.keyStateUnavailable
     }
     do {
-      try stateStore.saveGeneratedKey(keyID, ownerID: ownerID)
+      try stateStore.saveGeneratedKey(
+        keyID,
+        environment: expectedEnvironment,
+        ownerID: ownerID
+      )
     } catch {
       throw MetricUploadClientError.keyStateUnavailable
     }
     return MetricAppAttestState(
       ownerID: ownerID,
       keyID: keyID,
-      registered: false
+      registered: false,
+      environment: expectedEnvironment
     )
   }
 
@@ -484,6 +544,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
   ) async throws -> String {
     guard
       state.ownerID == ownerID,
+      state.environment == expectedEnvironment,
       Self.isValidKeyID(state.keyID)
     else {
       throw MetricUploadClientError.keyStateUnavailable
@@ -610,7 +671,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
         from: registrationResponse.body
       ),
       document.registered,
-      document.environment == "development"
+      document.environment == expectedEnvironment
     else {
       throw MetricUploadClientError.invalidServerResponse
     }
@@ -618,6 +679,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     do {
       try stateStore.markRegistered(
         keyID: state.keyID,
+        environment: expectedEnvironment,
         ownerID: ownerID
       )
     } catch {
@@ -640,6 +702,23 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       throw MetricUploadClientError.keyStateUnavailable
     }
 
+    return try await replaceKey(state: state, ownerID: ownerID)
+  }
+
+  /// App Attest sandbox and production keys are separate. Rotate any legacy or
+  /// mismatched state before it can sign a request in the current environment.
+  private func replaceKey(
+    state: MetricAppAttestState,
+    ownerID: UUID
+  ) async throws -> MetricAppAttestState {
+    try await requireValidSession(ownerID: ownerID)
+    guard
+      state.ownerID == ownerID,
+      Self.isValidKeyID(state.keyID)
+    else {
+      throw MetricUploadClientError.keyStateUnavailable
+    }
+
     let replacementKeyID: String
     do {
       replacementKeyID = try await appAttest.generateKey()
@@ -656,9 +735,10 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       throw MetricUploadClientError.keyStateUnavailable
     }
     do {
-      try stateStore.replaceUnregisteredKey(
+      try stateStore.replaceKey(
         replacementKeyID,
         replacing: state.keyID,
+        environment: expectedEnvironment,
         ownerID: ownerID
       )
     } catch {
@@ -667,7 +747,8 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     return MetricAppAttestState(
       ownerID: ownerID,
       keyID: replacementKeyID,
-      registered: false
+      registered: false,
+      environment: expectedEnvironment
     )
   }
 
@@ -786,7 +867,14 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     case 200, 201:
       return
     case 401, 403:
-      throw MetricUploadClientError.uploadVerificationFailed
+      let failure: MetricUploadClientError =
+        switch AttestedEndpointRefusal.decode(response.body) {
+        case .authentication: .tokenRefusedByService
+        case .attestation: .attestationRejected
+        case .accountNotActive: .accountNotActive
+        case .unspecified: .uploadVerificationFailed
+        }
+      throw failure
     case 409:
       throw MetricUploadClientError.uploadConflict
     case 500...599:
@@ -955,6 +1043,7 @@ final class UserDefaultsMetricAppAttestStateStore:
 
   func saveGeneratedKey(
     _ keyID: String,
+    environment: AppAttestEnvironment,
     ownerID: UUID
   ) throws {
     guard
@@ -967,7 +1056,8 @@ final class UserDefaultsMetricAppAttestStateStore:
     if let existing = try state(for: ownerID) {
       guard
         existing.keyID == keyID,
-        existing.registered == false
+        existing.registered == false,
+        existing.environment == environment
       else {
         throw MetricAppAttestStateStoreError.conflict
       }
@@ -977,7 +1067,8 @@ final class UserDefaultsMetricAppAttestStateStore:
       MetricAppAttestState(
         ownerID: ownerID,
         keyID: keyID,
-        registered: false
+        registered: false,
+        environment: environment
       )
     )
   }
@@ -1011,15 +1102,17 @@ final class UserDefaultsMetricAppAttestStateStore:
         ownerID: ownerID,
         keyID: keyID,
         registered: false,
+        environment: existing.environment,
         pendingRegistrationBody: body,
         pendingRegistrationExpiresAt: expiresAt
       )
     )
   }
 
-  func replaceUnregisteredKey(
+  func replaceKey(
     _ newKeyID: String,
     replacing oldKeyID: String,
+    environment: AppAttestEnvironment,
     ownerID: UUID
   ) throws {
     guard
@@ -1028,8 +1121,7 @@ final class UserDefaultsMetricAppAttestStateStore:
       Data(base64Encoded: newKeyID) != nil,
       newKeyID != oldKeyID,
       let existing = try state(for: ownerID),
-      existing.keyID == oldKeyID,
-      existing.registered == false
+      existing.keyID == oldKeyID
     else {
       throw MetricAppAttestStateStoreError.conflict
     }
@@ -1037,18 +1129,21 @@ final class UserDefaultsMetricAppAttestStateStore:
       MetricAppAttestState(
         ownerID: ownerID,
         keyID: newKeyID,
-        registered: false
+        registered: false,
+        environment: environment
       )
     )
   }
 
   func markRegistered(
     keyID: String,
+    environment: AppAttestEnvironment,
     ownerID: UUID
   ) throws {
     guard
       let existing = try state(for: ownerID),
-      existing.keyID == keyID
+      existing.keyID == keyID,
+      existing.environment == environment
     else {
       throw MetricAppAttestStateStoreError.conflict
     }
@@ -1059,7 +1154,8 @@ final class UserDefaultsMetricAppAttestStateStore:
       MetricAppAttestState(
         ownerID: ownerID,
         keyID: keyID,
-        registered: true
+        registered: true,
+        environment: environment
       )
     )
   }
@@ -1211,7 +1307,7 @@ private enum MetricAppAttestRegistrationBody {
 
 private struct AttestRegistrationResponse: Decodable {
   let registered: Bool
-  let environment: String
+  let environment: AppAttestEnvironment
 }
 
 private struct MetricIngestDocument: Decodable {

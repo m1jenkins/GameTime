@@ -1,6 +1,7 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertThrows } from "@std/assert";
 import { type Bytes } from "./bytes.ts";
 import {
+  deviceKeyLookup,
   type MarkDeviceReceiptVerifiedArgs,
   postgrestActivityDiagnosticDatabase,
   type PostgrestConfig,
@@ -236,6 +237,62 @@ Deno.test("the active-actor adapter maps a deleted account to a private 403", as
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+Deno.test("device key lookup is scoped to allowed App Attest environments", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests: URL[] = [];
+
+  try {
+    globalThis.fetch = (input) => {
+      requests.push(new URL(String(input)));
+      return Promise.resolve(
+        new Response(
+          JSON.stringify([{
+            public_key: `\\x04${"22".repeat(64)}`,
+          }]),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+      );
+    };
+
+    assertEquals(
+      await deviceKeyLookup(CONFIG, ["production"])(KEY_ID),
+      PUBLIC_KEY,
+    );
+    assertEquals(
+      await deviceKeyLookup(CONFIG, ["development", "production"])(KEY_ID),
+      PUBLIC_KEY,
+    );
+
+    assertEquals(requests.length, 2);
+    assertEquals(requests[0]!.searchParams.get("environment"), "in.(production)");
+    assertEquals(
+      requests[1]!.searchParams.get("environment"),
+      "in.(development,production)",
+    );
+    for (const request of requests) {
+      assertEquals(
+        request.searchParams.get("key_id"),
+        `eq.\\x${"11".repeat(32)}`,
+      );
+      assertEquals(request.searchParams.get("select"), "public_key");
+      assertEquals(request.searchParams.get("limit"), "1");
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("device key lookup refuses an empty App Attest environment policy", () => {
+  assertThrows(
+    () => deviceKeyLookup(CONFIG, []),
+    Error,
+    "at least one allowed App Attest environment",
+  );
 });
 
 Deno.test("metric RPC failures discard raw health detail before logging", async () => {

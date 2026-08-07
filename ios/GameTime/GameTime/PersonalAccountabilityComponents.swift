@@ -31,7 +31,7 @@ extension PersonalSettlementMode {
     var disclosureText: String {
         switch self {
         case .testOnly:
-            "This is a test — no money will be charged."
+            "Test commitment — no money will be charged."
         case .stripeSandbox:
             "Payment test mode — no real money moves."
         }

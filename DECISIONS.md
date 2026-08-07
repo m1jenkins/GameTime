@@ -3445,6 +3445,11 @@ The Stage A app displays **Test commitment — no money will be charged.** befor
 confirmation and on open-challenge surfaces. Local and Staging may mutate;
 Release retains the existing mutation lock.
 
+**Scope update (August 6, 2026).** This decision remains authoritative for
+internal Stage A rows and fixtures. D114 supersedes only the distribution
+Release boundary for the invite-only Stripe sandbox beta; it does not convert
+Stage A history or permit live settlement.
+
 No Stage A code creates a payment method, authorization, charge, transfer,
 participant payout, charity obligation, collection retry, or debt. Legal,
 processor, and App Store references are risk gates, not clearance.
@@ -3959,9 +3964,10 @@ challenge until it succeeds or policy waives it; GameTime does not run repeated
 retries or debt collection.
 
 Stripe sandbox objects use test credentials and move no real money. Sandbox UI
-must say **Payment test mode — no real money moves.** Release and live Stripe
-mode remain disabled. A hosted sandbox deployment, live configuration, or real
-charge requires separate approval and evidence.
+must identify payment test mode and plainly state that no real money moves.
+Live Stripe mode remains disabled. D114 permits only the invite-only Release
+beta to reach this sandbox path; hosted configuration or any real charge still
+requires separate approval and evidence.
 
 **Why.** An ordinary card authorization may expire before seven challenge days,
 the 24-hour sync period, and the review gate finish. Charging at creation would
@@ -3984,10 +3990,41 @@ history; enabling Release from a client flag; and calling test-mode payment
 objects live-payment proof.
 
 **Remaining gate.** D113 is implemented locally in a sandbox-only client and
-server path. Stage A and Solo remain `test_only`, Release remains unable to use
-Stripe, and no hosted environment was changed. A hosted sandbox still needs a
-dedicated non-production target, tester allowlist and kill switch, test secrets,
-a registered signed webhook, a secure dispatcher, and end-to-end reconciliation
-proof. Live rollout additionally requires written Stripe approval, US legal
-review, App Store and HealthKit clearance, age and jurisdiction controls, and a
-separately approved production rollout.
+server path. Stage A and Solo remain `test_only`, and no hosted environment was
+changed. The Release source selects the sandbox contract but is not yet a
+candidate: it still needs the final Apple identity and redirect scheme, tester
+allowlist and kill switch, test secrets, a registered signed webhook, a secure
+dispatcher, and end-to-end reconciliation proof. Live rollout additionally
+requires written Stripe approval, US legal review, App Store and HealthKit
+clearance, age and jurisdiction controls, and a separately approved production
+rollout.
+
+### D114. The invite-only Release beta may use Stripe sandbox only
+
+**What.** The distribution Release build may create Personal challenges only
+when its frozen settlement mode is `stripe_sandbox`. Release requires
+production App Attest, keeps legacy social mutations disabled, and must accept
+only Stripe test-mode objects. Internal Stage A remains `test_only`; no existing
+row is rewritten.
+
+The Watch connection foundation may remain in source for Debug and Staging, but
+its coordinator and shared handshake code are excluded from the Release iPhone
+target. A Watch companion is not embedded in or accepted as part of this beta.
+
+**Why.** The external cohort needs to rehearse the complete setup, review, and
+settlement experience without creating a live financial consequence. Keeping
+the sandbox path explicit and fail-closed makes that rehearsal independently
+auditable while preserving the older no-provider Stage A contract.
+
+**Rejected.** Enabling live Stripe; allowing Release to fall back silently to
+`test_only`; reusing the staging redirect or bundle identity as final
+distribution identity; exposing legacy social or Solo creation; embedding the
+Watch prototype in the iPhone beta; and treating local configuration as hosted
+or TestFlight proof.
+
+**Remaining gate.** Name and register the final distribution App ID and Stripe
+return scheme, add the iPhone icon and privacy manifest, pass the source
+preflight, deploy the exact reviewed non-production backend behind database
+allowlist and kill-switch controls, and complete signed physical-iPhone and
+processed-TestFlight proof. Until those gates pass, external invitations remain
+NO-GO.

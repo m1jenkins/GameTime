@@ -35,7 +35,7 @@ struct ChallengesView: View {
                     }
                 }
 
-                if store.challenges.isEmpty, store.loadState != .loading {
+                if store.loadState == .empty {
                     DaybreakCard {
                         EmptyTrustState(
                             title: "No challenges yet",
@@ -46,7 +46,9 @@ struct ChallengesView: View {
                     }
                 }
 
-                if store.openChallenge == nil {
+                if store.hasVerifiedCreationState,
+                    store.openChallenge == nil
+                {
                     Button("Start a challenge") {
                         router.presentedSheet = .createPersonalChallenge
                     }

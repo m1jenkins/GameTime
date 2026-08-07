@@ -1,12 +1,17 @@
 import Foundation
+import GameTimeCore
 
 enum AppEnvironment: String, Equatable, Sendable {
     case debug
     case staging
     case release
 
-    var showsTestEnvironmentBanner: Bool { self == .staging }
+    var showsTestEnvironmentBanner: Bool {
+        self == .staging || self == .release
+    }
 }
+
+typealias AppAttestEnvironment = MetricUploadAttestationEnvironment
 
 struct AppConfiguration: Equatable, Sendable {
     let environment: AppEnvironment
@@ -32,26 +37,28 @@ struct AppConfiguration: Equatable, Sendable {
         self.supabaseURL = supabaseURL
         self.supabasePublishableKey = supabasePublishableKey
         self.contestMutationsEnabled = contestMutationsEnabled
-        self.personalSettlementMode = environment == .release
-            ? .testOnly
-            : personalSettlementMode
-        self.stripeReturnURL = environment == .release
-            ? nil
-            : stripeReturnURL
+        self.personalSettlementMode = personalSettlementMode
+        self.stripeReturnURL = stripeReturnURL
         self.legacySocialRuntimeEnabled = legacySocialRuntimeEnabled
     }
 
-    /// Personal accountability is Stage A only. The existing build flag may
-    /// unlock local/Staging mutations, but Release always remains read-only.
+    /// Legacy social mutations remain separately locked in Release. The beta
+    /// Release build may create Personal challenges only through the explicit
+    /// Stripe sandbox settlement mode.
     var personalChallengeMutationsEnabled: Bool {
-        environment != .release && contestMutationsEnabled
+        if environment == .release {
+            return personalSettlementMode == .stripeSandbox
+        }
+        return contestMutationsEnabled
     }
 
-    /// Debug and Staging read HealthKit. Release stays off until the shipping
-    /// configuration is separately authorized; it also refuses every personal
-    /// mutation, so a step read there would have nothing to attach to.
+    /// Health reads are useful in every product configuration. Whether those
+    /// reads can leave the phone remains a separate App Attest capability.
     var activitySyncEnabled: Bool {
-        environment == .debug || environment == .staging
+        switch environment {
+        case .debug, .staging, .release:
+            true
+        }
     }
 
     /// Whether a step read can be App Attest-signed and delivered to the
@@ -62,7 +69,23 @@ struct AppConfiguration: Equatable, Sendable {
     /// data and proving that reading to a server are different capabilities,
     /// and fusing them is what previously made the product unreachable until
     /// the entire stack was live.
-    var attestedUploadEnabled: Bool { environment == .staging }
+    var attestedUploadEnabled: Bool {
+        expectedAppAttestEnvironment != nil
+    }
+
+    /// The environment the server must report for a newly registered App
+    /// Attest key. TestFlight and App Store builds always use production, while
+    /// the internal Staging build deliberately exercises Apple's sandbox.
+    var expectedAppAttestEnvironment: AppAttestEnvironment? {
+        switch environment {
+        case .debug:
+            nil
+        case .staging:
+            .development
+        case .release:
+            .production
+        }
+    }
 
     static func load(bundle: Bundle = .main) throws -> AppConfiguration {
         let environmentValue = bundle.object(
@@ -148,15 +171,46 @@ struct AppConfiguration: Equatable, Sendable {
         }
 
         let stripeReturnURL: URL?
-        if environment != .release,
-            requestedSettlementMode == .stripeSandbox
-        {
+        if requestedSettlementMode == .stripeSandbox {
+            guard environment == .staging || environment == .release else {
+                throw AppConfigurationError.invalidPersonalSettlementMode
+            }
+
             guard
                 let rawReturnURL = normalized(stripeReturnURLValue),
                 let returnURL = URL(string: rawReturnURL),
-                returnURL.scheme?.lowercased() == "gametime-staging",
-                returnURL.host != nil
+                let returnScheme = returnURL.scheme?.lowercased(),
+                returnURL.host?.lowercased() == "stripe-redirect",
+                returnURL.user == nil,
+                returnURL.password == nil,
+                returnURL.port == nil,
+                returnURL.query == nil,
+                returnURL.fragment == nil
             else {
+                throw AppConfigurationError.invalidStripeReturnURL
+            }
+
+            let isAllowedReturnScheme: Bool
+            switch environment {
+            case .staging:
+                isAllowedReturnScheme = returnScheme == "gametime-staging"
+            case .release:
+                let forbiddenReleaseMarkers = [
+                    "staging",
+                    "debug",
+                    "test",
+                    "example",
+                ]
+                isAllowedReturnScheme =
+                    returnScheme.hasPrefix("gametime")
+                    && forbiddenReleaseMarkers.allSatisfy {
+                        !returnScheme.contains($0)
+                    }
+            case .debug:
+                isAllowedReturnScheme = false
+            }
+
+            guard isAllowedReturnScheme else {
                 throw AppConfigurationError.invalidStripeReturnURL
             }
             stripeReturnURL = returnURL
@@ -171,9 +225,7 @@ struct AppConfiguration: Equatable, Sendable {
             contestMutationsEnabled: environment == .release
                 ? false
                 : requestedMutations,
-            personalSettlementMode: environment == .release
-                ? .testOnly
-                : requestedSettlementMode,
+            personalSettlementMode: requestedSettlementMode,
             stripeReturnURL: stripeReturnURL
         )
     }

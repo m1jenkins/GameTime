@@ -1,7 +1,9 @@
 #include "PublicClient.xcconfig"
 
-// Activity sync is staging-only through GAMETIME_ENV, and AppConfiguration
-// independently locks Release contest mutations at runtime.
+// TestFlight/App Store App Attest keys are production-only. Personal beta
+// creation is enabled only through Stripe's test-mode settlement path.
 GAMETIME_ENV = release
+APP_ATTEST_ENVIRONMENT = production
 GAMETIME_CONTEST_MUTATIONS_ENABLED = NO
-GAMETIME_PERSONAL_SETTLEMENT_MODE = test_only
+GAMETIME_PERSONAL_SETTLEMENT_MODE = stripe_sandbox
+GAMETIME_STRIPE_RETURN_URL = gametime-staging:/$()/stripe-redirect

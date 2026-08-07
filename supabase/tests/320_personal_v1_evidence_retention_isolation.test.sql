@@ -57,7 +57,7 @@ select ok(
       ) > 0
     from (
       select pg_get_functiondef(
-        'public.record_personal_sync_coverage_v1(uuid,uuid,uuid,bytea,timestamptz,jsonb,bytea,bigint)'::regprocedure
+        'app.record_personal_sync_coverage_v1_unchecked(uuid,uuid,uuid,bytea,timestamptz,jsonb,bytea,bigint)'::regprocedure
       ) as definition
     ) source
   )
@@ -83,7 +83,7 @@ select ok(
       ) > 0
     from (
       select pg_get_functiondef(
-        'public.record_trusted_personal_diagnostic_v1(uuid,uuid,bytea,timestamptz,timestamptz,timestamptz,integer,bytea,bigint)'::regprocedure
+        'app.record_trusted_personal_diagnostic_v1_unchecked(uuid,uuid,bytea,timestamptz,timestamptz,timestamptz,integer,bytea,bigint)'::regprocedure
       ) as definition
     ) source
   ),

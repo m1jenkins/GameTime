@@ -79,7 +79,8 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
       MetricAppAttestState(
         ownerID: ownerA,
         keyID: appAttest.generatedKeyID,
-        registered: true
+        registered: true,
+        environment: .development
       )
     )
     XCTAssertNil(stateStore.states[ownerB])
@@ -266,7 +267,11 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
       attestation: Data("expired exact attestation".utf8)
     )
     let store = UserDefaultsMetricAppAttestStateStore(defaults: defaults)
-    try store.saveGeneratedKey(oldKeyID, ownerID: ownerA)
+    try store.saveGeneratedKey(
+      oldKeyID,
+      environment: .development,
+      ownerID: ownerA
+    )
     try store.savePendingRegistrationBody(
       expiredBody,
       expiresAt: now.addingTimeInterval(-1),
@@ -358,6 +363,7 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
     let store = UserDefaultsMetricAppAttestStateStore(defaults: defaults)
     try store.saveGeneratedKey(
       appAttest.generatedKeyID,
+      environment: .development,
       ownerID: ownerA
     )
     try store.savePendingRegistrationBody(
@@ -440,6 +446,49 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
       ])
     )
     XCTAssertEqual(surfaced, .accountNotActive)
+  }
+
+  func testMetricAssertionRefusalIsReportedAsAttestationRejected()
+    async throws
+  {
+    let appAttest = MetricTransportAppAttestFake()
+    let stateStore = MetricTransportStateStoreFake()
+    stateStore.seedRegistered(
+      ownerID: ownerA,
+      keyID: appAttest.generatedKeyID
+    )
+    let client = try makeClient(
+      session: MetricTransportSessionFake(ownerID: ownerA),
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: MetricTransportHTTPFake(outcomes: [
+        .response(
+          MetricUploadHTTPResponse(
+            statusCode: 401,
+            body: try jsonData([
+              "error": "unauthorized",
+              "message": "the assertion could not be verified",
+            ])
+          )
+        )
+      ])
+    )
+
+    do {
+      _ = try await client.send(
+        ownerID: ownerA,
+        upload: signedUpload(
+          keyID: appAttest.generatedKeyID,
+          assertion: appAttest.assertion
+        )
+      )
+      XCTFail("Expected the refused assertion to fail closed")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .attestationRejected
+      )
+    }
   }
 
   /// A token the service will not accept is not a device without a session.
@@ -612,7 +661,11 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
       attestation: Data("account switch exact attestation".utf8)
     )
     let store = UserDefaultsMetricAppAttestStateStore(defaults: defaults)
-    try store.saveGeneratedKey(oldKeyID, ownerID: ownerA)
+    try store.saveGeneratedKey(
+      oldKeyID,
+      environment: .development,
+      ownerID: ownerA
+    )
     try store.savePendingRegistrationBody(
       expiredBody,
       expiresAt: now.addingTimeInterval(-1),
@@ -682,8 +735,16 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
     )
     let expiresAt = Date(timeIntervalSince1970: 1_785_888_600)
 
-    try store.saveGeneratedKey(keyA, ownerID: ownerA)
-    try store.saveGeneratedKey(keyB, ownerID: ownerB)
+    try store.saveGeneratedKey(
+      keyA,
+      environment: .development,
+      ownerID: ownerA
+    )
+    try store.saveGeneratedKey(
+      keyB,
+      environment: .development,
+      ownerID: ownerB
+    )
     try store.savePendingRegistrationBody(
       bodyA,
       expiresAt: expiresAt,
@@ -979,7 +1040,9 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
     XCTAssertEqual(sendTransport.requests.count, 1)
   }
 
-  func testUploadKeyMustMatchTheOwnersRegisteredKey() async throws {
+  func testRotatedLocalKeyStillSendsTheOriginalSavedProof()
+    async throws
+  {
     let session = MetricTransportSessionFake(ownerID: ownerA)
     let appAttest = MetricTransportAppAttestFake()
     let stateStore = MetricTransportStateStoreFake()
@@ -989,7 +1052,11 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
       ownerID: ownerA,
       keyID: otherKeyID
     )
-    let transport = MetricTransportHTTPFake(outcomes: [])
+    let transport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        try ingestResponse(statusCode: 201, replayed: false)
+      )
+    ])
     let client = try makeClient(
       session: session,
       appAttest: appAttest,
@@ -997,22 +1064,63 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
       transport: transport
     )
 
-    do {
-      _ = try await client.send(
-        ownerID: ownerA,
-        upload: signedUpload(
-          keyID: appAttest.generatedKeyID,
-          assertion: appAttest.assertion
-        )
+    let receipt = try await client.send(
+      ownerID: ownerA,
+      upload: signedUpload(
+        keyID: appAttest.generatedKeyID,
+        assertion: appAttest.assertion
       )
-      XCTFail("Expected a cross-key upload to fail closed")
-    } catch {
-      XCTAssertEqual(
-        error as? MetricUploadClientError,
-        .keyStateUnavailable
+    )
+
+    XCTAssertEqual(receipt.batchID, batchID)
+    XCTAssertEqual(transport.requests.count, 1)
+    XCTAssertEqual(
+      transport.requests.first?.value(
+        forHTTPHeaderField: "x-gametime-key-id"
+      ),
+      appAttest.generatedKeyID
+    )
+  }
+
+  func testLegacyDevelopmentUploadSendsOriginalProofWithoutResigning()
+    async throws
+  {
+    let appAttest = MetricTransportAppAttestFake()
+    let transport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        try ingestResponse(statusCode: 201, replayed: false)
       )
-    }
-    XCTAssertTrue(transport.requests.isEmpty)
+    ])
+    let client = try makeClient(
+      session: MetricTransportSessionFake(ownerID: ownerA),
+      appAttest: appAttest,
+      stateStore: MetricTransportStateStoreFake(),
+      transport: transport
+    )
+    let upload = signedUpload(
+      keyID: appAttest.generatedKeyID,
+      assertion: appAttest.assertion,
+      environment: nil
+    )
+
+    let receipt = try await client.send(ownerID: ownerA, upload: upload)
+
+    XCTAssertEqual(receipt.batchID, batchID)
+    XCTAssertEqual(transport.requests.count, 1)
+    XCTAssertEqual(transport.requests.first?.httpBody, upload.body)
+    XCTAssertEqual(
+      transport.requests.first?.value(
+        forHTTPHeaderField: "x-gametime-key-id"
+      ),
+      upload.keyID
+    )
+    XCTAssertEqual(
+      transport.requests.first?.value(
+        forHTTPHeaderField: "x-gametime-assertion"
+      ),
+      upload.assertion?.base64EncodedString()
+    )
+    XCTAssertTrue(appAttest.assertionHashes.isEmpty)
   }
 
   func testRawResponseTransportErrorBodyAndSourceNeverSurface()
@@ -1086,28 +1194,304 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
     )
   }
 
-  func testNonStagingConstructionFailsClosed() {
-    for environment in [AppEnvironment.debug, .release] {
-      XCTAssertThrowsError(
-        try SupabaseMetricUploadClient(
-          configuration: configuration(environment),
-          sessionProvider: MetricTransportSessionFake(
-            ownerID: ownerA
-          ),
-          appAttest: MetricTransportAppAttestFake(),
-          stateStore: MetricTransportStateStoreFake(),
-          transport: MetricTransportHTTPFake(outcomes: [])
+  func testReleaseRegistersAndPersistsAProductionAppAttestKey() async throws {
+    let session = MetricTransportSessionFake(ownerID: ownerA)
+    let appAttest = MetricTransportAppAttestFake()
+    let stateStore = MetricTransportStateStoreFake()
+    let challenge = Data(repeating: 0x42, count: 32)
+    let transport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "challenge": challenge.base64EncodedString(),
+            "expiresInSeconds": 600,
+          ])
         )
-      ) { error in
+      ),
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "registered": true,
+            "environment": "production",
+          ])
+        )
+      ),
+    ])
+    let client = try makeClient(
+      session: session,
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: transport,
+      environment: .release
+    )
+
+    _ = try await client.prepare(
+      ownerID: ownerA,
+      body: exactMetricBody()
+    )
+
+    XCTAssertEqual(stateStore.states[ownerA]?.environment, .production)
+    XCTAssertEqual(stateStore.states[ownerA]?.registered, true)
+    XCTAssertEqual(
+      appAttest.attestationHashes,
+      [sha256(challenge)]
+    )
+  }
+
+  func testRegistrationRefusesAnEnvironmentMismatchInEitherDirection()
+    async throws
+  {
+    let cases: [(AppEnvironment, String)] = [
+      (.staging, "production"),
+      (.release, "development"),
+    ]
+
+    for (environment, responseEnvironment) in cases {
+      let session = MetricTransportSessionFake(ownerID: ownerA)
+      let appAttest = MetricTransportAppAttestFake()
+      let stateStore = MetricTransportStateStoreFake()
+      let challenge = Data(repeating: 0x24, count: 32)
+      let transport = MetricTransportHTTPFake(outcomes: [
+        .response(
+          MetricUploadHTTPResponse(
+            statusCode: 200,
+            body: try jsonData([
+              "challenge": challenge.base64EncodedString(),
+              "expiresInSeconds": 600,
+            ])
+          )
+        ),
+        .response(
+          MetricUploadHTTPResponse(
+            statusCode: 200,
+            body: try jsonData([
+              "registered": true,
+              "environment": responseEnvironment,
+            ])
+          )
+        ),
+      ])
+      let client = try makeClient(
+        session: session,
+        appAttest: appAttest,
+        stateStore: stateStore,
+        transport: transport,
+        environment: environment
+      )
+
+      do {
+        _ = try await client.prepare(
+          ownerID: ownerA,
+          body: exactMetricBody()
+        )
+        XCTFail("Expected the App Attest environment mismatch to fail closed")
+      } catch {
         XCTAssertEqual(
           error as? MetricUploadClientError,
-          .stagingOnly
-        )
-        XCTAssertEqual(
-          error.localizedDescription,
-          MetricUploadClientError.stagingOnly.errorDescription
+          .invalidServerResponse
         )
       }
+      XCTAssertEqual(stateStore.states[ownerA]?.registered, false)
+      XCTAssertEqual(
+        stateStore.states[ownerA]?.environment,
+        environment == .release ? .production : .development
+      )
+    }
+  }
+
+  func testReleaseRotatesLegacyAndDevelopmentKeysBeforeSigning()
+    async throws
+  {
+    let oldKeyID = Data("old-development-app-attest-key".utf8)
+      .base64EncodedString()
+
+    for priorEnvironment in [
+      nil,
+      AppAttestEnvironment.development,
+    ] as [AppAttestEnvironment?] {
+      let session = MetricTransportSessionFake(ownerID: ownerA)
+      let appAttest = MetricTransportAppAttestFake()
+      let stateStore = MetricTransportStateStoreFake()
+      stateStore.seedRegistered(
+        ownerID: ownerA,
+        keyID: oldKeyID,
+        environment: priorEnvironment
+      )
+      let challenge = Data(repeating: 0x33, count: 32)
+      let transport = MetricTransportHTTPFake(outcomes: [
+        .response(
+          MetricUploadHTTPResponse(
+            statusCode: 200,
+            body: try jsonData([
+              "challenge": challenge.base64EncodedString(),
+              "expiresInSeconds": 600,
+            ])
+          )
+        ),
+        .response(
+          MetricUploadHTTPResponse(
+            statusCode: 200,
+            body: try jsonData([
+              "registered": true,
+              "environment": "production",
+            ])
+          )
+        ),
+      ])
+      let client = try makeClient(
+        session: session,
+        appAttest: appAttest,
+        stateStore: stateStore,
+        transport: transport,
+        environment: .release
+      )
+
+      _ = try await client.prepare(
+        ownerID: ownerA,
+        body: exactMetricBody()
+      )
+
+      XCTAssertEqual(appAttest.generateKeyCallCount, 1)
+      XCTAssertEqual(
+        stateStore.states[ownerA],
+        MetricAppAttestState(
+          ownerID: ownerA,
+          keyID: appAttest.generatedKeyID,
+          registered: true,
+          environment: .production
+        )
+      )
+      XCTAssertEqual(transport.requests.count, 2)
+    }
+  }
+
+  func testReleaseMigratesTheActualLegacyUserDefaultsRecord()
+    async throws
+  {
+    let suiteName = "GameTimeMetricLegacy-\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    addTeardownBlock {
+      defaults.removePersistentDomain(forName: suiteName)
+    }
+    let oldKeyID = Data("legacy-app-attest-key".utf8)
+      .base64EncodedString()
+    let legacyData = try JSONSerialization.data(
+      withJSONObject: [
+        "ownerID": ownerA.uuidString,
+        "keyID": oldKeyID,
+        "registered": true,
+      ],
+      options: [.sortedKeys]
+    )
+    defaults.set(
+      legacyData,
+      forKey:
+        "GameTime.metricAppAttest.v1."
+        + ownerA.uuidString.lowercased()
+    )
+    let store = UserDefaultsMetricAppAttestStateStore(defaults: defaults)
+    XCTAssertNil(try store.state(for: ownerA)?.environment)
+
+    let challenge = Data(repeating: 0x45, count: 32)
+    let appAttest = MetricTransportAppAttestFake()
+    let client = try makeClient(
+      session: MetricTransportSessionFake(ownerID: ownerA),
+      appAttest: appAttest,
+      stateStore: store,
+      transport: MetricTransportHTTPFake(outcomes: [
+        .response(
+          MetricUploadHTTPResponse(
+            statusCode: 200,
+            body: try jsonData([
+              "challenge": challenge.base64EncodedString(),
+              "expiresInSeconds": 600,
+            ])
+          )
+        ),
+        .response(
+          MetricUploadHTTPResponse(
+            statusCode: 200,
+            body: try jsonData([
+              "registered": true,
+              "environment": "production",
+            ])
+          )
+        ),
+      ]),
+      environment: .release
+    )
+
+    _ = try await client.prepare(
+      ownerID: ownerA,
+      body: exactMetricBody()
+    )
+
+    let migrated = try XCTUnwrap(try store.state(for: ownerA))
+    XCTAssertEqual(migrated.keyID, appAttest.generatedKeyID)
+    XCTAssertEqual(migrated.environment, .production)
+    XCTAssertTrue(migrated.registered)
+  }
+
+  func testReleaseRejectsADevelopmentSignedQueuedUpload()
+    async throws
+  {
+    let appAttest = MetricTransportAppAttestFake()
+    let stateStore = MetricTransportStateStoreFake()
+    stateStore.seedRegistered(
+      ownerID: ownerA,
+      keyID: appAttest.generatedKeyID,
+      environment: .development
+    )
+    let transport = MetricTransportHTTPFake(outcomes: [])
+    let client = try makeClient(
+      session: MetricTransportSessionFake(ownerID: ownerA),
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: transport,
+      environment: .release
+    )
+
+    do {
+      _ = try await client.send(
+        ownerID: ownerA,
+        upload: signedUpload(
+          keyID: appAttest.generatedKeyID,
+          assertion: appAttest.assertion,
+          environment: .development
+        )
+      )
+      XCTFail("Expected a development key to be unusable in Release")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .savedEvidenceFromDifferentEnvironment
+      )
+    }
+    XCTAssertTrue(transport.requests.isEmpty)
+  }
+
+  func testDebugConstructionFailsClosedWithoutAppAttestUpload() {
+    XCTAssertThrowsError(
+      try SupabaseMetricUploadClient(
+        configuration: configuration(.debug),
+        sessionProvider: MetricTransportSessionFake(
+          ownerID: ownerA
+        ),
+        appAttest: MetricTransportAppAttestFake(),
+        stateStore: MetricTransportStateStoreFake(),
+        transport: MetricTransportHTTPFake(outcomes: [])
+      )
+    ) { error in
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .stagingOnly
+      )
+      XCTAssertEqual(
+        error.localizedDescription,
+        MetricUploadClientError.stagingOnly.errorDescription
+      )
     }
   }
 
@@ -1116,10 +1500,11 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
     appAttest: MetricTransportAppAttestFake,
     stateStore: any MetricAppAttestStateStoring,
     transport: MetricTransportHTTPFake,
+    environment: AppEnvironment = .staging,
     now: @escaping () -> Date = Date.init
   ) throws -> SupabaseMetricUploadClient {
     try SupabaseMetricUploadClient(
-      configuration: configuration(.staging),
+      configuration: configuration(environment),
       sessionProvider: session,
       appAttest: appAttest,
       stateStore: stateStore,
@@ -1167,14 +1552,16 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
   private func signedUpload(
     keyID: String,
     assertion: Data,
-    sourceBundleID: String = "com.private.health.source.sentinel"
+    sourceBundleID: String = "com.private.health.source.sentinel",
+    environment: AppAttestEnvironment? = .development
   ) -> PendingMetricUpload {
     PendingMetricUpload(
       clientBatchId: batchID,
       contestId: contestID,
       body: exactMetricBody(sourceBundleID: sourceBundleID),
       keyID: keyID,
-      assertion: assertion
+      assertion: assertion,
+      attestEnvironment: environment
     )
   }
 
@@ -1361,13 +1748,15 @@ private final class MetricTransportStateStoreFake:
 
   func saveGeneratedKey(
     _ keyID: String,
+    environment: AppAttestEnvironment,
     ownerID: UUID
   ) throws {
     savedOwners.append(ownerID)
     states[ownerID] = MetricAppAttestState(
       ownerID: ownerID,
       keyID: keyID,
-      registered: false
+      registered: false,
+      environment: environment
     )
   }
 
@@ -1397,20 +1786,21 @@ private final class MetricTransportStateStoreFake:
       ownerID: ownerID,
       keyID: keyID,
       registered: false,
+      environment: existing.environment,
       pendingRegistrationBody: body,
       pendingRegistrationExpiresAt: expiresAt
     )
   }
 
-  func replaceUnregisteredKey(
+  func replaceKey(
     _ newKeyID: String,
     replacing oldKeyID: String,
+    environment: AppAttestEnvironment,
     ownerID: UUID
   ) throws {
     guard
       let existing = states[ownerID],
       existing.keyID == oldKeyID,
-      existing.registered == false,
       newKeyID != oldKeyID
     else {
       throw MetricTransportStateError.keyMismatch
@@ -1418,33 +1808,41 @@ private final class MetricTransportStateStoreFake:
     states[ownerID] = MetricAppAttestState(
       ownerID: ownerID,
       keyID: newKeyID,
-      registered: false
+      registered: false,
+      environment: environment
     )
   }
 
   func markRegistered(
     keyID: String,
+    environment: AppAttestEnvironment,
     ownerID: UUID
   ) throws {
-    guard states[ownerID]?.keyID == keyID else {
+    guard
+      states[ownerID]?.keyID == keyID,
+      states[ownerID]?.environment == environment
+    else {
       throw MetricTransportStateError.keyMismatch
     }
     registeredOwners.append(ownerID)
     states[ownerID] = MetricAppAttestState(
       ownerID: ownerID,
       keyID: keyID,
-      registered: true
+      registered: true,
+      environment: environment
     )
   }
 
   func seedRegistered(
     ownerID: UUID,
-    keyID: String
+    keyID: String,
+    environment: AppAttestEnvironment? = .development
   ) {
     states[ownerID] = MetricAppAttestState(
       ownerID: ownerID,
       keyID: keyID,
-      registered: true
+      registered: true,
+      environment: environment
     )
   }
 }

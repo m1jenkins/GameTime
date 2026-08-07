@@ -14,7 +14,7 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(
             signedOut.staticTexts[
-                "This is a test — no money will be charged."
+                "Test commitment — no money will be charged."
             ].exists
         )
         XCTAssertFalse(signedOut.staticTexts["Compete fairly."].exists)
@@ -61,16 +61,21 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertFalse(
             app.staticTexts[
-                "This is a test — no money will be charged."
+                "Test commitment — no money will be charged."
             ].exists
         )
 
         app.buttons["personal.create"].waitAndTap()
+        XCTAssertTrue(
+            app.navigationBars["How it counts"].waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)["Step 1 of 6"].exists
+        )
+        assertHiddenBetaCreationSteps(in: app)
         for title in [
-            "How it counts",
             "Your goal",
             "Your amount",
-            "When you start",
             "Health check",
             "Test payment",
         ] {
@@ -98,7 +103,7 @@ final class GameTimeUITests: XCTestCase {
                 .waitForExistence(timeout: 4)
         )
         XCTAssertTrue(
-            app.staticTexts["Test method saved — no charge today"].exists
+            app.staticTexts["Test method saved — ready for review"].exists
         )
         app.buttons["personal.submit"].waitAndTap()
         XCTAssertTrue(
@@ -112,7 +117,7 @@ final class GameTimeUITests: XCTestCase {
         )
     }
 
-    func testStripeMissReviewUsesFixedReasonAndShowsNoChargeState() {
+    func testStripeMissReviewUsesFixedReasonAndShowsSettlementPausedState() {
         let app = launch(
             "--fixture-stripe-sandbox",
             "--fixture-stripe-review",
@@ -146,7 +151,7 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(
             app.staticTexts[
-                "No charge while this result is reviewed."
+                "Settlement stays paused while this result is reviewed."
             ].exists
         )
     }
@@ -197,7 +202,7 @@ final class GameTimeUITests: XCTestCase {
         assertNoForbiddenLanguage(in: app)
     }
 
-    func testCumulativeCreationOffersOnlyStepsAllCommitmentsAndExactDisclosure() {
+    func testCumulativeCreationOmitsFixedMetricAndStartSteps() {
         let app = launch(
             "--fixture-empty",
             "--fixture-activity",
@@ -209,17 +214,18 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.create"].tap()
 
         XCTAssertTrue(
-            app.navigationBars["What you’ll track"].waitForExistence(timeout: 4)
+            app.navigationBars["How it counts"].waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts["Steps"].exists)
-        XCTAssertFalse(app.staticTexts["Distance"].exists)
-        XCTAssertFalse(app.staticTexts["Calories"].exists)
+        XCTAssertTrue(
+            app.descendants(matching: .any)["Step 1 of 5"].exists
+        )
+        XCTAssertFalse(app.buttons["Back"].exists)
+        assertHiddenBetaCreationSteps(in: app)
         assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
-        app.buttons["personal.continue"].tap()
-
-        XCTAssertTrue(
-            app.navigationBars["How it counts"].waitForExistence(timeout: 3)
+        attachScreenshot(
+            of: app,
+            named: "Beta creation - cadence first"
         )
         XCTAssertTrue(app.buttons["personal.cadence.daily"].exists)
         XCTAssertTrue(app.buttons["personal.cadence.cumulative"].exists)
@@ -259,24 +265,11 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.continue"].waitAndTap()
 
         XCTAssertTrue(
-            app.navigationBars["When you start"]
-                .waitForExistence(timeout: 4)
-        )
-        XCTAssertTrue(app.descendants(matching: .any)["personal.start.day"].exists)
-        XCTAssertTrue(app.descendants(matching: .any)["personal.start.hour"].exists)
-        // The default selection is the unchanged next local midnight, so the
-        // consequence line must say the seven days are full.
-        XCTAssertTrue(
-            app.descendants(matching: .any)["personal.start.consequence"]
-                .waitForExistence(timeout: 3)
-        )
-        assertNoForbiddenLanguage(in: app)
-        app.buttons["personal.continue"].waitAndTap()
-
-        XCTAssertTrue(
             app.navigationBars["Health check"]
                 .waitForExistence(timeout: 4)
         )
+        assertHiddenBetaCreationSteps(in: app)
+        assertNoForbiddenLanguage(in: app)
         let healthCheck = app.buttons["personal.health.verify"]
         XCTAssertTrue(healthCheck.waitForExistence(timeout: 3))
         XCTAssertEqual(healthCheck.label, "Check Health connection")
@@ -326,8 +319,8 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-personal-no-diagnostic"
         )
         app.buttons["personal.create"].waitAndTap()
-        // metric, cadence, target, commitment, start
-        for _ in 0..<5 {
+        // cadence, target, commitment
+        for _ in 0..<3 {
             app.buttons["personal.continue"].waitAndTap()
         }
 
@@ -403,8 +396,8 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-activity"
         )
         app.buttons["personal.create"].waitAndTap()
-        // metric, cadence, target, commitment, start
-        for _ in 0..<5 {
+        // cadence, target, commitment
+        for _ in 0..<3 {
             app.buttons["personal.continue"].waitAndTap()
         }
 
@@ -560,6 +553,17 @@ final class GameTimeUITests: XCTestCase {
             offline.otherElements["state.offline"].waitForExistence(timeout: 5)
                 || offline.staticTexts["Couldn’t refresh"].exists
         )
+        XCTAssertFalse(offline.staticTexts["Make this week count"].exists)
+        XCTAssertFalse(offline.buttons["personal.create"].exists)
+
+        offline.tabBars.buttons["Challenges"].waitAndTap()
+        XCTAssertTrue(
+            offline.staticTexts["Couldn’t refresh"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(offline.buttons["Try again"].exists)
+        XCTAssertFalse(offline.staticTexts["No challenges yet"].exists)
+        XCTAssertFalse(offline.buttons["personal.create"].exists)
         assertNoForbiddenLanguage(in: offline)
     }
 
@@ -584,14 +588,25 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(create.isHittable)
         create.tap()
         XCTAssertTrue(
-            app.navigationBars["What you’ll track"].waitForExistence(timeout: 4)
+            app.navigationBars["How it counts"].waitForExistence(timeout: 4)
         )
         XCTAssertTrue(
-            app.descendants(matching: .any)["Step 1 of 7"].exists
+            app.descendants(matching: .any)["Step 1 of 5"].exists
         )
-        XCTAssertEqual(app.buttons["personal.continue"].label, "Continue")
+        XCTAssertFalse(app.buttons["Back"].exists)
+        assertHiddenBetaCreationSteps(in: app)
+        let continueButton = app.buttons["personal.continue"]
+        XCTAssertEqual(continueButton.label, "Continue")
+        XCTAssertTrue(
+            continueButton.isHittable,
+            "The first beta creation action is off-screen at accessibility XXXL."
+        )
         assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
+        attachScreenshot(
+            of: app,
+            named: "Beta creation - cadence accessibility XXXL"
+        )
         app.buttons["Close"].waitAndTap()
 
         app.tabBars.buttons["You"].waitAndTap()
@@ -605,6 +620,44 @@ final class GameTimeUITests: XCTestCase {
         )
         assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
+    }
+
+    private func assertHiddenBetaCreationSteps(
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertFalse(
+            app.navigationBars["What you’ll track"].exists,
+            "The one-option metric page is still reachable.",
+            file: file,
+            line: line
+        )
+        XCTAssertFalse(
+            app.descendants(matching: .any)["personal.metric.steps"].exists,
+            "The fixed Steps choice is still exposed.",
+            file: file,
+            line: line
+        )
+        XCTAssertFalse(
+            app.navigationBars["When you start"].exists,
+            "The custom-start page is still reachable.",
+            file: file,
+            line: line
+        )
+        for identifier in [
+            "personal.start.day",
+            "personal.start.hour",
+            "personal.start.tomorrow",
+            "personal.start.next-hour",
+        ] {
+            XCTAssertFalse(
+                app.descendants(matching: .any)[identifier].exists,
+                "A custom-start control is still exposed: \(identifier)",
+                file: file,
+                line: line
+            )
+        }
     }
 
     private func assertNoCreationDiagnosticLanguage(
@@ -648,7 +701,7 @@ final class GameTimeUITests: XCTestCase {
     private func assertExactDisclosure(in app: XCUIApplication) {
         XCTAssertTrue(
             app.staticTexts[
-                "This is a test — no money will be charged."
+                "Test commitment — no money will be charged."
             ].exists
         )
     }

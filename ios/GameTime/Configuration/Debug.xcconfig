@@ -1,6 +1,7 @@
 #include "PublicClient.xcconfig"
 
 GAMETIME_ENV = debug
+APP_ATTEST_ENVIRONMENT = development
 GAMETIME_CONTEST_MUTATIONS_ENABLED = YES
 GAMETIME_PERSONAL_SETTLEMENT_MODE = test_only
 

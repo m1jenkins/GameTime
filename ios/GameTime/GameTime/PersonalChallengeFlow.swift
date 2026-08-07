@@ -9,7 +9,7 @@ struct CreatePersonalChallengeFlow: View {
 
     @State private var draft = PersonalChallengeDraft()
     @State private var requestID = UUID()
-    @State private var step = Step.metric
+    @State private var step = Step.cadence
     @State private var showingDiscardConfirmation = false
     @State private var paymentConsentAccepted = false
     @State private var paymentSheet: PaymentSheet?
@@ -113,7 +113,7 @@ struct CreatePersonalChallengeFlow: View {
                             draft = .initial(
                                 profileTimezone: appModel.profile?.timezone
                             )
-                            step = .metric
+                            step = .cadence
                         }
                     }
                 }
@@ -150,9 +150,15 @@ struct CreatePersonalChallengeFlow: View {
     }
 
     private var visibleSteps: [Step] {
-        store.configuration.personalSettlementMode == .stripeSandbox
-            ? Step.allCases
-            : Step.allCases.filter { $0 != .payment }
+        Step.allCases.filter { item in
+            item != .metric
+                && item != .start
+                && (
+                    item != .payment
+                        || store.configuration.personalSettlementMode
+                            == .stripeSandbox
+                )
+        }
     }
 
     @ViewBuilder
@@ -530,12 +536,12 @@ struct CreatePersonalChallengeFlow: View {
                 )
             )
 
-            Text("No charge happens today.")
+            Text("Add your test payment method before you start.")
                 .font(.subheadline.weight(.semibold))
 
             VStack(alignment: .leading, spacing: 8) {
                 paymentRule(
-                    "Meeting your goal, every inconclusive result, and cancelling before the challenge starts are always $0."
+                    "Meeting your goal, an inconclusive result, and cancelling before the challenge starts close without a settlement."
                 )
                 paymentRule(
                     "A complete miss is only provisional after the 24-hour final-sync cutoff."
@@ -560,7 +566,7 @@ struct CreatePersonalChallengeFlow: View {
             .accessibilityIdentifier("personal.payment.consent")
 
             Text(
-                "Stripe’s sandbox accepts test card details only. No real money moves."
+                "Stripe test mode accepts test card details only. No real money moves."
             )
             .font(.caption)
             .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
@@ -611,7 +617,7 @@ struct CreatePersonalChallengeFlow: View {
             reviewRow("Starts", startDescription)
             reviewRow("Last chance to sync", "24 hours after your last day")
             if store.configuration.personalSettlementMode == .stripeSandbox {
-                reviewRow("Payment", "Test method saved — no charge today")
+                reviewRow("Payment", "Test method saved — ready for review")
                 reviewRow(
                     "Review window",
                     "7 days after the result is published"
@@ -664,6 +670,7 @@ struct CreatePersonalChallengeFlow: View {
                 .buttonStyle(TrustPrimaryButtonStyle())
                 .disabled(
                     store.isMutating
+                        || !store.hasVerifiedCreationState
                         || !store.healthReadiness.permitsCreation
                         || store.eligibilityHoldActive
                         || !isDraftValid
@@ -688,7 +695,8 @@ struct CreatePersonalChallengeFlow: View {
                     }
                     .buttonStyle(TrustPrimaryButtonStyle())
                     .disabled(
-                        !paymentConsentAccepted
+                        !store.hasVerifiedCreationState
+                            || !paymentConsentAccepted
                             || store.isPreparingPayment
                     )
                     .accessibilityIdentifier("personal.payment.setup")
@@ -702,13 +710,12 @@ struct CreatePersonalChallengeFlow: View {
                 .accessibilityIdentifier("personal.continue")
             }
 
-            if step != .metric {
+            if step != visibleSteps.first {
                 Button("Back") {
                     guard
                         let index = visibleSteps.firstIndex(of: step),
                         index > visibleSteps.startIndex
                     else {
-                        step = .metric
                         return
                     }
                     step = visibleSteps[index - 1]
@@ -769,7 +776,12 @@ struct CreatePersonalChallengeFlow: View {
     }
 
     private var isDraftValid: Bool {
-        (try? draft.validated(requestID: requestID, now: Date())) != nil
+        let validationDate = Date()
+        return (
+            try? betaRequest(
+                at: validationDate
+            )
+        ) != nil
     }
 
     /// A selection sitting in a draft — or restored from a saved retry — can
@@ -815,8 +827,40 @@ struct CreatePersonalChallengeFlow: View {
                     timezone: draft.timezone
                 )
             }
+        } else if next == .review {
+            refreshBetaStart()
         }
         step = next
+    }
+
+    /// The lean beta has one start rule: the server resolves the next local
+    /// midnight when a fresh request commits. Keep restored retries exact, but
+    /// refresh a new draft before review so leaving the sheet open overnight
+    /// cannot turn the hidden default into a stale custom start.
+    private func refreshBetaStart(at date: Date = Date()) {
+        guard store.pendingCreation == nil else { return }
+        now = date
+        draft.startsAt = PersonalChallengeStart.nextLocalMidnight(
+            now: date,
+            timezone: draft.timezone
+        )
+    }
+
+    private func betaRequest(
+        at date: Date
+    ) throws -> PersonalChallengeCreationRequest {
+        if let pending = store.pendingCreation {
+            return pending.request
+        }
+        var requestDraft = draft
+        requestDraft.startsAt = PersonalChallengeStart.nextLocalMidnight(
+            now: date,
+            timezone: requestDraft.timezone
+        )
+        return try requestDraft.validated(
+            requestID: requestID,
+            now: date
+        )
     }
 
     private var reviewOutcomeExplanation: String {
@@ -831,10 +875,9 @@ struct CreatePersonalChallengeFlow: View {
 
     private func preparePaymentSheet() {
         do {
-            let request = try draft.validated(
-                requestID: requestID,
-                now: Date()
-            )
+            let requestDate = Date()
+            refreshBetaStart(at: requestDate)
+            let request = try betaRequest(at: requestDate)
             Task {
                 guard let setup = await store.preparePayment(request) else {
                     return
@@ -842,6 +885,7 @@ struct CreatePersonalChallengeFlow: View {
                 switch setup.presentation {
                 case .alreadyConfirmed:
                     paymentConsentAccepted = true
+                    refreshBetaStart()
                     step = .review
                 case .paymentSheet(
                     let publishableKey,
@@ -882,16 +926,16 @@ struct CreatePersonalChallengeFlow: View {
                 return
             }
             do {
-                let request = try draft.validated(
-                    requestID: requestID,
-                    now: Date()
-                )
+                let requestDate = Date()
+                refreshBetaStart(at: requestDate)
+                let request = try betaRequest(at: requestDate)
                 Task {
                     if await store.confirmPaymentSetup(
                         request: request,
                         setupID: setupID
                     ) {
                         paymentConsentAccepted = true
+                        refreshBetaStart()
                         step = .review
                     }
                 }
@@ -903,16 +947,15 @@ struct CreatePersonalChallengeFlow: View {
             break
         case .failed:
             store.presentedError =
-                "Stripe couldn’t save that test payment method. Nothing was charged. Try again when you’re ready."
+                "Stripe couldn’t save that test payment method. Try again when you’re ready."
         }
     }
 
     private func submit() {
         do {
-            let request = try draft.validated(
-                requestID: requestID,
-                now: Date()
-            )
+            let requestDate = Date()
+            refreshBetaStart(at: requestDate)
+            let request = try betaRequest(at: requestDate)
             Task {
                 if let id = await store.create(request) {
                     dismiss()

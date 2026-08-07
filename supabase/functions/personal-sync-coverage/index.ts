@@ -1,5 +1,6 @@
 import {
   accessTokenVerification,
+  allowedAttestEnvironments,
   appAttestAppIds,
   assertAttestConfigIsSafe,
   dataApiConfig,
@@ -11,6 +12,7 @@ import { createPersonalCoverageHandler } from "./handler.ts";
 assertAttestConfigIsSafe();
 
 const dataApi = dataApiConfig();
+const allowedEnvironments = allowedAttestEnvironments();
 const [appId, ...additionalAppIds] = appAttestAppIds();
 
 export const handler: (request: Request) => Promise<Response> = createPersonalCoverageHandler({
@@ -18,7 +20,7 @@ export const handler: (request: Request) => Promise<Response> = createPersonalCo
   appId,
   additionalAppIds,
   verifyToken: createAccessTokenVerifier(accessTokenVerification()),
-  publicKeyFor: deviceKeyLookup(dataApi),
+  publicKeyFor: deviceKeyLookup(dataApi, allowedEnvironments),
 });
 
 if (import.meta.main) {

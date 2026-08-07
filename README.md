@@ -3,8 +3,9 @@
 GameTime V1 is a personal accountability app. One person commits to a seven-day
 steps goal, chooses a daily or cumulative cadence, selects a $10, $20, $30,
 $40, or $50 test commitment, and chooses the day and hour the seven days open.
-Stage A is structurally `test_only`: no client or server creation interface can
-request a live fee, and no money is charged.
+Stage A remains the internal `test_only` foundation. The external beta Release
+path uses Stripe sandbox payment setup and simulated settlement states; live
+fees remain behind the Stage B approval gates.
 
 The product is verification credibility. HealthKit reads, App Attest-backed
 uploads, explicit completed-hour coverage, frozen terms, and fail-closed results
@@ -24,12 +25,12 @@ commitment, and watch real HealthKit steps accumulate.
 | Live step total on an active challenge | Works, labelled **not yet verified** |
 | App Attest-signed upload and server-scored progress | Staging only; endpoints deployed, not yet exercised from a device |
 | Hosted Staging backend | Personal V1 schema and all six Edge Functions deployed |
-| Stripe sandbox payment flow | Implemented and verified locally; not deployed or configured on a hosted target |
+| Stripe sandbox payment flow | Release beta path is configured in source; hosted secrets and end-to-end operation remain unverified |
 | Real fees | Blocked behind every Stage B gate in [PLAN.md](PLAN.md) |
 
-**Two capabilities, gated separately.** `activitySyncEnabled` (Debug +
-Staging) governs whether GameTime reads HealthKit. `attestedUploadEnabled`
-(Staging only) governs whether it can sign that read and deliver it. Reading
+**Two capabilities, gated separately.** `activitySyncEnabled` (Debug,
+Staging, and Release) governs whether GameTime reads HealthKit.
+`attestedUploadEnabled` (Staging and Release) governs whether it can sign that read and deliver it. Reading
 Health and proving that read to a server are different things; fusing them
 previously made the product unreachable until the entire stack was live.
 
@@ -39,33 +40,28 @@ still refuses untrusted evidence when it scores, so no domain invariant moved.
 
 ### When the seven days open
 
-The default is the next local midnight, and choosing it sends *no* start to the
-server, so that default is resolved when the request commits rather than when
-the form was filled in — a draft written before midnight and confirmed after it
-must not ask for a start that has already passed.
+The lean beta always starts at the next local midnight. The visible app sends
+*no* start, so the server resolves that default when the request commits rather
+than when the form was filled in — a draft written before midnight and
+confirmed after it must not ask for a start that has already passed.
 
-A chosen start is any future whole local **hour** within 90 days, today
-included. Whole hours are not a cosmetic restriction: `bucket_start` is a whole
-local hour, and the server discards the partial hour a 15:40 start would open,
-so the evidence for those twenty minutes could never be delivered and the
-window would begin with a silently unscorable gap. On the hour, `starts_at`
-lands exactly on the ledger grid. The client sends an instant rather than a
-local date and hour because a `timestamptz` is unambiguous across a fall-back
-transition, where one wall-clock hour names two different instants; hours a
-spring-forward transition skips are never offered.
+The domain keeps its existing custom-start contract for historical
+compatibility, but the beta journey does not expose it. That dormant contract
+accepts only a future whole local **hour** within 90 days. Whole hours are not a
+cosmetic restriction: `bucket_start` is a whole local hour, and the server
+discards the partial hour a 15:40 start would open, so the evidence for those
+twenty minutes could never be delivered and the window would begin with a
+silently unscorable gap.
 
 The seventh local date still closes at local midnight, so a later start
 shortens **day one** instead of moving the end. A challenge opening at 15:00
 has a first day of nine completed hours, and on a daily cadence that is the
-same target in less time. That is a frozen term like any other, so the start
-step and the review screen both state it before anyone confirms. Keeping the
-end on a local midnight is also what holds the seven scored local dates and the
-expected coverage buckets in agreement — every expected bucket falls inside the
-dates `app.personal_daily_progress_v1` generates, so the aggregate count cannot
-drift from the per-day counts.
-
-This is also the fastest way to reach an active challenge for testing: the next
-whole hour instead of the next midnight.
+same target in less time. That remains a frozen term for exact retries of older
+drafts. New beta challenges use seven full midnight-to-midnight days. Keeping
+the end on a local midnight is also what holds the seven scored local dates and
+the expected coverage buckets in agreement — every expected bucket falls inside
+the dates `app.personal_daily_progress_v1` generates, so the aggregate count
+cannot drift from the per-day counts.
 
 ### What is not proven yet
 
@@ -141,8 +137,9 @@ ios/
                          Builds and tests on Linux CI.
   GameTime/              Personal V1 product app plus unit/UI targets. Live
                          Supabase adapters, Apple auth, personal challenge and
-                         exact-retry activity flows, and isolated fixtures;
-                         Release personal mutation is locked.
+                         exact-retry activity flows, and isolated fixtures.
+                         Release keeps legacy social mutation locked and exposes
+                         Personal only through the Stripe sandbox beta contract.
   GameTimeConformance/   Independent M6.5 App Attest smoke harness only.
 scripts/
   dev-up.sh              Start the local stack
@@ -236,10 +233,9 @@ This is the fastest working loop and the one that exercises real HealthKit.
    The secret only matters for the web redirect flow, which is unused.
 
 3. **Run the `GameTime` scheme** on a provisioned device. Grant Health access
-   when asked, tap **Verify Health access**, and create a challenge. Choose a
-   start on the next whole hour rather than the default next midnight if you
-   want an active challenge to test against sooner; the first bucket is
-   syncable once that hour has finished.
+   when asked, tap **Verify Health access**, and create a challenge. The beta
+   challenge opens at the next local midnight; custom-hour starts remain
+   dormant.
 
 If `supabase start` appears to hang, check for a macOS keychain dialog — the
 CLI reads its stored access token and blocks on the prompt.

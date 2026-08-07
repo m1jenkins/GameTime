@@ -7,6 +7,7 @@
 
 import {
   accessTokenVerification,
+  allowedAttestEnvironments,
   appAttestAppId,
   assertAttestConfigIsSafe,
   attestBypassEnabled,
@@ -19,13 +20,14 @@ import { createIngestCheckInHandler } from "./handler.ts";
 assertAttestConfigIsSafe();
 
 const dataApi = dataApiConfig();
+const allowedEnvironments = allowedAttestEnvironments();
 
 export const handler: (request: Request) => Promise<Response> = createIngestCheckInHandler({
   database: postgrestCheckInDatabase(dataApi),
   appId: appAttestAppId(),
   verifyToken: createAccessTokenVerifier(accessTokenVerification()),
   attestBypass: attestBypassEnabled(),
-  publicKeyFor: deviceKeyLookup(dataApi),
+  publicKeyFor: deviceKeyLookup(dataApi, allowedEnvironments),
 });
 
 if (import.meta.main) {

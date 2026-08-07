@@ -6,13 +6,15 @@ protocol PendingMetricUploadStore: AnyObject, Sendable {
   func enqueue(
     ownerID: UUID,
     contestID: UUID,
-    request: EncodedMetricRequest
+    request: EncodedMetricRequest,
+    environment: MetricUploadAttestationEnvironment
   ) async throws -> MetricUploadEnqueueResult
   func attachSignedMaterial(
     ownerID: UUID,
     batchID: UUID,
     keyID: String,
-    assertion: Data
+    assertion: Data,
+    environment: MetricUploadAttestationEnvironment
   ) async throws -> MetricUploadSigningResult
   func recordAttempt(ownerID: UUID, batchID: UUID) async throws
   func acknowledge(ownerID: UUID, batchID: UUID) async throws
@@ -100,12 +102,14 @@ actor FilePendingMetricUploadStore: PendingMetricUploadStore {
   func enqueue(
     ownerID: UUID,
     contestID: UUID,
-    request: EncodedMetricRequest
+    request: EncodedMetricRequest,
+    environment: MetricUploadAttestationEnvironment = .development
   ) throws -> MetricUploadEnqueueResult {
     var queue = try loadQueue(for: ownerID)
     let result = queue.enqueue(
       contestId: contestID,
-      request: request
+      request: request,
+      attestEnvironment: environment
     )
     switch result {
     case .enqueued:
@@ -120,13 +124,15 @@ actor FilePendingMetricUploadStore: PendingMetricUploadStore {
     ownerID: UUID,
     batchID: UUID,
     keyID: String,
-    assertion: Data
+    assertion: Data,
+    environment: MetricUploadAttestationEnvironment = .development
   ) throws -> MetricUploadSigningResult {
     var queue = try loadQueue(for: ownerID)
     let result = queue.attachSignedMaterial(
       to: batchID,
       keyID: keyID,
-      assertion: assertion
+      assertion: assertion,
+      environment: environment
     )
     switch result {
     case .attached:

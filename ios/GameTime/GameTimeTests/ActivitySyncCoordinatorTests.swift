@@ -277,6 +277,243 @@ final class ActivitySyncCoordinatorTests: XCTestCase {
     XCTAssertTrue(remaining.isEmpty)
   }
 
+  func testSavedSignatureRefreshNeverReplacesTheFrozenProof()
+    async throws
+  {
+    let directory = try makeTemporaryDirectory()
+    let store = FilePendingMetricUploadStore(directoryURL: directory)
+    let oldAssertion = Data([0x01, 0x02])
+    let firstUploads = MetricUploadClientFake(
+      signedMaterial: MetricSignedMaterial(
+        keyID: "development-key",
+        assertion: oldAssertion
+      ),
+      sendError: .networkUnavailable
+    )
+    let firstCoordinator = ActivitySyncCoordinator(
+      activity: ActivityClientFake(
+        samples: [
+          makeSample(
+            start: epoch.addingTimeInterval(15 * 60),
+            value: 321
+          )
+        ]
+      ),
+      uploads: firstUploads,
+      pendingUploads: store
+    )
+    _ = try await firstCoordinator.sync(
+      ownerID: ownerA,
+      contest: makeContest(),
+      asOf: epoch.addingTimeInterval(4 * 3_600)
+    )
+    let storedBeforeUpgrade = try await store.pending(for: ownerA)
+    let frozenBody = try XCTUnwrap(storedBeforeUpgrade.first?.body)
+
+    let upgradedUploads = MetricUploadClientFake(
+      signedMaterial: MetricSignedMaterial(
+        keyID: "production-key",
+        assertion: Data([0x03, 0x04])
+      ),
+      sendError: .savedSignatureNeedsRefresh,
+      replayed: true
+    )
+    let replayActivity = ActivityClientFake(samples: [])
+    let upgradedCoordinator = ActivitySyncCoordinator(
+      activity: replayActivity,
+      uploads: upgradedUploads,
+      pendingUploads: store
+    )
+
+    let outcome = try await upgradedCoordinator.sync(
+      ownerID: ownerA,
+      contest: makeContest(),
+      asOf: epoch.addingTimeInterval(5 * 3_600)
+    )
+
+    XCTAssertEqual(outcome, .savedRequestUnavailable)
+    XCTAssertTrue(upgradedUploads.preparedBodies.isEmpty)
+    XCTAssertEqual(upgradedUploads.sentUploads.map(\.body), [frozenBody])
+    XCTAssertEqual(
+      upgradedUploads.sentUploads.map(\.keyID),
+      ["development-key"]
+    )
+    XCTAssertEqual(
+      upgradedUploads.sentUploads.map(\.assertion),
+      [oldAssertion]
+    )
+    let remaining = try await store.pending(for: ownerA)
+    XCTAssertTrue(remaining.isEmpty)
+    XCTAssertTrue(replayActivity.queriedWindows.isEmpty)
+  }
+
+  func testProductionDiscardsDevelopmentEvidenceBeforeFreshRead()
+    async throws
+  {
+    let directory = try makeTemporaryDirectory()
+    let store = FilePendingMetricUploadStore(directoryURL: directory)
+    let developmentUploads = MetricUploadClientFake(
+      signedMaterial: MetricSignedMaterial(
+        keyID: "development-key",
+        assertion: Data([0x01]),
+        environment: .development
+      ),
+      sendError: .networkUnavailable
+    )
+    let stagedCoordinator = ActivitySyncCoordinator(
+      activity: ActivityClientFake(
+        samples: [
+          makeSample(
+            start: epoch.addingTimeInterval(15 * 60),
+            value: 321
+          )
+        ]
+      ),
+      uploads: developmentUploads,
+      pendingUploads: store
+    )
+    _ = try await stagedCoordinator.sync(
+      ownerID: ownerA,
+      contest: makeContest(),
+      asOf: epoch.addingTimeInterval(4 * 3_600)
+    )
+
+    let productionUploads = MetricUploadClientFake(
+      signedMaterial: MetricSignedMaterial(
+        keyID: "production-key",
+        assertion: Data([0x02]),
+        environment: .production
+      )
+    )
+    let productionActivity = ActivityClientFake(
+      samples: [
+        makeSample(
+          start: epoch.addingTimeInterval(15 * 60),
+          value: 321
+        )
+      ]
+    )
+    let productionCoordinator = ActivitySyncCoordinator(
+      activity: productionActivity,
+      uploads: productionUploads,
+      pendingUploads: store
+    )
+
+    let discarded = try await productionCoordinator.sync(
+      ownerID: ownerA,
+      contest: makeContest(),
+      asOf: epoch.addingTimeInterval(5 * 3_600)
+    )
+
+    XCTAssertEqual(discarded, .savedRequestUnavailable)
+    XCTAssertTrue(productionUploads.preparedBodies.isEmpty)
+    XCTAssertTrue(productionUploads.sentUploads.isEmpty)
+    XCTAssertTrue(productionActivity.queriedWindows.isEmpty)
+    let remainingAfterDiscard = try await store.pending(for: ownerA)
+    XCTAssertTrue(remainingAfterDiscard.isEmpty)
+
+    let fresh = try await productionCoordinator.sync(
+      ownerID: ownerA,
+      contest: makeContest(),
+      asOf: epoch.addingTimeInterval(5 * 3_600)
+    )
+
+    XCTAssertEqual(
+      fresh,
+      .synced(replayed: false, stepTotal: 321)
+    )
+    XCTAssertEqual(productionActivity.queriedWindows.count, 1)
+    XCTAssertEqual(
+      productionUploads.sentUploads.map(\.attestEnvironment),
+      [.production]
+    )
+  }
+
+  func testRejectedProductionProofIsNeverResignedOverOldBytes()
+    async throws
+  {
+    let directory = try makeTemporaryDirectory()
+    let store = FilePendingMetricUploadStore(directoryURL: directory)
+    let oldProductionUploads = MetricUploadClientFake(
+      signedMaterial: MetricSignedMaterial(
+        keyID: "old-production-key",
+        assertion: Data([0x01]),
+        environment: .production
+      ),
+      sendError: .networkUnavailable
+    )
+    let initialActivity = ActivityClientFake(
+      samples: [
+        makeSample(
+          start: epoch.addingTimeInterval(15 * 60),
+          value: 321
+        )
+      ]
+    )
+    let initialCoordinator = ActivitySyncCoordinator(
+      activity: initialActivity,
+      uploads: oldProductionUploads,
+      pendingUploads: store
+    )
+    _ = try await initialCoordinator.sync(
+      ownerID: ownerA,
+      contest: makeContest(),
+      asOf: epoch.addingTimeInterval(4 * 3_600)
+    )
+
+    let currentProductionUploads = MetricUploadClientFake(
+      signedMaterial: MetricSignedMaterial(
+        keyID: "current-production-key",
+        assertion: Data([0x02]),
+        environment: .production
+      ),
+      sendErrors: [.attestationRejected, nil]
+    )
+    let freshActivity = ActivityClientFake(
+      samples: [
+        makeSample(
+          start: epoch.addingTimeInterval(15 * 60),
+          value: 321
+        )
+      ]
+    )
+    let coordinator = ActivitySyncCoordinator(
+      activity: freshActivity,
+      uploads: currentProductionUploads,
+      pendingUploads: store
+    )
+
+    let refused = try await coordinator.sync(
+      ownerID: ownerA,
+      contest: makeContest(),
+      asOf: epoch.addingTimeInterval(5 * 3_600)
+    )
+
+    XCTAssertEqual(refused, .savedRequestUnavailable)
+    XCTAssertTrue(currentProductionUploads.preparedBodies.isEmpty)
+    XCTAssertEqual(
+      currentProductionUploads.sentUploads.map(\.keyID),
+      ["old-production-key"]
+    )
+    XCTAssertTrue(freshActivity.queriedWindows.isEmpty)
+
+    let fresh = try await coordinator.sync(
+      ownerID: ownerA,
+      contest: makeContest(),
+      asOf: epoch.addingTimeInterval(5 * 3_600)
+    )
+
+    XCTAssertEqual(
+      fresh,
+      .synced(replayed: false, stepTotal: 321)
+    )
+    XCTAssertEqual(currentProductionUploads.preparedBodies.count, 1)
+    XCTAssertEqual(
+      currentProductionUploads.sentUploads.last?.keyID,
+      "current-production-key"
+    )
+  }
+
   func testLargeStepHistoryIsChunkedAndFullyDelivered()
     async throws
   {
@@ -783,7 +1020,7 @@ private final class ActivityClientFake: ActivityClient {
 @MainActor
 private final class MetricUploadClientFake: MetricUploadClient {
   private let signedMaterial: MetricSignedMaterial
-  private let sendError: MetricUploadClientError?
+  private var sendErrors: [MetricUploadClientError?]
   private let replayed: Bool
 
   private(set) var preparedOwners: [UUID] = []
@@ -791,16 +1028,21 @@ private final class MetricUploadClientFake: MetricUploadClient {
   private(set) var sentOwners: [UUID] = []
   private(set) var sentUploads: [PendingMetricUpload] = []
 
+  var expectedAttestationEnvironment: AppAttestEnvironment? {
+    signedMaterial.environment
+  }
+
   init(
     signedMaterial: MetricSignedMaterial = MetricSignedMaterial(
       keyID: "test-key",
       assertion: Data([0x01, 0x02, 0x03])
     ),
     sendError: MetricUploadClientError? = nil,
+    sendErrors: [MetricUploadClientError?]? = nil,
     replayed: Bool = false
   ) {
     self.signedMaterial = signedMaterial
-    self.sendError = sendError
+    self.sendErrors = sendErrors ?? [sendError]
     self.replayed = replayed
   }
 
@@ -819,7 +1061,7 @@ private final class MetricUploadClientFake: MetricUploadClient {
   ) async throws -> MetricUploadReceipt {
     sentOwners.append(ownerID)
     sentUploads.append(upload)
-    if let sendError {
+    if !sendErrors.isEmpty, let sendError = sendErrors.removeFirst() {
       throw sendError
     }
     return MetricUploadReceipt(

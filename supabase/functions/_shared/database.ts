@@ -19,6 +19,7 @@
 
 import { type Bytes, fromHex, toByteaLiteral } from "./bytes.ts";
 import { HttpFailure } from "./http.ts";
+import type { AttestEnvironment } from "./appattest.ts";
 
 /** What `public.register_device_key()` needs. */
 export interface RegisterDeviceKeyArgs {
@@ -818,16 +819,26 @@ export function postgrestIntegrityAssessmentDatabase(
  *
  * Deliberately does not filter revoked keys. `record_metric_batch()` refuses a
  * revoked key itself, and duplicating that rule here would mean two places to
- * change it and one of them eventually not changing. What this returns is "the
- * key bytes on file", and whether the key may still be used is a question about
- * the contest, answered where the rest of those questions are.
+ * change it and one of them eventually not changing.
+ *
+ * Environment is different: it is deployment policy, which the database cannot
+ * infer. Filtering here keeps a production function from accepting assertions
+ * made with a development key that was registered before a database was
+ * promoted or reused.
  */
 export function deviceKeyLookup(
   config: PostgrestConfig,
+  allowedEnvironments: readonly AttestEnvironment[],
 ): (keyId: Bytes) => Promise<Bytes | undefined> {
+  const environments = [...new Set(allowedEnvironments)];
+  if (environments.length === 0) {
+    throw new Error("device key lookup needs at least one allowed App Attest environment");
+  }
+
   return async (keyId) => {
     const query = new URLSearchParams({
       key_id: `eq.${toByteaLiteral(keyId)}`,
+      environment: `in.(${environments.join(",")})`,
       select: "public_key",
       limit: "1",
     });

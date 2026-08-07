@@ -50,7 +50,7 @@ final class DomainAndConfigurationTests: XCTestCase {
         }
     }
 
-    func testReleaseAlwaysLocksContestMutation() throws {
+    func testReleaseKeepsLegacyContestMutationLockedByDefault() throws {
         let configuration = try AppConfiguration.validated(
             environmentValue: "Release",
             urlValue: "https://example.supabase.co",
@@ -59,12 +59,18 @@ final class DomainAndConfigurationTests: XCTestCase {
         )
         XCTAssertEqual(configuration.environment, .release)
         XCTAssertFalse(configuration.contestMutationsEnabled)
-        XCTAssertFalse(configuration.activitySyncEnabled)
+        XCTAssertTrue(configuration.activitySyncEnabled)
+        XCTAssertTrue(configuration.attestedUploadEnabled)
+        XCTAssertEqual(
+            configuration.expectedAppAttestEnvironment,
+            .production
+        )
         XCTAssertEqual(configuration.personalSettlementMode, .testOnly)
+        XCTAssertFalse(configuration.personalChallengeMutationsEnabled)
         XCTAssertNil(configuration.stripeReturnURL)
     }
 
-    func testStripeSandboxRequiresStagingReturnURLAndReleaseFailsClosed()
+    func testStripeSandboxRequiresSupportedReturnURLAndEnablesReleaseBeta()
         throws
     {
         XCTAssertThrowsError(
@@ -103,16 +109,36 @@ final class DomainAndConfigurationTests: XCTestCase {
             keyValue: "sb_publishable_unit_test",
             mutationValue: "YES",
             settlementModeValue: "stripe_sandbox",
-            stripeReturnURLValue: "gametime-staging://stripe-redirect"
+            stripeReturnURLValue: "gametime-beta://stripe-redirect"
         )
-        XCTAssertFalse(release.personalChallengeMutationsEnabled)
-        XCTAssertEqual(release.personalSettlementMode, .testOnly)
-        XCTAssertNil(release.stripeReturnURL)
+        XCTAssertTrue(release.personalChallengeMutationsEnabled)
+        XCTAssertEqual(release.personalSettlementMode, .stripeSandbox)
+        XCTAssertEqual(
+            release.stripeReturnURL?.absoluteString,
+            "gametime-beta://stripe-redirect"
+        )
+
+        XCTAssertThrowsError(
+            try AppConfiguration.validated(
+                environmentValue: "Release",
+                urlValue: "https://example.supabase.co",
+                keyValue: "sb_publishable_unit_test",
+                mutationValue: "YES",
+                settlementModeValue: "stripe_sandbox",
+                stripeReturnURLValue:
+                    "gametime-staging://stripe-redirect"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? AppConfigurationError,
+                .invalidStripeReturnURL
+            )
+        }
     }
 
     /// Reading Health and attesting that read are separate capabilities.
-    /// Debug reads locally; only Staging may sign and upload; Release does
-    /// neither until the shipping configuration is authorized.
+    /// Debug reads locally, Staging uses Apple's sandbox, and the distribution
+    /// build requires production App Attest.
     func testHealthReadsAndAttestedUploadAreGatedIndependently() throws {
         let staging = try AppConfiguration.validated(
             environmentValue: "Staging",
@@ -135,11 +161,20 @@ final class DomainAndConfigurationTests: XCTestCase {
 
         XCTAssertTrue(staging.activitySyncEnabled)
         XCTAssertTrue(debug.activitySyncEnabled)
-        XCTAssertFalse(release.activitySyncEnabled)
+        XCTAssertTrue(release.activitySyncEnabled)
 
         XCTAssertTrue(staging.attestedUploadEnabled)
         XCTAssertFalse(debug.attestedUploadEnabled)
-        XCTAssertFalse(release.attestedUploadEnabled)
+        XCTAssertTrue(release.attestedUploadEnabled)
+        XCTAssertEqual(
+            staging.expectedAppAttestEnvironment,
+            .development
+        )
+        XCTAssertNil(debug.expectedAppAttestEnvironment)
+        XCTAssertEqual(
+            release.expectedAppAttestEnvironment,
+            .production
+        )
     }
 
     func testExactHandleSubmissionDoesNotBecomeFuzzySearch() {

@@ -364,9 +364,9 @@ struct TrustAndPrivacyView: View {
                     icon: "checkmark.shield.fill"
                 )
                 privacyCard(
-                    title: "Nothing social, nothing to pay",
+                    title: "Private challenge and test payment details",
                     detail:
-                        "This is just between you and your goal. There’s nobody else in here, and there’s nothing to pay.",
+                        "Your goal and progress stay private. Stripe handles test payment details; GameTime keeps only the test payment references and status needed for the sandbox.",
                     icon: "lock.fill"
                 )
             }

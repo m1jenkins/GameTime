@@ -4,6 +4,11 @@ import GameTimeCore
 enum ActivitySyncOutcome: Equatable, Sendable {
   /// `stepTotal` is the exact value confirmed during this explicit sync.
   case synced(replayed: Bool, stepTotal: Double)
+  /// A previously signed request without a new step total was accepted.
+  case savedRequestAccepted
+  /// Saved evidence came from an App Attest environment this build cannot
+  /// trust. It was removed and must be read again while the window is open.
+  case savedRequestUnavailable
   /// `stepTotal` is the exact value still retained in durable request bodies.
   case queuedForRetry(stepTotal: Double)
   /// An empty read does not prove denial. It can also mean no samples exist.
@@ -17,6 +22,7 @@ enum ActivitySyncDiagnosticEvent: String, Equatable, Sendable {
   case noReadableBuckets
   case exactRequestQueued
   case signedMaterialSaved
+  case foreignEnvironmentRequestDiscarded
   case uploadAttemptStarted
   case retryRetained
   case permanentRequestDiscarded
@@ -41,11 +47,19 @@ protocol ActivitySyncing: AnyObject {
   func requestAuthorization() async throws
     -> ActivityAuthorizationOutcome
   func pendingUploadCount(for ownerID: UUID) async throws -> Int
+  func pendingContestID(for ownerID: UUID) async throws -> UUID?
   func sync(
     ownerID: UUID,
     contest: ContestCard,
     asOf: Date
   ) async throws -> ActivitySyncOutcome
+}
+
+extension ActivitySyncing {
+  func pendingContestID(for ownerID: UUID) async throws -> UUID? {
+    _ = ownerID
+    return nil
+  }
 }
 
 enum ActivitySyncError: LocalizedError, Equatable, Sendable {
@@ -122,6 +136,16 @@ final class ActivitySyncCoordinator: ActivitySyncing {
     try await pendingUploads.pending(for: ownerID).count
   }
 
+  func pendingContestID(for ownerID: UUID) async throws -> UUID? {
+    let ids = Set(
+      try await pendingUploads.pending(for: ownerID).map(\.contestId)
+    )
+    guard ids.count <= 1 else {
+      throw ActivitySyncError.pendingUploadForDifferentChallenge
+    }
+    return ids.first
+  }
+
   func sync(
     ownerID: UUID,
     contest: ContestCard,
@@ -145,6 +169,27 @@ final class ActivitySyncCoordinator: ActivitySyncing {
         })
       else {
         throw ActivitySyncError.pendingUploadForDifferentChallenge
+      }
+      guard let expectedEnvironment =
+        uploads.expectedAttestationEnvironment
+      else {
+        throw ActivitySyncError.stagingOnly
+      }
+      let foreignUploads = existingUploads.filter {
+        !Self.savedUpload(
+          $0,
+          isTrustedBy: expectedEnvironment
+        )
+      }
+      if !foreignUploads.isEmpty {
+        for upload in foreignUploads {
+          try await pendingUploads.abandon(
+            ownerID: ownerID,
+            batchID: upload.clientBatchId
+          )
+          diagnostics.record(.foreignEnvironmentRequestDiscarded)
+        }
+        return .savedRequestUnavailable
       }
       return try await deliverPendingUploads(
         ownerID: ownerID,
@@ -191,6 +236,11 @@ final class ActivitySyncCoordinator: ActivitySyncing {
       return .noReadableData
     }
 
+    guard let expectedEnvironment =
+      uploads.expectedAttestationEnvironment
+    else {
+      throw ActivitySyncError.stagingOnly
+    }
     for request in try encodedRequests(
       contestID: contest.id,
       buckets: buckets,
@@ -199,7 +249,8 @@ final class ActivitySyncCoordinator: ActivitySyncing {
       let enqueueResult = try await pendingUploads.enqueue(
         ownerID: ownerID,
         contestID: contest.id,
-        request: request
+        request: request,
+        environment: expectedEnvironment
       )
       switch enqueueResult {
       case .enqueued, .alreadyQueued:
@@ -306,6 +357,8 @@ final class ActivitySyncCoordinator: ActivitySyncing {
             contestID: contestID
           )
         )
+      case .savedRequestUnavailable:
+        return .savedRequestUnavailable
       }
     }
 
@@ -353,7 +406,8 @@ final class ActivitySyncCoordinator: ActivitySyncing {
           ownerID: ownerID,
           batchID: upload.clientBatchId,
           keyID: material.keyID,
-          assertion: material.assertion
+          assertion: material.assertion,
+          environment: material.environment
         )
       switch signingResult {
       case .attached, .alreadyAttached:
@@ -378,35 +432,60 @@ final class ActivitySyncCoordinator: ActivitySyncing {
       throw ActivitySyncError.conflictingSignedMaterial
     }
 
-    try await pendingUploads.recordAttempt(
-      ownerID: ownerID,
-      batchID: upload.clientBatchId
-    )
-    diagnostics.record(.uploadAttemptStarted)
-
-    let receipt: MetricUploadReceipt
-    do {
-      receipt = try await uploads.send(
+    var receipt: MetricUploadReceipt?
+    while receipt == nil {
+      try await pendingUploads.recordAttempt(
         ownerID: ownerID,
-        upload: upload
+        batchID: upload.clientBatchId
       )
-    } catch is CancellationError {
-      throw CancellationError()
-    } catch let error as MetricUploadClientError {
-      switch error.failureDisposition {
-      case .retry:
-        diagnostics.record(.retryRetained)
-        return .retainedForRetry
-      case .retain:
-        throw error
-      case .abandon:
+      diagnostics.record(.uploadAttemptStarted)
+
+      do {
+        receipt = try await uploads.send(
+          ownerID: ownerID,
+          upload: upload
+        )
+      } catch is CancellationError {
+        throw CancellationError()
+      } catch MetricUploadClientError
+        .savedEvidenceFromDifferentEnvironment
+      {
         try await pendingUploads.abandon(
           ownerID: ownerID,
           batchID: upload.clientBatchId
         )
-        diagnostics.record(.permanentRequestDiscarded)
-        throw error
+        diagnostics.record(.foreignEnvironmentRequestDiscarded)
+        return .savedRequestUnavailable
+      } catch MetricUploadClientError.attestationRejected,
+        MetricUploadClientError.savedSignatureNeedsRefresh
+      {
+        // The original saved proof was refused by the authoritative server.
+        // Never replace it with a fresh signature over old bytes.
+        try await pendingUploads.abandon(
+          ownerID: ownerID,
+          batchID: upload.clientBatchId
+        )
+        diagnostics.record(.foreignEnvironmentRequestDiscarded)
+        return .savedRequestUnavailable
+      } catch let error as MetricUploadClientError {
+        switch error.failureDisposition {
+        case .retry:
+          diagnostics.record(.retryRetained)
+          return .retainedForRetry
+        case .retain:
+          throw error
+        case .abandon:
+          try await pendingUploads.abandon(
+            ownerID: ownerID,
+            batchID: upload.clientBatchId
+          )
+          diagnostics.record(.permanentRequestDiscarded)
+          throw error
+        }
       }
+    }
+    guard let receipt else {
+      throw MetricUploadClientError.invalidServerResponse
     }
     guard receipt.batchID == upload.clientBatchId else {
       throw MetricUploadClientError.invalidServerResponse
@@ -420,6 +499,19 @@ final class ActivitySyncCoordinator: ActivitySyncing {
       receipt.replayed ? .replayAccepted : .uploadAccepted
     )
     return .accepted(replayed: receipt.replayed)
+  }
+
+  private static func savedUpload(
+    _ upload: PendingMetricUpload,
+    isTrustedBy expectedEnvironment: AppAttestEnvironment
+  ) -> Bool {
+    if upload.attestEnvironment == expectedEnvironment {
+      return true
+    }
+    // The legacy queue format predates Release uploads. Its nil marker may be
+    // retained inside Development, but must never cross into Production.
+    return upload.attestEnvironment == nil
+      && expectedEnvironment == .development
   }
 
   private func retainedStepTotal(
@@ -481,6 +573,7 @@ final class ActivitySyncCoordinator: ActivitySyncing {
 private enum PendingDeliveryOutcome {
   case accepted(replayed: Bool)
   case retainedForRetry
+  case savedRequestUnavailable
 }
 
 private struct QueuedStepDocument: Decodable {
@@ -514,7 +607,10 @@ extension MetricUploadClientError {
       .retry
     case .stagingOnly, .authenticationRequired, .tokenRefusedByService,
       .accountChanged, .appAttestUnsupported, .keyStateUnavailable,
-      .attestationRejected, .accountNotActive, .registrationRefused:
+      .savedSignatureNeedsRefresh,
+      .savedEvidenceFromDifferentEnvironment, .attestationRejected,
+      .accountNotActive,
+      .registrationRefused:
       .retain
     case .invalidMetricBody, .unsignedUpload, .uploadConflict,
       .uploadRejected:

@@ -1,8 +1,15 @@
-# Ship Personal Accountability V1 as a test-only Stage A
+# Ship Personal Accountability V1 and its invite-only sandbox beta
 
 GameTime V1 is a solo accountability product. One person commits to a seven-day
 steps goal, chooses daily or cumulative cadence, and selects a test commitment
-of $10, $20, $30, $40, or $50. Stage A never charges money.
+of $10, $20, $30, $40, or $50.
+
+Internal Stage A remains structurally `test_only` and never charges money. The
+lean external Release beta is a separate Stage B rehearsal that may use Stripe
+test mode for payment setup and simulated settlement. It must never accept live
+Stripe objects or move real money. `docs/BETA_LAUNCH_AUDIT.md` controls that
+external-beta scope and its launch gates; this plan continues to preserve the
+Stage A evidence contract.
 
 `README.md` records what is built. `DECISIONS.md` records why. Historical social
 implementation records remain under `docs/archive/`. The social schema and
@@ -21,7 +28,9 @@ The Stage A product must let one real user:
 - Start at the next midnight in a frozen IANA timezone and run for seven
   complete local calendar days, including daylight-saving transitions.
 - Select one of the five test commitment presets, with $10 selected by default.
-- See **Test commitment — no money will be charged.** before confirming.
+- In internal Stage A, see **Test commitment — no money will be charged.**
+  before confirming. In the external sandbox beta, see **Payment test mode —
+  sandbox transactions only.** plus a plain statement that no real money moves.
 - Verify Apple Health access before creating with a local HealthKit read that
   observes at least one positive device-recorded step sample. If readiness is
   already satisfied, creation can continue without another check.
@@ -73,8 +82,10 @@ physical iPhone must separately prove the trusted device path.
   assessment produces `inconclusive` before target comparison.
 - A confirmed GameTime outage waives the test commitment without a hold. An
   unresolved user/device sync failure waives it and creates an eligibility hold.
-- Release mutations remain disabled in Stage A. Local and Staging are the only
-  mutable environments until a separate release authorization.
+- Release mutations remain disabled for the internal Stage A and every legacy
+  social path. The invite-only external beta may enable only Personal creation
+  through `stripe_sandbox`, production App Attest, and the separately approved
+  hosted beta target. Live settlement remains forbidden.
 
 ## Verified starting point
 
@@ -387,7 +398,7 @@ Stage A, Solo 2A, and Solo 2B remain structurally `test_only`. D113 requires a
 new forward terms version and forward migrations. Do not rewrite their enums,
 rows, results, or historical migrations to add Stripe.
 
-Release and live Stripe mode remain disabled until all of these exist:
+Live Stripe mode remains disabled until all of these exist:
 
 - A US counsel memo defining the fee model, 18+ rules, versioned state allowlist,
   cancellation, waiver, review, refund, deletion, and retention policies.
@@ -397,6 +408,9 @@ Release and live Stripe mode remain disabled until all of these exist:
 - Approved age and jurisdiction verification.
 - Separately approved hosted deployment, webhook verification, reconciliation,
   and end-to-end sandbox acceptance before any live configuration.
+
+The invite-only Release sandbox also remains NO-GO until the narrower D114
+candidate, hosted, physical-device, and TestFlight gates pass.
 
 Injury reporting uses structured attestations without medical records. Its
 policy, review path, and effect on a provisional miss require the same written

@@ -101,7 +101,7 @@ final class PersonalAccountabilityModelTests: XCTestCase {
         XCTAssertNotEqual(frozen, travelDisplay)
     }
 
-    func testReleaseCannotEnablePersonalMutationOrLiveSettlement() throws {
+    func testReleaseDefaultsToLockedPersonalModeUntilSandboxIsSelected() throws {
         let configuration = try AppConfiguration.validated(
             environmentValue: "Release",
             urlValue: "https://example.supabase.co",
@@ -445,6 +445,281 @@ final class PersonalAccountabilityModelTests: XCTestCase {
 
 @MainActor
 final class PersonalAccountabilityStoreTests: XCTestCase {
+    func testCreationFailsClosedAfterAvailabilityRefreshFails() async throws {
+        let ownerID = UUID()
+        let client = PersonalClientFake(ownerID: ownerID)
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await store.activate(ownerID: ownerID)
+        XCTAssertEqual(store.loadState, .empty)
+        XCTAssertTrue(store.canCreate)
+
+        client.listError = .unavailable
+        await store.refresh()
+
+        guard case .failed = store.loadState else {
+            return XCTFail("A failed server refresh must remain visible.")
+        }
+        XCTAssertFalse(store.hasVerifiedCreationState)
+        XCTAssertFalse(store.canCreate)
+
+        let challengeID = await store.create(
+            try PersonalChallengeDraft().validated()
+        )
+
+        XCTAssertNil(challengeID)
+        XCTAssertTrue(client.requests.isEmpty)
+        XCTAssertEqual(
+            store.presentedError,
+            PersonalAccountabilityClientError.unavailable.localizedDescription
+        )
+
+        client.listError = nil
+        await store.refresh()
+        XCTAssertEqual(store.loadState, .empty)
+        XCTAssertTrue(store.canCreate)
+    }
+
+    func testPaymentPreparationFailsClosedAfterAvailabilityRefreshFails()
+        async throws
+    {
+        let ownerID = UUID()
+        let client = PersonalClientFake(ownerID: ownerID)
+        let payments = PersonalPaymentFake(ownerID: ownerID)
+        let store = PersonalAccountabilityStore(
+            configuration: .stripeSandboxFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            paymentClient: payments,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await store.activate(ownerID: ownerID)
+        client.listError = .unavailable
+        await store.refresh()
+        let request = try PersonalChallengeDraft().validated(
+            requestID: UUID()
+        )
+
+        let setup = await store.preparePayment(request)
+
+        XCTAssertNil(setup)
+        XCTAssertTrue(payments.preparedRequests.isEmpty)
+        XCTAssertNil(store.pendingCreation)
+    }
+
+    func testBackgroundRecoveryUsesCachedChallengeBeforeRefreshFailure()
+        async throws
+    {
+        let ownerID = UUID()
+        let asOf = Date(timeIntervalSince1970: 1_785_888_000)
+        let challenge = makeActivityChallenge(
+            ownerID: ownerID,
+            evidenceCutoff: asOf
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(challenge)
+        let activitySync = StorePersonalActivitySyncFake(
+            pendingCount: 1,
+            pendingChallengeID: challenge.id,
+            results: [
+                .outcome(.savedRequestAccepted, pendingAfter: 0)
+            ]
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: activitySync
+        )
+        await store.activate(ownerID: ownerID)
+        XCTAssertEqual(store.pendingActivityChallengeID, challenge.id)
+        client.listError = .unavailable
+
+        await store.handleBackgroundActivityUpdate(asOf: asOf)
+
+        XCTAssertEqual(activitySync.syncedChallengeIDs, [challenge.id])
+        XCTAssertEqual(store.pendingActivityUploadCount, 0)
+        XCTAssertNil(store.pendingActivityChallengeID)
+        XCTAssertEqual(
+            store.syncState(for: challenge.id),
+            .savedRequestAccepted
+        )
+        XCTAssertNil(store.presentedError)
+    }
+
+    func testCancellationRecountsSavedActivityRequests() async throws {
+        let ownerID = UUID()
+        let asOf = Date(timeIntervalSince1970: 1_785_888_000)
+        let challenge = makeActivityChallenge(
+            ownerID: ownerID,
+            evidenceCutoff: asOf.addingTimeInterval(86_400)
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(challenge)
+        let activitySync = StorePersonalActivitySyncFake(
+            pendingCount: 1,
+            pendingChallengeID: challenge.id,
+            results: [.cancellation(pendingAfter: 0)]
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: activitySync
+        )
+        await store.activate(ownerID: ownerID)
+        XCTAssertEqual(store.pendingActivityUploadCount, 1)
+        XCTAssertEqual(store.pendingActivityChallengeID, challenge.id)
+
+        await store.sync(challengeID: challenge.id, asOf: asOf)
+
+        XCTAssertEqual(store.pendingActivityUploadCount, 0)
+        XCTAssertNil(store.pendingActivityChallengeID)
+        XCTAssertEqual(store.syncState(for: challenge.id), .idle)
+        XCTAssertNil(store.presentedError)
+    }
+
+    func testSavedActivityBlocksCreationAndSyncsOnlyItsChallenge()
+        async
+    {
+        let ownerID = UUID()
+        let asOf = Date(timeIntervalSince1970: 1_785_888_000)
+        let challenge = makeActivityChallenge(
+            ownerID: ownerID,
+            evidenceCutoff: asOf,
+            status: .completed
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(challenge)
+        let activitySync = StorePersonalActivitySyncFake(
+            pendingCount: 1,
+            pendingChallengeID: challenge.id,
+            results: []
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: activitySync
+        )
+
+        await store.activate(ownerID: ownerID)
+
+        XCTAssertNil(store.openChallenge)
+        XCTAssertFalse(store.canCreate)
+        XCTAssertEqual(store.pendingActivityChallengeID, challenge.id)
+        XCTAssertTrue(
+            store.canSyncActivity(
+                challengeID: challenge.id,
+                permitsFreshSync: false
+            )
+        )
+        XCTAssertFalse(
+            store.canSyncActivity(
+                challengeID: UUID(),
+                permitsFreshSync: true
+            )
+        )
+
+    }
+
+    func testUnreadableSavedActivityQueueBlocksCreation() async {
+        let ownerID = UUID()
+        let activitySync = StorePersonalActivitySyncFake(
+            pendingCount: 0,
+            pendingChallengeID: nil,
+            results: [],
+            pendingCountError: ActivitySyncError.queuedRequestUnavailable
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: PersonalClientFake(ownerID: ownerID),
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: activitySync
+        )
+
+        await store.activate(ownerID: ownerID)
+
+        XCTAssertEqual(store.loadState, .empty)
+        XCTAssertTrue(store.hasPendingActivityRecoveryIssue)
+        XCTAssertFalse(store.canCreate)
+        XCTAssertFalse(
+            store.canSyncActivity(
+                challengeID: UUID(),
+                permitsFreshSync: true
+            )
+        )
+
+        activitySync.setPendingCountError(nil)
+        await store.retryPendingActivityRecovery()
+
+        XCTAssertFalse(store.hasPendingActivityRecoveryIssue)
+        XCTAssertTrue(store.canCreate)
+    }
+
+    func testOpenCreateFlowCannotSubmitAfterActivityBecomesPending()
+        async throws
+    {
+        let ownerID = UUID()
+        let asOf = Date(timeIntervalSince1970: 1_785_888_000)
+        let challenge = makeActivityChallenge(
+            ownerID: ownerID,
+            evidenceCutoff: asOf,
+            status: .completed
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(challenge)
+        let activitySync = StorePersonalActivitySyncFake(
+            pendingCount: 0,
+            pendingChallengeID: challenge.id,
+            results: [
+                .outcome(
+                    .queuedForRetry(stepTotal: 123),
+                    pendingAfter: 1
+                )
+            ]
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: activitySync
+        )
+        await store.activate(ownerID: ownerID)
+        XCTAssertTrue(store.canCreate)
+        let draftOpenedBeforeQueue = try PersonalChallengeDraft().validated()
+
+        await store.sync(challengeID: challenge.id, asOf: asOf)
+        let createdID = await store.create(draftOpenedBeforeQueue)
+
+        XCTAssertNil(createdID)
+        XCTAssertTrue(client.requests.isEmpty)
+        XCTAssertEqual(store.pendingActivityUploadCount, 1)
+        XCTAssertEqual(store.pendingActivityChallengeID, challenge.id)
+        XCTAssertEqual(
+            store.presentedError,
+            "Finish sending or recovering your saved steps first."
+        )
+    }
+
     func testLostReviewResponseRetriesTheExactReasonAndShowsUnderReview()
         async throws
     {
@@ -837,6 +1112,36 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
     func testActiveTabsExposeOnlyPersonalV1Shell() {
         XCTAssertEqual(AppTab.allCases, [.today, .challenges, .you])
     }
+
+    private func makeActivityChallenge(
+        ownerID: UUID,
+        evidenceCutoff: Date,
+        status: PersonalChallengeStatus = .awaitingEvidence
+    ) -> PersonalChallengeDetail {
+        let challengeID = UUID()
+        let start = evidenceCutoff.addingTimeInterval(-8 * 86_400)
+        return PersonalChallengeDetail(
+            id: challengeID,
+            status: status,
+            terms: FrozenPersonalTerms(
+                challengeID: challengeID,
+                userID: ownerID,
+                cadence: .daily,
+                targetSteps: 10_000,
+                commitmentAmountMinor: 1_000,
+                currency: "USD",
+                settlementMode: .testOnly,
+                termsVersion: "personal-v1",
+                timezone: "America/Chicago",
+                agreementAt: start.addingTimeInterval(-86_400),
+                startsAt: start,
+                endsAt: evidenceCutoff.addingTimeInterval(-86_400),
+                evidenceCutoff: evidenceCutoff,
+                closedAt: nil
+            ),
+            progress: .empty
+        )
+    }
 }
 
 @MainActor
@@ -985,6 +1290,338 @@ final class PersonalActivitySyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(retried.attemptCount, 1)
     }
 
+    func testLegacyCoverageAddsDevelopmentMarkerWithoutChangingSignedBytes()
+        async throws
+    {
+        let pendingStore = EphemeralPendingPersonalCoverageStore()
+        let saved = savedCoverageSubmission()
+        try await pendingStore.save(saved)
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 0,
+            outcomes: [],
+            pendingCountsAfterSync: []
+        )
+        let coverage = PersonalCoverageClientFake(
+            retryEnvironment: .development,
+            sendError: .unavailable
+        )
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: PersonalCoverageQueryFake(),
+            metrics: metrics,
+            coverage: coverage,
+            pendingCoverage: pendingStore
+        )
+        let expiredChallenge = makeChallenge(
+            status: .awaitingEvidence,
+            evidenceCutoff: asOf
+        )
+
+        do {
+            _ = try await coordinator.sync(
+                ownerID: ownerID,
+                challenge: expiredChallenge,
+                asOf: asOf
+            )
+            XCTFail("Expected the first network attempt to remain queued.")
+        } catch {
+            XCTAssertEqual(error as? PersonalCoverageError, .unavailable)
+        }
+
+        let persistedValue = await pendingStore.load(for: ownerID)
+        let persisted = try XCTUnwrap(persistedValue)
+        XCTAssertEqual(persisted.body, saved.body)
+        XCTAssertEqual(persisted.keyID, saved.keyID)
+        XCTAssertEqual(persisted.assertion, saved.assertion)
+        XCTAssertEqual(persisted.attestEnvironment, .development)
+        XCTAssertEqual(persisted.attemptCount, 1)
+
+        coverage.sendError = nil
+        let outcome = try await coordinator.sync(
+            ownerID: ownerID,
+            challenge: expiredChallenge,
+            asOf: asOf
+        )
+
+        XCTAssertEqual(outcome, .savedRequestAccepted)
+        XCTAssertEqual(coverage.sentSubmissions.last?.body, saved.body)
+        XCTAssertEqual(
+            coverage.sentSubmissions.last?.assertion,
+            saved.assertion
+        )
+        let remaining = await pendingStore.load(for: ownerID)
+        XCTAssertNil(remaining)
+    }
+
+    func testWrongCoverageReceiptKeepsTheExactSavedRequest() async throws {
+        let pendingStore = EphemeralPendingPersonalCoverageStore()
+        let saved = savedCoverageSubmission(environment: .development)
+        try await pendingStore.save(saved)
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 0,
+            outcomes: [],
+            pendingCountsAfterSync: []
+        )
+        let activity = PersonalCoverageQueryFake()
+        let coverage = PersonalCoverageClientFake(
+            receiptBatchID: UUID()
+        )
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: activity,
+            metrics: metrics,
+            coverage: coverage,
+            pendingCoverage: pendingStore
+        )
+
+        do {
+            _ = try await coordinator.sync(
+                ownerID: ownerID,
+                challenge: activeChallenge,
+                asOf: asOf
+            )
+            XCTFail("Expected a mismatched receipt to fail closed.")
+        } catch {
+            XCTAssertEqual(
+                error as? PersonalCoverageError,
+                .invalidResponse
+            )
+        }
+
+        let retainedValue = await pendingStore.load(for: ownerID)
+        let retained = try XCTUnwrap(retainedValue)
+        XCTAssertEqual(retained.body, saved.body)
+        XCTAssertEqual(retained.keyID, saved.keyID)
+        XCTAssertEqual(retained.assertion, saved.assertion)
+        XCTAssertEqual(retained.attestEnvironment, .development)
+        XCTAssertEqual(activity.queryCount, 0)
+    }
+
+    func testPendingMetricReplaysAfterCutoffWithoutAFreshRead() async throws {
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 1,
+            outcomes: [.synced(replayed: true, stepTotal: 123)],
+            pendingCountsAfterSync: [0]
+        )
+        let activity = PersonalCoverageQueryFake(
+            intervalStarts: [asOf.addingTimeInterval(-3_600)]
+        )
+        let coverage = PersonalCoverageClientFake()
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: activity,
+            metrics: metrics,
+            coverage: coverage,
+            pendingCoverage: EphemeralPendingPersonalCoverageStore()
+        )
+        let expiredChallenge = makeChallenge(
+            status: .awaitingEvidence,
+            evidenceCutoff: asOf
+        )
+
+        let outcome = try await coordinator.sync(
+            ownerID: ownerID,
+            challenge: expiredChallenge,
+            asOf: asOf
+        )
+
+        XCTAssertEqual(
+            outcome,
+            .synced(replayed: true, stepTotal: 123)
+        )
+        XCTAssertEqual(metrics.syncCallCount, 1)
+        XCTAssertEqual(activity.queryCount, 0)
+        XCTAssertEqual(coverage.prepareCount, 0)
+        XCTAssertTrue(coverage.sentSubmissions.isEmpty)
+    }
+
+    func testProductionReReadsInsteadOfPromotingDevelopmentCoverage()
+        async throws
+    {
+        let pendingStore = EphemeralPendingPersonalCoverageStore()
+        try await pendingStore.save(
+            savedCoverageSubmission(environment: .development)
+        )
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 0,
+            outcomes: [.synced(replayed: false, stepTotal: 250)],
+            pendingCountsAfterSync: [0]
+        )
+        let activity = PersonalCoverageQueryFake(
+            intervalStarts: [asOf.addingTimeInterval(-3_600)]
+        )
+        let coverage = PersonalCoverageClientFake(
+            retryEnvironment: .production
+        )
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: activity,
+            metrics: metrics,
+            coverage: coverage,
+            pendingCoverage: pendingStore
+        )
+
+        let outcome = try await coordinator.sync(
+            ownerID: ownerID,
+            challenge: activeChallenge,
+            asOf: asOf
+        )
+
+        XCTAssertEqual(
+            outcome,
+            .synced(replayed: false, stepTotal: 250)
+        )
+        XCTAssertEqual(metrics.syncCallCount, 1)
+        XCTAssertEqual(activity.queryCount, 1)
+        XCTAssertEqual(coverage.sentSubmissions.count, 1)
+        XCTAssertEqual(
+            coverage.sentSubmissions.first?.attestEnvironment,
+            .production
+        )
+        let remaining = await pendingStore.load(for: ownerID)
+        XCTAssertNil(remaining)
+    }
+
+    func testProductionDoesNotPromoteDevelopmentCoverageAfterCutoff()
+        async throws
+    {
+        let pendingStore = EphemeralPendingPersonalCoverageStore()
+        try await pendingStore.save(
+            savedCoverageSubmission(environment: .development)
+        )
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 0,
+            outcomes: [],
+            pendingCountsAfterSync: []
+        )
+        let activity = PersonalCoverageQueryFake()
+        let coverage = PersonalCoverageClientFake(
+            retryEnvironment: .production
+        )
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: activity,
+            metrics: metrics,
+            coverage: coverage,
+            pendingCoverage: pendingStore
+        )
+        let expiredChallenge = makeChallenge(
+            status: .awaitingEvidence,
+            evidenceCutoff: asOf
+        )
+
+        let outcome = try await coordinator.sync(
+            ownerID: ownerID,
+            challenge: expiredChallenge,
+            asOf: asOf
+        )
+
+        XCTAssertEqual(outcome, .savedRequestUnavailable)
+        XCTAssertEqual(metrics.syncCallCount, 0)
+        XCTAssertEqual(activity.queryCount, 0)
+        XCTAssertTrue(coverage.sentSubmissions.isEmpty)
+        let remaining = await pendingStore.load(for: ownerID)
+        XCTAssertNil(remaining)
+    }
+
+    func testSavedCoverageReplaysAfterCutoffWithoutReportingFailure()
+        async throws
+    {
+        let pendingStore = EphemeralPendingPersonalCoverageStore()
+        let saved = savedCoverageSubmission()
+        try await pendingStore.save(saved)
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 0,
+            outcomes: [],
+            pendingCountsAfterSync: []
+        )
+        let activity = PersonalCoverageQueryFake(
+            intervalStarts: [asOf.addingTimeInterval(-3_600)]
+        )
+        let coverage = PersonalCoverageClientFake()
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: activity,
+            metrics: metrics,
+            coverage: coverage,
+            pendingCoverage: pendingStore
+        )
+        let expiredChallenge = makeChallenge(
+            status: .awaitingEvidence,
+            evidenceCutoff: asOf
+        )
+
+        let outcome = try await coordinator.sync(
+            ownerID: ownerID,
+            challenge: expiredChallenge,
+            asOf: asOf
+        )
+
+        XCTAssertEqual(outcome, .savedRequestAccepted)
+        XCTAssertEqual(metrics.syncCallCount, 0)
+        XCTAssertEqual(activity.queryCount, 0)
+        XCTAssertEqual(coverage.prepareCount, 0)
+        XCTAssertEqual(coverage.sentSubmissions.first?.body, saved.body)
+        let pendingAfterReplay = await pendingStore.load(for: ownerID)
+        XCTAssertNil(pendingAfterReplay)
+    }
+
+    func testSavedCoverageClearsBeforeAFreshUnreadableMetricPass()
+        async throws
+    {
+        let pendingStore = EphemeralPendingPersonalCoverageStore()
+        let saved = savedCoverageSubmission()
+        try await pendingStore.save(saved)
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 0,
+            outcomes: [.noReadableData],
+            pendingCountsAfterSync: [0]
+        )
+        let coverage = PersonalCoverageClientFake()
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: PersonalCoverageQueryFake(),
+            metrics: metrics,
+            coverage: coverage,
+            pendingCoverage: pendingStore
+        )
+
+        let outcome = try await coordinator.sync(
+            ownerID: ownerID,
+            challenge: activeChallenge,
+            asOf: asOf
+        )
+
+        XCTAssertEqual(outcome, .noReadableData)
+        XCTAssertEqual(metrics.syncCallCount, 1)
+        XCTAssertEqual(coverage.sentSubmissions.first?.body, saved.body)
+        XCTAssertEqual(coverage.prepareCount, 0)
+        let pendingAfterFreshAttempt = await pendingStore.load(for: ownerID)
+        XCTAssertNil(pendingAfterFreshAttempt)
+    }
+
+    func testMetricStillWaitingBlocksSavedCoverageReplay() async throws {
+        let pendingStore = EphemeralPendingPersonalCoverageStore()
+        let saved = savedCoverageSubmission()
+        try await pendingStore.save(saved)
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 1,
+            outcomes: [.synced(replayed: true, stepTotal: 321)],
+            pendingCountsAfterSync: [1]
+        )
+        let coverage = PersonalCoverageClientFake()
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: PersonalCoverageQueryFake(),
+            metrics: metrics,
+            coverage: coverage,
+            pendingCoverage: pendingStore
+        )
+
+        let outcome = try await coordinator.sync(
+            ownerID: ownerID,
+            challenge: activeChallenge,
+            asOf: asOf
+        )
+
+        XCTAssertEqual(outcome, .queuedForRetry(stepTotal: 321))
+        XCTAssertTrue(coverage.sentSubmissions.isEmpty)
+        let pendingAfterBlockedReplay = await pendingStore.load(for: ownerID)
+        XCTAssertEqual(pendingAfterBlockedReplay, saved)
+    }
+
     func testGracePeriodAllowsFinalManualSync() async throws {
         let metrics = SequencedActivitySyncFake(
             pendingCount: 0,
@@ -1101,14 +1738,43 @@ final class PersonalActivitySyncCoordinatorTests: XCTestCase {
             progress: .empty
         )
     }
+
+    private func savedCoverageSubmission(
+        environment: AppAttestEnvironment? = nil
+    )
+        -> PendingPersonalCoverageSubmission
+    {
+        let clientCoverageID = UUID(
+            uuidString: "33333333-3333-3333-3333-333333333333"
+        )!
+        return PendingPersonalCoverageSubmission(
+            ownerID: ownerID,
+            challengeID: activeChallenge.id,
+            clientCoverageID: clientCoverageID,
+            body: Data(
+                #"{"challengeId":"22222222-2222-2222-2222-222222222222","clientCoverageId":"33333333-3333-3333-3333-333333333333","coveredIntervalStarts":["2026-08-03T01:00:00.000Z"],"observedAt":"2026-08-03T02:00:00.000Z"}"#.utf8
+            ),
+            keyID: "saved-key",
+            assertion: Data([0x01, 0x02, 0x03, 0x04]),
+            attestEnvironment: environment,
+            createdAt: asOf.addingTimeInterval(-300),
+            attemptCount: 0,
+            lastAttemptAt: nil
+        )
+    }
 }
 
 @MainActor
 final class PersonalHealthBackgroundDeliveryTests: XCTestCase {
-    func testStagingIsOnlyEnvironmentThatStartsHealthObserver() {
+    func testTrustedUploadEnvironmentsStartHealthObserver() {
         XCTAssertTrue(
             GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
                 environmentValue: "Staging"
+            )
+        )
+        XCTAssertTrue(
+            GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
+                environmentValue: "Release"
             )
         )
         XCTAssertFalse(
@@ -1118,7 +1784,7 @@ final class PersonalHealthBackgroundDeliveryTests: XCTestCase {
         )
         XCTAssertFalse(
             GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
-                environmentValue: "Release"
+                environmentValue: nil
             )
         )
     }
@@ -1219,6 +1885,7 @@ private final class PersonalClientFake: PersonalAccountabilityClient {
     var loseFirstResponse = false
     var loseFirstCancellationResponse = false
     var hold: PersonalEligibilityHold?
+    var listError: PersonalAccountabilityClientError?
     private(set) var cancellationRequests:
         [(challengeID: UUID, requestID: UUID)] = []
     private var challenge: PersonalChallengeDetail?
@@ -1232,7 +1899,8 @@ private final class PersonalClientFake: PersonalAccountabilityClient {
     }
 
     func listMyChallenges() async throws -> PersonalAccountabilitySnapshot {
-        PersonalAccountabilitySnapshot(
+        if let listError { throw listError }
+        return PersonalAccountabilitySnapshot(
             challenges: challenge.map {
                 [
                     PersonalChallengeSummary(
@@ -1458,6 +2126,73 @@ private final class BackgroundDeliveryRegistrationFake:
 }
 
 @MainActor
+private final class StorePersonalActivitySyncFake: PersonalActivitySyncing {
+    enum Result {
+        case outcome(ActivitySyncOutcome, pendingAfter: Int)
+        case cancellation(pendingAfter: Int)
+    }
+
+    private var pendingCount: Int
+    private let queuedChallengeID: UUID?
+    private var results: [Result]
+    private var pendingCountError: (any Error)?
+    private(set) var syncedChallengeIDs: [UUID] = []
+
+    init(
+        pendingCount: Int,
+        pendingChallengeID: UUID?,
+        results: [Result],
+        pendingCountError: (any Error)? = nil
+    ) {
+        self.pendingCount = pendingCount
+        queuedChallengeID = pendingChallengeID
+        self.results = results
+        self.pendingCountError = pendingCountError
+    }
+
+    func setPendingCountError(_ error: (any Error)?) {
+        pendingCountError = error
+    }
+
+    func requestAuthorization() async throws -> ActivityAuthorizationOutcome {
+        .requestCompleted
+    }
+
+    func pendingUploadCount(for ownerID: UUID) async throws -> Int {
+        _ = ownerID
+        if let pendingCountError {
+            throw pendingCountError
+        }
+        return pendingCount
+    }
+
+    func pendingChallengeID(for ownerID: UUID) async throws -> UUID? {
+        _ = ownerID
+        return pendingCount > 0 ? queuedChallengeID : nil
+    }
+
+    func sync(
+        ownerID: UUID,
+        challenge: PersonalChallengeDetail,
+        asOf: Date
+    ) async throws -> ActivitySyncOutcome {
+        _ = (ownerID, asOf)
+        syncedChallengeIDs.append(challenge.id)
+        guard !results.isEmpty else {
+            throw ActivitySyncError.queuedRequestUnavailable
+        }
+        switch results.removeFirst() {
+        case .outcome(let outcome, let pendingAfter):
+            pendingCount = pendingAfter
+            return outcome
+        case .cancellation(let pendingAfter):
+            pendingCount = pendingAfter
+            throw CancellationError()
+        }
+    }
+}
+
+@MainActor
 private final class SequencedActivitySyncFake: ActivitySyncing {
     private var pendingCount: Int
     private var outcomes: [ActivitySyncOutcome]
@@ -1527,6 +2262,19 @@ private final class PersonalCoverageQueryFake: PersonalStepCoverageQuerying {
 private final class PersonalCoverageClientFake: PersonalCoverageClient {
     private(set) var prepareCount = 0
     private(set) var sentSubmissions: [PendingPersonalCoverageSubmission] = []
+    private let retryEnvironment: AppAttestEnvironment?
+    private let receiptBatchID: UUID?
+    var sendError: PersonalCoverageError?
+
+    init(
+        retryEnvironment: AppAttestEnvironment? = nil,
+        receiptBatchID: UUID? = nil,
+        sendError: PersonalCoverageError? = nil
+    ) {
+        self.retryEnvironment = retryEnvironment
+        self.receiptBatchID = receiptBatchID
+        self.sendError = sendError
+    }
 
     func prepare(
         ownerID: UUID,
@@ -1554,10 +2302,32 @@ private final class PersonalCoverageClientFake: PersonalCoverageClient {
             body: body,
             keyID: "fresh-key",
             assertion: Data([0xaa, 0xbb]),
+            attestEnvironment: retryEnvironment ?? .development,
             createdAt: observedAt,
             attemptCount: 0,
             lastAttemptAt: nil
         )
+    }
+
+    func prepareForRetry(
+        ownerID: UUID,
+        submission: PendingPersonalCoverageSubmission
+    ) async throws -> PendingPersonalCoverageSubmission {
+        XCTAssertEqual(ownerID, submission.ownerID)
+        if
+            retryEnvironment == .production,
+            submission.attestEnvironment != .production
+        {
+            throw PersonalCoverageError
+                .savedEvidenceFromDifferentEnvironment
+        }
+        if
+            retryEnvironment == .development,
+            submission.attestEnvironment == nil
+        {
+            return submission.classifyingLegacyDevelopmentEnvironment()
+        }
+        return submission
     }
 
     func send(
@@ -1566,8 +2336,11 @@ private final class PersonalCoverageClientFake: PersonalCoverageClient {
     ) async throws -> PersonalCoverageReceipt {
         XCTAssertEqual(ownerID, submission.ownerID)
         sentSubmissions.append(submission)
+        if let sendError {
+            throw sendError
+        }
         return PersonalCoverageReceipt(
-            coverageBatchID: submission.clientCoverageID,
+            coverageBatchID: receiptBatchID ?? submission.clientCoverageID,
             replayed: submission.attemptCount > 1
         )
     }

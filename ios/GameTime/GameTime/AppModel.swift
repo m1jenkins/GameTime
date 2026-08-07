@@ -13,6 +13,8 @@ enum ActivitySyncViewState: Equatable, Sendable {
     case syncing
     case synced(stepTotal: Double)
     case replayAccepted(stepTotal: Double)
+    case savedRequestAccepted
+    case savedRequestUnavailable
     case queuedForRetry(stepTotal: Double)
     case noReadableData
     case failed
@@ -27,6 +29,10 @@ enum ActivitySyncViewState: Equatable, Sendable {
             "\(formatted(stepTotal)) steps confirmed."
         case let .replayAccepted(stepTotal):
             "\(formatted(stepTotal)) saved steps confirmed."
+        case .savedRequestAccepted:
+            "Saved activity confirmed."
+        case .savedRequestUnavailable:
+            "Saved steps from an older test build couldn’t be used. Sync again while the window is open."
         case let .queuedForRetry(stepTotal):
             "\(formatted(stepTotal)) steps are saved and waiting to send. Tap Sync to try again."
         case .noReadableData:
@@ -755,6 +761,10 @@ final class AppModel {
                 activitySyncStates[contestID] = replayed
                     ? .replayAccepted(stepTotal: stepTotal)
                     : .synced(stepTotal: stepTotal)
+            case .savedRequestAccepted:
+                activitySyncStates[contestID] = .savedRequestAccepted
+            case .savedRequestUnavailable:
+                activitySyncStates[contestID] = .savedRequestUnavailable
             case let .queuedForRetry(stepTotal):
                 activitySyncStates[contestID] = .queuedForRetry(
                     stepTotal: stepTotal

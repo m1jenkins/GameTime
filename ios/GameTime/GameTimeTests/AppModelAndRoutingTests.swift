@@ -390,7 +390,7 @@ final class AppModelAndRoutingTests: XCTestCase {
         assertClientBoundary(live)
     }
 
-    func testPaymentFactoryUsesDisabledClientForDefaultDebugAndReleaseAndSandboxClientForExplicitStaging()
+    func testPaymentFactoryUsesSandboxClientForExplicitReleaseAndStaging()
         throws
     {
         let debug = try AppConfiguration.validated(
@@ -405,7 +405,7 @@ final class AppModelAndRoutingTests: XCTestCase {
             keyValue: "sb_publishable_release_payment_boundary",
             mutationValue: "YES",
             settlementModeValue: "stripe_sandbox",
-            stripeReturnURLValue: "gametime-staging://stripe-redirect"
+            stripeReturnURLValue: "gametime-beta://stripe-redirect"
         )
         let staging = try AppConfiguration.validated(
             environmentValue: "Staging",
@@ -431,10 +431,10 @@ final class AppModelAndRoutingTests: XCTestCase {
             debugServices.personalPayments
                 is DisabledPersonalPaymentClient
         )
-        XCTAssertEqual(release.personalSettlementMode, .testOnly)
+        XCTAssertEqual(release.personalSettlementMode, .stripeSandbox)
         XCTAssertTrue(
             releaseServices.personalPayments
-                is DisabledPersonalPaymentClient
+                is SupabasePersonalPaymentClient
         )
         XCTAssertEqual(staging.personalSettlementMode, .stripeSandbox)
         XCTAssertTrue(

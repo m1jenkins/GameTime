@@ -15,6 +15,9 @@ struct GameTimeApp: App {
     @State private var router = AppRouter()
     @State private var pushCoordinator: PushNotificationCoordinator
     @State private var isUsingDemoModel: Bool
+    #if DEBUG || STAGING
+    private let watchConnectivity = PhoneWatchConnectivityCoordinator()
+    #endif
     private let configurationFailure: String?
     private let isFixtureTestLaunch: Bool
 
@@ -186,6 +189,9 @@ struct GameTimeApp: App {
                 }
             }
             .task(id: isUsingDemoModel) {
+                #if DEBUG || STAGING
+                watchConnectivity.activate()
+                #endif
                 appDelegate.pushCoordinator = pushCoordinator
                 if let livePersonalStore {
                     livePersonalStore.setBackgroundDeliveryRegistration(

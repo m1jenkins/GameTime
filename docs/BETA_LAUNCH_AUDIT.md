@@ -1,526 +1,344 @@
-# GameTime External Beta Launch Audit
-
-**Audit date:** August 5, 2026  
-**Decision:** **NO-GO for actively onboarding external beta users today**
-
-GameTime has a strong local foundation, but the current app and hosted backend
-cannot yet complete the full user journey unattended. The two biggest risks are
-not cosmetic:
-
-1. A TestFlight install will reject its own valid production App Attest
-   registration, which blocks trusted step syncing.
-2. The hosted backend has no Personal result worker, so a completed challenge
-   can remain stuck forever after its final-sync period.
-
-The current builds are appropriate for continued engineering and internal
-testing only.
-
-## What “live-like beta” should mean
-
-For this audit, “runs as if it were live on the App Store” means:
-
-- Testers install the exact signed TestFlight build, not a developer build.
-- The app uses its final Apple app identity and production-grade security.
-- Every promised journey works end to end against a hosted beta backend.
-- Testers use real Sign in with Apple and real Apple Health data.
-- The system runs automatically without an engineer manually fixing records.
-- Failures, lost connections, relaunches, and duplicate taps recover safely.
-- Privacy, deletion, support, monitoring, backup, and incident procedures work.
-- Payment behavior, if included, uses **Stripe test mode only** and clearly says
-  that no real money moves.
-
-This does **not** require live charges. Real-money fees remain blocked by legal,
-Stripe, Apple/HealthKit, age, and jurisdiction approvals in
-[PLAN.md](../PLAN.md).
-
-### Recommended beta contract
-
-Build one dedicated **Beta** configuration with:
-
-- Release-level optimization and distribution signing.
-- The final App Store bundle ID.
-- The hosted beta Supabase project.
-- Personal challenge creation, HealthKit, and App Attest enabled.
-- Production App Attest behavior.
-- Developer bypasses unavailable; any sample mode isolated and clearly labeled.
-- Stripe test mode if the beta is intended to rehearse the paid journey.
-- Production-safe logging and monitoring.
-
-The current Release build cannot serve this purpose because it disables
-Personal mutations, Health sync, and attested uploads. The current Staging build
-also cannot serve it because it uses the staging app identity and forces the
-unhosted Stripe sandbox:
-[AppConfiguration.swift](../ios/GameTime/GameTime/AppConfiguration.swift),
-[Release.xcconfig](../ios/GameTime/Configuration/Release.xcconfig), and
-[Staging.xcconfig](../ios/GameTime/Configuration/Staging.xcconfig).
-
-### Freeze one truthful release candidate
-
-The candidate implementation is now committed on `main`. Hosted and written
-inventories had drifted during the audit: hosted Supabase already contains
-migrations through the custom-start slice, including dormant Solo migrations
-that the active plan still describes as withheld.
-
-Before any beta deployment:
-
-- Choose **Stage A without Stripe** or **Stripe sandbox beta** explicitly.
-- Reconcile [PLAN.md](../PLAN.md), [DECISIONS.md](../DECISIONS.md),
-  [the acceptance checklist](PERSONAL_V1_ACCEPTANCE.md), app behavior, and the
-  actual hosted migration/function inventory.
-- Review the exact pending migration list. A broad database push can include
-  every pending local migration, including payment work.
-- Build from one clean, reviewed, immutable commit.
-- Record the exact app version/build, database migrations, Edge Function
-  versions, environment settings, and approval owner.
-- Never archive or deploy from an unreviewed mixed working copy.
-
-## Founder launch board
-
-| Gate | Current state | Required before onboarding |
-| --- | --- | --- |
-| Live-like TestFlight build | **Blocked** | Create the dedicated Beta configuration, final bundle ID, correct entitlements, beta backend selection, and a repeatable build-number process. |
-| Sign in and session recovery | **Partial** | Prove first sign-in, returning sign-in, relaunch, expired session, sign-out, account switch, and Apple credential revocation using the signed TestFlight build. |
-| HealthKit and trusted sync | **Blocked** | Fix production App Attest handling, then prove real iPhone/Apple Watch reads, manual sync, background sync, final sync, and recovery. |
-| Challenge creation | **Partial** | Resolve the custom-start contract, make cold/offline startup fail closed, and prove exact retry against hosted beta. |
-| Payment setup | **Local only** | If included in beta, deploy and prove the full Stripe test-mode setup and commitment path. No live keys or live objects. |
-| Seven-day lifecycle | **Partial** | Run one genuine seven-day challenge plus its 24-hour final-sync period on the exact TestFlight build. |
-| Automatic result | **Missing** | Implement, schedule, monitor, and host the Personal assessment/finalization worker. |
-| Review and test charge | **Local only** | If included, prove provisional miss, seven-day review, waiver, one idempotent test charge, failure, customer-action, webhook, and reconciliation paths. |
-| Cancellation and recovery | **Partial** | Prove pending/active cancellation rules, offline retry, ambiguous response, duplicate tap, and safe terminal states. |
-| Account deletion | **Missing end to end** | Add in-app deletion, fresh authentication, Apple-token revocation, server execution, local cleanup, retry, and support recovery. |
-| Privacy and support | **Blocked** | Publish policy/support URLs, link them in-app, add a monitored contact path, accurate terms, and App Store privacy answers. |
-| Operations | **Blocked** | Add crash/backend monitoring, job alerts, backup/restore proof, release manifest, rollback rules, incident owner, and tester-support process. |
-| External TestFlight review | **Not proved** | Complete App Store Connect setup, upload and validate the exact build, pass Beta App Review, then run an internal smoke test before inviting external users. |
-
-## Functions that must be complete
-
-### 1. Account and identity lifecycle
-
-The beta must support:
-
-- First Sign in with Apple.
-- Returning sign-in and session restoration.
-- Expired-session recovery.
-- Sign-out and safe account switching.
-- In-app account deletion.
-- Sign in with Apple token revocation during deletion.
-- Removal of local pending uploads, private files, and App Attest state.
-- Safe account recreation after deletion.
+# GameTime lean external beta launch plan — Stripe sandbox
 
-**Current blocker:** the app offers Sign Out but no Delete Account flow. The
-backend deletion transaction exists, but the repository explicitly says it is
-not yet an end-to-end user feature:
-[YouView.swift](../ios/GameTime/GameTime/YouView.swift) and
-[README.md](../README.md).
+**Revised:** August 6, 2026
 
-Apple requires account-creating apps to let users initiate deletion in the app:
-[Offering account deletion in your app](https://developer.apple.com/support/offering-account-deletion-in-your-app/).
-
-### 2. Apple Health permission and readiness
+**Target:** a small, invite-only external TestFlight beta
+
+**Decision:** **Not ready to invite external testers today**
 
-The beta must correctly handle:
+## Short answer
 
-- Health access allowed.
-- Health access denied.
-- No step data.
-- iPhone-only steps and Apple Watch steps.
-- Reconnection after permission or data problems.
-- Clear user language that never claims data was verified when it was not.
+GameTime is not hundreds of tests away from beta. In the August 5 snapshot, the
+386 backend tests and 1,678 database assertions already existed; they are
+automated regression checks, not future implementation tasks.
 
-Automated tests cannot replace a signed physical-device run. The exact
-TestFlight build must be used.
+The first beta needs six contained workstreams: align the product and sandbox
+contract, make one distribution build, finish the current client trust fixes,
+add automatic results, finish deletion/privacy/support, and pass one bounded
+TestFlight run including the sandbox review/settlement loop.
 
-### 3. Production App Attest registration and trusted uploads
-
-This is a deterministic blocker, not merely an untested scenario.
+This plan gets GameTime to an **external beta**, not a public App Store launch.
 
-After registration, the app currently accepts only:
-
-```swift
-document.environment == "development"
-```
+## Locked first-beta scope
+
+- No more than 10 named iPhone testers; no public TestFlight link.
+- Personal Accountability with Steps and one seven-day challenge per person.
+- Stripe sandbox payment setup, review, and simulated settlement only; live
+  Stripe mode, social challenge, and Solo remain out of scope.
+- Every challenge starts at the next local midnight. Custom hours stay dormant.
+- Manual foreground sync is supported. Background sync is best-effort.
+- iPhone only; iPad and Apple Watch-specific acceptance wait.
+- One monitored feedback email and a daily founder check during the first
+  cohort.
 
-See
-[SupabaseMetricUploadClient.swift](../ios/GameTime/GameTime/SupabaseMetricUploadClient.swift).
-Apple states that TestFlight and App Store builds use the production App Attest
-environment regardless of the entitlement selection. A fresh TestFlight install
-will therefore receive a valid `production` response and the current app will
-reject it.
+The longer [Personal acceptance document](PERSONAL_V1_ACCEPTANCE.md) remains an
+engineering reference. This shorter plan controls the first external beta.
 
-Before beta:
-
-- Accept only the environment appropriate to the signed build and server
-  contract.
-- Add production-response tests and negative mismatch tests.
-- Test fresh TestFlight installation.
-- Test an upgrade from a developer-installed build with retained App Attest
-  state.
-- Confirm the hosted backend accepts the exact final App ID.
-- Prove registration, signed upload, duplicate request, lost response, and key
-  recovery on a physical device.
-
-Apple reference:
-[App Attest environment behavior](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.developer.devicecheck.appattest-environment).
-
-### 4. Challenge creation and authoritative startup state
-
-The app must not allow a user to start a second challenge merely because the
-network failed before the existing challenge/hold state loaded.
-
-The current cold-start path can leave the challenge list empty after a refresh
-failure while still enabling creation:
-[PersonalAccountabilityStore.swift](../ios/GameTime/GameTime/PersonalAccountabilityStore.swift),
-[TodayView.swift](../ios/GameTime/GameTime/TodayView.swift), and
-[ChallengesView.swift](../ios/GameTime/GameTime/ChallengesView.swift).
-
-Before beta:
-
-- Disable creation until authoritative open-challenge and hold state loads.
-- Show an honest retry state when it cannot load.
-- Preserve one-open-challenge enforcement on the server.
-- Prove duplicate taps, lost responses, relaunches, and two simultaneous
-  sessions cannot create duplicates.
-
-### 5. Freeze the start-time contract
-
-The hosted database and current UI allow a custom future start hour, while
-parts of the active plan, decisions, and acceptance runbook still specify the
-next local midnight.
-
-Before beta, choose one rule:
-
-- Remove custom starts from the beta; or
-- Formally approve custom starts, supersede the old decision, update all copy
-  and acceptance criteria, and rerun start-time, timezone, and daylight-saving
-  tests.
-
-Do not onboard users while the app, legal terms, test plan, and backend describe
-different challenge rules.
-
-### 6. Reliable metric and coverage retry
-
-Saved, already-signed requests must be replayed before asking Apple Health for
-fresh data or checking whether the fresh-sync window has closed.
-
-The current coverage coordinator checks challenge eligibility before loading
-and replaying the saved request. After the cutoff, a valid lost-response retry
-can become permanently stranded:
-[PersonalSyncCoverage.swift](../ios/GameTime/GameTime/PersonalSyncCoverage.swift).
-
-Before beta:
-
-- Replay saved exact bytes first.
-- Keep the signed body and idempotency identity unchanged.
-- Safely terminate or quarantine a permanently rejected item.
-- Never show “waiting to send” when no retry path remains.
-- Test cutoff, offline, relaunch, unreadable HealthKit, account switch, and a
-  later challenge.
-
-### 7. Automatic Personal assessment and final result
-
-The database already has protected operations to record an assessment and
-publish a result, but the hosted system has no worker or schedule that calls
-them. The legacy finalizer intentionally excludes Personal challenges.
-
-Complete a service-owned worker that:
-
-- Finds due challenges after the evidence cutoff.
-- Classifies complete, missing, conflicting, quarantined, device-failure, and
-  GameTime-outage evidence deterministically.
-- Freezes an evidence digest.
-- Records the assessment and publishes the result.
-- Is safe under duplicate runs, concurrent final sync, deletion, and retries.
-- Alerts when a challenge remains active past the written completion deadline.
-- Supports bounded operator replay without rewriting a published result.
-
-Then prove the worker in hosted beta with successful, failed, retried,
-concurrent, deliberately stalled, and outage scenarios.
-
-Relevant protected database operations are in
-[20260802165312_personal_v1_backend.sql](../supabase/migrations/20260802165312_personal_v1_backend.sql).
-
-### 8. Complete hosted Stripe test mode if the beta rehearses payment
-
-The local working tree contains the Stripe sandbox database migration, iOS
-PaymentSheet integration, and five test-mode Edge Functions. All backend code
-tests pass, but none of this payment slice is hosted.
-
-Before a payment-rehearsal beta:
-
-- Review and deploy the exact forward migration and functions to a dedicated
-  non-production target.
-- Configure Stripe test credentials without exposing them.
-- Configure and prove signed webhooks.
-- Save a reusable test payment method.
-- Create the challenge only after Stripe confirms setup.
-- Publish a missed goal as provisional.
-- Hold the full seven-day review window.
-- Waive met, inconclusive, outage, cancelled, and overturned outcomes.
-- Create exactly one idempotent test PaymentIntent after an eligible miss.
-- Never automatically retry a decline or customer-action state.
-- Add an explicit user-authorized recovery path.
-- Reconcile delayed, reordered, and duplicate webhooks.
-- Block another paid challenge while review/payment state is unresolved.
-- Make every relevant screen say **Payment test mode — no real money moves.**
-- Add provider-aware deletion, retention, monitoring, and support procedures.
-
-The hosted beta must have a secure worker schedule for eligible test charges;
-having function source code alone is not enough.
-
-If the first beta intentionally excludes Stripe, remove the sandbox path from
-the Beta build and call it a **Stage A core-product beta**, not a full rehearsal
-of the paid product.
-
-### 9. Cancellation, waiver, and failure recovery
-
-For every consequential action, prove:
-
-- Success.
-- Clear refusal.
-- Lost response after the server committed.
-- Exact retry.
-- Double tap.
-- Relaunch.
-- Offline-to-online recovery.
-- Account switch.
-
-At minimum this applies to challenge creation, cancellation, metric/coverage
-sync, finalization, review, test charge, and account deletion.
-
-No missing or conflicting Health data may become a failed challenge or charge.
-
-### 10. Privacy, terms, and support
-
-Before external users:
-
-- Publish a public privacy-policy URL.
-- Link the policy inside the app without requiring sign-in.
-- Publish a support URL and monitored feedback email.
-- Add an in-app Help/Contact Support action.
-- Publish terms that match the exact challenge, cancellation, review, retention,
-  and test-payment behavior.
-- Explain what deletion removes and what limited audit facts remain.
-- Complete App Store privacy answers for account/profile identifiers, step data,
-  challenge data, device/App Attest identifiers, and applicable Stripe data.
-- Verify logs contain no raw Health or secret data.
-
-The current Privacy screen is explanatory product copy, not a linked legal
-policy, and “Contact support” has no contact action:
-[YouView.swift](../ios/GameTime/GameTime/YouView.swift) and
-[GameTimeApp.swift](../ios/GameTime/GameTime/GameTimeApp.swift).
-
-Apple references:
-[App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/)
-and
-[Protecting user privacy with HealthKit](https://developer.apple.com/documentation/healthkit/protecting-user-privacy).
-
-### 11. User-safe monitoring and operator controls
-
-Before onboarding, the team must be able to see and contain failures:
-
-- iOS crash reporting with retained dSYMs for readable crash traces.
-- Edge Function 5xx and authentication-anomaly alerts.
-- Finalizer failure and overdue-challenge alerts.
-- Activation and retention backlog alerts.
-- Stripe test webhook/worker alerts if included.
-- A tester-support owner and response expectation.
-- A kill switch for new onboarding and high-risk backend functions.
-- A release manifest tying one commit to its migrations, functions, app build,
-  and environment.
-- Backup/point-in-time recovery ownership and a tested restore.
-- Written incident, rollback/abort, forward-repair, and account-deletion support
-  procedures.
-
-Cron “success” alone is insufficient. The current hosted push job reports
-success while required Vault bridge entries are absent, making the job inert.
-Either fully configure and monitor notifications or keep them outside the beta
-promise.
-
-## Platform and App Store gates
-
-### Final app identity and signed archive
-
-Before the first upload:
-
-- Choose the final bundle ID. Every current app configuration uses
-  `com.mjenkins.gametime.staging`, and a build script rejects other IDs.
-- Configure the same final client identity in Apple and Supabase Auth.
-- Create the App Store Connect app record.
-- Configure distribution signing and the Sign in with Apple, HealthKit, and App
-  Attest capabilities.
-- Produce a signed archive from a clean, immutable commit.
-- Validate the archive in Xcode and confirm TestFlight processing.
-- Inspect the archive’s embedded entitlements and aggregate privacy report.
-- Use a unique, repeatable version/build number. The current project is
-  `0.8.1 (1)`.
-- Preserve the archive and dSYMs.
-
-### App icon and privacy manifest
-
-The repository currently has no App Icon asset and no `PrivacyInfo.xcprivacy`.
-
-Before upload:
-
-- Add the complete App Store icon, including the 1024×1024 marketing icon.
-- Add the app privacy manifest.
-- Declare valid reasons for required-reason APIs used by the app.
-- Generate Xcode’s aggregate privacy report and reconcile the Stripe/Supabase
-  manifests with App Store privacy answers.
-
-Apple references:
-[Configuring your app icon](https://developer.apple.com/documentation/xcode/configuring-your-app-icon/),
-[Privacy manifest files](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files),
-and
-[Required-reason APIs](https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api).
-
-### iPhone versus iPad
-
-The project currently declares iPhone and iPad support, while the recorded UI
-proof is iPhone-only.
-
-Before upload, either:
-
-- Make the first beta iPhone-only; or
-- Complete iPad layout, rotation, HealthKit, multitasking, physical-device, and
-  screenshot acceptance.
-
-### App Store Connect and Beta App Review
-
-Complete and verify:
-
-- Developer Program agreements and roles.
-- App name, SKU, category, age rating, availability, and copyright.
-- Privacy and support URLs.
-- App Privacy labels.
-- Export-compliance answers.
-- EU trader status if distributing in the EU.
-- Accurate HealthKit and payment review notes.
-- Beta description, “What to Test,” feedback email, review contact, and tester
-  groups.
-- A real review path that does not rely on hidden developer fixtures.
-
-Apple requires Beta App Review before an external TestFlight build is broadly
-tested:
-[TestFlight overview](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview).
-
-## Security and backend gates
-
-The hosted foundation has useful protections: public tables have row-level
-security, public views use caller-level permissions, privileged Personal result
-and deletion operations are service-only, request sizes are bounded, and error
-logging is deliberately sanitized.
-
-Before beta, still complete:
-
-- Classify and close or formally accept all 29 hosted authenticated
-  `SECURITY DEFINER` warnings.
-- Revoke dormant authenticated social/Solo operations that are not part of the
-  beta, or explicitly support and abuse-test them.
-- Confirm Apple-only authentication. If password login remains reachable,
-  enable leaked-password protection.
-- Add per-account/device abuse limits for attestation, ingest, coverage, and
-  diagnostics.
-- Prove unauthenticated, malformed-token, cross-account, and service-only
-  rejection against the hosted target.
-- Run two real authenticated identities to prove isolation.
-- Run a clean disposable database reset and the complete pgTAP suite before
-  freezing the candidate.
-
-Supabase advisor reference:
-[Authenticated `SECURITY DEFINER` function executable](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
-
-## Exact acceptance run before inviting users
-
-Use the exact processed TestFlight build and hosted beta release candidate.
-
-1. Fresh install, first Sign in with Apple, onboarding, and relaunch.
-2. Health allowed, denied, no-data, iPhone, and Apple Watch cases.
-3. Production App Attest registration and signed manual sync.
-4. Offline sync, lost response, exact replay, and account switch.
-5. Challenge creation, duplicate tap, cancellation, and relaunch.
-6. Background observer wake and durable upload.
-7. One genuine seven-day challenge plus the 24-hour final-sync period.
-8. Automatic assessment and published result without engineer intervention.
-9. Met, missed, inconclusive, outage, quarantine, and conflicting-data outcomes.
-10. Stripe test setup, review, test charge, failure, and webhook recovery if
-    payment is in scope.
-11. Account deletion during pending, active, and completed states, followed by
-    account recreation.
-12. Two-account isolation and abuse/refusal checks.
-13. Backup/restore, worker alert, kill switch, and incident-response drill.
-14. Internal TestFlight smoke test, then external Beta App Review approval.
-
-Do not substitute an accelerated fixture for the real calendar run. Use both.
-
-## What can wait until after beta starts
-
-These are not launch blockers unless they are promised in beta onboarding:
-
-- Editable username and profile photo.
-- Social challenges, friends, standings, and reactions.
-- Reminder notifications.
-- Dark mode and a branded launch screen.
-- Automated release CI, if the initial manual archive process is documented and
-  repeatable.
-- Real-money Stripe charging.
-
-## Go/no-go checklist
-
-Invite external users only when every item below is checked:
-
-- [ ] One clean, reviewed commit defines the entire candidate.
-- [ ] The dedicated Beta configuration works like the planned App Store app.
-- [ ] The final bundle ID and Apple/Supabase identities match.
-- [ ] The App Attest production-response defect is fixed.
-- [ ] Cold/offline creation fails closed.
-- [ ] Saved signed retries work after the fresh-sync cutoff.
-- [ ] Start-time rules match across code, database, terms, and tests.
-- [ ] The hosted Personal finalizer automatically publishes results.
-- [ ] The hosted Stripe test lifecycle passes, if payment is in scope.
-- [ ] In-app account deletion and Apple-token revocation pass.
-- [ ] Privacy policy, support, terms, icon, and privacy manifest are complete.
-- [ ] Hosted security findings are dispositioned and two-user isolation passes.
-- [ ] Crash/backend/job monitoring, backup, rollback, and support are operational.
-- [ ] The exact TestFlight build passes the full physical acceptance matrix.
-- [ ] The real seven-day plus 24-hour calendar run passes.
-- [ ] Internal smoke testing and external Beta App Review pass.
-- [ ] No unresolved crash, data-loss, privacy, authentication, deletion,
-      challenge-integrity, or duplicate-charge defect remains.
-- [ ] Real charges remain disabled.
-
-## Evidence checked in this audit
-
-### Verified on August 5, 2026
-
-- Staging simulator build compiles successfully with no reported warnings.
-- Release simulator build compiles successfully with no reported warnings.
-- Backend formatting, linting, and type-checking pass.
-- All **386 backend code tests** pass.
-- All **103 Swift package tests** pass.
-- The GameTime simulator test result bundle reports **133 passed, 0 failed**.
-- The conformance simulator suite reports **10 passed, 0 failed**.
-- A disposable clean database applied every migration and passed all **1,678
-  pgTAP assertions across 41 files**.
-- Hosted Supabase is healthy.
-- Hosted Supabase has 28 migrations through
-  `20260803192500_personal_custom_start_time`.
-- Six Edge Functions and four scheduled jobs are active.
-- No Personal assessment/result worker or schedule is hosted.
-- The five local Stripe functions and Stripe migration are not hosted.
-- The implementation and this audit are published on `main`.
-- `git diff --check` passes.
-
-### Not proved in this audit
-
-- A signed archive or TestFlight processing.
-- A physical TestFlight install.
-- Real Sign in with Apple, HealthKit, production App Attest, or background wake.
-- A hosted full challenge result.
-- Hosted Stripe sandbox behavior.
-- Account deletion from the app.
-- App Store Connect, signing, legal, privacy, support, monitoring, restore, and
-  incident-readiness state.
-
-The audit and evidence update were documentation-only. No hosted service, Apple
-account, payment account, deployment, migration, or user data was changed by
-the audit.
+The August 6 [product and design audit](BETA_PRODUCT_DESIGN_AUDIT.md) confirms
+that these three tabs and the existing Personal loop are enough. Its
+[implementation prompts](BETA_IMPLEMENTATION_PROMPTS.md) divide the remaining
+work into bounded, paste-ready chats.
+
+## The six remaining workstreams
+
+### 1. Make the product contract agree
+
+Update [PLAN.md](../PLAN.md), [DECISIONS.md](../DECISIONS.md),
+[README.md](../README.md), acceptance copy, and the app only where they
+contradict the scope above.
+
+Keep custom-start, live-fee, Solo, and social history in the repository, but
+expose only the Stripe sandbox path in the distribution build. Do not delete or
+refactor historical paths for beta.
+
+For the visible beta journey:
+
+- Remove the redundant screen where Steps is the only metric choice.
+- Remove the custom-start screen and let the server derive next midnight.
+- Use **Payment test mode — no real money moves.** wherever the beta
+  explains payment setup or settlement.
+- Put one state-aware next action and exact local deadline on Today.
+- Surface honest Health, saved cancellation, detail-load, and overdue-result
+  recovery.
+- Keep the complete root journey in the existing fixed light appearance. Full
+  dark-mode design remains deferred.
+
+### 2. Make one shippable distribution build
+
+Correct one Release configuration; do not create several new build flavors.
+Keep Staging for internal engineering.
+
+The distribution build needs:
+
+- The final Apple App ID and matching Supabase Auth identity.
+- Distribution signing for Sign in with Apple, HealthKit, and App Attest.
+- The reviewed hosted beta backend and a public client key only.
+- Personal creation, Health reads, and trusted uploads enabled.
+- `stripe_sandbox` settlement, a reachable payment screen, and test-mode
+  provider configuration only.
+- iPhone-only support, an app icon, a privacy manifest, and a unique build
+  number.
+
+Release is the distribution sandbox beta; Staging remains the internal
+engineering build.
+
+### 3. Finish proof for the three client trust fixes
+
+1. **Production App Attest:** the client currently accepts only a
+   `development` registration response and permits trusted upload only in
+   Staging. TestFlight always uses production App Attest, so the distribution
+   build and server must agree on `production`. See
+   [Apple's App Attest guidance](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.developer.devicecheck.appattest-environment).
+2. **Fail-closed creation:** keep Create disabled until the server successfully
+   loads open-challenge and eligibility state. A failed load shows Retry, not an
+   empty account.
+3. **Replay first:** send saved signed metric or coverage requests before a
+   fresh-sync cutoff or new HealthKit query can reject them.
+
+Add focused tests for those behaviors only. Do not create a universal failure
+matrix for every screen and action.
+
+The source checkpoint contains implementations and focused local coverage for
+these fixes. They are not candidate proof until the exact frozen revision
+passes the full client/backend run, the production-environment function bundles
+are hosted, and production App Attest is exercised from the signed TestFlight
+build.
+
+### 4. Add automatic Personal results
+
+Use the existing protected assessment and publication operations. Add one small
+scheduled worker that:
+
+- Finds Personal challenges due after the 24-hour grace period.
+- Publishes one immutable result using existing fail-closed rules.
+- Is safe to rerun and safe beside a final sync.
+- Leaves uncertain evidence `inconclusive`; it never guesses.
+- Exposes an overdue/failure check that the founder reviews daily during the
+  first cohort.
+
+Keep the hosted sandbox payment setup, review, webhook, and idempotent test
+settlement paths behind the beta allowlist and kill switch. Prove one result,
+one incomplete result, one review outcome, one test settlement, and a safe
+rerun in an accelerated hosted smoke test. Do not add a general job platform
+or an operations dashboard.
+
+The source checkpoint includes the bounded result-worker migration, focused
+tests, and an inactive five-minute Cron registration. Treat it as unhosted
+source until the exact five-migration packet passes current local regression,
+owner review, authenticated dry run, isolated hosted smoke, and separate Cron
+activation approval.
+
+### 5. Finish deletion, privacy, and support
+
+The substantial database deletion transaction already exists. Add only the
+missing thin layer:
+
+- Delete Account under You, with confirmation and fresh authentication.
+- Sign in with Apple token revocation.
+- The existing server deletion operation.
+- Stripe test-Customer/payment-method deletion or exact disclosed retention.
+- Local pending-request, App Attest, and session cleanup.
+- Honest success, retry, and support states.
+
+Apple requires account-creating apps to let people initiate deletion in the app
+and says Sign in with Apple tokens should be revoked. See
+[Apple's account-deletion guidance](https://developer.apple.com/support/offering-account-deletion-in-your-app/).
+
+Also add one public privacy-policy URL, one working support contact, short
+test-only beta terms, and a check that logs contain no raw Health data, signed
+bodies, credentials, or private profiles.
+
+Use one **Account & Support** destination under You rather than several new
+settings screens. It should contain Health help, Privacy Policy, Beta Terms,
+Contact Beta Support, app version/build, sign out, and Delete Account. Reuse its
+support route from launch, Health, cancellation, detail, result, and deletion
+failures. Do not invent missing URLs or contact details.
+
+### 6. Freeze, verify, and distribute one candidate
+
+1. Freeze one reviewed commit and record its build number and backend versions.
+2. Run the existing automated repository and Xcode suites once for that exact
+   commit. Do not manually repeat green suites.
+3. Smoke-test only the hosted beta surface: unauthenticated refusal, exact
+   retry, two-account isolation, automatic result, Stripe test setup, signed
+   webhook, review, and one idempotent simulated settlement.
+4. Run the six TestFlight journeys below on the exact processed build.
+5. Run the common journeys with VoiceOver and Larger Text, verify sufficient
+   contrast and 44-point controls, and confirm that state is never color-only.
+6. Add the minimum TestFlight information: beta description, What to Test,
+   feedback email, review contact, privacy URL, reviewer-access instructions,
+   Stripe-published test-card instructions with a never-use-a-real-card warning,
+   and export-compliance answer.
+7. Submit that same build for TestFlight App Review. Apple reviews the first
+   external build before testers can join. See
+   [Apple's TestFlight overview](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview).
+8. After approval, invite no more than 10 named testers.
+
+During the first cohort, check TestFlight crashes/feedback, backend errors, and
+overdue challenges once per day. Stop new invitations if a core journey fails.
+No third-party monitoring platform is required yet.
+
+## Product and design completion checklist
+
+The August 6 audit found no missing major feature family. Close these contained
+gaps before the candidate freeze:
+
+- [ ] Today states the next action and exact local deadline for scheduled,
+      active, final-sync, result-pending, overdue, and final states.
+- [x] The visible creation journey has no one-option metric page or custom
+      start; only the Stripe sandbox payment route is reachable, and its copy
+      always identifies test mode.
+- [ ] Health no-data recovery says access may be limited or data may be absent;
+      it never claims Apple revealed read denial.
+- [ ] Saved cancellation, detail-load, and overdue-result failures have Retry,
+      Refresh where appropriate, and a shared support route.
+- [ ] Account & Support uses real Privacy Policy, Beta Terms, and monitored
+      support destinations and displays the app version/build.
+- [ ] Signed Out and configuration failure expose working privacy/terms/support
+      actions before account creation.
+- [ ] Payment consent links those documents and accurately says Stripe handles
+      test payment details; the app never claims those details stay only with
+      GameTime.
+- [ ] Testers are told never to enter a real card and receive only Stripe's
+      published test-card instructions.
+- [ ] Delete Account completes fresh authentication, Apple token revocation,
+      Stripe test-data handling, server deletion, confirmed local cleanup, and
+      retry/support states.
+- [ ] Challenge detail shows review-open, under-review, waived/no-charge,
+      simulated-charge pending/succeeded, requires-action, and failed states
+      from the authoritative sandbox status.
+- [ ] Requires-action or failed test settlement has one explicit
+      user-authorized recovery or founder-waiver path and cannot block the
+      tester forever.
+- [ ] Stripe setup/commit/dispatch is protected by a database-enforced beta
+      allowlist and global kill switch; status, signed webhook reconciliation,
+      and audited no-charge/waiver resolution remain safe when disabled.
+- [ ] The complete root journey remains legible when the phone uses dark
+      appearance, while GameTime intentionally ships fixed-light for beta.
+- [ ] The exact candidate passes common journeys with VoiceOver, Larger Text,
+      contrast, 44-point touch targets, and non-color state communication.
+- [ ] App Review access and accurate review notes are documented without
+      inventing credentials or a hidden demo path.
+
+Keep permanent-username simplification, full dark mode, reminders, charts,
+streaks, and broader statistics as post-cohort decisions.
+
+## Test policy
+
+- In the August 5 snapshot, 386 backend tests were existing Deno unit and
+  endpoint checks across 28 files and finished in about two seconds.
+- In that same snapshot, 1,678 pgTAP assertions were fine-grained database
+  checks from 41 SQL files. They were one automated job, not 1,678 manual
+  scenarios.
+- Legacy social, dormant Solo, and Stripe sandbox tests stay as regression
+  protection; they are not a reason to expand the beta surface.
+- There is no new test-count goal. Add focused coverage only for the actual
+  launch fixes, then run one full green candidate gate.
+- A simulator cannot prove HealthKit or production App Attest. One real
+  TestFlight phone still matters.
+
+## One bounded TestFlight acceptance pass
+
+Use the exact processed distribution build for six journeys:
+
+1. **Identity:** fresh install, Sign in with Apple, onboarding, relaunch, and
+   sign-out/sign-in restoration.
+2. **Creation:** confirm next-midnight terms, sandbox payment setup and consent,
+   Health readiness, one created challenge, and a clear first next action.
+3. **Trusted sync:** real iPhone Health data, production App Attest, one manual
+   sync, exact final-sync deadline, and one privacy-safe no-access/no-data
+   recovery.
+4. **Recovery:** offline/lost response, exact retry, duplicate tap, pre-start
+   cancellation with visible saved retry, detail failure, and relaunch without
+   duplicate data.
+5. **Backend safety and sandbox settlement:** accelerated automatic result,
+   result-pending/overdue guidance, review request/decision, signed webhook,
+   idempotent simulated test settlement with visible final status, and one
+   two-account privacy check.
+6. **Deletion:** in-app deletion, Apple token revocation, local cleanup, and
+   account recreation.
+
+Automated fixtures cover met, missed, inconclusive, outage, quarantine,
+daylight-saving, concurrency, and other state permutations. Do not repeat each
+one as a physical seven-day run.
+
+The first cohort should complete one genuine seven-day challenge plus its
+24-hour grace period before expanding beyond 10 people. That is a beta learning
+goal, not a reason to delay the first controlled cohort after the accelerated
+result path passes.
+
+## Explicitly deferred
+
+- Live Stripe mode, real-money charging, counsel, processor approval, and live
+  reconciliation.
+- Social, friends, standings, reactions, charities, and Solo.
+- Custom-hour starts and partial first days.
+- Certified background delivery and Apple Watch-specific acceptance.
+- iPad support, screenshots, and QA.
+- Upgrade/minimum-build/90-day-expiration drills.
+- Blanket closure of every historical Supabase advisor warning; review only the
+  beta surfaces reachable by testers and keep dormant paths disabled.
+- Per-device abuse systems, third-party crash tooling, restore drills, incident
+  simulations, and a custom operations dashboard.
+- Full App Store screenshots, keywords, localization, marketing copy, dark
+  mode, reminders, and other general-release polish.
+
+## Go/no-go
+
+Invite the first external cohort only when:
+
+- [ ] The processed build is iPhone-only, `stripe_sandbox`, and uses test-mode
+      provider keys and transactions.
+- [ ] The Release/TestFlight client points to an explicitly non-production
+      Stripe beta backend; hosted labels and runtime environment values agree.
+- [ ] Concurrent Watch work is preserved but not embedded or reachable in this
+      candidate.
+- [ ] Its final Stripe redirect scheme returns correctly on the processed
+      TestFlight build.
+- [ ] Its Apple/Supabase identity, signing, icon, and privacy manifest are
+      correct.
+- [ ] Production App Attest and one trusted manual sync pass on TestFlight.
+- [ ] Unknown server state cannot enable creation, and saved retries recover.
+- [ ] Next-midnight terms agree across app, backend request, and tester copy.
+- [ ] Today gives the correct next action and exact local deadline in every
+      reachable challenge/result state.
+- [ ] Health, cancellation, detail, and overdue-result recovery is honest and
+      actionable.
+- [ ] The hosted Personal worker publishes one result and safely reruns.
+- [ ] Hosted sandbox payment setup, review, webhook, and test settlement safely
+      rerun, remain allowlisted, and appear honestly in challenge detail.
+- [ ] In-app deletion/recreation and two-account isolation pass.
+- [ ] Account deletion handles the Stripe test Customer/payment method exactly
+      as the in-app policy promises.
+- [ ] Account & Support uses working privacy/terms/support links, shows the
+      version/build, and the feedback inbox is monitored.
+- [ ] Common journeys pass VoiceOver, Larger Text, contrast, touch-target, and
+      fixed-light appearance checks.
+- [ ] Reviewer access and accurate App Review notes are ready.
+- [ ] One full candidate run and the six TestFlight journeys pass.
+- [ ] TestFlight App Review approves the exact build.
+- [ ] No known crash, privacy leak, authentication failure, duplicate challenge,
+      lost evidence, stuck result, or accidental live-money path remains.
+
+## Evidence boundary
+
+The August 5 audit recorded green local database, backend, Swift, simulator,
+and conformance suites. That is a strong regression foundation, but it does not
+prove a signed TestFlight journey.
+
+The August 6 design/function audit was read-only. It found concurrent
+uncommitted App Attest/retry/fail-closed work and an untracked result-worker
+draft; neither is frozen-candidate or hosted proof.
+
+The beta list also changed during the audit from no-payment Stage A to a Stripe
+sandbox rehearsal. `PLAN.md`, `DECISIONS.md`, copy, hosted scope, and reviewer
+notes must agree on that choice before the candidate freezes.
+
+Still unproved: the final processed build, production App Attest, hosted
+automatic results, hosted sandbox payment operation, in-app deletion, the
+two-account/device pass, full common journey accessibility, reviewer access,
+and TestFlight App Review approval.
+
+This plan does not authorize Apple-account changes, hosted deployment,
+migrations, Edge Function publication, TestFlight upload, or invitations. Each
+consequential external step still requires explicit approval.

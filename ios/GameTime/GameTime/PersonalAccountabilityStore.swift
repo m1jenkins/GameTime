@@ -8,6 +8,8 @@ enum PersonalActivitySyncViewState: Equatable, Sendable {
     /// Read from HealthKit on this device but never uploaded or attested.
     case observedLocally(stepTotal: Double)
     case replayAccepted(stepTotal: Double)
+    case savedRequestAccepted
+    case savedRequestUnavailable
     case queuedForRetry(stepTotal: Double)
     case noReadableData
     case failed(String)
@@ -22,6 +24,10 @@ enum PersonalActivitySyncViewState: Equatable, Sendable {
             "\(total.formatted(.number.precision(.fractionLength(0)))) steps read on this phone — not confirmed yet."
         case .replayAccepted(let total):
             "\(total.formatted(.number.precision(.fractionLength(0)))) saved steps confirmed."
+        case .savedRequestAccepted:
+            "Saved step evidence confirmed."
+        case .savedRequestUnavailable:
+            "Saved steps from an older test build couldn’t be used. Sync again while the window is open."
         case .queuedForRetry(let total):
             "\(total.formatted(.number.precision(.fractionLength(0)))) steps are saved and waiting to send."
         case .noReadableData:
@@ -53,6 +59,8 @@ final class PersonalAccountabilityStore {
     private(set) var activityAuthorizationOutcome: ActivityAuthorizationOutcome?
     private(set) var activitySyncStates: [UUID: PersonalActivitySyncViewState] = [:]
     private(set) var pendingActivityUploadCount = 0
+    private(set) var pendingActivityChallengeID: UUID?
+    private(set) var hasPendingActivityRecoveryIssue = false
     private(set) var isMutating = false
     private(set) var isPreparingPayment = false
     private(set) var isRequestingReview = false
@@ -109,6 +117,15 @@ final class PersonalAccountabilityStore {
         pendingCreation?.paymentSetupCompletedAt != nil
     }
 
+    var hasVerifiedCreationState: Bool {
+        switch loadState {
+        case .loaded, .empty:
+            true
+        case .idle, .loading, .failed:
+            false
+        }
+    }
+
     func reviewRequest(
         for challengeID: UUID
     ) -> PersonalReviewRequestResult? {
@@ -117,11 +134,14 @@ final class PersonalAccountabilityStore {
 
     var canCreate: Bool {
         configuration.personalChallengeMutationsEnabled
+            && hasVerifiedCreationState
             && openChallenge == nil
             && !eligibilityHoldActive
             && !hasPendingCreationRecoveryIssue
             && pendingCancellation == nil
             && !hasPendingCancellationRecoveryIssue
+            && pendingActivityUploadCount == 0
+            && !hasPendingActivityRecoveryIssue
     }
 
     func setBackgroundDeliveryRegistration(
@@ -132,7 +152,13 @@ final class PersonalAccountabilityStore {
 
     func activate(ownerID: UUID?) async {
         guard self.ownerID != ownerID else {
-            if ownerID != nil { await refresh() }
+            if ownerID != nil {
+                if hasPendingActivityRecoveryIssue {
+                    await retryPendingActivityRecovery()
+                } else {
+                    await refresh()
+                }
+            }
             return
         }
         actorGeneration = UUID()
@@ -150,6 +176,17 @@ final class PersonalAccountabilityStore {
         }
         guard isCurrent(ownerID, generation: generation) else { return }
         await restorePendingActivityCount(for: ownerID, generation: generation)
+        guard isCurrent(ownerID, generation: generation) else { return }
+        await refresh()
+    }
+
+    func retryPendingActivityRecovery() async {
+        guard let ownerID else { return }
+        let generation = actorGeneration
+        await restorePendingActivityCount(
+            for: ownerID,
+            generation: generation
+        )
         guard isCurrent(ownerID, generation: generation) else { return }
         await refresh()
     }
@@ -231,9 +268,22 @@ final class PersonalAccountabilityStore {
             return nil
         }
         guard let ownerID else { return nil }
+        guard hasVerifiedCreationState else {
+            presentedError = PersonalAccountabilityClientError.unavailable
+                .localizedDescription
+            return nil
+        }
         guard !eligibilityHoldActive else {
             presentedError = PersonalAccountabilityClientError.eligibilityHold
                 .localizedDescription
+            return nil
+        }
+        guard
+            pendingActivityUploadCount == 0,
+            !hasPendingActivityRecoveryIssue
+        else {
+            presentedError =
+                "Finish sending or recovering your saved steps first."
             return nil
         }
         // A lost create response can leave both the exact local retry and the
@@ -334,6 +384,11 @@ final class PersonalAccountabilityStore {
             configuration.personalSettlementMode == .stripeSandbox
         else {
             presentedError = PersonalPaymentClientError.disabled
+                .localizedDescription
+            return nil
+        }
+        guard hasVerifiedCreationState else {
+            presentedError = PersonalAccountabilityClientError.unavailable
                 .localizedDescription
             return nil
         }
@@ -722,7 +777,10 @@ final class PersonalAccountabilityStore {
         guard configuration.activitySyncEnabled,
             let ownerID,
             let challenge = detail(for: challengeID),
-            !isSyncingActivity
+            !isSyncingActivity,
+            !hasPendingActivityRecoveryIssue,
+            pendingActivityUploadCount == 0
+                || pendingActivityChallengeID == challengeID
         else { return }
         let generation = actorGeneration
         isSyncingActivity = true
@@ -747,19 +805,34 @@ final class PersonalAccountabilityStore {
                     } else {
                         .synced(stepTotal: total)
                     }
+            case .savedRequestAccepted:
+                activitySyncStates[challengeID] = .savedRequestAccepted
+            case .savedRequestUnavailable:
+                activitySyncStates[challengeID] = .savedRequestUnavailable
             case .queuedForRetry(let total):
                 activitySyncStates[challengeID] = .queuedForRetry(stepTotal: total)
             case .noReadableData:
                 activitySyncStates[challengeID] = .noReadableData
             }
-            pendingActivityUploadCount = try await activitySync
-                .pendingUploadCount(for: ownerID)
+            await restorePendingActivityCount(
+                for: ownerID,
+                generation: generation
+            )
             await refresh()
             await loadDetail(challengeID: challengeID)
         } catch is CancellationError {
+            guard isCurrent(ownerID, generation: generation) else { return }
+            await restorePendingActivityCount(
+                for: ownerID,
+                generation: generation
+            )
             activitySyncStates[challengeID] = .idle
         } catch {
             guard isCurrent(ownerID, generation: generation) else { return }
+            await restorePendingActivityCount(
+                for: ownerID,
+                generation: generation
+            )
             activitySyncStates[challengeID] = .failed(error.localizedDescription)
             presentedError = error.localizedDescription
         }
@@ -767,6 +840,21 @@ final class PersonalAccountabilityStore {
 
     func syncState(for challengeID: UUID) -> PersonalActivitySyncViewState {
         activitySyncStates[challengeID] ?? .idle
+    }
+
+    func canSyncActivity(
+        challengeID: UUID,
+        permitsFreshSync: Bool
+    ) -> Bool {
+        guard
+            configuration.activitySyncEnabled,
+            !isSyncingActivity,
+            !hasPendingActivityRecoveryIssue
+        else { return false }
+        if pendingActivityUploadCount > 0 {
+            return pendingActivityChallengeID == challengeID
+        }
+        return permitsFreshSync
     }
 
     func handleBackgroundActivityUpdate(asOf: Date = Date()) async {
@@ -777,10 +865,32 @@ final class PersonalAccountabilityStore {
         if ownerID != authenticatedOwner {
             await activate(ownerID: authenticatedOwner)
         } else {
+            await restorePendingActivityCount(
+                for: authenticatedOwner,
+                generation: actorGeneration
+            )
+            guard !hasPendingActivityRecoveryIssue else { return }
+            if
+                let challenge = pendingActivityChallenge(
+                    for: authenticatedOwner
+                )
+            {
+                await sync(challengeID: challenge.id, asOf: asOf)
+                return
+            }
             await refresh()
+        }
+        if
+            let challenge = pendingActivityChallenge(
+                for: authenticatedOwner
+            )
+        {
+            await sync(challengeID: challenge.id, asOf: asOf)
+            return
         }
         guard
             ownerID == authenticatedOwner,
+            !hasPendingActivityRecoveryIssue,
             loadState == .loaded,
             let challenge = openChallenge,
             challenge.permitsActivitySync(at: asOf)
@@ -838,10 +948,52 @@ final class PersonalAccountabilityStore {
                 await isCurrentAuthenticated(ownerID, generation: generation)
             else { return }
             pendingActivityUploadCount = count
+            guard count > 0 else {
+                pendingActivityChallengeID = nil
+                hasPendingActivityRecoveryIssue = false
+                return
+            }
+            do {
+                let challengeID = try await activitySync.pendingChallengeID(
+                    for: ownerID
+                )
+                guard
+                    await isCurrentAuthenticated(
+                        ownerID,
+                        generation: generation
+                    )
+                else { return }
+                pendingActivityChallengeID = challengeID
+                hasPendingActivityRecoveryIssue = challengeID == nil
+            } catch {
+                guard isCurrent(ownerID, generation: generation) else {
+                    return
+                }
+                // Keep the known count so creation stays fail-closed even if
+                // the queued challenge identity cannot be restored.
+                pendingActivityChallengeID = nil
+                hasPendingActivityRecoveryIssue = true
+            }
         } catch {
             guard isCurrent(ownerID, generation: generation) else { return }
-            pendingActivityUploadCount = 0
+            // Unknown protected-storage state is not the same as an empty
+            // queue. Retain any last known owner/count and block creation until
+            // a later read proves the queue is clear.
+            hasPendingActivityRecoveryIssue = true
         }
+    }
+
+    private func pendingActivityChallenge(
+        for ownerID: UUID
+    ) -> PersonalChallengeDetail? {
+        guard
+            self.ownerID == ownerID,
+            pendingActivityUploadCount > 0,
+            let pendingActivityChallengeID
+        else {
+            return nil
+        }
+        return detail(for: pendingActivityChallengeID)
     }
 
     private func isCurrent(_ ownerID: UUID, generation: UUID) -> Bool {
@@ -874,6 +1026,8 @@ final class PersonalAccountabilityStore {
         activityAuthorizationOutcome = nil
         activitySyncStates = [:]
         pendingActivityUploadCount = 0
+        pendingActivityChallengeID = nil
+        hasPendingActivityRecoveryIssue = false
         isMutating = false
         isPreparingPayment = false
         isRequestingReview = false

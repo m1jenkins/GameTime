@@ -241,9 +241,13 @@ struct PersonalChallengeDetailView: View {
                     }
                     .buttonStyle(TrustSecondaryButtonStyle())
                     .disabled(
-                        !challenge.permitsActivitySync(at: Date())
-                            || !store.configuration.activitySyncEnabled
-                            || store.isSyncingActivity
+                        !store.canSyncActivity(
+                            challengeID: challenge.id,
+                            permitsFreshSync: challenge
+                                .permitsActivitySync(
+                                    at: Date()
+                                )
+                        )
                     )
                     .accessibilityIdentifier("personal.sync")
                     Text(
@@ -276,7 +280,7 @@ struct PersonalChallengeDetailView: View {
                                 relativeTo: .headline
                             )
                         )
-                        Text("No charge while this result is reviewed.")
+                        Text("Settlement stays paused while this result is reviewed.")
                             .font(.subheadline.weight(.semibold))
                         Text(
                             "Review ends by \(PersonalTermsDateFormatter.dateTime(request.reviewDeadline, timezoneIdentifier: challenge.terms.timezone))."
@@ -299,7 +303,7 @@ struct PersonalChallengeDetailView: View {
                                 )
                             )
                         Text(
-                            "Tell us why before the 7-day review window ends. No test charge is created while a review is open."
+                            "Tell us why before the 7-day review window ends. Settlement stays paused while a review is open."
                         )
                         .font(.subheadline)
                         .foregroundStyle(
@@ -459,7 +463,7 @@ struct PersonalChallengeDetailView: View {
             if challenge?.terms.settlementMode == .stripeSandbox {
                 return "Your steps added up, but they didn’t reach your goal. This result is provisional through the 7-day review window; only a confirmed miss can create one simulated test charge."
             }
-            return "Your steps added up, but they didn’t reach your goal. Nothing is charged."
+            return "Your steps added up, but they didn’t reach your goal. This result closes without settlement."
         case .inconclusive:
             let opening =
                 "We couldn’t confirm your steps, so this one doesn’t count — for you or against you."
@@ -474,8 +478,8 @@ struct PersonalChallengeDetailView: View {
 
     private var cancellationMessage: String {
         if challenge?.terms.settlementMode == .stripeSandbox {
-            return "You can only cancel before your challenge starts. Cancelling before it starts is always $0."
+            return "You can only cancel before your challenge starts. Cancelling before it starts closes the payment terms before settlement."
         }
-        return "You can only cancel before your challenge starts. Either way, no money is charged."
+        return "You can only cancel before your challenge starts. Cancelling before it starts closes the test commitment."
     }
 }

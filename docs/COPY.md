@@ -42,9 +42,9 @@ developer that a user found by accident.
 generous by design, so say it that way: missing data means the week doesn't
 count, and it never counts against them.
 
-**Name the payment mode before stating a consequence.** Current Stage A is
-test-only. The forward Stripe sandbox also moves no real money, but it simulates
-payment setup and charge states. Never let sandbox copy read like a live charge.
+**Name the payment mode before stating a consequence.** Internal Stage A is
+test-only. The beta Release path uses Stripe sandbox transactions and simulated
+payment states. Never let sandbox copy read like a live charge.
 
 **State the exact payment trigger.** Say “confirmed miss after review,” not
 “failure,” “forfeit,” or “we may charge you.” Always pair the trigger with the
@@ -53,40 +53,37 @@ recurring.
 
 ## Payment copy contract
 
-The current app still uses the legacy-compatible Stage A contract. The Stripe
-sandbox language below is locked for a forward implementation, not a claim that
-payment setup, hosted Stripe, or live charging exists today.
+The beta Release path uses the Stripe sandbox contract below. Debug and
+historical Stage A fixtures remain separate internal test modes; hosted payment
+operation is still a release gate.
 
 ### Current Stage A test-only copy
 
-Keep **This is a test — no money will be charged.** on current Personal Stage A
-creation and open-challenge surfaces. Older Stage A plans, decisions, and
-acceptance records also use **Test commitment — no money will be charged.**
-Both are legacy test-only disclosures. Preserve their existing assertions until
-a separately approved copy migration; do not reuse either as Stripe sandbox
-proof.
+Use **Test commitment — no money will be charged.** for internal Stage A
+fixtures.
+The beta Release build uses the Stripe sandbox copy below.
 
 ### Forward Stripe sandbox copy
 
-When the sandbox UI exists, use these exact patterns:
+Use these exact patterns in the sandbox UI:
 
 - Global banner: **Payment test mode — no real money moves.**
-- Payment setup: **No charge today. Meet your goal and the test charge is $0. If
-  GameTime confirms you missed after final sync and review, we'll create one
-  \(amount) test charge.**
+- Payment setup: **Add your test payment method before you start.** Pair it
+  with the exact trigger below.
 - Consent: **By starting, you agree that GameTime may create one \(amount) test
   charge only if this challenge is confirmed missed after the review window.
   Missing or unclear step data never counts as a miss.**
 - Met goal: **Goal met — $0 test charge.**
 - Inconclusive or waived: **This one didn't count — $0 test charge.**
-- Provisional miss: **Goal missed — review open. No test charge has been
-  created. Ask us to review this result by \(reviewDeadline).**
-- Review pending: **Under review — test charge paused.**
+- Provisional miss: **Goal missed — review open. Settlement is paused. Ask us to
+  review this result by \(reviewDeadline).**
+- Review pending: **Under review — settlement paused.**
 - Confirmed miss: **Processing one \(amount) test charge.**
-- Test payment complete: **Test charge complete — no real money moved.**
+- Test payment complete: **Test charge complete — sandbox transaction recorded.**
 - Failed or customer action required: **Test payment needs your attention. We
   won't try again automatically.**
-- Pre-start cancellation: **Cancel now and no test charge will be created.**
+- Pre-start cancellation: **Cancel before your challenge starts to close the
+  payment terms before settlement.**
 
 Show the saved payment method by brand and last four digits when Stripe provides
 them. Never show a full payment number, Stripe identifier, `SetupIntent`,
@@ -97,9 +94,8 @@ them. Never show a full payment number, Stripe identifier, `SetupIntent`,
 Live mode uses the same outcome rules without “test” language. Its primary
 explanation is:
 
-**No charge today. Meet your goal and pay $0. If GameTime confirms you missed
-after final sync and review, we'll charge \(amount) once. This is not a
-subscription.**
+**Meet your goal and pay $0. If GameTime confirms you missed after final sync
+and review, we'll charge \(amount) once. This is not a subscription.**
 
 The live consent is:
 
@@ -124,10 +120,10 @@ a new term, add a row rather than inventing a second name for something here.
 | frozen terms | what you signed up for; "this locks in when you start" |
 | cadence | how it counts |
 | daily / cumulative | Every day / Week total |
-| legacy Stage A commitment | amount ("This is a test — no money will be charged.") |
+| legacy Stage A commitment | amount ("Test commitment — no money will be charged.") |
 | Stripe sandbox commitment | amount ("Payment test mode — no real money moves.") |
 | settlement mode | *(not shown; the environment disclosure covers it)* |
-| saved payment method, `SetupIntent` | payment method; "No charge today" |
+| saved payment method, `SetupIntent` | payment method; "Test method saved" |
 | off-session mandate | the exact one-time authorization sentence |
 | provisional `missed_goal` | goal missed; review open |
 | `review_deadline` | review by |

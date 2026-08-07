@@ -19,9 +19,28 @@ struct TodayView: View {
                     PersonalEligibilityHoldCard(hold: store.eligibilityHold)
                 }
 
+                if
+                    let pending = pendingActivitySummary,
+                    pending.id != store.openChallenge?.id
+                {
+                    pendingActivityRecovery(pending)
+                } else if
+                    store.hasPendingActivityRecoveryIssue
+                        || (
+                            store.pendingActivityUploadCount > 0
+                                && pendingActivitySummary == nil
+                        )
+                {
+                    pendingActivityRecoveryUnavailable
+                }
+
                 if let challenge = store.openChallenge {
                     currentChallenge(challenge)
-                } else if store.loadState != .loading {
+                } else if
+                    store.hasVerifiedCreationState,
+                    store.pendingActivityUploadCount == 0,
+                    !store.hasPendingActivityRecoveryIssue
+                {
                     createCard
                 }
             }
@@ -201,9 +220,12 @@ struct TodayView: View {
                 }
                 .buttonStyle(TrustSecondaryButtonStyle())
                 .disabled(
-                    !summary.permitsActivitySync(at: Date())
-                        || !store.configuration.activitySyncEnabled
-                        || store.isSyncingActivity
+                    !store.canSyncActivity(
+                        challengeID: summary.id,
+                        permitsFreshSync: summary.permitsActivitySync(
+                            at: Date()
+                        )
+                    )
                 )
                 .accessibilityIdentifier("personal.sync")
             }
@@ -212,7 +234,7 @@ struct TodayView: View {
 
     private func syncStatus(_ summary: PersonalChallengeSummary) -> String {
         if summary.progress?.pendingUploadCount ?? 0 > 0
-            || store.pendingActivityUploadCount > 0
+            || store.pendingActivityChallengeID == summary.id
         {
             return "Waiting to send"
         }
@@ -221,13 +243,76 @@ struct TodayView: View {
             : "Up to date"
     }
 
+    private var pendingActivitySummary: PersonalChallengeSummary? {
+        guard let pendingID = store.pendingActivityChallengeID else {
+            return nil
+        }
+        return store.challenges.first(where: { $0.id == pendingID })
+    }
+
+    private func pendingActivityRecovery(
+        _ summary: PersonalChallengeSummary
+    ) -> some View {
+        VStack(spacing: 12) {
+            DaybreakSectionLabel(text: "Saved sync")
+            DaybreakCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    Label(
+                        "Saved steps are waiting",
+                        systemImage: "arrow.triangle.2.circlepath"
+                    )
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 16,
+                            relativeTo: .headline,
+                            weight: .bold
+                        )
+                    )
+                    Text(
+                        "Finish sending the steps saved for \(summary.terms.commitmentText) before starting another challenge."
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    Button("Send saved steps") {
+                        Task { await store.sync(challengeID: summary.id) }
+                    }
+                    .buttonStyle(TrustSecondaryButtonStyle())
+                    .disabled(
+                        !store.canSyncActivity(
+                            challengeID: summary.id,
+                            permitsFreshSync: false
+                        )
+                    )
+                    .accessibilityIdentifier("personal.sync.pending")
+                }
+            }
+        }
+    }
+
+    private var pendingActivityRecoveryUnavailable: some View {
+        DaybreakCard {
+            VStack(alignment: .leading, spacing: 12) {
+                EmptyTrustState(
+                    title: "Saved steps need attention",
+                    message:
+                        "GameTime couldn’t safely read its saved sync. Refresh before starting anything new.",
+                    systemImage: "exclamationmark.triangle.fill"
+                )
+                Button("Refresh") {
+                    Task { await store.retryPendingActivityRecovery() }
+                }
+                .buttonStyle(TrustSecondaryButtonStyle())
+            }
+        }
+    }
+
     private var createCard: some View {
         DaybreakCard {
             VStack(alignment: .leading, spacing: 15) {
                 EmptyTrustState(
                     title: "Make this week count",
                     message:
-                        "Pick one step goal and stick to it for seven days. You’ll start at midnight tonight unless you choose another time.",
+                        "Pick one step goal and stick to it for seven days. Your challenge starts at the next midnight in your saved time zone.",
                     systemImage: "figure.walk"
                 )
                 Button("Start a challenge") {

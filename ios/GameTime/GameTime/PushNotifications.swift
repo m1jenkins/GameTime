@@ -115,7 +115,14 @@ final class GameTimeAppDelegate: NSObject, UIApplicationDelegate {
   nonisolated static func shouldStartPersonalHealthBackgroundDelivery(
     environmentValue: String?
   ) -> Bool {
-    environmentValue?.lowercased() == AppEnvironment.staging.rawValue
+    guard
+      let environment = AppEnvironment(
+        rawValue: environmentValue?.lowercased() ?? ""
+      )
+    else {
+      return false
+    }
+    return environment == .staging || environment == .release
   }
 
   func application(
