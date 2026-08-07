@@ -20,6 +20,14 @@ struct AppConfiguration: Equatable, Sendable {
     let contestMutationsEnabled: Bool
     let personalSettlementMode: PersonalSettlementMode
     let stripeReturnURL: URL?
+    /// Where the published privacy policy lives, and the inbox a person can
+    /// write to. Both are optional at runtime on purpose: a missing help link
+    /// is a shipping mistake, not a reason to refuse to open. Making one
+    /// required is exactly how `invalidStripeReturnURL` turned a Release build
+    /// into a failure screen. `check-beta-candidate.sh` blocks the candidate
+    /// instead, before anyone can install it.
+    let privacyPolicyURL: URL?
+    let supportEmail: String?
     /// Kept only for explicit V2/regression fixtures. Personal V1 runtime must
     /// not fetch or mutate dormant social inventories.
     let legacySocialRuntimeEnabled: Bool
@@ -31,6 +39,8 @@ struct AppConfiguration: Equatable, Sendable {
         contestMutationsEnabled: Bool,
         personalSettlementMode: PersonalSettlementMode = .testOnly,
         stripeReturnURL: URL? = nil,
+        privacyPolicyURL: URL? = nil,
+        supportEmail: String? = nil,
         legacySocialRuntimeEnabled: Bool = false
     ) {
         self.environment = environment
@@ -39,7 +49,15 @@ struct AppConfiguration: Equatable, Sendable {
         self.contestMutationsEnabled = contestMutationsEnabled
         self.personalSettlementMode = personalSettlementMode
         self.stripeReturnURL = stripeReturnURL
+        self.privacyPolicyURL = privacyPolicyURL
+        self.supportEmail = supportEmail
         self.legacySocialRuntimeEnabled = legacySocialRuntimeEnabled
+    }
+
+    /// The `mailto:` a Contact button opens, or nil when no inbox is set.
+    var supportMailtoURL: URL? {
+        guard let supportEmail else { return nil }
+        return URL(string: "mailto:\(supportEmail)")
     }
 
     /// Legacy social mutations remain separately locked in Release. The beta
@@ -106,6 +124,12 @@ struct AppConfiguration: Equatable, Sendable {
         let stripeReturnURLValue = bundle.object(
             forInfoDictionaryKey: "GAMETIME_STRIPE_RETURN_URL"
         ) as? String
+        let privacyPolicyURLValue = bundle.object(
+            forInfoDictionaryKey: "GAMETIME_PRIVACY_POLICY_URL"
+        ) as? String
+        let supportEmailValue = bundle.object(
+            forInfoDictionaryKey: "GAMETIME_SUPPORT_EMAIL"
+        ) as? String
 
         return try validated(
             environmentValue: environmentValue,
@@ -113,7 +137,9 @@ struct AppConfiguration: Equatable, Sendable {
             keyValue: keyValue,
             mutationValue: mutationValue,
             settlementModeValue: settlementModeValue,
-            stripeReturnURLValue: stripeReturnURLValue
+            stripeReturnURLValue: stripeReturnURLValue,
+            privacyPolicyURLValue: privacyPolicyURLValue,
+            supportEmailValue: supportEmailValue
         )
     }
 
@@ -123,7 +149,9 @@ struct AppConfiguration: Equatable, Sendable {
         keyValue: String?,
         mutationValue: String?,
         settlementModeValue: String? = nil,
-        stripeReturnURLValue: String? = nil
+        stripeReturnURLValue: String? = nil,
+        privacyPolicyURLValue: String? = nil,
+        supportEmailValue: String? = nil
     ) throws -> AppConfiguration {
         guard let environment = AppEnvironment(
             rawValue: environmentValue?.lowercased() ?? ""
@@ -226,8 +254,55 @@ struct AppConfiguration: Equatable, Sendable {
                 ? false
                 : requestedMutations,
             personalSettlementMode: requestedSettlementMode,
-            stripeReturnURL: stripeReturnURL
+            stripeReturnURL: stripeReturnURL,
+            privacyPolicyURL: publishedPolicyURL(privacyPolicyURLValue),
+            supportEmail: supportInbox(supportEmailValue)
         )
+    }
+
+    /// A published policy has to be reachable from a phone with no session, so
+    /// it is HTTPS and nothing else. Anything malformed reads as unset rather
+    /// than throwing; see the `privacyPolicyURL` note above.
+    static func publishedPolicyURL(_ value: String?) -> URL? {
+        guard
+            let raw = normalized(value),
+            let url = URL(string: raw),
+            url.scheme?.lowercased() == "https",
+            let host = url.host,
+            !host.isEmpty,
+            host.contains("."),
+            url.user == nil,
+            url.password == nil
+        else {
+            return nil
+        }
+        return url
+    }
+
+    /// Deliberately narrow. This is a single monitored inbox we control, not a
+    /// general address parser, so anything with spaces, a missing domain, or a
+    /// second `@` reads as unset.
+    static func supportInbox(_ value: String?) -> String? {
+        guard let raw = normalized(value) else { return nil }
+        guard
+            raw.unicodeScalars.allSatisfy({
+                !CharacterSet.whitespacesAndNewlines.contains($0)
+                    && !CharacterSet.controlCharacters.contains($0)
+            })
+        else {
+            return nil
+        }
+        let parts = raw.split(separator: "@", omittingEmptySubsequences: false)
+        guard
+            parts.count == 2,
+            !parts[0].isEmpty,
+            parts[1].contains("."),
+            !parts[1].hasPrefix("."),
+            !parts[1].hasSuffix(".")
+        else {
+            return nil
+        }
+        return raw
     }
 
     #if DEBUG || STAGING

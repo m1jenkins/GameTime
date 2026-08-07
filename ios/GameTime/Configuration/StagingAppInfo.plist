@@ -42,8 +42,12 @@
 	<string>$(GAMETIME_ENV)</string>
 	<key>GAMETIME_PERSONAL_SETTLEMENT_MODE</key>
 	<string>$(GAMETIME_PERSONAL_SETTLEMENT_MODE)</string>
+	<key>GAMETIME_PRIVACY_POLICY_URL</key>
+	<string>$(GAMETIME_PRIVACY_POLICY_URL)</string>
 	<key>GAMETIME_STRIPE_RETURN_URL</key>
 	<string>$(GAMETIME_STRIPE_RETURN_URL)</string>
+	<key>GAMETIME_SUPPORT_EMAIL</key>
+	<string>$(GAMETIME_SUPPORT_EMAIL)</string>
 	<key>LSApplicationCategoryType</key>
 	<string>$(INFOPLIST_KEY_LSApplicationCategoryType)</string>
 	<key>LSRequiresIPhoneOS</key>
