@@ -454,10 +454,10 @@ private struct SignedOutView: View {
             VStack(alignment: .leading, spacing: 28) {
                 Spacer(minLength: 56)
 
-                Text("G//T")
+                Text("B//B")
                     .font(.system(size: 20, weight: .black, design: .rounded))
                     .foregroundStyle(CompetitiveTrustTheme.teal)
-                    .accessibilityLabel("GameTime")
+                    .accessibilityLabel("Better Bet")
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Commit clearly.\nShow up daily.")

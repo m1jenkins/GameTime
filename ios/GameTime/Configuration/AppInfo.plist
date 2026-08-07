@@ -19,7 +19,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>gametime-staging</string>
+				<string>gametime-beta</string>
 			</array>
 		</dict>
 	</array>
@@ -49,7 +49,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>GameTime reads device-recorded step counts when you verify Health access and while syncing progress for an active personal challenge or its final sync window.</string>
+	<string>Better Bet reads device-recorded step counts when you verify Health access and while syncing progress for an active personal challenge or its final sync window.</string>
 	<key>SUPABASE_PUBLISHABLE_KEY</key>
 	<string>$(SUPABASE_PUBLISHABLE_KEY)</string>
 	<key>SUPABASE_URL</key>

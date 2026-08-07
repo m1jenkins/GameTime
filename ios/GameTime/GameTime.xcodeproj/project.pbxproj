@@ -341,7 +341,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -eu\n\ncase \"${GAMETIME_ENV:-}\" in\n  debug|staging|release) ;;\n  *)\n    echo \"error: GameTime requires a valid product environment.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${SUPABASE_URL:-}\" in\n  https://*) ;;\n  http://*)\n    if [ \"${GAMETIME_ENV}\" != \"debug\" ]; then\n      echo \"error: Installed GameTime products require a Supabase HTTPS URL.\" >&2\n      exit 1\n    fi\n    ;;\n  *)\n    echo \"error: GameTime requires a configured Supabase URL.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${SUPABASE_PUBLISHABLE_KEY:-}\" in\n  sb_publishable_?*) ;;\n  *)\n    echo \"error: GameTime requires a current Supabase publishable key.\" >&2\n    exit 1\n    ;;\nesac\n\nif [ \"${PRODUCT_BUNDLE_IDENTIFIER:-}\" != \"com.mjenkins.gametime.staging\" ]; then\n  echo \"error: The Apple bundle ID must match the client ID accepted by Supabase Auth.\" >&2\n  exit 1\nfi\n";
+			shellScript = "set -eu\n\ncase \"${GAMETIME_ENV:-}\" in\n  debug|staging|release) ;;\n  *)\n    echo \"error: GameTime requires a valid product environment.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${SUPABASE_URL:-}\" in\n  https://*) ;;\n  http://*)\n    if [ \"${GAMETIME_ENV}\" != \"debug\" ]; then\n      echo \"error: Installed GameTime products require a Supabase HTTPS URL.\" >&2\n      exit 1\n    fi\n    ;;\n  *)\n    echo \"error: GameTime requires a configured Supabase URL.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${SUPABASE_PUBLISHABLE_KEY:-}\" in\n  sb_publishable_?*) ;;\n  *)\n    echo \"error: GameTime requires a current Supabase publishable key.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${GAMETIME_ENV}\" in\n  release) expected_bundle_id=\"com.mjenkins.gametime\" ;;\n  *) expected_bundle_id=\"com.mjenkins.gametime.staging\" ;;\nesac\n\nif [ \"${PRODUCT_BUNDLE_IDENTIFIER:-}\" != \"${expected_bundle_id}\" ]; then\n  echo \"error: The Apple bundle ID must match the client ID accepted by Supabase Auth.\" >&2\n  exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -681,7 +681,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configuration/AppInfo.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
+				INFOPLIST_KEY_CFBundleDisplayName = "Better Bet";
 				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
 				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -717,7 +717,7 @@
 				DEVELOPMENT_TEAM = 87Z29RTC26;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configuration/StagingAppInfo.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "GameTime Staging";
+				INFOPLIST_KEY_CFBundleDisplayName = "Better Bet Staging";
 				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
 				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -755,7 +755,7 @@
 				EXCLUDED_SOURCE_FILE_NAMES = "PhoneWatchConnectivityCoordinator.swift GameTimeWatchContext.swift";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configuration/AppInfo.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
+				INFOPLIST_KEY_CFBundleDisplayName = "Better Bet";
 				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
 				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -770,7 +770,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.8.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
