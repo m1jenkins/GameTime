@@ -186,10 +186,23 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
-        XCTAssertTrue(app.staticTexts["What you signed up for"].exists)
+        XCTAssertTrue(app.staticTexts["Your pace"].exists)
         XCTAssertTrue(app.staticTexts["Steps received"].exists)
-        XCTAssertTrue(app.staticTexts["Day by day"].exists)
         assertExactDisclosure(in: app)
+
+        // The terms still exist; they live behind "Challenge details" now.
+        let details = app.buttons["personal.details"]
+        for _ in 0..<8 where !details.isHittable { app.swipeUp() }
+        XCTAssertTrue(details.waitForExistence(timeout: 3))
+        XCTAssertEqual(details.value as? String, "Hidden")
+        details.tap()
+        XCTAssertEqual(details.value as? String, "Showing")
+        XCTAssertTrue(
+            containing("Last chance to sync", in: app)
+                .waitForExistence(timeout: 3)
+        )
+        XCTAssertTrue(containing("How it counts", in: app).exists)
+
         let syncExplanation = exactStaticText(
             "Steps can still arrive up to 24 hours after your last day ends. If some never turn up, the challenge simply doesn’t count — and it doesn’t count against you.",
             in: app
@@ -712,6 +725,17 @@ final class GameTimeUITests: XCTestCase {
     ) -> XCUIElement {
         app.staticTexts.matching(
             NSPredicate(format: "label == %@", label)
+        ).firstMatch
+    }
+
+    /// Rows that combine a label and a value into one accessibility element
+    /// do not surface the label on its own, so match on a fragment.
+    private func containing(
+        _ fragment: String,
+        in app: XCUIApplication
+    ) -> XCUIElement {
+        app.descendants(matching: .any).matching(
+            NSPredicate(format: "label CONTAINS %@", fragment)
         ).firstMatch
     }
 

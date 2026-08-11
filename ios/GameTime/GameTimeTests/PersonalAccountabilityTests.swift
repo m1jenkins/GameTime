@@ -2730,3 +2730,283 @@ private final class RetryableBackgroundDeliveryCoordinator:
         )
     }
 }
+
+final class PersonalPaceSummaryTests: XCTestCase {
+    func testWeekPaceComparesStepsWithTheDaysThatCount() {
+        let summary = PersonalPaceSummary(
+            detail: makeDetail(
+                cadence: .cumulative,
+                targetSteps: 70_000,
+                steps: [11_240, 10_510, 9_870, 12_040, 7_200, 0, 0],
+                states: [
+                    .complete, .complete, .complete, .complete, .inProgress,
+                    .future, .future,
+                ],
+                metTargets: Array(repeating: nil, count: 7)
+            )
+        )
+
+        XCTAssertEqual(summary.dayGoal, 10_000)
+        XCTAssertEqual(summary.goalLineText, "10,000 a day")
+        XCTAssertEqual(summary.dayCountText, "Day 5 of 7")
+        XCTAssertEqual(summary.headline, "+860")
+        XCTAssertEqual(summary.headlineTone, .positive)
+        XCTAssertEqual(
+            summary.headlineCaption,
+            "steps ahead of where you need to be"
+        )
+        XCTAssertEqual(
+            summary.tiles.map(\.label),
+            ["To finish", "Average", "Left"]
+        )
+        XCTAssertEqual(summary.tiles[0].value, "9,570")
+        XCTAssertEqual(summary.tiles[0].caption, "a day, Sat and Sun")
+        XCTAssertEqual(summary.tiles[1].value, "10,172")
+        XCTAssertEqual(summary.tiles[2].value, "2 days")
+    }
+
+    /// Fail-closed scoring never counts a missing day against the person, so
+    /// the pace number must not either.
+    func testDaysWeCannotCountStayOutOfThePaceComparison() {
+        let summary = PersonalPaceSummary(
+            detail: makeDetail(
+                cadence: .cumulative,
+                targetSteps: 70_000,
+                steps: [11_240, 0, 4_000, 12_040, 7_200, 0, 0],
+                states: [
+                    .complete, .missing, .quarantined, .outageWaived,
+                    .inProgress, .pending, .future,
+                ],
+                metTargets: Array(repeating: nil, count: 7)
+            )
+        )
+
+        // Only Monday and Friday can be scored: 18,440 against 20,000.
+        XCTAssertEqual(summary.headline, "−1,560")
+        XCTAssertEqual(summary.headlineTone, .action)
+        XCTAssertEqual(summary.tiles[1].value, "9,220")
+
+        XCTAssertEqual(
+            summary.days.map(\.verdict),
+            [.metGoal, .problem, .problem, .waived, .today, .waiting, .future]
+        )
+    }
+
+    func testEachDayExplainsItselfInPlainWords() {
+        let summary = PersonalPaceSummary(
+            detail: makeDetail(
+                cadence: .cumulative,
+                targetSteps: 70_000,
+                steps: [11_240, 0, 4_000, 12_040, 7_200, 0, 0],
+                states: [
+                    .complete, .missing, .quarantined, .outageWaived,
+                    .inProgress, .pending, .future,
+                ],
+                metTargets: Array(repeating: nil, count: 7)
+            )
+        )
+        let captions = summary.days.map { summary.detailText(for: $0).caption }
+
+        XCTAssertEqual(captions[0], "1,240 over a 10,000-step day")
+        XCTAssertEqual(
+            captions[1],
+            "We never received steps for this day, so it won’t count either way."
+        )
+        XCTAssertEqual(
+            captions[2],
+            "We couldn’t use this day’s steps, so it won’t count either way."
+        )
+        XCTAssertEqual(
+            captions[3],
+            "This was a problem on our end, so it doesn’t count against you."
+        )
+        XCTAssertEqual(
+            captions[4],
+            "Still counting. 2,800 to go for a 10,000-step day."
+        )
+        XCTAssertEqual(summary.detailText(for: summary.days[6]).value, "Not here yet")
+
+        // The card opens on the day that is still running.
+        XCTAssertEqual(summary.defaultDayID, summary.days[4].id)
+    }
+
+    func testFinishedWeekSpeaksInThePastTense() {
+        let summary = PersonalPaceSummary(
+            detail: makeDetail(
+                cadence: .cumulative,
+                targetSteps: 70_000,
+                steps: Array(repeating: 8_000, count: 7),
+                states: Array(repeating: .complete, count: 7),
+                metTargets: Array(repeating: nil, count: 7)
+            )
+        )
+
+        XCTAssertEqual(summary.headline, "−14,000")
+        XCTAssertEqual(
+            summary.headlineCaption,
+            "steps short of what you needed"
+        )
+        XCTAssertEqual(summary.tiles[0].caption, "steps short at the end")
+        XCTAssertEqual(summary.tiles[2].value, "0 days")
+        XCTAssertEqual(summary.tiles[2].caption, "your last day is done")
+    }
+
+    func testDailyChallengeLeadsWithTodayNotTheWeekTotal() {
+        let summary = PersonalPaceSummary(
+            detail: makeDetail(
+                cadence: .daily,
+                targetSteps: 10_000,
+                steps: [10_482, 7_350, 0, 0, 0, 0, 0],
+                states: [
+                    .complete, .complete, .future, .future, .future, .future,
+                    .future,
+                ],
+                metTargets: [true, false, nil, nil, nil, nil, nil]
+            )
+        )
+
+        XCTAssertEqual(summary.headline, "2,650")
+        XCTAssertEqual(summary.headlineCaption, "steps to go today")
+        XCTAssertEqual(summary.tiles[0].label, "Goal days")
+        XCTAssertEqual(summary.tiles[0].value, "1 of 2")
+        // Five day names would not fit a tile caption.
+        XCTAssertEqual(summary.tiles[2].caption, "through Sun")
+    }
+
+    func testFinishedDailyChallengeCountsTheDaysYouHit() {
+        let summary = PersonalPaceSummary(
+            detail: makeDetail(
+                cadence: .daily,
+                targetSteps: 10_000,
+                steps: [10_100, 9_000, 10_400, 10_600, 10_800, 11_000, 11_200],
+                states: Array(repeating: .complete, count: 7),
+                metTargets: [true, false, true, true, true, true, true]
+            )
+        )
+
+        XCTAssertEqual(summary.headline, "6 of 7")
+        XCTAssertEqual(summary.headlineTone, .action)
+        XCTAssertEqual(summary.headlineCaption, "days you hit your goal")
+        XCTAssertEqual(summary.tiles[0].label, "Total")
+        XCTAssertEqual(summary.tiles[0].value, "73,100")
+    }
+
+    func testScheduledChallengeStatesTheRateWithoutInventingProgress() {
+        let summary = PersonalPaceSummary(
+            detail: makeDetail(
+                cadence: .cumulative,
+                targetSteps: 70_000,
+                steps: Array(repeating: 0, count: 7),
+                states: Array(repeating: .future, count: 7),
+                metTargets: Array(repeating: nil, count: 7)
+            )
+        )
+
+        XCTAssertEqual(summary.headline, "10,000")
+        XCTAssertEqual(
+            summary.headlineCaption,
+            "steps a day keeps you on track"
+        )
+        XCTAssertEqual(summary.dayCountText, "7 days")
+        XCTAssertEqual(summary.tiles[1].value, "0")
+    }
+
+    /// The chart is drawn against this ceiling, so a day above the goal has to
+    /// leave the guide line room to sit below it.
+    func testBarCeilingKeepsTheGoalLineInsideTheChart() {
+        let summary = PersonalPaceSummary(
+            detail: makeDetail(
+                cadence: .daily,
+                targetSteps: 10_000,
+                steps: [30_000, 0, 0, 0, 0, 0, 0],
+                states: [.complete, .future, .future, .future, .future, .future, .future],
+                metTargets: [true, nil, nil, nil, nil, nil, nil]
+            )
+        )
+
+        XCTAssertEqual(summary.barCeiling, 31_800, accuracy: 0.5)
+        XCTAssertLessThan(Double(summary.dayGoal), summary.barCeiling)
+    }
+
+    private func makeDetail(
+        cadence: PersonalChallengeCadence,
+        targetSteps: Int,
+        steps: [Int],
+        states: [PersonalEvidenceState],
+        metTargets: [Bool?]
+    ) -> PersonalChallengeDetail {
+        let challengeID = UUID(
+            uuidString: "44444444-4444-4444-4444-444444444444"
+        )!
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/Chicago")!
+        // A Monday, so the short labels in these expectations are stable.
+        let start = calendar.date(
+            from: DateComponents(year: 2026, month: 8, day: 3)
+        )!
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = calendar.timeZone
+        formatter.dateFormat = "yyyy-MM-dd"
+
+        let days = steps.indices.map { index in
+            PersonalDayProgress(
+                localDate: formatter.string(
+                    from: calendar.date(
+                        byAdding: .day,
+                        value: index,
+                        to: start
+                    )!
+                ),
+                trustedSteps: Double(steps[index]),
+                targetSteps: cadence == .daily ? targetSteps : nil,
+                evidenceState: states[index],
+                metTarget: metTargets[index]
+            )
+        }
+        let total = steps.reduce(0, +)
+        return PersonalChallengeDetail(
+            id: challengeID,
+            status: .active,
+            terms: FrozenPersonalTerms(
+                challengeID: challengeID,
+                userID: UUID(
+                    uuidString: "55555555-5555-5555-5555-555555555555"
+                )!,
+                cadence: cadence,
+                targetSteps: targetSteps,
+                commitmentAmountMinor: 2_000,
+                currency: "USD",
+                settlementMode: .testOnly,
+                termsVersion: "personal-v1",
+                timezone: "America/Chicago",
+                agreementAt: start.addingTimeInterval(-86_400),
+                startsAt: start,
+                endsAt: calendar.date(byAdding: .day, value: 7, to: start)!,
+                evidenceCutoff: calendar.date(
+                    byAdding: .day,
+                    value: 8,
+                    to: start
+                )!,
+                closedAt: nil
+            ),
+            progress: PersonalProgress(
+                trustedSteps: total,
+                remainingSteps: cadence == .daily
+                    ? PersonalProgress.dailyRemainingSteps(
+                        targetSteps: targetSteps,
+                        days: days
+                    )
+                    : max(0, targetSteps - total),
+                qualifyingDays: metTargets.filter { $0 == true }.count,
+                completedDays: states.filter { $0 != .future }.count,
+                days: days,
+                evidenceState: .inProgress,
+                lastTrustedSyncAt: start,
+                pendingUploadCount: 0,
+                coveredBucketCount: 47,
+                expectedBucketCount: 48
+            )
+        )
+    }
+}

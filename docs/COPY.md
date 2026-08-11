@@ -148,6 +148,7 @@ User-facing strings are Swift literals in the view layer and in the
 `errorDescription` of each `LocalizedError` — `PersonalChallengeFlow.swift`,
 `PersonalChallengeDetailView.swift`, `TodayView.swift`, `YouView.swift`,
 `ChallengesView.swift`, `PersonalAccountabilityComponents.swift`,
+`PersonalPaceComponents.swift`,
 `AppModel.swift`, `DomainModels.swift`, `PersonalSyncCoverage.swift`,
 `SupabaseMetricUploadClient.swift`, and `ActivitySyncCoordinator.swift`.
 

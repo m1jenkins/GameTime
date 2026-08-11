@@ -23,11 +23,11 @@ struct PersonalChallengeDetailView: View {
                 )
                 if let challenge {
                     hero(challenge)
-                    frozenTerms(challenge.terms)
-                    progress(challenge)
+                    pace(challenge)
                     result(challenge)
                     review(challenge)
                     sync(challenge)
+                    PersonalChallengeDetailsCard(terms: challenge.terms)
                     cancellation(challenge)
                 } else {
                     DaybreakCard {
@@ -114,76 +114,41 @@ struct PersonalChallengeDetailView: View {
         }
     }
 
-    private func frozenTerms(_ terms: FrozenPersonalTerms) -> some View {
-        Group {
-            DaybreakSectionLabel(text: "What you signed up for")
+    @ViewBuilder
+    private func pace(_ challenge: PersonalChallengeDetail) -> some View {
+        DaybreakSectionLabel(text: "Your pace")
+        if challenge.progress.days.isEmpty {
             DaybreakCard {
-                VStack(spacing: 0) {
-                    termRow("How it counts", terms.cadence.title)
-                    divider
-                    termRow("Goal", terms.targetText)
-                    divider
-                    termRow("Amount", terms.commitmentText)
-                    divider
-                    termRow("Time zone", terms.timezone)
-                    divider
-                    termRow(
-                        "Starts",
-                        PersonalTermsDateFormatter.dateTime(
-                            terms.startsAt,
-                            timezoneIdentifier: terms.timezone
-                        )
-                    )
-                    divider
-                    termRow(
-                        "Ends",
-                        PersonalTermsDateFormatter.dateTime(
-                            terms.endsAt,
-                            timezoneIdentifier: terms.timezone
-                        )
-                    )
-                    divider
-                    termRow(
-                        "Last chance to sync",
-                        PersonalTermsDateFormatter.dateTime(
-                            terms.evidenceCutoff,
-                            timezoneIdentifier: terms.timezone
-                        )
-                    )
-                }
+                Text("Your daily steps will show up here once you start.")
+                    .font(.subheadline)
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
+        } else {
+            let summary = PersonalPaceSummary(detail: challenge)
+            PersonalPaceCard(summary: summary)
+            PersonalPaceTiles(tiles: summary.tiles)
         }
     }
 
-    private func progress(_ challenge: PersonalChallengeDetail) -> some View {
-        Group {
-            DaybreakSectionLabel(text: "Day by day")
-            DaybreakCard {
-                if challenge.progress.days.isEmpty {
-                    Text("Your daily steps will show up here once you start.")
-                        .font(.subheadline)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                } else {
-                    PersonalSevenDayTimeline(days: challenge.progress.days)
-                }
-            }
-            DaybreakCard {
-                VStack(alignment: .leading, spacing: 9) {
-                    Label("Steps received", systemImage: "checkmark.shield")
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: 18,
-                                relativeTo: .headline
-                            )
+    private func stepsReceived(
+        _ progress: PersonalProgress
+    ) -> some View {
+        DaybreakCard {
+            VStack(alignment: .leading, spacing: 9) {
+                Label("Steps received", systemImage: "checkmark.shield")
+                    .font(
+                        CompetitiveTrustTheme.displayFont(
+                            size: 18,
+                            relativeTo: .headline
                         )
-                    Text(
-                        "We have your steps for \(challenge.progress.coveredBucketCount.formatted()) of \(challenge.progress.expectedBucketCount.formatted()) hours so far."
                     )
-                    .font(.subheadline)
-                    Text(evidenceExplanation(challenge.progress.evidenceState))
-                        .font(.caption)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                }
+                Text(
+                    "We have your steps for \(progress.coveredBucketCount.formatted()) of \(progress.expectedBucketCount.formatted()) hours so far."
+                )
+                .font(.subheadline)
+                Text(evidenceExplanation(progress.evidenceState))
+                    .font(.caption)
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
         }
     }
@@ -216,6 +181,7 @@ struct PersonalChallengeDetailView: View {
     private func sync(_ challenge: PersonalChallengeDetail) -> some View {
         Group {
             DaybreakSectionLabel(text: "Step syncing")
+            stepsReceived(challenge.progress)
             DaybreakCard {
                 VStack(alignment: .leading, spacing: 11) {
                     if let date = challenge.progress.lastTrustedSyncAt {
@@ -398,38 +364,6 @@ struct PersonalChallengeDetailView: View {
             .disabled(store.isMutating || Date() >= challenge.terms.startsAt)
             .accessibilityIdentifier("personal.cancel")
         }
-    }
-
-    private func termRow(_ label: String, _ value: String) -> some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(label)
-                        .font(.subheadline.weight(.semibold))
-                    Text(value)
-                        .font(.subheadline)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                        .multilineTextAlignment(.leading)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
-                    Text(label)
-                        .font(.subheadline.weight(.semibold))
-                    Spacer(minLength: 8)
-                    Text(value)
-                        .font(.subheadline)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                        .multilineTextAlignment(.trailing)
-                }
-            }
-        }
-        .padding(.vertical, 11)
-        .accessibilityElement(children: .combine)
-    }
-
-    private var divider: some View {
-        Divider().overlay(CompetitiveTrustTheme.border)
     }
 
     private func evidenceExplanation(_ state: PersonalEvidenceState) -> String {
