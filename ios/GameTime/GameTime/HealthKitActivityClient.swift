@@ -100,7 +100,7 @@ private struct ActivityStepIntervalKey: Hashable, Sendable {
 }
 
 struct ActivityStepStatisticsQueryPlan: Equatable, Sendable {
-  let intervals: [DateInterval]
+  fileprivate(set) var intervals: [DateInterval]
   let intervalSeconds: Int
 
   var start: Date { intervals[0].start }
@@ -125,14 +125,11 @@ enum HealthKitStepStatisticsPlanner {
         return []
       }
 
-      if let last = plans.last,
-        last.intervalSeconds == seconds,
-        last.end == interval.start
+      if let lastIndex = plans.indices.last,
+        plans[lastIndex].intervalSeconds == seconds,
+        plans[lastIndex].end == interval.start
       {
-        plans[plans.count - 1] = ActivityStepStatisticsQueryPlan(
-          intervals: last.intervals + [interval],
-          intervalSeconds: seconds
-        )
+        plans[lastIndex].intervals.append(interval)
       } else {
         plans.append(
           ActivityStepStatisticsQueryPlan(
@@ -237,9 +234,6 @@ enum HealthKitStepStatisticsAdapter {
     expectedIntervals: [DateInterval],
     deviceSamples: [ActivityStepSample]
   ) -> [HourlyBucket] {
-    let expected = Set(
-      expectedIntervals.map(ActivityStepIntervalKey.init)
-    )
     let groupedStatistics = Dictionary(
       grouping: statistics,
       by: ActivityStepIntervalKey.init
@@ -248,7 +242,6 @@ enum HealthKitStepStatisticsAdapter {
     return expectedIntervals.compactMap { interval in
       let key = ActivityStepIntervalKey(interval)
       guard
-        expected.contains(key),
         let matches = groupedStatistics[key],
         matches.count == 1,
         let statistic = matches.first,

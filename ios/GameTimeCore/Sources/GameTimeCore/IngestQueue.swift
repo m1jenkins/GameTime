@@ -169,6 +169,7 @@ public struct IngestQueue: Sendable {
     /// was acknowledged would skip the hours in it.
     public func latestQueuedBucketStart(for metric: ContestMetric) -> Date? {
         batches
+            .lazy
             .flatMap(\.buckets)
             .filter { $0.metric == metric }
             .map(\.bucketStart)

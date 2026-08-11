@@ -1,4 +1,5 @@
 import type { PostgrestConfig } from "../_shared/database.ts";
+import { serviceRpc } from "../_shared/service_rpc.ts";
 import type { PushEnvironment } from "./apns.ts";
 
 export interface PushDeliveryClaim {
@@ -26,32 +27,6 @@ export interface PushDeliveryDatabase {
   ): Promise<void>;
 }
 
-async function rpc(
-  config: PostgrestConfig,
-  name: string,
-  args: Readonly<Record<string, unknown>>,
-): Promise<unknown> {
-  const headers: Record<string, string> = {
-    "content-type": "application/json",
-    "accept": "application/json",
-    "apikey": config.serviceRoleKey,
-  };
-  if (config.authorizationBearer !== false) {
-    headers.authorization = `Bearer ${config.serviceRoleKey}`;
-  }
-
-  const response = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(args),
-  });
-  const body = await response.text();
-  if (!response.ok) {
-    throw new Error(`${name} failed with status ${response.status}`);
-  }
-  return body === "" ? null : JSON.parse(body);
-}
-
 function isClaim(value: unknown): value is PushDeliveryClaim {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
   const row = value as Partial<PushDeliveryClaim>;
@@ -71,7 +46,7 @@ export function postgrestPushDeliveryDatabase(
 ): PushDeliveryDatabase {
   return {
     async claim(leaseOwner, limit) {
-      const result = await rpc(config, "claim_push_deliveries_v1", {
+      const result = await serviceRpc(config, "claim_push_deliveries_v1", {
         p_lease_owner: leaseOwner,
         p_limit: limit,
       });
@@ -82,7 +57,7 @@ export function postgrestPushDeliveryDatabase(
     },
 
     async record(deliveryId, leaseOwner, result) {
-      await rpc(config, "record_push_delivery_v1", {
+      await serviceRpc(config, "record_push_delivery_v1", {
         p_delivery_id: deliveryId,
         p_lease_owner: leaseOwner,
         p_outcome: result.outcome,
