@@ -47,11 +47,6 @@
 			path = GameTimeWatch;
 			sourceTree = "<group>";
 		};
-		E10000000000000000000001 /* GameTimeWatchShared */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = GameTimeWatchShared;
-			sourceTree = "<group>";
-		};
 		B40000000000000000000001 /* GameTime */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = GameTime;
@@ -65,6 +60,11 @@
 		B40000000000000000000003 /* GameTimeUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = GameTimeUITests;
+			sourceTree = "<group>";
+		};
+		E10000000000000000000001 /* GameTimeWatchShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = GameTimeWatchShared;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -412,10 +412,10 @@
 				DEVELOPMENT_TEAM = 87Z29RTC26;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GAMETIME_COMPANION_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				GAMETIME_COMPANION_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging;
 				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(GAMETIME_COMPANION_BUNDLE_IDENTIFIER)";
@@ -461,9 +461,9 @@
 				DEVELOPMENT_TEAM = 87Z29RTC26;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GAMETIME_COMPANION_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				GAMETIME_COMPANION_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging;
 				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(GAMETIME_COMPANION_BUNDLE_IDENTIFIER)";
@@ -509,9 +509,9 @@
 				DEVELOPMENT_TEAM = 87Z29RTC26;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GAMETIME_COMPANION_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				GAMETIME_COMPANION_BUNDLE_IDENTIFIER = com.mjenkins.gametime.staging;
 				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(GAMETIME_COMPANION_BUNDLE_IDENTIFIER)";
@@ -752,7 +752,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 87Z29RTC26;
-				EXCLUDED_SOURCE_FILE_NAMES = "PhoneWatchConnectivityCoordinator.swift GameTimeWatchContext.swift";
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					PhoneWatchConnectivityCoordinator.swift,
+					GameTimeWatchContext.swift,
+				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configuration/AppInfo.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Better Bet";

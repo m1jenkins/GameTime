@@ -64,7 +64,7 @@ asset_catalog="${app_source}/Assets.xcassets"
 app_icon_set="${asset_catalog}/AppIcon.appiconset"
 privacy_manifest="${app_source}/PrivacyInfo.xcprivacy"
 
-for command_name in plutil python3 awk grep find mktemp sips; do
+for command_name in plutil python3 awk grep mktemp sips; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     echo "error: required command is unavailable: ${command_name}" >&2
     exit 2
