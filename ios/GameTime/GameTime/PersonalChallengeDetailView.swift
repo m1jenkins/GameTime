@@ -23,11 +23,11 @@ struct PersonalChallengeDetailView: View {
                 )
                 if let challenge {
                     hero(challenge)
+                    cancellation(challenge)
                     pace(challenge)
                     result(challenge)
                     review(challenge)
                     PersonalChallengeDetailsCard(terms: challenge.terms)
-                    cancellation(challenge)
                 } else {
                     DaybreakCard {
                         ProgressView("Loading…")
