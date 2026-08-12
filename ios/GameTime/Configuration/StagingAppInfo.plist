@@ -53,7 +53,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>GameTime reads device-recorded step counts when you run a trusted diagnostic and during manual or background syncing for an active personal challenge or its final sync window.</string>
+	<string>GameTime automatically reads Apple Health step counts for your active challenge and its 24-hour finalization period, including updates from your available Health sources while excluding entries Apple marks as manually entered.</string>
 	<key>SUPABASE_PUBLISHABLE_KEY</key>
 	<string>$(SUPABASE_PUBLISHABLE_KEY)</string>
 	<key>SUPABASE_URL</key>

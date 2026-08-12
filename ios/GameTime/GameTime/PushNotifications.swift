@@ -113,7 +113,16 @@ final class GameTimeAppDelegate: NSObject, UIApplicationDelegate {
     PersonalHealthBackgroundDeliveryCoordinator()
 
   nonisolated static func shouldStartPersonalHealthBackgroundDelivery(
-    environmentValue: String?
+    environmentValue: String?,
+    arguments: [String] = ProcessInfo.processInfo.arguments,
+    processEnvironment: [String: String] = ProcessInfo.processInfo.environment,
+    isSimulator: Bool = {
+      #if targetEnvironment(simulator)
+      true
+      #else
+      false
+      #endif
+    }()
   ) -> Bool {
     guard
       let environment = AppEnvironment(
@@ -122,7 +131,15 @@ final class GameTimeAppDelegate: NSObject, UIApplicationDelegate {
     else {
       return false
     }
-    return environment == .staging || environment == .release
+    guard !isSimulator,
+      !arguments.contains("--fixture-mode"),
+      !arguments.contains("--disable-health-background-delivery"),
+      processEnvironment["XCTestConfigurationFilePath"] == nil,
+      processEnvironment["XCTestBundlePath"] == nil
+    else { return false }
+    switch environment {
+    case .debug, .staging, .release: return true
+    }
   }
 
   func application(

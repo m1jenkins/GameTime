@@ -29,6 +29,13 @@ final class LocalOnlyPersonalActivitySyncCoordinator: PersonalActivitySyncing {
         return 0
     }
 
+    func retirePendingUploads(
+        for ownerID: UUID,
+        challengeID: UUID
+    ) async throws {
+        _ = (ownerID, challengeID)
+    }
+
     func sync(
         ownerID: UUID,
         challenge: PersonalChallengeDetail,

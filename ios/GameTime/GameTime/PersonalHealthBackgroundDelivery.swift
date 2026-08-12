@@ -1,8 +1,8 @@
 import Foundation
 import HealthKit
 
-/// Launch-time HealthKit observer used only by the Staging target. HealthKit
-/// owns the wake schedule; durable metric and coverage stores own retry safety.
+/// Launch-time HealthKit observer. HealthKit owns the wake schedule; each wake
+/// triggers a fresh whole-window Personal snapshot.
 @MainActor
 protocol PersonalHealthBackgroundDeliveryRegistering: AnyObject {
     func retryRegistration()

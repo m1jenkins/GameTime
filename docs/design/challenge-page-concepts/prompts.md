@@ -1,5 +1,9 @@
 # Image-generation prompts
 
+> **Historical source prompts.** These reproduce the original raster concepts
+> and intentionally retain obsolete manual-sync copy. Do not use their **Sync
+> steps**, **Synced**, or final-sync language in Personal snapshot-v2 UI.
+
 Both local references were supplied to every prompt:
 
 - `docs/design/challenge-page-concepts/current-reference.jpg` — current layout and

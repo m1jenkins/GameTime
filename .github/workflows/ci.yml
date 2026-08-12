@@ -104,6 +104,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Test beta candidate preflight fixtures
+        run: bash scripts/tests/check-beta-candidate.test.sh
+
+      - name: Audit Personal automatic-flow copy
+        run: bash scripts/check-beta-candidate.sh --personal-copy-only
+
       - name: Select audited Xcode
         run: |
           sudo xcode-select --switch /Applications/Xcode_26.2.app/Contents/Developer

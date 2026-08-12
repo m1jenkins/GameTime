@@ -1,42 +1,44 @@
 # GameTime
 
-GameTime V1 is a personal accountability app. One person commits to a seven-day
-steps goal, chooses a daily or cumulative cadence, selects a $10, $20, $30,
-$40, or $50 test commitment, and chooses the day and hour the seven days open.
-Stage A remains the internal `test_only` foundation. The external beta Release
-path uses Stripe sandbox payment setup and simulated settlement states; live
-fees remain behind the Stage B approval gates.
+GameTime is a personal accountability app. One person commits to a seven-day
+steps goal, chooses a daily or cumulative cadence, and selects a $10, $20, $30,
+$40, or $50 test commitment. Stage A remains the internal `test_only`
+foundation. The external beta Release path uses Stripe sandbox payment setup
+and simulated settlement states; live fees remain behind the Stage B approval
+gates.
 
-The product is verification credibility. HealthKit reads, App Attest-backed
-uploads, explicit completed-hour coverage, frozen terms, and fail-closed results
-are core domain logic rather than a later anti-cheat layer.
+New Personal challenges use one automatic Apple Health flow. The app reads
+Health's merged step total, excludes only samples Apple explicitly marks as
+manually entered, publishes each whole seven-day snapshot locally before any
+upload, and sends ordinary authenticated daily snapshots for server scoring.
+There is no Personal App Attest, hourly coverage, diagnostic, eligibility hold,
+or step-specific sync action in this policy. Historical Personal challenges
+retain `attested_hourly_v1`; new and migrated open challenges use
+`healthkit_nonmanual_daily_v1`.
 
 ## What works right now
 
 Run the `GameTime` scheme (Debug) on a **physical iPhone** against the local
-stack and you can sign in, create a seven-day steps challenge with a test
-commitment, and watch real HealthKit steps accumulate.
+stack and you can sign in, connect Apple Health, create a seven-day steps
+challenge with a test commitment, and watch progress update automatically.
 
 | Path | State |
 | --- | --- |
 | Sign in with Apple → onboarding → create challenge | Works, Debug + local stack |
 | Choosing the start day and hour | Works, all configurations; deployed to Staging |
-| HealthKit step reads | Works, Debug and Staging, physical device |
-| Live step total on an active challenge | Works, labelled **not yet verified** |
-| App Attest-signed upload and server-scored progress | Staging only; endpoints deployed, not yet exercised from a device |
-| Hosted Staging backend | Personal V1 schema and all six Edge Functions deployed |
+| Apple Health merged step reads | Snapshot-v2 implementation and focused native tests pass; physical-device acceptance remains to run |
+| Automatic local progress | Implemented across Today, Challenges, detail, timeline, and pace; physical cross-surface acceptance remains |
+| Authenticated daily snapshot upload and frozen result | Implemented and covered by local database tests; hosted smoke and controlled cutover remain |
+| Historical hourly/App Attest Personal path | Retained for v1 history only; not a new-Personal gate |
 | Stripe sandbox payment flow | Release beta path is configured in source; hosted secrets and end-to-end operation remain unverified |
 | Real fees | Blocked behind every Stage B gate in [PLAN.md](PLAN.md) |
 
-**Two capabilities, gated separately.** `activitySyncEnabled` (Debug,
-Staging, and Release) governs whether GameTime reads HealthKit.
-`attestedUploadEnabled` (Staging and Release) governs whether it can sign that read and deliver it. Reading
-Health and proving that read to a server are different things; fusing them
-previously made the product unreachable until the entire stack was live.
-
-Creating a challenge therefore requires a **local** step read that sees
-first-party device steps — not a successful App Attest round-trip. The server
-still refuses untrusted evidence when it scores, so no domain invariant moved.
+The only user-initiated Health action is **Connect Apple Health**. Completing
+the system permission request is enough to continue; challenge creation does
+not require a positive sample. Active challenges refresh after creation/load,
+app launch or foregrounding, Health observer changes, and ordinary pull to
+refresh. Background delivery is opportunistic, so every foreground transition
+still performs a fresh read.
 
 ### When the seven days open
 
@@ -53,23 +55,20 @@ discards the partial hour a 15:40 start would open, so the evidence for those
 twenty minutes could never be delivered and the window would begin with a
 silently unscorable gap.
 
-The seventh local date still closes at local midnight, so a later start
+The seventh local date still closes at local midnight, so a historical later start
 shortens **day one** instead of moving the end. A challenge opening at 15:00
-has a first day of nine completed hours, and on a daily cadence that is the
-same target in less time. That remains a frozen term for exact retries of older
-drafts. New beta challenges use seven full midnight-to-midnight days. Keeping
-the end on a local midnight is also what holds the seven scored local dates and
-the expected coverage buckets in agreement — every expected bucket falls inside
-the dates `app.personal_daily_progress_v1` generates, so the aggregate count
-cannot drift from the per-day counts.
+has a shorter first local day, and on a daily cadence that is the same target in
+less time. That remains a frozen term for exact retries of older drafts. New
+beta challenges use seven full midnight-to-midnight days. Snapshot v2 queries
+each frozen local date exactly, including 23- and 25-hour daylight-saving days,
+and sends exactly seven ordered daily totals.
 
 ### What is not proven yet
 
-- **The attested pipeline end to end.** `activity-diagnostic` and
-  `personal-sync-coverage` were deployed on 2026-08-03 and fail closed to 401
-  without auth, but no device has completed a signed diagnostic or coverage
-  submission against them yet. Until one does, App Attest on this bundle is
-  unproven.
+- **The automatic snapshot-v2 path end to end.** Local and hosted acceptance
+  must still prove merged sources, explicit manual exclusion, ordinary
+  authenticated upload, local-first display, downward edits, final freezing,
+  and the 24-hour grace period on a physical iPhone.
 - **Debug data is not Staging data.** Debug points at your local stack, so a
   challenge created there does not exist in hosted Staging. Switching schemes
   switches accounts and challenges.
@@ -89,14 +88,17 @@ cannot drift from the per-day counts.
   Function, or scheduler calls the Solo surface, but the current values of
   `app.solo_contract_runtime` and `app.solo_beta_eligibility` on the hosted
   project have not been read back. Do that before assuming Solo is inert there.
-- **The Simulator.** It has no first-party device step samples, so the local
-  probe finds nothing and creation stays blocked. This is inherent — the
-  product scores device-recorded steps.
+- **The Simulator.** It cannot prove Apple Health values, observer wakes,
+  locked-device retry, or late Watch delivery. Deterministic fixtures may still
+  create a challenge because the permission request, not a positive sample, is
+  the creation gate.
 - **Two-actor privacy on real infrastructure.** Proven in pgTAP, not hosted.
 
 [PLAN.md](PLAN.md) is the roadmap;
-[docs/PERSONAL_V1_ACCEPTANCE.md](docs/PERSONAL_V1_ACCEPTANCE.md) is the bounded
-Stage A acceptance record.
+[docs/PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md](docs/PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md)
+is the controlling automatic-flow runbook. The
+[Personal V1 acceptance record](docs/PERSONAL_V1_ACCEPTANCE.md) is retained for
+historical `attested_hourly_v1` challenges only.
 
 ### Dormant by design
 
@@ -124,8 +126,8 @@ supabase/
     attest-device/       Registers one App Attest key per device install [deployed]
     ingest-metrics/      The only route into the evidence ledger [deployed]
     ingest-checkin/      Attested geofence/workout validation sidecar [deployed]
-    activity-diagnostic/ Attested trusted-HealthKit diagnostic summary [deployed]
-    personal-sync-coverage/ Attested completed-hour coverage [deployed]
+    activity-diagnostic/ Legacy/social attested Health diagnostic [deployed]
+    personal-sync-coverage/ Historical Personal V1 hourly coverage [deployed]
     deliver-push/        Payload-free notification outbox dispatcher [deployed]
     deno.json            Deno tasks, imports, lint and format config
   seed.sql               Local/CI seed data. Never required by a test.
@@ -135,9 +137,9 @@ ios/
                          retry primitives, and a restorable exact-byte
                          check-in queue.
                          Builds and tests on Linux CI.
-  GameTime/              Personal V1 product app plus unit/UI targets. Live
-                         Supabase adapters, Apple auth, personal challenge and
-                         exact-retry activity flows, and isolated fixtures.
+  GameTime/              Personal product app plus unit/UI targets. Live
+                         Supabase adapters, Apple auth, automatic Health
+                         snapshots, protected cache, and isolated fixtures.
                          Release keeps legacy social mutation locked and exposes
                          Personal only through the Stripe sandbox beta contract.
   GameTimeConformance/   Independent M6.5 App Attest smoke harness only.
@@ -150,26 +152,27 @@ scripts/
 docs/
   COPY.md                     How the app talks, and the domain-to-plain glossary
   M6_5_DEVICE_CONFORMANCE.md  Physical-iPhone/staging release gate
-  PERSONAL_V1_ACCEPTANCE.md   Personal Stage A and two-actor privacy proof
+  PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md
+                              Controlling automatic Health snapshot proof
+  PERSONAL_V1_ACCEPTANCE.md   Historical hourly/attested Personal proof
   M8_1_STAGING_ACCEPTANCE.md  Preserved legacy social acceptance record
   archive/                Historical plans and audit evidence
 CLAUDE.md                Repository conventions, for humans and agents alike
 DECISIONS.md             Every non-obvious choice and why
-PLAN.md                  The one active path to Personal Accountability V1
+PLAN.md                  The active automatic Personal snapshot path
 ```
 
 ## What the app says
 
-The domain vocabulary in this README — trusted evidence, frozen terms,
-coverage, eligibility holds, cadence, attestation — is exact, and it stays
-exact in the schema, the ledger, and `DECISIONS.md`. **None of it goes on
-screen.** Verification is what GameTime does for someone; making them learn
-its vocabulary hands them the work instead.
+Historical and generic infrastructure still uses exact terms such as trusted
+evidence, coverage, and attestation. Snapshot-v2 Personal code uses snapshot,
+observation, query-through, and frozen-result language instead. **Neither set
+of implementation terms goes on screen.** Verification is what GameTime does
+for someone; making them learn its vocabulary hands them the work instead.
 
 Screen copy says what happened and what to do next, in the words the person
-would use: *steps* rather than trusted steps, *Health check* rather than
-diagnostic, *draft* rather than retry record, *"this one didn't count"* rather
-than inconclusive-and-waived. [docs/COPY.md](docs/COPY.md) holds the rules and
+would use: *steps*, *Connect Apple Health*, *Updated from Apple Health*,
+*draft*, and *"this one didn't count"*. [docs/COPY.md](docs/COPY.md) holds the rules and
 the full glossary, and it is required reading before changing any user-facing
 string — including the `errorDescription` of a `LocalizedError`, which is copy
 like any other. `GameTimeUITests` asserts on visible copy, so a wording change
@@ -232,10 +235,10 @@ This is the fastest working loop and the one that exercises real HealthKit.
    against Apple's public keys and checks its audience against this client ID.
    The secret only matters for the web redirect flow, which is unused.
 
-3. **Run the `GameTime` scheme** on a provisioned device. Grant Health access
-   when asked, tap **Verify Health access**, and create a challenge. The beta
-   challenge opens at the next local midnight; custom-hour starts remain
-   dormant.
+3. **Run the `GameTime` scheme** on a provisioned device. Tap **Connect Apple
+   Health**, complete the system permission request, and create a challenge.
+   A positive step sample is not required. The beta challenge opens at the next
+   local midnight; custom-hour starts remain dormant.
 
 If `supabase start` appears to hang, check for a macOS keychain dialog — the
 CLI reads its stored access token and blocks on the prompt.
@@ -719,3 +722,11 @@ current state.** PLAN.md holds the remaining gates.
       fake resolution events while preserving contract-only v1 creation. The
       runtime switch remains off, the beta allowlist remains empty, and no app,
       Edge, scheduler, hosted, provider, or money-moving integration is enabled.
+- [x] **M12 automatic Personal Health snapshots (repository implementation)** — Replace new/open Personal
+      hourly evidence with `healthkit_nonmanual_daily_v1`: merged Health values,
+      explicit manual-entry exclusion, automatic local-first progress,
+      authenticated seven-day snapshots, backend-first cutover, and immutable
+      cutoff history. Local database, Edge, native unit, and fixture UI proof
+      pass; hosted rollout and physical-device acceptance remain open. D120 and
+      the snapshot-v2 acceptance runbook control this work; M9 remains the
+      historical `attested_hourly_v1` record.

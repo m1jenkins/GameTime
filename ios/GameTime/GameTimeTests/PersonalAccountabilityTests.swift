@@ -7,6 +7,38 @@ import XCTest
 @testable import GameTime
 
 final class PersonalAccountabilityModelTests: XCTestCase {
+    func testStripeTermsSelectV2PolicyWithoutChangingPaymentConsent() throws {
+        let request = try PersonalChallengeDraft().validated(
+            requestID: fixedRequestID
+        )
+        let data = try JSONEncoder().encode(
+            PersonalPaymentTermsDocument(request: request)
+        )
+        let document = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: data) as? [String: Any]
+        )
+
+        XCTAssertEqual(
+            document["stepDataPolicy"] as? String,
+            "healthkit_nonmanual_daily_v1"
+        )
+        XCTAssertEqual(
+            document["agreementVersion"] as? String,
+            "personal-stripe-sandbox-v1"
+        )
+        XCTAssertEqual(
+            document["consentVersion"] as? String,
+            "personal-stripe-sandbox-consent-v1"
+        )
+    }
+
+    func testMissingHealthDataReasonUsesPlainV2Language() {
+        XCTAssertEqual(
+            PersonalReasonText.sentence(for: "missing_health_data"),
+            "Apple Health didn’t have step data available for this challenge."
+        )
+    }
+
     func testDraftDefaultsAndCadenceDefaultsAreLocked() throws {
         var draft = PersonalChallengeDraft()
 
@@ -446,6 +478,384 @@ final class PersonalAccountabilityModelTests: XCTestCase {
 
 @MainActor
 final class PersonalAccountabilityStoreTests: XCTestCase {
+    func testRefreshReplacesCachedActiveDetailWithTerminalFrozenSummary()
+        async throws
+    {
+        let ownerID = UUID()
+        let active = makeV2LifecycleChallenge(
+            ownerID: ownerID,
+            status: .active,
+            totalSteps: 900
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(active)
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await store.activate(ownerID: ownerID)
+        await store.loadDetail(challengeID: active.id)
+        XCTAssertEqual(store.detail(for: active.id)?.status, .active)
+
+        let outcome = PersonalOutcome(
+            id: active.id,
+            kind: .metGoal,
+            reasonCode: "target_reached_complete_evidence",
+            evidenceCutoff: active.terms.evidenceCutoff,
+            publishedAt: active.terms.evidenceCutoff
+        )
+        let terminal = makeV2LifecycleChallenge(
+            ownerID: ownerID,
+            status: .completed,
+            totalSteps: 100,
+            outcome: outcome,
+            challengeID: active.id,
+            terms: active.terms
+        )
+        client.setChallenge(terminal)
+
+        await store.refresh()
+
+        let refreshed = try XCTUnwrap(store.detail(for: active.id))
+        XCTAssertEqual(refreshed.status, .completed)
+        XCTAssertEqual(refreshed.outcome, outcome)
+        XCTAssertEqual(refreshed.serverStepSnapshot?.totalSteps, 100)
+        let displayed = try XCTUnwrap(store.displayedProgress(for: refreshed))
+        XCTAssertEqual(displayed.source, .frozenResult)
+        XCTAssertEqual(displayed.totalSteps, 100)
+        XCTAssertTrue(displayed.isFrozen)
+    }
+
+    func testRefreshReplacesCachedOpenDetailWithCancellationTruth()
+        async throws
+    {
+        let ownerID = UUID()
+        let active = makeV2LifecycleChallenge(
+            ownerID: ownerID,
+            status: .active,
+            totalSteps: 900
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(active)
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await store.activate(ownerID: ownerID)
+        await store.loadDetail(challengeID: active.id)
+        XCTAssertEqual(store.detail(for: active.id)?.status, .active)
+
+        let cancelled = makeV2LifecycleChallenge(
+            ownerID: ownerID,
+            status: .cancelled,
+            totalSteps: 0,
+            challengeID: active.id,
+            terms: active.terms
+        )
+        client.setChallenge(cancelled)
+
+        await store.refresh()
+
+        XCTAssertEqual(store.detail(for: active.id)?.status, .cancelled)
+        XCTAssertNil(store.openChallenge)
+        XCTAssertEqual(store.history.map(\.id), [active.id])
+    }
+
+    func testTerminalDetailPromotesOpenListAndFreezesEverySurface()
+        async throws
+    {
+        let ownerID = UUID()
+        let active = makeV2LifecycleChallenge(
+            ownerID: ownerID,
+            status: .active,
+            totalSteps: 900
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(active)
+        let cache = EphemeralPersonalStepSnapshotCache()
+        let stepProgress = PersonalStepProgressStore(
+            reader: StorePersonalHealthStepReaderFake(),
+            cache: cache,
+            uploader: DisabledPersonalHealthSnapshotUploader()
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator(),
+            stepProgressStore: stepProgress
+        )
+        await store.activate(ownerID: ownerID)
+        XCTAssertEqual(store.openChallenge?.id, active.id)
+        let cachedBeforeTerminal = await cache.load(
+            ownerID: ownerID,
+            challengeID: active.id,
+            termsFingerprint: "lifecycle-v2"
+        )
+        XCTAssertNotNil(cachedBeforeTerminal)
+
+        let outcome = PersonalOutcome(
+            id: active.id,
+            kind: .metGoal,
+            reasonCode: "target_reached_complete_evidence",
+            evidenceCutoff: active.terms.evidenceCutoff,
+            publishedAt: active.terms.evidenceCutoff
+        )
+        let terminal = makeV2LifecycleChallenge(
+            ownerID: ownerID,
+            status: .completed,
+            totalSteps: 100,
+            outcome: outcome,
+            challengeID: active.id,
+            terms: active.terms
+        )
+        // The list remains open while the newer detail endpoint observes the
+        // monotonic terminal transition.
+        client.setChallenge(terminal)
+
+        await store.loadDetail(challengeID: active.id)
+
+        XCTAssertNil(store.openChallenge)
+        let history = try XCTUnwrap(store.history.first)
+        XCTAssertEqual(history.status, .completed)
+        XCTAssertEqual(history.outcome, outcome)
+        XCTAssertEqual(store.detail(for: active.id)?.status, .completed)
+        let displayed = try XCTUnwrap(store.displayedProgress(for: history))
+        XCTAssertEqual(displayed.source, .frozenResult)
+        XCTAssertEqual(displayed.totalSteps, 100)
+        XCTAssertTrue(displayed.isFrozen)
+        XCTAssertNil(stepProgress.challengeID)
+        let cachedAfterTerminal = await cache.load(
+            ownerID: ownerID,
+            challengeID: active.id,
+            termsFingerprint: "lifecycle-v2"
+        )
+        XCTAssertNil(cachedAfterTerminal)
+    }
+
+    func testCancelledDetailPromotesOpenListAndRetiresMutableProgress()
+        async throws
+    {
+        let ownerID = UUID()
+        let active = makeV2LifecycleChallenge(
+            ownerID: ownerID,
+            status: .active,
+            totalSteps: 900
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(active)
+        let cache = EphemeralPersonalStepSnapshotCache()
+        let stepProgress = PersonalStepProgressStore(
+            reader: StorePersonalHealthStepReaderFake(),
+            cache: cache,
+            uploader: DisabledPersonalHealthSnapshotUploader()
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator(),
+            stepProgressStore: stepProgress
+        )
+        await store.activate(ownerID: ownerID)
+        XCTAssertEqual(store.openChallenge?.id, active.id)
+        let cachedBeforeCancellation = await cache.load(
+            ownerID: ownerID,
+            challengeID: active.id,
+            termsFingerprint: "lifecycle-v2"
+        )
+        XCTAssertNotNil(cachedBeforeCancellation)
+
+        let cancelledBase = makeV2LifecycleChallenge(
+            ownerID: ownerID,
+            status: .cancelled,
+            totalSteps: 0,
+            challengeID: active.id,
+            terms: active.terms
+        )
+        let cancelled = PersonalChallengeDetail(
+            id: cancelledBase.id,
+            status: .cancelled,
+            terms: cancelledBase.terms,
+            progress: .empty,
+            outcome: nil,
+            stepDataPolicy: cancelledBase.stepDataPolicy,
+            termsFingerprint: cancelledBase.termsFingerprint,
+            serverStepSnapshot: nil,
+            snapshotUpdatedAt: nil
+        )
+        client.setChallenge(cancelled)
+
+        await store.loadDetail(challengeID: active.id)
+
+        XCTAssertNil(store.openChallenge)
+        let history = try XCTUnwrap(store.history.first)
+        XCTAssertEqual(history.status, .cancelled)
+        XCTAssertEqual(store.detail(for: active.id)?.status, .cancelled)
+        XCTAssertNil(store.displayedProgress(for: history))
+        XCTAssertNil(stepProgress.challengeID)
+        let cachedAfterCancellation = await cache.load(
+            ownerID: ownerID,
+            challengeID: active.id,
+            termsFingerprint: "lifecycle-v2"
+        )
+        XCTAssertNil(cachedAfterCancellation)
+    }
+
+    func testStaleOpenListCannotUndoTerminalDetailPromotion() async throws {
+        let ownerID = UUID()
+        let active = makeV2LifecycleChallenge(
+            ownerID: ownerID,
+            status: .active,
+            totalSteps: 900
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(active)
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await store.activate(ownerID: ownerID)
+
+        client.suspendNextListResponse()
+        let staleRefresh = Task { await store.refresh() }
+        await client.waitUntilListResponseSuspends()
+
+        let outcome = PersonalOutcome(
+            id: active.id,
+            kind: .metGoal,
+            reasonCode: "target_reached_complete_evidence",
+            evidenceCutoff: active.terms.evidenceCutoff,
+            publishedAt: active.terms.evidenceCutoff
+        )
+        let terminal = makeV2LifecycleChallenge(
+            ownerID: ownerID,
+            status: .completed,
+            totalSteps: 100,
+            outcome: outcome,
+            challengeID: active.id,
+            terms: active.terms
+        )
+        client.setChallenge(terminal)
+        await store.loadDetail(challengeID: active.id)
+        XCTAssertNil(store.openChallenge)
+
+        client.resumeSuspendedListResponse()
+        await staleRefresh.value
+
+        XCTAssertNil(store.openChallenge)
+        let history = try XCTUnwrap(store.history.first)
+        XCTAssertEqual(history.status, .completed)
+        XCTAssertEqual(history.outcome, outcome)
+        let displayed = try XCTUnwrap(store.displayedProgress(for: history))
+        XCTAssertEqual(displayed.source, .frozenResult)
+        XCTAssertEqual(displayed.totalSteps, 100)
+    }
+
+    func testOpenV2PolicyRetiresLegacyPersonalUploads() async {
+        let ownerID = UUID()
+        let legacy = makeActivityChallenge(
+            ownerID: ownerID,
+            evidenceCutoff: Date().addingTimeInterval(86_400)
+        )
+        let challenge = PersonalChallengeDetail(
+            id: legacy.id,
+            status: legacy.status,
+            terms: legacy.terms,
+            progress: legacy.progress,
+            outcome: legacy.outcome,
+            stepDataPolicy: .healthKitNonmanualDailyV1,
+            termsFingerprint: "v2-terms"
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(challenge)
+        let activitySync = StorePersonalActivitySyncFake(
+            pendingCount: 2,
+            pendingChallengeID: challenge.id,
+            results: []
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: activitySync
+        )
+
+        await store.activate(ownerID: ownerID)
+
+        XCTAssertEqual(
+            activitySync.retiredContexts,
+            [.init(ownerID: ownerID, challengeID: challenge.id)]
+        )
+        XCTAssertEqual(store.pendingActivityUploadCount, 0)
+        XCTAssertNil(store.pendingActivityChallengeID)
+        XCTAssertFalse(store.hasPendingActivityRecoveryIssue)
+    }
+
+    func testOfflineServerRefreshStillRunsLocalV2HealthRead() async {
+        let ownerID = UUID()
+        let legacy = makeActivityChallenge(
+            ownerID: ownerID,
+            evidenceCutoff: Date().addingTimeInterval(2 * 86_400)
+        )
+        let challenge = PersonalChallengeDetail(
+            id: legacy.id,
+            status: legacy.status,
+            terms: legacy.terms,
+            progress: legacy.progress,
+            outcome: legacy.outcome,
+            stepDataPolicy: .healthKitNonmanualDailyV1,
+            termsFingerprint: "v2-terms"
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.setChallenge(challenge)
+        let reader = StorePersonalHealthStepReaderFake()
+        let stepProgress = PersonalStepProgressStore(
+            reader: reader,
+            cache: EphemeralPersonalStepSnapshotCache(),
+            uploader: DisabledPersonalHealthSnapshotUploader()
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator(),
+            stepProgressStore: stepProgress
+        )
+        await store.activate(ownerID: ownerID)
+        XCTAssertEqual(reader.readCount, 1)
+        client.listError = .unavailable
+
+        await store.refresh()
+
+        XCTAssertEqual(reader.readCount, 2)
+        XCTAssertNotNil(stepProgress.displayedProgress)
+        guard case .failed = store.loadState else {
+            return XCTFail("Server failure should remain visible.")
+        }
+    }
+
+
     func testOverlappingSameAccountActivationsRestoreAndListOnce() async {
         let ownerID = UUID()
         let pendingStore = CountingPendingPersonalChallengeStore()
@@ -723,7 +1133,7 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
         XCTAssertNil(store.pendingCreation)
     }
 
-    func testBackgroundRecoveryUsesCachedChallengeBeforeRefreshFailure()
+    func testBackgroundUpdateDoesNotReplayRetiredLegacyQueue()
         async throws
     {
         let ownerID = UUID()
@@ -755,14 +1165,13 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
 
         await store.handleBackgroundActivityUpdate(asOf: asOf)
 
-        XCTAssertEqual(activitySync.syncedChallengeIDs, [challenge.id])
-        XCTAssertEqual(store.pendingActivityUploadCount, 0)
-        XCTAssertNil(store.pendingActivityChallengeID)
-        XCTAssertEqual(
-            store.syncState(for: challenge.id),
-            .savedRequestAccepted
-        )
-        XCTAssertNil(store.presentedError)
+        XCTAssertTrue(activitySync.syncedChallengeIDs.isEmpty)
+        XCTAssertEqual(store.pendingActivityUploadCount, 1)
+        XCTAssertEqual(store.pendingActivityChallengeID, challenge.id)
+        XCTAssertEqual(store.syncState(for: challenge.id), .idle)
+        guard case .failed = store.loadState else {
+            return XCTFail("The independent server failure stays visible.")
+        }
     }
 
     func testCancellationRecountsSavedActivityRequests() async throws {
@@ -799,7 +1208,7 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
         XCTAssertNil(store.presentedError)
     }
 
-    func testSavedActivityBlocksCreationAndSyncsOnlyItsChallenge()
+    func testSavedLegacyActivityDoesNotBlockV2CreationAvailability()
         async
     {
         let ownerID = UUID()
@@ -828,7 +1237,7 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
         await store.activate(ownerID: ownerID)
 
         XCTAssertNil(store.openChallenge)
-        XCTAssertFalse(store.canCreate)
+        XCTAssertTrue(store.canCreate)
         XCTAssertEqual(store.pendingActivityChallengeID, challenge.id)
         XCTAssertTrue(
             store.canSyncActivity(
@@ -845,7 +1254,7 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
 
     }
 
-    func testUnreadableSavedActivityQueueBlocksCreation() async {
+    func testUnreadableLegacyActivityQueueDoesNotBlockV2Creation() async {
         let ownerID = UUID()
         let activitySync = StorePersonalActivitySyncFake(
             pendingCount: 0,
@@ -866,7 +1275,7 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
 
         XCTAssertEqual(store.loadState, .empty)
         XCTAssertTrue(store.hasPendingActivityRecoveryIssue)
-        XCTAssertFalse(store.canCreate)
+        XCTAssertTrue(store.canCreate)
         XCTAssertFalse(
             store.canSyncActivity(
                 challengeID: UUID(),
@@ -881,7 +1290,7 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
         XCTAssertTrue(store.canCreate)
     }
 
-    func testOpenCreateFlowCannotSubmitAfterActivityBecomesPending()
+    func testV2CreateBypassesActivityThatBecamePendingInLegacyQueue()
         async throws
     {
         let ownerID = UUID()
@@ -909,23 +1318,21 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
             client: client,
             pendingStore: EphemeralPendingPersonalChallengeStore(),
             diagnosticClient: PersonalDiagnosticFake(),
-            activitySync: activitySync
+            activitySync: activitySync,
+            stepProgressStore: automaticStepProgressStore()
         )
         await store.activate(ownerID: ownerID)
+        await connectHealth(store)
         XCTAssertTrue(store.canCreate)
         let draftOpenedBeforeQueue = try PersonalChallengeDraft().validated()
 
         await store.sync(challengeID: challenge.id, asOf: asOf)
         let createdID = await store.create(draftOpenedBeforeQueue)
 
-        XCTAssertNil(createdID)
-        XCTAssertTrue(client.requests.isEmpty)
+        XCTAssertEqual(createdID, client.createdChallengeID)
+        XCTAssertEqual(client.requests, [draftOpenedBeforeQueue])
         XCTAssertEqual(store.pendingActivityUploadCount, 1)
         XCTAssertEqual(store.pendingActivityChallengeID, challenge.id)
-        XCTAssertEqual(
-            store.presentedError,
-            "Finish sending or recovering your saved steps first."
-        )
     }
 
     func testLostReviewResponseRetriesTheExactReasonAndShowsUnderReview()
@@ -1043,9 +1450,11 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
             paymentClient: payments,
             pendingStore: pendingStore,
             diagnosticClient: PersonalDiagnosticFake(),
-            activitySync: DisabledPersonalActivitySyncCoordinator()
+            activitySync: DisabledPersonalActivitySyncCoordinator(),
+            stepProgressStore: automaticStepProgressStore()
         )
         await firstStore.activate(ownerID: ownerID)
+        await connectHealth(firstStore)
 
         let preparedSetup = await firstStore.preparePayment(request)
         let setup = try XCTUnwrap(
@@ -1092,9 +1501,11 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
             paymentClient: payments,
             pendingStore: pendingStore,
             diagnosticClient: PersonalDiagnosticFake(),
-            activitySync: DisabledPersonalActivitySyncCoordinator()
+            activitySync: DisabledPersonalActivitySyncCoordinator(),
+            stepProgressStore: automaticStepProgressStore()
         )
         await relaunchedStore.activate(ownerID: ownerID)
+        await connectHealth(relaunchedStore)
         XCTAssertTrue(relaunchedStore.pendingPaymentIsConfirmed)
 
         let challengeID = await relaunchedStore.create(request)
@@ -1130,9 +1541,11 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
             client: client,
             pendingStore: pendingStore,
             diagnosticClient: PersonalDiagnosticFake(),
-            activitySync: DisabledPersonalActivitySyncCoordinator()
+            activitySync: DisabledPersonalActivitySyncCoordinator(),
+            stepProgressStore: automaticStepProgressStore()
         )
         await firstStore.activate(ownerID: ownerID)
+        await connectHealth(firstStore)
         let request = try PersonalChallengeDraft().validated(
             requestID: UUID(
                 uuidString: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
@@ -1151,9 +1564,11 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
             client: client,
             pendingStore: pendingStore,
             diagnosticClient: PersonalDiagnosticFake(),
-            activitySync: DisabledPersonalActivitySyncCoordinator()
+            activitySync: DisabledPersonalActivitySyncCoordinator(),
+            stepProgressStore: automaticStepProgressStore()
         )
         await relaunchedStore.activate(ownerID: ownerID)
+        await connectHealth(relaunchedStore)
         XCTAssertEqual(relaunchedStore.pendingCreation?.request, request)
         XCTAssertEqual(
             relaunchedStore.openChallenge?.id,
@@ -1213,9 +1628,11 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
             pendingStore: EphemeralPendingPersonalChallengeStore(),
             pendingCancellationStore: cancellationStore,
             diagnosticClient: PersonalDiagnosticFake(),
-            activitySync: DisabledPersonalActivitySyncCoordinator()
+            activitySync: DisabledPersonalActivitySyncCoordinator(),
+            stepProgressStore: automaticStepProgressStore()
         )
         await firstStore.activate(ownerID: ownerID)
+        await connectHealth(firstStore)
         let createdChallengeID = await firstStore.create(
             try PersonalChallengeDraft().validated()
         )
@@ -1301,24 +1718,54 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
     {
         let ownerID = UUID()
         let registration = BackgroundDeliveryRegistrationFake()
+        let diagnostic = PersonalDiagnosticFake()
+        let stepProgress = PersonalStepProgressStore(
+            reader: StorePersonalHealthStepReaderFake(),
+            cache: EphemeralPersonalStepSnapshotCache(),
+            uploader: DisabledPersonalHealthSnapshotUploader()
+        )
         let store = PersonalAccountabilityStore(
             configuration: .activityFixture,
             auth: PersonalAuthFake(ownerID: ownerID),
             client: PersonalClientFake(ownerID: ownerID),
             pendingStore: EphemeralPendingPersonalChallengeStore(),
-            diagnosticClient: PersonalDiagnosticFake(),
-            activitySync: DisabledPersonalActivitySyncCoordinator()
+            diagnosticClient: diagnostic,
+            activitySync: DisabledPersonalActivitySyncCoordinator(),
+            stepProgressStore: stepProgress
         )
         store.setBackgroundDeliveryRegistration(registration)
         await store.activate(ownerID: ownerID)
 
-        _ = await store.runDiagnostic(timezone: "America/Chicago")
+        let connected = await store.verifyHealthAccess(
+            timezone: "America/Chicago"
+        )
 
+        XCTAssertTrue(connected)
+        XCTAssertEqual(store.healthReadiness, .authorizationRequested)
+        XCTAssertTrue(store.canCreate)
         XCTAssertEqual(registration.retryCount, 1)
+        XCTAssertEqual(diagnostic.authorizationRequestCount, 0)
+        XCTAssertEqual(diagnostic.probeCount, 0)
+        XCTAssertEqual(diagnostic.diagnosticCount, 0)
     }
 
     func testActiveTabsExposeOnlyPersonalV1Shell() {
         XCTAssertEqual(AppTab.allCases, [.today, .challenges, .you])
+    }
+
+    private func automaticStepProgressStore() -> PersonalStepProgressStore {
+        PersonalStepProgressStore(
+            reader: StorePersonalHealthStepReaderFake(),
+            cache: EphemeralPersonalStepSnapshotCache(),
+            uploader: DisabledPersonalHealthSnapshotUploader()
+        )
+    }
+
+    private func connectHealth(_ store: PersonalAccountabilityStore) async {
+        let connected = await store.verifyHealthAccess(
+            timezone: "America/Chicago"
+        )
+        XCTAssertTrue(connected)
     }
 
     private func makeActivityChallenge(
@@ -1350,10 +1797,96 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
             progress: .empty
         )
     }
+
+    private func makeV2LifecycleChallenge(
+        ownerID: UUID,
+        status: PersonalChallengeStatus,
+        totalSteps: Int,
+        outcome: PersonalOutcome? = nil,
+        challengeID: UUID = UUID(),
+        terms suppliedTerms: FrozenPersonalTerms? = nil
+    ) -> PersonalChallengeDetail {
+        let terms = suppliedTerms ?? makeActivityChallenge(
+            ownerID: ownerID,
+            evidenceCutoff: Date().addingTimeInterval(3 * 86_400),
+            status: status
+        ).terms
+        let normalizedTerms = FrozenPersonalTerms(
+            challengeID: challengeID,
+            userID: ownerID,
+            cadence: terms.cadence,
+            targetSteps: terms.targetSteps,
+            commitmentAmountMinor: terms.commitmentAmountMinor,
+            currency: terms.currency,
+            settlementMode: terms.settlementMode,
+            termsVersion: "personal-v2",
+            timezone: terms.timezone,
+            agreementAt: terms.agreementAt,
+            startsAt: terms.startsAt,
+            endsAt: terms.endsAt,
+            evidenceCutoff: terms.evidenceCutoff,
+            closedAt: status.isOpen ? nil : terms.evidenceCutoff
+        )
+        let base = totalSteps / 7
+        let remainder = totalSteps - (base * 7)
+        let snapshot = PersonalStepSnapshot(
+            challengeID: challengeID,
+            termsFingerprint: "lifecycle-v2",
+            observedAt: normalizedTerms.evidenceCutoff,
+            queryThrough: normalizedTerms.endsAt,
+            dailyProgress: (0..<7).map { index in
+                PersonalStepSnapshot.Day(
+                    localDate: String(format: "2026-08-%02d", index + 3),
+                    totalSteps: base + (index == 0 ? remainder : 0)
+                )
+            }
+        )
+        return PersonalChallengeDetail(
+            id: challengeID,
+            status: status,
+            terms: normalizedTerms,
+            progress: .empty,
+            outcome: outcome,
+            stepDataPolicy: .healthKitNonmanualDailyV1,
+            termsFingerprint: "lifecycle-v2",
+            serverStepSnapshot: snapshot,
+            snapshotUpdatedAt: snapshot.observedAt
+        )
+    }
 }
 
 @MainActor
 final class PersonalActivitySyncCoordinatorTests: XCTestCase {
+    func testV2RetirementDeletesCoverageAndMetricRetries() async throws {
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 2,
+            outcomes: [],
+            pendingCountsAfterSync: []
+        )
+        let pendingCoverage = EphemeralPendingPersonalCoverageStore()
+        try await pendingCoverage.save(savedCoverageSubmission())
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: PersonalCoverageQueryFake(),
+            metrics: metrics,
+            coverage: PersonalCoverageClientFake(),
+            pendingCoverage: pendingCoverage
+        )
+
+        try await coordinator.retirePendingUploads(
+            for: ownerID,
+            challengeID: savedCoverageSubmission().challengeID
+        )
+
+        let remainingCoverage = await pendingCoverage.load(for: ownerID)
+        XCTAssertNil(remainingCoverage)
+        XCTAssertEqual(
+            metrics.retiredContexts,
+            [.init(ownerID: ownerID, contestID: savedCoverageSubmission().challengeID)]
+        )
+        let remainingMetrics = try await metrics.pendingUploadCount(for: ownerID)
+        XCTAssertEqual(remainingMetrics, 0)
+    }
+
     func testQueuedMetricRetryNeverPublishesCoverage() async throws {
         let metrics = SequencedActivitySyncFake(
             pendingCount: 0,
@@ -2061,25 +2594,76 @@ final class PersonalActivitySyncCoordinatorTests: XCTestCase {
 
 @MainActor
 final class PersonalHealthBackgroundDeliveryTests: XCTestCase {
-    func testTrustedUploadEnvironmentsStartHealthObserver() {
+    func testPhysicalAppEnvironmentsStartHealthObserver() {
+        let arguments = ["GameTime"]
+        let environment: [String: String] = [:]
         XCTAssertTrue(
             GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
-                environmentValue: "Staging"
+                environmentValue: "Debug",
+                arguments: arguments,
+                processEnvironment: environment,
+                isSimulator: false
             )
         )
         XCTAssertTrue(
             GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
-                environmentValue: "Release"
+                environmentValue: "Staging",
+                arguments: arguments,
+                processEnvironment: environment,
+                isSimulator: false
+            )
+        )
+        XCTAssertTrue(
+            GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
+                environmentValue: "Release",
+                arguments: arguments,
+                processEnvironment: environment,
+                isSimulator: false
             )
         )
         XCTAssertFalse(
             GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
-                environmentValue: "Debug"
+                environmentValue: nil,
+                arguments: arguments,
+                processEnvironment: environment,
+                isSimulator: false
+            )
+        )
+    }
+
+    func testSimulatorFixtureAndUITestNeverStartHealthObserver() {
+        XCTAssertFalse(
+            GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
+                environmentValue: "Release",
+                arguments: ["GameTime"],
+                processEnvironment: [:],
+                isSimulator: true
             )
         )
         XCTAssertFalse(
             GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
-                environmentValue: nil
+                environmentValue: "Release",
+                arguments: ["GameTime", "--fixture-mode"],
+                processEnvironment: [:],
+                isSimulator: false
+            )
+        )
+        XCTAssertFalse(
+            GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
+                environmentValue: "Release",
+                arguments: ["GameTime"],
+                processEnvironment: [
+                    "XCTestConfigurationFilePath": "/tmp/GameTime.xctestconfiguration"
+                ],
+                isSimulator: false
+            )
+        )
+        XCTAssertFalse(
+            GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
+                environmentValue: "Release",
+                arguments: ["GameTime"],
+                processEnvironment: ["XCTestBundlePath": "/tmp/GameTimeUITests.xctest"],
+                isSimulator: false
             )
         )
     }
@@ -2262,7 +2846,12 @@ private final class PersonalClientFake: PersonalAccountabilityClient {
                         status: $0.status,
                         terms: $0.terms,
                         progress: $0.progress,
-                        outcome: $0.outcome
+                        outcome: $0.outcome,
+                        stepDataPolicy: $0.stepDataPolicy,
+                        termsFingerprint: $0.termsFingerprint,
+                        serverStepSnapshot: $0.serverStepSnapshot,
+                        snapshotUpdatedAt: $0.snapshotUpdatedAt,
+                        commitmentWaived: $0.commitmentWaived
                     )
                 ]
             } ?? [],
@@ -2474,14 +3063,20 @@ private final class PersonalPaymentFake: PersonalPaymentClient {
 
 @MainActor
 private final class PersonalDiagnosticFake: TrustedActivityDiagnosticClient {
+    private(set) var authorizationRequestCount = 0
+    private(set) var probeCount = 0
+    private(set) var diagnosticCount = 0
+
     func requestAuthorization() async throws -> ActivityAuthorizationOutcome {
-        .requestCompleted
+        authorizationRequestCount += 1
+        return .requestCompleted
     }
 
     func probeLocalStepAccess(
         timezone: String
     ) async throws -> LocalStepAccessProbe {
         _ = timezone
+        probeCount += 1
         return LocalStepAccessProbe(
             trustedHourCount: 24,
             positiveTrustedSampleCount: 1,
@@ -2494,6 +3089,7 @@ private final class PersonalDiagnosticFake: TrustedActivityDiagnosticClient {
         timezone: String
     ) async throws -> TrustedActivityDiagnostic {
         _ = (ownerID, timezone)
+        diagnosticCount += 1
         return TrustedActivityDiagnostic(
             id: UUID(),
             status: .trusted,
@@ -2517,7 +3113,48 @@ private final class BackgroundDeliveryRegistrationFake:
 }
 
 @MainActor
+private final class StorePersonalHealthStepReaderFake:
+    PersonalHealthStepReading
+{
+    private(set) var readCount = 0
+
+    func requestAuthorization() async throws -> ActivityAuthorizationOutcome {
+        .requestCompleted
+    }
+
+    func readSnapshot(
+        challengeID: UUID,
+        terms: FrozenPersonalTerms,
+        termsFingerprint: String,
+        observedAt: Date
+    ) async throws -> PersonalStepSnapshot {
+        readCount += 1
+        let plan = try PersonalHealthSnapshotPlanner.plan(
+            terms: terms,
+            observedAt: observedAt
+        )
+        return PersonalStepSnapshot(
+            challengeID: challengeID,
+            termsFingerprint: termsFingerprint,
+            observedAt: observedAt,
+            queryThrough: plan.queryThrough,
+            dailyProgress: plan.days.map {
+                PersonalStepSnapshot.Day(
+                    localDate: $0.localDate,
+                    totalSteps: readCount
+                )
+            }
+        )
+    }
+}
+
+@MainActor
 private final class StorePersonalActivitySyncFake: PersonalActivitySyncing {
+    struct RetiredContext: Equatable {
+        let ownerID: UUID
+        let challengeID: UUID
+    }
+
     enum Result {
         case outcome(ActivitySyncOutcome, pendingAfter: Int)
         case cancellation(pendingAfter: Int)
@@ -2529,6 +3166,7 @@ private final class StorePersonalActivitySyncFake: PersonalActivitySyncing {
     private var pendingCountError: (any Error)?
     private(set) var syncedChallengeIDs: [UUID] = []
     private(set) var pendingCountReadCount = 0
+    private(set) var retiredContexts: [RetiredContext] = []
     private var shouldBlockNextPendingCountRead: Bool
     private var pendingCountReadStarted = false
     private var pendingCountReadReleased = false
@@ -2582,6 +3220,16 @@ private final class StorePersonalActivitySyncFake: PersonalActivitySyncing {
         return pendingCount
     }
 
+    func retirePendingUploads(
+        for ownerID: UUID,
+        challengeID: UUID
+    ) async throws {
+        retiredContexts.append(
+            .init(ownerID: ownerID, challengeID: challengeID)
+        )
+        pendingCount = 0
+    }
+
     func waitUntilPendingCountReadStarts() async {
         guard !pendingCountReadStarted else { return }
         await withCheckedContinuation { continuation in
@@ -2626,11 +3274,17 @@ private final class StorePersonalActivitySyncFake: PersonalActivitySyncing {
 
 @MainActor
 private final class SequencedActivitySyncFake: ActivitySyncing {
+    struct RetiredContext: Equatable {
+        let ownerID: UUID
+        let contestID: UUID
+    }
+
     private var pendingCount: Int
     private var outcomes: [ActivitySyncOutcome]
     private let pendingCountsAfterSync: [Int]
     private(set) var syncCallCount = 0
     private(set) var pendingCountReadCount = 0
+    private(set) var retiredContexts: [RetiredContext] = []
 
     init(
         pendingCount: Int,
@@ -2650,6 +3304,16 @@ private final class SequencedActivitySyncFake: ActivitySyncing {
         _ = ownerID
         pendingCountReadCount += 1
         return pendingCount
+    }
+
+    func retirePendingUploads(
+        for ownerID: UUID,
+        contestID: UUID
+    ) async throws {
+        retiredContexts.append(
+            .init(ownerID: ownerID, contestID: contestID)
+        )
+        pendingCount = 0
     }
 
     func sync(

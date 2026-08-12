@@ -19,15 +19,15 @@ enum PersonalActivitySyncViewState: Equatable, Sendable {
         case .idle: nil
         case .syncing: "Checking your steps…"
         case .synced(let total):
-            "\(total.formatted(.number.precision(.fractionLength(0)))) steps synced."
+            "\(total.formatted(.number.precision(.fractionLength(0)))) steps updated."
         case .observedLocally(let total):
-            "\(total.formatted(.number.precision(.fractionLength(0)))) steps read on this phone — not confirmed yet."
+            "\(total.formatted(.number.precision(.fractionLength(0)))) steps read on this phone."
         case .replayAccepted(let total):
             "\(total.formatted(.number.precision(.fractionLength(0)))) saved steps confirmed."
         case .savedRequestAccepted:
-            "Saved step evidence confirmed."
+            "Saved activity update confirmed."
         case .savedRequestUnavailable:
-            "Steps saved on this phone couldn’t be confirmed. Sync again while the window is open."
+            "The saved activity update couldn’t be confirmed. Try again while the window is open."
         case .queuedForRetry(let total):
             "\(total.formatted(.number.precision(.fractionLength(0)))) steps are saved and waiting to send."
         case .noReadableData:
@@ -41,6 +41,7 @@ enum PersonalActivitySyncViewState: Equatable, Sendable {
 @Observable
 final class PersonalAccountabilityStore {
     let configuration: AppConfiguration
+    let stepProgress: PersonalStepProgressStore
 
     private(set) var ownerID: UUID?
     private(set) var challenges: [PersonalChallengeSummary] = []
@@ -83,6 +84,7 @@ final class PersonalAccountabilityStore {
         (any PersonalHealthBackgroundDeliveryRegistering)?
     @ObservationIgnored private var actorGeneration = UUID()
     @ObservationIgnored private var refreshGeneration = UUID()
+    @ObservationIgnored private var listStateRevision = UUID()
 
     init(
         configuration: AppConfiguration,
@@ -94,7 +96,8 @@ final class PersonalAccountabilityStore {
         pendingCancellationStore: any PendingPersonalCancellationStore =
             EphemeralPendingPersonalCancellationStore(),
         diagnosticClient: any TrustedActivityDiagnosticClient,
-        activitySync: any PersonalActivitySyncing
+        activitySync: any PersonalActivitySyncing,
+        stepProgressStore: PersonalStepProgressStore? = nil
     ) {
         self.configuration = configuration
         self.auth = auth
@@ -104,6 +107,11 @@ final class PersonalAccountabilityStore {
         self.pendingCancellationStore = pendingCancellationStore
         self.diagnosticClient = diagnosticClient
         self.activitySync = activitySync
+        stepProgress = stepProgressStore ?? PersonalStepProgressStore(
+            reader: DisabledPersonalHealthStepReader(),
+            cache: EphemeralPersonalStepSnapshotCache(),
+            uploader: DisabledPersonalHealthSnapshotUploader()
+        )
     }
 
     var openChallenge: PersonalChallengeSummary? {
@@ -138,12 +146,9 @@ final class PersonalAccountabilityStore {
         configuration.personalChallengeMutationsEnabled
             && hasVerifiedCreationState
             && openChallenge == nil
-            && !eligibilityHoldActive
             && !hasPendingCreationRecoveryIssue
             && pendingCancellation == nil
             && !hasPendingCancellationRecoveryIssue
-            && pendingActivityUploadCount == 0
-            && !hasPendingActivityRecoveryIssue
     }
 
     func setBackgroundDeliveryRegistration(
@@ -167,7 +172,10 @@ final class PersonalAccountabilityStore {
         refreshGeneration = UUID()
         clearVolatileState()
         self.ownerID = ownerID
-        guard let ownerID else { return }
+        guard let ownerID else {
+            await stepProgress.activate(ownerID: nil, challenge: nil)
+            return
+        }
         let generation = actorGeneration
         isRestoringSavedState = true
         defer {
@@ -183,6 +191,9 @@ final class PersonalAccountabilityStore {
             _ = await retryPendingCancellation()
         }
         guard isCurrent(ownerID, generation: generation) else { return }
+        // Read the legacy queue before the policy response arrives. If the
+        // open row is v2, refresh immediately retires it; a historical v1 row
+        // can still be inspected by older regression coverage.
         await restorePendingActivityCount(for: ownerID, generation: generation)
         guard isCurrent(ownerID, generation: generation) else { return }
         await refresh()
@@ -211,6 +222,16 @@ final class PersonalAccountabilityStore {
         let generation = UUID()
         refreshGeneration = generation
         loadState = .loading
+        // The local Health observation has its own availability boundary. A
+        // list RPC failure must not suppress an automatic on-device update.
+        await stepProgress.refresh()
+        guard
+            generation == refreshGeneration,
+            await isCurrentAuthenticated(
+                ownerID,
+                generation: actorGeneration
+            )
+        else { return }
         do {
             let snapshot = try await client.listMyChallenges()
             guard
@@ -221,18 +242,71 @@ final class PersonalAccountabilityStore {
                 ),
                 !Task.isCancelled
             else { return }
-            challenges = snapshot.challenges.sorted {
+            let terminalSummariesByID = Dictionary(
+                uniqueKeysWithValues: challenges.compactMap { challenge in
+                    challenge.status.isOpen ? nil : (challenge.id, challenge)
+                }
+            )
+            challenges = snapshot.challenges.map { challenge in
+                // Completed and cancelled states cannot reopen. Preserve a
+                // terminal detail promotion if an older in-flight list response
+                // arrives after it.
+                if challenge.status.isOpen,
+                    let terminal = terminalSummariesByID[challenge.id]
+                {
+                    return terminal
+                }
+                return challenge
+            }.sorted {
                 $0.terms.startsAt > $1.terms.startsAt
             }
-            latestDiagnostic = snapshot.latestDiagnostic ?? latestDiagnostic
-            // A trusted server record is the strongest readiness evidence and
-            // survives relaunch, so it supersedes a local-only probe.
-            if let diagnostic = latestDiagnostic, diagnostic.isTrusted {
-                healthReadiness = .attested(diagnostic)
+            // A list response is newer lifecycle truth than any detail cached
+            // before this refresh. Rebuild only cached entries that still
+            // exist, so an active detail cannot mask a completed/cancelled row
+            // or its frozen result.
+            listStateRevision = UUID()
+            reconcileCachedDetailsWithLatestSummaries()
+            let openV2Challenge = challenges.first(where: {
+                $0.status.isOpen
+                    && $0.stepDataPolicy.usesAutomaticHealthProgress
+            })
+            if let openV2Challenge {
+                // The v2 server policy is the cutover authority. Delete only
+                // local retry material; server audit rows remain untouched.
+                do {
+                    try await activitySync.retirePendingUploads(
+                        for: ownerID,
+                        challengeID: openV2Challenge.id
+                    )
+                } catch {
+                    // Protected data can be locked during a background wake.
+                    // Keep the v2 challenge usable and retry retirement on the
+                    // next refresh; these files are never read by v2.
+                }
+                guard
+                    generation == refreshGeneration,
+                    await isCurrentAuthenticated(
+                        ownerID,
+                        generation: actorGeneration
+                    )
+                else { return }
             }
-            eligibilityHold = snapshot.eligibilityHold
-            eligibilityHoldActive = snapshot.eligibilityHoldActive
+            latestDiagnostic = snapshot.latestDiagnostic ?? latestDiagnostic
+            if openV2Challenge != nil {
+                eligibilityHold = nil
+                eligibilityHoldActive = false
+                pendingActivityUploadCount = 0
+                pendingActivityChallengeID = nil
+                hasPendingActivityRecoveryIssue = false
+            } else {
+                eligibilityHold = snapshot.eligibilityHold
+                eligibilityHoldActive = snapshot.eligibilityHoldActive
+            }
             loadState = challenges.isEmpty ? .empty : .loaded
+            await stepProgress.activate(
+                ownerID: ownerID,
+                challenge: openChallenge
+            )
         } catch is CancellationError {
             return
         } catch {
@@ -246,27 +320,98 @@ final class PersonalAccountabilityStore {
         guard let summary = challenges.first(where: { $0.id == challengeID }) else {
             return nil
         }
-        return PersonalChallengeDetail(
+        return detail(from: summary)
+    }
+
+    private func detail(
+        from summary: PersonalChallengeSummary
+    ) -> PersonalChallengeDetail {
+        PersonalChallengeDetail(
             id: summary.id,
             status: summary.status,
             terms: summary.terms,
             progress: summary.progress ?? .empty,
-            outcome: summary.outcome
+            outcome: summary.outcome,
+            stepDataPolicy: summary.stepDataPolicy,
+            termsFingerprint: summary.termsFingerprint,
+            serverStepSnapshot: summary.serverStepSnapshot,
+            snapshotUpdatedAt: summary.snapshotUpdatedAt,
+            commitmentWaived: summary.commitmentWaived
         )
+    }
+
+    private func summary(
+        from detail: PersonalChallengeDetail
+    ) -> PersonalChallengeSummary {
+        PersonalChallengeSummary(
+            id: detail.id,
+            status: detail.status,
+            terms: detail.terms,
+            progress: detail.progress,
+            outcome: detail.outcome,
+            stepDataPolicy: detail.stepDataPolicy,
+            termsFingerprint: detail.termsFingerprint,
+            serverStepSnapshot: detail.serverStepSnapshot,
+            snapshotUpdatedAt: detail.snapshotUpdatedAt,
+            commitmentWaived: detail.commitmentWaived
+        )
+    }
+
+    private func reconcileCachedDetailsWithLatestSummaries() {
+        let summariesByID = Dictionary(
+            uniqueKeysWithValues: challenges.map { ($0.id, $0) }
+        )
+        detailsByID = detailsByID.reduce(into: [:]) { result, entry in
+            guard let summary = summariesByID[entry.key] else { return }
+            result[entry.key] = detail(from: summary)
+        }
     }
 
     func loadDetail(challengeID: UUID) async {
         guard let ownerID else { return }
         let generation = actorGeneration
+        let listRevision = listStateRevision
         do {
             guard let detail = try await client.challenge(id: challengeID) else {
                 return
             }
             guard
                 await isCurrentAuthenticated(ownerID, generation: generation),
+                listStateRevision == listRevision,
                 !Task.isCancelled
             else { return }
-            detailsByID[challengeID] = detail
+            // Never allow a lagging detail RPC to reopen a lifecycle that the
+            // latest list already closed. Open rows may use the more focused
+            // detail response; terminal/cancelled rows remain list-owned.
+            let acceptedDetail = if let summary = challenges.first(where: {
+                $0.id == challengeID
+            }), !summary.status.isOpen {
+                self.detail(from: summary)
+            } else {
+                detail
+            }
+            if let summaryIndex = challenges.firstIndex(where: {
+                $0.id == challengeID
+            }), challenges[summaryIndex].status.isOpen,
+                !acceptedDetail.status.isOpen
+            {
+                // Terminal and cancelled lifecycle transitions are monotonic.
+                // Promote newer detail truth immediately so list-owned surfaces
+                // cannot keep presenting mutable progress until another list
+                // round trip. The revision rejects any concurrent stale detail.
+                challenges[summaryIndex] = summary(from: acceptedDetail)
+                detailsByID[challengeID] = acceptedDetail
+                listStateRevision = UUID()
+                await stepProgress.activate(
+                    ownerID: ownerID,
+                    challenge: openChallenge
+                )
+                return
+            }
+            detailsByID[challengeID] = acceptedDetail
+            if acceptedDetail.id == stepProgress.challengeID {
+                stepProgress.updateServerChallenge(summary(from: acceptedDetail))
+            }
         } catch is CancellationError {
             return
         } catch {
@@ -285,19 +430,6 @@ final class PersonalAccountabilityStore {
         guard hasVerifiedCreationState else {
             presentedError = PersonalAccountabilityClientError.unavailable
                 .localizedDescription
-            return nil
-        }
-        guard !eligibilityHoldActive else {
-            presentedError = PersonalAccountabilityClientError.eligibilityHold
-                .localizedDescription
-            return nil
-        }
-        guard
-            pendingActivityUploadCount == 0,
-            !hasPendingActivityRecoveryIssue
-        else {
-            presentedError =
-                "Finish sending or recovering your saved steps first."
             return nil
         }
         // A lost create response can leave both the exact local retry and the
@@ -413,7 +545,7 @@ final class PersonalAccountabilityStore {
             presentedError = "Check your Health connection before you start."
             return nil
         }
-        guard !eligibilityHoldActive, !hasPendingCreationRecoveryIssue else {
+        guard !hasPendingCreationRecoveryIssue else {
             presentedError = PersonalAccountabilityClientError.eligibilityHold
                 .localizedDescription
             return nil
@@ -706,13 +838,11 @@ final class PersonalAccountabilityStore {
         }
     }
 
-    /// Requests Health authorization and reads steps locally. This is what
-    /// unlocks creation: it proves GameTime can see first-party device steps on
-    /// this phone, without needing App Attest or a deployed endpoint.
-    ///
-    /// It deliberately does not set `latestDiagnostic` — that stays the
-    /// server's attested record.
+    /// HealthKit does not reveal read denial. Personal v2 therefore gates
+    /// creation on completion of Apple's authorization request, not on finding
+    /// a positive sample in somebody's history.
     func verifyHealthAccess(timezone: String) async -> Bool {
+        _ = timezone
         guard configuration.activitySyncEnabled else {
             healthReadiness = .unavailable
             presentedError = PersonalAccountabilityClientError
@@ -724,7 +854,7 @@ final class PersonalAccountabilityStore {
         isVerifyingHealthAccess = true
         defer { isVerifyingHealthAccess = false }
         do {
-            let outcome = try await diagnosticClient.requestAuthorization()
+            let outcome = try await stepProgress.requestAuthorization()
             guard actorGeneration == generation else { return false }
             activityAuthorizationOutcome = outcome
             guard outcome == .requestCompleted else {
@@ -733,13 +863,7 @@ final class PersonalAccountabilityStore {
             }
             backgroundDeliveryRegistration?.retryRegistration()
             healthReadiness = .authorizationRequested
-
-            let probe = try await diagnosticClient.probeLocalStepAccess(
-                timezone: timezone
-            )
-            guard actorGeneration == generation else { return false }
-            healthReadiness = .localStepsObserved(probe)
-            return probe.sawTrustedDeviceSteps
+            return true
         } catch is CancellationError {
             return false
         } catch {
@@ -872,6 +996,7 @@ final class PersonalAccountabilityStore {
     }
 
     func handleBackgroundActivityUpdate(asOf: Date = Date()) async {
+        _ = asOf
         guard configuration.activitySyncEnabled else { return }
         guard let authenticatedOwner = await auth.currentUserID() else {
             return
@@ -879,37 +1004,22 @@ final class PersonalAccountabilityStore {
         if ownerID != authenticatedOwner {
             await activate(ownerID: authenticatedOwner)
         } else {
-            await restorePendingActivityCount(
-                for: authenticatedOwner,
-                generation: actorGeneration
-            )
-            guard !hasPendingActivityRecoveryIssue else { return }
-            if
-                let challenge = pendingActivityChallenge(
-                    for: authenticatedOwner
-                )
-            {
-                await sync(challengeID: challenge.id, asOf: asOf)
-                return
-            }
             await refresh()
         }
-        if
-            let challenge = pendingActivityChallenge(
-                for: authenticatedOwner
-            )
-        {
-            await sync(challengeID: challenge.id, asOf: asOf)
-            return
-        }
-        guard
-            ownerID == authenticatedOwner,
-            !hasPendingActivityRecoveryIssue,
-            loadState == .loaded,
-            let challenge = openChallenge,
-            challenge.permitsActivitySync(at: asOf)
-        else { return }
-        await sync(challengeID: challenge.id, asOf: asOf)
+    }
+
+    func displayedProgress(
+        for challenge: PersonalChallengeSummary,
+        now: Date = Date()
+    ) -> PersonalDisplayedProgress? {
+        stepProgress.progress(for: challenge, now: now)
+    }
+
+    func displayedProgress(
+        for challenge: PersonalChallengeDetail,
+        now: Date = Date()
+    ) -> PersonalDisplayedProgress? {
+        stepProgress.progress(for: challenge, now: now)
     }
 
     private func restorePendingCreation(
@@ -1027,6 +1137,7 @@ final class PersonalAccountabilityStore {
     private func clearVolatileState() {
         challenges = []
         detailsByID = [:]
+        listStateRevision = UUID()
         loadState = .idle
         pendingCreation = nil
         hasPendingCreationRecoveryIssue = false

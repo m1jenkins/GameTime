@@ -638,6 +638,20 @@ final class PersonalActivitySyncCoordinator: PersonalActivitySyncing {
         return coverageID ?? metricID
     }
 
+    func retirePendingUploads(
+        for ownerID: UUID,
+        challengeID: UUID
+    ) async throws {
+        let savedCoverage = try await pendingCoverage.load(for: ownerID)
+        if savedCoverage?.challengeID == challengeID {
+            try await pendingCoverage.remove(for: ownerID)
+        }
+        try await metrics.retirePendingUploads(
+            for: ownerID,
+            contestID: challengeID
+        )
+    }
+
     func sync(
         ownerID: UUID,
         challenge: PersonalChallengeDetail,

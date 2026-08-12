@@ -15,31 +15,10 @@ struct TodayView: View {
                 )
                 loadState
 
-                if store.eligibilityHoldActive {
-                    PersonalEligibilityHoldCard(hold: store.eligibilityHold)
-                }
-
-                if
-                    let pending = pendingActivitySummary,
-                    pending.id != store.openChallenge?.id
-                {
-                    pendingActivityRecovery(pending)
-                } else if
-                    store.hasPendingActivityRecoveryIssue
-                        || (
-                            store.pendingActivityUploadCount > 0
-                                && pendingActivitySummary == nil
-                        )
-                {
-                    pendingActivityRecoveryUnavailable
-                }
-
                 if let challenge = store.openChallenge {
                     currentChallenge(challenge)
                 } else if
-                    store.hasVerifiedCreationState,
-                    store.pendingActivityUploadCount == 0,
-                    !store.hasPendingActivityRecoveryIssue
+                    store.hasVerifiedCreationState
                 {
                     createCard
                 }
@@ -76,17 +55,7 @@ struct TodayView: View {
                     )
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
-            Spacer(minLength: 8)
-            Button {
-                Task { await store.refresh() }
-            } label: {
-                Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(CompetitiveTrustTheme.coralInk)
-                    .frame(width: 36, height: 36)
-                    .background(CompetitiveTrustTheme.coralTint, in: Circle())
-            }
-            .accessibilityLabel("Refresh your progress")
+            Spacer(minLength: 0)
         }
         .padding(.horizontal, 6)
     }
@@ -151,13 +120,21 @@ struct TodayView: View {
                             )
                         )
                         .tracking(-0.7)
-                    if let progress = summary.progress {
+                    if let progress = store.displayedProgress(for: summary) {
                         PersonalProgressBar(
                             progress: progress,
                             terms: summary.terms
                         )
                         .colorScheme(.dark)
                     }
+                    PersonalHealthProgressStatus(
+                        progress: store.displayedProgress(for: summary),
+                        terms: summary.terms,
+                        status: summary.presentationStatus(at: Date()),
+                        policy: summary.stepDataPolicy,
+                        outcome: summary.outcome
+                    )
+                    .colorScheme(.dark)
                     Button("See details") {
                         router.todayPath.append(
                             .personalChallenge(summary.id)
@@ -168,154 +145,17 @@ struct TodayView: View {
                 }
             }
 
-            if let progress = summary.progress, !progress.days.isEmpty {
+            if let progress = store.displayedProgress(for: summary),
+                !progress.days.isEmpty
+            {
                 DaybreakSectionLabel(text: "Day by day")
                 DaybreakCard {
                     PersonalSevenDayTimeline(days: progress.days)
                 }
             }
-
-            syncCard(summary)
         }
         .task(id: summary.id) {
             await store.loadDetail(challengeID: summary.id)
-        }
-    }
-
-    private func syncCard(_ summary: PersonalChallengeSummary) -> some View {
-        DaybreakCard {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Label("Step syncing", systemImage: "heart.text.square.fill")
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: 18,
-                                relativeTo: .headline
-                            )
-                        )
-                    Spacer(minLength: 8)
-                    TrustStatusPill(
-                        text: syncStatus(summary),
-                        kind: summary.progress?.lastTrustedSyncAt == nil
-                            ? .action
-                            : .verified
-                    )
-                }
-                if !store.configuration.attestedUploadEnabled {
-                    Text(
-                        "Steps read here stay on this phone, so the day-by-day total won’t change."
-                    )
-                    .font(.caption)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                } else if let date = summary.progress?.lastTrustedSyncAt {
-                    Text("Last synced \(date.formatted(.relative(presentation: .named)))")
-                        .font(.caption)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                } else {
-                    Text("We haven’t received your steps yet.")
-                        .font(.caption)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                }
-                if let message = store.syncState(for: summary.id).message {
-                    Text(message)
-                        .font(.caption)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                }
-                Button(
-                    store.configuration.attestedUploadEnabled
-                        ? "Sync my steps"
-                        : "Read steps on this phone"
-                ) {
-                    Task { await store.sync(challengeID: summary.id) }
-                }
-                .buttonStyle(TrustSecondaryButtonStyle())
-                .disabled(
-                    !store.canSyncActivity(
-                        challengeID: summary.id,
-                        permitsFreshSync: summary.permitsActivitySync(
-                            at: Date()
-                        )
-                    )
-                )
-                .accessibilityIdentifier("personal.sync")
-            }
-        }
-    }
-
-    private func syncStatus(_ summary: PersonalChallengeSummary) -> String {
-        if !store.configuration.attestedUploadEnabled {
-            return "On this phone"
-        }
-        if summary.progress?.pendingUploadCount ?? 0 > 0
-            || store.pendingActivityChallengeID == summary.id
-        {
-            return "Waiting to send"
-        }
-        return summary.progress?.lastTrustedSyncAt == nil
-            ? "Not synced"
-            : "Up to date"
-    }
-
-    private var pendingActivitySummary: PersonalChallengeSummary? {
-        guard let pendingID = store.pendingActivityChallengeID else {
-            return nil
-        }
-        return store.challenges.first(where: { $0.id == pendingID })
-    }
-
-    private func pendingActivityRecovery(
-        _ summary: PersonalChallengeSummary
-    ) -> some View {
-        VStack(spacing: 12) {
-            DaybreakSectionLabel(text: "Saved sync")
-            DaybreakCard {
-                VStack(alignment: .leading, spacing: 12) {
-                    Label(
-                        "Saved steps are waiting",
-                        systemImage: "arrow.triangle.2.circlepath"
-                    )
-                    .font(
-                        CompetitiveTrustTheme.uiFont(
-                            size: 16,
-                            relativeTo: .headline,
-                            weight: .bold
-                        )
-                    )
-                    Text(
-                        "Finish sending the steps saved for \(summary.terms.commitmentText) before starting another challenge."
-                    )
-                    .font(.subheadline)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                    Button("Send saved steps") {
-                        Task { await store.sync(challengeID: summary.id) }
-                    }
-                    .buttonStyle(TrustSecondaryButtonStyle())
-                    .disabled(
-                        !store.canSyncActivity(
-                            challengeID: summary.id,
-                            permitsFreshSync: false
-                        )
-                    )
-                    .accessibilityIdentifier("personal.sync.pending")
-                }
-            }
-        }
-    }
-
-    private var pendingActivityRecoveryUnavailable: some View {
-        DaybreakCard {
-            VStack(alignment: .leading, spacing: 12) {
-                EmptyTrustState(
-                    title: "Saved steps need attention",
-                    message:
-                        "GameTime couldn’t safely read its saved sync. Refresh before starting anything new.",
-                    systemImage: "exclamationmark.triangle.fill"
-                )
-                Button("Refresh") {
-                    Task { await store.retryPendingActivityRecovery() }
-                }
-                .buttonStyle(TrustSecondaryButtonStyle())
-            }
         }
     }
 

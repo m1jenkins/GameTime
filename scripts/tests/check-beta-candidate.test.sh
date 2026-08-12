@@ -188,7 +188,6 @@ write_release_fixture() {
   cat >"${root}/ios/GameTime/Configuration/Release.xcconfig" <<EOF
 ${public_client_include}
 GAMETIME_ENV = release
-APP_ATTEST_ENVIRONMENT = production
 GAMETIME_PERSONAL_SETTLEMENT_MODE = stripe_sandbox
 GAMETIME_STRIPE_RETURN_URL = ${scheme}:/$()/stripe-redirect
 EOF
@@ -270,7 +269,7 @@ struct GameTimeApp: App {
     private let watchSession = WCSession.default
 
     var body: some Scene {
-        WindowGroup { Text("Fixture") }
+        WindowGroup { Button("Sync my steps") {} }
     }
 }
 EOF
@@ -305,11 +304,14 @@ if ! passing_output="$(bash "$checker" --root "$passing_root" 2>&1)"; then
 fi
 
 assert_contains "$passing_output" "PASS release-bundle-id"
+assert_contains "$passing_output" "PASS personal-snapshot-auth"
+assert_contains "$passing_output" "PASS personal-automatic-copy"
 assert_contains "$passing_output" "PASS iphone-only"
 assert_contains "$passing_output" "PASS watch-isolation"
 assert_contains "$passing_output" "PASS privacy-policy-url"
 assert_contains "$passing_output" "PASS support-contact"
 assert_contains "$passing_output" "0 blocker(s)"
+assert_not_contains "$passing_output" "app-attest-environment"
 
 set +e
 blocked_output="$(bash "$checker" --root "$blocked_root" 2>&1)"
@@ -332,12 +334,35 @@ for blocker_id in \
   watch-isolation \
   privacy-policy-url \
   support-contact \
+  personal-automatic-copy \
   public-client-secrets
 do
   assert_contains "$blocked_output" "BLOCKER ${blocker_id}"
 done
 
 assert_not_contains "$blocked_output" "sk_test_fixture_value_never_print"
+
+copy_only_output=""
+if ! copy_only_output="$(
+  bash "$checker" --root "$passing_root" --personal-copy-only 2>&1
+)"; then
+  echo "$copy_only_output" >&2
+  fail "passing fixture failed the Personal automatic-copy-only audit"
+fi
+assert_contains "$copy_only_output" "PASS personal-automatic-copy"
+assert_contains "$copy_only_output" "0 blocker(s)"
+
+set +e
+blocked_copy_output="$(
+  bash "$checker" --root "$blocked_root" --personal-copy-only 2>&1
+)"
+blocked_copy_status=$?
+set -e
+if [[ "$blocked_copy_status" -ne 1 ]]; then
+  echo "$blocked_copy_output" >&2
+  fail "blocked fixture should fail the Personal automatic-copy-only audit"
+fi
+assert_contains "$blocked_copy_output" "BLOCKER personal-automatic-copy"
 
 set +e
 corrupt_icon_output="$(

@@ -1,17 +1,57 @@
 # Better Bet external beta — handoff
 
 **Written:** August 7, 2026
-**Revised:** August 7, 2026 — Step 6 is implemented locally and remains unhosted
+**Revised:** August 12, 2026 — automatic Health snapshot v2 is the active path
 **Product head:** `984845f feat: retire the staging identity and name the product Better Bet`
 **Target:** invite-only TestFlight beta, no more than 10 named iPhone testers
 
-This document is the current state of the work and the order to finish it. It
-records what was verified by running it, not what other documents claim. Where
-a claim is unproven it says so.
+This document records what was verified by running it. The August 7 inventory
+and numbered steps remain below for provenance; the replacement handoff here is
+the current order.
 
 The product is now **Better Bet**. The repository, Xcode targets, schemes, and
 most in-app prose still say GameTime; that is deliberate and explained under
 [Loose ends](#loose-ends).
+
+## August 12 controlling handoff
+
+New and eligible migrated Personal challenges use
+`healthkit_nonmanual_daily_v1`. The August 7 manual-sync, hourly coverage,
+diagnostic/eligibility-hold, positive-step readiness, and Personal production
+App Attest work is frozen as historical `attested_hourly_v1` context. Generic
+and social App Attest infrastructure remains; it is not a Personal-v2 launch
+gate.
+
+Finish in this order:
+
+1. Complete and locally verify the separate Health reader, protected
+   whole-snapshot cache, authenticated uploader, automatic trigger/coalescing
+   store, clean v2 list/detail models, and frozen-result display.
+2. Complete and locally verify the backend snapshot policy, owner-derived v2
+   RPC, RLS/grants, idempotent replacement rules, finalizer, and migration.
+3. Reconcile copy, permission text, privacy, acceptance, candidate preflight,
+   and App Review notes with the automatic flow.
+4. Deploy backend support with the named result schedule inactive and run the
+   isolated authenticated/RLS/replay/lower-total/finalization/Stripe smoke.
+5. Make the v2 iOS build mandatory for the named beta cohort.
+6. Resolve already-due v1 challenges; preserve completed/cancelled history; then
+   migrate only unresolved future-cutoff challenges and require a fresh full
+   Health read.
+7. Activate the result schedule as a separate approved action only after smoke,
+   then prove one firing, immutable rerun, and emergency disable.
+8. Run the physical-iPhone acceptance in
+   [PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md](PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md),
+   followed by the existing sandbox review/settlement and deletion journeys.
+
+Do not translate hourly evidence, delete historical audit rows, require a
+positive Health sample, restore a step-specific sync control, or treat legacy
+App Attest conformance as Personal-v2 acceptance.
+
+## August 7 verification record
+
+Everything below this heading is the pre-snapshot-v2 handoff. Counts and
+observations remain evidence for that revision, but its Personal trust gates and
+rollout order no longer control.
 
 ## How to re-check this document
 
@@ -19,6 +59,8 @@ Every line below can be re-derived. Nothing here needs to be taken on trust.
 
 ```bash
 bash scripts/check-beta-candidate.sh   # shipping build settings
+bash scripts/check-beta-candidate.sh --personal-copy-only
+                                      # removed Personal manual-sync copy/hooks
 ./scripts/test-all.sh                  # database, backend, and shared client
 supabase migration list --linked       # what the hosted backend actually has
 ```

@@ -50,6 +50,10 @@ protocol ActivitySyncing: AnyObject {
     -> ActivityAuthorizationOutcome
   func pendingUploadCount(for ownerID: UUID) async throws -> Int
   func pendingContestID(for ownerID: UUID) async throws -> UUID?
+  func retirePendingUploads(
+    for ownerID: UUID,
+    contestID: UUID
+  ) async throws
   func sync(
     ownerID: UUID,
     contest: ContestCard,
@@ -61,6 +65,13 @@ extension ActivitySyncing {
   func pendingContestID(for ownerID: UUID) async throws -> UUID? {
     _ = ownerID
     return nil
+  }
+
+  func retirePendingUploads(
+    for ownerID: UUID,
+    contestID: UUID
+  ) async throws {
+    _ = (ownerID, contestID)
   }
 }
 
@@ -79,7 +90,7 @@ enum ActivitySyncError: LocalizedError, Equatable, Sendable {
   var errorDescription: String? {
     switch self {
     case .stagingOnly:
-      "Step syncing isn’t available yet."
+      "Activity updates aren’t available yet."
     case .challengeNotEligible:
       "Only an active steps challenge can sync."
     case .invalidChallengeWindow:
@@ -146,6 +157,19 @@ final class ActivitySyncCoordinator: ActivitySyncing {
       throw ActivitySyncError.pendingUploadForDifferentChallenge
     }
     return ids.first
+  }
+
+  func retirePendingUploads(
+    for ownerID: UUID,
+    contestID: UUID
+  ) async throws {
+    let uploads = try await pendingUploads.pending(for: ownerID)
+    for upload in uploads where upload.contestId == contestID {
+      try await pendingUploads.abandon(
+        ownerID: ownerID,
+        batchID: upload.clientBatchId
+      )
+    }
   }
 
   func sync(
@@ -677,6 +701,13 @@ final class DisabledActivitySyncCoordinator: ActivitySyncing {
   func pendingUploadCount(for ownerID: UUID) async throws -> Int {
     _ = ownerID
     return 0
+  }
+
+  func retirePendingUploads(
+    for ownerID: UUID,
+    contestID: UUID
+  ) async throws {
+    _ = (ownerID, contestID)
   }
 
   func sync(

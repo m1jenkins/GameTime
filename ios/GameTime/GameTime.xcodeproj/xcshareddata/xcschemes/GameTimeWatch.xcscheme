@@ -47,7 +47,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4FA9A69D3024FF260021A950"
             BuildableName = "GameTimeWatch.app"
-            BlueprintName = "GameTimeWatch"
             ReferencedContainer = "container:GameTime.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -64,7 +63,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4FA9A69D3024FF260021A950"
             BuildableName = "GameTimeWatch.app"
-            BlueprintName = "GameTimeWatch"
             ReferencedContainer = "container:GameTime.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

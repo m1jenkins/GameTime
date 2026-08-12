@@ -28,15 +28,13 @@ struct LocalStepAccessProbe: Equatable, Sendable {
     var sawTrustedDeviceSteps: Bool { positiveTrustedSampleCount > 0 }
 }
 
-/// What the device has locally proven about Health access, kept separate from
-/// the server's `PersonalDiagnosticStatus`.
+/// Local Health setup state, kept separate from the server's legacy
+/// `PersonalDiagnosticStatus`.
 ///
-/// Creating a challenge needs proof that GameTime can read first-party device
-/// steps. It does not need the App Attest round-trip: the server independently
-/// refuses untrusted evidence when it scores, so gating *creation* on
-/// attestation only made the product unreachable until the whole stack was
-/// live. Attestation still gates whether evidence counts — see
-/// `AppConfiguration.attestedUploadEnabled`.
+/// Personal v2 permits creation after Apple's authorization request completes;
+/// HealthKit intentionally does not reveal whether read access was denied and
+/// a person does not need a positive historical sample. The probe and attested
+/// cases remain only for compatibility with the compiled legacy pipeline.
 enum PersonalHealthReadiness: Equatable, Sendable {
     case unknown
     case unavailable
@@ -47,8 +45,10 @@ enum PersonalHealthReadiness: Equatable, Sendable {
     /// Whether the person may freeze terms and create a challenge.
     var permitsCreation: Bool {
         switch self {
-        case .unknown, .unavailable, .authorizationRequested:
+        case .unknown, .unavailable:
             false
+        case .authorizationRequested:
+            true
         case .localStepsObserved(let probe):
             probe.sawTrustedDeviceSteps
         case .attested(let diagnostic):
@@ -56,8 +56,8 @@ enum PersonalHealthReadiness: Equatable, Sendable {
         }
     }
 
-    /// Whether the attested path has succeeded. Only this proves the evidence
-    /// pipeline end to end.
+    /// Compatibility signal for the legacy attested path. Personal v2 does
+    /// not use this value for creation or progress.
     var isAttested: Bool {
         if case .attested(let diagnostic) = self { return diagnostic.isTrusted }
         return false
@@ -85,6 +85,10 @@ protocol PersonalActivitySyncing: AnyObject {
     func requestAuthorization() async throws -> ActivityAuthorizationOutcome
     func pendingUploadCount(for ownerID: UUID) async throws -> Int
     func pendingChallengeID(for ownerID: UUID) async throws -> UUID?
+    func retirePendingUploads(
+        for ownerID: UUID,
+        challengeID: UUID
+    ) async throws
     func sync(
         ownerID: UUID,
         challenge: PersonalChallengeDetail,
@@ -96,6 +100,13 @@ extension PersonalActivitySyncing {
     func pendingChallengeID(for ownerID: UUID) async throws -> UUID? {
         _ = ownerID
         return nil
+    }
+
+    func retirePendingUploads(
+        for ownerID: UUID,
+        challengeID: UUID
+    ) async throws {
+        _ = (ownerID, challengeID)
     }
 }
 
@@ -197,6 +208,13 @@ final class DisabledPersonalActivitySyncCoordinator: PersonalActivitySyncing {
     func pendingUploadCount(for ownerID: UUID) async throws -> Int {
         _ = ownerID
         return 0
+    }
+
+    func retirePendingUploads(
+        for ownerID: UUID,
+        challengeID: UUID
+    ) async throws {
+        _ = (ownerID, challengeID)
     }
 
     func sync(

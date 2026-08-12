@@ -54,8 +54,51 @@ struct PersonalPaceSummary: Equatable {
     let tiles: [Tile]
 
     init(detail: PersonalChallengeDetail) {
+        self.init(
+            detail: detail,
+            records: detail.progress.days,
+            total: detail.progress.trustedSteps,
+            remaining: detail.progress.remainingSteps
+        )
+    }
+
+    init(
+        detail: PersonalChallengeDetail,
+        progress displayedProgress: PersonalDisplayedProgress
+    ) {
+        let records = displayedProgress.days.map { day in
+            let evidenceState: PersonalEvidenceState
+            switch day.state {
+            case .future:
+                evidenceState = .future
+            case .current:
+                evidenceState = .inProgress
+            case .complete:
+                evidenceState = .complete
+            }
+            return PersonalDayProgress(
+                localDate: day.localDate,
+                trustedSteps: Double(day.totalSteps),
+                targetSteps: day.targetSteps,
+                evidenceState: evidenceState,
+                metTarget: day.metTarget
+            )
+        }
+        self.init(
+            detail: detail,
+            records: records,
+            total: displayedProgress.totalSteps,
+            remaining: displayedProgress.remainingSteps
+        )
+    }
+
+    private init(
+        detail: PersonalChallengeDetail,
+        records: [PersonalDayProgress],
+        total: Int,
+        remaining: Int
+    ) {
         let terms = detail.terms
-        let records = detail.progress.days
         let dayCount = max(records.count, 1)
         let goal =
             terms.cadence == .daily
@@ -99,7 +142,6 @@ struct PersonalPaceSummary: Equatable {
             ? "\(dayCount) days"
             : "Day \(elapsed) of \(dayCount)"
 
-        let total = detail.progress.trustedSteps
         let goalDays = days.filter { $0.verdict == .metGoal }.count
         // A day we couldn't confirm never counts against the person, so it
         // stays out of both halves of the pace comparison. Leaving it in
@@ -141,7 +183,7 @@ struct PersonalPaceSummary: Equatable {
             total: total,
             // The service owns what is still owed on the goal; a second
             // subtraction here would be a second scoring rule.
-            remaining: max(0, detail.progress.remainingSteps),
+            remaining: max(0, remaining),
             countedSteps: countedSteps,
             countedDays: counted.count,
             elapsed: elapsed,
@@ -821,7 +863,7 @@ struct PersonalChallengeDetailsCard: View {
                         )
                         divider
                         termRow(
-                            "Last chance to sync",
+                            "Updates through",
                             PersonalTermsDateFormatter.dateTime(
                                 terms.evidenceCutoff,
                                 timezoneIdentifier: terms.timezone

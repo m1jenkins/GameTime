@@ -149,6 +149,20 @@ select is(
   'service commit is an exact replay'
 );
 
+select throws_ok(
+  $$ select public.commit_personal_stripe_sandbox_challenge_service_v2(
+       'fa111111-1111-1111-1111-111111111111',
+       'fa100000-0000-0000-0000-000000000001',
+       (select (value ->> 'setup_id')::uuid from t_api_setup),
+       'daily', 10000, 1000, 'USD', 'UTC', null,
+       'personal-stripe-sandbox-v1',
+       'personal-stripe-sandbox-consent-v1'
+     ) $$,
+  '22023',
+  null,
+  'a Health-policy retry cannot acknowledge an unmarked Personal V1 commit'
+);
+
 reset role;
 
 grant select on t_api_challenge to authenticated;
@@ -163,10 +177,12 @@ select ok(
     where terms.challenge_id =
       (select (value ->> 'challenge_id')::uuid from t_api_challenge)
       and terms.settlement_mode = 'test_only'
+      and terms.step_data_policy = 'attested_hourly_v1'
+      and terms.terms_version = 'personal-v1'
       and agreement.environment = 'sandbox'
       and not agreement.livemode
   ),
-  'v2 preserves Personal V1 and adds one sandbox-only agreement atomically'
+  'an unmarked legacy Edge commit preserves Personal V1 and adds one sandbox-only agreement atomically'
 );
 
 set local role authenticated;

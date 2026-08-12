@@ -1,5 +1,15 @@
 # Beta Plan 4 hosted rollout packet
 
+> **Superseded — do not execute.** This exact five-migration hash packet was
+> prepared for the historical Personal App Attest/hourly-coverage rollout. It
+> does not contain automatic snapshot-v2 schema, RPCs, finalization, mandatory
+> build enforcement, or open-challenge migration and must not be patched or
+> broadened in place. Preserve it as an audit record. Generate a new reviewed
+> packet after the v2 artifacts and hashes freeze, following the backend-smoke →
+> mandatory-build → eligible-open-challenge migration → separate Cron activation
+> order in
+> [PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md](PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md).
+
 **Prepared:** August 6, 2026
 
 **Read-only hosted checks completed through:** August 6, 2026 at 19:16 CDT

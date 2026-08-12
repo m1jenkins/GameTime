@@ -41,6 +41,7 @@ extension PersonalSettlementMode {
 struct PersonalChallengeCard: View {
     let challenge: PersonalChallengeSummary
     let action: () -> Void
+    @Environment(PersonalAccountabilityStore.self) private var store
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
@@ -87,14 +88,19 @@ struct PersonalChallengeCard: View {
                         )
                         .tracking(-0.5)
 
-                    if let progress = challenge.progress,
-                        challenge.status.isOpen
-                    {
+                    if let progress = store.displayedProgress(for: challenge) {
                         PersonalProgressBar(
                             progress: progress,
                             terms: challenge.terms
                         )
                     }
+                    PersonalHealthProgressStatus(
+                        progress: store.displayedProgress(for: challenge),
+                        terms: challenge.terms,
+                        status: challenge.presentationStatus(at: Date()),
+                        policy: challenge.stepDataPolicy,
+                        outcome: challenge.outcome
+                    )
 
                     HStack(spacing: 8) {
                         Image(systemName: "calendar")
@@ -128,7 +134,7 @@ struct PersonalChallengeCard: View {
         case .active:
             "Ends \(PersonalTermsDateFormatter.day(challenge.terms.endsAt, timezoneIdentifier: challenge.terms.timezone))"
         case .awaitingEvidence:
-            "Last chance to sync: \(PersonalTermsDateFormatter.dateTime(challenge.terms.evidenceCutoff, timezoneIdentifier: challenge.terms.timezone))"
+            "Updates through \(PersonalTermsDateFormatter.dateTime(challenge.terms.evidenceCutoff, timezoneIdentifier: challenge.terms.timezone))"
         case .resultPending:
             "Working out how you did"
         case .cancelled:
@@ -183,7 +189,7 @@ struct PersonalStatusPill: View {
 }
 
 struct PersonalProgressBar: View {
-    let progress: PersonalProgress
+    let progress: PersonalDisplayedProgress
     let terms: FrozenPersonalTerms
 
     var body: some View {
@@ -192,7 +198,7 @@ struct PersonalProgressBar: View {
                 .tint(CompetitiveTrustTheme.coral)
                 .accessibilityIdentifier("personal.progress")
             HStack(alignment: .firstTextBaseline) {
-                Text("\(progress.trustedSteps.formatted()) steps")
+                Text("\(progress.totalSteps.formatted()) steps")
                 Spacer(minLength: 8)
                 Text("\(progress.remainingSteps.formatted()) to go")
             }
@@ -211,16 +217,79 @@ struct PersonalProgressBar: View {
         guard terms.targetSteps > 0 else { return 0 }
         if terms.cadence == .daily {
             let current = progress.days.last(where: {
-                $0.evidenceState == .inProgress
-            })?.trustedSteps ?? progress.days.last?.trustedSteps ?? 0
-            return min(1, current / Double(terms.targetSteps))
+                $0.state == .current
+            })?.totalSteps ?? progress.days.last?.totalSteps ?? 0
+            return min(1, Double(current) / Double(terms.targetSteps))
         }
-        return min(1, Double(progress.trustedSteps) / Double(terms.targetSteps))
+        return min(1, Double(progress.totalSteps) / Double(terms.targetSteps))
+    }
+}
+
+struct PersonalHealthProgressStatus: View {
+    let progress: PersonalDisplayedProgress?
+    let terms: FrozenPersonalTerms
+    let status: PersonalChallengePresentationStatus
+    let policy: PersonalStepDataPolicy
+    let outcome: PersonalOutcome?
+
+    @ViewBuilder
+    var body: some View {
+        if policy.usesAutomaticHealthProgress {
+            Label(message, systemImage: symbol)
+                .font(
+                    CompetitiveTrustTheme.uiFont(
+                        size: 11.5,
+                        relativeTo: .caption,
+                        weight: .semibold
+                    )
+                )
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("personal.health.status")
+        }
+    }
+
+    private var message: String {
+        if isMissingFinalHealthData {
+            return "No Apple Health step data was available for the final result."
+        }
+        if progress?.isFrozen == true {
+            return "Final result from Apple Health"
+        }
+        if (status == .awaitingEvidence || status == .resultPending),
+            Date() < terms.evidenceCutoff
+        {
+            return "We’ll keep checking Apple Health through \(PersonalTermsDateFormatter.dateTime(terms.evidenceCutoff, timezoneIdentifier: terms.timezone))."
+        }
+        if status == .resultPending {
+            return "Final result is being prepared."
+        }
+        if let progress, let observedAt = progress.observedAt {
+            let update = "Updated from Apple Health \(observedAt.formatted(.relative(presentation: .named)))"
+            return progress.isStale ? "\(update) · Update delayed" : update
+        }
+        return "No step data available yet. Check Apple Health access in Settings."
+    }
+
+    private var symbol: String {
+        if isMissingFinalHealthData { return "exclamationmark.circle" }
+        if progress?.isFrozen == true { return "checkmark.circle.fill" }
+        if progress == nil { return "exclamationmark.circle" }
+        return progress?.isStale == true
+            ? "clock.badge.exclamationmark"
+            : "heart.fill"
+    }
+
+    private var isMissingFinalHealthData: Bool {
+        status == .completed
+            && outcome?.kind == .inconclusive
+            && outcome?.reasonCode == "missing_health_data"
+            && progress == nil
     }
 }
 
 struct PersonalSevenDayTimeline: View {
-    let days: [PersonalDayProgress]
+    let days: [PersonalDisplayedDay]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -249,7 +318,7 @@ struct PersonalSevenDayTimeline: View {
                             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                     }
                     Spacer(minLength: 8)
-                    Text(day.displayedTrustedSteps.formatted())
+                    Text(day.totalSteps.formatted())
                         .font(
                             CompetitiveTrustTheme.uiFont(
                                 size: 14,
@@ -272,49 +341,41 @@ struct PersonalSevenDayTimeline: View {
         "Day \(index + 1) · \(localDate)"
     }
 
-    private func icon(for day: PersonalDayProgress) -> String {
+    private func icon(for day: PersonalDisplayedDay) -> String {
         if day.metTarget == true { return "checkmark.circle.fill" }
-        switch day.evidenceState {
+        if day.state == .complete, day.metTarget == nil {
+            return "circle.fill"
+        }
+        switch day.state {
         case .future: return "circle.dashed"
-        case .inProgress: return "figure.walk.circle.fill"
+        case .current: return "figure.walk.circle.fill"
         case .complete: return "xmark.circle.fill"
-        case .outageWaived: return "checkmark.shield.fill"
-        case .pending: return "clock.fill"
-        case .incomplete, .missing, .quarantined, .conflicting, .unresolved:
-            return "exclamationmark.triangle.fill"
         }
     }
 
-    private func color(for day: PersonalDayProgress) -> Color {
+    private func color(for day: PersonalDisplayedDay) -> Color {
         if day.metTarget == true { return CompetitiveTrustTheme.mintInk }
-        switch day.evidenceState {
-        case .future, .pending: return CompetitiveTrustTheme.guide
-        case .inProgress: return CompetitiveTrustTheme.coral
-        case .outageWaived: return CompetitiveTrustTheme.mintInk
-        case .complete, .incomplete, .missing, .quarantined, .conflicting,
-            .unresolved:
-            return CompetitiveTrustTheme.sunInk
+        if day.state == .complete, day.metTarget == nil {
+            return CompetitiveTrustTheme.guide
+        }
+        switch day.state {
+        case .future: return CompetitiveTrustTheme.guide
+        case .current: return CompetitiveTrustTheme.coral
+        case .complete: return CompetitiveTrustTheme.sunInk
         }
     }
 
-    private func evidenceLabel(for day: PersonalDayProgress) -> String {
-        switch day.evidenceState {
+    private func evidenceLabel(for day: PersonalDisplayedDay) -> String {
+        switch day.state {
         case .future: "Coming up"
-        case .inProgress: "Today so far"
-        case .pending: "Waiting for your steps"
+        case .current: "Today so far"
         case .complete where day.metTarget == true: "Goal met"
-        case .complete: "Goal missed"
-        case .incomplete: "Some steps missing"
-        case .missing: "No steps received"
-        case .quarantined: "Steps we couldn’t use"
-        case .conflicting: "Steps didn’t add up"
-        case .unresolved: "Still checking"
-        case .outageWaived: "Our problem — doesn’t count against you"
+        case .complete: "Day complete"
         }
     }
 }
 
-struct PersonalEligibilityHoldCard: View {
+struct LegacyPersonalReadinessNotice: View {
     let hold: PersonalEligibilityHold?
 
     var body: some View {
@@ -349,7 +410,7 @@ struct PersonalEligibilityHoldCard: View {
                 }
             }
         }
-        .accessibilityIdentifier("personal.eligibility-hold")
+        .accessibilityIdentifier("personal.legacy-hold")
     }
 }
 
@@ -361,6 +422,8 @@ enum PersonalReasonText {
         let code = reasonCode.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !code.isEmpty else { return nil }
         switch code {
+        case "missing_health_data":
+            return "Apple Health didn’t have step data available for this challenge."
         case "missing":
             return "We never received steps for part of your week."
         case "incomplete":
@@ -371,7 +434,7 @@ enum PersonalReasonText {
             return "The steps we received didn’t add up."
         case "unresolved":
             return "We’re still sorting out some of your steps."
-        case "unresolved_device_sync":
+        case "unresolved_device_update":
             return "Your phone stopped sending steps for a while."
         case "outage_waived":
             return "This was a problem on our end."

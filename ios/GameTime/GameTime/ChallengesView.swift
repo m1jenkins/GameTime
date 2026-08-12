@@ -135,7 +135,13 @@ struct ChallengesView: View {
                 }
             }
         } else if store.hasPendingCreationRecoveryIssue {
-            PersonalEligibilityHoldCard(hold: nil)
+            DaybreakCard {
+                EmptyTrustState(
+                    title: "Saved setup needs attention",
+                    message: "GameTime couldn’t safely open the setup saved on this phone.",
+                    systemImage: "exclamationmark.triangle.fill"
+                )
+            }
             Button("Try saving again") {
                 Task { await store.retryPendingCreationRecovery() }
             }

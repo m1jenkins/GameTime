@@ -109,7 +109,12 @@ struct GameTimeApp: App {
                 pendingCancellationStore:
                     services.pendingPersonalCancellations,
                 diagnosticClient: services.trustedActivityDiagnostic,
-                activitySync: services.personalActivitySync
+                activitySync: services.personalActivitySync,
+                stepProgressStore: PersonalStepProgressStore(
+                    reader: services.personalHealthSteps,
+                    cache: services.personalStepSnapshotCache,
+                    uploader: services.personalHealthSnapshotUploader
+                )
             )
             #if DEBUG || STAGING
             if usesFixtureModel {
@@ -167,6 +172,7 @@ struct GameTimeApp: App {
                     )
                     .environment(demoModel)
                     .environment(demoPersonalStore)
+                    .environment(demoPersonalStore.stepProgress)
                     .environment(router)
                     .tint(CompetitiveTrustTheme.coral)
                 } else if let liveModel, let livePersonalStore {
@@ -179,6 +185,7 @@ struct GameTimeApp: App {
                     )
                     .environment(liveModel)
                     .environment(livePersonalStore)
+                    .environment(livePersonalStore.stepProgress)
                     .environment(router)
                     .tint(CompetitiveTrustTheme.coral)
                 } else {
@@ -250,7 +257,12 @@ struct GameTimeApp: App {
             pendingCancellationStore:
                 services.pendingPersonalCancellations,
             diagnosticClient: services.trustedActivityDiagnostic,
-            activitySync: services.personalActivitySync
+            activitySync: services.personalActivitySync,
+            stepProgressStore: PersonalStepProgressStore(
+                reader: services.personalHealthSteps,
+                cache: services.personalStepSnapshotCache,
+                uploader: services.personalHealthSnapshotUploader
+            )
         )
         isUsingDemoModel = true
     }

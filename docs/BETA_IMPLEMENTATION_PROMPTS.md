@@ -1,5 +1,13 @@
 # GameTime beta implementation prompts
 
+> **Superseded August 12, 2026.** These prompts preserve the implementation
+> sequence for historical `attested_hourly_v1`. Do not execute their Personal
+> App Attest, manual metric/coverage retry, positive-sample readiness,
+> diagnostic/hold, or final-sync instructions for new work. The controlling
+> automatic-flow contract is D120 and
+> [PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md](PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md).
+> Generic/social App Attest code remains valid regression scope.
+
 **Prepared:** August 6, 2026
 
 Use these prompts in order, one per new Codex chat. Each prompt is deliberately

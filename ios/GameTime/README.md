@@ -1,22 +1,24 @@
 # GameTime product app
 
-`GameTime.xcodeproj` is the production-shaped Personal V1 iOS target. It is independent
-from `../GameTimeConformance`, which remains the focused M6.5 App Attest
-engineering harness.
+`GameTime.xcodeproj` is the production-shaped Personal iOS target. New and
+migrated open challenges use automatic Apple Health snapshot v2. It is
+independent from `../GameTimeConformance`, which remains the focused legacy and
+generic M6.5 App Attest engineering harness rather than a Personal-v2 gate.
 
 ## Targets and configurations
 
 - `GameTime`: iOS 18, Swift 6, SwiftUI, `GameTimeCore`, and the exact
   `supabase-swift` version recorded in `Package.resolved`.
-- `GameTimeTests`: Personal terms, recovery, activity, state, routing, DTO,
-  validation, configuration, retained-legacy, and client-boundary tests.
+- `GameTimeTests`: Personal terms, automatic Health snapshots, cache/upload,
+  recovery, state, routing, DTO, validation, configuration, retained-legacy,
+  and client-boundary tests.
 - `GameTimeUITests`: signed-out/onboarding roots, the three-tab Personal
   Daybreak journey, daily and cumulative creation, every test commitment,
   recovery and fixture states, Dynamic Type, labels, and Reduce Motion.
 - `Debug`: live clients by default; pass `--fixture-mode` for deterministic
   local and UI-test data.
-- `Staging`: live clients, test-only Personal mutation and Health activity
-  enabled, and a persistent **Test commitment — no money will be charged.**
+- `Staging`: live clients, test-only Personal mutation and automatic Health
+  progress enabled, and a persistent **Test commitment — no money will be charged.**
   banner. The signed-out root and You tab can enter an isolated fixture model
   without changing the live account.
 - `Release`: live clients, with Personal and retained social contest mutations
@@ -31,21 +33,21 @@ In a Debug or Staging build, open **You → Open demo mode**. If the live accoun
 is signed out, **Try demo mode** is also available on the sign-in screen. The
 isolated model presents only Today, Challenges, and You and resets on exit.
 
-UI tests launch the same deterministic boundary with `--fixture-mode`. Bounded
-arguments cover `--fixture-loading`, `--fixture-empty`, `--fixture-offline`,
-`--fixture-activity`, `--fixture-personal-no-diagnostic`,
-`--fixture-personal-hold`, and `--fixture-personal-pending`. These states do not
-touch Supabase and do not prove hosted, two-user, HealthKit, or App Attest
-behavior.
+UI tests launch the same deterministic boundary with `--fixture-mode`.
+Snapshot-v2 fixtures cover automatic live progress, cache/server fallback,
+stale retention, no data, grace, offline upload, and frozen history. Historical
+diagnostic/hold/activity fixtures may remain only when explicitly labelled v1.
+Fixtures do not touch Supabase and do not prove hosted, two-user, Apple Health,
+observer, Watch, or locked-device behavior.
 
-## Personal restart-safe retry
+## Personal restart-safe creation
 
 Before the first Personal creation RPC attempt, the app saves one protected,
 versioned request for the authenticated actor under Application Support. It
 preserves the request UUID, cadence, whole-step target, test commitment,
 timezone, owner, and exact retry metadata. An offline, cancelled, or ambiguous
 response leaves the record in place; a relaunch restores it only for the same
-actor and requires an explicit manual retry.
+actor and requires an explicit creation retry.
 
 If refresh discovers that the server already created that exact pending
 challenge, the saved request remains resumable until the idempotent response is
@@ -135,8 +137,8 @@ xcodebuild \
   build
 ```
 
-The full Personal proof layers, observed local counts, and external Apple
-prerequisites are in `../../docs/PERSONAL_V1_ACCEPTANCE.md`. The repository-local
-simulator layer passes 103 product unit tests, 10 product UI tests, 10 conformance
-tests, and all three unsigned simulator configurations. Simulator proof does not
-substitute for the signed physical-device or hosted acceptance layers.
+The controlling proof layers and external Apple prerequisites are in
+`../../docs/PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md`. The older
+`../../docs/PERSONAL_V1_ACCEPTANCE.md` and App Attest conformance suite remain
+historical/generic regression records. Simulator proof does not substitute for
+signed physical-device Health or hosted acceptance.

@@ -228,9 +228,10 @@ final class SupabasePersonalPaymentClient: PersonalPaymentClient {
     }
 }
 
-private struct PersonalPaymentTermsDocument: Encodable {
+struct PersonalPaymentTermsDocument: Encodable {
     static let agreementVersion = "personal-stripe-sandbox-v1"
     static let consentVersion = "personal-stripe-sandbox-consent-v1"
+    static let stepDataPolicy = "healthkit_nonmanual_daily_v1"
 
     let requestID: UUID
     let cadence: PersonalChallengeCadence
@@ -242,6 +243,7 @@ private struct PersonalPaymentTermsDocument: Encodable {
     let agreementVersion = Self.agreementVersion
     let consentVersion = Self.consentVersion
     let consentAccepted = true
+    let stepDataPolicy = Self.stepDataPolicy
 
     init(request: PersonalChallengeCreationRequest) {
         requestID = request.requestID
@@ -263,6 +265,7 @@ private struct PersonalPaymentTermsDocument: Encodable {
         case agreementVersion
         case consentVersion
         case consentAccepted
+        case stepDataPolicy
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -279,6 +282,7 @@ private struct PersonalPaymentTermsDocument: Encodable {
         try container.encode(agreementVersion, forKey: .agreementVersion)
         try container.encode(consentVersion, forKey: .consentVersion)
         try container.encode(consentAccepted, forKey: .consentAccepted)
+        try container.encode(stepDataPolicy, forKey: .stepDataPolicy)
         try container.encodeIfPresent(
             requestedStartsAt,
             forKey: .requestedStartsAt

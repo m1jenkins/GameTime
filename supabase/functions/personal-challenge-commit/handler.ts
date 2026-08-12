@@ -15,10 +15,15 @@ import { type AccessTokenVerifier, AuthError, bearerToken } from "../_shared/jwt
 import type { PersonalStripeSetupGateway } from "../personal-payment-setup/handler.ts";
 
 export const MAX_CHALLENGE_COMMIT_BODY_BYTES = 8 * 1024;
+export const PERSONAL_HEALTH_STEP_DATA_POLICY = "healthkit_nonmanual_daily_v1";
+
+export type PersonalStripeCommitStepDataPolicy = typeof PERSONAL_HEALTH_STEP_DATA_POLICY;
 
 export interface LoadPersonalStripeSetupArgs extends PersonalStripeTerms {
   readonly ownerId: string;
   readonly setupId: string;
+  /** Missing for legacy builds; exact Health policy opts the commit into v2. */
+  readonly stepDataPolicy?: PersonalStripeCommitStepDataPolicy;
 }
 
 export interface LoadedPersonalStripeSetup {
@@ -78,15 +83,38 @@ export function createPersonalStripeCommitHandler(
         await readBody(request, MAX_CHALLENGE_COMMIT_BODY_BYTES),
       );
       const setupId = requireUuid(body, "setupId");
-      const args = {
+      const rawStepDataPolicy = body["stepDataPolicy"];
+      if (
+        rawStepDataPolicy !== undefined &&
+        rawStepDataPolicy !== PERSONAL_HEALTH_STEP_DATA_POLICY
+      ) {
+        throw new HttpFailure(
+          "bad_request",
+          "stepDataPolicy is not supported",
+        );
+      }
+      const args: LoadPersonalStripeSetupArgs = {
         ownerId: caller.userId,
         setupId,
         ...parsePersonalStripeTerms(body),
+        ...(rawStepDataPolicy === PERSONAL_HEALTH_STEP_DATA_POLICY
+          ? { stepDataPolicy: PERSONAL_HEALTH_STEP_DATA_POLICY }
+          : {}),
       };
       const loaded = await deps.database.loadSetupForCommit(args);
       if (loaded.consumedChallengeId !== undefined) {
+        const committed = await deps.database.commitChallenge(args);
+        if (
+          !committed.replayed ||
+          committed.challengeId !== loaded.consumedChallengeId
+        ) {
+          throw new HttpFailure(
+            "internal",
+            "the consumed payment setup did not replay its frozen challenge",
+          );
+        }
         return jsonResponse(200, {
-          challengeId: loaded.consumedChallengeId,
+          challengeId: committed.challengeId,
           paymentState: "method_saved",
           replayed: true,
         });

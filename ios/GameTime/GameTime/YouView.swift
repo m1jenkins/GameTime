@@ -15,12 +15,6 @@ struct YouView: View {
                         personalStore.configuration.personalSettlementMode
                 )
                 healthSection
-                if personalStore.eligibilityHoldActive {
-                    DaybreakSectionLabel(text: "Account status")
-                    PersonalEligibilityHoldCard(
-                        hold: personalStore.eligibilityHold
-                    )
-                }
                 privacySection
                 historySection
                 demoSection
@@ -78,53 +72,22 @@ struct YouView: View {
             DaybreakSectionLabel(text: "Apple Health")
             DaybreakCard {
                 VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Label("Steps", systemImage: "heart.fill")
-                            .font(
-                                CompetitiveTrustTheme.displayFont(
-                                    size: 18,
-                                    relativeTo: .headline
-                                )
+                    Label("Steps", systemImage: "heart.fill")
+                        .font(
+                            CompetitiveTrustTheme.displayFont(
+                                size: 18,
+                                relativeTo: .headline
                             )
-                        Spacer(minLength: 8)
-                        if personalStore.latestDiagnostic != nil {
-                            TrustStatusPill(
-                                text: diagnosticStatus,
-                                kind: personalStore.latestDiagnostic?.isTrusted
-                                    == true
-                                    ? .verified
-                                    : .action
-                            )
-                        }
-                    }
+                        )
                     Text(
-                        "We look at the last day of steps to check that your iPhone or Apple Watch is recording them."
+                        "Connect Apple Health so GameTime can update your challenge automatically from your step history."
                     )
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                    if let diagnostic = personalStore.latestDiagnostic {
-                        Text(
-                            "Last checked \(diagnostic.performedAt.formatted(.relative(presentation: .named))) · \(diagnostic.positiveTrustedSampleCount) step readings found"
-                        )
-                        .font(.caption)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                    }
-                    if case .localStepsObserved(let probe) =
-                        personalStore.healthReadiness
-                    {
-                        Text(
-                            probe.sawTrustedDeviceSteps
-                                ? "Found \(probe.positiveTrustedSampleCount) step readings from your Apple devices in the last \(probe.trustedHourCount) hours."
-                                : "No steps from your Apple devices in the last \(probe.trustedHourCount) hours."
-                        )
-                        .font(.caption)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                        .accessibilityIdentifier("personal.health.probe-result")
-                    }
                     Button(
                         personalStore.isVerifyingHealthAccess
-                            ? "Checking…"
-                            : "Check Health connection"
+                            ? "Connecting…"
+                            : "Connect Apple Health"
                     ) {
                         Task {
                             _ = await personalStore.verifyHealthAccess(
@@ -139,34 +102,9 @@ struct YouView: View {
                             || !personalStore.configuration.activitySyncEnabled
                     )
                     .accessibilityIdentifier("personal.health.verify")
-                    if personalStore.configuration.attestedUploadEnabled,
-                        personalStore.eligibilityHoldActive
-                    {
-                        Button(
-                            personalStore.isRunningDiagnostic
-                                ? "Reconnecting…"
-                                : "Reconnect Health"
-                        ) {
-                            Task {
-                                _ = await personalStore.runDiagnostic(
-                                    timezone: model.profile?.timezone
-                                        ?? TimeZone.current.identifier
-                                )
-                            }
-                        }
-                        .buttonStyle(TrustSecondaryButtonStyle())
-                        .disabled(personalStore.isRunningDiagnostic)
-                        .accessibilityIdentifier("personal.diagnostic.run")
-                    }
                     if !personalStore.configuration.activitySyncEnabled {
                         Text(
                             "Health connection checks aren’t available yet."
-                        )
-                        .font(.caption2)
-                        .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
-                    } else if !personalStore.configuration.attestedUploadEnabled {
-                        Text(
-                            "Your steps stay on your phone and aren’t sent to GameTime."
                         )
                         .font(.caption2)
                         .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
@@ -293,16 +231,6 @@ struct YouView: View {
         .padding(.horizontal, 12)
     }
 
-    private var diagnosticStatus: String {
-        switch personalStore.latestDiagnostic?.status {
-        case .trusted: "Connected"
-        case .noPositiveTrustedSample: "No steps found"
-        case .unavailable: "Unavailable"
-        case .failed: "Needs attention"
-        case .notRun, nil: "Not checked"
-        }
-    }
-
     private func settingRow(_ label: String, _ value: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(label).font(.subheadline.weight(.semibold))
@@ -354,7 +282,7 @@ struct TrustAndPrivacyView: View {
                 privacyCard(
                     title: "We read steps, not your health history",
                     detail:
-                        "We only read step counts recorded by your iPhone or Apple Watch. Steps you typed in yourself or that came from another app aren’t counted, and nothing else in Apple Health is ever read.",
+                        "We only read step counts from Apple Health. Steps Apple marks as manually entered aren’t counted, and nothing else in Apple Health is ever read.",
                     icon: "heart.text.square.fill"
                 )
                 privacyCard(

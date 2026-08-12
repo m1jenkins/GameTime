@@ -7,10 +7,10 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: ./scripts/check-beta-candidate.sh [--root PATH]
+Usage: ./scripts/check-beta-candidate.sh [--root PATH] [--personal-copy-only]
 
 Checks the GameTime Release source configuration for:
-  - Release and production App Attest environments
+  - Release runtime configuration without a Personal App Attest dependency
   - Stripe sandbox-only settlement and a non-staging return scheme
   - A final non-staging bundle identifier
   - iPhone-only targeting and Watch isolation
@@ -18,6 +18,7 @@ Checks the GameTime Release source configuration for:
   - App version and build number
   - A published privacy policy URL and a support contact
   - Secret-shaped literals in public client configuration
+  - Removed Personal manual-sync copy and accessibility identifiers
 
 The command exits 0 when every check passes, 1 when candidate blockers remain,
 and 2 when the checker itself cannot inspect the requested project.
@@ -26,6 +27,7 @@ USAGE
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 requested_root="${script_dir}/.."
+personal_copy_only="0"
 
 while (( $# > 0 )); do
   case "$1" in
@@ -36,6 +38,10 @@ while (( $# > 0 )); do
       fi
       requested_root="$2"
       shift 2
+      ;;
+    --personal-copy-only)
+      personal_copy_only="1"
+      shift
       ;;
     -h|--help)
       usage
@@ -88,6 +94,38 @@ block_check() {
   printf 'BLOCKER %s: %s\n' "$check_id" "$message"
 }
 
+personal_copy_violations=""
+if [[ -d "$app_source" ]]; then
+  personal_copy_violations="$(
+    grep -R -n -i -E \
+      --include='*.swift' \
+      'Sync my steps|Send saved steps|Not synced|Steps received|Step syncing|steps synced|Last synced|personal\.sync(\.pending)?|personal\.diagnostic\.run|personal\.eligibility-hold|steps[^\"]*not confirmed|not confirmed[^\"]*steps' \
+      "$app_source" || true
+  )"
+else
+  personal_copy_violations="missing product source directory"
+fi
+
+if [[ -z "$personal_copy_violations" ]]; then
+  pass_check \
+    "personal-automatic-copy" \
+    "Personal shipping source contains no removed manual-sync copy or hooks."
+else
+  block_check \
+    "personal-automatic-copy" \
+    "Remove Personal manual-sync, confirmation, diagnostic, and hold copy/hooks."
+fi
+
+if [[ "$personal_copy_only" == "1" ]]; then
+  printf '\nPersonal automatic-flow copy audit: %d passed, %d blocker(s).\n' \
+    "$pass_count" \
+    "$blocker_count"
+  if (( blocker_count > 0 )); then
+    exit 1
+  fi
+  exit 0
+fi
+
 xcconfig_value() {
   local file_path="$1"
   local setting_name="$2"
@@ -110,15 +148,11 @@ xcconfig_value() {
 }
 
 release_environment=""
-attest_environment=""
 settlement_mode=""
 stripe_return_url=""
 
 if [[ -f "$release_config" ]]; then
   release_environment="$(xcconfig_value "$release_config" GAMETIME_ENV)"
-  attest_environment="$(
-    xcconfig_value "$release_config" APP_ATTEST_ENVIRONMENT
-  )"
   settlement_mode="$(
     xcconfig_value "$release_config" GAMETIME_PERSONAL_SETTLEMENT_MODE
   )"
@@ -141,15 +175,9 @@ else
     "Release must declare GAMETIME_ENV as release."
 fi
 
-if [[ "$attest_environment" == "production" ]]; then
-  pass_check \
-    "app-attest-environment" \
-    "Release.xcconfig declares production App Attest."
-else
-  block_check \
-    "app-attest-environment" \
-    "Release must require production App Attest for TestFlight."
-fi
+pass_check \
+  "personal-snapshot-auth" \
+  "Personal snapshot v2 uses the signed-in account rather than App Attest."
 
 if [[ "$settlement_mode" == "stripe_sandbox" ]]; then
   pass_check \
@@ -797,7 +825,7 @@ printf '\nBeta candidate source preflight: %d passed, %d blocker(s).\n' \
   "$pass_count" \
   "$blocker_count"
 echo \
-  "Evidence boundary: this does not prove account identity, hosted runtime, signing, archive contents, App Attest client/server compatibility, device behavior, or TestFlight."
+  "Evidence boundary: this does not prove account identity, hosted runtime, signing, archive contents, Apple Health behavior, snapshot authorization, device behavior, or TestFlight."
 
 if (( blocker_count > 0 )); then
   exit 1

@@ -36,7 +36,7 @@ struct CreatePersonalChallengeFlow: View {
             case .target: "Your goal"
             case .commitment: "Your amount"
             case .start: "When you start"
-            case .healthAccess: "Health check"
+            case .healthAccess: "Apple Health"
             case .payment: "Test payment"
             case .review: "Check and confirm"
             }
@@ -86,7 +86,9 @@ struct CreatePersonalChallengeFlow: View {
                             )
                     )
                     step =
-                        if store.configuration.personalSettlementMode
+                        if !store.healthReadiness.permitsCreation {
+                            .healthAccess
+                        } else if store.configuration.personalSettlementMode
                             == .stripeSandbox,
                             pending.paymentSetupCompletedAt == nil
                         {
@@ -452,36 +454,16 @@ struct CreatePersonalChallengeFlow: View {
                 )
             )
             Text(
-                "We look at the last day of steps to check that your iPhone or Apple Watch is recording them."
+                "Connect Apple Health so GameTime can update this challenge automatically from your step history."
             )
             .font(.subheadline)
             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
 
-            if store.eligibilityHoldActive {
-                PersonalEligibilityHoldCard(hold: store.eligibilityHold)
-                Text(
-                    "Open You and choose Reconnect Health before starting another challenge."
-                )
-                .font(.caption)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-            }
-
-            if case .localStepsObserved(let probe) = store.healthReadiness {
-                Text(
-                    probe.sawTrustedDeviceSteps
-                        ? "Found \(probe.positiveTrustedSampleCount) step readings from your devices in the last \(probe.trustedHourCount) hours."
-                        : "No steps from your devices in the last 24 hours. Walk around with your phone for a bit, then check again."
-                )
-                .font(.caption)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .accessibilityIdentifier("personal.health.probe-result")
-            }
-
             if !store.healthReadiness.permitsCreation {
                 Button(
                     store.isVerifyingHealthAccess
-                        ? "Checking…"
-                        : "Check Health connection"
+                        ? "Connecting…"
+                        : "Connect Apple Health"
                 ) {
                     Task {
                         _ = await store.verifyHealthAccess(
@@ -503,12 +485,6 @@ struct CreatePersonalChallengeFlow: View {
                 )
                 .font(.caption)
                 .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
-            } else if !store.configuration.attestedUploadEnabled {
-                Text(
-                    "Your steps stay on your phone and aren’t sent to GameTime."
-                )
-                .font(.caption)
-                .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
             }
         }
     }
@@ -516,7 +492,7 @@ struct CreatePersonalChallengeFlow: View {
     private var healthAccessTitle: String {
         store.healthReadiness.permitsCreation
             ? "Health connected"
-            : "Check your Health connection"
+            : "Connect Apple Health"
     }
 
     private var paymentContent: some View {
@@ -544,7 +520,7 @@ struct CreatePersonalChallengeFlow: View {
                     "Meeting your goal, an inconclusive result, and cancelling before the challenge starts close without a settlement."
                 )
                 paymentRule(
-                    "A complete miss is only provisional after the 24-hour final-sync cutoff."
+                    "A complete miss is only provisional after the 24-hour update window."
                 )
                 paymentRule(
                     "Your review window ends 7 days after the result is published."
@@ -615,7 +591,7 @@ struct CreatePersonalChallengeFlow: View {
             )
             reviewRow("Time zone", draft.timezone)
             reviewRow("Starts", startDescription)
-            reviewRow("Last chance to sync", "24 hours after your last day")
+            reviewRow("Updates through", "24 hours after your last day")
             if store.configuration.personalSettlementMode == .stripeSandbox {
                 reviewRow("Payment", "Test method saved — ready for review")
                 reviewRow(
@@ -672,7 +648,6 @@ struct CreatePersonalChallengeFlow: View {
                     store.isMutating
                         || !store.hasVerifiedCreationState
                         || !store.healthReadiness.permitsCreation
-                        || store.eligibilityHoldActive
                         || !isDraftValid
                 )
                 .accessibilityIdentifier("personal.submit")

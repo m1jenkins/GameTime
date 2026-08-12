@@ -79,7 +79,7 @@ enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
   var errorDescription: String? {
     switch self {
     case .stagingOnly:
-      "Step syncing isn’t available yet."
+      "Activity updates aren’t available yet."
     case .authenticationRequired:
       "Sign in again to sync your steps."
     case .tokenRefusedByService:
@@ -101,7 +101,7 @@ enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
     case .invalidMetricBody:
       "Something is wrong with the steps waiting to send."
     case .deviceRegistrationUnavailable:
-      "We couldn’t set this device up for step syncing."
+      "We couldn’t set this device up for activity updates."
     case .attestationRejected:
       "We couldn’t verify this device. This isn’t a sign-in problem."
     case .accountNotActive:

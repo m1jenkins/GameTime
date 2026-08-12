@@ -16,7 +16,12 @@ enum FixtureServicesFactory {
         personalPaymentClient: (any PersonalPaymentClient)? = nil,
         trustedActivityDiagnosticClient:
             (any TrustedActivityDiagnosticClient)? = nil,
-        personalActivitySync: (any PersonalActivitySyncing)? = nil
+        personalActivitySync: (any PersonalActivitySyncing)? = nil,
+        personalHealthSteps: (any PersonalHealthStepReading)? = nil,
+        personalStepSnapshotCache:
+            (any PersonalStepSnapshotCaching)? = nil,
+        personalHealthSnapshotUploader:
+            (any PersonalHealthSnapshotUploading)? = nil
     ) -> AppServices {
         let scenario = FixtureScenario(arguments: arguments)
         let store = FixtureStore(scenario: scenario)
@@ -65,7 +70,13 @@ enum FixtureServicesFactory {
             personalActivitySync: personalActivitySync
                 ?? FixturePersonalActivitySyncCoordinator(
                     store: personalStore
-                )
+                ),
+            personalHealthSteps: personalHealthSteps
+                ?? FixturePersonalHealthStepReader(store: personalStore),
+            personalStepSnapshotCache: personalStepSnapshotCache
+                ?? EphemeralPersonalStepSnapshotCache(),
+            personalHealthSnapshotUploader: personalHealthSnapshotUploader
+                ?? DisabledPersonalHealthSnapshotUploader()
         )
     }
 }
@@ -228,7 +239,7 @@ private final class FixturePersonalStore {
                 commitmentAmountMinor: 1_000,
                 currency: "USD",
                 settlementMode: .testOnly,
-                termsVersion: "personal-v1",
+                termsVersion: "personal-v2",
                 timezone: "America/Chicago",
                 agreementAt: start.addingTimeInterval(-86_400),
                 startsAt: start,
@@ -249,7 +260,22 @@ private final class FixturePersonalStore {
                 pendingUploadCount: 0,
                 coveredBucketCount: 47,
                 expectedBucketCount: 48
-            )
+            ),
+            stepDataPolicy: .healthKitNonmanualDailyV1,
+            termsFingerprint: "fixture-active-terms-v2",
+            serverStepSnapshot: PersonalStepSnapshot(
+                challengeID: activeChallengeID,
+                termsFingerprint: "fixture-active-terms-v2",
+                observedAt: now,
+                queryThrough: now,
+                dailyProgress: days.map {
+                    PersonalStepSnapshot.Day(
+                        localDate: $0.localDate,
+                        totalSteps: $0.displayedTrustedSteps
+                    )
+                }
+            ),
+            snapshotUpdatedAt: now
         )
     }
 
@@ -295,7 +321,7 @@ private final class FixturePersonalStore {
                     : .testOnly,
                 termsVersion: stripeReview
                     ? "personal-stripe-sandbox-v1"
-                    : "personal-v1",
+                    : "personal-v2",
                 timezone: "America/Chicago",
                 agreementAt: start.addingTimeInterval(-86_400),
                 startsAt: start,
@@ -327,7 +353,23 @@ private final class FixturePersonalStore {
                     : "target_reached_complete_evidence",
                 evidenceCutoff: cutoff,
                 publishedAt: cutoff.addingTimeInterval(60)
-            )
+            ),
+            stepDataPolicy: .healthKitNonmanualDailyV1,
+            termsFingerprint: "fixture-completed-terms-v2",
+            serverStepSnapshot: PersonalStepSnapshot(
+                challengeID: completedChallengeID,
+                termsFingerprint: "fixture-completed-terms-v2",
+                observedAt: cutoff,
+                queryThrough: end,
+                dailyProgress: days.map {
+                    PersonalStepSnapshot.Day(
+                        localDate: $0.localDate,
+                        totalSteps: $0.displayedTrustedSteps
+                    )
+                }
+            ),
+            snapshotUpdatedAt: cutoff,
+            commitmentWaived: false
         )
     }
 
@@ -1099,6 +1141,13 @@ private final class FixtureActivitySyncCoordinator: ActivitySyncing {
         return 0
     }
 
+    func retirePendingUploads(
+        for ownerID: UUID,
+        contestID: UUID
+    ) async throws {
+        _ = (ownerID, contestID)
+    }
+
     func sync(
         ownerID: UUID,
         contest: ContestCard,
@@ -1238,7 +1287,12 @@ private final class FixturePersonalAccountabilityClient:
                 closedAt: Date()
             ),
             progress: original.progress,
-            outcome: nil
+            outcome: nil,
+            stepDataPolicy: original.stepDataPolicy,
+            termsFingerprint: original.termsFingerprint,
+            serverStepSnapshot: original.serverStepSnapshot,
+            snapshotUpdatedAt: original.snapshotUpdatedAt,
+            commitmentWaived: original.commitmentWaived
         )
     }
 
@@ -1250,7 +1304,12 @@ private final class FixturePersonalAccountabilityClient:
             status: detail.status,
             terms: detail.terms,
             progress: detail.progress,
-            outcome: detail.outcome
+            outcome: detail.outcome,
+            stepDataPolicy: detail.stepDataPolicy,
+            termsFingerprint: detail.termsFingerprint,
+            serverStepSnapshot: detail.serverStepSnapshot,
+            snapshotUpdatedAt: detail.snapshotUpdatedAt,
+            commitmentWaived: detail.commitmentWaived
         )
     }
 
@@ -1305,9 +1364,7 @@ private final class FixturePersonalAccountabilityClient:
                 commitmentAmountMinor: request.commitmentAmountMinor,
                 currency: "USD",
                 settlementMode: settlementMode,
-                termsVersion: settlementMode == .stripeSandbox
-                    ? "personal-stripe-sandbox-v1"
-                    : "personal-v1",
+                termsVersion: "personal-v2",
                 timezone: request.timezone,
                 agreementAt: now,
                 startsAt: start,
@@ -1326,7 +1383,9 @@ private final class FixturePersonalAccountabilityClient:
                 pendingUploadCount: 0,
                 coveredBucketCount: 0,
                 expectedBucketCount: 0
-            )
+            ),
+            stepDataPolicy: .healthKitNonmanualDailyV1,
+            termsFingerprint: "fixture-\(id.uuidString.lowercased())"
         )
     }
 }
@@ -1439,6 +1498,13 @@ private final class FixturePersonalActivitySyncCoordinator:
         return 0
     }
 
+    func retirePendingUploads(
+        for ownerID: UUID,
+        challengeID: UUID
+    ) async throws {
+        _ = (ownerID, challengeID)
+    }
+
     func sync(
         ownerID: UUID,
         challenge: PersonalChallengeDetail,
@@ -1449,6 +1515,55 @@ private final class FixturePersonalActivitySyncCoordinator:
         return .synced(
             replayed: false,
             stepTotal: Double(challenge.progress.trustedSteps)
+        )
+    }
+}
+
+@MainActor
+private final class FixturePersonalHealthStepReader:
+    PersonalHealthStepReading
+{
+    private let store: FixturePersonalStore
+
+    init(store: FixturePersonalStore) {
+        self.store = store
+    }
+
+    func requestAuthorization() async throws -> ActivityAuthorizationOutcome {
+        guard !store.offline else { throw FixtureFailure.offline }
+        return .requestCompleted
+    }
+
+    func readSnapshot(
+        challengeID: UUID,
+        terms: FrozenPersonalTerms,
+        termsFingerprint: String,
+        observedAt: Date
+    ) async throws -> PersonalStepSnapshot {
+        guard !store.offline else { throw FixtureFailure.offline }
+        let plan = try PersonalHealthSnapshotPlanner.plan(
+            terms: terms,
+            observedAt: observedAt
+        )
+        let existing = store.challenges.first(where: {
+            $0.id == challengeID
+        })?.serverStepSnapshot
+        let totals = Dictionary(
+            uniqueKeysWithValues: (existing?.dailyProgress ?? []).map {
+                ($0.localDate, $0.totalSteps)
+            }
+        )
+        return PersonalStepSnapshot(
+            challengeID: challengeID,
+            termsFingerprint: termsFingerprint,
+            observedAt: observedAt,
+            queryThrough: plan.queryThrough,
+            dailyProgress: plan.days.map {
+                PersonalStepSnapshot.Day(
+                    localDate: $0.localDate,
+                    totalSteps: totals[$0.localDate, default: 0]
+                )
+            }
         )
     }
 }

@@ -9,6 +9,7 @@ import type { PersonalStripeSetupGateway } from "../personal-payment-setup/handl
 import {
   createPersonalStripeCommitHandler,
   type LoadPersonalStripeSetupArgs,
+  PERSONAL_HEALTH_STEP_DATA_POLICY,
   type PersonalStripeCommitDatabase,
   type PersonalStripeCommitDeps,
 } from "./handler.ts";
@@ -18,7 +19,7 @@ const REQUEST = "22222222-2222-2222-2222-222222222222";
 const SETUP = "33333333-3333-3333-3333-333333333333";
 const CHALLENGE = "44444444-4444-4444-4444-444444444444";
 
-function requestBody() {
+function requestBody(stepDataPolicy?: unknown) {
   return {
     setupId: SETUP,
     requestId: REQUEST,
@@ -31,10 +32,14 @@ function requestBody() {
     agreementVersion: PERSONAL_STRIPE_AGREEMENT_VERSION,
     consentVersion: PERSONAL_STRIPE_CONSENT_VERSION,
     consentAccepted: true,
+    ...(stepDataPolicy === undefined ? {} : { stepDataPolicy }),
   };
 }
 
-async function request(token?: string | null): Promise<Request> {
+async function request(
+  token?: string | null,
+  stepDataPolicy?: unknown,
+): Promise<Request> {
   const accessToken = token === undefined ? await mintAccessToken(USER) : token;
   return new Request("https://example.test/personal-challenge-commit", {
     method: "POST",
@@ -42,7 +47,7 @@ async function request(token?: string | null): Promise<Request> {
       "content-type": "application/json",
       ...(accessToken === null ? {} : { authorization: `Bearer ${accessToken}` }),
     },
-    body: JSON.stringify(requestBody()),
+    body: JSON.stringify(requestBody(stepDataPolicy)),
   });
 }
 
@@ -56,9 +61,11 @@ function dependencies(options: {
   readonly deps: PersonalStripeCommitDeps;
   readonly calls: string[];
   readonly loadedArgs: LoadPersonalStripeSetupArgs[];
+  readonly committedArgs: LoadPersonalStripeSetupArgs[];
 } {
   const calls: string[] = [];
   const loadedArgs: LoadPersonalStripeSetupArgs[] = [];
+  const committedArgs: LoadPersonalStripeSetupArgs[] = [];
   const database: PersonalStripeCommitDatabase = {
     loadSetupForCommit(args) {
       calls.push("load");
@@ -75,11 +82,12 @@ function dependencies(options: {
       calls.push("record");
       return Promise.resolve();
     },
-    commitChallenge() {
+    commitChallenge(args) {
       calls.push("commit");
+      committedArgs.push(args);
       return Promise.resolve({
         challengeId: CHALLENGE,
-        replayed: options.replayed ?? false,
+        replayed: options.replayed ?? (options.consumedChallengeId !== undefined),
       });
     },
   };
@@ -99,6 +107,7 @@ function dependencies(options: {
   return {
     calls,
     loadedArgs,
+    committedArgs,
     deps: {
       database,
       stripe,
@@ -121,6 +130,36 @@ Deno.test("commits only after Stripe confirms the saved method", async () => {
   assertEquals(fixture.calls, ["load", "stripe", "record", "commit"]);
   assertEquals(fixture.loadedArgs[0]!.ownerId, USER);
   assertEquals(fixture.loadedArgs[0]!.requestId, REQUEST);
+  assertEquals(fixture.loadedArgs[0]!.stepDataPolicy, undefined);
+  assertEquals(fixture.committedArgs[0]!.stepDataPolicy, undefined);
+});
+
+Deno.test("propagates the exact Health policy marker to v2 commit dispatch", async () => {
+  const fixture = dependencies();
+  const handler = createPersonalStripeCommitHandler(fixture.deps);
+  const response = await handler(
+    await request(undefined, PERSONAL_HEALTH_STEP_DATA_POLICY),
+  );
+
+  assertEquals(response.status, 201);
+  assertEquals(fixture.calls, ["load", "stripe", "record", "commit"]);
+  assertEquals(
+    fixture.committedArgs.map((args) => args.stepDataPolicy),
+    [PERSONAL_HEALTH_STEP_DATA_POLICY],
+  );
+});
+
+Deno.test("rejects an unsupported step policy before database or Stripe work", async () => {
+  const fixture = dependencies();
+  const handler = createPersonalStripeCommitHandler(fixture.deps);
+  const response = await handler(await request(undefined, "some_future_policy"));
+
+  assertEquals(response.status, 400);
+  assertEquals(await response.json(), {
+    error: "bad_request",
+    message: "stepDataPolicy is not supported",
+  });
+  assertEquals(fixture.calls, []);
 });
 
 Deno.test("returns an exact challenge retry without making a second challenge", async () => {
@@ -134,7 +173,23 @@ Deno.test("returns an exact challenge retry without making a second challenge", 
     paymentState: "method_saved",
     replayed: true,
   });
-  assertEquals(fixture.calls, ["load"]);
+  assertEquals(fixture.calls, ["load", "commit"]);
+  assertEquals(fixture.committedArgs[0]!.stepDataPolicy, undefined);
+});
+
+Deno.test("policy-validates a consumed Health setup through the v2 commit boundary", async () => {
+  const fixture = dependencies({ consumedChallengeId: CHALLENGE });
+  const handler = createPersonalStripeCommitHandler(fixture.deps);
+  const response = await handler(
+    await request(undefined, PERSONAL_HEALTH_STEP_DATA_POLICY),
+  );
+
+  assertEquals(response.status, 200);
+  assertEquals(fixture.calls, ["load", "commit"]);
+  assertEquals(
+    fixture.committedArgs[0]!.stepDataPolicy,
+    PERSONAL_HEALTH_STEP_DATA_POLICY,
+  );
 });
 
 Deno.test("does not trust PaymentSheet completion without provider success", async () => {

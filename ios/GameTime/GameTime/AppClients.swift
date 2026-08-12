@@ -93,6 +93,9 @@ struct AppServices {
     let pendingPersonalCancellations: any PendingPersonalCancellationStore
     let trustedActivityDiagnostic: any TrustedActivityDiagnosticClient
     let personalActivitySync: any PersonalActivitySyncing
+    let personalHealthSteps: any PersonalHealthStepReading
+    let personalStepSnapshotCache: any PersonalStepSnapshotCaching
+    let personalHealthSnapshotUploader: any PersonalHealthSnapshotUploading
 
     init(
         auth: any AuthClient,
@@ -114,7 +117,14 @@ struct AppServices {
         trustedActivityDiagnostic: any TrustedActivityDiagnosticClient =
             DisabledTrustedActivityDiagnosticClient(),
         personalActivitySync: any PersonalActivitySyncing =
-            DisabledPersonalActivitySyncCoordinator()
+            DisabledPersonalActivitySyncCoordinator(),
+        personalHealthSteps: any PersonalHealthStepReading =
+            DisabledPersonalHealthStepReader(),
+        personalStepSnapshotCache: any PersonalStepSnapshotCaching =
+            EphemeralPersonalStepSnapshotCache(),
+        personalHealthSnapshotUploader:
+            any PersonalHealthSnapshotUploading =
+                DisabledPersonalHealthSnapshotUploader()
     ) {
         self.auth = auth
         self.profiles = profiles
@@ -129,5 +139,8 @@ struct AppServices {
         self.pendingPersonalCancellations = pendingPersonalCancellations
         self.trustedActivityDiagnostic = trustedActivityDiagnostic
         self.personalActivitySync = personalActivitySync
+        self.personalHealthSteps = personalHealthSteps
+        self.personalStepSnapshotCache = personalStepSnapshotCache
+        self.personalHealthSnapshotUploader = personalHealthSnapshotUploader
     }
 }

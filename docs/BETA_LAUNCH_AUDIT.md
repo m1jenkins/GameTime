@@ -1,10 +1,36 @@
 # GameTime lean external beta launch plan — Stripe sandbox
 
-**Revised:** August 7, 2026
+**Revised:** August 12, 2026
 
 **Target:** a small, invite-only external TestFlight beta
 
 **Decision:** **Not ready to invite external testers today**
+
+## August 12 automatic-progress replacement
+
+This section controls wherever the older audit below refers to manual step
+sync, signed metric/coverage queues, Personal App Attest, trusted diagnostics,
+eligibility holds, positive-sample readiness, or a “final sync.” Those were the
+`attested_hourly_v1` beta assumptions. New and migrated open Personal
+challenges use `healthkit_nonmanual_daily_v1` and the acceptance gate is
+[PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md](PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md).
+
+The replacement beta contract is:
+
+- one **Connect Apple Health** permission action, with no positive-sample gate;
+- automatic local-first merged Health progress with explicit manual-entry
+  exclusion and no step-specific sync action;
+- one owner-authenticated seven-day daily snapshot, with no Personal App Attest
+  or coverage upload;
+- a protected whole-snapshot cache and coherent live/cache/server/frozen display
+  precedence;
+- a 24-hour finalization period during which GameTime keeps checking Health;
+- one immutable cutoff result, with missing/incomplete data waived;
+- backend support and smoke first, mandatory v2 build second, eligible open-v1
+  migration third, and result-Cron activation last.
+
+Generic/social App Attest infrastructure and historical v1 records remain in
+the repository. They are regression scope, not external Personal-beta gates.
 
 ## Short answer
 
@@ -26,13 +52,15 @@ This plan gets GameTime to an **external beta**, not a public App Store launch.
 - Stripe sandbox payment setup, review, and simulated settlement only; live
   Stripe mode, social challenge, and Solo remain out of scope.
 - Every challenge starts at the next local midnight. Custom hours stay dormant.
-- Manual foreground sync is supported. Background sync is best-effort.
+- Foreground Health refresh is automatic. Background observation is
+  opportunistic and never replaces the foreground freshness guarantee.
 - iPhone only; iPad and Apple Watch-specific acceptance wait.
 - One monitored feedback email and a daily founder check during the first
   cohort.
 
-The longer [Personal acceptance document](PERSONAL_V1_ACCEPTANCE.md) remains an
-engineering reference. This shorter plan controls the first external beta.
+The [automatic Personal acceptance document](PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md)
+is the engineering reference. The older
+[Personal V1 record](PERSONAL_V1_ACCEPTANCE.md) remains historical only.
 
 The August 6 [product and design audit](BETA_PRODUCT_DESIGN_AUDIT.md) confirms
 that these three tabs and the existing Personal loop are enough. Its
@@ -71,9 +99,11 @@ Keep Staging for internal engineering.
 The distribution build needs:
 
 - The final Apple App ID and matching Supabase Auth identity.
-- Distribution signing for Sign in with Apple, HealthKit, and App Attest.
+- Distribution signing for Sign in with Apple and HealthKit. App Attest remains
+  relevant only to retained generic/legacy targets.
 - The reviewed hosted beta backend and a public client key only.
-- Personal creation, Health reads, and trusted uploads enabled.
+- Personal creation, automatic Health reads, protected caching, and
+  authenticated snapshot uploads enabled.
 - `stripe_sandbox` settlement, a reachable payment screen, and test-mode
   provider configuration only.
 - iPhone-only support, an app icon, a privacy manifest, and a unique build
@@ -82,27 +112,24 @@ The distribution build needs:
 Release is the distribution sandbox beta; Staging remains the internal
 engineering build.
 
-### 3. Finish proof for the three client trust fixes
+### 3. Finish proof for the automatic snapshot client
 
-1. **Production App Attest:** the client currently accepts only a
-   `development` registration response and permits trusted upload only in
-   Staging. TestFlight always uses production App Attest, so the distribution
-   build and server must agree on `production`. See
-   [Apple's App Attest guidance](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.developer.devicecheck.appattest-environment).
-2. **Fail-closed creation:** keep Create disabled until the server successfully
-   loads open-challenge and eligibility state. A failed load shows Retry, not an
-   empty account.
-3. **Replay first:** send saved signed metric or coverage requests before a
-   fresh-sync cutoff or new HealthKit query can reject them.
+1. **Coherent local progress:** publish a successful whole Health snapshot to
+   the UI and protected cache before network upload, including zero and lower
+   corrections.
+2. **Fail-closed availability:** keep Create disabled until authoritative open
+   challenge state loads. Permission-request completion, not a positive Health
+   sample, satisfies the creation Health gate.
+3. **Automatic freshness:** prove every trigger, one-active/one-trailing
+   coalescing, account/challenge cancellation, stale retention, and exact
+   live/cache/server/frozen precedence.
 
 Add focused tests for those behaviors only. Do not create a universal failure
 matrix for every screen and action.
 
-The source checkpoint contains implementations and focused local coverage for
-these fixes. They are not candidate proof until the exact frozen revision
-passes the full client/backend run, the production-environment function bundles
-are hosted, and production App Attest is exercised from the signed TestFlight
-build.
+They are not candidate proof until the exact frozen revision passes the full
+client/backend run, the v2 RPC/read/finalizer support is hosted, and the
+automatic Health flow is exercised from the signed TestFlight build.
 
 ### 4. Add automatic Personal results
 
@@ -111,7 +138,7 @@ scheduled worker that:
 
 - Finds Personal challenges due after the 24-hour grace period.
 - Publishes one immutable result using existing fail-closed rules.
-- Is safe to rerun and safe beside a final sync.
+- Is safe to rerun and safe beside a final snapshot upload.
 - Leaves uncertain evidence `inconclusive`; it never guesses.
 - Exposes an overdue/failure check that the founder reviews daily during the
   first cohort.
@@ -190,7 +217,7 @@ The August 6 audit found no missing major feature family. Close these contained
 gaps before the candidate freeze:
 
 - [ ] Today states the next action and exact local deadline for scheduled,
-      active, final-sync, result-pending, overdue, and final states.
+      active, finalization-window, result-pending, overdue, and final states.
 - [x] The visible creation journey has no one-option metric page or custom
       start; only the Stripe sandbox payment route is reachable, and its copy
       always identifies test mode.
@@ -242,8 +269,9 @@ streaks, and broader statistics as post-cohort decisions.
   protection; they are not a reason to expand the beta surface.
 - There is no new test-count goal. Add focused coverage only for the actual
   launch fixes, then run one full green candidate gate.
-- A simulator cannot prove HealthKit or production App Attest. One real
-  TestFlight phone still matters.
+- A simulator cannot prove Apple Health values, observer wakes, locked-device
+  retry, or Watch catch-up. One real TestFlight phone still matters. Personal
+  App Attest is not part of this proof.
 
 ## One bounded TestFlight acceptance pass
 
@@ -253,9 +281,9 @@ Use the exact processed distribution build for six journeys:
    sign-out/sign-in restoration.
 2. **Creation:** confirm next-midnight terms, sandbox payment setup and consent,
    Health readiness, one created challenge, and a clear first next action.
-3. **Trusted sync:** real iPhone Health data, production App Attest, one manual
-   sync, exact final-sync deadline, and one privacy-safe no-access/no-data
-   recovery.
+3. **Automatic Health progress:** real iPhone Health data, no-tap refresh across
+   every surface, exact finalization deadline, Watch catch-up, offline/local
+   display, and one privacy-safe no-access/no-data recovery.
 4. **Recovery:** offline/lost response, exact retry, duplicate tap, pre-start
    cancellation with visible saved retry, detail failure, and relaunch without
    duplicate data.
@@ -281,7 +309,8 @@ result path passes.
   reconciliation.
 - Social, friends, standings, reactions, charities, and Solo.
 - Custom-hour starts and partial first days.
-- Certified background delivery and Apple Watch-specific acceptance.
+- Guaranteed background delivery remains deferred; opportunistic observer and
+  Apple Watch catch-up acceptance are required for the current automatic flow.
 - iPad support, screenshots, and QA.
 - Upgrade/minimum-build/90-day-expiration drills.
 - Blanket closure of every historical Supabase advisor warning; review only the
@@ -305,7 +334,8 @@ Invite the first external cohort only when:
       TestFlight build.
 - [ ] Its Apple/Supabase identity, signing, icon, and privacy manifest are
       correct.
-- [ ] Production App Attest and one trusted manual sync pass on TestFlight.
+- [ ] Automatic Apple Health refresh, manual-entry exclusion, offline display,
+      Watch catch-up, and exact cutoff freezing pass on TestFlight.
 - [ ] Unknown server state cannot enable creation, and saved retries recover.
 - [ ] Next-midnight terms agree across app, backend request, and tester copy.
 - [ ] Today gives the correct next action and exact local deadline in every
@@ -334,18 +364,18 @@ The August 5 audit recorded green local database, backend, Swift, simulator,
 and conformance suites. That is a strong regression foundation, but it does not
 prove a signed TestFlight journey.
 
-The August 6 design/function audit was read-only. It found concurrent
-uncommitted App Attest/retry/fail-closed work and an untracked result-worker
-draft; neither is frozen-candidate or hosted proof.
+The August 6 design/function audit was read-only. Its Personal App Attest and
+manual-sync findings are retained historical context. Neither they nor the
+result-worker draft are snapshot-v2 candidate or hosted proof.
 
 The beta list also changed during the audit from no-payment Stage A to a Stripe
 sandbox rehearsal. `PLAN.md`, `DECISIONS.md`, copy, hosted scope, and reviewer
 notes must agree on that choice before the candidate freezes.
 
-Still unproved: the final processed build, production App Attest, hosted
-automatic results, hosted sandbox payment operation, in-app deletion, the
-two-account/device pass, full common journey accessibility, reviewer access,
-and TestFlight App Review approval.
+Still unproved: the final processed build, automatic physical-device Health
+flow, hosted snapshot/frozen-result operation, hosted sandbox payment operation,
+in-app deletion, the two-account pass, full common-journey accessibility,
+reviewer access, and TestFlight App Review approval.
 
 This plan does not authorize Apple-account changes, hosted deployment,
 migrations, Edge Function publication, TestFlight upload, or invitations. Each

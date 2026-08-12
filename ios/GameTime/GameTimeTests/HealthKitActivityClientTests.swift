@@ -4,6 +4,34 @@ import XCTest
 @testable import GameTime
 
 final class HealthKitActivityClientTests: XCTestCase {
+  @MainActor
+  func testPersonalDailyPredicateExcludesOnlyExplicitManualTrue() throws {
+    let start = Date(timeIntervalSince1970: 1_785_888_000)
+    let predicate = HealthKitDailyStepStatisticsQuery.predicate(
+      for: DateInterval(
+        start: start,
+        end: start.addingTimeInterval(86_400)
+      )
+    )
+
+    XCTAssertEqual(predicate.compoundPredicateType, .and)
+    XCTAssertEqual(predicate.subpredicates.count, 2)
+    let manualExclusion = try XCTUnwrap(
+      predicate.subpredicates[1] as? NSCompoundPredicate
+    )
+    XCTAssertEqual(manualExclusion.compoundPredicateType, .not)
+    XCTAssertEqual(manualExclusion.subpredicates.count, 1)
+    let format = predicate.predicateFormat.lowercased()
+    XCTAssertTrue(
+      format.contains(HKMetadataKeyWasUserEntered.lowercased())
+    )
+    XCTAssertFalse(format.contains("source"))
+    XCTAssertFalse(format.contains("device"))
+    XCTAssertFalse(format.contains("nil"))
+    let statisticsOptions = HealthKitDailyStepStatisticsQuery.statisticsOptions
+    XCTAssertEqual(statisticsOptions, .cumulativeSum)
+  }
+
   func testInstantaneousSampleAtStartIsIncludedAndAtEndIsExcluded()
     throws
   {

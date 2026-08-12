@@ -26,7 +26,6 @@ struct PersonalChallengeDetailView: View {
                     pace(challenge)
                     result(challenge)
                     review(challenge)
-                    sync(challenge)
                     PersonalChallengeDetailsCard(terms: challenge.terms)
                     cancellation(challenge)
                 } else {
@@ -105,9 +104,19 @@ struct PersonalChallengeDetailView: View {
                         )
                     )
                     .tracking(-0.8)
-                PersonalProgressBar(
-                    progress: challenge.progress,
-                    terms: challenge.terms
+                if let progress = store.displayedProgress(for: challenge) {
+                    PersonalProgressBar(
+                        progress: progress,
+                        terms: challenge.terms
+                    )
+                    .colorScheme(.dark)
+                }
+                PersonalHealthProgressStatus(
+                    progress: store.displayedProgress(for: challenge),
+                    terms: challenge.terms,
+                    status: challenge.presentationStatus(at: Date()),
+                    policy: challenge.stepDataPolicy,
+                    outcome: challenge.outcome
                 )
                 .colorScheme(.dark)
             }
@@ -116,40 +125,26 @@ struct PersonalChallengeDetailView: View {
 
     @ViewBuilder
     private func pace(_ challenge: PersonalChallengeDetail) -> some View {
+        let progress = store.displayedProgress(for: challenge)
         DaybreakSectionLabel(text: "Your pace")
-        if challenge.progress.days.isEmpty {
+        if progress?.days.isEmpty != false {
             DaybreakCard {
-                Text("Your daily steps will show up here once you start.")
+                Text(
+                    challenge.outcome?.kind == .inconclusive
+                        && challenge.outcome?.reasonCode == "missing_health_data"
+                        ? "No Apple Health step data was available for this challenge."
+                        : "Your daily steps will show up here once you start."
+                )
                     .font(.subheadline)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
-        } else {
-            let summary = PersonalPaceSummary(detail: challenge)
+        } else if let progress {
+            let summary = PersonalPaceSummary(
+                detail: challenge,
+                progress: progress
+            )
             PersonalPaceCard(summary: summary)
             PersonalPaceTiles(tiles: summary.tiles)
-        }
-    }
-
-    private func stepsReceived(
-        _ progress: PersonalProgress
-    ) -> some View {
-        DaybreakCard {
-            VStack(alignment: .leading, spacing: 9) {
-                Label("Steps received", systemImage: "checkmark.shield")
-                    .font(
-                        CompetitiveTrustTheme.displayFont(
-                            size: 18,
-                            relativeTo: .headline
-                        )
-                    )
-                Text(
-                    "We have your steps for \(progress.coveredBucketCount.formatted()) of \(progress.expectedBucketCount.formatted()) hours so far."
-                )
-                .font(.subheadline)
-                Text(evidenceExplanation(progress.evidenceState))
-                    .font(.caption)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-            }
         }
     }
 
@@ -173,54 +168,6 @@ struct PersonalChallengeDetailView: View {
                     Text(resultExplanation(outcome))
                         .font(.subheadline)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                }
-            }
-        }
-    }
-
-    private func sync(_ challenge: PersonalChallengeDetail) -> some View {
-        Group {
-            DaybreakSectionLabel(text: "Step syncing")
-            stepsReceived(challenge.progress)
-            DaybreakCard {
-                VStack(alignment: .leading, spacing: 11) {
-                    if let date = challenge.progress.lastTrustedSyncAt {
-                        Label(
-                            "Last synced \(date.formatted(.relative(presentation: .named)))",
-                            systemImage: "checkmark.circle.fill"
-                        )
-                        .foregroundStyle(CompetitiveTrustTheme.mintInk)
-                    } else {
-                        Label(
-                            "We haven’t received your steps yet",
-                            systemImage: "exclamationmark.circle.fill"
-                        )
-                        .foregroundStyle(CompetitiveTrustTheme.sunInk)
-                    }
-                    if let message = store.syncState(for: challenge.id).message {
-                        Text(message)
-                            .font(.caption)
-                            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                    }
-                    Button("Sync my steps") {
-                        Task { await store.sync(challengeID: challenge.id) }
-                    }
-                    .buttonStyle(TrustSecondaryButtonStyle())
-                    .disabled(
-                        !store.canSyncActivity(
-                            challengeID: challenge.id,
-                            permitsFreshSync: challenge
-                                .permitsActivitySync(
-                                    at: Date()
-                                )
-                        )
-                    )
-                    .accessibilityIdentifier("personal.sync")
-                    Text(
-                        "Steps can still arrive up to 24 hours after your last day ends. If some never turn up, the challenge simply doesn’t count — and it doesn’t count against you."
-                    )
-                    .font(.caption)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 }
             }
         }
@@ -363,21 +310,6 @@ struct PersonalChallengeDetailView: View {
             .buttonStyle(TrustSecondaryButtonStyle())
             .disabled(store.isMutating || Date() >= challenge.terms.startsAt)
             .accessibilityIdentifier("personal.cancel")
-        }
-    }
-
-    private func evidenceExplanation(_ state: PersonalEvidenceState) -> String {
-        switch state {
-        case .complete:
-            "We have everything we need so far."
-        case .future:
-            "Nothing to count until your challenge starts."
-        case .inProgress, .pending:
-            "Still counting. Nothing is final until your challenge ends."
-        case .outageWaived:
-            "This was a problem on our end, so it doesn’t count against you."
-        case .incomplete, .missing, .quarantined, .conflicting, .unresolved:
-            "We can’t confirm your steps, so this one won’t count either way. You may need to run a Health check."
         }
     }
 

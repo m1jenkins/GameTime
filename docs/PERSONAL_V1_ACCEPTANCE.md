@@ -1,5 +1,13 @@
 # Prove Personal Accountability V1 Stage A
 
+> **Historical acceptance record.** This runbook applies only to challenges
+> frozen with `step_data_policy = attested_hourly_v1`. D120 supersedes its
+> manual sync, App Attest, hourly coverage, diagnostic, eligibility-hold, and
+> positive-sample creation requirements for new or migrated Personal
+> challenges. Do not use this document as a beta gate for
+> `healthkit_nonmanual_daily_v1`; use
+> [PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md](PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md).
+
 This runbook is designed to prove one seven-day personal steps challenge with a
 test commitment on one physical iPhone, plus authorization isolation between
 two database actors. The fresh repository-local evidence below does not prove

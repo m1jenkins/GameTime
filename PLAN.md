@@ -1,4 +1,4 @@
-# Ship Personal Accountability V1 and its invite-only sandbox beta
+# Ship automatic Apple Health Personal challenges and the sandbox beta
 
 GameTime V1 is a solo accountability product. One person commits to a seven-day
 steps goal, chooses daily or cumulative cadence, and selects a test commitment
@@ -17,6 +17,17 @@ contracts stay read-compatible for existing challenges, but the V1 app does not
 offer social creation or expose friends, invitations, rosters, standings,
 winners, charities, reactions, or tie-breaks.
 
+**August 12, 2026 policy replacement.** New Personal challenges no longer use
+the hourly evidence, App Attest, coverage, diagnostic, eligibility-hold, or
+manual-sync contract described by the historical M9 record. That contract is
+frozen as `attested_hourly_v1`. The active path is
+`healthkit_nonmanual_daily_v1`: one automatic Apple Health snapshot containing
+seven ordered daily totals, uploaded through an authenticated owner-bound RPC
+and frozen into history at cutoff. Sections that explicitly describe Solo,
+Social, generic metric ingest, or historical Personal V1 remain regression
+context; they are not permission to route a new Personal challenge through the
+old path.
+
 ## What functional means
 
 The Stage A product must let one real user:
@@ -31,31 +42,30 @@ The Stage A product must let one real user:
 - In internal Stage A, see **Test commitment — no money will be charged.**
   before confirming. In the external sandbox beta, see **Payment test mode —
   sandbox transactions only.** plus a plain statement that no real money moves.
-- Verify Apple Health access before creating with a local HealthKit read that
-  observes at least one positive device-recorded step sample. If readiness is
-  already satisfied, creation can continue without another check.
-- Verify normal challenge evidence through the Staging signed metric and
-  coverage sync for completed hourly buckets. A separate trusted diagnostic is
-  recovery-only and never runs as a creation or evidence-sync prerequisite.
-- See current progress, remaining steps, the seven-day timeline, sync health,
-  completed history, and a final personal result.
+- Complete one user-initiated **Connect Apple Health** permission request before
+  creating. Completion, not a positive step sample, unlocks continuation.
+- See Apple Health progress automatically after challenge load/creation, app
+  launch or foregrounding, Health observer changes, and ordinary pull to
+  refresh, without a step-specific sync button.
+- See the same displayed total, daily timeline, pace, and update time on Today,
+  Challenges, detail, and completed history.
 - Cancel only before the challenge begins.
-- Receive a 24-hour final-sync grace period after the seventh day.
-- Receive `met_goal`, `missed_goal`, or `inconclusive` only after evidence
-  completeness is decided.
-- Recover from a user/device eligibility hold only through a later successful
-  trusted diagnostic.
+- Receive a 24-hour finalization period after the seventh day while GameTime
+  keeps re-reading Apple Health through the challenge end for late Watch data.
+- Receive `met_goal`, `missed_goal`, or a commitment-waived `inconclusive` only
+  after the server freezes the selected snapshot.
 
-Simulator and fixture behavior does not prove HealthKit or App Attest. One
-physical iPhone must separately prove the trusted device path.
+Simulator and fixture behavior does not prove Apple Health, background wakes,
+locked-device retry, or late Watch delivery. Physical-iPhone acceptance remains
+separate. Personal App Attest is not part of that proof.
 
-## Locked Stage A boundaries
+## Locked automatic snapshot boundaries
 
 - Steps are the only presented metric. Other metric code remains dormant for a
   later version.
-- Personal challenges use dedicated terms, result, progress, diagnostic, hold,
-  API, Swift model, and pending-request types. They are never represented as a
-  social challenge with an empty invitation list.
+- Personal challenges use dedicated terms, daily snapshot, displayed progress,
+  cache, result, API, Swift model, and pending-request types. They are never
+  represented as a social challenge with an empty invitation list.
 - Every pre-pivot challenge is `legacy_charity_contest`. Existing social data,
   results, standings, and obligations retain their historical meaning.
 - `social_accountability` is reserved for V2 and has no V1 creation path.
@@ -66,26 +76,29 @@ physical iPhone must separately prove the trusted device path.
   terminal personal result closes it.
 - A complete daily challenge requires all seven local days to meet the target.
   A complete cumulative challenge requires the seven-day total to meet it.
-- Trusted coverage, not the presence of positive step rows, decides whether a
-  completed local-hour interval was observed. The expected set is generated
-  from the frozen IANA timezone and challenge window; it must not assume every
-  offset transition is a whole hour or that every window has a fixed count.
-- Expected intervals must not overlap in scored evidence. If a platform
-  calendar produces overlapping intervals for a non-hour offset transition,
-  Stage A fails that result closed as `inconclusive / gametime_outage` until a
-  non-overlapping collection rule is implemented and accepted on device.
-- For each query, every positive metric batch must be durably accepted before
-  its coverage batch is submitted. If any metric upload is pending or refused,
-  coverage remains pending too; coverage must never certify a partially
-  delivered query as complete.
-- Missing coverage, unresolved quarantine, conflicting evidence, or unresolved
-  assessment produces `inconclusive` before target comparison.
-- A confirmed GameTime outage waives the test commitment without a hold. An
-  unresolved user/device sync failure waives it and creates an eligibility hold.
+- Query each of the seven exact frozen local dates with cumulative HealthKit
+  statistics. Read through now during the challenge and through `ends_at`
+  during grace. Twenty-three- and twenty-five-hour dates remain one local day.
+- Include Health's merged writers and exclude only samples where
+  `HKMetadataKeyWasUserEntered == true`. Missing manual-entry metadata remains
+  indistinguishable from automatic data and is included.
+- A snapshot carries challenge ID, frozen-terms fingerprint, observation time,
+  query-through time, and exactly seven ordered nonnegative daily totals. The
+  overall total is derived, never independently supplied.
+- Publish a successful Health read locally before uploading. A successful zero
+  or downward edit replaces the prior whole snapshot; query failure preserves
+  the prior value and marks it stale. Never splice days from separate reads.
+- The server keeps one private mutable full-window snapshot for an open
+  challenge. Older observations are ignored, identical replays succeed, equal
+  timestamps with different payloads fail, and a newer snapshot replaces the
+  whole prior snapshot even when totals decrease.
+- Missing or incomplete final data becomes commitment-waived `inconclusive`.
+  A complete miss alone may enter Stripe sandbox review. Met and inconclusive
+  results never do.
 - Release mutations remain disabled for the internal Stage A and every legacy
   social path. The invite-only external beta may enable only Personal creation
-  through `stripe_sandbox`, production App Attest, and the separately approved
-  hosted beta target. Live settlement remains forbidden.
+  through `stripe_sandbox` and the separately approved hosted beta target. Live
+  settlement remains forbidden.
 
 ## Verified starting point
 
@@ -129,15 +142,22 @@ Implement the complete server boundary:
 - Atomic, idempotent creation and a database-enforced one-open slot.
 - Server-derived next-midnight start and seven-local-day end.
 - Pre-start-only idempotent cancellation.
-- Owner-only list and detail RPCs.
-- A recovery-only attested diagnostic upload that stores no raw health values
-  and clears only a genuine eligibility hold.
-- Append-only trusted sync coverage, including zero-valued periods.
-- A 24-hour personal ingest grace without changing the legacy six-hour grace.
-- Service-only versioned assessment input and append-only first-result publication.
-- Durable eligibility-hold facts with one-time clearance fields set only by a
-  successful trusted diagnostic whose Health query began strictly after the
-  hold.
+- Frozen `step_data_policy`: `attested_hourly_v1` for history and
+  `healthkit_nonmanual_daily_v1` for the automatic path.
+- One private mutable full-window snapshot per open v2 challenge and exactly one
+  authenticated `upsert_my_personal_health_snapshot_v2` write boundary. The
+  function derives the owner from authentication; clients receive no direct
+  table write grant.
+- Validation of ownership, lifecycle, frozen local dates, cutoff, observation
+  and query-through timestamps, payload bounds, ordering, and future-day zeros.
+- Clean owner-only v2 list/detail responses with ordinary steps, seven daily
+  totals, Health observation/update times, policy, and terminal result, with no
+  coverage, trusted, diagnostic, or assessment fields.
+- A 24-hour personal finalization grace without changing the legacy six-hour
+  social grace.
+- One immutable cutoff result that copies the selected daily totals directly,
+  deletes the mutable snapshot, and does not require the legacy evidence
+  assessment relationship.
 - Explicit grants and RLS on every new exposed table and function.
 
 Exit criteria:
@@ -148,10 +168,11 @@ Exit criteria:
 - Personal activation succeeds with exactly one accepted owner.
 - Personal scoring creates no standings, winner, charity, donation obligation,
   or participant payout.
-- Daily, cumulative, DST, late-backfill, evidence-completeness, outage, hold,
-  and cancellation tests pass.
-- Two authenticated database actors cannot read each other's terms, coverage,
-  activity, diagnostic, result, or hold.
+- Daily, cumulative, 23/25-hour DST, late-Watch, zero/downward replacement,
+  malformed snapshot, cutoff-race, missing-final-data, immutable rerun, and
+  cancellation tests pass.
+- Two authenticated database actors cannot read or write each other's terms,
+  snapshots, progress, or results; `anon` cannot execute the snapshot RPC.
 - The server, rather than a client flag, proves every personal term is
   `test_only`.
 
@@ -290,14 +311,25 @@ Transitional after 2B:
 Retain the approved Daybreak visual system and replace the normal app journey:
 
 - Use only Today, Challenges, and You tabs, with independent navigation stacks.
-- Today shows the open challenge, remaining steps, seven-day timeline, sync
-  state, manual sync, and a creation call to action when no challenge is open.
+- Today shows the open challenge, remaining steps, seven-day timeline, automatic
+  Apple Health update time, and a creation call to action when no challenge is
+  open.
 - Challenges separates the current challenge from completed history. Personal
-  detail shows frozen terms, cadence, progress, sync health, and result.
+  detail shows frozen terms, cadence, progress, update time, and result.
 - Creation walks through steps, cadence, editable target, commitment preset,
-  Apple Health access, and frozen-terms review.
-- You preserves handle/profile setup and adds Health access, latest diagnostic,
-  privacy, and eligibility-hold state.
+  one Apple Health permission action, and frozen-terms review. A positive Health
+  sample is never a creation prerequisite.
+- You preserves handle/profile setup and adds Health access recovery and
+  privacy. Personal v2 exposes no diagnostic or eligibility-hold state.
+- Use separate Health reader, authenticated snapshot uploader, and protected
+  whole-snapshot cache interfaces. Do not reuse the hourly evidence coordinator
+  or `PersonalProgress` as the v2 source of truth.
+- Coalesce overlapping automatic refreshes into one active read and one trailing
+  read. Cancel or discard work after account/challenge changes. Display local
+  Health before attempting an upload.
+- Resolve displayed progress before cutoff as live Health, matching cache,
+  server snapshot, then legacy result fallback. After cutoff prefer the frozen
+  server result. Generic pull to refresh remains; no step-specific control does.
 - Use dedicated personal models and a separate versioned pending-request store.
   Social v1/v2 envelopes must never decode or retry as personal requests.
 - Ignore dormant social standings push actions in the V1 shell.
@@ -313,6 +345,9 @@ Exit criteria:
   personal surfaces.
 - Reachable UI contains no competitor, rank, winner, charity, invitation,
   roster, reaction, or tie-break language.
+- Reachable Personal v2 UI contains no **Sync my steps**, **Send saved steps**,
+  **Not synced**, **not confirmed**, **Steps received**, Step Syncing card,
+  coverage status, diagnostic, eligibility-hold, or App Attest language.
 - Pending request, routing, app-model, configuration, unit, and UI tests pass.
 - Debug, Staging, and Release simulator builds compile without actionable
   compiler or linker warnings, while Release continues to reject personal
@@ -320,16 +355,17 @@ Exit criteria:
   metadata-extraction self-skip for targets that intentionally have no
   `AppIntents.framework` dependency.
 
-## 4. Stage A acceptance
+## 4. Automatic snapshot acceptance
 
-Use `docs/PERSONAL_V1_ACCEPTANCE.md`. Keep proof layers separate:
+Use `docs/PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md`. Keep proof layers separate:
 
-1. Local migration, pgTAP, Deno, Swift package, product unit/UI, conformance,
-   configuration, and build proof.
+1. Local migration, pgTAP, Deno, product unit/UI, configuration, and build
+   proof. Legacy App Attest conformance remains a separate regression suite.
 2. Hosted Staging migration, function, scheduler, RLS, and test-only proof only
    after explicit deployment approval.
-3. One physical iPhone proof for HealthKit reads, App Attest, manual/background
-   behavior actually implemented, final sync, scoring, and diagnostic recovery.
+3. Physical-iPhone proof for first permission, iPhone-only steps, Watch catch-up,
+   opportunistic background wake, locked-device retry, offline/reconnect,
+   foreground refresh, challenge end, and the full 24-hour grace period.
 4. Two-actor privacy proof in pgTAP and a controlled account-isolation
    observation; one phone does not substitute for two authorization identities.
 
@@ -344,13 +380,14 @@ App Store submission, or production configuration is authorized by this plan.
 | Model discriminator and legacy backfill | Implemented; full local database suite passes | Hosted migration rehearsal after approval |
 | Legacy roster privacy fix | Selectively ported; self-only RLS and bounded RPC pass locally | Hosted two-actor observation after approval |
 | Personal terms and one-open slot | Implemented; lifecycle, exact-retry, and two-session concurrency tests pass | Hosted Staging observation after approval |
-| Local HealthKit reads | Enabled in Debug and Staging; gates challenge creation; live step total shown as unverified | Physical-device observation on a provisioned iPhone |
-| Signed metric and coverage sync; recovery-only diagnostic | Evidence sync and diagnostic recovery paths are implemented; local service tests and builds pass. `activity-diagnostic` and `personal-sync-coverage` deployed to hosted Staging 2026-08-03 | Signed physical App Attest evidence sync against the deployed endpoints, background-delivery proof, and diagnostic recovery after a genuine hold |
-| Personal scoring and holds | Implemented; DST, completeness, outage, deletion, retention, and recovery tests pass locally | Hosted scheduler/operator run plus physical final sync |
+| Automatic Health snapshot client | Implemented; native unit and fixture UI proof pass | Physical automatic-trigger, locked-device, Watch, and cutoff acceptance |
+| Authenticated daily snapshot backend | Implemented; local RLS/idempotency/concurrency/finalization suite passes | Approved hosted smoke and controlled cutover |
+| Historical hourly/App Attest path | Preserved as `attested_hourly_v1` | Regression/history only; not a new-Personal or TestFlight gate |
+| Personal scoring and freezing | Implemented; local cutoff, immutable-rerun, and Stripe-review tests pass | Hosted cutoff worker smoke and frozen-history observation |
 | Solo contract domain (2A) | Implemented locally; policy-locked owner records, rollout gates, append-only evaluation/appeal facts, lifecycle, and deletion integration | Runtime remains off; client/worker integration and hosted acceptance remain separate slices |
 | Solo fake authorization adapter (2B) | Implemented locally; atomic v2 creation, immutable private binding, append-only fake outcomes, exact retries, and deletion integration | Runtime and allowlist remain closed; no provider, app/worker wiring, or hosted acceptance |
-| Three-tab personal Daybreak app | Personal simulator acceptance passes on a booted iPhone 17 Pro simulator: 103 unit, 10 UI, and 10 conformance tests pass; unsigned Debug/Staging/Release builds pass; D83 accepts the expected Xcode 26.2 no-AppIntents self-skip | Signed physical-device visual, HealthKit, App Attest, and background-delivery acceptance |
-| Hosted Stage A | Personal V1 schema (through `20260802165312`) and all six Edge Functions deployed 2026-08-03 with owner approval. Solo migrations deliberately withheld | Hosted acceptance run: signed device, two-actor privacy observation, scheduler |
+| Three-tab personal Daybreak app | Snapshot-v2 cross-surface fixture UI implemented and verified | Physical Health acceptance |
+| Historical hosted Stage A | Personal V1 hourly schema/functions were deployed for `attested_hourly_v1` | Preserve and resolve history; do not treat those endpoints as snapshot-v2 acceptance |
 | Physical Stage A | Not run | One provisioned iPhone and bounded evidence record |
 | Stripe sandbox Stage B foundation | Implemented and verified locally: native PaymentSheet setup, server-verified challenge commit, signed webhook reconciliation, review, and one idempotent test PaymentIntent | Dedicated non-production target, tester allowlist/kill switch, Stripe test secrets and webhook, secure dispatcher, and hosted sandbox acceptance |
 | Real fees | Disabled | Apple, Stripe, legal, age/jurisdiction, hosted deployment, and production acceptance gates below |
@@ -432,9 +469,10 @@ and support controls exist.
 
 - Simulator tests prove navigation and fixtures, not Apple services.
 - Local database tests prove migrations and policies, not hosted scheduling.
-- A signed build proves signing inputs, not HealthKit reads or App Attest.
-- Positive step rows do not prove evidence completeness; trusted covered hours
-  do.
+- A signed build proves signing inputs, not Apple Health reads, observer wakes,
+  Watch catch-up, or locked-device retry.
+- Permission-request completion does not prove readable data. A successful
+  Health query, including an authoritative zero, is the snapshot observation.
 - A seven-day local-calendar window is not always 168 elapsed hours.
 - A one-user device run does not prove two-actor privacy isolation.
 - Local fake-adapter tests do not prove a real processor, money movement, legal
@@ -448,8 +486,10 @@ and support controls exist.
 
 ## References
 
-- `docs/PERSONAL_V1_ACCEPTANCE.md`: personal Stage A acceptance runbook.
+- `docs/PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md`: controlling automatic
+  Personal acceptance runbook.
+- `docs/PERSONAL_V1_ACCEPTANCE.md`: historical hourly/App Attest Personal record.
 - `docs/M8_1_STAGING_ACCEPTANCE.md`: retained historical social-alpha runbook.
-- `docs/M6_5_DEVICE_CONFORMANCE.md`: full metric and App Attest conformance reference.
+- `docs/M6_5_DEVICE_CONFORMANCE.md`: legacy/social metric App Attest conformance.
 - `docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md`: historical implementation evidence.
 - `docs/archive/2026-07-30_IMPLEMENTATION_PLAN.md`: previous milestone plan.

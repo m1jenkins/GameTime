@@ -86,7 +86,12 @@ enum LiveServicesFactory {
             pendingPersonalCancellations:
                 try FilePendingPersonalCancellationStore.applicationSupport(),
             trustedActivityDiagnostic: trustedActivityDiagnostic,
-            personalActivitySync: personalActivitySync
+            personalActivitySync: personalActivitySync,
+            personalHealthSteps: HealthKitPersonalHealthStepReader(),
+            personalStepSnapshotCache: try FilePersonalStepSnapshotCache
+                .applicationSupport(),
+            personalHealthSnapshotUploader:
+                SupabasePersonalHealthSnapshotUploader(client: client)
         )
     }
 }

@@ -565,9 +565,51 @@ struct PersonalDayProgress: Codable, Equatable, Identifiable, Sendable {
     enum CodingKeys: String, CodingKey {
         case localDate = "local_date"
         case trustedSteps = "trusted_steps"
+        case totalSteps = "total_steps"
         case targetSteps = "target_steps"
         case evidenceState = "evidence_state"
         case metTarget = "met_target"
+    }
+
+    init(
+        localDate: String,
+        trustedSteps: Double,
+        targetSteps: Int?,
+        evidenceState: PersonalEvidenceState,
+        metTarget: Bool?
+    ) {
+        self.localDate = localDate
+        self.trustedSteps = trustedSteps
+        self.targetSteps = targetSteps
+        self.evidenceState = evidenceState
+        self.metTarget = metTarget
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        localDate = try container.decode(String.self, forKey: .localDate)
+        trustedSteps = try container.decodeIfPresent(
+            Double.self,
+            forKey: .trustedSteps
+        ) ?? container.decode(Double.self, forKey: .totalSteps)
+        targetSteps = try container.decodeIfPresent(
+            Int.self,
+            forKey: .targetSteps
+        )
+        evidenceState = try container.decodeIfPresent(
+            PersonalEvidenceState.self,
+            forKey: .evidenceState
+        ) ?? .complete
+        metTarget = try container.decodeIfPresent(Bool.self, forKey: .metTarget)
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(localDate, forKey: .localDate)
+        try container.encode(trustedSteps, forKey: .trustedSteps)
+        try container.encodeIfPresent(targetSteps, forKey: .targetSteps)
+        try container.encode(evidenceState, forKey: .evidenceState)
+        try container.encodeIfPresent(metTarget, forKey: .metTarget)
     }
 }
 
@@ -677,6 +719,11 @@ struct PersonalChallengeSummary: Codable, Equatable, Identifiable, Sendable {
     let terms: FrozenPersonalTerms
     let progress: PersonalProgress?
     let outcome: PersonalOutcome?
+    let stepDataPolicy: PersonalStepDataPolicy
+    let termsFingerprint: String?
+    let serverStepSnapshot: PersonalStepSnapshot?
+    let snapshotUpdatedAt: Date?
+    let commitmentWaived: Bool
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -685,6 +732,11 @@ struct PersonalChallengeSummary: Codable, Equatable, Identifiable, Sendable {
         case terms
         case progress
         case outcome
+        case stepDataPolicy = "step_data_policy"
+        case termsFingerprint = "terms_fingerprint"
+        case serverStepSnapshot = "server_step_snapshot"
+        case snapshotUpdatedAt = "snapshot_updated_at"
+        case commitmentWaived = "commitment_waived"
     }
 
     init(
@@ -692,13 +744,23 @@ struct PersonalChallengeSummary: Codable, Equatable, Identifiable, Sendable {
         status: PersonalChallengeStatus,
         terms: FrozenPersonalTerms,
         progress: PersonalProgress? = nil,
-        outcome: PersonalOutcome? = nil
+        outcome: PersonalOutcome? = nil,
+        stepDataPolicy: PersonalStepDataPolicy = .attestedHourlyV1,
+        termsFingerprint: String? = nil,
+        serverStepSnapshot: PersonalStepSnapshot? = nil,
+        snapshotUpdatedAt: Date? = nil,
+        commitmentWaived: Bool = false
     ) {
         self.id = id
         self.status = status
         self.terms = terms
         self.progress = progress
         self.outcome = outcome
+        self.stepDataPolicy = stepDataPolicy
+        self.termsFingerprint = termsFingerprint
+        self.serverStepSnapshot = serverStepSnapshot
+        self.snapshotUpdatedAt = snapshotUpdatedAt
+        self.commitmentWaived = commitmentWaived
     }
 
     init(from decoder: any Decoder) throws {
@@ -712,6 +774,26 @@ struct PersonalChallengeSummary: Codable, Equatable, Identifiable, Sendable {
         terms = try container.decode(FrozenPersonalTerms.self, forKey: .terms)
         progress = try container.decodeIfPresent(PersonalProgress.self, forKey: .progress)
         outcome = try container.decodeIfPresent(PersonalOutcome.self, forKey: .outcome)
+        stepDataPolicy = try container.decodeIfPresent(
+            PersonalStepDataPolicy.self,
+            forKey: .stepDataPolicy
+        ) ?? .attestedHourlyV1
+        termsFingerprint = try container.decodeIfPresent(
+            String.self,
+            forKey: .termsFingerprint
+        )
+        serverStepSnapshot = try container.decodeIfPresent(
+            PersonalStepSnapshot.self,
+            forKey: .serverStepSnapshot
+        )
+        snapshotUpdatedAt = try container.decodeIfPresent(
+            Date.self,
+            forKey: .snapshotUpdatedAt
+        )
+        commitmentWaived = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .commitmentWaived
+        ) ?? false
         guard terms.challengeID == id else {
             throw DecodingError.dataCorruptedError(
                 forKey: .terms,
@@ -728,6 +810,17 @@ struct PersonalChallengeSummary: Codable, Equatable, Identifiable, Sendable {
         try container.encode(terms, forKey: .terms)
         try container.encodeIfPresent(progress, forKey: .progress)
         try container.encodeIfPresent(outcome, forKey: .outcome)
+        try container.encode(stepDataPolicy, forKey: .stepDataPolicy)
+        try container.encodeIfPresent(termsFingerprint, forKey: .termsFingerprint)
+        try container.encodeIfPresent(
+            serverStepSnapshot,
+            forKey: .serverStepSnapshot
+        )
+        try container.encodeIfPresent(
+            snapshotUpdatedAt,
+            forKey: .snapshotUpdatedAt
+        )
+        try container.encode(commitmentWaived, forKey: .commitmentWaived)
     }
 
     func permitsActivitySync(at date: Date) -> Bool {
@@ -760,6 +853,11 @@ struct PersonalChallengeDetail: Codable, Equatable, Identifiable, Sendable {
     let terms: FrozenPersonalTerms
     let progress: PersonalProgress
     let outcome: PersonalOutcome?
+    let stepDataPolicy: PersonalStepDataPolicy
+    let termsFingerprint: String?
+    let serverStepSnapshot: PersonalStepSnapshot?
+    let snapshotUpdatedAt: Date?
+    let commitmentWaived: Bool
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -768,6 +866,11 @@ struct PersonalChallengeDetail: Codable, Equatable, Identifiable, Sendable {
         case terms
         case progress
         case outcome
+        case stepDataPolicy = "step_data_policy"
+        case termsFingerprint = "terms_fingerprint"
+        case serverStepSnapshot = "server_step_snapshot"
+        case snapshotUpdatedAt = "snapshot_updated_at"
+        case commitmentWaived = "commitment_waived"
     }
 
     init(
@@ -775,13 +878,23 @@ struct PersonalChallengeDetail: Codable, Equatable, Identifiable, Sendable {
         status: PersonalChallengeStatus,
         terms: FrozenPersonalTerms,
         progress: PersonalProgress,
-        outcome: PersonalOutcome? = nil
+        outcome: PersonalOutcome? = nil,
+        stepDataPolicy: PersonalStepDataPolicy = .attestedHourlyV1,
+        termsFingerprint: String? = nil,
+        serverStepSnapshot: PersonalStepSnapshot? = nil,
+        snapshotUpdatedAt: Date? = nil,
+        commitmentWaived: Bool = false
     ) {
         self.id = id
         self.status = status
         self.terms = terms
         self.progress = progress
         self.outcome = outcome
+        self.stepDataPolicy = stepDataPolicy
+        self.termsFingerprint = termsFingerprint
+        self.serverStepSnapshot = serverStepSnapshot
+        self.snapshotUpdatedAt = snapshotUpdatedAt
+        self.commitmentWaived = commitmentWaived
     }
 
     init(from decoder: any Decoder) throws {
@@ -796,6 +909,26 @@ struct PersonalChallengeDetail: Codable, Equatable, Identifiable, Sendable {
         progress = try container.decodeIfPresent(PersonalProgress.self, forKey: .progress)
             ?? .empty
         outcome = try container.decodeIfPresent(PersonalOutcome.self, forKey: .outcome)
+        stepDataPolicy = try container.decodeIfPresent(
+            PersonalStepDataPolicy.self,
+            forKey: .stepDataPolicy
+        ) ?? .attestedHourlyV1
+        termsFingerprint = try container.decodeIfPresent(
+            String.self,
+            forKey: .termsFingerprint
+        )
+        serverStepSnapshot = try container.decodeIfPresent(
+            PersonalStepSnapshot.self,
+            forKey: .serverStepSnapshot
+        )
+        snapshotUpdatedAt = try container.decodeIfPresent(
+            Date.self,
+            forKey: .snapshotUpdatedAt
+        )
+        commitmentWaived = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .commitmentWaived
+        ) ?? false
         guard terms.challengeID == id else {
             throw DecodingError.dataCorruptedError(
                 forKey: .terms,
@@ -812,6 +945,17 @@ struct PersonalChallengeDetail: Codable, Equatable, Identifiable, Sendable {
         try container.encode(terms, forKey: .terms)
         try container.encode(progress, forKey: .progress)
         try container.encodeIfPresent(outcome, forKey: .outcome)
+        try container.encode(stepDataPolicy, forKey: .stepDataPolicy)
+        try container.encodeIfPresent(termsFingerprint, forKey: .termsFingerprint)
+        try container.encodeIfPresent(
+            serverStepSnapshot,
+            forKey: .serverStepSnapshot
+        )
+        try container.encodeIfPresent(
+            snapshotUpdatedAt,
+            forKey: .snapshotUpdatedAt
+        )
+        try container.encode(commitmentWaived, forKey: .commitmentWaived)
     }
 
     func permitsActivitySync(at date: Date) -> Bool {

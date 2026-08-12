@@ -17,6 +17,47 @@ final class ActivitySyncCoordinatorTests: XCTestCase {
   /// 2026-08-03T00:00:00Z, clear of a daylight-saving transition.
   private let epoch = Date(timeIntervalSince1970: 1_785_888_000)
 
+  func testRetirementOnlyAbandonsSpecifiedContest() async throws {
+    let store = FilePendingMetricUploadStore(
+      directoryURL: try makeTemporaryDirectory()
+    )
+    let otherContestID = UUID()
+    let retiredBatchID = UUID()
+    let retainedBatchID = UUID()
+    _ = try await store.enqueue(
+      ownerID: ownerA,
+      contestID: contestID,
+      request: try makeEncodedRequest(
+        contestID: contestID,
+        batchID: retiredBatchID,
+        value: 100
+      )
+    )
+    _ = try await store.enqueue(
+      ownerID: ownerA,
+      contestID: otherContestID,
+      request: try makeEncodedRequest(
+        contestID: otherContestID,
+        batchID: retainedBatchID,
+        value: 200
+      )
+    )
+    let coordinator = ActivitySyncCoordinator(
+      activity: ActivityClientFake(samples: []),
+      uploads: MetricUploadClientFake(),
+      pendingUploads: store
+    )
+
+    try await coordinator.retirePendingUploads(
+      for: ownerA,
+      contestID: contestID
+    )
+
+    let remaining = try await store.pending(for: ownerA)
+    XCTAssertEqual(remaining.map(\.contestId), [otherContestID])
+    XCTAssertEqual(remaining.map(\.clientBatchId), [retainedBatchID])
+  }
+
   func testDeniedOrEmptyHealthReadDoesNotClaimDenialOrSend()
     async throws
   {
@@ -1041,6 +1082,31 @@ final class ActivitySyncCoordinatorTests: XCTestCase {
       sourceBundleIdentifier: source,
       deviceManufacturer: manufacturer,
       deviceModel: model
+    )
+  }
+
+  private func makeEncodedRequest(
+    contestID: UUID,
+    batchID: UUID,
+    value: Double
+  ) throws -> EncodedMetricRequest {
+    try EncodedMetricRequest(
+      payload: AttestedMetricPayload(
+        contestId: contestID,
+        clientBatchId: batchID,
+        observedAt: epoch.addingTimeInterval(3_600),
+        observations: [
+          HourlyBucket(
+            metric: .steps,
+            bucketStart: epoch,
+            provenance: .device,
+            value: value,
+            sampleCount: 1,
+            sourceBundleIdentifier: "com.apple.health",
+            deviceModel: "iPhone"
+          )
+        ]
+      )
     )
   }
 

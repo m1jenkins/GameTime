@@ -12,23 +12,10 @@ final class SupabasePersonalAccountabilityClient: PersonalAccountabilityClient {
     func listMyChallenges() async throws -> PersonalAccountabilitySnapshot {
         do {
             let challengesResponse = try await client
-                .rpc("list_my_accountability_challenges_v1")
+                .rpc("list_my_accountability_challenges_v2")
                 .execute()
-            let eligibilityResponse = try await client
-                .rpc("get_my_personal_eligibility_v1")
-                .execute()
-            let snapshot = try PersonalRPCDecoder.snapshot(
+            return try PersonalRPCDecoder.snapshot(
                 from: challengesResponse.data
-            )
-            let eligibility = try PersonalRPCDecoder.eligibility(
-                from: eligibilityResponse.data
-            )
-            return PersonalAccountabilitySnapshot(
-                challenges: snapshot.challenges,
-                latestDiagnostic: eligibility.latestDiagnostic
-                    ?? snapshot.latestDiagnostic,
-                eligibilityHold: eligibility.hold,
-                eligibilityHoldActive: !eligibility.eligible
             )
         } catch {
             throw map(error)
@@ -39,7 +26,7 @@ final class SupabasePersonalAccountabilityClient: PersonalAccountabilityClient {
         do {
             let response = try await client
                 .rpc(
-                    "get_my_accountability_challenge_v1",
+                    "get_my_accountability_challenge_v2",
                     params: PersonalChallengeIDParameters(challengeID: id)
                 )
                 .execute()
@@ -59,7 +46,7 @@ final class SupabasePersonalAccountabilityClient: PersonalAccountabilityClient {
         do {
             let response = try await client
                 .rpc(
-                    "create_personal_challenge_v1",
+                    "create_personal_challenge_v2",
                     params: CreatePersonalChallengeParameters(request: request)
                 )
                 .execute()
@@ -231,7 +218,7 @@ private enum PersonalRPCDecoder {
                 latestDiagnostic: nil,
                 eligibilityHold: nil,
                 eligibilityHoldActive: rows.contains {
-                    $0.eligibilityHoldActive
+                    $0.eligibilityHoldActive == true
                 }
             )
         }
@@ -396,15 +383,21 @@ private struct PersonalChallengeRow: Decodable {
     let endsAt: Date
     let evidenceCutoff: Date
     let closedAt: Date?
-    let totalSteps: Double
-    let coveredBucketCount: Int
-    let expectedBucketCount: Int
+    let totalSteps: Double?
+    let coveredBucketCount: Int?
+    let expectedBucketCount: Int?
     let latestSyncAt: Date?
     let outcome: PersonalOutcomeKind?
     let outcomeReason: String?
     let resultPublishedAt: Date?
-    let eligibilityHoldActive: Bool
+    let eligibilityHoldActive: Bool?
     let dailyProgress: [PersonalDayProgress]?
+    let stepDataPolicy: PersonalStepDataPolicy?
+    let termsFingerprint: String?
+    let healthObservedAt: Date?
+    let healthQueryThrough: Date?
+    let snapshotUpdatedAt: Date?
+    let commitmentWaived: Bool?
 
     enum CodingKeys: String, CodingKey {
         case challengeID = "challenge_id"
@@ -430,6 +423,12 @@ private struct PersonalChallengeRow: Decodable {
         case resultPublishedAt = "result_published_at"
         case eligibilityHoldActive = "eligibility_hold_active"
         case dailyProgress = "daily_progress"
+        case stepDataPolicy = "step_data_policy"
+        case termsFingerprint = "terms_fingerprint"
+        case healthObservedAt = "health_observed_at"
+        case healthQueryThrough = "health_query_through"
+        case snapshotUpdatedAt = "snapshot_updated_at"
+        case commitmentWaived = "commitment_waived"
     }
 
     var summary: PersonalChallengeSummary {
@@ -438,7 +437,12 @@ private struct PersonalChallengeRow: Decodable {
             status: status,
             terms: terms,
             progress: progress,
-            outcome: result
+            outcome: result,
+            stepDataPolicy: stepDataPolicy ?? .attestedHourlyV1,
+            termsFingerprint: termsFingerprint,
+            serverStepSnapshot: serverStepSnapshot,
+            snapshotUpdatedAt: snapshotUpdatedAt,
+            commitmentWaived: commitmentWaived ?? false
         )
     }
 
@@ -448,7 +452,12 @@ private struct PersonalChallengeRow: Decodable {
             status: status,
             terms: terms,
             progress: progress,
-            outcome: result
+            outcome: result,
+            stepDataPolicy: stepDataPolicy ?? .attestedHourlyV1,
+            termsFingerprint: termsFingerprint,
+            serverStepSnapshot: serverStepSnapshot,
+            snapshotUpdatedAt: snapshotUpdatedAt,
+            commitmentWaived: commitmentWaived ?? false
         )
     }
 
@@ -472,8 +481,10 @@ private struct PersonalChallengeRow: Decodable {
     }
 
     private var progress: PersonalProgress {
-        let steps = Int(totalSteps.rounded(.towardZero))
+        let steps = Int((totalSteps ?? 0).rounded(.towardZero))
         let days = dailyProgress ?? []
+        let coveredBucketCount = coveredBucketCount ?? 0
+        let expectedBucketCount = expectedBucketCount ?? 0
         let remaining: Int
         if cadence == .daily {
             remaining = PersonalProgress.dailyRemainingSteps(
@@ -508,6 +519,29 @@ private struct PersonalChallengeRow: Decodable {
             coveredBucketCount: coveredBucketCount,
             expectedBucketCount: expectedBucketCount
         )
+    }
+
+    private var serverStepSnapshot: PersonalStepSnapshot? {
+        guard stepDataPolicy == .healthKitNonmanualDailyV1,
+            let termsFingerprint,
+            let observedAt = healthObservedAt ?? snapshotUpdatedAt,
+            let healthQueryThrough,
+            let dailyProgress,
+            dailyProgress.count == 7
+        else { return nil }
+        let snapshot = PersonalStepSnapshot(
+            challengeID: challengeID,
+            termsFingerprint: termsFingerprint,
+            observedAt: observedAt,
+            queryThrough: healthQueryThrough,
+            dailyProgress: dailyProgress.map {
+                PersonalStepSnapshot.Day(
+                    localDate: $0.localDate,
+                    totalSteps: $0.displayedTrustedSteps
+                )
+            }
+        )
+        return snapshot.isStructurallyValid ? snapshot : nil
     }
 
     private var result: PersonalOutcome? {

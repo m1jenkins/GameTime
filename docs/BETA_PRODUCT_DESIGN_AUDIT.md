@@ -2,8 +2,31 @@
 
 **Audited:** August 6, 2026
 
+**Automatic-progress reconciliation:** August 12, 2026
+
 **Decision:** keep the product small; close the trust and recovery gaps before
 inviting external testers.
+
+## Automatic Apple Health design contract
+
+This section supersedes the audit's older Personal manual-sync, coverage,
+diagnostic/hold, positive-sample-readiness, and production-App-Attest
+recommendations. Those remain useful only as a record of
+`attested_hourly_v1`. The current design uses
+`healthkit_nonmanual_daily_v1`:
+
+- The only Health-specific action is **Connect Apple Health**.
+- Progress appears automatically and consistently on Today, Challenges, detail,
+  timeline, and pace.
+- A quiet **Updated from Apple Health …** line may explain freshness.
+- During grace, say **We'll keep checking Apple Health through …**.
+- A transient Health error retains the prior value and marks it stale.
+- With no successful snapshot, say **No step data available yet** and route to
+  Apple Health settings help.
+- Generic pull to refresh remains. Step-specific sync cards, buttons, saved-step
+  actions, confirmed/unconfirmed status, coverage status, diagnostics, and holds
+  do not.
+- Completed challenge screens always show the frozen server result.
 
 ## Executive answer
 
@@ -33,7 +56,7 @@ It does need a small set of missing or incomplete launch behaviors:
 6. Connect the existing sandbox status function to a complete user-visible
    review and simulated-settlement status, with safe recovery.
 7. Finish the distribution identity, app icon, privacy manifest, iPhone-only
-   setting, and production App Attest path.
+   setting, and automatic Apple Health path.
 8. Verify common journeys with VoiceOver, Larger Text, contrast, and a real
    processed TestFlight build.
 
@@ -78,11 +101,11 @@ freeze.
 | --- | --- | --- |
 | App entry | Configuration failure, launch/loading, retry/offline, signed out, Sign in with Apple, and profile onboarding | Complete structure; root appearance and support recovery need work |
 | App shell | Today, Challenges, and You, each with its own navigation path | Keep exactly these three tabs |
-| Today | Authoritative loading/error handling, eligibility hold, saved-step recovery, current challenge, progress, seven-day timeline, manual sync, and create state | Add one state-aware next action with an exact local deadline |
+| Today | Authoritative loading/error handling, current challenge, progress, seven-day timeline, and create state | Use automatic snapshot progress, update time, and one state-aware next action |
 | Challenges | Current challenge, finished history, unfinished setup recovery, empty state, and draft removal | No separate History tab needed; expose saved cancellation recovery |
-| Creation | Metric, cadence, target, commitment, custom start, Health check, Stripe PaymentSheet setup/consent, review, and draft recovery | Keep the sandbox setup; remove the one-option metric and custom-start steps |
-| Challenge detail | Status, frozen terms, timeline, evidence coverage, sync, result, missed-result review, and pre-start cancellation | Add result-pending, load/recovery, and complete sandbox settlement status |
-| You | Profile, timezone, Health check, eligibility hold, privacy explanation, history totals, and sign out | Add Account & Support and Delete Account |
+| Creation | Metric, cadence, target, commitment, custom start, Health permission, Stripe PaymentSheet setup/consent, review, and draft recovery | Keep sandbox setup; use one Connect Apple Health action with no positive-sample gate |
+| Challenge detail | Status, frozen terms, automatic timeline/progress, result, missed-result review, and pre-start cancellation | Add update/stale/grace/no-data states and complete sandbox settlement status |
+| You | Profile, timezone, Health access, privacy explanation, history totals, and sign out | Add Apple Health settings recovery, Account & Support, and Delete Account |
 | Privacy explanation | Private challenge, limited Health read, fail-closed missing-data, and no-social explanations | Good education, but not a public privacy policy, sandbox-data disclosure, or beta terms |
 
 Primary implementation evidence:
@@ -116,13 +139,13 @@ For beta, reduce the visible journey to six meaningful decisions or checks:
 1. Daily or cumulative.
 2. Step target.
 3. Sandbox commitment amount.
-4. Apple Health readiness.
+4. Apple Health permission request.
 5. Stripe test-payment consent and PaymentSheet setup.
 6. Final review and confirmation.
 
 The server remains authoritative for the next-midnight start. The review must
-show the exact local start, end, final-sync cutoff, frozen timezone, manual-sync
-expectation, review deadline, simulated-settlement rule, and this exact
+show the exact local start, end, automatic-checking cutoff, frozen timezone,
+review deadline, simulated-settlement rule, and this exact
 disclosure:
 
 > Payment test mode — no real money moves.
@@ -134,7 +157,7 @@ presentation change, not a model rewrite.
 
 ### P0. Give Today one unmistakable next action
 
-Today already has progress and sync content. Add a compact, state-aware line or
+Today already has progress content. Add a compact, state-aware line or
 card that answers two questions without opening detail:
 
 - What should I do next?
@@ -145,11 +168,11 @@ Minimum states:
 | State | Primary message and action |
 | --- | --- |
 | Scheduled | “Starts [local date/time]” and Review terms |
-| Active, healthy | “[steps] remaining today/overall” and Sync steps |
-| Active, saved upload | “Saved on this phone; still sending” and Retry |
+| Active, healthy | “[steps] remaining today/overall” and “Updated from Apple Health …” |
+| Active, upload offline | Keep local progress; “We'll send this update when you're back online” |
 | Needs attention | Plain-language reason, safest recovery action, and Help |
-| Final-sync window | “Sync by [exact local date/time]” and Sync final steps |
-| Waiting for result | “Final steps received; result is being prepared” and Refresh |
+| Finalization window | “We'll keep checking Apple Health through [exact local date/time]” |
+| Waiting for result | “Your result is being prepared” and Refresh |
 | Result overdue | “This is taking longer than expected” with Refresh and Contact Support |
 | Final | Met, missed, or inconclusive with View result |
 
@@ -236,26 +259,26 @@ must agree before TestFlight review.
 
 ### P0. Produce results automatically
 
-The app can render Personal results, and the database already has protected
-assessment and first-publication operations. The committed baseline did not
-contain an executable scheduled Personal result worker. A new untracked
-`personal_result_worker` migration appeared concurrently during this audit; it
-is user-owned work and is not counted as complete, tested, scheduled, or hosted
-evidence here.
+The app can render Personal results, and the database retains protected v1
+assessment/publication operations. Snapshot v2 needs a finalizer that copies
+the selected seven daily totals directly into the immutable result without a
+legacy assessment reference. The existing named result schedule remains
+inactive until backend-v2 smoke passes.
 
 Add one small service-only worker that:
 
-- Finds Personal challenges due after the 24-hour final-sync grace period.
-- Uses the existing protected assessment and publication operations.
+- Finds Personal challenges due after the 24-hour finalization period.
+- Dispatches by frozen step-data policy, preserving the historical v1 path.
+- For v2, selects only a snapshot queried through the challenge end and copies
+  its seven totals directly into the result.
 - Publishes at most one immutable result.
-- Is idempotent and safe beside a final device sync.
+- Is idempotent and safe beside a final snapshot upload.
 - Leaves uncertain evidence `inconclusive`; it never guesses.
 - Records enough privacy-safe job output to identify overdue or failed work.
 
-Use a scheduled Edge Function or equivalent single-purpose worker rather than a
-general job platform. The founder only needs a daily overdue/failure check for
-the first ten testers. If the concurrent draft is the intended implementation,
-review and finish that artifact rather than creating a second worker.
+Use the existing single-purpose named schedule rather than a general job
+platform. Keep it inactive through migration and authenticated backend smoke;
+activation is a separate approved cutover step.
 
 Relevant current Supabase references:
 
@@ -368,8 +391,8 @@ work:
   embed or expose a Watch companion in the iPhone-only candidate unless the
   beta scope and physical-device acceptance plan are explicitly reopened.
 - No `PrivacyInfo.xcprivacy` file was found in the repository inventory.
-- Production App Attest work is present in the dirty tree but must be completed
-  and proven on the exact distribution candidate.
+- Historical/generic App Attest work remains regression scope. It is not a
+  Personal snapshot-v2 distribution gate.
 - Stripe sandbox secrets, webhook, test-charge schedule, and provider cleanup
   are not hosted or end-to-end proof.
 - The Stripe backend deliberately refuses a production provider environment.
@@ -393,9 +416,10 @@ Primary evidence:
 
 ### P0. Complete a bounded accessibility pass
 
-Existing UI tests cover the shell, creation entry, Health states, manual sync,
-saved creation recovery, loading/offline states, Dynamic Type, and Reduce
-Motion. They do not prove the complete common journey.
+Existing UI tests cover the shell, creation entry, old Health/manual-sync
+states, saved creation recovery, loading/offline states, Dynamic Type, and
+Reduce Motion. Replace the old Personal assertions with automatic cross-surface
+progress, grace, stale, no-data, offline, and frozen-result coverage.
 
 Before inviting testers, check on the exact candidate:
 
@@ -426,9 +450,9 @@ they cause a concrete failure:
 - Detect profile-timezone drift before creating a later challenge.
 - Reduce repeated sandbox disclosure only after the promise remains
   unmistakable at creation and in frozen terms.
-- Add an optional local reminder only if cohort evidence shows people miss
-  final sync because they forgot. Notifications must not be required for core
-  function.
+- Add an optional local reminder only if cohort evidence shows people need more
+  clarity before automatic finalization. Notifications must not be required for
+  core function.
 
 ## Explicitly do not add for this beta
 
@@ -469,8 +493,8 @@ It must not imitate Apple's Activity rings or another product's visual assets.
 - Health access should be requested in context, with honest no-data behavior:
   [Apple HealthKit authorization](https://developer.apple.com/documentation/HealthKit/authorizing-access-to-health-data)
   and [HealthKit design guidance](https://developer.apple.com/design/human-interface-guidelines/healthkit).
-- TestFlight uses production App Attest, so development and production
-  attestations cannot be mixed:
+- Retained generic or legacy targets that still use App Attest must keep Apple
+  environments separate. Personal snapshot v2 does not use App Attest:
   [Preparing to use App Attest](https://developer.apple.com/documentation/DeviceCheck/preparing-to-use-the-app-attest-service).
 - Account-creating apps need in-app account deletion, and Sign in with Apple
   tokens should be revoked:
@@ -500,12 +524,15 @@ external TestFlight submission.
 
 ## Recommended implementation sequence
 
-1. Finish and freeze the current production App Attest, replay-first, and
-   fail-closed creation fixes already in progress.
+1. Finish and freeze the automatic Health reader, protected whole-snapshot
+   cache, authenticated uploader, displayed-progress precedence, and
+   fail-closed challenge availability.
 2. Lock the visible creation contract; add Today's next action; surface Health,
-   cancellation, detail, and result recovery; make the full root safely light.
+   stale/no-data, cancellation, detail, and result recovery; make the full root
+   safely light.
 3. Add Account & Support using founder-provided real destinations.
-4. Add and locally prove the automatic Personal result worker and overdue check.
+4. Add and locally prove snapshot-v2 finalization and the automatic Personal
+   result worker with its schedule inactive.
 5. Connect and locally prove the sandbox status, relaunch-safe review, tester
    guidance, and explicit recovery UI.
 6. Add and locally prove the database switch, tester allowlist, and direct-RPC
@@ -515,9 +542,10 @@ external TestFlight submission.
 8. Make account deletion safe against Stripe review, claim, webhook, and
    provider-data races.
 9. Add and locally prove the iOS/Apple/server account-deletion journey.
-10. Prepare the distribution configuration, assets, public values, and reviewer
-    packet.
-11. Verify one exact candidate locally, then separately approve hosted changes,
+10. Deploy and smoke backend v2, then make the v2 iOS build mandatory and
+    migrate only eligible future-cutoff open challenges.
+11. Prepare the distribution configuration, assets, public values, and reviewer
+    packet; verify one exact candidate locally, then separately approve hosted changes,
     Stripe test-mode configuration, archive upload, TestFlight review
     submission, and tester invitations.
 

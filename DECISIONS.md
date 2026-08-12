@@ -4172,3 +4172,88 @@ version and failed at its expected 401 authentication boundary.
 **Revisit if.** Apple publishes or emits a different assertion extension value
 encoding, or a signed physical-device smoke test does not progress from
 registration 200 to metric and coverage success with a consumed counter.
+
+## M12 — Automatic Apple Health Personal progress
+
+### D120. Personal v2 uses whole daily Health snapshots, not attested hourly evidence
+
+**What.** New Personal challenges freeze `step_data_policy =
+healthkit_nonmanual_daily_v1`. Historical challenges retain
+`attested_hourly_v1`. The new policy queries HealthKit's cumulative statistics
+for each of the seven exact challenge-local dates, lets HealthKit merge every
+writer, and excludes only samples for which
+`HKMetadataKeyWasUserEntered == true`. A third-party writer that omits that
+marker is indistinguishable from automatic data and remains included.
+
+One `PersonalStepSnapshot` contains the challenge id, a fingerprint of the
+frozen terms, observation time, query-through time, and exactly seven ordered
+daily totals. Its overall total is derived. The app caches and replaces that
+whole snapshot per account and challenge; it never combines individual days
+from separate reads. A successful zero or downward Health edit is authoritative.
+Only a thrown or temporarily unavailable query preserves the prior value and
+marks its update time stale.
+
+The app refreshes automatically after Health permission is requested, an open
+challenge loads or is created, launch or foregrounding, a HealthKit observer
+change, and ordinary pull to refresh. Overlapping requests coalesce into one
+active read and one trailing read. Results after an account or challenge switch
+are discarded. Local Health values publish before network work, so upload
+failure cannot hide or reduce displayed progress. Before cutoff, display
+precedence is live Health, matching protected cache, server snapshot, then
+legacy result fallback. After cutoff it is frozen server result, then local
+fallback. The only Health-specific user action is **Connect Apple Health**;
+there is no positive-sample creation gate or step-specific sync action.
+
+The client uploads through one authenticated owner-bound
+`upsert_my_personal_health_snapshot_v2` RPC. The server derives the user from
+the session, exposes no direct snapshot-table writes, validates ownership,
+lifecycle, frozen local dates, cutoff, timestamps, bounds, ordering, and
+future-day zeros, and keeps one private mutable full-window snapshot. Older
+observations are ignored, identical replays succeed, equal timestamps with
+different payloads fail, and a newer snapshot replaces the entire old snapshot
+even when totals decrease.
+
+At `ends_at + 24 hours`, a snapshot queried through the challenge end may
+produce `met_goal` or `missed_goal`. Missing or incomplete final data produces
+a commitment-waived `inconclusive`. The finalizer copies the selected seven
+totals directly into one immutable result and removes the mutable snapshot.
+Snapshot-v2 results do not require the legacy evidence-assessment reference.
+Only a complete sandbox miss may open review; met and inconclusive results
+create no test charge path. Completed screens always show the frozen result.
+
+This supersedes D99 through D104 for challenges on the new policy, D113's
+manual “final sync” assumption, and D114's requirement that the Personal beta
+use production App Attest. It does not rewrite v1 rows, weaken generic metric or
+social attestation infrastructure, or alter the App Attest compatibility and
+deployment history recorded by D112 and D116 through D119.
+
+**Cutover.** Backend support ships first with the Personal result schedule still
+inactive. After authenticated/RLS, replay/conflict, lower-total, cutoff,
+finalization, and Stripe sandbox smoke tests pass, the v2-capable iOS build
+becomes mandatory for the beta cohort. Completed and cancelled challenges stay
+v1. Already-due legacy challenges resolve before migration. Remaining scheduled,
+active, or grace-period challenges with a future cutoff migrate in place and
+must perform a fresh full Health read; hourly evidence is never translated.
+When the server reports v2 policy, clients retire old Personal eligibility holds
+and pending hourly queues while server audit rows remain. Cron activation is a
+separate explicit step after the backend smoke succeeds.
+
+**Why.** HealthKit already owns source merging and late Watch reconciliation.
+The product needs a fresh, understandable progress value and a stable published
+history, not an attestation ceremony or a user-managed delivery protocol.
+Replacing one whole seven-day observation preserves coherent reads, accepts
+legitimate corrections, makes zero meaningful, and leaves missing final data
+fail-safe while Stripe remains test-only.
+
+**Rejected.** Translating hourly evidence into daily snapshots; splicing cached
+days; requiring a positive sample before creation; treating zero as failure;
+keeping a manual sync or saved-evidence action; hiding local progress after an
+upload failure; accepting client-supplied owner identity; direct snapshot table
+writes; equal-time conflicting payloads; mutable published results; migrating
+already-due or completed history; activating Cron before backend smoke; and
+using this trusted-client policy for real money without a new review.
+
+**Revisit if.** Real-money settlement is proposed, Apple supplies a stronger
+manual-entry or read-completeness signal, or the product needs multi-device
+snapshot reconciliation. Each changes the trust boundary and requires a new
+frozen policy rather than editing `healthkit_nonmanual_daily_v1` in place.

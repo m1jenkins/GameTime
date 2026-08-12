@@ -1,7 +1,23 @@
 import type { PostgrestConfig } from "../_shared/database.ts";
 import { personalStripeTermsRpcArgs } from "../_shared/personal_stripe_contract.ts";
 import { oneServiceRow, requiredServiceString, serviceRpc } from "../_shared/service_rpc.ts";
-import type { PersonalStripeCommitDatabase } from "./handler.ts";
+import {
+  PERSONAL_HEALTH_STEP_DATA_POLICY,
+  type PersonalStripeCommitDatabase,
+  type PersonalStripeCommitStepDataPolicy,
+} from "./handler.ts";
+
+export type PersonalStripeCommitRpcName =
+  | "commit_personal_stripe_sandbox_challenge_service_v1"
+  | "commit_personal_stripe_sandbox_challenge_service_v2";
+
+export function personalStripeCommitRpcName(
+  stepDataPolicy?: PersonalStripeCommitStepDataPolicy,
+): PersonalStripeCommitRpcName {
+  return stepDataPolicy === PERSONAL_HEALTH_STEP_DATA_POLICY
+    ? "commit_personal_stripe_sandbox_challenge_service_v2"
+    : "commit_personal_stripe_sandbox_challenge_service_v1";
+}
 
 export function postgrestPersonalStripeCommitDatabase(
   config: PostgrestConfig,
@@ -66,9 +82,10 @@ export function postgrestPersonalStripeCommitDatabase(
     },
 
     async commitChallenge(args) {
+      const rpcName = personalStripeCommitRpcName(args.stepDataPolicy);
       const result = await serviceRpc(
         config,
-        "commit_personal_stripe_sandbox_challenge_service_v1",
+        rpcName,
         {
           p_owner_id: args.ownerId,
           p_setup_id: args.setupId,
@@ -77,7 +94,7 @@ export function postgrestPersonalStripeCommitDatabase(
       );
       const row = oneServiceRow(
         result,
-        "commit_personal_stripe_sandbox_challenge_service_v1",
+        rpcName,
       );
       return {
         challengeId: requiredServiceString(row, "challenge_id"),
