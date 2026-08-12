@@ -437,6 +437,11 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertEqual(connectHealth.label, "Connect Apple Health")
         assertNoLegacyPersonalHealthSurfaces(in: app)
         connectHealth.tap()
+        XCTAssertTrue(
+            app.staticTexts["Health connected"]
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertFalse(connectHealth.exists)
 
         app.tabBars.buttons["Today"].waitAndTap()
         app.buttons["personal.create"].waitAndTap()

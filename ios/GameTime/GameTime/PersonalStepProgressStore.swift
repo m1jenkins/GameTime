@@ -113,7 +113,12 @@ final class PersonalStepProgressStore {
     func requestAuthorization() async throws -> ActivityAuthorizationOutcome {
         let outcome = try await reader.requestAuthorization()
         if outcome == .requestCompleted {
-            await refresh()
+            // Permission completion is the UI boundary. A Health read may
+            // include seven queries, protected cache I/O, and a network
+            // upload, so it must not keep the Connect action waiting.
+            Task { @MainActor [weak self] in
+                await self?.refresh()
+            }
         }
         return outcome
     }

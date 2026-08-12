@@ -859,6 +859,8 @@ final class PersonalAccountabilityStore {
             activityAuthorizationOutcome = outcome
             guard outcome == .requestCompleted else {
                 healthReadiness = .unavailable
+                presentedError = PersonalHealthStepReaderError
+                    .unavailable.localizedDescription
                 return false
             }
             backgroundDeliveryRegistration?.retryRegistration()

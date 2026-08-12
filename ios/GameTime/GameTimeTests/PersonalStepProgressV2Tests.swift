@@ -682,6 +682,37 @@ final class PersonalStepProgressStoreV2Tests: XCTestCase {
         XCTAssertEqual(store.displayedProgress?.isStale, true)
     }
 
+    func testAuthorizationReturnsBeforeTriggeredRefreshFinishes() async {
+        let terms = makeCurrentV2Terms()
+        let reader = V2BlockingReader(
+            challengeID: terms.challengeID,
+            fingerprint: "terms"
+        )
+        let store = makeProgressStore(reader: reader)
+        let ownerID = UUID()
+        await store.activate(
+            ownerID: ownerID,
+            challenge: makeV2Summary(
+                terms: terms,
+                status: .completed
+            )
+        )
+        store.updateServerChallenge(makeV2Summary(terms: terms))
+
+        var returnedOutcome: ActivityAuthorizationOutcome?
+        let authorization = Task { @MainActor in
+            returnedOutcome = try? await store.requestAuthorization()
+        }
+        await reader.waitUntilReadCount(1)
+
+        XCTAssertEqual(returnedOutcome, .requestCompleted)
+
+        reader.isBlocking = false
+        reader.releaseNext()
+        await authorization.value
+        while store.isRefreshing { await Task.yield() }
+    }
+
     func testOverlappingRefreshesCoalesceToOneTrailingRead() async {
         let terms = makeCurrentV2Terms()
         let reader = V2BlockingReader(

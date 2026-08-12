@@ -1749,6 +1749,38 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
         XCTAssertEqual(diagnostic.diagnosticCount, 0)
     }
 
+    func testUnavailableHealthAuthorizationPresentsAnError() async {
+        let ownerID = UUID()
+        let stepProgress = PersonalStepProgressStore(
+            reader: StorePersonalHealthStepReaderFake(
+                authorizationOutcome: .healthDataUnavailable
+            ),
+            cache: EphemeralPersonalStepSnapshotCache(),
+            uploader: DisabledPersonalHealthSnapshotUploader()
+        )
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: PersonalClientFake(ownerID: ownerID),
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator(),
+            stepProgressStore: stepProgress
+        )
+        await store.activate(ownerID: ownerID)
+
+        let connected = await store.verifyHealthAccess(
+            timezone: "America/Chicago"
+        )
+
+        XCTAssertFalse(connected)
+        XCTAssertEqual(store.healthReadiness, .unavailable)
+        XCTAssertEqual(
+            store.presentedError,
+            PersonalHealthStepReaderError.unavailable.localizedDescription
+        )
+    }
+
     func testActiveTabsExposeOnlyPersonalV1Shell() {
         XCTAssertEqual(AppTab.allCases, [.today, .challenges, .you])
     }
@@ -3117,9 +3149,16 @@ private final class StorePersonalHealthStepReaderFake:
     PersonalHealthStepReading
 {
     private(set) var readCount = 0
+    private let authorizationOutcome: ActivityAuthorizationOutcome
+
+    init(
+        authorizationOutcome: ActivityAuthorizationOutcome = .requestCompleted
+    ) {
+        self.authorizationOutcome = authorizationOutcome
+    }
 
     func requestAuthorization() async throws -> ActivityAuthorizationOutcome {
-        .requestCompleted
+        authorizationOutcome
     }
 
     func readSnapshot(

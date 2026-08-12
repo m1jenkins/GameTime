@@ -72,7 +72,14 @@ struct YouView: View {
             DaybreakSectionLabel(text: "Apple Health")
             DaybreakCard {
                 VStack(alignment: .leading, spacing: 12) {
-                    Label("Steps", systemImage: "heart.fill")
+                    Label(
+                        personalStore.healthReadiness.permitsCreation
+                            ? "Health connected"
+                            : "Steps",
+                        systemImage: personalStore.healthReadiness.permitsCreation
+                            ? "checkmark.circle.fill"
+                            : "heart.fill"
+                    )
                         .font(
                             CompetitiveTrustTheme.displayFont(
                                 size: 18,
@@ -80,28 +87,34 @@ struct YouView: View {
                             )
                         )
                     Text(
-                        "Connect Apple Health so GameTime can update your challenge automatically from your step history."
+                        personalStore.healthReadiness.permitsCreation
+                            ? "GameTime can update your challenge automatically from your Apple Health step history."
+                            : "Connect Apple Health so GameTime can update your challenge automatically from your step history."
                     )
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                    Button(
-                        personalStore.isVerifyingHealthAccess
-                            ? "Connecting…"
-                            : "Connect Apple Health"
-                    ) {
-                        Task {
-                            _ = await personalStore.verifyHealthAccess(
-                                timezone: model.profile?.timezone
-                                    ?? TimeZone.current.identifier
-                            )
+
+                    if !personalStore.healthReadiness.permitsCreation {
+                        Button(
+                            personalStore.isVerifyingHealthAccess
+                                ? "Connecting…"
+                                : "Connect Apple Health"
+                        ) {
+                            Task {
+                                _ = await personalStore.verifyHealthAccess(
+                                    timezone: model.profile?.timezone
+                                        ?? TimeZone.current.identifier
+                                )
+                            }
                         }
+                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .disabled(
+                            personalStore.isVerifyingHealthAccess
+                                || !personalStore.configuration.activitySyncEnabled
+                        )
+                        .accessibilityIdentifier("personal.health.verify")
                     }
-                    .buttonStyle(TrustSecondaryButtonStyle())
-                    .disabled(
-                        personalStore.isVerifyingHealthAccess
-                            || !personalStore.configuration.activitySyncEnabled
-                    )
-                    .accessibilityIdentifier("personal.health.verify")
+
                     if !personalStore.configuration.activitySyncEnabled {
                         Text(
                             "Health connection checks aren’t available yet."
