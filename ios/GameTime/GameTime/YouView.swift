@@ -16,6 +16,7 @@ struct YouView: View {
                 )
                 healthSection
                 privacySection
+                accountSupportSection
                 historySection
                 demoSection
                 signOutControl
@@ -183,6 +184,40 @@ struct YouView: View {
         }
     }
 
+    private var accountSupportSection: some View {
+        Group {
+            DaybreakSectionLabel(text: "Account & support")
+            DaybreakCard {
+                Button {
+                    router.youPath.append(.accountSupport)
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "person.crop.circle.badge.questionmark")
+                            .foregroundStyle(CompetitiveTrustTheme.coral)
+                            .frame(width: 24)
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Account & support")
+                                .font(.body.weight(.semibold))
+                            Text("Apple Health help, beta terms, support, and account controls")
+                                .font(.caption)
+                                .foregroundStyle(
+                                    CompetitiveTrustTheme.secondaryText
+                                )
+                        }
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(CompetitiveTrustTheme.guide)
+                            .accessibilityHidden(true)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("account-support.open")
+            }
+        }
+    }
+
     @ViewBuilder
     private var demoSection: some View {
         if demoMode.isAvailable {
@@ -344,5 +379,374 @@ struct TrustAndPrivacyView: View {
                 }
             }
         }
+    }
+}
+
+private enum AccountSupportSheet: Identifiable {
+    case deleteAccount
+
+    var id: String { "delete-account" }
+}
+
+struct AccountSupportView: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.demoMode) private var demoMode
+    @State private var presentedSheet: AccountSupportSheet?
+    @State private var showDeleteConfirmation = false
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                introCard
+                helpSection
+                legalSection
+                accountSection
+                versionNote
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 4)
+            .padding(.bottom, 28)
+        }
+        .daybreakScreenChrome()
+        .navigationTitle("Account & support")
+        .navigationBarTitleDisplayMode(.inline)
+        .alert(
+            "Delete your account?",
+            isPresented: $showDeleteConfirmation
+        ) {
+            Button("Cancel", role: .cancel) {}
+            Button("Continue", role: .destructive) {
+                presentedSheet = .deleteAccount
+            }
+        } message: {
+            Text(
+                "Your profile, challenges, social links, pending requests, Health snapshots, and sign-in will be removed. Integrity records may remain without your name. Your beta Stripe customer and saved payment method will also be deleted. This can’t be undone."
+            )
+        }
+        .sheet(item: $presentedSheet) { sheet in
+            switch sheet {
+            case .deleteAccount:
+                DeleteAccountView()
+            }
+        }
+    }
+
+    private var introCard: some View {
+        DaybreakCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Label("We’re here to help", systemImage: "person.crop.circle.badge.questionmark")
+                    .font(
+                        CompetitiveTrustTheme.displayFont(
+                            size: 19,
+                            relativeTo: .headline
+                        )
+                    )
+                Text(
+                    "Find answers about Apple Health, review the beta documents, contact the team, or manage your account."
+                )
+                .font(.subheadline)
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            }
+        }
+    }
+
+    private var helpSection: some View {
+        Group {
+            DaybreakSectionLabel(text: "Help")
+            DaybreakCard {
+                VStack(spacing: 0) {
+                    externalRow(
+                        title: "Apple Health help",
+                        detail: "Manage step access and Health permissions",
+                        icon: "heart.text.square.fill",
+                        destination: URL(string: "https://support.apple.com/en-us/HT204351")
+                    )
+                    Divider().overlay(CompetitiveTrustTheme.border)
+                    supportRow
+                }
+            }
+        }
+    }
+
+    private var legalSection: some View {
+        Group {
+            DaybreakSectionLabel(text: "Beta documents")
+            DaybreakCard {
+                VStack(spacing: 0) {
+                    documentRow(
+                        title: "Privacy Policy",
+                        detail: "How GameTime handles your data",
+                        icon: "hand.raised.fill",
+                        destination: model.configuration.privacyPolicyURL
+                    )
+                    Divider().overlay(CompetitiveTrustTheme.border)
+                    documentRow(
+                        title: "Beta Terms",
+                        detail: "The terms for this beta release",
+                        icon: "doc.text.fill",
+                        destination: model.configuration.betaTermsURL
+                    )
+                }
+            }
+        }
+    }
+
+    private var accountSection: some View {
+        Group {
+            DaybreakSectionLabel(text: "Account")
+            DaybreakCard {
+                VStack(spacing: 12) {
+                    if !demoMode.isActive {
+                        Button(role: .destructive) {
+                            Task { await model.signOut() }
+                        } label: {
+                            Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .disabled(model.isMutating)
+                        .accessibilityIdentifier("account-support.sign-out")
+                    }
+
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Delete account", systemImage: "person.crop.circle.badge.minus")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(TrustSecondaryButtonStyle())
+                    .disabled(model.isMutating || demoMode.isActive)
+                    .accessibilityIdentifier("account-support.delete")
+                }
+            }
+        }
+    }
+
+    private var supportRow: some View {
+        Group {
+            if let supportURL = model.configuration.supportMailtoURL {
+                Link(destination: supportURL) {
+                    rowLabel(
+                        title: "Contact beta support",
+                        detail: "Tell us what happened",
+                        icon: "envelope.fill"
+                    )
+                }
+                .accessibilityIdentifier("account-support.contact")
+            } else {
+                rowLabel(
+                    title: "Beta support",
+                    detail: "Support contact isn’t configured for this build",
+                    icon: "envelope.badge.shield.half.filled"
+                )
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            }
+        }
+    }
+
+    private func externalRow(
+        title: String,
+        detail: String,
+        icon: String,
+        destination: URL?
+    ) -> some View {
+        Group {
+            if let destination {
+                Link(destination: destination) {
+                    rowLabel(title: title, detail: detail, icon: icon)
+                }
+            } else {
+                rowLabel(
+                    title: title,
+                    detail: "Help link isn’t configured for this build",
+                    icon: icon
+                )
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            }
+        }
+    }
+
+    private func documentRow(
+        title: String,
+        detail: String,
+        icon: String,
+        destination: URL?
+    ) -> some View {
+        externalRow(
+            title: title,
+            detail: destination == nil
+                ? "Link isn’t configured for this build"
+                : detail,
+            icon: icon,
+            destination: destination
+        )
+    }
+
+    private func rowLabel(
+        title: String,
+        detail: String,
+        icon: String
+    ) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(CompetitiveTrustTheme.coral)
+                .frame(width: 24)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.body.weight(.semibold))
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            }
+            Spacer(minLength: 8)
+            Image(systemName: "arrow.up.right")
+                .foregroundStyle(CompetitiveTrustTheme.guide)
+                .accessibilityHidden(true)
+        }
+        .contentShape(Rectangle())
+        .padding(.vertical, 10)
+    }
+
+    private var versionNote: some View {
+        let version = Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleShortVersionString"
+        ) as? String ?? "—"
+        let build = Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleVersion"
+        ) as? String ?? "—"
+        return Text("Version \(version) (\(build))")
+            .font(.caption2)
+            .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+    }
+}
+
+struct DeleteAccountView: View {
+    private enum State: Equatable {
+        case reauthenticate
+        case deleting
+        case failed(String)
+    }
+
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    @State private var state: State = .reauthenticate
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    switch state {
+                    case .reauthenticate:
+                        reauthenticateContent
+                    case .deleting:
+                        deletingContent
+                    case .failed(let message):
+                        failedContent(message: message)
+                    }
+                }
+                .padding(20)
+            }
+            .daybreakScreenChrome()
+            .navigationTitle("Delete account")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .disabled(state == .deleting)
+                }
+            }
+        }
+    }
+
+    private var reauthenticateContent: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Confirm with Apple")
+                .font(
+                    CompetitiveTrustTheme.displayFont(
+                        size: 25,
+                        relativeTo: .title2
+                    )
+                )
+            Text(
+                "For your protection, Apple requires a fresh sign-in before GameTime can delete this account."
+            )
+            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            NativeAppleReauthenticationButton { result in
+                handleReauthentication(result)
+            }
+        }
+    }
+
+    private var deletingContent: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ProgressView()
+            Text("Deleting your account…")
+                .font(.title3.weight(.semibold))
+            Text("Revoking Apple access, removing server data, and clearing this phone.")
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+        }
+    }
+
+    private func failedContent(message: String) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label("Deletion didn’t finish", systemImage: "exclamationmark.triangle.fill")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(CompetitiveTrustTheme.coral)
+            Text(message)
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            Button("Try again") {
+                state = .reauthenticate
+            }
+            .buttonStyle(TrustSecondaryButtonStyle())
+            if let supportURL = model.configuration.supportMailtoURL {
+                Link("Contact beta support", destination: supportURL)
+                    .font(.subheadline.weight(.semibold))
+            }
+        }
+    }
+
+    private func handleReauthentication(
+        _ result: Result<AppleIdentity, Error>
+    ) {
+        switch result {
+        case .failure(let error):
+            state = .failed(error.localizedDescription)
+        case .success(let identity):
+            state = .deleting
+            Task {
+                do {
+                    _ = try await model.deleteAccount(with: identity)
+                    dismiss()
+                } catch is CancellationError {
+                    state = .reauthenticate
+                } catch {
+                    state = .failed(error.localizedDescription)
+                }
+            }
+        }
+    }
+}
+
+struct PublicSupportLinksView: View {
+    let privacyURL: URL?
+    let betaTermsURL: URL?
+    let supportMailtoURL: URL?
+
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 16) {
+                if let privacyURL {
+                    Link("Privacy Policy", destination: privacyURL)
+                }
+                if let betaTermsURL {
+                    Link("Beta Terms", destination: betaTermsURL)
+                }
+            }
+            if let supportMailtoURL {
+                Link("Contact support", destination: supportMailtoURL)
+            }
+        }
+        .font(.footnote.weight(.semibold))
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
     }
 }

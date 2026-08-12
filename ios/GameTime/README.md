@@ -33,7 +33,9 @@ In a Debug or Staging build, open **You → Open demo mode**. If the live accoun
 is signed out, **Try demo mode** is also available on the sign-in screen. The
 isolated model presents only Today, Challenges, and You and resets on exit.
 Its account and challenge data stay local, while step progress is read from
-Apple Health on the device so “start right now” can count today's real steps.
+Apple Health on the device. “Start right now” and the detail screen's “Sync
+now” use the same behavior as main mode, so today's real steps count in either
+journey.
 
 UI tests launch the same deterministic boundary with `--fixture-mode`.
 Snapshot-v2 fixtures cover automatic live progress, cache/server fallback,

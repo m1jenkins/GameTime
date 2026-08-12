@@ -420,7 +420,7 @@ final class PersonalAccountabilityModelTests: XCTestCase {
         }
     }
 
-    func testDemoStartAcceptsOnlyTheCurrentMinute() throws {
+    func testStartNowAcceptsOnlyTheCurrentMinute() throws {
         var draft = PersonalChallengeDraft.initial(
             profileTimezone: "America/Chicago",
             now: startClock

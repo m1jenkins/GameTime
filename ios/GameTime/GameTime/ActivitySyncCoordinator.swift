@@ -54,6 +54,7 @@ protocol ActivitySyncing: AnyObject {
     for ownerID: UUID,
     contestID: UUID
   ) async throws
+  func clearPendingUploads(for ownerID: UUID) async throws
   func sync(
     ownerID: UUID,
     contest: ContestCard,
@@ -72,6 +73,10 @@ extension ActivitySyncing {
     contestID: UUID
   ) async throws {
     _ = (ownerID, contestID)
+  }
+
+  func clearPendingUploads(for ownerID: UUID) async throws {
+    _ = ownerID
   }
 }
 
@@ -165,6 +170,16 @@ final class ActivitySyncCoordinator: ActivitySyncing {
   ) async throws {
     let uploads = try await pendingUploads.pending(for: ownerID)
     for upload in uploads where upload.contestId == contestID {
+      try await pendingUploads.abandon(
+        ownerID: ownerID,
+        batchID: upload.clientBatchId
+      )
+    }
+  }
+
+  func clearPendingUploads(for ownerID: UUID) async throws {
+    let uploads = try await pendingUploads.pending(for: ownerID)
+    for upload in uploads {
       try await pendingUploads.abandon(
         ownerID: ownerID,
         batchID: upload.clientBatchId

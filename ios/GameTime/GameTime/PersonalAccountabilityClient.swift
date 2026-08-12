@@ -89,6 +89,7 @@ protocol PersonalActivitySyncing: AnyObject {
         for ownerID: UUID,
         challengeID: UUID
     ) async throws
+    func clearPendingUploads(for ownerID: UUID) async throws
     func sync(
         ownerID: UUID,
         challenge: PersonalChallengeDetail,
@@ -107,6 +108,10 @@ extension PersonalActivitySyncing {
         challengeID: UUID
     ) async throws {
         _ = (ownerID, challengeID)
+    }
+
+    func clearPendingUploads(for ownerID: UUID) async throws {
+        _ = ownerID
     }
 }
 

@@ -11,6 +11,7 @@ enum LiveServicesFactory {
         let activitySync: any ActivitySyncing
         let personalActivitySync: any PersonalActivitySyncing
         let trustedActivityDiagnostic: any TrustedActivityDiagnosticClient
+        let appAttestedBodySigner: any AppAttestedBodySigning
         if configuration.activitySyncEnabled,
             !configuration.attestedUploadEnabled
         {
@@ -21,12 +22,13 @@ enum LiveServicesFactory {
             personalActivitySync = LocalOnlyPersonalActivitySyncCoordinator(
                 activity: health
             )
+            appAttestedBodySigner = UnavailableAppAttestedBodySigner()
             trustedActivityDiagnostic =
                 try SupabaseTrustedActivityDiagnosticClient(
                     client: client,
                     configuration: configuration,
                     activity: health,
-                    signer: UnavailableAppAttestedBodySigner()
+                    signer: appAttestedBodySigner
                 )
         } else if configuration.activitySyncEnabled {
             let health = HealthKitActivityClient()
@@ -40,6 +42,7 @@ enum LiveServicesFactory {
                 pendingUploads: try FilePendingMetricUploadStore
                     .applicationSupport()
             )
+            appAttestedBodySigner = uploads
             activitySync = coordinator
             personalActivitySync = PersonalActivitySyncCoordinator(
                 activity: health,
@@ -61,14 +64,22 @@ enum LiveServicesFactory {
         } else {
             activitySync = DisabledActivitySyncCoordinator()
             personalActivitySync = DisabledPersonalActivitySyncCoordinator()
+            appAttestedBodySigner = UnavailableAppAttestedBodySigner()
             trustedActivityDiagnostic = DisabledTrustedActivityDiagnosticClient()
         }
+        let pendingChallenges = try FilePendingChallengeStore.applicationSupport()
+        let pendingPersonalChallenges = try FilePendingPersonalChallengeStore
+            .applicationSupport()
+        let pendingPersonalCancellations = try FilePendingPersonalCancellationStore
+            .applicationSupport()
+        let personalStepSnapshotCache = try FilePersonalStepSnapshotCache
+            .applicationSupport()
         return AppServices(
             auth: SupabaseAuthClient(client: client),
             profiles: SupabaseProfileClient(client: client),
             friendships: SupabaseFriendshipsClient(client: client),
             contests: SupabaseContestsClient(client: client),
-            pendingChallenges: try FilePendingChallengeStore.applicationSupport(),
+            pendingChallenges: pendingChallenges,
             activitySync: activitySync,
             pushNotifications: SupabasePushNotificationsClient(client: client),
             personalAccountability: SupabasePersonalAccountabilityClient(
@@ -81,18 +92,201 @@ enum LiveServicesFactory {
                         configuration: configuration
                     )
                     : DisabledPersonalPaymentClient(),
-            pendingPersonalChallenges: try FilePendingPersonalChallengeStore
-                .applicationSupport(),
-            pendingPersonalCancellations:
-                try FilePendingPersonalCancellationStore.applicationSupport(),
+            pendingPersonalChallenges: pendingPersonalChallenges,
+            pendingPersonalCancellations: pendingPersonalCancellations,
             trustedActivityDiagnostic: trustedActivityDiagnostic,
             personalActivitySync: personalActivitySync,
             personalHealthSteps: HealthKitPersonalHealthStepReader(),
-            personalStepSnapshotCache: try FilePersonalStepSnapshotCache
-                .applicationSupport(),
+            personalStepSnapshotCache: personalStepSnapshotCache,
             personalHealthSnapshotUploader:
-                SupabasePersonalHealthSnapshotUploader(client: client)
+                SupabasePersonalHealthSnapshotUploader(client: client),
+            accountDeletion: SupabaseAccountDeletionClient(
+                client: client,
+                configuration: configuration
+            ),
+            localStateCleanup: AccountLocalStateCleaner(
+                pendingChallenges: pendingChallenges,
+                activitySync: activitySync,
+                pendingPersonalChallenges: pendingPersonalChallenges,
+                pendingPersonalCancellations: pendingPersonalCancellations,
+                personalActivitySync: personalActivitySync,
+                personalStepSnapshotCache: personalStepSnapshotCache,
+                appAttestedBodySigner: appAttestedBodySigner
+            )
         )
+    }
+}
+
+@MainActor
+final class SupabaseAccountDeletionClient: AccountDeletionClient {
+    private struct RequestBody: Encodable {
+        let appleAuthorizationCode: String
+
+        enum CodingKeys: String, CodingKey {
+            case appleAuthorizationCode = "appleAuthorizationCode"
+        }
+    }
+
+    private struct ResponseBody: Decodable {
+        let deleted: Bool
+    }
+
+    private let client: SupabaseClient
+    private let configuration: AppConfiguration
+    private let session: URLSession
+
+    init(
+        client: SupabaseClient,
+        configuration: AppConfiguration,
+        session: URLSession = .shared
+    ) {
+        self.client = client
+        self.configuration = configuration
+        self.session = session
+    }
+
+    func deleteAccount(
+        ownerID: UUID,
+        appleAuthorizationCode: String
+    ) async throws {
+        guard !appleAuthorizationCode.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        ).isEmpty else {
+            throw AccountDeletionError.authorizationCodeUnavailable
+        }
+        guard let liveSession = try await client.validSession() else {
+            throw AccountDeletionError.authenticationRequired
+        }
+        guard liveSession.user.id == ownerID else {
+            throw AccountDeletionError.accountChanged
+        }
+
+        var request = URLRequest(url: try endpointURL())
+        request.httpMethod = "POST"
+        request.httpBody = try JSONEncoder().encode(
+            RequestBody(appleAuthorizationCode: appleAuthorizationCode)
+        )
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(
+            configuration.supabasePublishableKey,
+            forHTTPHeaderField: "apikey"
+        )
+        request.setValue(
+            "Bearer \(liveSession.accessToken)",
+            forHTTPHeaderField: "Authorization"
+        )
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            throw AccountDeletionError.unavailable
+        }
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AccountDeletionError.invalidResponse
+        }
+        if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+            throw AccountDeletionError.authenticationRequired
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode >= 500 {
+                throw AccountDeletionError.unavailable
+            }
+            throw AccountDeletionError.rejected
+        }
+        guard data.count <= 64 * 1024 else {
+            throw AccountDeletionError.invalidResponse
+        }
+        guard (try? JSONDecoder().decode(ResponseBody.self, from: data))?.deleted
+            == true
+        else {
+            throw AccountDeletionError.invalidResponse
+        }
+    }
+
+    private func endpointURL() throws -> URL {
+        guard var components = URLComponents(
+            url: configuration.supabaseURL,
+            resolvingAgainstBaseURL: false
+        ) else {
+            throw AccountDeletionError.unavailable
+        }
+        var parts = components.path.split(separator: "/").map(String.init)
+        if Array(parts.suffix(2)) != ["functions", "v1"] {
+            parts.append(contentsOf: ["functions", "v1"])
+        }
+        parts.append("delete-account")
+        components.path = "/" + parts.joined(separator: "/")
+        components.query = nil
+        components.fragment = nil
+        guard let url = components.url else {
+            throw AccountDeletionError.unavailable
+        }
+        return url
+    }
+}
+
+@MainActor
+final class AccountLocalStateCleaner: AccountLocalStateCleaning {
+    private let pendingChallenges: any PendingChallengeStore
+    private let activitySync: any ActivitySyncing
+    private let pendingPersonalChallenges: any PendingPersonalChallengeStore
+    private let pendingPersonalCancellations: any PendingPersonalCancellationStore
+    private let personalActivitySync: any PersonalActivitySyncing
+    private let personalStepSnapshotCache: any PersonalStepSnapshotCaching
+    private let appAttestedBodySigner: any AppAttestedBodySigning
+
+    init(
+        pendingChallenges: any PendingChallengeStore,
+        activitySync: any ActivitySyncing,
+        pendingPersonalChallenges: any PendingPersonalChallengeStore,
+        pendingPersonalCancellations: any PendingPersonalCancellationStore,
+        personalActivitySync: any PersonalActivitySyncing,
+        personalStepSnapshotCache: any PersonalStepSnapshotCaching,
+        appAttestedBodySigner: any AppAttestedBodySigning
+    ) {
+        self.pendingChallenges = pendingChallenges
+        self.activitySync = activitySync
+        self.pendingPersonalChallenges = pendingPersonalChallenges
+        self.pendingPersonalCancellations = pendingPersonalCancellations
+        self.personalActivitySync = personalActivitySync
+        self.personalStepSnapshotCache = personalStepSnapshotCache
+        self.appAttestedBodySigner = appAttestedBodySigner
+    }
+
+    func clear(for ownerID: UUID) async throws {
+        var failures: [String] = []
+
+        do { try await pendingChallenges.remove(for: ownerID) }
+        catch { failures.append("challenge retry") }
+        do { try await pendingPersonalChallenges.remove(for: ownerID) }
+        catch { failures.append("personal challenge retry") }
+        do { try await pendingPersonalCancellations.remove(for: ownerID) }
+        catch { failures.append("cancellation retry") }
+        do { try await activitySync.clearPendingUploads(for: ownerID) }
+        catch { failures.append("activity upload") }
+        do { try await personalActivitySync.clearPendingUploads(for: ownerID) }
+        catch { failures.append("personal activity upload") }
+        do { try await personalStepSnapshotCache.removeAll(ownerID: ownerID) }
+        catch { failures.append("Health snapshot") }
+        do { try appAttestedBodySigner.clearLocalState(for: ownerID) }
+        catch { failures.append("device verification") }
+
+        guard failures.isEmpty else {
+            throw AccountDeletionLocalCleanupError(failures: failures)
+        }
+    }
+}
+
+struct AccountDeletionLocalCleanupError: LocalizedError, Equatable, Sendable {
+    let failures: [String]
+
+    var errorDescription: String? {
+        "Your account was deleted, but some saved data on this phone could not be cleared."
     }
 }
 

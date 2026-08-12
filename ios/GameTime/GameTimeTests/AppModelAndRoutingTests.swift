@@ -4,7 +4,7 @@ import XCTest
 
 @MainActor
 final class AppModelAndRoutingTests: XCTestCase {
-    func testDemoStartNowActivatesImmediatelyAndCountsFromLocalMidnight()
+    func testStartNowActivatesImmediatelyAndCountsFromLocalMidnight()
         async throws
     {
         let services = FixtureServicesFactory.make(

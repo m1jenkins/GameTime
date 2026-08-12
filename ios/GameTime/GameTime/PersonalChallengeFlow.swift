@@ -6,7 +6,6 @@ struct CreatePersonalChallengeFlow: View {
     @Environment(AppModel.self) private var appModel
     @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.demoMode) private var demoMode
 
     @State private var draft = PersonalChallengeDraft()
     @State private var requestID = UUID()
@@ -19,7 +18,7 @@ struct CreatePersonalChallengeFlow: View {
     /// Resampled whenever the start step is entered, so the hours it offers
     /// are the hours still open. Submission re-checks against a live clock.
     @State private var now = Date()
-    @State private var startsImmediatelyInDemo = false
+    @State private var startsImmediately = false
 
     private enum Step: Int, CaseIterable {
         case metric
@@ -73,6 +72,9 @@ struct CreatePersonalChallengeFlow: View {
                 now = Date()
                 if let pending = store.pendingCreation {
                     requestID = pending.request.requestID
+                    startsImmediately = pending.request.startsAt.map {
+                        $0 <= now
+                    } ?? false
                     draft = PersonalChallengeDraft(
                         cadence: pending.request.cadence,
                         targetSteps: pending.request.targetSteps,
@@ -427,10 +429,7 @@ struct CreatePersonalChallengeFlow: View {
     /// start shortens day one instead of moving the end. Said plainly here
     /// rather than discovered on day one.
     private var startConsequence: String {
-        if firstDayHours == 24 {
-            return "Seven full days. Day one runs midnight to midnight."
-        }
-        if startsImmediatelyInDemo && demoMode.isActive {
+        if startsImmediately {
             let shared =
                 "Day one counts eligible steps from midnight today and runs until midnight. Days two to seven are full."
             return draft.cadence == .daily
@@ -438,6 +437,9 @@ struct CreatePersonalChallengeFlow: View {
                     + " Steps you took before starting count toward today’s \(draft.targetSteps.formatted())-step goal."
                 : shared
                     + " Steps you took before starting count toward your week total."
+        }
+        if firstDayHours == 24 {
+            return "Seven full days. Day one runs midnight to midnight."
         }
         let shared =
             "Day one is short — \(firstDayHours) \(firstDayHours == 1 ? "hour" : "hours"), from \(startTimeLabel) until midnight. Days two to seven are full."
@@ -526,6 +528,10 @@ struct CreatePersonalChallengeFlow: View {
             Text("Add your test payment method before you start.")
                 .font(.subheadline.weight(.semibold))
 
+            if store.pendingCreation == nil {
+                startNowChoice
+            }
+
             VStack(alignment: .leading, spacing: 8) {
                 paymentRule(
                     "Meeting your goal, an inconclusive result, and cancelling before the challenge starts close without a settlement."
@@ -594,24 +600,16 @@ struct CreatePersonalChallengeFlow: View {
                 (Double(draft.commitmentAmountMinor) / 100)
                     .formatted(.currency(code: "USD"))
             )
-            reviewRow(
-                "How long",
-                firstDayHours == 24
-                    ? "Seven full days"
-                    : "Seven days, starting at \(startTimeLabel) on day one"
-            )
+            reviewRow("How long", challengeLengthDescription)
             reviewRow("Time zone", draft.timezone)
-            reviewRow("Starts", startDescription)
-            if demoMode.isActive, store.pendingCreation == nil {
-                Toggle(
-                    "Start right now (count today)",
-                    isOn: demoStartBinding
-                )
-                    .tint(CompetitiveTrustTheme.coral)
-                    .accessibilityIdentifier("personal.start.demo-now")
-                Text("The challenge activates on the current minute, and all eligible steps since midnight today count.")
-                    .font(.caption)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            reviewRow(
+                "Starts",
+                startsImmediately
+                    ? "Now — today counts from midnight"
+                    : startDescription
+            )
+            if store.pendingCreation == nil {
+                startNowChoice
             }
             reviewRow("Updates through", "24 hours after your last day")
             if store.configuration.personalSettlementMode == .stripeSandbox {
@@ -621,7 +619,7 @@ struct CreatePersonalChallengeFlow: View {
                     "7 days after the result is published"
                 )
             }
-            if firstDayHours != 24 {
+            if startsImmediately || firstDayHours != 24 {
                 Text(startConsequence)
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.primaryText)
@@ -650,6 +648,20 @@ struct CreatePersonalChallengeFlow: View {
                 .frame(maxWidth: .infinity)
                 .accessibilityIdentifier("personal.pending.discard-review")
             }
+        }
+    }
+
+    private var startNowChoice: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Toggle(
+                "Start right now (count today)",
+                isOn: startNowBinding
+            )
+            .tint(CompetitiveTrustTheme.coral)
+            .accessibilityIdentifier("personal.start.now")
+            Text("The challenge activates on the current minute, and all eligible steps since midnight today count.")
+                .font(.caption)
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
         }
     }
 
@@ -784,7 +796,7 @@ struct CreatePersonalChallengeFlow: View {
     /// A selection sitting in a draft — or restored from a saved retry — can
     /// simply age out of validity while the flow is open.
     private var startIsStillValid: Bool {
-        if startsImmediatelyInDemo && demoMode.isActive { return true }
+        if startsImmediately { return true }
         guard let requested = draft.requestedStart(now: now) else { return true }
         return PersonalChallengeStart.isSelectable(
             requested,
@@ -811,13 +823,22 @@ struct CreatePersonalChallengeFlow: View {
         )
     }
 
-    private var demoStartBinding: Binding<Bool> {
+    private var challengeLengthDescription: String {
+        if startsImmediately {
+            return "Seven days, counting from midnight today"
+        }
+        return firstDayHours == 24
+            ? "Seven full days"
+            : "Seven days, starting at \(startTimeLabel) on day one"
+    }
+
+    private var startNowBinding: Binding<Bool> {
         Binding(
-            get: { startsImmediatelyInDemo },
-            set: { startsImmediately in
-                startsImmediatelyInDemo = startsImmediately
+            get: { startsImmediately },
+            set: { shouldStartImmediately in
+                startsImmediately = shouldStartImmediately
                 now = Date()
-                draft.startsAt = startsImmediately
+                draft.startsAt = shouldStartImmediately
                     ? PersonalChallengeStart.currentMinute(now: now)
                     : PersonalChallengeStart.nextLocalMidnight(
                         now: now,
@@ -858,14 +879,13 @@ struct CreatePersonalChallengeFlow: View {
         step = next
     }
 
-    /// The lean beta has one start rule: the server resolves the next local
-    /// midnight when a fresh request commits. Keep restored retries exact, but
-    /// refresh a new draft before review so leaving the sheet open overnight
-    /// cannot turn the hidden default into a stale custom start.
+    /// Keep the chosen start mode fresh while preserving an exact saved retry.
+    /// A default start is resolved by the server at the next local midnight;
+    /// start-now sends the current minute as an explicit intent marker.
     private func refreshBetaStart(at date: Date = Date()) {
         guard store.pendingCreation == nil else { return }
         now = date
-        draft.startsAt = startsImmediatelyInDemo && demoMode.isActive
+        draft.startsAt = startsImmediately
             ? PersonalChallengeStart.currentMinute(now: date)
             : PersonalChallengeStart.nextLocalMidnight(
                 now: date,
@@ -880,7 +900,7 @@ struct CreatePersonalChallengeFlow: View {
             return pending.request
         }
         var requestDraft = draft
-        requestDraft.startsAt = startsImmediatelyInDemo && demoMode.isActive
+        requestDraft.startsAt = startsImmediately
             ? PersonalChallengeStart.currentMinute(now: date)
             : PersonalChallengeStart.nextLocalMidnight(
                 now: date,
@@ -889,8 +909,7 @@ struct CreatePersonalChallengeFlow: View {
         return try requestDraft.validated(
             requestID: requestID,
             now: date,
-            allowsCurrentMinuteStart: startsImmediatelyInDemo
-                && demoMode.isActive
+            allowsCurrentMinuteStart: startsImmediately
         )
     }
 

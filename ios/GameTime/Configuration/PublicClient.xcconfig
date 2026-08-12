@@ -7,13 +7,14 @@
 SUPABASE_URL = https:/$()/jrkzdttophnmkxjoyioo.supabase.co
 SUPABASE_PUBLISHABLE_KEY = sb_publishable_lJS21udjGgBWmlGnvsFCDA_Hu8yWhYy
 
-// The published privacy policy and the inbox a tester can write to. Apple
-// requires a reachable policy URL before a build reaches external testers, and
-// rejects an app whose support contact goes nowhere.
+// The published privacy policy, beta terms, and inbox a tester can write to.
+// Apple requires reachable policy/terms URLs before a build reaches external
+// testers, and rejects an app whose support contact goes nowhere.
 //
-// Both are UNCONFIGURED until someone publishes the page and opens the inbox.
+// These are UNCONFIGURED until someone publishes the pages and opens the inbox.
 // The app treats UNCONFIGURED as "no link" and still runs;
 // ./scripts/check-beta-candidate.sh is what blocks the candidate.
 // docs/PRIVACY_POLICY.md is the text to publish.
 GAMETIME_PRIVACY_POLICY_URL = UNCONFIGURED
+GAMETIME_BETA_TERMS_URL = UNCONFIGURED
 GAMETIME_SUPPORT_EMAIL = UNCONFIGURED

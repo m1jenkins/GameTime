@@ -26,7 +26,7 @@ challenge with a test commitment, and watch progress update automatically.
 | Path | State |
 | --- | --- |
 | Sign in with Apple → onboarding → create challenge | Works, Debug + local stack |
-| Choosing the start day and hour | Works, all configurations; deployed to Staging |
+| Start next midnight or start now and count today | Implemented in demo and main modes; hosted deployment remains |
 | Apple Health merged step reads | Snapshot-v2 implementation and focused native tests pass; physical-device acceptance remains to run |
 | Automatic local progress | Implemented across Today, Challenges, detail, timeline, and pace; physical cross-surface acceptance remains |
 | Authenticated daily snapshot upload and frozen result | Implemented and covered by local database tests; hosted smoke and controlled cutover remain |
@@ -43,10 +43,13 @@ every foreground transition still performs a fresh read.
 
 ### When the seven days open
 
-The lean beta always starts at the next local midnight. The visible app sends
-*no* start, so the server resolves that default when the request commits rather
-than when the form was filled in — a draft written before midnight and
-confirmed after it must not ask for a start that has already passed.
+The lean beta offers two starts in both demo and main modes. The default sends
+no start, so the server resolves the next local midnight when the request
+commits. **Start right now (count today)** activates immediately and makes all
+eligible Apple Health steps since the current local midnight part of day one.
+The client sends its current minute as exact request identity; the server
+canonicalizes the scored start to local midnight and preserves that marker for
+safe retries.
 
 The domain keeps its existing custom-start contract for historical
 compatibility, but the beta journey does not expose it. That dormant contract
@@ -59,10 +62,11 @@ silently unscorable gap.
 The seventh local date still closes at local midnight, so a historical later start
 shortens **day one** instead of moving the end. A challenge opening at 15:00
 has a shorter first local day, and on a daily cadence that is the same target in
-less time. That remains a frozen term for exact retries of older drafts. New
-beta challenges use seven full midnight-to-midnight days. Snapshot v2 queries
-each frozen local date exactly, including 23- and 25-hour daylight-saving days,
-and sends exactly seven ordered daily totals.
+less time. That remains a frozen term for exact retries of older drafts.
+Default-start challenges use seven future midnight-to-midnight days. Start-now
+challenges use today plus the next six local dates. Snapshot v2 queries each
+frozen local date exactly, including 23- and 25-hour daylight-saving days, and
+sends exactly seven ordered daily totals.
 
 ### What is not proven yet
 

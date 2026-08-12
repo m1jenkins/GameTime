@@ -51,6 +51,8 @@ struct AppShellView: View {
                         switch route {
                         case .trustAndPrivacy:
                             TrustAndPrivacyView()
+                        case .accountSupport:
+                            AccountSupportView()
                         }
                     }
             }

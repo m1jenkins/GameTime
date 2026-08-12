@@ -36,8 +36,9 @@ The Stage A product must let one real user:
   account after relaunch.
 - Create at most one scheduled or active personal steps challenge.
 - Choose daily or cumulative cadence and edit a positive whole-step target.
-- Start at the next midnight in a frozen IANA timezone and run for seven
-  complete local calendar days, including daylight-saving transitions.
+- Choose the next local midnight or start immediately and count eligible steps
+  since today's local midnight, then run across seven frozen local dates,
+  including daylight-saving transitions.
 - Select one of the five test commitment presets, with $10 selected by default.
 - In internal Stage A, see **Test commitment — no money will be charged.**
   before confirming. In the external sandbox beta, see **Payment test mode —

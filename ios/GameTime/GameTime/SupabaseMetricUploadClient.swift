@@ -24,6 +24,13 @@ struct MetricSignedMaterial: Equatable, Sendable {
 protocol AppAttestedBodySigning: AnyObject {
   func sign(ownerID: UUID, body: Data) async throws -> MetricSignedMaterial
   func invalidateRejectedKey(ownerID: UUID, keyID: String) throws
+  func clearLocalState(for ownerID: UUID) throws
+}
+
+extension AppAttestedBodySigning {
+  func clearLocalState(for ownerID: UUID) throws {
+    _ = ownerID
+  }
 }
 
 struct MetricUploadReceipt: Equatable, Sendable {
@@ -301,6 +308,13 @@ protocol MetricAppAttestStateStoring: AnyObject {
     rejectedKeyID: String,
     ownerID: UUID
   ) throws
+  func removeState(for ownerID: UUID) throws
+}
+
+extension MetricAppAttestStateStoring {
+  func removeState(for ownerID: UUID) throws {
+    _ = ownerID
+  }
 }
 
 @MainActor
@@ -424,6 +438,14 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
         rejectedKeyID: keyID,
         ownerID: ownerID
       )
+    } catch {
+      throw MetricUploadClientError.keyStateUnavailable
+    }
+  }
+
+  func clearLocalState(for ownerID: UUID) throws {
+    do {
+      try stateStore.removeState(for: ownerID)
     } catch {
       throw MetricUploadClientError.keyStateUnavailable
     }
@@ -1202,6 +1224,10 @@ final class UserDefaultsMetricAppAttestStateStore:
     // This read/compare/remove sequence is synchronous and isolated to the
     // main actor, so another request cannot replace the key between the
     // comparison and removal.
+    defaults.removeObject(forKey: storageKey(ownerID))
+  }
+
+  func removeState(for ownerID: UUID) throws {
     defaults.removeObject(forKey: storageKey(ownerID))
   }
 

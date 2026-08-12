@@ -11,6 +11,7 @@ protocol PersonalStepSnapshotCaching: AnyObject, Sendable {
         ownerID: UUID
     ) async throws
     func remove(ownerID: UUID, challengeID: UUID) async throws
+    func removeAll(ownerID: UUID) async throws
 }
 
 enum PersonalStepSnapshotCacheError: LocalizedError, Equatable, Sendable {
@@ -146,6 +147,26 @@ actor FilePersonalStepSnapshotCache: PersonalStepSnapshotCaching {
         }
     }
 
+    func removeAll(ownerID: UUID) throws {
+        guard FileManager.default.fileExists(atPath: directoryURL.path) else {
+            return
+        }
+        do {
+            let prefix = ownerID.uuidString.lowercased() + "-"
+            let urls = try FileManager.default.contentsOfDirectory(
+                at: directoryURL,
+                includingPropertiesForKeys: nil
+            )
+            for url in urls where url.deletingPathExtension().lastPathComponent
+                .hasPrefix(prefix)
+            {
+                try FileManager.default.removeItem(at: url)
+            }
+        } catch {
+            throw PersonalStepSnapshotCacheError.unavailable
+        }
+    }
+
     private func prepareDirectory() throws {
         try FileManager.default.createDirectory(
             at: directoryURL,
@@ -199,6 +220,13 @@ actor EphemeralPersonalStepSnapshotCache: PersonalStepSnapshotCaching {
 
     func remove(ownerID: UUID, challengeID: UUID) {
         snapshots[key(ownerID, challengeID)] = nil
+    }
+
+    func removeAll(ownerID: UUID) {
+        let prefix = ownerID.uuidString.lowercased() + ":"
+        snapshots.keys
+            .filter { $0.hasPrefix(prefix) }
+            .forEach { snapshots[$0] = nil }
     }
 
     private func key(_ ownerID: UUID, _ challengeID: UUID) -> String {

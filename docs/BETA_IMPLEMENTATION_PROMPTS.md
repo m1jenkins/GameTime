@@ -95,8 +95,10 @@ and current diffs. Preserve every unrelated or in-progress user change.
 
 Implement the smallest safe UI slice:
 1. Remove the one-option Steps page from the visible beta creation journey.
-2. Remove the custom start page and controls from the visible beta journey.
-   Continue to let the server derive the next local midnight.
+2. Remove the custom start page and hour controls from the visible beta
+   journey. Keep the server-derived next local midnight as the default and
+   expose one creation toggle for start now and count today before payment
+   setup freezes the request.
 3. Replace ambiguous amount/payment wording with the exact disclosure:
    “Payment test mode — no real money moves.” Also state plainly that
    only Stripe test card details are accepted and no real money moves.

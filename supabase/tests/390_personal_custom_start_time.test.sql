@@ -1,21 +1,23 @@
 -- Personal V1 chosen start day and hour: the default is unchanged, a chosen
--- start must be a future whole hour in the frozen timezone, and the seven
--- scored local dates still contain every expected coverage bucket.
+-- start may also mean now on the current local date, and the seven scored
+-- local dates still contain every expected coverage bucket.
 
 begin;
-select plan(15);
+select plan(21);
 
 insert into auth.users (id) values
   ('ec111111-1111-1111-1111-111111111111'), -- omitted start, unchanged default
   ('ec222222-2222-2222-2222-222222222222'), -- chosen mid-afternoon start
   ('ec333333-3333-3333-3333-333333333333'), -- half-hour zone alignment
-  ('ec444444-4444-4444-4444-444444444444'); -- refusals and retry identity
+  ('ec444444-4444-4444-4444-444444444444'), -- refusals and retry identity
+  ('ec555555-5555-5555-5555-555555555555'); -- start now and count today
 
 insert into public.profiles (id, handle, display_name, timezone) values
   ('ec111111-1111-1111-1111-111111111111', 'csdefault', 'CS Default', 'UTC'),
   ('ec222222-2222-2222-2222-222222222222', 'cschosen', 'CS Chosen', 'UTC'),
   ('ec333333-3333-3333-3333-333333333333', 'cskolkata', 'CS Kolkata', 'Asia/Kolkata'),
-  ('ec444444-4444-4444-4444-444444444444', 'csrefuse', 'CS Refuse', 'UTC');
+  ('ec444444-4444-4444-4444-444444444444', 'csrefuse', 'CS Refuse', 'UTC'),
+  ('ec555555-5555-5555-5555-555555555555', 'csnow', 'CS Now', 'UTC');
 
 -- Every expectation is derived from the clock the suite runs on, so the
 -- assertions hold on any day rather than only on the day they were written.
@@ -79,6 +81,86 @@ select is(
   ),
   (select id from t_default),
   'an omitted-start retry still hashes to the same committed request'
+);
+
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- Start now activates immediately and scores from today's local midnight
+-- ---------------------------------------------------------------------------
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"ec555555-5555-5555-5555-555555555555"}',
+  true
+);
+
+create temporary table t_start_now as
+select
+  date_trunc('minute', now()) as requested_at,
+  public.create_personal_challenge_v2(
+    'ec500000-0000-0000-0000-000000000001',
+    'daily', 10000, 1000, 'UTC', date_trunc('minute', now())
+  ) as id;
+
+reset role;
+
+select is(
+  (select starts_at from public.contests where id = (select id from t_start_now)),
+  pg_temp.utc_instant(pg_temp.utc_local_date(), 0),
+  'start now opens the scored window at today''s local midnight'
+);
+
+select is(
+  (select ends_at from public.contests where id = (select id from t_start_now)),
+  pg_temp.utc_instant(pg_temp.utc_local_date() + 7, 0),
+  'start now still closes after seven scored local dates'
+);
+
+select is(
+  (select status::text from public.contests where id = (select id from t_start_now)),
+  'active',
+  'start now activates the challenge before creation returns'
+);
+
+select is(
+  (
+    select terms.step_data_policy::text
+    from public.personal_challenge_terms terms
+    where terms.challenge_id = (select id from t_start_now)
+  ),
+  'healthkit_nonmanual_daily_v1',
+  'main-mode start now freezes the current Health snapshot policy'
+);
+
+select is(
+  (
+    select min(bucket.bucket_start)
+    from app.personal_expected_coverage_buckets_v1(
+      (select id from t_start_now),
+      'infinity'::timestamptz
+    ) bucket
+  ),
+  pg_temp.utc_instant(pg_temp.utc_local_date(), 0),
+  'start now expects coverage beginning at midnight so earlier steps can count'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"ec555555-5555-5555-5555-555555555555"}',
+  true
+);
+
+select is(
+  public.create_personal_challenge_v2(
+    'ec500000-0000-0000-0000-000000000001',
+    'daily', 10000, 1000, 'UTC',
+    (select requested_at from t_start_now)
+  ),
+  (select id from t_start_now),
+  'an exact start-now retry returns the same active challenge'
 );
 
 reset role;
@@ -220,11 +302,11 @@ select throws_ok(
   $$ select public.create_personal_challenge_v1(
        'ec400000-0000-0000-0000-000000000001',
        'daily', 10000, 1000, 'UTC',
-       now() - interval '1 hour'
+       date_trunc('minute', now() - interval '1 day')
      ) $$,
   '22023',
   null,
-  'a start already in the past is refused'
+  'a start from an earlier local date is refused'
 );
 
 select throws_ok(

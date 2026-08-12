@@ -8,6 +8,19 @@ struct AppleIdentity: Equatable, Sendable {
     let idToken: String
     let rawNonce: String
     let firstSignInDisplayName: String?
+    let authorizationCode: String?
+
+    init(
+        idToken: String,
+        rawNonce: String,
+        firstSignInDisplayName: String?,
+        authorizationCode: String? = nil
+    ) {
+        self.idToken = idToken
+        self.rawNonce = rawNonce
+        self.firstSignInDisplayName = firstSignInDisplayName
+        self.authorizationCode = authorizationCode
+    }
 }
 
 @MainActor
@@ -78,6 +91,66 @@ final class DisabledPushNotificationsClient: PushNotificationsClient {
     func unregister(_ registration: PushDeviceRegistration) async throws {}
 }
 
+enum AccountDeletionResult: Equatable, Sendable {
+    case deleted
+    case deletedWithLocalCleanupWarning
+}
+
+enum AccountDeletionError: LocalizedError, Equatable, Sendable {
+    case authenticationRequired
+    case authorizationCodeUnavailable
+    case accountChanged
+    case invalidResponse
+    case rejected
+    case unavailable
+
+    var errorDescription: String? {
+        switch self {
+        case .authenticationRequired:
+            "Sign in again before deleting your account."
+        case .authorizationCodeUnavailable:
+            "Apple didn’t return the confirmation needed to delete this account. Try again."
+        case .accountChanged:
+            "You signed in with a different Apple account. Try again with the account you want to delete."
+        case .invalidResponse, .rejected:
+            "GameTime couldn’t finish deleting your account. Try again or contact support."
+        case .unavailable:
+            "Account deletion is temporarily unavailable. Try again in a moment or contact support."
+        }
+    }
+}
+
+@MainActor
+protocol AccountDeletionClient: AnyObject {
+    func deleteAccount(
+        ownerID: UUID,
+        appleAuthorizationCode: String
+    ) async throws
+}
+
+@MainActor
+final class DisabledAccountDeletionClient: AccountDeletionClient {
+    func deleteAccount(
+        ownerID: UUID,
+        appleAuthorizationCode: String
+    ) async throws {
+        _ = (ownerID, appleAuthorizationCode)
+        throw AccountDeletionError.unavailable
+    }
+}
+
+@MainActor
+protocol AccountLocalStateCleaning: AnyObject {
+    func clear(for ownerID: UUID) async throws
+}
+
+@MainActor
+final class NoOpAccountLocalStateCleaner: AccountLocalStateCleaning {
+    func clear(for ownerID: UUID) async throws {
+        _ = ownerID
+    }
+}
+
 @MainActor
 struct AppServices {
     let auth: any AuthClient
@@ -96,6 +169,8 @@ struct AppServices {
     let personalHealthSteps: any PersonalHealthStepReading
     let personalStepSnapshotCache: any PersonalStepSnapshotCaching
     let personalHealthSnapshotUploader: any PersonalHealthSnapshotUploading
+    let accountDeletion: any AccountDeletionClient
+    let localStateCleanup: any AccountLocalStateCleaning
 
     init(
         auth: any AuthClient,
@@ -124,7 +199,11 @@ struct AppServices {
             EphemeralPersonalStepSnapshotCache(),
         personalHealthSnapshotUploader:
             any PersonalHealthSnapshotUploading =
-                DisabledPersonalHealthSnapshotUploader()
+                DisabledPersonalHealthSnapshotUploader(),
+        accountDeletion: any AccountDeletionClient =
+            DisabledAccountDeletionClient(),
+        localStateCleanup: any AccountLocalStateCleaning =
+            NoOpAccountLocalStateCleaner()
     ) {
         self.auth = auth
         self.profiles = profiles
@@ -142,5 +221,7 @@ struct AppServices {
         self.personalHealthSteps = personalHealthSteps
         self.personalStepSnapshotCache = personalStepSnapshotCache
         self.personalHealthSnapshotUploader = personalHealthSnapshotUploader
+        self.accountDeletion = accountDeletion
+        self.localStateCleanup = localStateCleanup
     }
 }

@@ -99,6 +99,9 @@ final class GameTimeUITests: XCTestCase {
             exactStaticText(consent, in: app)
                 .waitForExistence(timeout: 3)
         )
+        let startNow = app.switches["personal.start.now"]
+        XCTAssertTrue(startNow.waitForExistence(timeout: 3))
+        startNow.tap()
         let setup = app.buttons["personal.payment.setup"]
         XCTAssertTrue(setup.exists)
         XCTAssertFalse(setup.isEnabled)
@@ -113,6 +116,9 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(
             app.staticTexts["Test method saved — ready for review"].exists
         )
+        XCTAssertTrue(
+            app.staticTexts["Now — today counts from midnight"].exists
+        )
         app.buttons["personal.submit"].waitAndTap()
         XCTAssertTrue(
             app.navigationBars["Your challenge"]
@@ -123,6 +129,8 @@ final class GameTimeUITests: XCTestCase {
                 "Payment test mode — no real money moves."
             ].exists
         )
+        XCTAssertTrue(app.staticTexts["In progress"].exists)
+        XCTAssertTrue(app.buttons["personal.challenge.sync-now"].exists)
     }
 
     func testStripeMissReviewUsesFixedReasonAndShowsSettlementPausedState() {
@@ -359,7 +367,7 @@ final class GameTimeUITests: XCTestCase {
         assertNoForbiddenLanguage(in: app)
     }
 
-    func testAppleHealthAccessThenReviewCanCreateScheduledChallenge() {
+    func testMainModeCanStartNowAndExposeSyncNow() {
         let app = launch(
             "--fixture-empty",
             "--fixture-activity"
@@ -401,13 +409,22 @@ final class GameTimeUITests: XCTestCase {
             ).firstMatch.exists
         )
         assertNoForbiddenLanguage(in: app)
+        let startNow = app.switches["personal.start.now"]
+        XCTAssertTrue(startNow.waitForExistence(timeout: 3))
+        startNow.tap()
+        XCTAssertTrue(
+            app.staticTexts["Now — today counts from midnight"].exists
+        )
         app.buttons["personal.submit"].waitAndTap()
 
         XCTAssertTrue(
             app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
-        XCTAssertTrue(app.staticTexts["Scheduled"].exists)
+        XCTAssertTrue(app.staticTexts["In progress"].exists)
+        let syncNow = app.buttons["personal.challenge.sync-now"]
+        for _ in 0..<8 where !syncNow.exists { app.swipeUp() }
+        XCTAssertTrue(syncNow.waitForExistence(timeout: 3))
         // The disclosure sits at the top of a LazyVStack, so assert it before
         // scrolling to the bottom for the cancel control — once the top of the
         // stack is recycled it is no longer in the hierarchy to find.

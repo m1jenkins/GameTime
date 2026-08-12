@@ -27,6 +27,7 @@ struct AppConfiguration: Equatable, Sendable {
     /// into a failure screen. `check-beta-candidate.sh` blocks the candidate
     /// instead, before anyone can install it.
     let privacyPolicyURL: URL?
+    let betaTermsURL: URL?
     let supportEmail: String?
     /// Kept only for explicit V2/regression fixtures. Personal V1 runtime must
     /// not fetch or mutate dormant social inventories.
@@ -40,6 +41,7 @@ struct AppConfiguration: Equatable, Sendable {
         personalSettlementMode: PersonalSettlementMode = .testOnly,
         stripeReturnURL: URL? = nil,
         privacyPolicyURL: URL? = nil,
+        betaTermsURL: URL? = nil,
         supportEmail: String? = nil,
         legacySocialRuntimeEnabled: Bool = false
     ) {
@@ -50,6 +52,7 @@ struct AppConfiguration: Equatable, Sendable {
         self.personalSettlementMode = personalSettlementMode
         self.stripeReturnURL = stripeReturnURL
         self.privacyPolicyURL = privacyPolicyURL
+        self.betaTermsURL = betaTermsURL
         self.supportEmail = supportEmail
         self.legacySocialRuntimeEnabled = legacySocialRuntimeEnabled
     }
@@ -136,6 +139,9 @@ struct AppConfiguration: Equatable, Sendable {
         let privacyPolicyURLValue = bundle.object(
             forInfoDictionaryKey: "GAMETIME_PRIVACY_POLICY_URL"
         ) as? String
+        let betaTermsURLValue = bundle.object(
+            forInfoDictionaryKey: "GAMETIME_BETA_TERMS_URL"
+        ) as? String
         let supportEmailValue = bundle.object(
             forInfoDictionaryKey: "GAMETIME_SUPPORT_EMAIL"
         ) as? String
@@ -148,6 +154,7 @@ struct AppConfiguration: Equatable, Sendable {
             settlementModeValue: settlementModeValue,
             stripeReturnURLValue: stripeReturnURLValue,
             privacyPolicyURLValue: privacyPolicyURLValue,
+            betaTermsURLValue: betaTermsURLValue,
             supportEmailValue: supportEmailValue
         )
     }
@@ -160,6 +167,7 @@ struct AppConfiguration: Equatable, Sendable {
         settlementModeValue: String? = nil,
         stripeReturnURLValue: String? = nil,
         privacyPolicyURLValue: String? = nil,
+        betaTermsURLValue: String? = nil,
         supportEmailValue: String? = nil
     ) throws -> AppConfiguration {
         guard let environment = AppEnvironment(
@@ -265,6 +273,7 @@ struct AppConfiguration: Equatable, Sendable {
             personalSettlementMode: requestedSettlementMode,
             stripeReturnURL: stripeReturnURL,
             privacyPolicyURL: publishedPolicyURL(privacyPolicyURLValue),
+            betaTermsURL: publishedPolicyURL(betaTermsURLValue),
             supportEmail: supportInbox(supportEmailValue)
         )
     }

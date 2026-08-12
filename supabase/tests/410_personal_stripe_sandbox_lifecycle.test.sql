@@ -12,7 +12,8 @@ insert into auth.users (id) values
   ('fa333333-3333-3333-3333-333333333333'),
   ('fa444444-4444-4444-4444-444444444444'),
   ('fa555555-5555-5555-5555-555555555555'),
-  ('fa666666-6666-6666-6666-666666666666');
+  ('fa666666-6666-6666-6666-666666666666'),
+  ('fa777777-7777-7777-7777-777777777777');
 
 insert into public.profiles (id, handle, display_name, timezone) values
   ('fa111111-1111-1111-1111-111111111111', 'stripeapi', 'Stripe API', 'UTC'),
@@ -20,7 +21,8 @@ insert into public.profiles (id, handle, display_name, timezone) values
   ('fa333333-3333-3333-3333-333333333333', 'stripemet', 'Stripe Met', 'UTC'),
   ('fa444444-4444-4444-4444-444444444444', 'stripeinc', 'Stripe Inc', 'UTC'),
   ('fa555555-5555-5555-5555-555555555555', 'stripecancel', 'Stripe Cancel', 'UTC'),
-  ('fa666666-6666-6666-6666-666666666666', 'stripereview', 'Stripe Review', 'UTC');
+  ('fa666666-6666-6666-6666-666666666666', 'stripereview', 'Stripe Review', 'UTC'),
+  ('fa777777-7777-7777-7777-777777777777', 'stripenow', 'Stripe Now', 'UTC');
 
 -- ---------------------------------------------------------------------------
 -- The Edge contract commits one succeeded setup to unchanged Personal V1.
@@ -63,6 +65,10 @@ from (
     (
       'f4100000-0000-0000-0000-000000000016'::uuid,
       'fa666666-6666-6666-6666-666666666666'::uuid
+    ),
+    (
+      'f4100000-0000-0000-0000-000000000017'::uuid,
+      'fa777777-7777-7777-7777-777777777777'::uuid
     )
 ) fixture(request_id, owner_id);
 
@@ -149,6 +155,44 @@ select is(
   'service commit is an exact replay'
 );
 
+create temporary table t_start_now_terms as
+select date_trunc('minute', clock_timestamp()) as requested_at;
+
+create temporary table t_start_now_setup as
+select public.begin_personal_stripe_sandbox_setup_service_v1(
+  'fa777777-7777-7777-7777-777777777777',
+  'fa700000-0000-0000-0000-000000000001',
+  'daily', 10000, 1000, 'USD', 'UTC',
+  (select requested_at from t_start_now_terms),
+  'personal-stripe-sandbox-v1',
+  'personal-stripe-sandbox-consent-v1'
+) as value;
+
+select public.record_personal_stripe_sandbox_customer_v1(
+  'fa777777-7777-7777-7777-777777777777',
+  'cus_FA777777777777777777777777777777'
+);
+
+select public.record_personal_stripe_sandbox_setup_v1(
+  'fa777777-7777-7777-7777-777777777777',
+  (select (value ->> 'setup_id')::uuid from t_start_now_setup),
+  'cus_FA777777777777777777777777777777',
+  'seti_FA77777777777777777777777777777',
+  'pm_FA777777777777777777777777777777',
+  'succeeded'
+);
+
+create temporary table t_start_now_challenge as
+select public.commit_personal_stripe_sandbox_challenge_service_v2(
+  'fa777777-7777-7777-7777-777777777777',
+  'fa700000-0000-0000-0000-000000000001',
+  (select (value ->> 'setup_id')::uuid from t_start_now_setup),
+  'daily', 10000, 1000, 'USD', 'UTC',
+  (select requested_at from t_start_now_terms),
+  'personal-stripe-sandbox-v1',
+  'personal-stripe-sandbox-consent-v1'
+) as value;
+
 select throws_ok(
   $$ select public.commit_personal_stripe_sandbox_challenge_service_v2(
        'fa111111-1111-1111-1111-111111111111',
@@ -164,6 +208,39 @@ select throws_ok(
 );
 
 reset role;
+
+select is(
+  (
+    select contest.starts_at
+    from public.contests contest
+    where contest.id =
+      (select (value ->> 'challenge_id')::uuid from t_start_now_challenge)
+  ),
+  date_trunc('day', clock_timestamp()),
+  'Stripe sandbox start now freezes the scored start at today''s midnight'
+);
+
+select is(
+  (
+    select contest.status::text
+    from public.contests contest
+    where contest.id =
+      (select (value ->> 'challenge_id')::uuid from t_start_now_challenge)
+  ),
+  'active',
+  'Stripe sandbox start now activates before commit returns'
+);
+
+select is(
+  (
+    select terms.step_data_policy::text
+    from public.personal_challenge_terms terms
+    where terms.challenge_id =
+      (select (value ->> 'challenge_id')::uuid from t_start_now_challenge)
+  ),
+  'healthkit_nonmanual_daily_v1',
+  'Stripe sandbox start now keeps the Health snapshot policy'
+);
 
 grant select on t_api_challenge to authenticated;
 

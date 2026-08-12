@@ -652,6 +652,11 @@ final class PersonalActivitySyncCoordinator: PersonalActivitySyncing {
         )
     }
 
+    func clearPendingUploads(for ownerID: UUID) async throws {
+        try await pendingCoverage.remove(for: ownerID)
+        try await metrics.clearPendingUploads(for: ownerID)
+    }
+
     func sync(
         ownerID: UUID,
         challenge: PersonalChallengeDetail,

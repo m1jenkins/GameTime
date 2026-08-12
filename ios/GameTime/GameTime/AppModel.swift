@@ -69,6 +69,7 @@ final class AppModel {
     private(set) var exactHandleResult: ProfileCard?
     private(set) var lastSubmittedHandle: String?
     private(set) var isMutating = false
+    private(set) var accountDeletionNotice: String?
     private(set) var onboardingNamePrefill = ""
     private(set) var pendingChallenge: PendingChallengeSubmission?
     private(set) var hasPendingChallengeRecoveryIssue = false
@@ -145,6 +146,7 @@ final class AppModel {
         }
         do {
             let signedInUserID = try await services.auth.signInWithApple(identity)
+            accountDeletionNotice = nil
             onboardingNamePrefill = identity.firstSignInDisplayName ?? ""
             await resolveAuthentication(userID: signedInUserID)
         } catch is CancellationError {
@@ -833,6 +835,77 @@ final class AppModel {
         } catch {
             present(error)
         }
+    }
+
+    func deleteAccount(
+        with identity: AppleIdentity
+    ) async throws -> AccountDeletionResult {
+        guard let ownerID = userID else {
+            throw AccountDeletionError.authenticationRequired
+        }
+        guard let authorizationCode = identity.authorizationCode,
+            !authorizationCode.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            ).isEmpty
+        else {
+            throw AccountDeletionError.authorizationCodeUnavailable
+        }
+
+        isPerformingExplicitAuthMutation = true
+        isMutating = true
+        defer {
+            isMutating = false
+            isPerformingExplicitAuthMutation = false
+        }
+
+        let reauthenticatedUserID = try await services.auth.signInWithApple(
+            identity
+        )
+        guard reauthenticatedUserID == ownerID else {
+            throw AccountDeletionError.accountChanged
+        }
+
+        try await services.accountDeletion.deleteAccount(
+            ownerID: ownerID,
+            appleAuthorizationCode: authorizationCode
+        )
+
+        var cleanupWarning = false
+        do {
+            try await services.localStateCleanup.clear(for: ownerID)
+        } catch {
+            cleanupWarning = true
+        }
+
+        if let pushRegistration,
+            registeredPushActorID == ownerID
+        {
+            do {
+                try await services.pushNotifications.unregister(
+                    pushRegistration
+                )
+            } catch {
+                cleanupWarning = true
+            }
+        }
+
+        do {
+            try await services.auth.signOut()
+        } catch {
+            cleanupWarning = true
+        }
+
+        let result: AccountDeletionResult = cleanupWarning
+            ? .deletedWithLocalCleanupWarning
+            : .deleted
+        accountDeletionNotice = switch result {
+        case .deleted:
+            "Your GameTime account was deleted."
+        case .deletedWithLocalCleanupWarning:
+            "Your GameTime account was deleted. Some saved data on this phone could not be cleared."
+        }
+        clearUserState()
+        return result
     }
 
     var incomingFriendships: [FriendshipCard] {

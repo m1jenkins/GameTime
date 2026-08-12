@@ -720,14 +720,19 @@ else
 fi
 
 privacy_policy_url=""
+beta_terms_url=""
 support_email=""
 if [[ -f "$public_config" ]]; then
   privacy_policy_url="$(
     xcconfig_value "$public_config" GAMETIME_PRIVACY_POLICY_URL
   )"
+  beta_terms_url="$(
+    xcconfig_value "$public_config" GAMETIME_BETA_TERMS_URL
+  )"
   support_email="$(xcconfig_value "$public_config" GAMETIME_SUPPORT_EMAIL)"
 fi
 normalized_privacy_policy_url="${privacy_policy_url//\$\(\)/}"
+normalized_beta_terms_url="${beta_terms_url//\$\(\)/}"
 
 # Apple will not let a build reach external testers without a reachable policy
 # URL, and rejects an app whose support contact goes nowhere. Neither value can
@@ -741,6 +746,16 @@ else
   block_check \
     "privacy-policy-url" \
     "Publish the privacy policy (docs/PRIVACY_POLICY.md) and set GAMETIME_PRIVACY_POLICY_URL."
+fi
+
+if [[ "$normalized_beta_terms_url" =~ ^https://[A-Za-z0-9.-]+[.][A-Za-z]{2,}(/[^[:space:]]*)?$ ]]; then
+  pass_check \
+    "beta-terms-url" \
+    "Release points at published HTTPS beta terms."
+else
+  block_check \
+    "beta-terms-url" \
+    "Publish the beta terms and set GAMETIME_BETA_TERMS_URL."
 fi
 
 if [[ "$support_email" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+[.][A-Za-z]{2,}$ ]]; then

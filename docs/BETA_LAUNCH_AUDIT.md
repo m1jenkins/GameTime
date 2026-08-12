@@ -52,7 +52,8 @@ This plan gets GameTime to an **external beta**, not a public App Store launch.
 - Personal Accountability with Steps and one seven-day challenge per person.
 - Stripe sandbox payment setup, review, and simulated settlement only; live
   Stripe mode, social challenge, and Solo remain out of scope.
-- Every challenge starts at the next local midnight. Custom hours stay dormant.
+- A challenge defaults to the next local midnight, or the owner can start now
+  and count eligible steps since today's local midnight. Custom hours stay dormant.
 - Foreground Health refresh is automatic. Background observation is
   opportunistic and never replaces the foreground freshness guarantee.
 - iPhone only; iPad and Apple Watch-specific acceptance wait.
@@ -83,7 +84,9 @@ refactor historical paths for beta.
 For the visible beta journey:
 
 - Remove the redundant screen where Steps is the only metric choice.
-- Remove the custom-start screen and let the server derive next midnight.
+- Remove the custom-start screen; keep next midnight as the default and expose
+  one creation toggle for start now and count today before payment setup
+  freezes the request.
 - Use **Payment test mode — no real money moves.** wherever the beta
   explains payment setup or settlement.
 - Put one state-aware next action and exact local deadline on Today.

@@ -28,6 +28,7 @@ enum FriendsRoute: Hashable {
 
 enum YouRoute: Hashable {
     case trustAndPrivacy
+    case accountSupport
 }
 
 enum SheetDestination: Identifiable, Hashable {

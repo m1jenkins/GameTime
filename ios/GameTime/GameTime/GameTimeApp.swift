@@ -450,10 +450,23 @@ private struct ConfigurationFailureView: View {
             Text(message)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-            Text("Contact support for help.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+            PublicSupportLinksView(
+                privacyURL: AppConfiguration.publishedPolicyURL(
+                    Bundle.main.object(
+                        forInfoDictionaryKey: "GAMETIME_PRIVACY_POLICY_URL"
+                    ) as? String
+                ),
+                betaTermsURL: AppConfiguration.publishedPolicyURL(
+                    Bundle.main.object(
+                        forInfoDictionaryKey: "GAMETIME_BETA_TERMS_URL"
+                    ) as? String
+                ),
+                supportMailtoURL: AppConfiguration.supportInbox(
+                    Bundle.main.object(
+                        forInfoDictionaryKey: "GAMETIME_SUPPORT_EMAIL"
+                    ) as? String
+                ).flatMap { URL(string: "mailto:\($0)") }
+            )
         }
         .padding(28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -486,6 +499,17 @@ private struct SignedOutView: View {
                     .foregroundStyle(.secondary)
                 }
 
+                if let accountDeletionNotice = model.accountDeletionNotice {
+                    Label(
+                        accountDeletionNotice,
+                        systemImage: "checkmark.circle.fill"
+                    )
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(CompetitiveTrustTheme.mintInk)
+                    .trustCard()
+                    .accessibilityIdentifier("account-deletion.success")
+                }
+
                 VStack(alignment: .leading, spacing: 12) {
                     Label(
                         "Hit it every day, or hit a weekly total",
@@ -516,6 +540,12 @@ private struct SignedOutView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+
+                PublicSupportLinksView(
+                    privacyURL: model.configuration.privacyPolicyURL,
+                    betaTermsURL: model.configuration.betaTermsURL,
+                    supportMailtoURL: model.configuration.supportMailtoURL
+                )
             }
             .padding(24)
         }

@@ -200,6 +200,7 @@ write_safe_public_fixture() {
 SUPABASE_URL = https://fixture-beta.supabase.co
 SUPABASE_PUBLISHABLE_KEY = sb_publishable_fixture_value
 GAMETIME_PRIVACY_POLICY_URL = https://example.com/privacy
+GAMETIME_BETA_TERMS_URL = https://example.com/beta-terms
 GAMETIME_SUPPORT_EMAIL = support@example.com
 EOF
 }
@@ -309,6 +310,7 @@ assert_contains "$passing_output" "PASS personal-automatic-copy"
 assert_contains "$passing_output" "PASS iphone-only"
 assert_contains "$passing_output" "PASS watch-isolation"
 assert_contains "$passing_output" "PASS privacy-policy-url"
+assert_contains "$passing_output" "PASS beta-terms-url"
 assert_contains "$passing_output" "PASS support-contact"
 assert_contains "$passing_output" "0 blocker(s)"
 assert_not_contains "$passing_output" "app-attest-environment"
@@ -333,6 +335,7 @@ for blocker_id in \
   privacy-manifest \
   watch-isolation \
   privacy-policy-url \
+  beta-terms-url \
   support-contact \
   personal-automatic-copy \
   public-client-secrets

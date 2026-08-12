@@ -1337,10 +1337,10 @@ private final class FixturePersonalAccountabilityClient:
                 now: now,
                 timezone: request.timezone
             )
-        // A start at or before fixture creation is the demo-only "right now"
+        // A start at or before fixture creation is the shared "right now"
         // request. Activate immediately, but back the Health window up to the
         // frozen timezone's midnight so every eligible step from today counts.
-        // Ordinary fixture and production-shaped starts remain untouched.
+        // Ordinary future starts remain untouched.
         let startsImmediately = requestedStart <= now
         let start = startsImmediately
             ? calendar.startOfDay(for: requestedStart)

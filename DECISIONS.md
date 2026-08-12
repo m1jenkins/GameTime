@@ -4264,3 +4264,29 @@ using this trusted-client policy for real money without a new review.
 manual-entry or read-completeness signal, or the product needs multi-device
 snapshot reconciliation. Each changes the trust boundary and requires a new
 frozen policy rather than editing `healthkit_nonmanual_daily_v1` in place.
+
+### D121. Main mode exposes start now and count today
+
+**What.** Challenge creation in both demo and main modes offers **Start right
+now (count today)** before the request is frozen. The default remains the next local midnight. Start-now
+sends a minute-aligned request marker, but the server freezes `starts_at` at
+the current frozen-timezone midnight, activates the challenge before creation
+returns, and closes it after seven local dates. The exact marker remains part
+of retry and Stripe sandbox consent identity. The shared challenge detail
+offers **Sync now**, which immediately re-reads the whole HealthKit window and
+publishes local progress before its authenticated upload.
+
+**Why.** Starting now must include steps already taken today; opening the
+scored window at the button-press minute would permanently omit them. Keeping
+the server's canonical start on the local midnight also preserves the daily
+snapshot and daylight-saving model while making the main and demo journeys
+behave the same.
+
+**Rejected.** Keeping start-now as demo-only; showing the main-mode toggle while
+the live RPC still rejects it; scoring only steps after the button press;
+accepting a marker from an earlier local date; and waiting for background
+Health delivery instead of providing an explicit refresh.
+
+**Revisit if.** A paid production settlement mode is proposed. Counting steps
+from before agreement is an explicit beta product choice and must be reviewed
+again before real money can depend on it.

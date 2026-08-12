@@ -126,8 +126,8 @@ Primary implementation evidence:
 
 ### P0. Make creation match the product contract
 
-The locked beta starts every challenge at the next local midnight and offers
-Steps as its only metric. The current flow still presents:
+The locked beta defaults to the next local midnight, offers a start-now choice
+that counts today, and uses Steps as its only metric. The older flow presented:
 
 - A screen where Steps is the only preselected choice.
 - A custom start day and hour.
