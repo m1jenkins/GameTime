@@ -3,6 +3,10 @@ import StripePaymentSheet
 import SwiftUI
 import UserNotifications
 
+enum GameTimePublicIdentity {
+    static let name = "GameTime"
+}
+
 @main
 @MainActor
 struct GameTimeApp: App {
@@ -484,10 +488,10 @@ private struct SignedOutView: View {
             VStack(alignment: .leading, spacing: 28) {
                 Spacer(minLength: 56)
 
-                Text("B//B")
+                Text(GameTimePublicIdentity.name)
                     .font(.system(size: 20, weight: .black, design: .rounded))
                     .foregroundStyle(CompetitiveTrustTheme.teal)
-                    .accessibilityLabel("Better Bet")
+                    .accessibilityLabel(Text(GameTimePublicIdentity.name))
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Commit clearly.\nShow up daily.")

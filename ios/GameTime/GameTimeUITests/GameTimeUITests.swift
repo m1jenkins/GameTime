@@ -17,6 +17,7 @@ final class GameTimeUITests: XCTestCase {
                 "Test commitment — no money will be charged."
             ].exists
         )
+        XCTAssertTrue(signedOut.staticTexts["GameTime"].exists)
         XCTAssertFalse(signedOut.staticTexts["Compete fairly."].exists)
         assertNoForbiddenLanguage(in: signedOut)
         signedOut.terminate()
@@ -143,6 +144,7 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
+        assertCumulativeProgress(in: app)
 
         let request = app.buttons["personal.review.request"]
         for _ in 0..<10 where !request.isHittable { app.swipeUp() }
@@ -174,13 +176,13 @@ final class GameTimeUITests: XCTestCase {
 
     func testTodayShowsAutomaticPersonalProgressTimeline() {
         let app = launch("--fixture-activity")
-        let displayedTotal = "17,832 steps"
 
         XCTAssertTrue(
             app.staticTexts["Your week"].waitForExistence(timeout: 5)
         )
         XCTAssertTrue(app.staticTexts["10,000 steps a day"].exists)
-        XCTAssertTrue(app.staticTexts[displayedTotal].exists)
+        assertDailyProgress(in: app)
+        XCTAssertFalse(app.staticTexts["17,832 steps"].exists)
         XCTAssertTrue(app.staticTexts["Day by day"].exists)
         XCTAssertTrue(app.staticTexts["10,482"].exists)
         XCTAssertTrue(app.staticTexts["7,350"].exists)
@@ -195,7 +197,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(
             app.navigationBars["Challenges"].waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts[displayedTotal].exists)
+        assertDailyProgress(in: app)
         assertNoLegacyPersonalHealthSurfaces(in: app)
 
         let activeCard = app.buttons[
@@ -207,17 +209,26 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts[displayedTotal].exists)
+        assertDailyProgress(in: app)
         XCTAssertTrue(app.staticTexts["Your pace"].exists)
         let syncNow = app.buttons["personal.challenge.sync-now"]
         XCTAssertTrue(syncNow.waitForExistence(timeout: 4))
         syncNow.tap()
         XCTAssertTrue(
-            app.staticTexts[displayedTotal].waitForExistence(timeout: 4)
+            app.staticTexts["7,350 steps today"]
+                .waitForExistence(timeout: 4)
         )
         let paceChart = app.descendants(matching: .any)["personal.pace.chart"]
         for _ in 0..<8 where !paceChart.exists { app.swipeUp() }
         XCTAssertTrue(paceChart.waitForExistence(timeout: 4))
+        let weekTotal = app.descendants(matching: .any)[
+            "personal.pace.week-total"
+        ]
+        XCTAssertTrue(weekTotal.waitForExistence(timeout: 4))
+        XCTAssertTrue(
+            weekTotal.label.localizedCaseInsensitiveContains("Week total")
+        )
+        XCTAssertTrue(weekTotal.label.contains("17,832"))
         assertNoLegacyPersonalHealthSurfaces(in: app)
     }
 
@@ -603,6 +614,11 @@ final class GameTimeUITests: XCTestCase {
         let loading = launch("--fixture-loading")
         XCTAssertTrue(loading.staticTexts["Loading…"].waitForExistence(timeout: 2))
         XCTAssertTrue(loading.otherElements["launch.loading"].exists)
+        XCTAssertTrue(
+            loading.descendants(matching: .any).matching(
+                NSPredicate(format: "label == %@", "Loading GameTime")
+            ).firstMatch.exists
+        )
         assertNoForbiddenLanguage(in: loading)
         loading.terminate()
 
@@ -779,6 +795,63 @@ final class GameTimeUITests: XCTestCase {
         )
     }
 
+    private func assertDailyProgress(
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            app.staticTexts["7,350 steps today"].exists,
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            app.staticTexts["2,650 to today’s goal"].exists,
+            file: file,
+            line: line
+        )
+        let progress = app.progressIndicators["personal.progress"]
+        XCTAssertTrue(progress.exists, file: file, line: line)
+        XCTAssertEqual(
+            progress.label,
+            "Today’s progress",
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            progress.value as? String,
+            "7,350 steps today. 2,650 to today’s goal.",
+            file: file,
+            line: line
+        )
+    }
+
+    private func assertCumulativeProgress(
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            app.staticTexts["56,000 steps this week"].exists,
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            app.staticTexts["14,000 to this week’s goal"].exists,
+            file: file,
+            line: line
+        )
+        let progress = app.progressIndicators["personal.progress"]
+        XCTAssertTrue(progress.exists, file: file, line: line)
+        XCTAssertEqual(progress.label, "Week progress", file: file, line: line)
+        XCTAssertEqual(
+            progress.value as? String,
+            "56,000 steps this week. 14,000 to this week’s goal.",
+            file: file,
+            line: line
+        )
+    }
+
     private func exactStaticText(
         _ label: String,
         in app: XCUIApplication
@@ -813,6 +886,15 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertNil(
             labels.range(of: forbidden, options: .regularExpression),
             "Reachable Personal V1 UI contains forbidden copy:\n\(labels)",
+            file: file,
+            line: line
+        )
+        XCTAssertNil(
+            labels.range(
+                of: #"B//B|Better Bet"#,
+                options: [.regularExpression, .caseInsensitive]
+            ),
+            "Reachable UI contains a former public identity:\n\(labels)",
             file: file,
             line: line
         )

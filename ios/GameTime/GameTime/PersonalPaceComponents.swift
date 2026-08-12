@@ -427,23 +427,26 @@ struct PersonalPaceSummary: Equatable {
             }
             return [finishTile, averageTile, leftTile]
         case .daily:
+            let weekTotalTile = Tile(
+                id: "week-total",
+                label: "Week total",
+                value: total.formatted(),
+                caption: isFinished
+                    ? "steps across seven days"
+                    : "steps so far"
+            )
             // A finished week already says its goal-day count in the
             // headline, so give the tile something new to carry.
-            let firstTile =
-                isFinished
-                ? Tile(
-                    id: "total",
-                    label: "Total",
-                    value: total.formatted(),
-                    caption: "steps in all"
-                )
-                : Tile(
-                    id: "goal-days",
-                    label: "Goal days",
-                    value: "\(goalDays) of \(elapsed)",
-                    caption: "days you hit so far"
-                )
-            return [firstTile, averageTile, leftTile]
+            if isFinished {
+                return [weekTotalTile, averageTile, leftTile]
+            }
+            let goalDaysTile = Tile(
+                id: "goal-days",
+                label: "Goal days",
+                value: "\(goalDays) of \(elapsed)",
+                caption: "days you hit so far"
+            )
+            return [goalDaysTile, weekTotalTile, leftTile]
         }
     }
 
@@ -804,6 +807,7 @@ struct PersonalPaceTiles: View {
                 value: tile.value,
                 caption: tile.caption
             )
+            .accessibilityIdentifier("personal.pace.\(tile.id)")
         }
     }
 }

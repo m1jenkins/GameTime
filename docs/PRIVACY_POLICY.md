@@ -1,4 +1,4 @@
-# Better Bet — Privacy Policy
+# GameTime — Privacy Policy
 
 **Draft for review. This is not legal advice.** It describes what the app in
 this repository actually does, verified against the code, the schema, and
@@ -23,11 +23,11 @@ to external testers.
 
 **Last updated:** August 7, 2026
 
-Better Bet lets you set a step goal for a week, put money behind it, and see
+GameTime lets you set a step goal for a week, put money behind it, and see
 how you did. This policy explains what we collect, why, and how to get rid of
 it.
 
-Better Bet is operated by [LEGAL ENTITY] in [JURISDICTION]. This version of the
+GameTime is operated by [LEGAL ENTITY] in [JURISDICTION]. This version of the
 app is an invite-only beta for a small number of testers.
 
 ## The short version
@@ -155,7 +155,7 @@ answer. Deletion is available directly in the app, described above.
 
 ## Children
 
-Better Bet is not for anyone under 18. We do not knowingly collect data from
+GameTime is not for anyone under 18. We do not knowingly collect data from
 children. If you believe a child has an account, email [SUPPORT EMAIL] and we
 will remove it.
 

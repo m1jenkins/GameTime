@@ -3565,6 +3565,120 @@ private final class RetryableBackgroundDeliveryCoordinator:
     }
 }
 
+final class PersonalProgressPresentationTests: XCTestCase {
+    func testDailyFixtureKeepsPrimaryCopyAndAccessibilityOnToday() {
+        let presentation = PersonalProgressPresentation(
+            progress: makeProgress(
+                totalSteps: 17_832,
+                remainingSteps: 2_650,
+                days: [
+                    day("2026-08-10", steps: 10_482, state: .complete),
+                    day("2026-08-11", steps: 7_350, state: .current),
+                    day("2026-08-12", steps: 0, state: .future),
+                ]
+            ),
+            terms: makeTerms(cadence: .daily, targetSteps: 10_000)
+        )
+
+        XCTAssertEqual(presentation.stepsText, "7,350 steps today")
+        XCTAssertEqual(
+            presentation.remainingText,
+            "2,650 to today’s goal"
+        )
+        XCTAssertEqual(presentation.accessibilityLabel, "Today’s progress")
+        XCTAssertEqual(
+            presentation.accessibilityValue,
+            "7,350 steps today. 2,650 to today’s goal."
+        )
+        XCTAssertEqual(presentation.fraction, 0.735, accuracy: 0.001)
+    }
+
+    func testCumulativeFixtureKeepsEveryPrimaryValueOnTheWeek() {
+        let presentation = PersonalProgressPresentation(
+            progress: makeProgress(
+                totalSteps: 56_000,
+                remainingSteps: 14_000,
+                days: [
+                    day("2026-08-10", steps: 8_000, state: .complete),
+                    day("2026-08-11", steps: 8_000, state: .complete),
+                ]
+            ),
+            terms: makeTerms(cadence: .cumulative, targetSteps: 70_000)
+        )
+
+        XCTAssertEqual(presentation.stepsText, "56,000 steps this week")
+        XCTAssertEqual(
+            presentation.remainingText,
+            "14,000 to this week’s goal"
+        )
+        XCTAssertEqual(presentation.accessibilityLabel, "Week progress")
+        XCTAssertEqual(
+            presentation.accessibilityValue,
+            "56,000 steps this week. 14,000 to this week’s goal."
+        )
+        XCTAssertEqual(presentation.fraction, 0.8, accuracy: 0.001)
+    }
+
+    private func day(
+        _ localDate: String,
+        steps: Int,
+        state: PersonalDisplayedDayState
+    ) -> PersonalDisplayedDay {
+        PersonalDisplayedDay(
+            localDate: localDate,
+            totalSteps: steps,
+            targetSteps: 10_000,
+            state: state,
+            metTarget: state == .future ? nil : steps >= 10_000
+        )
+    }
+
+    private func makeProgress(
+        totalSteps: Int,
+        remainingSteps: Int,
+        days: [PersonalDisplayedDay]
+    ) -> PersonalDisplayedProgress {
+        PersonalDisplayedProgress(
+            totalSteps: totalSteps,
+            remainingSteps: remainingSteps,
+            qualifyingDays: days.filter { $0.metTarget == true }.count,
+            completedDays: days.filter { $0.state == .complete }.count,
+            days: days,
+            observedAt: Date(),
+            snapshotUpdatedAt: Date(),
+            source: .serverSnapshot,
+            isStale: false,
+            isFrozen: false
+        )
+    }
+
+    private func makeTerms(
+        cadence: PersonalChallengeCadence,
+        targetSteps: Int
+    ) -> FrozenPersonalTerms {
+        let challengeID = UUID(
+            uuidString: "43434343-4343-4343-4343-434343434343"
+        )!
+        let start = Date(timeIntervalSince1970: 1_775_433_600)
+        return FrozenPersonalTerms(
+            challengeID: challengeID,
+            userID: nil,
+            cadence: cadence,
+            targetSteps: targetSteps,
+            commitmentAmountMinor: 2_000,
+            currency: "USD",
+            settlementMode: .testOnly,
+            termsVersion: "personal-v2",
+            timezone: "America/Chicago",
+            agreementAt: start.addingTimeInterval(-86_400),
+            startsAt: start,
+            endsAt: start.addingTimeInterval(7 * 86_400),
+            evidenceCutoff: start.addingTimeInterval(8 * 86_400),
+            closedAt: nil
+        )
+    }
+}
+
 final class PersonalPaceSummaryTests: XCTestCase {
     func testWeekPaceComparesStepsWithTheDaysThatCount() {
         let summary = PersonalPaceSummary(
@@ -3692,7 +3806,7 @@ final class PersonalPaceSummaryTests: XCTestCase {
                 targetSteps: 10_000,
                 steps: [10_482, 7_350, 0, 0, 0, 0, 0],
                 states: [
-                    .complete, .complete, .future, .future, .future, .future,
+                    .complete, .inProgress, .future, .future, .future, .future,
                     .future,
                 ],
                 metTargets: [true, false, nil, nil, nil, nil, nil]
@@ -3703,6 +3817,9 @@ final class PersonalPaceSummaryTests: XCTestCase {
         XCTAssertEqual(summary.headlineCaption, "steps to go today")
         XCTAssertEqual(summary.tiles[0].label, "Goal days")
         XCTAssertEqual(summary.tiles[0].value, "1 of 2")
+        XCTAssertEqual(summary.tiles[1].label, "Week total")
+        XCTAssertEqual(summary.tiles[1].value, "17,832")
+        XCTAssertEqual(summary.tiles[1].caption, "steps so far")
         // Five day names would not fit a tile caption.
         XCTAssertEqual(summary.tiles[2].caption, "through Sun")
     }
@@ -3721,8 +3838,9 @@ final class PersonalPaceSummaryTests: XCTestCase {
         XCTAssertEqual(summary.headline, "6 of 7")
         XCTAssertEqual(summary.headlineTone, .action)
         XCTAssertEqual(summary.headlineCaption, "days you hit your goal")
-        XCTAssertEqual(summary.tiles[0].label, "Total")
+        XCTAssertEqual(summary.tiles[0].label, "Week total")
         XCTAssertEqual(summary.tiles[0].value, "73,100")
+        XCTAssertEqual(summary.tiles[0].caption, "steps across seven days")
     }
 
     func testScheduledChallengeStatesTheRateWithoutInventingProgress() {

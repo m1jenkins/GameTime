@@ -219,7 +219,7 @@ private final class FixturePersonalStore {
         let days = (0..<7).map { offset -> PersonalDayProgress in
             let date = calendar.date(byAdding: .day, value: offset, to: start)!
             let isFuture = date >= today
-            let steps = offset == 0 ? 10_482 : offset == 1 ? 7_350 : 0
+            let steps = offset == 1 ? 10_482 : offset == 2 ? 7_350 : 0
             return PersonalDayProgress(
                 localDate: Self.localDate(date, calendar: calendar),
                 trustedSteps: Double(steps),

@@ -708,7 +708,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configuration/AppInfo.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Better Bet";
+				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
 				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
 				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -744,7 +744,7 @@
 				DEVELOPMENT_TEAM = 87Z29RTC26;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configuration/StagingAppInfo.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Better Bet Staging";
+				INFOPLIST_KEY_CFBundleDisplayName = "GameTime Staging";
 				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
 				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -785,7 +785,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Configuration/AppInfo.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Better Bet";
+				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
 				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
 				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";

@@ -945,7 +945,8 @@ struct CreatePersonalChallengeFlow: View {
                     configuration.apiClient = STPAPIClient(
                         publishableKey: publishableKey
                     )
-                    configuration.merchantDisplayName = "Better Bet"
+                    configuration.merchantDisplayName =
+                        GameTimePublicIdentity.name
                     configuration.returnURL =
                         store.configuration.stripeReturnURL?.absoluteString
                     configuration.primaryButtonLabel =

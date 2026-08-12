@@ -3,6 +3,19 @@ import XCTest
 @testable import GameTime
 
 final class DomainAndConfigurationTests: XCTestCase {
+    func testInstalledProductUsesTheGameTimePublicIdentity() {
+        XCTAssertEqual(GameTimePublicIdentity.name, "GameTime")
+        XCTAssertEqual(
+            Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName")
+                as? String,
+            "GameTime"
+        )
+        let healthDescription = Bundle.main.object(
+            forInfoDictionaryKey: "NSHealthShareUsageDescription"
+        ) as? String
+        XCTAssertTrue(healthDescription?.hasPrefix("GameTime ") == true)
+    }
+
     func testInstalledProductContainsValidClientConfiguration() throws {
         let configuration = try AppConfiguration.load()
 

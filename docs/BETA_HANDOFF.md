@@ -1,17 +1,17 @@
-# Better Bet external beta — handoff
+# GameTime external beta — handoff
 
 **Written:** August 7, 2026
 **Revised:** August 12, 2026 — automatic Health snapshot v2 is the active path
-**Product head:** `984845f feat: retire the staging identity and name the product Better Bet`
+**Product head:** `984845f` plus the current GameTime identity reconciliation
 **Target:** invite-only TestFlight beta, no more than 10 named iPhone testers
 
 This document records what was verified by running it. The August 7 inventory
 and numbered steps remain below for provenance; the replacement handoff here is
 the current order.
 
-The product is now **Better Bet**. The repository, Xcode targets, schemes, and
-most in-app prose still say GameTime; that is deliberate and explained under
-[Loose ends](#loose-ends).
+The public product identity is **GameTime** across the app, system permission
+copy, payment sheet, policy, and support surfaces. Internal target, scheme, and
+bundle identifiers retain their existing names.
 
 ## August 12 controlling handoff
 
@@ -323,14 +323,8 @@ xcodebuild -resolvePackageDependencies -project ios/GameTime/GameTime.xcodeproj 
 
 Small, known, and deliberately deferred.
 
-- About 25 in-app prose strings still say GameTime, for example *We couldn't
-  reach GameTime right now*. The August 7 rename covered the identity and what
-  a tester sees — home-screen name, Health prompt, Stripe merchant name,
-  wordmark, and VoiceOver labels — and stopped there.
-- The wordmark is now `B//B`, mechanically mirroring the old `G//T`. It is a
-  placeholder, not a designed mark.
-- The Watch app's display name is still GameTime. The Watch is not embedded in
-  the iPhone candidate, and `check-beta-candidate.sh` asserts that.
+- The Watch app's display name is GameTime. The Watch is not embedded in the
+  iPhone candidate, and `check-beta-candidate.sh` asserts that.
 - The Staging build's Health prompt in `Configuration/StagingAppInfo.plist`
   uses *trusted diagnostic*. Both words are banned on screen by
   [COPY.md](COPY.md). Pre-existing and Staging-only.

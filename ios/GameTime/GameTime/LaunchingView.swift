@@ -142,7 +142,7 @@ private struct LaunchRetryContent: View {
 
 private struct BetterBetWordmark: View {
   var body: some View {
-    Text("B//B")
+    Text(GameTimePublicIdentity.name)
       .font(
         CompetitiveTrustTheme.displayFont(
           size: 30,
@@ -151,7 +151,7 @@ private struct BetterBetWordmark: View {
       )
       .tracking(-0.6)
       .foregroundStyle(CompetitiveTrustTheme.coralInk)
-      .accessibilityLabel("Better Bet")
+      .accessibilityLabel(Text(GameTimePublicIdentity.name))
   }
 }
 
@@ -189,7 +189,9 @@ private struct DaybreakSpinner: View {
         guard !reduceMotion else { return }
         rotation = 360
       }
-      .accessibilityLabel("Loading Better Bet")
+      .accessibilityLabel(
+        Text("Loading \(GameTimePublicIdentity.name)")
+      )
   }
 }
 

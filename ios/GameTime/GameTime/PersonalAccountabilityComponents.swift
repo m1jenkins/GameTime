@@ -192,15 +192,23 @@ struct PersonalProgressBar: View {
     let progress: PersonalDisplayedProgress
     let terms: FrozenPersonalTerms
 
+    private var presentation: PersonalProgressPresentation {
+        PersonalProgressPresentation(progress: progress, terms: terms)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
-            ProgressView(value: fraction)
+            ProgressView(value: presentation.fraction)
                 .tint(CompetitiveTrustTheme.coral)
+                .accessibilityLabel(Text(presentation.accessibilityLabel))
+                .accessibilityValue(Text(presentation.accessibilityValue))
                 .accessibilityIdentifier("personal.progress")
             HStack(alignment: .firstTextBaseline) {
-                Text("\(progress.totalSteps.formatted()) steps")
+                Text(presentation.stepsText)
+                    .accessibilityIdentifier("personal.progress.steps")
                 Spacer(minLength: 8)
-                Text("\(progress.remainingSteps.formatted()) to go")
+                Text(presentation.remainingText)
+                    .accessibilityIdentifier("personal.progress.remaining")
             }
             .font(
                 CompetitiveTrustTheme.uiFont(
@@ -212,16 +220,60 @@ struct PersonalProgressBar: View {
             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
         }
     }
+}
 
-    private var fraction: Double {
-        guard terms.targetSteps > 0 else { return 0 }
-        if terms.cadence == .daily {
-            let current = progress.days.last(where: {
+/// Keeps every primary progress value in one time scope. Daily challenges use
+/// the current day's total; weekly challenges use the seven-day total.
+struct PersonalProgressPresentation: Equatable {
+    let stepsText: String
+    let remainingText: String
+    let accessibilityLabel: String
+    let accessibilityValue: String
+    let fraction: Double
+
+    init(
+        progress: PersonalDisplayedProgress,
+        terms: FrozenPersonalTerms
+    ) {
+        let target = max(0, terms.targetSteps)
+        let steps: Int
+        let remaining: Int
+
+        switch terms.cadence {
+        case .daily:
+            let current = progress.days.first(where: {
                 $0.state == .current
-            })?.totalSteps ?? progress.days.last?.totalSteps ?? 0
-            return min(1, Double(current) / Double(terms.targetSteps))
+            })
+            let displayedDay = current
+                ?? progress.days.last(where: { $0.state != .future })
+            steps = max(0, displayedDay?.totalSteps ?? 0)
+            remaining = max(0, target - steps)
+
+            if current != nil {
+                stepsText = "\(steps.formatted()) steps today"
+                remainingText = "\(remaining.formatted()) to today’s goal"
+                accessibilityLabel = "Today’s progress"
+            } else if displayedDay != nil {
+                stepsText = "\(steps.formatted()) steps on the last day"
+                remainingText = "\(remaining.formatted()) to the daily goal"
+                accessibilityLabel = "Last day’s progress"
+            } else {
+                stepsText = "No steps counted yet"
+                remainingText = "\(target.formatted())-step daily goal"
+                accessibilityLabel = "Daily progress"
+            }
+        case .cumulative:
+            steps = max(0, progress.totalSteps)
+            remaining = max(0, progress.remainingSteps)
+            stepsText = "\(steps.formatted()) steps this week"
+            remainingText = "\(remaining.formatted()) to this week’s goal"
+            accessibilityLabel = "Week progress"
         }
-        return min(1, Double(progress.totalSteps) / Double(terms.targetSteps))
+
+        accessibilityValue = "\(stepsText). \(remainingText)."
+        fraction = target > 0
+            ? min(1, Double(steps) / Double(target))
+            : 0
     }
 }
 
