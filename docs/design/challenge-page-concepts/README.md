@@ -2,9 +2,10 @@
 
 > **Historical visual exploration.** The rendered mockups and prompts predate
 > automatic Apple Health snapshot v2. Their **Sync steps**, **Synced**, and
-> “final sync” controls are not current product requirements. Reuse visual
-> layout ideas only; current progress is automatic and uses quiet
-> **Updated from Apple Health …** or grace-period checking copy.
+> “final sync” workflows are not the current contract. Reuse visual layout
+> ideas only; current progress is automatic, uses quiet **Updated from Apple
+> Health …** or grace-period checking copy, and offers one simple **Sync now**
+> refresh while the challenge remains open.
 
 These concepts replace the spreadsheet-like **What you signed up for** card on
 the active personal challenge detail screen. All three retain the existing

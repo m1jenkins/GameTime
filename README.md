@@ -12,9 +12,10 @@ Health's merged step total, excludes only samples Apple explicitly marks as
 manually entered, publishes each whole seven-day snapshot locally before any
 upload, and sends ordinary authenticated daily snapshots for server scoring.
 There is no Personal App Attest, hourly coverage, diagnostic, eligibility hold,
-or step-specific sync action in this policy. Historical Personal challenges
+or legacy signed sync action in this policy. Historical Personal challenges
 retain `attested_hourly_v1`; new and migrated open challenges use
-`healthkit_nonmanual_daily_v1`.
+`healthkit_nonmanual_daily_v1` and offer a local **Sync now** refresh on the
+open challenge detail.
 
 ## What works right now
 
@@ -33,12 +34,12 @@ challenge with a test commitment, and watch progress update automatically.
 | Stripe sandbox payment flow | Release beta path is configured in source; hosted secrets and end-to-end operation remain unverified |
 | Real fees | Blocked behind every Stage B gate in [PLAN.md](PLAN.md) |
 
-The only user-initiated Health action is **Connect Apple Health**. Completing
-the system permission request is enough to continue; challenge creation does
-not require a positive sample. Active challenges refresh after creation/load,
-app launch or foregrounding, Health observer changes, and ordinary pull to
-refresh. Background delivery is opportunistic, so every foreground transition
-still performs a fresh read.
+**Connect Apple Health** is the only permission action. Completing the system
+permission request is enough to continue; challenge creation does not require
+a positive sample. Active challenges refresh after creation/load, app launch
+or foregrounding, Health observer changes, ordinary pull to refresh, and the
+detail page’s **Sync now** action. Background delivery is opportunistic, so
+every foreground transition still performs a fresh read.
 
 ### When the seven days open
 

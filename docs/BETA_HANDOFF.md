@@ -44,8 +44,9 @@ Finish in this order:
    followed by the existing sandbox review/settlement and deletion journeys.
 
 Do not translate hourly evidence, delete historical audit rows, require a
-positive Health sample, restore a step-specific sync control, or treat legacy
-App Attest conformance as Personal-v2 acceptance.
+positive Health sample, restore the legacy signed sync path, or treat legacy
+App Attest conformance as Personal-v2 acceptance. The detail page's **Sync
+now** action is only an on-demand entry into the snapshot-v2 refresh path.
 
 ## August 7 verification record
 

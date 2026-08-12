@@ -242,7 +242,12 @@ struct GameTimeApp: App {
     private func enterDemoMode() {
         router.reset()
         let services = FixtureServicesFactory.make(
-            arguments: ["GameTime", "--demo-interactive"]
+            arguments: ["GameTime", "--demo-interactive"],
+            // Interactive demo challenges stay isolated from the live account
+            // and network, but their step progress should still reflect the
+            // person holding this phone. Deterministic `--fixture-mode`
+            // launches keep the fixture reader used by UI tests.
+            personalHealthSteps: HealthKitPersonalHealthStepReader()
         )
         demoModel = AppModel(
             configuration: .personalFixture,

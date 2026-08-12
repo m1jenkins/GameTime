@@ -46,7 +46,8 @@ The Stage A product must let one real user:
   creating. Completion, not a positive step sample, unlocks continuation.
 - See Apple Health progress automatically after challenge load/creation, app
   launch or foregrounding, Health observer changes, and ordinary pull to
-  refresh, without a step-specific sync button.
+  refresh. The challenge detail also offers **Sync now** for an immediate
+  person-initiated refresh.
 - See the same displayed total, daily timeline, pace, and update time on Today,
   Challenges, detail, and completed history.
 - Cancel only before the challenge begins.

@@ -4,9 +4,11 @@ struct PersonalChallengeDetailView: View {
     let challengeID: UUID
 
     @Environment(PersonalAccountabilityStore.self) private var store
+    @Environment(PersonalStepProgressStore.self) private var stepProgress
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingCancelConfirmation = false
+    @State private var isSyncNowRequested = false
     @State private var selectedReviewReason:
         PersonalReviewReason = .userDisputesStepData
 
@@ -119,8 +121,39 @@ struct PersonalChallengeDetailView: View {
                     outcome: challenge.outcome
                 )
                 .colorScheme(.dark)
+                if canSyncNow(challenge) {
+                    Button {
+                        isSyncNowRequested = true
+                        Task {
+                            await stepProgress.refresh()
+                            isSyncNowRequested = false
+                        }
+                    } label: {
+                        if isSyncNowRequested || stepProgress.isRefreshing {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .tint(CompetitiveTrustTheme.coralInk)
+                                Text("Syncing…")
+                            }
+                        } else {
+                            Label("Sync now", systemImage: "arrow.clockwise")
+                        }
+                    }
+                    .buttonStyle(TrustSecondaryButtonStyle())
+                    .disabled(
+                        isSyncNowRequested || stepProgress.isRefreshing
+                    )
+                    .accessibilityIdentifier(
+                        "personal.challenge.sync-now"
+                    )
+                }
             }
         }
+    }
+
+    private func canSyncNow(_ challenge: PersonalChallengeDetail) -> Bool {
+        challenge.id == stepProgress.challengeID
+            && stepProgress.canRefresh
     }
 
     @ViewBuilder

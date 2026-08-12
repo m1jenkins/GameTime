@@ -432,12 +432,12 @@ struct CreatePersonalChallengeFlow: View {
         }
         if startsImmediatelyInDemo && demoMode.isActive {
             let shared =
-                "Day one starts at \(startTimeLabel) and runs until midnight. Days two to seven are full."
+                "Day one counts eligible steps from midnight today and runs until midnight. Days two to seven are full."
             return draft.cadence == .daily
                 ? shared
-                    + " You’ll still need \(draft.targetSteps.formatted()) steps today."
+                    + " Steps you took before starting count toward today’s \(draft.targetSteps.formatted())-step goal."
                 : shared
-                    + " You’re going for one total, so this just leaves you less time."
+                    + " Steps you took before starting count toward your week total."
         }
         let shared =
             "Day one is short — \(firstDayHours) \(firstDayHours == 1 ? "hour" : "hours"), from \(startTimeLabel) until midnight. Days two to seven are full."

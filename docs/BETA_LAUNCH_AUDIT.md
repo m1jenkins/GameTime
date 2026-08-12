@@ -19,7 +19,8 @@ The replacement beta contract is:
 
 - one **Connect Apple Health** permission action, with no positive-sample gate;
 - automatic local-first merged Health progress with explicit manual-entry
-  exclusion and no step-specific sync action;
+  exclusion, plus **Sync now** on the open challenge detail as an on-demand
+  entry into that same refresh path;
 - one owner-authenticated seven-day daily snapshot, with no Personal App Attest
   or coverage upload;
 - a protected whole-snapshot cache and coherent live/cache/server/frozen display

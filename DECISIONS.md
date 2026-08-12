@@ -3042,6 +3042,12 @@ view tree, so exiting returns to the same Apple-authenticated staging session.
 A persistent banner says that demo changes stay on the device, and exiting
 discards all demo relationships and challenges.
 
+The interactive demo's accounts, challenges, payments, and uploads remain
+fixtures, but its Personal step reader is the real on-device Apple Health
+reader. That lets a “start right now” demo challenge count the holder's steps
+since local midnight without sending them anywhere. Deterministic
+`--fixture-mode` launches retain the synthetic step reader.
+
 The demo directory includes memorable synthetic handles such as `david1` and
 `david2`. A demo friendship request is accepted immediately and transparently
 so one person can exercise exact-handle discovery, the Add action, accepted
@@ -4201,8 +4207,9 @@ are discarded. Local Health values publish before network work, so upload
 failure cannot hide or reduce displayed progress. Before cutoff, display
 precedence is live Health, matching protected cache, server snapshot, then
 legacy result fallback. After cutoff it is frozen server result, then local
-fallback. The only Health-specific user action is **Connect Apple Health**;
-there is no positive-sample creation gate or step-specific sync action.
+fallback. **Connect Apple Health** remains the only permission action and there
+is no positive-sample creation gate. The open challenge detail also exposes
+**Sync now**, which runs the same coalesced whole-window refresh on demand.
 
 The client uploads through one authenticated owner-bound
 `upsert_my_personal_health_snapshot_v2` RPC. The server derives the user from

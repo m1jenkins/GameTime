@@ -32,13 +32,15 @@ route to it.
 In a Debug or Staging build, open **You → Open demo mode**. If the live account
 is signed out, **Try demo mode** is also available on the sign-in screen. The
 isolated model presents only Today, Challenges, and You and resets on exit.
+Its account and challenge data stay local, while step progress is read from
+Apple Health on the device so “start right now” can count today's real steps.
 
 UI tests launch the same deterministic boundary with `--fixture-mode`.
 Snapshot-v2 fixtures cover automatic live progress, cache/server fallback,
 stale retention, no data, grace, offline upload, and frozen history. Historical
 diagnostic/hold/activity fixtures may remain only when explicitly labelled v1.
-Fixtures do not touch Supabase and do not prove hosted, two-user, Apple Health,
-observer, Watch, or locked-device behavior.
+Fixtures do not touch Supabase and automated fixture runs do not prove hosted,
+two-user, Apple Health, observer, Watch, or locked-device behavior.
 
 ## Personal restart-safe creation
 

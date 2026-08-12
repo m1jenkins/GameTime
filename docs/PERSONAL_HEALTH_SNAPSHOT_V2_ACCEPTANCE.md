@@ -23,7 +23,8 @@ publish TestFlight, or enable real payments. Stripe remains test-only.
   only when the Health query throws or data is temporarily unavailable.
 - Local progress updates before upload. Network failure never hides it.
 - Personal v2 has no App Attest, hourly coverage, diagnostic, eligibility hold,
-  or step-specific sync control.
+  or legacy signed sync control. **Sync now** performs the same local-first
+  whole-snapshot refresh as the automatic path.
 - Grace remains exactly 24 hours. Stripe remains sandbox-only.
 - The final server result and its seven copied daily totals are immutable.
 

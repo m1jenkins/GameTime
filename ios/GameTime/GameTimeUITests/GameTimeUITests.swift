@@ -201,6 +201,12 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(app.staticTexts[displayedTotal].exists)
         XCTAssertTrue(app.staticTexts["Your pace"].exists)
+        let syncNow = app.buttons["personal.challenge.sync-now"]
+        XCTAssertTrue(syncNow.waitForExistence(timeout: 4))
+        syncNow.tap()
+        XCTAssertTrue(
+            app.staticTexts[displayedTotal].waitForExistence(timeout: 4)
+        )
         let paceChart = app.descendants(matching: .any)["personal.pace.chart"]
         for _ in 0..<8 where !paceChart.exists { app.swipeUp() }
         XCTAssertTrue(paceChart.waitForExistence(timeout: 4))

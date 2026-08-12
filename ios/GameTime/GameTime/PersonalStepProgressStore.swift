@@ -145,11 +145,23 @@ final class PersonalStepProgressStore {
         await task.value
     }
 
+    /// Whether the active challenge still accepts a fresh Apple Health read.
+    /// Views also compare `challengeID` before presenting an action so history
+    /// never inherits the open challenge's refresh state.
+    var canRefresh: Bool {
+        shouldReadHealth
+    }
+
     func progress(
         for challenge: PersonalChallengeSummary,
         now: Date = Date()
     ) -> PersonalDisplayedProgress? {
-        PersonalDisplayedProgressResolver.resolve(
+        if challenge.id == challengeID {
+            // Establish an observation dependency on the published snapshot.
+            // The resolver still receives `now` so day state remains current.
+            _ = displayedProgress
+        }
+        return PersonalDisplayedProgressResolver.resolve(
             challenge: challenge,
             live: challenge.id == challengeID ? liveSnapshot : nil,
             cached: challenge.id == challengeID ? cachedSnapshot : nil,
@@ -162,7 +174,12 @@ final class PersonalStepProgressStore {
         for challenge: PersonalChallengeDetail,
         now: Date = Date()
     ) -> PersonalDisplayedProgress? {
-        PersonalDisplayedProgressResolver.resolve(
+        if challenge.id == challengeID {
+            // Local reads publish this property before cache or upload work,
+            // causing every active-detail consumer to redraw immediately.
+            _ = displayedProgress
+        }
+        return PersonalDisplayedProgressResolver.resolve(
             challenge: challenge,
             live: challenge.id == challengeID ? liveSnapshot : nil,
             cached: challenge.id == challengeID ? cachedSnapshot : nil,
