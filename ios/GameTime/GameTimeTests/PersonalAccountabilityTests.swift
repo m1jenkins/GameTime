@@ -289,13 +289,15 @@ final class PersonalAccountabilityModelTests: XCTestCase {
     }
 
     private func chicagoInstant(
-        _ year: Int, _ month: Int, _ day: Int, _ hour: Int
+        _ year: Int, _ month: Int, _ day: Int, _ hour: Int,
+        minute: Int = 0
     ) -> Date {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "America/Chicago")!
         return calendar.date(
             from: DateComponents(
-                year: year, month: month, day: day, hour: hour
+                year: year, month: month, day: day, hour: hour,
+                minute: minute
             )
         )!
     }
@@ -416,6 +418,35 @@ final class PersonalAccountabilityModelTests: XCTestCase {
                 .invalidStart
             )
         }
+    }
+
+    func testDemoStartAcceptsOnlyTheCurrentMinute() throws {
+        var draft = PersonalChallengeDraft.initial(
+            profileTimezone: "America/Chicago",
+            now: startClock
+        )
+        draft.startsAt = PersonalChallengeStart.currentMinute(now: startClock)
+
+        XCTAssertThrowsError(
+            try draft.validated(requestID: fixedRequestID, now: startClock)
+        )
+        XCTAssertEqual(
+            try draft.validated(
+                requestID: fixedRequestID,
+                now: startClock,
+                allowsCurrentMinuteStart: true
+            ).startsAt,
+            chicagoInstant(2026, 8, 3, 15, minute: 37)
+        )
+
+        draft.startsAt = chicagoInstant(2026, 8, 3, 15, minute: 36)
+        XCTAssertThrowsError(
+            try draft.validated(
+                requestID: fixedRequestID,
+                now: startClock,
+                allowsCurrentMinuteStart: true
+            )
+        )
     }
 
     func testSpringForwardSkippedHourIsNotOffered() {

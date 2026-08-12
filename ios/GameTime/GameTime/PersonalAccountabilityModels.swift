@@ -146,7 +146,7 @@ enum PersonalDiagnosticStatus: String, Codable, Sendable {
 
 /// When a challenge opens, expressed in the timezone its terms freeze in.
 ///
-/// A start is always a **whole local hour**. That is the ledger's own grid:
+/// A production start is always a **whole local hour**. That is the ledger's own grid:
 /// `bucket_start` is a whole local hour, and the server discards the partial
 /// hour a 15:40 start would open, so those forty minutes could never be
 /// delivered as evidence. Choosing on the hour puts the window exactly on the
@@ -229,6 +229,15 @@ enum PersonalChallengeStart {
             matching: DateComponents(minute: 0, second: 0),
             matchingPolicy: .nextTime
         )
+    }
+
+    /// Demo fixtures can open on the current minute so the active experience
+    /// is available without waiting for the production hourly ledger boundary.
+    static func currentMinute(now: Date) -> Date {
+        Calendar(identifier: .gregorian).dateInterval(
+            of: .minute,
+            for: now
+        )?.start ?? now
     }
 
     /// The local days a challenge may open on, as a range of local midnights.
@@ -314,9 +323,10 @@ struct PersonalChallengeDraft: Equatable, Sendable {
     var targetSteps = PersonalChallengeCadence.daily.defaultTargetSteps
     var commitmentAmountMinor = 1_000
     var timezone = TimeZone.current.identifier
-    /// The selected start, always a concrete whole local hour so the flow has
-    /// something to show. Whether it travels to the server as an explicit
-    /// instant or as the omitted default is `requestedStart(now:)`'s decision.
+    /// The selected start is normally a concrete whole local hour so the flow
+    /// has something to show. Interactive demo fixtures may instead use the
+    /// current minute. Whether it travels to the server as an explicit instant
+    /// or as the omitted default is `requestedStart(now:)`'s decision.
     var startsAt = PersonalChallengeStart.nextLocalMidnight(
         now: Date(),
         timezone: TimeZone.current.identifier
@@ -406,7 +416,8 @@ struct PersonalChallengeDraft: Equatable, Sendable {
 
     func validated(
         requestID: UUID = UUID(),
-        now: Date = Date()
+        now: Date = Date(),
+        allowsCurrentMinuteStart: Bool = false
     ) throws -> PersonalChallengeCreationRequest {
         guard Self.targetRange.contains(targetSteps) else {
             throw PersonalChallengeValidationError.invalidTarget
@@ -419,11 +430,15 @@ struct PersonalChallengeDraft: Equatable, Sendable {
         }
         let requested = requestedStart(now: now)
         if let requested {
-            guard PersonalChallengeStart.isSelectable(
-                requested,
-                now: now,
-                timezone: timezone
-            ) else {
+            let isCurrentMinute = allowsCurrentMinuteStart
+                && requested == PersonalChallengeStart.currentMinute(now: now)
+            guard isCurrentMinute
+                || PersonalChallengeStart.isSelectable(
+                    requested,
+                    now: now,
+                    timezone: timezone
+                )
+            else {
                 throw PersonalChallengeValidationError.invalidStart
             }
         }

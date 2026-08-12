@@ -1332,11 +1332,19 @@ private final class FixturePersonalAccountabilityClient:
         // next local midnight, and the window always closes at the local
         // midnight after the seventh local date. A start later in the day
         // therefore shortens day one rather than moving the end.
-        let start = request.startsAt
+        let requestedStart = request.startsAt
             ?? PersonalChallengeStart.nextLocalMidnight(
                 now: now,
                 timezone: request.timezone
             )
+        // A start at or before fixture creation is the demo-only "right now"
+        // request. Activate immediately, but back the Health window up to the
+        // frozen timezone's midnight so every eligible step from today counts.
+        // Ordinary fixture and production-shaped starts remain untouched.
+        let startsImmediately = requestedStart <= now
+        let start = startsImmediately
+            ? calendar.startOfDay(for: requestedStart)
+            : requestedStart
         let firstLocalDay = calendar.startOfDay(for: start)
         let end = calendar.date(byAdding: .day, value: 7, to: firstLocalDay)!
         let cutoff = calendar.date(byAdding: .day, value: 1, to: end)!
@@ -1361,7 +1369,7 @@ private final class FixturePersonalAccountabilityClient:
         }
         return PersonalChallengeDetail(
             id: id,
-            status: .scheduled,
+            status: startsImmediately ? .active : .scheduled,
             terms: FrozenPersonalTerms(
                 challengeID: id,
                 userID: ownerID,

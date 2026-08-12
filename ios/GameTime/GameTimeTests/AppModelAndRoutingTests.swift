@@ -4,6 +4,51 @@ import XCTest
 
 @MainActor
 final class AppModelAndRoutingTests: XCTestCase {
+    func testDemoStartNowActivatesImmediatelyAndCountsFromLocalMidnight()
+        async throws
+    {
+        let services = FixtureServicesFactory.make(
+            arguments: ["GameTimeTests", "--fixture-empty"]
+        )
+        let currentUserID = await services.auth.currentUserID()
+        let ownerID = try XCTUnwrap(currentUserID)
+        let requestedStart = PersonalChallengeStart.currentMinute(now: Date())
+        let request = PersonalChallengeCreationRequest(
+            requestID: UUID(),
+            cadence: .daily,
+            targetSteps: 10_000,
+            commitmentAmountMinor: 1_000,
+            timezone: "America/Chicago",
+            startsAt: requestedStart
+        )
+
+        let challengeID = try await services.personalAccountability.create(
+            request,
+            expectedUserID: ownerID
+        )
+        let createdChallenge = try await services.personalAccountability
+            .challenge(id: challengeID)
+        let challenge = try XCTUnwrap(createdChallenge)
+        let calendar = PersonalChallengeStart.calendar(request.timezone)
+
+        XCTAssertEqual(challenge.status, .active)
+        XCTAssertEqual(
+            challenge.terms.startsAt,
+            calendar.startOfDay(for: requestedStart)
+        )
+
+        let observedAt = Date()
+        let plan = try PersonalHealthSnapshotPlanner.plan(
+            terms: challenge.terms,
+            observedAt: observedAt
+        )
+        XCTAssertEqual(
+            plan.days.first?.interval?.start,
+            challenge.terms.startsAt
+        )
+        XCTAssertEqual(plan.days.first?.interval?.end, observedAt)
+    }
+
     func testLegacySummaryDecodesBoundedRosterAndCallerTimezone() throws {
         let json = Data(
             #"{"contest_id":"11111111-1111-1111-1111-111111111111","title":"Legacy steps","created_by":"22222222-2222-2222-2222-222222222222","metric":"steps","cadence":"daily","target_value":10000,"stake_amount_cents":1000,"tie_break":"integrity_score","starts_at":"2026-08-03T05:00:00Z","ends_at":"2026-08-10T05:00:00Z","contest_status":"finalized","max_participants":3,"caller_status":"accepted","caller_timezone":"America/Chicago","accepted_count":2,"invited_count":1,"declined_count":0,"withdrawn_count":0,"lapsed_count":0,"author_profile":{"id":"22222222-2222-2222-2222-222222222222","handle":"author","display_name":"Author","is_deleted":false},"accepted_profiles":[{"id":"22222222-2222-2222-2222-222222222222","handle":"author","display_name":"Author","is_deleted":false},{"id":"33333333-3333-3333-3333-333333333333","handle":"member","display_name":"Member","is_deleted":false}]}"#.utf8

@@ -6,6 +6,7 @@ struct CreatePersonalChallengeFlow: View {
     @Environment(AppModel.self) private var appModel
     @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.demoMode) private var demoMode
 
     @State private var draft = PersonalChallengeDraft()
     @State private var requestID = UUID()
@@ -18,6 +19,7 @@ struct CreatePersonalChallengeFlow: View {
     /// Resampled whenever the start step is entered, so the hours it offers
     /// are the hours still open. Submission re-checks against a live clock.
     @State private var now = Date()
+    @State private var startsImmediatelyInDemo = false
 
     private enum Step: Int, CaseIterable {
         case metric
@@ -428,8 +430,17 @@ struct CreatePersonalChallengeFlow: View {
         if firstDayHours == 24 {
             return "Seven full days. Day one runs midnight to midnight."
         }
+        if startsImmediatelyInDemo && demoMode.isActive {
+            let shared =
+                "Day one starts at \(startTimeLabel) and runs until midnight. Days two to seven are full."
+            return draft.cadence == .daily
+                ? shared
+                    + " You’ll still need \(draft.targetSteps.formatted()) steps today."
+                : shared
+                    + " You’re going for one total, so this just leaves you less time."
+        }
         let shared =
-            "Day one is short — \(firstDayHours) \(firstDayHours == 1 ? "hour" : "hours"), from \(hourLabel(PersonalChallengeStart.hour(of: draft.startsAt, timezone: draft.timezone))) until midnight. Days two to seven are full."
+            "Day one is short — \(firstDayHours) \(firstDayHours == 1 ? "hour" : "hours"), from \(startTimeLabel) until midnight. Days two to seven are full."
         guard draft.cadence == .daily else {
             return shared
                 + " You’re going for one total, so this just leaves you less time."
@@ -587,10 +598,21 @@ struct CreatePersonalChallengeFlow: View {
                 "How long",
                 firstDayHours == 24
                     ? "Seven full days"
-                    : "Seven days, starting at \(hourLabel(PersonalChallengeStart.hour(of: draft.startsAt, timezone: draft.timezone))) on day one"
+                    : "Seven days, starting at \(startTimeLabel) on day one"
             )
             reviewRow("Time zone", draft.timezone)
             reviewRow("Starts", startDescription)
+            if demoMode.isActive, store.pendingCreation == nil {
+                Toggle(
+                    "Start right now (count today)",
+                    isOn: demoStartBinding
+                )
+                    .tint(CompetitiveTrustTheme.coral)
+                    .accessibilityIdentifier("personal.start.demo-now")
+                Text("The challenge activates on the current minute, and all eligible steps since midnight today count.")
+                    .font(.caption)
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            }
             reviewRow("Updates through", "24 hours after your last day")
             if store.configuration.personalSettlementMode == .stripeSandbox {
                 reviewRow("Payment", "Test method saved — ready for review")
@@ -762,6 +784,7 @@ struct CreatePersonalChallengeFlow: View {
     /// A selection sitting in a draft — or restored from a saved retry — can
     /// simply age out of validity while the flow is open.
     private var startIsStillValid: Bool {
+        if startsImmediatelyInDemo && demoMode.isActive { return true }
         guard let requested = draft.requestedStart(now: now) else { return true }
         return PersonalChallengeStart.isSelectable(
             requested,
@@ -774,6 +797,33 @@ struct CreatePersonalChallengeFlow: View {
         PersonalTermsDateFormatter.dateTime(
             draft.startsAt,
             timezoneIdentifier: draft.timezone
+        )
+    }
+
+    private var startTimeLabel: String {
+        draft.startsAt.formatted(
+            Date.FormatStyle(
+                date: .omitted,
+                time: .shortened,
+                timeZone: TimeZone(identifier: draft.timezone)
+                    ?? TimeZone(secondsFromGMT: 0)!
+            )
+        )
+    }
+
+    private var demoStartBinding: Binding<Bool> {
+        Binding(
+            get: { startsImmediatelyInDemo },
+            set: { startsImmediately in
+                startsImmediatelyInDemo = startsImmediately
+                now = Date()
+                draft.startsAt = startsImmediately
+                    ? PersonalChallengeStart.currentMinute(now: now)
+                    : PersonalChallengeStart.nextLocalMidnight(
+                        now: now,
+                        timezone: draft.timezone
+                    )
+            }
         )
     }
 
@@ -815,10 +865,12 @@ struct CreatePersonalChallengeFlow: View {
     private func refreshBetaStart(at date: Date = Date()) {
         guard store.pendingCreation == nil else { return }
         now = date
-        draft.startsAt = PersonalChallengeStart.nextLocalMidnight(
-            now: date,
-            timezone: draft.timezone
-        )
+        draft.startsAt = startsImmediatelyInDemo && demoMode.isActive
+            ? PersonalChallengeStart.currentMinute(now: date)
+            : PersonalChallengeStart.nextLocalMidnight(
+                now: date,
+                timezone: draft.timezone
+            )
     }
 
     private func betaRequest(
@@ -828,13 +880,17 @@ struct CreatePersonalChallengeFlow: View {
             return pending.request
         }
         var requestDraft = draft
-        requestDraft.startsAt = PersonalChallengeStart.nextLocalMidnight(
-            now: date,
-            timezone: requestDraft.timezone
-        )
+        requestDraft.startsAt = startsImmediatelyInDemo && demoMode.isActive
+            ? PersonalChallengeStart.currentMinute(now: date)
+            : PersonalChallengeStart.nextLocalMidnight(
+                now: date,
+                timezone: requestDraft.timezone
+            )
         return try requestDraft.validated(
             requestID: requestID,
-            now: date
+            now: date,
+            allowsCurrentMinuteStart: startsImmediatelyInDemo
+                && demoMode.isActive
         )
     }
 
