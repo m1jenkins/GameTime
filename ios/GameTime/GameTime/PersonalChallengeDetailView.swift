@@ -303,12 +303,20 @@ struct PersonalChallengeDetailView: View {
 
     @ViewBuilder
     private func cancellation(_ challenge: PersonalChallengeDetail) -> some View {
-        if challenge.status == .scheduled {
+        let isOrdinaryPreStartCancellation =
+            challenge.status == .scheduled
+            && Date() < challenge.terms.startsAt
+        let isTestCleanup =
+            store.configuration.allowsActiveTestChallengeCancellation
+            && challenge.terms.settlementMode == .testOnly
+            && (challenge.status == .scheduled || challenge.status == .active)
+
+        if isOrdinaryPreStartCancellation || isTestCleanup {
             Button("Cancel this challenge", role: .destructive) {
                 showingCancelConfirmation = true
             }
             .buttonStyle(TrustSecondaryButtonStyle())
-            .disabled(store.isMutating || Date() >= challenge.terms.startsAt)
+            .disabled(store.isMutating)
             .accessibilityIdentifier("personal.cancel")
         }
     }
@@ -343,6 +351,12 @@ struct PersonalChallengeDetailView: View {
     }
 
     private var cancellationMessage: String {
+        if store.configuration.allowsActiveTestChallengeCancellation,
+            challenge?.status == .active,
+            challenge?.terms.settlementMode == .testOnly
+        {
+            return "This ends the test challenge now so you can start another. No money will be charged."
+        }
         if challenge?.terms.settlementMode == .stripeSandbox {
             return "You can only cancel before your challenge starts. Cancelling before it starts closes the payment terms before settlement."
         }

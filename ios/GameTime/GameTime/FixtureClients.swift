@@ -1264,7 +1264,13 @@ private final class FixturePersonalAccountabilityClient:
             $0.id == challengeID
         }) else { return }
         let original = store.challenges[index]
-        guard original.status == .scheduled, Date() < original.terms.startsAt else {
+        let canCancelBeforeStart =
+            original.status == .scheduled && Date() < original.terms.startsAt
+        let canCleanUpTestChallenge =
+            settlementMode == .testOnly
+            && original.terms.settlementMode == .testOnly
+            && (original.status == .scheduled || original.status == .active)
+        guard canCancelBeforeStart || canCleanUpTestChallenge else {
             throw PersonalAccountabilityClientError.cancellationClosed
         }
         store.challenges[index] = PersonalChallengeDetail(

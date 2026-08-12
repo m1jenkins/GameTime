@@ -638,14 +638,13 @@ select set_config(
   true
 );
 
-select throws_ok(
-  $$ select public.cancel_personal_challenge_v1(
-       'e9000000-0000-0000-0000-000000000006',
-       'e9600000-0000-0000-0000-000000000001'
-     ) $$,
-  '23001',
-  null,
-  'cancellation is rejected after a personal challenge has begun'
+select is(
+  public.cancel_personal_challenge_v1(
+    'e9000000-0000-0000-0000-000000000006',
+    'e9600000-0000-0000-0000-000000000001'
+  ),
+  'e9000000-0000-0000-0000-000000000006'::uuid,
+  'an owner can end an active internal test-only challenge for fixture cleanup'
 );
 
 -- Signed coverage may never claim an hour later than its signed observation

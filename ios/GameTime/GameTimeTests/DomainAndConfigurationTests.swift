@@ -67,6 +67,7 @@ final class DomainAndConfigurationTests: XCTestCase {
         )
         XCTAssertEqual(configuration.personalSettlementMode, .testOnly)
         XCTAssertFalse(configuration.personalChallengeMutationsEnabled)
+        XCTAssertFalse(configuration.allowsActiveTestChallengeCancellation)
         XCTAssertNil(configuration.stripeReturnURL)
     }
 
@@ -98,6 +99,7 @@ final class DomainAndConfigurationTests: XCTestCase {
             stripeReturnURLValue: "gametime-staging://stripe-redirect"
         )
         XCTAssertEqual(staging.personalSettlementMode, .stripeSandbox)
+        XCTAssertFalse(staging.allowsActiveTestChallengeCancellation)
         XCTAssertEqual(
             staging.stripeReturnURL?.absoluteString,
             "gametime-staging://stripe-redirect"
@@ -113,6 +115,7 @@ final class DomainAndConfigurationTests: XCTestCase {
         )
         XCTAssertTrue(release.personalChallengeMutationsEnabled)
         XCTAssertEqual(release.personalSettlementMode, .stripeSandbox)
+        XCTAssertFalse(release.allowsActiveTestChallengeCancellation)
         XCTAssertEqual(
             release.stripeReturnURL?.absoluteString,
             "gametime-beta://stripe-redirect"
@@ -162,6 +165,9 @@ final class DomainAndConfigurationTests: XCTestCase {
         XCTAssertTrue(staging.activitySyncEnabled)
         XCTAssertTrue(debug.activitySyncEnabled)
         XCTAssertTrue(release.activitySyncEnabled)
+        XCTAssertTrue(staging.allowsActiveTestChallengeCancellation)
+        XCTAssertTrue(debug.allowsActiveTestChallengeCancellation)
+        XCTAssertFalse(release.allowsActiveTestChallengeCancellation)
 
         XCTAssertTrue(staging.attestedUploadEnabled)
         XCTAssertFalse(debug.attestedUploadEnabled)

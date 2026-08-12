@@ -230,6 +230,13 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(containing("How it counts", in: app).exists)
 
+        let cancel = app.buttons["personal.cancel"]
+        for _ in 0..<8 where !cancel.exists { app.swipeUp() }
+        XCTAssertTrue(
+            cancel.waitForExistence(timeout: 3),
+            "Internal test-only active challenges should expose cleanup cancellation."
+        )
+
         assertNoLegacyPersonalHealthSurfaces(in: app)
         XCTAssertFalse(app.staticTexts["Standings"].exists)
         XCTAssertFalse(app.staticTexts["Winner"].exists)

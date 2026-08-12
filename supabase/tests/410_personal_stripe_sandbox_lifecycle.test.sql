@@ -210,6 +210,38 @@ select ok(
 
 reset role;
 
+-- A provider agreement keeps the ordinary binding boundary even though the
+-- underlying Stage A enum remains `test_only` for legacy compatibility.
+alter table public.contests
+  disable trigger contests_enforce_status_transition;
+update public.contests contest
+set status = 'active',
+    activated_at = clock_timestamp()
+where contest.id =
+  (select (value ->> 'challenge_id')::uuid from t_api_challenge);
+alter table public.contests
+  enable trigger contests_enforce_status_transition;
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"fa111111-1111-1111-1111-111111111111"}',
+  true
+);
+
+select throws_ok(
+  format(
+    'select public.cancel_personal_challenge_v1(%L, %L)',
+    (select (value ->> 'challenge_id')::uuid from t_api_challenge),
+    'fa100000-0000-0000-0000-000000000099'::uuid
+  ),
+  '23001',
+  null,
+  'an active Stripe sandbox challenge keeps the pre-start cancellation boundary'
+);
+
+reset role;
+
 -- ---------------------------------------------------------------------------
 -- Compact trusted fixtures for terminal result behavior.
 -- ---------------------------------------------------------------------------

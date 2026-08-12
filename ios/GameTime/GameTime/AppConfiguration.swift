@@ -70,6 +70,15 @@ struct AppConfiguration: Equatable, Sendable {
         return contestMutationsEnabled
     }
 
+    /// Internal Stage A builds may end an open challenge to clear fixture data
+    /// between implementation passes. Provider-backed beta and Release paths
+    /// retain the ordinary pre-start cancellation boundary.
+    var allowsActiveTestChallengeCancellation: Bool {
+        personalChallengeMutationsEnabled
+            && personalSettlementMode == .testOnly
+            && environment != .release
+    }
+
     /// Health reads are useful in every product configuration. Whether those
     /// reads can leave the phone remains a separate App Attest capability.
     var activitySyncEnabled: Bool {
