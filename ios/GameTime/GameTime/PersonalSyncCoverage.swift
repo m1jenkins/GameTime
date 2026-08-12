@@ -115,9 +115,9 @@ enum PersonalCoverageError: LocalizedError, Equatable, Sendable {
         case .noTrustedCoverage:
             "We can’t tell the difference between “no steps” and “no data” right now. Run a Health check and try again."
         case .savedEvidenceFromDifferentEnvironment:
-            "Saved steps from an older test build can’t be used here."
+            "Steps saved on this phone couldn’t be confirmed. Sync your steps again."
         case .attestationRejected:
-            "GameTime couldn’t verify the saved step proof."
+            "GameTime couldn’t verify those steps. Try syncing again."
         case .unavailable:
             "We couldn’t sync your steps. Try again in a moment."
         case .rejected:
@@ -539,6 +539,10 @@ final class SupabasePersonalCoverageClient: PersonalCoverageClient {
                 case .authentication:
                     throw MetricUploadClientError.tokenRefusedByService
                 case .attestation:
+                    try signer.invalidateRejectedKey(
+                        ownerID: ownerID,
+                        keyID: submission.keyID
+                    )
                     throw PersonalCoverageError.attestationRejected
                 case .accountNotActive:
                     throw MetricUploadClientError.accountNotActive
@@ -776,28 +780,40 @@ final class PersonalActivitySyncCoordinator: PersonalActivitySyncing {
         guard !intervalStarts.isEmpty else {
             throw PersonalCoverageError.noTrustedCoverage
         }
-        var submission = try await coverage.prepare(
-            ownerID: ownerID,
-            challengeID: challenge.id,
-            intervalStarts: intervalStarts,
-            observedAt: max(asOf, Date())
-        )
-        try await pendingCoverage.save(submission)
-        submission = submission.recordingAttempt()
-        try await pendingCoverage.save(submission)
-        do {
-            let receipt = try await coverage.send(
+        var canRetryRejectedCurrentKey = true
+        while true {
+            var submission = try await coverage.prepare(
                 ownerID: ownerID,
-                submission: submission
+                challengeID: challenge.id,
+                intervalStarts: intervalStarts,
+                observedAt: max(asOf, Date())
             )
-            guard receipt.coverageBatchID == submission.clientCoverageID else {
-                throw PersonalCoverageError.invalidResponse
+            try await pendingCoverage.save(submission)
+            submission = submission.recordingAttempt()
+            try await pendingCoverage.save(submission)
+            do {
+                let receipt = try await coverage.send(
+                    ownerID: ownerID,
+                    submission: submission
+                )
+                guard
+                    receipt.coverageBatchID == submission.clientCoverageID
+                else {
+                    throw PersonalCoverageError.invalidResponse
+                }
+                try await pendingCoverage.remove(for: ownerID)
+                break
+            } catch let error as PersonalCoverageError
+                where error == .attestationRejected
+            {
+                // The client invalidated the key behind this just-created
+                // proof. Drop those exact signed bytes and prepare one new
+                // request under the replacement key; never re-sign them.
+                try await pendingCoverage.remove(for: ownerID)
+                guard canRetryRejectedCurrentKey else { throw error }
+                canRetryRejectedCurrentKey = false
             }
-        } catch PersonalCoverageError.attestationRejected {
-            try await pendingCoverage.remove(for: ownerID)
-            return .savedRequestUnavailable
         }
-        try await pendingCoverage.remove(for: ownerID)
         return metricOutcome
     }
 

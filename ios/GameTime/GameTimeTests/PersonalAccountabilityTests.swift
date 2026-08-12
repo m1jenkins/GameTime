@@ -1863,6 +1863,93 @@ final class PersonalActivitySyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(coverage.sentSubmissions.count, 1)
     }
 
+    func testFreshCoverageRejectionPreparesANewProofAndRetriesOnce()
+        async throws
+    {
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 0,
+            outcomes: [.synced(replayed: false, stepTotal: 12_349)],
+            pendingCountsAfterSync: [0]
+        )
+        let pendingCoverage = EphemeralPendingPersonalCoverageStore()
+        let coverage = PersonalCoverageClientFake(
+            sendErrors: [.attestationRejected, nil]
+        )
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: PersonalCoverageQueryFake(
+                intervalStarts: [asOf.addingTimeInterval(-3_600)]
+            ),
+            metrics: metrics,
+            coverage: coverage,
+            pendingCoverage: pendingCoverage
+        )
+
+        let outcome = try await coordinator.sync(
+            ownerID: ownerID,
+            challenge: activeChallenge,
+            asOf: asOf
+        )
+
+        XCTAssertEqual(
+            outcome,
+            .synced(replayed: false, stepTotal: 12_349)
+        )
+        XCTAssertEqual(metrics.syncCallCount, 1)
+        XCTAssertEqual(coverage.prepareCount, 2)
+        XCTAssertEqual(coverage.sentSubmissions.count, 2)
+        XCTAssertNotEqual(
+            coverage.sentSubmissions[0].clientCoverageID,
+            coverage.sentSubmissions[1].clientCoverageID
+        )
+        XCTAssertNotEqual(
+            coverage.sentSubmissions[0].body,
+            coverage.sentSubmissions[1].body
+        )
+        let remaining = await pendingCoverage.load(for: ownerID)
+        XCTAssertNil(remaining)
+    }
+
+    func testRepeatedFreshCoverageRejectionRemainsACurrentFailure()
+        async throws
+    {
+        let metrics = SequencedActivitySyncFake(
+            pendingCount: 0,
+            outcomes: [.synced(replayed: false, stepTotal: 12_349)],
+            pendingCountsAfterSync: [0]
+        )
+        let pendingCoverage = EphemeralPendingPersonalCoverageStore()
+        let coverage = PersonalCoverageClientFake(
+            sendErrors: [.attestationRejected, .attestationRejected]
+        )
+        let coordinator = PersonalActivitySyncCoordinator(
+            activity: PersonalCoverageQueryFake(
+                intervalStarts: [asOf.addingTimeInterval(-3_600)]
+            ),
+            metrics: metrics,
+            coverage: coverage,
+            pendingCoverage: pendingCoverage
+        )
+
+        do {
+            _ = try await coordinator.sync(
+                ownerID: ownerID,
+                challenge: activeChallenge,
+                asOf: asOf
+            )
+            XCTFail("Expected the second current proof to be rejected.")
+        } catch {
+            XCTAssertEqual(
+                error as? PersonalCoverageError,
+                .attestationRejected
+            )
+        }
+
+        XCTAssertEqual(coverage.prepareCount, 2)
+        XCTAssertEqual(coverage.sentSubmissions.count, 2)
+        let remaining = await pendingCoverage.load(for: ownerID)
+        XCTAssertNil(remaining)
+    }
+
     func testSyncAfterEvidenceCutoffIsRejectedBeforeMetricRead() async {
         let metrics = SequencedActivitySyncFake(
             pendingCount: 0,
@@ -2609,16 +2696,19 @@ private final class PersonalCoverageClientFake: PersonalCoverageClient {
     private(set) var sentSubmissions: [PendingPersonalCoverageSubmission] = []
     private let retryEnvironment: AppAttestEnvironment?
     private let receiptBatchID: UUID?
+    private var sendErrors: [PersonalCoverageError?]
     var sendError: PersonalCoverageError?
 
     init(
         retryEnvironment: AppAttestEnvironment? = nil,
         receiptBatchID: UUID? = nil,
-        sendError: PersonalCoverageError? = nil
+        sendError: PersonalCoverageError? = nil,
+        sendErrors: [PersonalCoverageError?]? = nil
     ) {
         self.retryEnvironment = retryEnvironment
         self.receiptBatchID = receiptBatchID
         self.sendError = sendError
+        self.sendErrors = sendErrors ?? []
     }
 
     func prepare(
@@ -2681,6 +2771,16 @@ private final class PersonalCoverageClientFake: PersonalCoverageClient {
     ) async throws -> PersonalCoverageReceipt {
         XCTAssertEqual(ownerID, submission.ownerID)
         sentSubmissions.append(submission)
+        if !sendErrors.isEmpty {
+            if let error = sendErrors.removeFirst() {
+                throw error
+            }
+            return PersonalCoverageReceipt(
+                coverageBatchID: receiptBatchID
+                    ?? submission.clientCoverageID,
+                replayed: submission.attemptCount > 1
+            )
+        }
         if let sendError {
             throw sendError
         }

@@ -23,6 +23,8 @@ enum ActivitySyncDiagnosticEvent: String, Equatable, Sendable {
   case exactRequestQueued
   case signedMaterialSaved
   case foreignEnvironmentRequestDiscarded
+  case rejectedSavedRequestDiscarded
+  case rejectedCurrentRequestDiscarded
   case uploadAttemptStarted
   case retryRetained
   case permanentRequestDiscarded
@@ -197,6 +199,20 @@ final class ActivitySyncCoordinator: ActivitySyncing {
       )
     }
 
+    return try await syncFresh(
+      ownerID: ownerID,
+      contest: contest,
+      asOf: asOf,
+      retryRejectedCurrentKey: true
+    )
+  }
+
+  private func syncFresh(
+    ownerID: UUID,
+    contest: ContestCard,
+    asOf: Date,
+    retryRejectedCurrentKey: Bool
+  ) async throws -> ActivitySyncOutcome {
     guard contest.endsAt > contest.startsAt else {
       throw ActivitySyncError.invalidChallengeWindow
     }
@@ -241,11 +257,12 @@ final class ActivitySyncCoordinator: ActivitySyncing {
     else {
       throw ActivitySyncError.stagingOnly
     }
-    for request in try encodedRequests(
+    let requests = try encodedRequests(
       contestID: contest.id,
       buckets: buckets,
       observedAt: asOf
-    ) {
+    )
+    for request in requests {
       let enqueueResult = try await pendingUploads.enqueue(
         ownerID: ownerID,
         contestID: contest.id,
@@ -262,10 +279,31 @@ final class ActivitySyncCoordinator: ActivitySyncing {
       }
     }
 
-    return try await deliverPendingUploads(
-      ownerID: ownerID,
-      contestID: contest.id
-    )
+    do {
+      return try await deliverPendingUploads(
+        ownerID: ownerID,
+        contestID: contest.id
+      )
+    } catch let error as MetricUploadClientError
+      where error == .attestationRejected
+    {
+      // The client has invalidated the key that signed this just-created
+      // request. Remove every body from this read and perform one bounded new
+      // Health read; old bytes are never signed under the replacement key.
+      for request in requests {
+        try await pendingUploads.abandon(
+          ownerID: ownerID,
+          batchID: request.clientBatchId
+        )
+      }
+      guard retryRejectedCurrentKey else { throw error }
+      return try await syncFresh(
+        ownerID: ownerID,
+        contest: contest,
+        asOf: asOf,
+        retryRejectedCurrentKey: false
+      )
+    }
   }
 
   private func encodedRequests(
@@ -373,6 +411,8 @@ final class ActivitySyncCoordinator: ActivitySyncing {
     ownerID: UUID
   ) async throws -> PendingDeliveryOutcome {
     var upload = queued
+    let hadSavedSignedMaterial =
+      queued.keyID != nil && queued.assertion != nil
 
     if upload.keyID == nil, upload.assertion == nil {
       let material: MetricSignedMaterial
@@ -456,17 +496,24 @@ final class ActivitySyncCoordinator: ActivitySyncing {
         )
         diagnostics.record(.foreignEnvironmentRequestDiscarded)
         return .savedRequestUnavailable
-      } catch MetricUploadClientError.attestationRejected,
-        MetricUploadClientError.savedSignatureNeedsRefresh
+      } catch let error as MetricUploadClientError
+        where error == .attestationRejected
+          || error == .savedSignatureNeedsRefresh
       {
         // The original saved proof was refused by the authoritative server.
-        // Never replace it with a fresh signature over old bytes.
+        // Never replace it with a fresh signature over old bytes. A request
+        // signed during this invocation is a current failure, though, and must
+        // not be mislabeled as evidence from an older build.
         try await pendingUploads.abandon(
           ownerID: ownerID,
           batchID: upload.clientBatchId
         )
-        diagnostics.record(.foreignEnvironmentRequestDiscarded)
-        return .savedRequestUnavailable
+        if hadSavedSignedMaterial {
+          diagnostics.record(.rejectedSavedRequestDiscarded)
+          return .savedRequestUnavailable
+        }
+        diagnostics.record(.rejectedCurrentRequestDiscarded)
+        throw error
       } catch let error as MetricUploadClientError {
         switch error.failureDisposition {
         case .retry:

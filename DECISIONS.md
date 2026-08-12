@@ -4080,3 +4080,58 @@ does not contain this sixth migration and must be regenerated and reviewed.
 Hosted deployment, read-back of the seeded disabled/empty state, any named
 tester eligibility, runtime activation, and the full isolated Stripe smoke test
 each require their own approved evidence.
+
+### D116. App Attest assertions accept only the documented Apple extension map
+
+**What.** Assertion authenticator data accepts either the legacy exact 37-byte
+form or that prefix followed by exactly one deterministic CBOR map containing
+`apple_validation_category_01` and `apple_bundle_version_01`. The map uses the
+same strict types, category allowlist, and bundle-version grammar as attestation
+extensions. No other keys, CBOR values, COSE key, or trailing bytes are accepted.
+Verified assertions surface both signals when Apple supplies them.
+
+**Why.** Apple's current server-validation guide explicitly directs servers to
+verify these two values in assertion authenticator data. Refusing every suffix
+made valid assertions from current builds look like an obsolete-client failure.
+Sharing the existing extension parser fixes that compatibility boundary without
+weakening the separate attested-credential/COSE path or the signed-byte check.
+
+This supersedes D46's temporary 37-byte-only assertion constraint. It does not
+alter D46's certificate, nonce, key-id, receipt, or physical-device gates, and
+no hosted function was deployed as part of this source correction.
+
+### D117. A rejected current App Attest key rotates once without rewriting saved evidence
+
+**What.** A decoded assertion-verification refusal compare-removes the rejected
+key only when it is still the current key for that account. A fresh metric or
+coverage request then discards its exact signed bytes, creates a new request,
+and retries once under a replacement key. A refusal for an older queued key
+cannot remove a newer registration, and no queued body is ever re-signed.
+
+**Why.** The server can legitimately stop recognizing a device key after a
+reset, revocation, or registration change. Keeping the locally registered key
+made every later sync fail with that same key forever. Treating every refusal
+as saved evidence from an older build also hid failures involving a proof made
+seconds earlier. The compare-and-remove boundary preserves immutable retries
+while giving current device state one bounded recovery path and an accurate
+error if that recovery is refused too.
+
+### D118. The assertion-extension parser is hosted on every assertion consumer
+
+**What.** On 2026-08-11, the D116 shared parser was deployed to hosted project
+`jrkzdttophnmkxjoyioo`: `ingest-metrics` v44,
+`personal-sync-coverage` v12, `activity-diagnostic` v12, and
+`ingest-checkin` v43. Each deployment retains `verify_jwt = false` at the
+gateway because its handler verifies the hosted JWKS before reading evidence.
+
+**Evidence.** Before rollout, all 394 Edge Function tests passed. Hosted source
+read-back for every function contains the legacy 37-byte branch and the strict
+one-map assertion-extension branch. All four versions are active. A cold-start
+POST without a bearer token reached each handler and returned its expected 401,
+and the Edge logs attribute those four requests to the new deployment versions.
+
+This deploys the backend compatibility fix only. It is not an authenticated
+physical-device assertion proof, and no iOS binary containing D117's bounded
+key recovery or revised sync copy was built, installed, or distributed during
+this rollout. That proof still requires `GameTime-Staging` on a provisioned
+iPhone followed by a successful metric and coverage sync read-back.

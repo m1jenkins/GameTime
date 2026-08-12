@@ -32,7 +32,7 @@ enum ActivitySyncViewState: Equatable, Sendable {
         case .savedRequestAccepted:
             "Saved activity confirmed."
         case .savedRequestUnavailable:
-            "Saved steps from an older test build couldn’t be used. Sync again while the window is open."
+            "Steps saved on this phone couldn’t be confirmed. Sync again while the window is open."
         case let .queuedForRetry(stepTotal):
             "\(formatted(stepTotal)) steps are saved and waiting to send. Tap Sync to try again."
         case .noReadableData:

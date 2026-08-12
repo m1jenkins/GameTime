@@ -78,4 +78,8 @@ final class UnavailableAppAttestedBodySigner: AppAttestedBodySigning {
         _ = (ownerID, body)
         throw MetricUploadClientError.stagingOnly
     }
+
+    func invalidateRejectedKey(ownerID: UUID, keyID: String) throws {
+        _ = (ownerID, keyID)
+    }
 }

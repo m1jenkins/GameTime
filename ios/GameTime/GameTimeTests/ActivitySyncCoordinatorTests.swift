@@ -514,6 +514,95 @@ final class ActivitySyncCoordinatorTests: XCTestCase {
     )
   }
 
+  func testFreshlySignedRejectedProofRetriesWithANewHealthRead()
+    async throws
+  {
+    let activity = ActivityClientFake(
+      samples: [
+        makeSample(
+          start: epoch.addingTimeInterval(15 * 60),
+          value: 321
+        )
+      ]
+    )
+    let uploads = MetricUploadClientFake(
+      sendErrors: [.attestationRejected, nil]
+    )
+    let store = FilePendingMetricUploadStore(
+      directoryURL: try makeTemporaryDirectory()
+    )
+    let coordinator = ActivitySyncCoordinator(
+      activity: activity,
+      uploads: uploads,
+      pendingUploads: store
+    )
+
+    let outcome = try await coordinator.sync(
+      ownerID: ownerA,
+      contest: makeContest(),
+      asOf: epoch.addingTimeInterval(5 * 3_600)
+    )
+
+    XCTAssertEqual(
+      outcome,
+      .synced(replayed: false, stepTotal: 321)
+    )
+    XCTAssertEqual(activity.queriedWindows.count, 2)
+    XCTAssertEqual(uploads.preparedBodies.count, 2)
+    XCTAssertEqual(uploads.sentUploads.count, 2)
+    XCTAssertNotEqual(
+      uploads.sentUploads[0].clientBatchId,
+      uploads.sentUploads[1].clientBatchId
+    )
+    XCTAssertNotEqual(
+      uploads.preparedBodies[0],
+      uploads.preparedBodies[1]
+    )
+    let remaining = try await store.pending(for: ownerA)
+    XCTAssertTrue(remaining.isEmpty)
+  }
+
+  func testRepeatedFreshProofRejectionIsNotReportedAsAnOlderRequest()
+    async throws
+  {
+    let activity = ActivityClientFake(
+      samples: [
+        makeSample(
+          start: epoch.addingTimeInterval(15 * 60),
+          value: 321
+        )
+      ]
+    )
+    let uploads = MetricUploadClientFake(
+      sendErrors: [.attestationRejected, .attestationRejected]
+    )
+    let store = FilePendingMetricUploadStore(
+      directoryURL: try makeTemporaryDirectory()
+    )
+    let coordinator = ActivitySyncCoordinator(
+      activity: activity,
+      uploads: uploads,
+      pendingUploads: store
+    )
+
+    do {
+      _ = try await coordinator.sync(
+        ownerID: ownerA,
+        contest: makeContest(),
+        asOf: epoch.addingTimeInterval(5 * 3_600)
+      )
+      XCTFail("a second current-key rejection must remain visible")
+    } catch let error as MetricUploadClientError {
+      XCTAssertEqual(error, .attestationRejected)
+    }
+
+    XCTAssertEqual(activity.queriedWindows.count, 2)
+    XCTAssertEqual(uploads.preparedBodies.count, 2)
+    XCTAssertEqual(uploads.sentUploads.count, 2)
+    let remaining = try await store.pending(for: ownerA)
+    XCTAssertTrue(remaining.isEmpty)
+  }
+
   func testLargeStepHistoryIsChunkedAndFullyDelivered()
     async throws
   {

@@ -27,7 +27,7 @@ enum PersonalActivitySyncViewState: Equatable, Sendable {
         case .savedRequestAccepted:
             "Saved step evidence confirmed."
         case .savedRequestUnavailable:
-            "Saved steps from an older test build couldn’t be used. Sync again while the window is open."
+            "Steps saved on this phone couldn’t be confirmed. Sync again while the window is open."
         case .queuedForRetry(let total):
             "\(total.formatted(.number.precision(.fractionLength(0)))) steps are saved and waiting to send."
         case .noReadableData:

@@ -201,7 +201,13 @@ struct TodayView: View {
                             : .verified
                     )
                 }
-                if let date = summary.progress?.lastTrustedSyncAt {
+                if !store.configuration.attestedUploadEnabled {
+                    Text(
+                        "Steps read here stay on this phone, so the day-by-day total won’t change."
+                    )
+                    .font(.caption)
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                } else if let date = summary.progress?.lastTrustedSyncAt {
                     Text("Last synced \(date.formatted(.relative(presentation: .named)))")
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -215,7 +221,11 @@ struct TodayView: View {
                         .font(.caption)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 }
-                Button("Sync my steps") {
+                Button(
+                    store.configuration.attestedUploadEnabled
+                        ? "Sync my steps"
+                        : "Read steps on this phone"
+                ) {
                     Task { await store.sync(challengeID: summary.id) }
                 }
                 .buttonStyle(TrustSecondaryButtonStyle())
@@ -233,6 +243,9 @@ struct TodayView: View {
     }
 
     private func syncStatus(_ summary: PersonalChallengeSummary) -> String {
+        if !store.configuration.attestedUploadEnabled {
+            return "On this phone"
+        }
         if summary.progress?.pendingUploadCount ?? 0 > 0
             || store.pendingActivityChallengeID == summary.id
         {

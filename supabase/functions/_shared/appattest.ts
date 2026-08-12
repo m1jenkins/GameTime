@@ -35,12 +35,11 @@
  * checks the official chain, key binding, suffix, and extension nonce as
  * separate components without weakening the documented nonce construction.
  *
- * Assertions deliberately retain the observed 37-byte form. Apple has not
- * published a 2026 assertion vector even though newer overview text mentions
- * assertion extensions. The live-device M6.5 follow-up is to capture one
- * attestation and assertion from the target deployment, compare their exact
- * signed bytes to these parsers, and make any assertion-extension change only
- * with that fixture in hand.
+ * Assertions accept both the original 37-byte form and the current form Apple
+ * documents: that same prefix followed by the exact validation-category and
+ * bundle-version extensions map. The map goes through the same strict parser
+ * as attestation extensions; it is not an excuse to ignore arbitrary signed
+ * trailing bytes.
  */
 
 import * as x509 from "@peculiar/x509";
@@ -165,82 +164,17 @@ function requireCborInteger(value: unknown, what: string): number {
   return value;
 }
 
-function parseAttestationSuffix(bytes: Bytes): {
-  credentialPublicKey: Bytes;
-  validationCategory?: AppleValidationCategory;
-  bundleVersion?: string;
-} {
-  let sequence: ReturnType<typeof decodeCborSequence>;
-  try {
-    sequence = decodeCborSequence(bytes);
-  } catch (cause) {
-    if (cause instanceof CborError) {
-      throw new AttestationError(`authenticator-data suffix is invalid CBOR: ${cause.message}`);
-    }
-    throw cause;
-  }
+interface ParsedAppleExtensions {
+  readonly validationCategory: AppleValidationCategory;
+  readonly bundleVersion: string;
+}
 
-  if (sequence.length < 1 || sequence.length > 2) {
-    throw new AttestationError(
-      `authenticator-data suffix contains ${sequence.length} CBOR values; ` +
-        "one COSE key and at most one extensions map are allowed",
-    );
-  }
-
-  let cose: CborKeyMap;
-  try {
-    cose = asCborKeyMap(sequence[0], "credential public key");
-  } catch (cause) {
-    if (cause instanceof CborError) {
-      throw new AttestationError(`authenticator-data suffix has the wrong shape: ${cause.message}`);
-    }
-    throw cause;
-  }
-
-  requireExactMapKeys(
-    cose,
-    [COSE_KEY_TYPE, COSE_ALGORITHM, COSE_CURVE, COSE_X, COSE_Y],
-    "the COSE credential public key",
-  );
-  if (requireCborInteger(cose.get(COSE_KEY_TYPE), "COSE key type") !== COSE_KEY_TYPE_EC2) {
-    throw new AttestationError("the COSE credential public key is not an EC2 key");
-  }
-  if (
-    requireCborInteger(cose.get(COSE_ALGORITHM), "COSE algorithm") !==
-      COSE_ALGORITHM_ES256
-  ) {
-    throw new AttestationError("the COSE credential public key does not use ES256");
-  }
-  if (requireCborInteger(cose.get(COSE_CURVE), "COSE curve") !== COSE_CURVE_P256) {
-    throw new AttestationError("the COSE credential public key is not on P-256");
-  }
-
-  let x: Bytes;
-  let y: Bytes;
-  try {
-    x = asCborBytes(cose.get(COSE_X), "COSE x coordinate");
-    y = asCborBytes(cose.get(COSE_Y), "COSE y coordinate");
-  } catch (cause) {
-    if (cause instanceof CborError) {
-      throw new AttestationError(`the COSE credential public key is malformed: ${cause.message}`);
-    }
-    throw cause;
-  }
-  if (x.length !== 32 || y.length !== 32) {
-    throw new AttestationError("the COSE P-256 coordinates must each be 32 bytes");
-  }
-  const credentialPublicKey = new Uint8Array(65);
-  credentialPublicKey[0] = 0x04;
-  credentialPublicKey.set(x, 1);
-  credentialPublicKey.set(y, 33);
-
-  if (sequence.length === 1) {
-    return { credentialPublicKey };
-  }
-
+function parseAppleExtensions(
+  value: ReturnType<typeof decodeCborSequence>[number] | undefined,
+): ParsedAppleExtensions {
   let extensions: CborKeyMap;
   try {
-    extensions = asCborKeyMap(sequence[1], "authenticator extensions");
+    extensions = asCborKeyMap(value, "authenticator extensions");
   } catch (cause) {
     if (cause instanceof CborError) {
       throw new AttestationError(`authenticator-data suffix has the wrong shape: ${cause.message}`);
@@ -300,10 +234,102 @@ function parseAttestationSuffix(bytes: Bytes): {
   }
 
   return {
-    credentialPublicKey,
     validationCategory: validationCategory as AppleValidationCategory,
     bundleVersion,
   };
+}
+
+function decodeAuthenticatorDataSuffix(bytes: Bytes): ReturnType<typeof decodeCborSequence> {
+  try {
+    return decodeCborSequence(bytes);
+  } catch (cause) {
+    if (cause instanceof CborError) {
+      throw new AttestationError(`authenticator-data suffix is invalid CBOR: ${cause.message}`);
+    }
+    throw cause;
+  }
+}
+
+function parseAttestationSuffix(bytes: Bytes): {
+  credentialPublicKey: Bytes;
+  validationCategory?: AppleValidationCategory;
+  bundleVersion?: string;
+} {
+  const sequence = decodeAuthenticatorDataSuffix(bytes);
+
+  if (sequence.length < 1 || sequence.length > 2) {
+    throw new AttestationError(
+      `authenticator-data suffix contains ${sequence.length} CBOR values; ` +
+        "one COSE key and at most one extensions map are allowed",
+    );
+  }
+
+  let cose: CborKeyMap;
+  try {
+    cose = asCborKeyMap(sequence[0], "credential public key");
+  } catch (cause) {
+    if (cause instanceof CborError) {
+      throw new AttestationError(`authenticator-data suffix has the wrong shape: ${cause.message}`);
+    }
+    throw cause;
+  }
+
+  requireExactMapKeys(
+    cose,
+    [COSE_KEY_TYPE, COSE_ALGORITHM, COSE_CURVE, COSE_X, COSE_Y],
+    "the COSE credential public key",
+  );
+  if (requireCborInteger(cose.get(COSE_KEY_TYPE), "COSE key type") !== COSE_KEY_TYPE_EC2) {
+    throw new AttestationError("the COSE credential public key is not an EC2 key");
+  }
+  if (
+    requireCborInteger(cose.get(COSE_ALGORITHM), "COSE algorithm") !==
+      COSE_ALGORITHM_ES256
+  ) {
+    throw new AttestationError("the COSE credential public key does not use ES256");
+  }
+  if (requireCborInteger(cose.get(COSE_CURVE), "COSE curve") !== COSE_CURVE_P256) {
+    throw new AttestationError("the COSE credential public key is not on P-256");
+  }
+
+  let x: Bytes;
+  let y: Bytes;
+  try {
+    x = asCborBytes(cose.get(COSE_X), "COSE x coordinate");
+    y = asCborBytes(cose.get(COSE_Y), "COSE y coordinate");
+  } catch (cause) {
+    if (cause instanceof CborError) {
+      throw new AttestationError(`the COSE credential public key is malformed: ${cause.message}`);
+    }
+    throw cause;
+  }
+  if (x.length !== 32 || y.length !== 32) {
+    throw new AttestationError("the COSE P-256 coordinates must each be 32 bytes");
+  }
+  const credentialPublicKey = new Uint8Array(65);
+  credentialPublicKey[0] = 0x04;
+  credentialPublicKey.set(x, 1);
+  credentialPublicKey.set(y, 33);
+
+  if (sequence.length === 1) {
+    return { credentialPublicKey };
+  }
+
+  return {
+    credentialPublicKey,
+    ...parseAppleExtensions(sequence[1]),
+  };
+}
+
+function parseAssertionSuffix(bytes: Bytes): ParsedAppleExtensions {
+  const sequence = decodeAuthenticatorDataSuffix(bytes);
+  if (sequence.length !== 1) {
+    throw new AttestationError(
+      `assertion authenticator-data suffix contains ${sequence.length} CBOR values; ` +
+        "exactly one extensions map is allowed",
+    );
+  }
+  return parseAppleExtensions(sequence[0]);
 }
 
 /**
@@ -314,10 +340,11 @@ function parseAttestationSuffix(bytes: Bytes): {
  * endian) || credentialId and, when supplied, COSE_Key followed optionally by
  * an extensions map.
  *
- * An assertion's authenticator data remains exactly 37 bytes and carries none
- * of the credential half. Anything longer than the structure accounts for is
- * refused rather than ignored: trailing bytes in a signed structure are a place
- * for two implementations to disagree about what was signed.
+ * An assertion carries none of the credential half. Its legacy form is exactly
+ * 37 bytes; Apple's current form may append exactly one validation-category and
+ * bundle-version extensions map. Anything else is refused rather than ignored:
+ * trailing bytes in a signed structure are a place for two implementations to
+ * disagree about what was signed.
  */
 export function parseAuthenticatorData(bytes: Bytes): AuthenticatorData {
   if (bytes.length < 37) {
@@ -332,12 +359,15 @@ export function parseAuthenticatorData(bytes: Bytes): AuthenticatorData {
   const signCount = view.getUint32(33, false);
 
   if ((flags & FLAG_ATTESTED_CREDENTIAL_DATA) === 0) {
-    if (bytes.length !== 37) {
-      throw new AttestationError(
-        `authenticator data carries no credential data but is ${bytes.length} bytes`,
-      );
+    if (bytes.length === 37) {
+      return { rpIdHash, flags, signCount };
     }
-    return { rpIdHash, flags, signCount };
+    return {
+      rpIdHash,
+      flags,
+      signCount,
+      ...parseAssertionSuffix(bytes.slice(37)),
+    };
   }
 
   if (bytes.length < 55) {
@@ -946,6 +976,10 @@ export interface AssertionRequest {
 /** What a verified assertion yields: the counter for the database to consume. */
 export interface VerifiedAssertion {
   readonly signCount: number;
+  /** Present when Apple supplied its launch-validation extension. */
+  readonly validationCategory?: AppleValidationCategory;
+  /** Present when Apple supplied its CFBundleVersion extension. */
+  readonly bundleVersion?: string;
 }
 
 /**
@@ -1001,5 +1035,9 @@ export async function verifyAssertion(
     throw new AttestationError("the assertion signature does not verify");
   }
 
-  return { signCount: authData.signCount };
+  return {
+    signCount: authData.signCount,
+    validationCategory: authData.validationCategory,
+    bundleVersion: authData.bundleVersion,
+  };
 }

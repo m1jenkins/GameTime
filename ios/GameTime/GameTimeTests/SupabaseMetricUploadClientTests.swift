@@ -491,6 +491,246 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
     }
   }
 
+  func testRejectedCurrentKeyIsDurablyInvalidatedAndNextPrepareRegistersNewKey()
+    async throws
+  {
+    let suiteName = "GameTimeTests.MetricAppAttest.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer {
+      defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    let rejectedKeyID = Data("rejected-current-key".utf8)
+      .base64EncodedString()
+    let initialStore = UserDefaultsMetricAppAttestStateStore(
+      defaults: defaults
+    )
+    try initialStore.saveGeneratedKey(
+      rejectedKeyID,
+      environment: .development,
+      ownerID: ownerA
+    )
+    try initialStore.markRegistered(
+      keyID: rejectedKeyID,
+      environment: .development,
+      ownerID: ownerA
+    )
+    try initialStore.saveGeneratedKey(
+      rejectedKeyID,
+      environment: .development,
+      ownerID: ownerB
+    )
+    try initialStore.markRegistered(
+      keyID: rejectedKeyID,
+      environment: .development,
+      ownerID: ownerB
+    )
+
+    let rejectedUpload = signedUpload(
+      keyID: rejectedKeyID,
+      assertion: Data("rejected saved assertion".utf8)
+    )
+    let initialAppAttest = MetricTransportAppAttestFake()
+    let initialTransport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 401,
+          body: try jsonData([
+            "error": "unauthorized",
+            "message": "the assertion could not be verified",
+          ])
+        )
+      )
+    ])
+    let initialClient = try makeClient(
+      session: MetricTransportSessionFake(ownerID: ownerA),
+      appAttest: initialAppAttest,
+      stateStore: initialStore,
+      transport: initialTransport
+    )
+
+    do {
+      _ = try await initialClient.send(
+        ownerID: ownerA,
+        upload: rejectedUpload
+      )
+      XCTFail("Expected the saved assertion to be rejected")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .attestationRejected
+      )
+    }
+
+    XCTAssertEqual(initialTransport.requests.count, 1)
+    XCTAssertEqual(initialTransport.requests[0].httpBody, rejectedUpload.body)
+    XCTAssertEqual(
+      initialTransport.requests[0].value(
+        forHTTPHeaderField: "x-gametime-key-id"
+      ),
+      rejectedKeyID
+    )
+    XCTAssertTrue(initialAppAttest.assertionHashes.isEmpty)
+
+    // A new store instance models relaunch: invalidation must be persisted,
+    // not merely remembered by the client that received the refusal.
+    let relaunchedStore = UserDefaultsMetricAppAttestStateStore(
+      defaults: defaults
+    )
+    XCTAssertNil(try relaunchedStore.state(for: ownerA))
+    XCTAssertEqual(
+      try relaunchedStore.state(for: ownerB),
+      MetricAppAttestState(
+        ownerID: ownerB,
+        keyID: rejectedKeyID,
+        registered: true,
+        environment: .development
+      )
+    )
+
+    let replacementAppAttest = MetricTransportAppAttestFake()
+    XCTAssertNotEqual(replacementAppAttest.generatedKeyID, rejectedKeyID)
+    let challenge = Data(repeating: 0x44, count: 32)
+    let replacementTransport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "challenge": challenge.base64EncodedString(),
+            "expiresInSeconds": 600,
+          ])
+        )
+      ),
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 200,
+          body: try jsonData([
+            "registered": true,
+            "environment": "development",
+          ])
+        )
+      ),
+    ])
+    let relaunchedClient = try makeClient(
+      session: MetricTransportSessionFake(ownerID: ownerA),
+      appAttest: replacementAppAttest,
+      stateStore: relaunchedStore,
+      transport: replacementTransport
+    )
+    let freshBody = exactMetricBody(
+      sourceBundleID: "com.private.health.source.after-key-recovery"
+    )
+    XCTAssertNotEqual(freshBody, rejectedUpload.body)
+
+    let replacement = try await relaunchedClient.prepare(
+      ownerID: ownerA,
+      body: freshBody
+    )
+
+    XCTAssertEqual(replacement.keyID, replacementAppAttest.generatedKeyID)
+    XCTAssertEqual(replacementAppAttest.generateKeyCallCount, 1)
+    XCTAssertEqual(
+      replacementAppAttest.assertionHashes,
+      [sha256(freshBody)]
+    )
+    XCTAssertEqual(replacementTransport.requests.count, 2)
+    XCTAssertEqual(
+      try relaunchedStore.state(for: ownerA),
+      MetricAppAttestState(
+        ownerID: ownerA,
+        keyID: replacementAppAttest.generatedKeyID,
+        registered: true,
+        environment: .development
+      )
+    )
+  }
+
+  func testRejectedOlderQueuedKeyDoesNotInvalidateNewerCurrentKey()
+    async throws
+  {
+    let suiteName = "GameTimeTests.MetricAppAttest.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer {
+      defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    let staleKeyID = Data("older-queued-key".utf8)
+      .base64EncodedString()
+    let appAttest = MetricTransportAppAttestFake()
+    let currentKeyID = appAttest.generatedKeyID
+    let stateStore = UserDefaultsMetricAppAttestStateStore(
+      defaults: defaults
+    )
+    try stateStore.saveGeneratedKey(
+      currentKeyID,
+      environment: .development,
+      ownerID: ownerA
+    )
+    try stateStore.markRegistered(
+      keyID: currentKeyID,
+      environment: .development,
+      ownerID: ownerA
+    )
+    let transport = MetricTransportHTTPFake(outcomes: [
+      .response(
+        MetricUploadHTTPResponse(
+          statusCode: 401,
+          body: try jsonData([
+            "error": "unauthorized",
+            "message": "the assertion could not be verified",
+          ])
+        )
+      )
+    ])
+    let client = try makeClient(
+      session: MetricTransportSessionFake(ownerID: ownerA),
+      appAttest: appAttest,
+      stateStore: stateStore,
+      transport: transport
+    )
+
+    do {
+      _ = try await client.send(
+        ownerID: ownerA,
+        upload: signedUpload(
+          keyID: staleKeyID,
+          assertion: Data("older saved assertion".utf8)
+        )
+      )
+      XCTFail("Expected the older saved assertion to be rejected")
+    } catch {
+      XCTAssertEqual(
+        error as? MetricUploadClientError,
+        .attestationRejected
+      )
+    }
+
+    XCTAssertEqual(
+      try stateStore.state(for: ownerA),
+      MetricAppAttestState(
+        ownerID: ownerA,
+        keyID: currentKeyID,
+        registered: true,
+        environment: .development
+      )
+    )
+
+    let freshBody = exactMetricBody(
+      sourceBundleID: "com.private.health.source.with-current-key"
+    )
+    let signed = try await client.prepare(
+      ownerID: ownerA,
+      body: freshBody
+    )
+
+    XCTAssertEqual(signed.keyID, currentKeyID)
+    XCTAssertEqual(appAttest.generateKeyCallCount, 0)
+    XCTAssertEqual(appAttest.assertionHashes, [sha256(freshBody)])
+    XCTAssertEqual(transport.requests.count, 1)
+  }
+
   /// A token the service will not accept is not a device without a session.
   /// Both used to read "sign in again", which is advice that cannot work when
   /// a fresh token is refused for the same reason the last one was.
@@ -1831,6 +2071,16 @@ private final class MetricTransportStateStoreFake:
       registered: true,
       environment: environment
     )
+  }
+
+  func invalidateCurrentKey(
+    rejectedKeyID: String,
+    ownerID: UUID
+  ) throws {
+    guard states[ownerID]?.keyID == rejectedKeyID else {
+      return
+    }
+    states[ownerID] = nil
   }
 
   func seedRegistered(

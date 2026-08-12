@@ -23,6 +23,7 @@ struct MetricSignedMaterial: Equatable, Sendable {
 @MainActor
 protocol AppAttestedBodySigning: AnyObject {
   func sign(ownerID: UUID, body: Data) async throws -> MetricSignedMaterial
+  func invalidateRejectedKey(ownerID: UUID, keyID: String) throws
 }
 
 struct MetricUploadReceipt: Equatable, Sendable {
@@ -96,7 +97,7 @@ enum MetricUploadClientError: LocalizedError, Equatable, Sendable {
     case .savedSignatureNeedsRefresh:
       "GameTime needs to refresh the secure signature on saved steps."
     case .savedEvidenceFromDifferentEnvironment:
-      "Saved steps from an older test build can’t be used here."
+      "Steps saved on this phone couldn’t be confirmed. Sync your steps again."
     case .invalidMetricBody:
       "Something is wrong with the steps waiting to send."
     case .deviceRegistrationUnavailable:
@@ -296,6 +297,10 @@ protocol MetricAppAttestStateStoring: AnyObject {
     environment: AppAttestEnvironment,
     ownerID: UUID
   ) throws
+  func invalidateCurrentKey(
+    rejectedKeyID: String,
+    ownerID: UUID
+  ) throws
 }
 
 @MainActor
@@ -410,6 +415,20 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     )
   }
 
+  func invalidateRejectedKey(
+    ownerID: UUID,
+    keyID: String
+  ) throws {
+    do {
+      try stateStore.invalidateCurrentKey(
+        rejectedKeyID: keyID,
+        ownerID: ownerID
+      )
+    } catch {
+      throw MetricUploadClientError.keyStateUnavailable
+    }
+  }
+
   func send(
     ownerID: UUID,
     upload: PendingMetricUpload
@@ -465,7 +484,16 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
 
     let response = try await response(for: request)
     try await requireValidSession(ownerID: ownerID)
-    try requireMetricSuccess(response)
+    do {
+      try requireMetricSuccess(response)
+    } catch MetricUploadClientError.attestationRejected {
+      // Keep the rejected request immutable. Clearing only the matching
+      // current key lets a later, freshly built request register a new key,
+      // while a delayed refusal for an older queued key cannot erase a newer
+      // registration.
+      try invalidateRejectedKey(ownerID: ownerID, keyID: keyID)
+      throw MetricUploadClientError.attestationRejected
+    }
 
     guard
       response.body.count <= Self.maximumResponseBytes,
@@ -1158,6 +1186,23 @@ final class UserDefaultsMetricAppAttestStateStore:
         environment: environment
       )
     )
+  }
+
+  func invalidateCurrentKey(
+    rejectedKeyID: String,
+    ownerID: UUID
+  ) throws {
+    guard
+      let existing = try state(for: ownerID),
+      existing.ownerID == ownerID,
+      existing.keyID == rejectedKeyID
+    else {
+      return
+    }
+    // This read/compare/remove sequence is synchronous and isolated to the
+    // main actor, so another request cannot replace the key between the
+    // comparison and removal.
+    defaults.removeObject(forKey: storageKey(ownerID))
   }
 
   private func save(
