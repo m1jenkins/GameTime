@@ -56,6 +56,7 @@ function deps(overrides: Partial<PersonalCoverageDeps> = {}): PersonalCoverageDe
 async function signedRequest(options: {
   readonly coveredIntervalStarts?: unknown[];
   readonly omitAssertion?: boolean;
+  readonly assertionExtensions?: boolean;
   readonly tamperWith?: (body: Record<string, unknown>) => void;
 } = {}): Promise<Request> {
   const body: Record<string, unknown> = {
@@ -74,6 +75,14 @@ async function signedRequest(options: {
   if (!options.omitAssertion) {
     const assertion = await buildAssertion(device, utf8(JSON.stringify(body)), {
       signCount: 7,
+      ...(options.assertionExtensions === true
+        ? {
+          assertionExtensions: {
+            validationCategory: 3,
+            bundleVersion: "1",
+          },
+        }
+        : {}),
     });
     headers[COVERAGE_KEY_ID_HEADER] = base64(device.keyId);
     headers[COVERAGE_ASSERTION_HEADER] = base64(assertion.assertionObject);
@@ -86,10 +95,10 @@ async function signedRequest(options: {
   });
 }
 
-Deno.test("records separately attested completed-interval coverage", async () => {
+Deno.test("records current extended assertion coverage", async () => {
   const sink = recorder();
   const handler = createPersonalCoverageHandler(deps({ database: sink.database }));
-  const request = await signedRequest();
+  const request = await signedRequest({ assertionExtensions: true });
   const raw = new Uint8Array(await request.clone().arrayBuffer());
 
   const response = await handler(request);

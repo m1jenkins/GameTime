@@ -91,6 +91,7 @@ async function signedRequest(options: {
   appId?: string;
   token?: string | null;
   omitAssertion?: boolean;
+  assertionExtensions?: boolean;
   mangleAssertion?: string;
   tamperWith?: (body: Record<string, unknown>) => void;
 } = {}): Promise<Request> {
@@ -111,6 +112,14 @@ async function signedRequest(options: {
       signCount: options.signCount ?? 1,
       ...(options.signingKey === undefined ? {} : { signingKey: options.signingKey }),
       ...(options.appId === undefined ? {} : { appId: options.appId }),
+      ...(options.assertionExtensions === true
+        ? {
+          assertionExtensions: {
+            validationCategory: 3,
+            bundleVersion: "1",
+          },
+        }
+        : {}),
     });
     headers[KEY_ID_HEADER] = base64(device.keyId);
     headers[ASSERTION_HEADER] = options.mangleAssertion === undefined
@@ -136,11 +145,11 @@ async function signedRequest(options: {
 // the parsing, and every field check are real. Whether the observation is inside
 // the contest window, aligned to the participant's hour, or a downward revision
 // is the database's answer, and 100/110_*.test.sql are where those are asserted.
-Deno.test("records an attested batch and passes the digest through", async () => {
+Deno.test("records a current extended assertion and passes the digest through", async () => {
   const sink = recorder();
   const handler = createIngestMetricsHandler(deps({ database: sink.database }));
 
-  const request = await signedRequest();
+  const request = await signedRequest({ assertionExtensions: true });
   const raw = new Uint8Array(await request.clone().arrayBuffer());
 
   const response = await handler(request);

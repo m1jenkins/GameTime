@@ -60,6 +60,7 @@ async function signedRequest(options: {
   readonly readEndedAt?: string;
   readonly token?: string | null;
   readonly omitAssertion?: boolean;
+  readonly assertionExtensions?: boolean;
   readonly signingKey?: CryptoKey;
   readonly tamperWith?: (body: Record<string, unknown>) => void;
 } = {}): Promise<Request> {
@@ -78,6 +79,14 @@ async function signedRequest(options: {
     const assertion = await buildAssertion(device, utf8(JSON.stringify(body)), {
       signCount: 9,
       ...(options.signingKey === undefined ? {} : { signingKey: options.signingKey }),
+      ...(options.assertionExtensions === true
+        ? {
+          assertionExtensions: {
+            validationCategory: 3,
+            bundleVersion: "1",
+          },
+        }
+        : {}),
     });
     headers[DIAGNOSTIC_KEY_ID_HEADER] = base64(device.keyId);
     headers[DIAGNOSTIC_ASSERTION_HEADER] = base64(assertion.assertionObject);
@@ -90,10 +99,10 @@ async function signedRequest(options: {
   });
 }
 
-Deno.test("records an exact-byte App Attest backed HealthKit diagnostic", async () => {
+Deno.test("records a current extended assertion HealthKit diagnostic", async () => {
   const sink = recorder();
   const handler = createActivityDiagnosticHandler(deps({ database: sink.database }));
-  const request = await signedRequest();
+  const request = await signedRequest({ assertionExtensions: true });
   const raw = new Uint8Array(await request.clone().arrayBuffer());
 
   const response = await handler(request);

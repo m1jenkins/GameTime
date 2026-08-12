@@ -28,6 +28,7 @@ import {
   buildAttestation,
   buildAuthenticatorData,
   type Device,
+  encodeAssertionExtensions,
   encodeAttestationExtensions,
   encodeCosePublicKey,
   makeDevice,
@@ -50,21 +51,6 @@ const device: Device = await makeDevice();
 
 function appendAuthenticatorSuffix(authenticatorData: Bytes, suffix: Bytes): Bytes {
   return new Uint8Array([...authenticatorData, ...suffix]);
-}
-
-async function signAssertionAuthenticatorData(
-  authenticatorData: Bytes,
-  clientData: Bytes,
-): Promise<Bytes> {
-  const nonce = await sha256(authenticatorData, await sha256(clientData));
-  const raw = new Uint8Array(
-    await crypto.subtle.sign(
-      { name: "ECDSA", hash: { name: "SHA-256" } },
-      device.keys.privateKey,
-      nonce,
-    ),
-  );
-  return rawToDerEcdsaSignature(raw);
 }
 
 /** Pulls an attestation object apart the way the handler does. */
@@ -117,7 +103,7 @@ Deno.test("parses assertion-shaped authenticator data with Apple extensions", ()
   const parsed = parseAuthenticatorData(
     appendAuthenticatorSuffix(
       legacy,
-      encodeAttestationExtensions(4, "27.3.14"),
+      encodeAssertionExtensions(3, "27.3.14"),
     ),
   );
 
@@ -125,7 +111,7 @@ Deno.test("parses assertion-shaped authenticator data with Apple extensions", ()
   assertEquals(parsed.aaguid, undefined);
   assertEquals(parsed.credentialId, undefined);
   assertEquals(parsed.credentialPublicKey, undefined);
-  assertEquals(parsed.validationCategory, 4);
+  assertEquals(parsed.validationCategory, 3);
   assertEquals(parsed.bundleVersion, "27.3.14");
 });
 
@@ -184,7 +170,7 @@ Deno.test("refuses authenticator data that is short or has an invalid suffix", (
   assertThrows(
     () => parseAuthenticatorData(new Uint8Array(38)),
     AttestationError,
-    "authenticator extensions is not a CBOR map",
+    "assertion extensions is not a CBOR map",
   );
 
   const valid = buildAuthenticatorData({
@@ -206,8 +192,7 @@ Deno.test("strictly validates an assertion's one-map Apple extension suffix", ()
     rpIdHash: new Uint8Array(32).fill(7),
     signCount: 1,
   });
-  const valid = encodeAttestationExtensions(4, "27.3.14");
-  const category = new Uint8Array([4, 0, 0, 0]);
+  const valid = encodeAssertionExtensions(3, "27.3.14");
   const parseWithSuffix = (suffix: Bytes) =>
     parseAuthenticatorData(appendAuthenticatorSuffix(legacy, suffix));
 
@@ -219,7 +204,7 @@ Deno.test("strictly validates an assertion's one-map Apple extension suffix", ()
   assertThrows(
     () =>
       parseWithSuffix(encodeCbor({
-        apple_bundle_version_01: "27.3.14",
+        bundleVersion: "27.3.14",
       })),
     AttestationError,
     "must contain exactly",
@@ -227,9 +212,9 @@ Deno.test("strictly validates an assertion's one-map Apple extension suffix", ()
   assertThrows(
     () =>
       parseWithSuffix(encodeCbor({
-        apple_bundle_version_01: "27.3.14",
-        apple_validation_category_01: category,
-        unexpected_extension_padding_01: true,
+        bundleVersion: "27.3.14",
+        validationCategory: 3,
+        validationCategoryExtra: true,
       })),
     AttestationError,
     "must contain exactly",
@@ -237,24 +222,29 @@ Deno.test("strictly validates an assertion's one-map Apple extension suffix", ()
   assertThrows(
     () =>
       parseWithSuffix(encodeCbor({
-        apple_bundle_version_01: "27.3.14",
-        apple_validation_category_01: 4,
+        bundleVersion: "27.3.14",
+        validationCategory: new Uint8Array([3, 0, 0, 0]),
       })),
     AttestationError,
-    "not a CBOR byte string",
+    "not a CBOR integer",
   );
   assertThrows(
-    () => parseWithSuffix(encodeAttestationExtensions(7, "27.3.14")),
+    () => parseWithSuffix(encodeAssertionExtensions(7, "27.3.14")),
     AttestationError,
     "is not an app category",
   );
   assertThrows(
-    () => parseWithSuffix(encodeAttestationExtensions(4, "27-beta")),
+    () => parseWithSuffix(encodeAssertionExtensions(3, "27-beta")),
     AttestationError,
     "not a valid bundle version",
   );
   assertThrows(
     () => parseWithSuffix(encodeCosePublicKey(device.publicKey)),
+    AttestationError,
+    "must contain exactly",
+  );
+  assertThrows(
+    () => parseWithSuffix(encodeAttestationExtensions(3, "27.3.14")),
     AttestationError,
     "must contain exactly",
   );
@@ -386,6 +376,22 @@ Deno.test("strictly validates the COSE key and optional Apple extensions", async
     () => parseAuthenticatorData(invalidBundle.authenticatorData),
     AttestationError,
     "not a valid bundle version",
+  );
+
+  const assertionNamedExtensions = buildAuthenticatorData({
+    rpIdHash: new Uint8Array(32),
+    signCount: 0,
+    aaguid: AAGUID_PRODUCTION,
+    credentialId: device.keyId,
+    attestationSuffix: new Uint8Array([
+      ...encodeCosePublicKey(device.publicKey),
+      ...encodeAssertionExtensions(3, "1"),
+    ]),
+  });
+  assertThrows(
+    () => parseAuthenticatorData(assertionNamedExtensions),
+    AttestationError,
+    "must contain exactly",
   );
 });
 
@@ -882,32 +888,36 @@ Deno.test("verifies an assertion over the exact payload and reports its counter"
 
 Deno.test("verifies a signed assertion with Apple extensions and refuses tampering", async () => {
   const payload = utf8('{"clientBatchId":"extended","observations":[]}');
-  const built = await buildAssertion(device, payload, { signCount: 42 });
-  const authenticatorData = appendAuthenticatorSuffix(
-    built.authenticatorData,
-    encodeAttestationExtensions(4, "27.3.14"),
-  );
-  const signature = await signAssertionAuthenticatorData(authenticatorData, payload);
+  const built = await buildAssertion(device, payload, {
+    signCount: 42,
+    assertionExtensions: {
+      validationCategory: 3,
+      bundleVersion: "27.3.14",
+    },
+  });
 
   const verified = await verifyAssertion({
-    signature,
-    authenticatorData,
+    signature: built.signature,
+    authenticatorData: built.authenticatorData,
     clientData: payload,
     publicKey: device.publicKey,
     appId: APP_ID,
   });
   assertEquals(verified.signCount, 42);
-  assertEquals(verified.validationCategory, 4);
+  assertEquals(verified.validationCategory, 3);
   assertEquals(verified.bundleVersion, "27.3.14");
 
   const tamperedAuthenticatorData = appendAuthenticatorSuffix(
-    built.authenticatorData,
-    encodeAttestationExtensions(4, "27.3.15"),
+    buildAuthenticatorData({
+      rpIdHash: await sha256(utf8(APP_ID)),
+      signCount: 42,
+    }),
+    encodeAssertionExtensions(3, "27.3.15"),
   );
   await assertRejects(
     () =>
       verifyAssertion({
-        signature,
+        signature: built.signature,
         authenticatorData: tamperedAuthenticatorData,
         clientData: payload,
         publicKey: device.publicKey,

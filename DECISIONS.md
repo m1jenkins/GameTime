@@ -4135,3 +4135,40 @@ physical-device assertion proof, and no iOS binary containing D117's bounded
 key recovery or revised sync copy was built, installed, or distributed during
 this rollout. That proof still requires `GameTime-Staging` on a provisioned
 iPhone followed by a successful metric and coverage sync read-back.
+
+### D119. Assertion extensions have their own exact schema
+
+**What.** Assertion authenticator data accepts either the legacy exact 37-byte
+form or that prefix followed by exactly one deterministic CBOR map containing
+the integer `validationCategory` and string `bundleVersion`. Attestation data
+continues to require its distinct `apple_validation_category_01` byte string
+and `apple_bundle_version_01` string. The two maps are parsed separately and
+each rejects the other's field names and value representation.
+
+**Why.** D116 incorrectly reused the attestation schema for assertions. Apple's
+current server-validation guide names `apple_validation_category_01` and
+`apple_bundle_version_01` only in the attestation steps, then names
+`validationCategory` and `bundleVersion` in the assertion steps. Hosted evidence
+made the boundary conclusive: four fresh development attestations completed
+successfully, but every immediately following first assertion returned 401 and
+left its stored counter at zero. App identity, environment, receipt, token, and
+registration were therefore already passing; rotating another valid key could
+not repair the assertion decoder.
+
+**Rejected.** Sharing one parser between the signed structures; changing App ID,
+certificate, environment, or sign-in configuration; treating another key
+rotation as the fix; accepting either map shape in either context; and weakening
+the exact-map, category, bundle-version, signature, or counter checks.
+
+**Evidence.** Edge formatting, lint, type-checking, and all 394 tests pass. The
+current extended-assertion shape passes through `ingest-metrics`,
+`personal-sync-coverage`, `activity-diagnostic`, and `ingest-checkin`, while
+cross-shape and malformed-type fixtures fail. The corrected shared verifier is
+active as `ingest-metrics` v45, `personal-sync-coverage` v13,
+`activity-diagnostic` v13, and `ingest-checkin` v44; source read-back contains
+both dedicated parsers, and cold unauthenticated requests reached each new
+version and failed at its expected 401 authentication boundary.
+
+**Revisit if.** Apple publishes or emits a different assertion extension value
+encoding, or a signed physical-device smoke test does not progress from
+registration 200 to metric and coverage success with a consumed counter.

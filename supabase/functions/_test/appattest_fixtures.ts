@@ -134,6 +134,17 @@ export function encodeAttestationExtensions(
   });
 }
 
+/** The two extensions in Apple's current assertion authenticator data. */
+export function encodeAssertionExtensions(
+  validationCategory = 4,
+  bundleVersion = "1",
+): Bytes {
+  return encodeCbor({
+    bundleVersion,
+    validationCategory,
+  });
+}
+
 /** Assembles authenticator data in the WebAuthn layout App Attest uses. */
 export function buildAuthenticatorData(options: {
   rpIdHash: Bytes;
@@ -293,6 +304,11 @@ export interface AssertionOptions {
   readonly signingKey?: CryptoKey;
   /** Signs over different bytes than the ones returned. */
   readonly signedClientData?: Bytes;
+  /** Appends and signs Apple's current assertion extensions map. */
+  readonly assertionExtensions?: {
+    readonly validationCategory?: number;
+    readonly bundleVersion?: string;
+  };
 }
 
 export interface BuiltAssertion {
@@ -310,10 +326,19 @@ export async function buildAssertion(
 ): Promise<BuiltAssertion> {
   const appId = options.appId ?? "ABCDE12345.test.gametime.app";
 
-  const authenticatorData = buildAuthenticatorData({
+  const legacyAuthenticatorData = buildAuthenticatorData({
     rpIdHash: await sha256(utf8(appId)),
     signCount: options.signCount ?? 1,
   });
+  const authenticatorData = options.assertionExtensions === undefined
+    ? legacyAuthenticatorData
+    : concatenate(
+      legacyAuthenticatorData,
+      encodeAssertionExtensions(
+        options.assertionExtensions.validationCategory,
+        options.assertionExtensions.bundleVersion,
+      ),
+    );
 
   const signedOver = options.signedClientData ?? clientData;
   const nonce = await sha256(authenticatorData, await sha256(signedOver));

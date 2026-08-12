@@ -112,6 +112,7 @@ async function signedRequest(options: {
   appId?: string;
   token?: string | null;
   omitAssertion?: boolean;
+  assertionExtensions?: boolean;
   onlyKeyId?: boolean;
   mangleKeyId?: string;
   mangleAssertion?: string;
@@ -130,6 +131,14 @@ async function signedRequest(options: {
       signCount: options.signCount ?? 1,
       ...(options.signingKey === undefined ? {} : { signingKey: options.signingKey }),
       ...(options.appId === undefined ? {} : { appId: options.appId }),
+      ...(options.assertionExtensions === true
+        ? {
+          assertionExtensions: {
+            validationCategory: 3,
+            bundleVersion: "1",
+          },
+        }
+        : {}),
     });
     headers[KEY_ID_HEADER] = options.mangleKeyId ?? base64(device.keyId);
     if (!options.onlyKeyId) {
@@ -149,10 +158,10 @@ async function bypassRequest(body: Record<string, unknown>): Promise<Request> {
   return await signedRequest({ body, omitAssertion: true });
 }
 
-Deno.test("records an attested check-in from exact signed bytes and normalizes SQL fields", async () => {
+Deno.test("records a current extended assertion check-in from exact signed bytes", async () => {
   const sink = recorder();
   const handler = createIngestCheckInHandler(deps({ database: sink.database }));
-  const request = await signedRequest({ signCount: 7 });
+  const request = await signedRequest({ signCount: 7, assertionExtensions: true });
   const raw = new Uint8Array(await request.clone().arrayBuffer());
 
   const response = await handler(request);

@@ -131,8 +131,10 @@ const COSE_KEY_TYPE_EC2 = 2;
 const COSE_ALGORITHM_ES256 = -7;
 const COSE_CURVE_P256 = 1;
 
-const EXTENSION_VALIDATION_CATEGORY = "apple_validation_category_01";
-const EXTENSION_BUNDLE_VERSION = "apple_bundle_version_01";
+const ATTESTATION_EXTENSION_VALIDATION_CATEGORY = "apple_validation_category_01";
+const ATTESTATION_EXTENSION_BUNDLE_VERSION = "apple_bundle_version_01";
+const ASSERTION_EXTENSION_VALIDATION_CATEGORY = "validationCategory";
+const ASSERTION_EXTENSION_BUNDLE_VERSION = "bundleVersion";
 
 /**
  * Launch-validation categories Apple documents as usable app signals.
@@ -169,7 +171,27 @@ interface ParsedAppleExtensions {
   readonly bundleVersion: string;
 }
 
-function parseAppleExtensions(
+function requireUsableValidationCategory(
+  value: number,
+  field: string,
+): AppleValidationCategory {
+  if (!USABLE_VALIDATION_CATEGORIES.has(value)) {
+    throw new AttestationError(`${field} ${value} is not an app category`);
+  }
+  return value as AppleValidationCategory;
+}
+
+function requireBundleVersion(value: string, field: string): string {
+  // CFBundleVersion is one to three dot-separated non-negative integers. Keep
+  // its original spelling: policy may deliberately distinguish build "1" from
+  // build "1.0", even though the platform interprets missing components as 0.
+  if (!BUNDLE_VERSION_PATTERN.test(value)) {
+    throw new AttestationError(`${field} is not a valid bundle version`);
+  }
+  return value;
+}
+
+function parseAttestationExtensions(
   value: ReturnType<typeof decodeCborSequence>[number] | undefined,
 ): ParsedAppleExtensions {
   let extensions: CborKeyMap;
@@ -184,20 +206,23 @@ function parseAppleExtensions(
 
   requireExactMapKeys(
     extensions,
-    [EXTENSION_BUNDLE_VERSION, EXTENSION_VALIDATION_CATEGORY],
-    "the authenticator extensions map",
+    [
+      ATTESTATION_EXTENSION_BUNDLE_VERSION,
+      ATTESTATION_EXTENSION_VALIDATION_CATEGORY,
+    ],
+    "the attestation extensions map",
   );
 
   let categoryBytes: Bytes;
   let bundleVersion: string;
   try {
     categoryBytes = asCborBytes(
-      extensions.get(EXTENSION_VALIDATION_CATEGORY),
-      EXTENSION_VALIDATION_CATEGORY,
+      extensions.get(ATTESTATION_EXTENSION_VALIDATION_CATEGORY),
+      ATTESTATION_EXTENSION_VALIDATION_CATEGORY,
     );
     bundleVersion = asCborText(
-      extensions.get(EXTENSION_BUNDLE_VERSION),
-      EXTENSION_BUNDLE_VERSION,
+      extensions.get(ATTESTATION_EXTENSION_BUNDLE_VERSION),
+      ATTESTATION_EXTENSION_BUNDLE_VERSION,
     );
   } catch (cause) {
     if (cause instanceof CborError) {
@@ -210,7 +235,7 @@ function parseAppleExtensions(
   // string in the official vector, rather than as CBOR major type 0.
   if (categoryBytes.length !== 4) {
     throw new AttestationError(
-      `${EXTENSION_VALIDATION_CATEGORY} must be a four-byte UInt32`,
+      `${ATTESTATION_EXTENSION_VALIDATION_CATEGORY} must be a four-byte UInt32`,
     );
   }
   const validationCategory = new DataView(
@@ -218,24 +243,68 @@ function parseAppleExtensions(
     categoryBytes.byteOffset,
     categoryBytes.byteLength,
   ).getUint32(0, true);
-  if (!USABLE_VALIDATION_CATEGORIES.has(validationCategory)) {
-    throw new AttestationError(
-      `${EXTENSION_VALIDATION_CATEGORY} ${validationCategory} is not an app category`,
-    );
+
+  return {
+    validationCategory: requireUsableValidationCategory(
+      validationCategory,
+      ATTESTATION_EXTENSION_VALIDATION_CATEGORY,
+    ),
+    bundleVersion: requireBundleVersion(
+      bundleVersion,
+      ATTESTATION_EXTENSION_BUNDLE_VERSION,
+    ),
+  };
+}
+
+function parseAssertionExtensions(
+  value: ReturnType<typeof decodeCborSequence>[number] | undefined,
+): ParsedAppleExtensions {
+  let extensions: CborKeyMap;
+  try {
+    extensions = asCborKeyMap(value, "assertion extensions");
+  } catch (cause) {
+    if (cause instanceof CborError) {
+      throw new AttestationError(`authenticator-data suffix has the wrong shape: ${cause.message}`);
+    }
+    throw cause;
   }
 
-  // CFBundleVersion is one to three dot-separated non-negative integers. Keep
-  // its original spelling: policy may deliberately distinguish build "1" from
-  // build "1.0", even though the platform interprets missing components as 0.
-  if (!BUNDLE_VERSION_PATTERN.test(bundleVersion)) {
-    throw new AttestationError(
-      `${EXTENSION_BUNDLE_VERSION} is not a valid bundle version`,
+  // Apple's assertion map deliberately has different field names and a
+  // different UInt32 representation from the attestation map. Keeping the two
+  // schemas separate prevents either signed structure from being interpreted
+  // as the other one.
+  requireExactMapKeys(
+    extensions,
+    [ASSERTION_EXTENSION_BUNDLE_VERSION, ASSERTION_EXTENSION_VALIDATION_CATEGORY],
+    "the assertion extensions map",
+  );
+
+  const validationCategory = requireCborInteger(
+    extensions.get(ASSERTION_EXTENSION_VALIDATION_CATEGORY),
+    ASSERTION_EXTENSION_VALIDATION_CATEGORY,
+  );
+  let bundleVersion: string;
+  try {
+    bundleVersion = asCborText(
+      extensions.get(ASSERTION_EXTENSION_BUNDLE_VERSION),
+      ASSERTION_EXTENSION_BUNDLE_VERSION,
     );
+  } catch (cause) {
+    if (cause instanceof CborError) {
+      throw new AttestationError(`an Apple assertion extension is malformed: ${cause.message}`);
+    }
+    throw cause;
   }
 
   return {
-    validationCategory: validationCategory as AppleValidationCategory,
-    bundleVersion,
+    validationCategory: requireUsableValidationCategory(
+      validationCategory,
+      ASSERTION_EXTENSION_VALIDATION_CATEGORY,
+    ),
+    bundleVersion: requireBundleVersion(
+      bundleVersion,
+      ASSERTION_EXTENSION_BUNDLE_VERSION,
+    ),
   };
 }
 
@@ -317,7 +386,7 @@ function parseAttestationSuffix(bytes: Bytes): {
 
   return {
     credentialPublicKey,
-    ...parseAppleExtensions(sequence[1]),
+    ...parseAttestationExtensions(sequence[1]),
   };
 }
 
@@ -329,7 +398,7 @@ function parseAssertionSuffix(bytes: Bytes): ParsedAppleExtensions {
         "exactly one extensions map is allowed",
     );
   }
-  return parseAppleExtensions(sequence[0]);
+  return parseAssertionExtensions(sequence[0]);
 }
 
 /**
