@@ -630,6 +630,21 @@ final class GameTimeUITests: XCTestCase {
         )
         scheduled.terminate()
 
+        let scheduledSandbox = launch(
+            "--fixture-stripe-sandbox",
+            "--fixture-personal-scheduled",
+            "--fixture-open-active-challenge"
+        )
+        XCTAssertTrue(
+            scheduledSandbox.navigationBars["Your challenge"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(
+            scheduledSandbox.buttons["personal.cancel"]
+                .waitForExistence(timeout: 4)
+        )
+        scheduledSandbox.terminate()
+
         let cancelled = launch(
             "--fixture-personal-cancelled",
             "--fixture-open-active-challenge"
@@ -788,7 +803,7 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(
             exactStaticText(
-                "This ends the test challenge now so you can start another. No money will be charged.",
+                "This ends the test challenge immediately. It will stay in your history, and no money will be charged.",
                 in: app
             ).exists
         )
@@ -797,6 +812,72 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(
             app.navigationBars["Challenges"].waitForExistence(timeout: 5)
         )
+    }
+
+    func testActiveStripeSandboxCancellationRetainsCancelledHistory() {
+        let app = launch(
+            "--fixture-stripe-sandbox",
+            "--fixture-open-active-challenge"
+        )
+        XCTAssertTrue(
+            app.navigationBars["Your challenge"]
+                .waitForExistence(timeout: 5)
+        )
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+
+        let cancel = app.buttons["personal.cancel"]
+        for _ in 0..<8 where !cancel.isHittable { app.swipeUp() }
+        XCTAssertTrue(cancel.waitForExistence(timeout: 4))
+        XCTAssertTrue(cancel.isHittable)
+        cancel.tap()
+
+        XCTAssertTrue(
+            exactStaticText("Cancel this challenge?", in: app)
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            exactStaticText(
+                "This ends the challenge immediately. It will stay in your history, and your saved test payment method will not be charged.",
+                in: app
+            ).exists
+        )
+        app.buttons["Yes, cancel it"].waitAndTap()
+
+        XCTAssertTrue(
+            app.navigationBars["Challenges"].waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(
+            app.staticTexts["Cancelled"].waitForExistence(timeout: 4)
+        )
+        XCTAssertFalse(app.buttons["personal.cancel"].exists)
+    }
+
+    func testAwaitingAndCompletedStripeSandboxChallengesCannotCancel() {
+        let awaiting = launch(
+            "--fixture-stripe-sandbox",
+            "--fixture-personal-awaiting-evidence",
+            "--fixture-open-active-challenge"
+        )
+        XCTAssertTrue(
+            awaiting.navigationBars["Your challenge"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(
+            awaiting.staticTexts["Waiting on steps"]
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertFalse(awaiting.buttons["personal.cancel"].exists)
+        awaiting.terminate()
+
+        let completed = launch(
+            "--fixture-stripe-sandbox",
+            "--fixture-open-result-challenge"
+        )
+        XCTAssertTrue(
+            completed.navigationBars["Your challenge"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertFalse(completed.buttons["personal.cancel"].exists)
     }
 
     func testCumulativeCreationOmitsFixedMetricAndStartSteps() {

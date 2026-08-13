@@ -51,7 +51,10 @@ The Stage A product must let one real user:
   person-initiated refresh.
 - See the same displayed total, daily timeline, pace, and update time on Today,
   Challenges, detail, and completed history.
-- Cancel only before the challenge begins.
+- Cancel before the challenge begins, or end a still-active internal test-only
+  or Stripe sandbox challenge while retaining cancelled history. Awaiting-final-
+  Health, completed, already-cancelled, and any future live-fee challenges stay
+  non-cancellable.
 - Receive a 24-hour finalization period after the seventh day while GameTime
   keeps re-reading Apple Health through the challenge end for late Watch data.
 - Receive `met_goal`, `missed_goal`, or a commitment-waived `inconclusive` only
@@ -413,7 +416,9 @@ The sandbox flow is:
    status, never card data.
 3. Run the seven-day challenge and its existing 24-hour final-sync period. No
    payment decision occurs before the evidence cutoff.
-4. `met_goal`, `inconclusive`, and pre-start cancellation close with $0 charged.
+4. `met_goal`, `inconclusive`, and scheduled/active sandbox cancellation close
+   with $0 charged. Cancellation retains the agreement and history, releases
+   the open slot, and cannot create a result, review, or charge command.
    Missing, conflicting, or unresolved step data never becomes a miss.
 5. Publish a complete `missed_goal` as provisional. Set
    `review_deadline = published_at + interval '7 days'`. No charge may occur

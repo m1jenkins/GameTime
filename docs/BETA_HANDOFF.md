@@ -1,7 +1,7 @@
 # GameTime external beta — handoff
 
 **Written:** August 7, 2026
-**Revised:** August 12, 2026 — automatic Health snapshot v2 is the active path
+**Revised:** August 13, 2026 — Release demo parity and active sandbox cancellation
 **Product head:** `984845f` plus the current GameTime identity reconciliation
 **Target:** invite-only TestFlight beta, no more than 10 named iPhone testers
 
@@ -12,6 +12,26 @@ the current order.
 The public product identity is **GameTime** across the app, system permission
 copy, payment sheet, policy, and support surfaces. Internal target, scheme, and
 bundle identifiers retain their existing names.
+
+## August 13 controlling release update
+
+The checked-in hosted Staging project already supports **Start right now —
+count today** with the unchanged current-minute request marker, local-midnight
+scoring start, immediate activation, and exact-request retry semantics.
+
+The only new backend change for this release is
+`20260813202709_allow_stripe_sandbox_active_challenge_cancellation`. It widens
+the existing cancellation RPC without adding a public function or client
+method. A scheduled or still-active internal test-only/Stripe sandbox challenge
+may be ended and retained in history; final-Health, completed, already-cancelled,
+other-owner, and future live-mode challenges remain refused. The Release client
+enables this only for Stripe sandbox, while locked Release test-only stays off.
+
+Before distribution, confirm the CLI is linked only to the checked-in healthy
+Staging ref, require the dry run to show exactly that migration, apply it without
+`--include-all`, seed, or repair, rerun advisors, and perform the authenticated
+start-now/cancel/history/no-payment/recreate smoke. Apply the migration before
+uploading the client archive.
 
 ## August 12 controlling handoff
 

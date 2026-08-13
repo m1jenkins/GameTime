@@ -82,8 +82,9 @@ Use these exact patterns in the sandbox UI:
 - Test payment complete: **Test charge complete — sandbox transaction recorded.**
 - Failed or customer action required: **Test payment needs your attention. We
   won't try again automatically.**
-- Pre-start cancellation: **Cancel before your challenge starts to close the
-  payment terms before settlement.**
+- Sandbox cancellation confirmation: **This ends the challenge immediately.
+  It will stay in your history, and your saved test payment method will not be
+  charged.**
 
 Show the saved payment method by brand and last four digits when Stripe provides
 them. Never show a full payment number, Stripe identifier, `SetupIntent`,
@@ -112,7 +113,7 @@ unchanged; changing placement never changes the agreement or its version.
 
 The confirmation receipt groups the frozen facts under **Your challenge**,
 **When it starts**, and **Payment protection**, with no more than four facts in
-each group. Longer start and cadence explanations, pre-start cancellation, and
+each group. Longer start and cadence explanations, sandbox cancellation, and
 the safe saved-draft explanation stay behind **More details**. Never show the
 draft request identifier.
 
@@ -190,8 +191,8 @@ usually means changing an assertion; keep them in the same commit.
 
 Payment copy also requires tests for sandbox versus live configuration, all $0
 outcomes, provisional review, charge success, customer action, failure, and
-pre-start cancellation. Never make a sandbox fixture or screenshot look like a
-real charge.
+scheduled/active sandbox cancellation. Never make a sandbox fixture or
+screenshot look like a real charge.
 
 Accessibility identifiers are test hooks, not copy. Personal v2 must not retain
 the removed `personal.sync`, `personal.sync.pending`,

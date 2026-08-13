@@ -1,10 +1,33 @@
 # GameTime lean external beta launch plan — Stripe sandbox
 
-**Revised:** August 12, 2026
+**Revised:** August 13, 2026
 
 **Target:** a small, invite-only external TestFlight beta
 
 **Decision:** **Not ready to invite external testers today**
+
+## August 13 Release/TestFlight demo-parity update
+
+The unchanged **Start right now — count today** server contract is hosted on
+the checked-in Staging project. The client continues to send the current-minute
+marker, the server freezes the scored start at local midnight and activates
+immediately, and an exact retry keeps the original marker. This is hosted
+capability, not yet proof from the fresh processed Release build.
+
+The candidate now also supports owner cancellation of a scheduled or
+still-active sandbox challenge. The active exception is limited to internal
+`test_only` with no provider agreement or a retained Stripe agreement whose
+provider is `stripe`, environment is `sandbox`, and `livemode = false`.
+Cancellation ends the challenge immediately, closes its terms, frees the open
+slot, and retains cancelled history, frozen terms, activation time, the Stripe
+test agreement, the Health snapshot, and the exact cancellation audit. It
+cannot publish a result, open payment review, or create a charge command.
+
+Awaiting-final-Health, completed, already-cancelled, other-account, and future
+live-mode challenges remain non-cancellable. Apply the single new forward
+migration and complete the authenticated create/start-now/cancel/history/
+recreate smoke before distributing the client. Never use `--include-all`,
+seeding, or migration repair for this rollout.
 
 ## August 12 automatic-progress replacement
 
@@ -54,6 +77,10 @@ This plan gets GameTime to an **external beta**, not a public App Store launch.
   Stripe mode, social challenge, and Solo remain out of scope.
 - A challenge defaults to the next local midnight, or the owner can start now
   and count eligible steps since today's local midnight. Custom hours stay dormant.
+- The owner can cancel while scheduled or still active in the sandbox beta;
+  the cancelled challenge remains in history and the saved test method is not
+  charged. The action disappears during final Health collection and after a
+  terminal state.
 - Foreground Health refresh is automatic. Background observation is
   opportunistic and never replaces the foreground freshness guarantee.
 - iPhone only; iPad and Apple Watch-specific acceptance wait.
@@ -288,9 +315,10 @@ Use the exact processed distribution build for six journeys:
 3. **Automatic Health progress:** real iPhone Health data, no-tap refresh across
    every surface, exact finalization deadline, Watch catch-up, offline/local
    display, and one privacy-safe no-access/no-data recovery.
-4. **Recovery:** offline/lost response, exact retry, duplicate tap, pre-start
-   cancellation with visible saved retry, detail failure, and relaunch without
-   duplicate data.
+4. **Recovery:** offline/lost response, exact retry, duplicate tap, active
+   Stripe-sandbox cancellation with visible saved retry and retained history,
+   detail failure, relaunch without duplicate data, and successful creation of
+   another challenge.
 5. **Backend safety and sandbox settlement:** accelerated automatic result,
    result-pending/overdue guidance, review request/decision, signed webhook,
    idempotent simulated test settlement with visible final status, and one
@@ -346,6 +374,8 @@ Invite the first external cohort only when:
       reachable challenge/result state.
 - [ ] Health, cancellation, detail, and overdue-result recovery is honest and
       actionable.
+- [ ] Active Stripe-sandbox cancellation ends immediately, remains in history,
+      creates no payment workflow, and releases the slot for another challenge.
 - [ ] The hosted Personal worker publishes one result and safely reruns.
 - [ ] Hosted sandbox payment setup, review, webhook, and test settlement safely
       rerun, remain allowlisted, and appear honestly in challenge detail.

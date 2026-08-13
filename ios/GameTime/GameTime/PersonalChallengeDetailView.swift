@@ -489,9 +489,10 @@ struct PersonalChallengeDetailView: View {
         let isOrdinaryPreStartCancellation =
             challenge.status == .scheduled
             && Date() < challenge.terms.startsAt
-        let isTestCleanup =
-            store.configuration.allowsActiveTestChallengeCancellation
-            && challenge.terms.settlementMode == .testOnly
+        let isSandboxCancellation =
+            store.configuration.allowsActiveSandboxChallengeCancellation
+            && challenge.terms.settlementMode
+                == store.configuration.personalSettlementMode
             && (challenge.status == .scheduled || challenge.status == .active)
         let hasRelevantPendingCancellation =
             store.pendingCancellation?.challengeID == challenge.id
@@ -504,7 +505,7 @@ struct PersonalChallengeDetailView: View {
         )
 
         if !hasRelevantPendingCancellation,
-            isOrdinaryPreStartCancellation || isTestCleanup
+            isOrdinaryPreStartCancellation || isSandboxCancellation
         {
             Button(
                 isCancellationRequested || store.isMutating
@@ -521,14 +522,11 @@ struct PersonalChallengeDetailView: View {
     }
 
     private var cancellationMessage: String {
-        if store.configuration.allowsActiveTestChallengeCancellation,
-            challenge?.status == .active,
-            challenge?.terms.settlementMode == .testOnly
-        {
-            return "This ends the test challenge now so you can start another. No money will be charged."
-        }
         if challenge?.terms.settlementMode == .stripeSandbox {
-            return "You can only cancel before your challenge starts. Cancelling before it starts closes the payment terms before settlement."
+            return "This ends the challenge immediately. It will stay in your history, and your saved test payment method will not be charged."
+        }
+        if store.configuration.allowsActiveSandboxChallengeCancellation {
+            return "This ends the test challenge immediately. It will stay in your history, and no money will be charged."
         }
         return "You can only cancel before your challenge starts. Cancelling before it starts closes the test commitment."
     }

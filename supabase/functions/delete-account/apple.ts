@@ -17,7 +17,7 @@ function formBody(values: Record<string, string>): string {
   return new URLSearchParams(values).toString();
 }
 
-async function requireSuccess(response: Response, label: string): Promise<void> {
+function requireSuccess(response: Response, label: string): void {
   if (response.ok) return;
   // Never surface Apple's response body: it may contain provider diagnostics
   // that are not useful to the app and should not be logged or echoed.
@@ -43,7 +43,7 @@ export function createAppleTokenRevoker(
           grant_type: "authorization_code",
         }),
       });
-      await requireSuccess(tokenResponse, "Apple authorization validation");
+      requireSuccess(tokenResponse, "Apple authorization validation");
 
       const tokenBody = await tokenResponse.json() as Record<string, unknown>;
       const refreshToken = tokenBody["refresh_token"];
@@ -69,7 +69,7 @@ export function createAppleTokenRevoker(
           token,
         }),
       });
-      await requireSuccess(revokeResponse, "Apple token revocation");
+      requireSuccess(revokeResponse, "Apple token revocation");
     },
   };
 }

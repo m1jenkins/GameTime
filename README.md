@@ -26,7 +26,8 @@ challenge with a test commitment, and watch progress update automatically.
 | Path | State |
 | --- | --- |
 | Sign in with Apple → onboarding → create challenge | Works, Debug + local stack |
-| Start next midnight or start now and count today | Implemented in demo and main modes; hosted deployment remains |
+| Start next midnight or start now and count today | Implemented in demo/main modes and hosted on the checked-in Staging project; authenticated release smoke remains |
+| Cancel a scheduled or active sandbox challenge | Implemented for internal `test_only` and Stripe `sandbox`/`livemode = false`; cancelled terms, payment agreement, activation time, Health snapshot, and history are retained |
 | Apple Health merged step reads | Snapshot-v2 implementation and focused native tests pass; physical-device acceptance remains to run |
 | Automatic local progress | Implemented across Today, Challenges, detail, timeline, and pace; physical cross-surface acceptance remains |
 | Authenticated daily snapshot upload and frozen result | Implemented and covered by local database tests; hosted smoke and controlled cutover remain |
@@ -49,7 +50,23 @@ commits. **Start right now (count today)** activates immediately and makes all
 eligible Apple Health steps since the current local midnight part of day one.
 The client sends its current minute as exact request identity; the server
 canonicalizes the scored start to local midnight and preserves that marker for
-safe retries.
+safe retries. That unchanged start-now contract is hosted on the checked-in
+Staging project; the release-candidate smoke still has to prove create,
+immediate activation, today's steps, cancellation, retained history, and a
+second creation with one authenticated beta account.
+
+### Ending a sandbox challenge
+
+An owner may cancel a scheduled challenge before it starts or end a still-active
+internal test-only or Stripe sandbox challenge. Ending it is a lifecycle change,
+not deletion: the cancelled challenge remains in history, its frozen terms and
+activation time remain authoritative, the Stripe test agreement and Health
+snapshot remain retained, and the open-challenge slot is released. A cancelled
+challenge cannot produce a result, payment review, or charge command.
+
+The active exception is deliberately narrow. It does not apply after the
+challenge ends and enters its final Health window, after a result, or to a
+future Stripe live-mode agreement. Real-payment behavior remains disabled.
 
 The domain keeps its existing custom-start contract for historical
 compatibility, but the beta journey does not expose it. That dormant contract

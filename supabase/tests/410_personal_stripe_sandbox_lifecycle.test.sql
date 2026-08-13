@@ -287,8 +287,8 @@ select ok(
 
 reset role;
 
--- A provider agreement keeps the ordinary binding boundary even though the
--- underlying Stage A enum remains `test_only` for legacy compatibility.
+-- A retained provider agreement is still explicitly sandbox/livemode=false,
+-- so an owner may now end it while active without changing the agreement.
 alter table public.contests
   disable trigger contests_enforce_status_transition;
 update public.contests contest
@@ -306,15 +306,13 @@ select set_config(
   true
 );
 
-select throws_ok(
-  format(
-    'select public.cancel_personal_challenge_v1(%L, %L)',
+select is(
+  public.cancel_personal_challenge_v1(
     (select (value ->> 'challenge_id')::uuid from t_api_challenge),
     'fa100000-0000-0000-0000-000000000099'::uuid
   ),
-  '23001',
-  null,
-  'an active Stripe sandbox challenge keeps the pre-start cancellation boundary'
+  (select (value ->> 'challenge_id')::uuid from t_api_challenge),
+  'an owner may end an active Stripe sandbox challenge'
 );
 
 reset role;

@@ -4290,3 +4290,34 @@ Health delivery instead of providing an explicit refresh.
 **Revisit if.** A paid production settlement mode is proposed. Counting steps
 from before agreement is an explicit beta product choice and must be reviewed
 again before real money can depend on it.
+
+### D122. Active cancellation is a retained sandbox lifecycle, not deletion
+
+**What.** The existing `cancel_personal_challenge_v1(uuid, uuid)` boundary may
+end a scheduled challenge before start or a still-active Personal challenge
+when its frozen settlement remains demonstrably non-live: internal `test_only`
+without a provider agreement, or Stripe `sandbox` with `livemode = false`.
+Awaiting-final-Health, finalized, already-cancelled, other-owner, and future
+live-mode rows remain refused. Exact retries return the original cancellation.
+
+Cancellation preserves the frozen terms, activation timestamp, Stripe test
+agreement, Health snapshot, and cancellation request audit. It closes the terms
+and contest, releases the one-open slot, and makes result publication, payment
+review, and charge-command creation unreachable. The Release client exposes
+active cancellation for Stripe sandbox but not for a locked test-only Release
+configuration.
+
+**Why.** The invite-only beta needs demo parity and a safe way to recover its
+single open slot without pretending history or consent never existed. Retaining
+the facts keeps retries, support, and audit honest; checking provider,
+environment, and `livemode` at the database transition keeps the exception from
+becoming a future live-fee escape hatch.
+
+**Rejected.** Physical deletion; clearing `activated_at`; deleting the Stripe
+agreement or Health snapshot; client-only eligibility; cancellation during the
+final Health window; allowing any provider-backed row; and changing the RPC or
+adding a second cancellation method.
+
+**Revisit if.** Live fees are proposed or cancelled Health snapshots receive a
+new retention policy. Either requires a forward migration and explicit product,
+legal, provider, and audit review.

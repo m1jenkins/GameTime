@@ -69,13 +69,18 @@ struct AppConfiguration: Equatable, Sendable {
         return contestMutationsEnabled
     }
 
-    /// Internal Stage A builds may end an open challenge to clear fixture data
-    /// between implementation passes. Provider-backed beta and Release paths
-    /// retain the ordinary pre-start cancellation boundary.
-    var allowsActiveTestChallengeCancellation: Bool {
-        personalChallengeMutationsEnabled
-            && personalSettlementMode == .testOnly
-            && environment != .release
+    /// Active cancellation is a sandbox-only capability. Internal Stage A may
+    /// clear test-only challenges, and the invite-only Release beta may end a
+    /// Stripe test-mode challenge. A locked Release test-only configuration
+    /// cannot use the exception.
+    var allowsActiveSandboxChallengeCancellation: Bool {
+        guard personalChallengeMutationsEnabled else { return false }
+        switch personalSettlementMode {
+        case .testOnly:
+            environment != .release
+        case .stripeSandbox:
+            true
+        }
     }
 
     /// Health reads are useful in every product configuration. Whether those

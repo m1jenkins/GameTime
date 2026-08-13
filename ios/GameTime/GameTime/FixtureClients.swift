@@ -121,6 +121,7 @@ private struct FixtureScenario {
     let personalZeroReplacement: Bool
     let personalDownwardReplacement: Bool
     let personalScheduled: Bool
+    let personalAwaitingEvidence: Bool
     let personalCancelled: Bool
     let accountDeletionFails: Bool
     let personalResult: FixturePersonalResult
@@ -172,6 +173,9 @@ private struct FixtureScenario {
         )
         personalScheduled = arguments.contains(
             "--fixture-personal-scheduled"
+        )
+        personalAwaitingEvidence = arguments.contains(
+            "--fixture-personal-awaiting-evidence"
         )
         personalCancelled = arguments.contains(
             "--fixture-personal-cancelled"
@@ -290,7 +294,9 @@ private final class FixturePersonalStore {
                         ? .cancelled
                         : scenario.personalScheduled
                             ? .scheduled
-                            : .active
+                            : scenario.personalAwaitingEvidence
+                                ? .awaitingEvidence
+                                : .active
                 ),
                 Self.completedChallenge(
                     now: now,
@@ -1474,11 +1480,10 @@ private final class FixturePersonalAccountabilityClient:
         let original = store.challenges[index]
         let canCancelBeforeStart =
             original.status == .scheduled && Date() < original.terms.startsAt
-        let canCleanUpTestChallenge =
-            settlementMode == .testOnly
-            && original.terms.settlementMode == .testOnly
+        let canEndSandboxChallenge =
+            settlementMode == original.terms.settlementMode
             && (original.status == .scheduled || original.status == .active)
-        guard canCancelBeforeStart || canCleanUpTestChallenge else {
+        guard canCancelBeforeStart || canEndSandboxChallenge else {
             throw PersonalAccountabilityClientError.cancellationClosed
         }
         store.challenges[index] = PersonalChallengeDetail(
