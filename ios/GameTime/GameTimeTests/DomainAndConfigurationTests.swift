@@ -63,6 +63,23 @@ final class DomainAndConfigurationTests: XCTestCase {
         }
     }
 
+    func testOptionalHelpDestinationsRemainSafeFallbacks() throws {
+        let configuration = try AppConfiguration.validated(
+            environmentValue: "Debug",
+            urlValue: "http://127.0.0.1:54321",
+            keyValue: "sb_publishable_unit_test",
+            mutationValue: "YES",
+            privacyPolicyURLValue: nil,
+            betaTermsURLValue: "not-a-published-url",
+            supportEmailValue: "not an inbox"
+        )
+
+        XCTAssertNil(configuration.privacyPolicyURL)
+        XCTAssertNil(configuration.betaTermsURL)
+        XCTAssertNil(configuration.supportEmail)
+        XCTAssertNil(configuration.supportMailtoURL)
+    }
+
     func testReleaseKeepsLegacyContestMutationLockedByDefault() throws {
         let configuration = try AppConfiguration.validated(
             environmentValue: "Release",

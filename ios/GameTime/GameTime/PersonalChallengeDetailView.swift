@@ -9,6 +9,7 @@ struct PersonalChallengeDetailView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingCancelConfirmation = false
     @State private var isSyncNowRequested = false
+    @State private var reviewNow = Date()
     @State private var selectedReviewReason:
         PersonalReviewReason = .userDisputesStepData
 
@@ -16,13 +17,23 @@ struct PersonalChallengeDetailView: View {
         store.detail(for: challengeID)
     }
 
+    private var reviewDeadline: Date? {
+        guard
+            let challenge,
+            challenge.terms.settlementMode == .stripeSandbox,
+            let outcome = challenge.outcome,
+            outcome.kind == .missedGoal
+        else {
+            return nil
+        }
+        return outcome.publishedAt.addingTimeInterval(
+            PersonalResultPresentation.reviewWindow
+        )
+    }
+
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                TestCommitmentDisclosure(
-                    settlementMode: challenge?.terms.settlementMode
-                        ?? store.configuration.personalSettlementMode
-                )
                 if let challenge {
                     hero(challenge)
                     cancellation(challenge)
@@ -46,6 +57,9 @@ struct PersonalChallengeDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: challengeID) {
             await store.loadDetail(challengeID: challengeID)
+        }
+        .task(id: reviewDeadline) {
+            await refreshReviewClock(deadline: reviewDeadline)
         }
         .confirmationDialog(
             "Cancel this challenge?",
@@ -184,6 +198,11 @@ struct PersonalChallengeDetailView: View {
     @ViewBuilder
     private func result(_ challenge: PersonalChallengeDetail) -> some View {
         if let outcome = challenge.outcome {
+            let presentation = PersonalResultPresentation(
+                terms: challenge.terms,
+                outcome: outcome,
+                now: reviewNow
+            )
             DaybreakSectionLabel(text: "How it went")
             DaybreakCard(tone: outcome.kind == .metGoal ? .standard : .pledge) {
                 VStack(alignment: .leading, spacing: 9) {
@@ -191,18 +210,23 @@ struct PersonalChallengeDetailView: View {
                         status: challenge.presentationStatus(at: Date()),
                         outcome: outcome.kind
                     )
-                    Text(resultTitle(outcome.kind))
+                    Text(presentation.title)
                         .font(
                             CompetitiveTrustTheme.displayFont(
                                 size: 23,
                                 relativeTo: .title2
                             )
                         )
-                    Text(resultExplanation(outcome))
-                        .font(.subheadline)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    ForEach(presentation.details, id: \.self) { detail in
+                        Text(detail)
+                            .font(.subheadline)
+                            .foregroundStyle(
+                                CompetitiveTrustTheme.secondaryText
+                            )
+                    }
                 }
             }
+            .accessibilityIdentifier("personal.result")
         }
     }
 
@@ -214,20 +238,18 @@ struct PersonalChallengeDetailView: View {
         {
             DaybreakSectionLabel(text: "Review")
             DaybreakCard {
+                let deadline = outcome.publishedAt.addingTimeInterval(
+                    PersonalResultPresentation.reviewWindow
+                )
                 if let request = store.reviewRequest(for: challenge.id) {
                     VStack(alignment: .leading, spacing: 10) {
-                        Label(
-                            "Review requested",
-                            systemImage: "checkmark.shield.fill"
-                        )
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: 20,
-                                relativeTo: .headline
+                        Text("Under review — settlement paused.")
+                            .font(
+                                CompetitiveTrustTheme.displayFont(
+                                    size: 20,
+                                    relativeTo: .headline
+                                )
                             )
-                        )
-                        Text("Settlement stays paused while this result is reviewed.")
-                            .font(.subheadline.weight(.semibold))
                         Text(
                             "Review ends by \(PersonalTermsDateFormatter.dateTime(request.reviewDeadline, timezoneIdentifier: challenge.terms.timezone))."
                         )
@@ -236,20 +258,18 @@ struct PersonalChallengeDetailView: View {
                             CompetitiveTrustTheme.secondaryText
                         )
                     }
-                    .accessibilityIdentifier("personal.review.requested")
-                } else if Date()
-                    < outcome.publishedAt.addingTimeInterval(7 * 86_400)
-                {
+                    .accessibilityIdentifier("personal.review.submitted")
+                } else if reviewNow >= deadline {
+                    Text("The review request window ended.")
+                        .font(.subheadline)
+                        .foregroundStyle(
+                            CompetitiveTrustTheme.secondaryText
+                        )
+                        .accessibilityIdentifier("personal.review.expired")
+                } else {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Something doesn’t look right?")
-                            .font(
-                                CompetitiveTrustTheme.displayFont(
-                                    size: 20,
-                                    relativeTo: .headline
-                                )
-                            )
                         Text(
-                            "Tell us why before the 7-day review window ends. Settlement stays paused while a review is open."
+                            "Request a review by \(PersonalTermsDateFormatter.dateTime(deadline, timezoneIdentifier: challenge.terms.timezone)); settlement is paused during this seven-day window."
                         )
                         .font(.subheadline)
                         .foregroundStyle(
@@ -309,29 +329,27 @@ struct PersonalChallengeDetailView: View {
                             "personal.review.request"
                         )
 
-                        Text(
-                            "Review window ends \(PersonalTermsDateFormatter.dateTime(outcome.publishedAt.addingTimeInterval(7 * 86_400), timezoneIdentifier: challenge.terms.timezone))."
-                        )
-                        .font(.caption)
-                        .foregroundStyle(
-                            CompetitiveTrustTheme.tertiaryText
-                        )
                     }
-                } else {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Review window ended")
-                            .font(.headline)
-                        Text(
-                            "The 7-day window for requesting a review has closed."
-                        )
-                        .font(.subheadline)
-                        .foregroundStyle(
-                            CompetitiveTrustTheme.secondaryText
-                        )
-                    }
+                    .accessibilityIdentifier("personal.review.available")
                 }
             }
         }
+    }
+
+    private func refreshReviewClock(deadline: Date?) async {
+        reviewNow = Date()
+        guard let deadline else { return }
+        let remaining = deadline.timeIntervalSince(reviewNow)
+        guard remaining > 0 else { return }
+        do {
+            try await Task.sleep(
+                nanoseconds: UInt64(remaining * 1_000_000_000)
+            )
+        } catch {
+            return
+        }
+        guard !Task.isCancelled else { return }
+        reviewNow = Date()
     }
 
     @ViewBuilder
@@ -351,35 +369,6 @@ struct PersonalChallengeDetailView: View {
             .buttonStyle(TrustSecondaryButtonStyle())
             .disabled(store.isMutating)
             .accessibilityIdentifier("personal.cancel")
-        }
-    }
-
-    private func resultTitle(_ kind: PersonalOutcomeKind) -> String {
-        switch kind {
-        case .metGoal: "You hit your goal"
-        case .missedGoal: "You came up short"
-        case .inconclusive: "This one didn’t count"
-        }
-    }
-
-    private func resultExplanation(_ outcome: PersonalOutcome) -> String {
-        switch outcome.kind {
-        case .metGoal:
-            return "Your steps added up and you got there. Nice work."
-        case .missedGoal:
-            if challenge?.terms.settlementMode == .stripeSandbox {
-                return "Your steps added up, but they didn’t reach your goal. This result is provisional through the 7-day review window; only a confirmed miss can create one simulated test charge."
-            }
-            return "Your steps added up, but they didn’t reach your goal. This result closes without settlement."
-        case .inconclusive:
-            let opening =
-                "We couldn’t confirm your steps, so this one doesn’t count — for you or against you."
-            guard let reason = PersonalReasonText.sentence(
-                for: outcome.reasonCode
-            ) else {
-                return opening
-            }
-            return "\(opening) \(reason)"
         }
     }
 

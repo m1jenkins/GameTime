@@ -2,6 +2,26 @@ import XCTest
 
 @MainActor
 final class GameTimeUITests: XCTestCase {
+    private enum EnvironmentMode {
+        case testOnly
+        case stripeSandbox
+        case demo
+
+        var copy: String {
+            switch self {
+            case .testOnly:
+                "Test commitment — no money will be charged."
+            case .stripeSandbox:
+                "Payment test mode — no real money moves."
+            case .demo:
+                "Demo mode — no money will be charged. Nothing here leaves your phone."
+            }
+        }
+    }
+
+    private let deletionWarning =
+        "Your profile, challenges, social links, pending requests, Health snapshots, and sign-in will be removed. Integrity records may remain without your name. Your beta Stripe customer and saved payment method will also be deleted. This can’t be undone."
+
     override func setUp() {
         continueAfterFailure = false
     }
@@ -12,11 +32,7 @@ final class GameTimeUITests: XCTestCase {
             signedOut.buttons["Sign in with Apple"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(
-            signedOut.staticTexts[
-                "Test commitment — no money will be charged."
-            ].exists
-        )
+        assertEnvironmentDisclosure(in: signedOut, mode: .testOnly)
         XCTAssertTrue(signedOut.staticTexts["GameTime"].exists)
         XCTAssertFalse(signedOut.staticTexts["Compete fairly."].exists)
         assertNoForbiddenLanguage(in: signedOut)
@@ -29,6 +45,7 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(onboarding.textFields["Your name"].exists)
         XCTAssertTrue(onboarding.textFields["Username"].exists)
+        assertEnvironmentDisclosure(in: onboarding, mode: .testOnly)
         assertNoForbiddenLanguage(in: onboarding)
     }
 
@@ -45,9 +62,35 @@ final class GameTimeUITests: XCTestCase {
             XCTAssertTrue(
                 app.navigationBars[tab].waitForExistence(timeout: 3)
             )
-            assertExactDisclosure(in: app)
+            assertEnvironmentDisclosure(in: app, mode: .testOnly)
             assertNoForbiddenLanguage(in: app)
         }
+    }
+
+    func testDemoEnvironmentDisclosureAcrossTabsAndVisibleCreationSheet() {
+        let app = launch(
+            "--fixture-demo-interactive",
+            "--fixture-empty"
+        )
+
+        for tab in ["Today", "Challenges", "You"] {
+            app.tabBars.buttons[tab].waitAndTap()
+            XCTAssertTrue(
+                app.navigationBars[tab].waitForExistence(timeout: 4)
+            )
+            assertEnvironmentDisclosure(in: app, mode: .demo)
+            assertNoForbiddenLanguage(in: app)
+        }
+
+        app.tabBars.buttons["Challenges"].waitAndTap()
+        let create = app.buttons["personal.create"]
+        for _ in 0..<8 where !create.isHittable { app.swipeUp() }
+        create.waitAndTap()
+        XCTAssertTrue(
+            app.navigationBars["How it counts"].waitForExistence(timeout: 4)
+        )
+        assertEnvironmentDisclosure(in: app, mode: .demo)
+        assertNoForbiddenLanguage(in: app)
     }
 
     func testStripeSandboxFlowUsesFixturePaymentAndExactConsent() {
@@ -55,11 +98,8 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-empty",
             "--fixture-stripe-sandbox"
         )
-        XCTAssertTrue(
-            app.staticTexts[
-                "Payment test mode — no real money moves."
-            ].waitForExistence(timeout: 5)
-        )
+        XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 5))
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
         XCTAssertFalse(
             app.staticTexts[
                 "Test commitment — no money will be charged."
@@ -70,6 +110,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(
             app.navigationBars["How it counts"].waitForExistence(timeout: 4)
         )
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
         XCTAssertTrue(
             app.descendants(matching: .any)["Step 1 of 6"].exists
         )
@@ -93,6 +134,7 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["Test payment"]
                 .waitForExistence(timeout: 4)
         )
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
 
         let consent =
             "By starting, you agree that GameTime may create one $10.00 test charge only if this challenge is confirmed missed after the review window. Missing or unclear step data never counts as a miss."
@@ -114,22 +156,31 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["Check and confirm"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(
-            app.staticTexts["Test method saved — ready for review"].exists
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+        assertReceiptFact(
+            "payment-mode",
+            contains: "Test method saved — no real money moves.",
+            in: app
         )
-        XCTAssertTrue(
-            app.staticTexts["Now — today counts from midnight"].exists
+        assertReceiptFact(
+            "starts",
+            contains: "Now — today counts from midnight",
+            in: app
         )
-        app.buttons["personal.submit"].waitAndTap()
+        assertReceipt(
+            in: app,
+            mode: .stripeSandbox,
+            expectsSavedDraft: true
+        )
+        assertNoForbiddenLanguage(in: app)
+        let submit = app.buttons["personal.submit"]
+        for _ in 0..<8 where !submit.isHittable { app.swipeUp() }
+        submit.waitAndTap()
         XCTAssertTrue(
             app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
-        XCTAssertTrue(
-            app.staticTexts[
-                "Payment test mode — no real money moves."
-            ].exists
-        )
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
         XCTAssertTrue(app.staticTexts["In progress"].exists)
         XCTAssertTrue(app.buttons["personal.challenge.sync-now"].exists)
     }
@@ -138,16 +189,40 @@ final class GameTimeUITests: XCTestCase {
         let app = launch(
             "--fixture-stripe-sandbox",
             "--fixture-stripe-review",
-            "--fixture-open-review-challenge"
+            "--fixture-open-result-challenge"
         )
         XCTAssertTrue(
             app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
         assertCumulativeProgress(in: app)
+        assertResultTitle(
+            "Goal missed — review open. Settlement is paused.",
+            in: app
+        )
+        XCTAssertTrue(
+            exactStaticText(
+                "Only a confirmed miss after review can create one $20.00 test charge.",
+                in: app
+            ).exists
+        )
 
+        let available = app.descendants(matching: .any)[
+            "personal.review.available"
+        ]
         let request = app.buttons["personal.review.request"]
         for _ in 0..<10 where !request.isHittable { app.swipeUp() }
+        XCTAssertTrue(available.exists)
+        XCTAssertTrue(
+            containing("Request a review by", in: app).exists
+        )
+        XCTAssertTrue(
+            containing(
+                "settlement is paused during this seven-day window.",
+                in: app
+            ).exists
+        )
         XCTAssertTrue(request.waitForExistence(timeout: 3))
         XCTAssertTrue(
             app.buttons[
@@ -164,14 +239,102 @@ final class GameTimeUITests: XCTestCase {
         request.tap()
 
         XCTAssertTrue(
-            app.staticTexts["Review requested"]
+            exactStaticText(
+                "Under review — settlement paused.",
+                in: app
+            )
                 .waitForExistence(timeout: 4)
         )
         XCTAssertTrue(
-            app.staticTexts[
-                "Settlement stays paused while this result is reviewed."
-            ].exists
+            app.descendants(matching: .any)["personal.review.submitted"].exists
         )
+        XCTAssertTrue(containing("Review ends by", in: app).exists)
+        assertNoForbiddenLanguage(in: app)
+    }
+
+    func testSandboxMetResultShowsZeroTestCharge() {
+        let app = launch(
+            "--fixture-stripe-sandbox",
+            "--fixture-sandbox-met",
+            "--fixture-open-result-challenge"
+        )
+
+        XCTAssertTrue(
+            app.navigationBars["Your challenge"].waitForExistence(timeout: 5)
+        )
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+        assertResultTitle("Goal met — $0 test charge.", in: app)
+        XCTAssertFalse(
+            app.descendants(matching: .any)["personal.review.available"].exists
+        )
+        assertNoForbiddenLanguage(in: app)
+    }
+
+    func testSandboxMissingResultShowsZeroTestChargeAndGuarantee() {
+        let app = launch(
+            "--fixture-stripe-sandbox",
+            "--fixture-sandbox-missing-result",
+            "--fixture-open-result-challenge"
+        )
+
+        XCTAssertTrue(
+            app.navigationBars["Your challenge"].waitForExistence(timeout: 5)
+        )
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+        assertResultTitle(
+            "This one didn’t count — $0 test charge.",
+            in: app
+        )
+        XCTAssertTrue(
+            exactStaticText(
+                "Missing or unclear step data never counts as a miss.",
+                in: app
+            ).exists
+        )
+        XCTAssertFalse(
+            app.descendants(matching: .any)["personal.review.available"].exists
+        )
+        assertNoForbiddenLanguage(in: app)
+    }
+
+    func testExpiredReviewStatesOnlyThatTheRequestWindowEnded() {
+        let app = launch(
+            "--fixture-stripe-sandbox",
+            "--fixture-expired-review",
+            "--fixture-open-result-challenge"
+        )
+
+        XCTAssertTrue(
+            app.navigationBars["Your challenge"].waitForExistence(timeout: 5)
+        )
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+        assertResultTitle("Goal missed.", in: app)
+
+        let expired = app.descendants(matching: .any)[
+            "personal.review.expired"
+        ]
+        for _ in 0..<12 where !expired.exists { app.swipeUp() }
+        XCTAssertTrue(expired.waitForExistence(timeout: 4))
+        XCTAssertEqual(expired.label, "The review request window ended.")
+        XCTAssertFalse(app.buttons["personal.review.request"].exists)
+        XCTAssertFalse(
+            exactStaticText(
+                "Goal missed — review open. Settlement is paused.",
+                in: app
+            ).exists
+        )
+        let reachableCopy = app.descendants(matching: .any)
+            .allElementsBoundByIndex
+            .map(\.label)
+            .joined(separator: "\n")
+        for unsupportedState in ["processed", "charged", "waived"] {
+            XCTAssertFalse(
+                reachableCopy.localizedCaseInsensitiveContains(
+                    unsupportedState
+                )
+            )
+        }
+        assertNoForbiddenLanguage(in: app)
     }
 
     func testTodayShowsAutomaticPersonalProgressTimeline() {
@@ -186,7 +349,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Day by day"].exists)
         XCTAssertTrue(app.staticTexts["10,482"].exists)
         XCTAssertTrue(app.staticTexts["7,350"].exists)
-        assertExactDisclosure(in: app)
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
         XCTAssertFalse(app.staticTexts["Friend requests"].exists)
         XCTAssertFalse(app.staticTexts["Challenge invitations"].exists)
         assertNoForbiddenLanguage(in: app)
@@ -240,7 +403,7 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(app.staticTexts["Your pace"].exists)
         XCTAssertFalse(app.staticTexts["Steps received"].exists)
-        assertExactDisclosure(in: app)
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
 
         // The terms still exist; they live behind "Challenge details" now.
         let details = app.buttons["personal.details"]
@@ -287,7 +450,7 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertFalse(app.buttons["Back"].exists)
         assertHiddenBetaCreationSteps(in: app)
-        assertExactDisclosure(in: app)
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
         assertNoForbiddenLanguage(in: app)
         attachScreenshot(
             of: app,
@@ -359,22 +522,29 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["Check and confirm"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts["Week total"].exists)
-        XCTAssertTrue(
-            app.staticTexts.matching(
-                NSPredicate(format: "label BEGINSWITH %@", "$50")
-            ).firstMatch.exists
+        assertReceiptFact(
+            "how-it-counts",
+            contains: "Week total",
+            in: app
         )
-        assertExactDisclosure(in: app)
+        assertReceiptFact(
+            "amount",
+            contains: "$50",
+            in: app
+        )
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
+        assertReceipt(in: app, mode: .testOnly)
         assertNoForbiddenLanguage(in: app)
-        app.buttons["personal.submit"].waitAndTap()
+        let submit = app.buttons["personal.submit"]
+        for _ in 0..<8 where !submit.isHittable { app.swipeUp() }
+        submit.waitAndTap()
 
         XCTAssertTrue(
             app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
         XCTAssertTrue(app.staticTexts["Scheduled"].exists)
-        assertExactDisclosure(in: app)
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
         assertNoForbiddenLanguage(in: app)
     }
 
@@ -410,23 +580,30 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["Check and confirm"]
                 .waitForExistence(timeout: 4)
         )
-        assertExactDisclosure(in: app)
-        XCTAssertTrue(app.staticTexts["Seven full days"].exists)
-        XCTAssertTrue(app.staticTexts["24 hours after your last day"].exists)
-        XCTAssertTrue(app.staticTexts["Every day"].exists)
-        XCTAssertTrue(
-            app.staticTexts.matching(
-                NSPredicate(format: "label BEGINSWITH %@", "$10")
-            ).firstMatch.exists
-        )
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
+        assertReceipt(in: app, mode: .testOnly)
+        for (identifier, value) in [
+            ("length", "Seven full days"),
+            ("final-check", "24 hours after your last day"),
+            ("how-it-counts", "Every day"),
+            ("amount", "$10"),
+        ] {
+            assertReceiptFact(identifier, contains: value, in: app)
+        }
         assertNoForbiddenLanguage(in: app)
         let startNow = app.switches["personal.start.now"]
         XCTAssertTrue(startNow.waitForExistence(timeout: 3))
+        for _ in 0..<12 where !startNow.isHittable { app.swipeDown() }
+        XCTAssertTrue(startNow.isHittable)
         startNow.tap()
-        XCTAssertTrue(
-            app.staticTexts["Now — today counts from midnight"].exists
+        assertReceiptFact(
+            "starts",
+            contains: "Now — today counts from midnight",
+            in: app
         )
-        app.buttons["personal.submit"].waitAndTap()
+        let submit = app.buttons["personal.submit"]
+        for _ in 0..<8 where !submit.isHittable { app.swipeUp() }
+        submit.waitAndTap()
 
         XCTAssertTrue(
             app.navigationBars["Your challenge"]
@@ -436,10 +613,7 @@ final class GameTimeUITests: XCTestCase {
         let syncNow = app.buttons["personal.challenge.sync-now"]
         for _ in 0..<8 where !syncNow.exists { app.swipeUp() }
         XCTAssertTrue(syncNow.waitForExistence(timeout: 3))
-        // The disclosure sits at the top of a LazyVStack, so assert it before
-        // scrolling to the bottom for the cancel control — once the top of the
-        // stack is recycled it is no longer in the hierarchy to find.
-        assertExactDisclosure(in: app)
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
         let cancel = app.buttons["personal.cancel"]
         for _ in 0..<8 where !cancel.exists { app.swipeUp() }
         XCTAssertTrue(cancel.waitForExistence(timeout: 3))
@@ -551,17 +725,18 @@ final class GameTimeUITests: XCTestCase {
         assertNoLegacyPersonalHealthSurfaces(in: app)
     }
 
-    func testSavedPersonalRequestCanResumeAfterRelaunch() {
+    func testSavedSandboxPaymentRequestCanResumeAfterRelaunch() {
         let app = launch(
             "--fixture-empty",
-            "--fixture-personal-pending"
+            "--fixture-personal-pending",
+            "--fixture-stripe-sandbox"
         )
         app.tabBars.buttons["Challenges"].waitAndTap()
 
         XCTAssertTrue(
             app.staticTexts["Ready to finish"].waitForExistence(timeout: 5)
         )
-        assertExactDisclosure(in: app)
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
         assertNoForbiddenLanguage(in: app)
         let resume = app.buttons["personal.pending.resume"]
         XCTAssertTrue(resume.waitForExistence(timeout: 4))
@@ -584,29 +759,50 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["personal.continue"].waitAndTap()
 
         XCTAssertTrue(
+            app.navigationBars["Test payment"]
+                .waitForExistence(timeout: 4)
+        )
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+        XCTAssertFalse(app.switches["personal.start.now"].exists)
+        let consent =
+            "By starting, you agree that GameTime may create one $30.00 test charge only if this challenge is confirmed missed after the review window. Missing or unclear step data never counts as a miss."
+        XCTAssertTrue(
+            exactStaticText(consent, in: app).waitForExistence(timeout: 3)
+        )
+        let setup = app.buttons["personal.payment.setup"]
+        XCTAssertTrue(setup.exists)
+        XCTAssertFalse(setup.isEnabled)
+        app.switches["personal.payment.consent"].waitAndTap()
+        XCTAssertTrue(setup.isEnabled)
+        setup.tap()
+
+        XCTAssertTrue(
             app.navigationBars["Check and confirm"]
                 .waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts["Week total"].exists)
-        XCTAssertTrue(
-            exactStaticText(
-                "On a daily challenge you have to hit your goal all seven days. On a weekly one you just have to reach the total by the end. If your steps go missing or don’t add up, the week doesn’t count — and it doesn’t count against you.",
-                in: app
-            ).exists
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+        assertReceiptFact(
+            "how-it-counts",
+            contains: "Week total",
+            in: app
         )
-        XCTAssertTrue(
-            app.descendants(matching: .any)["personal.request-id"].exists
+        assertReceiptFact("amount", contains: "$30", in: app)
+        assertReceipt(
+            in: app,
+            mode: .stripeSandbox,
+            expectsSavedDraft: true
         )
-        assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
-        app.buttons["personal.submit"].waitAndTap()
+        let submit = app.buttons["personal.submit"]
+        for _ in 0..<8 where !submit.isHittable { app.swipeUp() }
+        submit.waitAndTap()
 
         XCTAssertTrue(
             app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
         XCTAssertTrue(app.staticTexts["Scheduled"].exists)
-        assertExactDisclosure(in: app)
+        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
         assertNoForbiddenLanguage(in: app)
     }
 
@@ -649,6 +845,16 @@ final class GameTimeUITests: XCTestCase {
         assertNoForbiddenLanguage(in: offline)
     }
 
+    func testSettingsKeepPrivacyHelpDocumentsAndAccountActionsReachable() {
+        let app = launch("--fixture-empty")
+
+        XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["You"].waitAndTap()
+        XCTAssertTrue(app.navigationBars["You"].waitForExistence(timeout: 4))
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
+        assertSettingsReachability(in: app)
+    }
+
     func testPersonalDynamicTypeAccessibilityLabelsAndReduceMotion() {
         let app = launch(
             "--fixture-empty",
@@ -663,7 +869,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Today"].exists)
         XCTAssertTrue(app.tabBars.buttons["Challenges"].exists)
         XCTAssertTrue(app.tabBars.buttons["You"].exists)
-        assertExactDisclosure(in: app)
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
 
         let create = app.buttons["personal.create"]
         for _ in 0..<6 where !create.isHittable { app.swipeUp() }
@@ -679,29 +885,72 @@ final class GameTimeUITests: XCTestCase {
         assertHiddenBetaCreationSteps(in: app)
         let continueButton = app.buttons["personal.continue"]
         XCTAssertEqual(continueButton.label, "Continue")
-        XCTAssertTrue(
-            continueButton.isHittable,
-            "The first beta creation action is off-screen at accessibility XXXL."
-        )
-        assertExactDisclosure(in: app)
+        XCTAssertTrue(continueButton.exists)
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
         assertNoForbiddenLanguage(in: app)
         attachScreenshot(
             of: app,
             named: "Beta creation - cadence accessibility XXXL"
         )
+
+        tapCreationContinue(in: app)
+        XCTAssertTrue(
+            app.navigationBars["Your goal"].waitForExistence(timeout: 4)
+        )
+        tapCreationContinue(in: app)
+        XCTAssertTrue(
+            app.navigationBars["Your amount"].waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)[
+                "personal.commitment.protection"
+            ].exists
+        )
+        tapCreationContinue(in: app)
+        XCTAssertTrue(
+            app.navigationBars["Apple Health"].waitForExistence(timeout: 4)
+        )
+        let connectHealth = app.buttons["personal.health.verify"]
+        for _ in 0..<12 where !connectHealth.isHittable { app.swipeUp() }
+        XCTAssertTrue(connectHealth.isHittable)
+        connectHealth.tap()
+        XCTAssertTrue(
+            app.staticTexts["Health connected"].waitForExistence(timeout: 4)
+        )
+        tapCreationContinue(in: app)
+        XCTAssertTrue(
+            app.navigationBars["Check and confirm"]
+                .waitForExistence(timeout: 4)
+        )
+        assertReceipt(in: app, mode: .testOnly)
+        for identifier in [
+            "personal.receipt.fact.how-it-counts",
+            "personal.receipt.fact.day-one",
+            "personal.receipt.fact.payment-mode",
+        ] {
+            let fact = app.descendants(matching: .any)[identifier]
+            XCTAssertTrue(
+                fact.waitForExistence(timeout: 3),
+                "Adaptive receipt fact is unreachable: \(identifier)"
+            )
+        }
+        attachScreenshot(
+            of: app,
+            named: "Confirmation receipt - accessibility XXXL"
+        )
         app.buttons["Close"].waitAndTap()
 
         app.tabBars.buttons["You"].waitAndTap()
-        let privacy = app.buttons["privacy.open"]
-        for _ in 0..<8 where !privacy.isHittable { app.swipeUp() }
-        XCTAssertTrue(privacy.isHittable)
-        privacy.tap()
-        XCTAssertTrue(
-            app.navigationBars["Privacy"]
-                .waitForExistence(timeout: 4)
-        )
-        assertExactDisclosure(in: app)
-        assertNoForbiddenLanguage(in: app)
+        XCTAssertTrue(app.navigationBars["You"].waitForExistence(timeout: 4))
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
+        assertSettingsReachability(in: app)
+    }
+
+    private func tapCreationContinue(in app: XCUIApplication) {
+        let button = app.buttons["personal.continue"]
+        for _ in 0..<12 where !button.isHittable { app.swipeUp() }
+        XCTAssertTrue(button.isHittable)
+        button.tap()
     }
 
     private func assertHiddenBetaCreationSteps(
@@ -787,12 +1036,370 @@ final class GameTimeUITests: XCTestCase {
         add(attachment)
     }
 
-    private func assertExactDisclosure(in app: XCUIApplication) {
-        XCTAssertTrue(
-            app.staticTexts[
-                "Test commitment — no money will be charged."
-            ].exists
+    private func assertEnvironmentDisclosure(
+        in app: XCUIApplication,
+        mode: EnvironmentMode,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let disclosures = app.descendants(matching: .any).matching(
+            identifier: "personal.environment-disclosure"
         )
+        XCTAssertTrue(
+            disclosures.firstMatch.waitForExistence(timeout: 4),
+            "The environment disclosure is missing.",
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            disclosures.count,
+            1,
+            "Expected exactly one visible environment disclosure.",
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            disclosures.firstMatch.label,
+            mode.copy,
+            file: file,
+            line: line
+        )
+        XCTAssertFalse(
+            app.descendants(matching: .any)[
+                "personal.test-only-disclosure"
+            ].exists,
+            "The retired disclosure card is still reachable.",
+            file: file,
+            line: line
+        )
+    }
+
+    private func assertReceipt(
+        in app: XCUIApplication,
+        mode: EnvironmentMode,
+        expectsSavedDraft: Bool = false,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let receipt = app.descendants(matching: .any)["personal.receipt"]
+        XCTAssertTrue(
+            receipt.waitForExistence(timeout: 4),
+            file: file,
+            line: line
+        )
+
+        for (identifier, heading) in [
+            ("personal.receipt.group.challenge", "Your challenge"),
+            ("personal.receipt.group.start", "When it starts"),
+            ("personal.receipt.group.payment", "Payment protection"),
+        ] {
+            XCTAssertTrue(
+                app.descendants(matching: .any)[identifier].exists,
+                "Receipt group is missing: \(identifier)",
+                file: file,
+                line: line
+            )
+            XCTAssertTrue(
+                exactStaticText(heading, in: app).exists,
+                "Receipt heading is missing: \(heading)",
+                file: file,
+                line: line
+            )
+        }
+
+        let commonFactIdentifiers = [
+            "how-it-counts",
+            "goal",
+            "amount",
+            "length",
+            "starts",
+            "day-one",
+            "time-zone",
+            "final-check",
+        ]
+        let paymentFactIdentifiers: [String]
+        switch mode {
+        case .testOnly, .demo:
+            paymentFactIdentifiers = [
+                "payment-mode",
+                "zero-outcomes",
+                "missing-data",
+            ]
+        case .stripeSandbox:
+            paymentFactIdentifiers = [
+                "payment-mode",
+                "zero-outcomes",
+                "confirmed-miss",
+                "review",
+            ]
+        }
+        let expectedFactIdentifiers =
+            commonFactIdentifiers + paymentFactIdentifiers
+        for identifier in expectedFactIdentifiers {
+            XCTAssertTrue(
+                app.descendants(matching: .any)[
+                    "personal.receipt.fact.\(identifier)"
+                ].exists,
+                "Receipt fact is missing: \(identifier)",
+                file: file,
+                line: line
+            )
+        }
+        XCTAssertEqual(
+            app.descendants(matching: .any).matching(
+                NSPredicate(
+                    format: "identifier BEGINSWITH %@",
+                    "personal.receipt.fact."
+                )
+            ).count,
+            expectedFactIdentifiers.count,
+            "Each receipt group must stay within its four-fact limit.",
+            file: file,
+            line: line
+        )
+
+        XCTAssertFalse(
+            app.descendants(matching: .any)["personal.request-id"].exists,
+            "The receipt exposes the internal draft request identifier.",
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            app.buttons.matching(identifier: "personal.submit").count,
+            1,
+            "The receipt must expose one primary submit action.",
+            file: file,
+            line: line
+        )
+        XCTAssertFalse(
+            app.buttons["personal.continue"].exists,
+            file: file,
+            line: line
+        )
+        XCTAssertFalse(
+            app.buttons["personal.payment.setup"].exists,
+            file: file,
+            line: line
+        )
+
+        let details = app.buttons["personal.receipt.more-details"]
+        for _ in 0..<12 where !details.isHittable { app.swipeUp() }
+        XCTAssertTrue(details.isHittable, file: file, line: line)
+        XCTAssertEqual(details.label, "More details", file: file, line: line)
+        XCTAssertEqual(
+            details.value as? String,
+            "Hidden",
+            file: file,
+            line: line
+        )
+        details.tap()
+        XCTAssertEqual(
+            details.value as? String,
+            "Showing",
+            file: file,
+            line: line
+        )
+
+        for identifier in [
+            "personal.receipt.detail.cadence",
+            "personal.receipt.detail.day-one",
+            "personal.receipt.detail.cancellation",
+            "personal.receipt.detail.saved-draft",
+        ] {
+            XCTAssertTrue(
+                app.descendants(matching: .any)[identifier]
+                    .waitForExistence(timeout: 3),
+                "Expanded receipt detail is missing: \(identifier)",
+                file: file,
+                line: line
+            )
+        }
+
+        let savedDraft = app.descendants(matching: .any)[
+            "personal.receipt.detail.saved-draft"
+        ]
+        XCTAssertTrue(
+            savedDraft.label.contains(
+                expectsSavedDraft
+                    ? "GameTime saved exactly what you picked"
+                    : "If starting is interrupted"
+            ),
+            file: file,
+            line: line
+        )
+
+        let labels = app.descendants(matching: .any).allElementsBoundByIndex
+            .map(\.label)
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n")
+        XCTAssertNil(
+            labels.range(
+                of: #"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"#,
+                options: .regularExpression
+            ),
+            "The receipt exposes a raw UUID:\n\(labels)",
+            file: file,
+            line: line
+        )
+        assertNoForbiddenLanguage(in: app, file: file, line: line)
+
+        details.tap()
+        XCTAssertEqual(
+            details.value as? String,
+            "Hidden",
+            file: file,
+            line: line
+        )
+    }
+
+    private func assertReceiptFact(
+        _ identifier: String,
+        contains expectedValue: String,
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let fact = app.descendants(matching: .any)[
+            "personal.receipt.fact.\(identifier)"
+        ]
+        XCTAssertTrue(
+            fact.waitForExistence(timeout: 4),
+            "Receipt fact is missing: \(identifier)",
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            fact.label.contains(expectedValue),
+            "Receipt fact \(identifier) does not contain \(expectedValue): \(fact.label)",
+            file: file,
+            line: line
+        )
+    }
+
+    private func assertResultTitle(
+        _ title: String,
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let text = exactStaticText(title, in: app)
+        for _ in 0..<12 where !text.isHittable { app.swipeUp() }
+        XCTAssertTrue(
+            text.waitForExistence(timeout: 4),
+            "Result title is missing: \(title)",
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)["personal.result"].exists,
+            file: file,
+            line: line
+        )
+    }
+
+    private func assertSettingsReachability(
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertFalse(
+            app.buttons["account.sign-out"].exists,
+            "Sign out must live only in Account & support.",
+            file: file,
+            line: line
+        )
+
+        let privacy = app.buttons["privacy.open"]
+        for _ in 0..<12 where !privacy.isHittable { app.swipeUp() }
+        XCTAssertTrue(privacy.isHittable, file: file, line: line)
+        privacy.tap()
+        XCTAssertTrue(
+            app.navigationBars["Privacy"].waitForExistence(timeout: 4),
+            file: file,
+            line: line
+        )
+        assertEnvironmentDisclosure(
+            in: app,
+            mode: .testOnly,
+            file: file,
+            line: line
+        )
+        assertNoForbiddenLanguage(in: app, file: file, line: line)
+
+        let back = app.navigationBars["Privacy"].buttons["You"]
+        XCTAssertTrue(back.waitForExistence(timeout: 3), file: file, line: line)
+        back.tap()
+        XCTAssertTrue(
+            app.navigationBars["You"].waitForExistence(timeout: 4),
+            file: file,
+            line: line
+        )
+
+        let accountSupport = app.buttons["account-support.open"]
+        for _ in 0..<12 where !accountSupport.isHittable { app.swipeUp() }
+        XCTAssertTrue(accountSupport.isHittable, file: file, line: line)
+        accountSupport.tap()
+        XCTAssertTrue(
+            app.navigationBars["Account & support"]
+                .waitForExistence(timeout: 4),
+            file: file,
+            line: line
+        )
+        assertEnvironmentDisclosure(
+            in: app,
+            mode: .testOnly,
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            exactStaticText("Help & documents", in: app).exists,
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            containing("Apple Health help", in: app).exists,
+            file: file,
+            line: line
+        )
+
+        for identifier in [
+            "account-support.contact",
+            "account-support.privacy-policy",
+            "account-support.beta-terms",
+        ] {
+            let item = app.descendants(matching: .any)[identifier]
+            for _ in 0..<12 where !item.isHittable { app.swipeUp() }
+            XCTAssertTrue(
+                item.isHittable,
+                "Help or document row is unreachable: \(identifier)",
+                file: file,
+                line: line
+            )
+        }
+
+        let signOut = app.buttons["account-support.sign-out"]
+        for _ in 0..<12 where !signOut.isHittable { app.swipeUp() }
+        XCTAssertTrue(signOut.isHittable, file: file, line: line)
+
+        let delete = app.buttons["account-support.delete"]
+        for _ in 0..<12 where !delete.isHittable { app.swipeUp() }
+        XCTAssertTrue(delete.isHittable, file: file, line: line)
+        delete.tap()
+
+        let alert = app.alerts["Delete your account?"]
+        XCTAssertTrue(
+            alert.waitForExistence(timeout: 4),
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            alert.staticTexts[deletionWarning].exists,
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(alert.buttons["Continue"].exists, file: file, line: line)
+        alert.buttons["Cancel"].waitAndTap()
+        assertNoForbiddenLanguage(in: app, file: file, line: line)
     }
 
     private func assertDailyProgress(

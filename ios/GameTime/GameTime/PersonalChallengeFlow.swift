@@ -6,6 +6,9 @@ struct CreatePersonalChallengeFlow: View {
     @Environment(AppModel.self) private var appModel
     @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.demoMode) private var demoMode
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var draft = PersonalChallengeDraft()
     @State private var requestID = UUID()
@@ -15,6 +18,7 @@ struct CreatePersonalChallengeFlow: View {
     @State private var paymentSheet: PaymentSheet?
     @State private var paymentSheetSetupID: String?
     @State private var showingPaymentSheet = false
+    @State private var showingReceiptDetails = false
     /// Resampled whenever the start step is entered, so the hours it offers
     /// are the hours still open. Submission re-checks against a live clock.
     @State private var now = Date()
@@ -49,9 +53,10 @@ struct CreatePersonalChallengeFlow: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     progressHeader
-                    TestCommitmentDisclosure(
+                    EnvironmentDisclosureBanner(
                         settlementMode:
-                            store.configuration.personalSettlementMode
+                            store.configuration.personalSettlementMode,
+                        isDemo: demoMode.isActive
                     )
                     DaybreakCard {
                         stepContent
@@ -72,9 +77,7 @@ struct CreatePersonalChallengeFlow: View {
                 now = Date()
                 if let pending = store.pendingCreation {
                     requestID = pending.request.requestID
-                    startsImmediately = pending.request.startsAt.map {
-                        $0 <= now
-                    } ?? false
+                    startsImmediately = pendingUsesStartNow(pending)
                     draft = PersonalChallengeDraft(
                         cadence: pending.request.cadence,
                         targetSteps: pending.request.targetSteps,
@@ -116,6 +119,12 @@ struct CreatePersonalChallengeFlow: View {
                     Task {
                         if await store.discardPendingCreation() {
                             requestID = UUID()
+                            paymentConsentAccepted = false
+                            paymentSheet = nil
+                            paymentSheetSetupID = nil
+                            showingPaymentSheet = false
+                            showingReceiptDetails = false
+                            startsImmediately = false
                             draft = .initial(
                                 profileTimezone: appModel.profile?.timezone
                             )
@@ -237,9 +246,6 @@ struct CreatePersonalChallengeFlow: View {
             }
         case .commitment:
             VStack(alignment: .leading, spacing: 14) {
-                Text("How much are you putting on it?")
-                    .font(.subheadline)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 LazyVGrid(
                     columns: [GridItem(.adaptive(minimum: 76))],
                     spacing: 10
@@ -279,6 +285,14 @@ struct CreatePersonalChallengeFlow: View {
                         )
                     }
                 }
+                Label(
+                    commitmentProtection.text,
+                    systemImage: "checkmark.shield"
+                )
+                .font(.caption)
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("personal.commitment.protection")
             }
         case .start:
             startContent
@@ -375,6 +389,24 @@ struct CreatePersonalChallengeFlow: View {
         return hours.contains(selected) ? hours : ([selected] + hours).sorted()
     }
 
+    /// A start-now request is frozen at the current minute immediately before
+    /// its pending record is saved. A scheduled start is in the future when
+    /// saved, even if that hour has passed by the time recovery opens.
+    private func pendingUsesStartNow(
+        _ pending: PendingPersonalChallengeSubmission
+    ) -> Bool {
+        guard let startsAt = pending.request.startsAt else { return false }
+        let savedAfterStart = pending.createdAt.timeIntervalSince(startsAt)
+        return (0..<120).contains(savedAfterStart)
+    }
+
+    private var firstDayHours: Int {
+        PersonalChallengeStart.firstDayHours(
+            startsAt: draft.startsAt,
+            timezone: draft.timezone
+        )
+    }
+
     private var startDayBinding: Binding<Date> {
         Binding(
             get: {
@@ -418,37 +450,11 @@ struct CreatePersonalChallengeFlow: View {
         )
     }
 
-    private var firstDayHours: Int {
-        PersonalChallengeStart.firstDayHours(
-            startsAt: draft.startsAt,
-            timezone: draft.timezone
-        )
-    }
-
     /// The seventh local date always closes at local midnight, so a later
     /// start shortens day one instead of moving the end. Said plainly here
     /// rather than discovered on day one.
     private var startConsequence: String {
-        if startsImmediately {
-            let shared =
-                "Day one counts eligible steps from midnight today and runs until midnight. Days two to seven are full."
-            return draft.cadence == .daily
-                ? shared
-                    + " Steps you took before starting count toward today’s \(draft.targetSteps.formatted())-step goal."
-                : shared
-                    + " Steps you took before starting count toward your week total."
-        }
-        if firstDayHours == 24 {
-            return "Seven full days. Day one runs midnight to midnight."
-        }
-        let shared =
-            "Day one is short — \(firstDayHours) \(firstDayHours == 1 ? "hour" : "hours"), from \(startTimeLabel) until midnight. Days two to seven are full."
-        guard draft.cadence == .daily else {
-            return shared
-                + " You’re going for one total, so this just leaves you less time."
-        }
-        return shared
-            + " You’ll still need \(draft.targetSteps.formatted()) steps in it."
+        receiptPresentation.dayOneExplanation
     }
 
     @ViewBuilder
@@ -534,16 +540,16 @@ struct CreatePersonalChallengeFlow: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 paymentRule(
-                    "Meeting your goal, an inconclusive result, and cancelling before the challenge starts close without a settlement."
+                    "Saving this test payment method creates no charge."
                 )
                 paymentRule(
-                    "A complete miss is only provisional after the 24-hour update window."
+                    "Your test charge is $0 when you meet your goal or step data is missing or unclear."
                 )
                 paymentRule(
-                    "Your review window ends 7 days after the result is published."
+                    "GameTime makes one final Apple Health check 24 hours after your last day."
                 )
                 paymentRule(
-                    "Only a miss confirmed after review can create one simulated off-session test charge."
+                    "A seven-day review follows a missed goal. Settlement stays paused during review."
                 )
             }
 
@@ -557,12 +563,6 @@ struct CreatePersonalChallengeFlow: View {
             .toggleStyle(.switch)
             .disabled(store.pendingPaymentIsConfirmed)
             .accessibilityIdentifier("personal.payment.consent")
-
-            Text(
-                "Stripe test mode accepts test card details only. No real money moves."
-            )
-            .font(.caption)
-            .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
         }
     }
 
@@ -580,7 +580,7 @@ struct CreatePersonalChallengeFlow: View {
     }
 
     private var reviewContent: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 0) {
             Label("This locks in when you start", systemImage: "lock.fill")
                 .font(
                     CompetitiveTrustTheme.displayFont(
@@ -588,43 +588,24 @@ struct CreatePersonalChallengeFlow: View {
                         relativeTo: .headline
                     )
                 )
-            reviewRow("How it counts", draft.cadence.title)
-            reviewRow(
-                "Goal",
-                draft.cadence == .daily
-                    ? "\(draft.targetSteps.formatted()) steps a day"
-                    : "\(draft.targetSteps.formatted()) steps this week"
-            )
-            reviewRow(
-                "Amount",
-                (Double(draft.commitmentAmountMinor) / 100)
-                    .formatted(.currency(code: "USD"))
-            )
-            reviewRow("How long", challengeLengthDescription)
-            reviewRow("Time zone", draft.timezone)
-            reviewRow(
-                "Starts",
-                startsImmediately
-                    ? "Now — today counts from midnight"
-                    : startDescription
-            )
-            if store.pendingCreation == nil {
-                startNowChoice
+                .accessibilityIdentifier("personal.receipt")
+                .padding(.bottom, 12)
+
+            Divider().overlay(CompetitiveTrustTheme.border)
+
+            ForEach(receiptPresentation.groups) { group in
+                receiptGroup(group)
+
+                if group.id == .start, store.pendingCreation == nil {
+                    startNowChoice
+                        .padding(.bottom, 12)
+                }
+
+                if group.id != .payment {
+                    Divider().overlay(CompetitiveTrustTheme.border)
+                }
             }
-            reviewRow("Updates through", "24 hours after your last day")
-            if store.configuration.personalSettlementMode == .stripeSandbox {
-                reviewRow("Payment", "Test method saved — ready for review")
-                reviewRow(
-                    "Review window",
-                    "7 days after the result is published"
-                )
-            }
-            if startsImmediately || firstDayHours != 24 {
-                Text(startConsequence)
-                    .font(.caption)
-                    .foregroundStyle(CompetitiveTrustTheme.primaryText)
-                    .accessibilityIdentifier("personal.review.short-first-day")
-            }
+
             if !startIsStillValid {
                 Text(
                     "That start time has already passed. Go back and pick a new one, or delete this draft."
@@ -632,23 +613,135 @@ struct CreatePersonalChallengeFlow: View {
                 .font(.caption)
                 .foregroundStyle(CompetitiveTrustTheme.coral)
                 .accessibilityIdentifier("personal.review.stale-start")
+                .padding(.vertical, 12)
             }
+
             Divider().overlay(CompetitiveTrustTheme.border)
-            Text(reviewOutcomeExplanation)
-            .font(.caption)
-            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-            if let pending = store.pendingCreation {
-                Text("Draft reference: \(pending.request.requestID.uuidString.lowercased())")
-                    .font(.caption2.monospaced())
-                    .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
-                    .accessibilityIdentifier("personal.request-id")
-                Button("Delete draft", role: .destructive) {
-                    showingDiscardConfirmation = true
+            receiptDetailsDisclosure
+        }
+    }
+
+    private func receiptGroup(
+        _ group: PersonalChallengeReceiptPresentation.Group
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(group.title)
+                .font(
+                    CompetitiveTrustTheme.displayFont(
+                        size: 18,
+                        relativeTo: .headline
+                    )
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 14)
+                .padding(.bottom, 4)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier(
+                    "personal.receipt.group.\(group.id.rawValue)"
+                )
+
+            ForEach(group.facts) { fact in
+                receiptFactRow(fact)
+                if fact.id != group.facts.last?.id {
+                    Divider().overlay(CompetitiveTrustTheme.border)
                 }
-                .frame(maxWidth: .infinity)
-                .accessibilityIdentifier("personal.pending.discard-review")
             }
         }
+    }
+
+    private func receiptFactRow(
+        _ fact: PersonalChallengeReceiptPresentation.Fact
+    ) -> some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(fact.label)
+                        .font(.subheadline.weight(.semibold))
+                    Text(fact.value)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(fact.label)
+                        .font(.subheadline.weight(.semibold))
+                    Spacer(minLength: 8)
+                    Text(fact.value)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
+        }
+        .padding(.vertical, 9)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("personal.receipt.fact.\(fact.id.rawValue)")
+    }
+
+    private var receiptDetailsDisclosure: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                    showingReceiptDetails.toggle()
+                }
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                        .accessibilityHidden(true)
+                    Text("More details")
+                        .font(.subheadline.weight(.semibold))
+                    Spacer(minLength: 8)
+                    Text(showingReceiptDetails ? "Hide" : "Show")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(CompetitiveTrustTheme.coralInk)
+                }
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("personal.receipt.more-details")
+            .accessibilityLabel("More details")
+            .accessibilityValue(
+                showingReceiptDetails ? "Showing" : "Hidden"
+            )
+            .accessibilityHint(
+                "Shows timing, cancellation, and saved draft details"
+            )
+
+            if showingReceiptDetails {
+                VStack(alignment: .leading, spacing: 0) {
+                    Divider().overlay(CompetitiveTrustTheme.border)
+                    ForEach(receiptPresentation.details) { detail in
+                        receiptDetail(detail)
+                        if detail.id != receiptPresentation.details.last?.id {
+                            Divider().overlay(CompetitiveTrustTheme.border)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func receiptDetail(
+        _ detail: PersonalChallengeReceiptPresentation.Detail
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(detail.title)
+                .font(.caption.weight(.bold))
+            Text(detail.text)
+                .font(.caption)
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 10)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(
+            "personal.receipt.detail.\(detail.id.rawValue)"
+        )
     }
 
     private var startNowChoice: some View {
@@ -720,18 +813,38 @@ struct CreatePersonalChallengeFlow: View {
             }
 
             if step != visibleSteps.first {
-                Button("Back") {
-                    guard
-                        let index = visibleSteps.firstIndex(of: step),
-                        index > visibleSteps.startIndex
-                    else {
-                        return
+                HStack(spacing: 10) {
+                    Button("Back") {
+                        goBack()
                     }
-                    step = visibleSteps[index - 1]
+                    .buttonStyle(TrustCompactButtonStyle(tone: .quiet))
+                    .accessibilityIdentifier("personal.back")
+
+                    Spacer(minLength: 8)
+
+                    if step == .review, store.pendingCreation != nil {
+                        Button("Delete draft", role: .destructive) {
+                            showingDiscardConfirmation = true
+                        }
+                        .buttonStyle(TrustCompactButtonStyle(tone: .quiet))
+                        .accessibilityIdentifier(
+                            "personal.pending.discard-review"
+                        )
+                    }
                 }
-                .buttonStyle(TrustSecondaryButtonStyle())
+                .frame(maxWidth: .infinity)
             }
         }
+    }
+
+    private func goBack() {
+        guard
+            let index = visibleSteps.firstIndex(of: step),
+            index > visibleSteps.startIndex
+        else {
+            return
+        }
+        step = visibleSteps[index - 1]
     }
 
     private func choice(
@@ -764,15 +877,25 @@ struct CreatePersonalChallengeFlow: View {
         .padding(4)
     }
 
-    private func reviewRow(_ label: String, _ value: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label).font(.subheadline.weight(.semibold))
-            Spacer(minLength: 8)
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .multilineTextAlignment(.trailing)
-        }
+    private var commitmentProtection:
+        PersonalCommitmentProtectionPresentation
+    {
+        PersonalCommitmentProtectionPresentation(
+            amountMinor: draft.commitmentAmountMinor,
+            settlementMode: store.configuration.personalSettlementMode
+        )
+    }
+
+    private var receiptPresentation:
+        PersonalChallengeReceiptPresentation
+    {
+        PersonalChallengeReceiptPresentation(
+            draft: draft,
+            startsImmediately: startsImmediately,
+            settlementMode: store.configuration.personalSettlementMode,
+            paymentMethodSaved: store.pendingPaymentIsConfirmed,
+            hasSavedDraft: store.pendingCreation != nil
+        )
     }
 
     private var canAdvance: Bool {
@@ -797,39 +920,18 @@ struct CreatePersonalChallengeFlow: View {
     /// simply age out of validity while the flow is open.
     private var startIsStillValid: Bool {
         if startsImmediately { return true }
-        guard let requested = draft.requestedStart(now: now) else { return true }
+        let requested: Date?
+        if let pending = store.pendingCreation {
+            requested = pending.request.startsAt
+        } else {
+            requested = draft.requestedStart(now: now)
+        }
+        guard let requested else { return true }
         return PersonalChallengeStart.isSelectable(
             requested,
-            now: now,
+            now: Date(),
             timezone: draft.timezone
         )
-    }
-
-    private var startDescription: String {
-        PersonalTermsDateFormatter.dateTime(
-            draft.startsAt,
-            timezoneIdentifier: draft.timezone
-        )
-    }
-
-    private var startTimeLabel: String {
-        draft.startsAt.formatted(
-            Date.FormatStyle(
-                date: .omitted,
-                time: .shortened,
-                timeZone: TimeZone(identifier: draft.timezone)
-                    ?? TimeZone(secondsFromGMT: 0)!
-            )
-        )
-    }
-
-    private var challengeLengthDescription: String {
-        if startsImmediately {
-            return "Seven days, counting from midnight today"
-        }
-        return firstDayHours == 24
-            ? "Seven full days"
-            : "Seven days, starting at \(startTimeLabel) on day one"
     }
 
     private var startNowBinding: Binding<Bool> {
@@ -911,16 +1013,6 @@ struct CreatePersonalChallengeFlow: View {
             now: date,
             allowsCurrentMinuteStart: startsImmediately
         )
-    }
-
-    private var reviewOutcomeExplanation: String {
-        let base =
-            "On a daily challenge you have to hit your goal all seven days. On a weekly one you just have to reach the total by the end. If your steps go missing or don’t add up, the week doesn’t count — and it doesn’t count against you."
-        guard store.configuration.personalSettlementMode == .stripeSandbox else {
-            return base
-        }
-        return base
-            + " A complete miss stays provisional through the review window. Only a confirmed miss can create one simulated test charge."
     }
 
     private func preparePaymentSheet() {

@@ -10,17 +10,9 @@ struct YouView: View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 profileCard
-                TestCommitmentDisclosure(
-                    settlementMode:
-                        personalStore.configuration.personalSettlementMode
-                )
                 healthSection
-                privacySection
-                accountSupportSection
-                historySection
+                settingsSection
                 demoSection
-                signOutControl
-                availabilityNote
             }
             .padding(.horizontal, 18)
             .padding(.top, 4)
@@ -54,7 +46,7 @@ struct YouView: View {
                             .font(.subheadline)
                             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                             .accessibilityLabel(
-                                "Username \(profile.handle), can’t be changed yet"
+                                "Username \(profile.handle)"
                             )
                     }
                     Spacer(minLength: 0)
@@ -63,7 +55,23 @@ struct YouView: View {
                     .overlay(CompetitiveTrustTheme.border)
                     .padding(.vertical, 12)
                 settingRow("Time zone", profile.timezone)
-                settingRow("Username", "Can’t be changed yet")
+                Divider()
+                    .overlay(CompetitiveTrustTheme.border)
+                    .padding(.vertical, 12)
+                HStack(spacing: 0) {
+                    historyMetric(
+                        personalStore.challenges.count.formatted(),
+                        "All"
+                    )
+                    historyMetric(
+                        (personalStore.openChallenge == nil ? 0 : 1).formatted(),
+                        "Active"
+                    )
+                    historyMetric(
+                        personalStore.history.count.formatted(),
+                        "Finished"
+                    )
+                }
             }
         }
     }
@@ -128,94 +136,70 @@ struct YouView: View {
         }
     }
 
-    private var privacySection: some View {
+    private var settingsSection: some View {
         Group {
-            DaybreakSectionLabel(text: "Privacy")
+            DaybreakSectionLabel(text: "Settings")
             DaybreakCard {
-                Button {
-                    router.youPath.append(.trustAndPrivacy)
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "checkmark.shield.fill")
-                            .foregroundStyle(CompetitiveTrustTheme.mintInk)
-                            .frame(width: 24)
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Your privacy")
-                                .font(.body.weight(.semibold))
-                            Text("What we read, what we send, and what stays on your phone")
-                                .font(.caption)
-                                .foregroundStyle(
-                                    CompetitiveTrustTheme.secondaryText
-                                )
-                        }
-                        Spacer(minLength: 8)
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(CompetitiveTrustTheme.guide)
-                            .accessibilityHidden(true)
+                VStack(spacing: 0) {
+                    Button {
+                        router.youPath.append(.trustAndPrivacy)
+                    } label: {
+                        settingsNavigationRow(
+                            title: "Your privacy",
+                            detail: "What we read, what we send, and what stays on your phone",
+                            icon: "checkmark.shield.fill",
+                            iconColor: CompetitiveTrustTheme.mintInk
+                        )
                     }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("privacy.open")
-            }
-        }
-    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("privacy.open")
 
-    private var historySection: some View {
-        Group {
-            DaybreakSectionLabel(text: "Your history")
-            DaybreakCard {
-                HStack(spacing: 0) {
-                    historyMetric(
-                        personalStore.challenges.count.formatted(),
-                        "All"
-                    )
-                    historyMetric(
-                        (personalStore.openChallenge == nil ? 0 : 1).formatted(),
-                        "Active"
-                    )
-                    historyMetric(
-                        personalStore.history.count.formatted(),
-                        "Finished"
-                    )
+                    Divider().overlay(CompetitiveTrustTheme.border)
+
+                    Button {
+                        router.youPath.append(.accountSupport)
+                    } label: {
+                        settingsNavigationRow(
+                            title: "Account & support",
+                            detail: "Support, documents, sign out, and account deletion",
+                            icon: "person.crop.circle.badge.questionmark",
+                            iconColor: CompetitiveTrustTheme.coral
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("account-support.open")
                 }
             }
         }
     }
 
-    private var accountSupportSection: some View {
-        Group {
-            DaybreakSectionLabel(text: "Account & support")
-            DaybreakCard {
-                Button {
-                    router.youPath.append(.accountSupport)
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "person.crop.circle.badge.questionmark")
-                            .foregroundStyle(CompetitiveTrustTheme.coral)
-                            .frame(width: 24)
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Account & support")
-                                .font(.body.weight(.semibold))
-                            Text("Apple Health help, beta terms, support, and account controls")
-                                .font(.caption)
-                                .foregroundStyle(
-                                    CompetitiveTrustTheme.secondaryText
-                                )
-                        }
-                        Spacer(minLength: 8)
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(CompetitiveTrustTheme.guide)
-                            .accessibilityHidden(true)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("account-support.open")
+    private func settingsNavigationRow(
+        title: String,
+        detail: String,
+        icon: String,
+        iconColor: Color
+    ) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(iconColor)
+                .frame(width: 24)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.body.weight(.semibold))
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(
+                        CompetitiveTrustTheme.secondaryText
+                    )
             }
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right")
+                .foregroundStyle(CompetitiveTrustTheme.guide)
+                .accessibilityHidden(true)
         }
+        .contentShape(Rectangle())
+        .padding(.vertical, 10)
     }
 
     @ViewBuilder
@@ -246,37 +230,6 @@ struct YouView: View {
                 }
             }
         }
-    }
-
-    @ViewBuilder
-    private var signOutControl: some View {
-        if !demoMode.isActive {
-            Button(role: .destructive) {
-                Task { await model.signOut() }
-            } label: {
-                Group {
-                    if model.isMutating {
-                        ProgressView().accessibilityLabel("Signing out")
-                    } else {
-                        Text("Sign out")
-                    }
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(TrustCompactButtonStyle(tone: .quiet))
-            .disabled(model.isMutating)
-            .accessibilityIdentifier("account.sign-out")
-        }
-    }
-
-    private var availabilityNote: some View {
-        Text(
-            "You can’t change your username or add a photo yet."
-        )
-        .font(.caption2)
-        .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
-        .multilineTextAlignment(.center)
-        .padding(.horizontal, 12)
     }
 
     private func settingRow(_ label: String, _ value: String) -> some View {
@@ -317,10 +270,6 @@ struct TrustAndPrivacyView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                TestCommitmentDisclosure(
-                    settlementMode:
-                        personalStore.configuration.personalSettlementMode
-                )
                 privacyCard(
                     title: "Only you can see your challenges",
                     detail:
@@ -397,9 +346,7 @@ struct AccountSupportView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                introCard
-                helpSection
-                legalSection
+                helpDocumentsSection
                 accountSection
                 versionNote
             }
@@ -431,28 +378,9 @@ struct AccountSupportView: View {
         }
     }
 
-    private var introCard: some View {
-        DaybreakCard {
-            VStack(alignment: .leading, spacing: 8) {
-                Label("We’re here to help", systemImage: "person.crop.circle.badge.questionmark")
-                    .font(
-                        CompetitiveTrustTheme.displayFont(
-                            size: 19,
-                            relativeTo: .headline
-                        )
-                    )
-                Text(
-                    "Find answers about Apple Health, review the beta documents, contact the team, or manage your account."
-                )
-                .font(.subheadline)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-            }
-        }
-    }
-
-    private var helpSection: some View {
+    private var helpDocumentsSection: some View {
         Group {
-            DaybreakSectionLabel(text: "Help")
+            DaybreakSectionLabel(text: "Help & documents")
             DaybreakCard {
                 VStack(spacing: 0) {
                     externalRow(
@@ -463,28 +391,22 @@ struct AccountSupportView: View {
                     )
                     Divider().overlay(CompetitiveTrustTheme.border)
                     supportRow
-                }
-            }
-        }
-    }
-
-    private var legalSection: some View {
-        Group {
-            DaybreakSectionLabel(text: "Beta documents")
-            DaybreakCard {
-                VStack(spacing: 0) {
+                    Divider().overlay(CompetitiveTrustTheme.border)
                     documentRow(
                         title: "Privacy Policy",
                         detail: "How GameTime handles your data",
                         icon: "hand.raised.fill",
-                        destination: model.configuration.privacyPolicyURL
+                        destination: model.configuration.privacyPolicyURL,
+                        accessibilityIdentifier:
+                            "account-support.privacy-policy"
                     )
                     Divider().overlay(CompetitiveTrustTheme.border)
                     documentRow(
                         title: "Beta Terms",
                         detail: "The terms for this beta release",
                         icon: "doc.text.fill",
-                        destination: model.configuration.betaTermsURL
+                        destination: model.configuration.betaTermsURL,
+                        accessibilityIdentifier: "account-support.beta-terms"
                     )
                 }
             }
@@ -570,7 +492,8 @@ struct AccountSupportView: View {
         title: String,
         detail: String,
         icon: String,
-        destination: URL?
+        destination: URL?,
+        accessibilityIdentifier: String
     ) -> some View {
         externalRow(
             title: title,
@@ -580,6 +503,7 @@ struct AccountSupportView: View {
             icon: icon,
             destination: destination
         )
+        .accessibilityIdentifier(accessibilityIdentifier)
     }
 
     private func rowLabel(

@@ -30,9 +30,7 @@ enum FixtureServicesFactory {
             ?? FixturePersonalAccountabilityClient(
                 store: personalStore,
                 authStore: store,
-                settlementMode: scenario.stripeSandbox
-                    ? .stripeSandbox
-                    : .testOnly
+                settlementMode: scenario.personalResult.settlementMode
             )
         return AppServices(
             auth: FixtureAuthClient(store: store),
@@ -55,7 +53,8 @@ enum FixtureServicesFactory {
             personalAccountability: accountability,
             personalPayments: personalPaymentClient
                 ?? FixturePersonalPaymentClient(
-                    accountability: accountability
+                    accountability: accountability,
+                    store: personalStore
                 ),
             pendingPersonalChallenges: pendingPersonalChallengeStore
                 ?? FixturePendingPersonalChallengeStore(
@@ -96,8 +95,7 @@ private struct FixtureScenario {
     let personalHold: Bool
     let personalNoDiagnostic: Bool
     let pendingPersonalCreation: Bool
-    let stripeSandbox: Bool
-    let stripeReview: Bool
+    let personalResult: FixturePersonalResult
 
     init(arguments: [String]) {
         signedOut = arguments.contains("--fixture-signed-out")
@@ -124,8 +122,41 @@ private struct FixtureScenario {
         pendingPersonalCreation = arguments.contains(
             "--fixture-personal-pending"
         )
-        stripeSandbox = arguments.contains("--fixture-stripe-sandbox")
-        stripeReview = arguments.contains("--fixture-stripe-review")
+        let hasSandboxResult = arguments.contains(
+            "--fixture-sandbox-missing-result"
+        ) || arguments.contains("--fixture-expired-review")
+            || arguments.contains("--fixture-stripe-review")
+            || arguments.contains("--fixture-open-review-challenge")
+            || arguments.contains("--fixture-sandbox-met")
+        let stripeSandbox = arguments.contains("--fixture-stripe-sandbox")
+            || hasSandboxResult
+        if arguments.contains("--fixture-sandbox-missing-result") {
+            personalResult = .sandboxMissing
+        } else if arguments.contains("--fixture-expired-review") {
+            personalResult = .sandboxExpiredMiss
+        } else if arguments.contains("--fixture-stripe-review")
+            || arguments.contains("--fixture-open-review-challenge")
+        {
+            personalResult = .sandboxOpenMiss
+        } else if stripeSandbox
+            || arguments.contains("--fixture-sandbox-met")
+        {
+            personalResult = .sandboxMet
+        } else {
+            personalResult = .testOnlyMet
+        }
+    }
+}
+
+private enum FixturePersonalResult: Equatable {
+    case testOnlyMet
+    case sandboxMet
+    case sandboxMissing
+    case sandboxOpenMiss
+    case sandboxExpiredMiss
+
+    var settlementMode: PersonalSettlementMode {
+        self == .testOnlyMet ? .testOnly : .stripeSandbox
     }
 }
 
@@ -170,10 +201,13 @@ private final class FixturePersonalStore {
         challenges = scenario.empty
             ? []
             : [
-                Self.activeChallenge(now: now),
+                Self.activeChallenge(
+                    now: now,
+                    settlementMode: scenario.personalResult.settlementMode
+                ),
                 Self.completedChallenge(
                     now: now,
-                    stripeReview: scenario.stripeReview
+                    result: scenario.personalResult
                 ),
             ]
     }
@@ -209,7 +243,10 @@ private final class FixturePersonalStore {
         )
     }
 
-    private static func activeChallenge(now: Date) -> PersonalChallengeDetail {
+    private static func activeChallenge(
+        now: Date,
+        settlementMode: PersonalSettlementMode
+    ) -> PersonalChallengeDetail {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "America/Chicago")!
         let today = calendar.startOfDay(for: now)
@@ -238,8 +275,10 @@ private final class FixturePersonalStore {
                 targetSteps: 10_000,
                 commitmentAmountMinor: 1_000,
                 currency: "USD",
-                settlementMode: .testOnly,
-                termsVersion: "personal-v2",
+                settlementMode: settlementMode,
+                termsVersion: settlementMode == .stripeSandbox
+                    ? "personal-stripe-sandbox-v1"
+                    : "personal-v2",
                 timezone: "America/Chicago",
                 agreementAt: start.addingTimeInterval(-86_400),
                 startsAt: start,
@@ -281,28 +320,35 @@ private final class FixturePersonalStore {
 
     private static func completedChallenge(
         now: Date,
-        stripeReview: Bool
+        result: FixturePersonalResult
     )
         -> PersonalChallengeDetail
     {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "America/Chicago")!
+        let hasExpiredReview = result == .sandboxExpiredMiss
+        let hasOpenReview = result == .sandboxOpenMiss
+        let isMissing = result == .sandboxMissing
+        let usesRecentResult = hasOpenReview || isMissing
         let end = calendar.date(
             byAdding: .day,
-            value: stripeReview ? -2 : -9,
+            value: usesRecentResult ? -2 : -9,
             to: calendar.startOfDay(for: now)
         )!
         let start = calendar.date(byAdding: .day, value: -7, to: end)!
         let cutoff = calendar.date(byAdding: .day, value: 1, to: end)!
+        let isMissed = hasOpenReview || hasExpiredReview
         let days = (0..<7).map { offset -> PersonalDayProgress in
             let date = calendar.date(byAdding: .day, value: offset, to: start)!
             return PersonalDayProgress(
                 localDate: Self.localDate(date, calendar: calendar),
-                trustedSteps: stripeReview
-                    ? 8_000
-                    : Double(10_000 + offset * 190),
+                trustedSteps: isMissing
+                    ? 0
+                    : isMissed
+                        ? 8_000
+                        : Double(10_000 + offset * 190),
                 targetSteps: nil,
-                evidenceState: .complete,
+                evidenceState: isMissing ? .missing : .complete,
                 metTarget: nil
             )
         }
@@ -316,10 +362,8 @@ private final class FixturePersonalStore {
                 targetSteps: 70_000,
                 commitmentAmountMinor: 2_000,
                 currency: "USD",
-                settlementMode: stripeReview
-                    ? .stripeSandbox
-                    : .testOnly,
-                termsVersion: stripeReview
+                settlementMode: result.settlementMode,
+                termsVersion: result.settlementMode == .stripeSandbox
                     ? "personal-stripe-sandbox-v1"
                     : "personal-v2",
                 timezone: "America/Chicago",
@@ -333,11 +377,11 @@ private final class FixturePersonalStore {
                 trustedSteps: days.reduce(0) {
                     $0 + $1.displayedTrustedSteps
                 },
-                remainingSteps: stripeReview ? 14_000 : 0,
+                remainingSteps: isMissing ? 70_000 : isMissed ? 14_000 : 0,
                 qualifyingDays: 0,
                 completedDays: 7,
                 days: days,
-                evidenceState: .complete,
+                evidenceState: isMissing ? .missing : .complete,
                 lastTrustedSyncAt: end.addingTimeInterval(-300),
                 pendingUploadCount: 0,
                 coveredBucketCount: 168,
@@ -347,27 +391,35 @@ private final class FixturePersonalStore {
                 id: UUID(
                     uuidString: "22222222-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
                 )!,
-                kind: stripeReview ? .missedGoal : .metGoal,
-                reasonCode: stripeReview
-                    ? "target_missed_complete_evidence"
-                    : "target_reached_complete_evidence",
+                kind: isMissing
+                    ? .inconclusive
+                    : isMissed
+                        ? .missedGoal
+                        : .metGoal,
+                reasonCode: isMissing
+                    ? "missing_health_data"
+                    : isMissed
+                        ? "target_missed_complete_evidence"
+                        : "target_reached_complete_evidence",
                 evidenceCutoff: cutoff,
                 publishedAt: cutoff.addingTimeInterval(60)
             ),
             stepDataPolicy: .healthKitNonmanualDailyV1,
             termsFingerprint: "fixture-completed-terms-v2",
-            serverStepSnapshot: PersonalStepSnapshot(
-                challengeID: completedChallengeID,
-                termsFingerprint: "fixture-completed-terms-v2",
-                observedAt: cutoff,
-                queryThrough: end,
-                dailyProgress: days.map {
-                    PersonalStepSnapshot.Day(
-                        localDate: $0.localDate,
-                        totalSteps: $0.displayedTrustedSteps
-                    )
-                }
-            ),
+            serverStepSnapshot: isMissing
+                ? nil
+                : PersonalStepSnapshot(
+                    challengeID: completedChallengeID,
+                    termsFingerprint: "fixture-completed-terms-v2",
+                    observedAt: cutoff,
+                    queryThrough: end,
+                    dailyProgress: days.map {
+                        PersonalStepSnapshot.Day(
+                            localDate: $0.localDate,
+                            totalSteps: $0.displayedTrustedSteps
+                        )
+                    }
+                ),
             snapshotUpdatedAt: cutoff,
             commitmentWaived: false
         )
@@ -1407,9 +1459,14 @@ private final class FixturePersonalAccountabilityClient:
 @MainActor
 private final class FixturePersonalPaymentClient: PersonalPaymentClient {
     private let accountability: any PersonalAccountabilityClient
+    private let store: FixturePersonalStore
 
-    init(accountability: any PersonalAccountabilityClient) {
+    init(
+        accountability: any PersonalAccountabilityClient,
+        store: FixturePersonalStore
+    ) {
         self.accountability = accountability
+        self.store = store
     }
 
     func prepare(
@@ -1442,10 +1499,20 @@ private final class FixturePersonalPaymentClient: PersonalPaymentClient {
         reason: PersonalReviewReason,
         expectedUserID: UUID
     ) async throws -> PersonalReviewRequestResult {
-        _ = (challengeID, reason, expectedUserID)
+        _ = (reason, expectedUserID)
+        guard
+            let challenge = store.challenges.first(where: {
+                $0.id == challengeID
+            }),
+            let publishedAt = challenge.outcome?.publishedAt
+        else {
+            throw PersonalPaymentClientError.invalidResponse
+        }
         return PersonalReviewRequestResult(
             state: .underReview,
-            reviewDeadline: Date().addingTimeInterval(6 * 86_400),
+            reviewDeadline: publishedAt.addingTimeInterval(
+                PersonalResultPresentation.reviewWindow
+            ),
             replayed: false
         )
     }

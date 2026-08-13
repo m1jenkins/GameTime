@@ -9,10 +9,6 @@ struct TodayView: View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 header
-                TestCommitmentDisclosure(
-                    settlementMode:
-                        store.configuration.personalSettlementMode
-                )
                 loadState
 
                 if let challenge = store.openChallenge {

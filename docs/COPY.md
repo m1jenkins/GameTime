@@ -89,6 +89,33 @@ Show the saved payment method by brand and last four digits when Stripe provides
 them. Never show a full payment number, Stripe identifier, `SetupIntent`,
 `PaymentIntent`, mandate, webhook, or idempotency language.
 
+### Placement: disclose the environment once, protect each decision
+
+The compact environment banner is the canonical ambient disclosure. Show it
+once above the app root in every test-only and Stripe-sandbox configuration:
+
+- **Test commitment — no money will be charged.**
+- **Payment test mode — no real money moves.**
+
+Use the same compact component once inside a presented creation sheet because
+the sheet covers the root banner. Interactive Demo replaces it with **Demo mode
+— no money will be charged. Nothing here leaves your phone.** Do not repeat the
+environment promise in ordinary Today, Challenges, You, Privacy, detail, or
+signed-out cards. The shared accessibility identifier is
+`personal.environment-disclosure`.
+
+Detailed protection copy belongs where a choice has consequences: beside the
+selected amount, during test-payment consent, on the confirmation receipt, and
+beside a final result or review action. Repetition at those decision points is
+intentional. Keep the exact Stripe consent sentence and payment trigger
+unchanged; changing placement never changes the agreement or its version.
+
+The confirmation receipt groups the frozen facts under **Your challenge**,
+**When it starts**, and **Payment protection**, with no more than four facts in
+each group. Longer start and cadence explanations, pre-start cancellation, and
+the safe saved-draft explanation stay behind **More details**. Never show the
+draft request identifier.
+
 ### Future live copy
 
 Live mode uses the same outcome rules without “test” language. Its primary

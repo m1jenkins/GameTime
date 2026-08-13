@@ -1,43 +1,5 @@
 import SwiftUI
 
-struct TestCommitmentDisclosure: View {
-    let settlementMode: PersonalSettlementMode
-
-    var body: some View {
-        Label(
-            settlementMode.disclosureText,
-            systemImage: "checkmark.shield.fill"
-        )
-        .font(
-            CompetitiveTrustTheme.uiFont(
-                size: 13,
-                relativeTo: .subheadline,
-                weight: .bold
-            )
-        )
-        .foregroundStyle(CompetitiveTrustTheme.sunInk)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            CompetitiveTrustTheme.sunTint,
-            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-        )
-        .accessibilityIdentifier("personal.test-only-disclosure")
-    }
-}
-
-extension PersonalSettlementMode {
-    var disclosureText: String {
-        switch self {
-        case .testOnly:
-            "Test commitment — no money will be charged."
-        case .stripeSandbox:
-            "Payment test mode — no real money moves."
-        }
-    }
-}
-
 struct PersonalChallengeCard: View {
     let challenge: PersonalChallengeSummary
     let action: () -> Void

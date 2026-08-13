@@ -5,10 +5,6 @@ enum AppEnvironment: String, Equatable, Sendable {
     case debug
     case staging
     case release
-
-    var showsTestEnvironmentBanner: Bool {
-        self == .staging || self == .release
-    }
 }
 
 typealias AppAttestEnvironment = MetricUploadAttestationEnvironment
@@ -337,14 +333,20 @@ struct AppConfiguration: Equatable, Sendable {
         environment: .debug,
         supabaseURL: URL(string: "http://127.0.0.1:54321")!,
         supabasePublishableKey: "sb_publishable_fixture_only",
-        contestMutationsEnabled: true
+        contestMutationsEnabled: true,
+        privacyPolicyURL: URL(string: "https://fixture.invalid/privacy"),
+        betaTermsURL: URL(string: "https://fixture.invalid/terms"),
+        supportEmail: "support@fixture.invalid"
     )
 
     static let activityFixture = AppConfiguration(
         environment: .staging,
         supabaseURL: URL(string: "https://fixture.invalid")!,
         supabasePublishableKey: "sb_publishable_fixture_only",
-        contestMutationsEnabled: true
+        contestMutationsEnabled: true,
+        privacyPolicyURL: URL(string: "https://fixture.invalid/privacy"),
+        betaTermsURL: URL(string: "https://fixture.invalid/terms"),
+        supportEmail: "support@fixture.invalid"
     )
 
     static let stripeSandboxFixture = AppConfiguration(
@@ -355,7 +357,10 @@ struct AppConfiguration: Equatable, Sendable {
         personalSettlementMode: .stripeSandbox,
         stripeReturnURL: URL(
             string: "gametime-staging://stripe-redirect"
-        )!
+        )!,
+        privacyPolicyURL: URL(string: "https://fixture.invalid/privacy"),
+        betaTermsURL: URL(string: "https://fixture.invalid/terms"),
+        supportEmail: "support@fixture.invalid"
     )
     #endif
 

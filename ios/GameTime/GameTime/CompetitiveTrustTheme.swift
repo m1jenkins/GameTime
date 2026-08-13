@@ -490,22 +490,40 @@ struct TrustStatusPill: View {
     }
 }
 
-struct TestEnvironmentBanner: View {
-    let settlementMode: PersonalSettlementMode
+enum EnvironmentDisclosureCopy {
+    static let testOnly =
+        "Test commitment — no money will be charged."
+    static let stripeSandbox =
+        "Payment test mode — no real money moves."
+    static let demo =
+        "Demo mode — no money will be charged. Nothing here leaves your phone."
 
-    private var message: String {
+    static func message(for settlementMode: PersonalSettlementMode) -> String {
         switch settlementMode {
         case .testOnly:
-            "Test commitment — no money will be charged."
+            testOnly
         case .stripeSandbox:
-            "Payment test mode — no real money moves."
+            stripeSandbox
         }
+    }
+}
+
+struct EnvironmentDisclosureBanner: View {
+    let settlementMode: PersonalSettlementMode
+    var isDemo = false
+
+    private var message: String {
+        isDemo
+            ? EnvironmentDisclosureCopy.demo
+            : EnvironmentDisclosureCopy.message(for: settlementMode)
     }
 
     var body: some View {
         Label(
             message,
-            systemImage: "exclamationmark.shield.fill"
+            systemImage: isDemo
+                ? "play.circle.fill"
+                : "exclamationmark.shield.fill"
         )
         .font(
             CompetitiveTrustTheme.uiFont(
@@ -514,10 +532,17 @@ struct TestEnvironmentBanner: View {
                 weight: .bold
             )
         )
-        .foregroundStyle(CompetitiveTrustTheme.primaryText)
+        .foregroundStyle(
+            isDemo ? Color.white : CompetitiveTrustTheme.primaryText
+        )
         .frame(maxWidth: .infinity)
         .padding(.vertical, 7)
-        .background(CompetitiveTrustTheme.sun)
+        .background(
+            isDemo
+                ? CompetitiveTrustTheme.coral
+                : CompetitiveTrustTheme.sun
+        )
         .accessibilityLabel(message)
+        .accessibilityIdentifier("personal.environment-disclosure")
     }
 }

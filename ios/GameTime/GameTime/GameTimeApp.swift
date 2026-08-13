@@ -34,8 +34,16 @@ struct GameTimeApp: App {
         let arguments = ProcessInfo.processInfo.arguments
         let fixtureLaunch = arguments.contains("--fixture-mode")
         let interactiveDemoLaunch = arguments.contains("--demo-interactive")
+            || arguments.contains("--fixture-demo-interactive")
         #if DEBUG || STAGING
         let usesFixtureModel = fixtureLaunch
+        let usesStripeSandboxFixture = arguments.contains(
+            "--fixture-stripe-sandbox"
+        ) || arguments.contains("--fixture-sandbox-met")
+            || arguments.contains("--fixture-sandbox-missing-result")
+            || arguments.contains("--fixture-stripe-review")
+            || arguments.contains("--fixture-open-review-challenge")
+            || arguments.contains("--fixture-expired-review")
         #else
         let usesFixtureModel = false
         #endif
@@ -43,10 +51,13 @@ struct GameTimeApp: App {
 
         let initialRouter = AppRouter()
         #if DEBUG || STAGING
+        let opensCompletedPersonalResult = arguments.contains(
+            "--fixture-open-review-challenge"
+        ) || arguments.contains("--fixture-open-result-challenge")
         if usesFixtureModel,
             arguments.contains("--fixture-challenges")
                 || arguments.contains("--fixture-open-active-challenge")
-                || arguments.contains("--fixture-open-review-challenge")
+                || opensCompletedPersonalResult
         {
             initialRouter.selectedTab = .challenges
         }
@@ -61,7 +72,7 @@ struct GameTimeApp: App {
             ]
         }
         if usesFixtureModel,
-            arguments.contains("--fixture-open-review-challenge"),
+            opensCompletedPersonalResult,
             let reviewChallengeID = UUID(
                 uuidString: "19191919-1919-1919-1919-191919191919"
             )
@@ -79,7 +90,7 @@ struct GameTimeApp: App {
 
             #if DEBUG || STAGING
             if usesFixtureModel {
-                if arguments.contains("--fixture-stripe-sandbox") {
+                if usesStripeSandboxFixture {
                     configuration = .stripeSandboxFixture
                 } else {
                     configuration = arguments.contains("--fixture-activity")
@@ -295,20 +306,18 @@ struct RootView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if demoMode.isActive {
-                DemoEnvironmentBanner()
-            } else if model.configuration.environment
-                .showsTestEnvironmentBanner
-            {
-                TestEnvironmentBanner(
-                    settlementMode:
-                        model.configuration.personalSettlementMode
-                )
-                    .background(
-                        CompetitiveTrustTheme.sun
-                            .ignoresSafeArea(edges: .top)
-                    )
-            }
+            EnvironmentDisclosureBanner(
+                settlementMode:
+                    model.configuration.personalSettlementMode,
+                isDemo: demoMode.isActive
+            )
+            .background(
+                (demoMode.isActive
+                    ? CompetitiveTrustTheme.coral
+                    : CompetitiveTrustTheme.sun)
+                    .ignoresSafeArea(edges: .top)
+            )
+            .accessibilityHidden(router.presentedSheet != nil)
 
             Group {
                 switch model.phase {
@@ -424,22 +433,6 @@ struct RootView: View {
     }
 }
 
-private struct DemoEnvironmentBanner: View {
-    var body: some View {
-        Label(
-            "Demo mode — nothing here leaves your phone",
-            systemImage: "play.circle.fill"
-        )
-        .font(.caption.weight(.bold))
-        .foregroundStyle(CompetitiveTrustTheme.ink)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 7)
-        .frame(maxWidth: .infinity)
-        .background(CompetitiveTrustTheme.teal)
-        .accessibilityIdentifier("demo.banner")
-    }
-}
-
 private struct ConfigurationFailureView: View {
     let message: String
 
@@ -518,11 +511,6 @@ private struct SignedOutView: View {
                     Label(
                         "Hit it every day, or hit a weekly total",
                         systemImage: "checkmark.shield"
-                    )
-                    Label(
-                        model.configuration.personalSettlementMode
-                            .disclosureText,
-                        systemImage: "figure.walk"
                     )
                 }
                 .font(.subheadline)
