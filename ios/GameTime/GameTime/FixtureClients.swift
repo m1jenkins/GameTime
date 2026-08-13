@@ -6,6 +6,7 @@ enum FixtureServicesFactory {
     static func make(
         arguments: [String] = ProcessInfo.processInfo.arguments,
         pendingChallengeStore: (any PendingChallengeStore)? = nil,
+        profileClient: (any ProfileClient)? = nil,
         friendshipsClient: (any FriendshipsClient)? = nil,
         contestsClient: (any ContestsClient)? = nil,
         activitySync: (any ActivitySyncing)? = nil,
@@ -36,7 +37,7 @@ enum FixtureServicesFactory {
             )
         return AppServices(
             auth: FixtureAuthClient(store: store),
-            profiles: FixtureProfileClient(store: store),
+            profiles: profileClient ?? FixtureProfileClient(store: store),
             friendships: friendshipsClient
                 ?? FixtureFriendshipsClient(store: store),
             contests: contestsClient ?? FixtureContestsClient(store: store),
@@ -98,6 +99,10 @@ private struct FixtureScenario {
     let pendingPersonalCreation: Bool
     let stripeSandbox: Bool
     let stripeReview: Bool
+    let profileCreationDelayed: Bool
+    let profileUsernameUnavailable: Bool
+    let profileOfflineOnce: Bool
+    let profileServerFailure: Bool
 
     init(arguments: [String]) {
         signedOut = arguments.contains("--fixture-signed-out")
@@ -126,6 +131,18 @@ private struct FixtureScenario {
         )
         stripeSandbox = arguments.contains("--fixture-stripe-sandbox")
         stripeReview = arguments.contains("--fixture-stripe-review")
+        profileCreationDelayed = arguments.contains(
+            "--fixture-profile-delayed"
+        )
+        profileUsernameUnavailable = arguments.contains(
+            "--fixture-profile-unavailable"
+        )
+        profileOfflineOnce = arguments.contains(
+            "--fixture-profile-offline-once"
+        )
+        profileServerFailure = arguments.contains(
+            "--fixture-profile-server-error"
+        )
     }
 }
 
@@ -422,7 +439,12 @@ private final class FixtureStore {
     let launchError: Bool
     let lostChallengeResponse: Bool
     let instantlyAcceptFriendRequests: Bool
+    let profileCreationDelayed: Bool
+    let profileUsernameUnavailable: Bool
+    let profileOfflineOnce: Bool
+    let profileServerFailure: Bool
     var hasLostChallengeResponse = false
+    var profileCreationAttemptCount = 0
 
     init(scenario: FixtureScenario) {
         userID = scenario.signedOut ? nil : Self.callerID
@@ -441,6 +463,10 @@ private final class FixtureStore {
         lostChallengeResponse = scenario.lostChallengeResponse
         instantlyAcceptFriendRequests =
             scenario.instantlyAcceptFriendRequests
+        profileCreationDelayed = scenario.profileCreationDelayed
+        profileUsernameUnavailable = scenario.profileUsernameUnavailable
+        profileOfflineOnce = scenario.profileOfflineOnce
+        profileServerFailure = scenario.profileServerFailure
         discoverableProfiles = [
             ProfileCard(
                 id: Self.friendID,
@@ -851,6 +877,21 @@ private final class FixtureProfileClient: ProfileClient {
         displayName: String,
         timezone: String
     ) async throws -> UserProfile {
+        store.profileCreationAttemptCount += 1
+        if store.profileCreationDelayed {
+            try await Task.sleep(for: .milliseconds(2_500))
+        }
+        if store.profileUsernameUnavailable {
+            throw AppMutationError.handleUnavailable
+        }
+        if store.profileOfflineOnce,
+            store.profileCreationAttemptCount == 1
+        {
+            throw AppMutationError.offline
+        }
+        if store.profileServerFailure {
+            throw AppMutationError.server("Fixture profile service failure")
+        }
         let profile = UserProfile(
             id: userID,
             handle: handle,

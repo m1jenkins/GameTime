@@ -29,7 +29,318 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(onboarding.textFields["Your name"].exists)
         XCTAssertTrue(onboarding.textFields["Username"].exists)
+        XCTAssertEqual(
+            onboarding.descendants(matching: .any)[
+                "onboarding.username.requirement.length"
+            ].label,
+            "3–30 characters"
+        )
+        XCTAssertEqual(
+            onboarding.descendants(matching: .any)[
+                "onboarding.username.requirement.leading-letter"
+            ].label,
+            "Begins with a letter"
+        )
+        XCTAssertEqual(
+            onboarding.descendants(matching: .any)[
+                "onboarding.username.requirement.characters"
+            ].label,
+            "Letters, numbers, or underscores only"
+        )
+        XCTAssertEqual(
+            onboarding.descendants(matching: .any)[
+                "onboarding.username.permanence"
+            ].label,
+            "You can’t change your username after you continue."
+        )
+        XCTAssertFalse(onboarding.buttons["onboarding.submit"].isEnabled)
+        XCTAssertTrue(onboarding.buttons["onboarding.sign-out"].exists)
         assertNoForbiddenLanguage(in: onboarding)
+    }
+
+    func testProfileSetupValidatesEveryUsernameRuleWhileTyping() {
+        let app = launch("--fixture-onboarding")
+        let name = app.textFields["Your name"]
+        let username = app.textFields["Username"]
+        let length = app.descendants(matching: .any)[
+            "onboarding.username.requirement.length"
+        ]
+        let leadingLetter = app.descendants(matching: .any)[
+            "onboarding.username.requirement.leading-letter"
+        ]
+        let characters = app.descendants(matching: .any)[
+            "onboarding.username.requirement.characters"
+        ]
+
+        XCTAssertTrue(name.waitForExistence(timeout: 4))
+        XCTAssertEqual(length.value as? String, "Not checked")
+        XCTAssertEqual(leadingLetter.value as? String, "Not checked")
+        XCTAssertEqual(characters.value as? String, "Not checked")
+        name.tap()
+        name.typeText("Taylor")
+
+        username.tap()
+        username.typeText("ab")
+        XCTAssertEqual(length.value as? String, "Not met")
+        XCTAssertEqual(leadingLetter.value as? String, "Met")
+        XCTAssertEqual(characters.value as? String, "Met")
+        XCTAssertFalse(app.buttons["onboarding.submit"].isEnabled)
+
+        replaceText(in: username, current: "ab", with: "1runner")
+        XCTAssertEqual(length.value as? String, "Met")
+        XCTAssertEqual(leadingLetter.value as? String, "Not met")
+        XCTAssertEqual(characters.value as? String, "Met")
+        XCTAssertFalse(app.buttons["onboarding.submit"].isEnabled)
+
+        replaceText(in: username, current: "1runner", with: "run-fast")
+        XCTAssertEqual(length.value as? String, "Met")
+        XCTAssertEqual(leadingLetter.value as? String, "Met")
+        XCTAssertEqual(characters.value as? String, "Not met")
+        XCTAssertFalse(app.buttons["onboarding.submit"].isEnabled)
+
+        let tooLong = "a" + String(repeating: "b", count: 30)
+        replaceText(in: username, current: "run-fast", with: tooLong)
+        XCTAssertEqual(length.value as? String, "Not met")
+        XCTAssertEqual(leadingLetter.value as? String, "Met")
+        XCTAssertEqual(characters.value as? String, "Met")
+        XCTAssertFalse(app.buttons["onboarding.submit"].isEnabled)
+
+        replaceText(in: username, current: tooLong, with: "runner_1")
+        XCTAssertEqual(length.value as? String, "Met")
+        XCTAssertEqual(leadingLetter.value as? String, "Met")
+        XCTAssertEqual(characters.value as? String, "Met")
+        XCTAssertTrue(app.buttons["onboarding.submit"].isEnabled)
+        XCTAssertFalse(app.alerts["GameTime"].exists)
+    }
+
+    func testProfileSetupNameValidationStaysBesideTheField() {
+        let app = launch("--fixture-onboarding")
+        let name = app.textFields["Your name"]
+        let username = app.textFields["Username"]
+
+        XCTAssertTrue(name.waitForExistence(timeout: 4))
+        name.tap()
+        name.typeText("A")
+        name.typeText(XCUIKeyboardKey.delete.rawValue)
+        let nameError = app.descendants(matching: .any)[
+            "onboarding.name.error"
+        ]
+        XCTAssertTrue(nameError.waitForExistence(timeout: 2))
+        XCTAssertEqual(
+            nameError.label,
+            "Enter the name you want us to use."
+        )
+
+        name.typeText(String(repeating: "a", count: 51))
+        username.tap()
+        username.typeText("runner_1")
+        XCTAssertEqual(
+            nameError.label,
+            "Keep your name to 50 characters or fewer."
+        )
+        XCTAssertFalse(app.buttons["onboarding.submit"].isEnabled)
+        XCTAssertFalse(app.alerts["GameTime"].exists)
+    }
+
+    func testProfileSetupKeyboardNextAndDoneSurfaceInlineErrors() {
+        let app = launch("--fixture-onboarding")
+        let name = app.textFields["Your name"]
+        XCTAssertTrue(name.waitForExistence(timeout: 4))
+
+        name.tap()
+        name.typeText("\n")
+        XCTAssertTrue(
+            app.descendants(matching: .any)["onboarding.name.error"]
+                .waitForExistence(timeout: 2)
+        )
+
+        name.typeText("Taylor")
+        name.typeText("\n")
+        let username = app.textFields["Username"]
+        username.typeText("ab\n")
+
+        let formatError = app.descendants(matching: .any)[
+            "onboarding.username.format-error"
+        ]
+        XCTAssertTrue(formatError.waitForExistence(timeout: 2))
+        XCTAssertEqual(formatError.label, "Use at least 3 characters.")
+        XCTAssertFalse(app.alerts["GameTime"].exists)
+
+        username.typeText(
+            String(
+                repeating: XCUIKeyboardKey.delete.rawValue,
+                count: 2
+            )
+        )
+        username.typeText("runner_1\n")
+        XCTAssertTrue(
+            app.navigationBars["Today"].waitForExistence(timeout: 5)
+        )
+    }
+
+    func testProfileSetupUnavailableUsernameIsInlineAndPreservesDraft() {
+        let app = launch(
+            "--fixture-onboarding",
+            "--fixture-profile-unavailable"
+        )
+        fillProfileSetup(
+            in: app,
+            displayName: "Taylor Runner",
+            username: "runner_1"
+        )
+        submitProfileSetup(in: app)
+
+        let error = app.descendants(matching: .any)[
+            "onboarding.username.error"
+        ]
+        XCTAssertTrue(error.waitForExistence(timeout: 4))
+        XCTAssertEqual(
+            app.textFields["Your name"].value as? String,
+            "Taylor Runner"
+        )
+        XCTAssertEqual(
+            app.textFields["Username"].value as? String,
+            "runner_1"
+        )
+        XCTAssertFalse(app.alerts["GameTime"].exists)
+        XCTAssertFalse(app.buttons["onboarding.submit"].isEnabled)
+
+        app.textFields["Your name"].tap()
+        app.textFields["Your name"].typeText(" Jr")
+        XCTAssertTrue(error.exists)
+        XCTAssertFalse(app.buttons["onboarding.submit"].isEnabled)
+
+        app.textFields["Username"].tap()
+        app.textFields["Username"].typeText("2")
+        XCTAssertFalse(error.exists)
+        XCTAssertTrue(app.buttons["onboarding.submit"].isEnabled)
+    }
+
+    func testProfileSetupOfflineRetryPreservesDraftAndCompletes() {
+        let app = launch(
+            "--fixture-onboarding",
+            "--fixture-profile-offline-once"
+        )
+        fillProfileSetup(
+            in: app,
+            displayName: "Taylor Runner",
+            username: "runner_1"
+        )
+        submitProfileSetup(in: app)
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)[
+                "onboarding.submission.offline"
+            ].waitForExistence(timeout: 4)
+        )
+        XCTAssertEqual(
+            app.textFields["Your name"].value as? String,
+            "Taylor Runner"
+        )
+        XCTAssertEqual(
+            app.textFields["Username"].value as? String,
+            "runner_1"
+        )
+        XCTAssertFalse(app.alerts["GameTime"].exists)
+
+        let retry = app.buttons["onboarding.retry"]
+        XCTAssertTrue(retry.exists)
+        XCTAssertTrue(retry.isEnabled)
+        assertMinimumHitTarget(retry)
+        retry.tap()
+
+        XCTAssertTrue(
+            app.navigationBars["Today"].waitForExistence(timeout: 5)
+        )
+    }
+
+    func testProfileSetupShowsLoadingThenCompletesWithEnteredIdentity() {
+        let app = launch(
+            "--fixture-onboarding",
+            "--fixture-profile-delayed"
+        )
+        fillProfileSetup(
+            in: app,
+            displayName: "Taylor Runner",
+            username: "runner_1"
+        )
+        submitProfileSetup(in: app)
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)[
+                "onboarding.submit.loading"
+            ].waitForExistence(timeout: 1)
+        )
+        XCTAssertFalse(app.textFields["Your name"].isEnabled)
+        XCTAssertFalse(app.textFields["Username"].isEnabled)
+        XCTAssertFalse(app.buttons["onboarding.sign-out"].isEnabled)
+
+        XCTAssertTrue(
+            app.navigationBars["Today"].waitForExistence(timeout: 5)
+        )
+        app.tabBars.buttons["You"].waitAndTap()
+        XCTAssertTrue(app.staticTexts["Taylor Runner"].exists)
+        XCTAssertEqual(
+            app.descendants(matching: .any)["profile.username"].label,
+            "Username runner_1"
+        )
+    }
+
+    func testProfileSetupUnknownServerFailureIsInlineAndRetryable() {
+        let app = launch(
+            "--fixture-onboarding",
+            "--fixture-profile-server-error"
+        )
+        fillProfileSetup(
+            in: app,
+            displayName: "Taylor Runner",
+            username: "runner_1"
+        )
+        submitProfileSetup(in: app)
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)[
+                "onboarding.submission.error"
+            ].waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(app.buttons["onboarding.retry"].isEnabled)
+        XCTAssertFalse(app.alerts["GameTime"].exists)
+    }
+
+    func testProfileSetupSignOutConfirmsDraftLossAndEscapes() {
+        let app = launch("--fixture-onboarding")
+        fillProfileSetup(
+            in: app,
+            displayName: "Taylor Runner",
+            username: "runner_1"
+        )
+
+        let signOut = app.buttons["onboarding.sign-out"]
+        XCTAssertTrue(signOut.exists)
+        assertMinimumHitTarget(signOut)
+        signOut.tap()
+
+        let confirmation = app.alerts[
+            "Sign out before finishing your profile?"
+        ]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 3))
+        let keepEditing = confirmation.buttons["Keep editing"].firstMatch
+        XCTAssertTrue(keepEditing.waitForExistence(timeout: 3))
+        keepEditing.tap()
+        XCTAssertEqual(
+            app.textFields["Your name"].value as? String,
+            "Taylor Runner"
+        )
+        XCTAssertEqual(
+            app.textFields["Username"].value as? String,
+            "runner_1"
+        )
+
+        signOut.tap()
+        confirmation.buttons["Sign out"].firstMatch.waitAndTap()
+        XCTAssertTrue(
+            app.buttons["Sign in with Apple"].waitForExistence(timeout: 5)
+        )
     }
 
     func testOnlyThreePersonalTabsAreReachable() {
@@ -847,8 +1158,10 @@ final class GameTimeUITests: XCTestCase {
         username.tap()
         username.typeText("taylor_access")
 
-        let enter = onboarding.buttons["Enter GameTime"]
-        for _ in 0..<8 where !enter.isHittable { onboarding.swipeUp() }
+        let enter = onboarding.buttons["onboarding.submit"]
+        for _ in 0..<6 {
+            onboarding.swipeUp(velocity: .fast)
+        }
         XCTAssertTrue(enter.isEnabled)
         XCTAssertTrue(enter.isHittable)
         assertMinimumHitTarget(enter)
@@ -1049,6 +1362,61 @@ final class GameTimeUITests: XCTestCase {
             file: file,
             line: line
         )
+    }
+
+    private func fillProfileSetup(
+        in app: XCUIApplication,
+        displayName: String,
+        username: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let name = app.textFields["Your name"]
+        XCTAssertTrue(
+            name.waitForExistence(timeout: 4),
+            file: file,
+            line: line
+        )
+        name.tap()
+        name.typeText(displayName)
+
+        let usernameField = app.textFields["Username"]
+        XCTAssertTrue(usernameField.exists, file: file, line: line)
+        usernameField.tap()
+        usernameField.typeText(username)
+        XCTAssertTrue(
+            app.buttons["onboarding.submit"].isEnabled,
+            file: file,
+            line: line
+        )
+    }
+
+    private func submitProfileSetup(
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let submit = app.buttons["onboarding.submit"]
+        for _ in 0..<8 where !submit.isHittable {
+            app.swipeUp()
+        }
+        XCTAssertTrue(submit.isHittable, file: file, line: line)
+        submit.tap()
+    }
+
+    private func replaceText(
+        in field: XCUIElement,
+        current: String,
+        with replacement: String
+    ) {
+        field.tap()
+        field.typeText(
+            String(
+                repeating: XCUIKeyboardKey.delete.rawValue,
+                count: current.count
+            )
+        )
+        field.typeText(replacement)
     }
 
     private func launch(_ extraArguments: String...) -> XCUIApplication {

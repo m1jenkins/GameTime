@@ -239,6 +239,422 @@ final class AppModelAndRoutingTests: XCTestCase {
         )
         XCTAssertEqual(model.phase, .signedIn)
         XCTAssertEqual(model.profile?.handle, "new_runner")
+        XCTAssertEqual(model.profileSetupSubmissionState, .succeeded)
+        XCTAssertNil(model.presentedError)
+    }
+
+    func testProfileSetupSubmitsStrictUsernameTrimmedNameAndTimezone()
+        async throws
+    {
+        let profiles = RecordingProfileClient()
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-onboarding",
+                ],
+                profileClient: profiles
+            )
+        )
+        await model.start()
+
+        await model.completeOnboarding(
+            handle: "Runner_1",
+            displayName: "  Taylor Runner  "
+        )
+
+        let submission = try XCTUnwrap(profiles.submissions.first)
+        XCTAssertEqual(profiles.submissions.count, 1)
+        XCTAssertEqual(submission.handle, "Runner_1")
+        XCTAssertEqual(submission.displayName, "Taylor Runner")
+        XCTAssertEqual(submission.timezone, TimeZone.current.identifier)
+        XCTAssertEqual(model.phase, .signedIn)
+        XCTAssertEqual(model.profileSetupSubmissionState, .succeeded)
+    }
+
+    func testEveryInvalidProfileSetupDraftStaysLocal() async {
+        let profiles = RecordingProfileClient()
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-onboarding",
+                ],
+                profileClient: profiles
+            )
+        )
+        await model.start()
+
+        let invalidDrafts: [(
+            displayName: String,
+            username: String,
+            issue: ProfileSetupValidationIssue
+        )] = [
+            ("   ", "runner_1", .displayNameRequired),
+            (
+                String(repeating: "a", count: 51),
+                "runner_1",
+                .displayNameTooLong
+            ),
+            ("Taylor", "ab", .usernameTooShort),
+            (
+                "Taylor",
+                "a" + String(repeating: "b", count: 30),
+                .usernameTooLong
+            ),
+            ("Taylor", "1runner", .usernameMustBeginWithLetter),
+            (
+                "Taylor",
+                "run-fast",
+                .usernameContainsInvalidCharacters
+            ),
+        ]
+
+        for draft in invalidDrafts {
+            await model.completeOnboarding(
+                handle: draft.username,
+                displayName: draft.displayName
+            )
+            guard case let .validationFailed(issues) =
+                model.profileSetupSubmissionState
+            else {
+                return XCTFail("Expected local validation for \(draft)")
+            }
+            XCTAssertTrue(issues.contains(draft.issue))
+            XCTAssertEqual(model.phase, .onboarding)
+        }
+
+        XCTAssertTrue(profiles.submissions.isEmpty)
+        XCTAssertNil(model.presentedError)
+    }
+
+    func testUnavailableProfileUsernameIsInlineAndKeepsOnboarding() async {
+        let profiles = RecordingProfileClient(
+            outcomes: [.failure(.handleUnavailable)]
+        )
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-onboarding",
+                ],
+                profileClient: profiles
+            )
+        )
+        await model.start()
+
+        await model.completeOnboarding(
+            handle: "runner_1",
+            displayName: "Taylor"
+        )
+
+        XCTAssertEqual(model.phase, .onboarding)
+        XCTAssertEqual(
+            model.profileSetupSubmissionState,
+            .usernameUnavailable(username: "runner_1")
+        )
+        XCTAssertEqual(profiles.submissions.count, 1)
+        XCTAssertNil(model.presentedError)
+
+        model.profileSetupInputDidChange(.displayName)
+        XCTAssertEqual(
+            model.profileSetupSubmissionState,
+            .usernameUnavailable(username: "runner_1")
+        )
+        model.profileSetupInputDidChange(.username)
+        XCTAssertEqual(model.profileSetupSubmissionState, .idle)
+    }
+
+    func testOfflineProfileSetupRetrySucceedsWithoutGlobalError() async {
+        let profiles = RecordingProfileClient(
+            outcomes: [.failure(.offline), .success]
+        )
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-onboarding",
+                ],
+                profileClient: profiles
+            )
+        )
+        await model.start()
+
+        await model.completeOnboarding(
+            handle: "runner_1",
+            displayName: "Taylor"
+        )
+
+        XCTAssertEqual(model.phase, .onboarding)
+        XCTAssertEqual(model.profileSetupSubmissionState, .offline)
+        XCTAssertNil(model.presentedError)
+
+        await model.completeOnboarding(
+            handle: "runner_1",
+            displayName: "Taylor"
+        )
+
+        XCTAssertEqual(profiles.submissions.count, 2)
+        XCTAssertEqual(model.phase, .signedIn)
+        XCTAssertEqual(model.profileSetupSubmissionState, .succeeded)
+        XCTAssertNil(model.presentedError)
+    }
+
+    func testUnknownProfileServiceFailureIsInlineAndRetryable() async {
+        let profiles = RecordingProfileClient(
+            outcomes: [.failure(.server("test failure"))]
+        )
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-onboarding",
+                ],
+                profileClient: profiles
+            )
+        )
+        await model.start()
+
+        await model.completeOnboarding(
+            handle: "runner_1",
+            displayName: "Taylor"
+        )
+
+        XCTAssertEqual(model.phase, .onboarding)
+        XCTAssertEqual(model.profileSetupSubmissionState, .failed)
+        XCTAssertNil(model.presentedError)
+        model.profileSetupInputDidChange(.displayName)
+        XCTAssertEqual(model.profileSetupSubmissionState, .idle)
+    }
+
+    func testProfileSetupHasExplicitLoadingAndSuccessStates() async {
+        let profiles = BlockingProfileClient()
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-onboarding",
+                ],
+                profileClient: profiles
+            )
+        )
+        await model.start()
+
+        let submission = Task { @MainActor in
+            await model.completeOnboarding(
+                handle: "runner_1",
+                displayName: "Taylor"
+            )
+        }
+        let submissionStarted = await profiles.waitUntilSubmissionStarts()
+        guard submissionStarted else {
+            submission.cancel()
+            XCTFail("Profile submission did not start.")
+            return
+        }
+
+        XCTAssertEqual(model.phase, .onboarding)
+        XCTAssertTrue(model.isMutating)
+        XCTAssertEqual(model.profileSetupSubmissionState, .submitting)
+
+        await model.completeOnboarding(
+            handle: "runner_1",
+            displayName: "Taylor"
+        )
+        XCTAssertEqual(profiles.submissionCount, 1)
+
+        profiles.finishSubmission()
+        await submission.value
+
+        XCTAssertFalse(model.isMutating)
+        XCTAssertEqual(model.phase, .signedIn)
+        XCTAssertEqual(model.profileSetupSubmissionState, .succeeded)
+    }
+
+    func testSignOutFromProfileSetupProvidesAnEscape() async {
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-onboarding",
+                ]
+            )
+        )
+        await model.start()
+        XCTAssertEqual(model.phase, .onboarding)
+
+        await model.signOut()
+
+        XCTAssertEqual(model.phase, .signedOut)
+        XCTAssertNil(model.userID)
+        XCTAssertEqual(model.profileSetupSubmissionState, .idle)
+    }
+
+    func testAppleNamePrefillSurvivesProfileResolution() async {
+        let profiles = RecordingProfileClient()
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-signed-out",
+                ],
+                profileClient: profiles
+            )
+        )
+        await model.start()
+
+        await model.signInWithApple(
+            AppleIdentity(
+                idToken: "fixture-token",
+                rawNonce: "fixture-nonce",
+                firstSignInDisplayName: "Taylor Runner"
+            )
+        )
+        let profileCallCount = profiles.currentProfileCallCount
+        for _ in 0..<100 {
+            await Task.yield()
+        }
+
+        XCTAssertEqual(model.phase, .onboarding)
+        XCTAssertEqual(model.onboardingNamePrefill, "Taylor Runner")
+        XCTAssertEqual(profiles.currentProfileCallCount, profileCallCount)
+    }
+
+    func testProfileCompletionCannotAttachAfterSignOut() async {
+        let profiles = BlockingProfileClient()
+        let model = AppModel(
+            configuration: .fixture,
+            services: FixtureServicesFactory.make(
+                arguments: [
+                    "GameTimeTests",
+                    "--fixture-mode",
+                    "--fixture-onboarding",
+                ],
+                profileClient: profiles
+            )
+        )
+        await model.start()
+        let submission = Task { @MainActor in
+            await model.completeOnboarding(
+                handle: "runner_1",
+                displayName: "Taylor"
+            )
+        }
+        let submissionStarted = await profiles.waitUntilSubmissionStarts()
+        guard submissionStarted else {
+            submission.cancel()
+            XCTFail("Profile submission did not start.")
+            return
+        }
+
+        await model.signOut()
+        profiles.finishSubmission()
+        await submission.value
+
+        XCTAssertEqual(model.phase, .signedOut)
+        XCTAssertNil(model.profile)
+        XCTAssertEqual(model.profileSetupSubmissionState, .idle)
+    }
+
+    func testAuthSwitchReleasesStaleProfileMutationWithoutLettingItClearReplacement()
+        async
+    {
+        let firstOwnerID = UUID(
+            uuidString: "11111111-1111-1111-1111-111111111111"
+        )!
+        let secondOwnerID = UUID(
+            uuidString: "22222222-2222-2222-2222-222222222222"
+        )!
+        let auth = SwitchingAuthClient(initialUserID: firstOwnerID)
+        let profiles = ActorBlockingProfileClient()
+        let fixture = FixtureServicesFactory.make(
+            arguments: ["GameTimeTests", "--fixture-mode"]
+        )
+        let model = AppModel(
+            configuration: .personalFixture,
+            services: AppServices(
+                auth: auth,
+                profiles: profiles,
+                friendships: fixture.friendships,
+                contests: fixture.contests,
+                pendingChallenges: fixture.pendingChallenges,
+                activitySync: fixture.activitySync
+            )
+        )
+        await model.start()
+        XCTAssertEqual(model.userID, firstOwnerID)
+        XCTAssertEqual(model.phase, .onboarding)
+
+        let staleSubmission = Task { @MainActor in
+            await model.completeOnboarding(
+                handle: "first_runner",
+                displayName: "First Runner"
+            )
+        }
+        await profiles.waitUntilSubmissionStarts(for: firstOwnerID)
+        XCTAssertTrue(model.isMutating)
+
+        auth.switchUser(to: secondOwnerID)
+        for _ in 0..<100 {
+            if model.userID == secondOwnerID, model.phase == .onboarding {
+                break
+            }
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+        guard model.userID == secondOwnerID, model.phase == .onboarding else {
+            profiles.finishSubmission(for: firstOwnerID)
+            await staleSubmission.value
+            return XCTFail("Replacement actor did not reach onboarding.")
+        }
+        guard !model.isMutating else {
+            profiles.finishSubmission(for: firstOwnerID)
+            await staleSubmission.value
+            return XCTFail("The stale actor kept onboarding disabled.")
+        }
+
+        let replacementSubmission = Task { @MainActor in
+            await model.completeOnboarding(
+                handle: "second_runner",
+                displayName: "Second Runner"
+            )
+        }
+        await profiles.waitUntilSubmissionStarts(for: secondOwnerID)
+        XCTAssertTrue(model.isMutating)
+        XCTAssertEqual(model.profileSetupSubmissionState, .submitting)
+
+        profiles.finishSubmission(for: firstOwnerID)
+        await staleSubmission.value
+
+        XCTAssertEqual(model.userID, secondOwnerID)
+        XCTAssertEqual(model.phase, .onboarding)
+        XCTAssertTrue(model.isMutating)
+        XCTAssertEqual(model.profileSetupSubmissionState, .submitting)
+
+        profiles.finishSubmission(for: secondOwnerID)
+        await replacementSubmission.value
+
+        XCTAssertEqual(model.userID, secondOwnerID)
+        XCTAssertEqual(model.profile?.id, secondOwnerID)
+        XCTAssertEqual(model.profile?.handle, "second_runner")
+        XCTAssertEqual(model.phase, .signedIn)
+        XCTAssertFalse(model.isMutating)
+        XCTAssertEqual(model.profileSetupSubmissionState, .succeeded)
     }
 
     func testSignOutClearsEveryLoadedUserValue() async {
@@ -1091,6 +1507,162 @@ private final class SwitchingAuthClient: AuthClient {
 
     func setCurrentUserWithoutPublishing(_ userID: UUID?) {
         self.userID = userID
+    }
+}
+
+@MainActor
+private final class RecordingProfileClient: ProfileClient {
+    struct Submission: Equatable {
+        let userID: UUID
+        let handle: String
+        let displayName: String
+        let timezone: String
+    }
+
+    enum Outcome {
+        case success
+        case failure(AppMutationError)
+    }
+
+    private var outcomes: [Outcome]
+    private var storedProfile: UserProfile?
+    private(set) var currentProfileCallCount = 0
+    private(set) var submissions: [Submission] = []
+
+    init(
+        currentProfile: UserProfile? = nil,
+        outcomes: [Outcome] = [.success]
+    ) {
+        storedProfile = currentProfile
+        self.outcomes = outcomes
+    }
+
+    func currentProfile(userID: UUID) async throws -> UserProfile? {
+        currentProfileCallCount += 1
+        return storedProfile?.id == userID ? storedProfile : nil
+    }
+
+    func createProfile(
+        userID: UUID,
+        handle: String,
+        displayName: String,
+        timezone: String
+    ) async throws -> UserProfile {
+        submissions.append(
+            Submission(
+                userID: userID,
+                handle: handle,
+                displayName: displayName,
+                timezone: timezone
+            )
+        )
+        let outcome = outcomes.isEmpty ? .success : outcomes.removeFirst()
+        switch outcome {
+        case .success:
+            let profile = UserProfile(
+                id: userID,
+                handle: handle,
+                displayName: displayName,
+                timezone: timezone
+            )
+            storedProfile = profile
+            return profile
+        case let .failure(error):
+            throw error
+        }
+    }
+}
+
+@MainActor
+private final class BlockingProfileClient: ProfileClient {
+    private var submissionStarted = false
+    private var submissionContinuation: CheckedContinuation<Void, Never>?
+    private(set) var submissionCount = 0
+
+    func currentProfile(userID: UUID) async throws -> UserProfile? {
+        _ = userID
+        return nil
+    }
+
+    func createProfile(
+        userID: UUID,
+        handle: String,
+        displayName: String,
+        timezone: String
+    ) async throws -> UserProfile {
+        submissionCount += 1
+        await withCheckedContinuation { continuation in
+            submissionContinuation = continuation
+            submissionStarted = true
+        }
+        return UserProfile(
+            id: userID,
+            handle: handle,
+            displayName: displayName,
+            timezone: timezone
+        )
+    }
+
+    func waitUntilSubmissionStarts(maxYields: Int = 1_000) async -> Bool {
+        for _ in 0..<maxYields {
+            if submissionStarted {
+                return true
+            }
+            await Task.yield()
+        }
+        return submissionStarted
+    }
+
+    func finishSubmission() {
+        submissionContinuation?.resume()
+        submissionContinuation = nil
+    }
+}
+
+@MainActor
+private final class ActorBlockingProfileClient: ProfileClient {
+    private var startedUserIDs: Set<UUID> = []
+    private var startWaiters:
+        [UUID: [CheckedContinuation<Void, Never>]] = [:]
+    private var submissionContinuations:
+        [UUID: CheckedContinuation<Void, Never>] = [:]
+
+    func currentProfile(userID: UUID) async throws -> UserProfile? {
+        _ = userID
+        return nil
+    }
+
+    func createProfile(
+        userID: UUID,
+        handle: String,
+        displayName: String,
+        timezone: String
+    ) async throws -> UserProfile {
+        startedUserIDs.insert(userID)
+        let waiters = startWaiters.removeValue(forKey: userID) ?? []
+        for waiter in waiters {
+            waiter.resume()
+        }
+        await withCheckedContinuation { continuation in
+            submissionContinuations[userID] = continuation
+        }
+        return UserProfile(
+            id: userID,
+            handle: handle,
+            displayName: displayName,
+            timezone: timezone
+        )
+    }
+
+    func waitUntilSubmissionStarts(for userID: UUID) async {
+        guard !startedUserIDs.contains(userID) else { return }
+        await withCheckedContinuation { continuation in
+            startWaiters[userID, default: []].append(continuation)
+        }
+    }
+
+    func finishSubmission(for userID: UUID) {
+        submissionContinuations.removeValue(forKey: userID)?.resume()
     }
 }
 

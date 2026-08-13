@@ -54,8 +54,9 @@ struct YouView: View {
                         Text("@\(profile.handle)")
                             .font(.subheadline)
                             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                            .accessibilityIdentifier("profile.username")
                             .accessibilityLabel(
-                                "Username \(profile.handle), can’t be changed yet"
+                                "Username \(profile.handle)"
                             )
                     }
                     Spacer(minLength: 0)
@@ -64,7 +65,6 @@ struct YouView: View {
                     .overlay(CompetitiveTrustTheme.border)
                     .padding(.vertical, 12)
                 settingRow("Time zone", profile.timezone)
-                settingRow("Username", "Can’t be changed yet")
             }
         }
     }
@@ -276,7 +276,7 @@ struct YouView: View {
 
     private var availabilityNote: some View {
         Text(
-            "You can’t change your username or add a photo yet."
+            "Profile photos aren’t available yet."
         )
         .font(.caption2)
         .foregroundStyle(CompetitiveTrustTheme.tertiaryText)

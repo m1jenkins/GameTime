@@ -417,10 +417,31 @@ final class SupabaseProfileClient: ProfileClient {
         // The account-deletion RLS boundary makes the actor active in an
         // AFTER INSERT trigger. Keep RETURNING out of this statement so its
         // SELECT policy is evaluated only after that binding has committed.
-        try await client
-            .from("profiles")
-            .insert(payload)
-            .execute()
+        do {
+            try await client
+                .from("profiles")
+                .insert(payload)
+                .execute()
+        } catch let error as PostgrestError {
+            switch ProfileCreationServerConflict.classify(
+                code: error.code,
+                message: error.message,
+                detail: error.detail
+            ) {
+            case .usernameUnavailable:
+                throw AppMutationError.handleUnavailable
+            case .existingProfile:
+                // The original INSERT may have committed before its response
+                // was lost. A retry then collides on the actor ID, so recover
+                // the profile that already completed onboarding.
+                if let profile = try await currentProfile(userID: userID) {
+                    return profile
+                }
+                throw error
+            case .unrelated:
+                throw error
+            }
+        }
 
         guard let profile = try await currentProfile(userID: userID) else {
             throw AppMutationError.server(

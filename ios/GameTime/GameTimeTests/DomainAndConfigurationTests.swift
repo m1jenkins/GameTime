@@ -395,6 +395,129 @@ final class DomainAndConfigurationTests: XCTestCase {
         XCTAssertNil(ExactHandleSubmission.normalized("contains spaces"))
     }
 
+    func testProfileSetupUsernameAcceptsThreeAndThirtyCharacters() {
+        let minimum = ProfileSetupValidation(
+            displayName: "Taylor",
+            username: "a_1"
+        )
+        let maximum = ProfileSetupValidation(
+            displayName: "Taylor",
+            username: "a" + String(repeating: "b", count: 29)
+        )
+
+        XCTAssertTrue(minimum.isValid)
+        XCTAssertTrue(maximum.isValid)
+    }
+
+    func testProfileSetupUsernameRejectsTooFewCharacters() {
+        let validation = ProfileSetupValidation(
+            displayName: "Taylor",
+            username: "ab"
+        )
+
+        XCTAssertEqual(validation.issues, [.usernameTooShort])
+    }
+
+    func testProfileSetupUsernameRejectsTooManyCharacters() {
+        let validation = ProfileSetupValidation(
+            displayName: "Taylor",
+            username: "a" + String(repeating: "b", count: 30)
+        )
+
+        XCTAssertEqual(validation.issues, [.usernameTooLong])
+    }
+
+    func testProfileSetupUsernameMustBeginWithASCIILetter() {
+        let validation = ProfileSetupValidation(
+            displayName: "Taylor",
+            username: "1runner"
+        )
+
+        XCTAssertEqual(
+            validation.issues,
+            [.usernameMustBeginWithLetter]
+        )
+    }
+
+    func testProfileSetupUsernameRejectsCharactersOutsideShownRules() {
+        for username in ["run-fast", "run fast", "@runner", "éclair"] {
+            let validation = ProfileSetupValidation(
+                displayName: "Taylor",
+                username: username
+            )
+
+            XCTAssertTrue(
+                validation.issues.contains(
+                    .usernameContainsInvalidCharacters
+                ),
+                "Expected \(username) to fail the allowed-character rule."
+            )
+        }
+    }
+
+    func testProfileSetupNameIsTrimmedAndEnforcesServerLength() {
+        let valid = ProfileSetupValidation(
+            displayName: "  Taylor Runner  ",
+            username: "runner_1"
+        )
+        let missing = ProfileSetupValidation(
+            displayName: "  \n ",
+            username: "runner_1"
+        )
+        let tooLong = ProfileSetupValidation(
+            displayName: String(repeating: "a", count: 51),
+            username: "runner_1"
+        )
+
+        XCTAssertEqual(valid.displayName, "Taylor Runner")
+        XCTAssertTrue(valid.isValid)
+        XCTAssertEqual(missing.issues, [.displayNameRequired])
+        XCTAssertEqual(tooLong.issues, [.displayNameTooLong])
+    }
+
+    func testProfileCreationServerConflictClassificationIsConstraintSpecific() {
+        XCTAssertEqual(
+            ProfileCreationServerConflict.classify(
+                code: "23505",
+                message: "duplicate key value violates unique constraint profiles_handle_key",
+                detail: nil
+            ),
+            .usernameUnavailable
+        )
+        XCTAssertEqual(
+            ProfileCreationServerConflict.classify(
+                code: "23514",
+                message: "violates check constraint profiles_handle_not_reserved",
+                detail: nil
+            ),
+            .usernameUnavailable
+        )
+        XCTAssertEqual(
+            ProfileCreationServerConflict.classify(
+                code: "23505",
+                message: "handle is not available",
+                detail: nil
+            ),
+            .usernameUnavailable
+        )
+        XCTAssertEqual(
+            ProfileCreationServerConflict.classify(
+                code: "23505",
+                message: "duplicate key value violates unique constraint profiles_pkey",
+                detail: "Key (id) already exists."
+            ),
+            .existingProfile
+        )
+        XCTAssertEqual(
+            ProfileCreationServerConflict.classify(
+                code: "23505",
+                message: "duplicate key value violates unique constraint something_else",
+                detail: nil
+            ),
+            .unrelated
+        )
+    }
+
     func testFriendshipCardDTOAndDirectionDecode() throws {
         let data = Data(
             """
@@ -732,5 +855,36 @@ final class DomainAndConfigurationTests: XCTestCase {
             ),
             .permissionDenied
         )
+        XCTAssertEqual(
+            AppMutationError.map(AppMutationError.handleUnavailable),
+            .handleUnavailable
+        )
+        XCTAssertEqual(
+            AppMutationError.map(URLError(.timedOut)),
+            .offline
+        )
+        XCTAssertEqual(
+            AppMutationError.map(URLError(.cannotConnectToHost)),
+            .offline
+        )
+        XCTAssertEqual(
+            AppMutationError.map(URLError(.notConnectedToInternet)),
+            .offline
+        )
+        XCTAssertEqual(
+            AppMutationError.map(URLError(.cancelled)),
+            .cancelled
+        )
+        if case .server = AppMutationError.map(
+            TestError(
+                errorDescription:
+                    "duplicate key value violates unique constraint profiles_pkey"
+            )
+        ) {
+            // A profile primary-key collision is recovered by the profile
+            // client and must never be mislabeled as username availability.
+        } else {
+            XCTFail("An unrelated duplicate was mislabeled.")
+        }
     }
 }

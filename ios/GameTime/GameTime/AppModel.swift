@@ -71,6 +71,8 @@ final class AppModel {
     private(set) var isMutating = false
     private(set) var accountDeletionNotice: String?
     private(set) var onboardingNamePrefill = ""
+    private(set) var profileSetupSubmissionState:
+        ProfileSetupSubmissionState = .idle
     private(set) var pendingChallenge: PendingChallengeSubmission?
     private(set) var hasPendingChallengeRecoveryIssue = false
     private(set) var activityAuthorizationOutcome:
@@ -86,6 +88,7 @@ final class AppModel {
     @ObservationIgnored private var isPerformingExplicitAuthMutation = false
     @ObservationIgnored private var authGeneration = UUID()
     @ObservationIgnored private var refreshGeneration = UUID()
+    @ObservationIgnored private var profileSetupMutationID: UUID?
     @ObservationIgnored private var pushRegistration: PushDeviceRegistration?
     @ObservationIgnored private var registeredPushActorID: UUID?
 
@@ -147,8 +150,10 @@ final class AppModel {
         do {
             let signedInUserID = try await services.auth.signInWithApple(identity)
             accountDeletionNotice = nil
-            onboardingNamePrefill = identity.firstSignInDisplayName ?? ""
-            await resolveAuthentication(userID: signedInUserID)
+            await resolveAuthentication(
+                userID: signedInUserID,
+                namePrefill: identity.firstSignInDisplayName
+            )
         } catch is CancellationError {
             return
         } catch {
@@ -157,31 +162,38 @@ final class AppModel {
     }
 
     func completeOnboarding(handle: String, displayName: String) async {
+        let validation = ProfileSetupValidation(
+            displayName: displayName,
+            username: handle
+        )
         guard let userID else {
             presentedError = "You’re signed out. Sign in again to continue."
             return
         }
-        guard let exactHandle = ExactHandleSubmission.normalized(handle) else {
-            presentedError =
-                "Usernames are 3–30 letters, numbers, or underscores, and start with a letter."
-            return
-        }
-        let cleanName = displayName.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
-        guard (1...50).contains(cleanName.count) else {
-            presentedError = "Your name needs to be between 1 and 50 characters."
+        guard phase == .onboarding, !isMutating else { return }
+        guard validation.isValid else {
+            profileSetupSubmissionState = .validationFailed(
+                validation.issues
+            )
             return
         }
         let generation = authGeneration
+        let mutationID = UUID()
 
+        profileSetupMutationID = mutationID
         isMutating = true
-        defer { isMutating = false }
+        profileSetupSubmissionState = .submitting
+        defer {
+            if profileSetupMutationID == mutationID {
+                profileSetupMutationID = nil
+                isMutating = false
+            }
+        }
         do {
             let createdProfile = try await services.profiles.createProfile(
                 userID: userID,
-                handle: exactHandle,
-                displayName: cleanName,
+                handle: validation.username,
+                displayName: validation.displayName,
                 timezone: TimeZone.current.identifier
             )
             guard
@@ -194,6 +206,7 @@ final class AppModel {
             }
             profile = createdProfile
             onboardingNamePrefill = ""
+            profileSetupSubmissionState = .succeeded
             if configuration.legacySocialRuntimeEnabled {
                 await restorePendingActivityUploads(
                     for: userID,
@@ -212,12 +225,40 @@ final class AppModel {
             await refresh()
             await registerPushIfPossible()
         } catch is CancellationError {
+            guard isCurrentActor(userID, generation: generation) else {
+                return
+            }
+            profileSetupSubmissionState = .idle
             return
         } catch {
             guard isCurrentActor(userID, generation: generation) else {
                 return
             }
-            present(error)
+            switch AppMutationError.map(error) {
+            case .handleUnavailable:
+                profileSetupSubmissionState = .usernameUnavailable(
+                    username: validation.username
+                )
+            case .offline:
+                profileSetupSubmissionState = .offline
+            case .cancelled:
+                profileSetupSubmissionState = .idle
+            case .duplicateRequestChanged, .localPersistence,
+                .permissionDenied, .invalidInput, .server:
+                profileSetupSubmissionState = .failed
+            }
+        }
+    }
+
+    func profileSetupInputDidChange(_ field: ProfileSetupField) {
+        guard !isMutating else { return }
+        switch profileSetupSubmissionState {
+        case .idle, .submitting, .succeeded:
+            break
+        case .usernameUnavailable where field != .username:
+            break
+        case .validationFailed, .usernameUnavailable, .offline, .failed:
+            profileSetupSubmissionState = .idle
         }
     }
 
@@ -940,15 +981,21 @@ final class AppModel {
         }
     }
 
-    private func resolveAuthentication(userID: UUID?) async {
+    private func resolveAuthentication(
+        userID: UUID?,
+        namePrefill: String? = nil
+    ) async {
         guard let userID else {
             clearUserState()
             return
         }
-        if self.userID == userID, phase == .signedIn {
+        if self.userID == userID,
+            phase == .signedIn || phase == .onboarding
+        {
             return
         }
 
+        invalidateProfileSetupMutationForAuthenticationChange()
         let generation = UUID()
         authGeneration = generation
         refreshGeneration = UUID()
@@ -964,7 +1011,8 @@ final class AppModel {
         reactingStandingsSnapshotID = nil
         exactHandleResult = nil
         lastSubmittedHandle = nil
-        onboardingNamePrefill = ""
+        onboardingNamePrefill = namePrefill ?? ""
+        profileSetupSubmissionState = .idle
         pendingChallenge = nil
         hasPendingChallengeRecoveryIssue = false
         activityAuthorizationOutcome = nil
@@ -1160,6 +1208,7 @@ final class AppModel {
     }
 
     private func clearUserState() {
+        invalidateProfileSetupMutationForAuthenticationChange()
         authGeneration = UUID()
         refreshGeneration = UUID()
         userID = nil
@@ -1175,6 +1224,7 @@ final class AppModel {
         exactHandleResult = nil
         lastSubmittedHandle = nil
         onboardingNamePrefill = ""
+        profileSetupSubmissionState = .idle
         pendingChallenge = nil
         hasPendingChallengeRecoveryIssue = false
         activityAuthorizationOutcome = nil
@@ -1185,6 +1235,14 @@ final class AppModel {
         loadState = .idle
         presentedError = nil
         phase = .signedOut
+    }
+
+    private func invalidateProfileSetupMutationForAuthenticationChange() {
+        guard profileSetupMutationID != nil else { return }
+        profileSetupMutationID = nil
+        if !isPerformingExplicitAuthMutation {
+            isMutating = false
+        }
     }
 
     private func registerPushIfPossible() async {

@@ -737,6 +737,24 @@ enum AppMutationError: LocalizedError, Equatable, Sendable {
     case server(String)
 
     static func map(_ error: Error) -> AppMutationError {
+        if let mapped = error as? AppMutationError {
+            return mapped
+        }
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .cancelled:
+                return .cancelled
+            case .timedOut,
+                 .cannotFindHost,
+                 .cannotConnectToHost,
+                 .networkConnectionLost,
+                 .dnsLookupFailed,
+                 .notConnectedToInternet:
+                return .offline
+            default:
+                break
+            }
+        }
         if error is CancellationError {
             return .cancelled
         }
@@ -755,7 +773,8 @@ enum AppMutationError: LocalizedError, Equatable, Sendable {
             return .duplicateRequestChanged
         }
         if message.contains("profiles_handle_key")
-            || message.contains("duplicate key")
+            || message.contains("profiles_handle_not_reserved")
+            || message.contains("handle is not available")
         {
             return .handleUnavailable
         }
