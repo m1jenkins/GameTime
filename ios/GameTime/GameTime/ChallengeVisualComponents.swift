@@ -44,6 +44,12 @@ struct DaybreakCard<Content: View>: View {
 
     var body: some View {
         content
+            .environment(
+                \.daybreakSecondaryForeground,
+                tone == .inverse
+                    ? CompetitiveTrustTheme.inverseSecondaryText
+                    : CompetitiveTrustTheme.secondaryText
+            )
             .padding(18)
             .frame(maxWidth: .infinity, alignment: .leading)
             .foregroundStyle(

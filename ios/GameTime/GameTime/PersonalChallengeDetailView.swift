@@ -5,10 +5,12 @@ struct PersonalChallengeDetailView: View {
 
     @Environment(PersonalAccountabilityStore.self) private var store
     @Environment(PersonalStepProgressStore.self) private var stepProgress
+    @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingCancelConfirmation = false
     @State private var isSyncNowRequested = false
+    @State private var isCancellationRequested = false
     @State private var reviewNow = Date()
     @State private var selectedReviewReason:
         PersonalReviewReason = .userDisputesStepData
@@ -36,10 +38,14 @@ struct PersonalChallengeDetailView: View {
             LazyVStack(spacing: 12) {
                 if let challenge {
                     hero(challenge)
-                    cancellation(challenge)
-                    pace(challenge)
-                    result(challenge)
-                    review(challenge)
+                    if challenge.status.isOpen {
+                        cancellation(challenge)
+                        pace(challenge)
+                    } else {
+                        result(challenge)
+                        review(challenge)
+                        pace(challenge)
+                    }
                     PersonalChallengeDetailsCard(terms: challenge.terms)
                 } else {
                     DaybreakCard {
@@ -50,8 +56,8 @@ struct PersonalChallengeDetailView: View {
             }
             .padding(.horizontal, 18)
             .padding(.top, 4)
-            .padding(.bottom, 28)
         }
+        .daybreakTabScrollClearance()
         .daybreakScreenChrome()
         .navigationTitle("Your challenge")
         .navigationBarTitleDisplayMode(.inline)
@@ -61,15 +67,25 @@ struct PersonalChallengeDetailView: View {
         .task(id: reviewDeadline) {
             await refreshReviewClock(deadline: reviewDeadline)
         }
-        .confirmationDialog(
+        .alert(
             "Cancel this challenge?",
-            isPresented: $showingCancelConfirmation,
-            titleVisibility: .visible
+            isPresented: $showingCancelConfirmation
         ) {
             Button("Yes, cancel it", role: .destructive) {
+                isCancellationRequested = true
                 Task {
-                    if await store.cancel(challengeID: challengeID) {
+                    let succeeded = await store.cancel(
+                        challengeID: challengeID
+                    )
+                    PersonalAccessibilityAnnouncements.post(
+                        succeeded
+                            ? "Cancellation confirmed."
+                            : "Cancellation is saved, but it is not confirmed yet."
+                    )
+                    if succeeded {
                         dismiss()
+                    } else {
+                        isCancellationRequested = false
                     }
                 }
             }
@@ -80,26 +96,39 @@ struct PersonalChallengeDetailView: View {
     }
 
     private func hero(_ challenge: PersonalChallengeDetail) -> some View {
-        DaybreakCard(tone: .inverse) {
+        let now = Date()
+        let progress = store.displayedProgress(for: challenge, now: now)
+        let status = challenge.presentationStatus(at: now)
+        let healthPresentation = PersonalHealthProgressPresentation(
+            progress: progress,
+            terms: challenge.terms,
+            status: status,
+            outcome: challenge.outcome,
+            uploadDelayed: challenge.id == stepProgress.challengeID
+                && stepProgress.lastUploadError != nil,
+            now: now
+        )
+
+        return DaybreakCard(tone: .inverse) {
             VStack(alignment: .leading, spacing: 15) {
                 if dynamicTypeSize.isAccessibilitySize {
                     VStack(alignment: .leading, spacing: 8) {
                         PersonalStatusPill(
-                            status: challenge.presentationStatus(at: Date()),
+                            status: status,
                             outcome: challenge.outcome?.kind
                         )
                         Text(challenge.terms.commitmentText)
                             .font(
                                 CompetitiveTrustTheme.displayFont(
-                                    size: 24,
-                                    relativeTo: .title2
+                                    size: 22,
+                                    relativeTo: .headline
                                 )
                             )
                     }
                 } else {
                     HStack {
                         PersonalStatusPill(
-                            status: challenge.presentationStatus(at: Date()),
+                            status: status,
                             outcome: challenge.outcome?.kind
                         )
                         Spacer(minLength: 8)
@@ -115,12 +144,16 @@ struct PersonalChallengeDetailView: View {
                 Text(challenge.terms.targetText)
                     .font(
                         CompetitiveTrustTheme.displayFont(
-                            size: 30,
-                            relativeTo: .title
+                            size: dynamicTypeSize.isAccessibilitySize
+                                ? 22
+                                : 30,
+                            relativeTo: dynamicTypeSize.isAccessibilitySize
+                                ? .headline
+                                : .title
                         )
                     )
                     .tracking(-0.8)
-                if let progress = store.displayedProgress(for: challenge) {
+                if let progress {
                     PersonalProgressBar(
                         progress: progress,
                         terms: challenge.terms
@@ -128,46 +161,115 @@ struct PersonalChallengeDetailView: View {
                     .colorScheme(.dark)
                 }
                 PersonalHealthProgressStatus(
-                    progress: store.displayedProgress(for: challenge),
-                    terms: challenge.terms,
-                    status: challenge.presentationStatus(at: Date()),
-                    policy: challenge.stepDataPolicy,
-                    outcome: challenge.outcome
+                    presentation: healthPresentation,
+                    policy: challenge.stepDataPolicy
                 )
                 .colorScheme(.dark)
-                if canSyncNow(challenge) {
-                    Button {
-                        isSyncNowRequested = true
-                        Task {
-                            await stepProgress.refresh()
-                            isSyncNowRequested = false
-                        }
-                    } label: {
-                        if isSyncNowRequested || stepProgress.isRefreshing {
-                            HStack(spacing: 8) {
-                                ProgressView()
-                                    .tint(CompetitiveTrustTheme.coralInk)
-                                Text("Syncing…")
-                            }
-                        } else {
-                            Label("Sync now", systemImage: "arrow.clockwise")
-                        }
-                    }
-                    .buttonStyle(TrustSecondaryButtonStyle())
-                    .disabled(
-                        isSyncNowRequested || stepProgress.isRefreshing
+                if healthPresentation.needsNoDataRecovery,
+                    challenge.stepDataPolicy.usesAutomaticHealthProgress
+                {
+                    activeNoDataRecovery(
+                        canRetry: canSyncNow(challenge, now: now)
                     )
-                    .accessibilityIdentifier(
-                        "personal.challenge.sync-now"
+                } else if canSyncNow(challenge, now: now) {
+                    healthRefreshButton(
+                        title: "Sync now",
+                        pendingTitle: "Syncing…"
                     )
                 }
             }
         }
     }
 
-    private func canSyncNow(_ challenge: PersonalChallengeDetail) -> Bool {
+    private func canSyncNow(
+        _ challenge: PersonalChallengeDetail,
+        now: Date = Date()
+    ) -> Bool {
         challenge.id == stepProgress.challengeID
             && stepProgress.canRefresh
+            && challenge.permitsActivitySync(at: now)
+    }
+
+    private func activeNoDataRecovery(canRetry: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(
+                "Apple Health access may be limited, or this phone may not have recent device-recorded steps."
+            )
+            .font(.subheadline)
+            .foregroundStyle(CompetitiveTrustTheme.inverseSecondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+
+            healthRefreshButton(
+                title: "Try Again",
+                pendingTitle: "Checking Apple Health…",
+                canRetry: canRetry
+            )
+
+            if let destination = URL(
+                string: "https://support.apple.com/en-us/HT204351"
+            ) {
+                Link("Apple Health help", destination: destination)
+                    .buttonStyle(TrustSecondaryButtonStyle())
+                    .accessibilityIdentifier(
+                        "personal.challenge.health-help"
+                    )
+            }
+
+            Button("Account & support") {
+                router.openAccountSupport()
+            }
+            .buttonStyle(TrustSecondaryButtonStyle())
+            .accessibilityIdentifier("personal.challenge.account-support")
+        }
+    }
+
+    private func healthRefreshButton(
+        title: String,
+        pendingTitle: String,
+        canRetry: Bool = true
+    ) -> some View {
+        Button(action: requestHealthRefresh) {
+            HStack(spacing: 8) {
+                if isSyncNowRequested || stepProgress.isRefreshing {
+                    ProgressView()
+                        .tint(CompetitiveTrustTheme.coralInk)
+                } else {
+                    Image(systemName: "arrow.clockwise")
+                        .accessibilityHidden(true)
+                }
+                Text(
+                    isSyncNowRequested || stepProgress.isRefreshing
+                        ? pendingTitle
+                        : title
+                )
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(TrustSecondaryButtonStyle())
+        .disabled(
+            !canRetry || isSyncNowRequested || stepProgress.isRefreshing
+        )
+        .accessibilityIdentifier("personal.challenge.sync-now")
+    }
+
+    private func requestHealthRefresh() {
+        guard !isSyncNowRequested, !stepProgress.isRefreshing else { return }
+        isSyncNowRequested = true
+        Task { @MainActor in
+            await stepProgress.refresh()
+            isSyncNowRequested = false
+            if stepProgress.lastHealthError != nil {
+                PersonalAccessibilityAnnouncements.post(
+                    "Apple Health is temporarily unavailable. Your last update is still here."
+                )
+            } else if stepProgress.lastUploadError != nil {
+                PersonalAccessibilityAnnouncements.post(
+                    "Steps updated on this phone. Sending is delayed."
+                )
+            } else {
+                PersonalAccessibilityAnnouncements.post("Steps updated.")
+            }
+        }
     }
 
     @ViewBuilder
@@ -176,12 +278,7 @@ struct PersonalChallengeDetailView: View {
         DaybreakSectionLabel(text: "Your pace")
         if progress?.days.isEmpty != false {
             DaybreakCard {
-                Text(
-                    challenge.outcome?.kind == .inconclusive
-                        && challenge.outcome?.reasonCode == "missing_health_data"
-                        ? "No Apple Health step data was available for this challenge."
-                        : "Your daily steps will show up here once you start."
-                )
+                Text(emptyPaceMessage(for: challenge))
                     .font(.subheadline)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
@@ -192,6 +289,28 @@ struct PersonalChallengeDetailView: View {
             )
             PersonalPaceCard(summary: summary)
             PersonalPaceTiles(tiles: summary.tiles)
+        }
+    }
+
+    private func emptyPaceMessage(
+        for challenge: PersonalChallengeDetail
+    ) -> String {
+        if challenge.outcome?.kind == .inconclusive,
+            challenge.outcome?.reasonCode == "missing_health_data"
+        {
+            return "No Apple Health step data was available for this challenge."
+        }
+        switch challenge.presentationStatus(at: Date()) {
+        case .scheduled:
+            return "Your daily steps will show up here once you start."
+        case .cancelled:
+            return "This challenge was cancelled before step history was available."
+        case .resultPending, .awaitingEvidence:
+            return "Your final step history will appear when the result is ready."
+        case .active:
+            return "No step history is available yet. Try again above for recovery options."
+        case .completed:
+            return "No step history is available for this challenge."
         }
     }
 
@@ -275,6 +394,9 @@ struct PersonalChallengeDetailView: View {
                         .foregroundStyle(
                             CompetitiveTrustTheme.secondaryText
                         )
+                        .accessibilityIdentifier(
+                            "personal.review.available"
+                        )
 
                         ForEach(PersonalReviewReason.allCases) { reason in
                             Button {
@@ -289,13 +411,14 @@ struct PersonalChallengeDetailView: View {
                                     )
                                     .foregroundStyle(
                                         selectedReviewReason == reason
-                                            ? CompetitiveTrustTheme.coral
+                                            ? CompetitiveTrustTheme.actionCoral
                                             : CompetitiveTrustTheme.guide
                                     )
                                     Text(reason.title)
                                         .font(.subheadline.weight(.semibold))
                                     Spacer(minLength: 8)
                                 }
+                                .daybreakTappableRow()
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
@@ -310,27 +433,36 @@ struct PersonalChallengeDetailView: View {
                         }
 
                         Button {
-                            Task {
-                                _ = await store.requestReview(
+                            Task { @MainActor in
+                                let succeeded = await store.requestReview(
                                     challengeID: challenge.id,
                                     reason: selectedReviewReason
                                 )
+                                PersonalAccessibilityAnnouncements.post(
+                                    succeeded
+                                        ? "Review requested. Settlement is paused."
+                                        : "Review request failed. Try again."
+                                )
                             }
                         } label: {
-                            if store.isRequestingReview {
-                                ProgressView().tint(.white)
-                            } else {
-                                Text("Request a review")
+                            HStack(spacing: 8) {
+                                if store.isRequestingReview {
+                                    ProgressView().tint(.white)
+                                }
+                                Text(
+                                    store.isRequestingReview
+                                        ? "Requesting review…"
+                                        : "Request a review"
+                                )
                             }
+                            .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(TrustPrimaryButtonStyle())
                         .disabled(store.isRequestingReview)
                         .accessibilityIdentifier(
                             "personal.review.request"
                         )
-
                     }
-                    .accessibilityIdentifier("personal.review.available")
                 }
             }
         }
@@ -361,13 +493,29 @@ struct PersonalChallengeDetailView: View {
             store.configuration.allowsActiveTestChallengeCancellation
             && challenge.terms.settlementMode == .testOnly
             && (challenge.status == .scheduled || challenge.status == .active)
+        let hasRelevantPendingCancellation =
+            store.pendingCancellation?.challengeID == challenge.id
+            || (store.pendingCancellation == nil
+                && store.hasPendingCancellationRecoveryIssue)
 
-        if isOrdinaryPreStartCancellation || isTestCleanup {
-            Button("Cancel this challenge", role: .destructive) {
+        PendingPersonalCancellationRecoveryCard(
+            challengeID: challenge.id,
+            contactSupport: { router.openAccountSupport() }
+        )
+
+        if !hasRelevantPendingCancellation,
+            isOrdinaryPreStartCancellation || isTestCleanup
+        {
+            Button(
+                isCancellationRequested || store.isMutating
+                    ? "Cancelling…"
+                    : "Cancel this challenge",
+                role: .destructive
+            ) {
                 showingCancelConfirmation = true
             }
             .buttonStyle(TrustSecondaryButtonStyle())
-            .disabled(store.isMutating)
+            .disabled(isCancellationRequested || store.isMutating)
             .accessibilityIdentifier("personal.cancel")
         }
     }

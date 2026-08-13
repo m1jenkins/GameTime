@@ -1,3 +1,4 @@
+import Accessibility
 import SwiftUI
 
 struct PersonalChallengeCard: View {
@@ -7,13 +8,26 @@ struct PersonalChallengeCard: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
+        let now = Date()
+        let progress = store.displayedProgress(for: challenge, now: now)
+        let status = challenge.presentationStatus(at: now)
+        let healthPresentation = PersonalHealthProgressPresentation(
+            progress: progress,
+            terms: challenge.terms,
+            status: status,
+            outcome: challenge.outcome,
+            uploadDelayed: challenge.id == store.stepProgress.challengeID
+                && store.stepProgress.lastUploadError != nil,
+            now: now
+        )
+
         Button(action: action) {
             DaybreakCard {
                 VStack(alignment: .leading, spacing: 14) {
                     if dynamicTypeSize.isAccessibilitySize {
                         VStack(alignment: .leading, spacing: 8) {
                             PersonalStatusPill(
-                                status: challenge.presentationStatus(at: Date()),
+                                status: status,
                                 outcome: challenge.outcome?.kind
                             )
                             Text(challenge.terms.commitmentText)
@@ -27,7 +41,7 @@ struct PersonalChallengeCard: View {
                     } else {
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
                             PersonalStatusPill(
-                                status: challenge.presentationStatus(at: Date()),
+                                status: status,
                                 outcome: challenge.outcome?.kind
                             )
                             Spacer(minLength: 8)
@@ -44,30 +58,31 @@ struct PersonalChallengeCard: View {
                     Text(challenge.terms.targetText)
                         .font(
                             CompetitiveTrustTheme.displayFont(
-                                size: 24,
-                                relativeTo: .title2
+                                size: dynamicTypeSize.isAccessibilitySize
+                                    ? 19
+                                    : 24,
+                                relativeTo: dynamicTypeSize.isAccessibilitySize
+                                    ? .headline
+                                    : .title2
                             )
                         )
                         .tracking(-0.5)
 
-                    if let progress = store.displayedProgress(for: challenge) {
+                    if let progress {
                         PersonalProgressBar(
                             progress: progress,
                             terms: challenge.terms
                         )
                     }
                     PersonalHealthProgressStatus(
-                        progress: store.displayedProgress(for: challenge),
-                        terms: challenge.terms,
-                        status: challenge.presentationStatus(at: Date()),
-                        policy: challenge.stepDataPolicy,
-                        outcome: challenge.outcome
+                        presentation: healthPresentation,
+                        policy: challenge.stepDataPolicy
                     )
 
                     HStack(spacing: 8) {
                         Image(systemName: "calendar")
                             .accessibilityHidden(true)
-                        Text(dateSummary)
+                        Text(dateSummary(status: status))
                         Spacer(minLength: 8)
                         Image(systemName: "chevron.right")
                             .accessibilityHidden(true)
@@ -89,8 +104,10 @@ struct PersonalChallengeCard: View {
         )
     }
 
-    private var dateSummary: String {
-        switch challenge.presentationStatus(at: Date()) {
+    private func dateSummary(
+        status: PersonalChallengePresentationStatus
+    ) -> String {
+        switch status {
         case .scheduled:
             "Starts \(PersonalTermsDateFormatter.day(challenge.terms.startsAt, timezoneIdentifier: challenge.terms.timezone))"
         case .active:
@@ -154,6 +171,10 @@ struct PersonalProgressBar: View {
     let progress: PersonalDisplayedProgress
     let terms: FrozenPersonalTerms
 
+    @Environment(\.daybreakSecondaryForeground)
+    private var secondaryForeground
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     private var presentation: PersonalProgressPresentation {
         PersonalProgressPresentation(progress: progress, terms: terms)
     }
@@ -165,13 +186,7 @@ struct PersonalProgressBar: View {
                 .accessibilityLabel(Text(presentation.accessibilityLabel))
                 .accessibilityValue(Text(presentation.accessibilityValue))
                 .accessibilityIdentifier("personal.progress")
-            HStack(alignment: .firstTextBaseline) {
-                Text(presentation.stepsText)
-                    .accessibilityIdentifier("personal.progress.steps")
-                Spacer(minLength: 8)
-                Text(presentation.remainingText)
-                    .accessibilityIdentifier("personal.progress.remaining")
-            }
+            progressFacts
             .font(
                 CompetitiveTrustTheme.uiFont(
                     size: 12,
@@ -179,8 +194,32 @@ struct PersonalProgressBar: View {
                     weight: .semibold
                 )
             )
-            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            .foregroundStyle(secondaryForeground)
         }
+    }
+
+    @ViewBuilder
+    private var progressFacts: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 4) {
+                progressFactContents
+            }
+        } else {
+            HStack(alignment: .firstTextBaseline) {
+                progressFactContents
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var progressFactContents: some View {
+        Text(presentation.stepsText)
+            .accessibilityIdentifier("personal.progress.steps")
+        if !dynamicTypeSize.isAccessibilitySize {
+            Spacer(minLength: 8)
+        }
+        Text(presentation.remainingText)
+            .accessibilityIdentifier("personal.progress.remaining")
     }
 }
 
@@ -239,17 +278,154 @@ struct PersonalProgressPresentation: Equatable {
     }
 }
 
+/// Pure UI state for Apple Health progress. Numeric progress is resolved before
+/// this boundary; this type only chooses honest lifecycle copy and semantics.
+struct PersonalHealthProgressPresentation: Equatable {
+    enum State: Equatable {
+        case scheduled
+        case active
+        case stale
+        case uploadDelayed
+        case cutoff
+        case resultPending
+        case frozen
+        case missingFinalData
+        case cancelled
+    }
+
+    let state: State
+    let message: String
+    let symbol: String
+    let needsNoDataRecovery: Bool
+
+    init(
+        progress: PersonalDisplayedProgress?,
+        terms: FrozenPersonalTerms,
+        status: PersonalChallengePresentationStatus,
+        outcome: PersonalOutcome?,
+        uploadDelayed: Bool,
+        now: Date
+    ) {
+        if status == .cancelled {
+            state = .cancelled
+            message =
+                "Apple Health updates stopped when this challenge was cancelled."
+            symbol = "xmark.circle"
+            needsNoDataRecovery = false
+            return
+        }
+        if status == .completed {
+            if outcome?.kind == .inconclusive,
+                outcome?.reasonCode == "missing_health_data",
+                progress == nil
+            {
+                state = .missingFinalData
+                message =
+                    "No Apple Health step data was available for the final result."
+                symbol = "exclamationmark.circle"
+            } else {
+                state = .frozen
+                message = progress == nil
+                    ? "Final result is locked."
+                    : "Final result from Apple Health"
+                symbol = "checkmark.circle.fill"
+            }
+            needsNoDataRecovery = false
+            return
+        }
+        if status == .scheduled {
+            state = .scheduled
+            message = "Apple Health updates begin when this challenge starts."
+            symbol = "calendar"
+            needsNoDataRecovery = false
+            return
+        }
+        if status == .awaitingEvidence {
+            if now < terms.evidenceCutoff {
+                state = .cutoff
+                message =
+                    "We’ll keep checking Apple Health through \(PersonalTermsDateFormatter.dateTime(terms.evidenceCutoff, timezoneIdentifier: terms.timezone))."
+                symbol = "clock"
+            } else {
+                state = .resultPending
+                message = "Final result is being prepared."
+                symbol = "clock.badge.checkmark"
+            }
+            needsNoDataRecovery = false
+            return
+        }
+        if status == .resultPending {
+            state = .resultPending
+            message = "Final result is being prepared."
+            symbol = "clock.badge.checkmark"
+            needsNoDataRecovery = false
+            return
+        }
+        if progress?.isFrozen == true {
+            state = .frozen
+            message = "Final result from Apple Health"
+            symbol = "checkmark.circle.fill"
+            needsNoDataRecovery = false
+            return
+        }
+        if progress?.isStale == true {
+            state = .stale
+            if let observedAt = progress?.observedAt {
+                message =
+                    "Last updated \(Self.relativeText(observedAt, now: now)) · Apple Health is temporarily unavailable."
+            } else {
+                message =
+                    "Apple Health is temporarily unavailable. Your last update is still here."
+            }
+            symbol = "clock.badge.exclamationmark"
+            needsNoDataRecovery = false
+            return
+        }
+        if uploadDelayed {
+            state = .uploadDelayed
+            if let observedAt = progress?.observedAt {
+                message =
+                    "Updated from Apple Health \(Self.relativeText(observedAt, now: now)) · This update will be sent when connectivity returns."
+            } else {
+                message =
+                    "Your latest Apple Health update is saved on this phone and will be sent when connectivity returns."
+            }
+            symbol = "wifi.slash"
+            needsNoDataRecovery = false
+            return
+        }
+
+        state = .active
+        if let observedAt = progress?.observedAt {
+            message =
+                "Updated from Apple Health \(Self.relativeText(observedAt, now: now))"
+            symbol = "heart.fill"
+            needsNoDataRecovery = false
+        } else {
+            message = "No step data available yet."
+            symbol = "exclamationmark.circle"
+            needsNoDataRecovery = true
+        }
+    }
+
+    private static func relativeText(_ date: Date, now: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: date, relativeTo: now)
+    }
+}
+
 struct PersonalHealthProgressStatus: View {
-    let progress: PersonalDisplayedProgress?
-    let terms: FrozenPersonalTerms
-    let status: PersonalChallengePresentationStatus
+    let presentation: PersonalHealthProgressPresentation
     let policy: PersonalStepDataPolicy
-    let outcome: PersonalOutcome?
+
+    @Environment(\.daybreakSecondaryForeground)
+    private var secondaryForeground
 
     @ViewBuilder
     var body: some View {
         if policy.usesAutomaticHealthProgress {
-            Label(message, systemImage: symbol)
+            Label(presentation.message, systemImage: presentation.symbol)
                 .font(
                     CompetitiveTrustTheme.uiFont(
                         size: 11.5,
@@ -257,48 +433,184 @@ struct PersonalHealthProgressStatus: View {
                         weight: .semibold
                     )
                 )
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(secondaryForeground)
                 .fixedSize(horizontal: false, vertical: true)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(presentation.message)
                 .accessibilityIdentifier("personal.health.status")
         }
     }
+}
 
-    private var message: String {
-        if isMissingFinalHealthData {
-            return "No Apple Health step data was available for the final result."
+@MainActor
+enum PersonalAccessibilityAnnouncements {
+    static func post(_ message: String) {
+        AccessibilityNotification.Announcement(message).post()
+    }
+
+    static func postRefreshResult(
+        loadState: ScreenLoadState,
+        healthError: String?
+    ) {
+        switch loadState {
+        case .failed:
+            post("Refresh failed. Your last available information is still here.")
+        case .idle, .loading, .loaded, .empty:
+            if healthError != nil {
+                post(
+                    "Refresh finished. Apple Health is temporarily unavailable, and your last update is still here."
+                )
+            } else {
+                post("Progress refreshed.")
+            }
         }
-        if progress?.isFrozen == true {
-            return "Final result from Apple Health"
+    }
+}
+
+struct PendingPersonalCancellationRecoveryCard: View {
+    let challengeID: UUID?
+    let contactSupport: (() -> Void)?
+
+    @Environment(PersonalAccountabilityStore.self) private var store
+    @State private var runningAction: Action?
+
+    init(
+        challengeID: UUID? = nil,
+        contactSupport: (() -> Void)? = nil
+    ) {
+        self.challengeID = challengeID
+        self.contactSupport = contactSupport
+    }
+
+    var body: some View {
+        if shouldShow {
+            DaybreakCard(tone: .pledge) {
+                VStack(alignment: .leading, spacing: 11) {
+                    Label(
+                        "Cancellation saved — still trying.",
+                        systemImage: "arrow.triangle.2.circlepath"
+                    )
+                    .font(
+                        CompetitiveTrustTheme.displayFont(
+                            size: 19,
+                            relativeTo: .headline
+                            )
+                    )
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(
+                        "Cancellation saved — still trying."
+                    )
+                    .accessibilityIdentifier("personal.cancellation.pending")
+                    Text(recoveryMessage)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Button(action: retryCancellation) {
+                        mutationLabel(
+                            idle: "Retry Cancellation",
+                            pending: "Retrying cancellation…",
+                            action: .retry
+                        )
+                    }
+                    .buttonStyle(TrustPrimaryButtonStyle())
+                    .disabled(actionsAreDisabled)
+                    .accessibilityIdentifier("personal.cancellation.retry")
+
+                    Button(action: refreshTruth) {
+                        mutationLabel(
+                            idle: "Refresh",
+                            pending: "Refreshing…",
+                            action: .refresh
+                        )
+                    }
+                    .buttonStyle(TrustSecondaryButtonStyle())
+                    .disabled(actionsAreDisabled)
+                    .accessibilityIdentifier("personal.cancellation.refresh")
+
+                    if let contactSupport {
+                        Button("Contact Support", action: contactSupport)
+                            .buttonStyle(TrustSecondaryButtonStyle())
+                            .disabled(actionsAreDisabled)
+                            .accessibilityIdentifier(
+                                "personal.cancellation.support"
+                            )
+                    }
+                }
+            }
         }
-        if (status == .awaitingEvidence || status == .resultPending),
-            Date() < terms.evidenceCutoff
+    }
+
+    private enum Action: Equatable {
+        case retry
+        case refresh
+    }
+
+    private var shouldShow: Bool {
+        if let challengeID {
+            return store.pendingCancellation?.challengeID == challengeID
+        }
+        return store.pendingCancellation != nil
+            || store.hasPendingCancellationRecoveryIssue
+    }
+
+    private var recoveryMessage: String {
+        if store.hasPendingCancellationRecoveryIssue,
+            store.pendingCancellation == nil
         {
-            return "We’ll keep checking Apple Health through \(PersonalTermsDateFormatter.dateTime(terms.evidenceCutoff, timezoneIdentifier: terms.timezone))."
+            return "GameTime can’t safely read the cancellation saved on this phone yet. Starting another challenge stays paused until we know what happened."
         }
-        if status == .resultPending {
-            return "Final result is being prepared."
-        }
-        if let progress, let observedAt = progress.observedAt {
-            let update = "Updated from Apple Health \(observedAt.formatted(.relative(presentation: .named)))"
-            return progress.isStale ? "\(update) · Update delayed" : update
-        }
-        return "No step data available yet. Check Apple Health access in Settings."
+        return "Your cancellation is saved on this phone. We’ll keep using the same request until it is confirmed."
     }
 
-    private var symbol: String {
-        if isMissingFinalHealthData { return "exclamationmark.circle" }
-        if progress?.isFrozen == true { return "checkmark.circle.fill" }
-        if progress == nil { return "exclamationmark.circle" }
-        return progress?.isStale == true
-            ? "clock.badge.exclamationmark"
-            : "heart.fill"
+    private var actionsAreDisabled: Bool {
+        runningAction != nil || store.isMutating || store.isRestoringSavedState
     }
 
-    private var isMissingFinalHealthData: Bool {
-        status == .completed
-            && outcome?.kind == .inconclusive
-            && outcome?.reasonCode == "missing_health_data"
-            && progress == nil
+    private func mutationLabel(
+        idle: String,
+        pending: String,
+        action: Action
+    ) -> some View {
+        HStack(spacing: 8) {
+            if runningAction == action {
+                ProgressView()
+            }
+            Text(runningAction == action ? pending : idle)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func retryCancellation() {
+        guard !actionsAreDisabled else { return }
+        runningAction = .retry
+        Task { @MainActor in
+            let succeeded: Bool
+            if store.pendingCancellation != nil {
+                succeeded = await store.retryPendingCancellation()
+            } else {
+                succeeded = await store.retryPendingCancellationRecovery()
+            }
+            runningAction = nil
+            PersonalAccessibilityAnnouncements.post(
+                succeeded
+                    ? "Cancellation confirmed."
+                    : "Cancellation is still saved. We’ll keep trying."
+            )
+        }
+    }
+
+    private func refreshTruth() {
+        guard !actionsAreDisabled else { return }
+        runningAction = .refresh
+        Task { @MainActor in
+            await store.refresh()
+            runningAction = nil
+            PersonalAccessibilityAnnouncements.postRefreshResult(
+                loadState: store.loadState,
+                healthError: store.stepProgress.lastHealthError
+            )
+        }
     }
 }
 

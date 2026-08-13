@@ -20,7 +20,7 @@ final class GameTimeUITests: XCTestCase {
     }
 
     private let deletionWarning =
-        "Your profile, challenges, social links, pending requests, Health snapshots, and sign-in will be removed. Integrity records may remain without your name. Your beta Stripe customer and saved payment method will also be deleted. This can’t be undone."
+        "Your name, username, and profile will be replaced with an anonymous placeholder. Your sign-in and setup saved on this phone will be removed, and your Stripe test customer and saved payment method will be deleted. Your step data will no longer be readable and will be removed on the schedule in the Privacy Policy. A small anonymous record that a challenge existed and how it was scored will remain. This can’t be undone."
 
     override func setUp() {
         continueAfterFailure = false
@@ -45,8 +45,47 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(onboarding.textFields["Your name"].exists)
         XCTAssertTrue(onboarding.textFields["Username"].exists)
+        XCTAssertEqual(
+            onboarding.descendants(matching: .any)[
+                "onboarding.name.message"
+            ].label,
+            "Name: 1–50 characters"
+        )
+        XCTAssertEqual(
+            onboarding.descendants(matching: .any)[
+                "onboarding.username.message"
+            ].label,
+            "Username: 3–30 letters, numbers, or underscores; starts with a letter"
+        )
+        XCTAssertTrue(
+            onboarding.buttons["onboarding.use-different-account"].exists
+        )
         assertEnvironmentDisclosure(in: onboarding, mode: .testOnly)
         assertNoForbiddenLanguage(in: onboarding)
+    }
+
+    func testDirtyCreationCloseUsesExactDiscardDialog() {
+        let app = launch("--fixture-empty")
+        app.buttons["personal.create"].waitAndTap()
+        XCTAssertTrue(
+            app.navigationBars["How it counts"].waitForExistence(timeout: 4)
+        )
+
+        app.buttons["personal.continue"].waitAndTap()
+        XCTAssertTrue(
+            app.navigationBars["Your goal"].waitForExistence(timeout: 4)
+        )
+        app.buttons["Close"].waitAndTap()
+
+        XCTAssertTrue(
+            exactStaticText("Discard this setup?", in: app)
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(app.buttons["Discard changes"].exists)
+        let keepEditing = app.buttons["Keep editing"]
+        XCTAssertTrue(keepEditing.waitForExistence(timeout: 4))
+        keepEditing.tap()
+        XCTAssertTrue(app.navigationBars["Your goal"].exists)
     }
 
     func testOnlyThreePersonalTabsAreReachable() {
@@ -212,7 +251,10 @@ final class GameTimeUITests: XCTestCase {
             "personal.review.available"
         ]
         let request = app.buttons["personal.review.request"]
-        for _ in 0..<10 where !request.isHittable { app.swipeUp() }
+        for _ in 0..<14 where !request.isHittable {
+            app.swipeUp()
+            _ = request.waitForExistence(timeout: 0.25)
+        }
         XCTAssertTrue(available.exists)
         XCTAssertTrue(
             containing("Request a review by", in: app).exists
@@ -224,6 +266,7 @@ final class GameTimeUITests: XCTestCase {
             ).exists
         )
         XCTAssertTrue(request.waitForExistence(timeout: 3))
+        XCTAssertTrue(request.isHittable)
         XCTAssertTrue(
             app.buttons[
                 "personal.review.reason.user_disputes_step_data"
@@ -381,9 +424,9 @@ final class GameTimeUITests: XCTestCase {
             app.staticTexts["7,350 steps today"]
                 .waitForExistence(timeout: 4)
         )
-        let paceChart = app.descendants(matching: .any)["personal.pace.chart"]
-        for _ in 0..<8 where !paceChart.exists { app.swipeUp() }
-        XCTAssertTrue(paceChart.waitForExistence(timeout: 4))
+        let firstPaceDay = app.buttons["personal.pace.day.0"]
+        for _ in 0..<8 where !firstPaceDay.exists { app.swipeUp() }
+        XCTAssertTrue(firstPaceDay.waitForExistence(timeout: 4))
         let weekTotal = app.descendants(matching: .any)[
             "personal.pace.week-total"
         ]
@@ -393,6 +436,312 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(weekTotal.label.contains("17,832"))
         assertNoLegacyPersonalHealthSurfaces(in: app)
+    }
+
+    func testPersonalProgressReplacementFixturesStayConsistentAcrossSurfaces() {
+        let cases: [(
+            flag: String,
+            steps: String,
+            remaining: String,
+            label: String,
+            value: String
+        )] = [
+            (
+                "--fixture-personal-active-cumulative",
+                "17,832 steps this week",
+                "52,168 to this week’s goal",
+                "Week progress",
+                "17,832 steps this week. 52,168 to this week’s goal."
+            ),
+            (
+                "--fixture-personal-zero",
+                "0 steps today",
+                "10,000 to today’s goal",
+                "Today’s progress",
+                "0 steps today. 10,000 to today’s goal."
+            ),
+            (
+                "--fixture-personal-downward",
+                "2,200 steps today",
+                "7,800 to today’s goal",
+                "Today’s progress",
+                "2,200 steps today. 7,800 to today’s goal."
+            ),
+        ]
+
+        for fixture in cases {
+            let app = launch(fixture.flag)
+            XCTAssertTrue(
+                app.navigationBars["Today"].waitForExistence(timeout: 5),
+                "Today did not load for \(fixture.flag)."
+            )
+            assertPersonalProgress(
+                steps: fixture.steps,
+                remaining: fixture.remaining,
+                accessibilityLabel: fixture.label,
+                accessibilityValue: fixture.value,
+                in: app
+            )
+
+            app.tabBars.buttons["Challenges"].waitAndTap()
+            XCTAssertTrue(
+                app.navigationBars["Challenges"]
+                    .waitForExistence(timeout: 4)
+            )
+            assertPersonalProgress(
+                steps: fixture.steps,
+                remaining: fixture.remaining,
+                accessibilityLabel: fixture.label,
+                accessibilityValue: fixture.value,
+                in: app
+            )
+
+            let activeCard = app.buttons[
+                "personal.challenge.18181818-1818-1818-1818-181818181818"
+            ]
+            XCTAssertTrue(activeCard.waitForExistence(timeout: 4))
+            activeCard.tap()
+            XCTAssertTrue(
+                app.navigationBars["Your challenge"]
+                    .waitForExistence(timeout: 4)
+            )
+            assertPersonalProgress(
+                steps: fixture.steps,
+                remaining: fixture.remaining,
+                accessibilityLabel: fixture.label,
+                accessibilityValue: fixture.value,
+                in: app
+            )
+            app.terminate()
+        }
+    }
+
+    func testNoDataStaleAndUploadDelayFixturesExplainProgressHonestly() {
+        let cases: [(
+            flag: String,
+            statusFragment: String,
+            retainedSteps: String?
+        )] = [
+            (
+                "--fixture-personal-no-data",
+                "No step data available yet.",
+                nil
+            ),
+            (
+                "--fixture-personal-stale",
+                "Apple Health is temporarily unavailable.",
+                "7,350 steps today"
+            ),
+            (
+                "--fixture-personal-upload-delay",
+                "sent when connectivity returns.",
+                "7,350 steps today"
+            ),
+        ]
+
+        for fixture in cases {
+            let app = launch(fixture.flag)
+            XCTAssertTrue(
+                app.navigationBars["Today"].waitForExistence(timeout: 5),
+                "Today did not load for \(fixture.flag)."
+            )
+            let todayStatus = healthStatus(
+                containing: fixture.statusFragment,
+                in: app
+            )
+            XCTAssertTrue(
+                todayStatus.waitForExistence(timeout: 5),
+                "Health status did not settle for \(fixture.flag)."
+            )
+            if let retainedSteps = fixture.retainedSteps {
+                XCTAssertTrue(exactStaticText(retainedSteps, in: app).exists)
+                XCTAssertTrue(
+                    exactStaticText("2,650 to today’s goal", in: app).exists
+                )
+            } else {
+                XCTAssertFalse(
+                    app.progressIndicators["personal.progress"].exists
+                )
+            }
+
+            let openChallenge = app.buttons["personal.today.open"]
+            for _ in 0..<8 where !openChallenge.isHittable { app.swipeUp() }
+            XCTAssertTrue(openChallenge.isHittable)
+            openChallenge.tap()
+            XCTAssertTrue(
+                app.navigationBars["Your challenge"]
+                    .waitForExistence(timeout: 4)
+            )
+            let detailStatus = healthStatus(
+                containing: fixture.statusFragment,
+                in: app
+            )
+            XCTAssertTrue(
+                detailStatus.waitForExistence(timeout: 4)
+            )
+
+            if fixture.flag == "--fixture-personal-no-data" {
+                let retry = app.buttons["personal.challenge.sync-now"]
+                XCTAssertTrue(retry.waitForExistence(timeout: 4))
+                XCTAssertEqual(retry.label, "Try Again")
+                XCTAssertTrue(retry.isEnabled)
+                XCTAssertTrue(
+                    app.descendants(matching: .any)[
+                        "personal.challenge.health-help"
+                    ].exists
+                )
+                XCTAssertEqual(
+                    app.descendants(matching: .any)[
+                        "personal.challenge.health-help"
+                    ].label,
+                    "Apple Health help"
+                )
+                let accountSupport = app.buttons[
+                    "personal.challenge.account-support"
+                ]
+                XCTAssertTrue(accountSupport.exists)
+                XCTAssertEqual(accountSupport.label, "Account & support")
+            }
+            app.terminate()
+        }
+    }
+
+    func testScheduledAndCancelledFixturesUseLifecycleSpecificCopy() {
+        let scheduled = launch(
+            "--fixture-personal-scheduled",
+            "--fixture-open-active-challenge"
+        )
+        XCTAssertTrue(
+            scheduled.navigationBars["Your challenge"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(
+            scheduled.staticTexts["Scheduled"].waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            healthStatus(in: scheduled).waitForExistence(timeout: 4)
+        )
+        XCTAssertEqual(
+            healthStatus(in: scheduled).label,
+            "Apple Health updates begin when this challenge starts."
+        )
+        XCTAssertTrue(
+            scheduled.buttons["personal.cancel"].waitForExistence(timeout: 4)
+        )
+        scheduled.terminate()
+
+        let cancelled = launch(
+            "--fixture-personal-cancelled",
+            "--fixture-open-active-challenge"
+        )
+        XCTAssertTrue(
+            cancelled.navigationBars["Your challenge"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(
+            cancelled.staticTexts["Cancelled"].waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            healthStatus(in: cancelled).waitForExistence(timeout: 4)
+        )
+        XCTAssertEqual(
+            healthStatus(in: cancelled).label,
+            "Apple Health updates stopped when this challenge was cancelled."
+        )
+        XCTAssertFalse(cancelled.buttons["personal.cancel"].exists)
+    }
+
+    func testPendingCancellationFixturesStayActionableAndRouteToSupport() {
+        let cases: [(flag: String, message: String)] = [
+            (
+                "--fixture-personal-pending-cancellation",
+                "Your cancellation is saved on this phone. We’ll keep using the same request until it is confirmed."
+            ),
+            (
+                "--fixture-personal-unreadable-cancellation",
+                "GameTime can’t safely read the cancellation saved on this phone yet. Starting another challenge stays paused until we know what happened."
+            ),
+        ]
+
+        for fixture in cases {
+            let app = launch(fixture.flag)
+            XCTAssertTrue(
+                app.navigationBars["Today"].waitForExistence(timeout: 5)
+            )
+            dismissGameTimeAlertIfPresent(in: app)
+
+            XCTAssertTrue(
+                app.descendants(matching: .any)[
+                    "personal.cancellation.pending"
+                ].waitForExistence(timeout: 5),
+                "Recovery card was missing for \(fixture.flag)."
+            )
+            XCTAssertTrue(
+                containing("Cancellation saved — still trying.", in: app)
+                    .exists
+            )
+            XCTAssertTrue(exactStaticText(fixture.message, in: app).exists)
+
+            let retry = app.buttons["personal.cancellation.retry"]
+            for _ in 0..<8 where !retry.isHittable { app.swipeUp() }
+            XCTAssertTrue(retry.waitForExistence(timeout: 4))
+            XCTAssertTrue(retry.isHittable)
+            XCTAssertEqual(retry.label, "Retry Cancellation")
+            XCTAssertTrue(retry.isEnabled)
+            let refresh = app.buttons["personal.cancellation.refresh"]
+            for _ in 0..<8 where !refresh.isHittable { app.swipeUp() }
+            XCTAssertTrue(refresh.waitForExistence(timeout: 4))
+            XCTAssertTrue(refresh.isHittable)
+            XCTAssertEqual(refresh.label, "Refresh")
+            XCTAssertTrue(refresh.isEnabled)
+
+            let support = app.buttons["personal.cancellation.support"]
+            for _ in 0..<8 where !support.isHittable { app.swipeUp() }
+            XCTAssertTrue(support.isHittable)
+            XCTAssertEqual(support.label, "Contact Support")
+            support.tap()
+            XCTAssertTrue(
+                app.navigationBars["Account & support"]
+                    .waitForExistence(timeout: 4)
+            )
+            app.terminate()
+        }
+    }
+
+    func testAccountDeletionFailureRemainsVisibleAndRecoverable() {
+        let app = launch("--fixture-account-deletion-failure")
+        openAccountSupport(in: app)
+
+        let delete = app.buttons["account-support.delete"]
+        for _ in 0..<12 where !delete.isHittable { app.swipeUp() }
+        XCTAssertTrue(delete.isHittable)
+        delete.tap()
+
+        let warning = app.alerts["Delete your account?"]
+        XCTAssertTrue(warning.waitForExistence(timeout: 4))
+        XCTAssertTrue(
+            warning.staticTexts.matching(
+                NSPredicate(format: "label == %@", deletionWarning)
+            ).firstMatch.exists
+        )
+        warning.buttons["Continue"].waitAndTap()
+
+        XCTAssertTrue(
+            app.navigationBars["Delete account"].waitForExistence(timeout: 4)
+        )
+        app.buttons["account-deletion.fixture-reauthenticate"].waitAndTap()
+        XCTAssertTrue(
+            exactStaticText("Deletion didn’t finish", in: app)
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            exactStaticText(
+                "Account deletion is temporarily unavailable. Try again in a moment or contact support.",
+                in: app
+            ).exists
+        )
+        XCTAssertTrue(app.buttons["Try again"].exists)
+        XCTAssertFalse(app.links["Contact beta support"].exists)
     }
 
     func testPersonalDetailContainsLockedTermsAndNoCompetitiveLanguage() {
@@ -419,17 +768,35 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(containing("How it counts", in: app).exists)
 
         let cancel = app.buttons["personal.cancel"]
-        for _ in 0..<8 where !cancel.exists { app.swipeUp() }
+        for _ in 0..<8 where !cancel.isHittable { app.swipeDown() }
         XCTAssertTrue(
             cancel.waitForExistence(timeout: 3),
             "Internal test-only active challenges should expose cleanup cancellation."
         )
+        XCTAssertTrue(cancel.isHittable)
 
         assertNoLegacyPersonalHealthSurfaces(in: app)
         XCTAssertFalse(app.staticTexts["Standings"].exists)
         XCTAssertFalse(app.staticTexts["Winner"].exists)
         XCTAssertFalse(app.staticTexts["Charity"].exists)
         assertNoForbiddenLanguage(in: app)
+
+        cancel.tap()
+        XCTAssertTrue(
+            exactStaticText("Cancel this challenge?", in: app)
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            exactStaticText(
+                "This ends the test challenge now so you can start another. No money will be charged.",
+                in: app
+            ).exists
+        )
+        XCTAssertTrue(app.buttons["Keep it"].exists)
+        app.buttons["Yes, cancel it"].waitAndTap()
+        XCTAssertTrue(
+            app.navigationBars["Challenges"].waitForExistence(timeout: 5)
+        )
     }
 
     func testCumulativeCreationOmitsFixedMetricAndStartSteps() {
@@ -939,6 +1306,11 @@ final class GameTimeUITests: XCTestCase {
             named: "Confirmation receipt - accessibility XXXL"
         )
         app.buttons["Close"].waitAndTap()
+        XCTAssertTrue(
+            exactStaticText("Discard this setup?", in: app)
+                .waitForExistence(timeout: 4)
+        )
+        app.buttons["Discard changes"].waitAndTap()
 
         app.tabBars.buttons["You"].waitAndTap()
         XCTAssertTrue(app.navigationBars["You"].waitForExistence(timeout: 4))
@@ -1393,7 +1765,9 @@ final class GameTimeUITests: XCTestCase {
             line: line
         )
         XCTAssertTrue(
-            alert.staticTexts[deletionWarning].exists,
+            alert.staticTexts.matching(
+                NSPredicate(format: "label == %@", deletionWarning)
+            ).firstMatch.exists,
             file: file,
             line: line
         )
@@ -1417,8 +1791,16 @@ final class GameTimeUITests: XCTestCase {
             file: file,
             line: line
         )
-        let progress = app.progressIndicators["personal.progress"]
-        XCTAssertTrue(progress.exists, file: file, line: line)
+        let progress = personalProgress(
+            label: "Today’s progress",
+            value: "7,350 steps today. 2,650 to today’s goal.",
+            in: app
+        )
+        XCTAssertTrue(
+            progress.waitForExistence(timeout: 5),
+            file: file,
+            line: line
+        )
         XCTAssertEqual(
             progress.label,
             "Today’s progress",
@@ -1428,6 +1810,51 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertEqual(
             progress.value as? String,
             "7,350 steps today. 2,650 to today’s goal.",
+            file: file,
+            line: line
+        )
+    }
+
+    private func assertPersonalProgress(
+        steps: String,
+        remaining: String,
+        accessibilityLabel: String,
+        accessibilityValue: String,
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            exactStaticText(steps, in: app).waitForExistence(timeout: 5),
+            "Progress steps are missing: \(steps)",
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            exactStaticText(remaining, in: app).exists,
+            "Progress remainder is missing: \(remaining)",
+            file: file,
+            line: line
+        )
+        let progress = personalProgress(
+            label: accessibilityLabel,
+            value: accessibilityValue,
+            in: app
+        )
+        XCTAssertTrue(
+            progress.waitForExistence(timeout: 5),
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            progress.label,
+            accessibilityLabel,
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            progress.value as? String,
+            accessibilityValue,
             file: file,
             line: line
         )
@@ -1448,8 +1875,16 @@ final class GameTimeUITests: XCTestCase {
             file: file,
             line: line
         )
-        let progress = app.progressIndicators["personal.progress"]
-        XCTAssertTrue(progress.exists, file: file, line: line)
+        let progress = personalProgress(
+            label: "Week progress",
+            value: "56,000 steps this week. 14,000 to this week’s goal.",
+            in: app
+        )
+        XCTAssertTrue(
+            progress.waitForExistence(timeout: 5),
+            file: file,
+            line: line
+        )
         XCTAssertEqual(progress.label, "Week progress", file: file, line: line)
         XCTAssertEqual(
             progress.value as? String,
@@ -1457,6 +1892,77 @@ final class GameTimeUITests: XCTestCase {
             file: file,
             line: line
         )
+    }
+
+    private func dismissGameTimeAlertIfPresent(in app: XCUIApplication) {
+        let alert = app.alerts["GameTime"]
+        if alert.waitForExistence(timeout: 1) {
+            alert.buttons["OK"].waitAndTap()
+        }
+    }
+
+    private func openAccountSupport(
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            app.navigationBars["Today"].waitForExistence(timeout: 5),
+            file: file,
+            line: line
+        )
+        app.tabBars.buttons["You"].waitAndTap()
+        XCTAssertTrue(
+            app.navigationBars["You"].waitForExistence(timeout: 4),
+            file: file,
+            line: line
+        )
+        let accountSupport = app.buttons["account-support.open"]
+        for _ in 0..<12 where !accountSupport.isHittable { app.swipeUp() }
+        XCTAssertTrue(accountSupport.isHittable, file: file, line: line)
+        accountSupport.tap()
+        XCTAssertTrue(
+            app.navigationBars["Account & support"]
+                .waitForExistence(timeout: 4),
+            file: file,
+            line: line
+        )
+    }
+
+    private func healthStatus(in app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any)
+            .matching(identifier: "personal.health.status")
+            .firstMatch
+    }
+
+    private func personalProgress(
+        label: String,
+        value: String,
+        in app: XCUIApplication
+    ) -> XCUIElement {
+        app.progressIndicators
+            .matching(identifier: "personal.progress")
+            .matching(
+                NSPredicate(
+                    format: "label == %@ AND value == %@",
+                    label,
+                    value
+                )
+            )
+            .firstMatch
+    }
+
+    private func healthStatus(
+        containing fragment: String,
+        in app: XCUIApplication
+    ) -> XCUIElement {
+        app.descendants(matching: .any).matching(
+            NSPredicate(
+                format: "identifier == %@ AND label CONTAINS %@",
+                "personal.health.status",
+                fragment
+            )
+        ).firstMatch
     }
 
     private func exactStaticText(

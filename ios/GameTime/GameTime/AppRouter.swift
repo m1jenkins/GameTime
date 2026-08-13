@@ -70,4 +70,10 @@ final class AppRouter {
         presentedSheet = nil
         challengesPath = [.personalChallenge(challengeID)]
     }
+
+    func openAccountSupport() {
+        selectedTab = .you
+        presentedSheet = nil
+        youPath = [.accountSupport]
+    }
 }

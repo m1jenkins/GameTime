@@ -524,14 +524,17 @@ struct PersonalPaceCard: View {
                 Text(summary.headline)
                     .font(
                         CompetitiveTrustTheme.displayFont(
-                            size: 38,
-                            relativeTo: .largeTitle
+                            size: dynamicTypeSize.isAccessibilitySize
+                                ? 26
+                                : 38,
+                            relativeTo: dynamicTypeSize.isAccessibilitySize
+                                ? .title2
+                                : .largeTitle
                         )
                     )
                     .tracking(-0.8)
                     .foregroundStyle(headlineColor)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(summary.headlineCaption)
                     .font(
                         CompetitiveTrustTheme.uiFont(
@@ -586,7 +589,6 @@ struct PersonalPaceCard: View {
                 .offset(y: -goalHeight)
                 .allowsHitTesting(false)
         }
-        .accessibilityIdentifier("personal.pace.chart")
     }
 
     private var goalGuide: some View {
@@ -834,6 +836,7 @@ struct PersonalChallengeDetailsCard: View {
                     header
                 }
                 .buttonStyle(.plain)
+                .daybreakTappableRow()
                 .accessibilityIdentifier("personal.details")
                 .accessibilityLabel("Challenge details")
                 .accessibilityValue(isShowingTerms ? "Showing" : "Hidden")

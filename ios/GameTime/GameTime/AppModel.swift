@@ -8,6 +8,17 @@ enum AppPhase: Equatable, Sendable {
     case signedIn
 }
 
+enum OnboardingErrorField: Equatable, Sendable {
+    case name
+    case username
+    case general
+}
+
+struct OnboardingPresentationError: Equatable, Sendable {
+    let field: OnboardingErrorField
+    let message: String
+}
+
 enum ActivitySyncViewState: Equatable, Sendable {
     case idle
     case syncing
@@ -71,6 +82,7 @@ final class AppModel {
     private(set) var isMutating = false
     private(set) var accountDeletionNotice: String?
     private(set) var onboardingNamePrefill = ""
+    private(set) var onboardingError: OnboardingPresentationError?
     private(set) var pendingChallenge: PendingChallengeSubmission?
     private(set) var hasPendingChallengeRecoveryIssue = false
     private(set) var activityAuthorizationOutcome:
@@ -140,6 +152,7 @@ final class AppModel {
     func signInWithApple(_ identity: AppleIdentity) async {
         isPerformingExplicitAuthMutation = true
         isMutating = true
+        onboardingError = nil
         defer {
             isMutating = false
             isPerformingExplicitAuthMutation = false
@@ -158,23 +171,33 @@ final class AppModel {
 
     func completeOnboarding(handle: String, displayName: String) async {
         guard let userID else {
-            presentedError = "You’re signed out. Sign in again to continue."
-            return
-        }
-        guard let exactHandle = ExactHandleSubmission.normalized(handle) else {
-            presentedError =
-                "Usernames are 3–30 letters, numbers, or underscores, and start with a letter."
+            onboardingError = OnboardingPresentationError(
+                field: .general,
+                message: "You’re signed out. Sign in again to continue."
+            )
             return
         }
         let cleanName = displayName.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
         guard (1...50).contains(cleanName.count) else {
-            presentedError = "Your name needs to be between 1 and 50 characters."
+            onboardingError = OnboardingPresentationError(
+                field: .name,
+                message: "Your name needs to be between 1 and 50 characters."
+            )
+            return
+        }
+        guard let exactHandle = ExactHandleSubmission.normalized(handle) else {
+            onboardingError = OnboardingPresentationError(
+                field: .username,
+                message:
+                    "Usernames are 3–30 letters, numbers, or underscores, and start with a letter."
+            )
             return
         }
         let generation = authGeneration
 
+        onboardingError = nil
         isMutating = true
         defer { isMutating = false }
         do {
@@ -194,6 +217,7 @@ final class AppModel {
             }
             profile = createdProfile
             onboardingNamePrefill = ""
+            onboardingError = nil
             if configuration.legacySocialRuntimeEnabled {
                 await restorePendingActivityUploads(
                     for: userID,
@@ -217,8 +241,17 @@ final class AppModel {
             guard isCurrentActor(userID, generation: generation) else {
                 return
             }
-            present(error)
+            let mapped = AppMutationError.map(error)
+            onboardingError = OnboardingPresentationError(
+                field: mapped == .handleUnavailable ? .username : .general,
+                message: mapped.errorDescription
+                    ?? "That didn’t go through. Try again."
+            )
         }
+    }
+
+    func clearOnboardingError() {
+        onboardingError = nil
     }
 
     func refresh() async {
@@ -964,7 +997,7 @@ final class AppModel {
         reactingStandingsSnapshotID = nil
         exactHandleResult = nil
         lastSubmittedHandle = nil
-        onboardingNamePrefill = ""
+        onboardingError = nil
         pendingChallenge = nil
         hasPendingChallengeRecoveryIssue = false
         activityAuthorizationOutcome = nil
@@ -989,6 +1022,7 @@ final class AppModel {
                 }
                 self.profile = profile
                 onboardingNamePrefill = ""
+                onboardingError = nil
                 if configuration.legacySocialRuntimeEnabled {
                     await restorePendingChallenge(
                         for: userID,
@@ -1030,6 +1064,7 @@ final class AppModel {
                     return
                 }
                 profile = nil
+                onboardingError = nil
                 phase = .onboarding
                 loadState = .idle
             }
@@ -1175,6 +1210,7 @@ final class AppModel {
         exactHandleResult = nil
         lastSubmittedHandle = nil
         onboardingNamePrefill = ""
+        onboardingError = nil
         pendingChallenge = nil
         hasPendingChallengeRecoveryIssue = false
         activityAuthorizationOutcome = nil

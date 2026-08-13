@@ -5,6 +5,7 @@ struct YouView: View {
     @Environment(PersonalAccountabilityStore.self) private var personalStore
     @Environment(AppRouter.self) private var router
     @Environment(\.demoMode) private var demoMode
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ScrollView {
@@ -16,8 +17,8 @@ struct YouView: View {
             }
             .padding(.horizontal, 18)
             .padding(.top, 4)
-            .padding(.bottom, 28)
         }
+        .daybreakTabScrollClearance()
         .daybreakScreenChrome()
         .navigationTitle("You")
         .navigationBarTitleDisplayMode(.inline)
@@ -58,20 +59,42 @@ struct YouView: View {
                 Divider()
                     .overlay(CompetitiveTrustTheme.border)
                     .padding(.vertical, 12)
-                HStack(spacing: 0) {
-                    historyMetric(
-                        personalStore.challenges.count.formatted(),
-                        "All"
-                    )
-                    historyMetric(
-                        (personalStore.openChallenge == nil ? 0 : 1).formatted(),
-                        "Active"
-                    )
-                    historyMetric(
-                        personalStore.history.count.formatted(),
-                        "Finished"
-                    )
-                }
+                historyMetrics
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var historyMetrics: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 12) {
+                historyMetric(
+                    personalStore.challenges.count.formatted(),
+                    "All"
+                )
+                historyMetric(
+                    (personalStore.openChallenge == nil ? 0 : 1).formatted(),
+                    "Active"
+                )
+                historyMetric(
+                    personalStore.history.count.formatted(),
+                    "Finished"
+                )
+            }
+        } else {
+            HStack(spacing: 0) {
+                historyMetric(
+                    personalStore.challenges.count.formatted(),
+                    "All"
+                )
+                historyMetric(
+                    (personalStore.openChallenge == nil ? 0 : 1).formatted(),
+                    "Active"
+                )
+                historyMetric(
+                    personalStore.history.count.formatted(),
+                    "Finished"
+                )
             }
         }
     }
@@ -110,9 +133,16 @@ struct YouView: View {
                                 : "Connect Apple Health"
                         ) {
                             Task {
-                                _ = await personalStore.verifyHealthAccess(
+                                DaybreakAccessibility.announce("Connecting…")
+                                let connected = await personalStore
+                                    .verifyHealthAccess(
                                     timezone: model.profile?.timezone
                                         ?? TimeZone.current.identifier
+                                )
+                                DaybreakAccessibility.announce(
+                                    connected
+                                        ? "Health connected."
+                                        : "Apple Health connection failed."
                                 )
                             }
                         }
@@ -157,13 +187,13 @@ struct YouView: View {
                     Divider().overlay(CompetitiveTrustTheme.border)
 
                     Button {
-                        router.youPath.append(.accountSupport)
+                        router.openAccountSupport()
                     } label: {
                         settingsNavigationRow(
                             title: "Account & support",
                             detail: "Support, documents, sign out, and account deletion",
                             icon: "person.crop.circle.badge.questionmark",
-                            iconColor: CompetitiveTrustTheme.coral
+                            iconColor: CompetitiveTrustTheme.actionCoral
                         )
                     }
                     .buttonStyle(.plain)
@@ -198,8 +228,8 @@ struct YouView: View {
                 .foregroundStyle(CompetitiveTrustTheme.guide)
                 .accessibilityHidden(true)
         }
-        .contentShape(Rectangle())
         .padding(.vertical, 10)
+        .daybreakTappableRow()
     }
 
     @ViewBuilder
@@ -295,8 +325,10 @@ struct TrustAndPrivacyView: View {
                     icon: "lock.fill"
                 )
             }
-            .padding(18)
+            .padding(.horizontal, 18)
+            .padding(.top, 18)
         }
+        .daybreakTabScrollClearance()
         .daybreakScreenChrome()
         .navigationTitle("Privacy")
         .navigationBarTitleDisplayMode(.inline)
@@ -352,8 +384,8 @@ struct AccountSupportView: View {
             }
             .padding(.horizontal, 18)
             .padding(.top, 4)
-            .padding(.bottom, 28)
         }
+        .daybreakTabScrollClearance()
         .daybreakScreenChrome()
         .navigationTitle("Account & support")
         .navigationBarTitleDisplayMode(.inline)
@@ -367,7 +399,7 @@ struct AccountSupportView: View {
             }
         } message: {
             Text(
-                "Your profile, challenges, social links, pending requests, Health snapshots, and sign-in will be removed. Integrity records may remain without your name. Your beta Stripe customer and saved payment method will also be deleted. This can’t be undone."
+                "Your name, username, and profile will be replaced with an anonymous placeholder. Your sign-in and setup saved on this phone will be removed, and your Stripe test customer and saved payment method will be deleted. Your step data will no longer be readable and will be removed on the schedule in the Privacy Policy. A small anonymous record that a challenge existed and how it was scored will remain. This can’t be undone."
             )
         }
         .sheet(item: $presentedSheet) { sheet in
@@ -420,10 +452,26 @@ struct AccountSupportView: View {
                 VStack(spacing: 12) {
                     if !demoMode.isActive {
                         Button(role: .destructive) {
+                            DaybreakAccessibility.announce("Signing out…")
                             Task { await model.signOut() }
                         } label: {
-                            Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            if model.isMutating {
+                                DaybreakAsyncStatus(message: "Signing out…")
+                                    .frame(
+                                        maxWidth: .infinity,
+                                        alignment: .leading
+                                    )
+                            } else {
+                                Label(
+                                    "Sign out",
+                                    systemImage:
+                                        "rectangle.portrait.and.arrow.right"
+                                )
+                                .frame(
+                                    maxWidth: .infinity,
+                                    alignment: .leading
+                                )
+                            }
                         }
                         .buttonStyle(TrustSecondaryButtonStyle())
                         .disabled(model.isMutating)
@@ -454,6 +502,7 @@ struct AccountSupportView: View {
                         icon: "envelope.fill"
                     )
                 }
+                .foregroundStyle(CompetitiveTrustTheme.actionCoral)
                 .accessibilityIdentifier("account-support.contact")
             } else {
                 rowLabel(
@@ -477,6 +526,7 @@ struct AccountSupportView: View {
                 Link(destination: destination) {
                     rowLabel(title: title, detail: detail, icon: icon)
                 }
+                .foregroundStyle(CompetitiveTrustTheme.actionCoral)
             } else {
                 rowLabel(
                     title: title,
@@ -513,21 +563,24 @@ struct AccountSupportView: View {
     ) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .foregroundStyle(CompetitiveTrustTheme.coral)
+                .foregroundStyle(CompetitiveTrustTheme.actionCoral)
                 .frame(width: 24)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 Text(title).font(.body.weight(.semibold))
                 Text(detail)
                     .font(.caption)
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
+            .fixedSize(horizontal: false, vertical: true)
+            .layoutPriority(1)
             Spacer(minLength: 8)
             Image(systemName: "arrow.up.right")
                 .foregroundStyle(CompetitiveTrustTheme.guide)
                 .accessibilityHidden(true)
         }
-        .contentShape(Rectangle())
         .padding(.vertical, 10)
+        .daybreakTappableRow()
     }
 
     private var versionNote: some View {
@@ -579,6 +632,7 @@ struct DeleteAccountView: View {
                 }
             }
         }
+        .interactiveDismissDisabled(state == .deleting)
     }
 
     private var reauthenticateContent: some View {
@@ -614,7 +668,7 @@ struct DeleteAccountView: View {
         VStack(alignment: .leading, spacing: 14) {
             Label("Deletion didn’t finish", systemImage: "exclamationmark.triangle.fill")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(CompetitiveTrustTheme.coral)
+                .foregroundStyle(CompetitiveTrustTheme.actionCoral)
             Text(message)
                 .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             Button("Try again") {
@@ -624,6 +678,10 @@ struct DeleteAccountView: View {
             if let supportURL = model.configuration.supportMailtoURL {
                 Link("Contact beta support", destination: supportURL)
                     .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(CompetitiveTrustTheme.actionCoral)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
             }
         }
     }
@@ -634,16 +692,22 @@ struct DeleteAccountView: View {
         switch result {
         case .failure(let error):
             state = .failed(error.localizedDescription)
+            DaybreakAccessibility.announce("Account deletion failed.")
         case .success(let identity):
             state = .deleting
+            DaybreakAccessibility.announce("Deleting your account…")
             Task {
                 do {
                     _ = try await model.deleteAccount(with: identity)
+                    DaybreakAccessibility.announce("Account deleted.")
                     dismiss()
                 } catch is CancellationError {
                     state = .reauthenticate
                 } catch {
                     state = .failed(error.localizedDescription)
+                    DaybreakAccessibility.announce(
+                        "Account deletion failed."
+                    )
                 }
             }
         }
@@ -655,22 +719,51 @@ struct PublicSupportLinksView: View {
     let betaTermsURL: URL?
     let supportMailtoURL: URL?
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         VStack(spacing: 8) {
-            HStack(spacing: 16) {
-                if let privacyURL {
-                    Link("Privacy Policy", destination: privacyURL)
-                }
-                if let betaTermsURL {
-                    Link("Beta Terms", destination: betaTermsURL)
-                }
-            }
+            policyLinks
             if let supportMailtoURL {
-                Link("Contact support", destination: supportMailtoURL)
+                publicLink("Contact support", destination: supportMailtoURL)
             }
         }
         .font(.footnote.weight(.semibold))
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private var policyLinks: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(spacing: 8) {
+                policyLinkContents
+            }
+        } else {
+            HStack(spacing: 16) {
+                policyLinkContents
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var policyLinkContents: some View {
+        if let privacyURL {
+            publicLink("Privacy Policy", destination: privacyURL)
+        }
+        if let betaTermsURL {
+            publicLink("Beta Terms", destination: betaTermsURL)
+        }
+    }
+
+    private func publicLink(
+        _ title: String,
+        destination: URL
+    ) -> some View {
+        Link(title, destination: destination)
+            .foregroundStyle(CompetitiveTrustTheme.actionCoral)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .contentShape(Rectangle())
     }
 }

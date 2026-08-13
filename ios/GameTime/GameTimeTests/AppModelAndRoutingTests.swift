@@ -241,6 +241,101 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertEqual(model.profile?.handle, "new_runner")
     }
 
+    func testOnboardingRejectsBlankAndOverlongNamesInline() async {
+        let model = makeFixtureOnboardingModel()
+        await model.start()
+
+        for invalidName in [
+            " \n ",
+            String(repeating: "N", count: 51),
+        ] {
+            await model.completeOnboarding(
+                handle: "new_runner",
+                displayName: invalidName
+            )
+
+            XCTAssertEqual(
+                model.onboardingError,
+                OnboardingPresentationError(
+                    field: .name,
+                    message:
+                        "Your name needs to be between 1 and 50 characters."
+                )
+            )
+            XCTAssertEqual(model.phase, .onboarding)
+
+            model.clearOnboardingError()
+            XCTAssertNil(model.onboardingError)
+        }
+    }
+
+    func testOnboardingRejectsMalformedUsernamesInline() async {
+        let model = makeFixtureOnboardingModel()
+        await model.start()
+        let expectedError = OnboardingPresentationError(
+            field: .username,
+            message:
+                "Usernames are 3–30 letters, numbers, or underscores, and start with a letter."
+        )
+
+        for invalidUsername in [
+            "ab",
+            String(repeating: "a", count: 31),
+            "1runner",
+        ] {
+            await model.completeOnboarding(
+                handle: invalidUsername,
+                displayName: "New Runner"
+            )
+
+            XCTAssertEqual(
+                model.onboardingError,
+                expectedError,
+                "Expected an inline username error for \(invalidUsername)"
+            )
+            XCTAssertEqual(model.phase, .onboarding)
+
+            model.clearOnboardingError()
+            XCTAssertNil(model.onboardingError)
+        }
+    }
+
+    func testDuplicateOnboardingUsernameMapsToExactInlineError() async {
+        let profileClient = OnboardingProfileClient(
+            createError: DuplicateHandleTestError()
+        )
+        let model = makeFixtureOnboardingModel(profiles: profileClient)
+        await model.start()
+
+        await model.completeOnboarding(
+            handle: "already_taken",
+            displayName: "New Runner"
+        )
+
+        XCTAssertEqual(profileClient.createCallCount, 1)
+        XCTAssertEqual(
+            model.onboardingError,
+            OnboardingPresentationError(
+                field: .username,
+                message: "That username is taken."
+            )
+        )
+        XCTAssertEqual(model.phase, .onboarding)
+    }
+
+    func testSignOutFromOnboardingReturnsToSignedOut() async {
+        let model = makeFixtureOnboardingModel()
+        await model.start()
+        XCTAssertEqual(model.phase, .onboarding)
+
+        await model.signOut()
+
+        XCTAssertEqual(model.phase, .signedOut)
+        XCTAssertNil(model.userID)
+        XCTAssertNil(model.profile)
+        XCTAssertNil(model.onboardingError)
+    }
+
     func testSignOutClearsEveryLoadedUserValue() async {
         let model = AppModel(
             configuration: .fixture,
@@ -310,6 +405,19 @@ final class AppModelAndRoutingTests: XCTestCase {
             router.challengesPath,
             [.personalChallenge(challengeID)]
         )
+        XCTAssertNil(router.presentedSheet)
+    }
+
+    func testRouterOpensAccountSupportAndDismissesCreation() {
+        let router = AppRouter()
+        router.selectedTab = .today
+        router.presentedSheet = .createPersonalChallenge
+        router.youPath = [.trustAndPrivacy]
+
+        router.openAccountSupport()
+
+        XCTAssertEqual(router.selectedTab, .you)
+        XCTAssertEqual(router.youPath, [.accountSupport])
         XCTAssertNil(router.presentedSheet)
     }
 
@@ -919,6 +1027,25 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertEqual(clients.count, 6)
     }
 
+    private func makeFixtureOnboardingModel(
+        profiles: (any ProfileClient)? = nil
+    ) -> AppModel {
+        let fixture = FixtureServicesFactory.make(
+            arguments: ["GameTimeTests", "--fixture-mode"]
+        )
+        return AppModel(
+            configuration: .fixture,
+            services: AppServices(
+                auth: SwitchingAuthClient(initialUserID: UUID()),
+                profiles: profiles ?? OnboardingProfileClient(),
+                friendships: fixture.friendships,
+                contests: fixture.contests,
+                pendingChallenges: fixture.pendingChallenges,
+                activitySync: fixture.activitySync
+            )
+        )
+    }
+
     private func makeTerms(requestID: UUID = UUID()) -> ChallengeTerms {
         let startsAt = Date().addingTimeInterval(86_400)
         return ChallengeTerms(
@@ -1112,6 +1239,45 @@ private final class AnyActorProfileClient: ProfileClient {
         timezone: String
     ) async throws -> UserProfile {
         UserProfile(
+            id: userID,
+            handle: handle,
+            displayName: displayName,
+            timezone: timezone
+        )
+    }
+}
+
+private struct DuplicateHandleTestError: Error, CustomStringConvertible {
+    var description: String {
+        "duplicate key violates constraint profiles_handle_key"
+    }
+}
+
+@MainActor
+private final class OnboardingProfileClient: ProfileClient {
+    private let createError: Error?
+    private(set) var createCallCount = 0
+
+    init(createError: Error? = nil) {
+        self.createError = createError
+    }
+
+    func currentProfile(userID: UUID) async throws -> UserProfile? {
+        _ = userID
+        return nil
+    }
+
+    func createProfile(
+        userID: UUID,
+        handle: String,
+        displayName: String,
+        timezone: String
+    ) async throws -> UserProfile {
+        createCallCount += 1
+        if let createError {
+            throw createError
+        }
+        return UserProfile(
             id: userID,
             handle: handle,
             displayName: displayName,

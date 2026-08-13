@@ -62,20 +62,14 @@ struct AppShellView: View {
             }
             .tag(AppTab.you)
         }
-        .font(
-            CompetitiveTrustTheme.uiFont(
-                size: 15,
-                relativeTo: .body
-            )
-        )
-        .tint(CompetitiveTrustTheme.coral)
+        .tint(CompetitiveTrustTheme.actionCoral)
         .toolbarBackground(
             CompetitiveTrustTheme.paper,
             for: .tabBar
         )
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarColorScheme(.light, for: .tabBar)
-        .environment(\.colorScheme, .light)
+        .preferredColorScheme(.light)
         .sheet(item: $router.presentedSheet) { destination in
             switch destination {
             case .createPersonalChallenge:

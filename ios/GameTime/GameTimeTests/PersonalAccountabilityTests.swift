@@ -1685,6 +1685,7 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
         XCTAssertEqual(saved.challengeID, challengeID)
         XCTAssertEqual(saved.requestID, requestID)
         XCTAssertEqual(saved.attemptCount, 1)
+        XCTAssertNil(firstStore.presentedError)
         XCTAssertEqual(
             try saved.recordingAttempt().requestBody,
             saved.requestBody
@@ -1709,6 +1710,129 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
         let cleared = try await cancellationStore.load(for: ownerID)
         XCTAssertNil(cleared)
         XCTAssertNil(relaunchedStore.pendingCancellation)
+    }
+
+    func testActivationCancellationFailureStaysOnRecoveryCardWithoutRootAlert()
+        async throws
+    {
+        let ownerID = UUID()
+        let submission = try PendingPersonalCancellationSubmission(
+            ownerID: ownerID,
+            challengeID: UUID(),
+            requestID: UUID()
+        )
+        let cancellationStore = EphemeralPendingPersonalCancellationStore()
+        try await cancellationStore.save(submission)
+        let client = PersonalClientFake(ownerID: ownerID)
+        client.cancellationError = .unavailable
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            pendingCancellationStore: cancellationStore,
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+
+        await store.activate(ownerID: ownerID)
+
+        XCTAssertNotNil(store.pendingCancellation)
+        XCTAssertFalse(store.canCreate)
+        XCTAssertNil(store.presentedError)
+    }
+
+    func testUnreadableCancellationRecoveryReplaysExactSavedRequest()
+        async throws
+    {
+        let ownerID = UUID(
+            uuidString: "11111111-1111-1111-1111-111111111111"
+        )!
+        let challengeID = UUID(
+            uuidString: "22222222-2222-2222-2222-222222222222"
+        )!
+        let requestID = UUID(
+            uuidString: "33333333-3333-3333-3333-333333333333"
+        )!
+        let submission = try PendingPersonalCancellationSubmission(
+            ownerID: ownerID,
+            challengeID: challengeID,
+            requestID: requestID
+        )
+        let cancellationStore = ScriptedPendingCancellationStore(
+            submission: submission,
+            failingLoadCount: 1
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            pendingCancellationStore: cancellationStore,
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+
+        await store.activate(ownerID: ownerID)
+
+        XCTAssertTrue(store.hasPendingCancellationRecoveryIssue)
+        XCTAssertNil(store.pendingCancellation)
+        XCTAssertFalse(store.canCreate)
+
+        let recovered = await store.retryPendingCancellationRecovery()
+
+        XCTAssertTrue(recovered)
+        XCTAssertFalse(store.hasPendingCancellationRecoveryIssue)
+        XCTAssertNil(store.pendingCancellation)
+        XCTAssertTrue(store.canCreate)
+        XCTAssertEqual(client.cancellationRequests.count, 1)
+        XCTAssertEqual(
+            client.cancellationRequests.first?.challengeID,
+            challengeID
+        )
+        XCTAssertEqual(
+            client.cancellationRequests.first?.requestID,
+            requestID
+        )
+        let savedRequestBodies = await cancellationStore.savedRequestBodies
+        XCTAssertEqual(savedRequestBodies, [submission.requestBody])
+        let remaining = try await cancellationStore.load(for: ownerID)
+        XCTAssertNil(remaining)
+    }
+
+    func testUnreadableCancellationRecoveryRemainsFailClosed()
+        async throws
+    {
+        let ownerID = UUID()
+        let submission = try PendingPersonalCancellationSubmission(
+            ownerID: ownerID,
+            challengeID: UUID(),
+            requestID: UUID()
+        )
+        let cancellationStore = ScriptedPendingCancellationStore(
+            submission: submission,
+            failingLoadCount: .max
+        )
+        let client = PersonalClientFake(ownerID: ownerID)
+        let store = PersonalAccountabilityStore(
+            configuration: .activityFixture,
+            auth: PersonalAuthFake(ownerID: ownerID),
+            client: client,
+            pendingStore: EphemeralPendingPersonalChallengeStore(),
+            pendingCancellationStore: cancellationStore,
+            diagnosticClient: PersonalDiagnosticFake(),
+            activitySync: DisabledPersonalActivitySyncCoordinator()
+        )
+        await store.activate(ownerID: ownerID)
+
+        let recovered = await store.retryPendingCancellationRecovery()
+
+        XCTAssertFalse(recovered)
+        XCTAssertTrue(store.hasPendingCancellationRecoveryIssue)
+        XCTAssertNil(store.pendingCancellation)
+        XCTAssertFalse(store.canCreate)
+        XCTAssertTrue(client.cancellationRequests.isEmpty)
     }
 
     func testPendingCancellationIsIsolatedByOwner() async throws {
@@ -2842,6 +2966,54 @@ private actor CountingPendingPersonalCancellationStore:
     }
 }
 
+private actor ScriptedPendingCancellationStore:
+    PendingPersonalCancellationStore
+{
+    private var submission: PendingPersonalCancellationSubmission?
+    private var remainingFailingLoads: Int
+    private(set) var savedRequestBodies: [Data] = []
+
+    init(
+        submission: PendingPersonalCancellationSubmission?,
+        failingLoadCount: Int
+    ) {
+        self.submission = submission
+        remainingFailingLoads = failingLoadCount
+    }
+
+    func load(for ownerID: UUID) throws
+        -> PendingPersonalCancellationSubmission?
+    {
+        if remainingFailingLoads > 0 {
+            if remainingFailingLoads != .max {
+                remainingFailingLoads -= 1
+            }
+            throw PendingPersonalCancellationStoreError.unavailable
+        }
+        try submission?.validate(for: ownerID)
+        return submission
+    }
+
+    func save(_ submission: PendingPersonalCancellationSubmission) throws {
+        try submission.validate(for: submission.ownerID)
+        if let existing = self.submission,
+            existing.challengeID != submission.challengeID
+                || existing.requestID != submission.requestID
+                || existing.requestBody != submission.requestBody
+                || existing.createdAt != submission.createdAt
+        {
+            throw PendingPersonalCancellationStoreError.conflictingRecord
+        }
+        savedRequestBodies.append(submission.requestBody)
+        self.submission = submission
+    }
+
+    func remove(for ownerID: UUID) {
+        guard submission?.ownerID == ownerID else { return }
+        submission = nil
+    }
+}
+
 @MainActor
 private final class PersonalAuthFake: AuthClient {
     var ownerID: UUID?
@@ -2876,6 +3048,7 @@ private final class PersonalClientFake: PersonalAccountabilityClient {
     var requests: [PersonalChallengeCreationRequest] = []
     var loseFirstResponse = false
     var loseFirstCancellationResponse = false
+    var cancellationError: PersonalAccountabilityClientError?
     var hold: PersonalEligibilityHold?
     var listError: PersonalAccountabilityClientError?
     private(set) var listCallCount = 0
@@ -2990,6 +3163,7 @@ private final class PersonalClientFake: PersonalAccountabilityClient {
             throw PersonalAccountabilityClientError.accountChanged
         }
         cancellationRequests.append((challengeID, requestID))
+        if let cancellationError { throw cancellationError }
         if let challenge, challenge.id == challengeID,
             challenge.status == .scheduled
         {
@@ -3674,6 +3848,224 @@ final class PersonalProgressPresentationTests: XCTestCase {
             startsAt: start,
             endsAt: start.addingTimeInterval(7 * 86_400),
             evidenceCutoff: start.addingTimeInterval(8 * 86_400),
+            closedAt: nil
+        )
+    }
+}
+
+final class PersonalHealthProgressPresentationTests: XCTestCase {
+    func testLifecycleStateMatrixUsesDeterministicNow() {
+        let now = Date(timeIntervalSince1970: 1_786_579_200)
+        let openTerms = makeTerms(
+            now: now,
+            evidenceCutoff: now.addingTimeInterval(2 * 86_400)
+        )
+        let closedTerms = makeTerms(
+            now: now,
+            evidenceCutoff: now.addingTimeInterval(-1)
+        )
+        let observed = makeProgress(
+            observedAt: now.addingTimeInterval(-3_600)
+        )
+        let stale = makeProgress(
+            observedAt: now.addingTimeInterval(-7_200),
+            isStale: true
+        )
+        let frozen = makeProgress(
+            observedAt: now.addingTimeInterval(-10_800),
+            isFrozen: true
+        )
+        let missingOutcome = PersonalOutcome(
+            id: openTerms.challengeID,
+            kind: .inconclusive,
+            reasonCode: "missing_health_data",
+            evidenceCutoff: openTerms.evidenceCutoff,
+            publishedAt: now
+        )
+
+        let presentations = [
+            presentation(
+                progress: nil,
+                terms: openTerms,
+                status: .scheduled,
+                now: now
+            ),
+            presentation(
+                progress: observed,
+                terms: openTerms,
+                status: .active,
+                now: now
+            ),
+            presentation(
+                progress: stale,
+                terms: openTerms,
+                status: .active,
+                now: now
+            ),
+            presentation(
+                progress: observed,
+                terms: openTerms,
+                status: .active,
+                uploadDelayed: true,
+                now: now
+            ),
+            presentation(
+                progress: observed,
+                terms: openTerms,
+                status: .awaitingEvidence,
+                now: now
+            ),
+            presentation(
+                progress: observed,
+                terms: closedTerms,
+                status: .awaitingEvidence,
+                now: now
+            ),
+            presentation(
+                progress: frozen,
+                terms: openTerms,
+                status: .completed,
+                now: now
+            ),
+            presentation(
+                progress: nil,
+                terms: openTerms,
+                status: .completed,
+                outcome: missingOutcome,
+                now: now
+            ),
+            presentation(
+                progress: frozen,
+                terms: openTerms,
+                status: .cancelled,
+                uploadDelayed: true,
+                now: now
+            ),
+        ]
+
+        XCTAssertEqual(
+            presentations.map(\.state),
+            [
+                .scheduled,
+                .active,
+                .stale,
+                .uploadDelayed,
+                .cutoff,
+                .resultPending,
+                .frozen,
+                .missingFinalData,
+                .cancelled,
+            ]
+        )
+        XCTAssertTrue(
+            presentations.allSatisfy { !$0.needsNoDataRecovery }
+        )
+        XCTAssertEqual(
+            presentations[0].message,
+            "Apple Health updates begin when this challenge starts."
+        )
+        XCTAssertFalse(presentations[0].message.contains("No step data"))
+        XCTAssertEqual(
+            presentations[2].message,
+            "Last updated 2 hours ago · Apple Health is temporarily unavailable."
+        )
+        XCTAssertTrue(
+            presentations[3].message.contains(
+                "This update will be sent when connectivity returns."
+            )
+        )
+        XCTAssertEqual(
+            presentations[8].message,
+            "Apple Health updates stopped when this challenge was cancelled."
+        )
+        XCTAssertFalse(presentations[8].message.contains("No step data"))
+    }
+
+    func testOnlyActiveMissingObservationOffersNoDataRecovery() {
+        let now = Date(timeIntervalSince1970: 1_786_579_200)
+        let terms = makeTerms(
+            now: now,
+            evidenceCutoff: now.addingTimeInterval(86_400)
+        )
+
+        let missing = presentation(
+            progress: nil,
+            terms: terms,
+            status: .active,
+            now: now
+        )
+        let validZero = presentation(
+            progress: makeProgress(observedAt: now, totalSteps: 0),
+            terms: terms,
+            status: .active,
+            now: now
+        )
+
+        XCTAssertEqual(missing.state, .active)
+        XCTAssertTrue(missing.needsNoDataRecovery)
+        XCTAssertEqual(validZero.state, .active)
+        XCTAssertFalse(validZero.needsNoDataRecovery)
+    }
+
+    private func presentation(
+        progress: PersonalDisplayedProgress?,
+        terms: FrozenPersonalTerms,
+        status: PersonalChallengePresentationStatus,
+        outcome: PersonalOutcome? = nil,
+        uploadDelayed: Bool = false,
+        now: Date
+    ) -> PersonalHealthProgressPresentation {
+        PersonalHealthProgressPresentation(
+            progress: progress,
+            terms: terms,
+            status: status,
+            outcome: outcome,
+            uploadDelayed: uploadDelayed,
+            now: now
+        )
+    }
+
+    private func makeProgress(
+        observedAt: Date,
+        totalSteps: Int = 1_234,
+        isStale: Bool = false,
+        isFrozen: Bool = false
+    ) -> PersonalDisplayedProgress {
+        PersonalDisplayedProgress(
+            totalSteps: totalSteps,
+            remainingSteps: max(0, 10_000 - totalSteps),
+            qualifyingDays: 0,
+            completedDays: 0,
+            days: [],
+            observedAt: observedAt,
+            snapshotUpdatedAt: observedAt,
+            source: isFrozen ? .frozenResult : .liveHealth,
+            isStale: isStale,
+            isFrozen: isFrozen
+        )
+    }
+
+    private func makeTerms(
+        now: Date,
+        evidenceCutoff: Date
+    ) -> FrozenPersonalTerms {
+        let challengeID = UUID(
+            uuidString: "54545454-5454-5454-5454-545454545454"
+        )!
+        return FrozenPersonalTerms(
+            challengeID: challengeID,
+            userID: nil,
+            cadence: .daily,
+            targetSteps: 10_000,
+            commitmentAmountMinor: 2_000,
+            currency: "USD",
+            settlementMode: .testOnly,
+            termsVersion: "personal-v2",
+            timezone: "America/Chicago",
+            agreementAt: now.addingTimeInterval(-3 * 86_400),
+            startsAt: now.addingTimeInterval(-2 * 86_400),
+            endsAt: now.addingTimeInterval(-86_400),
+            evidenceCutoff: evidenceCutoff,
             closedAt: nil
         )
     }

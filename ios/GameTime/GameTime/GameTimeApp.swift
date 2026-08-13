@@ -189,7 +189,7 @@ struct GameTimeApp: App {
                     .environment(demoPersonalStore)
                     .environment(demoPersonalStore.stepProgress)
                     .environment(router)
-                    .tint(CompetitiveTrustTheme.coral)
+                    .tint(CompetitiveTrustTheme.actionCoral)
                 } else if let liveModel, let livePersonalStore {
                     RootView(
                         model: liveModel,
@@ -202,7 +202,7 @@ struct GameTimeApp: App {
                     .environment(livePersonalStore)
                     .environment(livePersonalStore.stepProgress)
                     .environment(router)
-                    .tint(CompetitiveTrustTheme.coral)
+                    .tint(CompetitiveTrustTheme.actionCoral)
                 } else {
                     ConfigurationFailureView(
                         message: configurationFailure
@@ -237,6 +237,7 @@ struct GameTimeApp: App {
             .onOpenURL { url in
                 _ = StripeAPI.handleURLCallback(with: url)
             }
+            .preferredColorScheme(.light)
         }
     }
 
@@ -305,19 +306,22 @@ struct RootView: View {
     let pushCoordinator: PushNotificationCoordinator
 
     var body: some View {
+        @Bindable var router = router
+
         VStack(spacing: 0) {
-            EnvironmentDisclosureBanner(
-                settlementMode:
-                    model.configuration.personalSettlementMode,
-                isDemo: demoMode.isActive
-            )
-            .background(
-                (demoMode.isActive
-                    ? CompetitiveTrustTheme.coral
-                    : CompetitiveTrustTheme.sun)
-                    .ignoresSafeArea(edges: .top)
-            )
-            .accessibilityHidden(router.presentedSheet != nil)
+            if router.presentedSheet == nil {
+                EnvironmentDisclosureBanner(
+                    settlementMode:
+                        model.configuration.personalSettlementMode,
+                    isDemo: demoMode.isActive
+                )
+                .background(
+                    (demoMode.isActive
+                        ? CompetitiveTrustTheme.actionCoral
+                        : CompetitiveTrustTheme.sun)
+                        .ignoresSafeArea(edges: .top)
+                )
+            }
 
             Group {
                 switch model.phase {
@@ -393,6 +397,7 @@ struct RootView: View {
             isPresented: Binding(
                 get: {
                     model.phase != .launching
+                        && model.phase != .onboarding
                         && (
                             personalStore.presentedError != nil
                                 || model.presentedError != nil
@@ -468,7 +473,7 @@ private struct ConfigurationFailureView: View {
         .padding(28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(CompetitiveTrustTheme.ink)
-        .accessibilityElement(children: .combine)
+        .preferredColorScheme(.light)
     }
 }
 
@@ -483,7 +488,7 @@ private struct SignedOutView: View {
 
                 Text(GameTimePublicIdentity.name)
                     .font(.system(size: 20, weight: .black, design: .rounded))
-                    .foregroundStyle(CompetitiveTrustTheme.teal)
+                    .foregroundStyle(CompetitiveTrustTheme.actionCoral)
                     .accessibilityLabel(Text(GameTimePublicIdentity.name))
 
                 VStack(alignment: .leading, spacing: 12) {
@@ -494,6 +499,16 @@ private struct SignedOutView: View {
                     )
                     .font(.body)
                     .foregroundStyle(.secondary)
+                }
+
+                VStack(spacing: 10) {
+                    NativeAppleSignInButton()
+                        .disabled(model.isMutating)
+
+                    if model.isMutating {
+                        DaybreakAsyncStatus(message: "Signing in…")
+                            .accessibilityIdentifier("auth.sign-in.status")
+                    }
                 }
 
                 if let accountDeletionNotice = model.accountDeletionNotice {
@@ -517,9 +532,6 @@ private struct SignedOutView: View {
                 .foregroundStyle(.secondary)
                 .trustCard()
 
-                NativeAppleSignInButton()
-                    .disabled(model.isMutating)
-
                 if demoMode.isAvailable, !demoMode.isActive {
                     Button("Try demo mode", action: demoMode.enter)
                         .buttonStyle(TrustSecondaryButtonStyle())
@@ -542,6 +554,15 @@ private struct SignedOutView: View {
             .padding(24)
         }
         .background(CompetitiveTrustTheme.ink)
+        .preferredColorScheme(.light)
+        .onChange(of: model.isMutating) { _, isSigningIn in
+            guard isSigningIn else { return }
+            DaybreakAccessibility.announce("Signing in…")
+        }
+        .onChange(of: model.presentedError) { _, message in
+            guard let message else { return }
+            DaybreakAccessibility.announce(message)
+        }
     }
 }
 
@@ -551,7 +572,7 @@ private struct OnboardingView: View {
     @State private var displayName: String
     @FocusState private var focusedField: Field?
 
-    private enum Field {
+    private enum Field: Hashable {
         case name
         case handle
     }
@@ -562,61 +583,229 @@ private struct OnboardingView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField("Your name", text: $displayName)
-                        .textContentType(.name)
-                        .focused($focusedField, equals: .name)
-                        .accessibilityLabel("Your name")
-
-                    TextField("Username", text: $handle)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .focused($focusedField, equals: .handle)
-                        .accessibilityLabel("Username")
-                } header: {
-                    Text("Your profile")
-                } footer: {
-                    Text(
-                        "Pick carefully — you can’t change your username yet."
-                    )
-                }
-
-                Section {
-                    Button {
-                        Task {
-                            await model.completeOnboarding(
-                                handle: handle,
-                                displayName: displayName
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Make GameTime yours")
+                                .font(
+                                    CompetitiveTrustTheme.displayFont(
+                                        size: 32,
+                                        relativeTo: .largeTitle
+                                    )
+                                )
+                            Text(
+                                "Add your name and choose the username you’ll use in GameTime."
+                            )
+                            .font(.subheadline)
+                            .foregroundStyle(
+                                CompetitiveTrustTheme.secondaryText
                             )
                         }
-                    } label: {
-                        HStack {
-                            Spacer()
-                            if model.isMutating {
-                                ProgressView()
-                                    .accessibilityLabel("Saving")
-                            } else {
-                                Text("Enter GameTime")
+
+                        DaybreakSectionLabel(text: "Your profile")
+
+                        DaybreakCard {
+                            VStack(alignment: .leading, spacing: 18) {
+                                onboardingField(
+                                    title: "Your name",
+                                    text: $displayName,
+                                    field: .name,
+                                    textContentType: .name,
+                                    submitLabel: .next
+                                )
+
+                                Divider().overlay(CompetitiveTrustTheme.border)
+
+                                onboardingField(
+                                    title: "Username",
+                                    text: $handle,
+                                    field: .handle,
+                                    textContentType: .username,
+                                    submitLabel: .done
+                                )
+
+                                Text(
+                                    "Pick carefully — you can’t change your username yet."
+                                )
+                                .font(.caption)
+                                .foregroundStyle(
+                                    CompetitiveTrustTheme.secondaryText
+                                )
                             }
-                            Spacer()
+                        }
+
+                        if let message = error(for: .general) {
+                            Text(message)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(
+                                    CompetitiveTrustTheme.actionCoral
+                                )
+                                .accessibilityIdentifier(
+                                    "onboarding.general.error"
+                                )
+                        }
+
+                        Button {
+                            submitOnboarding()
+                        } label: {
+                            Text(
+                                model.isMutating
+                                    ? "Saving profile…"
+                                    : "Enter GameTime"
+                            )
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(TrustPrimaryButtonStyle())
+                        .disabled(
+                            model.isMutating
+                                || handle.isEmpty
+                                || displayName.trimmingCharacters(
+                                    in: .whitespacesAndNewlines
+                                ).isEmpty
+                        )
+                        .accessibilityIdentifier("onboarding.submit")
+
+                        Button("Use a different Apple account") {
+                            focusedField = nil
+                            Task { await model.signOut() }
+                        }
+                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .disabled(model.isMutating)
+                        .accessibilityIdentifier(
+                            "onboarding.use-different-account"
+                        )
+                    }
+                    .padding(20)
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .daybreakScreenChrome()
+                .onChange(of: focusedField) { _, field in
+                    guard let field else { return }
+                    Task { @MainActor in
+                        await Task.yield()
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            proxy.scrollTo(field, anchor: .center)
                         }
                     }
-                    .disabled(
-                        model.isMutating
-                            || handle.isEmpty
-                            || displayName.trimmingCharacters(
-                                in: .whitespacesAndNewlines
-                            ).isEmpty
-                    )
                 }
             }
-            .trustScreenBackground()
             .navigationTitle("Set your profile")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button(focusedField == .name ? "Next" : "Done") {
+                        if focusedField == .name {
+                            focusedField = .handle
+                        } else {
+                            submitOnboarding()
+                        }
+                    }
+                }
+            }
             .onAppear {
                 focusedField = displayName.isEmpty ? .name : .handle
             }
+            .onChange(of: displayName) { _, _ in
+                model.clearOnboardingError()
+            }
+            .onChange(of: handle) { _, _ in
+                model.clearOnboardingError()
+            }
+            .onChange(of: model.onboardingError) { _, error in
+                guard let error else { return }
+                switch error.field {
+                case .name:
+                    focusedField = .name
+                case .username:
+                    focusedField = .handle
+                case .general:
+                    break
+                }
+            }
+        }
+        .preferredColorScheme(.light)
+    }
+
+    private func onboardingField(
+        title: String,
+        text: Binding<String>,
+        field: Field,
+        textContentType: UITextContentType,
+        submitLabel: SubmitLabel
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+
+            TextField(title, text: text)
+                .textContentType(textContentType)
+                .textInputAutocapitalization(field == .handle ? .never : .words)
+                .autocorrectionDisabled(field == .handle)
+                .submitLabel(submitLabel)
+                .focused($focusedField, equals: field)
+                .onSubmit {
+                    if field == .name {
+                        focusedField = .handle
+                    } else {
+                        submitOnboarding()
+                    }
+                }
+                .padding(.horizontal, 14)
+                .frame(minHeight: 50)
+                .background(
+                    CompetitiveTrustTheme.paperSunk,
+                    in: RoundedRectangle(cornerRadius: 14)
+                )
+                .disabled(model.isMutating)
+                .accessibilityLabel(title)
+                .id(field)
+
+            Text(supportingText(for: field))
+                .font(.caption)
+                .foregroundStyle(
+                    error(for: field) == nil
+                        ? CompetitiveTrustTheme.secondaryText
+                        : CompetitiveTrustTheme.actionCoral
+                )
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier(
+                    field == .name
+                        ? "onboarding.name.message"
+                        : "onboarding.username.message"
+                )
+        }
+    }
+
+    private func supportingText(for field: Field) -> String {
+        if let error = error(for: field) {
+            return error
+        }
+        switch field {
+        case .name:
+            return "Name: 1–50 characters"
+        case .handle:
+            return "Username: 3–30 letters, numbers, or underscores; starts with a letter"
+        }
+    }
+
+    private func error(for field: OnboardingErrorField) -> String? {
+        guard model.onboardingError?.field == field else { return nil }
+        return model.onboardingError?.message
+    }
+
+    private func error(for field: Field) -> String? {
+        error(for: field == .name ? .name : .username)
+    }
+
+    private func submitOnboarding() {
+        focusedField = nil
+        Task {
+            await model.completeOnboarding(
+                handle: handle,
+                displayName: displayName
+            )
         }
     }
 }

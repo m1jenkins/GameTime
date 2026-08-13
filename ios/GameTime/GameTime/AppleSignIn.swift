@@ -44,8 +44,8 @@ enum AppleSignInNonceError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .randomnessUnavailable(let status):
-            "Secure nonce generation failed (\(status))."
+        case .randomnessUnavailable:
+            "We couldn’t start Sign in with Apple. Try again."
         }
     }
 }
@@ -145,7 +145,40 @@ struct NativeAppleReauthenticationButton: View {
 
     let completion: (Result<AppleIdentity, Error>) -> Void
 
+    @ViewBuilder
     var body: some View {
+        #if DEBUG || STAGING
+        if ProcessInfo.processInfo.arguments.contains(
+            "--fixture-account-deletion-failure"
+        ) {
+            Button {
+                completion(
+                    .success(
+                        AppleIdentity(
+                            idToken: "fixture-reauthentication-token",
+                            rawNonce: "fixture-reauthentication-nonce",
+                            firstSignInDisplayName: nil,
+                            authorizationCode:
+                                "fixture-reauthentication-authorization-code"
+                        )
+                    )
+                )
+            } label: {
+                Label("Continue with Apple", systemImage: "apple.logo")
+                    .frame(maxWidth: .infinity, minHeight: 52)
+            }
+            .buttonStyle(TrustPrimaryButtonStyle())
+            .accessibilityLabel("Continue with Apple to delete your account")
+            .accessibilityIdentifier("account-deletion.fixture-reauthenticate")
+        } else {
+            nativeButton
+        }
+        #else
+        nativeButton
+        #endif
+    }
+
+    private var nativeButton: some View {
         SignInWithAppleButton(.continue) { request in
             do {
                 let nonce = try AppleSignInNonce.random()

@@ -1,8 +1,94 @@
+import SwiftUI
+import UIKit
 import XCTest
 
 @testable import GameTime
 
 final class DomainAndConfigurationTests: XCTestCase {
+    func testEveryProductConfigurationForcesLightAppearance() throws {
+        let configurationDirectory = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Configuration", isDirectory: true)
+
+        for filename in ["AppInfo.plist", "StagingAppInfo.plist"] {
+            let data = try Data(
+                contentsOf: configurationDirectory.appendingPathComponent(
+                    filename
+                )
+            )
+            let plist = try XCTUnwrap(
+                PropertyListSerialization.propertyList(
+                    from: data,
+                    options: [],
+                    format: nil
+                ) as? [String: Any]
+            )
+
+            XCTAssertEqual(
+                plist["UIUserInterfaceStyle"] as? String,
+                "Light",
+                "\(filename) must keep GameTime in its fixed light appearance."
+            )
+        }
+    }
+
+    func testDaybreakTextRolesMeetNormalTextContrast() {
+        let paper = UIColor(CompetitiveTrustTheme.paper)
+        let lightSurfaces: [(name: String, color: UIColor)] = [
+            ("paper", paper),
+            ("white", UIColor(CompetitiveTrustTheme.card)),
+            ("sunk", UIColor(CompetitiveTrustTheme.paperSunk)),
+            ("coral tint", UIColor(CompetitiveTrustTheme.coralTint)),
+            ("sun tint", UIColor(CompetitiveTrustTheme.sunTint)),
+        ]
+        let primaryText = UIColor(CompetitiveTrustTheme.primaryText)
+        let action = UIColor(CompetitiveTrustTheme.actionCoral)
+        var pairs: [(name: String, foreground: UIColor, background: UIColor)] = [
+            ("Primary text on paper", primaryText, paper),
+            (
+                "Secondary text on paper",
+                UIColor(CompetitiveTrustTheme.secondaryText),
+                paper
+            ),
+            ("Primary button label", .white, action),
+            (
+                "Inverse secondary text",
+                UIColor(CompetitiveTrustTheme.inverseSecondaryText),
+                primaryText
+            ),
+            (
+                "Caution text on paper",
+                UIColor(CompetitiveTrustTheme.sunInk),
+                paper
+            ),
+        ]
+        let normalTextRoles: [(name: String, color: UIColor)] = [
+            ("Tertiary text", UIColor(CompetitiveTrustTheme.tertiaryText)),
+            ("Action text", action),
+            ("Success text", UIColor(CompetitiveTrustTheme.mintInk)),
+        ]
+        for role in normalTextRoles {
+            for surface in lightSurfaces {
+                pairs.append(
+                    (
+                        "\(role.name) on \(surface.name)",
+                        role.color,
+                        surface.color
+                    )
+                )
+            }
+        }
+
+        for pair in pairs {
+            XCTAssertGreaterThanOrEqual(
+                contrastRatio(pair.foreground, pair.background),
+                4.5,
+                "\(pair.name) must remain readable at normal text sizes."
+            )
+        }
+    }
+
     func testInstalledProductUsesTheGameTimePublicIdentity() {
         XCTAssertEqual(GameTimePublicIdentity.name, "GameTime")
         XCTAssertEqual(
@@ -14,6 +100,45 @@ final class DomainAndConfigurationTests: XCTestCase {
             forInfoDictionaryKey: "NSHealthShareUsageDescription"
         ) as? String
         XCTAssertTrue(healthDescription?.hasPrefix("GameTime ") == true)
+    }
+
+    private func contrastRatio(
+        _ first: UIColor,
+        _ second: UIColor
+    ) -> CGFloat {
+        let firstLuminance = relativeLuminance(first)
+        let secondLuminance = relativeLuminance(second)
+        return (max(firstLuminance, secondLuminance) + 0.05)
+            / (min(firstLuminance, secondLuminance) + 0.05)
+    }
+
+    private func relativeLuminance(_ color: UIColor) -> CGFloat {
+        let lightColor = color.resolvedColor(
+            with: UITraitCollection(userInterfaceStyle: .light)
+        )
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        guard lightColor.getRed(
+            &red,
+            green: &green,
+            blue: &blue,
+            alpha: &alpha
+        ) else {
+            XCTFail("Expected an RGB-compatible Daybreak color.")
+            return 0
+        }
+
+        func linearized(_ component: CGFloat) -> CGFloat {
+            component <= 0.04045
+                ? component / 12.92
+                : pow((component + 0.055) / 1.055, 2.4)
+        }
+
+        return 0.2126 * linearized(red)
+            + 0.7152 * linearized(green)
+            + 0.0722 * linearized(blue)
     }
 
     func testInstalledProductContainsValidClientConfiguration() throws {

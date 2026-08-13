@@ -15,7 +15,6 @@ struct LaunchingView: View {
           retry: retry
         )
         .padding(24)
-        .accessibilityIdentifier("launch.retry")
       } else {
         LaunchLoadingContent()
           .padding(24)
@@ -41,7 +40,7 @@ struct LaunchingView: View {
         }
       }
     }
-    .environment(\.colorScheme, .light)
+    .preferredColorScheme(.light)
   }
 
   private var isOffline: Bool {
@@ -119,6 +118,7 @@ private struct LaunchRetryContent: View {
         )
         .foregroundStyle(CompetitiveTrustTheme.primaryText)
         .multilineTextAlignment(.center)
+        .accessibilityIdentifier("launch.retry")
 
       Text(message)
         .font(

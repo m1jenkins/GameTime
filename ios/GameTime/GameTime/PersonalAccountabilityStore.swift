@@ -188,7 +188,12 @@ final class PersonalAccountabilityStore {
         await restorePendingCancellation(for: ownerID, generation: generation)
         guard isCurrent(ownerID, generation: generation) else { return }
         if pendingCancellation != nil {
-            _ = await retryPendingCancellation()
+            // Activation/background recovery is deliberately quiet. The
+            // durable recovery card owns user-visible failure and retry.
+            _ = await submitPendingCancellationDuringActivation(
+                ownerID: ownerID,
+                generation: generation
+            )
         }
         guard isCurrent(ownerID, generation: generation) else { return }
         // Read the legacy queue before the policy response arrives. If the
@@ -769,11 +774,15 @@ final class PersonalAccountabilityStore {
                     requestID: requestID
                 )
             }
-            return await submitCancellation(
+            let succeeded = await submitCancellation(
                 submission,
                 ownerID: ownerID,
                 generation: generation
             )
+            if !succeeded, isCurrent(ownerID, generation: generation) {
+                presentedError = nil
+            }
+            return succeeded
         } catch is CancellationError {
             return false
         } catch {
@@ -792,11 +801,76 @@ final class PersonalAccountabilityStore {
         let generation = actorGeneration
         isMutating = true
         defer { isMutating = false }
-        return await submitCancellation(
+        let succeeded = await submitCancellation(
             pendingCancellation,
             ownerID: ownerID,
             generation: generation
         )
+        if !succeeded, isCurrent(ownerID, generation: generation) {
+            presentedError = nil
+        }
+        return succeeded
+    }
+
+    /// Retries the protected-storage read before resubmitting the exact saved
+    /// cancellation. An unreadable record is never treated as absent: creation
+    /// remains fail-closed until a later read proves the record is clear or the
+    /// saved request is confirmed.
+    func retryPendingCancellationRecovery() async -> Bool {
+        guard let ownerID, !isMutating, !isRestoringSavedState else {
+            return false
+        }
+        let generation = actorGeneration
+        isRestoringSavedState = true
+        defer {
+            if isCurrent(ownerID, generation: generation) {
+                isRestoringSavedState = false
+            }
+        }
+
+        await restorePendingCancellation(
+            for: ownerID,
+            generation: generation
+        )
+        guard
+            await isCurrentAuthenticated(ownerID, generation: generation),
+            !hasPendingCancellationRecoveryIssue
+        else { return false }
+
+        // End the restoration gate before entering the ordinary mutation path.
+        isRestoringSavedState = false
+        if pendingCancellation != nil {
+            return await retryPendingCancellation()
+        }
+
+        // A readable empty store proves there is no saved request, but server
+        // lifecycle truth must also be current before creation can resume.
+        await refresh()
+        guard await isCurrentAuthenticated(ownerID, generation: generation)
+        else { return false }
+        switch loadState {
+        case .loaded, .empty:
+            return true
+        case .idle, .loading, .failed:
+            return false
+        }
+    }
+
+    private func submitPendingCancellationDuringActivation(
+        ownerID: UUID,
+        generation: UUID
+    ) async -> Bool {
+        guard let pendingCancellation else { return false }
+        let previousError = presentedError
+        let succeeded = await submitCancellation(
+            pendingCancellation,
+            ownerID: ownerID,
+            generation: generation
+        )
+        if !succeeded, isCurrent(ownerID, generation: generation) {
+            presentedError = previousError
+        }
+        return succeeded
     }
 
     private func submitCancellation(
@@ -1039,7 +1113,8 @@ final class PersonalAccountabilityStore {
             guard isCurrent(ownerID, generation: generation) else { return }
             pendingCreation = nil
             hasPendingCreationRecoveryIssue = true
-            presentedError = error.localizedDescription
+            // Recovery is explained with plain copy on Challenges; the
+            // protected-store diagnostic remains an internal detail.
         }
     }
 
@@ -1060,7 +1135,8 @@ final class PersonalAccountabilityStore {
             guard isCurrent(ownerID, generation: generation) else { return }
             pendingCancellation = nil
             hasPendingCancellationRecoveryIssue = true
-            presentedError = error.localizedDescription
+            // This durable condition is rendered inline. Avoid exposing
+            // protected-storage implementation details in the root alert.
         }
     }
 

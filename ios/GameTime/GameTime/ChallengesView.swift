@@ -9,6 +9,9 @@ struct ChallengesView: View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 loadState
+                PendingPersonalCancellationRecoveryCard(
+                    contactSupport: { router.openAccountSupport() }
+                )
                 pendingRecovery
 
                 if let current = store.openChallenge {
@@ -55,12 +58,14 @@ struct ChallengesView: View {
             }
             .padding(.horizontal, 18)
             .padding(.top, 4)
-            .padding(.bottom, 28)
         }
+        .daybreakTabScrollClearance()
         .daybreakScreenChrome()
         .navigationTitle("Challenges")
         .navigationBarTitleDisplayMode(.inline)
-        .refreshable { await store.refresh() }
+        .refreshable {
+            await refreshWithAnnouncement()
+        }
         .confirmationDialog(
             "Delete this draft?",
             isPresented: $showingDiscardConfirmation,
@@ -84,7 +89,7 @@ struct ChallengesView: View {
             DaybreakCard {
                 InlineLoadStateView(
                     state: store.loadState,
-                    retry: { Task { await store.refresh() } }
+                    retry: { Task { await refreshWithAnnouncement() } }
                 )
             }
         case .idle, .loaded, .empty:
@@ -143,5 +148,13 @@ struct ChallengesView: View {
             }
             .buttonStyle(TrustSecondaryButtonStyle())
         }
+    }
+
+    private func refreshWithAnnouncement() async {
+        await store.refresh()
+        PersonalAccessibilityAnnouncements.postRefreshResult(
+            loadState: store.loadState,
+            healthError: store.stepProgress.lastHealthError
+        )
     }
 }

@@ -10,6 +10,9 @@ struct TodayView: View {
             LazyVStack(spacing: 12) {
                 header
                 loadState
+                PendingPersonalCancellationRecoveryCard(
+                    contactSupport: { router.openAccountSupport() }
+                )
 
                 if let challenge = store.openChallenge {
                     currentChallenge(challenge)
@@ -21,13 +24,13 @@ struct TodayView: View {
             }
             .padding(.horizontal, 18)
             .padding(.top, 4)
-            .padding(.bottom, 28)
         }
+        .daybreakTabScrollClearance()
         .daybreakScreenChrome()
         .navigationTitle("Today")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable {
-            await store.refresh()
+            await refreshWithAnnouncement()
         }
     }
 
@@ -63,7 +66,7 @@ struct TodayView: View {
             DaybreakCard {
                 InlineLoadStateView(
                     state: store.loadState,
-                    retry: { Task { await store.refresh() } }
+                    retry: { Task { await refreshWithAnnouncement() } }
                 )
             }
         case .idle, .loaded, .empty:
@@ -74,14 +77,27 @@ struct TodayView: View {
     private func currentChallenge(
         _ summary: PersonalChallengeSummary
     ) -> some View {
-        VStack(spacing: 12) {
+        let now = Date()
+        let progress = store.displayedProgress(for: summary, now: now)
+        let status = summary.presentationStatus(at: now)
+        let healthPresentation = PersonalHealthProgressPresentation(
+            progress: progress,
+            terms: summary.terms,
+            status: status,
+            outcome: summary.outcome,
+            uploadDelayed: summary.id == store.stepProgress.challengeID
+                && store.stepProgress.lastUploadError != nil,
+            now: now
+        )
+
+        return VStack(spacing: 12) {
             DaybreakSectionLabel(text: "Your week")
             DaybreakCard(tone: .inverse) {
                 VStack(alignment: .leading, spacing: 15) {
                     if dynamicTypeSize.isAccessibilitySize {
                         VStack(alignment: .leading, spacing: 8) {
                             PersonalStatusPill(
-                                status: summary.presentationStatus(at: Date()),
+                                status: status,
                                 outcome: summary.outcome?.kind
                             )
                             Text(summary.terms.commitmentText)
@@ -95,7 +111,7 @@ struct TodayView: View {
                     } else {
                         HStack {
                             PersonalStatusPill(
-                                status: summary.presentationStatus(at: Date()),
+                                status: status,
                                 outcome: summary.outcome?.kind
                             )
                             Spacer(minLength: 8)
@@ -111,12 +127,16 @@ struct TodayView: View {
                     Text(summary.terms.targetText)
                         .font(
                             CompetitiveTrustTheme.displayFont(
-                                size: 28,
-                                relativeTo: .title
+                                size: dynamicTypeSize.isAccessibilitySize
+                                    ? 20
+                                    : 28,
+                                relativeTo: dynamicTypeSize.isAccessibilitySize
+                                    ? .headline
+                                    : .title
                             )
                         )
                         .tracking(-0.7)
-                    if let progress = store.displayedProgress(for: summary) {
+                    if let progress {
                         PersonalProgressBar(
                             progress: progress,
                             terms: summary.terms
@@ -124,11 +144,8 @@ struct TodayView: View {
                         .colorScheme(.dark)
                     }
                     PersonalHealthProgressStatus(
-                        progress: store.displayedProgress(for: summary),
-                        terms: summary.terms,
-                        status: summary.presentationStatus(at: Date()),
-                        policy: summary.stepDataPolicy,
-                        outcome: summary.outcome
+                        presentation: healthPresentation,
+                        policy: summary.stepDataPolicy
                     )
                     .colorScheme(.dark)
                     Button("See details") {
@@ -141,7 +158,7 @@ struct TodayView: View {
                 }
             }
 
-            if let progress = store.displayedProgress(for: summary),
+            if let progress,
                 !progress.days.isEmpty
             {
                 DaybreakSectionLabel(text: "Day by day")
@@ -172,5 +189,13 @@ struct TodayView: View {
                 .accessibilityIdentifier("personal.create")
             }
         }
+    }
+
+    private func refreshWithAnnouncement() async {
+        await store.refresh()
+        PersonalAccessibilityAnnouncements.postRefreshResult(
+            loadState: store.loadState,
+            healthError: store.stepProgress.lastHealthError
+        )
     }
 }

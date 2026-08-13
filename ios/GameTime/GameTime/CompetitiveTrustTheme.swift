@@ -10,7 +10,8 @@ enum CompetitiveTrustTheme {
     static let card = Color.white
     static let primaryText = Color(red: 0.110, green: 0.082, blue: 0.137)
     static let secondaryText = Color(red: 0.431, green: 0.392, blue: 0.471)
-    static let tertiaryText = Color(red: 0.545, green: 0.506, blue: 0.580)
+    // Small tertiary labels must remain readable on every Daybreak surface.
+    static let tertiaryText = Color(red: 0.365, green: 0.322, blue: 0.404)
     static let disabledText = Color(red: 0.655, green: 0.616, blue: 0.686)
     static let guide = Color(red: 0.788, green: 0.749, blue: 0.820)
     static let border = Color(red: 0.949, green: 0.902, blue: 0.855)
@@ -18,8 +19,8 @@ enum CompetitiveTrustTheme {
     static let rail = Color(red: 0.945, green: 0.922, blue: 0.965)
 
     static let coral = Color(red: 1.00, green: 0.353, blue: 0.271)
-    static let coralPressed = Color(red: 0.910, green: 0.267, blue: 0.184)
-    static let coralInk = Color(red: 0.851, green: 0.227, blue: 0.145)
+    static let coralPressed = Color(red: 0.610, green: 0.120, blue: 0.070)
+    static let coralInk = Color(red: 0.690, green: 0.160, blue: 0.100)
     static let coralTint = Color(red: 1.00, green: 0.941, blue: 0.929)
     static let coralTintStrong = Color(red: 0.969, green: 0.871, blue: 0.851)
 
@@ -28,7 +29,16 @@ enum CompetitiveTrustTheme {
     static let sunTint = Color(red: 1.00, green: 0.941, blue: 0.800)
 
     static let mint = Color(red: 0.071, green: 0.753, blue: 0.541)
-    static let mintInk = Color(red: 0.055, green: 0.604, blue: 0.435)
+    static let mintInk = Color(red: 0.015, green: 0.420, blue: 0.290)
+    static let inverseSecondaryText = Color(
+        red: 0.880,
+        green: 0.840,
+        blue: 0.910
+    )
+
+    /// Bright coral is reserved for progress and decoration. Interactive
+    /// fills and small accent text use this contrast-safe role.
+    static let actionCoral = coralInk
 
     private static let participantRamp: [Color] = [
         Color(red: 0.486, green: 0.361, blue: 0.988),
@@ -141,18 +151,10 @@ enum DaybreakAppearance {
         tabAppearance.shadowColor = UIColor(CompetitiveTrustTheme.border)
 
         let normalAttributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont(
-                name: "HankenGrotesk-Regular",
-                size: 10.5
-            ) ?? UIFont.systemFont(ofSize: 10.5, weight: .semibold),
             .foregroundColor: UIColor(CompetitiveTrustTheme.tertiaryText),
         ]
         let selectedAttributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont(
-                name: "HankenGrotesk-Regular",
-                size: 10.5
-            ) ?? UIFont.systemFont(ofSize: 10.5, weight: .semibold),
-            .foregroundColor: UIColor(CompetitiveTrustTheme.coral),
+            .foregroundColor: UIColor(CompetitiveTrustTheme.actionCoral),
         ]
 
         for itemAppearance in [
@@ -165,7 +167,7 @@ enum DaybreakAppearance {
             )
             itemAppearance.normal.titleTextAttributes = normalAttributes
             itemAppearance.selected.iconColor = UIColor(
-                CompetitiveTrustTheme.coral
+                CompetitiveTrustTheme.actionCoral
             )
             itemAppearance.selected.titleTextAttributes = selectedAttributes
         }
@@ -215,13 +217,23 @@ extension View {
 
     func daybreakScreenChrome() -> some View {
         background(CompetitiveTrustTheme.paper.ignoresSafeArea())
-            .environment(\.colorScheme, .light)
+            .preferredColorScheme(.light)
             .toolbarBackground(
                 CompetitiveTrustTheme.paper,
                 for: .navigationBar
             )
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.light, for: .navigationBar)
+    }
+
+    /// Keeps the last tab-hosted action or card above the floating tab bar.
+    func daybreakTabScrollClearance() -> some View {
+        contentMargins(.bottom, 88, for: .scrollContent)
+    }
+
+    func daybreakTappableRow() -> some View {
+        frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
     }
 }
 
@@ -243,7 +255,9 @@ struct TrustPrimaryButtonStyle: ButtonStyle {
             .padding(.horizontal, 20)
             .foregroundStyle(Color.white.opacity(isEnabled ? 1 : 0.72))
             .background(
-                CompetitiveTrustTheme.coral.opacity(isEnabled ? 1 : 0.42),
+                CompetitiveTrustTheme.actionCoral.opacity(
+                    isEnabled ? 1 : 0.42
+                ),
                 in: Capsule()
             )
             .scaleEffect(
@@ -270,7 +284,7 @@ struct TrustSecondaryButtonStyle: ButtonStyle {
                 )
             )
             .frame(maxWidth: .infinity)
-            .frame(minHeight: 42)
+            .frame(minHeight: 44)
             .padding(.horizontal, 18)
             .foregroundStyle(
                 CompetitiveTrustTheme.coralInk.opacity(isEnabled ? 1 : 0.45)
@@ -308,7 +322,7 @@ struct SunPillButtonStyle: ButtonStyle {
                 CompetitiveTrustTheme.primaryText.opacity(isEnabled ? 1 : 0.45)
             )
             .padding(.horizontal, 17)
-            .frame(minHeight: 40)
+            .frame(minHeight: 44)
             .background(
                 CompetitiveTrustTheme.sun.opacity(isEnabled ? 1 : 0.45),
                 in: Capsule()
@@ -346,7 +360,7 @@ struct TrustCompactButtonStyle: ButtonStyle {
             )
             .foregroundStyle(foreground.opacity(isEnabled ? 1 : 0.48))
             .padding(.horizontal, 15)
-            .frame(minHeight: 36)
+            .frame(minHeight: 44)
             .background(
                 background.opacity(
                     isEnabled
@@ -378,7 +392,7 @@ struct TrustCompactButtonStyle: ButtonStyle {
     private var background: Color {
         switch tone {
         case .primary:
-            CompetitiveTrustTheme.coral
+            CompetitiveTrustTheme.actionCoral
         case .secondary:
             CompetitiveTrustTheme.coralTint
         case .quiet:
@@ -434,7 +448,7 @@ struct TrustStatusPill: View {
         case .neutral:
             CompetitiveTrustTheme.secondaryText
         case .live:
-            CompetitiveTrustTheme.coral
+            CompetitiveTrustTheme.actionCoral
         case .pledge:
             CompetitiveTrustTheme.sunInk
         }
@@ -539,10 +553,64 @@ struct EnvironmentDisclosureBanner: View {
         .padding(.vertical, 7)
         .background(
             isDemo
-                ? CompetitiveTrustTheme.coral
+                ? CompetitiveTrustTheme.actionCoral
                 : CompetitiveTrustTheme.sun
         )
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(message)
         .accessibilityIdentifier("personal.environment-disclosure")
+    }
+}
+
+private struct DaybreakSecondaryForegroundKey: EnvironmentKey {
+    static let defaultValue = CompetitiveTrustTheme.secondaryText
+}
+
+extension EnvironmentValues {
+    var daybreakSecondaryForeground: Color {
+        get { self[DaybreakSecondaryForegroundKey.self] }
+        set { self[DaybreakSecondaryForegroundKey.self] = newValue }
+    }
+}
+
+struct DaybreakAsyncStatus: View {
+    @Environment(\.daybreakSecondaryForeground)
+    private var secondaryForeground
+
+    let message: String
+    var onDarkSurface = false
+
+    var body: some View {
+        HStack(spacing: 9) {
+            ProgressView()
+                .tint(
+                    onDarkSurface
+                        ? CompetitiveTrustTheme.inverseSecondaryText
+                        : CompetitiveTrustTheme.actionCoral
+                )
+            Text(message)
+                .font(
+                    CompetitiveTrustTheme.uiFont(
+                        size: 14,
+                        relativeTo: .subheadline,
+                        weight: .bold
+                    )
+                )
+        }
+        .foregroundStyle(
+            onDarkSurface
+                ? CompetitiveTrustTheme.inverseSecondaryText
+                : secondaryForeground
+        )
+        .frame(minHeight: 44)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(message)
+    }
+}
+
+@MainActor
+enum DaybreakAccessibility {
+    static func announce(_ message: String) {
+        UIAccessibility.post(notification: .announcement, argument: message)
     }
 }

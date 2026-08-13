@@ -19,10 +19,25 @@ struct CreatePersonalChallengeFlow: View {
     @State private var paymentSheetSetupID: String?
     @State private var showingPaymentSheet = false
     @State private var showingReceiptDetails = false
+    @State private var initialDraft: PersonalChallengeDraft?
+    @State private var initialStartsImmediately = false
+    @State private var initialPaymentConsentAccepted = false
+    @State private var hasLoadedInitialState = false
+    @State private var hasMadeProgress = false
+    @State private var showingSetupDiscardConfirmation = false
+    @State private var isSettingUpPayment = false
+    @State private var isConfirmingPaymentSetup = false
+    @State private var isSubmittingChallenge = false
+    @State private var isDeletingPendingDraft = false
+    @FocusState private var focusedField: FocusedField?
     /// Resampled whenever the start step is entered, so the hours it offers
     /// are the hours still open. Submission re-checks against a live clock.
     @State private var now = Date()
     @State private var startsImmediately = false
+
+    private enum FocusedField {
+        case target
+    }
 
     private enum Step: Int, CaseIterable {
         case metric
@@ -65,12 +80,21 @@ struct CreatePersonalChallengeFlow: View {
                 }
                 .padding(18)
             }
+            .scrollDismissesKeyboard(.interactively)
             .daybreakScreenChrome()
             .navigationTitle(step.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
+                    Button("Close") { attemptClose() }
+                        .disabled(isCreationBusy)
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        focusedField = nil
+                    }
+                    .accessibilityIdentifier("personal.target.done")
                 }
             }
             .task {
@@ -109,6 +133,7 @@ struct CreatePersonalChallengeFlow: View {
                         now: now
                     )
                 }
+                captureInitialState()
             }
             .confirmationDialog(
                 "Delete this draft?",
@@ -117,6 +142,9 @@ struct CreatePersonalChallengeFlow: View {
             ) {
                 Button("Delete draft", role: .destructive) {
                     Task {
+                        isDeletingPendingDraft = true
+                        DaybreakAccessibility.announce("Deleting draft…")
+                        defer { isDeletingPendingDraft = false }
                         if await store.discardPendingCreation() {
                             requestID = UUID()
                             paymentConsentAccepted = false
@@ -126,13 +154,27 @@ struct CreatePersonalChallengeFlow: View {
                             showingReceiptDetails = false
                             startsImmediately = false
                             draft = .initial(
-                                profileTimezone: appModel.profile?.timezone
+                                profileTimezone: appModel.profile?.timezone,
+                                now: Date()
                             )
                             step = .cadence
+                            captureInitialState()
+                            DaybreakAccessibility.announce("Draft deleted.")
+                        } else if let message = store.presentedError {
+                            DaybreakAccessibility.announce(message)
                         }
                     }
                 }
                 Button("Keep it", role: .cancel) {}
+            }
+            .alert(
+                "Discard this setup?",
+                isPresented: $showingSetupDiscardConfirmation
+            ) {
+                Button("Discard changes", role: .destructive) {
+                    dismiss()
+                }
+                Button("Keep editing", role: .cancel) {}
             }
             .background {
                 if let paymentSheet {
@@ -143,6 +185,9 @@ struct CreatePersonalChallengeFlow: View {
                     )
                 }
             }
+            .interactiveDismissDisabled(
+                isCreationBusy || hasUnsavedSetupChanges
+            )
         }
     }
 
@@ -207,6 +252,7 @@ struct CreatePersonalChallengeFlow: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .daybreakTappableRow()
                     .accessibilityIdentifier("personal.cadence.\(cadence.rawValue)")
                     .accessibilityValue(
                         draft.cadence == cadence
@@ -228,6 +274,7 @@ struct CreatePersonalChallengeFlow: View {
                     format: .number
                 )
                 .keyboardType(.numberPad)
+                .focused($focusedField, equals: .target)
                 .font(
                     CompetitiveTrustTheme.displayFont(
                         size: 36,
@@ -246,43 +293,28 @@ struct CreatePersonalChallengeFlow: View {
             }
         case .commitment:
             VStack(alignment: .leading, spacing: 14) {
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 76))],
-                    spacing: 10
-                ) {
-                    ForEach(
-                        PersonalChallengeDraft.allowedCommitmentAmountsMinor,
-                        id: \.self
-                    ) { amount in
-                        Button {
-                            draft.commitmentAmountMinor = amount
-                        } label: {
-                            Text(
-                                (Double(amount) / 100)
-                                    .formatted(.currency(code: "USD"))
-                            )
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 13)
-                            .background(
-                                draft.commitmentAmountMinor == amount
-                                    ? CompetitiveTrustTheme.coral
-                                    : CompetitiveTrustTheme.paperSunk,
-                                in: RoundedRectangle(cornerRadius: 14)
-                            )
-                            .foregroundStyle(
-                                draft.commitmentAmountMinor == amount
-                                    ? Color.white
-                                    : CompetitiveTrustTheme.primaryText
-                            )
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(spacing: 10) {
+                        ForEach(
+                            PersonalChallengeDraft
+                                .allowedCommitmentAmountsMinor,
+                            id: \.self
+                        ) { amount in
+                            commitmentAmountChoice(amount)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("personal.commitment.\(amount)")
-                        .accessibilityValue(
-                            draft.commitmentAmountMinor == amount
-                                ? "Selected"
-                                : "Not selected"
-                        )
+                    }
+                } else {
+                    LazyVGrid(
+                        columns: [GridItem(.adaptive(minimum: 76))],
+                        spacing: 10
+                    ) {
+                        ForEach(
+                            PersonalChallengeDraft
+                                .allowedCommitmentAmountsMinor,
+                            id: \.self
+                        ) { amount in
+                            commitmentAmountChoice(amount)
+                        }
                     }
                 }
                 Label(
@@ -303,6 +335,39 @@ struct CreatePersonalChallengeFlow: View {
         case .review:
             reviewContent
         }
+    }
+
+    private func commitmentAmountChoice(_ amount: Int) -> some View {
+        Button {
+            draft.commitmentAmountMinor = amount
+        } label: {
+            Text(
+                (Double(amount) / 100)
+                    .formatted(.currency(code: "USD"))
+            )
+            .font(.headline)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .padding(.horizontal, 10)
+            .background(
+                draft.commitmentAmountMinor == amount
+                    ? CompetitiveTrustTheme.actionCoral
+                    : CompetitiveTrustTheme.paperSunk,
+                in: RoundedRectangle(cornerRadius: 14)
+            )
+            .foregroundStyle(
+                draft.commitmentAmountMinor == amount
+                    ? Color.white
+                    : CompetitiveTrustTheme.primaryText
+            )
+        }
+        .buttonStyle(.plain)
+        .daybreakTappableRow()
+        .accessibilityIdentifier("personal.commitment.\(amount)")
+        .accessibilityValue(
+            draft.commitmentAmountMinor == amount
+                ? "Selected"
+                : "Not selected"
+        )
     }
 
     @ViewBuilder
@@ -484,15 +549,11 @@ struct CreatePersonalChallengeFlow: View {
                         ? "Connecting…"
                         : "Connect Apple Health"
                 ) {
-                    Task {
-                        _ = await store.verifyHealthAccess(
-                            timezone: draft.timezone
-                        )
-                    }
+                    verifyHealthAccess()
                 }
                 .buttonStyle(TrustSecondaryButtonStyle())
                 .disabled(
-                    store.isVerifyingHealthAccess
+                    isCreationBusy
                         || !store.configuration.activitySyncEnabled
                 )
                 .accessibilityIdentifier("personal.health.verify")
@@ -611,7 +672,7 @@ struct CreatePersonalChallengeFlow: View {
                     "That start time has already passed. Go back and pick a new one, or delete this draft."
                 )
                 .font(.caption)
-                .foregroundStyle(CompetitiveTrustTheme.coral)
+                .foregroundStyle(CompetitiveTrustTheme.actionCoral)
                 .accessibilityIdentifier("personal.review.stale-start")
                 .padding(.vertical, 12)
             }
@@ -702,6 +763,7 @@ struct CreatePersonalChallengeFlow: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .daybreakTappableRow()
             .accessibilityIdentifier("personal.receipt.more-details")
             .accessibilityLabel("More details")
             .accessibilityValue(
@@ -750,7 +812,7 @@ struct CreatePersonalChallengeFlow: View {
                 "Start right now (count today)",
                 isOn: startNowBinding
             )
-            .tint(CompetitiveTrustTheme.coral)
+            .tint(CompetitiveTrustTheme.actionCoral)
             .accessibilityIdentifier("personal.start.now")
             Text("The challenge activates on the current minute, and all eligible steps since midnight today count.")
                 .font(.caption)
@@ -764,15 +826,20 @@ struct CreatePersonalChallengeFlow: View {
                 Button {
                     submit()
                 } label: {
-                    if store.isMutating {
-                        ProgressView().tint(.white)
-                    } else {
-                        Text("Start my challenge")
+                    HStack(spacing: 9) {
+                        if isSubmittingChallenge {
+                            ProgressView().tint(.white)
+                        }
+                        Text(
+                            isSubmittingChallenge
+                                ? "Starting challenge…"
+                                : "Start my challenge"
+                        )
                     }
                 }
                 .buttonStyle(TrustPrimaryButtonStyle())
                 .disabled(
-                    store.isMutating
+                    isCreationBusy
                         || !store.hasVerifiedCreationState
                         || !store.healthReadiness.permitsCreation
                         || !isDraftValid
@@ -784,22 +851,31 @@ struct CreatePersonalChallengeFlow: View {
                         advance()
                     }
                     .buttonStyle(TrustPrimaryButtonStyle())
+                    .disabled(isCreationBusy)
                     .accessibilityIdentifier("personal.continue")
                 } else {
                     Button {
                         preparePaymentSheet()
                     } label: {
-                        if store.isPreparingPayment {
-                            ProgressView().tint(.white)
-                        } else {
-                            Text("Set up test payment")
+                        HStack(spacing: 9) {
+                            if isSettingUpPayment
+                                || isConfirmingPaymentSetup
+                            {
+                                ProgressView().tint(.white)
+                            }
+                            Text(
+                                isSettingUpPayment
+                                    || isConfirmingPaymentSetup
+                                    ? "Setting up test payment…"
+                                    : "Set up test payment"
+                            )
                         }
                     }
                     .buttonStyle(TrustPrimaryButtonStyle())
                     .disabled(
                         !store.hasVerifiedCreationState
                             || !paymentConsentAccepted
-                            || store.isPreparingPayment
+                            || isCreationBusy
                     )
                     .accessibilityIdentifier("personal.payment.setup")
                 }
@@ -808,7 +884,7 @@ struct CreatePersonalChallengeFlow: View {
                     advance()
                 }
                 .buttonStyle(TrustPrimaryButtonStyle())
-                .disabled(!canAdvance)
+                .disabled(!canAdvance || isCreationBusy)
                 .accessibilityIdentifier("personal.continue")
             }
 
@@ -818,15 +894,22 @@ struct CreatePersonalChallengeFlow: View {
                         goBack()
                     }
                     .buttonStyle(TrustCompactButtonStyle(tone: .quiet))
+                    .disabled(isCreationBusy)
                     .accessibilityIdentifier("personal.back")
 
                     Spacer(minLength: 8)
 
                     if step == .review, store.pendingCreation != nil {
-                        Button("Delete draft", role: .destructive) {
+                        Button(
+                            isDeletingPendingDraft
+                                ? "Deleting draft…"
+                                : "Delete draft",
+                            role: .destructive
+                        ) {
                             showingDiscardConfirmation = true
                         }
                         .buttonStyle(TrustCompactButtonStyle(tone: .quiet))
+                        .disabled(isCreationBusy)
                         .accessibilityIdentifier(
                             "personal.pending.discard-review"
                         )
@@ -837,14 +920,80 @@ struct CreatePersonalChallengeFlow: View {
         }
     }
 
+    private var isCreationBusy: Bool {
+        store.isVerifyingHealthAccess
+            || store.isPreparingPayment
+            || store.isMutating
+            || isSettingUpPayment
+            || isConfirmingPaymentSetup
+            || isSubmittingChallenge
+            || isDeletingPendingDraft
+            || showingPaymentSheet
+    }
+
+    private var hasUnsavedSetupChanges: Bool {
+        guard
+            hasLoadedInitialState,
+            store.pendingCreation == nil,
+            let initialDraft
+        else {
+            return false
+        }
+        return hasMadeProgress
+            || draft != initialDraft
+            || startsImmediately != initialStartsImmediately
+            || paymentConsentAccepted != initialPaymentConsentAccepted
+    }
+
+    private func captureInitialState() {
+        initialDraft = draft
+        initialStartsImmediately = startsImmediately
+        initialPaymentConsentAccepted = paymentConsentAccepted
+        hasMadeProgress = false
+        hasLoadedInitialState = true
+    }
+
+    private func attemptClose() {
+        focusedField = nil
+        guard !isCreationBusy else { return }
+        if hasUnsavedSetupChanges {
+            showingSetupDiscardConfirmation = true
+        } else {
+            dismiss()
+        }
+    }
+
+    private func verifyHealthAccess() {
+        focusedField = nil
+        DaybreakAccessibility.announce("Connecting…")
+        Task {
+            let connected = await store.verifyHealthAccess(
+                timezone: draft.timezone
+            )
+            if connected {
+                DaybreakAccessibility.announce("Apple Health connected.")
+            } else if let message = store.presentedError {
+                DaybreakAccessibility.announce(message)
+            }
+        }
+    }
+
     private func goBack() {
+        focusedField = nil
         guard
             let index = visibleSteps.firstIndex(of: step),
             index > visibleSteps.startIndex
         else {
             return
         }
-        step = visibleSteps[index - 1]
+        let previous = visibleSteps[index - 1]
+        step = previous
+        if previous == .target {
+            Task { @MainActor in
+                await Task.yield()
+                focusedField = .target
+            }
+        }
     }
 
     private func choice(
@@ -858,7 +1007,7 @@ struct CreatePersonalChallengeFlow: View {
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(
                     selected
-                        ? CompetitiveTrustTheme.coral
+                        ? CompetitiveTrustTheme.actionCoral
                         : CompetitiveTrustTheme.guide
                 )
                 .frame(width: 32)
@@ -871,7 +1020,7 @@ struct CreatePersonalChallengeFlow: View {
             Spacer(minLength: 8)
             if selected {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(CompetitiveTrustTheme.coral)
+                    .foregroundStyle(CompetitiveTrustTheme.actionCoral)
             }
         }
         .padding(4)
@@ -951,6 +1100,7 @@ struct CreatePersonalChallengeFlow: View {
     }
 
     private func advance() {
+        focusedField = nil
         if step == .target,
             !PersonalChallengeDraft.targetRange.contains(draft.targetSteps)
         {
@@ -958,6 +1108,7 @@ struct CreatePersonalChallengeFlow: View {
                 .localizedDescription
             return
         }
+        hasMadeProgress = true
         guard let index = visibleSteps.firstIndex(of: step) else {
             step = .review
             return
@@ -979,6 +1130,12 @@ struct CreatePersonalChallengeFlow: View {
             refreshBetaStart()
         }
         step = next
+        if next == .target {
+            Task { @MainActor in
+                await Task.yield()
+                focusedField = .target
+            }
+        }
     }
 
     /// Keep the chosen start mode fresh while preserving an exact saved retry.
@@ -1016,12 +1173,19 @@ struct CreatePersonalChallengeFlow: View {
     }
 
     private func preparePaymentSheet() {
+        focusedField = nil
         do {
             let requestDate = Date()
             refreshBetaStart(at: requestDate)
             let request = try betaRequest(at: requestDate)
+            isSettingUpPayment = true
+            DaybreakAccessibility.announce("Setting up test payment…")
             Task {
+                defer { isSettingUpPayment = false }
                 guard let setup = await store.preparePayment(request) else {
+                    if let message = store.presentedError {
+                        DaybreakAccessibility.announce(message)
+                    }
                     return
                 }
                 switch setup.presentation {
@@ -1029,6 +1193,9 @@ struct CreatePersonalChallengeFlow: View {
                     paymentConsentAccepted = true
                     refreshBetaStart()
                     step = .review
+                    DaybreakAccessibility.announce(
+                        "Test payment method saved."
+                    )
                 case .paymentSheet(
                     let publishableKey,
                     let setupIntentClientSecret
@@ -1056,6 +1223,7 @@ struct CreatePersonalChallengeFlow: View {
         } catch {
             now = Date()
             store.presentedError = error.localizedDescription
+            DaybreakAccessibility.announce(error.localizedDescription)
         }
     }
 
@@ -1072,7 +1240,9 @@ struct CreatePersonalChallengeFlow: View {
                 let requestDate = Date()
                 refreshBetaStart(at: requestDate)
                 let request = try betaRequest(at: requestDate)
+                isConfirmingPaymentSetup = true
                 Task {
+                    defer { isConfirmingPaymentSetup = false }
                     if await store.confirmPaymentSetup(
                         request: request,
                         setupID: setupID
@@ -1080,34 +1250,50 @@ struct CreatePersonalChallengeFlow: View {
                         paymentConsentAccepted = true
                         refreshBetaStart()
                         step = .review
+                        DaybreakAccessibility.announce(
+                            "Test payment method saved."
+                        )
+                    } else if let message = store.presentedError {
+                        DaybreakAccessibility.announce(message)
                     }
                 }
             } catch {
                 now = Date()
                 store.presentedError = error.localizedDescription
+                DaybreakAccessibility.announce(error.localizedDescription)
             }
         case .canceled:
             break
         case .failed:
-            store.presentedError =
+            let message =
                 "Stripe couldn’t save that test payment method. Try again when you’re ready."
+            store.presentedError = message
+            DaybreakAccessibility.announce(message)
         }
     }
 
     private func submit() {
+        focusedField = nil
         do {
             let requestDate = Date()
             refreshBetaStart(at: requestDate)
             let request = try betaRequest(at: requestDate)
+            isSubmittingChallenge = true
+            DaybreakAccessibility.announce("Starting challenge…")
             Task {
+                defer { isSubmittingChallenge = false }
                 if let id = await store.create(request) {
+                    DaybreakAccessibility.announce("Challenge started.")
                     dismiss()
                     router.openPersonalChallenge(id)
+                } else if let message = store.presentedError {
+                    DaybreakAccessibility.announce(message)
                 }
             }
         } catch {
             now = Date()
             store.presentedError = error.localizedDescription
+            DaybreakAccessibility.announce(error.localizedDescription)
         }
     }
 }

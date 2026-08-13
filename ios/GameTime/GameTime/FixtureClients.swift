@@ -11,6 +11,8 @@ enum FixtureServicesFactory {
         activitySync: (any ActivitySyncing)? = nil,
         pendingPersonalChallengeStore:
             (any PendingPersonalChallengeStore)? = nil,
+        pendingPersonalCancellationStore:
+            (any PendingPersonalCancellationStore)? = nil,
         personalAccountabilityClient:
             (any PersonalAccountabilityClient)? = nil,
         personalPaymentClient: (any PersonalPaymentClient)? = nil,
@@ -21,7 +23,8 @@ enum FixtureServicesFactory {
         personalStepSnapshotCache:
             (any PersonalStepSnapshotCaching)? = nil,
         personalHealthSnapshotUploader:
-            (any PersonalHealthSnapshotUploading)? = nil
+            (any PersonalHealthSnapshotUploading)? = nil,
+        accountDeletionClient: (any AccountDeletionClient)? = nil
     ) -> AppServices {
         let scenario = FixtureScenario(arguments: arguments)
         let store = FixtureStore(scenario: scenario)
@@ -62,6 +65,14 @@ enum FixtureServicesFactory {
                         ? FixturePersonalStore.pendingCreationSubmission()
                         : nil
                 ),
+            pendingPersonalCancellations: pendingPersonalCancellationStore
+                ?? FixturePendingPersonalCancellationStore(
+                    submission: scenario.pendingPersonalCancellation
+                        ? try? FixturePersonalStore
+                            .pendingCancellationSubmission()
+                        : nil,
+                    unreadable: scenario.unreadablePersonalCancellation
+                ),
             trustedActivityDiagnostic: trustedActivityDiagnosticClient
                 ?? FixtureTrustedActivityDiagnosticClient(
                     store: personalStore
@@ -75,7 +86,13 @@ enum FixtureServicesFactory {
             personalStepSnapshotCache: personalStepSnapshotCache
                 ?? EphemeralPersonalStepSnapshotCache(),
             personalHealthSnapshotUploader: personalHealthSnapshotUploader
-                ?? DisabledPersonalHealthSnapshotUploader()
+                ?? FixturePersonalHealthSnapshotUploader(
+                    fails: scenario.personalUploadDelay
+                ),
+            accountDeletion: accountDeletionClient
+                ?? (scenario.accountDeletionFails
+                    ? FixtureFailingAccountDeletionClient()
+                    : DisabledAccountDeletionClient())
         )
     }
 }
@@ -95,6 +112,17 @@ private struct FixtureScenario {
     let personalHold: Bool
     let personalNoDiagnostic: Bool
     let pendingPersonalCreation: Bool
+    let pendingPersonalCancellation: Bool
+    let unreadablePersonalCancellation: Bool
+    let personalActiveCumulative: Bool
+    let personalNoData: Bool
+    let personalStale: Bool
+    let personalUploadDelay: Bool
+    let personalZeroReplacement: Bool
+    let personalDownwardReplacement: Bool
+    let personalScheduled: Bool
+    let personalCancelled: Bool
+    let accountDeletionFails: Bool
     let personalResult: FixturePersonalResult
 
     init(arguments: [String]) {
@@ -121,6 +149,35 @@ private struct FixtureScenario {
         )
         pendingPersonalCreation = arguments.contains(
             "--fixture-personal-pending"
+        )
+        pendingPersonalCancellation = arguments.contains(
+            "--fixture-personal-pending-cancellation"
+        )
+        unreadablePersonalCancellation = arguments.contains(
+            "--fixture-personal-unreadable-cancellation"
+        )
+        personalActiveCumulative = arguments.contains(
+            "--fixture-personal-active-cumulative"
+        )
+        personalNoData = arguments.contains("--fixture-personal-no-data")
+        personalStale = arguments.contains("--fixture-personal-stale")
+        personalUploadDelay = arguments.contains(
+            "--fixture-personal-upload-delay"
+        )
+        personalZeroReplacement = arguments.contains(
+            "--fixture-personal-zero"
+        )
+        personalDownwardReplacement = arguments.contains(
+            "--fixture-personal-downward"
+        )
+        personalScheduled = arguments.contains(
+            "--fixture-personal-scheduled"
+        )
+        personalCancelled = arguments.contains(
+            "--fixture-personal-cancelled"
+        )
+        accountDeletionFails = arguments.contains(
+            "--fixture-account-deletion-failure"
         )
         let hasSandboxResult = arguments.contains(
             "--fixture-sandbox-missing-result"
@@ -160,6 +217,13 @@ private enum FixturePersonalResult: Equatable {
     }
 }
 
+private enum FixtureHealthSnapshotMode {
+    case serverValue
+    case failRead
+    case zeroReplacement
+    case downwardReplacement
+}
+
 @MainActor
 private final class FixturePersonalStore {
     static let activeChallengeID = UUID(
@@ -183,9 +247,22 @@ private final class FixturePersonalStore {
     var latestDiagnostic: TrustedActivityDiagnostic?
     var eligibilityHold: PersonalEligibilityHold?
     let offline: Bool
+    let healthSnapshotMode: FixtureHealthSnapshotMode
+    let cancellationFails: Bool
 
     init(scenario: FixtureScenario, now: Date = Date()) {
         offline = scenario.offline
+        if scenario.personalNoData || scenario.personalStale {
+            healthSnapshotMode = .failRead
+        } else if scenario.personalZeroReplacement {
+            healthSnapshotMode = .zeroReplacement
+        } else if scenario.personalDownwardReplacement {
+            healthSnapshotMode = .downwardReplacement
+        } else {
+            healthSnapshotMode = .serverValue
+        }
+        cancellationFails = scenario.pendingPersonalCancellation
+            || scenario.unreadablePersonalCancellation
         latestDiagnostic = scenario.personalNoDiagnostic
             ? nil
             : Self.trustedDiagnostic(at: now.addingTimeInterval(-1_800))
@@ -203,7 +280,17 @@ private final class FixturePersonalStore {
             : [
                 Self.activeChallenge(
                     now: now,
-                    settlementMode: scenario.personalResult.settlementMode
+                    settlementMode: scenario.personalResult.settlementMode,
+                    cadence: scenario.personalActiveCumulative
+                        ? .cumulative
+                        : .daily,
+                    includesServerSnapshot: !scenario.personalNoData
+                        && !scenario.personalScheduled,
+                    status: scenario.personalCancelled
+                        ? .cancelled
+                        : scenario.personalScheduled
+                            ? .scheduled
+                            : .active
                 ),
                 Self.completedChallenge(
                     now: now,
@@ -243,36 +330,60 @@ private final class FixturePersonalStore {
         )
     }
 
+    static func pendingCancellationSubmission(
+        now: Date = Date()
+    ) throws -> PendingPersonalCancellationSubmission {
+        try PendingPersonalCancellationSubmission(
+            ownerID: FixtureStore.callerID,
+            challengeID: activeChallengeID,
+            requestID: UUID(
+                uuidString: "24242424-2424-2424-2424-242424242424"
+            )!,
+            createdAt: now.addingTimeInterval(-300),
+            attemptCount: 1,
+            lastAttemptAt: now.addingTimeInterval(-240)
+        )
+    }
+
     private static func activeChallenge(
         now: Date,
-        settlementMode: PersonalSettlementMode
+        settlementMode: PersonalSettlementMode,
+        cadence: PersonalChallengeCadence,
+        includesServerSnapshot: Bool,
+        status: PersonalChallengeStatus
     ) -> PersonalChallengeDetail {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "America/Chicago")!
         let today = calendar.startOfDay(for: now)
-        let start = calendar.date(byAdding: .day, value: -2, to: today)!
+        let start = calendar.date(
+            byAdding: .day,
+            value: status == .scheduled ? 1 : -2,
+            to: today
+        )!
         let end = calendar.date(byAdding: .day, value: 7, to: start)!
         let cutoff = calendar.date(byAdding: .day, value: 1, to: end)!
         let days = (0..<7).map { offset -> PersonalDayProgress in
             let date = calendar.date(byAdding: .day, value: offset, to: start)!
-            let isFuture = date >= today
+            let isFuture = status == .scheduled || date >= today
             let steps = offset == 1 ? 10_482 : offset == 2 ? 7_350 : 0
             return PersonalDayProgress(
                 localDate: Self.localDate(date, calendar: calendar),
                 trustedSteps: Double(steps),
-                targetSteps: 10_000,
+                targetSteps: cadence == .daily ? 10_000 : nil,
                 evidenceState: isFuture ? .future : .complete,
-                metTarget: isFuture ? nil : steps >= 10_000
+                metTarget: cadence == .daily && !isFuture
+                    ? steps >= 10_000
+                    : nil
             )
         }
         return PersonalChallengeDetail(
             id: activeChallengeID,
-            status: .active,
+            status: status,
             terms: FrozenPersonalTerms(
                 challengeID: activeChallengeID,
                 userID: FixtureStore.callerID,
-                cadence: .daily,
-                targetSteps: 10_000,
+                cadence: cadence,
+                targetSteps: cadence == .daily ? 10_000 : 70_000,
                 commitmentAmountMinor: 1_000,
                 currency: "USD",
                 settlementMode: settlementMode,
@@ -284,13 +395,20 @@ private final class FixturePersonalStore {
                 startsAt: start,
                 endsAt: end,
                 evidenceCutoff: cutoff,
-                closedAt: nil
+                closedAt: status == .cancelled ? now : nil
             ),
             progress: PersonalProgress(
                 trustedSteps: days.reduce(0) {
                     $0 + $1.displayedTrustedSteps
                 },
-                remainingSteps: 2_650,
+                remainingSteps: cadence == .daily
+                    ? 2_650
+                    : max(
+                        0,
+                        70_000 - days.reduce(0) {
+                            $0 + $1.displayedTrustedSteps
+                        }
+                    ),
                 qualifyingDays: 1,
                 completedDays: 2,
                 days: days,
@@ -302,19 +420,21 @@ private final class FixturePersonalStore {
             ),
             stepDataPolicy: .healthKitNonmanualDailyV1,
             termsFingerprint: "fixture-active-terms-v2",
-            serverStepSnapshot: PersonalStepSnapshot(
-                challengeID: activeChallengeID,
-                termsFingerprint: "fixture-active-terms-v2",
-                observedAt: now,
-                queryThrough: now,
-                dailyProgress: days.map {
-                    PersonalStepSnapshot.Day(
-                        localDate: $0.localDate,
-                        totalSteps: $0.displayedTrustedSteps
-                    )
-                }
-            ),
-            snapshotUpdatedAt: now
+            serverStepSnapshot: includesServerSnapshot
+                ? PersonalStepSnapshot(
+                    challengeID: activeChallengeID,
+                    termsFingerprint: "fixture-active-terms-v2",
+                    observedAt: now,
+                    queryThrough: now,
+                    dailyProgress: days.map {
+                        PersonalStepSnapshot.Day(
+                            localDate: $0.localDate,
+                            totalSteps: $0.displayedTrustedSteps
+                        )
+                    }
+                )
+                : nil,
+            snapshotUpdatedAt: includesServerSnapshot ? now : nil
         )
     }
 
@@ -1239,6 +1359,41 @@ private actor FixturePendingPersonalChallengeStore:
     }
 }
 
+private actor FixturePendingPersonalCancellationStore:
+    PendingPersonalCancellationStore
+{
+    private var submission: PendingPersonalCancellationSubmission?
+    private let unreadable: Bool
+
+    init(
+        submission: PendingPersonalCancellationSubmission?,
+        unreadable: Bool
+    ) {
+        self.submission = submission
+        self.unreadable = unreadable
+    }
+
+    func load(for ownerID: UUID) throws
+        -> PendingPersonalCancellationSubmission?
+    {
+        guard !unreadable else {
+            throw PendingPersonalCancellationStoreError.unavailable
+        }
+        try submission?.validate(for: ownerID)
+        return submission
+    }
+
+    func save(_ submission: PendingPersonalCancellationSubmission) throws {
+        try submission.validate(for: submission.ownerID)
+        self.submission = submission
+    }
+
+    func remove(for ownerID: UUID) {
+        guard submission?.ownerID == ownerID else { return }
+        submission = nil
+    }
+}
+
 @MainActor
 private final class FixturePersonalAccountabilityClient:
     PersonalAccountabilityClient
@@ -1308,6 +1463,7 @@ private final class FixturePersonalAccountabilityClient:
         expectedUserID: UUID
     ) async throws {
         _ = requestID
+        guard !store.cancellationFails else { throw FixtureFailure.offline }
         guard !store.offline else { throw FixtureFailure.offline }
         guard authStore.userID == expectedUserID else {
             throw PersonalAccountabilityClientError.accountChanged
@@ -1622,6 +1778,9 @@ private final class FixturePersonalHealthStepReader:
         observedAt: Date
     ) async throws -> PersonalStepSnapshot {
         guard !store.offline else { throw FixtureFailure.offline }
+        guard store.healthSnapshotMode != .failRead else {
+            throw FixtureFailure.offline
+        }
         let plan = try PersonalHealthSnapshotPlanner.plan(
             terms: terms,
             observedAt: observedAt
@@ -1634,6 +1793,23 @@ private final class FixturePersonalHealthStepReader:
                 ($0.localDate, $0.totalSteps)
             }
         )
+        let replacementTotals: [String: Int]
+        switch store.healthSnapshotMode {
+        case .serverValue, .failRead:
+            replacementTotals = totals
+        case .zeroReplacement:
+            replacementTotals = Dictionary(
+                uniqueKeysWithValues: plan.days.map { ($0.localDate, 0) }
+            )
+        case .downwardReplacement:
+            replacementTotals = Dictionary(
+                uniqueKeysWithValues: plan.days.enumerated().map {
+                    index,
+                    day in
+                    (day.localDate, index == 2 ? 2_200 : 0)
+                }
+            )
+        }
         return PersonalStepSnapshot(
             challengeID: challengeID,
             termsFingerprint: termsFingerprint,
@@ -1642,10 +1818,43 @@ private final class FixturePersonalHealthStepReader:
             dailyProgress: plan.days.map {
                 PersonalStepSnapshot.Day(
                     localDate: $0.localDate,
-                    totalSteps: totals[$0.localDate, default: 0]
+                    totalSteps: replacementTotals[$0.localDate, default: 0]
                 )
             }
         )
+    }
+}
+
+@MainActor
+private final class FixturePersonalHealthSnapshotUploader:
+    PersonalHealthSnapshotUploading
+{
+    private let fails: Bool
+
+    init(fails: Bool) {
+        self.fails = fails
+    }
+
+    func upload(
+        _ snapshot: PersonalStepSnapshot,
+        expectedUserID: UUID
+    ) async throws {
+        _ = (snapshot, expectedUserID)
+        guard !fails else { throw FixtureFailure.offline }
+    }
+}
+
+@MainActor
+private final class FixtureFailingAccountDeletionClient:
+    AccountDeletionClient
+{
+    func deleteAccount(
+        ownerID: UUID,
+        appleAuthorizationCode: String
+    ) async throws {
+        _ = (ownerID, appleAuthorizationCode)
+        try await Task.sleep(for: .milliseconds(250))
+        throw AccountDeletionError.unavailable
     }
 }
 #endif
