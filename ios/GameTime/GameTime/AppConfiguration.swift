@@ -77,9 +77,9 @@ struct AppConfiguration: Equatable, Sendable {
         guard personalChallengeMutationsEnabled else { return false }
         switch personalSettlementMode {
         case .testOnly:
-            environment != .release
+            return environment != .release
         case .stripeSandbox:
-            true
+            return true
         }
     }
 
