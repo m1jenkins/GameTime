@@ -326,6 +326,14 @@ if release_configuration is None:
 
 settings = release_configuration.get("buildSettings", {})
 
+excluded_source_setting = settings.get("EXCLUDED_SOURCE_FILE_NAMES", "")
+if isinstance(excluded_source_setting, list):
+    excluded_source_names = " ".join(
+        str(value) for value in excluded_source_setting
+    )
+else:
+    excluded_source_names = excluded_source_setting
+
 
 def safe_value(value):
     return str(value or "").replace("\n", " ").replace("\t", " ")
@@ -368,7 +376,7 @@ values = {
     ),
     "marketing_version": settings.get("MARKETING_VERSION", ""),
     "build_number": settings.get("CURRENT_PROJECT_VERSION", ""),
-    "excluded_sources": settings.get("EXCLUDED_SOURCE_FILE_NAMES", ""),
+    "excluded_sources": excluded_source_names,
     "watch_project_integration": "1" if watch_integration else "0",
 }
 
