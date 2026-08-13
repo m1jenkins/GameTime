@@ -33,6 +33,16 @@ struct TodayView: View {
         .refreshable {
             await store.refresh()
         }
+        .onChange(of: store.loadState) { previous, current in
+            guard router.selectedTab == .today,
+                let message = ScreenLoadAccessibilityAnnouncement.message(
+                    surface: "your challenges",
+                    previous: previous,
+                    current: current
+                )
+            else { return }
+            GameTimeAccessibility.announce(message)
+        }
     }
 
     private var header: some View {

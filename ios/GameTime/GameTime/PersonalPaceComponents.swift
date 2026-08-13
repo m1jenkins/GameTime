@@ -511,43 +511,57 @@ struct PersonalPaceCard: View {
         DaybreakCard {
             VStack(alignment: .leading, spacing: 16) {
                 header
-                chart
-                dayLabels
+                chartAndLabels
                 selectedDay
             }
         }
     }
 
     private var header: some View {
-        HStack(alignment: .bottom, spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(summary.headline)
-                    .font(
-                        CompetitiveTrustTheme.displayFont(
-                            size: 38,
-                            relativeTo: .largeTitle
-                        )
-                    )
-                    .tracking(-0.8)
-                    .foregroundStyle(headlineColor)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Text(summary.headlineCaption)
-                    .font(
-                        CompetitiveTrustTheme.uiFont(
-                            size: 13,
-                            relativeTo: .footnote,
-                            weight: .semibold
-                        )
-                    )
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-            }
-            Spacer(minLength: 8)
-            if !dynamicTypeSize.isAccessibilitySize {
-                dayCountChip
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 9) {
+                    headlineCopy
+                    dayCountChip
+                }
+            } else {
+                HStack(alignment: .bottom, spacing: 10) {
+                    headlineCopy
+                    Spacer(minLength: 8)
+                    dayCountChip
+                }
             }
         }
         .accessibilityElement(children: .combine)
+    }
+
+    private var headlineCopy: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(summary.headline)
+                .font(
+                    CompetitiveTrustTheme.displayFont(
+                        size: 38,
+                        relativeTo: .largeTitle
+                    )
+                )
+                .tracking(-0.8)
+                .foregroundStyle(headlineColor)
+                .lineLimit(
+                    dynamicTypeSize.isAccessibilitySize ? nil : 1
+                )
+                .minimumScaleFactor(
+                    dynamicTypeSize.isAccessibilitySize ? 1 : 0.6
+                )
+            Text(summary.headlineCaption)
+                .font(
+                    CompetitiveTrustTheme.uiFont(
+                        size: 13,
+                        relativeTo: .footnote,
+                        weight: .semibold
+                    )
+                )
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+        }
     }
 
     private var dayCountChip: some View {
@@ -571,7 +585,19 @@ struct PersonalPaceCard: View {
         .padding(.horizontal, 11)
         .padding(.vertical, 6)
         .background(CompetitiveTrustTheme.paperSunk, in: Capsule())
-        .fixedSize()
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var chartAndLabels: some View {
+        ScrollView(.horizontal) {
+            VStack(spacing: 8) {
+                chart
+                dayLabels
+            }
+            .frame(minWidth: chartMinimumWidth)
+        }
+        .scrollIndicators(.hidden)
+        .accessibilityIdentifier("personal.pace.chart")
     }
 
     private var chart: some View {
@@ -586,7 +612,6 @@ struct PersonalPaceCard: View {
                 .offset(y: -goalHeight)
                 .allowsHitTesting(false)
         }
-        .accessibilityIdentifier("personal.pace.chart")
     }
 
     private var goalGuide: some View {
@@ -640,6 +665,7 @@ struct PersonalPaceCard: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .frame(minWidth: CompetitiveTrustTheme.minimumHitTarget)
         .accessibilityLabel("\(day.longLabel), \(text.value)")
         .accessibilityValue(text.caption)
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
@@ -664,7 +690,10 @@ struct PersonalPaceCard: View {
                     )
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
-                    .frame(maxWidth: .infinity)
+                    .frame(
+                        minWidth: CompetitiveTrustTheme.minimumHitTarget,
+                        maxWidth: .infinity
+                    )
             }
         }
         .accessibilityHidden(true)
@@ -715,15 +744,17 @@ struct PersonalPaceCard: View {
                             )
                     }
                     Spacer(minLength: 8)
-                    Image(systemName: "figure.walk")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(CompetitiveTrustTheme.coralInk)
-                        .frame(width: 38, height: 38)
-                        .background(
-                            CompetitiveTrustTheme.paperSunk,
-                            in: Circle()
-                        )
-                        .accessibilityHidden(true)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Image(systemName: "figure.walk")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(CompetitiveTrustTheme.coralInk)
+                            .frame(width: 38, height: 38)
+                            .background(
+                                CompetitiveTrustTheme.paperSunk,
+                                in: Circle()
+                            )
+                            .accessibilityHidden(true)
+                    }
                 }
                 .padding(.top, 14)
             }
@@ -740,6 +771,12 @@ struct PersonalPaceCard: View {
         summary.headlineTone == .positive
             ? CompetitiveTrustTheme.mintInk
             : CompetitiveTrustTheme.coralInk
+    }
+
+    private var chartMinimumWidth: CGFloat {
+        let count = CGFloat(summary.days.count)
+        return count * CompetitiveTrustTheme.minimumHitTarget
+            + max(0, count - 1) * barSpacing
     }
 
     private var goalHeight: CGFloat {
@@ -762,11 +799,11 @@ struct PersonalPaceCard: View {
         case .today:
             CompetitiveTrustTheme.coral
         case .metGoal, .waived:
-            CompetitiveTrustTheme.mint
+            CompetitiveTrustTheme.mintInk
         case .underGoal:
-            CompetitiveTrustTheme.coralTintStrong
+            CompetitiveTrustTheme.coralPressed
         case .problem:
-            CompetitiveTrustTheme.sun
+            CompetitiveTrustTheme.sunInk
         }
     }
 
@@ -834,10 +871,16 @@ struct PersonalChallengeDetailsCard: View {
                     header
                 }
                 .buttonStyle(.plain)
+                .minimumInteractiveSize()
                 .accessibilityIdentifier("personal.details")
                 .accessibilityLabel("Challenge details")
                 .accessibilityValue(isShowingTerms ? "Showing" : "Hidden")
-                .accessibilityHint("Shows what you signed up for")
+                .accessibilityHint(
+                    isShowingTerms
+                        ? "Hides what you signed up for"
+                        : "Shows what you signed up for"
+                )
+                .accessibilityAddTraits(.isHeader)
 
                 if isShowingTerms {
                     VStack(spacing: 0) {

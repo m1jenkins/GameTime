@@ -178,7 +178,7 @@ struct GameTimeApp: App {
                     .environment(demoPersonalStore)
                     .environment(demoPersonalStore.stepProgress)
                     .environment(router)
-                    .tint(CompetitiveTrustTheme.coral)
+                    .tint(CompetitiveTrustTheme.coralInk)
                 } else if let liveModel, let livePersonalStore {
                     RootView(
                         model: liveModel,
@@ -191,7 +191,7 @@ struct GameTimeApp: App {
                     .environment(livePersonalStore)
                     .environment(livePersonalStore.stepProgress)
                     .environment(router)
-                    .tint(CompetitiveTrustTheme.coral)
+                    .tint(CompetitiveTrustTheme.coralInk)
                 } else {
                     ConfigurationFailureView(
                         message: configurationFailure
@@ -332,6 +332,7 @@ struct RootView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .environment(\.demoMode, demoMode)
+        .environment(\.colorScheme, .light)
         .task {
             #if DEBUG
             // Keep the loading UI fixture stable and idle so UI automation can
@@ -350,6 +351,10 @@ struct RootView: View {
             await handlePushDestination()
         }
         .onChange(of: model.phase) { _, phase in
+            Task { @MainActor in
+                await Task.yield()
+                GameTimeAccessibility.focusFirstElement()
+            }
             if phase != .signedIn {
                 router.reset()
                 Task { await personalStore.activate(ownerID: nil) }
@@ -431,11 +436,11 @@ private struct DemoEnvironmentBanner: View {
             systemImage: "play.circle.fill"
         )
         .font(.caption.weight(.bold))
-        .foregroundStyle(CompetitiveTrustTheme.ink)
+        .foregroundStyle(Color.white)
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
         .frame(maxWidth: .infinity)
-        .background(CompetitiveTrustTheme.teal)
+        .background(CompetitiveTrustTheme.coralInk)
         .accessibilityIdentifier("demo.banner")
     }
 }
@@ -444,6 +449,20 @@ private struct ConfigurationFailureView: View {
     let message: String
 
     var body: some View {
+        ViewThatFits(in: .vertical) {
+            content
+                .padding(28)
+            ScrollView {
+                content
+                    .frame(maxWidth: .infinity)
+                    .padding(28)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(CompetitiveTrustTheme.ink)
+    }
+
+    private var content: some View {
         VStack(spacing: 18) {
             Image(systemName: "lock.trianglebadge.exclamationmark")
                 .font(.system(size: 42, weight: .semibold))
@@ -451,6 +470,7 @@ private struct ConfigurationFailureView: View {
                 .accessibilityHidden(true)
             Text("GameTime can’t start")
                 .font(.title2.bold())
+                .accessibilityAddTraits(.isHeader)
             Text(message)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -472,10 +492,6 @@ private struct ConfigurationFailureView: View {
                 ).flatMap { URL(string: "mailto:\($0)") }
             )
         }
-        .padding(28)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(CompetitiveTrustTheme.ink)
-        .accessibilityElement(children: .combine)
     }
 }
 
@@ -489,13 +505,14 @@ private struct SignedOutView: View {
                 Spacer(minLength: 56)
 
                 Text(GameTimePublicIdentity.name)
-                    .font(.system(size: 20, weight: .black, design: .rounded))
-                    .foregroundStyle(CompetitiveTrustTheme.teal)
+                    .font(.system(.headline, design: .rounded, weight: .black))
+                    .foregroundStyle(CompetitiveTrustTheme.coralInk)
                     .accessibilityLabel(Text(GameTimePublicIdentity.name))
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Commit clearly.\nShow up daily.")
                         .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                        .accessibilityAddTraits(.isHeader)
                     Text(
                         "Set one step goal, put a little on the line, and see it through for seven days."
                     )
@@ -531,6 +548,12 @@ private struct SignedOutView: View {
 
                 NativeAppleSignInButton()
                     .disabled(model.isMutating)
+
+                if model.isMutating {
+                    ProgressView("Signing in…")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .accessibilityIdentifier("account.sign-in.loading")
+                }
 
                 if demoMode.isAvailable, !demoMode.isActive {
                     Button("Try demo mode", action: demoMode.enter)
@@ -607,7 +630,7 @@ private struct OnboardingView: View {
                             Spacer()
                             if model.isMutating {
                                 ProgressView()
-                                    .accessibilityLabel("Saving")
+                                    .accessibilityHidden(true)
                             } else {
                                 Text("Enter GameTime")
                             }
@@ -620,6 +643,10 @@ private struct OnboardingView: View {
                             || displayName.trimmingCharacters(
                                 in: .whitespacesAndNewlines
                             ).isEmpty
+                    )
+                    .accessibilityLabel("Enter GameTime")
+                    .accessibilityValue(
+                        model.isMutating ? "Saving profile" : ""
                     )
                 }
             }

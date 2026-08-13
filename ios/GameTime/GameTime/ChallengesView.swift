@@ -65,13 +65,27 @@ struct ChallengesView: View {
         .navigationTitle("Challenges")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await store.refresh() }
+        .onChange(of: store.loadState) { previous, current in
+            guard router.selectedTab == .challenges,
+                let message = ScreenLoadAccessibilityAnnouncement.message(
+                    surface: "your challenges",
+                    previous: previous,
+                    current: current
+                )
+            else { return }
+            GameTimeAccessibility.announce(message)
+        }
         .confirmationDialog(
             "Delete this draft?",
             isPresented: $showingDiscardConfirmation,
             titleVisibility: .visible
         ) {
             Button("Delete draft", role: .destructive) {
-                Task { _ = await store.discardPendingCreation() }
+                Task {
+                    if await store.discardPendingCreation() {
+                        GameTimeAccessibility.announce("Draft deleted.")
+                    }
+                }
             }
             Button("Keep it", role: .cancel) {}
         } message: {
@@ -132,6 +146,8 @@ struct ChallengesView: View {
                         showingDiscardConfirmation = true
                     }
                     .frame(maxWidth: .infinity)
+                    .minimumInteractiveSize()
+                    .disabled(store.isMutating)
                 }
             }
         } else if store.hasPendingCreationRecoveryIssue {

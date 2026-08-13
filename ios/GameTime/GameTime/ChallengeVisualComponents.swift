@@ -44,6 +44,10 @@ struct DaybreakCard<Content: View>: View {
 
     var body: some View {
         content
+            .environment(
+                \.colorScheme,
+                tone == .inverse ? .dark : .light
+            )
             .padding(18)
             .frame(maxWidth: .infinity, alignment: .leading)
             .foregroundStyle(
@@ -459,6 +463,8 @@ struct ChallengeStatTile: View {
     let caption: String
     var pledge = false
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(label.uppercased())
@@ -482,8 +488,10 @@ struct ChallengeStatTile: View {
                         relativeTo: .headline
                     )
                 )
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                .minimumScaleFactor(
+                    dynamicTypeSize.isAccessibilitySize ? 1 : 0.72
+                )
             Text(caption)
                 .font(
                     CompetitiveTrustTheme.uiFont(
@@ -492,7 +500,7 @@ struct ChallengeStatTile: View {
                     )
                 )
                 .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .lineLimit(2)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
         }
         .padding(13)
         .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)

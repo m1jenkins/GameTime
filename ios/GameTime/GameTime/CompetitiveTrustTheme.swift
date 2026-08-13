@@ -10,16 +10,18 @@ enum CompetitiveTrustTheme {
     static let card = Color.white
     static let primaryText = Color(red: 0.110, green: 0.082, blue: 0.137)
     static let secondaryText = Color(red: 0.431, green: 0.392, blue: 0.471)
-    static let tertiaryText = Color(red: 0.545, green: 0.506, blue: 0.580)
+    // The lightest text token still clears 4.5:1 on both Daybreak paper and
+    // white cards. Keep lighter values for borders and decoration only.
+    static let tertiaryText = Color(red: 0.470, green: 0.435, blue: 0.500)
     static let disabledText = Color(red: 0.655, green: 0.616, blue: 0.686)
     static let guide = Color(red: 0.788, green: 0.749, blue: 0.820)
     static let border = Color(red: 0.949, green: 0.902, blue: 0.855)
     static let strongBorder = Color(red: 0.894, green: 0.827, blue: 0.769)
     static let rail = Color(red: 0.945, green: 0.922, blue: 0.965)
 
-    static let coral = Color(red: 1.00, green: 0.353, blue: 0.271)
+    static let coral = Color(red: 0.980, green: 0.340, blue: 0.255)
     static let coralPressed = Color(red: 0.910, green: 0.267, blue: 0.184)
-    static let coralInk = Color(red: 0.851, green: 0.227, blue: 0.145)
+    static let coralInk = Color(red: 0.780, green: 0.180, blue: 0.105)
     static let coralTint = Color(red: 1.00, green: 0.941, blue: 0.929)
     static let coralTintStrong = Color(red: 0.969, green: 0.871, blue: 0.851)
 
@@ -28,7 +30,9 @@ enum CompetitiveTrustTheme {
     static let sunTint = Color(red: 1.00, green: 0.941, blue: 0.800)
 
     static let mint = Color(red: 0.071, green: 0.753, blue: 0.541)
-    static let mintInk = Color(red: 0.055, green: 0.604, blue: 0.435)
+    static let mintInk = Color(red: 0.020, green: 0.460, blue: 0.320)
+
+    static let minimumHitTarget: CGFloat = 44
 
     private static let participantRamp: [Color] = [
         Color(red: 0.486, green: 0.361, blue: 0.988),
@@ -107,26 +111,11 @@ enum DaybreakAppearance {
             CompetitiveTrustTheme.paper
         )
         navigationAppearance.shadowColor = .clear
-        let largeTitleDescriptor = UIFont.systemFont(
-            ofSize: 34,
-            weight: .heavy
-        ).fontDescriptor.withDesign(.rounded)
-        let inlineTitleDescriptor = UIFont.systemFont(
-            ofSize: 17,
-            weight: .bold
-        ).fontDescriptor.withDesign(.rounded)
-
         navigationAppearance.largeTitleTextAttributes = [
-            .font: largeTitleDescriptor.map {
-                UIFont(descriptor: $0, size: 34)
-            } ?? UIFont.systemFont(ofSize: 34, weight: .heavy),
-            .foregroundColor: UIColor.black,
+            .foregroundColor: UIColor(CompetitiveTrustTheme.primaryText),
         ]
         navigationAppearance.titleTextAttributes = [
-            .font: inlineTitleDescriptor.map {
-                UIFont(descriptor: $0, size: 17)
-            } ?? UIFont.systemFont(ofSize: 17, weight: .bold),
-            .foregroundColor: UIColor.black,
+            .foregroundColor: UIColor(CompetitiveTrustTheme.primaryText),
         ]
 
         let navigationBar = UINavigationBar.appearance()
@@ -141,18 +130,10 @@ enum DaybreakAppearance {
         tabAppearance.shadowColor = UIColor(CompetitiveTrustTheme.border)
 
         let normalAttributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont(
-                name: "HankenGrotesk-Regular",
-                size: 10.5
-            ) ?? UIFont.systemFont(ofSize: 10.5, weight: .semibold),
             .foregroundColor: UIColor(CompetitiveTrustTheme.tertiaryText),
         ]
         let selectedAttributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont(
-                name: "HankenGrotesk-Regular",
-                size: 10.5
-            ) ?? UIFont.systemFont(ofSize: 10.5, weight: .semibold),
-            .foregroundColor: UIColor(CompetitiveTrustTheme.coral),
+            .foregroundColor: UIColor(CompetitiveTrustTheme.coralInk),
         ]
 
         for itemAppearance in [
@@ -165,7 +146,7 @@ enum DaybreakAppearance {
             )
             itemAppearance.normal.titleTextAttributes = normalAttributes
             itemAppearance.selected.iconColor = UIColor(
-                CompetitiveTrustTheme.coral
+                CompetitiveTrustTheme.coralInk
             )
             itemAppearance.selected.titleTextAttributes = selectedAttributes
         }
@@ -223,6 +204,32 @@ extension View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.light, for: .navigationBar)
     }
+
+    /// Expands the effective hit region while allowing compact visual
+    /// treatments to remain visually compact.
+    func minimumInteractiveSize() -> some View {
+        frame(
+            minWidth: CompetitiveTrustTheme.minimumHitTarget,
+            minHeight: CompetitiveTrustTheme.minimumHitTarget
+        )
+        .contentShape(Rectangle())
+    }
+}
+
+@MainActor
+enum GameTimeAccessibility {
+    static func announce(_ message: String) {
+        guard UIAccessibility.isVoiceOverRunning else { return }
+        UIAccessibility.post(
+            notification: .announcement,
+            argument: message
+        )
+    }
+
+    static func focusFirstElement() {
+        guard UIAccessibility.isVoiceOverRunning else { return }
+        UIAccessibility.post(notification: .screenChanged, argument: nil)
+    }
 }
 
 struct TrustPrimaryButtonStyle: ButtonStyle {
@@ -243,7 +250,7 @@ struct TrustPrimaryButtonStyle: ButtonStyle {
             .padding(.horizontal, 20)
             .foregroundStyle(Color.white.opacity(isEnabled ? 1 : 0.72))
             .background(
-                CompetitiveTrustTheme.coral.opacity(isEnabled ? 1 : 0.42),
+                CompetitiveTrustTheme.coralInk.opacity(isEnabled ? 1 : 0.42),
                 in: Capsule()
             )
             .scaleEffect(
@@ -288,6 +295,8 @@ struct TrustSecondaryButtonStyle: ButtonStyle {
                 reduceMotion ? nil : .easeOut(duration: 0.12),
                 value: configuration.isPressed
             )
+            .padding(.vertical, 1)
+            .contentShape(Rectangle())
     }
 }
 
@@ -320,6 +329,8 @@ struct SunPillButtonStyle: ButtonStyle {
                 reduceMotion ? nil : .easeOut(duration: 0.12),
                 value: configuration.isPressed
             )
+            .padding(.vertical, 2)
+            .contentShape(Rectangle())
     }
 }
 
@@ -362,6 +373,8 @@ struct TrustCompactButtonStyle: ButtonStyle {
                 reduceMotion ? nil : .easeOut(duration: 0.12),
                 value: configuration.isPressed
             )
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
     }
 
     private var foreground: Color {
@@ -378,7 +391,7 @@ struct TrustCompactButtonStyle: ButtonStyle {
     private var background: Color {
         switch tone {
         case .primary:
-            CompetitiveTrustTheme.coral
+            CompetitiveTrustTheme.coralInk
         case .secondary:
             CompetitiveTrustTheme.coralTint
         case .quiet:
@@ -404,6 +417,8 @@ struct InitialsAvatar: View {
             )
             .foregroundStyle(Color.white)
             .frame(width: size, height: size)
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
             .background(color.opacity(muted ? 0.46 : 1), in: Circle())
             .accessibilityHidden(true)
     }
@@ -420,6 +435,7 @@ struct TrustStatusPill: View {
     }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
     @State private var liveDotIsDimmed = false
 
     let text: String
@@ -428,13 +444,19 @@ struct TrustStatusPill: View {
     private var color: Color {
         switch kind {
         case .verified, .positive:
-            CompetitiveTrustTheme.mintInk
+            colorScheme == .dark
+                ? CompetitiveTrustTheme.mint
+                : CompetitiveTrustTheme.mintInk
         case .action:
             CompetitiveTrustTheme.coralInk
         case .neutral:
-            CompetitiveTrustTheme.secondaryText
+            colorScheme == .dark
+                ? Color.white.opacity(0.82)
+                : CompetitiveTrustTheme.secondaryText
         case .live:
-            CompetitiveTrustTheme.coral
+            colorScheme == .dark
+                ? CompetitiveTrustTheme.coral
+                : CompetitiveTrustTheme.coralInk
         case .pledge:
             CompetitiveTrustTheme.sunInk
         }
@@ -447,7 +469,9 @@ struct TrustStatusPill: View {
         case .action:
             CompetitiveTrustTheme.coralTint
         case .neutral:
-            CompetitiveTrustTheme.primaryText.opacity(0.06)
+            colorScheme == .dark
+                ? Color.white.opacity(0.12)
+                : CompetitiveTrustTheme.primaryText.opacity(0.06)
         case .live:
             .clear
         case .pledge:
@@ -480,7 +504,22 @@ struct TrustStatusPill: View {
         .padding(.vertical, kind == .live ? 0 : 5)
         .background(background, in: Capsule())
         .onAppear {
-            guard kind == .live, !reduceMotion else { return }
+            updateLiveDotAnimation()
+        }
+        .onChange(of: reduceMotion) {
+            updateLiveDotAnimation()
+        }
+    }
+
+    private func updateLiveDotAnimation() {
+        guard kind == .live else { return }
+        if reduceMotion {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                liveDotIsDimmed = false
+            }
+        } else {
             withAnimation(
                 .easeInOut(duration: 1).repeatForever(autoreverses: true)
             ) {

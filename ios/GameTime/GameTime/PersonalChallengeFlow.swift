@@ -6,6 +6,7 @@ struct CreatePersonalChallengeFlow: View {
     @Environment(AppModel.self) private var appModel
     @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var draft = PersonalChallengeDraft()
     @State private var requestID = UUID()
@@ -19,6 +20,7 @@ struct CreatePersonalChallengeFlow: View {
     /// are the hours still open. Submission re-checks against a live clock.
     @State private var now = Date()
     @State private var startsImmediately = false
+    @AccessibilityFocusState private var isStepHeaderFocused: Bool
 
     private enum Step: Int, CaseIterable {
         case metric
@@ -120,6 +122,7 @@ struct CreatePersonalChallengeFlow: View {
                                 profileTimezone: appModel.profile?.timezone
                             )
                             step = .cadence
+                            GameTimeAccessibility.announce("Draft deleted.")
                         }
                     }
                 }
@@ -132,6 +135,13 @@ struct CreatePersonalChallengeFlow: View {
                         isPresented: $showingPaymentSheet,
                         completion: handlePaymentSheetResult
                     )
+                }
+            }
+            .onChange(of: step) {
+                isStepHeaderFocused = false
+                Task { @MainActor in
+                    await Task.yield()
+                    isStepHeaderFocused = true
                 }
             }
         }
@@ -150,9 +160,13 @@ struct CreatePersonalChallengeFlow: View {
                     .frame(height: 6)
             }
         }
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(
             "Step \((visibleSteps.firstIndex(of: step) ?? 0) + 1) of \(visibleSteps.count)"
         )
+        .accessibilityValue(step.title)
+        .accessibilityAddTraits(.isHeader)
+        .accessibilityFocused($isStepHeaderFocused)
     }
 
     private var visibleSteps: [Step] {
@@ -198,11 +212,15 @@ struct CreatePersonalChallengeFlow: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .minimumInteractiveSize()
                     .accessibilityIdentifier("personal.cadence.\(cadence.rawValue)")
                     .accessibilityValue(
                         draft.cadence == cadence
                             ? "Selected"
                             : "Not selected"
+                    )
+                    .accessibilityAddTraits(
+                        draft.cadence == cadence ? [.isSelected] : []
                     )
                 }
             }
@@ -260,7 +278,7 @@ struct CreatePersonalChallengeFlow: View {
                             .padding(.vertical, 13)
                             .background(
                                 draft.commitmentAmountMinor == amount
-                                    ? CompetitiveTrustTheme.coral
+                                    ? CompetitiveTrustTheme.coralInk
                                     : CompetitiveTrustTheme.paperSunk,
                                 in: RoundedRectangle(cornerRadius: 14)
                             )
@@ -276,6 +294,11 @@ struct CreatePersonalChallengeFlow: View {
                             draft.commitmentAmountMinor == amount
                                 ? "Selected"
                                 : "Not selected"
+                        )
+                        .accessibilityAddTraits(
+                            draft.commitmentAmountMinor == amount
+                                ? [.isSelected]
+                                : []
                         )
                     }
                 }
@@ -320,28 +343,14 @@ struct CreatePersonalChallengeFlow: View {
             .pickerStyle(.menu)
             .accessibilityIdentifier("personal.start.hour")
 
-            HStack(spacing: 10) {
-                Button("Tonight at midnight") {
-                    draft.startsAt = PersonalChallengeStart.nextLocalMidnight(
-                        now: now,
-                        timezone: draft.timezone
-                    )
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: 10) {
+                    startShortcutButtons
                 }
-                .buttonStyle(TrustSecondaryButtonStyle())
-                .accessibilityIdentifier("personal.start.tomorrow")
-
-                Button("Next hour") {
-                    if let earliest = PersonalChallengeStart
-                        .earliestSelectableInstant(
-                            now: now,
-                            timezone: draft.timezone
-                        )
-                    {
-                        draft.startsAt = earliest
-                    }
+            } else {
+                HStack(spacing: 10) {
+                    startShortcutButtons
                 }
-                .buttonStyle(TrustSecondaryButtonStyle())
-                .accessibilityIdentifier("personal.start.next-hour")
             }
 
             Divider().overlay(CompetitiveTrustTheme.border)
@@ -373,6 +382,31 @@ struct CreatePersonalChallengeFlow: View {
             timezone: draft.timezone
         )
         return hours.contains(selected) ? hours : ([selected] + hours).sorted()
+    }
+
+    @ViewBuilder
+    private var startShortcutButtons: some View {
+        Button("Tonight at midnight") {
+            draft.startsAt = PersonalChallengeStart.nextLocalMidnight(
+                now: now,
+                timezone: draft.timezone
+            )
+        }
+        .buttonStyle(TrustSecondaryButtonStyle())
+        .accessibilityIdentifier("personal.start.tomorrow")
+
+        Button("Next hour") {
+            if let earliest = PersonalChallengeStart
+                .earliestSelectableInstant(
+                    now: now,
+                    timezone: draft.timezone
+                )
+            {
+                draft.startsAt = earliest
+            }
+        }
+        .buttonStyle(TrustSecondaryButtonStyle())
+        .accessibilityIdentifier("personal.start.next-hour")
     }
 
     private var startDayBinding: Binding<Date> {
@@ -479,9 +513,13 @@ struct CreatePersonalChallengeFlow: View {
                         : "Connect Apple Health"
                 ) {
                     Task {
-                        _ = await store.verifyHealthAccess(
+                        if await store.verifyHealthAccess(
                             timezone: draft.timezone
-                        )
+                        ) {
+                            GameTimeAccessibility.announce(
+                                PersonalAccessibilityCopy.healthConnected
+                            )
+                        }
                     }
                 }
                 .buttonStyle(TrustSecondaryButtonStyle())
@@ -490,6 +528,10 @@ struct CreatePersonalChallengeFlow: View {
                         || !store.configuration.activitySyncEnabled
                 )
                 .accessibilityIdentifier("personal.health.verify")
+                .accessibilityLabel("Connect Apple Health")
+                .accessibilityValue(
+                    store.isVerifyingHealthAccess ? "Connecting" : ""
+                )
             }
 
             if !store.configuration.activitySyncEnabled {
@@ -630,7 +672,7 @@ struct CreatePersonalChallengeFlow: View {
                     "That start time has already passed. Go back and pick a new one, or delete this draft."
                 )
                 .font(.caption)
-                .foregroundStyle(CompetitiveTrustTheme.coral)
+                .foregroundStyle(CompetitiveTrustTheme.coralInk)
                 .accessibilityIdentifier("personal.review.stale-start")
             }
             Divider().overlay(CompetitiveTrustTheme.border)
@@ -646,6 +688,8 @@ struct CreatePersonalChallengeFlow: View {
                     showingDiscardConfirmation = true
                 }
                 .frame(maxWidth: .infinity)
+                .minimumInteractiveSize()
+                .disabled(store.isMutating)
                 .accessibilityIdentifier("personal.pending.discard-review")
             }
         }
@@ -672,7 +716,12 @@ struct CreatePersonalChallengeFlow: View {
                     submit()
                 } label: {
                     if store.isMutating {
-                        ProgressView().tint(.white)
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .tint(.white)
+                                .accessibilityHidden(true)
+                            Text("Starting…")
+                        }
                     } else {
                         Text("Start my challenge")
                     }
@@ -685,6 +734,10 @@ struct CreatePersonalChallengeFlow: View {
                         || !isDraftValid
                 )
                 .accessibilityIdentifier("personal.submit")
+                .accessibilityLabel("Start my challenge")
+                .accessibilityValue(
+                    store.isMutating ? "Starting" : ""
+                )
             } else if step == .payment {
                 if store.pendingPaymentIsConfirmed {
                     Button("Continue") {
@@ -697,7 +750,12 @@ struct CreatePersonalChallengeFlow: View {
                         preparePaymentSheet()
                     } label: {
                         if store.isPreparingPayment {
-                            ProgressView().tint(.white)
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .tint(.white)
+                                    .accessibilityHidden(true)
+                                Text("Preparing…")
+                            }
                         } else {
                             Text("Set up test payment")
                         }
@@ -709,6 +767,10 @@ struct CreatePersonalChallengeFlow: View {
                             || store.isPreparingPayment
                     )
                     .accessibilityIdentifier("personal.payment.setup")
+                    .accessibilityLabel("Set up test payment")
+                    .accessibilityValue(
+                        store.isPreparingPayment ? "Preparing" : ""
+                    )
                 }
             } else {
                 Button("Continue") {
@@ -746,9 +808,10 @@ struct CreatePersonalChallengeFlow: View {
                 .foregroundStyle(
                     selected
                         ? CompetitiveTrustTheme.coral
-                        : CompetitiveTrustTheme.guide
+                        : CompetitiveTrustTheme.tertiaryText
                 )
                 .frame(width: 32)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.headline)
                 Text(detail)
@@ -759,20 +822,35 @@ struct CreatePersonalChallengeFlow: View {
             if selected {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(CompetitiveTrustTheme.coral)
+                    .accessibilityHidden(true)
             }
         }
         .padding(4)
     }
 
     private func reviewRow(_ label: String, _ value: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label).font(.subheadline.weight(.semibold))
-            Spacer(minLength: 8)
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .multilineTextAlignment(.trailing)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(label).font(.subheadline.weight(.semibold))
+                    Text(value)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(label).font(.subheadline.weight(.semibold))
+                    Spacer(minLength: 8)
+                    Text(value)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
         }
+        .accessibilityElement(children: .combine)
     }
 
     private var canAdvance: Bool {
@@ -936,6 +1014,9 @@ struct CreatePersonalChallengeFlow: View {
                 case .alreadyConfirmed:
                     paymentConsentAccepted = true
                     refreshBetaStart()
+                    GameTimeAccessibility.announce(
+                        "Test payment method saved."
+                    )
                     step = .review
                 case .paymentSheet(
                     let publishableKey,
@@ -987,6 +1068,9 @@ struct CreatePersonalChallengeFlow: View {
                     ) {
                         paymentConsentAccepted = true
                         refreshBetaStart()
+                        GameTimeAccessibility.announce(
+                            "Test payment method saved."
+                        )
                         step = .review
                     }
                 }
@@ -1011,6 +1095,8 @@ struct CreatePersonalChallengeFlow: View {
                 if let id = await store.create(request) {
                     dismiss()
                     router.openPersonalChallenge(id)
+                    await Task.yield()
+                    GameTimeAccessibility.announce("Challenge started.")
                 }
             }
         } catch {

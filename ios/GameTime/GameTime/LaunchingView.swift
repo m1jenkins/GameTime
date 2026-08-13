@@ -10,11 +10,23 @@ struct LaunchingView: View {
         .ignoresSafeArea()
 
       if let errorMessage {
-        LaunchRetryContent(
-          message: retryMessage(for: errorMessage),
-          retry: retry
-        )
-        .padding(24)
+        ViewThatFits(in: .vertical) {
+          LaunchRetryContent(
+            message: retryMessage(for: errorMessage),
+            retry: retry
+          )
+          .padding(24)
+
+          ScrollView {
+            LaunchRetryContent(
+              message: retryMessage(for: errorMessage),
+              retry: retry
+            )
+            .frame(maxWidth: .infinity)
+            .padding(24)
+            .padding(.bottom, isOffline ? 44 : 0)
+          }
+        }
         .accessibilityIdentifier("launch.retry")
       } else {
         LaunchLoadingContent()
@@ -42,6 +54,12 @@ struct LaunchingView: View {
       }
     }
     .environment(\.colorScheme, .light)
+    .onChange(of: errorMessage) { _, message in
+      guard let message else { return }
+      GameTimeAccessibility.announce(
+        "Couldn’t load your challenges. \(retryMessage(for: message))"
+      )
+    }
   }
 
   private var isOffline: Bool {
@@ -85,6 +103,8 @@ private struct LaunchLoadingContent: View {
         }
       }
     }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("\(GameTimePublicIdentity.name) is loading")
   }
 }
 
@@ -119,6 +139,7 @@ private struct LaunchRetryContent: View {
         )
         .foregroundStyle(CompetitiveTrustTheme.primaryText)
         .multilineTextAlignment(.center)
+        .accessibilityAddTraits(.isHeader)
 
       Text(message)
         .font(
@@ -131,7 +152,10 @@ private struct LaunchRetryContent: View {
         .multilineTextAlignment(.center)
         .lineSpacing(1.5)
 
-      Button("Try again", action: retry)
+      Button("Try again") {
+        GameTimeAccessibility.announce("Trying again.")
+        retry()
+      }
         .buttonStyle(TrustSecondaryButtonStyle())
         .padding(.top, 4)
         .accessibilityIdentifier("launch.retry.button")
@@ -186,12 +210,24 @@ private struct DaybreakSpinner: View {
         value: rotation
       )
       .onAppear {
-        guard !reduceMotion else { return }
-        rotation = 360
+        updateAnimation()
       }
-      .accessibilityLabel(
-        Text("Loading \(GameTimePublicIdentity.name)")
-      )
+      .onChange(of: reduceMotion) {
+        updateAnimation()
+      }
+      .accessibilityHidden(true)
+  }
+
+  private func updateAnimation() {
+    if reduceMotion {
+      var transaction = Transaction()
+      transaction.disablesAnimations = true
+      withTransaction(transaction) {
+        rotation = 0
+      }
+    } else {
+      rotation = 360
+    }
   }
 }
 

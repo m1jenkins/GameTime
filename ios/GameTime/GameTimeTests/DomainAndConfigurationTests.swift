@@ -1,6 +1,195 @@
 import XCTest
+import UIKit
 
 @testable import GameTime
+
+@MainActor
+final class DaybreakAccessibilityTests: XCTestCase {
+    func testNormalTextPairsMeetFourPointFiveToOne() {
+        let mintPillBackground = blend(
+            UIColor(CompetitiveTrustTheme.mint),
+            over: UIColor(CompetitiveTrustTheme.card),
+            alpha: 0.12
+        )
+        let pairs: [(String, UIColor, UIColor)] = [
+            (
+                "tertiary on paper",
+                UIColor(CompetitiveTrustTheme.tertiaryText),
+                UIColor(CompetitiveTrustTheme.paper)
+            ),
+            (
+                "tertiary on card",
+                UIColor(CompetitiveTrustTheme.tertiaryText),
+                UIColor(CompetitiveTrustTheme.card)
+            ),
+            (
+                "secondary on paper sunk",
+                UIColor(CompetitiveTrustTheme.secondaryText),
+                UIColor(CompetitiveTrustTheme.paperSunk)
+            ),
+            (
+                "secondary on pledge tint",
+                UIColor(CompetitiveTrustTheme.secondaryText),
+                UIColor(CompetitiveTrustTheme.sunTint)
+            ),
+            (
+                "coral ink on coral tint",
+                UIColor(CompetitiveTrustTheme.coralInk),
+                UIColor(CompetitiveTrustTheme.coralTint)
+            ),
+            (
+                "white primary-button text",
+                .white,
+                UIColor(CompetitiveTrustTheme.coralInk)
+            ),
+            (
+                "mint status text",
+                UIColor(CompetitiveTrustTheme.mintInk),
+                mintPillBackground
+            ),
+            (
+                "sun text on pledge tint",
+                UIColor(CompetitiveTrustTheme.sunInk),
+                UIColor(CompetitiveTrustTheme.sunTint)
+            ),
+            (
+                "inverse live status",
+                UIColor(CompetitiveTrustTheme.coral),
+                UIColor(CompetitiveTrustTheme.primaryText)
+            ),
+            (
+                "inverse positive status",
+                UIColor(CompetitiveTrustTheme.mint),
+                UIColor(CompetitiveTrustTheme.primaryText)
+            ),
+        ]
+
+        for (name, foreground, background) in pairs {
+            XCTAssertGreaterThanOrEqual(
+                contrast(foreground, background),
+                4.5,
+                name
+            )
+        }
+    }
+
+    func testCoralGraphicalAccentMeetsThreeToOneOnPaper() {
+        XCTAssertGreaterThanOrEqual(
+            contrast(
+                UIColor(CompetitiveTrustTheme.coral),
+                UIColor(CompetitiveTrustTheme.paper)
+            ),
+            3.0
+        )
+    }
+
+    func testMinimumInteractiveMetricIsFortyFourPoints() {
+        XCTAssertGreaterThanOrEqual(
+            CompetitiveTrustTheme.minimumHitTarget,
+            44
+        )
+    }
+
+    private func contrast(_ foreground: UIColor, _ background: UIColor)
+        -> CGFloat
+    {
+        let foregroundLuminance = luminance(foreground)
+        let backgroundLuminance = luminance(background)
+        let lighter = max(foregroundLuminance, backgroundLuminance)
+        let darker = min(foregroundLuminance, backgroundLuminance)
+        return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    private func luminance(_ color: UIColor) -> CGFloat {
+        let components = rgba(color)
+        return 0.2126 * linearized(components.red)
+            + 0.7152 * linearized(components.green)
+            + 0.0722 * linearized(components.blue)
+    }
+
+    private func linearized(_ component: CGFloat) -> CGFloat {
+        component <= 0.04045
+            ? component / 12.92
+            : pow((component + 0.055) / 1.055, 2.4)
+    }
+
+    private func blend(
+        _ foreground: UIColor,
+        over background: UIColor,
+        alpha: CGFloat
+    ) -> UIColor {
+        let foregroundComponents = rgba(foreground)
+        let backgroundComponents = rgba(background)
+        return UIColor(
+            red: foregroundComponents.red * alpha
+                + backgroundComponents.red * (1 - alpha),
+            green: foregroundComponents.green * alpha
+                + backgroundComponents.green * (1 - alpha),
+            blue: foregroundComponents.blue * alpha
+                + backgroundComponents.blue * (1 - alpha),
+            alpha: 1
+        )
+    }
+
+    private func rgba(_ color: UIColor) -> (
+        red: CGFloat,
+        green: CGFloat,
+        blue: CGFloat
+    ) {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        let resolved = color.resolvedColor(
+            with: UITraitCollection(userInterfaceStyle: .light)
+        )
+        precondition(
+            resolved.getRed(
+                &red,
+                green: &green,
+                blue: &blue,
+                alpha: &alpha
+            )
+        )
+        return (red, green, blue)
+    }
+}
+
+final class AccessibilityAnnouncementTests: XCTestCase {
+    func testLoadAnnouncementsEmitOncePerMeaningfulTransition() {
+        XCTAssertNil(
+            ScreenLoadAccessibilityAnnouncement.message(
+                surface: "your challenges",
+                previous: .loading,
+                current: .loading
+            )
+        )
+        XCTAssertEqual(
+            ScreenLoadAccessibilityAnnouncement.message(
+                surface: "your challenges",
+                previous: .idle,
+                current: .loading
+            ),
+            "Updating your challenges…"
+        )
+        XCTAssertEqual(
+            ScreenLoadAccessibilityAnnouncement.message(
+                surface: "your challenges",
+                previous: .loading,
+                current: .loaded
+            ),
+            "Update complete."
+        )
+        XCTAssertEqual(
+            ScreenLoadAccessibilityAnnouncement.message(
+                surface: "your challenges",
+                previous: .loading,
+                current: .failed("You appear to be offline.")
+            ),
+            "Couldn’t refresh your challenges. You appear to be offline."
+        )
+    }
+}
 
 final class DomainAndConfigurationTests: XCTestCase {
     func testInstalledProductUsesTheGameTimePublicIdentity() {

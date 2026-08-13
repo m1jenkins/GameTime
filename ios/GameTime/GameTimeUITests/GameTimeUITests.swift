@@ -158,8 +158,10 @@ final class GameTimeUITests: XCTestCase {
             "personal.review.reason.user_disputes_result"
         ]
         XCTAssertTrue(resultReason.exists)
+        assertMinimumHitTarget(resultReason)
         resultReason.tap()
         XCTAssertEqual(resultReason.value as? String, "Selected")
+        XCTAssertTrue(resultReason.isSelected)
 
         request.tap()
 
@@ -213,14 +215,20 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Your pace"].exists)
         let syncNow = app.buttons["personal.challenge.sync-now"]
         XCTAssertTrue(syncNow.waitForExistence(timeout: 4))
+        assertMinimumHitTarget(syncNow)
         syncNow.tap()
-        XCTAssertTrue(
-            app.staticTexts["7,350 steps today"]
-                .waitForExistence(timeout: 4)
+        let syncedProgress = app.progressIndicators["personal.progress"]
+        XCTAssertTrue(syncedProgress.waitForExistence(timeout: 4))
+        XCTAssertEqual(
+            syncedProgress.value as? String,
+            "7,350 steps today. 2,650 to today’s goal."
         )
         let paceChart = app.descendants(matching: .any)["personal.pace.chart"]
         for _ in 0..<8 where !paceChart.exists { app.swipeUp() }
         XCTAssertTrue(paceChart.waitForExistence(timeout: 4))
+        let firstDay = app.buttons["personal.pace.day.0"]
+        XCTAssertTrue(firstDay.waitForExistence(timeout: 3))
+        assertMinimumHitTarget(firstDay)
         let weekTotal = app.descendants(matching: .any)[
             "personal.pace.week-total"
         ]
@@ -246,6 +254,7 @@ final class GameTimeUITests: XCTestCase {
         let details = app.buttons["personal.details"]
         for _ in 0..<8 where !details.isHittable { app.swipeUp() }
         XCTAssertTrue(details.waitForExistence(timeout: 3))
+        assertMinimumHitTarget(details)
         XCTAssertEqual(details.value as? String, "Hidden")
         details.tap()
         XCTAssertEqual(details.value as? String, "Showing")
@@ -261,6 +270,7 @@ final class GameTimeUITests: XCTestCase {
             cancel.waitForExistence(timeout: 3),
             "Internal test-only active challenges should expose cleanup cancellation."
         )
+        assertMinimumHitTarget(cancel)
 
         assertNoLegacyPersonalHealthSurfaces(in: app)
         XCTAssertFalse(app.staticTexts["Standings"].exists)
@@ -612,13 +622,9 @@ final class GameTimeUITests: XCTestCase {
 
     func testLoadingEmptyAndOfflineStates() {
         let loading = launch("--fixture-loading")
-        XCTAssertTrue(loading.staticTexts["Loading…"].waitForExistence(timeout: 2))
-        XCTAssertTrue(loading.otherElements["launch.loading"].exists)
-        XCTAssertTrue(
-            loading.descendants(matching: .any).matching(
-                NSPredicate(format: "label == %@", "Loading GameTime")
-            ).firstMatch.exists
-        )
+        let loadingState = loading.descendants(matching: .any)["launch.loading"]
+        XCTAssertTrue(loadingState.waitForExistence(timeout: 2))
+        XCTAssertEqual(loadingState.label, "GameTime is loading")
         assertNoForbiddenLanguage(in: loading)
         loading.terminate()
 
@@ -649,6 +655,25 @@ final class GameTimeUITests: XCTestCase {
         assertNoForbiddenLanguage(in: offline)
     }
 
+    func testLaunchErrorActionStaysReachableAtAccessibilityXXXL() {
+        let app = launch(
+            "--fixture-launch-error",
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+            "-UIAccessibilityReduceMotionEnabled",
+            "YES"
+        )
+
+        XCTAssertTrue(
+            app.staticTexts["Couldn’t load your challenges"]
+                .waitForExistence(timeout: 4)
+        )
+        let retry = app.buttons["launch.retry.button"]
+        for _ in 0..<8 where !retry.isHittable { app.swipeUp() }
+        XCTAssertTrue(retry.isHittable)
+        assertMinimumHitTarget(retry)
+    }
+
     func testPersonalDynamicTypeAccessibilityLabelsAndReduceMotion() {
         let app = launch(
             "--fixture-empty",
@@ -677,6 +702,9 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertFalse(app.buttons["Back"].exists)
         assertHiddenBetaCreationSteps(in: app)
+        let dailyChoice = app.buttons["personal.cadence.daily"]
+        XCTAssertTrue(dailyChoice.isSelected)
+        assertMinimumHitTarget(dailyChoice)
         let continueButton = app.buttons["personal.continue"]
         XCTAssertEqual(continueButton.label, "Continue")
         XCTAssertTrue(
@@ -689,6 +717,43 @@ final class GameTimeUITests: XCTestCase {
             of: app,
             named: "Beta creation - cadence accessibility XXXL"
         )
+
+        for title in ["Your goal", "Your amount", "Apple Health"] {
+            for _ in 0..<8 where !continueButton.isHittable { app.swipeUp() }
+            XCTAssertTrue(continueButton.isHittable)
+            assertMinimumHitTarget(continueButton)
+            continueButton.tap()
+            XCTAssertTrue(
+                app.navigationBars[title].waitForExistence(timeout: 4)
+            )
+            if title == "Your amount" {
+                let selectedCommitment = app.buttons[
+                    "personal.commitment.1000"
+                ]
+                XCTAssertTrue(selectedCommitment.exists)
+                XCTAssertTrue(selectedCommitment.isSelected)
+                assertMinimumHitTarget(selectedCommitment)
+            }
+        }
+        let connectHealth = app.buttons["personal.health.verify"]
+        for _ in 0..<8 where !connectHealth.isHittable { app.swipeUp() }
+        XCTAssertTrue(connectHealth.isHittable)
+        assertMinimumHitTarget(connectHealth)
+        connectHealth.tap()
+        XCTAssertTrue(
+            app.staticTexts["Health connected"]
+                .waitForExistence(timeout: 4)
+        )
+        for _ in 0..<8 where !continueButton.isHittable { app.swipeUp() }
+        continueButton.tap()
+        XCTAssertTrue(
+            app.navigationBars["Check and confirm"]
+                .waitForExistence(timeout: 4)
+        )
+        let submit = app.buttons["personal.submit"]
+        for _ in 0..<12 where !submit.isHittable { app.swipeUp() }
+        XCTAssertTrue(submit.isHittable)
+        assertMinimumHitTarget(submit)
         app.buttons["Close"].waitAndTap()
 
         app.tabBars.buttons["You"].waitAndTap()
@@ -702,6 +767,91 @@ final class GameTimeUITests: XCTestCase {
         )
         assertExactDisclosure(in: app)
         assertNoForbiddenLanguage(in: app)
+    }
+
+    func testAccessibilityXXXLActiveDetailAndSupportActionsStayReachable() {
+        let app = launch(
+            "--fixture-open-active-challenge",
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+            "-UIAccessibilityReduceMotionEnabled",
+            "YES"
+        )
+
+        XCTAssertTrue(
+            app.navigationBars["Your challenge"]
+                .waitForExistence(timeout: 5)
+        )
+        let sync = app.buttons["personal.challenge.sync-now"]
+        for _ in 0..<8 where !sync.isHittable { app.swipeUp() }
+        XCTAssertTrue(sync.isHittable)
+        assertMinimumHitTarget(sync)
+
+        let details = app.buttons["personal.details"]
+        for _ in 0..<14 where !details.isHittable { app.swipeUp() }
+        XCTAssertTrue(details.isHittable)
+        assertMinimumHitTarget(details)
+
+        app.tabBars.buttons["You"].waitAndTap()
+        let accountSupport = app.buttons["account-support.open"]
+        for _ in 0..<10 where !accountSupport.isHittable { app.swipeUp() }
+        XCTAssertTrue(accountSupport.isHittable)
+        assertMinimumHitTarget(accountSupport)
+        accountSupport.tap()
+        XCTAssertTrue(
+            app.navigationBars["Account & support"]
+                .waitForExistence(timeout: 4)
+        )
+        let deleteAccount = app.buttons["account-support.delete"]
+        for _ in 0..<12 where !deleteAccount.isHittable { app.swipeUp() }
+        XCTAssertTrue(deleteAccount.isHittable)
+        assertMinimumHitTarget(deleteAccount)
+        assertNoForbiddenLanguage(in: app)
+    }
+
+    func testCompactSignOutKeepsFortyFourPointTarget() {
+        let app = launch()
+        app.tabBars.buttons["You"].waitAndTap()
+        let signOut = app.buttons["account.sign-out"]
+        for _ in 0..<12 where !signOut.isHittable { app.swipeUp() }
+        XCTAssertTrue(signOut.isHittable)
+        assertMinimumHitTarget(signOut)
+    }
+
+    func testSignInAndOnboardingReachAccessibilityXXXLActions() {
+        let contentSizeArguments = [
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+        ]
+        let signedOut = launch(
+            "--fixture-signed-out",
+            contentSizeArguments[0],
+            contentSizeArguments[1]
+        )
+        let signIn = signedOut.buttons["Sign in with Apple"]
+        XCTAssertTrue(signIn.waitForExistence(timeout: 4))
+        XCTAssertTrue(signIn.isHittable)
+        assertMinimumHitTarget(signIn)
+        signedOut.terminate()
+
+        let onboarding = launch(
+            "--fixture-onboarding",
+            contentSizeArguments[0],
+            contentSizeArguments[1]
+        )
+        let name = onboarding.textFields["Your name"]
+        XCTAssertTrue(name.waitForExistence(timeout: 4))
+        name.tap()
+        name.typeText("Taylor")
+        let username = onboarding.textFields["Username"]
+        username.tap()
+        username.typeText("taylor_access")
+
+        let enter = onboarding.buttons["Enter GameTime"]
+        for _ in 0..<8 where !enter.isHittable { onboarding.swipeUp() }
+        XCTAssertTrue(enter.isEnabled)
+        XCTAssertTrue(enter.isHittable)
+        assertMinimumHitTarget(enter)
     }
 
     private func assertHiddenBetaCreationSteps(
@@ -800,16 +950,6 @@ final class GameTimeUITests: XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        XCTAssertTrue(
-            app.staticTexts["7,350 steps today"].exists,
-            file: file,
-            line: line
-        )
-        XCTAssertTrue(
-            app.staticTexts["2,650 to today’s goal"].exists,
-            file: file,
-            line: line
-        )
         let progress = app.progressIndicators["personal.progress"]
         XCTAssertTrue(progress.exists, file: file, line: line)
         XCTAssertEqual(
@@ -831,16 +971,6 @@ final class GameTimeUITests: XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        XCTAssertTrue(
-            app.staticTexts["56,000 steps this week"].exists,
-            file: file,
-            line: line
-        )
-        XCTAssertTrue(
-            app.staticTexts["14,000 to this week’s goal"].exists,
-            file: file,
-            line: line
-        )
         let progress = app.progressIndicators["personal.progress"]
         XCTAssertTrue(progress.exists, file: file, line: line)
         XCTAssertEqual(progress.label, "Week progress", file: file, line: line)
@@ -870,6 +1000,27 @@ final class GameTimeUITests: XCTestCase {
         app.descendants(matching: .any).matching(
             NSPredicate(format: "label CONTAINS %@", fragment)
         ).firstMatch
+    }
+
+    private func assertMinimumHitTarget(
+        _ element: XCUIElement,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertGreaterThanOrEqual(
+            element.frame.width,
+            44,
+            "Interactive width is below 44 points.",
+            file: file,
+            line: line
+        )
+        XCTAssertGreaterThanOrEqual(
+            element.frame.height,
+            44,
+            "Interactive height is below 44 points.",
+            file: file,
+            line: line
+        )
     }
 
     private func assertNoForbiddenLanguage(

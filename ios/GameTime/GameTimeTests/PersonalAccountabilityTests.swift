@@ -3619,6 +3619,46 @@ final class PersonalProgressPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.fraction, 0.8, accuracy: 0.001)
     }
 
+    func testSyncAccessibilityCopyReportsSuccessAndRetainedFailure() {
+        let terms = makeTerms(cadence: .daily, targetSteps: 10_000)
+        let progress = makeProgress(
+            totalSteps: 17_832,
+            remainingSteps: 2_650,
+            days: [
+                day("2026-08-10", steps: 10_482, state: .complete),
+                day("2026-08-11", steps: 7_350, state: .current),
+            ]
+        )
+
+        XCTAssertEqual(
+            PersonalAccessibilityCopy.syncResult(
+                progress: progress,
+                terms: terms,
+                healthError: nil
+            ),
+            "Apple Health updated. 7,350 steps today. 2,650 to today’s goal."
+        )
+        XCTAssertEqual(
+            PersonalAccessibilityCopy.syncResult(
+                progress: progress,
+                terms: terms,
+                healthError: "Apple Health is unavailable."
+            ),
+            "We couldn’t update Apple Health right now. Your last update is still here."
+        )
+    }
+
+    func testOneShotAccessibilityCopyMatchesVisibleSuccessStates() {
+        XCTAssertEqual(
+            PersonalAccessibilityCopy.healthConnected,
+            "Apple Health connected."
+        )
+        XCTAssertEqual(
+            PersonalAccessibilityCopy.reviewRequested,
+            "Review requested. Settlement stays paused while this result is reviewed."
+        )
+    }
+
     private func day(
         _ localDate: String,
         steps: Int,

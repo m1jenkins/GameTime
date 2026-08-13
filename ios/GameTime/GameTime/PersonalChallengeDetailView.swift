@@ -32,8 +32,9 @@ struct PersonalChallengeDetailView: View {
                     PersonalChallengeDetailsCard(terms: challenge.terms)
                 } else {
                     DaybreakCard {
-                        ProgressView("Loading…")
+                        ProgressView("Loading challenge…")
                             .frame(maxWidth: .infinity)
+                            .accessibilityIdentifier("personal.detail.loading")
                     }
                 }
             }
@@ -54,8 +55,15 @@ struct PersonalChallengeDetailView: View {
         ) {
             Button("Yes, cancel it", role: .destructive) {
                 Task {
+                    GameTimeAccessibility.announce(
+                        "Cancelling your challenge."
+                    )
                     if await store.cancel(challengeID: challengeID) {
                         dismiss()
+                        await Task.yield()
+                        GameTimeAccessibility.announce(
+                            "Challenge cancelled."
+                        )
                     }
                 }
             }
@@ -127,12 +135,22 @@ struct PersonalChallengeDetailView: View {
                         Task {
                             await stepProgress.refresh()
                             isSyncNowRequested = false
+                            GameTimeAccessibility.announce(
+                                PersonalAccessibilityCopy.syncResult(
+                                    progress: store.displayedProgress(
+                                        for: challenge
+                                    ),
+                                    terms: challenge.terms,
+                                    healthError: stepProgress.lastHealthError
+                                )
+                            )
                         }
                     } label: {
                         if isSyncNowRequested || stepProgress.isRefreshing {
                             HStack(spacing: 8) {
                                 ProgressView()
                                     .tint(CompetitiveTrustTheme.coralInk)
+                                    .accessibilityHidden(true)
                                 Text("Syncing…")
                             }
                         } else {
@@ -145,6 +163,12 @@ struct PersonalChallengeDetailView: View {
                     )
                     .accessibilityIdentifier(
                         "personal.challenge.sync-now"
+                    )
+                    .accessibilityLabel("Sync now")
+                    .accessibilityValue(
+                        isSyncNowRequested || stepProgress.isRefreshing
+                            ? "Syncing"
+                            : ""
                     )
                 }
             }
@@ -220,6 +244,7 @@ struct PersonalChallengeDetailView: View {
                             "Review requested",
                             systemImage: "checkmark.shield.fill"
                         )
+                        .accessibilityAddTraits(.isHeader)
                         .font(
                             CompetitiveTrustTheme.displayFont(
                                 size: 20,
@@ -248,6 +273,7 @@ struct PersonalChallengeDetailView: View {
                                     relativeTo: .headline
                                 )
                             )
+                            .accessibilityAddTraits(.isHeader)
                         Text(
                             "Tell us why before the 7-day review window ends. Settlement stays paused while a review is open."
                         )
@@ -270,8 +296,9 @@ struct PersonalChallengeDetailView: View {
                                     .foregroundStyle(
                                         selectedReviewReason == reason
                                             ? CompetitiveTrustTheme.coral
-                                            : CompetitiveTrustTheme.guide
+                                            : CompetitiveTrustTheme.tertiaryText
                                     )
+                                    .accessibilityHidden(true)
                                     Text(reason.title)
                                         .font(.subheadline.weight(.semibold))
                                     Spacer(minLength: 8)
@@ -287,18 +314,33 @@ struct PersonalChallengeDetailView: View {
                                     ? "Selected"
                                     : "Not selected"
                             )
+                            .accessibilityAddTraits(
+                                selectedReviewReason == reason
+                                    ? [.isSelected]
+                                    : []
+                            )
+                            .minimumInteractiveSize()
                         }
 
                         Button {
                             Task {
-                                _ = await store.requestReview(
+                                if await store.requestReview(
                                     challengeID: challenge.id,
                                     reason: selectedReviewReason
-                                )
+                                ) {
+                                    GameTimeAccessibility.announce(
+                                        PersonalAccessibilityCopy.reviewRequested
+                                    )
+                                }
                             }
                         } label: {
                             if store.isRequestingReview {
-                                ProgressView().tint(.white)
+                                HStack(spacing: 8) {
+                                    ProgressView()
+                                        .tint(.white)
+                                        .accessibilityHidden(true)
+                                    Text("Submitting…")
+                                }
                             } else {
                                 Text("Request a review")
                             }
@@ -307,6 +349,10 @@ struct PersonalChallengeDetailView: View {
                         .disabled(store.isRequestingReview)
                         .accessibilityIdentifier(
                             "personal.review.request"
+                        )
+                        .accessibilityLabel("Request a review")
+                        .accessibilityValue(
+                            store.isRequestingReview ? "Submitting" : ""
                         )
 
                         Text(
@@ -321,6 +367,7 @@ struct PersonalChallengeDetailView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Review window ended")
                             .font(.headline)
+                            .accessibilityAddTraits(.isHeader)
                         Text(
                             "The 7-day window for requesting a review has closed."
                         )
@@ -351,6 +398,7 @@ struct PersonalChallengeDetailView: View {
             .buttonStyle(TrustSecondaryButtonStyle())
             .disabled(store.isMutating)
             .accessibilityIdentifier("personal.cancel")
+            .accessibilityValue(store.isMutating ? "Cancelling" : "")
         }
     }
 

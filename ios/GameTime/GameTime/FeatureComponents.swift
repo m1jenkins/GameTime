@@ -1,5 +1,26 @@
 import SwiftUI
 
+enum ScreenLoadAccessibilityAnnouncement {
+    static func message(
+        surface: String,
+        previous: ScreenLoadState,
+        current: ScreenLoadState
+    ) -> String? {
+        guard previous != current else { return nil }
+        switch current {
+        case .loading:
+            return "Updating \(surface)…"
+        case .loaded, .empty:
+            guard previous == .loading else { return nil }
+            return "Update complete."
+        case .failed(let message):
+            return "Couldn’t refresh \(surface). \(message)"
+        case .idle:
+            return nil
+        }
+    }
+}
+
 struct FriendshipCardRow: View {
     let card: FriendshipCard
     var actionTitle: String?
@@ -183,6 +204,8 @@ struct InlineLoadStateView: View {
             HStack(spacing: 10) {
                 ProgressView()
                     .tint(CompetitiveTrustTheme.coral)
+                    .accessibilityLabel("Updating challenges")
+                    .accessibilityIdentifier("state.loading")
                 Text("Updating…")
                     .font(
                         CompetitiveTrustTheme.uiFont(
@@ -192,9 +215,8 @@ struct InlineLoadStateView: View {
                         )
                     )
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .accessibilityHidden(true)
             }
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("state.loading")
         case .failed(let message):
             VStack(alignment: .leading, spacing: 10) {
                 Label("Couldn’t refresh", systemImage: "wifi.slash")
@@ -204,6 +226,7 @@ struct InlineLoadStateView: View {
                             relativeTo: .headline
                         )
                     )
+                    .accessibilityAddTraits(.isHeader)
                 Text(message)
                     .font(
                         CompetitiveTrustTheme.uiFont(
@@ -246,6 +269,7 @@ struct EmptyTrustState: View {
                     )
                 )
                 .tracking(-0.55)
+                .accessibilityAddTraits(.isHeader)
             Text(message)
                 .font(
                     CompetitiveTrustTheme.uiFont(
@@ -259,7 +283,7 @@ struct EmptyTrustState: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("state.empty")
     }
 }
@@ -269,15 +293,31 @@ struct TermRow: View {
     let value: String
     var emphasis: Color = .primary
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(label)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-            Spacer(minLength: 16)
-            Text(value)
-                .foregroundStyle(emphasis)
-                .fontWeight(.semibold)
-                .multilineTextAlignment(.trailing)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(label)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    Text(value)
+                        .foregroundStyle(emphasis)
+                        .fontWeight(.semibold)
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(label)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    Spacer(minLength: 16)
+                    Text(value)
+                        .foregroundStyle(emphasis)
+                        .fontWeight(.semibold)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
         }
         .font(
             CompetitiveTrustTheme.uiFont(

@@ -1,5 +1,29 @@
 import SwiftUI
 
+enum PersonalAccessibilityCopy {
+    static let healthConnected = "Apple Health connected."
+    static let reviewRequested =
+        "Review requested. Settlement stays paused while this result is reviewed."
+
+    static func syncResult(
+        progress: PersonalDisplayedProgress?,
+        terms: FrozenPersonalTerms,
+        healthError: String?
+    ) -> String {
+        if healthError != nil {
+            return "We couldn’t update Apple Health right now. Your last update is still here."
+        }
+        guard let progress else {
+            return "Apple Health updated. No step data is available yet."
+        }
+        let presentation = PersonalProgressPresentation(
+            progress: progress,
+            terms: terms
+        )
+        return "Apple Health updated. \(presentation.accessibilityValue)"
+    }
+}
+
 struct TestCommitmentDisclosure: View {
     let settlementMode: PersonalSettlementMode
 
@@ -102,13 +126,23 @@ struct PersonalChallengeCard: View {
                         outcome: challenge.outcome
                     )
 
-                    HStack(spacing: 8) {
-                        Image(systemName: "calendar")
-                            .accessibilityHidden(true)
-                        Text(dateSummary)
-                        Spacer(minLength: 8)
-                        Image(systemName: "chevron.right")
-                            .accessibilityHidden(true)
+                    Group {
+                        if dynamicTypeSize.isAccessibilitySize {
+                            Label(dateSummary, systemImage: "calendar")
+                                .frame(
+                                    maxWidth: .infinity,
+                                    alignment: .leading
+                                )
+                        } else {
+                            HStack(spacing: 8) {
+                                Image(systemName: "calendar")
+                                    .accessibilityHidden(true)
+                                Text(dateSummary)
+                                Spacer(minLength: 8)
+                                Image(systemName: "chevron.right")
+                                    .accessibilityHidden(true)
+                            }
+                        }
                     }
                     .font(
                         CompetitiveTrustTheme.uiFont(
@@ -125,6 +159,7 @@ struct PersonalChallengeCard: View {
         .accessibilityIdentifier(
             "personal.challenge.\(challenge.id.uuidString.lowercased())"
         )
+        .accessibilityHint("Opens challenge details")
     }
 
     private var dateSummary: String {
@@ -192,6 +227,9 @@ struct PersonalProgressBar: View {
     let progress: PersonalDisplayedProgress
     let terms: FrozenPersonalTerms
 
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     private var presentation: PersonalProgressPresentation {
         PersonalProgressPresentation(progress: progress, terms: terms)
     }
@@ -203,12 +241,24 @@ struct PersonalProgressBar: View {
                 .accessibilityLabel(Text(presentation.accessibilityLabel))
                 .accessibilityValue(Text(presentation.accessibilityValue))
                 .accessibilityIdentifier("personal.progress")
-            HStack(alignment: .firstTextBaseline) {
-                Text(presentation.stepsText)
-                    .accessibilityIdentifier("personal.progress.steps")
-                Spacer(minLength: 8)
-                Text(presentation.remainingText)
-                    .accessibilityIdentifier("personal.progress.remaining")
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(presentation.stepsText)
+                            .accessibilityIdentifier("personal.progress.steps")
+                        Text(presentation.remainingText)
+                            .accessibilityIdentifier("personal.progress.remaining")
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(presentation.stepsText)
+                            .accessibilityIdentifier("personal.progress.steps")
+                        Spacer(minLength: 8)
+                        Text(presentation.remainingText)
+                            .accessibilityIdentifier("personal.progress.remaining")
+                    }
+                }
             }
             .font(
                 CompetitiveTrustTheme.uiFont(
@@ -217,8 +267,17 @@ struct PersonalProgressBar: View {
                     weight: .semibold
                 )
             )
-            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            .foregroundStyle(supportingTextColor)
+            // The ProgressView already exposes both values with native
+            // progress semantics. Avoid reading the same numbers three times.
+            .accessibilityHidden(true)
         }
+    }
+
+    private var supportingTextColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.82)
+            : CompetitiveTrustTheme.secondaryText
     }
 }
 
@@ -284,6 +343,8 @@ struct PersonalHealthProgressStatus: View {
     let policy: PersonalStepDataPolicy
     let outcome: PersonalOutcome?
 
+    @Environment(\.colorScheme) private var colorScheme
+
     @ViewBuilder
     var body: some View {
         if policy.usesAutomaticHealthProgress {
@@ -295,7 +356,11 @@ struct PersonalHealthProgressStatus: View {
                         weight: .semibold
                     )
                 )
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(
+                    colorScheme == .dark
+                        ? Color.white.opacity(0.82)
+                        : CompetitiveTrustTheme.secondaryText
+                )
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("personal.health.status")
         }
@@ -343,49 +408,85 @@ struct PersonalHealthProgressStatus: View {
 struct PersonalSevenDayTimeline: View {
     let days: [PersonalDisplayedDay]
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         VStack(spacing: 0) {
             ForEach(Array(days.enumerated()), id: \.element.id) { index, day in
-                HStack(spacing: 12) {
-                    Image(systemName: icon(for: day))
-                        .foregroundStyle(color(for: day))
-                        .frame(width: 24)
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(dayLabel(index: index, localDate: day.localDate))
-                            .font(
-                                CompetitiveTrustTheme.uiFont(
-                                    size: 14,
-                                    relativeTo: .subheadline,
-                                    weight: .bold
+                Group {
+                    if dynamicTypeSize.isAccessibilitySize {
+                        HStack(alignment: .top, spacing: 12) {
+                            dayIcon(day)
+                            VStack(alignment: .leading, spacing: 5) {
+                                dayCopy(day, index: index)
+                                Text("\(day.totalSteps.formatted()) steps")
+                                    .font(
+                                        CompetitiveTrustTheme.uiFont(
+                                            size: 14,
+                                            relativeTo: .subheadline,
+                                            weight: .semibold
+                                        )
+                                    )
+                            }
+                            Spacer(minLength: 0)
+                        }
+                    } else {
+                        HStack(spacing: 12) {
+                            dayIcon(day)
+                            dayCopy(day, index: index)
+                            Spacer(minLength: 8)
+                            Text(day.totalSteps.formatted())
+                                .font(
+                                    CompetitiveTrustTheme.uiFont(
+                                        size: 14,
+                                        relativeTo: .subheadline,
+                                        weight: .semibold
+                                    )
                                 )
-                            )
-                        Text(evidenceLabel(for: day))
-                            .font(
-                                CompetitiveTrustTheme.uiFont(
-                                    size: 12,
-                                    relativeTo: .caption
-                                )
-                            )
-                            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        }
                     }
-                    Spacer(minLength: 8)
-                    Text(day.totalSteps.formatted())
-                        .font(
-                            CompetitiveTrustTheme.uiFont(
-                                size: 14,
-                                relativeTo: .subheadline,
-                                weight: .semibold
-                            )
-                        )
                 }
                 .padding(.vertical, 11)
                 .accessibilityElement(children: .combine)
+                .accessibilityLabel(
+                    "\(dayLabel(index: index, localDate: day.localDate)), \(evidenceLabel(for: day)), \(day.totalSteps.formatted()) steps"
+                )
 
                 if index < days.count - 1 {
                     Divider().overlay(CompetitiveTrustTheme.border)
                 }
             }
+        }
+    }
+
+    private func dayIcon(_ day: PersonalDisplayedDay) -> some View {
+        Image(systemName: icon(for: day))
+            .foregroundStyle(color(for: day))
+            .frame(width: 24)
+            .accessibilityHidden(true)
+    }
+
+    private func dayCopy(
+        _ day: PersonalDisplayedDay,
+        index: Int
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(dayLabel(index: index, localDate: day.localDate))
+                .font(
+                    CompetitiveTrustTheme.uiFont(
+                        size: 14,
+                        relativeTo: .subheadline,
+                        weight: .bold
+                    )
+                )
+            Text(evidenceLabel(for: day))
+                .font(
+                    CompetitiveTrustTheme.uiFont(
+                        size: 12,
+                        relativeTo: .caption
+                    )
+                )
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
         }
     }
 
@@ -458,7 +559,7 @@ struct LegacyPersonalReadinessNotice: View {
                 ) {
                     Text(reason)
                         .font(.caption)
-                        .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 }
             }
         }

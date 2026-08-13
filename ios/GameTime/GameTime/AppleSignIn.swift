@@ -88,6 +88,7 @@ struct NativeAppleSignInButton: View {
         .frame(height: 52)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .accessibilityLabel("Sign in with Apple")
+        .accessibilityValue(model.isMutating ? "Signing in" : "")
     }
 
     private func handle(

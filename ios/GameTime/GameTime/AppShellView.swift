@@ -68,7 +68,7 @@ struct AppShellView: View {
                 relativeTo: .body
             )
         )
-        .tint(CompetitiveTrustTheme.coral)
+        .tint(CompetitiveTrustTheme.coralInk)
         .toolbarBackground(
             CompetitiveTrustTheme.paper,
             for: .tabBar

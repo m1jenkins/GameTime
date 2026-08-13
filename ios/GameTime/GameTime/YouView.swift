@@ -5,6 +5,7 @@ struct YouView: View {
     @Environment(PersonalAccountabilityStore.self) private var personalStore
     @Environment(AppRouter.self) private var router
     @Environment(\.demoMode) private var demoMode
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ScrollView {
@@ -102,10 +103,14 @@ struct YouView: View {
                                 : "Connect Apple Health"
                         ) {
                             Task {
-                                _ = await personalStore.verifyHealthAccess(
+                                if await personalStore.verifyHealthAccess(
                                     timezone: model.profile?.timezone
                                         ?? TimeZone.current.identifier
-                                )
+                                ) {
+                                    GameTimeAccessibility.announce(
+                                        PersonalAccessibilityCopy.healthConnected
+                                    )
+                                }
                             }
                         }
                         .buttonStyle(TrustSecondaryButtonStyle())
@@ -114,6 +119,12 @@ struct YouView: View {
                                 || !personalStore.configuration.activitySyncEnabled
                         )
                         .accessibilityIdentifier("personal.health.verify")
+                        .accessibilityLabel("Connect Apple Health")
+                        .accessibilityValue(
+                            personalStore.isVerifyingHealthAccess
+                                ? "Connecting"
+                                : ""
+                        )
                     }
 
                     if !personalStore.configuration.activitySyncEnabled {
@@ -155,6 +166,7 @@ struct YouView: View {
                             .accessibilityHidden(true)
                     }
                     .contentShape(Rectangle())
+                    .frame(minHeight: CompetitiveTrustTheme.minimumHitTarget)
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("privacy.open")
@@ -166,19 +178,14 @@ struct YouView: View {
         Group {
             DaybreakSectionLabel(text: "Your history")
             DaybreakCard {
-                HStack(spacing: 0) {
-                    historyMetric(
-                        personalStore.challenges.count.formatted(),
-                        "All"
-                    )
-                    historyMetric(
-                        (personalStore.openChallenge == nil ? 0 : 1).formatted(),
-                        "Active"
-                    )
-                    historyMetric(
-                        personalStore.history.count.formatted(),
-                        "Finished"
-                    )
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(spacing: 12) {
+                        historyContent
+                    }
+                } else {
+                    HStack(spacing: 0) {
+                        historyContent
+                    }
                 }
             }
         }
@@ -211,6 +218,7 @@ struct YouView: View {
                             .accessibilityHidden(true)
                     }
                     .contentShape(Rectangle())
+                    .frame(minHeight: CompetitiveTrustTheme.minimumHitTarget)
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("account-support.open")
@@ -223,26 +231,18 @@ struct YouView: View {
         if demoMode.isAvailable {
             DaybreakSectionLabel(text: "Demo")
             DaybreakCard {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(demoMode.isActive ? "Exit demo mode" : "Open demo mode")
-                            .font(.body.weight(.semibold))
-                        Text(
-                            demoMode.isActive
-                                ? "Go back to your real account."
-                                : "Try the app out with sample data."
-                        )
-                        .font(.caption)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 10) {
+                        demoCopy
+                        demoButton
+                            .frame(maxWidth: .infinity)
                     }
-                    Spacer(minLength: 8)
-                    Button(demoMode.isActive ? "Exit" : "Open") {
-                        demoMode.isActive ? demoMode.exit() : demoMode.enter()
+                } else {
+                    HStack(spacing: 12) {
+                        demoCopy
+                        Spacer(minLength: 8)
+                        demoButton
                     }
-                    .buttonStyle(TrustCompactButtonStyle())
-                    .accessibilityIdentifier(
-                        demoMode.isActive ? "demo.exit" : "demo.enter"
-                    )
                 }
             }
         }
@@ -256,7 +256,10 @@ struct YouView: View {
             } label: {
                 Group {
                     if model.isMutating {
-                        ProgressView().accessibilityLabel("Signing out")
+                        HStack(spacing: 8) {
+                            ProgressView().accessibilityHidden(true)
+                            Text("Signing out…")
+                        }
                     } else {
                         Text("Sign out")
                     }
@@ -266,6 +269,8 @@ struct YouView: View {
             .buttonStyle(TrustCompactButtonStyle(tone: .quiet))
             .disabled(model.isMutating)
             .accessibilityIdentifier("account.sign-out")
+            .accessibilityLabel("Sign out")
+            .accessibilityValue(model.isMutating ? "Signing out" : "")
         }
     }
 
@@ -280,13 +285,26 @@ struct YouView: View {
     }
 
     private func settingRow(_ label: String, _ value: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label).font(.subheadline.weight(.semibold))
-            Spacer(minLength: 8)
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .multilineTextAlignment(.trailing)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(label).font(.subheadline.weight(.semibold))
+                    Text(value)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(label).font(.subheadline.weight(.semibold))
+                    Spacer(minLength: 8)
+                    Text(value)
+                        .font(.subheadline)
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
         }
         .padding(.vertical, 5)
         .accessibilityElement(children: .combine)
@@ -307,6 +325,46 @@ struct YouView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private var historyContent: some View {
+        historyMetric(
+            personalStore.challenges.count.formatted(),
+            "All"
+        )
+        historyMetric(
+            (personalStore.openChallenge == nil ? 0 : 1).formatted(),
+            "Active"
+        )
+        historyMetric(
+            personalStore.history.count.formatted(),
+            "Finished"
+        )
+    }
+
+    private var demoCopy: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(demoMode.isActive ? "Exit demo mode" : "Open demo mode")
+                .font(.body.weight(.semibold))
+            Text(
+                demoMode.isActive
+                    ? "Go back to your real account."
+                    : "Try the app out with sample data."
+            )
+            .font(.caption)
+            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+        }
+    }
+
+    private var demoButton: some View {
+        Button(demoMode.isActive ? "Exit" : "Open") {
+            demoMode.isActive ? demoMode.exit() : demoMode.enter()
+        }
+        .buttonStyle(TrustCompactButtonStyle())
+        .accessibilityIdentifier(
+            demoMode.isActive ? "demo.exit" : "demo.enter"
+        )
     }
 }
 
@@ -373,6 +431,7 @@ struct TrustAndPrivacyView: View {
                                 relativeTo: .headline
                             )
                         )
+                        .accessibilityAddTraits(.isHeader)
                     Text(detail)
                         .font(.subheadline)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -441,6 +500,7 @@ struct AccountSupportView: View {
                             relativeTo: .headline
                         )
                     )
+                    .accessibilityAddTraits(.isHeader)
                 Text(
                     "Find answers about Apple Health, review the beta documents, contact the team, or manage your account."
                 )
@@ -500,12 +560,29 @@ struct AccountSupportView: View {
                         Button(role: .destructive) {
                             Task { await model.signOut() }
                         } label: {
-                            Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Group {
+                                if model.isMutating {
+                                    HStack(spacing: 8) {
+                                        ProgressView()
+                                            .accessibilityHidden(true)
+                                        Text("Signing out…")
+                                    }
+                                } else {
+                                    Label(
+                                        "Sign out",
+                                        systemImage: "rectangle.portrait.and.arrow.right"
+                                    )
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .buttonStyle(TrustSecondaryButtonStyle())
                         .disabled(model.isMutating)
                         .accessibilityIdentifier("account-support.sign-out")
+                        .accessibilityLabel("Sign out")
+                        .accessibilityValue(
+                            model.isMutating ? "Signing out" : ""
+                        )
                     }
 
                     Button(role: .destructive) {
@@ -591,6 +668,7 @@ struct AccountSupportView: View {
             Image(systemName: icon)
                 .foregroundStyle(CompetitiveTrustTheme.coral)
                 .frame(width: 24)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 Text(title).font(.body.weight(.semibold))
                 Text(detail)
@@ -655,6 +733,20 @@ struct DeleteAccountView: View {
                 }
             }
         }
+        .onChange(of: state) { previous, current in
+            switch current {
+            case .deleting:
+                GameTimeAccessibility.announce("Deleting your account.")
+            case .failed(let message):
+                GameTimeAccessibility.announce(
+                    "Deletion didn’t finish. \(message)"
+                )
+            case .reauthenticate where previous == .deleting:
+                GameTimeAccessibility.announce("Account deletion cancelled.")
+            case .reauthenticate:
+                break
+            }
+        }
     }
 
     private var reauthenticateContent: some View {
@@ -666,6 +758,7 @@ struct DeleteAccountView: View {
                         relativeTo: .title2
                     )
                 )
+                .accessibilityAddTraits(.isHeader)
             Text(
                 "For your protection, Apple requires a fresh sign-in before GameTime can delete this account."
             )
@@ -679,8 +772,10 @@ struct DeleteAccountView: View {
     private var deletingContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             ProgressView()
+                .accessibilityHidden(true)
             Text("Deleting your account…")
                 .font(.title3.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
             Text("Revoking Apple access, removing server data, and clearing this phone.")
                 .foregroundStyle(CompetitiveTrustTheme.secondaryText)
         }
@@ -690,7 +785,8 @@ struct DeleteAccountView: View {
         VStack(alignment: .leading, spacing: 14) {
             Label("Deletion didn’t finish", systemImage: "exclamationmark.triangle.fill")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(CompetitiveTrustTheme.coral)
+                .foregroundStyle(CompetitiveTrustTheme.coralInk)
+                .accessibilityAddTraits(.isHeader)
             Text(message)
                 .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             Button("Try again") {
@@ -700,6 +796,7 @@ struct DeleteAccountView: View {
             if let supportURL = model.configuration.supportMailtoURL {
                 Link("Contact beta support", destination: supportURL)
                     .font(.subheadline.weight(.semibold))
+                    .minimumInteractiveSize()
             }
         }
     }
@@ -731,22 +828,38 @@ struct PublicSupportLinksView: View {
     let betaTermsURL: URL?
     let supportMailtoURL: URL?
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         VStack(spacing: 8) {
-            HStack(spacing: 16) {
-                if let privacyURL {
-                    Link("Privacy Policy", destination: privacyURL)
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: 0) {
+                    policyLinks
                 }
-                if let betaTermsURL {
-                    Link("Beta Terms", destination: betaTermsURL)
+            } else {
+                HStack(spacing: 16) {
+                    policyLinks
                 }
             }
             if let supportMailtoURL {
                 Link("Contact support", destination: supportMailtoURL)
+                    .minimumInteractiveSize()
             }
         }
         .font(.footnote.weight(.semibold))
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private var policyLinks: some View {
+        if let privacyURL {
+            Link("Privacy Policy", destination: privacyURL)
+                .minimumInteractiveSize()
+        }
+        if let betaTermsURL {
+            Link("Beta Terms", destination: betaTermsURL)
+                .minimumInteractiveSize()
+        }
     }
 }
