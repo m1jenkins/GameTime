@@ -37,6 +37,14 @@ struct GameTimeApp: App {
             || arguments.contains("--fixture-demo-interactive")
         #if DEBUG || STAGING
         let usesFixtureModel = fixtureLaunch
+        let usesPaymentStatusFixture = arguments.contains(where: {
+            $0.hasPrefix("--fixture-payment-status=")
+                || $0.hasPrefix("--fixture-payment-status-sequence=")
+        }) || arguments.contains("--fixture-payment-unavailable")
+            || arguments.contains(
+                "--fixture-payment-refresh-fails-after-first"
+            )
+            || arguments.contains("--fixture-payment-review-expired")
         let usesStripeSandboxFixture = arguments.contains(
             "--fixture-stripe-sandbox"
         ) || arguments.contains("--fixture-sandbox-met")
@@ -44,6 +52,7 @@ struct GameTimeApp: App {
             || arguments.contains("--fixture-stripe-review")
             || arguments.contains("--fixture-open-review-challenge")
             || arguments.contains("--fixture-expired-review")
+            || usesPaymentStatusFixture
         #else
         let usesFixtureModel = false
         #endif

@@ -4,20 +4,15 @@ import Foundation
 /// outcome the existing challenge DTO already carries. Payment provider state
 /// deliberately does not enter this presentation.
 struct PersonalResultPresentation: Equatable {
-    static let reviewWindow: TimeInterval = 7 * 86_400
-
     let title: String
     let details: [String]
-    let reviewDeadline: Date?
 
     init(
         terms: FrozenPersonalTerms,
-        outcome: PersonalOutcome,
-        now: Date
+        outcome: PersonalOutcome
     ) {
         switch terms.settlementMode {
         case .testOnly:
-            reviewDeadline = nil
             switch outcome.kind {
             case .metGoal:
                 title = "Goal met — no money charged."
@@ -34,27 +29,16 @@ struct PersonalResultPresentation: Equatable {
             case .metGoal:
                 title = "Goal met — $0 test charge."
                 details = ["Your steps added up and you got there. Nice work."]
-                reviewDeadline = nil
             case .inconclusive:
                 title = "This one didn’t count — $0 test charge."
                 details = Self.unclearDetails(for: outcome)
-                reviewDeadline = nil
             case .missedGoal:
-                let deadline = outcome.publishedAt.addingTimeInterval(
-                    Self.reviewWindow
-                )
-                reviewDeadline = deadline
-                if now < deadline {
-                    title =
-                        "Goal missed — review open. Settlement is paused."
-                    details = [
-                        "Ask us to review this result by \(PersonalTermsDateFormatter.dateTime(deadline, timezoneIdentifier: terms.timezone)).",
-                        "Only a confirmed miss after review can create one \(terms.commitmentText) test charge.",
-                    ]
-                } else {
-                    title = "Goal missed."
-                    details = []
-                }
+                // Result truth and payment truth arrive through separate
+                // authoritative reads. The payment-status card owns review and
+                // settlement wording so this presentation never infers either
+                // from the result publication time.
+                title = "Goal missed."
+                details = []
             }
         }
     }

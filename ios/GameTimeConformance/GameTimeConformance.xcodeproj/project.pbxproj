@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -370,6 +370,7 @@
 				CODE_SIGN_ENTITLEMENTS = GameTimeConformance/GameTimeConformance.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87Z29RTC26;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "GameTime Conformance";
 				"INFOPLIST_KEY_CFBundleDisplayName[sdk=iphonesimulator*]" = GameTime;
@@ -400,6 +401,7 @@
 				CODE_SIGN_ENTITLEMENTS = GameTimeConformance/GameTimeConformance.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87Z29RTC26;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "GameTime Conformance";
 				"INFOPLIST_KEY_CFBundleDisplayName[sdk=iphonesimulator*]" = GameTime;

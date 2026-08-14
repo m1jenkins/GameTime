@@ -1,0 +1,89 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>A2 · Today</title><style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+html,body { width:853px; height:1844px; overflow:hidden; }
+body { font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; position:relative; background:#08080A; color:#FFF; }
+.num { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+.statusbar { position:absolute; top:0; left:0; right:0; height:100px; display:flex; justify-content:space-between; align-items:center; padding:18px 56px 0; z-index:20; }
+.stime { font-size:34px; font-weight:600; }
+.sicons { display:flex; align-items:center; gap:12px; }
+.glass {
+  background:linear-gradient(165deg, rgba(255,255,255,.105), rgba(255,255,255,.045) 55%, rgba(255,255,255,.07));
+  -webkit-backdrop-filter:blur(44px) saturate(170%);
+  backdrop-filter:blur(44px) saturate(170%);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(0,0,0,.25), 0 30px 70px rgba(0,0,0,.5);
+}
+.tabbar { position:absolute; left:28px; right:28px; bottom:56px; height:150px; border-radius:75px; display:flex; align-items:center; padding:0 26px; z-index:15; }
+.tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; font-size:23px; }
+.tab-pill { width:96px; height:62px; border-radius:31px; display:flex; align-items:center; justify-content:center; }
+.home-indicator { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); width:280px; height:10px; border-radius:5px; background:#FFF; opacity:.85; z-index:20; }
+
+.content { position:absolute; inset:0; z-index:5; padding:128px 40px 0; display:flex; flex-direction:column; }
+.eyebrow { display:flex; align-items:center; gap:14px; font-size:25px; font-weight:600; letter-spacing:4px; color:rgba(255,255,255,.55); text-transform:uppercase; }
+.livedot { width:14px; height:14px; border-radius:50%; }
+.hero { font-size:192px; font-weight:700; letter-spacing:-7px; line-height:1.02; margin-top:22px; }
+.hero-sub { font-size:37px; color:rgba(255,255,255,.55); margin-top:8px; font-weight:500; }
+.delta { display:inline-flex; align-items:center; gap:12px; margin-top:26px; font-size:29px; font-weight:700; }
+.sheet { border-radius:44px; padding:14px 40px 8px; margin:0 -8px; }
+.row { display:flex; justify-content:space-between; align-items:baseline; padding:27px 0; border-top:1px solid rgba(255,255,255,.10); font-size:32px; }
+.row:first-child { border-top:none; }
+.row .k { color:rgba(255,255,255,.55); font-weight:500; }
+.row .v { font-weight:600; }
+.cta { display:flex; align-items:center; justify-content:center; gap:14px; margin:auto 0 26px; text-align:center; font-size:35px; font-weight:700; padding:33px 0; border-radius:60px; color:#000; position:relative; z-index:6; }
+
+</style></head><body>
+<div class="statusbar"><span class="stime">9:41</span>
+<span class="sicons"><svg width="34" height="22" viewBox="0 0 20 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".35"/></svg>
+<svg width="30" height="22" viewBox="0 0 16 12" fill="currentColor"><path d="M8 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM8 5C5.8 5 3.8 5.8 2.3 7.2l1.5 1.6A6.3 6.3 0 0 1 8 7.2c1.6 0 3 .6 4.2 1.6l1.5-1.6A8.9 8.9 0 0 0 8 5zM8 0C4.7 0 1.7 1.2-.4 3.3L1.1 4.9A11 11 0 0 1 8 2.2c2.7 0 5.2 1 7 2.7l1.4-1.6A13.4 13.4 0 0 0 8 0z" transform="translate(0,-1) scale(0.85)"/></svg>
+<svg width="50" height="22" viewBox="0 0 25 12"><rect x="0" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2.5" width="15" height="7" rx="1.8" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="currentColor" opacity=".4"/></svg></span></div>
+
+
+<div style="position:absolute;inset:0;z-index:0;overflow:hidden">
+  <div style="position:absolute;left:-260px;top:-320px;width:900px;height:900px;border-radius:50%;background:radial-gradient(circle,#00FF2326,transparent 62%);filter:blur(70px)"></div>
+  <div style="position:absolute;right:-340px;top:520px;width:1000px;height:1000px;border-radius:50%;background:radial-gradient(circle,rgba(77,107,254,.20),transparent 60%);filter:blur(90px)"></div>
+  <div style="position:absolute;left:-200px;bottom:-420px;width:900px;height:900px;border-radius:50%;background:radial-gradient(circle,#00FF2314,transparent 60%);filter:blur(80px)"></div>
+</div>
+<div class="content">
+  <div class="eyebrow"><span class="livedot" style="background:#00FF23;box-shadow:0 0 16px #00FF23"></span>Thursday · Day 4 of 7</div>
+  <div class="hero num">7,350</div>
+  <div class="hero-sub">steps today</div>
+  <div class="delta" style="color:#00FF23"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>73% of daily goal</div>
+  <div style="margin-top:46px">
+    <div style="position:relative;height:12px;background:rgba(255,255,255,.10);border-radius:6px;box-shadow:inset 0 1px 2px rgba(0,0,0,.4)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:73.5%;background:linear-gradient(90deg,#00FF2388,#00FF23);border-radius:6px"></div>
+      <div style="position:absolute;left:73.5%;top:50%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:#00FF23;box-shadow:0 0 28px #00FF23,0 0 6px #00FF23"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:22px;font-size:26px;color:rgba(255,255,255,.5)"><span class="num" style="color:#FFF;font-weight:600">2,650 to go</span><span>Ends 11:59 PM CDT</span></div>
+  </div>
+  <div style="margin-top:52px"><svg width="725" height="430" viewBox="0 0 725 430">
+<defs>
+  <linearGradient id="area-t" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#00FF23" stop-opacity=".22"/><stop offset="1" stop-color="#00FF23" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="soft-t" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="10"/></filter>
+</defs>
+<line x1="0" y1="75.8" x2="725" y2="75.8" stroke="rgba(255,255,255,.30)" stroke-width="2" stroke-dasharray="10 10"/>
+<text x="721" y="61.8" fill="rgba(255,255,255,.5)" font-size="22" text-anchor="end" font-weight="600" letter-spacing="1">70,000 GOAL</text>
+<polyline points="40.0,374.0 685.0,75.8" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="3" stroke-dasharray="4 14" stroke-linecap="round"/>
+<line x1="362.5" y1="34" x2="362.5" y2="374" stroke="rgba(255,255,255,.14)" stroke-width="2"/>
+<polygon points="40.0,374 40.0,321.1 147.5,270.0 255.0,224.9 362.5,193.6 362.5,374" fill="url(#area-t)"/>
+<polyline points="40.0,321.1 147.5,270.0 255.0,224.9 362.5,193.6" fill="none" stroke="#00FF23" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" opacity=".22" filter="url(#soft-t)"/>
+<polyline points="40.0,321.1 147.5,270.0 255.0,224.9 362.5,193.6" fill="none" stroke="#00FF23" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="40.0" cy="321.1" r="8" fill="#0B0B0D" stroke="#00FF23" stroke-width="5"/><circle cx="147.5" cy="270.0" r="8" fill="#0B0B0D" stroke="#00FF23" stroke-width="5"/><circle cx="255.0" cy="224.9" r="8" fill="#0B0B0D" stroke="#00FF23" stroke-width="5"/>
+<circle cx="362.5" cy="193.6" r="20" fill="#00FF23" opacity=".28"/>
+<circle cx="362.5" cy="193.6" r="11" fill="#00FF23"/>
+<text x="344.5" y="169.6" fill="#00FF23" font-size="27" font-weight="700" text-anchor="end">42,350</text>
+<text x="40.0" y="418" fill="rgba(255,255,255,.38)" font-size="23" text-anchor="middle" font-weight="500">Mon</text><text x="147.5" y="418" fill="rgba(255,255,255,.38)" font-size="23" text-anchor="middle" font-weight="500">Tue</text><text x="255.0" y="418" fill="rgba(255,255,255,.38)" font-size="23" text-anchor="middle" font-weight="500">Wed</text><text x="362.5" y="418" fill="rgba(255,255,255,.38)" font-size="23" text-anchor="middle" font-weight="500">Thu</text><text x="470.0" y="418" fill="rgba(255,255,255,.38)" font-size="23" text-anchor="middle" font-weight="500">Fri</text><text x="577.5" y="418" fill="rgba(255,255,255,.38)" font-size="23" text-anchor="middle" font-weight="500">Sat</text><text x="685.0" y="418" fill="rgba(255,255,255,.38)" font-size="23" text-anchor="middle" font-weight="500">Sun</text></svg></div>
+  <div class="sheet glass" style="margin-top:44px">
+    <div class="row"><span class="k">Apple Health</span><span class="v" style="color:#00FF23;font-size:26px;letter-spacing:2px">SYNCED 3 SEC AGO</span></div>
+    <div class="row"><span class="k">Stakes on this week</span><span class="v num">$10.00</span></div>
+  </div>
+  <a class="cta" style="background:#00FF23;box-shadow:0 18px 50px #00FF2355,inset 0 1px 0 rgba(255,255,255,.5)">Sync now</a>
+</div><div class="tabbar glass"><div class="tab on" style="color:#FFF">
+            <div class="tab-pill" style="background:#00FF231F;box-shadow:inset 0 0 0 1px #00FF2355">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#00FF23" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 5v5l3.5 2"/></svg></div>
+            <span style="color:#00FF23;font-weight:600">Today</span></div><div class="tab"><div class="tab-pill">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8m-4-4v4m-6-17h12v5a6 6 0 0 1-12 0V4zM4 6H2v2a4 4 0 0 0 4 4m14-6h2v2a4 4 0 0 1-4 4"/></svg></div>
+            <span style="color:rgba(255,255,255,.42)">Challenges</span></div><div class="tab"><div class="tab-pill">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 12a8 8 0 0 1 16 0"/></svg></div>
+            <span style="color:rgba(255,255,255,.42)">You</span></div></div><div class="home-indicator"></div></body></html>

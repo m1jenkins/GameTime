@@ -1,9 +1,9 @@
 import Foundation
 import Supabase
 
-/// Native Edge Function adapter for the Stripe sandbox.
+/// Native Supabase adapter for the Stripe sandbox.
 ///
-/// Keep the endpoint names and JSON documents private to this file so a
+/// Keep endpoint/RPC names and JSON documents private to this file so a
 /// backend contract adjustment cannot leak Stripe concepts into the domain or
 /// challenge store.
 @MainActor
@@ -12,10 +12,17 @@ final class SupabasePersonalPaymentClient: PersonalPaymentClient {
     private static let setupEndpoint = "personal-payment-setup"
     private static let commitEndpoint = "personal-challenge-commit"
     private static let reviewEndpoint = "personal-stripe-sandbox-review"
+    private static let statusRPCName =
+        "get_my_personal_stripe_sandbox_status_v1"
 
     private let client: SupabaseClient
     private let configuration: AppConfiguration
     private let session: URLSession
+    private let currentUserID: @MainActor () -> UUID?
+    private let statusRPC: @MainActor (
+        String,
+        PersonalPaymentStatusParameters
+    ) async throws -> Data
 
     init(
         client: SupabaseClient,
@@ -25,6 +32,32 @@ final class SupabasePersonalPaymentClient: PersonalPaymentClient {
         self.client = client
         self.configuration = configuration
         self.session = session
+        currentUserID = { client.auth.currentSession?.user.id }
+        statusRPC = { name, parameters in
+            let response = try await client
+                .rpc(name, params: parameters)
+                .execute()
+            return response.data
+        }
+    }
+
+    /// Isolates account and transport behavior so the security boundary can be
+    /// tested without replacing Supabase Swift's concrete client type.
+    init(
+        client: SupabaseClient,
+        configuration: AppConfiguration,
+        session: URLSession = .shared,
+        currentUserID: @escaping @MainActor () -> UUID?,
+        statusRPC: @escaping @MainActor (
+            String,
+            PersonalPaymentStatusParameters
+        ) async throws -> Data
+    ) {
+        self.client = client
+        self.configuration = configuration
+        self.session = session
+        self.currentUserID = currentUserID
+        self.statusRPC = statusRPC
     }
 
     func prepare(
@@ -101,6 +134,75 @@ final class SupabasePersonalPaymentClient: PersonalPaymentClient {
             state: response.reviewState,
             reviewDeadline: deadline,
             replayed: response.replayed
+        )
+    }
+
+    func paymentStatus(
+        challengeID: UUID,
+        expectedUserID: UUID
+    ) async throws -> PersonalPaymentStatus {
+        guard configuration.personalSettlementMode == .stripeSandbox else {
+            throw PersonalPaymentClientError.disabled
+        }
+        guard let userID = currentUserID() else {
+            throw PersonalPaymentClientError.authenticationRequired
+        }
+        guard userID == expectedUserID else {
+            throw PersonalPaymentClientError.accountChanged
+        }
+
+        let data: Data
+        do {
+            data = try await statusRPC(
+                Self.statusRPCName,
+                PersonalPaymentStatusParameters(challengeID: challengeID)
+            )
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            guard currentUserID() == expectedUserID else {
+                throw PersonalPaymentClientError.accountChanged
+            }
+            throw PersonalPaymentClientError.unavailable
+        }
+
+        guard currentUserID() == expectedUserID else {
+            throw PersonalPaymentClientError.accountChanged
+        }
+        guard
+            !data.isEmpty,
+            data.count <= Self.maximumResponseBytes
+        else {
+            throw PersonalPaymentClientError.invalidResponse
+        }
+
+        let response: PaymentStatusResponse = try decode(data)
+        guard
+            response.challengeID == challengeID,
+            response.environment == "sandbox"
+        else {
+            throw PersonalPaymentClientError.invalidResponse
+        }
+
+        let reviewDeadline: Date?
+        if let rawDeadline = response.reviewDeadline {
+            guard let deadline = Self.reviewDate(from: rawDeadline) else {
+                throw PersonalPaymentClientError.invalidResponse
+            }
+            reviewDeadline = deadline
+        } else {
+            reviewDeadline = nil
+        }
+        guard
+            response.paymentState != .reviewOpen || reviewDeadline != nil
+        else {
+            throw PersonalPaymentClientError.invalidResponse
+        }
+
+        return PersonalPaymentStatus(
+            challengeID: response.challengeID,
+            state: response.paymentState,
+            reviewDeadline: reviewDeadline
         )
     }
 
@@ -369,6 +471,28 @@ private struct ReviewResponse: Decodable {
     let reviewState: PersonalReviewState
     let reviewDeadline: String
     let replayed: Bool
+}
+
+struct PersonalPaymentStatusParameters: Encodable, Sendable {
+    let challengeID: UUID
+
+    enum CodingKeys: String, CodingKey {
+        case challengeID = "p_challenge_id"
+    }
+}
+
+private struct PaymentStatusResponse: Decodable {
+    let challengeID: UUID
+    let environment: String
+    let paymentState: PersonalPaymentState
+    let reviewDeadline: String?
+
+    enum CodingKeys: String, CodingKey {
+        case challengeID = "challenge_id"
+        case environment
+        case paymentState = "payment_state"
+        case reviewDeadline = "review_deadline"
+    }
 }
 
 private struct FailureDocument: Decodable {

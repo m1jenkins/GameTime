@@ -57,7 +57,7 @@ final class CompetitiveTrustThemeAdversarialTests: XCTestCase {
             ("Signal Orange on graphite surface", signalOrange, graphiteSurface),
             ("Athletic Green on dark background", athleticGreen, darkBackground),
             ("Athletic Green on graphite surface", athleticGreen, graphiteSurface),
-            ("Primary button label on Signal Orange", .white, signalOrange),
+            ("Primary button label on Signal Orange", .black, signalOrange),
         ]
 
         let lightPairs: [(name: String, fg: UIColor, bg: UIColor)] = [

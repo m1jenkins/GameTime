@@ -1,0 +1,68 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>B · Today</title><style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+html,body { width:853px; height:1844px; overflow:hidden; }
+body { font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; position:relative; }
+.num { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+.statusbar { position:absolute; top:0; left:0; right:0; height:100px; display:flex; justify-content:space-between; align-items:center; padding:18px 56px 0; z-index:5; }
+.stime { font-size:34px; font-weight:600; }
+.sicons { display:flex; align-items:center; gap:12px; }
+.tabbar { position:absolute; bottom:0; left:0; right:0; height:176px; display:flex; padding:18px 40px 56px; }
+.tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:26px; font-weight:500; }
+.home-indicator { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); width:280px; height:10px; border-radius:5px; background:currentColor; opacity:.85; z-index:6; }
+
+body { background:#F7F6F2; color:#111111; }
+.content { position:absolute; top:100px; left:0; right:0; bottom:176px; padding:36px 32px 0; display:flex; flex-direction:column; }
+.eyebrow { font-size:26px; font-weight:800; letter-spacing:4px; color:#FF4D00; text-transform:uppercase; }
+.hero { font-size:176px; font-weight:800; letter-spacing:-6px; line-height:1; margin-top:14px; }
+.hero-sub { font-size:38px; color:rgba(17,17,17,.55); margin-top:8px; font-weight:500; }
+.cta { display:block; margin:auto 0 28px; background:#FF4D00; color:#FFF; text-align:center; font-size:36px; font-weight:800; padding:34px 0; border-radius:60px; }
+.feedrow { display:flex; align-items:center; gap:28px; padding:26px 0; border-top:1px solid rgba(17,17,17,.14); }
+
+</style></head><body>
+<div class="statusbar"><span class="stime">9:41</span>
+<span class="sicons"><svg width="34" height="22" viewBox="0 0 20 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".35"/></svg>
+<svg width="30" height="22" viewBox="0 0 16 12" fill="currentColor"><path d="M8 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM8 5C5.8 5 3.8 5.8 2.3 7.2l1.5 1.6A6.3 6.3 0 0 1 8 7.2c1.6 0 3 .6 4.2 1.6l1.5-1.6A8.9 8.9 0 0 0 8 5zM8 0C4.7 0 1.7 1.2-.4 3.3L1.1 4.9A11 11 0 0 1 8 2.2c2.7 0 5.2 1 7 2.7l1.4-1.6A13.4 13.4 0 0 0 8 0z" transform="translate(0,-1) scale(0.85)"/></svg>
+<svg width="50" height="22" viewBox="0 0 25 12"><rect x="0" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2.5" width="15" height="7" rx="1.8" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="currentColor" opacity=".4"/></svg></span></div>
+
+<div class="content">
+  <div class="eyebrow">Thursday · Day 4 of 7</div>
+  <div class="hero num">7,350</div>
+  <div class="hero-sub">of 10,000 steps · <b style="color:#111111">2,650 to go</b></div>
+  <div style="margin-top:40px">
+    <div style="height:22px;background:rgba(17,17,17,.08);border-radius:11px;overflow:hidden">
+      <div style="width:73.5%;height:100%;background:#FF4D00;border-radius:11px"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:18px;font-size:26px;color:rgba(17,17,17,.55)"><span>Today ends 11:59 PM CDT</span><span class="num" style="font-weight:700;color:#111111">73%</span></div>
+  </div>
+  <div style="margin-top:56px"><div style="position:relative">
+    <div style="position:absolute;left:0;right:0;bottom:274px;border-top:3px dashed rgba(17,17,17,.3)"></div>
+    <div style="position:absolute;left:0;bottom:284px;font-size:20px;font-weight:700;color:rgba(17,17,17,.45);letter-spacing:1px">10K GOAL</div>
+    <div style="display:flex;gap:8px"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="font-size:22px;font-weight:700" class="num">12,430</div><div style="height:230px;display:flex;align-items:flex-end"><div style="width:64px;height:219px;background:#111;border-radius:8px 8px 0 0"></div></div>
+        <div style="font-size:24px;font-weight:500;color:#111111">Mon</div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="font-size:22px;font-weight:700" class="num">11,980</div><div style="height:230px;display:flex;align-items:flex-end"><div style="width:64px;height:211px;background:#111;border-radius:8px 8px 0 0"></div></div>
+        <div style="font-size:24px;font-weight:500;color:#111111">Tue</div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="font-size:22px;font-weight:700" class="num">10,590</div><div style="height:230px;display:flex;align-items:flex-end"><div style="width:64px;height:187px;background:#111;border-radius:8px 8px 0 0"></div></div>
+        <div style="font-size:24px;font-weight:500;color:#111111">Wed</div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="font-size:22px;font-weight:800;color:#FF4D00" class="num">7,350</div><div style="height:230px;display:flex;align-items:flex-end"><div style="position:relative;width:64px;height:230px">
+              <div style="position:absolute;bottom:0;width:64px;height:230px;border:3px dashed rgba(17,17,17,.25);border-radius:8px 8px 0 0"></div>
+              <div style="position:absolute;bottom:0;width:64px;height:130px;background:#FF4D00;border-radius:8px 8px 0 0"></div></div></div>
+        <div style="font-size:24px;font-weight:800;color:#111111">Thu</div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="font-size:22px;color:rgba(17,17,17,.28)" class="num">·</div><div style="height:230px;display:flex;align-items:flex-end"><div style="width:64px;height:230px;border:3px dashed rgba(17,17,17,.18);border-radius:8px 8px 0 0;box-sizing:border-box"></div></div>
+        <div style="font-size:24px;font-weight:500;color:rgba(17,17,17,.28)">Fri</div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="font-size:22px;color:rgba(17,17,17,.28)" class="num">·</div><div style="height:230px;display:flex;align-items:flex-end"><div style="width:64px;height:230px;border:3px dashed rgba(17,17,17,.18);border-radius:8px 8px 0 0;box-sizing:border-box"></div></div>
+        <div style="font-size:24px;font-weight:500;color:rgba(17,17,17,.28)">Sat</div></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="font-size:22px;color:rgba(17,17,17,.28)" class="num">·</div><div style="height:230px;display:flex;align-items:flex-end"><div style="width:64px;height:230px;border:3px dashed rgba(17,17,17,.18);border-radius:8px 8px 0 0;box-sizing:border-box"></div></div>
+        <div style="font-size:24px;font-weight:500;color:rgba(17,17,17,.28)">Sun</div></div></div></div></div>
+  <div style="margin-top:48px">
+    <div class="feedrow"><div style="width:20px;height:20px;border-radius:50%;background:#FF4D00"></div><div style="flex:1"><div style="font-size:32px;font-weight:700">Apple Health</div><div style="font-size:26px;color:rgba(17,17,17,.55)">Synced 3 seconds ago</div></div><div style="font-size:26px;font-weight:800;color:#FF4D00;letter-spacing:1px">SYNC</div></div>
+    <div class="feedrow"><div style="flex:1;font-size:32px;color:rgba(17,17,17,.55)">Riding on this week</div><div style="font-size:36px;font-weight:800" class="num">$10.00</div></div>
+  </div>
+  <a class="cta">View challenge</a>
+</div><div class="tabbar" style="background:#F7F6F2;border-top:1px solid rgba(17,17,17,.12)"><div class="tab" style="color:#111111">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 5v5l3.5 2"/></svg>
+        <span>Today</span></div><div class="tab" style="color:rgba(17,17,17,.35)">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8m-4-4v4m-6-17h12v5a6 6 0 0 1-12 0V4zM4 6H2v2a4 4 0 0 0 4 4m14-6h2v2a4 4 0 0 1-4 4"/></svg>
+        <span>Challenges</span></div><div class="tab" style="color:rgba(17,17,17,.35)">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 12a8 8 0 0 1 16 0"/></svg>
+        <span>You</span></div></div><div class="home-indicator"></div></body></html>

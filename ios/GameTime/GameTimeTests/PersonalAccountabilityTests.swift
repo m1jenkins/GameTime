@@ -1380,6 +1380,11 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
         let payments = PersonalPaymentFake(ownerID: ownerID)
         payments.loseFirstReviewResponse = true
         let now = Date()
+        payments.currentStatus = PersonalPaymentStatus(
+            challengeID: challengeID,
+            state: .reviewOpen,
+            reviewDeadline: now.addingTimeInterval(7 * 86_400)
+        )
         client.setChallenge(
             PersonalChallengeDetail(
                 id: challengeID,
@@ -1420,6 +1425,7 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
             activitySync: DisabledPersonalActivitySyncCoordinator()
         )
         await store.activate(ownerID: ownerID)
+        await store.openDetail(challengeID: challengeID)
 
         let first = await store.requestReview(
             challengeID: challengeID,
@@ -1427,7 +1433,11 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
             now: now
         )
         XCTAssertFalse(first)
-        XCTAssertNil(store.reviewRequest(for: challengeID))
+        XCTAssertEqual(
+            store.paymentStatusState(for: challengeID).lastConfirmed?.status
+                .state,
+            .reviewOpen
+        )
 
         let retry = await store.requestReview(
             challengeID: challengeID,
@@ -1446,7 +1456,8 @@ final class PersonalAccountabilityStoreTests: XCTestCase {
             [.userDisputesResult, .userDisputesResult]
         )
         XCTAssertEqual(
-            store.reviewRequest(for: challengeID)?.state,
+            store.paymentStatusState(for: challengeID).lastConfirmed?.status
+                .state,
             .underReview
         )
     }
@@ -3238,6 +3249,8 @@ private final class PersonalPaymentFake: PersonalPaymentClient {
     ] = []
     var loseFirstCommitResponse = false
     var loseFirstReviewResponse = false
+    var currentStatus: PersonalPaymentStatus?
+    private(set) var statusRequests: [UUID] = []
 
     init(ownerID: UUID) {
         self.ownerID = ownerID
@@ -3287,14 +3300,38 @@ private final class PersonalPaymentFake: PersonalPaymentClient {
             throw PersonalPaymentClientError.accountChanged
         }
         reviewRequests.append((challengeID, reason))
+        let reviewDeadline = currentStatus?.reviewDeadline
+            ?? Date().addingTimeInterval(7 * 86_400)
+        currentStatus = PersonalPaymentStatus(
+            challengeID: challengeID,
+            state: .underReview,
+            reviewDeadline: reviewDeadline
+        )
         if loseFirstReviewResponse, reviewRequests.count == 1 {
             throw PersonalPaymentClientError.unavailable
         }
         return PersonalReviewRequestResult(
             state: .underReview,
-            reviewDeadline: Date().addingTimeInterval(7 * 86_400),
+            reviewDeadline: reviewDeadline,
             replayed: reviewRequests.count > 1
         )
+    }
+
+    func paymentStatus(
+        challengeID: UUID,
+        expectedUserID: UUID
+    ) async throws -> PersonalPaymentStatus {
+        guard expectedUserID == ownerID else {
+            throw PersonalPaymentClientError.accountChanged
+        }
+        statusRequests.append(challengeID)
+        guard
+            let currentStatus,
+            currentStatus.challengeID == challengeID
+        else {
+            throw PersonalPaymentClientError.invalidResponse
+        }
+        return currentStatus
     }
 }
 

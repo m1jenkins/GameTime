@@ -57,7 +57,8 @@ enum FixtureServicesFactory {
             personalPayments: personalPaymentClient
                 ?? FixturePersonalPaymentClient(
                     accountability: accountability,
-                    store: personalStore
+                    store: personalStore,
+                    scenario: scenario
                 ),
             pendingPersonalChallenges: pendingPersonalChallengeStore
                 ?? FixturePendingPersonalChallengeStore(
@@ -125,6 +126,10 @@ private struct FixtureScenario {
     let personalCancelled: Bool
     let accountDeletionFails: Bool
     let personalResult: FixturePersonalResult
+    let personalPaymentStatusSequence: [PersonalPaymentState]
+    let personalPaymentStatusUnavailable: Bool
+    let personalPaymentRefreshFailsAfterFirst: Bool
+    let personalPaymentReviewExpired: Bool
 
     init(arguments: [String]) {
         signedOut = arguments.contains("--fixture-signed-out")
@@ -183,12 +188,29 @@ private struct FixtureScenario {
         accountDeletionFails = arguments.contains(
             "--fixture-account-deletion-failure"
         )
+        personalPaymentStatusSequence = Self.paymentStatusSequence(
+            from: arguments
+        )
+        personalPaymentStatusUnavailable = arguments.contains(
+            "--fixture-payment-unavailable"
+        )
+        personalPaymentRefreshFailsAfterFirst = arguments.contains(
+            "--fixture-payment-refresh-fails-after-first"
+        )
+        personalPaymentReviewExpired = arguments.contains(
+            "--fixture-payment-review-expired"
+        )
+        let hasPaymentStatusFixture = !personalPaymentStatusSequence.isEmpty
+            || personalPaymentStatusUnavailable
+            || personalPaymentRefreshFailsAfterFirst
+            || personalPaymentReviewExpired
         let hasSandboxResult = arguments.contains(
             "--fixture-sandbox-missing-result"
         ) || arguments.contains("--fixture-expired-review")
             || arguments.contains("--fixture-stripe-review")
             || arguments.contains("--fixture-open-review-challenge")
             || arguments.contains("--fixture-sandbox-met")
+            || hasPaymentStatusFixture
         let stripeSandbox = arguments.contains("--fixture-stripe-sandbox")
             || hasSandboxResult
         if arguments.contains("--fixture-sandbox-missing-result") {
@@ -199,13 +221,46 @@ private struct FixtureScenario {
             || arguments.contains("--fixture-open-review-challenge")
         {
             personalResult = .sandboxOpenMiss
-        } else if stripeSandbox
-            || arguments.contains("--fixture-sandbox-met")
-        {
+        } else if let explicitState = personalPaymentStatusSequence.first {
+            switch explicitState {
+            case .waived:
+                personalResult = .sandboxMissing
+            case .noCharge:
+                personalResult = .sandboxMet
+            case .methodSaved:
+                personalResult = .sandboxMet
+            case .reviewOpen, .underReview, .chargePending, .charged,
+                .requiresAction, .collectionFailed:
+                personalResult = .sandboxOpenMiss
+            }
+        } else if personalPaymentReviewExpired {
+            personalResult = .sandboxOpenMiss
+        } else if stripeSandbox || arguments.contains("--fixture-sandbox-met") {
             personalResult = .sandboxMet
         } else {
             personalResult = .testOnlyMet
         }
+    }
+
+    private static func paymentStatusSequence(
+        from arguments: [String]
+    ) -> [PersonalPaymentState] {
+        if let rawSequence = arguments.first(where: {
+            $0.hasPrefix("--fixture-payment-status-sequence=")
+        })?.split(separator: "=", maxSplits: 1).last {
+            let states = rawSequence.split(separator: ",").compactMap {
+                PersonalPaymentState(rawValue: String($0))
+            }
+            if !states.isEmpty { return states }
+        }
+        guard let rawState = arguments.first(where: {
+            $0.hasPrefix("--fixture-payment-status=")
+        })?.split(separator: "=", maxSplits: 1).last,
+            let state = PersonalPaymentState(rawValue: String(rawState))
+        else {
+            return []
+        }
+        return [state]
     }
 }
 
@@ -1619,15 +1674,29 @@ private final class FixturePersonalAccountabilityClient:
 
 @MainActor
 private final class FixturePersonalPaymentClient: PersonalPaymentClient {
+    private static let serverReviewWindow: TimeInterval = 7 * 86_400
+
     private let accountability: any PersonalAccountabilityClient
     private let store: FixturePersonalStore
+    private let scriptedPaymentStates: [PersonalPaymentState]
+    private let paymentStatusUnavailable: Bool
+    private let paymentRefreshFailsAfterFirst: Bool
+    private let paymentReviewExpired: Bool
+    private var paymentStatusReadCount = 0
+    private var reviewStateOverride: PersonalPaymentState?
 
     init(
         accountability: any PersonalAccountabilityClient,
-        store: FixturePersonalStore
+        store: FixturePersonalStore,
+        scenario: FixtureScenario
     ) {
         self.accountability = accountability
         self.store = store
+        scriptedPaymentStates = scenario.personalPaymentStatusSequence
+        paymentStatusUnavailable = scenario.personalPaymentStatusUnavailable
+        paymentRefreshFailsAfterFirst =
+            scenario.personalPaymentRefreshFailsAfterFirst
+        paymentReviewExpired = scenario.personalPaymentReviewExpired
     }
 
     func prepare(
@@ -1660,8 +1729,9 @@ private final class FixturePersonalPaymentClient: PersonalPaymentClient {
         reason: PersonalReviewReason,
         expectedUserID: UUID
     ) async throws -> PersonalReviewRequestResult {
-        _ = (reason, expectedUserID)
+        _ = reason
         guard
+            expectedUserID == FixtureStore.callerID,
             let challenge = store.challenges.first(where: {
                 $0.id == challengeID
             }),
@@ -1669,13 +1739,91 @@ private final class FixturePersonalPaymentClient: PersonalPaymentClient {
         else {
             throw PersonalPaymentClientError.invalidResponse
         }
+        reviewStateOverride = .underReview
         return PersonalReviewRequestResult(
             state: .underReview,
             reviewDeadline: publishedAt.addingTimeInterval(
-                PersonalResultPresentation.reviewWindow
+                Self.serverReviewWindow
             ),
             replayed: false
         )
+    }
+
+    func paymentStatus(
+        challengeID: UUID,
+        expectedUserID: UUID
+    ) async throws -> PersonalPaymentStatus {
+        guard expectedUserID == FixtureStore.callerID else {
+            throw PersonalPaymentClientError.accountChanged
+        }
+        guard
+            let challenge = store.challenges.first(where: {
+                $0.id == challengeID
+            }),
+            challenge.terms.settlementMode == .stripeSandbox
+        else {
+            throw PersonalPaymentClientError.invalidResponse
+        }
+
+        paymentStatusReadCount += 1
+        if paymentStatusUnavailable
+            || (paymentRefreshFailsAfterFirst && paymentStatusReadCount > 1)
+        {
+            // Keep the fixture failure asynchronous like the real RPC. An
+            // immediate main-actor throw can remove the tall review controls
+            // while XCTest is still synthesizing the Refresh tap.
+            try await Task.sleep(for: .milliseconds(200))
+            throw PersonalPaymentClientError.unavailable
+        }
+
+        let state: PersonalPaymentState
+        if let reviewStateOverride {
+            state = reviewStateOverride
+        } else if !scriptedPaymentStates.isEmpty {
+            let index = min(
+                paymentStatusReadCount - 1,
+                scriptedPaymentStates.count - 1
+            )
+            state = scriptedPaymentStates[index]
+        } else {
+            state = Self.defaultPaymentState(for: challenge)
+        }
+
+        let reviewDeadline: Date?
+        if state == .reviewOpen {
+            if paymentReviewExpired {
+                reviewDeadline = Date().addingTimeInterval(-60)
+            } else if let publishedAt = challenge.outcome?.publishedAt {
+                reviewDeadline = publishedAt.addingTimeInterval(
+                    Self.serverReviewWindow
+                )
+            } else {
+                reviewDeadline = Date().addingTimeInterval(
+                    Self.serverReviewWindow
+                )
+            }
+        } else {
+            reviewDeadline = nil
+        }
+
+        return PersonalPaymentStatus(
+            challengeID: challengeID,
+            state: state,
+            reviewDeadline: reviewDeadline
+        )
+    }
+
+    private static func defaultPaymentState(
+        for challenge: PersonalChallengeDetail
+    ) -> PersonalPaymentState {
+        if challenge.status == .cancelled { return .noCharge }
+        guard let outcome = challenge.outcome else { return .methodSaved }
+        switch outcome.kind {
+        case .metGoal, .inconclusive:
+            return .noCharge
+        case .missedGoal:
+            return .reviewOpen
+        }
     }
 }
 

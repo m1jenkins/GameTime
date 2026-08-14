@@ -37,6 +37,43 @@ enum PersonalActivitySyncViewState: Equatable, Sendable {
     }
 }
 
+struct PersonalPaymentStatusConfirmation: Equatable, Sendable {
+    let status: PersonalPaymentStatus
+    let checkedAt: Date
+}
+
+enum PersonalPaymentStatusViewState: Equatable, Sendable {
+    case idle
+    case loading(lastConfirmed: PersonalPaymentStatusConfirmation?)
+    case confirmed(PersonalPaymentStatusConfirmation)
+    case failed(lastConfirmed: PersonalPaymentStatusConfirmation?)
+
+    var lastConfirmed: PersonalPaymentStatusConfirmation? {
+        switch self {
+        case .idle:
+            nil
+        case .loading(let lastConfirmed), .failed(let lastConfirmed):
+            lastConfirmed
+        case .confirmed(let confirmation):
+            confirmation
+        }
+    }
+
+    var isLoading: Bool {
+        if case .loading = self { return true }
+        return false
+    }
+
+    var refreshFailed: Bool {
+        if case .failed = self { return true }
+        return false
+    }
+
+    var isStale: Bool {
+        refreshFailed && lastConfirmed != nil
+    }
+}
+
 @MainActor
 @Observable
 final class PersonalAccountabilityStore {
@@ -66,8 +103,8 @@ final class PersonalAccountabilityStore {
     private(set) var isMutating = false
     private(set) var isPreparingPayment = false
     private(set) var isRequestingReview = false
-    private(set) var reviewRequestsByChallengeID:
-        [UUID: PersonalReviewRequestResult] = [:]
+    private(set) var paymentStatusStatesByChallengeID:
+        [UUID: PersonalPaymentStatusViewState] = [:]
     private(set) var isRunningDiagnostic = false
     private(set) var isSyncingActivity = false
     var presentedError: String?
@@ -85,6 +122,8 @@ final class PersonalAccountabilityStore {
     @ObservationIgnored private var actorGeneration = UUID()
     @ObservationIgnored private var refreshGeneration = UUID()
     @ObservationIgnored private var listStateRevision = UUID()
+    @ObservationIgnored private var paymentStatusRequestGenerationsByChallengeID:
+        [UUID: UUID] = [:]
 
     init(
         configuration: AppConfiguration,
@@ -136,10 +175,30 @@ final class PersonalAccountabilityStore {
         }
     }
 
-    func reviewRequest(
+    func paymentStatusState(
         for challengeID: UUID
-    ) -> PersonalReviewRequestResult? {
-        reviewRequestsByChallengeID[challengeID]
+    ) -> PersonalPaymentStatusViewState {
+        paymentStatusStatesByChallengeID[challengeID] ?? .idle
+    }
+
+    func freshReviewDeadline(
+        for challengeID: UUID,
+        at now: Date = Date()
+    ) -> Date? {
+        guard
+            configuration.personalChallengeMutationsEnabled,
+            configuration.personalSettlementMode == .stripeSandbox,
+            detail(for: challengeID)?.terms.settlementMode == .stripeSandbox,
+            case .confirmed(let confirmation) = paymentStatusState(
+                for: challengeID
+            ),
+            confirmation.status.state == .reviewOpen,
+            let deadline = confirmation.status.reviewDeadline,
+            now < deadline
+        else {
+            return nil
+        }
+        return deadline
     }
 
     var canCreate: Bool {
@@ -425,6 +484,101 @@ final class PersonalAccountabilityStore {
         }
     }
 
+    /// Loads challenge detail and its authoritative sandbox payment status for
+    /// the detail screen. Other detail reads intentionally stay payment-free.
+    func openDetail(challengeID: UUID) async {
+        guard let ownerID else { return }
+        let generation = actorGeneration
+
+        // A cached confirmation is no longer fresh as soon as this screen is
+        // opened again. Invalidate any older request before awaiting detail so
+        // a slow detail round trip cannot leave a stale review form enabled.
+        if detail(for: challengeID)?.terms.settlementMode == .stripeSandbox {
+            paymentStatusRequestGenerationsByChallengeID[challengeID] = UUID()
+            paymentStatusStatesByChallengeID[challengeID] = .loading(
+                lastConfirmed: paymentStatusState(
+                    for: challengeID
+                ).lastConfirmed
+            )
+        }
+
+        await loadDetail(challengeID: challengeID)
+        guard
+            isCurrent(ownerID, generation: generation),
+            detail(for: challengeID)?.terms.settlementMode == .stripeSandbox
+        else { return }
+        await refreshPaymentStatus(challengeID: challengeID)
+    }
+
+    func refreshPaymentStatus(challengeID: UUID) async {
+        guard
+            let ownerID,
+            detail(for: challengeID)?.terms.settlementMode == .stripeSandbox
+        else { return }
+
+        let actorGeneration = actorGeneration
+        let requestGeneration = UUID()
+        let lastConfirmed = paymentStatusState(
+            for: challengeID
+        ).lastConfirmed
+        paymentStatusRequestGenerationsByChallengeID[challengeID] =
+            requestGeneration
+        paymentStatusStatesByChallengeID[challengeID] = .loading(
+            lastConfirmed: lastConfirmed
+        )
+
+        do {
+            let status = try await paymentClient.paymentStatus(
+                challengeID: challengeID,
+                expectedUserID: ownerID
+            )
+            guard
+                await isCurrentPaymentStatusRequest(
+                    challengeID: challengeID,
+                    ownerID: ownerID,
+                    actorGeneration: actorGeneration,
+                    requestGeneration: requestGeneration
+                )
+            else { return }
+            guard status.challengeID == challengeID else {
+                paymentStatusStatesByChallengeID[challengeID] = .failed(
+                    lastConfirmed: lastConfirmed
+                )
+                return
+            }
+            paymentStatusStatesByChallengeID[challengeID] = .confirmed(
+                PersonalPaymentStatusConfirmation(
+                    status: status,
+                    checkedAt: Date()
+                )
+            )
+        } catch is CancellationError {
+            guard
+                paymentStatusRequestGenerationsByChallengeID[challengeID]
+                    == requestGeneration,
+                await isCurrentAuthenticated(
+                    ownerID,
+                    generation: actorGeneration
+                )
+            else { return }
+            paymentStatusStatesByChallengeID[challengeID] = lastConfirmed.map {
+                .confirmed($0)
+            } ?? .idle
+        } catch {
+            guard
+                paymentStatusRequestGenerationsByChallengeID[challengeID]
+                    == requestGeneration,
+                await isCurrentAuthenticated(
+                    ownerID,
+                    generation: actorGeneration
+                )
+            else { return }
+            paymentStatusStatesByChallengeID[challengeID] = .failed(
+                lastConfirmed: lastConfirmed
+            )
+        }
+    }
+
     func create(_ request: PersonalChallengeCreationRequest) async -> UUID? {
         guard configuration.personalChallengeMutationsEnabled else {
             presentedError = PersonalAccountabilityClientError.stagingOnly
@@ -670,29 +824,38 @@ final class PersonalAccountabilityStore {
         guard
             let ownerID,
             let challenge = detail(for: challengeID),
-            challenge.terms.settlementMode == .stripeSandbox,
-            let outcome = challenge.outcome,
-            outcome.kind == .missedGoal
+            challenge.terms.settlementMode == .stripeSandbox
         else {
             presentedError = PersonalPaymentClientError.invalidResponse
                 .localizedDescription
             return false
         }
         guard
-            now < outcome.publishedAt.addingTimeInterval(7 * 86_400)
+            case .confirmed(let confirmation) = paymentStatusState(
+                for: challengeID
+            ),
+            confirmation.status.state == .reviewOpen,
+            let reviewDeadline = confirmation.status.reviewDeadline
+        else {
+            presentedError = PersonalPaymentClientError.invalidResponse
+                .localizedDescription
+            return false
+        }
+        guard now < reviewDeadline
         else {
             presentedError = PersonalPaymentClientError.reviewWindowClosed
                 .localizedDescription
             return false
         }
-        if reviewRequestsByChallengeID[challengeID]?.state == .underReview {
-            return true
-        }
         guard !isRequestingReview, !isMutating else { return false }
 
         let generation = actorGeneration
         isRequestingReview = true
-        defer { isRequestingReview = false }
+        defer {
+            if isCurrent(ownerID, generation: generation) {
+                isRequestingReview = false
+            }
+        }
         do {
             guard await auth.currentUserID() == ownerID else {
                 throw PersonalPaymentClientError.accountChanged
@@ -705,12 +868,28 @@ final class PersonalAccountabilityStore {
             guard
                 await isCurrentAuthenticated(ownerID, generation: generation)
             else { return false }
-            reviewRequestsByChallengeID[challengeID] = result
-            return true
+            paymentStatusRequestGenerationsByChallengeID[challengeID] = UUID()
+            paymentStatusStatesByChallengeID[challengeID] = .confirmed(
+                PersonalPaymentStatusConfirmation(
+                    status: PersonalPaymentStatus(
+                        challengeID: challengeID,
+                        state: .underReview,
+                        reviewDeadline: result.reviewDeadline
+                    ),
+                    checkedAt: Date()
+                )
+            )
+            await refreshPaymentStatus(challengeID: challengeID)
+            return await isCurrentAuthenticated(
+                ownerID,
+                generation: generation
+            )
         } catch is CancellationError {
             return false
         } catch {
-            guard isCurrent(ownerID, generation: generation) else {
+            guard
+                await isCurrentAuthenticated(ownerID, generation: generation)
+            else {
                 return false
             }
             presentedError = error.localizedDescription
@@ -1212,6 +1391,25 @@ final class PersonalAccountabilityStore {
         return await auth.currentUserID() == ownerID
     }
 
+    private func isCurrentPaymentStatusRequest(
+        challengeID: UUID,
+        ownerID: UUID,
+        actorGeneration: UUID,
+        requestGeneration: UUID
+    ) async -> Bool {
+        guard
+            !Task.isCancelled,
+            paymentStatusRequestGenerationsByChallengeID[challengeID]
+                == requestGeneration
+        else {
+            return false
+        }
+        return await isCurrentAuthenticated(
+            ownerID,
+            generation: actorGeneration
+        )
+    }
+
     private func clearVolatileState() {
         challenges = []
         detailsByID = [:]
@@ -1235,7 +1433,8 @@ final class PersonalAccountabilityStore {
         isMutating = false
         isPreparingPayment = false
         isRequestingReview = false
-        reviewRequestsByChallengeID = [:]
+        paymentStatusStatesByChallengeID = [:]
+        paymentStatusRequestGenerationsByChallengeID = [:]
         isRunningDiagnostic = false
         isSyncingActivity = false
         presentedError = nil

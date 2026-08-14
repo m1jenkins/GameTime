@@ -9,7 +9,6 @@ final class PersonalResultPresentationTests: XCTestCase {
     func testSandboxMetAndMissingResultsPromiseZeroTestCharge() {
         let met = presentation(kind: .metGoal, reason: "target_reached")
         XCTAssertEqual(met.title, "Goal met — $0 test charge.")
-        XCTAssertNil(met.reviewDeadline)
 
         let missing = presentation(
             kind: .inconclusive,
@@ -23,37 +22,12 @@ final class PersonalResultPresentationTests: XCTestCase {
             missing.details.first,
             "Missing or unclear step data never counts as a miss."
         )
-        XCTAssertNil(missing.reviewDeadline)
     }
 
-    func testSandboxMissNamesOpenDeadlineAndFrozenAmount() throws {
+    func testSandboxMissDoesNotInferReviewOrPaymentState() {
         let presentation = self.presentation(
             kind: .missedGoal,
-            reason: "target_missed_complete_evidence",
-            now: publishedAt.addingTimeInterval(60)
-        )
-        let deadline = try XCTUnwrap(presentation.reviewDeadline)
-
-        XCTAssertEqual(
-            presentation.title,
-            "Goal missed — review open. Settlement is paused."
-        )
-        XCTAssertEqual(
-            deadline,
-            publishedAt.addingTimeInterval(7 * 86_400)
-        )
-        XCTAssertTrue(presentation.details[0].contains("Ask us to review"))
-        XCTAssertEqual(
-            presentation.details[1],
-            "Only a confirmed miss after review can create one $20.00 test charge."
-        )
-    }
-
-    func testExpiredSandboxMissDoesNotInferPaymentState() {
-        let presentation = self.presentation(
-            kind: .missedGoal,
-            reason: "target_missed_complete_evidence",
-            now: publishedAt.addingTimeInterval(8 * 86_400)
+            reason: "target_missed_complete_evidence"
         )
 
         XCTAssertEqual(presentation.title, "Goal missed.")
@@ -79,15 +53,13 @@ final class PersonalResultPresentationTests: XCTestCase {
                     "no money charged"
                 )
             )
-            XCTAssertNil(presentation.reviewDeadline)
         }
     }
 
     private func presentation(
         settlementMode: PersonalSettlementMode = .stripeSandbox,
         kind: PersonalOutcomeKind,
-        reason: String,
-        now: Date? = nil
+        reason: String
     ) -> PersonalResultPresentation {
         let challengeID = UUID(
             uuidString: "19191919-1919-1919-1919-191919191919"
@@ -119,8 +91,7 @@ final class PersonalResultPresentationTests: XCTestCase {
         )
         return PersonalResultPresentation(
             terms: terms,
-            outcome: outcome,
-            now: now ?? publishedAt
+            outcome: outcome
         )
     }
 }

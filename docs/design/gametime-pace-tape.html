@@ -1,0 +1,1360 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>GameTime — Pace Tape</title>
+  <style>
+    :root {
+      --canvas: #050607;
+      --surface: #1b1d20;
+      --surface-deep: #141618;
+      --ink: #f7f7f3;
+      --muted: #a5a6aa;
+      --dim: #74767a;
+      --line: #36383c;
+      --line-strong: #4a4d52;
+      --citron: #dcff28;
+      --citron-soft: #bdde24;
+      --movement: #59d782;
+      --signal: #3f9dff;
+      --violet: #a681ff;
+      --radius: 6px;
+      --shadow: 0 28px 90px rgb(0 0 0 / 45%);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+        "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: #101114;
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 50% -30%, #262934 0, #101114 42rem, #090a0b 100%);
+    }
+
+    button {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 3px;
+    }
+
+    .showcase {
+      display: grid;
+      grid-template-columns: minmax(15rem, 25rem) minmax(0, 28rem);
+      justify-content: center;
+      align-items: center;
+      gap: clamp(2rem, 7vw, 8rem);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .showcase-intro {
+      max-width: 25rem;
+    }
+
+    .showcase-title {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(2.7rem, 6vw, 4.9rem);
+      font-weight: 720;
+      letter-spacing: -0.075em;
+      line-height: 0.9;
+    }
+
+    .showcase-copy {
+      max-width: 31ch;
+      margin: 1.25rem 0 2rem;
+      color: #c4c5c8;
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .showcase-caption {
+      margin: 0 0 0.55rem;
+      color: var(--citron);
+      font-size: 0.69rem;
+      font-weight: 780;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
+    }
+
+    .prototype-switcher {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .prototype-switcher button {
+      min-height: 2.75rem;
+      padding: 0.6rem 0.8rem;
+      color: #d6d7d8;
+      border: 1px solid #383a3e;
+      border-radius: 999px;
+      background: #15171a;
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .prototype-switcher button[aria-pressed="true"] {
+      color: #0b0d0e;
+      border-color: var(--citron);
+      background: var(--citron);
+    }
+
+    .prototype-note {
+      margin: 1.5rem 0 0;
+      color: #808288;
+      font-size: 0.79rem;
+      line-height: 1.45;
+    }
+
+    .phone-shell {
+      position: relative;
+      width: min(100%, 26.65rem);
+      aspect-ratio: 853 / 1844;
+      overflow: hidden;
+      border: 1px solid #2b2d31;
+      border-radius: 2.4rem;
+      background: var(--canvas);
+      box-shadow: var(--shadow);
+    }
+
+    .screen {
+      display: none;
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 1.4rem 1.45rem 0;
+      scrollbar-width: none;
+      background:
+        radial-gradient(circle at 50% 3%, rgb(255 255 255 / 2%), transparent 22rem),
+        var(--canvas);
+    }
+
+    .screen::-webkit-scrollbar {
+      display: none;
+    }
+
+    .screen.is-active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-bar,
+    .app-nav,
+    .source-row,
+    .proof-row,
+    .tab-bar,
+    .metric-line,
+    .result-state,
+    .ticket-source,
+    .ends-row {
+      display: flex;
+      align-items: center;
+    }
+
+    .status-bar {
+      min-height: 1.65rem;
+      justify-content: space-between;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 760;
+      letter-spacing: -0.03em;
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 0.42rem;
+    }
+
+    .signal-bars {
+      display: flex;
+      align-items: flex-end;
+      height: 0.8rem;
+      gap: 2px;
+    }
+
+    .signal-bars span {
+      width: 3px;
+      border-radius: 1px;
+      background: currentColor;
+    }
+
+    .signal-bars span:nth-child(1) { height: 0.26rem; }
+    .signal-bars span:nth-child(2) { height: 0.43rem; }
+    .signal-bars span:nth-child(3) { height: 0.61rem; }
+    .signal-bars span:nth-child(4) { height: 0.79rem; }
+
+    .wifi {
+      width: 1rem;
+      height: 0.78rem;
+    }
+
+    .battery {
+      position: relative;
+      width: 1.38rem;
+      height: 0.67rem;
+      border: 1.4px solid currentColor;
+      border-radius: 3px;
+    }
+
+    .battery::after {
+      position: absolute;
+      top: 0.16rem;
+      right: -0.21rem;
+      width: 0.12rem;
+      height: 0.31rem;
+      border-radius: 0 2px 2px 0;
+      background: currentColor;
+      content: "";
+    }
+
+    .battery span {
+      display: block;
+      width: 76%;
+      height: 100%;
+      background: currentColor;
+    }
+
+    .app-nav {
+      min-height: 4.55rem;
+      justify-content: center;
+      position: relative;
+    }
+
+    .app-nav h1 {
+      margin: 0;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 720;
+      letter-spacing: -0.025em;
+    }
+
+    .nav-icon {
+      display: inline-grid;
+      place-items: center;
+      position: absolute;
+      width: 2.75rem;
+      height: 2.75rem;
+      padding: 0;
+      color: #fff;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .nav-icon svg {
+      width: 1.45rem;
+      height: 1.45rem;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav-icon--left { left: -0.75rem; }
+    .nav-icon--right { right: -0.75rem; }
+
+    .meta {
+      margin: 0;
+      color: var(--violet);
+      font-size: 0.67rem;
+      font-weight: 780;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .quote-panel {
+      margin-top: 0.9rem;
+      padding: 1.12rem 1.05rem 1.18rem;
+      border: 1px solid #3a3d41;
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgb(255 255 255 / 6%), transparent 42%),
+        var(--surface);
+    }
+
+    .quote-value {
+      margin: 0.72rem 0 0;
+      color: #fff;
+      font-size: clamp(4.3rem, 17vw, 5.65rem);
+      font-weight: 720;
+      letter-spacing: -0.09em;
+      line-height: 0.86;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .quote-label {
+      margin: 0.48rem 0 0.85rem;
+      color: #f3f3ef;
+      font-size: 1.05rem;
+      font-weight: 550;
+      letter-spacing: -0.03em;
+    }
+
+    .quote-divider {
+      height: 1px;
+      background: #474a4f;
+    }
+
+    .metric-line {
+      gap: 0.6rem;
+      padding: 0.92rem 0 0.84rem;
+    }
+
+    .metric-line strong {
+      color: var(--citron);
+      font-size: clamp(2.7rem, 11vw, 3.7rem);
+      font-weight: 730;
+      letter-spacing: -0.08em;
+      line-height: 0.9;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-line span {
+      color: #e3e3df;
+      font-size: 1.22rem;
+      font-weight: 500;
+    }
+
+    .quote-foot {
+      margin: 0.82rem 0 0;
+      color: #c8c9ca;
+      font-size: 0.84rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-line {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.62rem;
+      margin-top: 1.2rem;
+    }
+
+    .progress-track {
+      height: 0.44rem;
+      overflow: hidden;
+      border-radius: 100vmax;
+      background: #4a4c50;
+    }
+
+    .progress-track span {
+      display: block;
+      width: 73.5%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--citron);
+    }
+
+    .progress-line output {
+      color: #f5f5ef;
+      font-size: 0.78rem;
+      font-weight: 730;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .week-tape {
+      margin: 1.55rem 0 0;
+    }
+
+    .tape-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 0.7rem;
+      color: #eeefec;
+      font-size: 0.7rem;
+      font-weight: 780;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .tape-heading span {
+      color: #e5e6e2;
+      font-weight: 660;
+      letter-spacing: 0.08em;
+    }
+
+    .tape-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 0.36rem;
+      position: relative;
+    }
+
+    .tape-grid::before {
+      position: absolute;
+      z-index: 0;
+      top: 1.85rem;
+      right: 0;
+      left: 0;
+      border-top: 1px dashed #6e7074;
+      content: "";
+    }
+
+    .tape-column {
+      display: flex;
+      z-index: 1;
+      flex-direction: column;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .tape-day {
+      min-height: 1.25rem;
+      margin-bottom: 0.57rem;
+      color: #eff0ec;
+      font-size: 0.66rem;
+      font-weight: 760;
+      letter-spacing: 0.045em;
+    }
+
+    .tape-cells {
+      display: flex;
+      flex-direction: column;
+      gap: 0.18rem;
+      width: min(100%, 1.06rem);
+    }
+
+    .tape-cell {
+      aspect-ratio: 1;
+      border: 1px solid #787b80;
+      background: transparent;
+    }
+
+    .tape-cell.is-goal {
+      border-color: var(--movement);
+      background: var(--movement);
+    }
+
+    .tape-cell.is-current {
+      border-color: var(--citron);
+      background: var(--citron);
+    }
+
+    .tape-cell.is-partial {
+      border-color: var(--citron);
+      background: linear-gradient(to top, var(--citron) 35%, transparent 35%);
+    }
+
+    .tape-state {
+      display: grid;
+      min-height: 2.1rem;
+      margin-top: 0.48rem;
+      color: #aeb0b4;
+      font-size: 0.53rem;
+      font-weight: 740;
+      letter-spacing: 0.015em;
+      line-height: 1.1;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .tape-state--goal {
+      color: var(--movement);
+    }
+
+    .tape-state--current {
+      color: var(--citron);
+    }
+
+    .tape-state svg {
+      width: 0.78rem;
+      height: 0.78rem;
+      margin: 0 auto 0.18rem;
+      stroke: currentColor;
+      stroke-width: 2.8;
+      fill: none;
+    }
+
+    .source-row,
+    .proof-row {
+      min-height: 3.45rem;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .source-row {
+      gap: 0.72rem;
+      margin-top: 1.15rem;
+      color: var(--signal);
+    }
+
+    .source-row svg,
+    .proof-row svg,
+    .ticket-source svg {
+      flex: 0 0 auto;
+      width: 1.38rem;
+      height: 1.38rem;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      fill: none;
+    }
+
+    .source-row strong {
+      min-width: 0;
+      font-size: 0.79rem;
+      font-weight: 610;
+      letter-spacing: -0.015em;
+    }
+
+    .source-row span {
+      margin-left: auto;
+      color: #79b8ff;
+      font-size: 0.73rem;
+      font-weight: 720;
+    }
+
+    .receipt-line {
+      margin: 1.06rem 0 0;
+      color: var(--violet);
+      font-size: 0.78rem;
+      font-weight: 570;
+      line-height: 1.35;
+    }
+
+    .primary-button {
+      display: inline-grid;
+      place-items: center;
+      min-height: 3.25rem;
+      width: 100%;
+      margin-top: 1.05rem;
+      padding: 0.75rem 1rem;
+      color: #0b0d0d;
+      border: 1px solid #efff9d;
+      border-radius: 4px;
+      background: var(--citron);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .tab-bar {
+      justify-content: space-around;
+      gap: 0.2rem;
+      min-height: 5.75rem;
+      margin: auto -1.45rem 0;
+      padding: 0.48rem 0 1.1rem;
+      border-top: 1px solid #24262a;
+      background: #070809;
+    }
+
+    .tab {
+      display: grid;
+      place-items: center;
+      gap: 0.28rem;
+      min-width: 4.2rem;
+      min-height: 3.8rem;
+      padding: 0.3rem;
+      color: #999ba0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.69rem;
+      font-weight: 680;
+    }
+
+    .tab svg {
+      width: 1.38rem;
+      height: 1.38rem;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
+
+    .tab.is-selected {
+      color: var(--citron);
+    }
+
+    /* Review */
+    .review-screen {
+      padding-bottom: 1.4rem;
+    }
+
+    .review-progress {
+      margin: 0.46rem 0 1.12rem;
+      color: #d4d5d3;
+      font-size: 0.74rem;
+      font-weight: 760;
+      letter-spacing: 0.13em;
+      text-align: center;
+    }
+
+    .review-progress span {
+      color: var(--citron);
+    }
+
+    .ticket {
+      border: 1px solid var(--line-strong);
+      background: var(--surface-deep);
+    }
+
+    .ticket-label {
+      margin: 0;
+      padding: 0.72rem 0.85rem;
+      color: #babcc0;
+      border-bottom: 1px solid var(--line-strong);
+      font-size: 0.65rem;
+      font-weight: 770;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .ticket-primary {
+      display: grid;
+      grid-template-columns: 1.07fr 0.93fr;
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    .ticket-metric {
+      min-width: 0;
+      padding: 1rem 0.85rem 0.9rem;
+    }
+
+    .ticket-metric + .ticket-metric {
+      border-left: 1px solid var(--line-strong);
+    }
+
+    .ticket-metric span,
+    .ticket-row span {
+      display: block;
+      color: #aaaeb2;
+      font-size: 0.63rem;
+      font-weight: 760;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .ticket-metric strong {
+      display: block;
+      margin: 0.55rem 0 0.3rem;
+      color: #fff;
+      font-size: clamp(3rem, 11vw, 4rem);
+      font-weight: 720;
+      letter-spacing: -0.09em;
+      line-height: 0.84;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ticket-metric small {
+      color: #d1d2d0;
+      font-size: 0.67rem;
+      font-weight: 670;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .ticket-row {
+      padding: 0.7rem 0.85rem;
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    .ticket-row strong {
+      display: block;
+      margin-top: 0.32rem;
+      color: #fbfbf6;
+      font-size: 1rem;
+      font-weight: 620;
+      letter-spacing: -0.025em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ticket-source {
+      display: flex;
+      align-items: center;
+      gap: 0.68rem;
+      min-height: 3.45rem;
+      padding: 0.65rem 0.85rem;
+      color: var(--signal);
+    }
+
+    .ticket-source strong {
+      color: #fbfbf6;
+      font-size: 0.88rem;
+      font-weight: 620;
+      letter-spacing: -0.02em;
+    }
+
+    .ticket-source em {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.28rem;
+      margin-left: auto;
+      color: var(--movement);
+      font-size: 0.64rem;
+      font-style: normal;
+      font-weight: 780;
+      letter-spacing: 0.08em;
+    }
+
+    .ticket-source em svg {
+      width: 1.1rem;
+      height: 1.1rem;
+      stroke: currentColor;
+    }
+
+    .week-preview {
+      margin-top: 1.35rem;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border: 1px solid var(--line-strong);
+    }
+
+    .preview-grid span {
+      display: grid;
+      place-items: center;
+      min-height: 3.2rem;
+      color: #b4b5b8;
+      border-right: 1px solid var(--line-strong);
+      font-size: 1rem;
+      font-weight: 760;
+    }
+
+    .preview-grid span:last-child {
+      border-right: 0;
+    }
+
+    .preview-grid .is-start {
+      color: var(--citron);
+      outline: 1px solid var(--citron);
+      outline-offset: -2px;
+    }
+
+    .commitment {
+      margin-top: 1.45rem;
+      padding: 1rem 0.73rem 1.05rem;
+      border-top: 2px solid var(--violet);
+      border-bottom: 2px solid var(--violet);
+    }
+
+    .commitment h2 {
+      margin: 0;
+      color: var(--violet);
+      font-size: 0.67rem;
+      font-weight: 790;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .commitment-value {
+      margin: 0.52rem 0 0;
+      color: var(--violet);
+      font-size: 2.45rem;
+      font-weight: 630;
+      letter-spacing: -0.06em;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .commitment p {
+      margin: 0.8rem 0 0;
+      color: #beabef;
+      font-size: 0.83rem;
+      font-weight: 580;
+      line-height: 1.35;
+    }
+
+    .commitment p + p {
+      margin-top: 0.45rem;
+      color: #9e8fd1;
+      font-size: 0.75rem;
+    }
+
+    .lock-note {
+      margin: 1.25rem 0 -0.1rem;
+      color: #c5c6c5;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    .text-button {
+      min-height: 2.75rem;
+      width: 100%;
+      margin-top: 0.72rem;
+      padding: 0.5rem;
+      color: #e0e0dd;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.84rem;
+      text-decoration: underline;
+      text-underline-offset: 0.2rem;
+    }
+
+    /* Result */
+    .result-screen {
+      padding-bottom: 0;
+    }
+
+    .final-label {
+      margin: 1rem 0 0.55rem;
+      color: #f0f1ed;
+      font-size: 0.72rem;
+      font-weight: 760;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .result-panel {
+      padding: 1rem 1.05rem 1.12rem;
+      border: 1px solid #33363a;
+      background:
+        linear-gradient(132deg, rgb(255 255 255 / 6%), transparent 45%),
+        var(--surface);
+    }
+
+    .result-state {
+      gap: 0.58rem;
+      color: #8dcd58;
+      font-size: 0.98rem;
+      font-weight: 750;
+      letter-spacing: 0.07em;
+    }
+
+    .result-state svg {
+      width: 1.7rem;
+      height: 1.7rem;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+    }
+
+    .result-value {
+      margin: 0.82rem 0 0;
+      color: #fff;
+      font-size: clamp(4rem, 16vw, 5.4rem);
+      font-weight: 720;
+      letter-spacing: -0.1em;
+      line-height: 0.84;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result-panel p {
+      margin: 0.52rem 0 0;
+      color: #f2f2ee;
+      font-size: 1.02rem;
+      letter-spacing: -0.025em;
+    }
+
+    .result-panel small {
+      display: block;
+      margin-top: 0.7rem;
+      color: #d1d2d0;
+      font-size: 0.83rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .final-tape .tape-grid::before {
+      display: none;
+    }
+
+    .final-tape .tape-cells {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.17rem;
+      width: 2.1rem;
+    }
+
+    .final-tape .tape-cell {
+      border-color: #e9eae6;
+      background: #e9eae6;
+    }
+
+    .final-tape .tape-cell.is-goal {
+      border-color: #90d45a;
+      background: #90d45a;
+    }
+
+    .final-tape .tape-state {
+      min-height: 1.2rem;
+      color: #ecece8;
+      font-size: 0.66rem;
+      font-weight: 580;
+      letter-spacing: -0.02em;
+      text-transform: none;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result-proof {
+      margin-top: 1.15rem;
+    }
+
+    .proof-row {
+      gap: 0.72rem;
+      padding: 0.55rem 0;
+      color: #f2f3ef;
+      font-size: 0.84rem;
+      letter-spacing: -0.02em;
+    }
+
+    .proof-row + .proof-row {
+      border-top: 0;
+    }
+
+    .proof-row--goal {
+      color: #f1f2ed;
+    }
+
+    .proof-row--goal svg {
+      color: #8dcd58;
+    }
+
+    .proof-row--source svg {
+      color: var(--signal);
+    }
+
+    details.terms {
+      border-bottom: 1px solid var(--line);
+    }
+
+    details.terms summary {
+      display: flex;
+      align-items: center;
+      min-height: 4.1rem;
+      color: #f0f1ed;
+      cursor: pointer;
+      font-size: 0.87rem;
+      font-weight: 610;
+      list-style: none;
+    }
+
+    details.terms summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.terms summary::after {
+      margin-left: auto;
+      color: #fff;
+      content: "›";
+      font-size: 2rem;
+      font-weight: 350;
+      line-height: 0;
+    }
+
+    details.terms[open] summary::after {
+      transform: rotate(90deg);
+    }
+
+    .terms-content {
+      padding: 0 0 1rem;
+      color: #aaadb0;
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 4;
+      bottom: 1.5rem;
+      left: 50%;
+      max-width: min(calc(100vw - 2rem), 24rem);
+      padding: 0.78rem 1rem;
+      color: #0d0f10;
+      border-radius: 0.35rem;
+      background: var(--citron);
+      box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 32%);
+      font-size: 0.82rem;
+      font-weight: 760;
+      transform: translate(-50%, 1rem);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .toast.is-visible {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .toast {
+        transition: none;
+      }
+    }
+
+    @media (max-width: 900px) {
+      body {
+        background: var(--canvas);
+      }
+
+      .showcase {
+        display: block;
+        min-height: 100dvh;
+        padding: 0;
+      }
+
+      .showcase-intro {
+        display: none;
+      }
+
+      .phone-shell {
+        width: 100%;
+        min-height: 100dvh;
+        aspect-ratio: auto;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .screen {
+        min-height: 100dvh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="showcase">
+    <section class="showcase-intro" aria-label="Prototype controls">
+      <p class="showcase-caption">GameTime · visual prototype</p>
+      <h2 class="showcase-title">Pace<br>Tape</h2>
+      <p class="showcase-copy">
+        A dark, data-forward interface for a seven-day personal steps
+        commitment. The screens below are code-native and can be switched
+        without any framework or downloaded assets.
+      </p>
+      <p class="showcase-caption">View a screen</p>
+      <div class="prototype-switcher" role="group" aria-label="Prototype screen">
+        <button type="button" data-view="today" aria-pressed="true">Today</button>
+        <button type="button" data-view="review" aria-pressed="false">Review</button>
+        <button type="button" data-view="result" aria-pressed="false">Result</button>
+      </div>
+      <p class="prototype-note">
+        Prototype only. The current mock uses a dark visual direction; a
+        shipping implementation needs matching light, high-contrast, and
+        Dynamic Type variants.
+      </p>
+    </section>
+
+    <section class="phone-shell" aria-label="GameTime Pace Tape prototype">
+      <section class="screen is-active" id="today" aria-labelledby="today-title">
+        <div class="status-bar" aria-label="iPhone status bar">
+          <time datetime="09:41">9:41</time>
+          <div class="status-icons" aria-hidden="true">
+            <span class="signal-bars"><span></span><span></span><span></span><span></span></span>
+            <svg class="wifi" viewBox="0 0 16 12"><path fill="currentColor" d="M8 10.8 5.95 8.75a2.9 2.9 0 0 1 4.1 0L8 10.8Zm-3.8-3.8L2.15 4.95a8.3 8.3 0 0 1 11.7 0L11.8 7a5.4 5.4 0 0 0-7.6 0ZM.4 3.2A10.85 10.85 0 0 1 15.6 3.2l-1.1 1.1a9.3 9.3 0 0 0-13 0L.4 3.2Z"/></svg>
+            <span class="battery"><span></span></span>
+          </div>
+        </div>
+
+        <header class="app-nav">
+          <h1 id="today-title">Today</h1>
+          <button class="nav-icon nav-icon--right" type="button" data-view="review" aria-label="Review challenge setup">
+            <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+          </button>
+        </header>
+
+        <p class="meta">Active · Wednesday · Day 3 / 7</p>
+
+        <section class="quote-panel" aria-label="Today's steps">
+          <p class="quote-value">7,350</p>
+          <p class="quote-label">steps today</p>
+          <div class="quote-divider"></div>
+          <div class="metric-line">
+            <strong>2,650</strong>
+            <span>left</span>
+          </div>
+          <div class="quote-divider"></div>
+          <p class="quote-foot">Target 10,000 · Ends 11:59 PM CDT</p>
+          <div class="progress-line" aria-label="73.5 percent of today's goal">
+            <span class="progress-track" aria-hidden="true"><span></span></span>
+            <output>73.5%</output>
+          </div>
+        </section>
+
+        <section class="week-tape" aria-label="Week Tape: daily step progress">
+          <p class="tape-heading">Week Tape <span>10K</span></p>
+          <div class="tape-grid">
+            <div class="tape-column">
+              <span class="tape-day">MON</span>
+              <div class="tape-cells" aria-hidden="true">
+                <span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span>
+              </div>
+              <span class="tape-state tape-state--goal"><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7"/></svg>Goal met</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">TUE</span>
+              <div class="tape-cells" aria-hidden="true">
+                <span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span>
+              </div>
+              <span class="tape-state tape-state--goal"><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7"/></svg>Goal met</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">WED</span>
+              <div class="tape-cells" aria-hidden="true">
+                <span class="tape-cell is-current"></span><span class="tape-cell is-current"></span><span class="tape-cell is-current"></span><span class="tape-cell is-current"></span><span class="tape-cell is-current"></span><span class="tape-cell is-current"></span><span class="tape-cell is-current"></span><span class="tape-cell is-partial"></span><span class="tape-cell"></span><span class="tape-cell"></span>
+              </div>
+              <span class="tape-state tape-state--current">7,350</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">THU</span>
+              <div class="tape-cells" aria-hidden="true">
+                <span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span>
+              </div>
+              <span class="tape-state">Up next</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">FRI</span>
+              <div class="tape-cells" aria-hidden="true">
+                <span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span>
+              </div>
+              <span class="tape-state">Up next</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">SAT</span>
+              <div class="tape-cells" aria-hidden="true">
+                <span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span>
+              </div>
+              <span class="tape-state">Up next</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">SUN</span>
+              <div class="tape-cells" aria-hidden="true">
+                <span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span>
+              </div>
+              <span class="tape-state">Up next</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="source-row">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.7 0L12 5.7l-1.1-1.1a5.4 5.4 0 0 0-7.7 7.7L12 21l8.8-8.7a5.4 5.4 0 0 0 0-7.7Z"/></svg>
+          <strong>Apple Health · updated 3 min ago</strong>
+          <span>Automatic</span>
+        </div>
+        <p class="receipt-line">Test commitment · $20.00 · no real money moves.</p>
+        <button class="primary-button" type="button" data-toast="Challenge details would open here.">View challenge</button>
+
+        <nav class="tab-bar" aria-label="Primary">
+          <button class="tab is-selected" type="button" data-view="today" aria-label="Today, selected">
+            <svg viewBox="0 0 24 24"><path d="M5 20V10m5 10V4m5 16v-7m5 7V8"/></svg><span>Today</span>
+          </button>
+          <button class="tab" type="button" data-view="result" aria-label="Challenges">
+            <svg viewBox="0 0 24 24"><path d="M5 3v18M6 4h12l-2.8 4L18 12H6"/></svg><span>Challenges</span>
+          </button>
+          <button class="tab" type="button" data-toast="Profile would open here." aria-label="You">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3.5"/><path d="M4.5 21c.9-4.2 3.5-6.3 7.5-6.3s6.6 2.1 7.5 6.3"/></svg><span>You</span>
+          </button>
+        </nav>
+      </section>
+
+      <section class="screen review-screen" id="review" aria-labelledby="review-title">
+        <div class="status-bar" aria-label="iPhone status bar">
+          <time datetime="09:41">9:41</time>
+          <div class="status-icons" aria-hidden="true">
+            <span class="signal-bars"><span></span><span></span><span></span><span></span></span>
+            <svg class="wifi" viewBox="0 0 16 12"><path fill="currentColor" d="M8 10.8 5.95 8.75a2.9 2.9 0 0 1 4.1 0L8 10.8Zm-3.8-3.8L2.15 4.95a8.3 8.3 0 0 1 11.7 0L11.8 7a5.4 5.4 0 0 0-7.6 0ZM.4 3.2A10.85 10.85 0 0 1 15.6 3.2l-1.1 1.1a9.3 9.3 0 0 0-13 0L.4 3.2Z"/></svg>
+            <span class="battery"><span></span></span>
+          </div>
+        </div>
+
+        <header class="app-nav">
+          <button class="nav-icon nav-icon--left" type="button" data-view="today" aria-label="Close review">
+            <svg viewBox="0 0 24 24"><path d="m4 4 16 16M20 4 4 20"/></svg>
+          </button>
+          <h1 id="review-title">Review your challenge</h1>
+        </header>
+
+        <p class="review-progress">6 OF 6 · <span>READY</span></p>
+
+        <section class="ticket" aria-label="Challenge ticket">
+          <p class="ticket-label">Challenge ticket</p>
+          <div class="ticket-primary">
+            <div class="ticket-metric">
+              <span>Goal</span><strong>10,000</strong><small>Steps / day</small>
+            </div>
+            <div class="ticket-metric">
+              <span>Duration</span><strong>7</strong><small>Days</small>
+            </div>
+          </div>
+          <div class="ticket-row"><span>Starts</span><strong>Friday, Aug 14</strong></div>
+          <div class="ticket-row"><span>Ends</span><strong>Thursday, Aug 20 · 11:59 PM</strong></div>
+          <div class="ticket-source">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.7 0L12 5.7l-1.1-1.1a5.4 5.4 0 0 0-7.7 7.7L12 21l8.8-8.7a5.4 5.4 0 0 0 0-7.7Z"/></svg>
+            <strong>Apple Health connected</strong>
+            <em><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"/><path d="m4.8 8 2.1 2.1L11.4 5.7"/></svg>Connected</em>
+          </div>
+        </section>
+
+        <section class="week-preview" aria-label="Week Tape preview">
+          <p class="tape-heading">Week Tape</p>
+          <div class="preview-grid" aria-hidden="true">
+            <span class="is-start">M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+          </div>
+        </section>
+
+        <section class="commitment" aria-label="Test commitment">
+          <h2>Test commitment</h2>
+          <p class="commitment-value">$20.00</p>
+          <p>Payment test mode — no real money moves.</p>
+          <p>Missing or unclear step data never counts as a miss.</p>
+        </section>
+
+        <p class="lock-note">This locks in when you start.</p>
+        <button class="primary-button" type="button" data-start>Start my challenge</button>
+        <button class="text-button" type="button" data-toast="Challenge details are editable before you start.">Change details</button>
+      </section>
+
+      <section class="screen result-screen" id="result" aria-labelledby="result-title">
+        <div class="status-bar" aria-label="iPhone status bar">
+          <time datetime="09:41">9:41</time>
+          <div class="status-icons" aria-hidden="true">
+            <span class="signal-bars"><span></span><span></span><span></span><span></span></span>
+            <svg class="wifi" viewBox="0 0 16 12"><path fill="currentColor" d="M8 10.8 5.95 8.75a2.9 2.9 0 0 1 4.1 0L8 10.8Zm-3.8-3.8L2.15 4.95a8.3 8.3 0 0 1 11.7 0L11.8 7a5.4 5.4 0 0 0-7.6 0ZM.4 3.2A10.85 10.85 0 0 1 15.6 3.2l-1.1 1.1a9.3 9.3 0 0 0-13 0L.4 3.2Z"/></svg>
+            <span class="battery"><span></span></span>
+          </div>
+        </div>
+
+        <header class="app-nav">
+          <h1 id="result-title">Your challenge</h1>
+          <button class="nav-icon nav-icon--right" type="button" data-toast="More actions would open here." aria-label="More actions">
+            <svg viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.5"/></svg>
+          </button>
+        </header>
+
+        <p class="final-label">Final result</p>
+        <section class="result-panel" aria-label="Goal met, 70,826 steps this week">
+          <div class="result-state">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="m7 12 3.2 3.2L17.5 8"/></svg>
+            <span>GOAL MET</span>
+          </div>
+          <p class="result-value">70,826</p>
+          <p>steps this week</p>
+          <small>70,000 goal · 826 over</small>
+        </section>
+
+        <section class="week-tape final-tape" aria-label="Final Tape: 7 days, 70,826 steps">
+          <p class="tape-heading">Final Tape <span>7 days · 70,826 steps</span></p>
+          <div class="tape-grid">
+            <div class="tape-column">
+              <span class="tape-day">MON</span><div class="tape-cells" aria-hidden="true"><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span></div><span class="tape-state">10,842</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">TUE</span><div class="tape-cells" aria-hidden="true"><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span></div><span class="tape-state">10,104</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">WED</span><div class="tape-cells" aria-hidden="true"><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span></div><span class="tape-state">9,774</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">THU</span><div class="tape-cells" aria-hidden="true"><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span></div><span class="tape-state">10,380</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">FRI</span><div class="tape-cells" aria-hidden="true"><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span></div><span class="tape-state">9,985</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">SAT</span><div class="tape-cells" aria-hidden="true"><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span></div><span class="tape-state">10,121</span>
+            </div>
+            <div class="tape-column">
+              <span class="tape-day">SUN</span><div class="tape-cells" aria-hidden="true"><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span><span class="tape-cell is-goal"></span></div><span class="tape-state">9,620</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="result-proof">
+          <div class="proof-row proof-row--goal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="m7 12 3.2 3.2L17.5 8"/></svg>
+            <span>Goal met — $0 test charge.</span>
+          </div>
+          <div class="proof-row proof-row--source">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.7 0L12 5.7l-1.1-1.1a5.4 5.4 0 0 0-7.7 7.7L12 21l8.8-8.7a5.4 5.4 0 0 0 0-7.7Z"/></svg>
+            <span>Apple Health · final update Aug 20, 11:59 PM</span>
+          </div>
+          <details class="terms">
+            <summary>What you signed up for</summary>
+            <div class="terms-content">
+              70,000 steps over seven days. This detail remains a calm, durable
+              record of the challenge terms.
+            </div>
+          </details>
+        </section>
+
+        <nav class="tab-bar" aria-label="Primary">
+          <button class="tab" type="button" data-view="today" aria-label="Today">
+            <svg viewBox="0 0 24 24"><path d="M5 20V10m5 10V4m5 16v-7m5 7V8"/></svg><span>Today</span>
+          </button>
+          <button class="tab is-selected" type="button" data-view="result" aria-label="Challenges, selected">
+            <svg viewBox="0 0 24 24"><path d="M5 3v18M6 4h12l-2.8 4L18 12H6"/></svg><span>Challenges</span>
+          </button>
+          <button class="tab" type="button" data-toast="Profile would open here." aria-label="You">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3.5"/><path d="M4.5 21c.9-4.2 3.5-6.3 7.5-6.3s6.6 2.1 7.5 6.3"/></svg><span>You</span>
+          </button>
+        </nav>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const screens = [...document.querySelectorAll(".screen")];
+      const controls = [...document.querySelectorAll("[data-view]")];
+      const switchers = [...document.querySelectorAll(".prototype-switcher [data-view]")];
+      const toast = document.querySelector(".toast");
+      let toastTimer;
+
+      function showToast(message) {
+        window.clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add("is-visible");
+        toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2600);
+      }
+
+      function showView(id) {
+        screens.forEach((screen) => {
+          const isActive = screen.id === id;
+          screen.classList.toggle("is-active", isActive);
+          screen.scrollTop = 0;
+        });
+        switchers.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.view === id));
+        });
+        history.replaceState(null, "", "#" + id);
+      }
+
+      controls.forEach((button) => {
+        button.addEventListener("click", () => showView(button.dataset.view));
+      });
+
+      document.querySelectorAll("[data-toast]").forEach((button) => {
+        button.addEventListener("click", () => showToast(button.dataset.toast));
+      });
+
+      document.querySelector("[data-start]").addEventListener("click", () => {
+        showView("today");
+        showToast("Your challenge is ready to begin.");
+      });
+
+      const requested = window.location.hash.slice(1);
+      if (screens.some((screen) => screen.id === requested)) {
+        showView(requested);
+      }
+    })();
+  </script>
+</body>
+</html>

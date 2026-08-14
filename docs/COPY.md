@@ -70,21 +70,40 @@ Use these exact patterns in the sandbox UI:
 - Global banner: **Payment test mode — no real money moves.**
 - Payment setup: **Add your test payment method before you start.** Pair it
   with the exact trigger below.
+- Saved method: **Test method saved. No test charge exists.**
 - Consent: **By starting, you agree that GameTime may create one \(amount) test
   charge only if this challenge is confirmed missed after the review window.
   Missing or unclear step data never counts as a miss.**
 - Met goal: **Goal met — $0 test charge.**
 - Inconclusive or waived: **This one didn't count — $0 test charge.**
+- Cancelled or otherwise closed without a result: **Challenge closed — $0 test
+  charge.**
 - Provisional miss: **Goal missed — review open. Settlement is paused. Ask us to
   review this result by \(reviewDeadline).**
+- Expired provisional miss: **Review window ended — settlement update pending.**
 - Review pending: **Under review — settlement paused.**
 - Confirmed miss: **Processing one \(amount) test charge.**
 - Test payment complete: **Test charge complete — sandbox transaction recorded.**
 - Failed or customer action required: **Test payment needs your attention. We
   won't try again automatically.**
+- Unavailable: **Payment test status could not be confirmed.**
+- Stale last confirmation: **Last confirmed \(checkedAt). We couldn't refresh
+  it.**
 - Sandbox cancellation confirmation: **This ends the challenge immediately.
   It will stay in your history, and your saved test payment method will not be
   charged.**
+
+Challenge detail presents these states in one **Payment test status** card.
+The result card states only how the challenge ended; it never infers review or
+settlement state from result timing. An under-review state never promises a
+resolution deadline. For nonterminal, attention, failed, stale, and unavailable
+states, the only recovery actions are **Refresh** and **Contact Support**.
+There is no client-side payment retry, automatic retry claim, or locally authored
+settlement transition. Review submission is enabled only for a fresh,
+server-confirmed `review_open` state whose exact server deadline is still in
+the future. When a previously confirmed review form is retained during Refresh
+or after a failed refresh, every review control stays disabled until a fresh
+confirmation returns.
 
 Show the saved payment method by brand and last four digits when Stripe provides
 them. Never show a full payment number, Stripe identifier, `SetupIntent`,
@@ -189,10 +208,13 @@ competitive-social vocabulary Personal V1 dropped (*friend*, *invitation*,
 *standings*, *winner*, *charity*, *tie-break*, and friends). Changing a string
 usually means changing an assertion; keep them in the same commit.
 
-Payment copy also requires tests for sandbox versus live configuration, all $0
-outcomes, provisional review, charge success, customer action, failure, and
-scheduled/active sandbox cancellation. Never make a sandbox fixture or
-screenshot look like a real charge.
+Payment copy also requires tests for sandbox versus live configuration; all nine
+authoritative sandbox states (`method_saved`, `review_open`, `under_review`,
+`waived`, `no_charge`, `charge_pending`, `charged`, `requires_action`, and
+`collection_failed`); expired review, stale and unavailable reads; all $0
+outcomes; and scheduled/active sandbox cancellation. Never make a sandbox
+fixture or screenshot look like a real charge, and never expose a payment-retry
+action.
 
 Accessibility identifiers are test hooks, not copy. Personal v2 must not retain
 the removed `personal.sync`, `personal.sync.pending`,

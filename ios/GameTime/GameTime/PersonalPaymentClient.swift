@@ -17,6 +17,28 @@ struct PersonalPaymentSetup: Equatable, Sendable {
     let presentation: PersonalPaymentSetupPresentation
 }
 
+enum PersonalPaymentState: String, Codable, CaseIterable, Equatable, Sendable {
+    case methodSaved = "method_saved"
+    case reviewOpen = "review_open"
+    case underReview = "under_review"
+    case waived
+    case noCharge = "no_charge"
+    case chargePending = "charge_pending"
+    case charged
+    case requiresAction = "requires_action"
+    case collectionFailed = "collection_failed"
+}
+
+/// Provider-neutral, server-confirmed settlement state for one challenge.
+///
+/// No Stripe identifiers are represented here. Callers may retain this value
+/// as the last confirmed status, but its freshness remains a UI/store concern.
+struct PersonalPaymentStatus: Equatable, Sendable {
+    let challengeID: UUID
+    let state: PersonalPaymentState
+    let reviewDeadline: Date?
+}
+
 enum PersonalReviewReason: String, Codable, CaseIterable, Identifiable, Sendable {
     case userDisputesStepData = "user_disputes_step_data"
     case userDisputesResult = "user_disputes_result"
@@ -61,6 +83,11 @@ protocol PersonalPaymentClient: AnyObject {
         reason: PersonalReviewReason,
         expectedUserID: UUID
     ) async throws -> PersonalReviewRequestResult
+
+    func paymentStatus(
+        challengeID: UUID,
+        expectedUserID: UUID
+    ) async throws -> PersonalPaymentStatus
 }
 
 enum PersonalPaymentClientError: LocalizedError, Equatable, Sendable {
@@ -120,6 +147,14 @@ final class DisabledPersonalPaymentClient: PersonalPaymentClient {
         expectedUserID: UUID
     ) async throws -> PersonalReviewRequestResult {
         _ = (challengeID, reason, expectedUserID)
+        throw PersonalPaymentClientError.disabled
+    }
+
+    func paymentStatus(
+        challengeID: UUID,
+        expectedUserID: UUID
+    ) async throws -> PersonalPaymentStatus {
+        _ = (challengeID, expectedUserID)
         throw PersonalPaymentClientError.disabled
     }
 }

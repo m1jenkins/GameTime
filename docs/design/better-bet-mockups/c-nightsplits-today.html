@@ -1,0 +1,50 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>C · Today</title><style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+html,body { width:853px; height:1844px; overflow:hidden; }
+body { font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; position:relative; }
+.num { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+.statusbar { position:absolute; top:0; left:0; right:0; height:100px; display:flex; justify-content:space-between; align-items:center; padding:18px 56px 0; z-index:5; }
+.stime { font-size:34px; font-weight:600; }
+.sicons { display:flex; align-items:center; gap:12px; }
+.tabbar { position:absolute; bottom:0; left:0; right:0; height:176px; display:flex; padding:18px 40px 56px; }
+.tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:26px; font-weight:500; }
+.home-indicator { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); width:280px; height:10px; border-radius:5px; background:currentColor; opacity:.85; z-index:6; }
+
+body { background:#151515; color:#FFFFFF; }
+.content { position:absolute; top:100px; left:0; right:0; bottom:176px; padding:36px 0 0; display:flex; flex-direction:column; }
+.eyebrow { font-size:26px; font-weight:600; letter-spacing:4px; color:#8A93A6; text-transform:uppercase; padding:0 32px; }
+.split { display:flex; align-items:center; gap:28px; padding:30px 32px; border-top:1px solid rgba(255,255,255,.10); }
+.split .day { width:120px; font-size:30px; font-weight:600; }
+.split .val { flex:1; text-align:right; font-size:34px; font-weight:600; }
+.split .st { width:170px; text-align:right; font-size:24px; font-weight:700; letter-spacing:2px; }
+.liveband { background:#FF453A; color:#FFF; padding:44px 32px 40px; }
+.cta { display:block; margin:auto 32px 28px; background:#FFF; color:#151515; text-align:center; font-size:36px; font-weight:700; padding:34px 0; border-radius:60px; }
+
+</style></head><body>
+<div class="statusbar"><span class="stime">9:41</span>
+<span class="sicons"><svg width="34" height="22" viewBox="0 0 20 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".35"/></svg>
+<svg width="30" height="22" viewBox="0 0 16 12" fill="currentColor"><path d="M8 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM8 5C5.8 5 3.8 5.8 2.3 7.2l1.5 1.6A6.3 6.3 0 0 1 8 7.2c1.6 0 3 .6 4.2 1.6l1.5-1.6A8.9 8.9 0 0 0 8 5zM8 0C4.7 0 1.7 1.2-.4 3.3L1.1 4.9A11 11 0 0 1 8 2.2c2.7 0 5.2 1 7 2.7l1.4-1.6A13.4 13.4 0 0 0 8 0z" transform="translate(0,-1) scale(0.85)"/></svg>
+<svg width="50" height="22" viewBox="0 0 25 12"><rect x="0" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2.5" width="15" height="7" rx="1.8" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="currentColor" opacity=".4"/></svg></span></div>
+
+<div class="content">
+  <div class="eyebrow">Week 1 · Day 4 of 7</div>
+  <div style="margin-top:36px"><div class="split"><span class="day">Mon</span><span class="val num">12,430</span><span class="st" style="color:#48D08C">MET ✓</span></div><div class="split"><span class="day">Tue</span><span class="val num">11,980</span><span class="st" style="color:#48D08C">MET ✓</span></div><div class="split"><span class="day">Wed</span><span class="val num">10,590</span><span class="st" style="color:#48D08C">MET ✓</span></div></div>
+  <div class="liveband">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:30px;font-weight:800;letter-spacing:3px">TODAY · THURSDAY</span><span style="font-size:26px;font-weight:600;opacity:.8">ENDS 11:59 PM CDT</span></div>
+    <div style="font-size:160px;font-weight:800;letter-spacing:-5px;line-height:1.05;margin-top:16px" class="num">7,350</div>
+    <div style="font-size:32px;opacity:.85;font-weight:500">of 10,000 · <b>2,650 to go</b></div>
+    <div style="height:12px;background:rgba(255,255,255,.28);border-radius:6px;margin-top:30px"><div style="width:73.5%;height:100%;background:#FFF;border-radius:6px"></div></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:28px;font-size:26px;font-weight:600;color:#EAF0FF">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-9.7-9A5.6 5.6 0 0 1 12 5.6 5.6 5.6 0 0 1 21.7 12c-2.2 4.1-9.7 9-9.7 9z"/></svg>
+      Apple Health · updated 3 sec ago</div>
+  </div>
+  <div><div class="split"><span class="day" style="color:#4A5261">Fri</span><span class="val num" style="color:#4A5261">—</span><span class="st" style="color:#4A5261">QUEUED</span></div><div class="split"><span class="day" style="color:#4A5261">Sat</span><span class="val num" style="color:#4A5261">—</span><span class="st" style="color:#4A5261">QUEUED</span></div><div class="split"><span class="day" style="color:#4A5261">Sun</span><span class="val num" style="color:#4A5261">—</span><span class="st" style="color:#4A5261">QUEUED</span></div></div>
+  <div class="split" style="border-top:1px solid rgba(255,255,255,.10)"><span class="day" style="color:#8A93A6;width:auto">Test commitment</span><span class="val num" style="font-size:30px">$10.00</span></div>
+  <a class="cta">View week</a>
+</div><div class="tabbar" style="background:#151515;border-top:1px solid rgba(255,255,255,.10)"><div class="tab" style="color:#FFFFFF">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 5v5l3.5 2"/></svg>
+        <span>Today</span></div><div class="tab" style="color:#5A6270">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8m-4-4v4m-6-17h12v5a6 6 0 0 1-12 0V4zM4 6H2v2a4 4 0 0 0 4 4m14-6h2v2a4 4 0 0 1-4 4"/></svg>
+        <span>Challenges</span></div><div class="tab" style="color:#5A6270">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 12a8 8 0 0 1 16 0"/></svg>
+        <span>You</span></div></div><div class="home-indicator"></div></body></html>
