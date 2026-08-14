@@ -15,7 +15,7 @@ struct ChallengesView: View {
                 pendingRecovery
 
                 if let current = store.openChallenge {
-                    DaybreakSectionLabel(text: "Your challenge")
+                    AthleticSectionHeader(text: "Your challenge")
                     PersonalChallengeCard(challenge: current) {
                         router.challengesPath.append(
                             .personalChallenge(current.id)
@@ -24,7 +24,7 @@ struct ChallengesView: View {
                 }
 
                 if !store.history.isEmpty {
-                    DaybreakSectionLabel(text: "Finished")
+                    AthleticSectionHeader(text: "Finished")
                     ForEach(store.history) { challenge in
                         PersonalChallengeCard(challenge: challenge) {
                             router.challengesPath.append(
@@ -35,14 +35,13 @@ struct ChallengesView: View {
                 }
 
                 if store.loadState == .empty {
-                    DaybreakCard {
-                        EmptyTrustState(
-                            title: "No challenges yet",
-                            message:
-                                "The week you’re working on, and every week you’ve finished, will show up here.",
-                            systemImage: "flag.checkered"
-                        )
-                    }
+                    EmptyTrustState(
+                        title: "No challenges yet",
+                        message:
+                            "The week you’re working on, and every week you’ve finished, will show up here.",
+                        systemImage: "flag.checkered"
+                    )
+                    .trustCard()
                 }
 
                 if store.hasVerifiedCreationState,
@@ -86,12 +85,11 @@ struct ChallengesView: View {
     private var loadState: some View {
         switch store.loadState {
         case .loading, .failed:
-            DaybreakCard {
-                InlineLoadStateView(
-                    state: store.loadState,
-                    retry: { Task { await refreshWithAnnouncement() } }
-                )
-            }
+            InlineLoadStateView(
+                state: store.loadState,
+                retry: { Task { await refreshWithAnnouncement() } }
+            )
+            .trustCard()
         case .idle, .loaded, .empty:
             EmptyView()
         }
@@ -100,49 +98,47 @@ struct ChallengesView: View {
     @ViewBuilder
     private var pendingRecovery: some View {
         if let pending = store.pendingCreation {
-            DaybreakSectionLabel(text: "Unfinished setup")
-            DaybreakCard(tone: .pledge) {
-                VStack(alignment: .leading, spacing: 11) {
-                    TrustStatusPill(
-                        text: store.hasPendingCreationRecoveryIssue
-                            ? "Needs attention"
-                            : "Ready to finish",
-                        kind: .action
-                    )
-                    Text(pending.request.cadence == .daily
-                        ? "\(pending.request.targetSteps.formatted()) steps a day"
-                        : "\(pending.request.targetSteps.formatted()) steps this week")
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: 20,
-                                relativeTo: .headline
-                            )
-                        )
-                    Text(
-                        "We saved exactly what you picked, so you can pick up where you left off."
-                    )
-                    .font(.caption)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                    Button("Continue setup") {
-                        router.presentedSheet = .createPersonalChallenge
-                    }
-                    .buttonStyle(TrustSecondaryButtonStyle())
-                    .disabled(store.hasPendingCreationRecoveryIssue)
-                    .accessibilityIdentifier("personal.pending.resume")
-                    Button("Delete draft", role: .destructive) {
-                        showingDiscardConfirmation = true
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-        } else if store.hasPendingCreationRecoveryIssue {
-            DaybreakCard {
-                EmptyTrustState(
-                    title: "Saved setup needs attention",
-                    message: "GameTime couldn’t safely open the setup saved on this phone.",
-                    systemImage: "exclamationmark.triangle.fill"
+            AthleticSectionHeader(text: "Unfinished setup")
+            VStack(alignment: .leading, spacing: 11) {
+                TrustStatusPill(
+                    text: store.hasPendingCreationRecoveryIssue
+                        ? "Needs attention"
+                        : "Ready to finish",
+                    kind: .action
                 )
+                Text(pending.request.cadence == .daily
+                    ? "\(pending.request.targetSteps.formatted()) steps a day"
+                    : "\(pending.request.targetSteps.formatted()) steps this week")
+                    .font(
+                        CompetitiveTrustTheme.displayFont(
+                            size: 20,
+                            relativeTo: .headline
+                        )
+                    )
+                Text(
+                    "We saved exactly what you picked, so you can pick up where you left off."
+                )
+                .font(.caption)
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                Button("Continue setup") {
+                    router.presentedSheet = .createPersonalChallenge
+                }
+                .buttonStyle(TrustSecondaryButtonStyle())
+                .disabled(store.hasPendingCreationRecoveryIssue)
+                .accessibilityIdentifier("personal.pending.resume")
+                Button("Delete draft", role: .destructive) {
+                    showingDiscardConfirmation = true
+                }
+                .frame(maxWidth: .infinity)
             }
+            .trustCard()
+        } else if store.hasPendingCreationRecoveryIssue {
+            EmptyTrustState(
+                title: "Saved setup needs attention",
+                message: "GameTime couldn’t safely open the setup saved on this phone.",
+                systemImage: "exclamationmark.triangle.fill"
+            )
+            .trustCard()
             Button("Try saving again") {
                 Task { await store.retryPendingCreationRecovery() }
             }
@@ -156,5 +152,28 @@ struct ChallengesView: View {
             loadState: store.loadState,
             healthError: store.stepProgress.lastHealthError
         )
+    }
+}
+
+struct AthleticSectionHeader: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .textCase(.uppercase)
+            .font(
+                CompetitiveTrustTheme.uiFont(
+                    size: 11,
+                    relativeTo: .caption,
+                    weight: .bold
+                )
+            )
+            .tracking(1.05)
+            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 4)
+            .padding(.top, 4)
+            .accessibilityLabel(text)
+            .accessibilityAddTraits(.isHeader)
     }
 }

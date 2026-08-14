@@ -5,7 +5,7 @@ import XCTest
 @testable import GameTime
 
 final class DomainAndConfigurationTests: XCTestCase {
-    func testEveryProductConfigurationForcesLightAppearance() throws {
+    func testEveryProductConfigurationSupportsAdaptiveAppearance() throws {
         let configurationDirectory = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
@@ -27,67 +27,122 @@ final class DomainAndConfigurationTests: XCTestCase {
 
             XCTAssertEqual(
                 plist["UIUserInterfaceStyle"] as? String,
-                "Light",
-                "\(filename) must keep GameTime in its fixed light appearance."
+                "Automatic",
+                "\(filename) must configure UIUserInterfaceStyle to Automatic for dark mode support."
             )
         }
     }
 
-    func testDaybreakTextRolesMeetNormalTextContrast() {
-        let paper = UIColor(CompetitiveTrustTheme.paper)
-        let lightSurfaces: [(name: String, color: UIColor)] = [
-            ("paper", paper),
-            ("white", UIColor(CompetitiveTrustTheme.card)),
-            ("sunk", UIColor(CompetitiveTrustTheme.paperSunk)),
-            ("coral tint", UIColor(CompetitiveTrustTheme.coralTint)),
-            ("sun tint", UIColor(CompetitiveTrustTheme.sunTint)),
-        ]
-        let primaryText = UIColor(CompetitiveTrustTheme.primaryText)
-        let action = UIColor(CompetitiveTrustTheme.actionCoral)
-        var pairs: [(name: String, foreground: UIColor, background: UIColor)] = [
-            ("Primary text on paper", primaryText, paper),
-            (
-                "Secondary text on paper",
-                UIColor(CompetitiveTrustTheme.secondaryText),
-                paper
-            ),
-            ("Primary button label", .white, action),
+    func testAthleticTextRolesMeetNormalTextContrast() {
+        let darkBackground = UIColor(CompetitiveTrustTheme.darkBackground)
+        let graphiteCard = UIColor(CompetitiveTrustTheme.graphiteSurface)
+
+        let darkPairs: [(name: String, foreground: UIColor, background: UIColor)] = [
+            ("Primary text on dark background", UIColor(CompetitiveTrustTheme.primaryText), darkBackground),
+            ("Primary text on graphite card", UIColor(CompetitiveTrustTheme.primaryText), graphiteCard),
+            ("Secondary text on dark background", UIColor(CompetitiveTrustTheme.secondaryText), darkBackground),
+            ("Secondary text on graphite card", UIColor(CompetitiveTrustTheme.secondaryText), graphiteCard),
+            ("Signal Orange on dark background", UIColor(CompetitiveTrustTheme.signalOrange), darkBackground),
+            ("Signal Orange on graphite card", UIColor(CompetitiveTrustTheme.signalOrange), graphiteCard),
+            ("Athletic Green on dark background", UIColor(CompetitiveTrustTheme.athleticGreen), darkBackground),
+            ("Athletic Green on graphite card", UIColor(CompetitiveTrustTheme.athleticGreen), graphiteCard),
+            ("Primary button dark label", .black, UIColor(CompetitiveTrustTheme.signalOrange)),
             (
                 "Inverse secondary text",
                 UIColor(CompetitiveTrustTheme.inverseSecondaryText),
-                primaryText
+                UIColor(CompetitiveTrustTheme.primaryText)
             ),
             (
-                "Caution text on paper",
+                "Caution text on dark background",
                 UIColor(CompetitiveTrustTheme.sunInk),
-                paper
+                darkBackground
             ),
         ]
-        let normalTextRoles: [(name: String, color: UIColor)] = [
-            ("Tertiary text", UIColor(CompetitiveTrustTheme.tertiaryText)),
-            ("Action text", action),
-            ("Success text", UIColor(CompetitiveTrustTheme.mintInk)),
+
+        let lightPaper = UIColor(CompetitiveTrustTheme.paper)
+        let lightCard = UIColor(CompetitiveTrustTheme.card)
+        let lightPairs: [(name: String, foreground: UIColor, background: UIColor)] = [
+            ("Primary text on light paper", UIColor(CompetitiveTrustTheme.primaryText), lightPaper),
+            ("Primary text on light card", UIColor(CompetitiveTrustTheme.primaryText), lightCard),
+            ("Secondary text on light paper", UIColor(CompetitiveTrustTheme.secondaryText), lightPaper),
+            ("Secondary text on light card", UIColor(CompetitiveTrustTheme.secondaryText), lightCard),
+            ("Coral Ink on light paper", UIColor(CompetitiveTrustTheme.coralInk), lightPaper),
+            ("Mint Ink on light paper", UIColor(CompetitiveTrustTheme.mintInk), lightPaper),
+            ("Sun Ink on light paper", UIColor(CompetitiveTrustTheme.sunInk), lightPaper),
         ]
-        for role in normalTextRoles {
-            for surface in lightSurfaces {
-                pairs.append(
-                    (
-                        "\(role.name) on \(surface.name)",
-                        role.color,
-                        surface.color
-                    )
-                )
-            }
+
+        for pair in darkPairs {
+            XCTAssertGreaterThanOrEqual(
+                contrastRatio(pair.foreground, pair.background, style: .dark),
+                4.5,
+                "\(pair.name) in Dark Mode must meet WCAG AA normal text contrast (>= 4.5:1)."
+            )
         }
 
-        for pair in pairs {
+        for pair in lightPairs {
             XCTAssertGreaterThanOrEqual(
-                contrastRatio(pair.foreground, pair.background),
+                contrastRatio(pair.foreground, pair.background, style: .light),
                 4.5,
-                "\(pair.name) must remain readable at normal text sizes."
+                "\(pair.name) in Light Mode must meet WCAG AA normal text contrast (>= 4.5:1)."
             )
         }
     }
+
+    func testExtremeDynamicTypeFontScaling() {
+        let categories: [UIContentSizeCategory] = [
+            .extraSmall,
+            .medium,
+            .accessibilityLarge,
+            .accessibilityExtraExtraExtraLarge,
+        ]
+
+        for category in categories {
+            let traitCollection = UITraitCollection(preferredContentSizeCategory: category)
+            let baseUIFont = UIFont.systemFont(ofSize: 16, weight: .bold)
+            let metrics = UIFontMetrics(forTextStyle: .headline)
+            let scaledUIFont = metrics.scaledFont(for: baseUIFont, compatibleWith: traitCollection)
+
+            if category == .accessibilityExtraExtraExtraLarge {
+                XCTAssertGreaterThan(
+                    scaledUIFont.pointSize,
+                    baseUIFont.pointSize,
+                    "Font size must scale up under accessibilityExtraExtraExtraLarge"
+                )
+            }
+
+            let tabularFont = CompetitiveTrustTheme.tabularFont(size: 16)
+            XCTAssertNotNil(tabularFont, "tabularFont should generate valid Font")
+            let monoFont = CompetitiveTrustTheme.monoFont(size: 16)
+            XCTAssertNotNil(monoFont, "monoFont should generate valid Font")
+        }
+    }
+
+    func testZeroDropShadowsAndBricolageFontsInCompetitiveTrustTheme() throws {
+        let themeFileURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("GameTime/CompetitiveTrustTheme.swift")
+
+        let codeContent = try String(contentsOf: themeFileURL, encoding: .utf8)
+
+        XCTAssertFalse(
+            codeContent.contains(".shadow("),
+            "CompetitiveTrustTheme.swift must NOT contain any SwiftUI drop shadow calls (.shadow(...))."
+        )
+        XCTAssertFalse(
+            codeContent.contains("shadow(color:"),
+            "CompetitiveTrustTheme.swift must NOT contain any shadow(color: ...) calls."
+        )
+        XCTAssertFalse(
+            codeContent.contains("Bricolage"),
+            "CompetitiveTrustTheme.swift must NOT contain any references to Bricolage font."
+        )
+        XCTAssertFalse(
+            codeContent.contains("Hanken"),
+            "CompetitiveTrustTheme.swift must NOT contain any references to Hanken font."
+        )
+    }
+
 
     func testInstalledProductUsesTheGameTimePublicIdentity() {
         XCTAssertEqual(GameTimePublicIdentity.name, "GameTime")
@@ -104,29 +159,33 @@ final class DomainAndConfigurationTests: XCTestCase {
 
     private func contrastRatio(
         _ first: UIColor,
-        _ second: UIColor
+        _ second: UIColor,
+        style: UIUserInterfaceStyle = .dark
     ) -> CGFloat {
-        let firstLuminance = relativeLuminance(first)
-        let secondLuminance = relativeLuminance(second)
+        let firstLuminance = relativeLuminance(first, style: style)
+        let secondLuminance = relativeLuminance(second, style: style)
         return (max(firstLuminance, secondLuminance) + 0.05)
             / (min(firstLuminance, secondLuminance) + 0.05)
     }
 
-    private func relativeLuminance(_ color: UIColor) -> CGFloat {
-        let lightColor = color.resolvedColor(
-            with: UITraitCollection(userInterfaceStyle: .light)
+    private func relativeLuminance(
+        _ color: UIColor,
+        style: UIUserInterfaceStyle = .dark
+    ) -> CGFloat {
+        let resolved = color.resolvedColor(
+            with: UITraitCollection(userInterfaceStyle: style)
         )
         var red: CGFloat = 0
         var green: CGFloat = 0
         var blue: CGFloat = 0
         var alpha: CGFloat = 0
-        guard lightColor.getRed(
+        guard resolved.getRed(
             &red,
             green: &green,
             blue: &blue,
             alpha: &alpha
         ) else {
-            XCTFail("Expected an RGB-compatible Daybreak color.")
+            XCTFail("Expected an RGB-compatible Athletic theme color.")
             return 0
         }
 

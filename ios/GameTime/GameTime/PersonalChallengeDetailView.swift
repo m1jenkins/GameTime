@@ -48,10 +48,9 @@ struct PersonalChallengeDetailView: View {
                     }
                     PersonalChallengeDetailsCard(terms: challenge.terms)
                 } else {
-                    DaybreakCard {
-                        ProgressView("Loading…")
-                            .frame(maxWidth: .infinity)
-                    }
+                    ProgressView("Loading…")
+                        .frame(maxWidth: .infinity)
+                        .trustCard()
                 }
             }
             .padding(.horizontal, 18)
@@ -109,76 +108,76 @@ struct PersonalChallengeDetailView: View {
             now: now
         )
 
-        return DaybreakCard(tone: .inverse) {
-            VStack(alignment: .leading, spacing: 15) {
-                if dynamicTypeSize.isAccessibilitySize {
-                    VStack(alignment: .leading, spacing: 8) {
-                        PersonalStatusPill(
-                            status: status,
-                            outcome: challenge.outcome?.kind
-                        )
-                        Text(challenge.terms.commitmentText)
-                            .font(
-                                CompetitiveTrustTheme.displayFont(
-                                    size: 22,
-                                    relativeTo: .headline
-                                )
+        return VStack(alignment: .leading, spacing: 15) {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 8) {
+                    PersonalStatusPill(
+                        status: status,
+                        outcome: challenge.outcome?.kind
+                    )
+                    Text(challenge.terms.commitmentText)
+                        .font(
+                            CompetitiveTrustTheme.monoFont(
+                                size: 20,
+                                weight: .bold
                             )
-                    }
-                } else {
-                    HStack {
-                        PersonalStatusPill(
-                            status: status,
-                            outcome: challenge.outcome?.kind
                         )
-                        Spacer(minLength: 8)
-                        Text(challenge.terms.commitmentText)
-                            .font(
-                                CompetitiveTrustTheme.displayFont(
-                                    size: 24,
-                                    relativeTo: .title2
-                                )
+                        .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                }
+            } else {
+                HStack {
+                    PersonalStatusPill(
+                        status: status,
+                        outcome: challenge.outcome?.kind
+                    )
+                    Spacer(minLength: 8)
+                    Text(challenge.terms.commitmentText)
+                        .font(
+                            CompetitiveTrustTheme.monoFont(
+                                size: 20,
+                                weight: .bold
                             )
-                    }
-                }
-                Text(challenge.terms.targetText)
-                    .font(
-                        CompetitiveTrustTheme.displayFont(
-                            size: dynamicTypeSize.isAccessibilitySize
-                                ? 22
-                                : 30,
-                            relativeTo: dynamicTypeSize.isAccessibilitySize
-                                ? .headline
-                                : .title
                         )
-                    )
-                    .tracking(-0.8)
-                if let progress {
-                    PersonalProgressBar(
-                        progress: progress,
-                        terms: challenge.terms
-                    )
-                    .colorScheme(.dark)
-                }
-                PersonalHealthProgressStatus(
-                    presentation: healthPresentation,
-                    policy: challenge.stepDataPolicy
-                )
-                .colorScheme(.dark)
-                if healthPresentation.needsNoDataRecovery,
-                    challenge.stepDataPolicy.usesAutomaticHealthProgress
-                {
-                    activeNoDataRecovery(
-                        canRetry: canSyncNow(challenge, now: now)
-                    )
-                } else if canSyncNow(challenge, now: now) {
-                    healthRefreshButton(
-                        title: "Sync now",
-                        pendingTitle: "Syncing…"
-                    )
+                        .foregroundStyle(CompetitiveTrustTheme.primaryText)
                 }
             }
+            Text(challenge.terms.targetText)
+                .font(
+                    CompetitiveTrustTheme.displayFont(
+                        size: dynamicTypeSize.isAccessibilitySize
+                            ? 22
+                            : 28,
+                        relativeTo: dynamicTypeSize.isAccessibilitySize
+                            ? .headline
+                            : .title
+                    )
+                )
+                .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                .tracking(-0.8)
+            if let progress {
+                PersonalProgressBar(
+                    progress: progress,
+                    terms: challenge.terms
+                )
+            }
+            PersonalHealthProgressStatus(
+                presentation: healthPresentation,
+                policy: challenge.stepDataPolicy
+            )
+            if healthPresentation.needsNoDataRecovery,
+                challenge.stepDataPolicy.usesAutomaticHealthProgress
+            {
+                activeNoDataRecovery(
+                    canRetry: canSyncNow(challenge, now: now)
+                )
+            } else if canSyncNow(challenge, now: now) {
+                healthRefreshButton(
+                    title: "Sync now",
+                    pendingTitle: "Syncing…"
+                )
+            }
         }
+        .trustCard()
     }
 
     private func canSyncNow(
@@ -196,7 +195,7 @@ struct PersonalChallengeDetailView: View {
                 "Apple Health access may be limited, or this phone may not have recent device-recorded steps."
             )
             .font(.subheadline)
-            .foregroundStyle(CompetitiveTrustTheme.inverseSecondaryText)
+            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
 
             healthRefreshButton(
@@ -275,13 +274,13 @@ struct PersonalChallengeDetailView: View {
     @ViewBuilder
     private func pace(_ challenge: PersonalChallengeDetail) -> some View {
         let progress = store.displayedProgress(for: challenge)
-        DaybreakSectionLabel(text: "Your pace")
+        AthleticSectionHeader(text: "Your pace")
         if progress?.days.isEmpty != false {
-            DaybreakCard {
-                Text(emptyPaceMessage(for: challenge))
-                    .font(.subheadline)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-            }
+            Text(emptyPaceMessage(for: challenge))
+                .font(.subheadline)
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .trustCard()
         } else if let progress {
             let summary = PersonalPaceSummary(
                 detail: challenge,
@@ -322,29 +321,28 @@ struct PersonalChallengeDetailView: View {
                 outcome: outcome,
                 now: reviewNow
             )
-            DaybreakSectionLabel(text: "How it went")
-            DaybreakCard(tone: outcome.kind == .metGoal ? .standard : .pledge) {
-                VStack(alignment: .leading, spacing: 9) {
-                    PersonalStatusPill(
-                        status: challenge.presentationStatus(at: Date()),
-                        outcome: outcome.kind
-                    )
-                    Text(presentation.title)
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: 23,
-                                relativeTo: .title2
-                            )
+            AthleticSectionHeader(text: "How it went")
+            VStack(alignment: .leading, spacing: 9) {
+                PersonalStatusPill(
+                    status: challenge.presentationStatus(at: Date()),
+                    outcome: outcome.kind
+                )
+                Text(presentation.title)
+                    .font(
+                        CompetitiveTrustTheme.displayFont(
+                            size: 23,
+                            relativeTo: .title2
                         )
-                    ForEach(presentation.details, id: \.self) { detail in
-                        Text(detail)
-                            .font(.subheadline)
-                            .foregroundStyle(
-                                CompetitiveTrustTheme.secondaryText
-                            )
-                    }
+                    )
+                ForEach(presentation.details, id: \.self) { detail in
+                    Text(detail)
+                        .font(.subheadline)
+                        .foregroundStyle(
+                            CompetitiveTrustTheme.secondaryText
+                        )
                 }
             }
+            .trustCard()
             .accessibilityIdentifier("personal.result")
         }
     }
@@ -355,115 +353,116 @@ struct PersonalChallengeDetailView: View {
             let outcome = challenge.outcome,
             outcome.kind == .missedGoal
         {
-            DaybreakSectionLabel(text: "Review")
-            DaybreakCard {
-                let deadline = outcome.publishedAt.addingTimeInterval(
-                    PersonalResultPresentation.reviewWindow
-                )
-                if let request = store.reviewRequest(for: challenge.id) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Under review — settlement paused.")
-                            .font(
-                                CompetitiveTrustTheme.displayFont(
-                                    size: 20,
-                                    relativeTo: .headline
-                                )
+            AthleticSectionHeader(text: "Review")
+            let deadline = outcome.publishedAt.addingTimeInterval(
+                PersonalResultPresentation.reviewWindow
+            )
+            if let request = store.reviewRequest(for: challenge.id) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Under review — settlement paused.")
+                        .font(
+                            CompetitiveTrustTheme.displayFont(
+                                size: 20,
+                                relativeTo: .headline
                             )
-                        Text(
-                            "Review ends by \(PersonalTermsDateFormatter.dateTime(request.reviewDeadline, timezoneIdentifier: challenge.terms.timezone))."
                         )
-                        .font(.caption)
-                        .foregroundStyle(
-                            CompetitiveTrustTheme.secondaryText
-                        )
-                    }
-                    .accessibilityIdentifier("personal.review.submitted")
-                } else if reviewNow >= deadline {
-                    Text("The review request window ended.")
-                        .font(.subheadline)
-                        .foregroundStyle(
-                            CompetitiveTrustTheme.secondaryText
-                        )
-                        .accessibilityIdentifier("personal.review.expired")
-                } else {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(
-                            "Request a review by \(PersonalTermsDateFormatter.dateTime(deadline, timezoneIdentifier: challenge.terms.timezone)); settlement is paused during this seven-day window."
-                        )
-                        .font(.subheadline)
-                        .foregroundStyle(
-                            CompetitiveTrustTheme.secondaryText
-                        )
-                        .accessibilityIdentifier(
-                            "personal.review.available"
-                        )
-
-                        ForEach(PersonalReviewReason.allCases) { reason in
-                            Button {
-                                selectedReviewReason = reason
-                            } label: {
-                                HStack(spacing: 10) {
-                                    Image(
-                                        systemName:
-                                            selectedReviewReason == reason
-                                            ? "checkmark.circle.fill"
-                                            : "circle"
-                                    )
-                                    .foregroundStyle(
-                                        selectedReviewReason == reason
-                                            ? CompetitiveTrustTheme.actionCoral
-                                            : CompetitiveTrustTheme.guide
-                                    )
-                                    Text(reason.title)
-                                        .font(.subheadline.weight(.semibold))
-                                    Spacer(minLength: 8)
-                                }
-                                .daybreakTappableRow()
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier(
-                                "personal.review.reason.\(reason.rawValue)"
-                            )
-                            .accessibilityValue(
-                                selectedReviewReason == reason
-                                    ? "Selected"
-                                    : "Not selected"
-                            )
-                        }
-
-                        Button {
-                            Task { @MainActor in
-                                let succeeded = await store.requestReview(
-                                    challengeID: challenge.id,
-                                    reason: selectedReviewReason
-                                )
-                                PersonalAccessibilityAnnouncements.post(
-                                    succeeded
-                                        ? "Review requested. Settlement is paused."
-                                        : "Review request failed. Try again."
-                                )
-                            }
-                        } label: {
-                            HStack(spacing: 8) {
-                                if store.isRequestingReview {
-                                    ProgressView().tint(.white)
-                                }
-                                Text(
-                                    store.isRequestingReview
-                                        ? "Requesting review…"
-                                        : "Request a review"
-                                )
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(TrustPrimaryButtonStyle())
-                        .disabled(store.isRequestingReview)
-                        .accessibilityIdentifier(
-                            "personal.review.request"
-                        )
-                    }
+                    Text(
+                        "Review ends by \(PersonalTermsDateFormatter.dateTime(request.reviewDeadline, timezoneIdentifier: challenge.terms.timezone))."
+                    )
+                    .font(.caption)
+                    .foregroundStyle(
+                        CompetitiveTrustTheme.secondaryText
+                    )
                 }
+                .trustCard()
+                .accessibilityIdentifier("personal.review.submitted")
+            } else if reviewNow >= deadline {
+                Text("The review request window ended.")
+                    .font(.subheadline)
+                    .foregroundStyle(
+                        CompetitiveTrustTheme.secondaryText
+                    )
+                    .trustCard()
+                    .accessibilityIdentifier("personal.review.expired")
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(
+                        "Request a review by \(PersonalTermsDateFormatter.dateTime(deadline, timezoneIdentifier: challenge.terms.timezone)); settlement is paused during this seven-day window."
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(
+                        CompetitiveTrustTheme.secondaryText
+                    )
+                    .accessibilityIdentifier(
+                        "personal.review.available"
+                    )
+
+                    ForEach(PersonalReviewReason.allCases) { reason in
+                        Button {
+                            selectedReviewReason = reason
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(
+                                    systemName:
+                                        selectedReviewReason == reason
+                                        ? "checkmark.circle.fill"
+                                        : "circle"
+                                )
+                                .foregroundStyle(
+                                    selectedReviewReason == reason
+                                        ? CompetitiveTrustTheme.actionCoral
+                                        : CompetitiveTrustTheme.guide
+                                )
+                                Text(reason.title)
+                                    .font(.subheadline.weight(.semibold))
+                                Spacer(minLength: 8)
+                            }
+                            .daybreakTappableRow()
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier(
+                            "personal.review.reason.\(reason.rawValue)"
+                        )
+                        .accessibilityValue(
+                            selectedReviewReason == reason
+                                ? "Selected"
+                                : "Not selected"
+                        )
+                    }
+
+                    Button {
+                        Task { @MainActor in
+                            let succeeded = await store.requestReview(
+                                challengeID: challenge.id,
+                                reason: selectedReviewReason
+                            )
+                            PersonalAccessibilityAnnouncements.post(
+                                succeeded
+                                    ? "Review requested. Settlement is paused."
+                                    : "Review request failed. Try again."
+                            )
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            if store.isRequestingReview {
+                                ProgressView().tint(.white)
+                            }
+                            Text(
+                                store.isRequestingReview
+                                    ? "Requesting review…"
+                                    : "Request a review"
+                            )
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(TrustPrimaryButtonStyle())
+                    .disabled(store.isRequestingReview)
+                    .accessibilityIdentifier(
+                        "personal.review.request"
+                    )
+                }
+                .trustCard()
             }
         }
     }

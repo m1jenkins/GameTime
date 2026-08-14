@@ -22,81 +22,82 @@ struct PersonalChallengeCard: View {
         )
 
         Button(action: action) {
-            DaybreakCard {
-                VStack(alignment: .leading, spacing: 14) {
-                    if dynamicTypeSize.isAccessibilitySize {
-                        VStack(alignment: .leading, spacing: 8) {
-                            PersonalStatusPill(
-                                status: status,
-                                outcome: challenge.outcome?.kind
-                            )
-                            Text(challenge.terms.commitmentText)
-                                .font(
-                                    CompetitiveTrustTheme.displayFont(
-                                        size: 20,
-                                        relativeTo: .headline
-                                    )
-                                )
-                        }
-                    } else {
-                        HStack(alignment: .firstTextBaseline, spacing: 10) {
-                            PersonalStatusPill(
-                                status: status,
-                                outcome: challenge.outcome?.kind
-                            )
-                            Spacer(minLength: 8)
-                            Text(challenge.terms.commitmentText)
-                                .font(
-                                    CompetitiveTrustTheme.displayFont(
-                                        size: 20,
-                                        relativeTo: .headline
-                                    )
-                                )
-                        }
-                    }
-
-                    Text(challenge.terms.targetText)
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: dynamicTypeSize.isAccessibilitySize
-                                    ? 19
-                                    : 24,
-                                relativeTo: dynamicTypeSize.isAccessibilitySize
-                                    ? .headline
-                                    : .title2
-                            )
+            VStack(alignment: .leading, spacing: 14) {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 8) {
+                        PersonalStatusPill(
+                            status: status,
+                            outcome: challenge.outcome?.kind
                         )
-                        .tracking(-0.5)
-
-                    if let progress {
-                        PersonalProgressBar(
-                            progress: progress,
-                            terms: challenge.terms
-                        )
+                        Text(challenge.terms.commitmentText)
+                            .font(
+                                CompetitiveTrustTheme.monoFont(
+                                    size: 18,
+                                    weight: .bold
+                                )
+                            )
+                            .foregroundStyle(CompetitiveTrustTheme.primaryText)
                     }
-                    PersonalHealthProgressStatus(
-                        presentation: healthPresentation,
-                        policy: challenge.stepDataPolicy
-                    )
-
-                    HStack(spacing: 8) {
-                        Image(systemName: "calendar")
-                            .accessibilityHidden(true)
-                        Text(dateSummary(status: status))
+                } else {
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        PersonalStatusPill(
+                            status: status,
+                            outcome: challenge.outcome?.kind
+                        )
                         Spacer(minLength: 8)
-                        Image(systemName: "chevron.right")
-                            .accessibilityHidden(true)
+                        Text(challenge.terms.commitmentText)
+                            .font(
+                                CompetitiveTrustTheme.monoFont(
+                                    size: 18,
+                                    weight: .bold
+                                )
+                            )
+                            .foregroundStyle(CompetitiveTrustTheme.primaryText)
                     }
+                }
+
+                Text(challenge.terms.targetText)
                     .font(
-                        CompetitiveTrustTheme.uiFont(
-                            size: 12,
-                            relativeTo: .caption,
-                            weight: .semibold
+                        CompetitiveTrustTheme.displayFont(
+                            size: dynamicTypeSize.isAccessibilitySize
+                                ? 19
+                                : 22,
+                            relativeTo: dynamicTypeSize.isAccessibilitySize
+                                ? .headline
+                                : .title2
                         )
                     )
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                    .tracking(-0.5)
+
+                if let progress {
+                    PersonalProgressBar(
+                        progress: progress,
+                        terms: challenge.terms
+                    )
                 }
+                PersonalHealthProgressStatus(
+                    presentation: healthPresentation,
+                    policy: challenge.stepDataPolicy
+                )
+
+                HStack(spacing: 8) {
+                    Image(systemName: "calendar")
+                        .accessibilityHidden(true)
+                    Text(dateSummary(status: status))
+                        .font(
+                            CompetitiveTrustTheme.tabularFont(
+                                size: 12,
+                                weight: .semibold
+                            )
+                        )
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right")
+                        .accessibilityHidden(true)
+                }
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
+            .trustCard()
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(
@@ -484,60 +485,59 @@ struct PendingPersonalCancellationRecoveryCard: View {
 
     var body: some View {
         if shouldShow {
-            DaybreakCard(tone: .pledge) {
-                VStack(alignment: .leading, spacing: 11) {
-                    Label(
-                        "Cancellation saved — still trying.",
-                        systemImage: "arrow.triangle.2.circlepath"
-                    )
-                    .font(
-                        CompetitiveTrustTheme.displayFont(
-                            size: 19,
-                            relativeTo: .headline
-                            )
-                    )
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(
-                        "Cancellation saved — still trying."
-                    )
-                    .accessibilityIdentifier("personal.cancellation.pending")
-                    Text(recoveryMessage)
-                        .font(.subheadline)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Button(action: retryCancellation) {
-                        mutationLabel(
-                            idle: "Retry Cancellation",
-                            pending: "Retrying cancellation…",
-                            action: .retry
+            VStack(alignment: .leading, spacing: 11) {
+                Label(
+                    "Cancellation saved — still trying.",
+                    systemImage: "arrow.triangle.2.circlepath"
+                )
+                .font(
+                    CompetitiveTrustTheme.displayFont(
+                        size: 19,
+                        relativeTo: .headline
                         )
-                    }
-                    .buttonStyle(TrustPrimaryButtonStyle())
-                    .disabled(actionsAreDisabled)
-                    .accessibilityIdentifier("personal.cancellation.retry")
+                )
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(
+                    "Cancellation saved — still trying."
+                )
+                .accessibilityIdentifier("personal.cancellation.pending")
+                Text(recoveryMessage)
+                    .font(.subheadline)
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                    Button(action: refreshTruth) {
-                        mutationLabel(
-                            idle: "Refresh",
-                            pending: "Refreshing…",
-                            action: .refresh
+                Button(action: retryCancellation) {
+                    mutationLabel(
+                        idle: "Retry Cancellation",
+                        pending: "Retrying cancellation…",
+                        action: .retry
+                    )
+                }
+                .buttonStyle(TrustPrimaryButtonStyle())
+                .disabled(actionsAreDisabled)
+                .accessibilityIdentifier("personal.cancellation.retry")
+
+                Button(action: refreshTruth) {
+                    mutationLabel(
+                        idle: "Refresh",
+                        pending: "Refreshing…",
+                        action: .refresh
+                    )
+                }
+                .buttonStyle(TrustSecondaryButtonStyle())
+                .disabled(actionsAreDisabled)
+                .accessibilityIdentifier("personal.cancellation.refresh")
+
+                if let contactSupport {
+                    Button("Contact Support", action: contactSupport)
+                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .disabled(actionsAreDisabled)
+                        .accessibilityIdentifier(
+                            "personal.cancellation.support"
                         )
-                    }
-                    .buttonStyle(TrustSecondaryButtonStyle())
-                    .disabled(actionsAreDisabled)
-                    .accessibilityIdentifier("personal.cancellation.refresh")
-
-                    if let contactSupport {
-                        Button("Contact Support", action: contactSupport)
-                            .buttonStyle(TrustSecondaryButtonStyle())
-                            .disabled(actionsAreDisabled)
-                            .accessibilityIdentifier(
-                                "personal.cancellation.support"
-                            )
-                    }
                 }
             }
+            .trustCard()
         }
     }
 
@@ -646,10 +646,9 @@ struct PersonalSevenDayTimeline: View {
                     Spacer(minLength: 8)
                     Text(day.totalSteps.formatted())
                         .font(
-                            CompetitiveTrustTheme.uiFont(
+                            CompetitiveTrustTheme.tabularFont(
                                 size: 14,
-                                relativeTo: .subheadline,
-                                weight: .semibold
+                                weight: .bold
                             )
                         )
                 }
@@ -657,7 +656,7 @@ struct PersonalSevenDayTimeline: View {
                 .accessibilityElement(children: .combine)
 
                 if index < days.count - 1 {
-                    Divider().overlay(CompetitiveTrustTheme.border)
+                    Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
                 }
             }
         }
@@ -705,37 +704,36 @@ struct LegacyPersonalReadinessNotice: View {
     let hold: PersonalEligibilityHold?
 
     var body: some View {
-        DaybreakCard(tone: .pledge) {
-            VStack(alignment: .leading, spacing: 9) {
-                Label(
-                    "New challenges are paused",
-                    systemImage: "exclamationmark.shield.fill"
+        VStack(alignment: .leading, spacing: 9) {
+            Label(
+                "New challenges are paused",
+                systemImage: "exclamationmark.shield.fill"
+            )
+            .font(
+                CompetitiveTrustTheme.displayFont(
+                    size: 19,
+                    relativeTo: .headline
                 )
-                .font(
-                    CompetitiveTrustTheme.displayFont(
-                        size: 19,
-                        relativeTo: .headline
-                    )
+            )
+            Text(
+                "Something is wrong with the steps coming from your phone. Run a Health check to start another challenge — and don’t worry, your last one doesn’t count against you."
+            )
+            .font(
+                CompetitiveTrustTheme.uiFont(
+                    size: 13,
+                    relativeTo: .subheadline
                 )
-                Text(
-                    "Something is wrong with the steps coming from your phone. Run a Health check to start another challenge — and don’t worry, your last one doesn’t count against you."
-                )
-                .font(
-                    CompetitiveTrustTheme.uiFont(
-                        size: 13,
-                        relativeTo: .subheadline
-                    )
-                )
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                if let hold, let reason = PersonalReasonText.sentence(
-                    for: hold.reasonCode
-                ) {
-                    Text(reason)
-                        .font(.caption)
-                        .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
-                }
+            )
+            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            if let hold, let reason = PersonalReasonText.sentence(
+                for: hold.reasonCode
+            ) {
+                Text(reason)
+                    .font(.caption)
+                    .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
             }
         }
+        .trustCard()
         .accessibilityIdentifier("personal.legacy-hold")
     }
 }

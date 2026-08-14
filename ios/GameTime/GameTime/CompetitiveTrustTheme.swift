@@ -2,51 +2,125 @@ import SwiftUI
 import UIKit
 
 enum CompetitiveTrustTheme {
-    // Daybreak replaces the original teal-on-ink treatment with warm paper.
-    // The legacy names remain as aliases so non-challenge screens can migrate
-    // without duplicating a second palette.
-    static let paper = Color(red: 1.00, green: 0.969, blue: 0.941)
-    static let paperSunk = Color(red: 0.969, green: 0.925, blue: 0.886)
-    static let card = Color.white
-    static let primaryText = Color(red: 0.110, green: 0.082, blue: 0.137)
-    static let secondaryText = Color(red: 0.431, green: 0.392, blue: 0.471)
-    // Small tertiary labels must remain readable on every Daybreak surface.
-    static let tertiaryText = Color(red: 0.365, green: 0.322, blue: 0.404)
-    static let disabledText = Color(red: 0.655, green: 0.616, blue: 0.686)
-    static let guide = Color(red: 0.788, green: 0.749, blue: 0.820)
-    static let border = Color(red: 0.949, green: 0.902, blue: 0.855)
-    static let strongBorder = Color(red: 0.894, green: 0.827, blue: 0.769)
-    static let rail = Color(red: 0.945, green: 0.922, blue: 0.965)
+    // MARK: - R1 Athletic Design System Primary Tokens
+    static let darkBackground = Color(red: 0.0, green: 0.0, blue: 0.0) // #000000
+    static let graphiteSurface = Color(red: 0.0706, green: 0.0706, blue: 0.0706) // #121212
+    static let signalOrange = Color(red: 0.9882, green: 0.3216, blue: 0.0) // #FC5200
+    static let athleticGreen = Color(red: 0.0, green: 0.8157, blue: 0.5176) // #00D084
 
-    static let coral = Color(red: 1.00, green: 0.353, blue: 0.271)
-    static let coralPressed = Color(red: 0.610, green: 0.120, blue: 0.070)
-    static let coralInk = Color(red: 0.690, green: 0.160, blue: 0.100)
-    static let coralTint = Color(red: 1.00, green: 0.941, blue: 0.929)
-    static let coralTintStrong = Color(red: 0.969, green: 0.871, blue: 0.851)
+    // Sharp neutral hairline dividers: #2C2C2E (dark) / #E5E5EA (light)
+    static let hairlineDivider = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.1725, green: 0.1725, blue: 0.1804, alpha: 1.0)
+            : UIColor(red: 0.8980, green: 0.8980, blue: 0.9176, alpha: 1.0)
+    })
 
-    static let sun = Color(red: 1.00, green: 0.714, blue: 0.153)
-    static let sunInk = Color(red: 0.541, green: 0.384, blue: 0.00)
-    static let sunTint = Color(red: 1.00, green: 0.941, blue: 0.800)
+    // MARK: - Adaptive Surfaces & Palette Aliases
+    static let paper = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor.black
+            : UIColor(red: 0.949, green: 0.949, blue: 0.969, alpha: 1.0)
+    })
 
-    static let mint = Color(red: 0.071, green: 0.753, blue: 0.541)
-    static let mintInk = Color(red: 0.015, green: 0.420, blue: 0.290)
-    static let inverseSecondaryText = Color(
-        red: 0.880,
-        green: 0.840,
-        blue: 0.910
-    )
+    static let paperSunk = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.0706, green: 0.0706, blue: 0.0706, alpha: 1.0)
+            : UIColor(red: 0.898, green: 0.898, blue: 0.918, alpha: 1.0)
+    })
 
-    /// Bright coral is reserved for progress and decoration. Interactive
-    /// fills and small accent text use this contrast-safe role.
+    static let card = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.0706, green: 0.0706, blue: 0.0706, alpha: 1.0)
+            : UIColor.white
+    })
+
+    // Text hierarchy
+    static let primaryText = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor.white
+            : UIColor(red: 0.110, green: 0.082, blue: 0.137, alpha: 1.0)
+    })
+
+    static let secondaryText = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.5569, green: 0.5569, blue: 0.5765, alpha: 1.0)
+            : UIColor(red: 0.4235, green: 0.4235, blue: 0.4392, alpha: 1.0)
+    })
+
+    static let tertiaryText = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.3882, green: 0.3882, blue: 0.4000, alpha: 1.0)
+            : UIColor(red: 0.3650, green: 0.3220, blue: 0.4040, alpha: 1.0)
+    })
+
+    static let disabledText = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.2824, green: 0.2824, blue: 0.2902, alpha: 1.0)
+            : UIColor(red: 0.6550, green: 0.6160, blue: 0.6860, alpha: 1.0)
+    })
+
+    static let guide = hairlineDivider
+    static let border = hairlineDivider
+    static let strongBorder = hairlineDivider
+    static let rail = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.1098, green: 0.1098, blue: 0.1176, alpha: 1.0)
+            : UIColor(red: 0.8980, green: 0.8980, blue: 0.9176, alpha: 1.0)
+    })
+
+    // Accent Roles
+    static let coral = signalOrange
+    static let coralPressed = Color(red: 0.8157, green: 0.2627, blue: 0.0)
+    static let coralInk = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.9882, green: 0.3216, blue: 0.0, alpha: 1.0)
+            : UIColor(red: 0.7686, green: 0.2314, blue: 0.0, alpha: 1.0)
+    })
+    static let coralTint = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.1725, green: 0.0784, blue: 0.0314, alpha: 1.0)
+            : UIColor(red: 1.0000, green: 0.9412, blue: 0.9020, alpha: 1.0)
+    })
+    static let coralTintStrong = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.2392, green: 0.1059, blue: 0.0431, alpha: 1.0)
+            : UIColor(red: 1.0000, green: 0.8784, blue: 0.8196, alpha: 1.0)
+    })
+
+    static let sun = Color(red: 1.00, green: 0.7137, blue: 0.1529)
+    static let sunInk = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 1.00, green: 0.7137, blue: 0.1529, alpha: 1.0)
+            : UIColor(red: 0.4784, green: 0.3294, blue: 0.0, alpha: 1.0)
+    })
+    static let sunTint = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.1725, green: 0.1333, blue: 0.0314, alpha: 1.0)
+            : UIColor(red: 1.0000, green: 0.9725, blue: 0.9020, alpha: 1.0)
+    })
+
+    static let mint = athleticGreen
+    static let mintInk = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.0, green: 0.8157, blue: 0.5176, alpha: 1.0)
+            : UIColor(red: 0.0, green: 0.4902, blue: 0.3020, alpha: 1.0)
+    })
+
+    static let inverseSecondaryText = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.3882, green: 0.3882, blue: 0.4000, alpha: 1.0)
+            : UIColor(red: 0.3882, green: 0.3882, blue: 0.4000, alpha: 1.0)
+    })
+
     static let actionCoral = coralInk
 
     private static let participantRamp: [Color] = [
+        signalOrange,
+        athleticGreen,
         Color(red: 0.486, green: 0.361, blue: 0.988),
-        Color(red: 1.00, green: 0.620, blue: 0.106),
-        mint,
         Color(red: 0.059, green: 0.710, blue: 0.808),
         Color(red: 0.925, green: 0.282, blue: 0.600),
-        Color(red: 0.961, green: 0.773, blue: 0.094),
+        sun,
         Color(red: 0.298, green: 0.431, blue: 0.961),
     ]
 
@@ -63,7 +137,7 @@ enum CompetitiveTrustTheme {
         currentUserID: UUID?
     ) -> Color {
         if participantID == currentUserID {
-            return coral
+            return signalOrange
         }
 
         let otherIDs = participantIDs
@@ -83,15 +157,12 @@ enum CompetitiveTrustTheme {
         return participantRamp[index]
     }
 
+    // MARK: - Athletic Typography (SF Pro Display & Monospaced Digits)
     static func displayFont(
         size: CGFloat,
         relativeTo textStyle: Font.TextStyle
     ) -> Font {
-        .custom(
-            "BricolageGrotesque-96ptExtraBold",
-            size: size,
-            relativeTo: textStyle
-        )
+        .system(size: size, weight: .bold, design: .default)
     }
 
     static func uiFont(
@@ -99,62 +170,72 @@ enum CompetitiveTrustTheme {
         relativeTo textStyle: Font.TextStyle,
         weight: Font.Weight = .regular
     ) -> Font {
-        .custom(
-            "HankenGrotesk-Regular",
-            size: size,
-            relativeTo: textStyle
-        )
-        .weight(weight)
+        .system(size: size, weight: weight, design: .default)
+    }
+
+    static func tabularFont(
+        size: CGFloat,
+        weight: Font.Weight = .bold
+    ) -> Font {
+        .system(size: size, weight: weight, design: .default).monospacedDigit()
+    }
+
+    static func monoFont(
+        size: CGFloat,
+        weight: Font.Weight = .bold
+    ) -> Font {
+        .system(size: size, weight: weight, design: .monospaced)
     }
 }
 
 @MainActor
-enum DaybreakAppearance {
+enum AthleticAppearance {
     static func install() {
         let navigationAppearance = UINavigationBarAppearance()
         navigationAppearance.configureWithOpaqueBackground()
         navigationAppearance.backgroundColor = UIColor(
             CompetitiveTrustTheme.paper
         )
-        navigationAppearance.shadowColor = .clear
+        navigationAppearance.shadowColor = UIColor(CompetitiveTrustTheme.hairlineDivider)
+
         let largeTitleDescriptor = UIFont.systemFont(
             ofSize: 34,
-            weight: .heavy
-        ).fontDescriptor.withDesign(.rounded)
+            weight: .bold
+        ).fontDescriptor.withDesign(.default)
         let inlineTitleDescriptor = UIFont.systemFont(
             ofSize: 17,
             weight: .bold
-        ).fontDescriptor.withDesign(.rounded)
+        ).fontDescriptor.withDesign(.default)
 
         navigationAppearance.largeTitleTextAttributes = [
             .font: largeTitleDescriptor.map {
                 UIFont(descriptor: $0, size: 34)
-            } ?? UIFont.systemFont(ofSize: 34, weight: .heavy),
-            .foregroundColor: UIColor.black,
+            } ?? UIFont.systemFont(ofSize: 34, weight: .bold),
+            .foregroundColor: UIColor(CompetitiveTrustTheme.primaryText),
         ]
         navigationAppearance.titleTextAttributes = [
             .font: inlineTitleDescriptor.map {
                 UIFont(descriptor: $0, size: 17)
             } ?? UIFont.systemFont(ofSize: 17, weight: .bold),
-            .foregroundColor: UIColor.black,
+            .foregroundColor: UIColor(CompetitiveTrustTheme.primaryText),
         ]
 
         let navigationBar = UINavigationBar.appearance()
         navigationBar.standardAppearance = navigationAppearance
         navigationBar.compactAppearance = navigationAppearance
         navigationBar.scrollEdgeAppearance = navigationAppearance
-        navigationBar.tintColor = UIColor(CompetitiveTrustTheme.coralInk)
+        navigationBar.tintColor = UIColor(CompetitiveTrustTheme.signalOrange)
 
         let tabAppearance = UITabBarAppearance()
         tabAppearance.configureWithOpaqueBackground()
         tabAppearance.backgroundColor = UIColor(CompetitiveTrustTheme.paper)
-        tabAppearance.shadowColor = UIColor(CompetitiveTrustTheme.border)
+        tabAppearance.shadowColor = UIColor(CompetitiveTrustTheme.hairlineDivider)
 
         let normalAttributes: [NSAttributedString.Key: Any] = [
-            .foregroundColor: UIColor(CompetitiveTrustTheme.tertiaryText),
+            .foregroundColor: UIColor(CompetitiveTrustTheme.secondaryText),
         ]
         let selectedAttributes: [NSAttributedString.Key: Any] = [
-            .foregroundColor: UIColor(CompetitiveTrustTheme.actionCoral),
+            .foregroundColor: UIColor(CompetitiveTrustTheme.signalOrange),
         ]
 
         for itemAppearance in [
@@ -163,11 +244,11 @@ enum DaybreakAppearance {
             tabAppearance.compactInlineLayoutAppearance,
         ] {
             itemAppearance.normal.iconColor = UIColor(
-                CompetitiveTrustTheme.tertiaryText
+                CompetitiveTrustTheme.secondaryText
             )
             itemAppearance.normal.titleTextAttributes = normalAttributes
             itemAppearance.selected.iconColor = UIColor(
-                CompetitiveTrustTheme.actionCoral
+                CompetitiveTrustTheme.signalOrange
             )
             itemAppearance.selected.titleTextAttributes = selectedAttributes
         }
@@ -177,6 +258,8 @@ enum DaybreakAppearance {
         tabBar.scrollEdgeAppearance = tabAppearance
     }
 }
+
+typealias DaybreakAppearance = AthleticAppearance
 
 private extension Sequence where Element: Hashable {
     func uniqued() -> [Element] {
@@ -188,20 +271,15 @@ private extension Sequence where Element: Hashable {
 struct TrustCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .padding(18)
+            .padding(14)
             .background(
                 CompetitiveTrustTheme.card,
-                in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+                in: RoundedRectangle(cornerRadius: 10, style: .continuous)
             )
             .overlay {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(CompetitiveTrustTheme.border, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
             }
-            .shadow(
-                color: CompetitiveTrustTheme.primaryText.opacity(0.05),
-                radius: 7,
-                y: 3
-            )
     }
 }
 
@@ -217,13 +295,15 @@ extension View {
 
     func daybreakScreenChrome() -> some View {
         background(CompetitiveTrustTheme.paper.ignoresSafeArea())
-            .preferredColorScheme(.light)
             .toolbarBackground(
                 CompetitiveTrustTheme.paper,
                 for: .navigationBar
             )
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarColorScheme(.light, for: .navigationBar)
+    }
+
+    func athleticScreenChrome() -> some View {
+        daybreakScreenChrome()
     }
 
     /// Keeps the last tab-hosted action or card above the floating tab bar.
@@ -253,12 +333,12 @@ struct TrustPrimaryButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .frame(minHeight: 44)
             .padding(.horizontal, 20)
-            .foregroundStyle(Color.white.opacity(isEnabled ? 1 : 0.72))
+            .foregroundStyle(Color.black.opacity(isEnabled ? 1 : 0.72))
             .background(
-                CompetitiveTrustTheme.actionCoral.opacity(
+                CompetitiveTrustTheme.signalOrange.opacity(
                     isEnabled ? 1 : 0.42
                 ),
-                in: Capsule()
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
             )
             .scaleEffect(
                 reduceMotion || !configuration.isPressed ? 1 : 0.98
@@ -287,14 +367,18 @@ struct TrustSecondaryButtonStyle: ButtonStyle {
             .frame(minHeight: 44)
             .padding(.horizontal, 18)
             .foregroundStyle(
-                CompetitiveTrustTheme.coralInk.opacity(isEnabled ? 1 : 0.45)
+                CompetitiveTrustTheme.primaryText.opacity(isEnabled ? 1 : 0.45)
             )
             .background(
-                CompetitiveTrustTheme.coralTint.opacity(
+                CompetitiveTrustTheme.card.opacity(
                     configuration.isPressed ? 0.72 : 1
                 ),
-                in: Capsule()
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
             )
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
+            }
             .scaleEffect(
                 reduceMotion || !configuration.isPressed ? 1 : 0.98
             )
@@ -325,7 +409,7 @@ struct SunPillButtonStyle: ButtonStyle {
             .frame(minHeight: 44)
             .background(
                 CompetitiveTrustTheme.sun.opacity(isEnabled ? 1 : 0.45),
-                in: Capsule()
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
             )
             .scaleEffect(
                 reduceMotion || !configuration.isPressed ? 1 : 0.98
@@ -367,8 +451,14 @@ struct TrustCompactButtonStyle: ButtonStyle {
                         ? (configuration.isPressed ? 0.72 : 1)
                         : 0.5
                 ),
-                in: Capsule()
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
             )
+            .overlay {
+                if tone == .secondary || tone == .quiet {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
+                }
+            }
             .scaleEffect(
                 reduceMotion || !configuration.isPressed ? 1 : 0.97
             )
@@ -381,9 +471,9 @@ struct TrustCompactButtonStyle: ButtonStyle {
     private var foreground: Color {
         switch tone {
         case .primary:
-            .white
+            .black
         case .secondary:
-            CompetitiveTrustTheme.coralInk
+            CompetitiveTrustTheme.signalOrange
         case .quiet:
             CompetitiveTrustTheme.secondaryText
         }
@@ -392,11 +482,11 @@ struct TrustCompactButtonStyle: ButtonStyle {
     private var background: Color {
         switch tone {
         case .primary:
-            CompetitiveTrustTheme.actionCoral
+            CompetitiveTrustTheme.signalOrange
         case .secondary:
             CompetitiveTrustTheme.coralTint
         case .quiet:
-            CompetitiveTrustTheme.primaryText.opacity(0.055)
+            CompetitiveTrustTheme.card
         }
     }
 }
@@ -404,7 +494,7 @@ struct TrustCompactButtonStyle: ButtonStyle {
 struct InitialsAvatar: View {
     let initials: String
     var size: CGFloat = 44
-    var color: Color = CompetitiveTrustTheme.coral
+    var color: Color = CompetitiveTrustTheme.signalOrange
     var muted = false
 
     var body: some View {
@@ -448,7 +538,7 @@ struct TrustStatusPill: View {
         case .neutral:
             CompetitiveTrustTheme.secondaryText
         case .live:
-            CompetitiveTrustTheme.actionCoral
+            CompetitiveTrustTheme.signalOrange
         case .pledge:
             CompetitiveTrustTheme.sunInk
         }
@@ -457,11 +547,11 @@ struct TrustStatusPill: View {
     private var background: Color {
         switch kind {
         case .verified, .positive:
-            CompetitiveTrustTheme.mint.opacity(0.12)
+            CompetitiveTrustTheme.athleticGreen.opacity(0.12)
         case .action:
             CompetitiveTrustTheme.coralTint
         case .neutral:
-            CompetitiveTrustTheme.primaryText.opacity(0.06)
+            CompetitiveTrustTheme.card
         case .live:
             .clear
         case .pledge:
@@ -473,7 +563,7 @@ struct TrustStatusPill: View {
         HStack(spacing: 6) {
             if kind == .live {
                 Circle()
-                    .fill(CompetitiveTrustTheme.coral)
+                    .fill(CompetitiveTrustTheme.signalOrange)
                     .frame(width: 8, height: 8)
                     .opacity(liveDotIsDimmed ? 0.35 : 1)
             }
@@ -490,9 +580,18 @@ struct TrustStatusPill: View {
         )
         .tracking(kind == .live ? 0.7 : 0)
         .foregroundStyle(color)
-        .padding(.horizontal, kind == .live ? 0 : 10)
-        .padding(.vertical, kind == .live ? 0 : 5)
-        .background(background, in: Capsule())
+        .padding(.horizontal, kind == .live ? 0 : 8)
+        .padding(.vertical, kind == .live ? 0 : 4)
+        .background(
+            background,
+            in: RoundedRectangle(cornerRadius: 4, style: .continuous)
+        )
+        .overlay {
+            if kind != .live {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
+            }
+        }
         .onAppear {
             guard kind == .live, !reduceMotion else { return }
             withAnimation(
@@ -553,7 +652,7 @@ struct EnvironmentDisclosureBanner: View {
         .padding(.vertical, 7)
         .background(
             isDemo
-                ? CompetitiveTrustTheme.actionCoral
+                ? CompetitiveTrustTheme.signalOrange
                 : CompetitiveTrustTheme.sun
         )
         .accessibilityElement(children: .ignore)
@@ -586,7 +685,7 @@ struct DaybreakAsyncStatus: View {
                 .tint(
                     onDarkSurface
                         ? CompetitiveTrustTheme.inverseSecondaryText
-                        : CompetitiveTrustTheme.actionCoral
+                        : CompetitiveTrustTheme.signalOrange
                 )
             Text(message)
                 .font(

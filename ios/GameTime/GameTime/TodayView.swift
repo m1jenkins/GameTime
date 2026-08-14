@@ -8,7 +8,6 @@ struct TodayView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                header
                 loadState
                 PendingPersonalCancellationRecoveryCard(
                     contactSupport: { router.openAccountSupport() }
@@ -16,9 +15,7 @@ struct TodayView: View {
 
                 if let challenge = store.openChallenge {
                     currentChallenge(challenge)
-                } else if
-                    store.hasVerifiedCreationState
-                {
+                } else if store.hasVerifiedCreationState {
                     createCard
                 }
             }
@@ -34,41 +31,15 @@ struct TodayView: View {
         }
     }
 
-    private var header: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(Date.now.formatted(.dateTime.weekday(.wide)))
-                    .font(
-                        CompetitiveTrustTheme.displayFont(
-                            size: 26,
-                            relativeTo: .title2
-                        )
-                    )
-                Text(Date.now.formatted(.dateTime.month(.wide).day()))
-                    .font(
-                        CompetitiveTrustTheme.uiFont(
-                            size: 13,
-                            relativeTo: .subheadline,
-                            weight: .semibold
-                        )
-                    )
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 6)
-    }
-
     @ViewBuilder
     private var loadState: some View {
         switch store.loadState {
         case .loading, .failed:
-            DaybreakCard {
-                InlineLoadStateView(
-                    state: store.loadState,
-                    retry: { Task { await refreshWithAnnouncement() } }
-                )
-            }
+            InlineLoadStateView(
+                state: store.loadState,
+                retry: { Task { await refreshWithAnnouncement() } }
+            )
+            .trustCard()
         case .idle, .loaded, .empty:
             EmptyView()
         }
@@ -89,82 +60,130 @@ struct TodayView: View {
                 && store.stepProgress.lastUploadError != nil,
             now: now
         )
+        let paceSummary: PersonalPaceSummary? = {
+            if let progress {
+                return PersonalPaceSummary(
+                    terms: summary.terms,
+                    progress: progress
+                )
+            }
+            return nil
+        }()
 
         return VStack(spacing: 12) {
-            DaybreakSectionLabel(text: "Your week")
-            DaybreakCard(tone: .inverse) {
-                VStack(alignment: .leading, spacing: 15) {
-                    if dynamicTypeSize.isAccessibilitySize {
-                        VStack(alignment: .leading, spacing: 8) {
-                            PersonalStatusPill(
-                                status: status,
-                                outcome: summary.outcome?.kind
+            // Hero Performance Block & Stakes/Sync HUD
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(alignment: .center) {
+                    PersonalStatusPill(
+                        status: status,
+                        outcome: summary.outcome?.kind
+                    )
+                    Spacer(minLength: 8)
+                    Text(summary.terms.commitmentText)
+                        .font(
+                            CompetitiveTrustTheme.displayFont(
+                                size: 20,
+                                relativeTo: .headline
                             )
-                            Text(summary.terms.commitmentText)
+                        )
+                        .foregroundStyle(CompetitiveTrustTheme.signalOrange)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    if let progress {
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text(progress.totalSteps.formatted())
                                 .font(
-                                    CompetitiveTrustTheme.displayFont(
-                                        size: 22,
-                                        relativeTo: .headline
+                                    CompetitiveTrustTheme.tabularFont(
+                                        size: dynamicTypeSize.isAccessibilitySize
+                                            ? 30
+                                            : 40,
+                                        weight: .bold
                                     )
+                                )
+                                .tracking(-0.8)
+                            Text("/ \(summary.terms.targetSteps.formatted()) steps")
+                                .font(
+                                    CompetitiveTrustTheme.tabularFont(
+                                        size: 16,
+                                        weight: .bold
+                                    )
+                                )
+                                .foregroundStyle(
+                                    CompetitiveTrustTheme.secondaryText
                                 )
                         }
                     } else {
-                        HStack {
-                            PersonalStatusPill(
-                                status: status,
-                                outcome: summary.outcome?.kind
+                        Text(summary.terms.targetText)
+                            .font(
+                                CompetitiveTrustTheme.tabularFont(
+                                    size: dynamicTypeSize.isAccessibilitySize
+                                        ? 20
+                                        : 28,
+                                    weight: .bold
+                                )
                             )
-                            Spacer(minLength: 8)
-                            Text(summary.terms.commitmentText)
+                            .tracking(-0.7)
+                    }
+
+                    if let paceSummary {
+                        HStack(spacing: 6) {
+                            Text(paceSummary.headline)
                                 .font(
-                                    CompetitiveTrustTheme.displayFont(
-                                        size: 22,
-                                        relativeTo: .headline
+                                    CompetitiveTrustTheme.tabularFont(
+                                        size: 14,
+                                        weight: .bold
                                     )
+                                )
+                                .foregroundStyle(
+                                    paceSummary.headlineTone == .positive
+                                        ? CompetitiveTrustTheme.athleticGreen
+                                        : CompetitiveTrustTheme.signalOrange
+                                )
+                            Text(paceSummary.headlineCaption)
+                                .font(
+                                    CompetitiveTrustTheme.uiFont(
+                                        size: 12.5,
+                                        relativeTo: .caption,
+                                        weight: .semibold
+                                    )
+                                )
+                                .foregroundStyle(
+                                    CompetitiveTrustTheme.secondaryText
                                 )
                         }
                     }
-                    Text(summary.terms.targetText)
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: dynamicTypeSize.isAccessibilitySize
-                                    ? 20
-                                    : 28,
-                                relativeTo: dynamicTypeSize.isAccessibilitySize
-                                    ? .headline
-                                    : .title
-                            )
-                        )
-                        .tracking(-0.7)
-                    if let progress {
-                        PersonalProgressBar(
-                            progress: progress,
-                            terms: summary.terms
-                        )
-                        .colorScheme(.dark)
-                    }
-                    PersonalHealthProgressStatus(
-                        presentation: healthPresentation,
-                        policy: summary.stepDataPolicy
+                }
+
+                if let progress {
+                    PersonalProgressBar(
+                        progress: progress,
+                        terms: summary.terms
                     )
                     .colorScheme(.dark)
-                    Button("See details") {
-                        router.todayPath.append(
-                            .personalChallenge(summary.id)
-                        )
-                    }
-                    .buttonStyle(TrustPrimaryButtonStyle())
-                    .accessibilityIdentifier("personal.today.open")
                 }
-            }
 
-            if let progress,
-                !progress.days.isEmpty
-            {
-                DaybreakSectionLabel(text: "Day by day")
-                DaybreakCard {
-                    PersonalSevenDayTimeline(days: progress.days)
+                Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
+
+                PersonalHealthProgressStatus(
+                    presentation: healthPresentation,
+                    policy: summary.stepDataPolicy
+                )
+                .colorScheme(.dark)
+
+                Button("See details") {
+                    router.todayPath.append(
+                        .personalChallenge(summary.id)
+                    )
                 }
+                .buttonStyle(TrustPrimaryButtonStyle())
+                .accessibilityIdentifier("personal.today.open")
+            }
+            .trustCard()
+
+            if let paceSummary {
+                PersonalPaceCard(summary: paceSummary)
+                PersonalPaceTiles(tiles: paceSummary.tiles)
             }
         }
         .task(id: summary.id) {
@@ -173,22 +192,21 @@ struct TodayView: View {
     }
 
     private var createCard: some View {
-        DaybreakCard {
-            VStack(alignment: .leading, spacing: 15) {
-                EmptyTrustState(
-                    title: "Make this week count",
-                    message:
-                        "Pick one step goal and stick to it for seven days. Your challenge starts at the next midnight in your saved time zone.",
-                    systemImage: "figure.walk"
-                )
-                Button("Start a challenge") {
-                    router.presentedSheet = .createPersonalChallenge
-                }
-                .buttonStyle(TrustPrimaryButtonStyle())
-                .disabled(!store.canCreate)
-                .accessibilityIdentifier("personal.create")
+        VStack(alignment: .leading, spacing: 15) {
+            EmptyTrustState(
+                title: "Make this week count",
+                message:
+                    "Pick one step goal and stick to it for seven days. Your challenge starts at the next midnight in your saved time zone.",
+                systemImage: "figure.walk"
+            )
+            Button("Start a challenge") {
+                router.presentedSheet = .createPersonalChallenge
             }
+            .buttonStyle(TrustPrimaryButtonStyle())
+            .disabled(!store.canCreate)
+            .accessibilityIdentifier("personal.create")
         }
+        .trustCard()
     }
 
     private func refreshWithAnnouncement() async {
