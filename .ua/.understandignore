@@ -1,0 +1,137 @@
+# .understandignore — patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+# Lines below are suggestions — uncomment to activate.
+# Use ! prefix to force-include something excluded by defaults.
+#
+# Built-in defaults (always excluded unless negated):
+#   node_modules/, .git/, dist/, build/, obj/, *.lock, *.min.js, etc.
+#
+
+# --- From .gitignore (uncomment to exclude) ---
+
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.p8
+*.p12
+ios/GameTime/Configuration/Secrets.xcconfig
+ios/GameTime/Configuration/LocalOverrides.xcconfig
+supabase/.env
+supabase/signing_keys.json
+supabase/.branches/
+supabase/.temp/
+supabase/.gitignore
+.deno/
+deno.lock.tmp
+.build/
+.swiftpm/
+DerivedData/
+*.xcresult
+*.xcarchive
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+.netrc
+.DS_Store
+*.swp
+/tmp/
+docs/design/challenge-page-concepts/
+
+# --- Detected directories (uncomment to exclude) ---
+# Keep product docs and scripts in the graph.
+
+# docs/
+# scripts/
+
+# --- Test file patterns (uncomment to exclude) ---
+# Product tests stay in the graph (GameTimeTests, GameTimeUITests,
+# supabase/tests, supabase function *.test.ts).
+
+# JS / TS
+# *.test.*
+# *.spec.*
+# *.snap
+# C# / .NET
+# **/*Tests.cs
+# **/*Test.cs
+# **/*Fixture.cs
+# **/*.Tests.csproj
+# Java / Kotlin
+# **/src/test/**
+# **/*Test.java
+# **/*IT.java
+# **/*Spec.kt
+# Go
+# **/*_test.go
+# C++
+# **/*_test.cc
+# **/*_test.cpp
+# **/*_test.cxx
+# **/*Test.cc
+# **/*Test.cpp
+# **/*_unittest.cc
+# **/*_unittest.cpp
+# **/*_browsertest.cc
+# **/*_benchmark.cc
+# **/*Benchmark.cpp
+# Python
+# **/test_*.py
+# **/*_test.py
+# **/tests.py
+# **/conftest.py
+# Rust
+# **/tests.rs
+# **/test_*.rs
+# **/*_test.rs
+# **/bench_*.rs
+# **/*_bench.rs
+# Ruby
+# **/*_spec.rb
+# **/*_test.rb
+# **/test_*.rb
+# **/spec_helper.rb
+# **/test_helper.rb
+# **/rails_helper.rb
+# Swift
+# **/Tests/**/*.swift
+# **/Specs/**/*.swift
+
+# --- Understand-Anything / agent skill copies (not product source) ---
+.agents/
+.impeccable/
+.ua/
+.ua/tmp/
+.ua/intermediate/
+.ua/.trash-*/
+.xcodebuildmcp/
+
+# --- Xcode / Swift compiler artifacts that leaked into the last scan ---
+# Tracked compiler caches (not gitignored): ios/GameTime/cache and
+# .agents/*/ModuleCache, plus local SPM/Xcode output dirs.
+ios/GameTime/cache/
+ios/GameTime/DerivedData/
+ios/GameTime/SourcePackages/
+ios/GameTime/.tmp/
+ios/GameTimeCore/.build/
+**/ModuleCache/
+**/clang-cache/
+*.pcm
+*.swiftmodule
+*.swiftdoc
+*.swiftsourceinfo
+*.abi.json
+**/DerivedData/**
+**/*.xcodeproj/xcuserdata/
+**/*.xcworkspace/xcuserdata/
+**/xcuserdata/
+
+# Common junk
+node_modules/
+.DS_Store
+*.o
+*.d

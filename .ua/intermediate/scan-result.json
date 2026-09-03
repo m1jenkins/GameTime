@@ -1,0 +1,3139 @@
+{
+  "name": "GameTime",
+  "description": "GameTime is a personal accountability iOS app: one person commits to a seven-day steps goal and a test commitment, the client reads Apple Health merged step totals, and authenticated daily snapshots are scored on a Supabase backend. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
+  "languages": [
+    "html",
+    "json",
+    "markdown",
+    "python",
+    "shell",
+    "sql",
+    "swift",
+    "toml",
+    "typescript",
+    "xml",
+    "yaml"
+  ],
+  "frameworks": [
+    "GitHub Actions",
+    "Stripe",
+    "Supabase",
+    "SwiftUI"
+  ],
+  "files": [
+    {
+      "path": ".env.example",
+      "language": "config",
+      "sizeLines": 60,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".env.m6-5-staging.example",
+      "language": "config",
+      "sizeLines": 30,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".gitattributes",
+      "language": "unknown",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": "yaml",
+      "sizeLines": 160,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".mcp.json",
+      "language": "json",
+      "sizeLines": 8,
+      "fileCategory": "config"
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "sizeLines": 41,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "DECISIONS.md",
+      "language": "markdown",
+      "sizeLines": 4323,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "PLAN.md",
+      "language": "markdown",
+      "sizeLines": 502,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 754,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/BETA_HANDOFF.md",
+      "language": "markdown",
+      "sizeLines": 378,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/BETA_IMPLEMENTATION_PROMPTS.md",
+      "language": "markdown",
+      "sizeLines": 642,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/BETA_LAUNCH_AUDIT.md",
+      "language": "markdown",
+      "sizeLines": 416,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/BETA_PLAN_4_HOSTED_ROLLOUT_PACKET.md",
+      "language": "markdown",
+      "sizeLines": 1093,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/BETA_PRODUCT_DESIGN_AUDIT.md",
+      "language": "markdown",
+      "sizeLines": 553,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/COPY.md",
+      "language": "markdown",
+      "sizeLines": 222,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/M6_5_DEVICE_CONFORMANCE.md",
+      "language": "markdown",
+      "sizeLines": 366,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/M8_1_STAGING_ACCEPTANCE.md",
+      "language": "markdown",
+      "sizeLines": 130,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md",
+      "language": "markdown",
+      "sizeLines": 299,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/PERSONAL_V1_ACCEPTANCE.md",
+      "language": "markdown",
+      "sizeLines": 452,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/PRIVACY_POLICY.md",
+      "language": "markdown",
+      "sizeLines": 177,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/archive/2026-07-30_IMPLEMENTATION_PLAN.md",
+      "language": "markdown",
+      "sizeLines": 559,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md",
+      "language": "markdown",
+      "sizeLines": 430,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/archive/2026-07-30_M7_ACCOUNT_DELETION_RETENTION.md",
+      "language": "markdown",
+      "sizeLines": 273,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/archive/2026-07-30_M8_1_STAGING_ACCEPTANCE.md",
+      "language": "markdown",
+      "sizeLines": 338,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/archive/2026-07-31_CHARITY_PLEDGE_DONATION_IMPLEMENTATION_PLAN.md",
+      "language": "markdown",
+      "sizeLines": 928,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/archive/2026-08-03_DORMANT_SUBSYSTEMS.md",
+      "language": "markdown",
+      "sizeLines": 525,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/design/CHALLENGE_SCREEN_DAYMARK.md",
+      "language": "markdown",
+      "sizeLines": 52,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/design/CHALLENGE_SCREEN_IMAGE_PROMPTS.md",
+      "language": "markdown",
+      "sizeLines": 187,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/design/CHALLENGE_SCREEN_PACE_TAPE.md",
+      "language": "markdown",
+      "sizeLines": 55,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/design/CHALLENGE_SCREEN_REDESIGN.md",
+      "language": "markdown",
+      "sizeLines": 224,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/HANDOFF.md",
+      "language": "markdown",
+      "sizeLines": 89,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/README.md",
+      "language": "markdown",
+      "sizeLines": 94,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/a-position-today.html",
+      "language": "html",
+      "sizeLines": 64,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/a-position-week.html",
+      "language": "html",
+      "sizeLines": 54,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/a2-glass-today.html",
+      "language": "html",
+      "sizeLines": 89,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/a2-glass-week-ahead.html",
+      "language": "html",
+      "sizeLines": 82,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/a2-glass-week-behind.html",
+      "language": "html",
+      "sizeLines": 82,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/a3-commit.html",
+      "language": "html",
+      "sizeLines": 56,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/a3-result-lost.html",
+      "language": "html",
+      "sizeLines": 80,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/a3-result-won.html",
+      "language": "html",
+      "sizeLines": 80,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/a3-you.html",
+      "language": "html",
+      "sizeLines": 66,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/b-traininglog-today.html",
+      "language": "html",
+      "sizeLines": 67,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/b-traininglog-week.html",
+      "language": "html",
+      "sizeLines": 41,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/better-bet-all-screens.html",
+      "language": "html",
+      "sizeLines": 570,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/c-nightsplits-today.html",
+      "language": "html",
+      "sizeLines": 49,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/c-nightsplits-week.html",
+      "language": "html",
+      "sizeLines": 78,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/gen.py",
+      "language": "python",
+      "sizeLines": 328,
+      "fileCategory": "code"
+    },
+    {
+      "path": "docs/design/better-bet-mockups/sheet.html",
+      "language": "html",
+      "sizeLines": 3,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/gametime-pace-tape.html",
+      "language": "html",
+      "sizeLines": 1360,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/design/gametime-screen-atlas.html",
+      "language": "html",
+      "sizeLines": 2077,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "ios/GameTime/Configuration/AppInfo.plist",
+      "language": "xml",
+      "sizeLines": 77,
+      "fileCategory": "config"
+    },
+    {
+      "path": "ios/GameTime/Configuration/Debug.xcconfig",
+      "language": "xcconfig",
+      "sizeLines": 11,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/Configuration/PublicClient.xcconfig",
+      "language": "xcconfig",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/Configuration/Release.xcconfig",
+      "language": "xcconfig",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/Configuration/Staging.xcconfig",
+      "language": "xcconfig",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/Configuration/StagingAppInfo.plist",
+      "language": "xml",
+      "sizeLines": 77,
+      "fileCategory": "config"
+    },
+    {
+      "path": "ios/GameTime/GameTime.xcodeproj/project.pbxproj",
+      "language": "pbxproj",
+      "sizeLines": 1026,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
+      "language": "resolved",
+      "sizeLines": 78,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes/GameTime-Staging.xcscheme",
+      "language": "xcscheme",
+      "sizeLines": 78,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes/GameTime.xcscheme",
+      "language": "xcscheme",
+      "sizeLines": 129,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes/GameTimeWatch.xcscheme",
+      "language": "xcscheme",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ActivitySyncCoordinator.swift",
+      "language": "swift",
+      "sizeLines": 738,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppClients.swift",
+      "language": "swift",
+      "sizeLines": 227,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppConfiguration.swift",
+      "language": "swift",
+      "sizeLines": 432,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppModel.swift",
+      "language": "swift",
+      "sizeLines": 1257,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppRouter.swift",
+      "language": "swift",
+      "sizeLines": 79,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppShellView.swift",
+      "language": "swift",
+      "sizeLines": 115,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppleSignIn.swift",
+      "language": "swift",
+      "sizeLines": 247,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/Assets.xcassets/AppIcon.appiconset/Contents.json",
+      "language": "json",
+      "sizeLines": 14,
+      "fileCategory": "config"
+    },
+    {
+      "path": "ios/GameTime/GameTime/Assets.xcassets/Contents.json",
+      "language": "json",
+      "sizeLines": 6,
+      "fileCategory": "config"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeVisualComponents.swift",
+      "language": "swift",
+      "sizeLines": 623,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengesView.swift",
+      "language": "swift",
+      "sizeLines": 179,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/CompetitiveTrustTheme.swift",
+      "language": "swift",
+      "sizeLines": 715,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DemoMode.swift",
+      "language": "swift",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DomainModels.swift",
+      "language": "swift",
+      "sizeLines": 797,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/FeatureComponents.swift",
+      "language": "swift",
+      "sizeLines": 290,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/FixtureClients.swift",
+      "language": "swift",
+      "sizeLines": 2013,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/GameTime.entitlements",
+      "language": "entitlements",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/GameTimeApp.swift",
+      "language": "swift",
+      "sizeLines": 820,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/GameTimeStaging.entitlements",
+      "language": "entitlements",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/HealthKitActivityClient.swift",
+      "language": "swift",
+      "sizeLines": 619,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/LaunchingView.swift",
+      "language": "swift",
+      "sizeLines": 207,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/LocalStepProgress.swift",
+      "language": "swift",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingChallengeStore.swift",
+      "language": "swift",
+      "sizeLines": 637,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingMetricUploadStore.swift",
+      "language": "swift",
+      "sizeLines": 295,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingPersonalCancellationStore.swift",
+      "language": "swift",
+      "sizeLines": 365,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingPersonalChallengeStore.swift",
+      "language": "swift",
+      "sizeLines": 381,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalAccountabilityClient.swift",
+      "language": "swift",
+      "sizeLines": 233,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalAccountabilityComponents.swift",
+      "language": "swift",
+      "sizeLines": 769,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalAccountabilityModels.swift",
+      "language": "swift",
+      "sizeLines": 1066,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalAccountabilityStore.swift",
+      "language": "swift",
+      "sizeLines": 1442,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalActivityClients.swift",
+      "language": "swift",
+      "sizeLines": 348,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalChallengeDetailView.swift",
+      "language": "swift",
+      "sizeLines": 388,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalChallengeFlow.swift",
+      "language": "swift",
+      "sizeLines": 1440,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalChallengeReceiptPresentation.swift",
+      "language": "swift",
+      "sizeLines": 337,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalHealthBackgroundDelivery.swift",
+      "language": "swift",
+      "sizeLines": 136,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalHealthSnapshotUploader.swift",
+      "language": "swift",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalHealthStepReader.swift",
+      "language": "swift",
+      "sizeLines": 273,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalPaceComponents.swift",
+      "language": "swift",
+      "sizeLines": 1026,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalPaymentClient.swift",
+      "language": "swift",
+      "sizeLines": 160,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalPaymentStatusCard.swift",
+      "language": "swift",
+      "sizeLines": 466,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalResultPresentation.swift",
+      "language": "swift",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalStepProgressStore.swift",
+      "language": "swift",
+      "sizeLines": 340,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalStepSnapshot.swift",
+      "language": "swift",
+      "sizeLines": 451,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalStepSnapshotCache.swift",
+      "language": "swift",
+      "sizeLines": 235,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalSyncCoverage.swift",
+      "language": "swift",
+      "sizeLines": 931,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PhoneWatchConnectivityCoordinator.swift",
+      "language": "swift",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PrivacyInfo.xcprivacy",
+      "language": "xcprivacy",
+      "sizeLines": 84,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PushNotifications.swift",
+      "language": "swift",
+      "sizeLines": 180,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/Resources/Fonts/BricolageGrotesque-OFL.txt",
+      "language": "txt",
+      "sizeLines": 93,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "ios/GameTime/GameTime/Resources/Fonts/HankenGrotesk-OFL.txt",
+      "language": "txt",
+      "sizeLines": 94,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "ios/GameTime/GameTime/StagingAcceptanceDiagnostics.swift",
+      "language": "swift",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabaseClients.swift",
+      "language": "swift",
+      "sizeLines": 908,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabaseMetricUploadClient.swift",
+      "language": "swift",
+      "sizeLines": 1404,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabasePersonalAccountabilityClient.swift",
+      "language": "swift",
+      "sizeLines": 562,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabasePersonalPaymentClient.swift",
+      "language": "swift",
+      "sizeLines": 500,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/TodayView.swift",
+      "language": "swift",
+      "sizeLines": 219,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTime/YouView.swift",
+      "language": "swift",
+      "sizeLines": 769,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ActivitySyncCoordinatorTests.swift",
+      "language": "swift",
+      "sizeLines": 1237,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/AppModelAndRoutingTests.swift",
+      "language": "swift",
+      "sizeLines": 1396,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/CompetitiveTrustThemeAdversarialTests.swift",
+      "language": "swift",
+      "sizeLines": 191,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/DomainAndConfigurationTests.swift",
+      "language": "swift",
+      "sizeLines": 750,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/GameTimeWatchContextTests.swift",
+      "language": "swift",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/HealthKitActivityClientTests.swift",
+      "language": "swift",
+      "sizeLines": 235,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PendingChallengeStoreTests.swift",
+      "language": "swift",
+      "sizeLines": 355,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PendingMetricUploadStoreTests.swift",
+      "language": "swift",
+      "sizeLines": 185,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PersonalAccountabilityTests.swift",
+      "language": "swift",
+      "sizeLines": 4393,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PersonalChallengeReceiptPresentationTests.swift",
+      "language": "swift",
+      "sizeLines": 235,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PersonalPaymentStatusStoreTests.swift",
+      "language": "swift",
+      "sizeLines": 804,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PersonalResultPresentationTests.swift",
+      "language": "swift",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PersonalStepProgressV2Tests.swift",
+      "language": "swift",
+      "sizeLines": 1079,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/SupabaseMetricUploadClientTests.swift",
+      "language": "swift",
+      "sizeLines": 2149,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/SupabasePersonalPaymentClientTests.swift",
+      "language": "swift",
+      "sizeLines": 451,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeUITests/GameTimeUITests.swift",
+      "language": "swift",
+      "sizeLines": 2499,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatch/Assets.xcassets/AccentColor.colorset/Contents.json",
+      "language": "json",
+      "sizeLines": 11,
+      "fileCategory": "config"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatch/Assets.xcassets/AppIcon.appiconset/Contents.json",
+      "language": "json",
+      "sizeLines": 13,
+      "fileCategory": "config"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatch/Assets.xcassets/Contents.json",
+      "language": "json",
+      "sizeLines": 6,
+      "fileCategory": "config"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatch/GameTimeWatchApp.swift",
+      "language": "swift",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatch/WatchConnectionModel.swift",
+      "language": "swift",
+      "sizeLines": 145,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatch/WatchConnectionView.swift",
+      "language": "swift",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatchShared/GameTimeWatchContext.swift",
+      "language": "swift",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTime/README.md",
+      "language": "markdown",
+      "sizeLines": 148,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance.xcodeproj/project.pbxproj",
+      "language": "pbxproj",
+      "sizeLines": 519,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance.xcodeproj/xcshareddata/xcschemes/GameTimeConformance.xcscheme",
+      "language": "xcscheme",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/AppAttestClient.swift",
+      "language": "swift",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/AssertionCounterDecoder.swift",
+      "language": "swift",
+      "sizeLines": 212,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/ConformanceHTTP.swift",
+      "language": "swift",
+      "sizeLines": 172,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/ConformanceModels.swift",
+      "language": "swift",
+      "sizeLines": 237,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/ConformanceRunner.swift",
+      "language": "swift",
+      "sizeLines": 533,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/ConformanceViewModel.swift",
+      "language": "swift",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/ContentView.swift",
+      "language": "swift",
+      "sizeLines": 209,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/GameTimeConformance.entitlements",
+      "language": "entitlements",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/GameTimeConformanceApp.swift",
+      "language": "swift",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformanceTests/AssertionCounterDecoderTests.swift",
+      "language": "swift",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformanceTests/ConformanceRequestTests.swift",
+      "language": "swift",
+      "sizeLines": 127,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformanceTests/ConformanceRunnerTests.swift",
+      "language": "swift",
+      "sizeLines": 297,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeConformance/README.md",
+      "language": "markdown",
+      "sizeLines": 136,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "ios/GameTimeCore/Package.swift",
+      "language": "swift",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "language": "swift",
+      "sizeLines": 154,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "language": "swift",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "language": "swift",
+      "sizeLines": 702,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "language": "swift",
+      "sizeLines": 144,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "language": "swift",
+      "sizeLines": 494,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "language": "swift",
+      "sizeLines": 178,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "language": "swift",
+      "sizeLines": 279,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift",
+      "language": "swift",
+      "sizeLines": 297,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/CheckInQueueTests.swift",
+      "language": "swift",
+      "sizeLines": 208,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/GeofenceCheckInTests.swift",
+      "language": "swift",
+      "sizeLines": 608,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/HarnessTests.swift",
+      "language": "swift",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/HourlyBucketerTests.swift",
+      "language": "swift",
+      "sizeLines": 676,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/IngestQueueTests.swift",
+      "language": "swift",
+      "sizeLines": 292,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/MetricIngestPayloadTests.swift",
+      "language": "swift",
+      "sizeLines": 277,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/MetricUploadQueueTests.swift",
+      "language": "swift",
+      "sizeLines": 382,
+      "fileCategory": "code"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/ProvenanceTests.swift",
+      "language": "swift",
+      "sizeLines": 161,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/check-beta-candidate.sh",
+      "language": "shell",
+      "sizeLines": 855,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/db-test.sh",
+      "language": "shell",
+      "sizeLines": 40,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/dev-up.sh",
+      "language": "shell",
+      "sizeLines": 28,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/m6-5-configure-staging.sh",
+      "language": "shell",
+      "sizeLines": 199,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/m6-5-install-staging-fixture.sh",
+      "language": "shell",
+      "sizeLines": 61,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/m6-5-staging-fixture.sql",
+      "language": "sql",
+      "sizeLines": 213,
+      "fileCategory": "data"
+    },
+    {
+      "path": "scripts/test-all.sh",
+      "language": "shell",
+      "sizeLines": 41,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/tests/check-beta-candidate.test.sh",
+      "language": "shell",
+      "sizeLines": 422,
+      "fileCategory": "script"
+    },
+    {
+      "path": "skills-lock.json",
+      "language": "json",
+      "sizeLines": 17,
+      "fileCategory": "config"
+    },
+    {
+      "path": "supabase/config.toml",
+      "language": "toml",
+      "sizeLines": 490,
+      "fileCategory": "config"
+    },
+    {
+      "path": "supabase/functions/_shared/appattest.test.ts",
+      "language": "typescript",
+      "sizeLines": 1082,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/appattest.ts",
+      "language": "typescript",
+      "sizeLines": 1112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/appattest_receipt.test.ts",
+      "language": "typescript",
+      "sizeLines": 415,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/appattest_receipt.ts",
+      "language": "typescript",
+      "sizeLines": 453,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/bytes.ts",
+      "language": "typescript",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/cbor.test.ts",
+      "language": "typescript",
+      "sizeLines": 230,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/cbor.ts",
+      "language": "typescript",
+      "sizeLines": 458,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/database.test.ts",
+      "language": "typescript",
+      "sizeLines": 766,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/database.ts",
+      "language": "typescript",
+      "sizeLines": 903,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/ecdsa_verify.test.ts",
+      "language": "typescript",
+      "sizeLines": 336,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/ecdsa_verify.ts",
+      "language": "typescript",
+      "sizeLines": 605,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/env.test.ts",
+      "language": "typescript",
+      "sizeLines": 404,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/env.ts",
+      "language": "typescript",
+      "sizeLines": 426,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/http.test.ts",
+      "language": "typescript",
+      "sizeLines": 114,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/http.ts",
+      "language": "typescript",
+      "sizeLines": 211,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/integrity.test.ts",
+      "language": "typescript",
+      "sizeLines": 846,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/integrity.ts",
+      "language": "typescript",
+      "sizeLines": 1395,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/integrity_assessment.test.ts",
+      "language": "typescript",
+      "sizeLines": 327,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/integrity_assessment.ts",
+      "language": "typescript",
+      "sizeLines": 1023,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/jwt.test.ts",
+      "language": "typescript",
+      "sizeLines": 358,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/jwt.ts",
+      "language": "typescript",
+      "sizeLines": 367,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/localdays.test.ts",
+      "language": "typescript",
+      "sizeLines": 145,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/localdays.ts",
+      "language": "typescript",
+      "sizeLines": 180,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/m6_integrity_fixtures.test.ts",
+      "language": "typescript",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/personal_stripe_contract.ts",
+      "language": "typescript",
+      "sizeLines": 147,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/pkijs_runtime.test.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/pkijs_runtime.ts",
+      "language": "typescript",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/scoring.test.ts",
+      "language": "typescript",
+      "sizeLines": 517,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/scoring.ts",
+      "language": "typescript",
+      "sizeLines": 918,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/scoring_fixtures.test.ts",
+      "language": "typescript",
+      "sizeLines": 151,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/service_rpc.ts",
+      "language": "typescript",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/stripe_sandbox.test.ts",
+      "language": "typescript",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_shared/stripe_sandbox.ts",
+      "language": "typescript",
+      "sizeLines": 78,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_test/appattest_fixtures.ts",
+      "language": "typescript",
+      "sizeLines": 358,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_test/appattest_receipt_fixtures.ts",
+      "language": "typescript",
+      "sizeLines": 391,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_test/apple_appattest_2026_vector.ts",
+      "language": "typescript",
+      "sizeLines": 58,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_test/m6_integrity_fixtures.ts",
+      "language": "typescript",
+      "sizeLines": 95,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_test/scoring_fixtures.ts",
+      "language": "typescript",
+      "sizeLines": 971,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/_test/tokens.ts",
+      "language": "typescript",
+      "sizeLines": 65,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/activity-diagnostic/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 201,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/activity-diagnostic/handler.ts",
+      "language": "typescript",
+      "sizeLines": 208,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/activity-diagnostic/index.ts",
+      "language": "typescript",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/attest-device/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 688,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/attest-device/handler.ts",
+      "language": "typescript",
+      "sizeLines": 322,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/attest-device/index.ts",
+      "language": "typescript",
+      "sizeLines": 67,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/delete-account/apple.ts",
+      "language": "typescript",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/delete-account/database.ts",
+      "language": "typescript",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/delete-account/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/delete-account/handler.ts",
+      "language": "typescript",
+      "sizeLines": 100,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/delete-account/index.ts",
+      "language": "typescript",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/delete-account/stripe.ts",
+      "language": "typescript",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/deliver-push/apns.test.ts",
+      "language": "typescript",
+      "sizeLines": 101,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/deliver-push/apns.ts",
+      "language": "typescript",
+      "sizeLines": 191,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/deliver-push/database.ts",
+      "language": "typescript",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/deliver-push/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 209,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/deliver-push/handler.ts",
+      "language": "typescript",
+      "sizeLines": 107,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/deliver-push/index.ts",
+      "language": "typescript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/deno.json",
+      "language": "json",
+      "sizeLines": 37,
+      "fileCategory": "config"
+    },
+    {
+      "path": "supabase/functions/ingest-checkin/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 740,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/ingest-checkin/handler.ts",
+      "language": "typescript",
+      "sizeLines": 411,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/ingest-checkin/index.ts",
+      "language": "typescript",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/ingest-metrics/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 566,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/ingest-metrics/handler.ts",
+      "language": "typescript",
+      "sizeLines": 317,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/ingest-metrics/index.ts",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-challenge-commit/database.test.ts",
+      "language": "typescript",
+      "sizeLines": 79,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-challenge-commit/database.ts",
+      "language": "typescript",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-challenge-commit/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 228,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-challenge-commit/handler.ts",
+      "language": "typescript",
+      "sizeLines": 167,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-challenge-commit/index.ts",
+      "language": "typescript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-payment-setup/database.ts",
+      "language": "typescript",
+      "sizeLines": 73,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-payment-setup/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 270,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-payment-setup/handler.ts",
+      "language": "typescript",
+      "sizeLines": 209,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-payment-setup/index.ts",
+      "language": "typescript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-payment-setup/stripe.ts",
+      "language": "typescript",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-charge/database.ts",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-charge/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 246,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-charge/handler.ts",
+      "language": "typescript",
+      "sizeLines": 187,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-charge/index.ts",
+      "language": "typescript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-charge/stripe.ts",
+      "language": "typescript",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-review/database.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-review/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 113,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-review/handler.ts",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-review/index.ts",
+      "language": "typescript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-webhook/database.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-webhook/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 196,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-webhook/handler.ts",
+      "language": "typescript",
+      "sizeLines": 133,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-webhook/index.ts",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-stripe-sandbox-webhook/stripe.ts",
+      "language": "typescript",
+      "sizeLines": 162,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-sync-coverage/handler.test.ts",
+      "language": "typescript",
+      "sizeLines": 183,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-sync-coverage/handler.ts",
+      "language": "typescript",
+      "sizeLines": 208,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/functions/personal-sync-coverage/index.ts",
+      "language": "typescript",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/migrations/20260724120000_extensions_and_conventions.sql",
+      "language": "sql",
+      "sizeLines": 66,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260724203000_identity_social_graph.sql",
+      "language": "sql",
+      "sizeLines": 810,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260724230000_contests_and_participants.sql",
+      "language": "sql",
+      "sizeLines": 1222,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260725140000_metric_snapshots_and_attested_ingest.sql",
+      "language": "sql",
+      "sizeLines": 1067,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260725190000_integrity_quarantine.sql",
+      "language": "sql",
+      "sizeLines": 437,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260725210000_source_reputation.sql",
+      "language": "sql",
+      "sizeLines": 81,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260725230000_timezone_change_consent.sql",
+      "language": "sql",
+      "sizeLines": 763,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260726010000_geofence_checkins.sql",
+      "language": "sql",
+      "sizeLines": 1130,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260726020000_review_durability_and_privileges.sql",
+      "language": "sql",
+      "sizeLines": 847,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260726030000_app_attest_conformance.sql",
+      "language": "sql",
+      "sizeLines": 160,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260726040000_notification_outbox_and_scheduler.sql",
+      "language": "sql",
+      "sizeLines": 485,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260726050000_app_attest_receipt_verification.sql",
+      "language": "sql",
+      "sizeLines": 189,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260726055000_account_deletion_notification_event.sql",
+      "language": "sql",
+      "sizeLines": 5,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260726060000_account_deletion_foundation.sql",
+      "language": "sql",
+      "sizeLines": 2860,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260726070000_raw_evidence_retention.sql",
+      "language": "sql",
+      "sizeLines": 1202,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260726230529_fix_raw_evidence_generated_column_guard.sql",
+      "language": "sql",
+      "sizeLines": 60,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260727004703_d77_evidence_access.sql",
+      "language": "sql",
+      "sizeLines": 447,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260727030649_m8_1_live_social_loop.sql",
+      "language": "sql",
+      "sizeLines": 369,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260728231601_m8_3c_standings_results_obligations.sql",
+      "language": "sql",
+      "sizeLines": 1558,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260730175310_m7_trusted_integrity_assessments.sql",
+      "language": "sql",
+      "sizeLines": 1042,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260730190723_m7_d76_quarantine_review_deadlines.sql",
+      "language": "sql",
+      "sizeLines": 1720,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260730195656_lead_loss_push_and_reactions.sql",
+      "language": "sql",
+      "sizeLines": 774,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260802165309_personal_v1_foundation_and_privacy.sql",
+      "language": "sql",
+      "sizeLines": 385,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260802165312_personal_v1_backend.sql",
+      "language": "sql",
+      "sizeLines": 3238,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260803001438_solo_contract_domain.sql",
+      "language": "sql",
+      "sizeLines": 862,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260803001455_solo_contract_rpc_boundary.sql",
+      "language": "sql",
+      "sizeLines": 1558,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260803014252_solo_fake_authorization_adapter.sql",
+      "language": "sql",
+      "sizeLines": 1137,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260803192500_personal_custom_start_time.sql",
+      "language": "sql",
+      "sizeLines": 306,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260805131357_personal_stripe_sandbox_foundation.sql",
+      "language": "sql",
+      "sizeLines": 2878,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260806143539_production_attestation_provenance.sql",
+      "language": "sql",
+      "sizeLines": 406,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260806144639_production_attestation_settlement_guards.sql",
+      "language": "sql",
+      "sizeLines": 207,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260806145058_production_diagnostic_provenance_audit.sql",
+      "language": "sql",
+      "sizeLines": 21,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260806145502_production_diagnostic_clearance_guard.sql",
+      "language": "sql",
+      "sizeLines": 56,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260806173723_personal_result_worker.sql",
+      "language": "sql",
+      "sizeLines": 845,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260807151320_personal_stripe_sandbox_beta_controls.sql",
+      "language": "sql",
+      "sizeLines": 1727,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260812154757_personal_health_snapshot_v2.sql",
+      "language": "sql",
+      "sizeLines": 2276,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260812183638_allow_test_only_active_challenge_cancellation.sql",
+      "language": "sql",
+      "sizeLines": 188,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260812193907_personal_start_now.sql",
+      "language": "sql",
+      "sizeLines": 847,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260812194559_account_deletion_provider_lookup.sql",
+      "language": "sql",
+      "sizeLines": 49,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/migrations/20260813202709_allow_stripe_sandbox_active_challenge_cancellation.sql",
+      "language": "sql",
+      "sizeLines": 257,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/seed.sql",
+      "language": "sql",
+      "sizeLines": 303,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/staging-project-ref",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/tests/000_harness.test.sql",
+      "language": "sql",
+      "sizeLines": 53,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/010_identity.test.sql",
+      "language": "sql",
+      "sizeLines": 360,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/020_friendships.test.sql",
+      "language": "sql",
+      "sizeLines": 331,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/030_groups.test.sql",
+      "language": "sql",
+      "sizeLines": 420,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/040_blocks.test.sql",
+      "language": "sql",
+      "sizeLines": 307,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/050_charities.test.sql",
+      "language": "sql",
+      "sizeLines": 179,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/060_contests.test.sql",
+      "language": "sql",
+      "sizeLines": 610,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/070_invitations.test.sql",
+      "language": "sql",
+      "sizeLines": 373,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/080_participant_lifecycle.test.sql",
+      "language": "sql",
+      "sizeLines": 505,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/090_device_attestations.test.sql",
+      "language": "sql",
+      "sizeLines": 586,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/100_metric_snapshots.test.sql",
+      "language": "sql",
+      "sizeLines": 466,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/110_attested_ingest.test.sql",
+      "language": "sql",
+      "sizeLines": 673,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/120_integrity_quarantine.test.sql",
+      "language": "sql",
+      "sizeLines": 412,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/130_source_reputation.test.sql",
+      "language": "sql",
+      "sizeLines": 340,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/140_timezone_change_consent.test.sql",
+      "language": "sql",
+      "sizeLines": 956,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/150_geofence_checkins.test.sql",
+      "language": "sql",
+      "sizeLines": 919,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/160_notification_outbox_scheduler.test.sql",
+      "language": "sql",
+      "sizeLines": 789,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/170_account_deletion.test.sql",
+      "language": "sql",
+      "sizeLines": 1911,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/171_account_deletion_provider_lookup.test.sql",
+      "language": "sql",
+      "sizeLines": 98,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/180_d77_evidence_access.test.sql",
+      "language": "sql",
+      "sizeLines": 836,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/190_m8_1_live_social_loop.test.sql",
+      "language": "sql",
+      "sizeLines": 978,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/210_m8_3c_standings_results_obligations.test.sql",
+      "language": "sql",
+      "sizeLines": 1084,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/220_account_deletion_concurrency.test.sql",
+      "language": "sql",
+      "sizeLines": 1607,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/230_m7_trusted_integrity_assessments.test.sql",
+      "language": "sql",
+      "sizeLines": 1437,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/240_m7_integrity_assessment_concurrency.test.sql",
+      "language": "sql",
+      "sizeLines": 470,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/250_m7_d76_quarantine_deadlines.test.sql",
+      "language": "sql",
+      "sizeLines": 1495,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/260_m7_d76_concurrency.test.sql",
+      "language": "sql",
+      "sizeLines": 1351,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/270_lead_loss_push_reactions.test.sql",
+      "language": "sql",
+      "sizeLines": 750,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/280_personal_v1_foundation_privacy.test.sql",
+      "language": "sql",
+      "sizeLines": 568,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/290_personal_v1_lifecycle_scoring.test.sql",
+      "language": "sql",
+      "sizeLines": 793,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/300_personal_v1_acceptance_matrix.test.sql",
+      "language": "sql",
+      "sizeLines": 465,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/310_personal_v1_creation_concurrency.test.sql",
+      "language": "sql",
+      "sizeLines": 367,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/320_personal_v1_evidence_retention_isolation.test.sql",
+      "language": "sql",
+      "sizeLines": 884,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/330_solo_contract_domain.test.sql",
+      "language": "sql",
+      "sizeLines": 1015,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/340_solo_contract_lifecycle_appeals.test.sql",
+      "language": "sql",
+      "sizeLines": 1664,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/350_solo_contract_concurrency.test.sql",
+      "language": "sql",
+      "sizeLines": 993,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/360_solo_fake_authorization_domain.test.sql",
+      "language": "sql",
+      "sizeLines": 1844,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/370_solo_fake_authorization_lifecycle.test.sql",
+      "language": "sql",
+      "sizeLines": 1235,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/380_solo_fake_authorization_concurrency.test.sql",
+      "language": "sql",
+      "sizeLines": 1352,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/390_personal_custom_start_time.test.sql",
+      "language": "sql",
+      "sizeLines": 358,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/400_personal_stripe_sandbox_domain.test.sql",
+      "language": "sql",
+      "sizeLines": 445,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/410_personal_stripe_sandbox_lifecycle.test.sql",
+      "language": "sql",
+      "sizeLines": 949,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/411_personal_stripe_sandbox_beta_controls.test.sql",
+      "language": "sql",
+      "sizeLines": 1476,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/412_personal_stripe_sandbox_beta_controls_concurrency.test.sql",
+      "language": "sql",
+      "sizeLines": 1074,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/420_production_attestation_provenance.test.sql",
+      "language": "sql",
+      "sizeLines": 935,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/430_personal_result_worker.test.sql",
+      "language": "sql",
+      "sizeLines": 754,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/431_personal_result_worker_concurrency.test.sql",
+      "language": "sql",
+      "sizeLines": 427,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/440_personal_health_snapshot_v2.test.sql",
+      "language": "sql",
+      "sizeLines": 1033,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/441_personal_health_snapshot_v2_concurrency.test.sql",
+      "language": "sql",
+      "sizeLines": 624,
+      "fileCategory": "data"
+    },
+    {
+      "path": "supabase/tests/450_personal_sandbox_active_cancellation.test.sql",
+      "language": "sql",
+      "sizeLines": 474,
+      "fileCategory": "data"
+    }
+  ],
+  "totalFiles": 367,
+  "filteredByIgnore": 853,
+  "estimatedComplexity": "large",
+  "importMap": {
+    ".env.example": [],
+    ".env.m6-5-staging.example": [],
+    ".gitattributes": [],
+    ".github/workflows/ci.yml": [],
+    ".mcp.json": [],
+    "CLAUDE.md": [],
+    "DECISIONS.md": [],
+    "PLAN.md": [],
+    "README.md": [],
+    "docs/BETA_HANDOFF.md": [],
+    "docs/BETA_IMPLEMENTATION_PROMPTS.md": [],
+    "docs/BETA_LAUNCH_AUDIT.md": [],
+    "docs/BETA_PLAN_4_HOSTED_ROLLOUT_PACKET.md": [],
+    "docs/BETA_PRODUCT_DESIGN_AUDIT.md": [],
+    "docs/COPY.md": [],
+    "docs/M6_5_DEVICE_CONFORMANCE.md": [],
+    "docs/M8_1_STAGING_ACCEPTANCE.md": [],
+    "docs/PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md": [],
+    "docs/PERSONAL_V1_ACCEPTANCE.md": [],
+    "docs/PRIVACY_POLICY.md": [],
+    "docs/archive/2026-07-30_IMPLEMENTATION_PLAN.md": [],
+    "docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md": [],
+    "docs/archive/2026-07-30_M7_ACCOUNT_DELETION_RETENTION.md": [],
+    "docs/archive/2026-07-30_M8_1_STAGING_ACCEPTANCE.md": [],
+    "docs/archive/2026-07-31_CHARITY_PLEDGE_DONATION_IMPLEMENTATION_PLAN.md": [],
+    "docs/archive/2026-08-03_DORMANT_SUBSYSTEMS.md": [],
+    "docs/design/CHALLENGE_SCREEN_DAYMARK.md": [],
+    "docs/design/CHALLENGE_SCREEN_IMAGE_PROMPTS.md": [],
+    "docs/design/CHALLENGE_SCREEN_PACE_TAPE.md": [],
+    "docs/design/CHALLENGE_SCREEN_REDESIGN.md": [],
+    "docs/design/better-bet-mockups/HANDOFF.md": [],
+    "docs/design/better-bet-mockups/README.md": [],
+    "docs/design/better-bet-mockups/a-position-today.html": [],
+    "docs/design/better-bet-mockups/a-position-week.html": [],
+    "docs/design/better-bet-mockups/a2-glass-today.html": [],
+    "docs/design/better-bet-mockups/a2-glass-week-ahead.html": [],
+    "docs/design/better-bet-mockups/a2-glass-week-behind.html": [],
+    "docs/design/better-bet-mockups/a3-commit.html": [],
+    "docs/design/better-bet-mockups/a3-result-lost.html": [],
+    "docs/design/better-bet-mockups/a3-result-won.html": [],
+    "docs/design/better-bet-mockups/a3-you.html": [],
+    "docs/design/better-bet-mockups/b-traininglog-today.html": [],
+    "docs/design/better-bet-mockups/b-traininglog-week.html": [],
+    "docs/design/better-bet-mockups/better-bet-all-screens.html": [],
+    "docs/design/better-bet-mockups/c-nightsplits-today.html": [],
+    "docs/design/better-bet-mockups/c-nightsplits-week.html": [],
+    "docs/design/better-bet-mockups/gen.py": [],
+    "docs/design/better-bet-mockups/sheet.html": [],
+    "docs/design/gametime-pace-tape.html": [],
+    "docs/design/gametime-screen-atlas.html": [],
+    "ios/GameTime/Configuration/AppInfo.plist": [],
+    "ios/GameTime/Configuration/Debug.xcconfig": [],
+    "ios/GameTime/Configuration/PublicClient.xcconfig": [],
+    "ios/GameTime/Configuration/Release.xcconfig": [],
+    "ios/GameTime/Configuration/Staging.xcconfig": [],
+    "ios/GameTime/Configuration/StagingAppInfo.plist": [],
+    "ios/GameTime/GameTime.xcodeproj/project.pbxproj": [],
+    "ios/GameTime/GameTime.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved": [],
+    "ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes/GameTime-Staging.xcscheme": [],
+    "ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes/GameTime.xcscheme": [],
+    "ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes/GameTimeWatch.xcscheme": [],
+    "ios/GameTime/GameTime/ActivitySyncCoordinator.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTime/AppClients.swift": [],
+    "ios/GameTime/GameTime/AppConfiguration.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTime/AppModel.swift": [],
+    "ios/GameTime/GameTime/AppRouter.swift": [],
+    "ios/GameTime/GameTime/AppShellView.swift": [],
+    "ios/GameTime/GameTime/AppleSignIn.swift": [],
+    "ios/GameTime/GameTime/Assets.xcassets/AppIcon.appiconset/Contents.json": [],
+    "ios/GameTime/GameTime/Assets.xcassets/Contents.json": [],
+    "ios/GameTime/GameTime/ChallengeVisualComponents.swift": [],
+    "ios/GameTime/GameTime/ChallengesView.swift": [],
+    "ios/GameTime/GameTime/CompetitiveTrustTheme.swift": [],
+    "ios/GameTime/GameTime/DemoMode.swift": [],
+    "ios/GameTime/GameTime/DomainModels.swift": [],
+    "ios/GameTime/GameTime/FeatureComponents.swift": [],
+    "ios/GameTime/GameTime/FixtureClients.swift": [],
+    "ios/GameTime/GameTime/GameTime.entitlements": [],
+    "ios/GameTime/GameTime/GameTimeApp.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTime/GameTimeStaging.entitlements": [],
+    "ios/GameTime/GameTime/HealthKitActivityClient.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTime/LaunchingView.swift": [],
+    "ios/GameTime/GameTime/LocalStepProgress.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTime/PendingChallengeStore.swift": [],
+    "ios/GameTime/GameTime/PendingMetricUploadStore.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTime/PendingPersonalCancellationStore.swift": [],
+    "ios/GameTime/GameTime/PendingPersonalChallengeStore.swift": [],
+    "ios/GameTime/GameTime/PersonalAccountabilityClient.swift": [],
+    "ios/GameTime/GameTime/PersonalAccountabilityComponents.swift": [],
+    "ios/GameTime/GameTime/PersonalAccountabilityModels.swift": [],
+    "ios/GameTime/GameTime/PersonalAccountabilityStore.swift": [],
+    "ios/GameTime/GameTime/PersonalActivityClients.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTime/PersonalChallengeDetailView.swift": [],
+    "ios/GameTime/GameTime/PersonalChallengeFlow.swift": [],
+    "ios/GameTime/GameTime/PersonalChallengeReceiptPresentation.swift": [],
+    "ios/GameTime/GameTime/PersonalHealthBackgroundDelivery.swift": [],
+    "ios/GameTime/GameTime/PersonalHealthSnapshotUploader.swift": [],
+    "ios/GameTime/GameTime/PersonalHealthStepReader.swift": [],
+    "ios/GameTime/GameTime/PersonalPaceComponents.swift": [],
+    "ios/GameTime/GameTime/PersonalPaymentClient.swift": [],
+    "ios/GameTime/GameTime/PersonalPaymentStatusCard.swift": [],
+    "ios/GameTime/GameTime/PersonalResultPresentation.swift": [],
+    "ios/GameTime/GameTime/PersonalStepProgressStore.swift": [],
+    "ios/GameTime/GameTime/PersonalStepSnapshot.swift": [],
+    "ios/GameTime/GameTime/PersonalStepSnapshotCache.swift": [],
+    "ios/GameTime/GameTime/PersonalSyncCoverage.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTime/PhoneWatchConnectivityCoordinator.swift": [],
+    "ios/GameTime/GameTime/PrivacyInfo.xcprivacy": [],
+    "ios/GameTime/GameTime/PushNotifications.swift": [],
+    "ios/GameTime/GameTime/Resources/Fonts/BricolageGrotesque-OFL.txt": [],
+    "ios/GameTime/GameTime/Resources/Fonts/HankenGrotesk-OFL.txt": [],
+    "ios/GameTime/GameTime/StagingAcceptanceDiagnostics.swift": [],
+    "ios/GameTime/GameTime/SupabaseClients.swift": [],
+    "ios/GameTime/GameTime/SupabaseMetricUploadClient.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTime/SupabasePersonalAccountabilityClient.swift": [],
+    "ios/GameTime/GameTime/SupabasePersonalPaymentClient.swift": [],
+    "ios/GameTime/GameTime/TodayView.swift": [],
+    "ios/GameTime/GameTime/YouView.swift": [],
+    "ios/GameTime/GameTimeTests/ActivitySyncCoordinatorTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTimeTests/AppModelAndRoutingTests.swift": [],
+    "ios/GameTime/GameTimeTests/CompetitiveTrustThemeAdversarialTests.swift": [],
+    "ios/GameTime/GameTimeTests/DomainAndConfigurationTests.swift": [],
+    "ios/GameTime/GameTimeTests/GameTimeWatchContextTests.swift": [],
+    "ios/GameTime/GameTimeTests/HealthKitActivityClientTests.swift": [],
+    "ios/GameTime/GameTimeTests/PendingChallengeStoreTests.swift": [],
+    "ios/GameTime/GameTimeTests/PendingMetricUploadStoreTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTimeTests/PersonalAccountabilityTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTimeTests/PersonalChallengeReceiptPresentationTests.swift": [],
+    "ios/GameTime/GameTimeTests/PersonalPaymentStatusStoreTests.swift": [],
+    "ios/GameTime/GameTimeTests/PersonalResultPresentationTests.swift": [],
+    "ios/GameTime/GameTimeTests/PersonalStepProgressV2Tests.swift": [],
+    "ios/GameTime/GameTimeTests/SupabaseMetricUploadClientTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTime/GameTimeTests/SupabasePersonalPaymentClientTests.swift": [],
+    "ios/GameTime/GameTimeUITests/GameTimeUITests.swift": [],
+    "ios/GameTime/GameTimeWatch/Assets.xcassets/AccentColor.colorset/Contents.json": [],
+    "ios/GameTime/GameTimeWatch/Assets.xcassets/AppIcon.appiconset/Contents.json": [],
+    "ios/GameTime/GameTimeWatch/Assets.xcassets/Contents.json": [],
+    "ios/GameTime/GameTimeWatch/GameTimeWatchApp.swift": [],
+    "ios/GameTime/GameTimeWatch/WatchConnectionModel.swift": [],
+    "ios/GameTime/GameTimeWatch/WatchConnectionView.swift": [],
+    "ios/GameTime/GameTimeWatchShared/GameTimeWatchContext.swift": [],
+    "ios/GameTime/README.md": [],
+    "ios/GameTimeConformance/GameTimeConformance.xcodeproj/project.pbxproj": [],
+    "ios/GameTimeConformance/GameTimeConformance.xcodeproj/xcshareddata/xcschemes/GameTimeConformance.xcscheme": [],
+    "ios/GameTimeConformance/GameTimeConformance/AppAttestClient.swift": [],
+    "ios/GameTimeConformance/GameTimeConformance/AssertionCounterDecoder.swift": [],
+    "ios/GameTimeConformance/GameTimeConformance/ConformanceHTTP.swift": [],
+    "ios/GameTimeConformance/GameTimeConformance/ConformanceModels.swift": [],
+    "ios/GameTimeConformance/GameTimeConformance/ConformanceRunner.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTimeConformance/GameTimeConformance/ConformanceViewModel.swift": [],
+    "ios/GameTimeConformance/GameTimeConformance/ContentView.swift": [],
+    "ios/GameTimeConformance/GameTimeConformance/GameTimeConformance.entitlements": [],
+    "ios/GameTimeConformance/GameTimeConformance/GameTimeConformanceApp.swift": [],
+    "ios/GameTimeConformance/GameTimeConformanceTests/AssertionCounterDecoderTests.swift": [],
+    "ios/GameTimeConformance/GameTimeConformanceTests/ConformanceRequestTests.swift": [],
+    "ios/GameTimeConformance/GameTimeConformanceTests/ConformanceRunnerTests.swift": [],
+    "ios/GameTimeConformance/README.md": [],
+    "ios/GameTimeCore/Package.swift": [],
+    "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift": [],
+    "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift": [],
+    "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift": [],
+    "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift": [],
+    "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift": [],
+    "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift": [],
+    "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift": [],
+    "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift": [],
+    "ios/GameTimeCore/Tests/GameTimeCoreTests/CheckInQueueTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTimeCore/Tests/GameTimeCoreTests/GeofenceCheckInTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTimeCore/Tests/GameTimeCoreTests/HarnessTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTimeCore/Tests/GameTimeCoreTests/HourlyBucketerTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTimeCore/Tests/GameTimeCoreTests/IngestQueueTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTimeCore/Tests/GameTimeCoreTests/MetricIngestPayloadTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTimeCore/Tests/GameTimeCoreTests/MetricUploadQueueTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "ios/GameTimeCore/Tests/GameTimeCoreTests/ProvenanceTests.swift": [
+      "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift"
+    ],
+    "scripts/check-beta-candidate.sh": [],
+    "scripts/db-test.sh": [],
+    "scripts/dev-up.sh": [],
+    "scripts/m6-5-configure-staging.sh": [],
+    "scripts/m6-5-install-staging-fixture.sh": [],
+    "scripts/m6-5-staging-fixture.sql": [],
+    "scripts/test-all.sh": [],
+    "scripts/tests/check-beta-candidate.test.sh": [],
+    "skills-lock.json": [],
+    "supabase/config.toml": [],
+    "supabase/functions/_shared/appattest.test.ts": [
+      "supabase/functions/_shared/appattest.ts",
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/cbor.ts",
+      "supabase/functions/_test/appattest_fixtures.ts",
+      "supabase/functions/_test/apple_appattest_2026_vector.ts"
+    ],
+    "supabase/functions/_shared/appattest.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/cbor.ts",
+      "supabase/functions/_shared/ecdsa_verify.ts"
+    ],
+    "supabase/functions/_shared/appattest_receipt.test.ts": [
+      "supabase/functions/_shared/appattest.ts",
+      "supabase/functions/_shared/appattest_receipt.ts",
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_test/appattest_receipt_fixtures.ts",
+      "supabase/functions/_test/apple_appattest_2026_vector.ts"
+    ],
+    "supabase/functions/_shared/appattest_receipt.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/pkijs_runtime.ts"
+    ],
+    "supabase/functions/_shared/bytes.ts": [],
+    "supabase/functions/_shared/cbor.test.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/cbor.ts"
+    ],
+    "supabase/functions/_shared/cbor.ts": [
+      "supabase/functions/_shared/bytes.ts"
+    ],
+    "supabase/functions/_shared/database.test.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/http.ts"
+    ],
+    "supabase/functions/_shared/database.ts": [
+      "supabase/functions/_shared/appattest.ts",
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/http.ts"
+    ],
+    "supabase/functions/_shared/ecdsa_verify.test.ts": [
+      "supabase/functions/_shared/ecdsa_verify.ts",
+      "supabase/functions/_test/apple_appattest_2026_vector.ts"
+    ],
+    "supabase/functions/_shared/ecdsa_verify.ts": [],
+    "supabase/functions/_shared/env.test.ts": [
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_test/appattest_fixtures.ts"
+    ],
+    "supabase/functions/_shared/env.ts": [
+      "supabase/functions/_shared/jwt.ts"
+    ],
+    "supabase/functions/_shared/http.test.ts": [
+      "supabase/functions/_shared/http.ts"
+    ],
+    "supabase/functions/_shared/http.ts": [],
+    "supabase/functions/_shared/integrity.test.ts": [
+      "supabase/functions/_shared/integrity.ts",
+      "supabase/functions/_shared/scoring.ts",
+      "supabase/functions/_test/scoring_fixtures.ts"
+    ],
+    "supabase/functions/_shared/integrity.ts": [
+      "supabase/functions/_shared/scoring.ts"
+    ],
+    "supabase/functions/_shared/integrity_assessment.test.ts": [
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/integrity.ts",
+      "supabase/functions/_shared/integrity_assessment.ts",
+      "supabase/functions/_shared/scoring.ts",
+      "supabase/functions/_test/scoring_fixtures.ts"
+    ],
+    "supabase/functions/_shared/integrity_assessment.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/integrity.ts",
+      "supabase/functions/_shared/scoring.ts"
+    ],
+    "supabase/functions/_shared/jwt.test.ts": [
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_test/tokens.ts"
+    ],
+    "supabase/functions/_shared/jwt.ts": [
+      "supabase/functions/_shared/bytes.ts"
+    ],
+    "supabase/functions/_shared/localdays.test.ts": [
+      "supabase/functions/_shared/localdays.ts"
+    ],
+    "supabase/functions/_shared/localdays.ts": [],
+    "supabase/functions/_shared/m6_integrity_fixtures.test.ts": [
+      "supabase/functions/_shared/integrity.ts",
+      "supabase/functions/_test/m6_integrity_fixtures.ts",
+      "supabase/functions/_test/scoring_fixtures.ts"
+    ],
+    "supabase/functions/_shared/personal_stripe_contract.ts": [
+      "supabase/functions/_shared/http.ts"
+    ],
+    "supabase/functions/_shared/pkijs_runtime.test.ts": [
+      "supabase/functions/_shared/pkijs_runtime.ts"
+    ],
+    "supabase/functions/_shared/pkijs_runtime.ts": [
+      "supabase/functions/_shared/ecdsa_verify.ts"
+    ],
+    "supabase/functions/_shared/scoring.test.ts": [
+      "supabase/functions/_shared/localdays.ts",
+      "supabase/functions/_shared/scoring.ts"
+    ],
+    "supabase/functions/_shared/scoring.ts": [
+      "supabase/functions/_shared/localdays.ts"
+    ],
+    "supabase/functions/_shared/scoring_fixtures.test.ts": [
+      "supabase/functions/_shared/scoring.ts",
+      "supabase/functions/_test/scoring_fixtures.ts"
+    ],
+    "supabase/functions/_shared/service_rpc.ts": [
+      "supabase/functions/_shared/database.ts"
+    ],
+    "supabase/functions/_shared/stripe_sandbox.test.ts": [
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/stripe_sandbox.ts"
+    ],
+    "supabase/functions/_shared/stripe_sandbox.ts": [
+      "supabase/functions/_shared/env.ts"
+    ],
+    "supabase/functions/_test/appattest_fixtures.ts": [
+      "supabase/functions/_shared/appattest.ts",
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/cbor.ts"
+    ],
+    "supabase/functions/_test/appattest_receipt_fixtures.ts": [
+      "supabase/functions/_shared/appattest_receipt.ts",
+      "supabase/functions/_shared/bytes.ts"
+    ],
+    "supabase/functions/_test/apple_appattest_2026_vector.ts": [],
+    "supabase/functions/_test/m6_integrity_fixtures.ts": [
+      "supabase/functions/_shared/integrity.ts"
+    ],
+    "supabase/functions/_test/scoring_fixtures.ts": [
+      "supabase/functions/_shared/scoring.ts"
+    ],
+    "supabase/functions/_test/tokens.ts": [
+      "supabase/functions/_shared/bytes.ts"
+    ],
+    "supabase/functions/activity-diagnostic/handler.test.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_test/appattest_fixtures.ts",
+      "supabase/functions/_test/tokens.ts",
+      "supabase/functions/activity-diagnostic/handler.ts"
+    ],
+    "supabase/functions/activity-diagnostic/handler.ts": [
+      "supabase/functions/_shared/appattest.ts",
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/cbor.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts"
+    ],
+    "supabase/functions/activity-diagnostic/index.ts": [
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/activity-diagnostic/handler.ts"
+    ],
+    "supabase/functions/attest-device/handler.test.ts": [
+      "supabase/functions/_shared/appattest_receipt.ts",
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/cbor.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_test/appattest_fixtures.ts",
+      "supabase/functions/_test/appattest_receipt_fixtures.ts",
+      "supabase/functions/_test/tokens.ts",
+      "supabase/functions/attest-device/handler.ts"
+    ],
+    "supabase/functions/attest-device/handler.ts": [
+      "supabase/functions/_shared/appattest.ts",
+      "supabase/functions/_shared/appattest_receipt.ts",
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/cbor.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts"
+    ],
+    "supabase/functions/attest-device/index.ts": [],
+    "supabase/functions/delete-account/apple.ts": [
+      "supabase/functions/delete-account/handler.ts"
+    ],
+    "supabase/functions/delete-account/database.ts": [
+      "supabase/functions/_shared/service_rpc.ts",
+      "supabase/functions/delete-account/handler.ts"
+    ],
+    "supabase/functions/delete-account/handler.test.ts": [
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_test/tokens.ts",
+      "supabase/functions/delete-account/handler.ts"
+    ],
+    "supabase/functions/delete-account/handler.ts": [
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts"
+    ],
+    "supabase/functions/delete-account/index.ts": [
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_shared/stripe_sandbox.ts",
+      "supabase/functions/delete-account/apple.ts",
+      "supabase/functions/delete-account/database.ts",
+      "supabase/functions/delete-account/handler.ts",
+      "supabase/functions/delete-account/stripe.ts"
+    ],
+    "supabase/functions/delete-account/stripe.ts": [
+      "supabase/functions/delete-account/handler.ts"
+    ],
+    "supabase/functions/deliver-push/apns.test.ts": [
+      "supabase/functions/deliver-push/apns.ts"
+    ],
+    "supabase/functions/deliver-push/apns.ts": [],
+    "supabase/functions/deliver-push/database.ts": [
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/service_rpc.ts",
+      "supabase/functions/deliver-push/apns.ts"
+    ],
+    "supabase/functions/deliver-push/handler.test.ts": [
+      "supabase/functions/deliver-push/apns.ts",
+      "supabase/functions/deliver-push/database.ts",
+      "supabase/functions/deliver-push/handler.ts"
+    ],
+    "supabase/functions/deliver-push/handler.ts": [
+      "supabase/functions/deliver-push/apns.ts",
+      "supabase/functions/deliver-push/database.ts"
+    ],
+    "supabase/functions/deliver-push/index.ts": [
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/deliver-push/apns.ts",
+      "supabase/functions/deliver-push/database.ts",
+      "supabase/functions/deliver-push/handler.ts"
+    ],
+    "supabase/functions/deno.json": [],
+    "supabase/functions/ingest-checkin/handler.test.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_test/appattest_fixtures.ts",
+      "supabase/functions/_test/tokens.ts",
+      "supabase/functions/ingest-checkin/handler.ts"
+    ],
+    "supabase/functions/ingest-checkin/handler.ts": [
+      "supabase/functions/_shared/appattest.ts",
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/cbor.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts"
+    ],
+    "supabase/functions/ingest-checkin/index.ts": [
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/ingest-checkin/handler.ts"
+    ],
+    "supabase/functions/ingest-metrics/handler.test.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_test/appattest_fixtures.ts",
+      "supabase/functions/_test/tokens.ts",
+      "supabase/functions/ingest-metrics/handler.ts"
+    ],
+    "supabase/functions/ingest-metrics/handler.ts": [
+      "supabase/functions/_shared/appattest.ts",
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/cbor.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts"
+    ],
+    "supabase/functions/ingest-metrics/index.ts": [
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/ingest-metrics/handler.ts"
+    ],
+    "supabase/functions/personal-challenge-commit/database.test.ts": [
+      "supabase/functions/personal-challenge-commit/database.ts",
+      "supabase/functions/personal-challenge-commit/handler.ts"
+    ],
+    "supabase/functions/personal-challenge-commit/database.ts": [
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/personal_stripe_contract.ts",
+      "supabase/functions/_shared/service_rpc.ts",
+      "supabase/functions/personal-challenge-commit/handler.ts"
+    ],
+    "supabase/functions/personal-challenge-commit/handler.test.ts": [
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_shared/personal_stripe_contract.ts",
+      "supabase/functions/_test/tokens.ts",
+      "supabase/functions/personal-challenge-commit/handler.ts",
+      "supabase/functions/personal-payment-setup/handler.ts"
+    ],
+    "supabase/functions/personal-challenge-commit/handler.ts": [
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_shared/personal_stripe_contract.ts",
+      "supabase/functions/personal-payment-setup/handler.ts"
+    ],
+    "supabase/functions/personal-challenge-commit/index.ts": [
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_shared/stripe_sandbox.ts",
+      "supabase/functions/personal-challenge-commit/database.ts",
+      "supabase/functions/personal-challenge-commit/handler.ts",
+      "supabase/functions/personal-payment-setup/stripe.ts"
+    ],
+    "supabase/functions/personal-payment-setup/database.ts": [
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/personal_stripe_contract.ts",
+      "supabase/functions/_shared/service_rpc.ts",
+      "supabase/functions/personal-payment-setup/handler.ts"
+    ],
+    "supabase/functions/personal-payment-setup/handler.test.ts": [
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_shared/personal_stripe_contract.ts",
+      "supabase/functions/_test/tokens.ts",
+      "supabase/functions/personal-payment-setup/handler.ts"
+    ],
+    "supabase/functions/personal-payment-setup/handler.ts": [
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_shared/personal_stripe_contract.ts"
+    ],
+    "supabase/functions/personal-payment-setup/index.ts": [
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_shared/stripe_sandbox.ts",
+      "supabase/functions/personal-payment-setup/database.ts",
+      "supabase/functions/personal-payment-setup/handler.ts",
+      "supabase/functions/personal-payment-setup/stripe.ts"
+    ],
+    "supabase/functions/personal-payment-setup/stripe.ts": [
+      "supabase/functions/_shared/stripe_sandbox.ts",
+      "supabase/functions/personal-payment-setup/handler.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-charge/database.ts": [
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/service_rpc.ts",
+      "supabase/functions/personal-stripe-sandbox-charge/handler.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-charge/handler.test.ts": [
+      "supabase/functions/personal-stripe-sandbox-charge/handler.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-charge/handler.ts": [],
+    "supabase/functions/personal-stripe-sandbox-charge/index.ts": [
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/stripe_sandbox.ts",
+      "supabase/functions/personal-stripe-sandbox-charge/database.ts",
+      "supabase/functions/personal-stripe-sandbox-charge/handler.ts",
+      "supabase/functions/personal-stripe-sandbox-charge/stripe.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-charge/stripe.ts": [
+      "supabase/functions/_shared/stripe_sandbox.ts",
+      "supabase/functions/personal-stripe-sandbox-charge/handler.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-review/database.ts": [
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/service_rpc.ts",
+      "supabase/functions/personal-stripe-sandbox-review/handler.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-review/handler.test.ts": [
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_test/tokens.ts",
+      "supabase/functions/personal-stripe-sandbox-review/handler.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-review/handler.ts": [
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-review/index.ts": [
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/personal-stripe-sandbox-review/database.ts",
+      "supabase/functions/personal-stripe-sandbox-review/handler.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-webhook/database.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/service_rpc.ts",
+      "supabase/functions/personal-stripe-sandbox-webhook/handler.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-webhook/handler.test.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/personal-stripe-sandbox-webhook/handler.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-webhook/handler.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/http.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-webhook/index.ts": [
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/stripe_sandbox.ts",
+      "supabase/functions/personal-stripe-sandbox-webhook/database.ts",
+      "supabase/functions/personal-stripe-sandbox-webhook/handler.ts",
+      "supabase/functions/personal-stripe-sandbox-webhook/stripe.ts"
+    ],
+    "supabase/functions/personal-stripe-sandbox-webhook/stripe.ts": [
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/stripe_sandbox.ts",
+      "supabase/functions/personal-stripe-sandbox-webhook/handler.ts"
+    ],
+    "supabase/functions/personal-sync-coverage/handler.test.ts": [
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/_test/appattest_fixtures.ts",
+      "supabase/functions/_test/tokens.ts",
+      "supabase/functions/personal-sync-coverage/handler.ts"
+    ],
+    "supabase/functions/personal-sync-coverage/handler.ts": [
+      "supabase/functions/_shared/appattest.ts",
+      "supabase/functions/_shared/bytes.ts",
+      "supabase/functions/_shared/cbor.ts",
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/http.ts",
+      "supabase/functions/_shared/jwt.ts"
+    ],
+    "supabase/functions/personal-sync-coverage/index.ts": [
+      "supabase/functions/_shared/database.ts",
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/_shared/jwt.ts",
+      "supabase/functions/personal-sync-coverage/handler.ts"
+    ],
+    "supabase/migrations/20260724120000_extensions_and_conventions.sql": [],
+    "supabase/migrations/20260724203000_identity_social_graph.sql": [],
+    "supabase/migrations/20260724230000_contests_and_participants.sql": [],
+    "supabase/migrations/20260725140000_metric_snapshots_and_attested_ingest.sql": [],
+    "supabase/migrations/20260725190000_integrity_quarantine.sql": [],
+    "supabase/migrations/20260725210000_source_reputation.sql": [],
+    "supabase/migrations/20260725230000_timezone_change_consent.sql": [],
+    "supabase/migrations/20260726010000_geofence_checkins.sql": [],
+    "supabase/migrations/20260726020000_review_durability_and_privileges.sql": [],
+    "supabase/migrations/20260726030000_app_attest_conformance.sql": [],
+    "supabase/migrations/20260726040000_notification_outbox_and_scheduler.sql": [],
+    "supabase/migrations/20260726050000_app_attest_receipt_verification.sql": [],
+    "supabase/migrations/20260726055000_account_deletion_notification_event.sql": [],
+    "supabase/migrations/20260726060000_account_deletion_foundation.sql": [],
+    "supabase/migrations/20260726070000_raw_evidence_retention.sql": [],
+    "supabase/migrations/20260726230529_fix_raw_evidence_generated_column_guard.sql": [],
+    "supabase/migrations/20260727004703_d77_evidence_access.sql": [],
+    "supabase/migrations/20260727030649_m8_1_live_social_loop.sql": [],
+    "supabase/migrations/20260728231601_m8_3c_standings_results_obligations.sql": [],
+    "supabase/migrations/20260730175310_m7_trusted_integrity_assessments.sql": [],
+    "supabase/migrations/20260730190723_m7_d76_quarantine_review_deadlines.sql": [],
+    "supabase/migrations/20260730195656_lead_loss_push_and_reactions.sql": [],
+    "supabase/migrations/20260802165309_personal_v1_foundation_and_privacy.sql": [],
+    "supabase/migrations/20260802165312_personal_v1_backend.sql": [],
+    "supabase/migrations/20260803001438_solo_contract_domain.sql": [],
+    "supabase/migrations/20260803001455_solo_contract_rpc_boundary.sql": [],
+    "supabase/migrations/20260803014252_solo_fake_authorization_adapter.sql": [],
+    "supabase/migrations/20260803192500_personal_custom_start_time.sql": [],
+    "supabase/migrations/20260805131357_personal_stripe_sandbox_foundation.sql": [],
+    "supabase/migrations/20260806143539_production_attestation_provenance.sql": [],
+    "supabase/migrations/20260806144639_production_attestation_settlement_guards.sql": [],
+    "supabase/migrations/20260806145058_production_diagnostic_provenance_audit.sql": [],
+    "supabase/migrations/20260806145502_production_diagnostic_clearance_guard.sql": [],
+    "supabase/migrations/20260806173723_personal_result_worker.sql": [],
+    "supabase/migrations/20260807151320_personal_stripe_sandbox_beta_controls.sql": [],
+    "supabase/migrations/20260812154757_personal_health_snapshot_v2.sql": [],
+    "supabase/migrations/20260812183638_allow_test_only_active_challenge_cancellation.sql": [],
+    "supabase/migrations/20260812193907_personal_start_now.sql": [],
+    "supabase/migrations/20260812194559_account_deletion_provider_lookup.sql": [],
+    "supabase/migrations/20260813202709_allow_stripe_sandbox_active_challenge_cancellation.sql": [],
+    "supabase/seed.sql": [],
+    "supabase/staging-project-ref": [],
+    "supabase/tests/000_harness.test.sql": [],
+    "supabase/tests/010_identity.test.sql": [],
+    "supabase/tests/020_friendships.test.sql": [],
+    "supabase/tests/030_groups.test.sql": [],
+    "supabase/tests/040_blocks.test.sql": [],
+    "supabase/tests/050_charities.test.sql": [],
+    "supabase/tests/060_contests.test.sql": [],
+    "supabase/tests/070_invitations.test.sql": [],
+    "supabase/tests/080_participant_lifecycle.test.sql": [],
+    "supabase/tests/090_device_attestations.test.sql": [],
+    "supabase/tests/100_metric_snapshots.test.sql": [],
+    "supabase/tests/110_attested_ingest.test.sql": [],
+    "supabase/tests/120_integrity_quarantine.test.sql": [],
+    "supabase/tests/130_source_reputation.test.sql": [],
+    "supabase/tests/140_timezone_change_consent.test.sql": [],
+    "supabase/tests/150_geofence_checkins.test.sql": [],
+    "supabase/tests/160_notification_outbox_scheduler.test.sql": [],
+    "supabase/tests/170_account_deletion.test.sql": [],
+    "supabase/tests/171_account_deletion_provider_lookup.test.sql": [],
+    "supabase/tests/180_d77_evidence_access.test.sql": [],
+    "supabase/tests/190_m8_1_live_social_loop.test.sql": [],
+    "supabase/tests/210_m8_3c_standings_results_obligations.test.sql": [],
+    "supabase/tests/220_account_deletion_concurrency.test.sql": [],
+    "supabase/tests/230_m7_trusted_integrity_assessments.test.sql": [],
+    "supabase/tests/240_m7_integrity_assessment_concurrency.test.sql": [],
+    "supabase/tests/250_m7_d76_quarantine_deadlines.test.sql": [],
+    "supabase/tests/260_m7_d76_concurrency.test.sql": [],
+    "supabase/tests/270_lead_loss_push_reactions.test.sql": [],
+    "supabase/tests/280_personal_v1_foundation_privacy.test.sql": [],
+    "supabase/tests/290_personal_v1_lifecycle_scoring.test.sql": [],
+    "supabase/tests/300_personal_v1_acceptance_matrix.test.sql": [],
+    "supabase/tests/310_personal_v1_creation_concurrency.test.sql": [],
+    "supabase/tests/320_personal_v1_evidence_retention_isolation.test.sql": [],
+    "supabase/tests/330_solo_contract_domain.test.sql": [],
+    "supabase/tests/340_solo_contract_lifecycle_appeals.test.sql": [],
+    "supabase/tests/350_solo_contract_concurrency.test.sql": [],
+    "supabase/tests/360_solo_fake_authorization_domain.test.sql": [],
+    "supabase/tests/370_solo_fake_authorization_lifecycle.test.sql": [],
+    "supabase/tests/380_solo_fake_authorization_concurrency.test.sql": [],
+    "supabase/tests/390_personal_custom_start_time.test.sql": [],
+    "supabase/tests/400_personal_stripe_sandbox_domain.test.sql": [],
+    "supabase/tests/410_personal_stripe_sandbox_lifecycle.test.sql": [],
+    "supabase/tests/411_personal_stripe_sandbox_beta_controls.test.sql": [],
+    "supabase/tests/412_personal_stripe_sandbox_beta_controls_concurrency.test.sql": [],
+    "supabase/tests/420_production_attestation_provenance.test.sql": [],
+    "supabase/tests/430_personal_result_worker.test.sql": [],
+    "supabase/tests/431_personal_result_worker_concurrency.test.sql": [],
+    "supabase/tests/440_personal_health_snapshot_v2.test.sql": [],
+    "supabase/tests/441_personal_health_snapshot_v2_concurrency.test.sql": [],
+    "supabase/tests/450_personal_sandbox_active_cancellation.test.sql": []
+  }
+}
