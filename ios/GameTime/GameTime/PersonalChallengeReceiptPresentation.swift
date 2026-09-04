@@ -2,6 +2,7 @@ import Foundation
 
 struct PersonalCommitmentProtectionPresentation: Equatable, Sendable {
     let text: String
+    let caption: String
 
     init(
         amountMinor: Int,
@@ -16,6 +17,7 @@ struct PersonalCommitmentProtectionPresentation: Equatable, Sendable {
         case .stripeSandbox:
             "Your test charge is $0 when you meet your goal or step data is missing or unclear. Only a confirmed miss after review can create one \(amount) test charge."
         }
+        caption = "This is not a subscription."
     }
 }
 

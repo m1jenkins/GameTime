@@ -1,139 +1,65 @@
 import Accessibility
 import SwiftUI
 
-struct PersonalChallengeCard: View {
-    let challenge: PersonalChallengeSummary
-    let action: () -> Void
-    @Environment(PersonalAccountabilityStore.self) private var store
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+/// Paper-ledger summary for Challenges history. The goal is the title;
+/// money is a receipt, never the hero.
+struct PersonalChallengeHistoryCardPresentation: Equatable {
+    let statusText: String
+    let targetText: String
+    let dateSummary: String
+    let receiptText: String
+    let showsProgress: Bool
+    let showsHealth: Bool
+    let health: PersonalHealthProgressPresentation
 
-    var body: some View {
-        let now = Date()
-        let progress = store.displayedProgress(for: challenge, now: now)
+    init(
+        challenge: PersonalChallengeSummary,
+        progress: PersonalDisplayedProgress?,
+        uploadDelayed: Bool,
+        now: Date
+    ) {
         let status = challenge.presentationStatus(at: now)
-        let healthPresentation = PersonalHealthProgressPresentation(
+        statusText = Self.statusText(
+            status: status,
+            outcome: challenge.outcome?.kind
+        )
+        targetText = challenge.terms.targetText
+        dateSummary = Self.dateSummary(for: challenge, status: status)
+        receiptText = [
+            challenge.terms.commitmentText,
+            challenge.terms.cadence.title,
+        ].joined(separator: " · ")
+        switch status {
+        case .completed, .cancelled:
+            showsProgress = false
+        case .scheduled, .active, .awaitingEvidence, .resultPending:
+            showsProgress = progress != nil
+        }
+        health = PersonalHealthProgressPresentation(
             progress: progress,
             terms: challenge.terms,
             status: status,
             outcome: challenge.outcome,
-            uploadDelayed: challenge.id == store.stepProgress.challengeID
-                && store.stepProgress.lastUploadError != nil,
+            uploadDelayed: uploadDelayed,
             now: now
         )
-
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 14) {
-                if dynamicTypeSize.isAccessibilitySize {
-                    VStack(alignment: .leading, spacing: 8) {
-                        PersonalStatusPill(
-                            status: status,
-                            outcome: challenge.outcome?.kind
-                        )
-                        Text(challenge.terms.commitmentText)
-                            .font(
-                                CompetitiveTrustTheme.monoFont(
-                                    size: 18,
-                                    weight: .bold
-                                )
-                            )
-                            .foregroundStyle(CompetitiveTrustTheme.primaryText)
-                    }
-                } else {
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        PersonalStatusPill(
-                            status: status,
-                            outcome: challenge.outcome?.kind
-                        )
-                        Spacer(minLength: 8)
-                        Text(challenge.terms.commitmentText)
-                            .font(
-                                CompetitiveTrustTheme.monoFont(
-                                    size: 18,
-                                    weight: .bold
-                                )
-                            )
-                            .foregroundStyle(CompetitiveTrustTheme.primaryText)
-                    }
-                }
-
-                Text(challenge.terms.targetText)
-                    .font(
-                        CompetitiveTrustTheme.displayFont(
-                            size: dynamicTypeSize.isAccessibilitySize
-                                ? 19
-                                : 22,
-                            relativeTo: dynamicTypeSize.isAccessibilitySize
-                                ? .headline
-                                : .title2
-                        )
-                    )
-                    .foregroundStyle(CompetitiveTrustTheme.primaryText)
-                    .tracking(-0.5)
-
-                if let progress {
-                    PersonalProgressBar(
-                        progress: progress,
-                        terms: challenge.terms
-                    )
-                }
-                PersonalHealthProgressStatus(
-                    presentation: healthPresentation,
-                    policy: challenge.stepDataPolicy
-                )
-
-                HStack(spacing: 8) {
-                    Image(systemName: "calendar")
-                        .accessibilityHidden(true)
-                    Text(dateSummary(status: status))
-                        .font(
-                            CompetitiveTrustTheme.tabularFont(
-                                size: 12,
-                                weight: .semibold
-                            )
-                        )
-                    Spacer(minLength: 8)
-                    Image(systemName: "chevron.right")
-                        .accessibilityHidden(true)
-                }
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+        if challenge.stepDataPolicy.usesAutomaticHealthProgress {
+            switch health.state {
+            case .frozen:
+                showsHealth = false
+            case .scheduled, .active, .stale, .uploadDelayed, .cutoff,
+                .resultPending, .missingFinalData, .cancelled:
+                showsHealth = true
             }
-            .trustCard()
+        } else {
+            showsHealth = false
         }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(
-            "personal.challenge.\(challenge.id.uuidString.lowercased())"
-        )
     }
 
-    private func dateSummary(
-        status: PersonalChallengePresentationStatus
+    static func statusText(
+        status: PersonalChallengePresentationStatus,
+        outcome: PersonalOutcomeKind?
     ) -> String {
-        switch status {
-        case .scheduled:
-            "Starts \(PersonalTermsDateFormatter.day(challenge.terms.startsAt, timezoneIdentifier: challenge.terms.timezone))"
-        case .active:
-            "Ends \(PersonalTermsDateFormatter.day(challenge.terms.endsAt, timezoneIdentifier: challenge.terms.timezone))"
-        case .awaitingEvidence:
-            "Updates through \(PersonalTermsDateFormatter.dateTime(challenge.terms.evidenceCutoff, timezoneIdentifier: challenge.terms.timezone))"
-        case .resultPending:
-            "Working out how you did"
-        case .cancelled:
-            "Cancelled"
-        case .completed:
-            "Completed \(PersonalTermsDateFormatter.day(challenge.terms.closedAt ?? challenge.terms.evidenceCutoff, timezoneIdentifier: challenge.terms.timezone))"
-        }
-    }
-}
-
-struct PersonalStatusPill: View {
-    let status: PersonalChallengePresentationStatus
-    let outcome: PersonalOutcomeKind?
-
-    var body: some View {
-        TrustStatusPill(text: text, kind: kind)
-    }
-
-    private var text: String {
         if let outcome {
             switch outcome {
             case .metGoal: return "Goal met"
@@ -149,6 +75,153 @@ struct PersonalStatusPill: View {
         case .cancelled: return "Cancelled"
         case .completed: return "Done"
         }
+    }
+
+    private static func dateSummary(
+        for challenge: PersonalChallengeSummary,
+        status: PersonalChallengePresentationStatus
+    ) -> String {
+        let timezone = challenge.terms.timezone
+        switch status {
+        case .scheduled:
+            return "Starts \(PersonalTermsDateFormatter.day(challenge.terms.startsAt, timezoneIdentifier: timezone))"
+        case .active:
+            return "Ends \(PersonalTermsDateFormatter.day(challenge.terms.endsAt, timezoneIdentifier: timezone))"
+        case .awaitingEvidence:
+            return "Updates through \(PersonalTermsDateFormatter.dateTime(challenge.terms.evidenceCutoff, timezoneIdentifier: timezone))"
+        case .resultPending:
+            return "Working out how you did"
+        case .cancelled:
+            return "Cancelled"
+        case .completed:
+            return "Completed \(PersonalTermsDateFormatter.day(challenge.terms.closedAt ?? challenge.terms.evidenceCutoff, timezoneIdentifier: timezone))"
+        }
+    }
+}
+
+struct PersonalChallengeCard: View {
+    let challenge: PersonalChallengeSummary
+    let action: () -> Void
+    @Environment(PersonalAccountabilityStore.self) private var store
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        let now = Date()
+        let progress = store.displayedProgress(for: challenge, now: now)
+        let status = challenge.presentationStatus(at: now)
+        let card = PersonalChallengeHistoryCardPresentation(
+            challenge: challenge,
+            progress: progress,
+            uploadDelayed: challenge.id == store.stepProgress.challengeID
+                && store.stepProgress.lastUploadError != nil,
+            now: now
+        )
+
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 12) {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            PersonalStatusPill(
+                                status: status,
+                                outcome: challenge.outcome?.kind
+                            )
+                            Spacer(minLength: 8)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                                .accessibilityHidden(true)
+                        }
+                        Text(card.targetText)
+                            .font(
+                                CompetitiveTrustTheme.displayFont(
+                                    size: 19,
+                                    relativeTo: .headline
+                                )
+                            )
+                            .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                } else {
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        PersonalStatusPill(
+                            status: status,
+                            outcome: challenge.outcome?.kind
+                        )
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                            .accessibilityHidden(true)
+                    }
+                    Text(card.targetText)
+                        .font(
+                            CompetitiveTrustTheme.displayFont(
+                                size: 22,
+                                relativeTo: .title2
+                            )
+                        )
+                        .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                        .tracking(-0.5)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                if card.showsProgress, let progress {
+                    PersonalProgressBar(
+                        progress: progress,
+                        terms: challenge.terms
+                    )
+                }
+                if card.showsHealth {
+                    PersonalHealthProgressStatus(
+                        presentation: card.health,
+                        policy: challenge.stepDataPolicy
+                    )
+                }
+
+                Text(card.dateSummary)
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 13,
+                            relativeTo: .footnote,
+                            weight: .semibold
+                        )
+                    )
+                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(card.receiptText)
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 13,
+                            relativeTo: .footnote,
+                            weight: .semibold
+                        )
+                    )
+                    .foregroundStyle(CompetitiveTrustTheme.money)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .trustCard()
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(
+            "personal.challenge.\(challenge.id.uuidString.lowercased())"
+        )
+    }
+}
+
+struct PersonalStatusPill: View {
+    let status: PersonalChallengePresentationStatus
+    let outcome: PersonalOutcomeKind?
+
+    var body: some View {
+        TrustStatusPill(text: text, kind: kind)
+    }
+
+    private var text: String {
+        PersonalChallengeHistoryCardPresentation.statusText(
+            status: status,
+            outcome: outcome
+        )
     }
 
     private var kind: TrustStatusPill.Kind {
@@ -171,6 +244,7 @@ struct PersonalStatusPill: View {
 struct PersonalProgressBar: View {
     let progress: PersonalDisplayedProgress
     let terms: FrozenPersonalTerms
+    var showsFacts: Bool = true
 
     @Environment(\.daybreakSecondaryForeground)
     private var secondaryForeground
@@ -183,19 +257,21 @@ struct PersonalProgressBar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             ProgressView(value: presentation.fraction)
-                .tint(CompetitiveTrustTheme.coral)
+                .tint(CompetitiveTrustTheme.pine)
                 .accessibilityLabel(Text(presentation.accessibilityLabel))
                 .accessibilityValue(Text(presentation.accessibilityValue))
                 .accessibilityIdentifier("personal.progress")
-            progressFacts
-            .font(
-                CompetitiveTrustTheme.uiFont(
-                    size: 12,
-                    relativeTo: .caption,
-                    weight: .semibold
-                )
-            )
-            .foregroundStyle(secondaryForeground)
+            if showsFacts {
+                progressFacts
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 12,
+                            relativeTo: .caption,
+                            weight: .semibold
+                        )
+                    )
+                    .foregroundStyle(secondaryForeground)
+            }
         }
     }
 
@@ -227,6 +303,7 @@ struct PersonalProgressBar: View {
 /// Keeps every primary progress value in one time scope. Daily challenges use
 /// the current day's total; weekly challenges use the seven-day total.
 struct PersonalProgressPresentation: Equatable {
+    let displayedSteps: Int
     let stepsText: String
     let remainingText: String
     let accessibilityLabel: String
@@ -272,6 +349,7 @@ struct PersonalProgressPresentation: Equatable {
             accessibilityLabel = "Week progress"
         }
 
+        displayedSteps = steps
         accessibilityValue = "\(stepsText). \(remainingText)."
         fraction = target > 0
             ? min(1, Double(steps) / Double(target))

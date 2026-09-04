@@ -130,11 +130,17 @@ beside a final result or review action. Repetition at those decision points is
 intentional. Keep the exact Stripe consent sentence and payment trigger
 unchanged; changing placement never changes the agreement or its version.
 
+Beside the selected amount, the $0 path and the one-time miss charge share the
+same paragraph. Follow it with **This is not a subscription.** Amount tiles stay
+equal; the selected amount is a check, not a larger or louder tile.
+
 The confirmation receipt groups the frozen facts under **Your challenge**,
 **When it starts**, and **Payment protection**, with no more than four facts in
-each group. Longer start and cadence explanations, sandbox cancellation, and
-the safe saved-draft explanation stay behind **More details**. Never show the
-draft request identifier.
+each group. The confirmation action is **Start this challenge**. In Stripe
+sandbox it stays disabled until the consent checkbox is on. Longer start and
+cadence explanations, sandbox cancellation, and the safe saved-draft
+explanation stay behind **More details**. Never show the draft request
+identifier.
 
 ### Future live copy
 

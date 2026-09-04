@@ -40,7 +40,7 @@ struct AppShellView: View {
                     }
             }
             .tabItem {
-                Label("Challenges", systemImage: "flag.checkered")
+                Label("Challenges", systemImage: "calendar")
                     .accessibilityIdentifier("tab.challenges")
             }
             .tag(AppTab.challenges)

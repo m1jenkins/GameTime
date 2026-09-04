@@ -157,6 +157,20 @@ final class PersonalChallengeReceiptPresentationTests: XCTestCase {
             ).text,
             "Your test charge is $0 when you meet your goal or step data is missing or unclear. Only a confirmed miss after review can create one $40.00 test charge."
         )
+        XCTAssertEqual(
+            PersonalCommitmentProtectionPresentation(
+                amountMinor: 2_000,
+                settlementMode: .testOnly
+            ).caption,
+            "This is not a subscription."
+        )
+        XCTAssertEqual(
+            PersonalCommitmentProtectionPresentation(
+                amountMinor: 4_000,
+                settlementMode: .stripeSandbox
+            ).caption,
+            "This is not a subscription."
+        )
     }
 
     func testReceiptCopyDoesNotExposeTechnicalOrInternalLanguage() {

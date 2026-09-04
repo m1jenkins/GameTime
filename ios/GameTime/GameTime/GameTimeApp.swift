@@ -481,7 +481,7 @@ private struct ConfigurationFailureView: View {
         }
         .padding(28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(CompetitiveTrustTheme.ink)
+        .background(CompetitiveTrustTheme.paper)
         .preferredColorScheme(.light)
     }
 }
@@ -562,7 +562,7 @@ private struct SignedOutView: View {
             }
             .padding(24)
         }
-        .background(CompetitiveTrustTheme.ink)
+        .background(CompetitiveTrustTheme.paper)
         .preferredColorScheme(.light)
         .onChange(of: model.isMutating) { _, isSigningIn in
             guard isSigningIn else { return }

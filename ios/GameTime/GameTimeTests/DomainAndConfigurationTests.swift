@@ -33,29 +33,115 @@ final class DomainAndConfigurationTests: XCTestCase {
         }
     }
 
-    func testAthleticTextRolesMeetNormalTextContrast() {
-        let darkBackground = UIColor(CompetitiveTrustTheme.darkBackground)
-        let graphiteCard = UIColor(CompetitiveTrustTheme.graphiteSurface)
+    func testDaybreakLedgerTokenValues() {
+        assertRGB(
+            UIColor(CompetitiveTrustTheme.paper),
+            red: 244.0 / 255.0,
+            green: 240.0 / 255.0,
+            blue: 232.0 / 255.0,
+            style: .light,
+            name: "Paper canvas light #F4F0E8"
+        )
+        assertRGB(
+            UIColor(CompetitiveTrustTheme.paper),
+            red: 20.0 / 255.0,
+            green: 19.0 / 255.0,
+            blue: 17.0 / 255.0,
+            style: .dark,
+            name: "Paper canvas dark #141311"
+        )
+        assertRGB(
+            UIColor(CompetitiveTrustTheme.card),
+            red: 1,
+            green: 1,
+            blue: 1,
+            style: .light,
+            name: "Surface light white"
+        )
+        assertRGB(
+            UIColor(CompetitiveTrustTheme.primaryText),
+            red: 26.0 / 255.0,
+            green: 31.0 / 255.0,
+            blue: 24.0 / 255.0,
+            style: .light,
+            name: "Ink light #1A1F18"
+        )
+        assertRGB(
+            UIColor(CompetitiveTrustTheme.pine),
+            red: 31.0 / 255.0,
+            green: 92.0 / 255.0,
+            blue: 69.0 / 255.0,
+            style: .light,
+            name: "Pine action #1F5C45"
+        )
+        assertRGB(
+            UIColor(CompetitiveTrustTheme.pine),
+            red: 31.0 / 255.0,
+            green: 92.0 / 255.0,
+            blue: 69.0 / 255.0,
+            style: .dark,
+            name: "Pine stays pine in dark"
+        )
+        assertRGB(
+            UIColor(CompetitiveTrustTheme.hairlineDivider),
+            red: 230.0 / 255.0,
+            green: 225.0 / 255.0,
+            blue: 216.0 / 255.0,
+            style: .light,
+            name: "Hairline light #E6E1D8"
+        )
+        assertRGB(
+            UIColor(CompetitiveTrustTheme.behindPace),
+            red: 138.0 / 255.0,
+            green: 90.0 / 255.0,
+            blue: 26.0 / 255.0,
+            style: .light,
+            name: "Behind-pace ochre #8A5A1A"
+        )
+    }
+
+    func testMoneyTokenMatchesInkAndIsNotPine() {
+        for style: UIUserInterfaceStyle in [.light, .dark] {
+            assertSameRGB(
+                UIColor(CompetitiveTrustTheme.money),
+                UIColor(CompetitiveTrustTheme.primaryText),
+                style: style,
+                name: "Money matches ink"
+            )
+            assertSameRGB(
+                UIColor(CompetitiveTrustTheme.ink),
+                UIColor(CompetitiveTrustTheme.primaryText),
+                style: style,
+                name: "Ink token matches primary text"
+            )
+            XCTAssertFalse(
+                sameRGB(
+                    UIColor(CompetitiveTrustTheme.money),
+                    UIColor(CompetitiveTrustTheme.pine),
+                    style: style
+                ),
+                "Money must not use the pine action color in \(style == .dark ? "dark" : "light")."
+            )
+        }
+    }
+
+    func testDaybreakLedgerTextRolesMeetNormalTextContrast() {
+        let darkCanvas = UIColor(CompetitiveTrustTheme.paper)
+        let darkSurface = UIColor(CompetitiveTrustTheme.card)
 
         let darkPairs: [(name: String, foreground: UIColor, background: UIColor)] = [
-            ("Primary text on dark background", UIColor(CompetitiveTrustTheme.primaryText), darkBackground),
-            ("Primary text on graphite card", UIColor(CompetitiveTrustTheme.primaryText), graphiteCard),
-            ("Secondary text on dark background", UIColor(CompetitiveTrustTheme.secondaryText), darkBackground),
-            ("Secondary text on graphite card", UIColor(CompetitiveTrustTheme.secondaryText), graphiteCard),
-            ("Signal Orange on dark background", UIColor(CompetitiveTrustTheme.signalOrange), darkBackground),
-            ("Signal Orange on graphite card", UIColor(CompetitiveTrustTheme.signalOrange), graphiteCard),
-            ("Athletic Green on dark background", UIColor(CompetitiveTrustTheme.athleticGreen), darkBackground),
-            ("Athletic Green on graphite card", UIColor(CompetitiveTrustTheme.athleticGreen), graphiteCard),
-            ("Primary button dark label", .black, UIColor(CompetitiveTrustTheme.signalOrange)),
+            ("Primary text on dark canvas", UIColor(CompetitiveTrustTheme.primaryText), darkCanvas),
+            ("Primary text on dark surface", UIColor(CompetitiveTrustTheme.primaryText), darkSurface),
+            ("Secondary text on dark canvas", UIColor(CompetitiveTrustTheme.secondaryText), darkCanvas),
+            ("Secondary text on dark surface", UIColor(CompetitiveTrustTheme.secondaryText), darkSurface),
+            ("Pine ink on dark canvas", UIColor(CompetitiveTrustTheme.pineInk), darkCanvas),
+            ("Pine ink on dark surface", UIColor(CompetitiveTrustTheme.pineInk), darkSurface),
+            ("Behind-pace text on dark canvas", UIColor(CompetitiveTrustTheme.behindPace), darkCanvas),
+            ("Primary button label on pine", UIColor(CompetitiveTrustTheme.onPine), UIColor(CompetitiveTrustTheme.pine)),
             (
-                "Inverse secondary text",
-                UIColor(CompetitiveTrustTheme.inverseSecondaryText),
-                UIColor(CompetitiveTrustTheme.primaryText)
-            ),
-            (
-                "Caution text on dark background",
-                UIColor(CompetitiveTrustTheme.sunInk),
-                darkBackground
+                "Money on dark canvas",
+                UIColor(CompetitiveTrustTheme.money),
+                darkCanvas
             ),
         ]
 
@@ -66,9 +152,10 @@ final class DomainAndConfigurationTests: XCTestCase {
             ("Primary text on light card", UIColor(CompetitiveTrustTheme.primaryText), lightCard),
             ("Secondary text on light paper", UIColor(CompetitiveTrustTheme.secondaryText), lightPaper),
             ("Secondary text on light card", UIColor(CompetitiveTrustTheme.secondaryText), lightCard),
-            ("Coral Ink on light paper", UIColor(CompetitiveTrustTheme.coralInk), lightPaper),
-            ("Mint Ink on light paper", UIColor(CompetitiveTrustTheme.mintInk), lightPaper),
-            ("Sun Ink on light paper", UIColor(CompetitiveTrustTheme.sunInk), lightPaper),
+            ("Pine ink on light paper", UIColor(CompetitiveTrustTheme.pineInk), lightPaper),
+            ("Behind-pace ochre on light paper", UIColor(CompetitiveTrustTheme.behindPace), lightPaper),
+            ("Money on light paper", UIColor(CompetitiveTrustTheme.money), lightPaper),
+            ("Primary button label on pine", UIColor(CompetitiveTrustTheme.onPine), UIColor(CompetitiveTrustTheme.pine)),
         ]
 
         for pair in darkPairs {
@@ -141,8 +228,218 @@ final class DomainAndConfigurationTests: XCTestCase {
             codeContent.contains("Hanken"),
             "CompetitiveTrustTheme.swift must NOT contain any references to Hanken font."
         )
+        XCTAssertFalse(
+            codeContent.contains("#FC5200") || codeContent.contains("0.9882"),
+            "CompetitiveTrustTheme.swift must not keep Strava Signal Orange."
+        )
+        XCTAssertFalse(
+            codeContent.contains("#00D084"),
+            "CompetitiveTrustTheme.swift must not keep athletic neon green."
+        )
     }
 
+    func testTodayProgressCardsDoNotForceDarkColorScheme() throws {
+        let todayViewURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("GameTime/TodayView.swift")
+        let source = try String(contentsOf: todayViewURL, encoding: .utf8)
+
+        XCTAssertTrue(
+            source.contains("PersonalProgressBar("),
+            "Today must still host the progress bar."
+        )
+        XCTAssertTrue(
+            source.contains("PersonalHealthProgressStatus("),
+            "Today must still host Health provenance."
+        )
+        XCTAssertTrue(
+            source.contains("PersonalWeekRow("),
+            "Today must host the challenge-date week row."
+        )
+        XCTAssertTrue(
+            source.contains("See this week"),
+            "Today’s primary action must be See this week."
+        )
+        XCTAssertTrue(
+            source.contains("personal.today.open"),
+            "Today must keep the open-challenge accessibility identifier."
+        )
+        XCTAssertFalse(
+            source.contains("PersonalPaceCard("),
+            "Today’s signature is the week row, not a second pace chart card."
+        )
+        XCTAssertFalse(
+            source.contains("PersonalPaceTiles("),
+            "Today must not stack pace tiles under the hero."
+        )
+        XCTAssertFalse(
+            source.contains(".colorScheme(.dark)"),
+            "Today progress and Health provenance must inherit the screen appearance instead of forcing dark cards inside a light shell."
+        )
+    }
+
+    func testChallengesTabUsesCalendarSymbol() throws {
+        let shellURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("GameTime/AppShellView.swift")
+        let source = try String(contentsOf: shellURL, encoding: .utf8)
+
+        XCTAssertTrue(
+            source.contains("Label(\"Challenges\", systemImage: \"calendar\")"),
+            "Challenges is a week of dates, not a trophy or checkered flag."
+        )
+        XCTAssertFalse(
+            source.contains("flag.checkered"),
+            "The checkered-flag tab symbol is athletic overlay. Use calendar."
+        )
+        XCTAssertTrue(
+            source.contains("accessibilityIdentifier(\"tab.challenges\")"),
+            "The Challenges tab identifier must stay tab.challenges."
+        )
+    }
+
+    func testChallengesHistoryListUsesPaperCards() throws {
+        let challengesURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("GameTime/ChallengesView.swift")
+        let cardURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent(
+                "GameTime/PersonalAccountabilityComponents.swift"
+            )
+        let challenges = try String(contentsOf: challengesURL, encoding: .utf8)
+        let card = try String(contentsOf: cardURL, encoding: .utf8)
+
+        XCTAssertTrue(
+            challenges.contains("PersonalChallengeCard("),
+            "Challenges must still list PersonalChallengeCard rows."
+        )
+        XCTAssertTrue(
+            challenges.contains("systemImage: \"calendar\""),
+            "The empty Challenges state must use the calendar symbol."
+        )
+        XCTAssertFalse(
+            challenges.contains("flag.checkered"),
+            "Challenges must not keep the checkered-flag empty-state icon."
+        )
+        XCTAssertTrue(
+            challenges.contains("personal.create"),
+            "Start a challenge must keep personal.create."
+        )
+        XCTAssertTrue(
+            challenges.contains("personal.pending.resume"),
+            "Continue setup must keep personal.pending.resume."
+        )
+        XCTAssertFalse(
+            challenges.contains(".colorScheme(.dark)"),
+            "Challenges paper cards must inherit the screen appearance."
+        )
+        XCTAssertTrue(
+            card.contains("PersonalChallengeHistoryCardPresentation("),
+            "History cards must use the paper-ledger presentation, not a money hero."
+        )
+        XCTAssertTrue(
+            card.contains("card.receiptText"),
+            "History cards must render money as a receipt line."
+        )
+        XCTAssertFalse(
+            card.contains("monoFont("),
+            "History cards must not set the commitment in monospaced hero type."
+        )
+        XCTAssertTrue(
+            card.contains("personal.challenge.\\(challenge.id.uuidString.lowercased())"),
+            "History cards must keep the per-challenge accessibility identifier."
+        )
+    }
+
+    func testCreateSheetUsesEqualAmountTilesAndAConfirmReceipt() throws {
+        let flowURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("GameTime/PersonalChallengeFlow.swift")
+        let source = try String(contentsOf: flowURL, encoding: .utf8)
+
+        XCTAssertTrue(
+            source.contains("commitmentAmountTile("),
+            "Your amount must use equal tiles, not a filled segmented stake control."
+        )
+        XCTAssertTrue(
+            source.contains("amountCheckmark"),
+            "Selected amount tiles must include a check, not a larger or louder tile."
+        )
+        XCTAssertTrue(
+            source.contains("CompetitiveTrustTheme.money"),
+            "Amount tiles must set the value in ink, never pine fill."
+        )
+        XCTAssertTrue(
+            source.contains("commitmentProtection.caption"),
+            "Your amount must show This is not a subscription."
+        )
+        XCTAssertTrue(
+            source.contains("personal.commitment.protection"),
+            "Amount protection must keep personal.commitment.protection."
+        )
+        XCTAssertTrue(
+            source.contains("personal.commitment.\\(amount)"),
+            "Amount tiles must keep personal.commitment.<amount> identifiers."
+        )
+        XCTAssertTrue(
+            source.contains("Start this challenge"),
+            "Check and confirm must use Start this challenge."
+        )
+        XCTAssertTrue(
+            source.contains("personal.submit"),
+            "The confirmation action must keep personal.submit."
+        )
+        XCTAssertTrue(
+            source.contains("requiresPaymentConsent && !paymentConsentAccepted"),
+            "Start this challenge stays disabled until sandbox consent is on."
+        )
+        XCTAssertTrue(
+            source.contains("personal.payment.consent"),
+            "Sandbox consent must keep personal.payment.consent."
+        )
+        XCTAssertTrue(
+            source.contains("Text(\"More details\")"),
+            "More details must stay a link, not a Show/Hide athletic row."
+        )
+        XCTAssertTrue(
+            source.contains("personal.receipt.more-details"),
+            "More details must keep personal.receipt.more-details."
+        )
+        XCTAssertTrue(
+            source.contains("DaybreakCreateCard"),
+            "The create sheet and receipt must sit on radius-12 paper cards."
+        )
+        XCTAssertTrue(
+            source.contains("EnvironmentDisclosureBanner("),
+            "The creation sheet must repeat the environment banner because it covers the root banner."
+        )
+        XCTAssertFalse(
+            source.contains("SELECT COMMITMENT STAKE"),
+            "Athletic all-caps stake copy does not belong on the amount step."
+        )
+        XCTAssertFalse(
+            source.contains("Start my challenge"),
+            "Start my challenge is the old athletic CTA."
+        )
+        XCTAssertFalse(
+            source.contains("AthleticCard"),
+            "The create sheet must not keep the radius-4 athletic card."
+        )
+        XCTAssertFalse(
+            source.contains("commitmentSegmentButton"),
+            "Filled segmented amount controls are athletic overlay."
+        )
+        XCTAssertFalse(
+            source.contains("Color.black"),
+            "Selected amount tiles must not invert onto a filled accent."
+        )
+    }
 
     func testInstalledProductUsesTheGameTimePublicIdentity() {
         XCTAssertEqual(GameTimePublicIdentity.name, "GameTime")
@@ -155,6 +452,82 @@ final class DomainAndConfigurationTests: XCTestCase {
             forInfoDictionaryKey: "NSHealthShareUsageDescription"
         ) as? String
         XCTAssertTrue(healthDescription?.hasPrefix("GameTime ") == true)
+    }
+
+    private func assertRGB(
+        _ color: UIColor,
+        red: CGFloat,
+        green: CGFloat,
+        blue: CGFloat,
+        style: UIUserInterfaceStyle,
+        name: String,
+        accuracy: CGFloat = 0.01
+    ) {
+        let resolved = color.resolvedColor(
+            with: UITraitCollection(userInterfaceStyle: style)
+        )
+        var actualRed: CGFloat = 0
+        var actualGreen: CGFloat = 0
+        var actualBlue: CGFloat = 0
+        var alpha: CGFloat = 0
+        XCTAssertTrue(
+            resolved.getRed(
+                &actualRed,
+                green: &actualGreen,
+                blue: &actualBlue,
+                alpha: &alpha
+            ),
+            "\(name) should be an RGB color."
+        )
+        XCTAssertEqual(actualRed, red, accuracy: accuracy, "\(name) red")
+        XCTAssertEqual(actualGreen, green, accuracy: accuracy, "\(name) green")
+        XCTAssertEqual(actualBlue, blue, accuracy: accuracy, "\(name) blue")
+    }
+
+    private func assertSameRGB(
+        _ first: UIColor,
+        _ second: UIColor,
+        style: UIUserInterfaceStyle,
+        name: String
+    ) {
+        XCTAssertTrue(
+            sameRGB(first, second, style: style),
+            "\(name) in \(style == .dark ? "dark" : "light")."
+        )
+    }
+
+    private func sameRGB(
+        _ first: UIColor,
+        _ second: UIColor,
+        style: UIUserInterfaceStyle
+    ) -> Bool {
+        let traits = UITraitCollection(userInterfaceStyle: style)
+        let resolvedFirst = first.resolvedColor(with: traits)
+        let resolvedSecond = second.resolvedColor(with: traits)
+        var firstRed: CGFloat = 0
+        var firstGreen: CGFloat = 0
+        var firstBlue: CGFloat = 0
+        var firstAlpha: CGFloat = 0
+        var secondRed: CGFloat = 0
+        var secondGreen: CGFloat = 0
+        var secondBlue: CGFloat = 0
+        var secondAlpha: CGFloat = 0
+        guard resolvedFirst.getRed(
+            &firstRed,
+            green: &firstGreen,
+            blue: &firstBlue,
+            alpha: &firstAlpha
+        ), resolvedSecond.getRed(
+            &secondRed,
+            green: &secondGreen,
+            blue: &secondBlue,
+            alpha: &secondAlpha
+        ) else {
+            return false
+        }
+        return abs(firstRed - secondRed) < 0.01
+            && abs(firstGreen - secondGreen) < 0.01
+            && abs(firstBlue - secondBlue) < 0.01
     }
 
     private func contrastRatio(
@@ -185,7 +558,7 @@ final class DomainAndConfigurationTests: XCTestCase {
             blue: &blue,
             alpha: &alpha
         ) else {
-            XCTFail("Expected an RGB-compatible Athletic theme color.")
+            XCTFail("Expected an RGB-compatible Daybreak Ledger color.")
             return 0
         }
 

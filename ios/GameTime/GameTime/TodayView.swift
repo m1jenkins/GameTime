@@ -71,124 +71,117 @@ struct TodayView: View {
         }()
 
         return VStack(spacing: 12) {
-            // Hero Performance Block & Stakes/Sync HUD
             VStack(alignment: .leading, spacing: 16) {
-                HStack(alignment: .center) {
-                    PersonalStatusPill(
-                        status: status,
-                        outcome: summary.outcome?.kind
+                if let progress, let paceSummary {
+                    let hero = PersonalTodayHeroPresentation(
+                        terms: summary.terms,
+                        progress: progress,
+                        pace: paceSummary
                     )
-                    Spacer(minLength: 8)
-                    Text(summary.terms.commitmentText)
+                    heroMetric(hero)
+                    Text(hero.remainingText)
                         .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: 20,
-                                relativeTo: .headline
+                            CompetitiveTrustTheme.uiFont(
+                                size: 15,
+                                relativeTo: .subheadline,
+                                weight: .semibold
                             )
                         )
-                        .foregroundStyle(CompetitiveTrustTheme.signalOrange)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    if let progress {
-                        HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Text(progress.totalSteps.formatted())
-                                .font(
-                                    CompetitiveTrustTheme.tabularFont(
-                                        size: dynamicTypeSize.isAccessibilitySize
-                                            ? 30
-                                            : 40,
-                                        weight: .bold
-                                    )
-                                )
-                                .tracking(-0.8)
-                            Text("/ \(summary.terms.targetSteps.formatted()) steps")
-                                .font(
-                                    CompetitiveTrustTheme.tabularFont(
-                                        size: 16,
-                                        weight: .bold
-                                    )
-                                )
-                                .foregroundStyle(
-                                    CompetitiveTrustTheme.secondaryText
-                                )
-                        }
-                    } else {
-                        Text(summary.terms.targetText)
-                            .font(
-                                CompetitiveTrustTheme.tabularFont(
-                                    size: dynamicTypeSize.isAccessibilitySize
-                                        ? 20
-                                        : 28,
-                                    weight: .bold
-                                )
-                            )
-                            .tracking(-0.7)
-                    }
-
-                    if let paceSummary {
-                        HStack(spacing: 6) {
-                            Text(paceSummary.headline)
-                                .font(
-                                    CompetitiveTrustTheme.tabularFont(
-                                        size: 14,
-                                        weight: .bold
-                                    )
-                                )
-                                .foregroundStyle(
-                                    paceSummary.headlineTone == .positive
-                                        ? CompetitiveTrustTheme.athleticGreen
-                                        : CompetitiveTrustTheme.signalOrange
-                                )
-                            Text(paceSummary.headlineCaption)
-                                .font(
-                                    CompetitiveTrustTheme.uiFont(
-                                        size: 12.5,
-                                        relativeTo: .caption,
-                                        weight: .semibold
-                                    )
-                                )
-                                .foregroundStyle(
-                                    CompetitiveTrustTheme.secondaryText
-                                )
-                        }
-                    }
-                }
-
-                if let progress {
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .accessibilityIdentifier("personal.progress.remaining")
                     PersonalProgressBar(
                         progress: progress,
-                        terms: summary.terms
+                        terms: summary.terms,
+                        showsFacts: false
                     )
-                    .colorScheme(.dark)
-                }
-
-                Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
-
-                PersonalHealthProgressStatus(
-                    presentation: healthPresentation,
-                    policy: summary.stepDataPolicy
-                )
-                .colorScheme(.dark)
-
-                Button("See details") {
-                    router.todayPath.append(
-                        .personalChallenge(summary.id)
+                    PersonalWeekRow(row: hero.week) { _ in
+                        openChallenge(summary.id)
+                    }
+                    Text(hero.receiptText)
+                        .font(
+                            CompetitiveTrustTheme.uiFont(
+                                size: 13,
+                                relativeTo: .footnote,
+                                weight: .semibold
+                            )
+                        )
+                        .foregroundStyle(CompetitiveTrustTheme.money)
+                        .fixedSize(horizontal: false, vertical: true)
+                    PersonalHealthProgressStatus(
+                        presentation: healthPresentation,
+                        policy: summary.stepDataPolicy
                     )
+                    Button(hero.openActionTitle) {
+                        openChallenge(summary.id)
+                    }
+                    .buttonStyle(TrustPrimaryButtonStyle())
+                    .accessibilityIdentifier("personal.today.open")
+                } else {
+                    Text(summary.terms.targetText)
+                        .font(
+                            CompetitiveTrustTheme.tabularFont(
+                                size: dynamicTypeSize.isAccessibilitySize
+                                    ? 20
+                                    : 28,
+                                weight: .bold
+                            )
+                        )
+                        .tracking(-0.7)
+                    PersonalHealthProgressStatus(
+                        presentation: healthPresentation,
+                        policy: summary.stepDataPolicy
+                    )
+                    Button("See this week") {
+                        openChallenge(summary.id)
+                    }
+                    .buttonStyle(TrustPrimaryButtonStyle())
+                    .accessibilityIdentifier("personal.today.open")
                 }
-                .buttonStyle(TrustPrimaryButtonStyle())
-                .accessibilityIdentifier("personal.today.open")
             }
             .trustCard()
-
-            if let paceSummary {
-                PersonalPaceCard(summary: paceSummary)
-                PersonalPaceTiles(tiles: paceSummary.tiles)
-            }
         }
         .task(id: summary.id) {
             await store.loadDetail(challengeID: summary.id)
         }
+    }
+
+    private func heroMetric(_ hero: PersonalTodayHeroPresentation) -> some View {
+        let number = hero.displayedSteps.formatted()
+        let size: CGFloat = dynamicTypeSize.isAccessibilitySize ? 34 : 44
+        let numberText = Text(number)
+            .font(CompetitiveTrustTheme.tabularFont(size: size, weight: .bold))
+            .foregroundStyle(CompetitiveTrustTheme.primaryText)
+        let metric: Text
+        if hero.stepsText.hasPrefix(number) {
+            let suffix = String(hero.stepsText.dropFirst(number.count))
+            metric = numberText
+                + Text(suffix)
+                .font(
+                    CompetitiveTrustTheme.uiFont(
+                        size: 16,
+                        relativeTo: .callout,
+                        weight: .semibold
+                    )
+                )
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+        } else {
+            metric = Text(hero.stepsText)
+                .font(
+                    CompetitiveTrustTheme.tabularFont(
+                        size: dynamicTypeSize.isAccessibilitySize ? 20 : 28,
+                        weight: .bold
+                    )
+                )
+                .foregroundStyle(CompetitiveTrustTheme.primaryText)
+        }
+        return metric
+            .tracking(-0.8)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("personal.progress.steps")
+    }
+
+    private func openChallenge(_ challengeID: UUID) {
+        router.todayPath.append(.personalChallenge(challengeID))
     }
 
     private var createCard: some View {

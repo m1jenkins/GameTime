@@ -3801,6 +3801,7 @@ final class PersonalProgressPresentationTests: XCTestCase {
             presentation.accessibilityValue,
             "7,350 steps today. 2,650 to today’s goal."
         )
+        XCTAssertEqual(presentation.displayedSteps, 7_350)
         XCTAssertEqual(presentation.fraction, 0.735, accuracy: 0.001)
     }
 
@@ -3827,6 +3828,7 @@ final class PersonalProgressPresentationTests: XCTestCase {
             presentation.accessibilityValue,
             "56,000 steps this week. 14,000 to this week’s goal."
         )
+        XCTAssertEqual(presentation.displayedSteps, 56_000)
         XCTAssertEqual(presentation.fraction, 0.8, accuracy: 0.001)
     }
 

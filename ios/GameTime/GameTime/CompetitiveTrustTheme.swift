@@ -2,129 +2,162 @@ import SwiftUI
 import UIKit
 
 enum CompetitiveTrustTheme {
-    // MARK: - R1 Athletic Design System Primary Tokens
-    static let darkBackground = Color(red: 0.0, green: 0.0, blue: 0.0) // #000000
-    static let graphiteSurface = Color(red: 0.0706, green: 0.0706, blue: 0.0706) // #121212
-    static let signalOrange = Color(red: 0.9882, green: 0.3216, blue: 0.0) // #FC5200
-    static let athleticGreen = Color(red: 0.0, green: 0.8157, blue: 0.5176) // #00D084
+    // MARK: - Daybreak Ledger tokens
+    // Light: paper canvas, pine action, money stays ink.
+    // Dark: near-black canvas, graphite surfaces, pine stays pine.
 
-    // Sharp neutral hairline dividers: #2C2C2E (dark) / #E5E5EA (light)
-    static let hairlineDivider = Color(uiColor: UIColor { traits in
-        traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.1725, green: 0.1725, blue: 0.1804, alpha: 1.0)
-            : UIColor(red: 0.8980, green: 0.8980, blue: 0.9176, alpha: 1.0)
-    })
+    static let pine = Color(
+        red: 31.0 / 255.0,
+        green: 92.0 / 255.0,
+        blue: 69.0 / 255.0
+    )
 
-    // MARK: - Adaptive Surfaces & Palette Aliases
+    static let onPine = Color(
+        red: 244.0 / 255.0,
+        green: 240.0 / 255.0,
+        blue: 232.0 / 255.0
+    )
+
     static let paper = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor.black
-            : UIColor(red: 0.949, green: 0.949, blue: 0.969, alpha: 1.0)
+            ? UIColor(red: 20.0 / 255.0, green: 19.0 / 255.0, blue: 17.0 / 255.0, alpha: 1)
+            : UIColor(red: 244.0 / 255.0, green: 240.0 / 255.0, blue: 232.0 / 255.0, alpha: 1)
     })
 
     static let paperSunk = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.0706, green: 0.0706, blue: 0.0706, alpha: 1.0)
-            : UIColor(red: 0.898, green: 0.898, blue: 0.918, alpha: 1.0)
+            ? UIColor(red: 26.0 / 255.0, green: 25.0 / 255.0, blue: 23.0 / 255.0, alpha: 1)
+            : UIColor(red: 235.0 / 255.0, green: 230.0 / 255.0, blue: 220.0 / 255.0, alpha: 1)
     })
 
     static let card = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.0706, green: 0.0706, blue: 0.0706, alpha: 1.0)
+            ? UIColor(red: 28.0 / 255.0, green: 27.0 / 255.0, blue: 25.0 / 255.0, alpha: 1)
             : UIColor.white
     })
 
-    // Text hierarchy
+    static let hairlineDivider = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 58.0 / 255.0, green: 55.0 / 255.0, blue: 47.0 / 255.0, alpha: 1)
+            : UIColor(red: 230.0 / 255.0, green: 225.0 / 255.0, blue: 216.0 / 255.0, alpha: 1)
+    })
+
     static let primaryText = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor.white
-            : UIColor(red: 0.110, green: 0.082, blue: 0.137, alpha: 1.0)
+            ? UIColor(red: 244.0 / 255.0, green: 240.0 / 255.0, blue: 232.0 / 255.0, alpha: 1)
+            : UIColor(red: 26.0 / 255.0, green: 31.0 / 255.0, blue: 24.0 / 255.0, alpha: 1)
     })
 
     static let secondaryText = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.5569, green: 0.5569, blue: 0.5765, alpha: 1.0)
-            : UIColor(red: 0.4235, green: 0.4235, blue: 0.4392, alpha: 1.0)
+            ? UIColor(red: 163.0 / 255.0, green: 156.0 / 255.0, blue: 148.0 / 255.0, alpha: 1)
+            : UIColor(red: 107.0 / 255.0, green: 100.0 / 255.0, blue: 92.0 / 255.0, alpha: 1)
     })
 
     static let tertiaryText = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.3882, green: 0.3882, blue: 0.4000, alpha: 1.0)
-            : UIColor(red: 0.3650, green: 0.3220, blue: 0.4040, alpha: 1.0)
+            ? UIColor(red: 122.0 / 255.0, green: 116.0 / 255.0, blue: 108.0 / 255.0, alpha: 1)
+            : UIColor(red: 138.0 / 255.0, green: 131.0 / 255.0, blue: 122.0 / 255.0, alpha: 1)
     })
 
     static let disabledText = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.2824, green: 0.2824, blue: 0.2902, alpha: 1.0)
-            : UIColor(red: 0.6550, green: 0.6160, blue: 0.6860, alpha: 1.0)
+            ? UIColor(red: 90.0 / 255.0, green: 86.0 / 255.0, blue: 80.0 / 255.0, alpha: 1)
+            : UIColor(red: 167.0 / 255.0, green: 160.0 / 255.0, blue: 151.0 / 255.0, alpha: 1)
     })
+
+    static let pineInk = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 127.0 / 255.0, green: 184.0 / 255.0, blue: 154.0 / 255.0, alpha: 1)
+            : UIColor(red: 31.0 / 255.0, green: 92.0 / 255.0, blue: 69.0 / 255.0, alpha: 1)
+    })
+
+    static let behindPace = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 212.0 / 255.0, green: 160.0 / 255.0, blue: 90.0 / 255.0, alpha: 1)
+            : UIColor(red: 138.0 / 255.0, green: 90.0 / 255.0, blue: 26.0 / 255.0, alpha: 1)
+    })
+
+    static let attention = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 214.0 / 255.0, green: 132.0 / 255.0, blue: 108.0 / 255.0, alpha: 1)
+            : UIColor(red: 139.0 / 255.0, green: 62.0 / 255.0, blue: 42.0 / 255.0, alpha: 1)
+    })
+
+    static let didNotCount = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 154.0 / 255.0, green: 162.0 / 255.0, blue: 172.0 / 255.0, alpha: 1)
+            : UIColor(red: 92.0 / 255.0, green: 101.0 / 255.0, blue: 112.0 / 255.0, alpha: 1)
+    })
+
+    static let money = primaryText
+    static let ink = primaryText
+    static let darkBackground = paper
+    static let graphiteSurface = card
+
+    static var signalOrange: Color { pine }
+    static var athleticGreen: Color { pine }
 
     static let guide = hairlineDivider
     static let border = hairlineDivider
     static let strongBorder = hairlineDivider
     static let rail = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.1098, green: 0.1098, blue: 0.1176, alpha: 1.0)
-            : UIColor(red: 0.8980, green: 0.8980, blue: 0.9176, alpha: 1.0)
+            ? UIColor(red: 42.0 / 255.0, green: 40.0 / 255.0, blue: 36.0 / 255.0, alpha: 1)
+            : UIColor(red: 230.0 / 255.0, green: 225.0 / 255.0, blue: 216.0 / 255.0, alpha: 1)
     })
 
-    // Accent Roles
-    static let coral = signalOrange
-    static let coralPressed = Color(red: 0.8157, green: 0.2627, blue: 0.0)
-    static let coralInk = Color(uiColor: UIColor { traits in
-        traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.9882, green: 0.3216, blue: 0.0, alpha: 1.0)
-            : UIColor(red: 0.7686, green: 0.2314, blue: 0.0, alpha: 1.0)
-    })
+    static let coral = pine
+    static let coralPressed = Color(
+        red: 24.0 / 255.0,
+        green: 70.0 / 255.0,
+        blue: 52.0 / 255.0
+    )
+    static let coralInk = pineInk
     static let coralTint = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.1725, green: 0.0784, blue: 0.0314, alpha: 1.0)
-            : UIColor(red: 1.0000, green: 0.9412, blue: 0.9020, alpha: 1.0)
+            ? UIColor(red: 28.0 / 255.0, green: 42.0 / 255.0, blue: 36.0 / 255.0, alpha: 1)
+            : UIColor(red: 228.0 / 255.0, green: 239.0 / 255.0, blue: 233.0 / 255.0, alpha: 1)
     })
     static let coralTintStrong = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.2392, green: 0.1059, blue: 0.0431, alpha: 1.0)
-            : UIColor(red: 1.0000, green: 0.8784, blue: 0.8196, alpha: 1.0)
+            ? UIColor(red: 36.0 / 255.0, green: 58.0 / 255.0, blue: 48.0 / 255.0, alpha: 1)
+            : UIColor(red: 210.0 / 255.0, green: 228.0 / 255.0, blue: 218.0 / 255.0, alpha: 1)
     })
 
-    static let sun = Color(red: 1.00, green: 0.7137, blue: 0.1529)
-    static let sunInk = Color(uiColor: UIColor { traits in
+    static let sun = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 1.00, green: 0.7137, blue: 0.1529, alpha: 1.0)
-            : UIColor(red: 0.4784, green: 0.3294, blue: 0.0, alpha: 1.0)
+            ? UIColor(red: 58.0 / 255.0, green: 48.0 / 255.0, blue: 32.0 / 255.0, alpha: 1)
+            : UIColor(red: 232.0 / 255.0, green: 220.0 / 255.0, blue: 200.0 / 255.0, alpha: 1)
     })
+    static let sunInk = behindPace
     static let sunTint = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.1725, green: 0.1333, blue: 0.0314, alpha: 1.0)
-            : UIColor(red: 1.0000, green: 0.9725, blue: 0.9020, alpha: 1.0)
+            ? UIColor(red: 42.0 / 255.0, green: 36.0 / 255.0, blue: 26.0 / 255.0, alpha: 1)
+            : UIColor(red: 243.0 / 255.0, green: 234.0 / 255.0, blue: 216.0 / 255.0, alpha: 1)
     })
 
-    static let mint = athleticGreen
-    static let mintInk = Color(uiColor: UIColor { traits in
-        traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.0, green: 0.8157, blue: 0.5176, alpha: 1.0)
-            : UIColor(red: 0.0, green: 0.4902, blue: 0.3020, alpha: 1.0)
-    })
+    static let mint = pine
+    static let mintInk = pineInk
 
     static let inverseSecondaryText = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.3882, green: 0.3882, blue: 0.4000, alpha: 1.0)
-            : UIColor(red: 0.3882, green: 0.3882, blue: 0.4000, alpha: 1.0)
+            ? UIColor(red: 122.0 / 255.0, green: 116.0 / 255.0, blue: 108.0 / 255.0, alpha: 1)
+            : UIColor(red: 107.0 / 255.0, green: 100.0 / 255.0, blue: 92.0 / 255.0, alpha: 1)
     })
 
-    static let actionCoral = coralInk
+    static let actionCoral = pineInk
 
     private static let participantRamp: [Color] = [
-        signalOrange,
-        athleticGreen,
-        Color(red: 0.486, green: 0.361, blue: 0.988),
-        Color(red: 0.059, green: 0.710, blue: 0.808),
-        Color(red: 0.925, green: 0.282, blue: 0.600),
-        sun,
-        Color(red: 0.298, green: 0.431, blue: 0.961),
+        pine,
+        behindPace,
+        Color(red: 92.0 / 255.0, green: 101.0 / 255.0, blue: 112.0 / 255.0),
+        Color(red: 74.0 / 255.0, green: 98.0 / 255.0, blue: 88.0 / 255.0),
+        Color(red: 139.0 / 255.0, green: 62.0 / 255.0, blue: 42.0 / 255.0),
+        sunInk,
+        Color(red: 70.0 / 255.0, green: 84.0 / 255.0, blue: 72.0 / 255.0),
     ]
 
-    static let ink = paper
     static let raisedInk = card
     static let divider = border
     static let teal = coral
@@ -137,7 +170,7 @@ enum CompetitiveTrustTheme {
         currentUserID: UUID?
     ) -> Color {
         if participantID == currentUserID {
-            return signalOrange
+            return pine
         }
 
         let otherIDs = participantIDs
@@ -157,7 +190,7 @@ enum CompetitiveTrustTheme {
         return participantRamp[index]
     }
 
-    // MARK: - Athletic Typography (SF Pro Display & Monospaced Digits)
+    // MARK: - Typography (SF Pro, tabular figures for counts)
     static func displayFont(
         size: CGFloat,
         relativeTo textStyle: Font.TextStyle
@@ -189,7 +222,7 @@ enum CompetitiveTrustTheme {
 }
 
 @MainActor
-enum AthleticAppearance {
+enum DaybreakAppearance {
     static func install() {
         let navigationAppearance = UINavigationBarAppearance()
         navigationAppearance.configureWithOpaqueBackground()
@@ -224,7 +257,7 @@ enum AthleticAppearance {
         navigationBar.standardAppearance = navigationAppearance
         navigationBar.compactAppearance = navigationAppearance
         navigationBar.scrollEdgeAppearance = navigationAppearance
-        navigationBar.tintColor = UIColor(CompetitiveTrustTheme.signalOrange)
+        navigationBar.tintColor = UIColor(CompetitiveTrustTheme.pine)
 
         let tabAppearance = UITabBarAppearance()
         tabAppearance.configureWithOpaqueBackground()
@@ -235,7 +268,7 @@ enum AthleticAppearance {
             .foregroundColor: UIColor(CompetitiveTrustTheme.secondaryText),
         ]
         let selectedAttributes: [NSAttributedString.Key: Any] = [
-            .foregroundColor: UIColor(CompetitiveTrustTheme.signalOrange),
+            .foregroundColor: UIColor(CompetitiveTrustTheme.pine),
         ]
 
         for itemAppearance in [
@@ -248,7 +281,7 @@ enum AthleticAppearance {
             )
             itemAppearance.normal.titleTextAttributes = normalAttributes
             itemAppearance.selected.iconColor = UIColor(
-                CompetitiveTrustTheme.signalOrange
+                CompetitiveTrustTheme.pine
             )
             itemAppearance.selected.titleTextAttributes = selectedAttributes
         }
@@ -259,7 +292,7 @@ enum AthleticAppearance {
     }
 }
 
-typealias DaybreakAppearance = AthleticAppearance
+typealias AthleticAppearance = DaybreakAppearance
 
 private extension Sequence where Element: Hashable {
     func uniqued() -> [Element] {
@@ -274,10 +307,10 @@ struct TrustCardModifier: ViewModifier {
             .padding(14)
             .background(
                 CompetitiveTrustTheme.card,
-                in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
             )
             .overlay {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
             }
     }
@@ -333,12 +366,14 @@ struct TrustPrimaryButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .frame(minHeight: 44)
             .padding(.horizontal, 20)
-            .foregroundStyle(Color.black.opacity(isEnabled ? 1 : 0.72))
+            .foregroundStyle(
+                CompetitiveTrustTheme.onPine.opacity(isEnabled ? 1 : 0.72)
+            )
             .background(
-                CompetitiveTrustTheme.signalOrange.opacity(
+                CompetitiveTrustTheme.pine.opacity(
                     isEnabled ? 1 : 0.42
                 ),
-                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                in: RoundedRectangle(cornerRadius: 20, style: .continuous)
             )
             .scaleEffect(
                 reduceMotion || !configuration.isPressed ? 1 : 0.98
@@ -471,9 +506,9 @@ struct TrustCompactButtonStyle: ButtonStyle {
     private var foreground: Color {
         switch tone {
         case .primary:
-            .black
+            CompetitiveTrustTheme.onPine
         case .secondary:
-            CompetitiveTrustTheme.signalOrange
+            CompetitiveTrustTheme.pineInk
         case .quiet:
             CompetitiveTrustTheme.secondaryText
         }
@@ -482,7 +517,7 @@ struct TrustCompactButtonStyle: ButtonStyle {
     private var background: Color {
         switch tone {
         case .primary:
-            CompetitiveTrustTheme.signalOrange
+            CompetitiveTrustTheme.pine
         case .secondary:
             CompetitiveTrustTheme.coralTint
         case .quiet:
@@ -494,7 +529,7 @@ struct TrustCompactButtonStyle: ButtonStyle {
 struct InitialsAvatar: View {
     let initials: String
     var size: CGFloat = 44
-    var color: Color = CompetitiveTrustTheme.signalOrange
+    var color: Color = CompetitiveTrustTheme.pine
     var muted = false
 
     var body: some View {
@@ -506,7 +541,7 @@ struct InitialsAvatar: View {
                     weight: .bold
                 )
             )
-            .foregroundStyle(Color.white)
+            .foregroundStyle(CompetitiveTrustTheme.onPine)
             .frame(width: size, height: size)
             .background(color.opacity(muted ? 0.46 : 1), in: Circle())
             .accessibilityHidden(true)
@@ -538,7 +573,7 @@ struct TrustStatusPill: View {
         case .neutral:
             CompetitiveTrustTheme.secondaryText
         case .live:
-            CompetitiveTrustTheme.signalOrange
+            CompetitiveTrustTheme.pine
         case .pledge:
             CompetitiveTrustTheme.sunInk
         }
@@ -547,7 +582,7 @@ struct TrustStatusPill: View {
     private var background: Color {
         switch kind {
         case .verified, .positive:
-            CompetitiveTrustTheme.athleticGreen.opacity(0.12)
+            CompetitiveTrustTheme.pine.opacity(0.12)
         case .action:
             CompetitiveTrustTheme.coralTint
         case .neutral:
@@ -563,13 +598,12 @@ struct TrustStatusPill: View {
         HStack(spacing: 6) {
             if kind == .live {
                 Circle()
-                    .fill(CompetitiveTrustTheme.signalOrange)
+                    .fill(CompetitiveTrustTheme.pine)
                     .frame(width: 8, height: 8)
                     .opacity(liveDotIsDimmed ? 0.35 : 1)
             }
 
             Text(text)
-                .textCase(kind == .live ? .uppercase : nil)
         }
         .font(
             CompetitiveTrustTheme.uiFont(
@@ -578,7 +612,6 @@ struct TrustStatusPill: View {
                 weight: .bold
             )
         )
-        .tracking(kind == .live ? 0.7 : 0)
         .foregroundStyle(color)
         .padding(.horizontal, kind == .live ? 0 : 8)
         .padding(.vertical, kind == .live ? 0 : 4)
@@ -646,13 +679,13 @@ struct EnvironmentDisclosureBanner: View {
             )
         )
         .foregroundStyle(
-            isDemo ? Color.white : CompetitiveTrustTheme.primaryText
+            isDemo ? CompetitiveTrustTheme.onPine : CompetitiveTrustTheme.primaryText
         )
         .frame(maxWidth: .infinity)
         .padding(.vertical, 7)
         .background(
             isDemo
-                ? CompetitiveTrustTheme.signalOrange
+                ? CompetitiveTrustTheme.pine
                 : CompetitiveTrustTheme.sun
         )
         .accessibilityElement(children: .ignore)
@@ -685,7 +718,7 @@ struct DaybreakAsyncStatus: View {
                 .tint(
                     onDarkSurface
                         ? CompetitiveTrustTheme.inverseSecondaryText
-                        : CompetitiveTrustTheme.signalOrange
+                        : CompetitiveTrustTheme.pine
                 )
             Text(message)
                 .font(

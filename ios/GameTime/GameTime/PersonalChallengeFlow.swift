@@ -73,9 +73,7 @@ struct CreatePersonalChallengeFlow: View {
                             store.configuration.personalSettlementMode,
                         isDemo: demoMode.isActive
                     )
-                    AthleticCard {
-                        stepContent
-                    }
+                    stepBody
                     controls
                 }
                 .padding(18)
@@ -127,6 +125,9 @@ struct CreatePersonalChallengeFlow: View {
                         } else {
                             .review
                         }
+                    if store.pendingPaymentIsConfirmed {
+                        paymentConsentAccepted = true
+                    }
                 } else {
                     draft = .initial(
                         profileTimezone: appModel.profile?.timezone,
@@ -194,14 +195,14 @@ struct CreatePersonalChallengeFlow: View {
     private var progressHeader: some View {
         HStack(spacing: 4) {
             ForEach(visibleSteps, id: \.rawValue) { item in
-                Rectangle()
+                Capsule()
                     .fill(
                         (visibleSteps.firstIndex(of: item) ?? 0)
                             <= (visibleSteps.firstIndex(of: step) ?? 0)
-                        ? CompetitiveTrustTheme.signalOrange
+                        ? CompetitiveTrustTheme.pine
                         : CompetitiveTrustTheme.hairlineDivider
                     )
-                    .frame(height: 4)
+                    .frame(height: 2)
             }
         }
         .accessibilityLabel(
@@ -218,6 +219,18 @@ struct CreatePersonalChallengeFlow: View {
                         || store.configuration.personalSettlementMode
                             == .stripeSandbox
                 )
+        }
+    }
+
+    @ViewBuilder
+    private var stepBody: some View {
+        switch step {
+        case .cadence, .commitment, .review:
+            stepContent
+        default:
+            DaybreakCreateCard {
+                stepContent
+            }
         }
     }
 
@@ -271,10 +284,10 @@ struct CreatePersonalChallengeFlow: View {
         let selected = draft.cadence == cadence
         return HStack(alignment: .top, spacing: 14) {
             Image(systemName: cadence == .daily ? "calendar.day.timeline.left" : "sum")
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(
                     selected
-                        ? CompetitiveTrustTheme.signalOrange
+                        ? CompetitiveTrustTheme.pineInk
                         : CompetitiveTrustTheme.secondaryText
                 )
                 .frame(width: 28, height: 28)
@@ -293,21 +306,24 @@ struct CreatePersonalChallengeFlow: View {
             }
             Spacer(minLength: 8)
             if selected {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(CompetitiveTrustTheme.signalOrange)
+                Image(systemName: "checkmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(CompetitiveTrustTheme.pineInk)
+                    .accessibilityHidden(true)
             }
         }
         .padding(14)
-        .background(CompetitiveTrustTheme.graphiteSurface)
-        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+        .background(
+            CompetitiveTrustTheme.card,
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        )
         .overlay(
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(
                     selected
-                        ? CompetitiveTrustTheme.signalOrange
+                        ? CompetitiveTrustTheme.pine
                         : CompetitiveTrustTheme.hairlineDivider,
-                    lineWidth: selected ? 1.5 : 1
+                    lineWidth: selected ? 2 : 1
                 )
         )
     }
@@ -317,9 +333,14 @@ struct CreatePersonalChallengeFlow: View {
             Text(draft.cadence == .daily
                 ? "Steps you’ll walk each day"
                 : "Steps you’ll walk over the week")
-                .font(CompetitiveTrustTheme.monoFont(size: 12, weight: .bold))
+                .font(
+                    CompetitiveTrustTheme.uiFont(
+                        size: 15,
+                        relativeTo: .subheadline,
+                        weight: .semibold
+                    )
+                )
                 .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .tracking(0.5)
 
             HStack {
                 TextField(
@@ -335,16 +356,15 @@ struct CreatePersonalChallengeFlow: View {
                 .accessibilityIdentifier("personal.target")
 
                 Text("steps")
-                    .font(CompetitiveTrustTheme.monoFont(size: 14, weight: .bold))
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 15,
+                            relativeTo: .subheadline,
+                            weight: .semibold
+                        )
+                    )
                     .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             }
-            .padding(14)
-            .background(CompetitiveTrustTheme.graphiteSurface)
-            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
-            )
 
             HStack(spacing: 8) {
                 let presets = draft.cadence == .daily
@@ -356,30 +376,31 @@ struct CreatePersonalChallengeFlow: View {
                     } label: {
                         Text(preset.formatted(.number))
                             .font(CompetitiveTrustTheme.tabularFont(size: 13, weight: .bold))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
+                            .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                            .padding(.horizontal, 12)
+                            .frame(minHeight: 44)
                             .background(
-                                draft.targetSteps == preset
-                                    ? CompetitiveTrustTheme.signalOrange.opacity(0.15)
-                                    : CompetitiveTrustTheme.graphiteSurface
+                                CompetitiveTrustTheme.card,
+                                in: Capsule()
                             )
-                            .foregroundStyle(
-                                draft.targetSteps == preset
-                                    ? CompetitiveTrustTheme.signalOrange
-                                    : CompetitiveTrustTheme.secondaryText
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .overlay {
+                                Capsule()
                                     .stroke(
                                         draft.targetSteps == preset
-                                            ? CompetitiveTrustTheme.signalOrange
+                                            ? CompetitiveTrustTheme.pine
                                             : CompetitiveTrustTheme.hairlineDivider,
-                                        lineWidth: 1
+                                        lineWidth: draft.targetSteps == preset
+                                            ? 2
+                                            : 1
                                     )
-                            )
+                            }
                     }
                     .buttonStyle(.plain)
+                    .accessibilityValue(
+                        draft.targetSteps == preset
+                            ? "Selected"
+                            : "Not selected"
+                    )
                 }
             }
 
@@ -391,87 +412,114 @@ struct CreatePersonalChallengeFlow: View {
 
     private var commitmentContent: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("SELECT COMMITMENT STAKE")
-                .font(CompetitiveTrustTheme.monoFont(size: 12, weight: .bold))
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-                .tracking(0.5)
-
             if dynamicTypeSize.isAccessibilitySize {
-                VStack(spacing: 0) {
+                VStack(spacing: 10) {
                     ForEach(
                         PersonalChallengeDraft.allowedCommitmentAmountsMinor,
                         id: \.self
                     ) { amount in
-                        commitmentSegmentButton(amount)
-                        if amount != PersonalChallengeDraft.allowedCommitmentAmountsMinor.last {
-                            Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
-                        }
+                        commitmentAmountTile(amount)
                     }
                 }
-                .background(CompetitiveTrustTheme.graphiteSurface)
-                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
-                )
             } else {
-                HStack(spacing: 0) {
+                HStack(spacing: 8) {
                     ForEach(
                         PersonalChallengeDraft.allowedCommitmentAmountsMinor,
                         id: \.self
                     ) { amount in
-                        commitmentSegmentButton(amount)
-                        if amount != PersonalChallengeDraft.allowedCommitmentAmountsMinor.last {
-                            Rectangle()
-                                .fill(CompetitiveTrustTheme.hairlineDivider)
-                                .frame(width: 1)
-                        }
+                        commitmentAmountTile(amount)
                     }
                 }
-                .background(CompetitiveTrustTheme.graphiteSurface)
-                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
-                )
             }
 
-            Label(
-                commitmentProtection.text,
-                systemImage: "checkmark.shield"
-            )
-            .font(CompetitiveTrustTheme.uiFont(size: 13, relativeTo: .caption, weight: .medium))
-            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityIdentifier("personal.commitment.protection")
+            Text(commitmentProtection.text)
+                .font(CompetitiveTrustTheme.uiFont(size: 13, relativeTo: .caption, weight: .medium))
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("personal.commitment.protection")
+
+            Text(commitmentProtection.caption)
+                .font(CompetitiveTrustTheme.uiFont(size: 13, relativeTo: .caption, weight: .regular))
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .accessibilityIdentifier("personal.commitment.subscription")
         }
     }
 
-    private func commitmentSegmentButton(_ amount: Int) -> some View {
+    private func commitmentAmountTile(_ amount: Int) -> some View {
         let isSelected = draft.commitmentAmountMinor == amount
+        let amountText = (Double(amount) / 100)
+            .formatted(.currency(code: "USD"))
+        let tileText = (Double(amount) / 100)
+            .formatted(
+                .currency(code: "USD").precision(.fractionLength(0))
+            )
         return Button {
             draft.commitmentAmountMinor = amount
         } label: {
-            Text(
-                (Double(amount) / 100)
-                    .formatted(.currency(code: "USD"))
-            )
-            .font(CompetitiveTrustTheme.tabularFont(size: 15, weight: .bold))
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    HStack(spacing: 10) {
+                        if isSelected {
+                            amountCheckmark
+                        }
+                        Text(amountText)
+                            .font(
+                                CompetitiveTrustTheme.tabularFont(
+                                    size: 20,
+                                    weight: .bold
+                                )
+                            )
+                            .foregroundStyle(CompetitiveTrustTheme.money)
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 16)
+                } else {
+                    Text(tileText)
+                        .font(
+                            CompetitiveTrustTheme.tabularFont(
+                                size: 15,
+                                weight: .bold
+                            )
+                        )
+                        .foregroundStyle(CompetitiveTrustTheme.money)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .padding(.horizontal, 6)
+                }
+            }
             .frame(maxWidth: .infinity, minHeight: 44)
             .background(
-                isSelected
-                    ? CompetitiveTrustTheme.signalOrange
-                    : CompetitiveTrustTheme.graphiteSurface
+                CompetitiveTrustTheme.card,
+                in: Capsule()
             )
-            .foregroundStyle(
-                isSelected
-                    ? Color.black
-                    : CompetitiveTrustTheme.primaryText
-            )
+            .overlay(alignment: .topTrailing) {
+                if isSelected, !dynamicTypeSize.isAccessibilitySize {
+                    amountCheckmark
+                        .padding(.top, 8)
+                        .padding(.trailing, 10)
+                }
+            }
+            .overlay {
+                Capsule()
+                    .stroke(
+                        isSelected
+                            ? CompetitiveTrustTheme.pine
+                            : CompetitiveTrustTheme.hairlineDivider,
+                        lineWidth: isSelected ? 2 : 1
+                    )
+            }
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("personal.commitment.\(amount)")
+        .accessibilityLabel(amountText)
         .accessibilityValue(isSelected ? "Selected" : "Not selected")
+    }
+
+    private var amountCheckmark: some View {
+        Image(systemName: "checkmark")
+            .font(.system(size: 11, weight: .bold))
+            .foregroundStyle(CompetitiveTrustTheme.pineInk)
+            .accessibilityHidden(true)
     }
 
     @ViewBuilder
@@ -720,14 +768,7 @@ struct CreatePersonalChallengeFlow: View {
 
             Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
 
-            Toggle(isOn: $paymentConsentAccepted) {
-                Text(paymentConsentText)
-                    .font(CompetitiveTrustTheme.uiFont(size: 12, relativeTo: .caption, weight: .regular))
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .toggleStyle(.switch)
-            .disabled(store.pendingPaymentIsConfirmed)
-            .accessibilityIdentifier("personal.payment.consent")
+            paymentConsentToggle
         }
     }
 
@@ -744,45 +785,65 @@ struct CreatePersonalChallengeFlow: View {
         return "By starting, you agree that GameTime may create one \(amount) test charge only if this challenge is confirmed missed after the review window. Missing or unclear step data never counts as a miss."
     }
 
+    private var paymentConsentToggle: some View {
+        Toggle(isOn: $paymentConsentAccepted) {
+            Text(paymentConsentText)
+                .font(CompetitiveTrustTheme.uiFont(size: 12, relativeTo: .caption, weight: .regular))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .toggleStyle(.switch)
+        .tint(CompetitiveTrustTheme.pine)
+        .disabled(store.pendingPaymentIsConfirmed && step == .payment)
+        .accessibilityIdentifier("personal.payment.consent")
+    }
+
     private var reviewContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Label("This locks in when you start", systemImage: "lock.fill")
-                .font(
-                    CompetitiveTrustTheme.displayFont(
-                        size: 21,
-                        relativeTo: .headline
-                    )
-                )
-                .accessibilityIdentifier("personal.receipt")
-                .padding(.bottom, 12)
-
-            Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
-
-            ForEach(receiptPresentation.groups) { group in
-                receiptGroup(group)
-
-                if group.id == .start, store.pendingCreation == nil {
-                    startNowChoice
+        VStack(alignment: .leading, spacing: 16) {
+            DaybreakCreateCard {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("This locks in when you start")
+                        .font(
+                            CompetitiveTrustTheme.displayFont(
+                                size: 21,
+                                relativeTo: .headline
+                            )
+                        )
+                        .accessibilityIdentifier("personal.receipt")
                         .padding(.bottom, 12)
-                }
 
-                if group.id != .payment {
                     Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
+
+                    ForEach(receiptPresentation.groups) { group in
+                        receiptGroup(group)
+
+                        if group.id == .start, store.pendingCreation == nil {
+                            startNowChoice
+                                .padding(.bottom, 12)
+                        }
+
+                        if group.id != .payment {
+                            Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
+                        }
+                    }
+
+                    if !startIsStillValid {
+                        Text(
+                            "That start time has already passed. Go back and pick a new one, or delete this draft."
+                        )
+                        .font(CompetitiveTrustTheme.uiFont(size: 12, relativeTo: .caption, weight: .semibold))
+                        .foregroundStyle(CompetitiveTrustTheme.attention)
+                        .accessibilityIdentifier("personal.review.stale-start")
+                        .padding(.vertical, 12)
+                    }
+
+                    Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
+                    receiptDetailsDisclosure
                 }
             }
 
-            if !startIsStillValid {
-                Text(
-                    "That start time has already passed. Go back and pick a new one, or delete this draft."
-                )
-                .font(CompetitiveTrustTheme.uiFont(size: 12, relativeTo: .caption, weight: .semibold))
-                .foregroundStyle(CompetitiveTrustTheme.signalOrange)
-                .accessibilityIdentifier("personal.review.stale-start")
-                .padding(.vertical, 12)
+            if requiresPaymentConsent {
+                paymentConsentToggle
             }
-
-            Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
-            receiptDetailsDisclosure
         }
     }
 
@@ -792,11 +853,13 @@ struct CreatePersonalChallengeFlow: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(group.title)
                 .font(
-                    CompetitiveTrustTheme.displayFont(
-                        size: 18,
-                        relativeTo: .headline
+                    CompetitiveTrustTheme.uiFont(
+                        size: 13,
+                        relativeTo: .subheadline,
+                        weight: .semibold
                     )
                 )
+                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 14)
                 .padding(.bottom, 4)
@@ -821,21 +884,23 @@ struct CreatePersonalChallengeFlow: View {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(fact.label)
-                        .font(CompetitiveTrustTheme.uiFont(size: 14, relativeTo: .subheadline, weight: .semibold))
+                        .font(CompetitiveTrustTheme.uiFont(size: 14, relativeTo: .subheadline, weight: .regular))
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                     Text(fact.value)
                         .font(CompetitiveTrustTheme.tabularFont(size: 14, weight: .regular))
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .foregroundStyle(CompetitiveTrustTheme.ink)
                         .multilineTextAlignment(.leading)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 HStack(alignment: .firstTextBaseline, spacing: 12) {
                     Text(fact.label)
-                        .font(CompetitiveTrustTheme.uiFont(size: 14, relativeTo: .subheadline, weight: .semibold))
+                        .font(CompetitiveTrustTheme.uiFont(size: 14, relativeTo: .subheadline, weight: .regular))
+                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
                     Spacer(minLength: 8)
                     Text(fact.value)
                         .font(CompetitiveTrustTheme.tabularFont(size: 14, weight: .regular))
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .foregroundStyle(CompetitiveTrustTheme.ink)
                         .multilineTextAlignment(.trailing)
                 }
             }
@@ -852,19 +917,17 @@ struct CreatePersonalChallengeFlow: View {
                     showingReceiptDetails.toggle()
                 }
             } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "info.circle")
-                        .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
-                        .accessibilityHidden(true)
-                    Text("More details")
-                        .font(CompetitiveTrustTheme.uiFont(size: 14, relativeTo: .subheadline, weight: .semibold))
-                    Spacer(minLength: 8)
-                    Text(showingReceiptDetails ? "Hide" : "Show")
-                        .font(CompetitiveTrustTheme.monoFont(size: 12, weight: .bold))
-                        .foregroundStyle(CompetitiveTrustTheme.signalOrange)
-                }
-                .padding(.vertical, 12)
-                .contentShape(Rectangle())
+                Text("More details")
+                    .font(
+                        CompetitiveTrustTheme.uiFont(
+                            size: 15,
+                            relativeTo: .subheadline,
+                            weight: .semibold
+                        )
+                    )
+                    .foregroundStyle(CompetitiveTrustTheme.pineInk)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .daybreakTappableRow()
@@ -916,7 +979,7 @@ struct CreatePersonalChallengeFlow: View {
                 "Start right now (count today)",
                 isOn: startNowBinding
             )
-            .tint(CompetitiveTrustTheme.signalOrange)
+            .tint(CompetitiveTrustTheme.pine)
             .accessibilityIdentifier("personal.start.now")
             Text("The challenge activates on the current minute, and all eligible steps since midnight today count.")
                 .font(CompetitiveTrustTheme.uiFont(size: 12, relativeTo: .caption, weight: .regular))
@@ -937,7 +1000,7 @@ struct CreatePersonalChallengeFlow: View {
                         Text(
                             isSubmittingChallenge
                                 ? "Starting challenge…"
-                                : "Start my challenge"
+                                : "Start this challenge"
                         )
                     }
                 }
@@ -947,6 +1010,7 @@ struct CreatePersonalChallengeFlow: View {
                         || !store.hasVerifiedCreationState
                         || !store.healthReadiness.permitsCreation
                         || !isDraftValid
+                        || (requiresPaymentConsent && !paymentConsentAccepted)
                 )
                 .accessibilityIdentifier("personal.submit")
             } else if step == .payment {
@@ -1108,10 +1172,10 @@ struct CreatePersonalChallengeFlow: View {
     ) -> some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: icon)
-                .font(.system(size: 22, weight: .bold))
+                .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(
                     selected
-                        ? CompetitiveTrustTheme.signalOrange
+                        ? CompetitiveTrustTheme.pineInk
                         : CompetitiveTrustTheme.secondaryText
                 )
                 .frame(width: 32)
@@ -1123,11 +1187,17 @@ struct CreatePersonalChallengeFlow: View {
             }
             Spacer(minLength: 8)
             if selected {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(CompetitiveTrustTheme.signalOrange)
+                Image(systemName: "checkmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(CompetitiveTrustTheme.pineInk)
+                    .accessibilityHidden(true)
             }
         }
         .padding(4)
+    }
+
+    private var requiresPaymentConsent: Bool {
+        store.configuration.personalSettlementMode == .stripeSandbox
     }
 
     private var commitmentProtection:
@@ -1402,7 +1472,7 @@ struct CreatePersonalChallengeFlow: View {
     }
 }
 
-private struct AthleticCard<Content: View>: View {
+private struct DaybreakCreateCard<Content: View>: View {
     let content: Content
 
     init(@ViewBuilder content: () -> Content) {
@@ -1411,15 +1481,17 @@ private struct AthleticCard<Content: View>: View {
 
     var body: some View {
         content
-            .padding(18)
+            .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .foregroundStyle(CompetitiveTrustTheme.primaryText)
-            .background(CompetitiveTrustTheme.graphiteSurface)
-            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
+            .background(
+                CompetitiveTrustTheme.card,
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
             )
+            .overlay {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
+            }
     }
 }
 

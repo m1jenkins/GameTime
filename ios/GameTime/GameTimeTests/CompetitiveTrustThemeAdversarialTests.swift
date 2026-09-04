@@ -8,65 +8,52 @@ final class CompetitiveTrustThemeAdversarialTests: XCTestCase {
 
     // MARK: - Objective 1: Color Scheme & Contrast Verification under Dark and Light Modes
     func testThemeColorsAndContrastRatiosUnderDarkAndLightModes() {
-        // Dark surface tokens
-        let darkBackground = UIColor(CompetitiveTrustTheme.darkBackground)
-        let graphiteSurface = UIColor(CompetitiveTrustTheme.graphiteSurface)
-
-        // Light surface tokens
+        let darkCanvas = UIColor(CompetitiveTrustTheme.paper)
+        let darkSurface = UIColor(CompetitiveTrustTheme.card)
         let lightPaper = UIColor(CompetitiveTrustTheme.paper)
         let lightCard = UIColor(CompetitiveTrustTheme.card)
+        let pine = UIColor(CompetitiveTrustTheme.pine)
+        let pineInk = UIColor(CompetitiveTrustTheme.pineInk)
 
-        // Primary Accents
-        let signalOrange = UIColor(CompetitiveTrustTheme.signalOrange)
-        let athleticGreen = UIColor(CompetitiveTrustTheme.athleticGreen)
-
-        // 1. Verify exact token RGB values
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+        let lightTraits = UITraitCollection(userInterfaceStyle: .light)
+        let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
 
-        // Pure dark background (#000000)
-        darkBackground.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-        XCTAssertEqual(red, 0.0, accuracy: 0.001)
-        XCTAssertEqual(green, 0.0, accuracy: 0.001)
-        XCTAssertEqual(blue, 0.0, accuracy: 0.001)
+        lightPaper.resolvedColor(with: lightTraits)
+            .getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        XCTAssertEqual(red, 244.0 / 255.0, accuracy: 0.01)
+        XCTAssertEqual(green, 240.0 / 255.0, accuracy: 0.01)
+        XCTAssertEqual(blue, 232.0 / 255.0, accuracy: 0.01)
 
-        // Graphite surface (#121212)
-        graphiteSurface.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-        XCTAssertEqual(red, 0.0706, accuracy: 0.005)
-        XCTAssertEqual(green, 0.0706, accuracy: 0.005)
-        XCTAssertEqual(blue, 0.0706, accuracy: 0.005)
+        pine.resolvedColor(with: lightTraits)
+            .getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        XCTAssertEqual(red, 31.0 / 255.0, accuracy: 0.01)
+        XCTAssertEqual(green, 92.0 / 255.0, accuracy: 0.01)
+        XCTAssertEqual(blue, 69.0 / 255.0, accuracy: 0.01)
 
-        // Signal Orange (#FC5200 -> RGB 0.9882, 0.3216, 0.0)
-        signalOrange.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-        XCTAssertEqual(red, 0.9882, accuracy: 0.005)
-        XCTAssertEqual(green, 0.3216, accuracy: 0.005)
-        XCTAssertEqual(blue, 0.0, accuracy: 0.005)
+        pine.resolvedColor(with: darkTraits)
+            .getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        XCTAssertEqual(red, 31.0 / 255.0, accuracy: 0.01)
+        XCTAssertEqual(green, 92.0 / 255.0, accuracy: 0.01)
+        XCTAssertEqual(blue, 69.0 / 255.0, accuracy: 0.01)
 
-        // Athletic Green (#00D084 -> RGB 0.0, 0.8157, 0.5176)
-        athleticGreen.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-        XCTAssertEqual(red, 0.0, accuracy: 0.005)
-        XCTAssertEqual(green, 0.8157, accuracy: 0.005)
-        XCTAssertEqual(blue, 0.5176, accuracy: 0.005)
-
-        // 2. WCAG AA Contrast Ratios (>= 4.5:1 for normal text) in Dark & Light Modes
         let darkPairs: [(name: String, fg: UIColor, bg: UIColor)] = [
-            ("Primary text on dark background", UIColor(CompetitiveTrustTheme.primaryText), darkBackground),
-            ("Primary text on graphite surface", UIColor(CompetitiveTrustTheme.primaryText), graphiteSurface),
-            ("Secondary text on dark background", UIColor(CompetitiveTrustTheme.secondaryText), darkBackground),
-            ("Secondary text on graphite surface", UIColor(CompetitiveTrustTheme.secondaryText), graphiteSurface),
-            ("Signal Orange on dark background", signalOrange, darkBackground),
-            ("Signal Orange on graphite surface", signalOrange, graphiteSurface),
-            ("Athletic Green on dark background", athleticGreen, darkBackground),
-            ("Athletic Green on graphite surface", athleticGreen, graphiteSurface),
-            ("Primary button label on Signal Orange", .black, signalOrange),
+            ("Primary text on dark canvas", UIColor(CompetitiveTrustTheme.primaryText), darkCanvas),
+            ("Primary text on dark surface", UIColor(CompetitiveTrustTheme.primaryText), darkSurface),
+            ("Secondary text on dark canvas", UIColor(CompetitiveTrustTheme.secondaryText), darkCanvas),
+            ("Pine ink on dark canvas", pineInk, darkCanvas),
+            ("Primary button label on pine", UIColor(CompetitiveTrustTheme.onPine), pine),
+            ("Money on dark canvas", UIColor(CompetitiveTrustTheme.money), darkCanvas),
         ]
 
         let lightPairs: [(name: String, fg: UIColor, bg: UIColor)] = [
             ("Primary text on light paper", UIColor(CompetitiveTrustTheme.primaryText), lightPaper),
             ("Primary text on light card", UIColor(CompetitiveTrustTheme.primaryText), lightCard),
             ("Secondary text on light paper", UIColor(CompetitiveTrustTheme.secondaryText), lightPaper),
-            ("Secondary text on light card", UIColor(CompetitiveTrustTheme.secondaryText), lightCard),
-            ("Coral Ink on light paper", UIColor(CompetitiveTrustTheme.coralInk), lightPaper),
-            ("Mint Ink on light paper", UIColor(CompetitiveTrustTheme.mintInk), lightPaper),
+            ("Pine ink on light paper", pineInk, lightPaper),
+            ("Behind-pace ochre on light paper", UIColor(CompetitiveTrustTheme.behindPace), lightPaper),
+            ("Money on light paper", UIColor(CompetitiveTrustTheme.money), lightPaper),
+            ("Primary button label on pine", UIColor(CompetitiveTrustTheme.onPine), pine),
         ]
 
         for pair in darkPairs {
@@ -157,6 +144,18 @@ final class CompetitiveTrustThemeAdversarialTests: XCTestCase {
         XCTAssertFalse(
             codeContent.contains("Hanken"),
             "CompetitiveTrustTheme.swift must NOT contain any references to Hanken font."
+        )
+        XCTAssertFalse(
+            codeContent.contains("#FC5200"),
+            "CompetitiveTrustTheme.swift must not keep Strava Signal Orange."
+        )
+        XCTAssertFalse(
+            codeContent.contains("#00D084"),
+            "CompetitiveTrustTheme.swift must not keep athletic neon green."
+        )
+        XCTAssertFalse(
+            codeContent.contains("0.9882"),
+            "CompetitiveTrustTheme.swift must not keep Signal Orange RGB literals."
         )
     }
 

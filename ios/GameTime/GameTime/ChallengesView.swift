@@ -39,7 +39,7 @@ struct ChallengesView: View {
                         title: "No challenges yet",
                         message:
                             "The week you’re working on, and every week you’ve finished, will show up here.",
-                        systemImage: "flag.checkered"
+                        systemImage: "calendar"
                     )
                     .trustCard()
                 }
@@ -160,20 +160,17 @@ struct AthleticSectionHeader: View {
 
     var body: some View {
         Text(text)
-            .textCase(.uppercase)
             .font(
                 CompetitiveTrustTheme.uiFont(
-                    size: 11,
-                    relativeTo: .caption,
-                    weight: .bold
+                    size: 15,
+                    relativeTo: .subheadline,
+                    weight: .semibold
                 )
             )
-            .tracking(1.05)
             .foregroundStyle(CompetitiveTrustTheme.secondaryText)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 4)
-            .padding(.top, 4)
-            .accessibilityLabel(text)
+            .padding(.top, 8)
             .accessibilityAddTraits(.isHeader)
     }
 }
