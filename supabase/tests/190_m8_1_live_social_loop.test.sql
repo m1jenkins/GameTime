@@ -766,7 +766,7 @@ select has_extension(
 
 select extensions.dblink_connect(
   'm8_setup',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 
 select extensions.dblink_exec(
@@ -797,15 +797,15 @@ select extensions.dblink_exec(
 
 select extensions.dblink_connect(
   'm8_gate',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'm8_call_one',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'm8_call_two',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 
 select extensions.dblink_exec('m8_gate', 'begin');

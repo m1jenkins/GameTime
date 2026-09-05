@@ -45,19 +45,19 @@ $$;
 
 select extensions.dblink_connect(
   'solo_fake_setup',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'solo_fake_gate',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'solo_fake_one',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'solo_fake_two',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 
 select extensions.dblink_exec(

@@ -62,28 +62,28 @@ $$;
 select extensions.dblink_connect(
   'stripe_control_setup',
   pg_catalog.format(
-    'host=supabase_db_gametime port=5432 dbname=%s user=postgres password=postgres',
+    'host=' || host(inet_server_addr()) || ' port=5432 dbname=%s user=postgres password=postgres',
     pg_catalog.current_database()
   )
 );
 select extensions.dblink_connect(
   'stripe_control_apply',
   pg_catalog.format(
-    'host=supabase_db_gametime port=5432 dbname=%s user=postgres password=postgres',
+    'host=' || host(inet_server_addr()) || ' port=5432 dbname=%s user=postgres password=postgres',
     pg_catalog.current_database()
   )
 );
 select extensions.dblink_connect(
   'stripe_control_delete',
   pg_catalog.format(
-    'host=supabase_db_gametime port=5432 dbname=%s user=postgres password=postgres',
+    'host=' || host(inet_server_addr()) || ' port=5432 dbname=%s user=postgres password=postgres',
     pg_catalog.current_database()
   )
 );
 select extensions.dblink_connect(
   'stripe_control_claim',
   pg_catalog.format(
-    'host=supabase_db_gametime port=5432 dbname=%s user=postgres password=postgres',
+    'host=' || host(inet_server_addr()) || ' port=5432 dbname=%s user=postgres password=postgres',
     pg_catalog.current_database()
   )
 );

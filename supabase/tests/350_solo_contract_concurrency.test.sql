@@ -47,35 +47,35 @@ $$;
 
 select extensions.dblink_connect(
   'solo_concurrency_setup',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'solo_create_gate',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'solo_create_one',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'solo_create_two',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'solo_appeal_first',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'solo_settle_after_appeal',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'solo_settle_first',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'solo_appeal_after_settle',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 
 select extensions.dblink_exec(

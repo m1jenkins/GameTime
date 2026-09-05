@@ -76,15 +76,15 @@ $$;
 
 select extensions.dblink_connect(
   'd76c_setup',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'd76c_first',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'd76c_second',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 
 select extensions.dblink_exec(

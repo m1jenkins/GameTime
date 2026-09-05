@@ -43,19 +43,19 @@ $$;
 
 select extensions.dblink_connect(
   'personal_setup',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'personal_gate',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'personal_one',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 select extensions.dblink_connect(
   'personal_two',
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 );
 
 select extensions.dblink_exec(

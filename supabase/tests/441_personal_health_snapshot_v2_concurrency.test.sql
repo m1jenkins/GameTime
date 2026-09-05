@@ -43,7 +43,7 @@ $$;
 
 select extensions.dblink_connect(
   connection_name,
-  'host=supabase_db_gametime port=5432 dbname=postgres user=postgres password=postgres'
+  'host=' || host(inet_server_addr()) || ' port=5432 dbname=postgres user=postgres password=postgres'
 )
 from unnest(array[
   'health_setup', 'health_gate', 'health_one', 'health_two', 'health_worker'
