@@ -35,6 +35,36 @@ enum FixtureServicesFactory {
                 authStore: store,
                 settlementMode: scenario.personalResult.settlementMode
             )
+        let lifecycleScenario = ["correction", "final", "settlement", "blocked", "review"].first {
+            arguments.contains("--fixture-duel-" + $0)
+        }
+        let duelBackend = FixtureDuelBackend(actors: [FixtureStore.callerID, FixtureStore.friendID, FixtureStore.secondFriendID],
+            now: lifecycleScenario == nil ? Date() : Date().addingTimeInterval(-10 * 86400))
+        if let lifecycleScenario {
+            let id = try! duelBackend.submit(PendingDuelRequest(actorID: FixtureStore.friendID,
+                operation: .create(inviteeID: FixtureStore.callerID, eventID: duelBackend.event.id,
+                    policyVersion: duelBackend.event.policyVersion, consent: true)))
+            let row = try! duelBackend.detail(id, actor: FixtureStore.callerID)
+            _ = try! duelBackend.submit(PendingDuelRequest(actorID: FixtureStore.callerID,
+                operation: .accept(challengeID: id, policyVersion: row.policyVersion, termsDigest: row.termsDigest)))
+            try! duelBackend.seedLifecycle(id, scenario: lifecycleScenario)
+        }
+        if arguments.contains("--fixture-duel-incoming") || arguments.contains("--fixture-duel-link") {
+            let request = try! PendingDuelRequest(actorID: FixtureStore.friendID,
+                operation: .create(inviteeID: FixtureStore.callerID, eventID: duelBackend.event.id,
+                    policyVersion: duelBackend.event.policyVersion, consent: true))
+            let id = try! duelBackend.submit(request)
+            if arguments.contains("--fixture-duel-link") {
+                _ = try! duelBackend.submit(PendingDuelRequest(actorID: FixtureStore.friendID,
+                    operation: .issueLink(challengeID: id)))
+                let link = duelBackend.links[id]!
+                duelBackend.links[id] = DuelInvitationLink(challengeId: id,
+                    token: UUID(uuidString: "77777777-7777-4777-8777-777777777777")!, expiresAt: link.expiresAt)
+            }
+        }
+        duelBackend.enabled = !arguments.contains("--fixture-duel-gate-off")
+        duelBackend.offline = arguments.contains("--fixture-duel-offline")
+        duelBackend.loseNextResponse = arguments.contains("--fixture-duel-lost-response")
         return AppServices(
             auth: FixtureAuthClient(store: store),
             profiles: FixtureProfileClient(store: store),
@@ -93,7 +123,8 @@ enum FixtureServicesFactory {
             accountDeletion: accountDeletionClient
                 ?? (scenario.accountDeletionFails
                     ? FixtureFailingAccountDeletionClient()
-                    : DisabledAccountDeletionClient())
+                    : DisabledAccountDeletionClient()),
+            duels: FixtureDuelClient(backend: duelBackend, currentActor: { store.userID })
         )
     }
 }

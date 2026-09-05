@@ -1,5 +1,11 @@
 # Prove Personal Accountability V1 Stage A
 
+> **Scope — September 4, 2026.** This remains an acceptance/regression
+> reference for its specified Personal policy. It does not verify or define
+> the new friend-duel or performance-commitment products. Future scope and
+> separate live-payment gates are in [BUSINESS_MODEL.md](BUSINESS_MODEL.md)
+> and [PLAN.md](../PLAN.md); preserve all existing agreements.
+
 > **Historical acceptance record.** This runbook applies only to challenges
 > frozen with `step_data_policy = attested_hourly_v1`. D120 supersedes its
 > manual sync, App Attest, hourly coverage, diagnostic, eligibility-hold, and

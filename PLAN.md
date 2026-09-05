@@ -1,502 +1,537 @@
-# Ship automatic Apple Health Personal challenges and the sandbox beta
+# Build friend duels and personal performance commitments
 
-GameTime V1 is a solo accountability product. One person commits to a seven-day
-steps goal, chooses daily or cumulative cadence, and selects a test commitment
-of $10, $20, $30, $40, or $50.
+Updated September 5, 2026. The owner adopted this model; Phase 1A's isolated local
+agreement backend and Phase 1B's opt-in native flow are accepted locally.
+Phase 2(a–e)'s evaluator, private proof/operator boundary, simulated lifecycle,
+native results, rematches and invitation links are implemented locally. Phase
+3(a–c)'s commitment agreements, attempts and manual progress are implemented locally; the
+default app remains Personal.
+[BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md) defines the two
+journeys, recommended rules, funds-flow options, source research and pilot.
+[PROJECT_MEMORY.md](PROJECT_MEMORY.md) records intent; D123 in
+[DECISIONS.md](DECISIONS.md) records the decision.
 
-Internal Stage A remains structurally `test_only` and never charges money. The
-lean external Release beta is a separate Stage B rehearsal that may use Stripe
-test mode for payment setup and simulated settlement. It must never accept live
-Stripe objects or move real money. `docs/BETA_LAUNCH_AUDIT.md` controls that
-external-beta scope and its launch gates; this plan continues to preserve the
-Stage A evidence contract.
+The previous 502-line plan is preserved verbatim under its archive header in
+[the pre-pivot plan](docs/archive/2026-09-04_PRE_PIVOT_PLAN.md). Historical
+Personal, Solo and charity agreements retain their original meanings. Old
+milestone numbers M0–M12 are historical; the phases below are new work.
 
-`README.md` records what is built. `DECISIONS.md` records why. Historical social
-implementation records remain under `docs/archive/`. The social schema and
-contracts stay read-compatible for existing challenges, but the V1 app does not
-offer social creation or expose friends, invitations, rosters, standings,
-winners, charities, reactions, or tie-breaks.
+## Starting point and boundaries
 
-**August 12, 2026 policy replacement.** New Personal challenges no longer use
-the hourly evidence, App Attest, coverage, diagnostic, eligibility-hold, or
-manual-sync contract described by the historical M9 record. That contract is
-frozen as `attested_hourly_v1`. The active path is
-`healthkit_nonmanual_daily_v1`: one automatic Apple Health snapshot containing
-seven ordered daily totals, uploaded through an authenticated owner-bound RPC
-and frozen into history at cutoff. Sections that explicitly describe Solo,
-Social, generic metric ingest, or historical Personal V1 remain regression
-context; they are not permission to route a new Personal challenge through the
-old path.
+At the Phase 0 planning baseline, the app ran seven-day Apple Health steps
+challenges with internal test-only or Stripe sandbox payment behavior. It had
+no new running duels or performance commitments. The completed local slices
+below extend that baseline; Garmin integration, funded deposits and winner
+payouts remain unimplemented. The original planning inspection used local
+`c403b88` and existing owner guidance changes.
+Previous test counts and hosted observations are historical evidence, not
+checks rerun for this plan. See the code inventory in
+[BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md#repository-inspection-reuse-and-gaps).
 
-## What functional means
+Recommended first usable product: same-event outdoor 5K duels between two
+friends, official organizer chip times, simulated $20 per participant, $0 fee.
+Then add 28–90-day performance commitments and asynchronous running proof.
+All new prices, timing rules and pilot thresholds are recommendations. No live
+money, deployment, publication, invitation to testers, or contact with providers
+is authorized by this planning task.
 
-The Stage A product must let one real user:
+Keep the existing Personal app usable and its records readable. Do not widen
+old settlement enums, unfreeze terms, convert charity obligations to prizes,
+change the Personal step policy, turn on dormant Solo, or copy old social UI
+wholesale. New backend capability must be default-off and separately admitted;
+a client toggle alone is insufficient. “Simulated” means no redeemable balance,
+provider object, charge, transfer, external settlement, or prize of value.
 
-- Sign in with Apple, complete public-handle onboarding, and restore the same
-  account after relaunch.
-- Create at most one scheduled or active personal steps challenge.
-- Choose daily or cumulative cadence and edit a positive whole-step target.
-- Choose the next local midnight or start immediately and count eligible steps
-  since today's local midnight, then run across seven frozen local dates,
-  including daylight-saving transitions.
-- Select one of the five test commitment presets, with $10 selected by default.
-- In internal Stage A, see **Test commitment — no money will be charged.**
-  before confirming. In the external sandbox beta, see **Payment test mode —
-  sandbox transactions only.** plus a plain statement that no real money moves.
-- Complete one user-initiated **Connect Apple Health** permission request before
-  creating. Completion, not a positive step sample, unlocks continuation.
-- See Apple Health progress automatically after challenge load/creation, app
-  launch or foregrounding, Health observer changes, and ordinary pull to
-  refresh. The challenge detail also offers **Sync now** for an immediate
-  person-initiated refresh.
-- See the same displayed total, daily timeline, pace, and update time on Today,
-  Challenges, detail, and completed history.
-- Cancel before the challenge begins, or end a still-active internal test-only
-  or Stripe sandbox challenge while retaining cancelled history. Awaiting-final-
-  Health, completed, already-cancelled, and any future live-fee challenges stay
-  non-cancellable.
-- Receive a 24-hour finalization period after the seventh day while GameTime
-  keeps re-reading Apple Health through the challenge end for late Watch data.
-- Receive `met_goal`, `missed_goal`, or a commitment-waived `inconclusive` only
-  after the server freezes the selected snapshot.
+## Architecture recommendation
 
-Simulator and fixture behavior does not prove Apple Health, background wakes,
-locked-device retry, or late Watch delivery. Physical-iPhone acceptance remains
-separate. Personal App Attest is not part of that proof.
+Create new versioned `duel_*` and `performance_commitment_*` aggregates,
+separate from `contests`/`personal_challenge_terms` and `solo_contracts`.
+Share durable profile identities and audited infrastructure patterns. The
+reserved `social_accountability` discriminator remains unused. New aggregates
+avoid routing performance proof or payouts into legacy charity scoring.
+Names below are proposed files/tables, not claims that they already exist.
 
-## Locked automatic snapshot boundaries
+Freeze agreement policy/version/digest, source definition, exact UTC window and
+display zone, rule precision, consent, simulated amount, and deadlines. Preserve
+requests in a product-specific namespace. Separate agreement, attempt/proof,
+result, review and financial events. Extract shared proof types only when both
+products need the same tested behavior; do not build a generic contest DSL.
 
-- Steps are the only presented metric. Other metric code remains dormant for a
-  later version.
-- Personal challenges use dedicated terms, daily snapshot, displayed progress,
-  cache, result, API, Swift model, and pending-request types. They are never
-  represented as a social challenge with an empty invitation list.
-- Every pre-pivot challenge is `legacy_charity_contest`. Existing social data,
-  results, standings, and obligations retain their historical meaning.
-- `social_accountability` is reserved for V2 and has no V1 creation path.
-- The server writes `test_only`; no personal creation request accepts a live
-  settlement mode and no Stage A client can ask for one.
-- An ended challenge awaiting grace, assessment, or its first result still
-  occupies the user's open slot. Pre-start cancellation or the first published
-  terminal personal result closes it.
-- A complete daily challenge requires all seven local days to meet the target.
-  A complete cumulative challenge requires the seven-day total to meet it.
-- Query each of the seven exact frozen local dates with cumulative HealthKit
-  statistics. Read through now during the challenge and through `ends_at`
-  during grace. Twenty-three- and twenty-five-hour dates remain one local day.
-- Include Health's merged writers and exclude only samples where
-  `HKMetadataKeyWasUserEntered == true`. Missing manual-entry metadata remains
-  indistinguishable from automatic data and is included.
-- A snapshot carries challenge ID, frozen-terms fingerprint, observation time,
-  query-through time, and exactly seven ordered nonnegative daily totals. The
-  overall total is derived, never independently supplied.
-- Publish a successful Health read locally before uploading. A successful zero
-  or downward edit replaces the prior whole snapshot; query failure preserves
-  the prior value and marks it stale. Never splice days from separate reads.
-- The server keeps one private mutable full-window snapshot for an open
-  challenge. Older observations are ignored, identical replays succeed, equal
-  timestamps with different payloads fail, and a newer snapshot replaces the
-  whole prior snapshot even when totals decrease.
-- Missing or incomplete final data becomes commitment-waived `inconclusive`.
-  A complete miss alone may enter Stripe sandbox review. Met and inconclusive
-  results never do.
-- Release mutations remain disabled for the internal Stage A and every legacy
-  social path. The invite-only external beta may enable only Personal creation
-  through `stripe_sandbox` and the separately approved hosted beta target. Live
-  settlement remains forbidden.
+Reuse `profiles`, friendships/blocks and active-actor checks. Use explicit RLS,
+owner/participant projections and narrowly granted RPCs; service authority
+must not be reachable by an ordinary client. Reuse idempotency and deletion
+patterns, not old agreement data. Terms and policy versions are immutable;
+corrections append. Keep raw proof private from opponents and followers.
 
-## Verified starting point
+For the simulated pilot, cap new participation at one unsettled duel plus one
+performance commitment per person. New slots never consume or release the old
+Personal/Solo slots. A creator reserves their duel slot on invitation; the
+invitee reserves theirs only on acceptance. Pending incoming invitations do
+not occupy a slot. Close slots on terminal new-product outcomes, including
+expiry and simulated withdrawal; lock both actors in stable order for races.
 
-Implementation began from a clean `main` at commit `422e638`, matching the
-cached `origin/main` reference. Old feature branches are reference material
-only; none may be merged wholesale.
+## Dependency order
 
-The prior privacy fix is isolated at commit `6cfae0b`. Only its self-only direct
-participant access and bounded legacy challenge-summary behavior should be
-reimplemented on current `main`. Its stale social UI and conflicting decision
-numbering must not be imported.
+```mermaid
+flowchart TD
+    A["Phase 0: contracts and planning complete"] --> B["1A: local duel agreement backend"]
+    B --> C["1B: native create and accept"]
+    C --> D["2: proof, results, review and rematch"]
+    D --> E["3: longer performance commitments and followers"]
+    D --> F["5A: simulated duel pilot"]
+    E --> G["5B: commitment pilot"]
+    A --> H["4A: source feasibility; no access assumed"]
+    E --> I["4B: asynchronous running adapter"]
+    H --> I
+    A --> J["6A: legal, provider and platform decisions"]
+    F --> K["6B: approved provider sandbox integration"]
+    G --> K
+    J --> K
+    I --> L["6C: source-specific live gate"]
+    K --> L
+```
 
-## 1. Foundation — implemented locally
+Phase 4B is required for cash based on asynchronous workouts, not for a future
+organizer-only offering. Every live source must pass its own proof gate. Phase
+6A can be investigated alongside local work; rejection there does not stop
+simulated product validation. Durations below refer to contract/pilot windows,
+not estimates of engineering effort.
 
-1. Add the challenge-model discriminator and backfill every existing challenge
-   as `legacy_charity_contest`.
-2. Dispatch creation invariants, activation quorum, ingest grace, and
-   finalization by model while leaving legacy behavior unchanged.
-3. Reimplement self-only direct participant reads and the bounded legacy summary
-   RPC from the old privacy branch.
-4. Prove that the backfill does not alter legacy challenges, results, standings,
-   or donation obligations.
-5. Keep the existing social creation RPC callable for older clients and dormant
-   regression tests, but remove every normal V1 app route to it.
+## Phase 0 — planning and rule selection
 
-Exit criteria:
+**Status: complete as documentation only.** Business model, inspection,
+reversible defaults, historical plan archive and precedence reconciliation are
+in this change. Payment recipients/providers/jurisdictions remain open in the
+decision register below. No implementation phase is complete merely because
+its source files or acceptance criteria are named here.
 
-- Every preexisting and legacy-created row has the legacy discriminator.
-- Legacy 2–20 participant, charity, six-hour grace, winner, standings, and
-  obligation behavior still passes its existing tests.
-- Direct participant reads return only the caller's row.
-- The bounded legacy summary reveals no pending invitee identity or private
-  participant term.
-- No reserved `social_accountability` creation path exists.
+## Phase 1A — local simulated duel agreement (recommended first slice)
 
-## 2. Personal backend
+**Status: implemented and verified locally.** See
+[the acceptance record and Phase 1B handoff](docs/DUEL_AGREEMENT_V1_ACCEPTANCE.md)
+for the RPC contract, runnable two-actor example, tests and remaining boundaries.
+Admission resets off with an empty allowlist; no hosted rollout is implied.
 
-Implement the complete server boundary:
+**Depends on:** Phase 0. No Garmin, payment provider, hosted project or physical
+device needed. Outcome: two authenticated local actors can create and accept
+one identical, versioned simulated 5K agreement.
 
-- Frozen personal terms keyed by challenge and owner.
-- Atomic, idempotent creation and a database-enforced one-open slot.
-- Server-derived next-midnight start and seven-local-day end.
-- Pre-start-only idempotent cancellation.
-- Frozen `step_data_policy`: `attested_hourly_v1` for history and
-  `healthkit_nonmanual_daily_v1` for the automatic path.
-- One private mutable full-window snapshot per open v2 challenge and exactly one
-  authenticated `upsert_my_personal_health_snapshot_v2` write boundary. The
-  function derives the owner from authentication; clients receive no direct
-  table write grant.
-- Validation of ownership, lifecycle, frozen local dates, cutoff, observation
-  and query-through timestamps, payload bounds, ordering, and future-day zeros.
-- Clean owner-only v2 list/detail responses with ordinary steps, seven daily
-  totals, Health observation/update times, policy, and terminal result, with no
-  coverage, trusted, diagnostic, or assessment fields.
-- A 24-hour personal finalization grace without changing the legacy six-hour
-  social grace.
-- One immutable cutoff result that copies the selected daily totals directly,
-  deletes the mutable snapshot, and does not require the legacy evidence
-  assessment relationship.
-- Explicit grants and RLS on every new exposed table and function.
+**Code areas:** one or more new forward migrations under `supabase/migrations`
+created with `supabase migration new`; new `supabase/tests/*duel_agreement*`
+and `*duel_agreement_concurrency*`. Read the identity/social migration,
+`20260727030649_m8_1_live_social_loop.sql`,
+`20260803001455_solo_contract_rpc_boundary.sql`, and D81 deletion code for
+patterns. Do not edit applied migrations or expose existing charity RPCs as duels.
 
-Exit criteria:
+**Smallest reviewable work:**
 
-- Exact creation retries return the same challenge; changed terms under the same
-  request UUID fail.
-- Concurrent requests cannot create two open personal challenges.
-- Personal activation succeeds with exactly one accepted owner.
-- Personal scoring creates no standings, winner, charity, donation obligation,
-  or participant payout.
-- Daily, cumulative, 23/25-hour DST, late-Watch, zero/downward replacement,
-  malformed snapshot, cutoff-race, missing-final-data, immutable rerun, and
-  cancellation tests pass.
-- Two authenticated database actors cannot read or write each other's terms,
-  snapshots, progress, or results; `anon` cannot execute the snapshot RPC.
-- The server, rather than a client flag, proves every personal term is
-  `test_only`.
+1. Define immutable `duel_policy_versions`, a service-curated fictional event
+   fixture, `duel_challenges`, exactly two named participant rows, private
+   request/enrollment records, an authoritative default-off runtime gate and
+   empty beta allowlist. Policy fixes `fixture_official_5k_v1`, 5,000 m,
+   whole-second chip timing, USD 2,000 simulated cents each and fee zero.
+   No arbitrary public title/URL upload or live settlement parameter.
+2. Add versioned create, accept, decline, pre-start cancel and list/detail RPCs.
+   Creator accepts when creating; invitee explicitly names the current policy
+   version and digest on acceptance. Reads expose identical agreement facts
+   to the pair, no unrelated profiles or financial/private records.
+3. Use server time: event in future and within 30 days, common event window,
+   accept cutoff `min(created_at + 72h, starts_at - 1h)`, strictly future at
+   creation. Reject requests at/after cutoff. Persist accepted state as
+   `scheduled`; activation/scoring comes later. Expiry can be a clock-injected
+   private transition tested manually, with no cron registration. Ensure
+   a subsequent creation atomically expires any overdue creator reservation
+   before claiming the slot. Reads can expose that expiry is due without
+   mutating state; Phase 2 adds the scheduled expiry worker.
+4. Exact retries recover a prior committed request for the same active actor,
+   even after time/gate changes; changed payload under the same key fails.
+   Deleted actors still lose access. Serialize slot/accept/cancel/delete races.
+   Pre-start deletion cancels the simulated agreement without changing old
+   account-deletion rules. Preserve minimal tombstoned agreement history.
 
-## 2A. Owner-only Solo contract domain — implemented locally
+**Acceptance:**
 
-Step 2A adds a new, isolated contract aggregate without rewriting the Personal
-V1 evidence path or any historical Social table. The aggregate is deliberately
-dormant: its authoritative database creation switch is seeded off, no user is
-beta-eligible by default, and the current iOS app does not call it.
+- Local actor A creates for accepted friend B; both read matching frozen terms;
+  only B can accept, before cutoff, once. Decline/expiry/cancel remain recorded.
+- No third participant, self-duel, blocked pair, inactive actor, unknown event,
+  unsupported metric/source, nonzero fee, changed amount or live mode can enter.
+- No two concurrent requests reserve two new duel slots for either actor;
+  accept versus cancel/expiry/deletion yields one valid outcome.
+- `anon`, unrelated actors, direct writes and unauthorized service operations
+  fail. RLS covers new exposed tables; security-definer grants/search paths
+  are explicit. No raw proof, payment identifiers or credentials are stored.
+- Fresh reset defaults leave creation disabled and allowlist empty; test setup
+  enables only fictional local actors within isolated fixtures.
+- Gate-off blocks new creation/acceptance, not authenticated history reads,
+  exact committed recovery or safe pre-start cancellation of an existing row.
+- Existing Personal, Solo and charity fixtures/results/obligations remain intact.
 
-Implemented in this reviewable slice:
+**Verification:** focused pgTAP including two real sessions for races, then full
+`./scripts/db-test.sh` (local disposable DB only), schema lint/advisor review
+as available, and `git diff --check`. Test same-request/different-payload,
+cutoff equality, timezone/DST display independent of event instants, stale JWT,
+blocked and deleted actors, atomic rollback and exact recovery after gate-off.
+No Xcode/UI tests required because no UI changes. If a tool/dependency is
+unavailable, record the unrun gate and do not claim it passed.
 
-- `solo_contracts` freezes the active policy version and digest, steps cadence
-  and target, USD commitment, settlement mode, IANA timezone, and a 1–7-local-day
-  window. A partial unique index permits one unsettled Solo contract per owner.
-- Commitments accept integer USD cents from $10 through $50. Every row is
-  structurally `test_only`; there is no processor, payment method,
-  authorization, charge, transfer, payout, or provider identifier.
-- The only lifecycle is `scheduled → active → awaiting_evaluation`, followed by
-  preliminary success/inconclusive settlement readiness or one preliminary
-  failure. A pre-start cancellation, one appeal, an append-only decision, and a
-  terminal logical settlement are the only additional paths.
-- `solo_evaluations` is an append-only service ledger.
-  `solo_appeals` is an append-only event ledger with one `filed` event per
-  preliminary failure and at most one `decided` event per filing.
-- All client and service mutations use explicitly granted versioned RPCs and an
-  exact-request ledger. Authenticated owners receive direct `SELECT` only,
-  bounded by active owner RLS. `anon`, other owners, and direct client/service
-  table writes are refused.
-- New creation requires both the private DB-backed beta allowlist and the
-  authoritative contract-creation switch, and the caller must acknowledge the
-  exact active policy version. Exact committed retries recover before mutable
-  rollout gates are rechecked.
-- Account deletion cancels only a still-scheduled, pre-start Solo contract,
-  disables that owner's beta eligibility, and retains post-start evaluation and
-  appeal facts for service finality. Stale JWTs cannot read or mutate them. This
-  versioned trigger bridge inherits D81's transaction marker and audit trail; it
-  does not invent a second Solo request UUID for the existing deletion RPC.
+**Exit artifact:** migrations, deterministic fixtures, runnable two-actor local
+example and test results. Update README's implemented state. No Edge endpoint,
+iOS feature, scheduler, provider integration or hosted switch is part of 1A.
 
-Exit criteria for 2A:
+## Phase 1B — native create, invitation and acceptance
 
-- Forward migrations apply after every existing migration without modifying or
-  disabling the Personal or Social implementation.
-- pgTAP proves bounds, locked terms, RLS, privileges, exact retries, one-open
-  concurrency, every lifecycle boundary, one-appeal races, and account-deletion
-  boundaries.
-- Full local database, advisor/lint, Deno, Swift package, reference, and
-  whitespace checks pass.
+**Status: accepted locally, September 4, 2026.** The opt-in native flow passed
+the authenticated two-account native-to-local-HTTP smoke, including identical
+consents, account switching, stale responses, durable exact-request recovery,
+gate-off rejection and safe cancellation. See
+[the native acceptance record](docs/DUEL_NATIVE_V1_ACCEPTANCE.md) for reproducible
+commands and evidence. VoiceOver and physical-device checks remain unverified;
+Release and hosted admission remain closed. Phase 2(a) is now implemented below.
 
-Transitional after 2A:
+**Depends on:** 1A's stable RPCs and local privacy proof.
 
-- No app route or Edge Function uses the Solo RPCs yet.
-- No hosted runtime switch or beta eligibility is changed.
-- Scheduler wiring, a unified Personal-to-Solo client boundary, and
-  hosted/two-actor acceptance remain later reviewable slices. Step 2B implements
-  only the processor-neutral fake authorization adapter identified here.
-- The existing Personal V1 and the dormant Solo aggregate have independent open
-  slots. They must not both be enabled in a client until a later migration owns
-  the cross-domain slot rule.
+**Code areas:** add `DuelModels.swift`, `DuelClient.swift`, `SupabaseDuelClient.swift`,
+`DuelStore.swift`, `PendingDuelRequestStore.swift`, and creation/detail views in
+`ios/GameTime/GameTime`; wire `AppClients.swift`, `AppRouter.swift`,
+`AppShellView.swift`, `AppConfiguration.swift` and `FixtureClients.swift`.
+Reuse `SupabaseClients.swift` friendship methods after inspecting ownership and
+block behavior. Retain `PendingPersonalChallengeStore.swift` and
+`PendingChallengeStore.swift` as separate legacy formats.
 
-## 2B. Local fake authorization adapter — implemented locally
+**Slices:** first fixture creation/review/receipt; then local authenticated
+friend selection, incoming invitation/detail and accept/decline; then durable
+mutation recovery and routing. Initially select an existing accepted friend;
+friend discovery/share-link growth comes after the basic pair works.
 
-Step 2B is a forward-only extension of the disabled Solo aggregate. It provides
-one deterministic processor-neutral fake boundary for reviewing authorization
-linkage, retries, cancellation, logical settlement, and account deletion. It
-does not add a provider or claim that money can move.
+**Acceptance:** pair sees same event, date, timing basis, cutoff, cancellation,
+review rules and “Simulated stakes — no real money moves” at consent. Normal
+Personal paths and history still work. Refresh/offline/ambiguous response and
+account switching cannot duplicate or leak a duel. No hidden legacy charity
+call, payment setup or unsupported future feature is offered. New route remains
+unavailable in Release and on servers without admission.
 
-Implemented in this reviewable slice:
+**Verification:** product model/DTO and persisted-envelope tests; fixture UI
+journeys for both actors; accessibility/Dynamic Type; Debug/Staging/Release
+builds and configuration rejection tests. Scope `assertNoForbiddenLanguage`
+and `scripts/check-beta-candidate.sh` to retained Personal screens, adding
+explicit duel assertions instead of removing protection. Local two-account
+smoke proves API wiring; simulator proof does not establish real race results.
 
-- Private `app.solo_authorizations` rows bind one contract immutably through a
-  composite foreign key to its owner, policy version and digest, commitment
-  amount, `USD` currency, and `test_only` settlement mode. The fixed adapter is
-  `processor_neutral_fake` version `local-fake-v1`; typed facts and request
-  terms receive SHA-256 digests without storing an instrument or raw payload.
-- Private `app.solo_authorization_events` rows repeat that complete binding and
-  form a two-event append-only lifecycle: `authorized`, then exactly one of
-  `cancelled`, `released`, `forfeited`, or `waived`. Updates, deletes, truncates,
-  out-of-order events, mismatches, and duplicate resolutions are refused.
-- `create_solo_contract_with_fake_authorization_v2` is a new authenticated
-  owner RPC. It retains all Step 2A policy, profile, beta, switch, one-open-slot,
-  and request validation, then atomically commits the contract, one fake
-  authorization, its initial event, and the exact-request result. A missing
-  linked fact rolls the entire transaction back.
-- `create_solo_contract_v1` remains contract-only with unchanged behavior.
-  A request UUID already committed through v1 cannot be upgraded into a v2
-  authorization, and a v2 UUID cannot be reused with changed terms.
-- The pure private fake adapter has deterministic `authorize`, `refuse`,
-  `retryable`, and `injected_failure` scenarios. The public v2 RPC uses only
-  `authorize`. Test-only refusal and retryable outcomes commit an exact result
-  without creating a contract or authorization; injected failure proves the
-  candidate contract and request record roll back together.
-- Pre-start cancellation appends `cancelled` in the same transaction. Terminal
-  Solo settlement appends the matching logical `released`, `forfeited`, or
-  `waived` outcome in the same transaction. Preliminary evaluation and appeal
-  activity leave the fake authorization unresolved until contract finality.
-- D109 account deletion still cancels only a strictly pre-start scheduled
-  contract. That same deletion transaction appends the fake `cancelled` event,
-  disables beta eligibility, and leaves post-start contract, authorization,
-  evaluation, and appeal facts available only for service finality. Stale owner
-  tokens retain no access.
-- RLS is enabled on both private tables and every direct privilege is revoked
-  from `public`, `anon`, `authenticated`, and `service_role`. Versioned
-  functions and guarded triggers are the only write path. The adapter accepts
-  no credential, provider secret or identifier, payment instrument, customer,
-  mandate, card data, arbitrary body, or other raw sensitive payload; it logs
-  nothing and performs no external call.
+## Phase 2 — official proof to credible result and rematch
 
-Exit criteria for 2B:
+**Status: local simulated slices (a/b/c/d/e) complete.** The pure versioned evaluator
+and fictional Deno matrix cover the frozen agreement, official results,
+nonfinishes, unresolved proof, corrections, independent review and deadline
+decisions. See [the Phase 2(a) acceptance record and next-slice handoff](docs/DUEL_SCORING_V1_ACCEPTANCE.md).
+Private append-only fictional sources, independently reviewed proof revisions,
+per-duel operator grants/revocations and participant receipt reads are now
+implemented with a separate default-off gate. See [Phase 2(b) acceptance and the
+next-slice handoff](docs/DUEL_PROOF_V1_ACCEPTANCE.md). Slice (c) now adds a
+default-off local worker, durable in-app notice records, participant cases and
+independent resolutions, safe exits, immutable final results and separate
+nonredeemable simulated settlement. See [Phase 2(c) acceptance](docs/DUEL_LIFECYCLE_V1_ACCEPTANCE.md).
+Slice (d) now adds actor-bound native progress/results, durable notice rendering,
+participant review requests and safe exits, with exact recovery and blocked-contact
+suppression. See [Phase 2(d) acceptance](docs/DUEL_NATIVE_LIFECYCLE_V1_ACCEPTANCE.md).
+Slice (e) adds fresh-consent rematches, a new event and expiring/revocable
+invitation links that only the named friend can resolve. Native pending links
+survive login; opening never accepts. See [Phase 2(e) acceptance](docs/DUEL_REMATCH_LINK_V1_ACCEPTANCE.md).
+**Phases 3(a/b/c) are implemented below. Next: Phase 3(d)**, explicit friend
+following and its privacy and interaction boundaries.
+Real organizer/reviewer operation, hosted schedules, universal-link hosting
+and external notice delivery remain unimplemented and separately gated.
 
-- Forward migrations preserve all Personal, Social, and Step 2A migration
-  history while proving v1 contract-only compatibility and atomic v2 linkage.
-- pgTAP proves immutable bindings, RLS and complete privilege matrices, denied
-  direct writes, exact retries, changed-payload refusal, all permitted and
-  forbidden transitions, contract/owner/policy/amount/currency/settlement-mode
-  mismatch rejection, simultaneous linkage, duplicate resolution, appeal,
-  cancellation, settlement, and deletion races.
-- Deterministic fake success, refusal, retryable/retry, and injected-failure
-  paths are covered, including proof that no provider secret, payment
-  instrument, or raw sensitive payload is stored or logged.
-- Full local database, advisor/lint, Deno, Swift package, portable, reference,
-  and whitespace checks pass.
+**Depends on:** 1A–1B. Before a human pilot, select one organizer/event/source,
+permission to use results, an independent reviewer and a support process.
 
-Transitional after 2B:
+**Code areas:** new versioned event/proof/result/review tables and RPCs;
+`supabase/functions/_shared/duel_scoring.ts` plus fictional fixtures;
+new worker/handler only after pure evaluation is stable. Extend notification
+outbox and `deliver-push` with explicit new-entity dispatch, not charity event
+aliases. Add duel progress/result/review/rematch views and tests. Reuse
+`210_m8_3c_standings_results_obligations.test.sql` locking/redaction patterns
+without invoking its obligation publisher.
 
-- The Solo creation switch remains off and the beta allowlist remains empty.
-- No iOS route, public Edge endpoint, scheduler, Personal-to-Solo integration,
-  or cross-domain slot rule is added.
-- No hosted configuration, provider SDK, credential, payment method, mandate,
-  webhook, capture, charge, transfer, payout, or external provider call exists.
-- Local fake-adapter tests do not prove a real processor, money movement, legal
-  or App Review approval, hosted scheduling, physical-device behavior, or
-  hosted multi-user isolation.
+**Slices:** (a) pure official-result evaluator; (b) private reviewer proof
+submission with an audited narrow operator role; (c) clock-injected activation,
+cutoff, provisional/result/review/finality worker; (d) native progress, in-app notices and participant review; (e) explicit new-consent rematch and target-bound share link.
+Links expire/revoke, preserve a pending destination across login, reveal no raw
+proof and never accept on behalf of a user. Native share is initiated by the
+person; no automatic messages or contact imports.
 
-## 3. Personal iOS
+**Acceptance:** every outcome in the business-model rule table is reachable,
+including tie, one/both DNS/DNF, missing records, wrong bib, official correction,
+injury/withdrawal, reviewer timeout and event cancellation. Settlement remains
+simulated and separate from result. Corrections are append-only. Reviewer
+cannot decide their own contest. The finality cap prevents endless revisions.
+Blocked/deleted actors, stale links, unauthenticated reads and unrelated users
+cannot gain access. A rematch requires both consents and a fresh event/time.
 
-Retain the approved Daybreak visual system and replace the normal app journey:
+**Verification:** pure Deno fixture matrix at boundaries; SQL RLS, role grants,
+result immutability, evidence-cutoff/correction/dispute races, worker reruns and
+simulated-value conservation; notification idempotency and no private payloads;
+native result, review deadline and rematch UI. Run full portable gate once at
+integration and relevant Xcode checks. No hosted schedule is activated here.
 
-- Use only Today, Challenges, and You tabs, with independent navigation stacks.
-- Today shows the open challenge, remaining steps, seven-day timeline, automatic
-  Apple Health update time, and a creation call to action when no challenge is
-  open.
-- Challenges separates the current challenge from completed history. Personal
-  detail shows frozen terms, cadence, progress, update time, and result.
-- Creation walks through steps, cadence, editable target, commitment preset,
-  one Apple Health permission action, and frozen-terms review. A positive Health
-  sample is never a creation prerequisite.
-- You preserves handle/profile setup and adds Health access recovery and
-  privacy. Personal v2 exposes no diagnostic or eligibility-hold state.
-- Use separate Health reader, authenticated snapshot uploader, and protected
-  whole-snapshot cache interfaces. Do not reuse the hourly evidence coordinator
-  or `PersonalProgress` as the v2 source of truth.
-- Coalesce overlapping automatic refreshes into one active read and one trailing
-  read. Cancel or discard work after account/challenge changes. Display local
-  Health before attempting an upload.
-- Resolve displayed progress before cutoff as live Health, matching cache,
-  server snapshot, then legacy result fallback. After cutoff prefer the frozen
-  server result. Generic pull to refresh remains; no step-specific control does.
-- Use dedicated personal models and a separate versioned pending-request store.
-  Social v1/v2 envelopes must never decode or retry as personal requests.
-- Ignore dormant social standings push actions in the V1 shell.
-- Make personal fixtures and previews the default; label legacy fixtures as V2
-  or regression-only.
+## Phase 3 — longer personal performance commitments and followers
 
-Exit criteria:
+**Slice (a): implemented and verified locally as an agreement backend.** See
+[the acceptance record and Phase 3(b) handoff](docs/PERFORMANCE_COMMITMENT_AGREEMENT_V1_ACCEPTANCE.md).
+Private versioned terms, digest-bound owner consent, a separate one-open slot,
+exact requests, owner reads, safe exits and deletion retention are implemented.
+The local policy uses 28–90 elapsed UTC days, a strictly future start within
+30 elapsed days, fictional official 5K chip times and $20 nonredeemable
+simulation with fee zero and an unselected recipient. These are reversible
+implementation defaults. Admission resets off. Deadline passage keeps the
+agreement open awaiting proof; no automatic miss or settlement is inferred.
+**Slice (b): implemented and verified locally.** Nominated fictional 5K events,
+private independently reviewed proof corrections and a pure strict-target
+evaluator now use their own default-off boundary and retention scope. Any
+qualifying success survives later slower attempts. Missing proof is distinct
+from a miss, which requires explicit complete-set/no-attempt confirmation and
+the frozen review windows. No result publisher, lifecycle worker or slot release
+was added. See [attempt acceptance and the Phase 3(c) handoff](docs/PERFORMANCE_ATTEMPTS_V1_ACCEPTANCE.md).
+**Slice (c): implemented and verified locally.** Named milestones, manual
+check-ins and append-only completion/reopening/retirement now use a separate
+default-off owner ledger. Exact requests, bounded history with stable pagination,
+active session checks and a distinct retention hold preserve safe exits and
+deletion behavior. Progress never enters organizer proof or scoring snapshots.
+See [progress acceptance and the Phase 3(d) handoff](docs/PERFORMANCE_PROGRESS_V1_ACCEPTANCE.md).
+Followers, result/review persistence and native commitment screens remain
+unimplemented. **Next: slice (d).**
 
-- Only three tabs and personal destinations are reachable in the normal app.
-- Only steps is presented; both cadences and all five commitments work; $10 is
-  the default.
-- The exact no-charge disclosure is visible before confirmation and on active
-  personal surfaces.
-- Reachable UI contains no competitor, rank, winner, charity, invitation,
-  roster, reaction, or tie-break language.
-- Reachable Personal v2 UI contains no **Sync my steps**, **Send saved steps**,
-  **Not synced**, **not confirmed**, **Steps received**, Step Syncing card,
-  coverage status, diagnostic, eligibility-hold, or App Attest language.
-- Pending request, routing, app-model, configuration, unit, and UI tests pass.
-- Debug, Staging, and Release simulator builds compile without actionable
-  compiler or linker warnings, while Release continues to reject personal
-  mutations. D83 explicitly accepts Xcode 26.2's expected no-AppIntents
-  metadata-extraction self-skip for targets that intentionally have no
-  `AppIntents.framework` dependency.
+**Depends on:** Phase 2's proof/review foundation; does not depend on Garmin.
 
-## 4. Automatic snapshot acceptance
+**Code areas:** new `performance_commitment_*` policy, terms, milestone,
+attempt-link, result and review migrations; new Swift `PerformanceCommitment*`
+client/store/models/views and pending-request format. Add follower permissions
+and bounded projections using friendships/blocks. Extend account deletion and
+retention with new workflow scopes. Keep `solo_contracts`, `solo-test-v1`,
+Personal's seven-day snapshots and their schedulers unchanged.
 
-Use `docs/PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md`. Keep proof layers separate:
+**Slices:** (a) 28–90-day terms and one-open constraint; (b) multiple nominated
+event attempts and strict target evaluation; (c) named intermediate milestones
+and manual progress; (d) opt-in friend following, structured reactions,
+reminders, report/block/support; (e) commitment result/review/withdrawal history.
+Initial metric remains official 5K chip time; a true mile policy is a subsequent
+small slice with metre/unit and sub-six-minute boundary fixtures.
 
-1. Local migration, pgTAP, Deno, product unit/UI, configuration, and build
-   proof. Legacy App Attest conformance remains a separate regression suite.
-2. Hosted Staging migration, function, scheduler, RLS, and test-only proof only
-   after explicit deployment approval.
-3. Physical-iPhone proof for first permission, iPhone-only steps, Watch catch-up,
-   opportunistic background wake, locked-device retry, offline/reconnect,
-   foreground refresh, challenge end, and the full 24-hour grace period.
-4. Two-actor privacy proof in pgTAP and a controlled account-isolation
-   observation; one phone does not substitute for two authorization identities.
+**Acceptance:** a 60-day goal works without seven-element arrays or fixed
+168-hour arithmetic. Only post-agreement, pre-deadline qualifying attempts
+count; 360 seconds exactly misses a strict sub-six-minute goal. Milestones do
+not settle money. Missing proof is distinct from a proven miss; a successful
+attempt remains valid unless explicitly corrected. No forfeiture recipient is
+implied while unselected. Followers cannot view raw proof or alter terms;
+revocation removes future follower access. Deletion/purge does not prematurely
+remove evidence required for open goals or cases.
 
-No push, hosted migration, Edge Function deployment, TestFlight publication,
-App Store submission, or production configuration is authorized by this plan.
+**Verification:** SQL lifecycle/RLS/concurrency and retention tests, shared pure
+proof fixtures, end/deadline/DST/leap-date tests, Swift separate-envelope and
+cross-account cache tests, fixture UI for progress/attempts/withdrawal/review.
+Test one new duel plus one new commitment with an existing Personal history,
+without changing old slots or enabling Solo. Observe a 28-day commitment in
+the pilot; accelerated clocks do not prove months of actual retention.
 
-## Current implementation status
+## Phase 4 — asynchronous workouts and source expansion
 
-| Capability | Current state | Remaining proof |
+**4A feasibility depends on:** Phase 0 only; actual applications/contact need
+separate owner authorization. Read current official Garmin documentation and
+obtain approved evaluation access and use-case permission before integration.
+Confirm original device identity, edits/imports/deletions, event timestamps,
+distance series, pause semantics, delivery/retry/backfill behavior, consent,
+revocation, quotas and commercial terms from real approved samples. The public
+FAQ is not an API payload contract or approval.
+
+**4B implementation depends on:** a passed 4A source decision and the result/
+review domain in Phases 2–3. Add isolated `running_attempts`/proof revisions,
+provider connections/tokens in private storage, and an adapter such as
+`supabase/functions/garmin-activity-ingest`; build fixtures before any connected
+calls. OAuth callback, scoped consent, webhook validation as specified by the
+provider, replay/deduplication and reconciliation are separate slices. For an
+Apple Watch source, add a dedicated workout reader and permissions; do not
+broaden `PersonalHealthStepReader` or daily snapshot RPCs.
+
+**Acceptance:** the selected source supplies all required fields; otherwise the
+policy remains unavailable. No HTML scraping or unapproved unofficial Garmin
+API. Distinguish elapsed, moving and active time; no weighted-minute crosswalk.
+One source and policy per challenge; no silent Apple/Garmin substitution.
+Document measured course/GPS tolerance, pauses, terrain, sensor gaps, edited
+records and credible miss detection before enabling asynchronous comparisons.
+Begin with same-course 5K, then true mile; handicaps and consistency formats
+need their own evidence before expansion.
+
+**Verification:** adapter contract tests from approved redacted samples;
+forgery, replay, revocation, partial/late/out-of-order upload and deletion cases;
+field trials comparing devices with organizer/measured-course references;
+short-distance error, pause, car/cycle, duplicate import and clock manipulation
+cases. Record false rejects/accepts and reviewer load. Simulator or OAuth
+success alone does not qualify a source for cash settlement. A controlled
+provider/environment pilot is a separately approved action.
+
+## Phase 5 — simulated user-validation pilot
+
+**5A depends on:** Phase 2 plus a reviewed deploy/distribution candidate and
+separate authorization. **5B adds:** Phase 3. Neither requires live payments.
+Use the exact six-week, 12-pair and 8-commitment design in
+[BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md#user-validation-pilot).
+
+**Code/operations:** minimal first-party lifecycle event ledger (analytics are
+currently disabled), deduplicated events, aggregate report script under
+`scripts/`, and a new dated pilot runbook/report in `docs/`. Keep consent,
+operator source-review instructions, report/block/support, expiry, kill switch
+and deletion behavior reviewable before inviting anyone. Do not repurpose old
+Personal beta prompts as authorization to deploy this new product.
+
+**Acceptance:** report invitation acceptance, both-runner completion, fair
+results, rematch acceptance, seven-day return after loss, commitment engagement,
+withdrawals/missingness, reviewer cost and willingness to pay with denominators.
+Separate product disinterest from event availability and simulated-stakes
+limitations. Predeclare proceed/iterate/pause thresholds. Record qualitative
+explanations, not just totals. No provider identifiers or raw health data in
+analytics; no off-app collection or redeemable prizes.
+
+**Verification:** event integrity/deduplication and privacy checks, synthetic
+report checks against known journeys, then actual observed cohort report. A
+successful funnel test is not demand validation. Run longer follow-up before
+claiming 90-day retention. Pilot publication/recruitment has not occurred.
+
+## Phase 6 — payment feasibility, then separately gated implementation
+
+**6A can proceed independently as research.** Decide each product separately;
+see funds flows and official sources in [BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md#payment-model-decisions-and-options).
+Ordinary Stripe is not presumed suitable for prize duels. Its current policy
+lists prize-bearing skill competitions and certain entry fees as prohibited;
+its existing sandbox and Connect APIs confer no permission. A saved method is
+not locked money. Long card holds are not a deposit design.
+
+**6B depends on:** explicit supported provider/funds flow, jurisdiction and
+platform analysis plus Phase 5 evidence. Only then build a separate provider
+sandbox adapter, ledger and consent version. Reuse `personal-stripe-sandbox-*`
+patterns for idempotency/signatures/review while leaving those handlers,
+consent and test-only guards intact. Use no real credentials or live objects.
+
+**Slices:** funding/partial-funding rollback; immutable beneficiary/fee consent;
+provider event reconciliation; independent result-to-payment authorization;
+refund and payout handling; chargebacks/reversals; operator controls and
+support recovery. Simulate expired holds, denied charges, unavailable payouts,
+duplicate/reordered events, timeout after provider success, and case reopening.
+Never state a winner was paid until provider reconciliation confirms it.
+
+**6C live gate — all required, none currently cleared:**
+
+- Legal entity, country/state allowlist, adult age rule, identity/location
+  enforcement, contest classification and all required permissions for each
+  product. Default jurisdiction allowlist remains empty.
+- Written provider support covering stakes, prizes, beneficiaries, commitment
+  duration, custody, fees, cancellations, refunds and disputes. Name who bears
+  chargebacks and handles frozen/insolvent funds; no assumed escrow protection.
+- Decide personal forfeiture recipient and funded deposit versus later charge.
+  Both are honest options but need different consent and failure handling.
+- Apple review of payment classification, rules/non-sponsorship disclosure,
+  sensitive health-data use, moderation and injury design; storefront analysis
+  for any digital club subscription. A renamed “service fee” is not clearance.
+- The exact source policy has demonstrated sufficient verification, including
+  missing-data abuse and correction handling; independent review has staffing,
+  audit and deadlines. Simulated withdrawal defaults are replaced by a new
+  explicitly approved funded policy, never silently changed for old rows.
+- Provider sandbox, money conservation, reconciliation, refunds, payout failure,
+  rollback/kill switch, age/location bypass and support drills pass.
+- Explicit approval for the exact hosted rollout and distribution, followed by
+  staged acceptance and a separately approved capped live trial. An accepted
+  plan or a green local suite never flips this switch.
+
+If any of these cannot be met, keep simulation available and revise the funds
+flow transparently. Do not deploy a workaround or convert existing agreements.
+
+## Material decision register
+
+| Decision | Recommended next action / owner | Blocks |
 | --- | --- | --- |
-| Clean pivot baseline | Verified at local/cached `422e638` | Live remote refresh only if publication is later approved |
-| Model discriminator and legacy backfill | Implemented; full local database suite passes | Hosted migration rehearsal after approval |
-| Legacy roster privacy fix | Selectively ported; self-only RLS and bounded RPC pass locally | Hosted two-actor observation after approval |
-| Personal terms and one-open slot | Implemented; lifecycle, exact-retry, and two-session concurrency tests pass | Hosted Staging observation after approval |
-| Automatic Health snapshot client | Implemented; native unit and fixture UI proof pass | Physical automatic-trigger, locked-device, Watch, and cutoff acceptance |
-| Authenticated daily snapshot backend | Implemented; local RLS/idempotency/concurrency/finalization suite passes | Approved hosted smoke and controlled cutover |
-| Historical hourly/App Attest path | Preserved as `attested_hourly_v1` | Regression/history only; not a new-Personal or TestFlight gate |
-| Personal scoring and freezing | Implemented; local cutoff, immutable-rerun, and Stripe-review tests pass | Hosted cutoff worker smoke and frozen-history observation |
-| Solo contract domain (2A) | Implemented locally; policy-locked owner records, rollout gates, append-only evaluation/appeal facts, lifecycle, and deletion integration | Runtime remains off; client/worker integration and hosted acceptance remain separate slices |
-| Solo fake authorization adapter (2B) | Implemented locally; atomic v2 creation, immutable private binding, append-only fake outcomes, exact retries, and deletion integration | Runtime and allowlist remain closed; no provider, app/worker wiring, or hosted acceptance |
-| Three-tab personal Daybreak app | Snapshot-v2 cross-surface fixture UI implemented and verified | Physical Health acceptance |
-| Historical hosted Stage A | Personal V1 hourly schema/functions were deployed for `attested_hourly_v1` | Preserve and resolve history; do not treat those endpoints as snapshot-v2 acceptance |
-| Physical Stage A | Not run | One provisioned iPhone and bounded evidence record |
-| Stripe sandbox Stage B foundation | Implemented and verified locally: native PaymentSheet setup, server-verified challenge commit, signed webhook reconciliation, review, and one idempotent test PaymentIntent | Dedicated non-production target, tester allowlist/kill switch, Stripe test secrets and webhook, secure dispatcher, and hosted sandbox acceptance |
-| Real fees | Disabled | Apple, Stripe, legal, age/jurisdiction, hosted deployment, and production acceptance gates below |
+| First event, organizer rights and timing basis | Product/operator chooses an eligible same-event 5K; obtain result-use permission before pilot | Human proof and Phase 5, not local fixtures |
+| Garmin access and permitted use | Owner authorizes application; engineering validates approved fields and source lineage | Phase 4B |
+| Asynchronous distance tolerance and proof of miss | Engineering + reviewer field trials; freeze policy after evidence | Async contests and all cash based on that source |
+| Fair pairing, course variation, handicaps | Pilot interviews; keep same-event unhandicapped default meanwhile | Broader formats |
+| Deposit versus later charge and forfeiture payee | Owner + counsel + provider; beneficiary hypothesis first, no recipient selected | Personal real-money agreement |
+| Duel payment provider, fund holder and liability | Owner + counsel verify expressly supported structure; do not assume Stripe | Funded duels |
+| Jurisdiction, age/identity/location, taxes and consumer terms | Qualified counsel and owner; no region enabled by default | Every live mode |
+| Fees and club pricing | Test stated preferences, costs and later cleared actual conversion | Commercial launch pricing |
+| Injury, withdrawal, corrections, missing proof under stakes | Product + independent review + counsel; test adversarial cases | Real-money policy |
+| Hosted/device status and legacy maintenance obligations | Engineering rechecks only in an approved implementation/acceptance task | Distribution claims; not planning completion |
 
-## Stage B Stripe sandbox foundation and live-fee gate
+## Verification and documentation policy
 
-Stage B now has a local Stripe sandbox implementation. This section locks the
-implemented product contract. Local database, Edge Function, Swift, simulator,
-and conformance checks pass; this does not claim that the sandbox is hosted,
-that end-to-end webhook and dispatch behavior is accepted, or that any live
-payment is permitted.
+For each implementation PR record what changed, code tests, unrun checks and
+what only real devices/hosted operation/users can establish. Use the current
+commands in README and `.github/workflows/ci.yml`; `scripts/test-all.sh` covers
+portable suites, not Xcode. Database reset is for a disposable local stack.
+Run focused tests then the appropriate integration gate; do not inflate test
+counts or rerun unrelated suites after documentation-only edits.
 
-The sandbox flow is:
+Every phase must preserve old agreement invariants and new default-off gates.
+Local RLS tests require authenticated actors, not only service/superuser reads.
+Concurrency needs separate sessions. Clock-controlled tests exercise cutoff
+boundaries; hosted Cron firing requires an actual approved observation. Physical
+Health, OAuth/provider behavior and actual demand each need their own evidence.
+Never log access tokens, raw health/route data, card details or private dispute
+material. Review changed Markdown links, status labels and `git diff --check`.
 
-1. After Health access is ready and before final confirmation, create a Stripe
-   `SetupIntent` to save an approved payment method for later off-session use.
-   Starting a challenge creates no authorization hold and no charge.
-2. Create the challenge only after payment setup succeeds and the exact amount,
-   terms version, payment-method reference, and explicit off-session consent are
-   bound to the exact creation request. GameTime stores provider identifiers and
-   status, never card data.
-3. Run the seven-day challenge and its existing 24-hour final-sync period. No
-   payment decision occurs before the evidence cutoff.
-4. `met_goal`, `inconclusive`, and scheduled/active sandbox cancellation close
-   with $0 charged. Cancellation retains the agreement and history, releases
-   the open slot, and cannot create a result, review, or charge command.
-   Missing, conflicting, or unresolved step data never becomes a miss.
-5. Publish a complete `missed_goal` as provisional. Set
-   `review_deadline = published_at + interval '7 days'`. No charge may occur
-   before that deadline or while a timely review remains unresolved.
-6. If no review is filed by the deadline, or a completed review confirms the
-   miss, create exactly one idempotent off-session Stripe `PaymentIntent` for the
-   frozen amount. If a review overturns the miss, or remains unresolved at the
-   deadline, waive the amount and charge $0.
-7. If the off-session attempt fails or requires customer action, do not retry it
-   automatically. Require an explicit user-authorized recovery action and block
-   another paid challenge until the payment state is resolved or waived. Do not
-   use repeated retries or debt collection.
+The active Personal beta runbooks remain maintenance/acceptance references for
+that implementation. Their solo-only and no-payout future rules are superseded
+by D123; their no-live-money restrictions remain. Design mockups remain visual
+references, not implementation proof or new product constraints.
 
-All Stripe objects and payment methods in the sandbox use Stripe test mode. A
-sandbox `PaymentIntent` moves no real money. Sandbox UI must say
-**Payment test mode — no real money moves.** Test objects, simulator results, and
-local webhook fixtures do not prove hosted deployment, provider approval, or a
-live charge.
+## Copy-ready first implementation prompt
 
-Stage A, Solo 2A, and Solo 2B remain structurally `test_only`. D113 requires a
-new forward terms version and forward migrations. Do not rewrite their enums,
-rows, results, or historical migrations to add Stripe.
+```text
+Work in /Users/user/Documents/GitHub/GameTime.
 
-Live Stripe mode remains disabled until all of these exist:
+Implement only PLAN.md Phase 1A: the local simulated same-event 5K duel
+agreement backend. Friend duels and personal performance commitments are the
+adopted model; do not ask to reconfirm the pivot.
 
-- A US counsel memo defining the fee model, 18+ rules, versioned state allowlist,
-  cancellation, waiver, review, refund, deletion, and retention policies.
-- Written Stripe approval explicitly covering a HealthKit-informed,
-  failure-contingent, off-session fee.
-- App Store payment and HealthKit policy clearance.
-- Approved age and jurisdiction verification.
-- Separately approved hosted deployment, webhook verification, reconciliation,
-  and end-to-end sandbox acceptance before any live configuration.
+Read AGENTS.md, PROJECT_MEMORY.md, CLAUDE.md, docs/BUSINESS_MODEL.md, PLAN.md,
+and DECISIONS.md D123. Inspect git status and preserve all unrelated changes.
+Follow the repository's forward migration workflow and read its Supabase skill.
 
-The invite-only Release sandbox also remains NO-GO until the narrower D114
-candidate, hosted, physical-device, and TestFlight gates pass.
+Deliver new isolated duel policy/agreement/participant/request/enrollment
+records and versioned create, accept, decline, pre-start cancel and list/detail
+RPCs. Use existing durable actors and accepted friendships with block checks.
+Do not reinterpret contests, personal_challenge_terms, solo_contracts, old
+pending requests, scoring or charity obligations. No applied migration edits.
 
-Injury reporting uses structured attestations without medical records. Its
-policy, review path, and effect on a provisional miss require the same written
-approval as the rest of the live fee model.
+Use one service-curated fictional outdoor 5K event policy:
+fixture_official_5k_v1, 5,000 metres, common whole-second organizer chip times,
+exact future event window within 30 days, exactly two named friends, simulated
+USD 2,000 cents each and zero fee. Store no proof or provider data in this slice.
+Create records creator consent; the invitee accepts the identical policy
+version and full terms digest. Cutoff is the earlier of creation + 72 hours
+or event start - 1 hour; equality is too late. Both accepted means scheduled.
+Implement clock-controlled expiry without registering a scheduler.
 
-Steps 2A and 2B remain `test_only`. Dollar-denominated commitments, logical
-settlement, and fake authorization events are not Stage B clearance. They do
-not reserve funds, authorize a charge, or move money.
+Freeze terms and maintain exact-request idempotency, changed-payload refusal,
+one unsettled new duel per actor, stable locking and atomic rollback. Incoming
+invitations reserve no invitee slot until acceptance. Expiry must release the
+creator slot. Same-actor committed retries can recover after gate/cutoff changes;
+deleted actors cannot recover private access. Cover pre-start deletion while
+preserving tombstoned agreement history and old deletion behavior.
 
-## Deferred V2
+Gate-off blocks new creation/acceptance but preserves safe cancellation,
+authenticated history and exact committed recovery. Subsequent creation must
+atomically expire an overdue creator reservation before claiming a new slot.
 
-V2 may add `social_accountability`, where people share a challenge but keep
-independent goals, outcomes, and fees. It must not pool money or pay a
-participant. Start with structured reactions and reminders. Free-form comments
-remain blocked until Apple-compliant filtering, reporting, blocking, moderation,
-and support controls exist.
+The authoritative runtime gate defaults off; the allowlist defaults empty.
+Enable only fictional actors in isolated local tests. The server fixes simulated
+mode and rejects any live mode or arbitrary amount/fee/source. Use explicit RLS,
+minimal grants and guarded service authority; clients cannot write base tables.
 
-## Verification rules
+Add meaningful pgTAP and two-session concurrency tests for the Phase 1A
+acceptance matrix, including unrelated/anonymous/deleted actors, blocked pairs,
+exact retries, payload conflicts, cutoff equality, acceptance/cancellation/
+expiry/deletion races and slot conflicts. Run focused checks, the full local
+DB suite and relevant lint/advisor checks; record unavailable checks honestly.
+Include a runnable two-actor local example and update implemented-state docs.
 
-- Simulator tests prove navigation and fixtures, not Apple services.
-- Local database tests prove migrations and policies, not hosted scheduling.
-- A signed build proves signing inputs, not Apple Health reads, observer wakes,
-  Watch catch-up, or locked-device retry.
-- Permission-request completion does not prove readable data. A successful
-  Health query, including an authoritative zero, is the snapshot observation.
-- A seven-day local-calendar window is not always 168 elapsed hours.
-- A one-user device run does not prove two-actor privacy isolation.
-- Local fake-adapter tests do not prove a real processor, money movement, legal
-  or App Review approval, hosted scheduling, physical-device behavior, or
-  hosted multi-user isolation.
-- Preserve exact request UUIDs and encoded bytes for every retried mutation.
-- Never expose a service-role key, Apple private key, access token, assertion,
-  payload body, raw health value, or private profile data in evidence or logs.
-- Require explicit approval before push, merge, deployment, hosted mutation,
-  TestFlight, production configuration, or submission.
-
-## References
-
-- `docs/PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md`: controlling automatic
-  Personal acceptance runbook.
-- `docs/PERSONAL_V1_ACCEPTANCE.md`: historical hourly/App Attest Personal record.
-- `docs/M8_1_STAGING_ACCEPTANCE.md`: retained historical social-alpha runbook.
-- `docs/M6_5_DEVICE_CONFORMANCE.md`: legacy/social metric App Attest conformance.
-- `docs/archive/2026-07-30_IMPLEMENTATION_STATUS.md`: historical implementation evidence.
-- `docs/archive/2026-07-30_IMPLEMENTATION_PLAN.md`: previous milestone plan.
+No iOS feature, Edge endpoint, workout ingestion, scoring, payment adapter,
+cron registration, hosted mutation, deployment, publication or live money.
+Finish with files changed, verification results and the Phase 1B handoff.
+```

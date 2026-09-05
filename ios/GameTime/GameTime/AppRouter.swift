@@ -27,6 +27,10 @@ enum FriendsRoute: Hashable {
 }
 
 enum YouRoute: Hashable {
+    #if DEBUG || STAGING
+    case duels
+    case duelInvitation
+    #endif
     case trustAndPrivacy
     case accountSupport
 }

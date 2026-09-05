@@ -2435,6 +2435,8 @@ final class GameTimeUITests: XCTestCase {
         ).firstMatch
     }
 
+    // Personal-only fixture assertions. The opt-in duel product has its own
+    // consent and language checks in DuelUITests; do not weaken this list.
     private func assertNoForbiddenLanguage(
         in app: XCUIApplication,
         file: StaticString = #filePath,

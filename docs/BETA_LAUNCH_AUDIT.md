@@ -1,5 +1,14 @@
 # GameTime lean external beta launch plan — Stripe sandbox
 
+> **Product scope — September 4, 2026.** This document is retained for the
+> existing Personal steps/sandbox implementation and its dated acceptance work.
+> Friend duels and personal performance commitments now control future product
+> scope: see [BUSINESS_MODEL.md](BUSINESS_MODEL.md), [PLAN.md](../PLAN.md), and
+> D123. Solo-only/no-participant-payout guidance below is not a constraint on
+> those new products. Existing agreements and no-live-money restrictions remain.
+> Old rollout commands/prompts are historical instructions, not authorization
+> to deploy or distribute. Consult the current roadmap for the next build task.
+
 **Revised:** August 13, 2026
 
 **Target:** a small, invite-only external TestFlight beta

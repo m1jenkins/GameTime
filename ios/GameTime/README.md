@@ -1,5 +1,11 @@
 # GameTime product app
 
+> **Product direction — September 4, 2026.** This README describes the
+> current Personal app. Friend duels and personal performance commitments are
+> adopted future work in [BUSINESS_MODEL.md](../../docs/BUSINESS_MODEL.md) and
+> [PLAN.md](../../PLAN.md). The shell still blocks legacy social routes; new
+> products require separate models, consent and routes. No live money is enabled.
+
 `GameTime.xcodeproj` is the production-shaped Personal iOS target. New and
 migrated open challenges use automatic Apple Health snapshot v2. It is
 independent from `../GameTimeConformance`, which remains the focused legacy and
@@ -21,8 +27,10 @@ generic M6.5 App Attest engineering harness rather than a Personal-v2 gate.
   progress enabled, and a persistent **Test commitment — no money will be charged.**
   banner. The signed-out root and You tab can enter an isolated fixture model
   without changing the live account.
-- `Release`: live clients, with Personal and retained social contest mutations
-  locked.
+- `Release`: live clients; Personal creation is allowed only through the
+  explicit Stripe sandbox configuration and backend admission gates. Internal
+  test-only Personal and retained legacy social mutations remain locked; this
+  is not proof of a hosted or distribution-ready sandbox.
 
 Fixture code is guarded by `#if DEBUG || STAGING`; Release cannot compile or
 route to it.
@@ -146,3 +154,41 @@ The controlling proof layers and external Apple prerequisites are in
 `../../docs/PERSONAL_V1_ACCEPTANCE.md` and App Attest conformance suite remain
 historical/generic regression records. Simulator proof does not substitute for
 signed physical-device Health or hosted acceptance.
+
+
+## Opt-in simulated friend duels
+
+Debug/Staging: launch with `--fixture-mode --duels`, then open **You → Friend
+duels**. Add `--fixture-duel-incoming`, `--fixture-duel-lost-response`,
+`--fixture-duel-gate-off` or `--fixture-duel-offline` to exercise those cases.
+The default Personal launch remains unchanged. Real duel RPC clients require
+`--duels` and a disposable loopback backend with separately admitted local
+actors and a curated event. Hosted configurations and Release stay closed.
+See [native acceptance](../../docs/DUEL_NATIVE_V1_ACCEPTANCE.md) for the request
+contract, completed authenticated local smoke and its reproducible runner.
+
+
+Phase 2(d) adds progress, saved notices and correction history, independent
+review receipts, confirmed results and separate simulated returns. Add
+`--fixture-duel-review`, `--fixture-duel-correction`, `--fixture-duel-final`,
+`--fixture-duel-settlement` or `--fixture-duel-blocked` for those scenarios.
+Review and safe-exit recovery work with the gate-off/lost-response switches.
+Real local clients require the additive native lifecycle projection migration.
+See [native lifecycle acceptance](../../docs/DUEL_NATIVE_LIFECYCLE_V1_ACCEPTANCE.md)
+for verification and the Phase 2(e) rematch/link handoff. The existing HTTP smoke
+runner now also covers native review/exit recovery and blocked own returns.
+
+
+### Phase 2(e): rematches and invitation links
+
+The opt-in local duel includes **Challenge again** after a saved final result,
+a fresh event and full new consent review. Creators can create/share/revoke
+expiring links. Debug/Staging register `gametime-duel://invitation/<token>`;
+Release's registrations and feature exclusion remain unchanged. A named friend
+must sign in and explicitly agree. Links use no public preview or hosted page.
+
+See [rematch/link acceptance](../../docs/DUEL_REMATCH_LINK_V1_ACCEPTANCE.md) for
+SQL/RPC boundaries, durable recovery, native URL/account tests, simulator
+journeys and the authenticated local smoke. `--fixture-duel-final` enables the
+rematch journey; `--fixture-duel-link` supplies a fictional incoming link for
+URL-handler tests. Neither fixture changes the normal Personal launch.

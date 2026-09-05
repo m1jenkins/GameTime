@@ -1,11 +1,57 @@
 # GameTime
 
-GameTime is a personal accountability app. One person commits to a seven-day
-steps goal, chooses a daily or cumulative cadence, and selects a $10, $20, $30,
+GameTime's adopted business model is **friend duels and personal performance
+commitments**: friends agree to athletic contests, and individuals commit to
+measurable milestones by a deadline. Financial stakes, including participant
+prizes, are in future design scope; the funds flow, provider, pricing and launch
+jurisdictions remain unresolved. No live payments are enabled.
+
+The current implementation is still the Personal steps app. One person commits
+to a seven-day steps goal, chooses a daily or cumulative cadence, and selects a $10, $20, $30,
 $40, or $50 test commitment. Stage A remains the internal `test_only`
 foundation. The external beta Release path uses Stripe sandbox payment setup
 and simulated settlement states; live fees remain behind the Stage B approval
-gates.
+gates for that historical payment contract. Those gates do not approve the new
+products. [BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md) defines the adopted model,
+code reuse, recommended rules, payment options and validation pilot;
+[PLAN.md](PLAN.md) is the dependency-ordered implementation roadmap.
+
+Phase 1A now implements a local, default-off agreement backend for two friends
+in the same fictional outdoor 5K, with two explicit consents and simulated
+stakes. Phase 1B adds an opt-in native fixture/local flow for review, consent,
+request recovery and history, now accepted with an authenticated two-account
+native-to-local-HTTP smoke. Phase 2(a) adds a pure evaluator and fictional tests
+for results, corrections and review deadlines. Phase 2(b) adds private fictional
+sources, independently reviewed proof revisions, per-duel reviewer authorization
+and redacted receipt reads, all default-off. See [proof acceptance and the
+Phase 2(c) handoff](docs/DUEL_PROOF_V1_ACCEPTANCE.md). Phase 2(c) now implements
+a default-off local lifecycle worker, durable notice records, review cases and
+resolutions, safe exits, immutable final results and separate nonredeemable
+simulated settlement. See [lifecycle acceptance and the Phase 2(d) handoff](docs/DUEL_LIFECYCLE_V1_ACCEPTANCE.md).
+Phase 2(d) adds actor-bound native progress, saved notices, final results,
+review requests and safe exits, including exact recovery and blocked-contact
+suppression. See [native lifecycle acceptance](docs/DUEL_NATIVE_LIFECYCLE_V1_ACCEPTANCE.md).
+Phase 2(e) adds fresh-consent rematches and expiring, revocable links that only
+the named invitee can resolve. See [rematch/link acceptance](docs/DUEL_REMATCH_LINK_V1_ACCEPTANCE.md).
+Hosted schedules, universal-link hosting and external delivery remain open.
+The later pilot uses
+reviewed organizer chip times; Garmin ingestion and asynchronous time trials
+are planned capabilities, not existing features. Phase 3(a) now adds separate
+28–90-day simulated commitment agreements with explicit owner consent, exact
+recovery, one open slot, safe exits and retained history. See
+[commitment agreement acceptance](docs/PERFORMANCE_COMMITMENT_AGREEMENT_V1_ACCEPTANCE.md).
+Phase 3(b) adds private nominated fictional 5K attempts, independent reviewed
+corrections and a pure strict-target evaluator; its gate defaults off. See
+[attempt acceptance and Phase 3(c) handoff](docs/PERFORMANCE_ATTEMPTS_V1_ACCEPTANCE.md).
+Phase 3(c) adds private named milestones, manual check-ins and retained status
+history with exact recovery and stable pagination. These owner reports never
+qualify as organizer proof. See [progress acceptance and Phase 3(d) handoff](docs/PERFORMANCE_PROGRESS_V1_ACCEPTANCE.md).
+Followers, commitment result/review services and native screens remain future work.
+See the [local acceptance record and Phase 1B
+handoff](docs/DUEL_AGREEMENT_V1_ACCEPTANCE.md) and
+[native acceptance record](docs/DUEL_NATIVE_V1_ACCEPTANCE.md). Run the rollback-only example with
+`bash scripts/duel-agreement-example.sh` after starting the local stack and
+running `./scripts/db-test.sh`.
 
 New Personal challenges use one automatic Apple Health flow. The app reads
 Health's merged step total, excludes only samples Apple explicitly marks as
@@ -19,9 +65,12 @@ open challenge detail.
 
 ## What works right now
 
-Run the `GameTime` scheme (Debug) on a **physical iPhone** against the local
-stack and you can sign in, connect Apple Health, create a seven-day steps
-challenge with a test commitment, and watch progress update automatically.
+The `GameTime` scheme (Debug) targets this loop on a **physical iPhone** against
+the local stack: sign in, connect Apple Health, create a seven-day steps
+challenge with a test commitment, and receive automatic progress. The table
+distinguishes implementation from remaining device/hosted proof. These status
+records were reviewed against source on September 4; historical test and hosted
+observations were not rerun in the documentation planning task.
 
 | Path | State |
 | --- | --- |
@@ -33,7 +82,17 @@ challenge with a test commitment, and watch progress update automatically.
 | Authenticated daily snapshot upload and frozen result | Implemented and covered by local database tests; hosted smoke and controlled cutover remain |
 | Historical hourly/App Attest Personal path | Retained for v1 history only; not a new-Personal gate |
 | Stripe sandbox payment flow | Release beta path is configured in source; hosted secrets and end-to-end operation remain unverified |
-| Real fees | Blocked behind every Stage B gate in [PLAN.md](PLAN.md) |
+| Simulated same-event 5K duel agreements | Phase 1A implemented and locally tested: versioned terms, two consents, exact retries, private slots, default-off admission and pre-start deletion; opt-in native fixture/local flow added, no hosted rollout |
+| Pure simulated duel result evaluation | Phase 2(a) implemented and tested with fictional proof; persistence and native rendering are separate slices below |
+| Private fictional duel proof | Phase 2(b) implemented locally: append-only sources/revisions, independently authorized reviewers, audited access and redacted participant receipts; ingestion defaults off |
+| Simulated lifecycle and native results/review | Phases 2(c/d) implemented locally; durable notices, immutable finals, separate simulated returns and safe exits |
+| Rematches and named invitation links | Phase 2(e) implemented locally; fresh consents/event, expiry/revocation, actor-safe native recovery and pending login destinations |
+| Performance commitment agreements | Phase 3(a) backend implemented locally: 28–90-day terms, owner consent, separate slot, recovery and safe exits; admission defaults off |
+| Commitment attempts and strict-target evaluation | Phase 3(b) implemented locally: private nominated 5K attempts, reviewed corrections and pure evaluator; no result publication |
+| Commitment milestones and manual progress | Phase 3(c) backend implemented locally: private owner reports, immutable plans, retained status history, exact recovery and bounded pagination; defaults off |
+| Commitment results/review, followers and native screens | Planned; not implemented |
+| Garmin / timed-workout verification | Not implemented; generic distance fields and Garmin source names are not an integration |
+| Deposits, live stakes and participant payouts | Disabled/unimplemented; require the distinct Phase 6 gates in [PLAN.md](PLAN.md) |
 
 **Connect Apple Health** is the only permission action. Completing the system
 permission request is enough to continue; challenge creation does not require
@@ -125,14 +184,15 @@ historical `attested_hourly_v1` challenges only.
 ### Dormant by design
 
 The owner-only Solo contract domain (Steps 2A–2B) and the former
-friend-and-charity challenge are implemented, tested, and switched off. V1 does
-not expose friends, invitations, rosters, standings, winners, charities,
+friend-and-charity challenge retain source and regression coverage. Solo is
+seeded off; current hosted runtime values have not been rechecked. The V1 shell
+does not expose friends, invitations, rosters, standings, winners, charities,
 reactions, or tie-breaks, and never reinterprets a legacy contest as personal
-accountability. Their documentation lives in
+accountability. These are compatibility boundaries for today's app, not a ban
+on the adopted friend-duel product. Their documentation lives in
 [docs/archive/2026-08-03_DORMANT_SUBSYSTEMS.md](docs/archive/2026-08-03_DORMANT_SUBSYSTEMS.md).
 
-Switched off is a statement about the runtime switch, not about where the
-schema exists. The Solo tables are present on hosted Staging — see
+The Solo tables were previously observed on hosted Staging — see
 "What is not proven yet" above.
 
 ## Repository layout
@@ -172,6 +232,7 @@ scripts/
   m6-5-configure-staging.sh  Pin and upload safe App Attest staging secrets
   m6-5-staging-fixture.sql   Repeatable staging contest/geofence fixture
 docs/
+  BUSINESS_MODEL.md            Adopted products, recommended rules, reuse, payments and pilot
   COPY.md                     How the app talks, and the domain-to-plain glossary
   M6_5_DEVICE_CONFORMANCE.md  Physical-iPhone/staging release gate
   PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md
@@ -181,7 +242,8 @@ docs/
   archive/                Historical plans and audit evidence
 CLAUDE.md                Repository conventions, for humans and agents alike
 DECISIONS.md             Every non-obvious choice and why
-PLAN.md                  The active automatic Personal snapshot path
+PROJECT_MEMORY.md        Owner's adopted direction and scope boundaries
+PLAN.md                  Friend-duel and performance-commitment roadmap
 ```
 
 ## What the app says
@@ -316,6 +378,13 @@ conformance schemes and builds both Staging and Release without signing.
 `scripts/test-all.sh` remains the portable local/CI subset because Xcode is not
 available on Linux.
 
+`db-test.sh` resets its selected local stack. Use a disposable stack when the
+normal development database contains other work. Concurrency tests connect back
+to the executing server’s network address, preserving password authentication
+without depending on a container name. Rollback-only duel/commitment SQL examples
+and Deno smoke runners accept an optional local PostgreSQL port (default 54322);
+the authenticated native HTTP runner still requires its documented default ports.
+
 ## Working on the schema
 
 Migrations are hand-written SQL files under `supabase/migrations/`, named
@@ -372,10 +441,20 @@ check-ins, and key fingerprints. Result-, obligation-, dispute-, and
 donation-receipt tables will attach their child scopes to this foundation as
 those M7 slices land.
 
-This is backend infrastructure, not an end-to-end account-deletion feature yet.
-There is no reauthentication/confirmation flow, user-facing service endpoint,
-one-time capability handoff and recovery path, or client capability API. The
-D81 migrations and the forward generated-column repair are deployed to staging.
+The current source also contains reauthentication and confirmation in
+`YouView.swift`, `AppModel.deleteAccount`, the Supabase client, and the
+`delete-account` Edge handler with Apple/Stripe cleanup. This supersedes the
+older claim that deletion was backend-only. Hosted end-to-end acceptance and
+any retained legacy workflow-capability UI remain separate proof/work. New
+duel agreements now have an explicit pre-start deletion bridge: it cancels the
+pair, releases duel slots, revokes admission, and retains consent/history under
+the tombstoned actor. Post-start duel deletion now records a zero-consequence lifecycle closure.
+Performance commitments also close safely on deletion; their agreements,
+attempt proof and manual progress remain retained under separate product
+boundaries. Real-proof and personal-note retention durations, release/purge
+operations and post-closure support access still need their own decisions.
+The D81 migrations and the forward generated-column repair were recorded as
+deployed to staging.
 A committed synthetic lineage passed both a manual retention cycle and the
 hourly hosted job, including source-ID scrubbing, generated-range
 recomputation, exact-location pruning, immutable audit events, and idempotency.
@@ -647,7 +726,9 @@ A historical ledger of what was built, kept for provenance. It records
 repository work, not deployed or device-proven behaviour — several entries
 below describe capabilities that exist in code but have never run outside a
 test. **"What works right now" at the top of this file is authoritative for
-current state.** PLAN.md holds the remaining gates.
+current state.** PLAN.md holds the new roadmap; the
+[archived Personal plan](docs/archive/2026-09-04_PRE_PIVOT_PLAN.md) preserves the
+old milestone sequence and acceptance gates.
 
 - [x] **M0** — Scaffold, local Supabase, migration and test harness, CI
 - [x] **M1** — Schema and RLS for identity, friendships, groups

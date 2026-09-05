@@ -1,5 +1,13 @@
 # GameTime — Privacy Policy
 
+> **Editorial scope — September 4, 2026.** This unpublished draft describes
+> the current Personal steps/sandbox app only. The adopted products in
+> [BUSINESS_MODEL.md](BUSINESS_MODEL.md) are planned, so their data collection
+> is not represented as already occurring here. Before a new pilot, revise and
+> review consent, event/workout proof, followers, sharing, operators, providers,
+> retention and deletion against the implemented flow. Do not publish this
+> unchanged draft as the new products' privacy policy.
+
 **Draft for review. This is not legal advice.** It describes what the app in
 this repository actually does, verified against the code, the schema, and
 `PrivacyInfo.xcprivacy`. Have someone qualified read it before you publish it.

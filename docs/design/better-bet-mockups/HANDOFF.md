@@ -1,5 +1,11 @@
 # Better Bet mockups — LLM handoff
 
+> **Historical design reference — September 4, 2026.** Better Bet is an old
+> concept name, not the current GameTime identity. These assets and embedded
+> prompts remain visual exploration only. Use the adopted model in
+> [BUSINESS_MODEL.md](../../BUSINESS_MODEL.md) and the current roadmap before
+> new product work; no mockup establishes a live balance, payout or feature.
+
 Everything a fresh chat (or a different LLM) needs to continue refining these designs without re-discovery.
 
 ## If the next chat is in this workspace

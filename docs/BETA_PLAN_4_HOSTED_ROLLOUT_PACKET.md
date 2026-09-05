@@ -1,5 +1,14 @@
 # Beta Plan 4 hosted rollout packet
 
+> **Product scope — September 4, 2026.** This document is retained for the
+> existing Personal steps/sandbox implementation and its dated acceptance work.
+> Friend duels and personal performance commitments now control future product
+> scope: see [BUSINESS_MODEL.md](BUSINESS_MODEL.md), [PLAN.md](../PLAN.md), and
+> D123. Solo-only/no-participant-payout guidance below is not a constraint on
+> those new products. Existing agreements and no-live-money restrictions remain.
+> Old rollout commands/prompts are historical instructions, not authorization
+> to deploy or distribute. Consult the current roadmap for the next build task.
+
 > **Superseded — do not execute.** This exact five-migration hash packet was
 > prepared for the historical Personal App Attest/hourly-coverage rollout. It
 > does not contain automatic snapshot-v2 schema, RPCs, finalization, mandatory

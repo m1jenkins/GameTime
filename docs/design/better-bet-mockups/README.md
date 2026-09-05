@@ -1,5 +1,11 @@
 # Better Bet — three new visual directions
 
+> **Historical design reference — September 4, 2026.** Better Bet is an old
+> concept name, not the current GameTime identity. These assets and embedded
+> prompts remain visual exploration only. Use the adopted model in
+> [BUSINESS_MODEL.md](../../BUSINESS_MODEL.md) and the current roadmap before
+> new product work; no mockup establishes a live balance, payout or feature.
+
 Status: concept mockups. No production SwiftUI has been changed.
 Rendered at 853×1844. Sources: `gen.py` generates the per-screen HTML; PNGs are headless renders of those HTML files. `sheet.html` shows all six screens side by side.
 

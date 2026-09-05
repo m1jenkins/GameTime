@@ -4321,3 +4321,191 @@ adding a second cancellation method.
 **Revisit if.** Live fees are proposed or cancelled Health snapshots receive a
 new retention policy. Either requires a forward migration and explicit product,
 legal, provider, and audit review.
+
+## M13 — Adopted business model and forward planning
+
+### D123. Friend duels and personal performance commitments are the adopted business model
+
+**Date.** September 4, 2026.
+
+**Decision.** The owner selected two core products: athletic friend duels with
+agreed rules and credible results, and personal performance commitments with
+measurable milestones and deadlines that may extend beyond seven days.
+Participant stakes, pooled entry amounts and winner payouts are within future
+product-design scope. Friends following progress and rematches are leading
+engagement hypotheses. Spectator wagering, public prediction markets and
+tradable contracts are outside the initial scope.
+
+**Authority and supersession.** PROJECT_MEMORY.md records this adopted choice;
+[docs/BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md) and [PLAN.md](PLAN.md) define its
+planning baseline. This supersedes the previous PLAN.md's solo-only future
+scope and its Deferred V2 prohibition on pooling money or paying participants.
+It also supersedes interpreting D95, D98, D101, D105–D111 or the archived charity
+plan's no-prize restrictions as a global prohibition on new products. Those
+rules continue to govern their historical Personal, Solo and charity records.
+D113–D115 and D120–D122 continue to govern the implemented Personal sandbox,
+step-data and cancellation contracts; they confer no live payment or new-duel
+clearance. Earlier decisions are preserved, not renumbered or rewritten.
+
+**Recommended implementation default.** Begin with a separate local,
+default-off, simulated two-person same-event 5K agreement. The proposed human
+pilot scores organizer-published chip times reviewed independently. Add native
+acceptance, proof/results/review/rematches, then separate 28–90-day performance
+commitments. Garmin Activity API and true-mile/asynchronous time trials are
+later source-specific work, subject to access and verification. These narrow
+formats, $20 simulated amounts, zero pilot fees, deadlines and cohort thresholds
+are reversible planning recommendations, not owner-approved live commercial
+terms. The owner example of a sub-six-minute mile remains in target scope;
+a 1,600 m run cannot silently satisfy a mile.
+
+**Compatibility.** Recommend new duel and performance-commitment aggregates
+with immutable versioned agreements, explicit consent and separate request,
+proof, result, review and settlement records. Reuse identity, privacy,
+idempotency, review and notification patterns selectively. Do not reinterpret
+`legacy_charity_contest`, `personal_accountability`, `solo-test-v1`, frozen
+charity obligations, seven-day snapshots or old request envelopes. Do not enable
+the reserved `social_accountability` path or dormant Solo just to accelerate
+this work. Generic distance enums and a Garmin bundle identifier are not timed
+running verification or an API integration.
+
+**Payments.** All new local work and the proposed pilot are nonredeemable
+simulation with no provider calls or real collection. Actual deposits, temporary
+authorization holds and later failure-contingent charges are distinct funds
+flows. For commitment forfeitures, the business, an approved beneficiary and
+a named participant remain options; no recipient is selected. Every eventual
+agreement must explicitly identify the destination and fee. A saved method
+is never described as locked money. Ordinary Stripe is not assumed suitable
+for prize duels: its published prohibited-business categories include
+prize-bearing skill competitions and certain entry fees. The source review in
+BUSINESS_MODEL.md is not account-specific approval.
+
+**Unresolved gates.** Validate audience demand, proof credibility and fairness,
+invitation acceptance, completed contests, rematches, return after loss and
+willingness to pay. Select legal entity/jurisdiction, age and identity/location
+rules, source permissions, provider and permitted funds flow, beneficiary,
+fees, custody/refunds/chargebacks, injury and disputed-result operations, and
+platform/Health-data clearance before any live launch. No region or live
+provider is selected; a rejected funds flow stays disabled.
+
+**Why.** The product decision is settled but feasibility and demand are not.
+Separate future agreements preserve the meaning of existing records and let
+simulated product learning proceed without pretending prior test infrastructure
+has already established a trustworthy real-money sports product.
+
+**Not done by this decision.** No application feature, migration, hosted state,
+configuration, payment, deployment, distribution or outreach was performed by
+the planning task. The original 502-line plan is preserved in
+[docs/archive/2026-09-04_PRE_PIVOT_PLAN.md](docs/archive/2026-09-04_PRE_PIVOT_PLAN.md).
+Current beta and design documents are scoped to the implementation or dated
+exploration they describe; their solo-only language no longer controls future
+strategy. The next build task is PLAN.md Phase 1A, with a copy-ready prompt.
+
+### D124. Longer commitments start with a separate simulated owner agreement
+
+**Adopted for the local Phase 3(a) implementation — September 5, 2026.**
+Use private `performance_commitment_*` records and owner RPCs, preserving
+Personal, Solo and duel agreement meanings. A policy preview returns the exact
+terms digest; creation requires that digest, explicit consent and a new
+actor-bound request. One open commitment slot is independent of duel and old
+product slots. Terms and consents are immutable; replacement requires a new
+agreement. Admission is server-owned, default-off and separately allowlisted.
+
+**Reversible defaults.** The first policy is fictional official outdoor 5K
+chip timing, whole-second precision and a strict target. Store 28–90 elapsed
+UTC days with explicit instants and a display zone; start strictly after
+agreement within 30 elapsed days. Freeze the 72-hour proof cutoff, seven-day
+notice/reviewer windows and 30-day post-deadline finality cap for later scoring.
+Use USD 2,000 simulated cents, fee zero, no redeemable value, recipient
+`unselected` and payee null. These local choices do not select live pricing,
+a beneficiary, launch jurisdiction, provider or a real-money funds flow.
+
+**Agreement-only boundary.** Deadline passage projects awaiting proof without
+freeing the slot or inferring a miss. Owner cancellation before start and
+withdrawal/injury exits close with zero consequence and preserve history.
+Account deletion safely closes open simulated commitments while retaining
+terms/consent/requests against the tombstone. No automatic purge is added;
+future proof and review need their own retention scopes and support access.
+
+**Why.** A long performance goal needs one explicit, recoverable owner promise
+before it has attempts, followers or a result. Exact UTC duration and digest
+consent make boundaries reviewable without reusing seven-day arrays, old money
+authority or another product's slot. See
+[local acceptance and Phase 3(b) handoff](docs/PERFORMANCE_COMMITMENT_AGREEMENT_V1_ACCEPTANCE.md).
+No native commitment feature, attempt evaluator, follower permission, hosted
+operation or payment path was implemented in this slice.
+
+
+### D125. Commitment attempts preserve successes and require explicit completeness for a miss
+
+**Implemented locally for Phase 3(b) — September 5, 2026.** Keep the Phase 3(a)
+terms unchanged. Use separate private nominated events, fictional sources,
+reviewer grants/revocations, append-only per-attempt corrections and exact
+requests. A later slower attempt cannot replace an earlier qualifying result.
+A correction names that attempt's exact predecessor. The pure evaluator never
+writes results or money, and the attempt boundary never releases the slot.
+
+**Reversible implementation defaults.** Nominate before event start; require
+the entire event window inside the agreed start/exclusive deadline; cap the
+fictional event at 24 hours and the commitment at 32 distinct nominated events.
+These conservative admission limits do not expand the frozen proof window.
+Initial independent review must commit before the 72-hour cutoff. Corrections
+require an admitted initial record and precede the finality cap. Candidate
+results wait for the initial cutoff; later lifecycle work must persist notices
+and preserve every full seven-day filing/reviewer window.
+
+A miss requires either an explicit owner confirmation of the complete sorted
+nomination set with all results independently confirmed nonqualifying, or an
+explicit no-attempt acknowledgement when the set is empty. Confirmation occurs
+after the deadline and before the proof cutoff. Missing or ambiguous records,
+silence, notice failure, review timeout or insufficient time at the cap never
+establish a confirmed miss. Any qualifying successful attempt suffices even if
+another attempt lacks proof. An explicit correction can invalidate that attempt;
+a persisted final remains authoritative and later changes require support.
+
+**Retention and operator limits.** A dedicated local retention hold protects
+proof through the longer goal and account deletion. There is no purge route,
+real-proof retention duration or post-closure support capability yet. Reviewer
+access needs a current server grant, real active session, independence from
+the owner and audited source retrieval. Owner reads contain redacted receipts.
+All new admission defaults off. Real organizer proof, result/review operation,
+native screens, hosted rollout and money are later work. See
+[Phase 3(b) acceptance](docs/PERFORMANCE_ATTEMPTS_V1_ACCEPTANCE.md).
+
+
+### D126. Milestones and manual progress are owner reports in a separate ledger
+
+**Implemented locally for Phase 3(c) — September 5, 2026.** Add immutable named
+milestones and append-only check-ins/status changes bound to the existing
+performance commitment owner. Keep consent, target, attempts, private organizer
+sources and scoring snapshots unchanged. A claimed fast time or a milestone
+marked complete is progress only; it never establishes a result, confirms an
+attempt set, releases a slot or produces a financial consequence.
+
+**Reversible implementation defaults.** Use 1–80-character milestone names,
+1–500-character private notes, at most 32 milestones and 512 total entries per
+agreement. Permit planning from agreement creation, including milestones due
+before the goal starts. Due instants must be at/after milestone creation and
+strictly before the agreement deadline. Admit writes only before that deadline
+on an open agreement with a separate default-off progress gate. Self-reported
+occurrence time cannot predate the agreement or linked milestone or be future.
+Server receipt times preserve UTC microseconds independently.
+
+Milestones transition from planned to completed or retired; a completed one
+can reopen, while retirement is terminal. Every status change names the exact
+previous status revision. Retire and replace a plan to preserve its original
+name/date. A late due date never implies a miss. General notes and status changes
+share one actor-bound exact-request namespace. Committed retries survive gate
+shutdown, later status changes, deadline passage, full history and safe closure;
+an inactive owner or revoked/expired session loses access.
+
+**Privacy and retention.** Owner-only RPCs expose bounded history with a fixed
+upper sequence, including milestone states at that sequence. Each entry is
+explicitly owner-reported and not proof. Followers receive no implicit access.
+A distinct local progress retention hold preserves definitions, notes and exact
+receipts after safe closure/deletion; the legacy purge has no authority over
+it. This is not a selected retention duration for real notes. Define sharing,
+revocation and an appropriate release/purge policy before hosted operation.
+
+See [Phase 3(c) acceptance](docs/PERFORMANCE_PROGRESS_V1_ACCEPTANCE.md).
+Native commitment flows, following, result/review operations and live money
+remain later slices.

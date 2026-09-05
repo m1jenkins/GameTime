@@ -28,6 +28,18 @@ struct AppConfiguration: Equatable, Sendable {
     /// Kept only for explicit V2/regression fixtures. Personal V1 runtime must
     /// not fetch or mutate dormant social inventories.
     let legacySocialRuntimeEnabled: Bool
+    let duelRequested: Bool
+
+    /// The native experiment only targets a disposable local stack. Release
+    /// ignores launch flags and even an explicitly constructed configuration.
+    var duelRuntimeEnabled: Bool {
+        #if DEBUG || STAGING
+        return duelRequested && environment != .release
+            && ["localhost", "127.0.0.1", "::1"].contains(supabaseURL.host ?? "")
+        #else
+        return false
+        #endif
+    }
 
     init(
         environment: AppEnvironment,
@@ -39,7 +51,8 @@ struct AppConfiguration: Equatable, Sendable {
         privacyPolicyURL: URL? = nil,
         betaTermsURL: URL? = nil,
         supportEmail: String? = nil,
-        legacySocialRuntimeEnabled: Bool = false
+        legacySocialRuntimeEnabled: Bool = false,
+        duelRequested: Bool = false
     ) {
         self.environment = environment
         self.supabaseURL = supabaseURL
@@ -51,6 +64,7 @@ struct AppConfiguration: Equatable, Sendable {
         self.betaTermsURL = betaTermsURL
         self.supportEmail = supportEmail
         self.legacySocialRuntimeEnabled = legacySocialRuntimeEnabled
+        self.duelRequested = duelRequested
     }
 
     /// The `mailto:` a Contact button opens, or nil when no inbox is set.
@@ -156,7 +170,8 @@ struct AppConfiguration: Equatable, Sendable {
             stripeReturnURLValue: stripeReturnURLValue,
             privacyPolicyURLValue: privacyPolicyURLValue,
             betaTermsURLValue: betaTermsURLValue,
-            supportEmailValue: supportEmailValue
+            supportEmailValue: supportEmailValue,
+            duelRequested: ProcessInfo.processInfo.arguments.contains("--duels")
         )
     }
 
@@ -169,7 +184,8 @@ struct AppConfiguration: Equatable, Sendable {
         stripeReturnURLValue: String? = nil,
         privacyPolicyURLValue: String? = nil,
         betaTermsURLValue: String? = nil,
-        supportEmailValue: String? = nil
+        supportEmailValue: String? = nil,
+        duelRequested: Bool = false
     ) throws -> AppConfiguration {
         guard let environment = AppEnvironment(
             rawValue: environmentValue?.lowercased() ?? ""
@@ -275,7 +291,8 @@ struct AppConfiguration: Equatable, Sendable {
             stripeReturnURL: stripeReturnURL,
             privacyPolicyURL: publishedPolicyURL(privacyPolicyURLValue),
             betaTermsURL: publishedPolicyURL(betaTermsURLValue),
-            supportEmail: supportInbox(supportEmailValue)
+            supportEmail: supportInbox(supportEmailValue),
+            duelRequested: duelRequested
         )
     }
 
@@ -332,6 +349,14 @@ struct AppConfiguration: Equatable, Sendable {
         supabasePublishableKey: "sb_publishable_fixture_only",
         contestMutationsEnabled: true,
         legacySocialRuntimeEnabled: true
+    )
+
+    static let duelFixture = AppConfiguration(
+        environment: .debug,
+        supabaseURL: URL(string: "http://127.0.0.1:54321")!,
+        supabasePublishableKey: "sb_publishable_fixture_only",
+        contestMutationsEnabled: true,
+        duelRequested: true
     )
 
     static let personalFixture = AppConfiguration(

@@ -1,5 +1,12 @@
 # Dormant subsystems (V2 / regression reference)
 
+> **Historical scope clarification — September 4, 2026.** The text below
+> preserves earlier implementation/planning context. Its solo-only/no-prize
+> boundaries still apply to those old agreements, not to the adopted products
+> in [BUSINESS_MODEL.md](../BUSINESS_MODEL.md) and [PLAN.md](../../PLAN.md).
+> The current README corrects prior hosted Solo and account-deletion status;
+> do not treat this archive as a fresh runtime audit or deployment authority.
+
 Archived from README.md on 2026-08-03. These subsystems remain implemented,
 tested, and read-compatible, but Personal Accountability V1 does not expose
 any of them. Nothing here describes a reachable V1 surface.

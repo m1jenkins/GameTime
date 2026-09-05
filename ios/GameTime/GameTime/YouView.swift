@@ -12,6 +12,15 @@ struct YouView: View {
             LazyVStack(spacing: 12) {
                 profileCard
                 healthSection
+                #if DEBUG || STAGING
+                if model.configuration.duelRuntimeEnabled {
+                    NavigationLink(value: YouRoute.duels) {
+                        Label("Friend duels", systemImage: "figure.run")
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    }
+                    .accessibilityIdentifier("duel.open")
+                }
+                #endif
                 settingsSection
                 demoSection
             }

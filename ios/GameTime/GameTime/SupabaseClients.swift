@@ -74,6 +74,7 @@ enum LiveServicesFactory {
             .applicationSupport()
         let personalStepSnapshotCache = try FilePersonalStepSnapshotCache
             .applicationSupport()
+        let pendingDuels = try FilePendingDuelRequestStore.applicationSupport()
         return AppServices(
             auth: SupabaseAuthClient(client: client),
             profiles: SupabaseProfileClient(client: client),
@@ -111,8 +112,11 @@ enum LiveServicesFactory {
                 pendingPersonalCancellations: pendingPersonalCancellations,
                 personalActivitySync: personalActivitySync,
                 personalStepSnapshotCache: personalStepSnapshotCache,
-                appAttestedBodySigner: appAttestedBodySigner
-            )
+                appAttestedBodySigner: appAttestedBodySigner,
+                pendingDuels: pendingDuels
+            ),
+            duels: SupabaseDuelClient(client: client, enabled: configuration.duelRuntimeEnabled),
+            pendingDuels: pendingDuels
         )
     }
 }
@@ -232,6 +236,7 @@ final class SupabaseAccountDeletionClient: AccountDeletionClient {
 
 @MainActor
 final class AccountLocalStateCleaner: AccountLocalStateCleaning {
+    private let pendingDuels: any PendingDuelRequestStore
     private let pendingChallenges: any PendingChallengeStore
     private let activitySync: any ActivitySyncing
     private let pendingPersonalChallenges: any PendingPersonalChallengeStore
@@ -247,8 +252,10 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
         pendingPersonalCancellations: any PendingPersonalCancellationStore,
         personalActivitySync: any PersonalActivitySyncing,
         personalStepSnapshotCache: any PersonalStepSnapshotCaching,
-        appAttestedBodySigner: any AppAttestedBodySigning
+        appAttestedBodySigner: any AppAttestedBodySigning,
+        pendingDuels: any PendingDuelRequestStore = EphemeralPendingDuelRequestStore()
     ) {
+        self.pendingDuels = pendingDuels
         self.pendingChallenges = pendingChallenges
         self.activitySync = activitySync
         self.pendingPersonalChallenges = pendingPersonalChallenges
@@ -261,6 +268,8 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
     func clear(for ownerID: UUID) async throws {
         var failures: [String] = []
 
+        do { try await pendingDuels.remove(for: ownerID, matching: nil) }
+        catch { failures.append("duel request") }
         do { try await pendingChallenges.remove(for: ownerID) }
         catch { failures.append("challenge retry") }
         do { try await pendingPersonalChallenges.remove(for: ownerID) }

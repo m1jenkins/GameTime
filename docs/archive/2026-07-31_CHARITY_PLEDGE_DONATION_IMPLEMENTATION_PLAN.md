@@ -1,5 +1,12 @@
 # Charity pledge and donation implementation plan
 
+> **Historical scope clarification — September 4, 2026.** The text below
+> preserves earlier implementation/planning context. Its solo-only/no-prize
+> boundaries still apply to those old agreements, not to the adopted products
+> in [BUSINESS_MODEL.md](../BUSINESS_MODEL.md) and [PLAN.md](../../PLAN.md).
+> The current README corrects prior hosted Solo and account-deletion status;
+> do not treat this archive as a fresh runtime audit or deployment authority.
+
 > Archived: deferred beyond the functional two-user alpha. This document is
 > historical planning, not an active implementation path.
 >

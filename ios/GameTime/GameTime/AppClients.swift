@@ -171,6 +171,8 @@ struct AppServices {
     let personalHealthSnapshotUploader: any PersonalHealthSnapshotUploading
     let accountDeletion: any AccountDeletionClient
     let localStateCleanup: any AccountLocalStateCleaning
+    let duels: any DuelClient
+    let pendingDuels: any PendingDuelRequestStore
 
     init(
         auth: any AuthClient,
@@ -203,7 +205,9 @@ struct AppServices {
         accountDeletion: any AccountDeletionClient =
             DisabledAccountDeletionClient(),
         localStateCleanup: any AccountLocalStateCleaning =
-            NoOpAccountLocalStateCleaner()
+            NoOpAccountLocalStateCleaner(),
+        duels: any DuelClient = DisabledDuelClient(),
+        pendingDuels: any PendingDuelRequestStore = EphemeralPendingDuelRequestStore()
     ) {
         self.auth = auth
         self.profiles = profiles
@@ -223,5 +227,7 @@ struct AppServices {
         self.personalHealthSnapshotUploader = personalHealthSnapshotUploader
         self.accountDeletion = accountDeletion
         self.localStateCleanup = localStateCleanup
+        self.duels = duels
+        self.pendingDuels = pendingDuels
     }
 }

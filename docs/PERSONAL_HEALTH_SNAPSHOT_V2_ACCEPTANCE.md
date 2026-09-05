@@ -1,5 +1,11 @@
 # Prove automatic Apple Health Personal progress
 
+> **Scope — September 4, 2026.** This remains an acceptance/regression
+> reference for its specified Personal policy. It does not verify or define
+> the new friend-duel or performance-commitment products. Future scope and
+> separate live-payment gates are in [BUSINESS_MODEL.md](BUSINESS_MODEL.md)
+> and [PLAN.md](../PLAN.md); preserve all existing agreements.
+
 This is the controlling acceptance runbook for Personal challenges with
 `step_data_policy = healthkit_nonmanual_daily_v1`. It proves automatic local
 progress, ordinary authenticated snapshot upload, server finalization, frozen

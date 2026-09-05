@@ -2,8 +2,13 @@
 
 ## Read these first
 
+- [PROJECT_MEMORY.md](PROJECT_MEMORY.md) — the owner's adopted business
+  direction: friend duels and personal performance commitments. This controls
+  future product planning where older solo-only scope conflicts with it.
 - [README.md](README.md) — what works today, how to run it, how the evidence
   ledger works.
+- [docs/BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md) and [PLAN.md](PLAN.md) —
+  adopted products, recommended defaults, implementation order, and open gates.
 - [DECISIONS.md](DECISIONS.md) — why the product is shaped the way it is.
 - [docs/COPY.md](docs/COPY.md) — **required before writing or changing any
   user-facing string.**
@@ -29,13 +34,26 @@ Before adding a string to a view or a `LocalizedError`, check it against
   Function*.
 - Never render a raw identifier as prose. Map reason codes to sentences
   (`PersonalReasonText`); show unknown ones as `Reference: <code>`.
-- Fail-closed scoring protects the person. Say so plainly: if their data goes
-  missing, the week doesn't count, and it never counts against them.
+- Preserve the current Personal promise: missing final step data does not count
+  against the person. New duels and performance commitments use their own
+  versioned proof/review rules; missing data alone must not imply a loss.
 
 If a new concept genuinely has no plain-English name, add a row to the
 glossary in `docs/COPY.md` rather than inventing a second name for it
 somewhere else.
 
-`GameTimeUITests` asserts on visible copy and fails on the competitive-social
-vocabulary Personal V1 dropped. Update the assertions in the same commit as
-the copy.
+`GameTimeUITests` currently rejects competitive-social vocabulary on reachable
+Personal screens. That is a Personal regression rule, not a global ban on
+friend, invitation, winner or rematch in new duel screens. When implementing
+new routes, scope those assertions by product and add new-product checks in
+the same commit as the copy. Do not change historical consent strings.
+
+## Product boundaries
+
+Future product authority is PROJECT_MEMORY.md, docs/BUSINESS_MODEL.md, PLAN.md
+and D123. Beta and design documents describing solo-only behavior govern the
+existing Personal implementation or their dated exploration, not future scope.
+Preserve Personal, Solo and legacy charity agreements and their test-only or
+sandbox restrictions. New products receive new terms, models and request
+formats; generic distance fields and dormant social code do not implement them.
+The pivot authorizes planning, not payments, hosted mutations or deployments.

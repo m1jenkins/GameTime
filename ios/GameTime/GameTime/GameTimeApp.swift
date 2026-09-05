@@ -99,7 +99,9 @@ struct GameTimeApp: App {
 
             #if DEBUG || STAGING
             if usesFixtureModel {
-                if usesStripeSandboxFixture {
+                if arguments.contains("--duels") {
+                    configuration = .duelFixture
+                } else if usesStripeSandboxFixture {
                     configuration = .stripeSandboxFixture
                 } else {
                     configuration = arguments.contains("--fixture-activity")
@@ -314,11 +316,20 @@ struct RootView: View {
     let demoMode: DemoModeAccess
     let pushCoordinator: PushNotificationCoordinator
 
+    private var isShowingDuel: Bool {
+        #if DEBUG || STAGING
+        return model.configuration.duelRuntimeEnabled && router.selectedTab == .you
+            && router.youPath.contains(.duels)
+        #else
+        return false
+        #endif
+    }
+
     var body: some View {
         @Bindable var router = router
 
         VStack(spacing: 0) {
-            if router.presentedSheet == nil {
+            if router.presentedSheet == nil && !isShowingDuel {
                 EnvironmentDisclosureBanner(
                     settlementMode:
                         model.configuration.personalSettlementMode,
@@ -370,6 +381,13 @@ struct RootView: View {
                 await model.receivePushRegistration(registration)
             }
             await handlePushDestination()
+            openDuelInvitation()
+        }
+        .onOpenURL { url in
+            #if DEBUG || STAGING
+            model.duels.receiveInvitation(url)
+            openDuelInvitation()
+            #endif
         }
         .onChange(of: model.phase) { _, phase in
             if phase != .signedIn {
@@ -379,6 +397,7 @@ struct RootView: View {
                 Task {
                     await personalStore.activate(ownerID: model.userID)
                     await handlePushDestination()
+                    openDuelInvitation()
                 }
             }
         }
@@ -431,6 +450,16 @@ struct RootView: View {
                     ?? ""
             )
         }
+    }
+
+    private func openDuelInvitation() {
+        #if DEBUG || STAGING
+        guard model.configuration.duelRuntimeEnabled, model.phase == .signedIn,
+              model.duels.pendingInvitationToken != nil else { return }
+        router.presentedSheet = nil
+        router.selectedTab = .you
+        router.youPath = [.duels, .duelInvitation]
+        #endif
     }
 
     private func handlePushDestination() async {

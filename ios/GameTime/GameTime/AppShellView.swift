@@ -49,6 +49,12 @@ struct AppShellView: View {
                 YouView()
                     .navigationDestination(for: YouRoute.self) { route in
                         switch route {
+                        #if DEBUG || STAGING
+                        case .duels:
+                            DuelHomeView()
+                        case .duelInvitation:
+                            DuelInvitationView()
+                        #endif
                         case .trustAndPrivacy:
                             TrustAndPrivacyView()
                         case .accountSupport:

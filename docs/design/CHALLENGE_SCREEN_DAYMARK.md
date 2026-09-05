@@ -1,5 +1,12 @@
 # GameTime Daymark mock-up set
 
+> **Scope — September 4, 2026.** These are visual references for the
+> Personal steps implementation, not the future product roadmap. Their
+> solo-only/no-opponent constraints do not override the adopted friend-duel and
+> performance-commitment model in [BUSINESS_MODEL.md](../BUSINESS_MODEL.md).
+> Mockups are not proof of implemented features, verified results or money.
+> Preserve existing app behavior until a separate implementation task changes it.
+
 Status: visual direction exploration only. These raster mock-ups do not change
 the shipping SwiftUI implementation or product behavior.
 
