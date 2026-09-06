@@ -43,11 +43,7 @@ struct AppConfiguration: Equatable, Sendable {
     var performanceCommitmentRuntimeEnabled: Bool {
         #if DEBUG || STAGING
         return performanceCommitmentRequested && environment != .release
-            && supabaseURL.scheme == "http"
-            && ["localhost", "127.0.0.1", "::1", "[::1]"].contains(supabaseURL.host ?? "")
-            && supabaseURL.port != nil && supabaseURL.user == nil && supabaseURL.password == nil
-            && supabaseURL.query == nil && supabaseURL.fragment == nil
-            && ["", "/"].contains(supabaseURL.path)
+            && SupabasePerformanceCommitmentClient.isExplicitLoopback(supabaseURL)
         #else
         return false
         #endif

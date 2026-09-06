@@ -331,6 +331,30 @@ final class DuelTests: XCTestCase {
         XCTAssertFalse(disabled.duelRuntimeEnabled)
     }
 
+    func testPaginationRetainsActionsForPreviouslyLoadedDuels() async throws {
+        let firstPage = (0..<50).map { paginationAgreement(index: $0) }
+        let secondPage = [paginationAgreement(index: 50)]
+        let client = DuelPaginationClient(firstPage: firstPage, secondPage: secondPage)
+        let auth = DuelTestAuth(a)
+        let store = DuelStore(enabled: true, auth: auth, client: client,
+            friendships: DuelTestFriends(), pendingStore: EphemeralPendingDuelRequestStore())
+        store.setActor(a)
+
+        await store.refresh()
+        XCTAssertTrue(store.hasMore)
+        let previouslyLoaded = try XCTUnwrap(store.agreements.first)
+
+        await store.refresh(loadMore: true)
+        XCTAssertEqual(store.agreements.count, 51)
+        XCTAssertEqual(Set(store.agreements.map(\.id)).count, 51)
+        XCTAssertTrue(store.freshIDs.contains(previouslyLoaded.id))
+
+        await store.submit(.exit(challengeID: previouslyLoaded.id, kind: .withdrawal))
+        XCTAssertEqual(client.submittedIDs, [previouslyLoaded.id])
+        XCTAssertEqual(store.lastConfirmedID, previouslyLoaded.id)
+        XCTAssertNil(store.pending)
+    }
+
     private func creation(_ backend: FixtureDuelBackend) throws -> PendingDuelRequest {
         try PendingDuelRequest(actorID: a, operation: .create(inviteeID: b,
             eventID: backend.event.id, policyVersion: backend.event.policyVersion, consent: true))
@@ -342,6 +366,71 @@ final class DuelTests: XCTestCase {
             client: FixtureDuelClient(backend: backend, currentActor: { auth.actor }),
             friendships: DuelTestFriends(), pendingStore: pending)
     }
+}
+
+@MainActor
+private final class DuelPaginationClient: DuelClient {
+    let firstPage: [DuelAgreement]
+    let secondPage: [DuelAgreement]
+    var submittedIDs: [UUID] = []
+
+    init(firstPage: [DuelAgreement], secondPage: [DuelAgreement]) {
+        self.firstPage = firstPage
+        self.secondPage = secondPage
+    }
+
+    func catalog(actorID: UUID) async throws -> DuelCatalog { DuelCatalog(events: [], policies: []) }
+
+    func list(actorID: UUID, before: DuelAgreement?) async throws -> [DuelAgreement] {
+        before == nil ? firstPage : secondPage
+    }
+
+    func detail(id: UUID, actorID: UUID) async throws -> DuelAgreement {
+        try XCTUnwrap((firstPage + secondPage).first { $0.id == id })
+    }
+
+    func lifecycle(id: UUID, actorID: UUID) async throws -> DuelLifecycle {
+        let row = try await detail(id: id, actorID: actorID)
+        return DuelLifecycle(challengeId: id, termsDigest: row.termsDigest,
+            contactSuppressed: false, activatedAt: nil, notices: [], reviews: [], finalResult: nil,
+            simulatedReturnCents: nil, serverNow: DuelInstant(date: Date()), canExit: true, closure: nil)
+    }
+
+    func submit(_ request: PendingDuelRequest) async throws -> UUID {
+        guard case .exit(let id, _) = request.operation else { throw DuelClientError.invalidTerms }
+        submittedIDs.append(id)
+        return id
+    }
+}
+
+private func paginationAgreement(index: Int) -> DuelAgreement {
+    let actor = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+    let friend = UUID(uuidString: "44444444-4444-4444-4444-444444444444")!
+    let id = UUID()
+    let createdAt = Date(timeIntervalSince1970: 1_800_000_000 + Double(index * 60))
+    let startsAt = createdAt.addingTimeInterval(7 * 24 * 3600)
+    let event = DuelEvent(id: UUID(), policyVersion: "duel-fixture-5k-v1",
+        eventName: "Fictional local 5K", course: "fixture_course_5k_v1",
+        wave: "fixture_common_wave_v1", startsAt: startsAt,
+        endsAt: startsAt.addingTimeInterval(7200), displayTimezone: "America/Chicago")
+    let acceptBy = min(createdAt.addingTimeInterval(72 * 3600), startsAt.addingTimeInterval(-3600))
+    let digest = String(repeating: "a", count: 62) + String(format: "%02x", index)
+    let terms = DuelTerms(agreementVersion: 1, policyVersion: "duel-fixture-5k-v1",
+        policy: .simulated5K, creatorID: actor, inviteeID: friend, event: event,
+        createdAt: createdAt, acceptBy: acceptBy,
+        resultsDueAt: event.endsAt.addingTimeInterval(72 * 3600),
+        finalityDueAt: event.endsAt.addingTimeInterval(720 * 3600))
+    return DuelAgreement(id: id, creatorID: actor, inviteeID: friend, eventID: event.id,
+        policyVersion: terms.policyVersion, createdAt: createdAt, startsAt: startsAt,
+        acceptBy: acceptBy, terms: terms, termsDigest: digest, status: .scheduled,
+        closedAt: nil, closeReason: nil, expiryDue: false, participants: [
+            DuelParticipant(challengeID: id, actorID: actor, role: "creator",
+                acceptedAt: createdAt, consentPolicyVersion: terms.policyVersion,
+                consentTermsDigest: digest, declinedAt: nil),
+            DuelParticipant(challengeID: id, actorID: friend, role: "invitee",
+                acceptedAt: createdAt, consentPolicyVersion: terms.policyVersion,
+                consentTermsDigest: digest, declinedAt: nil),
+        ])
 }
 
 @MainActor

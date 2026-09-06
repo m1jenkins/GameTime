@@ -113,7 +113,7 @@ final class DuelStore {
                 let ids = Set(agreements.map(\.id))
                 agreements += rows.filter { !ids.contains($0.id) }
             } else { agreements = rows }
-            freshIDs = Set(rows.map(\.id))
+            freshIDs = Set(agreements.map(\.id))
             hasMore = rows.count == 50
             // Each participant projection is independently authorized. A failed
             // read removes result content; it cannot leave an opponent's cached
