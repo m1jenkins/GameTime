@@ -65,6 +65,8 @@ enum ActivitySyncViewState: Equatable, Sendable {
 final class AppModel {
     let configuration: AppConfiguration
     let duels: DuelStore
+    let metricPrototypes: MetricPrototypeStore?
+    let weekly: WeeklyStore
     let performanceCommitments: PerformanceCommitmentStore
 
     private(set) var phase: AppPhase = .launching
@@ -109,6 +111,9 @@ final class AppModel {
         duels = DuelStore(enabled: configuration.duelRuntimeEnabled,
             auth: services.auth, client: services.duels,
             friendships: services.friendships, pendingStore: services.pendingDuels)
+        metricPrototypes = services.metricPrototypes
+        weekly = WeeklyStore(enabled: configuration.weeklyRuntimeEnabled, auth: services.auth, client: services.weekly,
+            friendships: services.friendships, pendingStore: services.pendingWeekly)
         performanceCommitments = PerformanceCommitmentStore(
             enabled: configuration.performanceCommitmentRuntimeEnabled,
             auth: services.auth, client: services.performanceCommitments,
@@ -914,6 +919,8 @@ final class AppModel {
 
         duels.setActor(nil)
         performanceCommitments.setActor(nil)
+        weekly.setActor(nil)
+        metricPrototypes?.setActor(nil)
         var cleanupWarning = false
         do {
             try await services.localStateCleanup.clear(for: ownerID)
@@ -999,6 +1006,8 @@ final class AppModel {
         self.userID = userID
         duels.setActor(userID)
         performanceCommitments.setActor(userID)
+        weekly.setActor(userID)
+        metricPrototypes?.setActor(configuration.weeklyRuntimeEnabled ? userID : nil)
         profile = nil
         friendshipCards = []
         contests = []
@@ -1210,6 +1219,8 @@ final class AppModel {
     private func clearUserState() {
         duels.setActor(nil)
         performanceCommitments.setActor(nil)
+        weekly.setActor(nil)
+        metricPrototypes?.setActor(nil)
         authGeneration = UUID()
         refreshGeneration = UUID()
         userID = nil

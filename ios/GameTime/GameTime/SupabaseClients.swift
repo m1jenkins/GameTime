@@ -75,6 +75,8 @@ enum LiveServicesFactory {
         let personalStepSnapshotCache = try FilePersonalStepSnapshotCache
             .applicationSupport()
         let pendingDuels = try FilePendingDuelRequestStore.applicationSupport()
+        let pendingWeekly = try FilePendingWeeklyRequestStore.applicationSupport()
+        let metricPrototypes = try MetricPrototypeStore.applicationSupport(enabled: configuration.weeklyRuntimeEnabled)
         let pendingPerformanceCommitments = try FilePendingPerformanceCommitmentRequestStore.applicationSupport()
         return AppServices(
             auth: SupabaseAuthClient(client: client),
@@ -115,14 +117,18 @@ enum LiveServicesFactory {
                 personalStepSnapshotCache: personalStepSnapshotCache,
                 appAttestedBodySigner: appAttestedBodySigner,
                 pendingDuels: pendingDuels,
-                pendingPerformanceCommitments: pendingPerformanceCommitments
+                pendingPerformanceCommitments: pendingPerformanceCommitments,
+                pendingWeekly: pendingWeekly, metricPrototypes: metricPrototypes
             ),
             duels: SupabaseDuelClient(client: client, enabled: configuration.duelRuntimeEnabled),
             pendingDuels: pendingDuels,
             performanceCommitments: SupabasePerformanceCommitmentClient(
                 client: client, enabled: configuration.performanceCommitmentRuntimeEnabled,
                 localURL: configuration.supabaseURL, publishableKey: configuration.supabasePublishableKey),
-            pendingPerformanceCommitments: pendingPerformanceCommitments
+            pendingPerformanceCommitments: pendingPerformanceCommitments,
+            weekly: SupabaseWeeklyClient(client: client, enabled: configuration.weeklyRuntimeEnabled,
+                localURL: configuration.supabaseURL, publishableKey: configuration.supabasePublishableKey),
+            pendingWeekly: pendingWeekly, metricPrototypes: metricPrototypes
         )
     }
 }
@@ -242,6 +248,8 @@ final class SupabaseAccountDeletionClient: AccountDeletionClient {
 
 @MainActor
 final class AccountLocalStateCleaner: AccountLocalStateCleaning {
+    private let metricPrototypes: MetricPrototypeStore?
+    private let pendingWeekly: any PendingWeeklyRequestStore
     private let pendingDuels: any PendingDuelRequestStore
     private let pendingPerformanceCommitments: any PendingPerformanceCommitmentRequestStore
     private let pendingChallenges: any PendingChallengeStore
@@ -261,9 +269,13 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
         personalStepSnapshotCache: any PersonalStepSnapshotCaching,
         appAttestedBodySigner: any AppAttestedBodySigning,
         pendingDuels: any PendingDuelRequestStore = EphemeralPendingDuelRequestStore(),
-        pendingPerformanceCommitments: any PendingPerformanceCommitmentRequestStore = EphemeralPendingPerformanceCommitmentRequestStore()
+        pendingPerformanceCommitments: any PendingPerformanceCommitmentRequestStore = EphemeralPendingPerformanceCommitmentRequestStore(),
+        pendingWeekly: any PendingWeeklyRequestStore = EphemeralPendingWeeklyRequestStore(),
+        metricPrototypes: MetricPrototypeStore? = nil
     ) {
         self.pendingDuels = pendingDuels
+        self.pendingWeekly = pendingWeekly
+        self.metricPrototypes = metricPrototypes
         self.pendingPerformanceCommitments = pendingPerformanceCommitments
         self.pendingChallenges = pendingChallenges
         self.activitySync = activitySync
@@ -277,6 +289,10 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
     func clear(for ownerID: UUID) async throws {
         var failures: [String] = []
 
+        do { try metricPrototypes?.deleteLocalAccount(ownerID) }
+        catch { failures.append("metric practice records") }
+        do { try await pendingWeekly.remove(for: ownerID, matching: nil) }
+        catch { failures.append("weekly request") }
         do { try await pendingDuels.remove(for: ownerID, matching: nil) }
         catch { failures.append("duel request") }
         do { try await pendingPerformanceCommitments.remove(for: ownerID, matching: nil) }

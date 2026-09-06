@@ -7,9 +7,13 @@ import { runPerformanceLifecycle } from "../supabase/functions/performance-lifec
 
 if (
   Deno.args.length < 1 || Deno.args.length > 100 ||
-  Deno.args.some((id) => !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id))
+  Deno.args.some((id) =>
+    !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)
+  )
 ) {
-  throw new Error("Pass between 1 and 100 explicit fictional performance UUIDs.");
+  throw new Error(
+    "Pass between 1 and 100 explicit fictional performance UUIDs.",
+  );
 }
 const serviceRoleKey = Deno.env.get("PERFORMANCE_LOCAL_SERVICE_ROLE_KEY");
 if (!serviceRoleKey) {
@@ -31,7 +35,9 @@ for (const id of new Set(Deno.args)) {
     failed = true;
     console.error(JSON.stringify({
       commitmentId: id,
-      error: error instanceof Error ? error.message : "performance_worker_failed",
+      error: error instanceof Error
+        ? error.message
+        : "performance_worker_failed",
     }));
   }
 }

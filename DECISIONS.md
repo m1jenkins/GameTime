@@ -4735,3 +4735,33 @@ This is planning scope, not implementation, recruitment, deployment or payment
 authorization. Source validation, target suitability, rollout clearance, actual
 money rules and D130 safeguards remain required. Historical agreements and
 unrelated work remain unchanged.
+
+
+### D133. Local weekly execution and provisional fixture boundaries
+
+**Owner authorization, September 6, 2026:** execute all currently feasible local
+W1–W4 implementation with parallel agents and independent acceptance review.
+The W1A-only prompt is historical; it no longer limits execution. Preserve all
+historical product contracts, leave organizer-event screens paused, create a
+draft PR and do not merge or mutate hosted environments.
+
+**Implementation choices, not launch decisions:** the separate `weekly_*_v1`
+domain uses frozen friend rosters of 2–5 total including the creator under
+D132's working assumption. Community entrants individually pursue one common
+server-configured fixture target. Example amounts (2,000 cents, zero fee),
+three unsettled weekly entries / 6,000 example cents, and a single overlapping
+activity week across the two weekly modes are reversible simulation bounds.
+They do not set product pricing, healthy targets or funded cross-product limits.
+
+The local policy separates qualifying evidence, provisional notices, full
+correction/review windows, immutable results and nonredeemable allocation.
+Client-reported progress and unknown/missing Health data cannot establish a
+confirmed miss. Source probes and Exercise/cumulative-distance/timed-distance
+fixtures remain separately named prototypes; actual source admission requires
+recorded physical evidence. Optional reminder rehearsal cannot deliver; local
+study collection requires explicit revocable consent.
+
+See [local acceptance](docs/WEEKLY_LOCAL_ACCEPTANCE.md) and the
+[independent review](docs/WEEKLY_INDEPENDENT_REVIEW.md) for verified behavior and
+remaining checks. Device, human accessibility, pilot, reminder-delivery and
+provider/legal/funded gates are not satisfied by this implementation decision.

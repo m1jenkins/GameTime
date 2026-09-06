@@ -1,12 +1,13 @@
 # GameTime
 
-September 6 planning update: [the roadmap](PLAN.md) now recommends weekly friend
-steps, a community experiment, Exercise minutes and configurable-distance goals.
-The [next task is W1A](docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md#current-next-build-prompt),
-a pure fictional weekly-steps rules/evaluator slice. These modes are not built
-by this documentation update. Organizer-event nomination UI is paused as the
-next default task; existing fixed-5K fixtures and all engagement work stay intact.
-Community launch, target formula, live money and commercial terms remain open.
+September 6 implementation update: separate fictional weekly friend/community
+steps contracts, local lifecycle/native work and Exercise/distance prototypes
+are tracked in the [local acceptance record](docs/WEEKLY_LOCAL_ACCEPTANCE.md).
+See the [execution checklist](docs/WEEKLY_EXECUTION.md) for checks actually run
+and unresolved gates. New modes remain local, opt-in and default-off; physical
+Health validation, human accessibility and an actual pilot are separate gates.
+The numeric community target is a fixture, not an approved launch target.
+Organizer-event nomination UI stays paused; historical agreements stay intact.
 
 September 6 responsible-engagement update: local simulated duel/goal reviews
 now show concise summaries and expandable complete rules; native legacy

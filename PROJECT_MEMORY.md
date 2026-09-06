@@ -1,6 +1,63 @@
 # GameTime project memory
 
-## Beta friend capacity and community goal — September 6, 2026
+## Local weekly implementation execution — September 6, 2026
+
+The owner expanded execution to all feasible local W1–W4 work, starting with
+W1A and proceeding in dependency order. The historical W1A-only prompt below
+is superseded; completed earlier phases are preserved and organizer-event
+nomination UI remains paused. Implementation uses an isolated clone/branch,
+leaving the original dirty checkout and its local Supabase stack untouched.
+
+Current status is explicit:
+
+- W1A is implemented and locally accepted as fictional policy logic.
+- The fictional W1B/W2A backend is implemented and locally verified.
+- The opt-in W1C/W2B native journeys are implemented and locally verified.
+- W3 and W4 have fixture/prototype contracts only.
+- Physical source validation, human accessibility/comprehension, a real pilot,
+  hosted operation, notifications and funded operation remain unaccepted.
+
+Implementation ownership and dependencies are tracked in
+[WEEKLY_EXECUTION.md](docs/WEEKLY_EXECUTION.md).
+[WEEKLY_LOCAL_ACCEPTANCE.md](docs/WEEKLY_LOCAL_ACCEPTANCE.md) is the authoritative
+current checklist of executed tests and remaining gates; historical counts
+below are not automatically rerun evidence. Independent review findings must
+close with specific regression proof before local acceptance is recorded.
+
+D133 records reversible fixture choices. Five total including creator remains
+an assumption; a common community target describes individual completion, and
+its numeric value is not selected for launch. Missing data never proves failure.
+No real Health source, human accessibility pass, provider/legal clearance or
+actual pilot has been established. Source-dependent metric selection, push and
+funded capability remain disabled. The owner has authorized reconciling status,
+marking [PR 17](https://github.com/m1jenkins/GameTime/pull/17) ready after its
+checks pass, and merging it with its useful commit provenance preserved.
+This delivery authorization does not authorize deployment or any external gate.
+
+Fresh disposable verification passed 3,576 SQL assertions across 72 files, 833
+TypeScript tests, 113 Swift core tests and the actual persisted lifecycle smoke.
+Authenticated native HTTP and all 50 legacy UI tests passed. The local acceptance
+record owns final native counts, artifacts, review findings and remaining gates.
+The PR 17 CI snapshot at `6476d47` separately passed 3,576 SQL assertions,
+835 Deno tests, 113 Swift core tests, 365 native tests with three explicit
+controller-gated skips, 50 legacy UI tests, 10 conformance tests, and Staging/
+Release builds. These results do not replace the earlier local-run counts.
+
+After PR 17 merges, the authorized next task is a focused branch for a clearly
+identified, default-off Debug steps-source investigation on an explicitly opted-in
+physical iPhone and paired Watch. Keep raw Health records private on-device,
+exclude the investigation from Release, and disconnect it from scoring, uploads,
+telemetry and logs. Record only performed observations from the existing source
+matrix; query success and Simulator tests do not establish physical acceptance.
+Stop for the owner's required walking, Watch, Health-edit and permission actions.
+If completeness or trustworthy miss handling remains unresolved, real weekly
+scoring stays disabled. Do not add more fictional backend breadth or restart W1A.
+
+Human VoiceOver, Dynamic Type, comprehension and voluntary-exit checks remain the
+next native acceptance work after or alongside source investigation. The proposed
+20–30-person, two-round pilot still needs separate authorization; it has not run.
+
+## Historical beta friend capacity and community goal decision — September 6, 2026
 
 The owner requested beta friend challenges supporting **up to five friends**
 and selected **one common weekly step goal for community launch**. The updated
@@ -10,24 +67,26 @@ combined group total. These two interpretations are working assumptions, not
 additional explicit owner decisions. The numeric community target is open.
 This supersedes the two-person W1 recommendation and personalized community
 target formula in D131 and the earlier reconciliation below. Friend-specific
-individual targets remain a recommendation. W1A must now evaluate a frozen
-2–5-person roster with every participant’s consent; W1B/C must support group
-invites, capacity, privacy and two- through five-person acceptance. Proposed
+individual targets remain a recommendation. This planning update required W1A
+to evaluate a frozen 2–5-person roster with every participant’s consent and
+W1B/C to support group invites, capacity, privacy and two- through five-person
+acceptance. The local implementation above now supplies those fictional paths. Proposed
 group simulation/exit rules are documented separately from adopted scope.
 Community format is selected; rollout, recruitment and real money remain gated.
 See D132 and the weekly specification. This update changes documentation only.
 
-## Weekly implementation-plan reconciliation — September 6, 2026
+## Historical weekly implementation-plan reconciliation — September 6, 2026
 
 The owner requested the needed implementation-plan changes after discussing
 weekly friend steps, Apple Watch Exercise minutes and community challenges.
 [PLAN.md](PLAN.md) and the [weekly specification](docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md)
-now recommend W1 weekly friend steps, W2 one community experiment, W3 Exercise
+then recommended W1 weekly friend steps, W2 one community experiment, W3 Exercise
 minutes and W4 configurable cumulative/timed distance with relevant longer-goal
-progress. **Next is W1A: a pure fictional weekly-steps policy/evaluator and tests.**
+progress. W1A was the next slice at that planning point; it is now implemented
+and locally accepted as fictional policy logic, as recorded above.
 Organizer-event nomination screens are paused as the default next task.
 
-This is a documentation change, not implementation or approval of every proposed
+That task changed documentation; it did not implement or approve every proposed
 format. Dropping the mandatory 5K and preserving participant-selected supported
 distances are owner decisions. The weekly-first order, community pilot, target
 formula and simulated-allocation defaults remain recommendations; community
@@ -169,12 +228,12 @@ The [prior Personal plan](docs/archive/2026-09-04_PRE_PIVOT_PLAN.md) is preserve
 These are plans and a source inventory, not implemented new products or a fresh
 hosted/device acceptance record.
 
-The recommended first slice is a local, default-off, simulated same-event 5K
-duel agreement backend with two explicit consents. The proposed human pilot
-uses organizer-published chip times before adding automatic Garmin proof.
-The proposed commitment launch format is a timed 5K goal over 28–90 days;
-true-mile and asynchronous formats follow. These are reversible planning
-defaults, not additional owner mandates. Neither a provider, a forfeiture
+At that planning baseline, the recommended first slice was a local, default-off,
+simulated same-event 5K duel agreement backend with two explicit consents. The
+proposed human pilot used organizer-published chip times before automatic Garmin
+proof. The proposed commitment format was a timed 5K goal over 28–90 days, with
+true-mile and asynchronous formats later. These historical planning defaults
+were not owner mandates; the later no-mandatory-5K direction supersedes them. Neither a provider, a forfeiture
 beneficiary, a live price nor a launch jurisdiction has been selected.
 
 ### Original planning request
@@ -452,8 +511,9 @@ local SQL boundaries, transaction races, persisted evaluator/worker smoke and
 full portable regression evidence. The separate disposable database was used;
 the normal database and unrelated work were preserved. No native source,
 hosted mutation, schedule, external delivery, provider or live money changed.
-**Next is local native commitment integration** across agreements, attempts,
-progress, selected following and results/review. Actual organizer operations,
+**Historical handoff, partly implemented in Phase 3(f) below:** local native
+commitment integration across agreements, attempts, progress, selected following
+and results/review. This handoff does not select the current next task. Actual organizer operations,
 real-data retention/support policies, native/device acceptance, result-sharing
 consent, true-mile formats and hosted rollout remain separate work.
 
@@ -473,7 +533,9 @@ gates were cleaned up; the separate disposable database backup is retained.
 This is the first native slice, not the whole Phase 3(e) handoff. Its remaining
 handoff was native event nomination/completeness and private progress, followed
 by selected following under Phase 3(d)'s strict cache rules. The weekly roadmap
-above now pauses organizer entry as the default next task and starts W1A;
-the original acceptance requirements remain historical. Release stays disabled. No
+above pauses organizer entry as the default next task; W1A and the feasible
+fictional backend/native slices are now implemented. The current next task is
+the authorized physical steps-source investigation, and the original acceptance
+requirements remain historical. Release stays disabled. No
 earlier migration, hosted state, provider, external delivery or live money was
 changed. VoiceOver/device and real organizer/support/retention gates remain open.

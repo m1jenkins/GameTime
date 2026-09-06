@@ -1,7 +1,10 @@
 # Weekly challenges: implementation specification
 
 Planning update: September 6, 2026 UTC, following the owner's September 5
-discussion. This is a build plan, not an implemented feature or launch record.
+discussion. The owner subsequently authorized all feasible local W1–W4 work.
+This specification owns requirements; [local acceptance](WEEKLY_LOCAL_ACCEPTANCE.md)
+and [execution status](WEEKLY_EXECUTION.md) own implementation and test evidence.
+Neither local fixtures nor passing mocks establish launch acceptance.
 Read [project memory](../PROJECT_MEMORY.md), [repository conventions](../AGENTS.md)
 and the [main roadmap](../PLAN.md) first.
 
@@ -16,8 +19,10 @@ and the [main roadmap](../PLAN.md) first.
   These interpretations are explicit planning assumptions; the numeric
   community target remains unselected.
   Preserve old agreements, source policies, requests, results and acceptance.
-- **Authorized now:** reconcile the implementation plan with this discussion.
-  This document does not implement features, recruit people or enable money.
+- **Authorized now:** execute feasible local W1–W4 implementation in dependency
+  order, with parallel bounded agents, integration and independent review. This
+  supersedes the historical W1A-only prompt without waiving acceptance. No hosted
+  mutations, recruitment, external messages, notification delivery or money.
 - **Recommended build order:** weekly friend steps first, one weekly community
   experiment next, Exercise minutes after source validation, then configurable
   distance goals. These are reversible planning defaults, not claims the owner
@@ -315,6 +320,13 @@ not source acceptance or provider clearance:
 | [WayBetter commitments](https://support.waybetter.app/hc/en-us/articles/12298730134419-What-are-Financial-Commitments-and-how-do-they-work) | Traditional pooled winnings are funded by nonqualifying participants; returning principal is not profit. Membership, game exceptions and costs prevent assuming universal economics. |
 
 ## Current next-build prompt
+
+Use the [local acceptance record](WEEKLY_LOCAL_ACCEPTANCE.md) for remaining work
+and precise missing evidence. The owner expanded execution beyond the prompt
+below; it is retained only as the historical W1A scope. Do not restart completed
+W1A or reinterpret its restrictions as a limit on the authorized local roadmap.
+
+### Historical W1A prompt — superseded execution scope
 
 ```text
 Work in /Users/user/Documents/GitHub/GameTime.

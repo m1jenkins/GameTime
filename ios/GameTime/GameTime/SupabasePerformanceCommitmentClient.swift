@@ -69,7 +69,7 @@ final class SupabasePerformanceCommitmentClient: PerformanceCommitmentClient {
         self.rpc = rpc
     }
 
-    static func isExplicitLoopback(_ url: URL) -> Bool {
+    nonisolated static func isExplicitLoopback(_ url: URL) -> Bool {
         guard url.scheme == "http", let port = url.port, (1...65535).contains(port),
               ["127.0.0.1", "localhost", "[::1]", "::1"].contains(url.host?.lowercased() ?? ""),
               url.user == nil, url.password == nil, url.query == nil, url.fragment == nil,

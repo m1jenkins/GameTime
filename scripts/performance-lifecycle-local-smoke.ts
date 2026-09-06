@@ -62,14 +62,16 @@ function check(condition: unknown, message: string): asserts condition {
 }
 let now = "2026-08-01T18:00:00.000000Z";
 const database: PerformanceLifecycleDatabase = {
-  load: (id) => value(`app.performance_lifecycle_load_at_v1(${quote(id)},${quote(now)})`),
+  load: (id) =>
+    value(`app.performance_lifecycle_load_at_v1(${quote(id)},${quote(now)})`),
   commit: (input, decision) =>
     value<CommitStatus>(
-      `app.performance_lifecycle_commit_at_v1(${quote(JSON.stringify(input))}::jsonb,${
-        quote(JSON.stringify(decision))
-      }::jsonb,${quote(now)})`,
+      `app.performance_lifecycle_commit_at_v1(${
+        quote(JSON.stringify(input))
+      }::jsonb,${quote(JSON.stringify(decision))}::jsonb,${quote(now)})`,
     ),
-  settle: (id) => value(`app.performance_lifecycle_settle_at_v1(${quote(id)},${quote(now)})`),
+  settle: (id) =>
+    value(`app.performance_lifecycle_settle_at_v1(${quote(id)},${quote(now)})`),
 };
 async function load(id: string): Promise<PerformanceScoringInput> {
   const result = await database.load(id);
@@ -85,7 +87,9 @@ async function tick(id: string, t: string, expected: string) {
 }
 try {
   await sql(
-    await Deno.readTextFile(new URL("./examples/performance-lifecycle-setup.sql", import.meta.url)),
+    await Deno.readTextFile(
+      new URL("./examples/performance-lifecycle-setup.sql", import.meta.url),
+    ),
   );
   await value("public.set_commitment_lifecycle_enabled_v1(true)");
   for (
@@ -108,12 +112,15 @@ try {
         },'2026-06-01T12:00:00.123456Z',${kind === "missing"})`,
       );
     }
-    if (!["silent", "unconfirmed_miss"].includes(kind)) await value(`pg_temp.confirm(${n})`);
+    if (!["silent", "unconfirmed_miss"].includes(kind)) {
+      await value(`pg_temp.confirm(${n})`);
+    }
     await tick(id, "2026-07-04T12:00:00.123455Z", "awaiting_proof");
     const before = await load(id);
     now = "2026-07-04T12:00:00.123456Z";
     check(
-      await database.commit(before, evaluatePerformanceCommitment(before)) === "stale",
+      await database.commit(before, evaluatePerformanceCommitment(before)) ===
+        "stale",
       "microsecond cutoff crossing forces reload",
     );
     await tick(id, now, "provisional");
@@ -133,11 +140,17 @@ try {
       : "inconclusive";
     check(final.outcome.kind === expected, `${kind}: persisted ${expected}`);
     const s = await value<
-      { returned_cents: number; lost_cents: number; payee: null; redeemable: boolean }
+      {
+        returned_cents: number;
+        lost_cents: number;
+        payee: null;
+        redeemable: boolean;
+      }
     >(`app.performance_lifecycle_settle_at_v1(${quote(id)},${quote(now)})`);
     check(
       s.returned_cents + s.lost_cents === 2000 &&
-        s.lost_cents === (expected === "miss" ? 2000 : 0) && s.payee === null && !s.redeemable,
+        s.lost_cents === (expected === "miss" ? 2000 : 0) && s.payee === null &&
+        !s.redeemable,
       `${kind}: explicit simulation without payee`,
     );
     check(
@@ -152,7 +165,9 @@ try {
     check(
       await value<string>(
         `pg_temp.attempt(${
-          quote(`select pg_temp.proof(${n},0,359,'2026-07-12T12:00:00.123456Z')`)
+          quote(
+            `select pg_temp.proof(${n},0,359,'2026-07-12T12:00:00.123456Z')`,
+          )
         })`,
       ) === "55000",
       "post-final attempt ingestion refused",
@@ -164,34 +179,45 @@ try {
   await value("pg_temp.confirm(8)");
   await tick(corrected, "2026-07-04T12:00:00.123456Z", "provisional");
   check(
-    evaluatePerformanceCommitment(await load(corrected)).outcome?.kind === "success",
+    evaluatePerformanceCommitment(await load(corrected)).outcome?.kind ===
+      "success",
     "slower later attempt does not undo success",
   );
   now = "2026-07-11T12:00:00.123456Z";
   const stale = await load(corrected);
   await value("pg_temp.proof(8,0,360,'2026-07-11T12:00:00.123455Z')");
   check(
-    await database.commit(stale, evaluatePerformanceCommitment(stale)) === "stale",
+    await database.commit(stale, evaluatePerformanceCommitment(stale)) ===
+      "stale",
     "full proof correction invalidates final decision",
   );
   await tick(corrected, now, "provisional");
-  check((await load(corrected)).notices.length === 2, "new correction retains notice history");
+  check(
+    (await load(corrected)).notices.length === 2,
+    "new correction retains notice history",
+  );
   await tick(corrected, "2026-07-18T12:00:00.123455Z", "provisional");
   await tick(corrected, "2026-07-18T12:00:00.123456Z", "final");
   check(
     (await load(corrected)).finalResult?.outcome.kind === "miss",
     "corrected strict-equal attempt gets full new window",
   );
-  for (const [i, resolution] of ["uphold", "inconclusive", "timeout"].entries()) {
+  for (
+    const [i, resolution] of ["uphold", "inconclusive", "timeout"].entries()
+  ) {
     const n = 9 + i;
     const id = await value<string>(`pg_temp.prepare(${n})`);
     await value(`pg_temp.proof(${n},0,359)`);
     await tick(id, "2026-07-04T12:00:00.123456Z", "provisional");
-    const k = await value<string>(`pg_temp.file(${n},1,'2026-07-11T12:00:00.123455Z')`);
+    const k = await value<string>(
+      `pg_temp.file(${n},1,'2026-07-11T12:00:00.123455Z')`,
+    );
     await tick(id, "2026-07-11T12:00:00.123456Z", "provisional");
     if (resolution !== "timeout") {
       await value(
-        `pg_temp.resolve(${n},${quote(k)},${quote(resolution)},'2026-07-12T12:00:00.123456Z')`,
+        `pg_temp.resolve(${n},${quote(k)},${
+          quote(resolution)
+        },'2026-07-12T12:00:00.123456Z')`,
       );
     }
     await tick(id, "2026-07-18T12:00:00.123455Z", "final");
@@ -221,10 +247,15 @@ try {
   for (const [i, kind] of ["cancel", "withdrawal", "injury"].entries()) {
     const n = 14 + i;
     const id = await value<string>(`pg_temp.prepare(${n})`);
-    const at = kind === "cancel" ? "2026-05-01T15:00:00.123456Z" : "2026-05-03T15:00:00.123456Z";
+    const at = kind === "cancel"
+      ? "2026-05-01T15:00:00.123456Z"
+      : "2026-05-03T15:00:00.123456Z";
     await value(`pg_temp.exit(${n},${quote(kind)},${quote(at)})`);
     await tick(id, at, "final");
-    check((await load(id)).finalResult?.outcome.reason === kind, `${kind}: preserved exit history`);
+    check(
+      (await load(id)).finalResult?.outcome.reason === kind,
+      `${kind}: preserved exit history`,
+    );
   }
   const interrupted = await value<string>("pg_temp.prepare(17)");
   await value("pg_temp.confirm(17)");
@@ -232,7 +263,8 @@ try {
   now = "2026-07-11T12:00:00.123456Z";
   const input = await load(interrupted);
   check(
-    await database.commit(input, evaluatePerformanceCommitment(input)) === "final",
+    await database.commit(input, evaluatePerformanceCommitment(input)) ===
+      "final",
     "final can commit before simulation",
   );
   check(
@@ -259,7 +291,11 @@ try {
     },pg_temp.actor(30),'support',clock_timestamp()+interval '1 day')`,
   );
   await sql("select pg_temp.login(30); set local role authenticated;");
-  await value(`public.read_commitment_lifecycle_operator_v1(${quote(interrupted)},'support')`);
+  await value(
+    `public.read_commitment_lifecycle_operator_v1(${
+      quote(interrupted)
+    },'support')`,
+  );
   await value(
     `public.submit_commitment_support_correction_v1(pg_temp.req(901),${
       quote(interrupted)

@@ -68,3 +68,15 @@ financial exposure or exercise pressure. Preserve explicit consent and easy
 exits; never use health data or losses for revenue targeting. Keep implemented
 controls distinct from proposed defaults. Use the current order in PLAN.md,
 not the completed fixed-5K implementation prompt, to select new work.
+
+
+## Reproducing weekly local acceptance
+
+Use `scripts/weekly-local-verify.sh` from a committed checkout for the full
+portable weekly gate. It creates and tears down a unique disposable local
+Supabase project; it does not reuse the original development stack. Do not run
+`db reset` or the reset-owning `scripts/db-test.sh` against another checkout's
+running project. Native HTTP smoke uses its own documented 5632x disposable
+stack, fictional Auth actors and cleanup; it never targets hosted credentials.
+See [WEEKLY_LOCAL_ACCEPTANCE.md](docs/WEEKLY_LOCAL_ACCEPTANCE.md) for exact commands,
+run evidence and unperformed physical/human/pilot gates.

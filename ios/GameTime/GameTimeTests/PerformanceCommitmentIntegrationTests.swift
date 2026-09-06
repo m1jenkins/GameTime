@@ -14,11 +14,14 @@ final class PerformanceCommitmentIntegrationTests: XCTestCase {
         XCTAssertTrue(AppConfiguration.performanceCommitmentFixture.performanceCommitmentRuntimeEnabled)
         XCTAssertFalse(configuration("http://127.0.0.1:57321", requested: false).performanceCommitmentRuntimeEnabled)
         XCTAssertFalse(configuration("http://127.0.0.1:57321", environment: .release).performanceCommitmentRuntimeEnabled)
-        for url in ["https://hosted.example", "http://127.0.0.1", "http://127.0.0.1:57321/path",
-                    "http://user@127.0.0.1:57321", "http://127.0.0.1:57321?forward=hosted.example"] {
+        for url in ["https://hosted.example", "http://127.0.0.1", "http://127.0.0.1:0",
+                    "http://127.0.0.1:57321/path", "http://user@127.0.0.1:57321",
+                    "http://127.0.0.1:57321?forward=hosted.example"] {
             XCTAssertFalse(configuration(url).performanceCommitmentRuntimeEnabled, url)
         }
-        XCTAssertTrue(configuration("http://127.0.0.1:57321").performanceCommitmentRuntimeEnabled)
+        for url in ["http://127.0.0.1:57321", "http://localhost:57321/", "http://[::1]:57321"] {
+            XCTAssertTrue(configuration(url).performanceCommitmentRuntimeEnabled, url)
+        }
     }
 
     func testEveryPresentationFixtureMatchesStrictModels() async throws {
