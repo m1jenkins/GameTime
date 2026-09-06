@@ -272,6 +272,88 @@ private struct WeeklyHomeScenePhaseHarness: View {
         await refresh.value
         XCTAssertTrue(store.sharedProgress.isEmpty); XCTAssertTrue(store.followRequests.isEmpty)
     }
+    func testLateSharingFailurePreservesOwnContentAndBoundsConcurrency() async throws {
+        let rows = try acceptedWeeklyRows(count: 20)
+        let client = WeeklyTestClient(rows[0]), auth = WeeklyTestAuth(rows[0].own.actorID)
+        let queue = EphemeralPendingWeeklyRequestStore()
+        var request = try PendingWeeklyRequest(actorID: rows[0].own.actorID,
+            operation: .support(rows[0].id, reason: .privacy))
+        request.mayHaveCommitted = true
+        try await queue.save(request)
+        client.rows = rows
+        client.grantRows = [.init(friendID: UUID(), displayName: "Private friend", enabled: true,
+            offerID: UUID(), state: "accepted")]
+        client.sharingDelay = .milliseconds(5)
+        client.sharingFailureCall = 15
+        let store = WeeklyStore(enabled: true, auth: auth, client: client,
+            friendships: WeeklyTestFriends(), pendingStore: queue)
+
+        store.setActor(auth.actor)
+        await store.refresh()
+
+        XCTAssertEqual(store.challenges.map(\.id), rows.map(\.id))
+        XCTAssertEqual(store.pending, request)
+        XCTAssertNotNil(store.preferences)
+        XCTAssertFalse(store.storageBlocked)
+        XCTAssertFalse(store.isLoading)
+        XCTAssertEqual(client.maximumActiveSharingCalls, 4)
+        XCTAssertGreaterThanOrEqual(client.sharingCalls, 15)
+        XCTAssertTrue(store.sharedProgress.isEmpty)
+        XCTAssertTrue(store.followRequests.isEmpty)
+        XCTAssertTrue(store.sharing.isEmpty)
+        XCTAssertTrue(store.friends.isEmpty)
+    }
+    func testHeldSharingCannotPublishAfterAccountSwitch() async throws {
+        let rows = try acceptedWeeklyRows(count: 8)
+        let client = WeeklyTestClient(rows[0]), auth = WeeklyTestAuth(rows[0].own.actorID)
+        client.rows = rows
+        client.holdSharing = true
+        client.grantRows = [.init(friendID: UUID(), displayName: "Private friend", enabled: true,
+            offerID: UUID(), state: "accepted")]
+        let store = makeStore(auth, client)
+        store.setActor(auth.actor)
+        let refresh = Task { await store.refresh() }
+        await waitUntil { client.sharingContinuations.count == 4 }
+
+        auth.actor = UUID()
+        store.setActor(auth.actor)
+        let responses = client.sharingContinuations
+        client.sharingContinuations = []
+        responses.forEach { $0.resume() }
+        await refresh.value
+
+        XCTAssertEqual(client.sharingCalls, 4)
+        XCTAssertTrue(store.challenges.isEmpty)
+        XCTAssertTrue(store.sharedProgress.isEmpty)
+        XCTAssertTrue(store.followRequests.isEmpty)
+        XCTAssertTrue(store.sharing.isEmpty)
+        XCTAssertTrue(store.friends.isEmpty)
+    }
+    func testSupersededHeldSharingCannotReplaceNewSnapshot() async throws {
+        let rows = try acceptedWeeklyRows(count: 8)
+        let client = WeeklyTestClient(rows[0]), auth = WeeklyTestAuth(rows[0].own.actorID)
+        client.rows = rows
+        client.holdSharing = true
+        client.grantRows = [.init(friendID: UUID(), displayName: "Old private friend", enabled: true,
+            offerID: UUID(), state: "accepted")]
+        let store = makeStore(auth, client)
+        store.setActor(auth.actor)
+        let oldRefresh = Task { await store.refresh() }
+        await waitUntil { client.sharingContinuations.count == 4 }
+        let oldResponses = client.sharingContinuations
+        client.sharingContinuations = []
+        client.holdSharing = false
+        client.grantRows = []
+
+        await store.refresh()
+        XCTAssertEqual(store.sharing.count, rows.count)
+        XCTAssertTrue(store.sharing.values.allSatisfy(\.isEmpty))
+        oldResponses.forEach { $0.resume() }
+        await oldRefresh.value
+
+        XCTAssertEqual(store.sharing.count, rows.count)
+        XCTAssertTrue(store.sharing.values.allSatisfy(\.isEmpty))
+    }
     func testHeldOptionalStudyDeliveryLeavesSafetyActionsAvailable() async throws {
         let row = try weeklyFixture(), client = WeeklyTestClient(try weeklyFixture()), auth = WeeklyTestAuth(try weeklyFixture().own.actorID)
         client.pilotConsent = true; client.holdStudy = true; client.submitSucceeds = true
@@ -351,6 +433,25 @@ private struct WeeklyHomeScenePhaseHarness: View {
     private func makeStore(_ auth: WeeklyTestAuth, _ client: WeeklyTestClient) -> WeeklyStore {
         WeeklyStore(enabled: true, auth: auth, client: client, friendships: WeeklyTestFriends(), pendingStore: EphemeralPendingWeeklyRequestStore())
     }
+    private func acceptedWeeklyRows(count: Int) throws -> [WeeklyChallenge] {
+        try (0..<count).map { index in
+            try weeklyFixture { json in
+                json["id"] = String(format: "20000000-0000-0000-0000-%012d", index + 1)
+                var own = json["own"] as! [String: Any]
+                own["accepted_at"] = "2026-09-06T06:00:00.000000Z"
+                json["own"] = own
+                json["accepted_count"] = 2
+            }
+        }
+    }
+    private func waitUntil(_ condition: @MainActor () -> Bool) async {
+        for _ in 0..<500 {
+            if condition() { return }
+            await Task.yield()
+            try? await Task.sleep(for: .milliseconds(1))
+        }
+        XCTFail("Timed out waiting for asynchronous state")
+    }
 }
 
 func weeklyFixture(_ change: ((inout [String: Any]) -> Void)? = nil) throws -> WeeklyChallenge {
@@ -378,13 +479,33 @@ func weeklyFixture(_ change: ((inout [String: Any]) -> Void)? = nil) throws -> W
 }
 @MainActor final class WeeklyTestClient: WeeklyClient {
     var row: WeeklyChallenge; var failure: WeeklyClientError?; var hold = false; var paused = false; var pilotConsent = false
+    var rows: [WeeklyChallenge]?
     var continuation: CheckedContinuation<[WeeklyChallenge], any Error>?
     var resolution = WeeklyRequestResolution(state: "cancelled", receiptID: nil)
     var resolved: UUID?
     var cohortRows: [WeeklyCohort] = []
     var sharedRows: [WeeklySharedProgress] = []
     var grantRows: [WeeklySharing] = []
-    func sharing(id: UUID, actorID: UUID) async throws -> [WeeklySharing] { grantRows }
+    var holdSharing = false
+    var sharingContinuations: [CheckedContinuation<Void, Never>] = []
+    var sharingDelay: Duration?
+    var sharingFailureCall: Int?
+    var sharingCalls = 0
+    var activeSharingCalls = 0
+    var maximumActiveSharingCalls = 0
+    func sharing(id: UUID, actorID: UUID) async throws -> [WeeklySharing] {
+        sharingCalls += 1
+        let call = sharingCalls, result = grantRows
+        activeSharingCalls += 1
+        maximumActiveSharingCalls = max(maximumActiveSharingCalls, activeSharingCalls)
+        defer { activeSharingCalls -= 1 }
+        if holdSharing {
+            await withCheckedContinuation { sharingContinuations.append($0) }
+        }
+        if let sharingDelay { try await Task.sleep(for: sharingDelay) }
+        if sharingFailureCall == call { throw WeeklyClientError.unavailable }
+        return result
+    }
     var offers: [WeeklyFollowRequest] = []
     var holdPreview = false
     var previewContinuation: CheckedContinuation<WeeklyPreview, any Error>?
@@ -413,7 +534,7 @@ func weeklyFixture(_ change: ((inout [String: Any]) -> Void)? = nil) throws -> W
         listCalls += 1
         if let failure { throw failure }
         if hold { return try await withCheckedThrowingContinuation { continuation = $0 } }
-        return [row]
+        return rows ?? [row]
     }
     func detail(id: UUID, actorID: UUID) async throws -> WeeklyChallenge { row }
     func cohorts(actorID: UUID) async throws -> [WeeklyCohort] { cohortRows }

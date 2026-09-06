@@ -20,6 +20,7 @@ import Observation
     private(set) var lastConfirmedID: UUID?
     private(set) var lastConfirmedOperation: WeeklyMutation?
     private(set) var freshIDs: Set<UUID> = []
+    @ObservationIgnored private var socialRefreshTask: Task<Void, Never>?
     @ObservationIgnored private var socialExpiryTask: Task<Void, Never>?
     @ObservationIgnored private var socialReceivedAt: Double?
     @ObservationIgnored private var generation = UUID()
@@ -42,6 +43,7 @@ import Observation
         self.enabled = enabled; self.auth = auth; self.client = client; self.friendships = friendships; self.pendingStore = pendingStore
     }
     func setActor(_ id: UUID?) {
+        cancelSocialRefresh()
         generation = UUID(); refreshToken = UUID(); actorID = enabled ? id : nil
         clearContent(); pending = nil; storageBlocked = true; isLoading = false; isSending = false
         errorMessage = nil; lastConfirmedID = nil; lastConfirmedOperation = nil
@@ -60,6 +62,7 @@ import Observation
 
     func refresh() async {
         guard let actor = actorID, !isSending else { return }
+        cancelSocialRefresh()
         let generation = generation, token = UUID()
         refreshToken = token; clearContent(); isLoading = true; errorMessage = nil
         defer { if self.generation == generation && refreshToken == token { isLoading = false } }
@@ -83,27 +86,9 @@ import Observation
             let cohorts = try await client.cohorts(actorID: actor)
             guard await current(actor, generation), refreshToken == token else { return }
             self.cohorts = cohorts
-            let socialReadAt = monotonicNow()
-            let shared = try await client.sharedProgress(actorID: actor)
-            guard await current(actor, generation), refreshToken == token else { return }
-            let offers = try await client.followRequests(actorID: actor)
-            guard await current(actor, generation), refreshToken == token else { return }
-            var grantsByChallenge: [UUID: [WeeklySharing]] = [:]
-            for row in rows where row.own.acceptedAt != nil {
-                let grants = try await client.sharing(id: row.id, actorID: actor)
-                guard await current(actor, generation), refreshToken == token else { return }
-                grantsByChallenge[row.id] = grants
-            }
-            // A solo community entrant never depends on having an accepted friend.
-            let cards = try? await friendships.listCards()
-            guard await current(actor, generation), refreshToken == token else { return }
-            // Publish the private social snapshot together only after all reads.
-            // A hung later read cannot leave an earlier partial snapshot visible.
-            let socialAge = monotonicNow() - socialReadAt
-            guard socialAge.isFinite, socialAge >= 0, socialAge < 60 else { return }
-            sharedProgress = shared; followRequests = offers; sharing = grantsByChallenge
-            friends = (cards ?? []).filter { $0.status == .accepted && $0.otherUserID != actor }
-            armSocialExpiry(receivedAt: socialReadAt)
+            isLoading = false
+            beginSocialRefresh(rows: rows, actor: actor, generation: generation, token: token)
+            await socialRefreshTask?.value
         } catch {
             guard await current(actor, generation), refreshToken == token else { return }
             clearContent(); errorMessage = mapped(error).localizedDescription
@@ -142,6 +127,7 @@ import Observation
             guard decision == .unfollow ? sharedProgress.contains(where: { $0.challengeID == id && $0.ownerID == owner }) : followRequests.contains(where: { $0.offerID == offer && $0.challengeID == id && $0.ownerID == owner }) else { return }
         case .pause, .pilotConsent: guard preferences != nil else { return }
         }
+        cancelSocialRefresh(); clearSocial()
         let generation = generation
         isSending = true; errorMessage = nil; lastConfirmedID = nil; lastConfirmedOperation = nil
         defer { if self.generation == generation { isSending = false } }
@@ -159,6 +145,7 @@ import Observation
     /// Only a deliberate retry sends a previously uncertain operation.
     func retry() async {
         guard let request = pending, !isLoading, !isSending, !storageBlocked else { return }
+        cancelSocialRefresh(); clearSocial()
         let generation = generation
         isSending = true; errorMessage = nil
         defer { if self.generation == generation { isSending = false } }
@@ -167,6 +154,7 @@ import Observation
     /// Server-side retirement fences a delayed original before any local removal.
     func resolveSavedRequest() async {
         guard let request = pending, !isLoading, !isSending, !storageBlocked else { return }
+        cancelSocialRefresh(); clearSocial()
         let generation = generation
         isSending = true; errorMessage = nil
         do {
@@ -286,6 +274,76 @@ import Observation
             await self.recordStudy(event: event, challengeID: challengeID, phase: phase)
         }
     }
+
+    private func beginSocialRefresh(rows: [WeeklyChallenge], actor: UUID, generation: UUID, token: UUID) {
+        let acceptedIDs = rows.compactMap { $0.own.acceptedAt == nil ? nil : $0.id }
+        socialRefreshTask = Task { [weak self] in
+            await self?.refreshSocial(acceptedIDs: acceptedIDs, actor: actor, generation: generation, token: token)
+        }
+    }
+
+    private func refreshSocial(acceptedIDs: [UUID], actor: UUID, generation: UUID, token: UUID) async {
+        let socialReadAt = monotonicNow()
+        do {
+            guard await socialRefreshIsCurrent(actor, generation, token) else { return }
+            let shared = try await client.sharedProgress(actorID: actor)
+            guard await socialRefreshIsCurrent(actor, generation, token) else { return }
+            let offers = try await client.followRequests(actorID: actor)
+            guard await socialRefreshIsCurrent(actor, generation, token) else { return }
+            let grants = try await sharingSnapshot(ids: acceptedIDs, actor: actor, generation: generation, token: token)
+            guard await socialRefreshIsCurrent(actor, generation, token) else { return }
+            let cards = try await friendships.listCards()
+            guard await socialRefreshIsCurrent(actor, generation, token) else { return }
+            let socialAge = monotonicNow() - socialReadAt
+            guard socialAge.isFinite, socialAge >= 0, socialAge < 60 else {
+                clearSocial()
+                return
+            }
+            sharedProgress = shared; followRequests = offers; sharing = grants
+            friends = cards.filter { $0.status == .accepted && $0.otherUserID != actor }
+            armSocialExpiry(receivedAt: socialReadAt)
+            socialRefreshTask = nil
+        } catch {
+            guard await current(actor, generation), refreshToken == token else { return }
+            clearSocial(); socialRefreshTask = nil
+        }
+    }
+
+    private func sharingSnapshot(ids: [UUID], actor: UUID, generation: UUID, token: UUID) async throws -> [UUID: [WeeklySharing]] {
+        var partitions = [[UUID]](repeating: [], count: 4)
+        for (index, id) in ids.enumerated() { partitions[index % 4].append(id) }
+        let firstIDs = partitions[0], secondIDs = partitions[1]
+        let thirdIDs = partitions[2], fourthIDs = partitions[3]
+        async let first = sharingPartition(ids: firstIDs, actor: actor, generation: generation, token: token)
+        async let second = sharingPartition(ids: secondIDs, actor: actor, generation: generation, token: token)
+        async let third = sharingPartition(ids: thirdIDs, actor: actor, generation: generation, token: token)
+        async let fourth = sharingPartition(ids: fourthIDs, actor: actor, generation: generation, token: token)
+        let snapshots = try await [first, second, third, fourth]
+        return snapshots.reduce(into: [:]) { result, snapshot in
+            result.merge(snapshot) { _, latest in latest }
+        }
+    }
+
+    private func sharingPartition(ids: [UUID], actor: UUID, generation: UUID, token: UUID) async throws -> [UUID: [WeeklySharing]] {
+        var result: [UUID: [WeeklySharing]] = [:]
+        for id in ids {
+            guard await socialRefreshIsCurrent(actor, generation, token) else { throw CancellationError() }
+            let grants = try await client.sharing(id: id, actorID: actor)
+            guard await socialRefreshIsCurrent(actor, generation, token) else { throw CancellationError() }
+            result[id] = grants
+        }
+        return result
+    }
+
+    private func socialRefreshIsCurrent(_ actor: UUID, _ generation: UUID, _ token: UUID) async -> Bool {
+        guard !Task.isCancelled, refreshToken == token else { return false }
+        return await current(actor, generation)
+    }
+
+    private func cancelSocialRefresh() {
+        socialRefreshTask?.cancel(); socialRefreshTask = nil
+    }
+
     /// Optional, coarse first-party study delivery never owns the safety-request queue.
     func recordStudy(event: String, challengeID: UUID?, phase: String) async {
         guard preferences?.pilotConsent == true, let actor = actorID else { return }
