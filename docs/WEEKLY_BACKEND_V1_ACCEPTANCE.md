@@ -143,7 +143,7 @@ recreates optional data. Other non-research exact requests retain their history.
 | Persisted SQL → real W1A/helper → worker → final/allocation | Passed rollback-only smoke: corrected notices and microseconds, full review timeout, 2/3/4/5 groups, community partial success/unknown/remainder, 0/1 minimum, final retry and delayed-worker refund |
 | Deno lifecycle/runner format, lint and typecheck | Passed |
 | Real independent-session concurrency | 25 assertions passed, including 12 races proven blocked with `pg_blocking_pids` and selected-sharing revoke/read |
-| Explicit selected-friend sharing | 23 pgTAP assertions passed: bilateral consent, fresh offer binding, revoke/decline/unfollow, no block/refriend revival, missing versus zero and no enrollment/qualification/financial projection |
+| Explicit selected-friend sharing | 41 pgTAP assertions passed: bilateral consent, fresh offer binding, revoke/decline/unfollow, no block/refriend revival, missing versus zero, exact selected-week expiry before/at/after the microsecond cutoff, preserved receipts/safe revocation, private-only clock seams and no enrollment/qualification/financial projection |
 | Full fresh-migration regression/advisors/native integration | Lead integration owns final evidence; integrated Deno 833 tests passed before final fresh replay/native verification |
 
 Reproduce in a disposable local stack, preserving the normal developer stack:
@@ -219,10 +219,25 @@ agreements using temporary fixture sessions. It drives the real evaluator and
 worker through notices and a saved review/full timeout, appends final simulated
 returns, restores the caller's gate settings and revokes its temporary sessions.
 It returns IDs for native authenticated HTTP history decoding and an exact saved
-review-request replay. These historical fixtures are settled to preserve the
-bounded pending-entry capacity of the native two/five/community flow.
+review-request replay. The initial invocation deliberately leaves `reviewID` in persisted `review`
+status after the real worker, allowing a native HTTP review-state read. The
+controller then appends `finalize <reviewID> <reviewRequestID>` to the same
+actor-scoped command. That second phase validates the exact actors and saved
+case, then drives the real worker after the maximum stored correction/review
+window. It restores pending-entry capacity before the native two/five/community
+flow. This phased helper is format/type checked; native HTTP execution evidence
+is owned by the native acceptance record.
 
 The shared rollback fixture is canonical at `supabase/tests/fixtures/weekly-fixture.inc`.
 Both pgTAP includes and the persisted Deno smoke read that one file. Its non-test
 extension prevents pg_prove from treating setup as a separate test, and keeping it
 inside the test tree makes it available to the Supabase CLI database test runner.
+
+The additive `20260906065002_weekly_sharing_expiry_v1.sql` enforces the selected
+week's exclusive end using the server clock. New offers and acceptances fail at
+`endsAt`; pending offers and accepted display progress disappear at that same
+instant, and the owner list reports an ended grant. Exact committed recovery,
+owner revocation, and recipient decline/unfollow remain safe after expiry.
+Private injected-time functions have no client/service grants. Focused 482
+passed 41 assertions in `/tmp/gametime-weekly-482-expiry.log`, including final
+eligible microsecond, exact end and one microsecond after for all four paths.

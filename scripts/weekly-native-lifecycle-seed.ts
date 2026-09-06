@@ -1,17 +1,28 @@
 /** Creates historical fictional receipts for real native HTTP decoding.
  * Uses two existing loopback actors, temporary fixture Auth sessions, and the
  * actual policy/lifecycle evaluator. Restores gates, revokes fixture sessions.
+ * Initial phase leaves reviewID in a real persisted review. After native reads it,
+ * finalize drives the same worker after the full stored windows have elapsed.
  * CLI: deno run --allow-run=psql scripts/weekly-native-lifecycle-seed.ts <actor1> <actor2>
+ * Finalize: same command with `finalize <reviewID> <reviewRequestID>` appended.
  */
 import {
   runWeeklyLifecycle,
   type WeeklyLifecycleDatabase,
 } from "../supabase/functions/_shared/weekly-lifecycle.ts";
-const actors = Deno.args;
+const actors = Deno.args.slice(0, 2);
+const phase = Deno.args[2] ?? "seed";
+const uuid = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
 if (
   actors.length !== 2 || actors[0] === actors[1] ||
-  actors.some((id) => !/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(id))
-) throw new Error("Two distinct local fixture actor UUIDs required");
+  actors.some((id) => !uuid.test(id)) ||
+  !(Deno.args.length === 2 || (Deno.args.length === 5 && phase === "finalize" &&
+    uuid.test(Deno.args[3]!) && uuid.test(Deno.args[4]!)))
+) {
+  throw new Error(
+    "Two distinct local fixture actors, optionally finalize reviewID reviewRequestID, required",
+  );
+}
 const child = new Deno.Command("psql", {
   args: [
     `postgresql://postgres:postgres@127.0.0.1:56322/postgres`,
@@ -56,9 +67,9 @@ const database: WeeklyLifecycleDatabase = {
   load: (id) => value(`app.weekly_load_at_v1(${quote(id)},${quote(now)})`),
   commit: (input, decision) =>
     value(
-      `app.weekly_commit_at_v1(${quote(JSON.stringify(input))},${quote(JSON.stringify(decision))},${
-        quote(now)
-      })`,
+      `app.weekly_commit_at_v1(${quote(JSON.stringify(input))},${
+        quote(JSON.stringify(decision))
+      },${quote(now)})`,
     ),
   settle: (id) => value(`public.settle_weekly_simulation_v1(${quote(id)})`),
 };
@@ -84,7 +95,9 @@ try {
   );
   for (let i = 0; i < actors.length; i++) {
     await sql(
-      `insert into auth.sessions(id,user_id) values(${quote(sessions[i]!)},${quote(actors[i]!)});`,
+      `insert into auth.sessions(id,user_id) values(${quote(sessions[i]!)},${
+        quote(actors[i]!)
+      });`,
     );
   }
   await sql(
@@ -97,63 +110,104 @@ try {
  create function pg_temp.join_week(r uuid,c uuid,n timestamptz) returns uuid language sql security definer set search_path='' as $f$select app.weekly_join_at_v1(r,c,(select terms_digest from app.weekly_agreements where id=c),true,'friend',n)$f$;
  create function pg_temp.review_week(r uuid,c uuid,n timestamptz) returns uuid language sql security definer set search_path='' as $f$select app.weekly_file_at_v1(r,c,1,'wrong_total',n)$f$;`,
   );
-  for (const [index, name] of ["noticeID", "reviewID", "finalID"].entries()) {
-    const week = await value<string>(
-      `(date_trunc('week',clock_timestamp() at time zone 'America/Chicago')-interval '${
-        28 + index * 7
-      } days')::date`,
-    );
-    const created = week + "T00:00:00Z";
-    const createdAt = after(created, -7 * 24);
-    const terms = await value<{ endsAt: string; days: { date: string }[] }>(
-      `app.weekly_terms_v1(${
-        quote(
-          JSON.stringify(
-            actors.map((actor_id) => ({ actor_id, target_steps: 70000 })),
-          ),
-        )
-      },${quote(week)},'America/Chicago',${quote(actors[0]!)},${quote(createdAt)})`,
-    );
-    await login(0);
-    const id = await value<string>(
-      `pg_temp.create_week(${quote(crypto.randomUUID())},${quote(JSON.stringify(terms))},${
-        quote(createdAt)
-      })`,
-    );
-    await sql("reset role;");
-    await login(1);
-    await value(
-      `pg_temp.join_week(${quote(crypto.randomUUID())},${quote(id)},${quote(after(createdAt, 1))})`,
-    );
-    await sql("reset role;");
-    for (const actor of actors) {
-      for (const day of terms.days) {
-        await value(
-          `app.weekly_fixture_at_v1(${quote(crypto.randomUUID())},${quote(id)},${quote(actor)},${
-            quote(day.date)
-          },'complete',10000,${quote(after(terms.endsAt, 23))})`,
-        );
-      }
+  if (phase === "finalize") {
+    const id = Deno.args[3]!;
+    const reviewRequest = Deno.args[4]!;
+    const allowed = await value<boolean>(`exists(
+      select 1 from app.weekly_agreements c join app.weekly_cases k on k.challenge_id=c.id
+      where c.id=${
+      quote(id)
+    } and c.mode='friend' and c.status in ('review','final')
+       and c.creator_id=${quote(actors[0]!)} and c.ends_at<clock_timestamp()
+       and k.id=${quote(reviewRequest)} and k.actor_id=${quote(actors[0]!)}
+       and (select array_agg(actor_id order by actor_id) from app.weekly_participants where challenge_id=c.id)
+        =array(select unnest(array[${
+      actors.map(quote).join(",")
+    }]::uuid[]) order by 1)
+    )`);
+    if (!allowed) throw new Error("weekly_seed_finalize_scope_mismatch");
+    now = await value<string>(`(select greatest(
+      (c.terms->>'correctionsCloseAt')::timestamptz,
+      (select max(resolve_by) from app.weekly_notices where challenge_id=c.id)
+    )+interval '1 microsecond' from app.weekly_agreements c where c.id=${
+      quote(id)
+    })`);
+    if (await runWeeklyLifecycle(database, id) !== "final") {
+      throw new Error("weekly_seed_finalize_failed");
     }
-    now = after(terms.endsAt, 24, true);
-    if (await runWeeklyLifecycle(database, id) !== "notice") {
-      throw new Error("weekly_seed_notice_failed");
-    }
-    if (name === "reviewID") {
-      const request = crypto.randomUUID();
+    output.reviewID = id;
+    output.reviewRequestID = reviewRequest;
+    output.phase = "final";
+  } else {
+    for (
+      const [index, name] of ["noticeID", "reviewID", "finalID"].entries()
+    ) {
+      const week = await value<string>(
+        `(date_trunc('week',clock_timestamp() at time zone 'America/Chicago')-interval '${
+          28 + index * 7
+        } days')::date`,
+      );
+      const created = week + "T00:00:00Z";
+      const createdAt = after(created, -7 * 24);
+      const terms = await value<{ endsAt: string; days: { date: string }[] }>(
+        `app.weekly_terms_v1(${
+          quote(
+            JSON.stringify(
+              actors.map((actor_id) => ({ actor_id, target_steps: 70000 })),
+            ),
+          )
+        },${quote(week)},'America/Chicago',${quote(actors[0]!)},${
+          quote(createdAt)
+        })`,
+      );
       await login(0);
-      await value(
-        `pg_temp.review_week(${quote(request)},${quote(id)},${quote(after(terms.endsAt, 25))})`,
+      const id = await value<string>(
+        `pg_temp.create_week(${quote(crypto.randomUUID())},${
+          quote(JSON.stringify(terms))
+        },${quote(createdAt)})`,
       );
       await sql("reset role;");
-      output.reviewRequestID = request;
-      output.reviewNoticeRevision = 1;
+      await login(1);
+      await value(
+        `pg_temp.join_week(${quote(crypto.randomUUID())},${quote(id)},${
+          quote(after(createdAt, 1))
+        })`,
+      );
+      await sql("reset role;");
+      for (const actor of actors) {
+        for (const day of terms.days) {
+          await value(
+            `app.weekly_fixture_at_v1(${quote(crypto.randomUUID())},${
+              quote(id)
+            },${quote(actor)},${quote(day.date)},'complete',10000,${
+              quote(after(terms.endsAt, 23))
+            })`,
+          );
+        }
+      }
+      now = after(terms.endsAt, 24, true);
+      if (await runWeeklyLifecycle(database, id) !== "notice") {
+        throw new Error("weekly_seed_notice_failed");
+      }
+      if (name === "reviewID") {
+        const request = crypto.randomUUID();
+        await login(0);
+        await value(
+          `pg_temp.review_week(${quote(request)},${quote(id)},${
+            quote(after(terms.endsAt, 25))
+          })`,
+        );
+        await sql("reset role;");
+        output.reviewRequestID = request;
+        output.reviewNoticeRevision = 1;
+      }
+      now = after(terms.endsAt, name === "reviewID" ? 25 : 145);
+      const expected = name === "reviewID" ? "review" : "final";
+      if (await runWeeklyLifecycle(database, id) !== expected) {
+        throw new Error("weekly_seed_phase_failed");
+      }
+      output[name] = id;
     }
-    now = after(terms.endsAt, 145);
-    if (await runWeeklyLifecycle(database, id) !== "final") {
-      throw new Error("weekly_seed_final_failed");
-    }
-    output[name] = id;
   }
   await sql(
     `select public.set_weekly_runtime_v1(enabled,fixture_enabled,worker_enabled,actor_ids) from prior_runtime; delete from auth.sessions where id in (${
