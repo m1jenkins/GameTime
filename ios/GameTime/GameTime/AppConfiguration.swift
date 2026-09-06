@@ -58,7 +58,7 @@ struct AppConfiguration: Equatable, Sendable {
     var duelRuntimeEnabled: Bool {
         #if DEBUG || STAGING
         return duelRequested && environment != .release
-            && ["localhost", "127.0.0.1", "::1"].contains(supabaseURL.host ?? "")
+            && SupabaseWeeklyClient.isExplicitLoopback(supabaseURL)
         #else
         return false
         #endif

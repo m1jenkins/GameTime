@@ -282,18 +282,53 @@ final class DuelTests: XCTestCase {
         XCTAssertEqual(calls, 1)
     }
 
-    func testConfigurationIsOptInLocalOnlyAndAlwaysOffInRelease() {
-        for environment in [AppEnvironment.debug, .staging, .release] {
-            for requested in [false, true] {
-                for host in ["127.0.0.1", "project.supabase.co"] {
-                    let config = AppConfiguration(environment: environment,
-                        supabaseURL: URL(string: "http://\(host):54321")!,
-                        supabasePublishableKey: "sb_publishable_fixture", contestMutationsEnabled: true,
-                        duelRequested: requested)
-                    XCTAssertEqual(config.duelRuntimeEnabled, requested && environment != .release && host == "127.0.0.1")
-                }
-            }
+    func testConfigurationRequiresAnExplicitDisposableLoopbackURL() {
+        let supported = [
+            "http://127.0.0.1:54321",
+            "http://localhost:54321/",
+            "http://[::1]:54321",
+        ]
+        for rawURL in supported {
+            let config = AppConfiguration(environment: .debug,
+                supabaseURL: URL(string: rawURL)!,
+                supabasePublishableKey: "sb_publishable_fixture", contestMutationsEnabled: true,
+                duelRequested: true)
+            XCTAssertTrue(config.duelRuntimeEnabled, rawURL)
         }
+
+        let rejected = [
+            "https://localhost:443",
+            "http://127.0.0.1",
+            "http://127.0.0.1:54321/other?x=1",
+            "http://user@127.0.0.1:54321",
+            "http://127.0.0.2:54321",
+            "https://project.supabase.co:443",
+        ]
+        for rawURL in rejected {
+            let config = AppConfiguration(environment: .debug,
+                supabaseURL: URL(string: rawURL)!,
+                supabasePublishableKey: "sb_publishable_fixture", contestMutationsEnabled: true,
+                duelRequested: true)
+            XCTAssertFalse(config.duelRuntimeEnabled, rawURL)
+        }
+
+        let staging = AppConfiguration(environment: .staging,
+            supabaseURL: URL(string: "http://127.0.0.1:54321")!,
+            supabasePublishableKey: "sb_publishable_fixture", contestMutationsEnabled: true,
+            duelRequested: true)
+        XCTAssertTrue(staging.duelRuntimeEnabled)
+
+        let release = AppConfiguration(environment: .release,
+            supabaseURL: URL(string: "http://127.0.0.1:54321")!,
+            supabasePublishableKey: "sb_publishable_fixture", contestMutationsEnabled: true,
+            duelRequested: true)
+        XCTAssertFalse(release.duelRuntimeEnabled)
+
+        let disabled = AppConfiguration(environment: .debug,
+            supabaseURL: URL(string: "http://127.0.0.1:54321")!,
+            supabasePublishableKey: "sb_publishable_fixture", contestMutationsEnabled: true,
+            duelRequested: false)
+        XCTAssertFalse(disabled.duelRuntimeEnabled)
     }
 
     private func creation(_ backend: FixtureDuelBackend) throws -> PendingDuelRequest {
