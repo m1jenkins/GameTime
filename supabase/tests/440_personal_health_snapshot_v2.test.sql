@@ -183,14 +183,17 @@ select matches(
   'the server returns an opaque lowercase SHA-256 terms fingerprint'
 );
 
+-- One captured instant models a completed query. Independent wall-clock reads
+-- can put query_through a microsecond after observed_at and fail intermittently.
 create temporary table t_open_input as
+with observation_clock as materialized (select clock_timestamp() as instant)
 select
   open_challenge.challenge_id,
   app.personal_terms_fingerprint_v2(open_challenge.challenge_id) as fingerprint,
-  clock_timestamp() as observed_at,
-  clock_timestamp() as query_through,
+  observation_clock.instant as observed_at,
+  observation_clock.instant as query_through,
   app.personal_zero_daily_progress_v2(open_challenge.challenge_id) as daily_progress
-from t_open open_challenge;
+from t_open open_challenge cross join observation_clock;
 
 grant select on t_open, t_open_input to authenticated;
 
