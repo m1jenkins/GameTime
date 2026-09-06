@@ -58,9 +58,10 @@ the portable comparison helper rejects cross-account/window and older captures.
   and downward corrections can remove an earlier provisional success. A later
   slower run does not remove an earlier run still present in the snapshot.
 - Explicit manual/imported fixture records do not qualify. Unknown provenance,
-  unknown Exercise lineage, duplicate origin IDs, overlapping eligible records,
-  partial capture, query failure and source loss prevent a miss. Real clients
-  cannot supply the fictional `closed_world` premise; no real ingestion exists.
+  unknown Exercise lineage, unknown fixture capture, duplicate origin IDs,
+  overlapping eligible records, partial capture, query failure and source loss
+  prevent a miss. Real clients cannot supply the fictional `closed_world` premise;
+  no real ingestion exists.
   Even in fixtures a snapshot taken before activity ends cannot assert that
   the future contains no further activity.
 - Upload/correction cutoff is exclusive: an observation at equality is refused.
@@ -153,7 +154,7 @@ Commands from repository root unless a directory is indicated:
 
 | Check | Result |
 | --- | --- |
-| `cd supabase/functions && deno test _shared/weekly-metric-fixtures.test.ts` | Passed: 20 tests, including units, source/terms binding, manual/imported/unknown data, correction/deletion, duplicates/overlaps, cutoff microseconds, DST/travel, chosen distance/tolerance, strict/inclusive elapsed time, exclusive finish, longer windows and replay |
+| `cd supabase/functions && deno test _shared/weekly-metric-fixtures.test.ts` | Passed: 22 tests, including units, source/terms binding, manual/imported/unknown data, unknown captures across all three metrics, correction/deletion, duplicates/overlaps, cutoff microseconds, DST/travel, chosen distance/tolerance, strict/inclusive elapsed time, exclusive finish, longer windows and replay |
 | `cd supabase/functions && deno lint _shared/weekly-metric-fixtures.ts _shared/weekly-metric-fixtures.test.ts` | Passed |
 | `cd supabase/functions && deno fmt --check _shared/weekly-metric-fixtures.ts _shared/weekly-metric-fixtures.test.ts && deno check _shared/weekly-metric-fixtures.ts` | Passed |
 | `cd ios/GameTimeCore && swift test --filter WeeklySourceFeasibilityTests --scratch-path /tmp/gametime-weekly-source-swift` | Passed: 10 source-diagnostic tests, including instantaneous Health quantities |

@@ -161,6 +161,47 @@ Deno.test("new metric fixtures: missing, partial, revoked and failed data never 
   }
 });
 
+Deno.test("new metric fixtures: unknown captures never qualify exact or above-target observations", () => {
+  for (const terms of [exercise(), cumulative()]) {
+    for (const value of [terms.target, terms.target + 1]) {
+      const input = {
+        ...revision(terms, [record(terms, value)]),
+        fixture_capture: "unknown" as const,
+      };
+      const result = evaluate(terms, [input]);
+      assertEquals(result.qualification, "unresolved");
+      assertEquals(result.final, false);
+      assertEquals(result.real_source_available, false);
+    }
+  }
+
+  for (const comparator of ["lt", "lte"] as const) {
+    const terms = { ...timed(), comparator, long_tolerance_millimeters: 1 };
+    const input = {
+      ...revision(terms, [record(terms, terms.target + 1)]),
+      fixture_capture: "unknown" as const,
+    };
+    const result = evaluate(terms, [input]);
+    assertEquals(result.qualification, "unresolved");
+    assertEquals(result.final, false);
+    assertEquals(result.real_source_available, false);
+  }
+});
+
+Deno.test("new metric fixtures: latest unknown capture supersedes earlier met evidence", () => {
+  const terms = cumulative();
+  const met = revision(terms, [record(terms, terms.target)]);
+  const unknown = {
+    ...revision(terms, [record(terms, terms.target + 1)]),
+    revision: 2,
+    supersedes_revision: 1,
+    recorded_at: "2026-09-14T06:00:00Z",
+    fixture_capture: "unknown" as const,
+  };
+  assertEquals(evaluate(terms, [met]).qualification, "met");
+  assertEquals(evaluate(terms, [met, unknown]).qualification, "unresolved");
+});
+
 Deno.test("new metric fixtures: a zero is distinct from no capture; only fictional closed set can miss", () => {
   const terms = exercise();
   assertEquals(

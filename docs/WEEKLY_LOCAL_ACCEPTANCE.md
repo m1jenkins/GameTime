@@ -42,7 +42,7 @@ the committed branch.
 | Check | Executed evidence |
 | --- | --- |
 | W1A focused pure policy | 162 tests passed; [dated evidence](WEEKLY_STEPS_POLICY_V1_ACCEPTANCE.md) |
-| Source/metric prototypes | 20 Deno and 10 Swift tests, Debug build and one Simulator default-off probe test covering all three metrics passed; [source evidence](WEEKLY_SOURCE_METRICS_ACCEPTANCE.md) |
+| Source/metric prototypes | 22 Deno and 10 Swift tests, Debug build and one Simulator default-off probe test covering all three metrics passed; [source evidence](WEEKLY_SOURCE_METRICS_ACCEPTANCE.md) |
 | Full current Deno functions | Format, lint, type check and 833 tests passed in the clean disposable replay |
 | Existing portable Swift core including source diagnostic | `swift build && swift test`: 113 tests across 10 suites passed; `/tmp/gametime-weekly-core-regression.log` |
 | Weekly focused pgTAP | 143 assertions passed: lifecycle 77, blocking-race 25, sharing/expiry 41; final clean replay incorporates the five absence/zero completeness regressions |

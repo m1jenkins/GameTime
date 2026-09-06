@@ -379,7 +379,7 @@ export function evaluateMetricFixture(input: {
       revision.state === "usable" || revision.state === "partial" || revision.records.length === 0,
       "unusable_query_has_records",
     );
-    let uncertain = revision.state !== "usable";
+    let uncertain = revision.state !== "usable" || revision.fixture_capture !== "closed_world";
     const ids = new Set<string>();
     const origins = new Set<string>();
     const eligible: MetricFixtureRecord[] = [];
