@@ -103,6 +103,9 @@ Exact saved requests recover before changed admission/cutoff checks; changed
 payload reuse fails. Leaving freezes new observations and remains possible
 after admission turns off. There are no asynchronous transport responses or
 shared-progress reads in this prototype.
+If the phone clock moves backward, leaving still succeeds: the private exit
+record uses a logical timestamp no earlier than consent or the last saved
+update. That timestamp never becomes a scoring clock or a final result.
 
 Resource limits are three open records, 50 retained agreements, 100 revisions
 per agreement, 1,024 ordinary request receipts and a bounded two-MiB file.
@@ -155,7 +158,7 @@ Commands from repository root unless a directory is indicated:
 | `cd ios/GameTimeCore && swift test --filter WeeklySourceFeasibilityTests --scratch-path /tmp/gametime-weekly-source-swift` | Passed: 10 source-diagnostic tests, including instantaneous Health quantities |
 | Debug iOS Simulator build including the unwired probe | Passed on Xcode 27.0 SDK; log `/tmp/gametime-weekly-source-build.log` |
 | `WeeklyHealthSourceProbeTests.testDefaultProbeCannotReadHealthOrRequestPermission` | Passed on iPhone 17 Pro / iOS 26.5 Simulator: one test covering all three metrics; log `/tmp/gametime-weekly-source-test.log` |
-| `MetricPrototypeTests` | Passed: 13 Simulator tests for units, strict timing, DST Exercise contract, consent/terms binding, exact durable replay, downward/missing observations, cutoff equality, actor switch/deletion, corrupt storage, safe exit, full request capacity and actual native contract export; log `/tmp/gametime-metric-prototype-test.log`, result `Test-GameTime-2026.09.06_01-37-46--0500.xcresult` |
+| `MetricPrototypeTests` | Passed: 14 Simulator tests after adding backward-phone-clock safe exit; includes units, strict timing, DST Exercise contract, consent/terms binding, exact durable replay, downward/missing observations, cutoff equality, actor switch/deletion, corrupt storage, safe exit, full request capacity and actual native contract export. Lead ran the final native regression; the earlier 13-test bridge run is `/tmp/gametime-metric-prototype-test.log`, result `Test-GameTime-2026.09.06_01-37-46--0500.xcresult`. |
 | `scripts/metric-native-bridge.ts` | Passed format/lint/type checks and execution against the exported actual native XCTest attachment: cumulative, strict/inclusive true-mile timed distance and typed Exercise DST terms are byte-exact with the sole TypeScript validator, and absent observations yield unresolved/nonfinal/unavailable results in all four cases |
 | Full portable/historical and coordinated app regression gates | Lead integration owns the final run and records it in the roadmap delivery acceptance |
 

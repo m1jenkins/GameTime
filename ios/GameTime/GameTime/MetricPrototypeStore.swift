@@ -130,11 +130,13 @@ final class MetricPrototypeStore {
             guard notebook.receipts.count < 1_024 || notebook.agreements[index].exitedAt == nil
             else { throw MetricPrototypeError.capacity }
             usesReservedExitSpace = notebook.agreements[index].exitedAt == nil
-            guard instant >= notebook.agreements[index].consentAt,
-                notebook.agreements[index].proofs.last.map({ instant >= $0.recordedAt }) ?? true
-            else { throw MetricPrototypeError.closed }
             // Leaving remains possible after the fixture admission switch is off.
-            if notebook.agreements[index].exitedAt == nil { notebook.agreements[index].exitedAt = instant }
+            // A backward phone-clock change cannot prevent a safe exit. This is
+            // a local logical timestamp, never an authoritative scoring clock.
+            if notebook.agreements[index].exitedAt == nil {
+                let last = notebook.agreements[index].proofs.last?.recordedAt ?? notebook.agreements[index].consentAt
+                notebook.agreements[index].exitedAt = max(instant, last)
+            }
             agreementID = id
         }
         notebook.receipts.append(Receipt(requestID: requestID, command: command, agreementID: agreementID))

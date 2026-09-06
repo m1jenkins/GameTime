@@ -207,4 +207,20 @@ import XCTest
         add(attachment)
         XCTAssertEqual(cases.count, 4)
     }
+
+    func testBackwardPhoneClockCannotBlockSafeExit() throws {
+        let root = directory(); defer { try? FileManager.default.removeItem(at: root) }
+        var clock = created.date
+        let store = MetricPrototypeStore(enabled: true, directory: root, now: { clock }); store.setActor(actor)
+        let terms = try draft(), id = try store.create(draft: terms, consent: true, requestID: UUID())
+        clock = terms.endsAt.date
+        try store.appendProof(agreementID: id, draft: observed(terms, value: 1), requestID: UUID())
+        clock = created.date.addingTimeInterval(-86_400)
+        let gateOff = MetricPrototypeStore(directory: root, now: { clock }); gateOff.setActor(actor)
+        try gateOff.exit(agreementID: id, requestID: UUID())
+        XCTAssertEqual(gateOff.agreements[0].exitedAt, gateOff.agreements[0].proofs.last?.recordedAt)
+        try gateOff.refresh()
+        XCTAssertNotNil(gateOff.agreements[0].exitedAt)
+        XCTAssertFalse(gateOff.agreements[0].final)
+    }
 }
