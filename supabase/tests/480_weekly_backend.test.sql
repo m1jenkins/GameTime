@@ -1,6 +1,6 @@
 begin;
 select no_plan();
-\ir ../../scripts/examples/weekly-fixture.sql
+\ir fixtures/weekly-fixture.inc
 select ok(not has_table_privilege('authenticated','app.weekly_agreements','select'),'no direct agreement table reads');
 select ok(not has_table_privilege('service_role','app.weekly_revisions','insert'),'service writes need guarded RPC');
 select ok(not has_function_privilege('authenticated','public.capture_weekly_fixture_v1(uuid,uuid,uuid,date,text,integer)','execute'),'client cannot assert fixture completeness');

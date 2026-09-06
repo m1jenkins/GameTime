@@ -1,5 +1,5 @@
 /** Rollback-only persisted weekly fixtures -> real evaluator -> optimistic worker.
- * deno run --allow-run=psql --allow-read=scripts/examples scripts/weekly-lifecycle-local-smoke.ts 56322
+ * deno run --allow-run=psql --allow-read=supabase/tests/fixtures scripts/weekly-lifecycle-local-smoke.ts 56322
  */
 import {
   evaluateWeeklyLifecycle,
@@ -80,7 +80,11 @@ async function tick(id: string, t: string, expected: string) {
 }
 try {
   await sql("begin;");
-  await sql(await Deno.readTextFile(new URL("./examples/weekly-fixture.sql", import.meta.url)));
+  await sql(
+    await Deno.readTextFile(
+      new URL("../supabase/tests/fixtures/weekly-fixture.inc", import.meta.url),
+    ),
+  );
   const pair = await value<string>("pg_temp.make_friend(1,2)");
   await value(`pg_temp.capture(${quote(pair)},10000)`);
   await tick(pair, "2026-09-15T05:00:00.000001Z", "notice");

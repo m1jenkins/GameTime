@@ -155,7 +155,7 @@ psql "$WEEKLY_DISPOSABLE_DB_URL" -X -v ON_ERROR_STOP=1 \
 deno test --config supabase/functions/deno.json \
   supabase/functions/_shared/weekly-lifecycle.test.ts
 deno run --config supabase/functions/deno.json --allow-run=psql \
-  --allow-read=scripts/examples scripts/weekly-lifecycle-local-smoke.ts 56322
+  --allow-read=supabase/tests/fixtures scripts/weekly-lifecycle-local-smoke.ts 56322
 ```
 
 The operational runner is explicit-ID and loopback-only, performs no discovery
@@ -221,3 +221,8 @@ returns, restores the caller's gate settings and revokes its temporary sessions.
 It returns IDs for native authenticated HTTP history decoding and an exact saved
 review-request replay. These historical fixtures are settled to preserve the
 bounded pending-entry capacity of the native two/five/community flow.
+
+The shared rollback fixture is canonical at `supabase/tests/fixtures/weekly-fixture.inc`.
+Both pgTAP includes and the persisted Deno smoke read that one file. Its non-test
+extension prevents pg_prove from treating setup as a separate test, and keeping it
+inside the test tree makes it available to the Supabase CLI database test runner.

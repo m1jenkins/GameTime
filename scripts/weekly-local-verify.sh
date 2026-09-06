@@ -19,7 +19,7 @@ for tool in git docker supabase psql deno swift python3; do
   command -v "$tool" >/dev/null || { echo "missing required tool: $tool" >&2; exit 1; }
 done
 source_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
-if ! git -C "$source_root" diff --quiet HEAD -- supabase scripts ios/GameTimeCore; then
+if ! git -C "$source_root" diff --quiet HEAD -- supabase scripts ios/GameTimeCore ios/GameTime/GameTimeTests/Fixtures; then
   echo "Commit the portable test inputs before running a reproducible verification." >&2
   exit 1
 fi
@@ -51,7 +51,7 @@ for port in range(base, base + 10):
 tracked = subprocess.check_output(['git', 'ls-files', '-z'], cwd=source).decode().split('\0')
 manifest = []
 for rel in tracked:
-    if not rel.startswith(('supabase/', 'scripts/', 'ios/GameTimeCore/')):
+    if not rel.startswith(('supabase/', 'scripts/', 'ios/GameTimeCore/', 'ios/GameTime/GameTimeTests/Fixtures/')):
         continue
     original = source / rel
     if original.is_symlink() or not original.is_file():
@@ -101,7 +101,7 @@ if ! ./scripts/test-all.sh >portable.log 2>&1; then
 fi
 tail -n 12 portable.log
 if ! deno run --config supabase/functions/deno.json --allow-run=psql \
-  --allow-read=scripts/examples scripts/weekly-lifecycle-local-smoke.ts \
+  --allow-read=supabase/tests/fixtures scripts/weekly-lifecycle-local-smoke.ts \
   "$((port_base + 2))" >lifecycle.log 2>&1; then
   tail -n 100 lifecycle.log >&2
   exit 1

@@ -44,7 +44,7 @@ jobs:
       - name: Rehearse persisted weekly lifecycle
         run: |
           deno run --config supabase/functions/deno.json \
-            --allow-run=psql --allow-read=scripts/examples \
+            --allow-run=psql --allow-read=supabase/tests/fixtures \
             scripts/weekly-lifecycle-local-smoke.ts 54322
 
       - name: Stop Supabase

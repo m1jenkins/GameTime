@@ -1,6 +1,6 @@
 begin;
 select no_plan();
-\ir ../../scripts/examples/weekly-fixture.sql
+\ir fixtures/weekly-fixture.inc
 insert into weekly_test_ids values('group',pg_temp.make_friend(1,2));
 select pg_temp.login(3);
 select is(public.list_shared_weekly_progress_v1(),'[]'::jsonb,'friendship alone never shares progress');
