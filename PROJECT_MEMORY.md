@@ -1,5 +1,36 @@
 # GameTime project memory
 
+## Local weekly implementation execution — September 6, 2026
+
+The owner expanded execution to all feasible local W1–W4 work, starting with
+W1A and proceeding in dependency order. The historical W1A-only prompt below
+is superseded; completed earlier phases are preserved and organizer-event
+nomination UI remains paused. Implementation uses an isolated clone/branch,
+leaving the original dirty checkout and its local Supabase stack untouched.
+
+Separate fictional weekly policy, backend/native integration, disabled Health
+source probes and distinct Exercise/cumulative-distance/timed-distance fixtures
+are tracked in [WEEKLY_EXECUTION.md](docs/WEEKLY_EXECUTION.md).
+[WEEKLY_LOCAL_ACCEPTANCE.md](docs/WEEKLY_LOCAL_ACCEPTANCE.md) is the authoritative
+current checklist of executed tests and remaining gates; historical counts
+below are not automatically rerun evidence. Independent review findings must
+close with specific regression proof before local acceptance is recorded.
+
+D133 records reversible fixture choices. Five total including creator remains
+an assumption; a common community target describes individual completion, and
+its numeric value is not selected for launch. Missing data never proves failure.
+No real Health source, human accessibility pass, provider/legal clearance or
+actual pilot has been established. Source-dependent metric selection, push and
+funded capability remain disabled. Delivery is a draft PR without merging.
+
+Fresh disposable verification passed 3,576 SQL assertions across 72 files, 833
+TypeScript tests, 113 Swift core tests and the actual persisted lifecycle smoke.
+Authenticated native HTTP and all 50 legacy UI tests passed. The local acceptance
+record owns final native counts, artifacts, review findings and remaining gates.
+The next work is evidence collection under separate physical/human/pilot
+authorization, followed by the applicable source admission decisions; completed
+local W1A and historical phases must not be restarted as the next task.
+
 ## Beta friend capacity and community goal — September 6, 2026
 
 The owner requested beta friend challenges supporting **up to five friends**
