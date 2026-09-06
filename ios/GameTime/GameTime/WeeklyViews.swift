@@ -68,8 +68,7 @@ struct WeeklyHomeView: View {
         .task(id: store.actorID) { await store.refresh() }
         .onChange(of: store.actorID) { _, _ in creation = nil }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await store.refresh() } }
-            else { store.setActor(model.userID); creation = nil }
+            if phase != .active { creation = nil }
         }
         .sheet(item: $creation) { _ in WeeklyCreationView() }
     }

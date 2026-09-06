@@ -59,22 +59,25 @@ provider object, charge, transfer, external settlement, or prize of value.
 
 This order incorporates the weekly-challenge discussion and supersedes the old
 organizer-first dependency chain. The owner subsequently authorized all feasible
-local W1–W4 implementation, beginning with W1A. Separate fictional weekly
-contracts, local lifecycle/native work and source/metric prototypes are now
-implemented and locally verified within their fictional boundaries as recorded below. No full stage
-is accepted while its required device, human or pilot checks remain missing.
+local W1–W4 implementation, beginning with W1A. W1A is implemented and locally
+accepted as fictional policy logic. The fictional W1B/W2A backend and opt-in
+W1C/W2B native journeys are implemented and locally verified. W3 and W4 have
+fixture/prototype contracts only. Physical source validation, human accessibility/
+comprehension, a real pilot, hosted operation, notifications and funded operation
+remain unaccepted. No full stage is accepted while its required checks are missing.
 Completed slices of Phases 0–3 and their tests remain implementation history. Unfinished
 organizer nomination screens are paused as the default next task.
 
 | Order | Deliverable and dependency | Exit requirement |
 | --- | --- | --- |
 | Completed | Agreement comprehension and dormant push cleanup | Preserve the [existing engagement changes](docs/RESPONSIBLE_ENGAGEMENT_ACCEPTANCE.md), consent, full rules and disabled push. |
-| W1A — implemented | Pure fictional weekly-steps rule model, qualification evaluator and fixtures | 2–5 participants total (working interpretation of the beta cap), individual agreed cumulative targets, seven frozen calendar dates, explicit incomplete data and deterministic decisions. No operational finality or money ledger. |
-| W1B | Validate the actual step source; add separate local weekly agreements, observations, lifecycle/review and simulated outcomes | Physical-source evidence is separate from fictional tests. Exact consent/retries, privacy, corrections and weekly overlap are verified. No old-policy changes. |
-| W1C | Opt-in native friend weekly challenge, progress, results/review and deliberate next-week invitation | Two- and five-participant local acceptance, frozen roster and capacity, clear terms, recoverable requests, account isolation, exits, accessibility and source freshness. |
-| W2A–B | Owner-selected single official weekly steps community cohort: one common target, enrollment, multi-person simulation, native join and descriptive pilot | Solo joiners can participate; everyone individually works toward the same published step target, no financial leaderboard, all/none/some-winner handling and privacy. Rollout clearance remains separate. |
-| W3 | Separate Apple Watch Exercise-minute policy and adapter, then native support | Manual/imported ring credit and source lineage validated on devices; no workout-duration substitution. Source research may run earlier. |
-| W4 | Participant-selected cumulative distance and timed-distance policies; relevant longer-goal progress/following | Each format has its own units, proof and comparison rules. No mandatory 5K or organizer catalog; no relabeling old agreements. |
+| W1A — implemented; locally accepted as fictional policy | Pure fictional weekly-steps rule model, qualification evaluator and fixtures | 2–5 participants total (working interpretation of the beta cap), individual agreed cumulative targets, seven frozen calendar dates, explicit incomplete data and deterministic decisions. No operational finality or money ledger. |
+| W1B source — unaccepted; current next investigation | Validate the actual steps source through the authorized physical iPhone/Watch Debug matrix | Record performed observations only. Completeness and trustworthy miss handling remain unresolved; real weekly scoring stays disabled. |
+| W1B backend — implemented and locally verified | Separate fictional local weekly agreements, observations, lifecycle/review and simulated outcomes | Exact consent/retries, privacy, corrections and weekly overlap are verified within the fictional boundary. No old-policy changes. |
+| W1C — implemented and locally verified | Opt-in native friend weekly challenge, progress, results/review and deliberate next-week invitation | Two- and five-participant local checks cover frozen roster/capacity, terms, recovery, account isolation and exits. Physical-source and human accessibility/comprehension acceptance remain open. |
+| W2A–B — fictional backend/native implemented and locally verified | One common fixture target, enrollment, multi-person simulation and opt-in native join | Solo join, individual pursuit of the same target, all/none/some-winner handling and privacy passed local checks. No numeric launch target is approved; the descriptive pilot and rollout remain unaccepted. |
+| W3 — fixture/prototype contracts only | Separate Exercise-minute source and metric contracts | Real-source/native expansion requires device validation of manual/imported ring credit and source lineage. No workout-duration substitution. |
+| W4 — fixture/prototype contracts only | Separate cumulative/timed-distance policies and a private native fixture notebook | Real-source, shared lifecycle and relevant following acceptance remain separate. Each format has its own units, proof and comparison rules. No mandatory 5K, organizer catalog or relabeling old agreements. |
 
 Full contracts and acceptance matrices are in
 [the weekly specification](docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md).
@@ -558,9 +561,9 @@ flow transparently. Do not deploy a workaround or convert existing agreements.
 
 | Decision | Recommended next action / owner | Blocks |
 | --- | --- | --- |
-| Weekly steps source and confirmed-miss rule | W1A uses fiction; W1B validates source identity, merging, corrections and incomplete-data handling on devices | Real-source weekly admission; not pure fixture work |
-| Community scope, target fairness and pool rules | W2A selects the shared numeric weekly target and tests identical terms, minimum/capacity, all/none/some-winner and unallocated simulation rules | Community pilot; not W1 friend steps |
-| Weekly deadlines and participation limits | W1B freezes full review windows and bounded future-week admission; Phase 6 includes pending prior weeks in exposure | Weekly lifecycle and later money |
+| Weekly steps source and confirmed-miss rule | W1A fictional logic is locally accepted; next execute the authorized physical Debug matrix for source identity, merging, corrections and incomplete-data handling | Real-source weekly admission and scoring |
+| Community scope, target fairness and pool rules | W2A locally verifies identical fixture terms, minimum/capacity, all/none/some-winner and unallocated simulation rules; select a launch target only with separate supporting evidence | Community pilot and launch; not completed fictional backend work |
+| Weekly deadlines and participation limits | W1B locally verifies frozen full review windows and bounded future-week admission; later funded policy must select limits and include pending prior weeks in exposure | Funded operation; fictional lifecycle is locally verified |
 | Garmin access and permitted use | Owner authorizes application; engineering validates approved fields and source lineage | Phase 4B |
 | Asynchronous distance tolerance and proof of miss | Engineering + reviewer field trials; freeze policy after evidence | Async contests and all cash based on that source |
 | Configurable-distance format, course variation and handicaps | W4 separates accumulated distance from timed attempts; validate chosen distance without a fixed-5K prerequisite | Distance expansion; not weekly steps |
@@ -595,13 +598,29 @@ references, not implementation proof or new product constraints.
 
 ## Current next implementation task
 
-Continue from the [verified local status and remaining gates](docs/WEEKLY_LOCAL_ACCEPTANCE.md),
-not from the historical W1A-only prompt. Complete any pending local acceptance
-before claiming a slice accepted. The exact next external work is a recorded
-physical-device source matrix, human accessibility/comprehension checks and a
-separately authorized two-round pilot. Source-dependent metric selection,
-external reminders and funded admission remain disabled until their own gates
-are satisfied. Organizer-event nomination screens remain paused.
+The owner has authorized reconciling and merging
+[PR 17](https://github.com/m1jenkins/GameTime/pull/17) after its required checks
+pass, preserving useful commits and acceptance records. After merging, create a
+focused branch for physical-device weekly steps-source acceptance. Do not add
+more fictional backend breadth or restart the completed W1A slice.
+
+Turn `WeeklyHealthSourceProbe` into an easy-to-find, visibly identified local
+Debug investigation for an explicitly opted-in physical iPhone and paired Watch.
+Exclude it from Release and disconnect it from challenge scoring, uploads,
+telemetry and logs; raw Health records stay private on-device. Build and install
+on the owner's connected iPhone if tooling permits. Stop for human walking,
+Watch use, Health edits and permission changes. Record only actual observations
+against [the existing matrix](docs/WEEKLY_SOURCE_METRICS_ACCEPTANCE.md), including
+account/window isolation and frozen timezone/DST behavior. A successful query or
+Simulator test cannot establish source completeness or a trustworthy miss. Keep
+real weekly scoring disabled unless those decisions have adequate evidence.
+
+VoiceOver, Dynamic Type, comprehension and voluntary-exit testing are the next
+native acceptance work after or alongside source investigation. The proposed
+20–30-person, two-round pilot needs separate authorization; do not recruit or
+start it. Hosted operation, notifications and funded admission remain disabled
+and unaccepted. Organizer-event nomination screens remain paused. The
+[local acceptance record](docs/WEEKLY_LOCAL_ACCEPTANCE.md) owns exact evidence.
 
 ## Historical Phase 1A implementation prompt — already completed
 

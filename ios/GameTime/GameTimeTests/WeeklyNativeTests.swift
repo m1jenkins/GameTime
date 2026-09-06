@@ -110,6 +110,32 @@ import XCTest
         reply.resume(returning: [row]); await pending.value
         XCTAssertTrue(store.challenges.isEmpty); XCTAssertNil(store.previewed); XCTAssertNil(store.preferences)
     }
+    func testShellLifecycleRefreshesOnceAfterBackgroundAndPreservesInactiveContent() async throws {
+        let row = try weeklyFixture()
+        let client = WeeklyTestClient(row)
+        let auth = WeeklyTestAuth(row.own.actorID)
+        let store = makeStore(auth, client)
+        store.setActor(auth.actor)
+        await store.refresh()
+        var gate = AppShellForegroundRefreshGate()
+
+        XCTAssertEqual(client.listCalls, 1)
+        XCTAssertEqual(store.challenges.map(\.id), [row.id])
+        XCTAssertFalse(gate.shouldRefresh(after: .active))
+        XCTAssertFalse(gate.shouldRefresh(after: .inactive))
+        XCTAssertEqual(store.challenges.map(\.id), [row.id])
+        XCTAssertFalse(gate.shouldRefresh(after: .active))
+        XCTAssertEqual(client.listCalls, 1)
+
+        store.setActor(auth.actor)
+        XCTAssertFalse(gate.shouldRefresh(after: .background))
+        XCTAssertTrue(store.challenges.isEmpty)
+        if gate.shouldRefresh(after: .active) { await store.refresh() }
+        XCTAssertEqual(client.listCalls, 2)
+        XCTAssertEqual(store.challenges.map(\.id), [row.id])
+        XCTAssertFalse(gate.shouldRefresh(after: .active))
+        XCTAssertEqual(client.listCalls, 2)
+    }
     func testUncertainNoCommitRequestCanBeRetiredWithoutBlockingSafeExit() async throws {
         let row = try weeklyFixture(), client = WeeklyTestClient(try weeklyFixture()), auth = WeeklyTestAuth(try weeklyFixture().own.actorID)
         let queue = EphemeralPendingWeeklyRequestStore()
@@ -306,6 +332,7 @@ func weeklyFixture(_ change: ((inout [String: Any]) -> Void)? = nil) throws -> W
     var holdPreview = false
     var previewContinuation: CheckedContinuation<WeeklyPreview, any Error>?
     var submitted = 0
+    var listCalls = 0
     var submitSucceeds = false
     var holdStudy = false
     var studyContinuation: CheckedContinuation<Void, any Error>?
@@ -326,6 +353,7 @@ func weeklyFixture(_ change: ((inout [String: Any]) -> Void)? = nil) throws -> W
         throw WeeklyClientError.unavailable
     }
     func list(actorID: UUID) async throws -> [WeeklyChallenge] {
+        listCalls += 1
         if let failure { throw failure }
         if hold { return try await withCheckedThrowingContinuation { continuation = $0 } }
         return [row]
