@@ -2,7 +2,7 @@
 
 Recorded September 6, 2026. This is local implementation evidence for the W1B
 source prototype and independent W3/W4 rule prototypes. It is **not acceptance
-of a physical source, a selectable Exercise/distance mode, or the full W3/W4
+of a physical source, a selectable real Exercise/distance mode, or the full W3/W4
 stage**. Historical Personal, Solo, charity and fictional official-5K contracts
 and their acceptance records are unchanged.
 
@@ -13,6 +13,7 @@ and their acceptance records are unchanged.
 | `WeeklySourceFeasibility.swift` | Account/window-bound raw-record diagnosis; exact UUID deduplication, conflicting identity rejection, overlaps/reimports, manual versus absent marker, lost visibility, late arrivals and bounded captures | Always reports no qualifying total, no source admission and no confirmed-miss support. It never adds raw overlapping device totals. |
 | `WeeklyHealthSourceProbe.swift` | Dedicated, unwired Debug/Staging read helper for step count, Apple Exercise time or running workouts; explicit opt-in defaults false; separate explicit permission request; at most 5,001 records read with 5,000 retained and truncation disclosed | No product route calls it. Release excludes it. No observer, upload, scheduler, cache, new app entitlement or change to existing permissions. Query success/empty results do not disclose read authorization. |
 | `weekly-metric-fixtures.ts` | Separate exact-consent and observation binding; pure Exercise-minute, cumulative running-distance and whole-run timed-distance evaluation; injected microsecond clock; replacement corrections; fictional closed-set versus unknown data | No ingestion, migration, agreement persistence, worker, final result, allocation or payment. The literal fixture sources are the only accepted sources; never expose this evaluator as a client upload API. |
+| `MetricPrototypeModels/Store/View.swift` | Separate `metric-prototype-agreement-v1` and actor-bound `metric-prototype-notebook-v1`; durable frozen consent and exact request replay; private replacement observations; chosen cumulative or whole-run timed distance; explicit default-off fixture entry | On-device fictional notebook only. No Health connection, social following, upload, payout, native scoring, notice/review process or final result. Typed Exercise contracts are tested but not offered in the selector. |
 
 The default Personal query remains `HKStatisticsQuery` with `cumulativeSum` over
 compatible writers, excluding only explicit `HKMetadataKeyWasUserEntered == true`.
@@ -76,6 +77,53 @@ integer observation/target limits and a one-day elapsed-target ceiling. They
 are resource/validation choices, not recommended health goals, launch targets,
 review deadlines, distance accuracy claims or approved commercial limits.
 
+## Native private distance practice
+
+The separate opt-in Debug/Staging prototype lets a person choose a distance in
+meters, kilometers or true miles and a window. Timed records also freeze a time
+limit in seconds, strict or inclusive comparison, full elapsed time including
+pauses, whole-run proof and explicit fictional zero distance tolerances. No
+distance is prefilled or required. The review displays the exact distance in
+readable meters, exact decimal seconds and dates in the frozen timezone.
+
+Agreement consent precedes the activity start. Every replacement observation
+binds the complete frozen terms; missing, unavailable and lower observations
+are supported. Revision timestamps must increase strictly, and new observations
+are rejected at correction-cutoff equality. The local correction period is an
+explicit 48-hour prototype value. This notebook always displays **unresolved,
+not evaluated**; recording a high number does not score a goal. Only serialized
+terms are handed to the sole TypeScript evaluator in a dedicated test artifact;
+native observations have no implicit mapping to trusted fixture captures.
+
+The notebook uses actor-named, backup-excluded files with complete file
+protection and atomic writes. Signout clears visible state; reopening restores
+only the same actor's notebook. Trusted account cleanup removes that actor's
+file even after signout or with the feature disabled and fences later writes.
+Exact saved requests recover before changed admission/cutoff checks; changed
+payload reuse fails. Leaving freezes new observations and remains possible
+after admission turns off. There are no asynchronous transport responses or
+shared-progress reads in this prototype.
+
+Resource limits are three open records, 50 retained agreements, 100 revisions
+per agreement, 1,024 ordinary request receipts and a bounded two-MiB file.
+Reserved receipt slots and 64 KiB of reserved file space preserve a first exit
+for every retained agreement when ordinary capacity is exhausted. These are
+local resource bounds, not launch exposure or engagement policy.
+
+### Separate lead review of the native prototype
+
+The lead independently identified and the source author corrected:
+
+| Finding | Correction and evidence |
+| --- | --- |
+| MP1: ordinary request capacity could block a safe exit | First-exit receipt/byte reserves now remain available after capacity and admission shutdown. `testFullRequestCapacityStillAllowsFirstExitWithGateOff` passed after filling all 1,024 ordinary receipt slots and recovering the exact exit. The final 13-test run includes the byte-reserve implementation. |
+| MP2: raw internal units/ISO dates obscured the agreement, and capacity copy implied leaving always frees retained storage | Rules now show readable exact meter/second values and local dates; copy promises only reading history and leaving. Precision assertions cover 1,609.344 meters and 600.000001 seconds. |
+| MP3: equal revision timestamps differed from the TypeScript contract | New revisions require strictly increasing instants; exact retries still recover. An equal-timestamp rejection regression passed. Native observations remain an explicitly separate unresolved notebook contract. |
+
+This is the lead's review of the source author's work, not a self-authored
+independent-review verdict. No human comprehension or accessibility outcome is
+claimed by the automated tests.
+
 ## Source findings from current official documentation
 
 Reviewed September 6, 2026; these are documentation facts and implementation
@@ -107,6 +155,8 @@ Commands from repository root unless a directory is indicated:
 | `cd ios/GameTimeCore && swift test --filter WeeklySourceFeasibilityTests --scratch-path /tmp/gametime-weekly-source-swift` | Passed: 10 source-diagnostic tests, including instantaneous Health quantities |
 | Debug iOS Simulator build including the unwired probe | Passed on Xcode 27.0 SDK; log `/tmp/gametime-weekly-source-build.log` |
 | `WeeklyHealthSourceProbeTests.testDefaultProbeCannotReadHealthOrRequestPermission` | Passed on iPhone 17 Pro / iOS 26.5 Simulator: one test covering all three metrics; log `/tmp/gametime-weekly-source-test.log` |
+| `MetricPrototypeTests` | Passed: 13 Simulator tests for units, strict timing, DST Exercise contract, consent/terms binding, exact durable replay, downward/missing observations, cutoff equality, actor switch/deletion, corrupt storage, safe exit, full request capacity and actual native contract export; log `/tmp/gametime-metric-prototype-test.log`, result `Test-GameTime-2026.09.06_01-37-46--0500.xcresult` |
+| `scripts/metric-native-bridge.ts` | Passed format/lint/type checks and execution against the exported actual native XCTest attachment: cumulative, strict/inclusive true-mile timed distance and typed Exercise DST terms are byte-exact with the sole TypeScript validator, and absent observations yield unresolved/nonfinal/unavailable results in all four cases |
 | Full portable/historical and coordinated app regression gates | Lead integration owns the final run and records it in the roadmap delivery acceptance |
 
 Reproduce the dedicated app test with an available simulator ID:
@@ -117,8 +167,25 @@ xcodebuild -project ios/GameTime/GameTime.xcodeproj -scheme GameTime \
   -destination 'platform=iOS Simulator,id=39D6A4BA-2A22-446F-83AA-3C8F73A99AF7' \
   -derivedDataPath /tmp/gametime-weekly-source-xcode \
   -only-testing:GameTimeTests/WeeklyHealthSourceProbeTests \
-  CODE_SIGNING_ALLOWED=NO test
+CODE_SIGNING_ALLOWED=NO test
 ```
+
+To reproduce the native bridge, run the same command with
+`-only-testing:GameTimeTests/MetricPrototypeTests`, then export attachments from
+the generated `.xcresult`:
+
+```sh
+xcrun xcresulttool export attachments --path /path/to/result.xcresult \
+  --output-path /tmp/gametime-metric-bridge
+deno run --allow-read=/path/to/exported-attachment.json \
+  scripts/metric-native-bridge.ts /path/to/exported-attachment.json
+```
+
+The export manifest identifies the attachment from
+`MetricPrototypeTests/testExportActualNativeTermsForTypeScriptBridge()`.
+This run used `/tmp/gametime-metric-bridge/C0A74A33-76DC-4C79-9729-C8C81FCFC8AF.json`.
+The script consumes the actual Swift-serialized bytes; it does not substitute a
+handwritten fixture or copy scoring logic into Swift.
 
 ## Exact remaining device and downstream actions
 
@@ -135,7 +202,7 @@ counts and assessment outcomes; preserve raw Health data privately on-device.
 | Exercise lineage | Explicitly request `.appleExerciseMinutes`; capture before/after a manual Health workout, imported iOS workout, approved Watch session and overlapping sessions, then deletion and late sync. Inspect whether generated Exercise samples preserve sufficient manual/import lineage. If not, keep Exercise unavailable; any sensor-workout alternative requires a separately named policy. |
 | Running distance and timed precision | Explicitly request `.runningDistanceMillimeters`; field-test a measured 1,600 m route and true-mile route, pauses, GPS gaps, indoor/outdoor conditions, short-distance error, edits/deletions and imports. Define accuracy/tolerance and whole-run versus segment proof from measured samples before admission. Validate elapsed time separately from reported workout duration. |
 | Trusted miss handling | Identify a server-verifiable, privacy-preserving source completeness rule or explicitly choose unresolved protection. Do not add a client `complete`/`verified` flag. This decision blocks new real-source results even if source identification improves. |
-| W3/W4 playable modes | After each source/policy gate, implement separate persisted agreements/proof/lifecycle/native contracts, repeat weekly/community concurrency/privacy/recovery/review/exit acceptance for that metric, and retain immutable historical results. Existing fixture evaluators do not establish these flows. |
+| W3/W4 local contracts versus real-source modes | Private fictional persisted agreements, replacement observations and a distance selector are now implemented and tested locally, independently of device approval. Actual Exercise/Health distance selection and real-source lifecycle admission stay blocked until source/policy evidence passes. W3/W4 shared agreements, source ingestion, persisted scoring/review/finality and authorized social following require their own subsequent contracts and acceptance; this private unresolved notebook does not claim them. |
 | Accessibility and human comprehension | Run VoiceOver, Dynamic Type, assistive-control traversal and actual agreement/result comprehension on the eventual integrated screens; record participants and actual observations only after separately authorized distribution. |
 | Pilot, providers and money | Obtain separate distribution/recruitment authorization and collect actual two-round pilot evidence. Apply Phase 6 provider/legal/platform/funds-flow/exposure gates separately. No Health prototype or fixture test enables any of them. |
 
