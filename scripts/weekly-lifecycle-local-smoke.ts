@@ -76,7 +76,10 @@ async function load(id: string): Promise<WeeklyLifecycleInput> {
 }
 async function tick(id: string, t: string, expected: string) {
   now = t;
-  check(await runWeeklyLifecycle(database, id) === expected, `${id}: ${expected} at ${t}`);
+  check(
+    await runWeeklyLifecycle(database, id) === expected,
+    `${id}: ${expected} at ${t}`,
+  );
 }
 try {
   await sql("begin;");
@@ -139,24 +142,37 @@ try {
     }
   >(`public.settle_weekly_simulation_v1(${quote(pair)})`);
   check(
-    allocation.total_entry_cents === 4000 && allocation.unallocated_cents === 0 &&
-      allocation.allocations.every((a) => a.returnedCents === 2000 && a.bonusCents === 0),
+    allocation.total_entry_cents === 4000 &&
+      allocation.unallocated_cents === 0 &&
+      allocation.allocations.every((a) =>
+        a.returnedCents === 2000 && a.bonusCents === 0
+      ),
     "safe conservative group refund conserves simulation",
   );
   await tick(pair, now, "final");
   check(
     await value<number>(
-      `(select count(*) from app.weekly_allocations where challenge_id=${quote(pair)})`,
+      `(select count(*) from app.weekly_allocations where challenge_id=${
+        quote(pair)
+      })`,
     ) === 1,
     "final replay never allocates twice",
   );
   // Every 2–5 group size is scored through persisted fixtures, including all miss.
-  for (const [first, count, steps] of [[3, 3, 0], [6, 4, 10000], [10, 5, 0]] as const) {
+  for (
+    const [first, count, steps] of [[3, 3, 0], [6, 4, 10000], [
+      10,
+      5,
+      0,
+    ]] as const
+  ) {
     const id = await value<string>(`pg_temp.make_friend(${first},${count})`);
     await value(`pg_temp.capture(${quote(id)},${steps})`);
     await tick(id, "2026-09-16T05:00:00.000001Z", "notice");
     await tick(id, "2026-09-18T05:00:00.000001Z", "final");
-    const a = await value<{ total_entry_cents: number; unallocated_cents: number }>(
+    const a = await value<
+      { total_entry_cents: number; unallocated_cents: number }
+    >(
       `public.settle_weekly_simulation_v1(${quote(id)})`,
     );
     check(
@@ -171,9 +187,9 @@ try {
   );
   for (let actor = 20; actor < 25; actor++) {
     await sql(
-      `select pg_temp.login(${actor}); select pg_temp.accept(pg_temp.req(${2100 + actor}),${
-        quote(community)
-      }); reset role;`,
+      `select pg_temp.login(${actor}); select pg_temp.accept(pg_temp.req(${
+        2100 + actor
+      }),${quote(community)}); reset role;`,
     );
   }
   for (let actor = 20; actor < 24; actor++) {
@@ -181,9 +197,9 @@ try {
       await value(
         `app.weekly_fixture_at_v1(extensions.gen_random_uuid(),${
           quote(community)
-        },pg_temp.actor(${actor}),'2026-09-${day.toString().padStart(2, "0")}','complete',${
-          actor === 23 ? 0 : 10000
-        },'2026-09-15T04:00:00Z')`,
+        },pg_temp.actor(${actor}),'2026-09-${
+          day.toString().padStart(2, "0")
+        }','complete',${actor === 23 ? 0 : 10000},'2026-09-15T04:00:00Z')`,
       );
     }
   }
@@ -193,7 +209,11 @@ try {
     {
       total_entry_cents: number;
       unallocated_cents: number;
-      allocations: { participantId: string; returnedCents: number; bonusCents: number }[];
+      allocations: {
+        participantId: string;
+        returnedCents: number;
+        bonusCents: number;
+      }[];
     }
   >(`public.settle_weekly_simulation_v1(${quote(community)})`);
   check(
@@ -202,7 +222,8 @@ try {
     "community common-target some-met allocation leaves integer remainder unallocated",
   );
   check(
-    ca.allocations.find((a) => a.participantId.endsWith("24"))?.returnedCents === 2000,
+    ca.allocations.find((a) => a.participantId.endsWith("24"))
+      ?.returnedCents === 2000,
     "missing community data individually refunded",
   );
   // Zero / one entrants close without dividing by zero or fabricating loss.
@@ -220,7 +241,9 @@ try {
       );
     }
     await tick(id, "2026-09-14T04:00:00Z", "final");
-    const a = await value<{ total_entry_cents: number; unallocated_cents: number }>(
+    const a = await value<
+      { total_entry_cents: number; unallocated_cents: number }
+    >(
       `public.settle_weekly_simulation_v1(${quote(id)})`,
     );
     check(
@@ -256,12 +279,16 @@ try {
       await sql(`select pg_temp.login(${actor});`);
       check(
         await value<string>(
-          `pg_temp.try_accept(extensions.gen_random_uuid(),${quote(id)},'2026-09-07T04:00:00Z')`,
+          `pg_temp.try_accept(extensions.gen_random_uuid(),${
+            quote(id)
+          },'2026-09-07T04:00:00Z')`,
         ) === "55000",
         `${count}-person invitation cutoff equality is closed`,
       );
       await value(
-        `pg_temp.accept(extensions.gen_random_uuid(),${quote(id)},'2026-09-01T06:00:00Z')`,
+        `pg_temp.accept(extensions.gen_random_uuid(),${
+          quote(id)
+        },'2026-09-01T06:00:00Z')`,
       );
       await sql("reset role;");
     }
@@ -272,13 +299,17 @@ try {
   }
   // Save representative native JSON to stdout only: native can regenerate safely.
   await sql(`select pg_temp.login(1);`);
-  const view = await value<Record<string, unknown>>(`public.get_weekly_v1(${quote(pair)})`);
+  const view = await value<Record<string, unknown>>(
+    `public.get_weekly_v1(${quote(pair)})`,
+  );
   check(
     view.result !== null && view.allocation !== null,
     "own native projection separates final and recorded simulation",
   );
   await sql("reset role; rollback;");
-  console.log("All persisted weekly lifecycle checks passed; rollback completed.");
+  console.log(
+    "All persisted weekly lifecycle checks passed; rollback completed.",
+  );
 } finally {
   try {
     await writer.write(new TextEncoder().encode("rollback;\n\\q\n"));

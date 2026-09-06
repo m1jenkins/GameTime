@@ -17,7 +17,9 @@ const key = Deno.env.get("WEEKLY_LOCAL_SERVICE_ROLE_KEY");
 if (!key) throw new Error("weekly_local_service_key_required");
 if (
   Deno.args.length < 1 || Deno.args.length > 100 ||
-  Deno.args.some((id) => !/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(id))
+  Deno.args.some((id) =>
+    !/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(id)
+  )
 ) throw new Error("Expected 1–100 explicit fictional weekly UUIDs");
 async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T> {
   const response = await fetch(new URL(`/rest/v1/rpc/${name}`, base), {
@@ -51,7 +53,9 @@ for (const id of new Set(Deno.args)) {
   } catch (error) {
     failed = true;
     console.error(
-      `${id}: ${error instanceof Error ? error.message : "weekly_worker_failed"}`,
+      `${id}: ${
+        error instanceof Error ? error.message : "weekly_worker_failed"
+      }`,
     );
   }
 }

@@ -75,7 +75,7 @@ This was the lead's review, not the source author's independent review of their
 own code.
 
 The source author's executed evidence is recorded separately in
-[WEEKLY_SOURCE_METRICS_ACCEPTANCE.md](WEEKLY_SOURCE_METRICS_ACCEPTANCE.md): 20 Deno
+[WEEKLY_SOURCE_METRICS_ACCEPTANCE.md](WEEKLY_SOURCE_METRICS_ACCEPTANCE.md): 22 Deno
 fixture tests, 10 portable Swift diagnostic tests, format/lint/type checks, a
 Debug Simulator build, and one Simulator default-off probe test covering all
 three metrics. The lead also independently reviewed the private native metric
