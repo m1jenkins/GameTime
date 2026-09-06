@@ -138,7 +138,7 @@ recreates optional data. Other non-research exact requests retain their history.
 
 | Check | Recorded result |
 | --- | --- |
-| Focused SQL roles/consent/2–5/calendar/overlap/privacy/recovery | 72 pgTAP assertions passed on disposable port 56322 |
+| Focused SQL roles/consent/2–5/calendar/overlap/privacy/recovery | 77 pgTAP assertions passed on disposable port 56322, including absent versus zero own-source projections |
 | Pure lifecycle scenarios and bounded worker recovery | 18 Deno tests passed |
 | Persisted SQL → real W1A/helper → worker → final/allocation | Passed rollback-only smoke: corrected notices and microseconds, full review timeout, 2/3/4/5 groups, community partial success/unknown/remainder, 0/1 minimum, final retry and delayed-worker refund |
 | Deno lifecycle/runner format, lint and typecheck | Passed |
@@ -241,3 +241,16 @@ owner revocation, and recipient decline/unfollow remain safe after expiry.
 Private injected-time functions have no client/service grants. Focused 482
 passed 41 assertions in `/tmp/gametime-weekly-482-expiry.log`, including final
 eligible microsecond, exact end and one microsecond after for all four paths.
+
+The native HTTP acceptance run exposed an inconsistent absent-source projection:
+`complete_day_count` returned zero while `status` was `client_progress_only` and
+`qualifying_steps` was null. The additive
+`20260906070927_weekly_progress_absence_v1.sql` preserves the native contract:
+without the actor's service revision basis both qualification fields are null;
+an existing incomplete basis retains zero complete days, and a complete basis
+retains its actual count. Another participant's observations cannot establish
+that basis. Five authenticated projection checks cover creator/invitee absence,
+incomplete zero, actor isolation and seven complete days. All 77 assertions in
+480 passed on the disposable database in
+`/tmp/gametime-weekly-480-absence.log`. Native HTTP retry remains separately
+verified by the native acceptance record; the decoder was not weakened.

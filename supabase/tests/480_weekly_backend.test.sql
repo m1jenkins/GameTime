@@ -9,10 +9,14 @@ select ok(not has_function_privilege('authenticated','app.weekly_create_at_v1(uu
 select pg_temp.login(1);
 select is(public.get_weekly_preferences_v1()->>'entry_paused','false','pause defaults off');
 insert into weekly_test_ids values('two',pg_temp.create_friend(pg_temp.req(100),pg_temp.terms(1,2)));
+select ok((public.get_weekly_v1((select id from weekly_test_ids where name='two'))->'own_progress')
+ @> '{"status":"client_progress_only","qualifying_steps":null,"complete_day_count":null}'::jsonb,'creator without service observations has absent qualification and completeness basis');
 select is(pg_temp.create_friend(pg_temp.req(100),pg_temp.terms(1,2)),(select id from weekly_test_ids where name='two'),'exact creation retry');
 select throws_ok($$select pg_temp.create_friend(pg_temp.req(100),pg_temp.terms(1,3))$$,'22023','weekly_request_conflict','changed roster retry conflicts');
 select pg_temp.login(2);
 select is(jsonb_array_length(public.get_weekly_v1((select id from weekly_test_ids where name='two'))->'roster'),2,'invited actor sees frozen two roster');
+select ok((public.get_weekly_v1((select id from weekly_test_ids where name='two'))->'own_progress')
+ @> '{"status":"client_progress_only","qualifying_steps":null,"complete_day_count":null}'::jsonb,'invited actor without observations decodes the same absent basis');
 select throws_ok($$select public.accept_weekly_v1(pg_temp.req(101),(select id from weekly_test_ids where name='two'),'wrong',true)$$,'22023','weekly_consent_mismatch','wrong consent rejected');
 select pg_temp.accept(pg_temp.req(102),(select id from weekly_test_ids where name='two'));
 select is(public.get_weekly_v1((select id from weekly_test_ids where name='two'))->>'accepted_count','2','two explicit consents');
@@ -45,8 +49,20 @@ select is(pg_temp.accept(pg_temp.req(102),(select id from weekly_test_ids where 
 reset role;
 select public.set_weekly_runtime_v1(true,true,true,array(select id from public.profiles where id::text like 'ed000000-%'));
 -- Explicit source assertions cannot be inferred from empty, zero or client totals.
+select app.weekly_fixture_at_v1(pg_temp.req(118),(select id from weekly_test_ids where name='four'),pg_temp.actor(6),'2026-09-07','incomplete',10000,'2026-09-15T04:00:00Z');
+select pg_temp.login(6);
+select ok((public.get_weekly_v1((select id from weekly_test_ids where name='four'))->'own_progress')
+ @> '{"status":"fixture_only","qualifying_steps":0,"complete_day_count":0}'::jsonb,'incomplete service observation preserves an actual zero complete-day count');
+select pg_temp.login(7);
+select ok((public.get_weekly_v1((select id from weekly_test_ids where name='four'))->'own_progress')
+ @> '{"status":"client_progress_only","qualifying_steps":null,"complete_day_count":null}'::jsonb,'another participant service basis cannot manufacture own completeness');
+reset role;
 select pg_temp.capture((select id from weekly_test_ids where name='two'),10000);
 select is((select count(*) from app.weekly_revisions where challenge_id=(select id from weekly_test_ids where name='two')),14::bigint,'server fixture persists all fourteen days');
+select pg_temp.login(1);
+select ok((public.get_weekly_v1((select id from weekly_test_ids where name='two'))->'own_progress')
+ @> '{"status":"fixture_only","qualifying_steps":70000,"complete_day_count":7}'::jsonb,'complete service observation basis retains seven actual complete days');
+reset role;
 select throws_ok($$select app.weekly_fixture_at_v1(pg_temp.req(120),(select id from weekly_test_ids where name='two'),pg_temp.actor(1),'2026-09-07','complete',0,'2026-09-16T05:00:00.000001Z')$$,'22023','weekly_fixture_unavailable','microsecond after correction cutoff rejected');
 select throws_ok($$select app.weekly_fixture_at_v1(pg_temp.req(121),(select id from weekly_test_ids where name='two'),pg_temp.actor(1),'2026-09-07','complete',0,'2026-09-16T05:00:00Z')$$,'22023','weekly_fixture_unavailable','correction cutoff equality rejected consistently with evaluator');
 select is(app.weekly_fixture_at_v1(pg_temp.req(121),(select id from weekly_test_ids where name='two'),pg_temp.actor(1),'2026-09-07','complete',0,'2026-09-16T04:59:59.999999Z'),2,'last eligible microsecond downward correction accepted');
