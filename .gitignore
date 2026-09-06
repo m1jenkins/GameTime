@@ -44,6 +44,7 @@ xcuserdata/
 # ---- Local scratch -------------------------------------------------------
 /tmp/
 *.log
+/.ua/.trash-*/
 
 # ---- Historical generated design concepts -------------------------------
 docs/design/challenge-page-concepts/

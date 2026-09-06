@@ -1,20 +1,24 @@
 # Build friend duels and personal performance commitments
 
-Updated September 5, 2026. The owner adopted this model; Phase 1A's isolated local
+Updated September 6, 2026. The owner adopted this model; Phase 1A's isolated local
 agreement backend and Phase 1B's opt-in native flow are accepted locally.
 Phase 2(a–e)'s evaluator, private proof/operator boundary, simulated lifecycle,
 native results, rematches and invitation links are implemented locally. Phase
-3(a–c)'s commitment agreements, attempts and manual progress are implemented locally; the
+3(a–e)'s commitment agreements, attempts, manual progress, following and lifecycle backend are implemented locally; the
 default app remains Personal.
 [BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md) defines the two
 journeys, recommended rules, funds-flow options, source research and pilot.
 [PROJECT_MEMORY.md](PROJECT_MEMORY.md) records intent; D123 in
-[DECISIONS.md](DECISIONS.md) records the decision.
+[DECISIONS.md](DECISIONS.md) records the original decision. D131 records this
+weekly-first planning revision, while D130 engagement requirements remain in force.
+The detailed [weekly specification](docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md)
+owns the new W1–W4 slices and their current next-build prompt.
 
 The previous 502-line plan is preserved verbatim under its archive header in
 [the pre-pivot plan](docs/archive/2026-09-04_PRE_PIVOT_PLAN.md). Historical
 Personal, Solo and charity agreements retain their original meanings. Old
-milestone numbers M0–M12 are historical; the phases below are new work.
+milestone numbers M0–M12 and completed slices of Phases 0–3 are historical. W1–W4 define
+the new recommended work; Phase 6 retains the requirements for actual money.
 
 ## Starting point and boundaries
 
@@ -28,12 +32,19 @@ Previous test counts and hosted observations are historical evidence, not
 checks rerun for this plan. See the code inventory in
 [BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md#repository-inspection-reuse-and-gaps).
 
-Recommended first usable product: same-event outdoor 5K duels between two
-friends, official organizer chip times, simulated $20 per participant, $0 fee.
-Then add 28–90-day performance commitments and asynchronous running proof.
-All new prices, timing rules and pilot thresholds are recommendations. No live
-money, deployment, publication, invitation to testers, or contact with providers
-is authorized by this planning task.
+Current direction: participant-selected distances/targets and separately
+validated metric policies; no mandatory fixed 5K. The recommended build sequence
+is weekly friend steps, one community experiment, Exercise minutes and custom
+distance goals. The owner selected a beta friend cap of five and a common
+weekly community step goal (D132); five total participants and individual
+completion of that same goal are explicit working interpretations. The numeric
+community target, rollout clearance and real-money terms remain unselected. Historical 5K
+phases record what was built, not the future launch format. Keep their
+agreements intact.
+Use [responsible engagement](docs/BUSINESS_MODEL.md#responsible-engagement-and-commercial-incentives)
+as acceptance requirements for all new work. New prices, timing rules, limits
+and pilot thresholds remain recommendations. Live money, deployment, publication,
+recruitment and provider contact remain separately gated.
 
 Keep the existing Personal app usable and its records readable. Do not widen
 old settlement enums, unfreeze terms, convert charity obligations to prizes,
@@ -42,14 +53,61 @@ wholesale. New backend capability must be default-off and separately admitted;
 a client toggle alone is insufficient. “Simulated” means no redeemable balance,
 provider object, charge, transfer, external settlement, or prize of value.
 
+## Current implementation order after the engagement review
+
+This order incorporates the weekly-challenge discussion and supersedes the old
+organizer-first dependency chain. W1–W4 below are **planned, not implemented**.
+Completed slices of Phases 0–3 and their tests remain implementation history. Unfinished
+organizer nomination screens are paused as the default next task.
+
+| Order | Deliverable and dependency | Exit requirement |
+| --- | --- | --- |
+| Completed | Agreement comprehension and dormant push cleanup | Preserve the [existing engagement changes](docs/RESPONSIBLE_ENGAGEMENT_ACCEPTANCE.md), consent, full rules and disabled push. |
+| **Next: W1A** | Pure fictional weekly-steps rule model, qualification evaluator and fixtures | 2–5 participants total (working interpretation of the beta cap), individual agreed cumulative targets, seven frozen calendar dates, explicit incomplete data and deterministic decisions. No operational finality or money ledger. |
+| W1B | Validate the actual step source; add separate local weekly agreements, observations, lifecycle/review and simulated outcomes | Physical-source evidence is separate from fictional tests. Exact consent/retries, privacy, corrections and weekly overlap are verified. No old-policy changes. |
+| W1C | Opt-in native friend weekly challenge, progress, results/review and deliberate next-week invitation | Two- and five-participant local acceptance, frozen roster and capacity, clear terms, recoverable requests, account isolation, exits, accessibility and source freshness. |
+| W2A–B | Owner-selected single official weekly steps community cohort: one common target, enrollment, multi-person simulation, native join and descriptive pilot | Solo joiners can participate; everyone individually works toward the same published step target, no financial leaderboard, all/none/some-winner handling and privacy. Rollout clearance remains separate. |
+| W3 | Separate Apple Watch Exercise-minute policy and adapter, then native support | Manual/imported ring credit and source lineage validated on devices; no workout-duration substitution. Source research may run earlier. |
+| W4 | Participant-selected cumulative distance and timed-distance policies; relevant longer-goal progress/following | Each format has its own units, proof and comparison rules. No mandatory 5K or organizer catalog; no relabeling old agreements. |
+
+Full contracts, acceptance matrices and the bounded next-build prompt are in
+[the weekly specification](docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md).
+Build only a selected slice at a time. The shared foundations are patterns to
+reuse, not evidence that the new weekly or community modes already work.
+
+**Cross-cutting work remains required:**
+
+- Reuse native private progress and selected-following patterns once they have
+  the new format to follow. Manual check-ins never become qualifying proof.
+  The full historical event-nomination/milestone UI is not a W1 prerequisite.
+- Before external reminders, implement category preferences and contextual OS
+  permission, quiet hours/caps, server suppression/deduplication and current
+  authenticated routing. Cover refusal, timezone changes, revocation, stale
+  events and sign-out. Optional categories start off; durable in-app result/
+  review notices remain available. No inert preference UI or automated consent.
+- Before recruitment, implement minimal first-party instrumentation and report
+  comprehension, fairness, meaningful progress, voluntary return, pressure,
+  unwanted notifications, privacy and exits. Do not optimize return after loss
+  or paid frequency. The initial two-round pilot is descriptive, not a powered
+  experiment or evidence of behavior under financial stakes.
+- Before real-money admission, implement server aggregate outstanding and
+  rolling-new-commitment limits plus pause across friend, community and personal
+  products, including previous weeks awaiting finality. Select numeric caps,
+  windows and delayed increases with the funded policy. Immediate decreases/
+  pause preserve existing history, review, exits, support and money access.
+  Test concurrent create/join/accept/rematch, retries and gate-off. Phase 6's
+  provider, jurisdiction, platform, source and rollout requirements still apply.
+
 ## Architecture recommendation
 
-Create new versioned `duel_*` and `performance_commitment_*` aggregates,
-separate from `contests`/`personal_challenge_terms` and `solo_contracts`.
-Share durable profile identities and audited infrastructure patterns. The
-reserved `social_accountability` discriminator remains unused. New aggregates
-avoid routing performance proof or payouts into legacy charity scoring.
-Names below are proposed files/tables, not claims that they already exist.
+The implemented `duel_*` and `performance_commitment_*` contracts remain
+separate from legacy `contests`/`personal_challenge_terms` and `solo_contracts`.
+New weekly agreements and later community participation require their own
+versioned terms, requests, admission and lifecycle projections. Do not widen old
+exact-5K decoders, two-person settlement enums or pending requests. Reuse durable
+identities and tested infrastructure patterns. The reserved legacy
+`social_accountability` discriminator remains unused. W1B chooses new names;
+no weekly/community schema has been added by this planning change.
 
 Freeze agreement policy/version/digest, source definition, exact UTC window and
 display zone, rule precision, consent, simulated amount, and deadlines. Preserve
@@ -63,39 +121,47 @@ must not be reachable by an ordinary client. Reuse idempotency and deletion
 patterns, not old agreement data. Terms and policy versions are immutable;
 corrections append. Keep raw proof private from opponents and followers.
 
-For the simulated pilot, cap new participation at one unsettled duel plus one
-performance commitment per person. New slots never consume or release the old
-Personal/Solo slots. A creator reserves their duel slot on invitation; the
-invitee reserves theirs only on acceptance. Pending incoming invitations do
+The historical local products cap participation at one unsettled duel plus one
+performance commitment per person. Those original slot rules stay unchanged.
+These historical slots never consume or release Personal/Solo slots. A creator
+reserves their duel slot on invitation; the invitee reserves theirs only on
+acceptance. Pending incoming invitations do
 not occupy a slot. Close slots on terminal new-product outcomes, including
 expiry and simulated withdrawal; lock both actors in stable order for races.
+
+For new weekly products, separate overlapping activity enrollment from pending
+result/review. A person may explicitly join the following nonoverlapping week
+while the prior week finalizes. Define bounded pending admission and future
+aggregate financial limits; do not truncate reviews, grant unlimited exposure
+or count a friend's community view as a second enrollment.
 
 ## Dependency order
 
 ```mermaid
 flowchart TD
-    A["Phase 0: contracts and planning complete"] --> B["1A: local duel agreement backend"]
-    B --> C["1B: native create and accept"]
-    C --> D["2: proof, results, review and rematch"]
-    D --> E["3: longer performance commitments and followers"]
-    D --> F["5A: simulated duel pilot"]
-    E --> G["5B: commitment pilot"]
-    A --> H["4A: source feasibility; no access assumed"]
-    E --> I["4B: asynchronous running adapter"]
-    H --> I
-    A --> J["6A: legal, provider and platform decisions"]
-    F --> K["6B: approved provider sandbox integration"]
-    G --> K
-    J --> K
-    I --> L["6C: source-specific live gate"]
-    K --> L
+    A["W1A: weekly step rules and fixtures"] --> B["W1B: source validation and local lifecycle"]
+    B --> C["W1C: native friend weekly steps"]
+    C --> D["W2: shared weekly step target and community simulation"]
+    D --> E["Two-round simulated weekly pilot"]
+    C --> F["W3: validated Exercise minutes"]
+    C --> G["W4: configurable distance and longer goals"]
+    H["Privacy, comprehension, review, exits and measurement"] --> E
+    E --> I["Phase 6: separately supported money implementation"]
+    J["Provider, jurisdiction, source approval and server financial controls"] --> I
 ```
 
-Phase 4B is required for cash based on asynchronous workouts, not for a future
-organizer-only offering. Every live source must pass its own proof gate. Phase
-6A can be investigated alongside local work; rejection there does not stop
-simulated product validation. Durations below refer to contract/pilot windows,
-not estimates of engineering effort.
+W3/W4 source research can run earlier; neither Garmin nor official-event
+integration blocks W1. Each mode needs its own observed source and pilot evidence
+before its funded version can pass Phase 6. External reminders have their own
+complete preference/delivery gate and are not required for local simulation.
+
+## Historical implementation record
+
+Phases 0–3 below retain the completed work and remaining format-specific
+acceptance. Their original numbered dependencies and fixture prices describe
+that implementation. They do not supersede W1–W4 or authorize continuing the
+organizer-event UI. Phase 4 is source-expansion reference work; Phase 5 now
+points to the revised weekly pilot. Phase 6 remains a current cross-cutting gate.
 
 ## Phase 0 — planning and rule selection
 
@@ -105,7 +171,9 @@ in this change. Payment recipients/providers/jurisdictions remain open in the
 decision register below. No implementation phase is complete merely because
 its source files or acceptance criteria are named here.
 
-## Phase 1A — local simulated duel agreement (recommended first slice)
+<a id="phase-1a--local-simulated-duel-agreement-recommended-first-slice"></a>
+
+## Phase 1A — local simulated duel agreement (historical completed slice)
 
 **Status: implemented and verified locally.** See
 [the acceptance record and Phase 1B handoff](docs/DUEL_AGREEMENT_V1_ACCEPTANCE.md)
@@ -236,8 +304,8 @@ suppression. See [Phase 2(d) acceptance](docs/DUEL_NATIVE_LIFECYCLE_V1_ACCEPTANC
 Slice (e) adds fresh-consent rematches, a new event and expiring/revocable
 invitation links that only the named friend can resolve. Native pending links
 survive login; opening never accepts. See [Phase 2(e) acceptance](docs/DUEL_REMATCH_LINK_V1_ACCEPTANCE.md).
-**Phases 3(a/b/c) are implemented below. Next: Phase 3(d)**, explicit friend
-following and its privacy and interaction boundaries.
+**Phases 3(a/b/c/d/e) are implemented below.** Native commitment integration
+remains a separate implementation task.
 Real organizer/reviewer operation, hosted schedules, universal-link hosting
 and external notice delivery remain unimplemented and separately gated.
 
@@ -297,8 +365,30 @@ default-off owner ledger. Exact requests, bounded history with stable pagination
 active session checks and a distinct retention hold preserve safe exits and
 deletion behavior. Progress never enters organizer proof or scoring snapshots.
 See [progress acceptance and the Phase 3(d) handoff](docs/PERFORMANCE_PROGRESS_V1_ACCEPTANCE.md).
-Followers, result/review persistence and native commitment screens remain
-unimplemented. **Next: slice (d).**
+**Slice (d): implemented locally as a backend.** Bilateral friend consent,
+explicitly selected progress cards, permanent revocation, structured reactions,
+personal pull-based in-app reminders and private report/support boundaries now
+use a separate default-off gate. Blocks, unfriending, deletion and safe closure
+end follows. Private notes, amounts and proof are never shared. See
+[following acceptance and the native/Phase 3(e) handoff](docs/PERFORMANCE_FOLLOWING_V1_ACCEPTANCE.md).
+**Slice (e): implemented and verified locally as a backend.** Complete proof
+snapshot commits now persist durable owner notices, independent reviews,
+withdrawal/deletion history, immutable finals and separate simulated
+consequences. A clock-injected manual worker preserves full correction/review
+windows; finality releases the commitment slot and ends existing follows.
+Post-final support has separate scoped grants and cannot change outcomes.
+See [lifecycle acceptance and the native handoff](docs/PERFORMANCE_LIFECYCLE_V1_ACCEPTANCE.md).
+**Slice (f), first native step:** opt-in local goal preview/consent, owner
+agreement history, saved result notices/reviews, safe exits and separately
+recorded simulated amounts. Typed contracts and actor-bound exact requests
+preserve the separate lifecycle's authority and clear content on failed reads.
+See [native implementation and remaining handoff](docs/PERFORMANCE_COMMITMENT_NATIVE_V1_ACCEPTANCE.md).
+**Historical native handoff, paused as the default next task:** organizer-event
+nomination/completeness, private milestones/check-ins and selected following.
+Preserve its acceptance requirements; use W1–W4 to decide when relevant portions
+are adapted. New weekly steps do not depend on completing the organizer flow.
+The whole native integration is not complete. Physical-device/VoiceOver
+acceptance, actual organizer and retention/support operations remain open.
 
 **Depends on:** Phase 2's proof/review foundation; does not depend on Garmin.
 
@@ -313,8 +403,9 @@ Personal's seven-day snapshots and their schedulers unchanged.
 event attempts and strict target evaluation; (c) named intermediate milestones
 and manual progress; (d) opt-in friend following, structured reactions,
 reminders, report/block/support; (e) commitment result/review/withdrawal history.
-Initial metric remains official 5K chip time; a true mile policy is a subsequent
-small slice with metre/unit and sub-six-minute boundary fixtures.
+The implemented fixture remains official 5K chip time. New metric policies
+follow the current order above; true-mile support needs exact metre/unit and
+sub-six-minute boundary fixtures, without requiring a 5K launch first.
 
 **Acceptance:** a 60-day goal works without seven-element arrays or fixed
 168-hour arithmetic. Only post-agreement, pre-deadline qualifying attempts
@@ -333,6 +424,10 @@ without changing old slots or enabling Solo. Observe a 28-day commitment in
 the pilot; accelerated clocks do not prove months of actual retention.
 
 ## Phase 4 — asynchronous workouts and source expansion
+
+**Reference workstream for W3/W4.** The Garmin sequence below applies only if
+that source is selected. W1 uses a separate Apple steps investigation and does
+not depend on provider access or an official event.
 
 **4A feasibility depends on:** Phase 0 only; actual applications/contact need
 separate owner authorization. Read current official Garmin documentation and
@@ -357,8 +452,8 @@ API. Distinguish elapsed, moving and active time; no weighted-minute crosswalk.
 One source and policy per challenge; no silent Apple/Garmin substitution.
 Document measured course/GPS tolerance, pauses, terrain, sensor gaps, edited
 records and credible miss detection before enabling asynchronous comparisons.
-Begin with same-course 5K, then true mile; handicaps and consistency formats
-need their own evidence before expansion.
+Validate the selected distance/metric directly; do not require a preceding
+5K launch. Handicaps and consistency formats need their own proof and rest rules.
 
 **Verification:** adapter contract tests from approved redacted samples;
 forgery, replay, revocation, partial/late/out-of-order upload and deletion cases;
@@ -370,30 +465,33 @@ provider/environment pilot is a separately approved action.
 
 ## Phase 5 — simulated user-validation pilot
 
-**5A depends on:** Phase 2 plus a reviewed deploy/distribution candidate and
-separate authorization. **5B adds:** Phase 3. Neither requires live payments.
-Use the exact six-week, 12-pair and 8-commitment design in
-[BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md#user-validation-pilot).
+**Revised proposal:** 20–30 adults over two consecutive seven-day rounds, using
+one official weekly community cohort and including solo joiners and friend
+groups of 2–5. Depends on W1B/C source and native acceptance, W2 community/privacy/
+allocation acceptance, support/exit readiness and a separately approved
+recruitment/distribution candidate. No real entry fees or prizes. See
+[the pilot contract](docs/BUSINESS_MODEL.md#user-validation-pilot).
 
-**Code/operations:** minimal first-party lifecycle event ledger (analytics are
-currently disabled), deduplicated events, aggregate report script under
-`scripts/`, and a new dated pilot runbook/report in `docs/`. Keep consent,
-operator source-review instructions, report/block/support, expiry, kill switch
-and deletion behavior reviewable before inviting anyone. Do not repurpose old
-Personal beta prompts as authorization to deploy this new product.
+Before W2 exists, 2–5-participant W1 local usability checks can validate consent and
+progress, but cannot establish community demand. If the community experiment
+is deferred, a separately cleared two-round friend-only W1 pilot can proceed;
+W2 is not a prerequisite for private-format evidence or its payment research.
+Longer commitments retain a later pilot appropriate to their durations;
+two weeks cannot prove long-term
+retention or outcomes under real money.
 
-**Acceptance:** report invitation acceptance, both-runner completion, fair
-results, rematch acceptance, seven-day return after loss, commitment engagement,
-withdrawals/missingness, reviewer cost and willingness to pay with denominators.
-Separate product disinterest from event availability and simulated-stakes
-limitations. Predeclare proceed/iterate/pause thresholds. Record qualitative
-explanations, not just totals. No provider identifiers or raw health data in
-analytics; no off-app collection or redeemable prizes.
+Use minimal first-party events with intent/exposure/outcome, denominators,
+deduplication and privacy checks. Report agreement comprehension, individual
+completion, source missingness, perceived goal fairness, own-result clarity,
+voluntary week-two participation and invitations, review workload, pressure,
+unwanted contact and ease of leaving. No targets for return after loss, paid
+frequency, committed amount or daily app opens. Report nonresponses explicitly.
 
-**Verification:** event integrity/deduplication and privacy checks, synthetic
-report checks against known journeys, then actual observed cohort report. A
-successful funnel test is not demand validation. Run longer follow-up before
-claiming 90-day retention. Pilot publication/recruitment has not occurred.
+Proceed only when comprehension, source/result credibility, privacy and exit
+controls pass. Investigate pressure/coercion or broken review before expanding.
+Mock data, passing tests and proposed cohort counts are not actual pilot evidence.
+Hosting, invitations to testers, external delivery and payment work remain
+separately gated. This plan does not perform any of them.
 
 ## Phase 6 — payment feasibility, then separately gated implementation
 
@@ -405,7 +503,8 @@ its existing sandbox and Connect APIs confer no permission. A saved method is
 not locked money. Long card holds are not a deposit design.
 
 **6B depends on:** explicit supported provider/funds flow, jurisdiction and
-platform analysis plus Phase 5 evidence. Only then build a separate provider
+platform analysis plus evidence for the exact funded format from the revised
+Phase 5 or its W3/W4 follow-up pilot. Only then build a separate provider
 sandbox adapter, ledger and consent version. Reuse `personal-stripe-sandbox-*`
 patterns for idempotency/signatures/review while leaving those handlers,
 consent and test-only guards intact. Use no real credentials or live objects.
@@ -434,6 +533,9 @@ Never state a winner was paid until provider reconciliation confirms it.
   missing-data abuse and correction handling; independent review has staffing,
   audit and deadlines. Simulated withdrawal defaults are replaced by a new
   explicitly approved funded policy, never silently changed for old rows.
+- Server-enforced aggregate exposure/new-commitment limits, voluntary pause,
+  deliberate delayed increases, and continued history/review/exit/money access
+  pass concurrent admission and recovery tests.
 - Provider sandbox, money conservation, reconciliation, refunds, payout failure,
   rollback/kill switch, age/location bypass and support drills pass.
 - Explicit approval for the exact hosted rollout and distribution, followed by
@@ -447,12 +549,14 @@ flow transparently. Do not deploy a workaround or convert existing agreements.
 
 | Decision | Recommended next action / owner | Blocks |
 | --- | --- | --- |
-| First event, organizer rights and timing basis | Product/operator chooses an eligible same-event 5K; obtain result-use permission before pilot | Human proof and Phase 5, not local fixtures |
+| Weekly steps source and confirmed-miss rule | W1A uses fiction; W1B validates source identity, merging, corrections and incomplete-data handling on devices | Real-source weekly admission; not pure fixture work |
+| Community scope, target fairness and pool rules | W2A selects the shared numeric weekly target and tests identical terms, minimum/capacity, all/none/some-winner and unallocated simulation rules | Community pilot; not W1 friend steps |
+| Weekly deadlines and participation limits | W1B freezes full review windows and bounded future-week admission; Phase 6 includes pending prior weeks in exposure | Weekly lifecycle and later money |
 | Garmin access and permitted use | Owner authorizes application; engineering validates approved fields and source lineage | Phase 4B |
 | Asynchronous distance tolerance and proof of miss | Engineering + reviewer field trials; freeze policy after evidence | Async contests and all cash based on that source |
-| Fair pairing, course variation, handicaps | Pilot interviews; keep same-event unhandicapped default meanwhile | Broader formats |
+| Configurable-distance format, course variation and handicaps | W4 separates accumulated distance from timed attempts; validate chosen distance without a fixed-5K prerequisite | Distance expansion; not weekly steps |
 | Deposit versus later charge and forfeiture payee | Owner + counsel + provider; beneficiary hypothesis first, no recipient selected | Personal real-money agreement |
-| Duel payment provider, fund holder and liability | Owner + counsel verify expressly supported structure; do not assume Stripe | Funded duels |
+| Friend/community payment provider, fund holder and liability | Owner + counsel verify the exact supported structure; pooled stakes and multiple winners need separate analysis | All funded social formats |
 | Jurisdiction, age/identity/location, taxes and consumer terms | Qualified counsel and owner; no region enabled by default | Every live mode |
 | Fees and club pricing | Test stated preferences, costs and later cleared actual conversion | Commercial launch pricing |
 | Injury, withdrawal, corrections, missing proof under stakes | Product + independent review + counsel; test adversarial cases | Real-money policy |
@@ -480,7 +584,18 @@ that implementation. Their solo-only and no-payout future rules are superseded
 by D123; their no-live-money restrictions remain. Design mockups remain visual
 references, not implementation proof or new product constraints.
 
-## Copy-ready first implementation prompt
+## Current next implementation task
+
+Use the [W1A next-build prompt](docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md#current-next-build-prompt).
+It is limited to the new fictional weekly-steps rule model, pure qualification
+evaluator and meaningful fixtures. No migrations, native UI, Health reads,
+published results, allocation ledger, hosted state or money are in that slice.
+
+## Historical Phase 1A implementation prompt — already completed
+
+Retained for provenance. Do not execute this as the next task; use the current
+implementation order above. Its fixed-5K defaults are historical.
+
 
 ```text
 Work in /Users/user/Documents/GitHub/GameTime.

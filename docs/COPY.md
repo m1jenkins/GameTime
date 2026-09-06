@@ -167,8 +167,8 @@ are complete.
 The opt-in native duel uses the simulated mode and agreement patterns below.
 Phase 2(d) adds saved notices, results, participant review and safe exits.
 Phase 2(e) adds new-consent rematches and named-recipient links. Performance
-commitment screens remain planned; their backend is implemented through
-Phase 3(c). Keep existing Personal
+commitment screens now begin with opt-in goal agreement and result/review history;
+their backend is implemented through Phase 3(e). Keep existing Personal
 consent/version text intact.
 Use **Challenge again** for a new duel, **Create invitation link**, **Share
 invitation**, and **Turn off this link** for person-initiated sharing. State that
@@ -222,6 +222,27 @@ Use claims such as “verified” only to describe the actual proof checked, not
 as a guarantee against cheating. Avoid loss-chasing, humiliation, pressure to
 run injured, or prompts to raise a stake after losing.
 
+## Responsible engagement presentation
+
+For the existing simulated duel and goal reviews, keep a short at-a-glance
+summary before consent: activity/source, dates, amount/fee, possible outcomes,
+exit and review rules. Keep every existing detailed rule under **Full duel
+rules** or **Full goal rules**. Consent text and the agreement stay unchanged;
+the summary must not imply support for a new distance or live money.
+
+Future celebrations describe athletic progress, never committed dollars or
+paid-challenge frequency. No financial confetti, loss-recovery language,
+shaming, forced daily streaks or encouragement to exercise injured. Rest is not
+an app failure. A new goal or rematch always requires a fresh deliberate choice.
+No prompt may claim that a missing upload means a loss.
+
+When notifications are implemented, each must have a clear user benefit and a
+category the person controls. Ask permission when a person requests a reminder,
+not at launch. Display factual deadlines without fabricated urgency. Muting,
+declining, pausing new commitments and leaving must use neutral language and
+remain easy to find. A future pause on new commitments must never imply that
+existing obligations are cancelled or money automatically returned.
+
 ## The glossary
 
 Left is what the system calls it. Right is what a screen calls it. If you need
@@ -247,6 +268,7 @@ a new term, add a row rather than inventing a second name for something here.
 | metric | distance and time for a running goal; omitted on steps-only Personal screens |
 | duel agreement / policy | challenge rules; what you both agreed to |
 | qualifying attempt | an attempt that counts toward your goal |
+| performance commitment | running goal; your goal |
 | elapsed time | time from start to finish, including pauses |
 | chip time | time from crossing the start to crossing the finish |
 | simulation / simulated disposition | simulated stake / simulated result; no real money moves |

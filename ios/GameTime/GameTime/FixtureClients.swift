@@ -124,7 +124,8 @@ enum FixtureServicesFactory {
                 ?? (scenario.accountDeletionFails
                     ? FixtureFailingAccountDeletionClient()
                     : DisabledAccountDeletionClient()),
-            duels: FixtureDuelClient(backend: duelBackend, currentActor: { store.userID })
+            duels: FixtureDuelClient(backend: duelBackend, currentActor: { store.userID }),
+            performanceCommitments: FixturePerformanceCommitmentClient(currentActor: { store.userID }, arguments: arguments)
         )
     }
 }

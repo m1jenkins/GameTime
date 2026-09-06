@@ -18,9 +18,6 @@ struct PushStandingsDestination: Equatable, Sendable {
 final class PushNotificationCoordinator: NSObject,
   UNUserNotificationCenterDelegate
 {
-  nonisolated static let leadLostCategory = "GAMETIME_LEAD_LOST"
-  nonisolated static let comebackAction = "GAMETIME_COMEBACK_ACTION"
-
   private(set) var deviceRegistration: PushDeviceRegistration?
   private(set) var pendingDestination: PushStandingsDestination?
 
@@ -32,8 +29,8 @@ final class PushNotificationCoordinator: NSObject,
     for appEnvironment: AppEnvironment
   ) -> PushTokenEnvironment? {
     _ = appEnvironment
-    // Social push categories are dormant while Personal V1 is the only
-    // reachable product model.
+    // Push stays disabled until contextual consent, category preferences,
+    // server suppression and delivery acceptance are implemented together.
     return nil
   }
 
@@ -52,30 +49,10 @@ final class PushNotificationCoordinator: NSObject,
     self.environment = pushEnvironment
     self.bundleID = bundleID
 
-    let reaction = UNNotificationAction(
-      identifier: Self.comebackAction,
-      title: "I’m coming back",
-      options: [.foreground]
-    )
-    let category = UNNotificationCategory(
-      identifier: Self.leadLostCategory,
-      actions: [reaction],
-      intentIdentifiers: []
-    )
-    let center = UNUserNotificationCenter.current()
-    center.delegate = self
-    center.setNotificationCategories([category])
-
-    do {
-      let granted = try await center.requestAuthorization(
-        options: [.alert, .badge, .sound]
-      )
-      guard granted else { return }
-      UIApplication.shared.registerForRemoteNotifications()
-    } catch {
-      // Permission remains user-controlled. The app continues to expose
-      // standings and reactions without treating push as correctness.
-    }
+    // Configuration must never prompt for permission at app launch. A future
+    // user-created reminder flow owns that request after preferences are saved.
+    // Do not register legacy lead-loss or comeback actions for new products.
+    UNUserNotificationCenter.current().delegate = self
   }
 
   func didRegister(deviceToken: Data) {
@@ -95,7 +72,8 @@ final class PushNotificationCoordinator: NSObject,
     _ center: UNUserNotificationCenter,
     willPresent notification: UNNotification
   ) async -> UNNotificationPresentationOptions {
-    [.banner, .list, .sound]
+    // Ignore dormant/legacy pushes; new categories need current authorization.
+    []
   }
 
   nonisolated func userNotificationCenter(

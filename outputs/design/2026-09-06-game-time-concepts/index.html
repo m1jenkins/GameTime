@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Game Time — Design exploration 01</title>
+<style>
+:root{color-scheme:light;--ink:#141615;--canvas:#f1f0eb;--muted:#61645f;--accent:#c54116}
+*{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header,main,footer{max-width:1560px;margin:auto;padding:32px 36px}header{padding-top:52px;padding-bottom:24px}
+.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:700;color:var(--accent)}
+h1{font-size:clamp(32px,4vw,58px);letter-spacing:-.055em;font-weight:650;margin:12px 0}
+.intro{max-width:700px;font-size:17px;line-height:1.55;color:var(--muted)}
+.meta{display:flex;gap:20px;flex-wrap:wrap;align-items:center;font-size:13px;margin-top:24px}
+a{color:inherit;text-underline-offset:4px}a:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:5px}
+.gallery{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;padding-top:12px}
+.weekly-gallery{grid-template-columns:repeat(2,minmax(0,1fr));max-width:880px;margin:0 auto 50px}.section-intro{max-width:880px;margin:0 auto 24px}.section-intro p{line-height:1.55;color:var(--muted)}.original-title{margin:48px 0 24px}
+figure{margin:0;min-width:0}.screen{display:block;width:100%;padding:0;border:1px solid #d7d7cf;border-radius:22px;overflow:hidden;background:#fafaf7;cursor:zoom-in}
+.screen img{width:100%;display:block;aspect-ratio:853/1844;object-fit:contain}
+figcaption{padding:20px 2px}h2{font-size:19px;letter-spacing:-.025em;margin:0 0 8px;font-weight:650}
+.number{font-size:11px;display:block;letter-spacing:.12em;color:var(--accent);margin-bottom:10px}
+figcaption p{font-size:14px;line-height:1.55;color:var(--muted);margin:0}
+.notes{margin-top:25px;border-top:1px solid #d0d2c9;padding-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:48px}
+.notes p{line-height:1.65;font-size:15px;max-width:650px;color:var(--muted)}
+footer{font-size:12px;color:var(--muted);padding-top:18px;padding-bottom:42px;border-top:1px solid #d0d2c9}
+dialog{border:0;border-radius:22px;padding:0;background:#fafaf7;max-width:min(94vw,530px);max-height:95vh;overflow:auto}
+dialog::backdrop{background:rgba(15,17,15,.78)}dialog img{width:100%;display:block}
+dialog form{position:sticky;top:12px;height:0;display:flex;justify-content:flex-end;padding-right:12px;z-index:1}
+.close{font:inherit;font-size:14px;padding:9px 14px;border-radius:100px;border:1px solid #dadbd5;background:#fff;color:#141615;cursor:pointer}
+@media(max-width:1100px){.gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;max-width:880px;margin:auto}}
+@media(max-width:540px){header,main,footer{padding-left:22px;padding-right:22px}.gallery{grid-template-columns:1fr;max-width:370px}.notes{grid-template-columns:1fr;gap:10px}}
+@media(prefers-reduced-motion:no-preference){.screen{transition:transform .15s ease}.screen:hover{transform:translateY(-3px)}}
+</style>
+</head>
+<body>
+<header>
+<div class="eyebrow">Game Time / Design exploration 01</div>
+<h1>Competition, clearly.</h1>
+<p class="intro">Warm white. Confident numbers. Athletic orange. A first look at friend duels, personal goals, and effortless connections.</p>
+<div class="meta"><span>6 imagegen concepts</span><span>Fictional example data</span><a href="#weekly">Weekly challenges</a><a href="README.md">Design &amp; haptic notes</a><a href="prompts.md">Original prompts</a><a href="weekly-prompts.md">Weekly prompts</a></div>
+</header>
+<main>
+<div class="section-intro" id="weekly"><div class="eyebrow">New / Weekly challenges</div><h2 style="font-size:32px;margin-top:12px">The whole week adds up.</h2><p>Two more challenge types in the same visual family. See the total, what is left, and how each day contributes. Activity minutes here mean recorded workout time, counted once. <a href="weekly-challenges.md">Read the counting rules and design notes.</a></p></div>
+<section class="gallery weekly-gallery" aria-label="Weekly challenge concepts">
+<figure><button class="screen" data-image="05-weekly-steps.png" data-title="100,000 steps in one week" aria-label="Enlarge Weekly steps concept"><img src="05-weekly-steps.png" alt="Weekly steps goal concept: 60,700 of 100,000 steps, with 39,300 left and daily bars through Thursday."></button><figcaption><span class="number">05 / WEEKLY STEPS</span><h2>100,000 steps in one week.</h2><p>One weekly target. Daily bars show the contributions, with room for a quieter day.</p></figcaption></figure>
+<figure><button class="screen" data-image="06-weekly-minutes.png" data-title="400 activity minutes this week" aria-label="Enlarge Weekly minutes concept"><img src="06-weekly-minutes.png" alt="Weekly activity-minute goal concept: 240 of 400 minutes, with 160 left and an explicit recorded-workout-time definition."></button><figcaption><span class="number">06 / WEEKLY ACTIVITY</span><h2>400 activity minutes this week.</h2><p>Minutes take the lead. The source and definition stay close enough to understand what counts.</p></figcaption></figure>
+</section>
+<h2 class="original-title">The original four concepts</h2>
+<section class="gallery" aria-label="Four app page concepts">
+<figure><button class="screen" data-image="01-today.png" data-title="Today" aria-label="Enlarge Today concept"><img src="01-today.png" alt="Game Time Today concept, with an upcoming friend duel and a best official 5K attempt of 25 minutes 42 seconds."></button><figcaption><span class="number">01 / TODAY</span><h2>The next challenge leads.</h2><p>Your matchup and race come first. Your personal best keeps the longer goal in view.</p></figcaption></figure>
+<figure><button class="screen" data-image="02-duel.png" data-title="Duel" aria-label="Enlarge Duel concept"><img src="02-duel.png" alt="Upcoming Lakefront 5K duel detail with two agreed participants, course illustration, official chip-time rules and simulated stakes."></button><figcaption><span class="number">02 / DUEL</span><h2>One race. Clear rules.</h2><p>A balanced matchup, an uncluttered course, and the facts both friends agreed to.</p></figcaption></figure>
+<figure><button class="screen" data-image="03-goal.png" data-title="Goal progress" aria-label="Enlarge Goal progress concept"><img src="03-goal.png" alt="Under-25-minute 5K goal concept with official attempt chart and separately labeled personal training check-ins."></button><figcaption><span class="number">03 / GOAL</span><h2>Make progress visible.</h2><p>Large race times and a spare chart tell the story. Training check-ins have their own space.</p></figcaption></figure>
+<figure><button class="screen" data-image="04-connections.png" data-title="Connections" aria-label="Enlarge Connections concept"><img src="04-connections.png" alt="Activity connections concept with Apple Health steps connected and a proposed Connect Garmin action."></button><figcaption><span class="number">04 / CONNECTIONS</span><h2>Connect with confidence.</h2><p>Recognizable sources, clear status, and a calm invitation to connect training activity.</p></figcaption></figure>
+</section>
+<section class="notes" aria-label="Design interpretation">
+<div><h2>The feel between screens</h2><p>A soft tick when you select an attempt on the chart. A brief press response on a primary action. One confirmation haptic when a connection or invitation succeeds. These are proposed native interactions; the images are static.</p></div>
+<div><h2>What informed the direction</h2><p>Robinhood polish and Kalshi event clarity from the design brief, plus inspected <a href="https://mobbin.com/screens/125cbc4d-55cc-4abc-82d0-4ff489ed616e">Strava activity presentation</a> and its <a href="https://mobbin.com/flows/e53b9705-8d37-4720-975c-5b40e76fb6bd">device connection flow</a> on Mobbin.</p></div>
+</section>
+</main>
+<footer>Concept exploration only. Stakes are simulated; Garmin is a proposed integration. Course shapes are illustrative. Native app behavior and payments were not changed. Select any screen to enlarge it.</footer>
+<dialog id="viewer" aria-label="Enlarged design concept"><form method="dialog"><button class="close" aria-label="Close enlarged concept">Close ×</button></form><img id="full" alt=""></dialog>
+<script>
+const viewer=document.getElementById("viewer"),full=document.getElementById("full");
+document.querySelectorAll(".screen").forEach(button=>button.addEventListener("click",()=>{full.src=button.dataset.image;full.alt=button.dataset.title+" — enlarged concept";viewer.showModal();}));
+viewer.addEventListener("click",event=>{if(event.target===viewer)viewer.close();});
+</script>
+</body></html>

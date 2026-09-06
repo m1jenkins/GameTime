@@ -57,3 +57,14 @@ Preserve Personal, Solo and legacy charity agreements and their test-only or
 sandbox restrictions. New products receive new terms, models and request
 formats; generic distance fields and dormant social code do not implement them.
 The pivot authorizes planning, not payments, hosted mutations or deployments.
+
+## Engagement changes
+
+For notifications, badges, streaks, celebrations, social invitations, incentives,
+paywalls, analytics/experiments and financial admission, apply
+[the responsible-engagement requirements](docs/BUSINESS_MODEL.md#responsible-engagement-and-commercial-incentives).
+Review what behavior the feature increases and whether greater use could raise
+financial exposure or exercise pressure. Preserve explicit consent and easy
+exits; never use health data or losses for revenue targeting. Keep implemented
+controls distinct from proposed defaults. Use the current order in PLAN.md,
+not the completed fixed-5K implementation prompt, to select new work.

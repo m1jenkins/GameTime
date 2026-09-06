@@ -65,6 +65,7 @@ enum ActivitySyncViewState: Equatable, Sendable {
 final class AppModel {
     let configuration: AppConfiguration
     let duels: DuelStore
+    let performanceCommitments: PerformanceCommitmentStore
 
     private(set) var phase: AppPhase = .launching
     private(set) var userID: UUID?
@@ -108,6 +109,10 @@ final class AppModel {
         duels = DuelStore(enabled: configuration.duelRuntimeEnabled,
             auth: services.auth, client: services.duels,
             friendships: services.friendships, pendingStore: services.pendingDuels)
+        performanceCommitments = PerformanceCommitmentStore(
+            enabled: configuration.performanceCommitmentRuntimeEnabled,
+            auth: services.auth, client: services.performanceCommitments,
+            pendingStore: services.pendingPerformanceCommitments)
     }
 
     deinit {
@@ -908,6 +913,7 @@ final class AppModel {
         )
 
         duels.setActor(nil)
+        performanceCommitments.setActor(nil)
         var cleanupWarning = false
         do {
             try await services.localStateCleanup.clear(for: ownerID)
@@ -992,6 +998,7 @@ final class AppModel {
         refreshGeneration = UUID()
         self.userID = userID
         duels.setActor(userID)
+        performanceCommitments.setActor(userID)
         profile = nil
         friendshipCards = []
         contests = []
@@ -1202,6 +1209,7 @@ final class AppModel {
 
     private func clearUserState() {
         duels.setActor(nil)
+        performanceCommitments.setActor(nil)
         authGeneration = UUID()
         refreshGeneration = UUID()
         userID = nil

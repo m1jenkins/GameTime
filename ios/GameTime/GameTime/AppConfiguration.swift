@@ -29,6 +29,20 @@ struct AppConfiguration: Equatable, Sendable {
     /// not fetch or mutate dormant social inventories.
     let legacySocialRuntimeEnabled: Bool
     let duelRequested: Bool
+    let performanceCommitmentRequested: Bool
+
+    var performanceCommitmentRuntimeEnabled: Bool {
+        #if DEBUG || STAGING
+        return performanceCommitmentRequested && environment != .release
+            && supabaseURL.scheme == "http"
+            && ["localhost", "127.0.0.1", "::1", "[::1]"].contains(supabaseURL.host ?? "")
+            && supabaseURL.port != nil && supabaseURL.user == nil && supabaseURL.password == nil
+            && supabaseURL.query == nil && supabaseURL.fragment == nil
+            && ["", "/"].contains(supabaseURL.path)
+        #else
+        return false
+        #endif
+    }
 
     /// The native experiment only targets a disposable local stack. Release
     /// ignores launch flags and even an explicitly constructed configuration.
@@ -52,7 +66,8 @@ struct AppConfiguration: Equatable, Sendable {
         betaTermsURL: URL? = nil,
         supportEmail: String? = nil,
         legacySocialRuntimeEnabled: Bool = false,
-        duelRequested: Bool = false
+        duelRequested: Bool = false,
+        performanceCommitmentRequested: Bool = false
     ) {
         self.environment = environment
         self.supabaseURL = supabaseURL
@@ -65,6 +80,7 @@ struct AppConfiguration: Equatable, Sendable {
         self.supportEmail = supportEmail
         self.legacySocialRuntimeEnabled = legacySocialRuntimeEnabled
         self.duelRequested = duelRequested
+        self.performanceCommitmentRequested = performanceCommitmentRequested
     }
 
     /// The `mailto:` a Contact button opens, or nil when no inbox is set.
@@ -171,7 +187,8 @@ struct AppConfiguration: Equatable, Sendable {
             privacyPolicyURLValue: privacyPolicyURLValue,
             betaTermsURLValue: betaTermsURLValue,
             supportEmailValue: supportEmailValue,
-            duelRequested: ProcessInfo.processInfo.arguments.contains("--duels")
+            duelRequested: ProcessInfo.processInfo.arguments.contains("--duels"),
+            performanceCommitmentRequested: ProcessInfo.processInfo.arguments.contains("--commitments")
         )
     }
 
@@ -185,7 +202,8 @@ struct AppConfiguration: Equatable, Sendable {
         privacyPolicyURLValue: String? = nil,
         betaTermsURLValue: String? = nil,
         supportEmailValue: String? = nil,
-        duelRequested: Bool = false
+        duelRequested: Bool = false,
+        performanceCommitmentRequested: Bool = false
     ) throws -> AppConfiguration {
         guard let environment = AppEnvironment(
             rawValue: environmentValue?.lowercased() ?? ""
@@ -292,7 +310,8 @@ struct AppConfiguration: Equatable, Sendable {
             privacyPolicyURL: publishedPolicyURL(privacyPolicyURLValue),
             betaTermsURL: publishedPolicyURL(betaTermsURLValue),
             supportEmail: supportInbox(supportEmailValue),
-            duelRequested: duelRequested
+            duelRequested: duelRequested,
+            performanceCommitmentRequested: performanceCommitmentRequested
         )
     }
 
@@ -357,6 +376,14 @@ struct AppConfiguration: Equatable, Sendable {
         supabasePublishableKey: "sb_publishable_fixture_only",
         contestMutationsEnabled: true,
         duelRequested: true
+    )
+
+    static let performanceCommitmentFixture = AppConfiguration(
+        environment: .debug,
+        supabaseURL: URL(string: "http://127.0.0.1:54321")!,
+        supabasePublishableKey: "sb_publishable_fixture_only",
+        contestMutationsEnabled: true,
+        performanceCommitmentRequested: true
     )
 
     static let personalFixture = AppConfiguration(

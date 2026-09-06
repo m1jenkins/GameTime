@@ -4509,3 +4509,229 @@ revocation and an appropriate release/purge policy before hosted operation.
 See [Phase 3(c) acceptance](docs/PERFORMANCE_PROGRESS_V1_ACCEPTANCE.md).
 Native commitment flows, following, result/review operations and live money
 remain later slices.
+
+### D127. Following shares explicit progress selections through revocable bilateral consent
+
+**Implemented locally for Phase 3(d) — September 5, 2026.** Keep the owner
+progress ledger private. An accepted friend receives selected goal facts and
+explicitly published progress only after separate owner scope consent and
+follower acceptance. Check-in publications omit note text and linked private
+milestone identity; milestone publications freeze the selected name, date and
+reported status. No automatic later progress, raw proof, financial details or
+result projection is included. Following never affects proof or agreement terms.
+
+**Reversible defaults.** Scope `goal_and_selected_progress_v1` shares the strict
+5K target/window and the same selected publication set with all active followers.
+Pending invitations expire within seven days or at the goal deadline, with 32
+open/128 total invitations and 512 total publications per commitment. Card pages
+are limited to 50 and reject a continuation after publication/retraction changes.
+Reactions are three fixed encouragement codes, one current reaction per follow
+and card. A follower can schedule one personal in-app reminder within 30 days
+and before the deadline. No schedule or external delivery is installed.
+
+**Safety and recovery.** Revocation, unfollowing, blocks, unfriending, either
+person's deletion and safe commitment closure end prior grants permanently.
+Unblocking/re-friending requires fresh consent. Sharing reads and writes serialize
+with those changes and recheck active sessions after waits. Exact actor-bound
+requests retain original action receipts, never previously shared content or
+renewed access. Safe exits, retraction, report intake and private reporter history
+remain available when admission stops.
+
+**Support and retention.** Each named person may submit up to 16 private reports
+per follow with 1–500-character plain-text notes. Report access is reporter-only
+or requires an independent active operator's service-assigned, case-specific
+grant lasting at most seven days; operator reads are audited and resolutions
+are immutable. Following/report storage has a distinct local retention hold,
+without an approved real-data duration or purge procedure. This is not a staffed
+support operation, proof review permission or post-final result support.
+
+See [local acceptance and the native/Phase 3(e) handoff](docs/PERFORMANCE_FOLLOWING_V1_ACCEPTANCE.md).
+Native caches must clear on account/authorization changes and reject late actor
+responses; that client work remains unimplemented. Commitment result/review
+persistence, real organizers, hosted operation and money remain separate work.
+
+
+### D128. Commitment finality uses complete proof snapshots and separate simulated consequences
+
+**Implemented locally for Phase 3(e) — September 5, 2026.** Connect the unchanged
+strict-target evaluator to a separate default-off lifecycle ledger. Preserve
+all earlier policy/consent terms and agreement closure receipts. Durable owner
+notices, append-only review cases and independent resolutions supply the frozen
+seven-day filing and seven-day reviewer windows. Corrections require new
+notices; neither worker delay nor the finality cap shortens those windows.
+Missing proof, silence, timed-out review and insufficient windows cannot create
+a confirmed miss or simulated loss.
+
+Compare the entire private proof/lifecycle snapshot under owner/operator locks,
+including unreviewed captured sources, before committing worker decisions.
+Reevaluate after relevant state changes or a clock-boundary crossing; preserve
+PostgreSQL microseconds. Service-only commits trust the versioned pure worker,
+while clients/operators cannot choose clocks, results or consequences. The
+manual operational adapter remains loopback-only with bounded stale retries.
+
+Final results are immutable, release the independent slot and permanently end
+existing follows/reminders. New following requires an unfinalized commitment;
+no result-sharing consent is inferred. Old agreement status is a historical
+receipt, with operational finality exposed separately. Account deletion remains
+possible before/after finality and cannot change a saved result.
+
+**Reversible operational defaults.** One owner case per durable notice; reasons
+are wrong result, wrong identity or missing result. Independent review/support
+assignments use separate per-commitment scopes lasting at most seven elapsed
+days, with real active-session checks and audited reads. Post-final intake is
+at most 64 bounded 1–500-character plain-text operator notes. It is separate
+support history, not new qualifying proof or automatic redress. A current
+support assignment can access retained records after owner deletion; an owner,
+a follower or an earlier proof/social-support grant cannot claim that authority.
+
+Append simulation after finality and recover interruptions idempotently. A
+confirmed miss records 2,000 simulated lost cents; all other outcomes record
+2,000 returned cents. Fee is zero, recipient remains unselected, payee is null
+and nothing is redeemable or transferred. This preserves D124 rather than
+selecting a live price, beneficiary or funds flow. A distinct fictional hold
+retains result/review/support records until an approved retention policy exists.
+
+See [acceptance and the native handoff](docs/PERFORMANCE_LIFECYCLE_V1_ACCEPTANCE.md).
+Native commitments, actual organizer/review/support operations, real-data purge,
+hosted operation, external delivery and live money remain separate gates.
+
+### D129. Native commitments begin with owner agreement and authoritative result history
+
+**Implemented locally for the first Phase 3(f) slice — September 5, 2026.**
+Add an opt-in Running goals route for explicit local development, with typed
+owner preview/consent, agreement history, notices/reviews, safe exits and
+separately recorded nonredeemable simulation. Release cannot open the route or
+send these RPCs. Preserve all existing agreement and payment terms.
+
+An original `open` agreement does not imply the absence of a final result.
+Read the separate lifecycle and distinguish unknown/pending results from saved
+outcomes and separately appended simulation. Preserve microsecond wire values
+and full review windows; a cap never creates a loss from missing proof or an
+incomplete review.
+
+Persist complete actor-bound requests before sending, require explicit exact
+recovery, bind returned receipts to freshly read history, and clear owner content
+on account changes, backgrounding and failed reads. No auth credential or result
+cache belongs in the envelope. The editor's 25:00 target, next-day start and
+56-day duration are editable defaults, not new policy or launch recommendations.
+
+Native attempt/completeness entry, private progress and selected following are
+next. No result-sharing consent, actual organizer operation, staffed support,
+hosted mutation or live funds flow is added. See
+[the first native slice and handoff](docs/PERFORMANCE_COMMITMENT_NATIVE_V1_ACCEPTANCE.md).
+
+
+### D130. Engagement rewards athletic progress and informed, voluntary participation
+
+**Adopted September 6, 2026, in response to the owner's report-based change request.**
+Optimize agreement comprehension, chosen athletic progress, credible results and
+voluntary retention, constrained by pressure, privacy and exit guardrails. Remove
+the pilot target for return within seven days after a loss. Do not optimize
+committed dollars, paid-challenge frequency, app opens or notification clicks in
+isolation; never use missed goals, losses or health data for revenue targeting.
+No financial celebrations, forced daily exercise streaks, automated rematches,
+stake escalation, repeated declined invitations or hidden risk/exit controls.
+
+The current native change summarizes the existing fictional-5K simulated terms
+before consent and keeps the complete detailed rules expandable. Exact consent
+strings, policy/digest checks and historical receipts are unchanged. Dormant
+native lead-loss/comeback notification category setup and launch permission
+prompting are removed; foreground legacy notifications are suppressed and push
+stays disabled. This is not a new reminder or preference system.
+
+Future push requires contextual permission, explicit categories, caps, quiet
+hours, current server authorization, suppression and deduplication. Future money
+requires server-enforced aggregate outstanding and rolling new-commitment limits,
+user pause and deliberate delayed increases without obstructing records, review,
+exits, support or applicable money access. Limits, delay, notification caps,
+forfeiture recipient and pricing remain unselected/proposed, not live policy.
+Revenue research prioritizes transparent fees and optional club value without
+relying on participant failure. New source/metric policies honor the owner's
+participant-selected-distance direction; historic 5K agreements stay intact.
+
+See [business requirements](docs/BUSINESS_MODEL.md#responsible-engagement-and-commercial-incentives),
+[current implementation order](PLAN.md#current-implementation-order-after-the-engagement-review)
+and [verification](docs/RESPONSIBLE_ENGAGEMENT_ACCEPTANCE.md). Native progress/
+following, external reminders, financial limits and human-pilot evidence remain
+explicit next work. No migration, hosted operation, external message, provider
+integration or live money was added.
+
+
+### D131. Weekly-first planning preserves completed formats and separates new rules
+
+**Planning revision, September 6, 2026, requested by the owner.** The owner
+explicitly dropped the mandatory fixed-5K format and accepts participant-chosen
+supported distances. Friend challenges and personal commitments remain adopted.
+This revision authorizes a reconciled plan, not a public launch, live money or
+all candidate modes. D130 responsible-engagement requirements remain in force.
+
+**Recommended sequence:** W1 cumulative weekly steps with a friend; W2 one
+weekly community experiment; W3 Apple Watch Exercise minutes after source
+validation; W4 configurable cumulative/timed distance and useful longer-goal
+progress/following. Begin with W1A's pure fictional policy, qualification
+evaluator and tests. Pause the organizer-nomination UI as the default next task.
+The detailed [weekly specification](docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md)
+owns these planned slices; [PLAN.md](PLAN.md) owns their overall order.
+
+**Reuse boundary:** keep old Personal/Solo/charity and fictional-5K agreements,
+source semantics, exact pending requests, scorers, final results, simulated
+returns and acceptance records. Reuse identity, consent, recovery, progress and
+review/privacy patterns under new versioned contracts. Fixed distance and
+exactly two participants are validated rules, not display defaults that can be
+silently widened. Community enrollment and multi-winner allocation are new work.
+
+**Proposed rules:** two friends can each meet their agreed weekly target. A
+confirmed miss is distinct from missing or unreadable data. Public pooled goals
+need a published difficulty policy; the formula is not selected. Weekly
+activity windows and pending review are separate, so an explicit future-week
+join need not wait for prior-week finality. All pending financial exposure must
+still count toward server limits before any future real-money admission.
+
+**Simulation and open decisions:** proposed weekly fixtures use 2,000 example
+cents per person and zero fee; qualifiers recover entries and may share
+confirmed forfeitures. Zero-winner forfeitures and division remainders remain
+explicitly unallocated simulation with no payee. Community launch, real funds
+flow, fees, recipients, provider, admission/financial limits and jurisdiction
+remain unresolved. Other apps' economics are research, not approval or a
+revenue forecast. New acceptance must cover all/none/some qualifiers, unresolved
+proof, withdrawals, integer conservation and concurrent next-week participation.
+
+**Pilot:** replace the earlier organizer-oriented first study with a proposed
+20–30 adults over two consecutive weekly rounds, including solo joiners and
+friend groups, after source/native/community/privacy/support acceptance. Use
+nonredeemable simulation and descriptive comprehension, fairness, meaningful
+progress and voluntary-return evidence. No loss-triggered outreach or growth
+target for paid frequency. Recruitment/distribution remain separately gated.
+
+This change updates planning documents and a forward-handoff note only. It does
+not implement W1–W4, alter app/schema behavior, enable a provider or modify
+hosted state. The historical phase and engagement acceptance remains intact.
+
+
+### D132. Beta friend groups and one common community step goal
+
+**Owner direction, September 6, 2026:** beta friend challenges should support
+up to five friends. Community launch should use one goal everyone works toward,
+starting with a weekly step goal. This supersedes D131’s pair-only W1 proposal
+and personalized community target/difficulty formula for initial scope.
+
+**Explicit working interpretations:** five participants total, including the
+creator (2–5 per friend challenge); each community entrant individually meets
+the same published weekly step target, rather than adding steps to a collective
+total. The owner has not separately confirmed those interpretations. The numeric
+community goal remains unselected. Individual custom friend targets remain a
+proposed default, not a new owner mandate.
+
+Update W1A’s pure evaluator for a frozen roster and all consents; cover every
+group size, capacity violations and all/none/some qualifiers. W1B/C add group
+invitations, roster consent, privacy and concurrency/native acceptance at the
+beta capacity. New group simulation recommends equal sharing of confirmed
+forfeitures, unallocated remainders and conservative whole-group refunds for
+unresolved proof or safe exits. These are reversible simulation proposals.
+W2 freezes one common target before joining and rejects per-person overrides;
+no personalized baseline formula is needed for this launch format.
+
+This is planning scope, not implementation, recruitment, deployment or payment
+authorization. Source validation, target suitability, rollout clearance, actual
+money rules and D130 safeguards remain required. Historical agreements and
+unrelated work remain unchanged.

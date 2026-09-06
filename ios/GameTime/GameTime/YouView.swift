@@ -13,6 +13,13 @@ struct YouView: View {
                 profileCard
                 healthSection
                 #if DEBUG || STAGING
+                if model.configuration.performanceCommitmentRuntimeEnabled {
+                    NavigationLink(value: YouRoute.performanceCommitments) {
+                        Label("Running goals", systemImage: "flag.checkered")
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    }
+                    .accessibilityIdentifier("commitment.open")
+                }
                 if model.configuration.duelRuntimeEnabled {
                     NavigationLink(value: YouRoute.duels) {
                         Label("Friend duels", systemImage: "figure.run")

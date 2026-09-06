@@ -12,8 +12,13 @@ see [native acceptance](DUEL_NATIVE_V1_ACCEPTANCE.md). Phase 2(a) adds the isola
 adds [private fictional proof and independent operator authorization](DUEL_PROOF_V1_ACCEPTANCE.md);
 Phases 2(c–e) subsequently added the local lifecycle, native results/review,
 rematches and invitation links. Phases 3(a–c) added separate commitment
-agreements, nominated attempts and private manual progress. Hosted operations,
-commitment followers and result/review persistence remain open.
+agreements, nominated attempts and private manual progress. Phase 3(d) adds the
+[local following and report/support backend](PERFORMANCE_FOLLOWING_V1_ACCEPTANCE.md).
+Phase 3(e) adds the [local result/review lifecycle and separate simulation](PERFORMANCE_LIFECYCLE_V1_ACCEPTANCE.md).
+The [first native commitment slice](PERFORMANCE_COMMITMENT_NATIVE_V1_ACCEPTANCE.md)
+adds local agreement and result/review history. Native attempts, progress,
+following and hosted operations remain open; organizer-event entry is paused
+as the default next task under the weekly-first roadmap.
 See [the acceptance record](DUEL_AGREEMENT_V1_ACCEPTANCE.md) for local
 verification and the Phase 1B handoff; this does not establish hosted or race proof.
 
@@ -34,84 +39,146 @@ created. The [prior plan](archive/2026-09-04_PRE_PIVOT_PLAN.md) is preserved.
 
 | Status | Meaning here |
 | --- | --- |
-| Adopted | Both products, athletic focus, stakes in design scope, private friend competition; no spectator betting or public prediction exchange |
-| Implemented | The existing Personal seven-day Apple Health steps app, internal test-only and Stripe sandbox paths, dormant historical systems below, the isolated local Phase 1A simulated duel agreement backend with an opt-in Phase 1B native fixture/local flow, Phase 2(a)'s pure fictional-result evaluator, Phase 2(b)'s private fictional proof/operator boundary, Phases 2(c–e)'s local lifecycle/native results/rematches/links, and Phase 3(a–c)'s separate commitment agreements/attempts/manual progress |
-| Recommended | Reversible first formats, timing rules, simulated amounts, pilot sizes and thresholds in this document |
-| Unresolved | Demand, provider access and permission, real-money structure, recipient of commitment forfeitures, prices, jurisdictions and launch clearance |
+| Adopted | Friend challenges and personal commitments, athletic focus, no mandatory fixed 5K, participant-selected supported distances/targets, stakes in design scope and responsible engagement; no spectator betting or public prediction exchange |
+| Implemented | The existing Personal seven-day Apple Health steps app, internal test-only and Stripe sandbox paths, dormant historical systems below, the isolated local Phase 1A simulated duel agreement backend with an opt-in Phase 1B native fixture/local flow, Phase 2(a)'s pure fictional-result evaluator, Phase 2(b)'s private fictional proof/operator boundary, Phases 2(c–e)'s local lifecycle/native results/rematches/links, and Phase 3(a–e)'s separate commitment agreements/attempts/manual progress/following/result-review backend |
+| Adopted beta/launch scope | Up to five friends; one common weekly community step goal. Working interpretations: five participants total and individual completion of the same target (D132) |
+| Recommended | Weekly friend steps first, one community experiment, then Exercise minutes and configurable distance; all timing, target, simulation and pilot defaults are reversible |
+| Unresolved | Community rollout clearance and numeric common weekly step target, demand, source validation, provider access, money structure, forfeiture/remainder recipients, fees, limits, jurisdictions and launch clearance |
+
+## Current format authority
+
+The owner dropped a mandatory fixed-5K format on September 5 and requested this
+implementation-plan reconciliation. Friend challenges and personal commitments
+remain adopted. People may choose supported distances/targets. The recommended
+next build is cumulative weekly steps with friends; one official weekly
+community experiment follows, then Exercise minutes and configurable-distance
+policies. This is a planning sequence, not confirmation that every proposed
+mode or payment arrangement has been selected. D132 selects the community
+launch format as one common weekly step goal; rollout clearance remains separate.
+
+The existing fictional official-5K implementation and immutable agreements
+remain historical local functionality. New formats need separate versions,
+requests and source/review rules. Read [the weekly implementation specification](WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md)
+for W1–W4, the reuse/pause inventory, acceptance and current W1A build prompt.
+D130 responsible-engagement requirements remain in force alongside D131 and D132.
 
 ## Audience, positioning, and engagement
 
-Start with recreational runners who already compete with friends, especially
-active adults in their twenties. Interest in Kalshi or Polymarket suggests a
-possible appetite for consequential outcomes; it does not establish demand
-for GameTime. The initial job is to make “race me” or “I'll run this time by
-that date” specific enough to accept, follow, and finish.
+The audience hypothesis remains active adults who enjoy commitments and friendly
+competition. The weekly-steps proposal broadens the first experience beyond
+runners entering organized races. Interest in Kalshi or Polymarket does not
+establish demand for GameTime, and no retention or revenue outcome is proven.
 
-Running is the recommended first sport because distance and time are legible
-to this audience and one performance can resolve a challenge. This is a product
-hypothesis, not a claim that GPS or wearable times are inherently reliable.
-GameTime needs to beat an existing group chat on agreement clarity, result
-credibility, and ease of playing again. Avoid a general fitness dashboard,
-public matchmaking, a training prescription, or a trading interface initially.
+The first job is to turn an agreed weekly target into clear participation,
+credible progress and an understandable result. A friend can accept a different
+target before the start; everyone in the group may succeed. Most steps or fastest performance
+is a distinct head-to-head rule, not the default meaning of keeping a promise.
 
-The proposed duel loop is invitation → acceptance → race anticipation → result
-→ rematch. A participant may later share an invitation into an existing group
-chat through the system share sheet; recipients must authenticate and accept.
-The proposed commitment loop is goal → named milestone → attempt → friend
-encouragement → another attempt → final result → next goal. Progress must have
-meaning between creation and a deadline months away. The duel loop is available in the opt-in local simulation; native commitment
-screens and friend following remain unimplemented.
+The proposed weekly flow is invitation or community discovery → rule/target
+review → explicit acceptance → chosen activity and progress → result/review →
+optional next week. Community participation offers a way to begin without an
+existing friend in the app; whether that improves voluntary return is a pilot
+question. Start with one official cohort if that experiment proceeds. Defer a
+public creator marketplace, random opponent matching and financial leaderboards.
+
+Longer commitments retain goal → selected milestone → qualifying attempt →
+result/review. They remain useful without a universal 5K or mandatory 28–90-day
+window. Native milestones and following should serve the selected new format;
+finishing the historical organizer catalog is not a prerequisite for weekly play.
+The existing native duel/rematch flow and commitment agreement/result screens
+remain local simulations, not these new experiences.
 
 Retain Today, Challenges, and You as a starting navigation structure. Add typed
-duel and commitment destinations as they are implemented; do not restore the
-old social shell wholesale. Share result summaries only by explicit choice.
-Followers get selected progress and results, never automatic access to raw
-Health data, routes, payment methods, or dispute evidence. Financial amounts
-are private to participants by default. Free-form chat, public feeds, and
-automatic contact imports are deferred; structured reactions still need report,
-block, and support behavior.
+new destinations while preserving Personal. Invitations and next-week joins
+require fresh consent; public enrollment must not silently create friendships,
+second stakes or visibility into health data. Share selected friend progress
+only with current permission. Result sharing needs separate explicit consent.
+No strangers' health totals, routes, private notes or financial losses should
+appear because they joined the same cohort. Free-form chat, public feeds and
+automatic contact imports remain deferred. Privacy, blocks, reports/support,
+account clearing and safe exits are part of the first usable community flow.
 
 ## First sport, format, and proof recommendation
 
-**First usable pilot: two friends in the same organized outdoor 5K, compared
-using the organizer's published chip time, with simulated $20 stakes each.**
-Use one event/course/wave, one attempt, no handicaps, and a single timing basis.
-The source is a manually reviewed official result, with participant-to-bib
-mapping; it is not a screenshot asserted by a participant and not a new Garmin
-integration. Pick an event with permission to use its results and a clearly
-defined 5K course and chip-time column. Event selection is a pilot prerequisite,
-not something verified in this planning task.
+**Recommended sequence:** cumulative weekly steps with friends; a single weekly
+community experiment; Apple Watch Exercise minutes; configurable cumulative or
+timed distance goals. This reuses the working Personal steps foundation and
+social/consent patterns while avoiding an organized-event dependency. It does
+not turn historical Personal snapshots into competitive proof automatically.
 
-This deliberately narrows “fastest qualifying 5K this month” to a common race
-before tackling different routes, terrain, weather, device error, and unlimited
-attempts. It adds event-schedule friction; measure that in the pilot. If runners
-cannot arrange repeat events, prioritize the asynchronous proof phase before
-interpreting weak rematches as lack of demand for friend duels.
+W1 starts with a fictional, pure weekly-steps evaluator, then a separate step
+source investigation and new local agreement/lifecycle. The beta supports up to five friends, interpreted as 2–5 total participants
+including the creator. Everyone consents to the frozen roster, each person’s
+target and the same seven calendar dates/timezone before starting. No forced
+daily streak. The owner selected one common weekly step goal for community
+launch: the working interpretation is that each entrant individually meets
+the same published target, rather than contributing to a combined total.
+The numeric target remains open; personalized community goals are out of
+initial scope. See D132 for decisions versus working interpretations.
 
-Local Phase 1A agreements use the `fixture_official_5k_v1` source policy with
-fictional people and events; result records remain Phase 2 work. Human-pilot
-proof would be `organizer_chip_5k_v1`, still a proposed source. A reviewer records source
-reference, event identity, bib mapping, published value/precision, retrieval
-time, and decision. No scraping or organizer API access is assumed.
+The current step reader merges Health writers and excludes only explicitly
+manual records. New competitive rules must separately validate accepted source
+identity, overlaps, duplicates, manual/imported activity, corrections and late
+sync on devices. A successful empty query or a completed permission prompt does
+not establish complete observation. Missing data cannot by itself cause a loss.
 
-For commitments, start with **one outdoor 5K below a user-chosen time within
-28 days**, selectable out to **90 days**, using a reviewed qualifying event.
-Named intermediate milestones (choose an event, first attempt, next attempt)
-are progress only; they cannot trigger a charge. A later version supports the
-owner's mile example: **1,609.344 metres in under 360 seconds by an explicit
-date and year**. A 1,600 m track result is not a mile. A December 1 example
-must freeze its year, timezone and exact closing instant at agreement.
+Exercise minutes need their own permissions and source adapter. Apple lets
+manual workouts update the Exercise ring, so a ring total alone is insufficient
+for the proposed source policy. Do not equate Exercise minutes with workout
+elapsed time, calories or Garmin weighted intensity minutes. Whether generated
+minute samples preserve enough provenance is an explicit device-test question.
 
-Garmin Activity API is the recommended next automatic source for asynchronous
-outdoor runs, conditional on access, permitted use, and validation. Apple
-Watch workouts through HealthKit are a candidate parallel source, not a silent
-fallback. Neither the current daily step snapshots nor Garmin-written steps
-in Apple Health qualify as running-performance proof.
+For distance goals, distinguish accumulated qualifying distance in a window from
+one qualifying performance over a chosen distance under a chosen time. Preserve
+exact units: a true mile is 1,609.344 metres; 1,600 m is different. Freeze source,
+units, precision, activity type, comparator, window, corrections, missingness,
+rest/injury and review rules before consent. Selectable distance requires new
+proof/validation, not relabeling the existing fixed-5K fixture.
+
+Apple Watch workouts and Garmin activities are candidate performance sources;
+Garmin access is not a dependency for weekly steps. Organizer results remain an
+optional later format with source permission and review, not the launch path.
+No provider is selected and the human pilot requires actual source acceptance.
+
+## Proposed weekly and community money mechanics
+
+These are **simulation defaults and commercial hypotheses**, not approved real
+money. The W1 fixture uses 2,000 nonredeemable example cents each and zero fee.
+For the proposed 2–5-person friend simulation, all qualify → return all entries;
+some qualify → return qualifiers’ entries plus equal shares of confirmed
+forfeitures. All confirmed misses and integer division remainders stay
+unallocated, with no company revenue or named payee. The proposed conservative
+friend-group default voids the whole group and returns entries if any proof
+remains unresolved or a simulated safe exit occurs. These expanded allocation
+and exit rules are recommendations, not owner-selected money terms.
+Old 5K outcomes keep their own rules.
+
+For a proposed community pool, each qualifier recovers their entry and an equal
+share of confirmed forfeitures. Resolve/refund unknown or safely withdrawn
+participants before allocation. All qualify → no bonus; none qualify → no
+winner allocation and no divide-by-zero. Keep integer remainders and zero-winner
+forfeitures explicitly unallocated in simulation. Selecting a real recipient,
+fees and refund rules is separate work; the earlier beneficiary suggestion has
+not been adopted. See [W2 acceptance](WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md#w2a--rules-enrollment-and-simulation).
+
+Receiving an entry back is not profit, and the total pot is not one person's
+prize. For example, ten simulated entries of 2,000 cents and eight qualifiers
+produce 2,500 cents returned per qualifier: 2,000 original plus 500 bonus before
+any separate costs. This is arithmetic, not a forecast. New weeks require new
+consent and cannot automatically roll over funds or increase amounts.
+
+StepBet/WayBetter demonstrate pooled-completion mechanics; their rules are
+comparison material, not GameTime's approved economics or evidence of demand.
+Company revenue research remains separately disclosed service fees and optional
+club tools. Do not rely on participant failure or confuse contributed stakes
+with revenue. A solo success ordinarily returns its commitment; an extra reward
+needs an explicitly funded source.
 
 ## Proposed duel agreement and lifecycle
 
-These defaults apply only to new simulated duels. They do not amend old
-Personal cancellation, Solo appeals, or charity obligations.
+The following describes the implemented fictional official-5K simulation. It
+is a lifecycle reference for future formats, not a mandatory future race format.
+It does not amend Personal cancellation, Solo appeals, or charity obligations.
 
 1. The creator chooses one accepted friend, an approved event within 30 days,
    the event's common start/end instants, timing policy, simulated amount,
@@ -154,6 +221,10 @@ Personal cancellation, Solo appeals, or charity obligations.
 
 ## Proposed performance commitment lifecycle
 
+The exact deadlines and organizer-attempt mechanics below describe the existing
+local longer-goal policy. W4 chooses new configurable-distance rules; W1/W2 do
+not inherit these deadlines or require this format.
+
 Use a separate owner agreement and lifecycle: draft → scheduled/active →
 attempts → awaiting proof → provisional success/miss/inconclusive → review →
 final result → simulated disposition. Followers are not counterparties and
@@ -194,7 +265,7 @@ or transfer; it must not imply the business or a friend received money.
 
 ## Verification contract and trust limits
 
-The organizer pilot uses one official result per runner and event. Record
+For the historical organizer format, use one official result per runner and event. Record
 published whole seconds as integer milliseconds (`seconds × 1000`); reject
 mixed/subsecond-only inputs until a version defines normalization. Keep the
 source's stated precision. Identity matching requires the agreed bib and
@@ -208,10 +279,10 @@ Before enabling an asynchronous time-trial policy, implement and validate:
   consent version, edits/deletions, and duplicate/reimport lineage.
 - A versioned distance rule: same measured course where possible, otherwise
   a calibrated GPS tolerance and explicit exclusion rules established by field
-  tests. Do not quietly round a short activity up to 5K or extrapolate a mile.
+  tests. Do not quietly round a short activity up to the agreed distance or extrapolate a mile.
 - Full elapsed time including pauses. `end - start` is the initial time basis;
   do not substitute moving time, active duration, best pace, or aggregate
-  exercise minutes. Extracting the first exact 5K of a longer run needs a
+  exercise minutes. Extracting an exact chosen-distance segment of a longer run needs a
   reviewed interpolation/segment policy and sample-gap limits before use.
 - Separate exclusion, suspicious-proof review, and valid result states. Reject
   manually entered or unsupported imported workouts; flag unexplained edits,
@@ -233,6 +304,11 @@ deletion, revocation, and retention deliberately; never reuse those jobs by
 table-name coincidence.
 
 ## Repository inspection: reuse and gaps
+
+For the current completed-work inventory and weekly changes, use
+[keep, adapt and pause](WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md#existing-work-keep-adapt-and-pause).
+The historical table below must not be read as a current claim that invitations,
+results or following backends have never been implemented.
 
 This table preserves the Phase 0 planning inspection at `c403b88`. “Exists”
 means source and associated tests inspected then, not the later implemented
@@ -258,6 +334,114 @@ rematches or new monetary settlement existed. Historical [social/Solo notes](arc
 and [charity plan](archive/2026-07-31_CHARITY_PLEDGE_DONATION_IMPLEMENTATION_PLAN.md)
 are reference material, not ready-made new-product implementations.
 
+## Responsible engagement and commercial incentives
+
+Adopted in response to the owner's supplied report, *Engagement, Compulsion,
+and Responsible iOS Design in Contract-Trading Apps*, September 6, 2026. Apply
+its autonomy and incentive principles to athletic commitments; do not import
+prediction-market regulation or treat the report as GameTime legal clearance.
+These product requirements govern new work. The exact prices, numerical limits,
+notification caps and launch metric remain proposals until validated.
+
+**Product objective:** people understand an agreement, voluntarily pursue an
+athletic goal, receive an understandable and fair result, and can leave or
+choose another challenge. Measure meaningful progress and voluntary retention
+alongside trust and reported pressure. App opens, time in app, notification
+clicks, committed dollars and paid-challenge frequency are diagnostics, never
+standalone success criteria. A missed goal must not initiate growth targeting.
+
+- Lead the future home experience with goals, selected milestones, attempts,
+  update freshness and explicitly followed friends. Keep amounts accessible
+  and prominent at consent and financial outcomes; do not hide maximum loss.
+- Celebrate athletic achievements, with the same treatment across amounts.
+  No financial confetti, stake-size badges, paid-challenge streaks, randomized
+  financial rewards, escalating defaults or loss-recovery prompts. Rest must
+  not break an app reward streak; never prescribe last-minute exercise to
+  protect a stake. An unverified check-in cannot earn a verified-result badge.
+- Keep friend invitations private and deliberate, with fresh consent for every
+  rematch. No automatic sends, repeated prompting after decline, money-won
+  leaderboards, public humiliation or inferred result-sharing consent. No
+  interface can accept, fund or increase an obligation from a notification.
+- At review show the goal, dates/zone, accepted source, exact amount and fees,
+  win/miss/tie/uncertain outcomes, recipient where selected, and exit/review
+  rules. Keep full unchanged terms reachable. Simplifying text placement
+  never weakens consent or rewrites an existing agreement.
+- New-money participation needs server-enforced outstanding-exposure and
+  rolling new-commitment limits across products, plus a person-controlled pause
+  on new money challenges. Limits cover invitations, community joins, acceptance
+  and rematches, including prior weeks awaiting finality,
+  with concurrent requests and exact recovery tested. Decreases/pause take
+  effect immediately for new admission; increases require deliberate consent
+  and a defined delay. Existing history, exits, disputes, support and applicable
+  refund/payout access remain usable. A pause does not cancel an agreement or
+  promise forgiveness. Numerical caps and delay require selection before cash.
+- Revenue hypotheses remain transparent service fees and optional club tools.
+  Do not optimize for participant failure, amount escalation or rapid repeat
+  commitments. Do not paywall risk controls, review, records, support, exits or
+  money access. No activity-linked referral/deposit incentives are planned.
+  Recipient selection remains open; a beneficiary reduces one direct conflict
+  but does not itself establish provider or legal permission.
+
+### Notification and privacy requirements
+
+External push remains disabled today. The local following backend's personal
+pull-based reminders are not APNs delivery or a notification-preference system.
+Before enabling push, implement contextual consent, per-category preferences,
+quiet hours, caps, current server authorization, opt-out and delivery checks
+as one usable flow. No inert settings may imply these protections already work.
+
+Separate invitations, requested goal reminders, selected friend updates,
+results/review and account security. Optional categories start off. Ask for OS
+permission after the person requests a useful alert, never on app launch;
+respect refusal. Proposed optional reminder limits are one per day, three per
+week, and quiet hours 21:00–09:00 in the person's selected zone. These are trial
+ceilings, not delivery targets. Coalesce/deduplicate events, suppress obsolete
+and blocked/revoked content, and give every category a reason and an easy mute.
+Security and time-sensitive result/review notices require their own policy;
+never silently apply optional-marketing caps to critical notices or promise
+real-time delivery. Durable in-app notices remain the authoritative record.
+
+Keep push payloads free of goals, health values, amounts and private friend
+content. Resolve an opaque destination only after authentication and current
+permission checks. Badge counts represent unread actionable updates, not
+activity or popularity. Server events drive result alerts; background refresh
+and APNs delivery are not clocks for changing terms or deadlines.
+
+Use a first-party, allowlisted event schema; log intent, exposure and outcome
+separately, with stable experiment assignment and deduplication. Do not send
+raw health values/routes, private notes, names, dispute text, tokens or exact
+financial amounts to growth analytics. No session replay or automatic screen/
+network capture in sensitive flows. Restrict precise financial records to
+operations and safety; a safety suppression signal cannot become a revenue
+segment. Never use fitness data or missed goals to target higher-stake offers.
+
+Apple recommends requesting notification permission in context
+([permission guidance](https://developer.apple.com/documentation/usernotifications/asking-permission-to-use-notifications)).
+Apple restricts advertising/marketing uses of health and fitness data
+([health-data guidance](https://developer.apple.com/health-fitness/)). These primary
+sources were checked September 6, 2026. The supplied report's company-specific
+and regulatory claims have not been independently re-audited for this change.
+
+### Pilot and experiment guardrails
+
+For the small initial cohort, use comprehension sessions and descriptive
+results; do not claim a powered A/B result. Ask people to restate the goal,
+amount at risk, recipient, source, review and exit consequences. Track reports
+of pressure to accept, increase stakes or exercise while injured, unwanted
+notifications, privacy incidents, unresolved disputes and difficulty leaving.
+A person using a limit, withdrawing or muting is exercising a control, not a
+failed conversion. Do not turn these choices into growth targeting.
+
+For later experiments, predeclare the hypothesis, assignment, exposure event,
+primary comprehension/task outcome, observation window, sample-size rationale
+and safety stopping rule. Start with review comprehension and requested-reminder
+usefulness. Record denominators, opt-outs and missing telemetry. Pause an
+experiment for a credible coercion/injury-pressure report, privacy breach or
+broken exit/review control; investigate before resuming. Increased clicks or
+rematches cannot override a worsening guardrail. Track rapid stake increases
+or new commitments after losses defensively if live money is later approved;
+a simulated pilot cannot establish financial safety.
+
 ## Payment-model decisions and options
 
 **Now:** new development and pilot use nonredeemable simulation only, no card,
@@ -267,8 +451,10 @@ approved prices or live limits. Retain the old Stripe sandbox path unchanged.
 
 | Option | Exact movement and recipient | Decision |
 | --- | --- | --- |
-| Simulated duel | Record two simulated $20 entries; winner receives a simulated $40 outcome, or both entries return for void/tie; no asset exists | Recommended development/pilot mode; explicitly label no real money |
-| Funded duel | Each person pays stake `S` plus separately disclosed fee `F` to an expressly approved provider. After both funding confirmations, result and review, winner receives `2S`; provider routes `2F` to GameTime. Tie/void/cancel returns `S + F` to each; business bears unrecovered processing costs | Preferred product-design hypothesis for real stakes, contingent on a provider/jurisdiction that permits this exact flow; no selected provider |
+| Historical simulated race duel | Record two simulated $20 entries; winner receives a simulated $40 outcome, or both entries return for void/tie; no asset exists | Implemented local fixture; preserve its terms |
+| Proposed weekly friend/community simulation | Record nonredeemable entries, qualification, returns, bonuses and unallocated remainder/forfeitures separately | W1/W2 planned work; no assets, fees or recipient selected |
+| Funded head-to-head duel | Each person pays stake `S` plus separately disclosed fee `F` to an expressly approved provider. After both funding confirmations, result and review, winner receives `2S`; provider routes `2F` to GameTime. Tie/void/cancel returns `S + F` to each; business bears unrecovered processing costs | Preferred product-design hypothesis for real stakes, contingent on a provider/jurisdiction that permits this exact flow; no selected provider |
+| Funded target-based friend/community pool | An expressly supported holder collects entries and disclosed fees; after final qualification/review, return successful principals and distribute confirmed forfeitures under frozen rules, including refunds, no-winner and rounding recipients | Research only; not implemented or approved by the duel simulation or another app's practices |
 | Pay loser-to-winner after result | Save an authorized method, later attempt collection from loser and route proceeds to winner | Not recommended for initial funded duels: winner's prize is unfunded and collection can fail; not a workaround for gambling/payment rules |
 | Personal prefunded commitment | Person pays `C` to an approved holder with segregated accounting. Success/waiver returns `C`; confirmed miss sends `C` to the named approved beneficiary after review. Any service fee is separately disclosed and versioned | Closest to “money committed now”; holder, beneficiary, fee and legal characterization remain unresolved; not implemented |
 | Personal later contingent charge | Save method/explicit consent; on confirmed miss after review, attempt one charge of `C` to the disclosed merchant/recipient. Success/waiver means no charge | Alternative supported by existing sandbox patterns; no locked money or guaranteed collection. A new beneficiary flow needs new approval, not old consent |
@@ -340,50 +526,55 @@ the restriction.
 
 ## User-validation pilot
 
-Proposed, not recruited or run: **12 friend pairs (24 adults), six weeks**, plus
-**8 voluntary performance commitments** from the same cohort with 28-day goals.
-Recruitment should include runners outside the owner's close friends and some
-people who decline. No stakes, entry fees, prizes of value, or compensation for
-TestFlight access. Schedule at least two eligible events so rematches are
-actually possible. Longer 90-day retention needs a later cohort; six weeks
-cannot validate it.
+**Revised proposal, not recruited or run:** 20–30 adults over two consecutive
+seven-day rounds, with one official community cohort. Include solo joiners and
+existing friend groups of 2–5. Use nonredeemable simulation only: no real stakes, fees,
+prizes of value, outside collection or compensation for TestFlight access.
+This replaces the earlier six-week/12-pair/8-commitment pilot as the recommended
+first study. Longer goal formats need later observation matching their duration.
+If the community experiment is deferred, the two-round study can instead use
+private W1 friend groups of 2–5 after their source/native/support acceptance. It then
+provides no evidence for solo community entry, public fairness or pooled groups.
+Community implementation is not a prerequisite for validating private challenges.
 
-Before invitations, Phase 2 must pass local two-actor flows; any hosted pilot
-and distribution require a separately approved candidate, privacy disclosures,
-consent, support operator and organizer permission. Use an operator workflow
-for source review and record its time cost. Limit to one unsettled new duel and
-one performance commitment per person; exclude dormant Solo creation. Do not
-ask testers to settle off-app.
+Before invitations, W1 source/device and two-account native acceptance and W2
+community rules, enrollment, allocation, privacy and support must pass. A local
+friend flow alone cannot establish community readiness. A hosted/distributed
+pilot still needs an approved candidate, privacy disclosures, consent and
+working review/exit/support. No organizer is required for steps. Disable dormant
+Solo creation and preserve existing records. Weekly enrollment must permit
+round two while round one is under review without bypassing exposure limits or
+shortening review. Next-week entry always requires fresh consent.
 
-Record minimal first-party events: invitation created/opened/accepted/declined/
-expired, event selected, attempt submitted/reviewed, result opened, dispute,
-withdrawal, rematch created/accepted, milestone and subsequent return. Store
-opaque IDs, timestamps and policy versions; do not send health results, routes
-or financial details to advertising or third-party analytics. Capture event
-delivery loss before interpreting funnel percentages.
+Use minimal allowlisted first-party events: rule preview/consent, invitation
+created/opened/accepted/declined/expired, cohort join, progress refresh status,
+result viewed, review/withdrawal, optional next-week entry and explicit sharing.
+Distinguish intent, exposure and outcome. Store opaque IDs, timestamps and policy
+versions with deduplication; omit health values, routes, private notes, exact
+amounts and loss-based growth segments. Report delivery loss and opt-outs before
+interpreting percentages. Follow the engagement guardrails above.
 
-| Measure | Definition | Proposed decision threshold |
-| --- | --- | --- |
-| Invitation acceptance | Distinct accepted named invitations / valid delivered invitations, excluding QA; also report created→delivered loss | At least 50%; interview every decline/expiry possible |
-| Contest completion | Duels with both verified finishes / accepted duels whose event passed; report one-DNS, void, outage and withdrawal separately | At least 70%; do not count admin closure as athletic completion |
-| Credible result | Participants who say result and rule were understood/fair / respondents; record nonrespondents and disputes | At least 80% and no unresolved material privacy or result defect |
-| Rematch | Pairs accepting a fresh duel within 14 days of final result / pairs with 14 days observed and an available second event | At least 30%; separately report event availability and initiation vs acceptance |
-| Return after loss | Distinct losers taking a meaningful action within seven days / losers with seven days observed | At least 50%; result-only app open is not enough |
-| Commitment engagement | Owners recording a milestone or attempt in at least three of four weeks / started 28-day commitments | At least 60%; report completion, withdrawal and missing proof separately |
-| Willingness to pay | Post-result choice among realistic disclosed service fee concepts, with a follow-up explanation | At least one-third choose a nonzero fee; stated intent alone cannot validate conversion |
-| Operating cost | Reviewer minutes, support touches and dispute time per resolved duel/commitment | Target median ≤10 minutes; measure long tails and model cost against fee hypotheses |
+| Measure | Definition and interpretation |
+| --- | --- |
+| Agreement comprehension | People accurately restating target, accepted source, dates, simulation, possible outcomes and exit/review / people assessed. Resolve material misunderstandings before participation; report initial and assisted understanding. |
+| Individual completion | Qualifiers / accepted participants whose activity window ended. Separately report confirmed misses, unknown data, safe exits, outages and withdrawals; administrative closure is not athletic completion. |
+| Goal fairness and result clarity | Respondents who understood and considered their target/result fair / respondents, with nonrespondents reported. Ask whether the common community target and agreed friend targets felt achievable and fair, without presenting them as medical advice. |
+| Voluntary week-two participation | People choosing round two / round-one participants offered a valid second round. Report timing and missing follow-up; no automatic enrollment, loss-targeted outreach or return-after-loss target. |
+| Friend invitation | Distinct voluntary senders and accepted invitations, with valid delivered invitations as the acceptance denominator. Separate joining alone from joining with friends; record decline without repeated prompts. |
+| Source and operating burden | Failed/incomplete updates, corrections, disputed results and reviewer/support time per participant/result; investigate long tails and any incorrect forfeiture. |
+| Pressure, privacy and exits | Reports of exercise/financial/social pressure, unwanted contact, data exposure and difficulty leaving or reviewing. Any credible material defect blocks expansion pending investigation. |
+| Motivation and pricing | Ask whether progress, friends, the community or possible rewards motivated return. Test disclosed service-fee concepts separately; stated willingness is not paid conversion. |
 
-These are predeclared directional thresholds for a small convenience sample,
-not statistical proof. Report numerators and denominators and losses to follow-up.
-Use interviews to distinguish low interest from organizer friction, unfair
-matchups, confusing proof rules, or a simulation that lacks stakes. Compare
-deposit versus later-charge explanations and ask users to restate when money
-would move and who would receive it. No live payment is needed for that test.
+This is descriptive usability/demand research, not a powered A/B test. Report
+counts/denominators and interview explanations; the sample cannot establish
+financial safety, typical winnings, long-term retention or superiority of weekly
+versus longer games. Do not select a success threshold after seeing results.
+Before recruitment, predeclare any directional return/fairness thresholds and
+stopping rules with the actual cohort; no outcome is guaranteed by this plan.
 
-Proceed to a larger simulated cohort if behavior and result credibility meet
-the thresholds. Iterate the relevant format if acceptance is strong but event
-friction suppresses rematches. Pause expansion for unresolved proof/privacy
-defects or harm/coercion; offer immediate withdrawal and support. If willingness
-to pay remains weak, revise monetization before funding integration. Actual
-paid conversion, behavior under financial loss, and long-term retention require
-later separately cleared trials; the pilot cannot establish them.
+Proceed to a larger simulated cohort only after comprehension, source/results,
+privacy and working exits/reviews pass and voluntary participation supports
+another test. Iterate confusing goals or poor source coverage. Pause for material
+privacy, coercion/injury-pressure or unresolved result defects. No increase in
+engagement overrides those guardrails. Actual money and long-term commitment
+validation remain separately cleared later studies.

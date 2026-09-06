@@ -173,6 +173,8 @@ struct AppServices {
     let localStateCleanup: any AccountLocalStateCleaning
     let duels: any DuelClient
     let pendingDuels: any PendingDuelRequestStore
+    let performanceCommitments: any PerformanceCommitmentClient
+    let pendingPerformanceCommitments: any PendingPerformanceCommitmentRequestStore
 
     init(
         auth: any AuthClient,
@@ -207,7 +209,9 @@ struct AppServices {
         localStateCleanup: any AccountLocalStateCleaning =
             NoOpAccountLocalStateCleaner(),
         duels: any DuelClient = DisabledDuelClient(),
-        pendingDuels: any PendingDuelRequestStore = EphemeralPendingDuelRequestStore()
+        pendingDuels: any PendingDuelRequestStore = EphemeralPendingDuelRequestStore(),
+        performanceCommitments: any PerformanceCommitmentClient = DisabledPerformanceCommitmentClient(),
+        pendingPerformanceCommitments: any PendingPerformanceCommitmentRequestStore = EphemeralPendingPerformanceCommitmentRequestStore()
     ) {
         self.auth = auth
         self.profiles = profiles
@@ -229,5 +233,7 @@ struct AppServices {
         self.localStateCleanup = localStateCleanup
         self.duels = duels
         self.pendingDuels = pendingDuels
+        self.performanceCommitments = performanceCommitments
+        self.pendingPerformanceCommitments = pendingPerformanceCommitments
     }
 }

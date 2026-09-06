@@ -1,5 +1,23 @@
 # GameTime
 
+September 6 planning update: [the roadmap](PLAN.md) now recommends weekly friend
+steps, a community experiment, Exercise minutes and configurable-distance goals.
+The [next task is W1A](docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md#current-next-build-prompt),
+a pure fictional weekly-steps rules/evaluator slice. These modes are not built
+by this documentation update. Organizer-event nomination UI is paused as the
+next default task; existing fixed-5K fixtures and all engagement work stay intact.
+Community launch, target formula, live money and commercial terms remain open.
+
+September 6 responsible-engagement update: local simulated duel/goal reviews
+now show concise summaries and expandable complete rules; native legacy
+lead-loss/comeback notification setup and launch permission prompting are
+removed, with push still disabled. See [scope and verification](docs/RESPONSIBLE_ENGAGEMENT_ACCEPTANCE.md)
+and [current implementation order](PLAN.md#current-implementation-order-after-the-engagement-review).
+Future formats honor participant-selected distances/metrics; the existing
+fictional-5K implementation and agreements remain unchanged. Native progress,
+notification preferences and aggregate financial controls remain planned work.
+
+
 GameTime's adopted business model is **friend duels and personal performance
 commitments**: friends agree to athletic contests, and individuals commit to
 measurable milestones by a deadline. Financial stakes, including participant
@@ -34,9 +52,9 @@ suppression. See [native lifecycle acceptance](docs/DUEL_NATIVE_LIFECYCLE_V1_ACC
 Phase 2(e) adds fresh-consent rematches and expiring, revocable links that only
 the named invitee can resolve. See [rematch/link acceptance](docs/DUEL_REMATCH_LINK_V1_ACCEPTANCE.md).
 Hosted schedules, universal-link hosting and external delivery remain open.
-The later pilot uses
-reviewed organizer chip times; Garmin ingestion and asynchronous time trials
-are planned capabilities, not existing features. Phase 3(a) now adds separate
+The earlier organizer pilot is superseded by the proposed weekly pilot.
+Garmin ingestion and asynchronous time trials remain planned capabilities, not
+existing features or prerequisites for weekly steps. Phase 3(a) now adds separate
 28–90-day simulated commitment agreements with explicit owner consent, exact
 recovery, one open slot, safe exits and retained history. See
 [commitment agreement acceptance](docs/PERFORMANCE_COMMITMENT_AGREEMENT_V1_ACCEPTANCE.md).
@@ -46,7 +64,17 @@ corrections and a pure strict-target evaluator; its gate defaults off. See
 Phase 3(c) adds private named milestones, manual check-ins and retained status
 history with exact recovery and stable pagination. These owner reports never
 qualify as organizer proof. See [progress acceptance and Phase 3(d) handoff](docs/PERFORMANCE_PROGRESS_V1_ACCEPTANCE.md).
-Followers, commitment result/review services and native screens remain future work.
+Phase 3(d) adds explicit friend consent, selected progress cards, revocation,
+structured reactions, personal in-app reminders and private report/support APIs.
+See [following acceptance](docs/PERFORMANCE_FOLLOWING_V1_ACCEPTANCE.md).
+Phase 3(e) adds durable owner result notices, independent reviews, immutable
+finals, post-final support and separately recorded nonredeemable simulation.
+See [commitment lifecycle acceptance and native handoff](docs/PERFORMANCE_LIFECYCLE_V1_ACCEPTANCE.md).
+The first opt-in native commitment slice adds goal agreement, owner result and
+review history, safe exits and durable recovery. See [native commitment
+acceptance and remaining work](docs/PERFORMANCE_COMMITMENT_NATIVE_V1_ACCEPTANCE.md).
+Native attempts, progress and selected following remain incomplete; relevant
+portions now follow the new-format roadmap rather than an organizer-first handoff.
 See the [local acceptance record and Phase 1B
 handoff](docs/DUEL_AGREEMENT_V1_ACCEPTANCE.md) and
 [native acceptance record](docs/DUEL_NATIVE_V1_ACCEPTANCE.md). Run the rollback-only example with
@@ -90,7 +118,9 @@ observations were not rerun in the documentation planning task.
 | Performance commitment agreements | Phase 3(a) backend implemented locally: 28–90-day terms, owner consent, separate slot, recovery and safe exits; admission defaults off |
 | Commitment attempts and strict-target evaluation | Phase 3(b) implemented locally: private nominated 5K attempts, reviewed corrections and pure evaluator; no result publication |
 | Commitment milestones and manual progress | Phase 3(c) backend implemented locally: private owner reports, immutable plans, retained status history, exact recovery and bounded pagination; defaults off |
-| Commitment results/review, followers and native screens | Planned; not implemented |
+| Commitment friend following | Phase 3(d) backend implemented locally: explicit consent, selected cards, revocation, reactions, personal in-app reminders and private reports/support; defaults off |
+| Commitment results/review | Phase 3(e) backend implemented locally: durable notices, independent reviews, immutable finals, separate simulated consequences and post-final support; defaults off |
+| Native commitment screens | First opt-in local slice: goal agreement, result/review history, safe exits and durable recovery; attempts/progress/following remain next |
 | Garmin / timed-workout verification | Not implemented; generic distance fields and Garmin source names are not an integration |
 | Deposits, live stakes and participant payouts | Disabled/unimplemented; require the distinct Phase 6 gates in [PLAN.md](PLAN.md) |
 

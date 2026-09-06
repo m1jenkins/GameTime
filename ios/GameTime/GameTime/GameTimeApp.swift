@@ -99,7 +99,9 @@ struct GameTimeApp: App {
 
             #if DEBUG || STAGING
             if usesFixtureModel {
-                if arguments.contains("--duels") {
+                if arguments.contains("--commitments") {
+                    configuration = .performanceCommitmentFixture
+                } else if arguments.contains("--duels") {
                     configuration = .duelFixture
                 } else if usesStripeSandboxFixture {
                     configuration = .stripeSandboxFixture
@@ -316,10 +318,12 @@ struct RootView: View {
     let demoMode: DemoModeAccess
     let pushCoordinator: PushNotificationCoordinator
 
-    private var isShowingDuel: Bool {
+    private var isShowingRunningExperiment: Bool {
         #if DEBUG || STAGING
-        return model.configuration.duelRuntimeEnabled && router.selectedTab == .you
-            && router.youPath.contains(.duels)
+        return router.selectedTab == .you && (
+            (model.configuration.duelRuntimeEnabled && router.youPath.contains(.duels))
+            || (model.configuration.performanceCommitmentRuntimeEnabled
+                && router.youPath.contains(.performanceCommitments)))
         #else
         return false
         #endif
@@ -329,7 +333,7 @@ struct RootView: View {
         @Bindable var router = router
 
         VStack(spacing: 0) {
-            if router.presentedSheet == nil && !isShowingDuel {
+            if router.presentedSheet == nil && !isShowingRunningExperiment {
                 EnvironmentDisclosureBanner(
                     settlementMode:
                         model.configuration.personalSettlementMode,

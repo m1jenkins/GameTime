@@ -30,6 +30,7 @@ enum YouRoute: Hashable {
     #if DEBUG || STAGING
     case duels
     case duelInvitation
+    case performanceCommitments
     #endif
     case trustAndPrivacy
     case accountSupport

@@ -75,6 +75,7 @@ enum LiveServicesFactory {
         let personalStepSnapshotCache = try FilePersonalStepSnapshotCache
             .applicationSupport()
         let pendingDuels = try FilePendingDuelRequestStore.applicationSupport()
+        let pendingPerformanceCommitments = try FilePendingPerformanceCommitmentRequestStore.applicationSupport()
         return AppServices(
             auth: SupabaseAuthClient(client: client),
             profiles: SupabaseProfileClient(client: client),
@@ -113,10 +114,15 @@ enum LiveServicesFactory {
                 personalActivitySync: personalActivitySync,
                 personalStepSnapshotCache: personalStepSnapshotCache,
                 appAttestedBodySigner: appAttestedBodySigner,
-                pendingDuels: pendingDuels
+                pendingDuels: pendingDuels,
+                pendingPerformanceCommitments: pendingPerformanceCommitments
             ),
             duels: SupabaseDuelClient(client: client, enabled: configuration.duelRuntimeEnabled),
-            pendingDuels: pendingDuels
+            pendingDuels: pendingDuels,
+            performanceCommitments: SupabasePerformanceCommitmentClient(
+                client: client, enabled: configuration.performanceCommitmentRuntimeEnabled,
+                localURL: configuration.supabaseURL, publishableKey: configuration.supabasePublishableKey),
+            pendingPerformanceCommitments: pendingPerformanceCommitments
         )
     }
 }
@@ -237,6 +243,7 @@ final class SupabaseAccountDeletionClient: AccountDeletionClient {
 @MainActor
 final class AccountLocalStateCleaner: AccountLocalStateCleaning {
     private let pendingDuels: any PendingDuelRequestStore
+    private let pendingPerformanceCommitments: any PendingPerformanceCommitmentRequestStore
     private let pendingChallenges: any PendingChallengeStore
     private let activitySync: any ActivitySyncing
     private let pendingPersonalChallenges: any PendingPersonalChallengeStore
@@ -253,9 +260,11 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
         personalActivitySync: any PersonalActivitySyncing,
         personalStepSnapshotCache: any PersonalStepSnapshotCaching,
         appAttestedBodySigner: any AppAttestedBodySigning,
-        pendingDuels: any PendingDuelRequestStore = EphemeralPendingDuelRequestStore()
+        pendingDuels: any PendingDuelRequestStore = EphemeralPendingDuelRequestStore(),
+        pendingPerformanceCommitments: any PendingPerformanceCommitmentRequestStore = EphemeralPendingPerformanceCommitmentRequestStore()
     ) {
         self.pendingDuels = pendingDuels
+        self.pendingPerformanceCommitments = pendingPerformanceCommitments
         self.pendingChallenges = pendingChallenges
         self.activitySync = activitySync
         self.pendingPersonalChallenges = pendingPersonalChallenges
@@ -270,6 +279,8 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
 
         do { try await pendingDuels.remove(for: ownerID, matching: nil) }
         catch { failures.append("duel request") }
+        do { try await pendingPerformanceCommitments.remove(for: ownerID, matching: nil) }
+        catch { failures.append("running goal request") }
         do { try await pendingChallenges.remove(for: ownerID) }
         catch { failures.append("challenge retry") }
         do { try await pendingPersonalChallenges.remove(for: ownerID) }

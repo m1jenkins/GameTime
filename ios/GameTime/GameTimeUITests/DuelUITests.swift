@@ -4,6 +4,32 @@ import XCTest
 final class DuelUITests: XCTestCase {
     override func setUp() { continueAfterFailure = false }
 
+    func testSummaryAndFullRulesDoNotAcceptInvitation() {
+        let app = launch("--fixture-duel-incoming")
+        openDuels(app)
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'duel.row.'")).firstMatch.tap()
+        let amount = app.staticTexts["duel.summary-amount"]
+        scrollTo(amount, in: app)
+        XCTAssertTrue(amount.label.contains("$20 simulated each"))
+        XCTAssertTrue(amount.label.contains("$0 fee each"))
+        let details = app.buttons["duel.full-rules"]
+        scrollTo(details, in: app)
+        details.tap()
+        let deadlineRule = app.staticTexts["The deadline itself is too late. Opening an invitation does not mean you agreed."]
+        scrollTo(deadlineRule, in: app)
+        XCTAssertTrue(deadlineRule.isHittable)
+        scrollTo(details, in: app, direction: .down)
+        details.tap()
+        let consent = app.switches["duel.consent"]
+        scrollTo(consent, in: app)
+        XCTAssertEqual(consent.value as? String, "0")
+        scrollTo(app.buttons["duel.accept"], in: app)
+        XCTAssertFalse(app.buttons["duel.accept"].isEnabled)
+        scrollTo(app.buttons["duel.decline"], in: app)
+        XCTAssertTrue(app.buttons["duel.decline"].isEnabled)
+        attach(app, name: "duel-summary-full-rules-consent")
+    }
+
     func testCreateConsentReceiptAndLostResponseRecovery() {
         let app = launch("--fixture-duel-lost-response")
         openDuels(app)
@@ -17,11 +43,13 @@ final class DuelUITests: XCTestCase {
         assertDuelLanguage(app)
         let consent = app.switches["duel.consent"]
         scrollTo(consent, in: app)
+        scrollTo(app.buttons["duel.send"], in: app)
         XCTAssertFalse(app.buttons["duel.send"].isEnabled)
         consent.switches.firstMatch.exists
             ? consent.switches.firstMatch.tap()
             : consent.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
         XCTAssertEqual(consent.value as? String, "1")
+        scrollTo(app.buttons["duel.send"], in: app)
         XCTAssertTrue(app.buttons["duel.send"].isEnabled)
         app.buttons["duel.send"].tap()
         let retry = app.buttons["duel.retry"].firstMatch
@@ -44,11 +72,13 @@ final class DuelUITests: XCTestCase {
         assertDuelLanguage(app)
         let consent = app.switches["duel.consent"]
         scrollTo(consent, in: app)
+        scrollTo(app.buttons["duel.accept"], in: app)
         XCTAssertFalse(app.buttons["duel.accept"].isEnabled)
         consent.switches.firstMatch.exists
             ? consent.switches.firstMatch.tap()
             : consent.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
         XCTAssertEqual(consent.value as? String, "1")
+        scrollTo(app.buttons["duel.accept"], in: app)
         XCTAssertTrue(app.buttons["duel.accept"].isEnabled)
         app.buttons["duel.accept"].tap()
         scrollTo(app.staticTexts["duel.status"], in: app, direction: .down)
@@ -179,6 +209,7 @@ final class DuelUITests: XCTestCase {
         scrollTo(consent, in: app)
         XCTAssertEqual(consent.value as? String, "0")
         scrollTo(app.buttons["duel.accept"], in: app)
+        scrollTo(app.buttons["duel.accept"], in: app)
         XCTAssertFalse(app.buttons["duel.accept"].isEnabled)
         attach(app, name: "duel-link-needs-consent")
         app.open(URL(string: "gametime-duel://invitation/99999999-9999-4999-8999-999999999999")!)
@@ -201,6 +232,7 @@ final class DuelUITests: XCTestCase {
         app.buttons["duel.review"].tap()
         let consent = app.switches["duel.consent"]
         scrollTo(consent, in: app)
+        scrollTo(app.buttons["duel.send"], in: app)
         scrollTo(app.buttons["duel.send"], in: app)
         XCTAssertFalse(app.buttons["duel.send"].isEnabled)
         consent.switches.firstMatch.exists ? consent.switches.firstMatch.tap()

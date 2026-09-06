@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AppShellView: View {
+    @Environment(AppModel.self) private var model
     @Environment(\.scenePhase) private var scenePhase
     @Environment(PersonalAccountabilityStore.self) private var personalStore
     @Environment(AppRouter.self) private var router
@@ -54,6 +55,8 @@ struct AppShellView: View {
                             DuelHomeView()
                         case .duelInvitation:
                             DuelInvitationView()
+                        case .performanceCommitments:
+                            PerformanceCommitmentHomeView()
                         #endif
                         case .trustAndPrivacy:
                             TrustAndPrivacyView()
@@ -85,10 +88,12 @@ struct AppShellView: View {
             }
         }
         .onChange(of: scenePhase, initial: true) { _, newPhase in
+            if newPhase == .background { model.performanceCommitments.clearVisibleContent() }
             guard foregroundRefreshGate.shouldRefresh(after: newPhase) else {
                 return
             }
             Task { await personalStore.refresh() }
+            Task { await model.performanceCommitments.refresh() }
         }
     }
 }

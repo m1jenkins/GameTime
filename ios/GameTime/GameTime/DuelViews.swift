@@ -419,7 +419,37 @@ private struct DuelRulesSections: View {
     let terms: DuelTerms?
 
     var body: some View {
-        Section("The race") {
+        Section("Your duel at a glance") {
+            Text(event.eventName).font(.headline)
+            Text("Run the same fictional outdoor 5K course in the same starting wave. One attempt each, no handicap. The faster qualifying finisher wins, using whole-second organizer chip times. Phone or watch times do not count.")
+            fact("Starts", event.startsAt)
+            fact("Ends", event.endsAt)
+            if let terms {
+                fact("Agree before", terms.acceptBy)
+            } else {
+                Text("Your friend must agree within 72 hours of sending, and more than one hour before the race starts, whichever comes first. The exact deadline appears when your invitation is saved.")
+            }
+            Text("$20 simulated each · $40 combined · $0 fee each. No real money moves; nothing can be redeemed.")
+                .accessibilityIdentifier("duel.summary-amount")
+            Text("A qualifying finisher wins the combined simulated amount if the other runner has a confirmed nonfinish. A tie, neither runner finishing, or unresolved results returns both amounts after review.")
+            Text("You can decline, cancel before the start, withdraw after it starts, or report an injury. Neither runner loses a simulated stake for these exits or a cancelled race.")
+            Text("You have seven full days after each saved result notice to ask for review. Any simulated outcome waits for review; missing results alone never mean a loss.")
+        }
+        Section {
+            DisclosureGroup("Full duel rules") {
+                VStack(alignment: .leading, spacing: 20) {
+                    fullRules
+                }
+                .padding(.vertical, 8)
+            }
+            .accessibilityIdentifier("duel.full-rules")
+        }
+    }
+
+    @ViewBuilder
+    private var fullRules: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("The race").font(.headline).accessibilityAddTraits(.isHeader)
             Text(event.eventName)
             Text("Course: Fictional 5K course. Starting wave: shared start.")
             Text("5,000 meters outdoors. You run the same course in the same starting wave. One attempt each; no handicap.")
@@ -428,12 +458,14 @@ private struct DuelRulesSections: View {
             Text("Race time zone: \(event.displayTimezone)")
             Text("Times come from the race organizer: crossing the start to crossing the finish, rounded to whole seconds. Phone or watch times do not count.")
         }
-        Section("Simulated stakes") {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Simulated stakes").font(.headline).accessibilityAddTraits(.isHeader)
             Text("$20 USD each · $40 USD combined · $0 fee each.")
             Text("The faster qualifying finisher receives the combined simulated stake. Nothing can be paid out or redeemed.")
             Text("Same time: both simulated stakes returned. A confirmed nonfinish lets the qualifying finisher win after review. If neither finishes, neither loses a simulated stake.")
         }
-        Section("When to agree") {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("When to agree").font(.headline).accessibilityAddTraits(.isHeader)
             if let terms {
                 fact("Agree before", terms.acceptBy)
                 fact("Invitation created", terms.createdAt)
@@ -443,12 +475,14 @@ private struct DuelRulesSections: View {
             }
             Text("The deadline itself is too late. Opening an invitation does not mean you agreed.")
         }
-        Section("Cancelling and missing results") {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Cancelling and missing results").font(.headline).accessibilityAddTraits(.isHeader)
             Text("Before the race starts, you can cancel an invitation you sent. Once you both agree, either runner can cancel before the start. An invited friend can decline. Neither loses a simulated stake.")
             Text("The rules also return both simulated stakes for withdrawal after the start, injury or a cancelled race.")
             Text("Missing, late or unclear results go to review; they do not automatically mean a loss. If we cannot confirm a result, neither of you loses a simulated stake.")
         }
-        Section("Results and review rules") {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Results and review rules").font(.headline).accessibilityAddTraits(.isHeader)
             fact("Race results due", terms?.resultsDueAt ?? event.endsAt.addingTimeInterval(72 * 3600))
             Text("You have 168 hours to ask for review after a saved result notice. Review lasts up to 168 hours after your request. If review runs out of time, neither loses a simulated stake.")
             fact("Result must be final by", terms?.finalityDueAt ?? event.endsAt.addingTimeInterval(720 * 3600))

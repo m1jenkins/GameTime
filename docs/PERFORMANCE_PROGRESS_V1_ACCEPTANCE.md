@@ -154,6 +154,10 @@ Accelerated clocks do not establish months of real operation.
 
 ## Phase 3(d) handoff
 
+Implemented subsequently as a local backend; see
+[following acceptance and the native/Phase 3(e) handoff](PERFORMANCE_FOLLOWING_V1_ACCEPTANCE.md).
+The original scope below is retained for context.
+
 Add explicit opt-in friend following, bounded selected-progress projections,
 revocation, structured reactions and the planned reminder/report/block/support
 behavior. This ledger is owner-only: do not grant followers its raw tables,

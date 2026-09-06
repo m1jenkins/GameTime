@@ -1,5 +1,93 @@
 # GameTime project memory
 
+## Beta friend capacity and community goal — September 6, 2026
+
+The owner requested beta friend challenges supporting **up to five friends**
+and selected **one common weekly step goal for community launch**. The updated
+plan interprets these as **2–5 participants total, including the creator**, and
+**each community entrant individually meeting the same step target**, not a
+combined group total. These two interpretations are working assumptions, not
+additional explicit owner decisions. The numeric community target is open.
+This supersedes the two-person W1 recommendation and personalized community
+target formula in D131 and the earlier reconciliation below. Friend-specific
+individual targets remain a recommendation. W1A must now evaluate a frozen
+2–5-person roster with every participant’s consent; W1B/C must support group
+invites, capacity, privacy and two- through five-person acceptance. Proposed
+group simulation/exit rules are documented separately from adopted scope.
+Community format is selected; rollout, recruitment and real money remain gated.
+See D132 and the weekly specification. This update changes documentation only.
+
+## Weekly implementation-plan reconciliation — September 6, 2026
+
+The owner requested the needed implementation-plan changes after discussing
+weekly friend steps, Apple Watch Exercise minutes and community challenges.
+[PLAN.md](PLAN.md) and the [weekly specification](docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md)
+now recommend W1 weekly friend steps, W2 one community experiment, W3 Exercise
+minutes and W4 configurable cumulative/timed distance with relevant longer-goal
+progress. **Next is W1A: a pure fictional weekly-steps policy/evaluator and tests.**
+Organizer-event nomination screens are paused as the default next task.
+
+This is a documentation change, not implementation or approval of every proposed
+format. Dropping the mandatory 5K and preserving participant-selected supported
+distances are owner decisions. The weekly-first order, community pilot, target
+formula and simulated-allocation defaults remain recommendations; community
+launch, fees, forfeiture/remainder recipients and actual money are unselected.
+The proposed initial study is 20–30 adults over two weekly rounds after source,
+native, community/privacy and support acceptance, with separate recruitment/
+distribution authorization. It has not been recruited or run.
+
+Completed Personal, fictional-5K and engagement work stays intact. New formats
+need separate terms, requests, source validation and result/allocation rules.
+Prior-week review must coexist with explicitly accepted future-week activity;
+financial exposure limits must include unsettled earlier weeks. D130's consent,
+privacy, voluntary-return, reminder and exit requirements remain in force.
+See D131 for decision status. No app code, schema, hosted state, provider,
+notification delivery or live money was changed by this planning task.
+
+## Responsible engagement direction — September 6, 2026
+
+The owner requested implementation and business-plan changes based on the
+supplied engagement/compulsion report. New work optimizes understood agreements,
+athletic progress, fair results and voluntary return with pressure/privacy/exit
+guardrails. Do not optimize paid-challenge frequency, committed amounts, app
+opens or return after loss in isolation. No loss-triggered marketing, financial
+celebrations, forced daily exercise streaks, automatic rematches or stake raises.
+Service fees/optional club tools remain hypotheses; forfeiture recipient, prices,
+limits and notification caps remain unselected or explicitly proposed.
+
+Native local duel/goal reviews now summarize existing terms before consent and
+retain full expandable rules. Dormant native lead-loss/comeback category setup
+and launch notification permission prompting are removed; push remains off.
+See [scope and verification](docs/RESPONSIBLE_ENGAGEMENT_ACCEPTANCE.md).
+No agreement, result, simulated amount, source policy or payment mode changed.
+
+[PLAN.md](PLAN.md#current-implementation-order-after-the-engagement-review)
+now combines the weekly-first roadmap with participant-selected metric policies,
+relevant native progress/selected following and user-requested reminders with
+server preferences and caps,
+privacy-minimized pilot measurement, and server financial limits/pause before
+cash. These remaining features are planned, not implemented by the review.
+Historical fixed-5K slices and their acceptance records stay valid for existing
+fixtures only; they must not become mandatory launch defaults again. Live money,
+hosted rollout, recruitment and external delivery remain disabled/separately gated.
+
+## Owner clarification — September 5, 2026
+
+The owner has **dropped the fixed 5K race format as the future product
+direction**. Distance-based challenges remain in scope when people choose
+their own distances; a standard 5K must not be required. This supersedes the
+earlier recommended official-5K launch and pilot defaults below and in the
+planning documents. Friend challenges and personal commitments remain the
+adopted products.
+
+Weekly steps, Apple Watch Exercise-minute and community challenges were being
+considered in this discussion. Their build order is now a documented planning
+recommendation above; payout rules, company fees and forfeiture destinations
+have not been selected; researching StepBet and WayBetter is not adoption of
+their money models. Existing fixed-5K code and acceptance records describe
+historical implementation, not the revised product requirement. Preserve
+existing agreements and unrelated work. Live money remains disabled.
+
 ## Adopted business direction — September 4, 2026
 
 The owner explicitly selected **friend duels** and **personal performance
@@ -99,8 +187,9 @@ reversible defaults and continue without asking whether to make this pivot.
 
 The original planning brief is
 [docs/NEXT_BUSINESS_MODEL_PROMPT.md](docs/NEXT_BUSINESS_MODEL_PROMPT.md).
-For the next build task, use the Phase 1A implementation prompt at the end of
-[PLAN.md](PLAN.md#copy-ready-first-implementation-prompt).
+The original Phase 1A prompt is retained as completed history in PLAN.md.
+For the next build task, use the
+[current implementation order](PLAN.md#current-implementation-order-after-the-engagement-review).
 
 ### Phase 1A implementation — September 4, 2026
 
@@ -299,7 +388,7 @@ for SQL boundary/concurrency, pure scorer isolation and persisted-smoke evidence
 The full portable regression gate passed. Progress/attempt/commitment admission
 finished off with no open commitment slots or fictional progress sessions.
 
-**Next is Phase 3(d):** explicit friend-following permissions and selected
+**Phase 3(d) is implemented below:** explicit friend-following permissions and selected
 progress, revocation, reactions and reminder/report/block/support behavior.
 Following gets no implicit access to private notes or proof. Phase 3(e) still
 owns result/review persistence. Native commitments, hosted operation, real
@@ -317,3 +406,74 @@ local test connections now support a separate disposable stack. See
 verification, retained limitations and local commit scope. Phase 3(d) was not
 implemented. Original agreements, the normal development database and unrelated
 skills/trash were preserved.
+
+### Phase 3(d) selected progress and following — September 5, 2026
+
+A separate default-off local backend now requires owner sharing consent and
+named-friend acceptance before exposing goal facts and explicitly published
+manual-progress cards. Check-in cards omit private note text; milestone cards
+share only the selected name/date/status. Retraction invalidates old pagination.
+Revocation, unfriending, blocks, either person's deletion and safe closure end
+existing follows permanently; reconnecting requires fresh consent.
+
+Structured reactions, personal pull-based in-app reminders, exact block actions,
+private reports and independently assigned/audited support access are included.
+No social action changes proof, completeness, agreement terms, results or money.
+A distinct local retention hold preserves fictional records after closure and
+deletion. Actual social/report-data retention and staffed support remain open.
+
+See [following acceptance](docs/PERFORMANCE_FOLLOWING_V1_ACCEPTANCE.md) for the
+sharing contract, local verification, rollback-only example and client handoff.
+The normal database and unrelated work were preserved. No native commitment
+screen/cache, hosted mutation, scheduler, external delivery, provider or live
+money was enabled. **Phase 3(e) is implemented below.** Native integration
+remains separate work.
+
+
+### Phase 3(e) commitment lifecycle — September 5, 2026
+
+A separate default-off local worker now persists activation, durable owner
+notices, review cases and independent resolutions, immutable finals and
+separately appended nonredeemable simulated consequences. The unchanged pure
+evaluator receives complete proof snapshots; even unreviewed source capture
+invalidates an in-flight commit. PostgreSQL microseconds and full correction,
+filing and review windows are preserved. Missing proof alone never means a miss.
+
+Finality releases the commitment slot and permanently ends existing follows.
+Original agreement terms, consent and closure receipts retain their meaning;
+operational finality is read through the separate lifecycle projection. Owner
+case recovery survives gate shutdown and finality with an active session.
+Review/support grants are independent, scoped, expiring and audited. Post-final
+support notes never rewrite proof, final results or simulated consequences.
+A dedicated fictional retention hold preserves history through deletion.
+
+See [lifecycle acceptance](docs/PERFORMANCE_LIFECYCLE_V1_ACCEPTANCE.md) for the
+local SQL boundaries, transaction races, persisted evaluator/worker smoke and
+full portable regression evidence. The separate disposable database was used;
+the normal database and unrelated work were preserved. No native source,
+hosted mutation, schedule, external delivery, provider or live money changed.
+**Next is local native commitment integration** across agreements, attempts,
+progress, selected following and results/review. Actual organizer operations,
+real-data retention/support policies, native/device acceptance, result-sharing
+consent, true-mile formats and hosted rollout remain separate work.
+
+### Phase 3(f), first native slice — September 5, 2026
+
+The opt-in local Running goals route now starts native commitment integration:
+server preview and explicit agreement consent, owner history, corrected notices,
+review requests, safe exits, immutable results and separately recorded simulated
+amounts. Distinct typed models and actor-bound durable requests preserve exact
+recovery. Failed reads/account changes clear owner content; original `open`
+agreement receipts never override a saved lifecycle final.
+
+See [the native record and remaining handoff](docs/PERFORMANCE_COMMITMENT_NATIVE_V1_ACCEPTANCE.md).
+Fresh evidence includes 328 native regression checks, a final focused run,
+authenticated loopback acceptance and a Release build. Fictional sessions and
+gates were cleaned up; the separate disposable database backup is retained.
+This is the first native slice, not the whole Phase 3(e) handoff. Its remaining
+handoff was native event nomination/completeness and private progress, followed
+by selected following under Phase 3(d)'s strict cache rules. The weekly roadmap
+above now pauses organizer entry as the default next task and starts W1A;
+the original acceptance requirements remain historical. Release stays disabled. No
+earlier migration, hosted state, provider, external delivery or live money was
+changed. VoiceOver/device and real organizer/support/retention gates remain open.
