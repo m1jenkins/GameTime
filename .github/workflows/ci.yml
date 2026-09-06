@@ -37,6 +37,16 @@ jobs:
       - name: Run pgTAP suite
         run: ./scripts/db-test.sh
 
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.4
+
+      - name: Rehearse persisted weekly lifecycle
+        run: |
+          deno run --config supabase/functions/deno.json \
+            --allow-run=psql --allow-read=scripts/examples \
+            scripts/weekly-lifecycle-local-smoke.ts 54322
+
       - name: Stop Supabase
         if: always()
         run: supabase stop --no-backup
