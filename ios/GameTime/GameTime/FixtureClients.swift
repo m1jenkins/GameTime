@@ -5,6 +5,9 @@ import Foundation
 enum FixtureServicesFactory {
     static func make(
         arguments: [String] = ProcessInfo.processInfo.arguments,
+        weeklyClient: (any WeeklyClient)? = nil,
+        authClient: (any AuthClient)? = nil,
+        pendingWeeklyRequestStore: (any PendingWeeklyRequestStore)? = nil,
         pendingChallengeStore: (any PendingChallengeStore)? = nil,
         friendshipsClient: (any FriendshipsClient)? = nil,
         contestsClient: (any ContestsClient)? = nil,
@@ -66,7 +69,7 @@ enum FixtureServicesFactory {
         duelBackend.offline = arguments.contains("--fixture-duel-offline")
         duelBackend.loseNextResponse = arguments.contains("--fixture-duel-lost-response")
         return AppServices(
-            auth: FixtureAuthClient(store: store),
+            auth: authClient ?? FixtureAuthClient(store: store),
             profiles: FixtureProfileClient(store: store),
             friendships: friendshipsClient
                 ?? FixtureFriendshipsClient(store: store),
@@ -125,7 +128,9 @@ enum FixtureServicesFactory {
                     ? FixtureFailingAccountDeletionClient()
                     : DisabledAccountDeletionClient()),
             duels: FixtureDuelClient(backend: duelBackend, currentActor: { store.userID }),
-            performanceCommitments: FixturePerformanceCommitmentClient(currentActor: { store.userID }, arguments: arguments)
+            performanceCommitments: FixturePerformanceCommitmentClient(currentActor: { store.userID }, arguments: arguments),
+            weekly: weeklyClient ?? DisabledWeeklyClient(),
+            pendingWeekly: pendingWeeklyRequestStore ?? EphemeralPendingWeeklyRequestStore()
         )
     }
 }

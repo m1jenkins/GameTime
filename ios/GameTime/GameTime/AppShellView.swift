@@ -55,6 +55,8 @@ struct AppShellView: View {
                             DuelHomeView()
                         case .duelInvitation:
                             DuelInvitationView()
+                        case .weekly:
+                            WeeklyHomeView()
                         case .performanceCommitments:
                             PerformanceCommitmentHomeView()
                         #endif
@@ -88,12 +90,20 @@ struct AppShellView: View {
             }
         }
         .onChange(of: scenePhase, initial: true) { _, newPhase in
-            if newPhase == .background { model.performanceCommitments.clearVisibleContent() }
+            if newPhase == .background {
+                model.performanceCommitments.clearVisibleContent()
+                model.weekly.setActor(model.userID)
+                model.metricPrototypes?.setActor(nil)
+            }
             guard foregroundRefreshGate.shouldRefresh(after: newPhase) else {
                 return
             }
             Task { await personalStore.refresh() }
             Task { await model.performanceCommitments.refresh() }
+            Task { await model.weekly.refresh() }
+            if model.configuration.weeklyRuntimeEnabled {
+                model.metricPrototypes?.setActor(model.userID)
+            }
         }
     }
 }

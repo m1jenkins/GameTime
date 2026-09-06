@@ -31,6 +31,7 @@ enum YouRoute: Hashable {
     case duels
     case duelInvitation
     case performanceCommitments
+    case weekly
     #endif
     case trustAndPrivacy
     case accountSupport

@@ -30,6 +30,15 @@ struct AppConfiguration: Equatable, Sendable {
     let legacySocialRuntimeEnabled: Bool
     let duelRequested: Bool
     let performanceCommitmentRequested: Bool
+    let weeklyRequested: Bool
+
+    var weeklyRuntimeEnabled: Bool {
+        #if DEBUG || STAGING
+        return weeklyRequested && environment != .release && SupabaseWeeklyClient.isExplicitLoopback(supabaseURL)
+        #else
+        return false
+        #endif
+    }
 
     var performanceCommitmentRuntimeEnabled: Bool {
         #if DEBUG || STAGING
@@ -67,7 +76,8 @@ struct AppConfiguration: Equatable, Sendable {
         supportEmail: String? = nil,
         legacySocialRuntimeEnabled: Bool = false,
         duelRequested: Bool = false,
-        performanceCommitmentRequested: Bool = false
+        performanceCommitmentRequested: Bool = false,
+        weeklyRequested: Bool = false
     ) {
         self.environment = environment
         self.supabaseURL = supabaseURL
@@ -81,6 +91,7 @@ struct AppConfiguration: Equatable, Sendable {
         self.legacySocialRuntimeEnabled = legacySocialRuntimeEnabled
         self.duelRequested = duelRequested
         self.performanceCommitmentRequested = performanceCommitmentRequested
+        self.weeklyRequested = weeklyRequested
     }
 
     /// The `mailto:` a Contact button opens, or nil when no inbox is set.
@@ -188,7 +199,8 @@ struct AppConfiguration: Equatable, Sendable {
             betaTermsURLValue: betaTermsURLValue,
             supportEmailValue: supportEmailValue,
             duelRequested: ProcessInfo.processInfo.arguments.contains("--duels"),
-            performanceCommitmentRequested: ProcessInfo.processInfo.arguments.contains("--commitments")
+            performanceCommitmentRequested: ProcessInfo.processInfo.arguments.contains("--commitments"),
+            weeklyRequested: ProcessInfo.processInfo.arguments.contains("--weekly")
         )
     }
 
@@ -203,7 +215,8 @@ struct AppConfiguration: Equatable, Sendable {
         betaTermsURLValue: String? = nil,
         supportEmailValue: String? = nil,
         duelRequested: Bool = false,
-        performanceCommitmentRequested: Bool = false
+        performanceCommitmentRequested: Bool = false,
+        weeklyRequested: Bool = false
     ) throws -> AppConfiguration {
         guard let environment = AppEnvironment(
             rawValue: environmentValue?.lowercased() ?? ""
@@ -311,7 +324,8 @@ struct AppConfiguration: Equatable, Sendable {
             betaTermsURL: publishedPolicyURL(betaTermsURLValue),
             supportEmail: supportInbox(supportEmailValue),
             duelRequested: duelRequested,
-            performanceCommitmentRequested: performanceCommitmentRequested
+            performanceCommitmentRequested: performanceCommitmentRequested,
+            weeklyRequested: weeklyRequested
         )
     }
 

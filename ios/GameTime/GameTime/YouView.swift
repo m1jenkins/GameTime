@@ -13,6 +13,12 @@ struct YouView: View {
                 profileCard
                 healthSection
                 #if DEBUG || STAGING
+                if model.configuration.weeklyRuntimeEnabled {
+                    NavigationLink(value: YouRoute.weekly) {
+                        Label("Weekly challenges", systemImage: "figure.walk")
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    }.accessibilityIdentifier("weekly.open")
+                }
                 if model.configuration.performanceCommitmentRuntimeEnabled {
                     NavigationLink(value: YouRoute.performanceCommitments) {
                         Label("Running goals", systemImage: "flag.checkered")
