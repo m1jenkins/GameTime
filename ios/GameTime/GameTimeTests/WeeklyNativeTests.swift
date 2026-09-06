@@ -1,5 +1,24 @@
+import Observation
+import SwiftUI
+import UIKit
 import XCTest
 @testable import GameTime
+
+@MainActor @Observable
+private final class WeeklyScenePhaseState {
+    var value: ScenePhase = .active
+}
+
+private struct WeeklyHomeScenePhaseHarness: View {
+    let model: AppModel
+    let phase: WeeklyScenePhaseState
+
+    var body: some View {
+        NavigationStack { WeeklyHomeView() }
+            .environment(model)
+            .environment(\.scenePhase, phase.value)
+    }
+}
 
 @MainActor final class WeeklyNativeTests: XCTestCase {
     private let local = URL(string: "http://127.0.0.1:56321")!
@@ -110,7 +129,7 @@ import XCTest
         reply.resume(returning: [row]); await pending.value
         XCTAssertTrue(store.challenges.isEmpty); XCTAssertNil(store.previewed); XCTAssertNil(store.preferences)
     }
-    func testShellLifecycleRefreshesOnceAfterBackgroundAndPreservesInactiveContent() async throws {
+    func testShellLifecycleRefreshesOnceAfterBackground() async throws {
         let row = try weeklyFixture()
         let client = WeeklyTestClient(row)
         let auth = WeeklyTestAuth(row.own.actorID)
@@ -122,11 +141,6 @@ import XCTest
         XCTAssertEqual(client.listCalls, 1)
         XCTAssertEqual(store.challenges.map(\.id), [row.id])
         XCTAssertFalse(gate.shouldRefresh(after: .active))
-        XCTAssertFalse(gate.shouldRefresh(after: .inactive))
-        XCTAssertEqual(store.challenges.map(\.id), [row.id])
-        XCTAssertFalse(gate.shouldRefresh(after: .active))
-        XCTAssertEqual(client.listCalls, 1)
-
         store.setActor(auth.actor)
         XCTAssertFalse(gate.shouldRefresh(after: .background))
         XCTAssertTrue(store.challenges.isEmpty)
@@ -135,6 +149,49 @@ import XCTest
         XCTAssertEqual(store.challenges.map(\.id), [row.id])
         XCTAssertFalse(gate.shouldRefresh(after: .active))
         XCTAssertEqual(client.listCalls, 2)
+    }
+    func testWeeklyHomePreservesLoadedRowsAcrossInactiveTransition() async throws {
+        let row = try weeklyFixture()
+        let client = WeeklyTestClient(row)
+        let auth = WeeklyTestAuth(row.own.actorID)
+        let services = FixtureServicesFactory.make(weeklyClient: client, authClient: auth,
+            friendshipsClient: WeeklyTestFriends())
+        let model = AppModel(configuration: AppConfiguration(environment: .debug,
+            supabaseURL: local, supabasePublishableKey: "fixture", contestMutationsEnabled: false,
+            weeklyRequested: true), services: services)
+        model.weekly.setActor(row.own.actorID)
+        let phase = WeeklyScenePhaseState()
+        let controller = UIHostingController(rootView:
+            WeeklyHomeScenePhaseHarness(model: model, phase: phase))
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive })
+        let previous = scene.windows.first(where: \.isKeyWindow)
+        let window = UIWindow(windowScene: scene)
+        defer {
+            window.isHidden = true
+            previous?.makeKeyAndVisible()
+        }
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        controller.view.frame = window.bounds
+        controller.view.layoutIfNeeded()
+        await settleView()
+
+        XCTAssertEqual(model.weekly.challenges.map(\.id), [row.id])
+        let initialCalls = client.listCalls
+        phase.value = .inactive
+        await settleView()
+        phase.value = .active
+        await settleView()
+
+        XCTAssertEqual(model.weekly.challenges.map(\.id), [row.id])
+        XCTAssertEqual(client.listCalls, initialCalls)
+    }
+
+    private func settleView() async {
+        for _ in 0..<20 { await Task.yield() }
+        try? await Task.sleep(for: .milliseconds(50))
     }
     func testUncertainNoCommitRequestCanBeRetiredWithoutBlockingSafeExit() async throws {
         let row = try weeklyFixture(), client = WeeklyTestClient(try weeklyFixture()), auth = WeeklyTestAuth(try weeklyFixture().own.actorID)
