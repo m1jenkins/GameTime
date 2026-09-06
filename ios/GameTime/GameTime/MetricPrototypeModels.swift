@@ -25,6 +25,28 @@ enum MetricPrototypeFormat: String, Codable, Sendable {
 enum MetricPrototypeComparator: String, Codable, Sendable { case strictlyUnder = "lt", atMost = "lte" }
 enum MetricPrototypeDistanceUnit: String, CaseIterable, Sendable { case meters, kilometers, miles }
 
+/// Draft inputs are private account data even before an agreement is saved.
+struct MetricPrototypeCreationFields: Equatable {
+    var format = MetricPrototypeFormat.cumulativeDistance
+    var distance = ""
+    var unit = MetricPrototypeDistanceUnit.meters
+    var elapsedSeconds = ""
+    var comparator = MetricPrototypeComparator.strictlyUnder
+    var startsAt: Date
+    var endsAt: Date
+    init(now: Date = Date()) { startsAt = now.addingTimeInterval(60); endsAt = now.addingTimeInterval(86_400) }
+    mutating func clear(now: Date = Date()) { self = Self(now: now) }
+}
+
+struct MetricPrototypeProofFields: Equatable {
+    var state = MetricPrototypeProofDraft.State.missing
+    var distance = ""
+    var startsAt: Date
+    var endsAt: Date
+    init(now: Date = Date()) { startsAt = now; endsAt = now }
+    mutating func clear(now: Date = Date()) { self = Self(now: now) }
+}
+
 enum MetricPrototypeError: LocalizedError, Equatable {
     case unavailable, accountChanged, invalidTerms, invalidProof, consentRequired
     case requestConflict, closed, storage, capacity

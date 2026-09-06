@@ -4,25 +4,19 @@ import SwiftUI
 /// Explicit local fixture entry only. It cannot query Health or share progress.
 struct MetricPrototypeView: View {
     @Bindable var store: MetricPrototypeStore
-    @State private var format = MetricPrototypeFormat.cumulativeDistance
-    @State private var distance = ""
-    @State private var unit = MetricPrototypeDistanceUnit.meters
-    @State private var elapsedSeconds = ""
-    @State private var comparator = MetricPrototypeComparator.strictlyUnder
-    @State private var startsAt = Date().addingTimeInterval(60)
-    @State private var endsAt = Date().addingTimeInterval(86_400)
+    @State private var fields = MetricPrototypeCreationFields()
     @State private var consent = false
     @State private var consentingActorID: UUID?
     @State private var requestID = UUID()
     @State private var message: String?
 
     private var draft: MetricPrototypeDraft? {
-        guard let target = try? MetricPrototypeUnits.millimeters(distance, unit: unit) else { return nil }
-        let elapsed = format == .timedDistance ? try? MetricPrototypeUnits.microseconds(elapsedSeconds) : nil
-        let value = MetricPrototypeDraft(format: format, target: target,
-            startsAt: DuelInstant(date: startsAt), endsAt: DuelInstant(date: endsAt),
+        guard let target = try? MetricPrototypeUnits.millimeters(fields.distance, unit: fields.unit) else { return nil }
+        let elapsed = fields.format == .timedDistance ? try? MetricPrototypeUnits.microseconds(fields.elapsedSeconds) : nil
+        let value = MetricPrototypeDraft(format: fields.format, target: target,
+            startsAt: DuelInstant(date: fields.startsAt), endsAt: DuelInstant(date: fields.endsAt),
             timezone: TimeZone.current.identifier, elapsedTargetMicroseconds: elapsed,
-            comparator: format == .timedDistance ? comparator : nil)
+            comparator: fields.format == .timedDistance ? fields.comparator : nil)
         return (try? value.validate()) != nil ? value : nil
     }
 
@@ -39,26 +33,26 @@ struct MetricPrototypeView: View {
                 Text("Sign in to keep your practice records separate from other accounts.")
             } else if store.enabled {
                 Section("Choose a fictional distance goal") {
-                    Picker("Format", selection: $format) {
+                    Picker("Format", selection: $fields.format) {
                         Text("Total running distance").tag(MetricPrototypeFormat.cumulativeDistance)
                         Text("One timed run").tag(MetricPrototypeFormat.timedDistance)
                     }
-                    TextField("Your chosen distance", text: $distance).keyboardType(.decimalPad)
+                    TextField("Your chosen distance", text: $fields.distance).keyboardType(.decimalPad)
                         .accessibilityIdentifier("metric-distance")
-                    Picker("Distance unit", selection: $unit) {
+                    Picker("Distance unit", selection: $fields.unit) {
                         ForEach(MetricPrototypeDistanceUnit.allCases, id: \.self) { Text($0.rawValue.capitalized).tag($0) }
                     }
                     Text("Enter decimals with a period. One mile is exactly 1,609.344 meters; 1,600 meters is a different distance.")
                         .font(.footnote).foregroundStyle(.secondary)
-                    if format == .timedDistance {
-                        TextField("Elapsed time limit in seconds", text: $elapsedSeconds).keyboardType(.decimalPad)
-                        Picker("Time comparison", selection: $comparator) {
+                    if fields.format == .timedDistance {
+                        TextField("Elapsed time limit in seconds", text: $fields.elapsedSeconds).keyboardType(.decimalPad)
+                        Picker("Time comparison", selection: $fields.comparator) {
                             Text("Strictly under the limit (<)").tag(MetricPrototypeComparator.strictlyUnder)
                             Text("At or under the limit (≤)").tag(MetricPrototypeComparator.atMost)
                         }
                     }
-                    DatePicker("Starts", selection: $startsAt)
-                    DatePicker("Ends", selection: $endsAt)
+                    DatePicker("Starts", selection: $fields.startsAt)
+                    DatePicker("Ends", selection: $fields.endsAt)
                 }
                 if let draft {
                     Section("Review before agreeing") {
@@ -96,7 +90,9 @@ struct MetricPrototypeView: View {
         }
         .navigationTitle("Distance practice")
         .onChange(of: draft) { _, _ in consent = false; requestID = UUID(); message = nil }
-        .onChange(of: store.actorID) { _, _ in consent = false; consentingActorID = nil; requestID = UUID(); message = nil }
+        .onChange(of: store.actorID) { _, _ in
+            fields.clear(); consent = false; consentingActorID = nil; requestID = UUID(); message = nil
+        }
     }
     private func perform(_ operation: () throws -> Void) {
         do { try operation() } catch { message = error.localizedDescription }
@@ -124,19 +120,16 @@ private struct MetricPrototypeRules: View {
 private struct MetricPrototypeDetail: View {
     @Bindable var store: MetricPrototypeStore
     let agreementID: UUID
-    @State private var proofState = MetricPrototypeProofDraft.State.missing
-    @State private var distance = ""
-    @State private var startsAt = Date()
-    @State private var endsAt = Date()
+    @State private var fields = MetricPrototypeProofFields()
     @State private var requestID = UUID()
     @State private var exitRequestID = UUID()
     @State private var confirmExit = false
     @State private var message: String?
     private var agreement: MetricPrototypeAgreement? { store.agreements.first { $0.id == agreementID } }
     private var proof: MetricPrototypeProofDraft? {
-        if proofState != .observed { return .init(state: proofState, value: nil, startsAt: nil, endsAt: nil) }
-        guard let value = try? MetricPrototypeUnits.millimeters(distance, unit: .meters, allowZero: true) else { return nil }
-        return .init(state: .observed, value: value, startsAt: DuelInstant(date: startsAt), endsAt: DuelInstant(date: endsAt))
+        if fields.state != .observed { return .init(state: fields.state, value: nil, startsAt: nil, endsAt: nil) }
+        guard let value = try? MetricPrototypeUnits.millimeters(fields.distance, unit: .meters, allowZero: true) else { return nil }
+        return .init(state: .observed, value: value, startsAt: DuelInstant(date: fields.startsAt), endsAt: DuelInstant(date: fields.endsAt))
     }
     var body: some View {
         Form {
@@ -153,15 +146,15 @@ private struct MetricPrototypeDetail: View {
                 }
                 if agreement.exitedAt == nil, store.enabled, agreement.terms.draft.format != .exerciseMinutes {
                     Section("Replace your fictional update") {
-                        Picker("What can you report?", selection: $proofState) {
+                        Picker("What can you report?", selection: $fields.state) {
                             Text("Missing").tag(MetricPrototypeProofDraft.State.missing)
                             Text("Unavailable").tag(MetricPrototypeProofDraft.State.unavailable)
                             Text("Fictional distance").tag(MetricPrototypeProofDraft.State.observed)
                         }
-                        if proofState == .observed {
-                            TextField("Fictional distance in meters", text: $distance).keyboardType(.decimalPad)
-                            DatePicker("Activity starts", selection: $startsAt)
-                            DatePicker("Activity ends", selection: $endsAt)
+                        if fields.state == .observed {
+                            TextField("Fictional distance in meters", text: $fields.distance).keyboardType(.decimalPad)
+                            DatePicker("Activity starts", selection: $fields.startsAt)
+                            DatePicker("Activity ends", selection: $fields.endsAt)
                             Text("For a timed run, these times include every pause. Saving an update does not decide whether you met a goal.")
                         }
                         Button("Save private update") {
@@ -182,6 +175,9 @@ private struct MetricPrototypeDetail: View {
         }
         .navigationTitle("Private practice")
         .onChange(of: proof) { _, _ in requestID = UUID(); message = nil }
+        .onChange(of: store.actorID) { _, _ in
+            fields.clear(); requestID = UUID(); exitRequestID = UUID(); confirmExit = false; message = nil
+        }
         .confirmationDialog("Leave this private practice record?", isPresented: $confirmExit) {
             Button("Leave practice record", role: .destructive) {
                 do {

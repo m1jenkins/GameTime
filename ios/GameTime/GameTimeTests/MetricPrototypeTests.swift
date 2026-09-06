@@ -223,4 +223,21 @@ import XCTest
         XCTAssertNotNil(gateOff.agreements[0].exitedAt)
         XCTAssertFalse(gateOff.agreements[0].final)
     }
+
+    func testAccountBoundaryErasesEveryPrivateCreationAndProofField() {
+        let first = Date(timeIntervalSince1970: 1_800_000_000)
+        let fresh = first.addingTimeInterval(86_400)
+        var creation = MetricPrototypeCreationFields(now: first)
+        creation.format = .timedDistance; creation.distance = "1.234567"; creation.unit = .miles
+        creation.elapsedSeconds = "431.765432"; creation.comparator = .atMost
+        creation.startsAt = first.addingTimeInterval(123); creation.endsAt = first.addingTimeInterval(456)
+        var proof = MetricPrototypeProofFields(now: first)
+        proof.state = .observed; proof.distance = "2345.678"
+        proof.startsAt = first.addingTimeInterval(789); proof.endsAt = first.addingTimeInterval(999)
+        creation.clear(now: fresh); proof.clear(now: fresh)
+        XCTAssertEqual(creation, MetricPrototypeCreationFields(now: fresh))
+        XCTAssertEqual(proof, MetricPrototypeProofFields(now: fresh))
+        XCTAssertTrue(creation.distance.isEmpty && creation.elapsedSeconds.isEmpty && proof.distance.isEmpty)
+        XCTAssertEqual(proof.state, .missing)
+    }
 }
