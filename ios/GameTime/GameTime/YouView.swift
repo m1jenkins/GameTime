@@ -619,7 +619,7 @@ struct AccountSupportView: View {
 }
 
 struct DeleteAccountView: View {
-    private enum State: Equatable {
+    private enum DeleteAccountState: Equatable {
         case reauthenticate
         case deleting
         case failed(String)
@@ -627,7 +627,7 @@ struct DeleteAccountView: View {
 
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
-    @State private var state: State = .reauthenticate
+    @State private var state: DeleteAccountState = .reauthenticate
 
     var body: some View {
         NavigationStack {
