@@ -45,6 +45,24 @@ finding closes only when its corrected path has applicable test evidence.
 | S6 / medium | Independent reviewer observed copy saying following ends with the chosen week, while `list_shared_weekly_progress_v1` did not filter the activity end and could return historical grants indefinitely. | **Closed for local authorization.** Reviewer inspected `20260906065002_weekly_sharing_expiry_v1.sql`: new owner offers, recipient accepts, pending offers and shared reads all require server time strictly before the week ends. Exact receipts and safe revoke/decline/unfollow survive expiry. | 482 expiry suite passed 41 assertions, including before/equal/one-microsecond-after checks for all four operations and denied client access to injected-clock helpers. Reviewer inspected `/tmp/gametime-weekly-482-expiry.log` and the corresponding native following copy/read path. Native cached data remains subject to S5's bounded privacy lifetime. |
 | S7 / medium | Optional social enrichment fetched sharing grants serially for every accepted history row, and one late failure cleared already validated own challenges, cohorts and preferences. | **Closed in the current source.** Validated own content publishes before optional social enrichment. Sharing reads use four bounded partitions; any social failure clears the private social snapshot together without clearing own content or exact pending recovery. Mutations, retries, new refreshes and actor changes cancel in-flight enrichment, and generation/session/token checks fence every dispatch and response. | Three executable store regressions cover a failure on the fifteenth sharing read while own content and recovery remain available, a maximum of four simultaneous sharing calls, and held responses after account switch or supersession. These additions postdate and are not included in the recorded 18-test/367-test full native gate. |
 
+### Final publication fence follow-up
+
+Independent finding `weekly-social-final-auth-suspension-race` (high): a
+superseded same-account refresh could resume its final authentication check
+and restore a revoked private total, follow offer and friend name. The current
+correction checks actor/generation first, then cancellation and refresh token
+after that suspension; optional error cleanup uses the same predicate.
+
+The actual store regression failed on unchanged `eacb1f0` with three stale-data
+assertions, then passed with this minimal correction. All 24 focused native
+tests passed on the corrected disposable copy, including scene lifecycle and
+safety-action coverage. Evidence and the tracked-input manifest are under
+`/tmp/gametime-weekly-auth-race-p4xs13m8/`; the new executable regression is
+`WeeklySocialRefreshAuthRaceTests.testSupersededFinalAuthCheckCannotRestoreRevokedSocialData`.
+This closes the reproduced local behavior on that tested copy; required checks
+on the committed correction remain a pre-merge requirement. It establishes no
+physical-source or human acceptance.
+
 No additional blocking finding was identified in the inspected pure optional
 reminder preview: it validates actor/category/access, expiry, duplicate events,
 quiet hours and configured caps and always returns `deliveryEnabled: false`.

@@ -68,6 +68,28 @@ pipeline also validates the committed branch.
 | Real native Auth / HTTP | `tmp/weekly-native-c8d692d1.xcresult`: passed the complete two-/five-person, early-worker consent, solo next-week community, full historical review→final worker, exact committed response-loss recovery, uncommitted retirement, bilateral sharing, held account-switch, pause/gate-off support and exits; cleanup verified admission off / allowlist empty / scoped sessions revoked |
 | PR 17 CI snapshot at `6476d47` | [CI run 34023550883](https://github.com/m1jenkins/GameTime/actions/runs/34023550883) passed: 72 SQL files / 3,576 assertions, 835 Deno tests, 113 Swift core tests, persisted worker smoke, 365 native tests passed plus 3 controller-gated skips, 50 legacy UI tests, 10 conformance tests, and Staging/Release builds on Xcode 26.2. All four required checks passed; Supabase Preview was skipped. This is committed CI evidence, not physical-source or human acceptance; the reconciled final PR head must independently have passing required checks before merge. |
 
+### Reconciled delivery and final privacy correction
+
+[CI run 34049421105](https://github.com/m1jenkins/GameTime/actions/runs/34049421105)
+passed at `6963cad`: 72 SQL files / 3,576 assertions, 835 Deno tests, 113 Swift
+core tests, persisted worker smoke, 369 native tests plus three explicit
+controller-gated skips, 50 legacy UI tests, 10 conformance tests, and Staging/
+Release builds. All four required checks passed; Supabase Preview was skipped.
+This includes the scene-lifecycle and bounded optional-sharing regressions.
+
+Independent review then reproduced a held final-authentication race that could
+restore revoked social data. The minimal post-await fence and its executable
+regression are integrated after `6963cad`. Red/green proof and 24 passing
+focused tests came from a disposable copy, as detailed in the
+[review record](WEEKLY_INDEPENDENT_REVIEW.md#final-publication-fence-follow-up).
+Those results do not replace passing required checks on the final committed
+correction before merge.
+
+The older isolated clone remains intact after guarded synchronization refused
+its divergence. This correction continues from published `6963cad` in
+`/Users/user/firstmate/projects/pr17-final/GameTime`, preserving all published
+fix commits. The original dirty checkout remains untouched.
+
 ## Reproduction
 
 Use a committed checkout with Docker, Supabase CLI 2.109.1, PostgreSQL tools,

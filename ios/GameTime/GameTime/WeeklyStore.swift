@@ -304,7 +304,7 @@ import Observation
             armSocialExpiry(receivedAt: socialReadAt)
             socialRefreshTask = nil
         } catch {
-            guard await current(actor, generation), refreshToken == token else { return }
+            guard await socialRefreshIsCurrent(actor, generation, token) else { return }
             clearSocial(); socialRefreshTask = nil
         }
     }
@@ -336,8 +336,8 @@ import Observation
     }
 
     private func socialRefreshIsCurrent(_ actor: UUID, _ generation: UUID, _ token: UUID) async -> Bool {
-        guard !Task.isCancelled, refreshToken == token else { return false }
-        return await current(actor, generation)
+        guard await current(actor, generation) else { return false }
+        return !Task.isCancelled && refreshToken == token
     }
 
     private func cancelSocialRefresh() {

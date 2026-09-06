@@ -53,6 +53,16 @@ open until the checks below and required human accessibility work are done.
 | Python controller | AST syntax passed; real controller execution and cleanup passed |
 | Human VoiceOver, accessibility, comprehension and voluntary-exit checks | Not performed; required external/human gate |
 
+The reconciled `6963cad` CI run separately passed 369 native tests plus three
+controller-gated skips, 50 legacy UI tests, 10 conformance tests and Staging/
+Release builds. The subsequent held-final-authentication regression reproduced
+revoked social data returning after a same-account refresh superseded an older
+one. Its post-await cancellation/token fence passed red/green and all 24
+focused store/lifecycle tests on a disposable copy. See the
+[final publication finding](WEEKLY_INDEPENDENT_REVIEW.md#final-publication-fence-follow-up)
+and [delivery evidence](WEEKLY_LOCAL_ACCEPTANCE.md#reconciled-delivery-and-final-privacy-correction)
+for exact source states and remaining committed-head checks.
+
 The unit JSON `GameTimeTests/Fixtures/weekly-native-v1.json` is explicitly authored
 fixture data. It is not a captured database response. The HTTP controller separately
 creates three historical agreements through the actual policy/lifecycle worker,
