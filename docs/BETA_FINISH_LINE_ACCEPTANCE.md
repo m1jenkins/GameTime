@@ -146,3 +146,56 @@ focused two/six tests now assert the visible consent switch state, stop on first
 failure, and identify the exact new final-history row. Next execute those focused
 runs before claiming complete touch traversal. Earlier failures include the test
 helper's concurrency annotation and stale email replacement, both fixed.
+
+Focused six-person touch acceptance **passed** from built candidate `3886355`:
+`scripts/beta-native-smoke.py --simulator 72A3249A-2DE0-4695-AF41-DCD2743B4666 --touch-only 6`,
+log `/tmp/gametime-finish-b7-evidence/m4-six-touch-focused.log` and
+[sanitized trace](evidence/beta-finish-line-b7/native-six-touch-report.json).
+This one XCTest drives actual SwiftUI controls for age confirmation, lobby
+creation, six account sign-ins, six target proposals, creator roster selection,
+six visible consent switches, active progress, participant review, and the exact
+new final-history row/recorded simulated return. Clock, fictional facts/downward
+correction and independent operator resolution use the local controller, not UI.
+This is Simulator touch + authenticated backend evidence, not physical/human
+acceptance. The earlier failed combined run remains a failure; this focused
+rerun is the replacement six-person touch evidence.
+
+Committed candidate `3886355` also passed the portable gate in
+`/tmp/gametime-weekly-verify.RXgUJmNO/`: **3,786 SQL assertions / 78 files**, 835 Deno,
+113 core Swift and persisted historical weekly smoke. New Home section migration
+is a later uncommitted addition: 14 rollback SQL assertions pass in
+`/tmp/gametime-finish-b7-evidence/496_challenge_sections.test.sql.log`; its native
+store/expiry/pagination integration still needs execution.
+
+Home section integration executed: `--native-only` passed **14 native tests** in
+`/tmp/gametime-finish-b7-evidence/m6-native-sections.log`. This includes all thirteen
+production Swift HTTP lifecycles plus three new store regressions: partial-section
+failure preserves only permitted recent rows, superseded cursors cannot append
+old social content, and background/revocation cannot restore private rows.
+Visibility expires after 60 seconds on a monotonic clock; active reads refresh
+periodically. Cursors preserve short-lived actor/section-bound ID order while each
+page reauthorizes current details. Own departed participation belongs in history.
+
+Actual multi-session races passed **15 checks** with
+`scripts/beta-concurrency.py --owned-project gametime-finish-b7`, log
+`/tmp/gametime-finish-b7-evidence/m6-concurrency.log`. Both contenders were observed
+waiting on the same lock before release: third/fourth aggregate admission,
+twentieth/twenty-first link redemption, and session deletion versus a waiting
+request. Exact recovery survives admission pause; changed payload conflicts;
+redemption creates neither friendship nor participation slots. This is concurrent
+SQL-role evidence, not native/Auth-server or physical evidence. Gates were turned
+off and only the run's fictional sessions revoked afterward. No legacy rows were
+deleted. Repeat this driver from the committed section/tooling candidate.
+
+Focused TWO touch journey **passed with the paginated native store**:
+`--touch-only 2`, log `/tmp/gametime-finish-b7-evidence/m6-two-touch-sections.log`,
+[sanitized trace](evidence/beta-finish-line-b7/native-two-touch-sections-report.json).
+Like the focused six-person run, it checks actual controls and the exact new
+final-history record. Both group sizes now have full touch traversal evidence;
+all thirteen have production native HTTP lifecycle evidence. Clock/facts/operator
+fixture controls are explicitly separate from participant UI and physical evidence.
+
+The section/concurrency slice adds 14 SQL assertions (new-domain total **224**) and
+15 separately executed real concurrency checks; it does not relabel either count
+as physical or human acceptance. Metric icons now use the supplied four SVG path
+geometries in native Canvas, and chart axes retain exact canonical unit labels.

@@ -97,10 +97,18 @@ struct ChallengeV1Shell: View {
                         if store.ordered.isEmpty {
                             ContentUnavailableView("Start something together", systemImage: "flag", description: Text("Create a lobby, invite friends and each choose your own goal."))
                         }
-                        ForEach(store.ordered) { row in
-                            NavigationLink { ChallengeV1Detail(store: store, id: row.id) } label: {
-                                MatchdayChallengeCard(row: row, actor: store.actor)
-                            }.buttonStyle(.plain)
+                        ForEach(ChallengeV1Section.allCases, id: \.self) { section in
+                            if let state = store.sections[section], !state.rows.isEmpty || state.error != nil {
+                                Text(section.title).font(.headline)
+                                if let message = state.error { Text(message).font(.caption) }
+                                if !state.fresh && !state.rows.isEmpty { Text("Last saved view · refresh before making a choice.").font(.caption) }
+                                ForEach(state.rows) { row in
+                                    NavigationLink { ChallengeV1Detail(store: store, id: row.id) } label: {
+                                        MatchdayChallengeCard(row: row, actor: store.actor)
+                                    }.buttonStyle(.plain)
+                                }
+                                if state.cursor != nil { Button("More in \(section.title.lowercased())") { Task { await store.loadMore(section) } } }
+                            }
                         }
                     }.padding(20)
                 }.refreshable { await store.refresh() }
@@ -114,11 +122,17 @@ struct ChallengeV1Shell: View {
                         Text("Choose a friend goal, a best-result challenge or a personal goal.").font(.footnote)
                         ChallengeEntryPanel(store: store, invitation: invitation)
                     }
-                    Section("Challenges and history") {
-                        ForEach(store.challenges) { row in
-                            NavigationLink { ChallengeV1Detail(store: store, id: row.id) } label: {
-                                VStack(alignment: .leading) { Text(row.title); Text(row.statusText).font(.caption) }
-                            }.accessibilityIdentifier("beta.row.\(row.status).\(row.policy).\(row.id.uuidString)")
+                    ForEach(ChallengeV1Section.allCases, id: \.self) { section in
+                        Section(section.title) {
+                            if let state = store.sections[section] {
+                                if let message = state.error { Text(message).font(.caption) }
+                                ForEach(state.rows) { row in
+                                    NavigationLink { ChallengeV1Detail(store: store, id: row.id) } label: {
+                                        VStack(alignment: .leading) { Text(row.title); Text(row.own(store.actor)?.exited == true ? "You left this challenge" : row.statusText).font(.caption) }
+                                    }.accessibilityIdentifier("beta.row.\(row.status).\(row.policy).\(row.id.uuidString)")
+                                }
+                                if state.cursor != nil { Button("Show more") { Task { await store.loadMore(section) } }.accessibilityIdentifier("beta.more.\(section.rawValue)") }
+                            }
                         }
                     }
                 }.navigationTitle("Challenges").refreshable { await store.refresh() }
@@ -144,8 +158,9 @@ struct ChallengeV1Shell: View {
         .onChange(of: store.actor) { create = false }
         .onChange(of: scenePhase) { _, value in
             if value != .active { store.hide() }
-            else { Task { await store.refresh() } }
+            else { Task { await store.show() } }
         }
+        .task(id: store.actor) { await store.watchVisibility() }
     }
     @ViewBuilder var recovery: some View {
         if let error = store.error { Text(error).foregroundStyle(.secondary).accessibilityIdentifier("beta.error") }
@@ -161,33 +176,12 @@ struct ChallengeV1Shell: View {
     }
 }
 
-/// Original supplied sole geometry on its 24-unit grid; decorative beside text.
-struct MatchdayStepsIcon: View {
-    var body: some View {
-        Canvas { context, size in
-            context.scaleBy(x: size.width / 24, y: size.height / 24)
-            var path = Path()
-            for (x,y) in [(4.0,5.5),(14.0,9.5)] {
-                path.move(to:CGPoint(x:x,y:y+4.5))
-                path.addLine(to:CGPoint(x:x,y:y))
-                path.addCurve(to:CGPoint(x:x+5,y:y),control1:CGPoint(x:x,y:y-3.333333),control2:CGPoint(x:x+5,y:y-3.333333))
-                path.addLine(to:CGPoint(x:x+5,y:y+4.5));path.closeSubpath()
-                path.move(to:CGPoint(x:x,y:y+7.5));path.addLine(to:CGPoint(x:x+5,y:y+7.5))
-                path.addLine(to:CGPoint(x:x+5,y:y+9.5))
-                path.addCurve(to:CGPoint(x:x,y:y+9.5),control1:CGPoint(x:x+5,y:y+12.833333),control2:CGPoint(x:x,y:y+12.833333))
-                path.closeSubpath()
-            }
-            context.stroke(path,with:.foreground,style:StrokeStyle(lineWidth:1.75,lineCap:.round,lineJoin:.round))
-        }.rotationEffect(.degrees(20)).frame(width:28,height:28).accessibilityHidden(true)
-    }
-}
 struct MatchdayChallengeCard: View {
     let row: ChallengeV1; let actor: UUID?
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack {
-                if row.format.metric == .steps { MatchdayStepsIcon() }
-                else { Image(systemName:row.format.metric.symbol).font(.title2).accessibilityHidden(true) }
+                MatchdayMetricIcon(metric: row.format.metric)
                 Text(row.format.metric.title.uppercased()).font(.caption.bold()); Spacer(minLength:0)
                 Text(row.format.mode.title).font(.caption)
             }
@@ -282,8 +276,9 @@ struct ChallengeV1Detail: View {
                 } else { ContentUnavailableView("Refresh this challenge",systemImage:"arrow.clockwise",description:Text("Sign in to the same account and refresh to see its latest details.")) }
             }.padding(20)
         }.navigationTitle("Challenge").navigationBarTitleDisplayMode(.inline)
-            .refreshable { await store.refresh() }
-            .toolbar { Button("Refresh",systemImage:"arrow.clockwise") { Task { await store.refresh() } } }
+            .task(id: id) { await store.loadDetail(id) }
+            .refreshable { await store.loadDetail(id) }
+            .toolbar { Button("Refresh",systemImage:"arrow.clockwise") { Task { await store.loadDetail(id) } } }
             .onChange(of:row?.revision) { consent=false }
             .onChange(of:store.actor) { consent=false;target="";username="";exitAction=nil }
             .confirmationDialog("Leave safely?",isPresented:Binding(get:{exitAction != nil},set:{if !$0 {exitAction=nil}}),titleVisibility:.visible) {
@@ -292,7 +287,7 @@ struct ChallengeV1Detail: View {
                 }
             } message: { Text("Your simulated entry is returned. A shared challenge continues only if its agreed minimum remains. No real money moves.") }
     }
-    private var canAct: Bool { store.fresh && !store.busy && store.pending == nil }
+    private var canAct: Bool { row.map { store.isFresh($0) } == true && !store.busy && store.pending == nil }
     @ViewBuilder private func people(_ row:ChallengeV1)->some View {
         Text(row.format.mode == .friend ? "People and activity" : "Your activity").font(.title2.bold())
         ForEach(row.rankedMembers) { person in

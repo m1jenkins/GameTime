@@ -2,6 +2,7 @@ import Foundation
 import Supabase
 
 @MainActor protocol ChallengeV1Client: AnyObject {
+    func page(_ section: ChallengeV1Section, cursor: ChallengeJSON?, actor: UUID) async throws -> ChallengeV1Page
     func list(actor: UUID) async throws -> [ChallengeV1]
     func detail(_ id: UUID, actor: UUID) async throws -> ChallengeV1
     func submit(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt
@@ -9,6 +10,11 @@ import Supabase
     func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON], actor: UUID, as type: T.Type) async throws -> T
 }
 extension ChallengeV1Client {
+    func page(_ section: ChallengeV1Section, cursor: ChallengeJSON?, actor: UUID) async throws -> ChallengeV1Page {
+        guard cursor == nil else { throw ChallengeV1Error.invalidResponse }
+        let rows = try await list(actor: actor).filter { section.includes($0, actor: actor) }
+        return ChallengeV1Page(section: section, projectionRevision: UUID(), serverTime: ChallengeInstant(date: Date()), expiresAt: ChallengeInstant(date: Date().addingTimeInterval(120)), rows: rows, nextCursor: nil)
+    }
     func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON] = [:], actor: UUID, as type: T.Type) async throws -> T { throw ChallengeV1Error.unavailable }
 }
 private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
@@ -54,6 +60,13 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
         self.enabled = false
         #endif
         self.binding = binding; self.rpc = rpc
+    }
+    func page(_ section: ChallengeV1Section, cursor: ChallengeJSON?, actor: UUID) async throws -> ChallengeV1Page {
+        let body = try ChallengeJSON.data(.object(["p_section": .string(section.rawValue), "p_cursor": cursor ?? .null, "p_limit": .integer(10)]))
+        let page: ChallengeV1Page = try decode(await send("challenge_section_v1", body, actor))
+        guard page.section == section, page.rows.count <= 10, Set(page.rows.map(\.id)).count == page.rows.count else { throw ChallengeV1Error.invalidResponse }
+        for row in page.rows { try row.validate(actor: actor) }
+        return page
     }
     func list(actor: UUID) async throws -> [ChallengeV1] {
         let rows: [ChallengeV1] = try decode(await send("challenge_list_v1", Data("{}".utf8), actor))

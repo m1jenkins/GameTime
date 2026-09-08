@@ -61,3 +61,35 @@ new final row. Continue afterward with Home sections (authored migration
 20260908054225 is still unapplied/unverified), concurrency, owner tooling,
 accessibility/Release/historical acceptance and rollout preparation. Do not stop
 at the native matrix checkpoint.
+
+Focused SIX touch run passed (`m4-six-touch-focused.log`) with exact new final
+history/return assertion. Next executable: run native-only acceptance for current
+uncommitted section store and new tests; then focused TWO touch. Home section
+migration 20260908054225 is now applied on owned 58322 and 14 SQL assertions pass.
+Current uncommitted native section work includes monotonic 60-second visibility,
+per-section preservation/errors, stable cursors, late-page/auth guards and private
+background clearing; it has NOT yet compiled/run. Custom four metric icon paths
+now follow supplied SVG geometry. Continue concurrency/operations/accessibility
+and all other dependency-ready local work afterward.
+
+Current section store compiled and passed 14 native tests (`m6-native-sections.log`).
+The new `scripts/beta-concurrency.py --owned-project gametime-finish-b7` passed 15
+real multi-session checks (`m6-concurrency.log`), preserving original resources.
+Focused TWO touch run is now running against current section UI in
+`m6-two-touch-sections.log`. After it passes, checkpoint this coherent section/
+concurrency slice and rerun concurrency + full portable gate from that commit.
+Still required: all-policy native review/exit expansion, scoped operator tooling,
+overdue/recovery worker and notices, accessibility/light-dark/compact preparation,
+Release build and broad historical native tests, source-independent legal/link/
+rollout materials, usable local-preview launch script and exact morning walkthrough,
+original hash/database identity recheck. M5 actual sources and M7 replacement remain
+blocked by unaccepted physical policies; do not retire historical default navigation.
+
+Focused TWO touch passed with current paginated store (`m6-two-touch-sections.log`)
+and exact final-history assertion. Both TWO and SIX touch paths are now accepted
+software evidence. Section/concurrency checkpoint is ready; rerun concurrency and
+portable gate from its commit. New operations migration 20260908062409 is authored
+but NOT yet applied/tested: service-only overdue summary and bounded exact batch,
+scoped report reads and audited community closure. It intentionally scopes jobs to
+the active local fixture creator allowlist. Next implement/test the operator CLI,
+all-policy native review/exit expansion and remaining acceptance/preparation tasks.

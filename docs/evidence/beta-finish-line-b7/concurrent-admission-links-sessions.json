@@ -1,0 +1,21 @@
+{
+  "evidence": "real concurrent SQL sessions; fictional SQL-role actors",
+  "checks": [
+    "both admission requests actually wait on the shared lock",
+    "only one of the simultaneous third/fourth commitments admits",
+    "losing admission has the capacity SQLSTATE",
+    "aggregate three-slot bound persists",
+    "exact winning request recovers while admission is paused",
+    "changed payload cannot reuse an admitted request",
+    "both final-link-slot requests actually overlap",
+    "exactly one twentieth unique account redeems",
+    "link ceiling remains twenty under concurrency",
+    "redemption creates no friendship",
+    "redemption creates no participation slot",
+    "only the creator is selected after redemptions",
+    "request waits behind actual session revocation",
+    "revoked session cannot commit waiting request",
+    "revocation leaves no committed mutation receipt"
+  ],
+  "count": 15
+}

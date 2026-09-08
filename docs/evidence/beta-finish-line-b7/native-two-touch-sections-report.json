@@ -1,0 +1,750 @@
+{
+  "evidence": "authenticated production Swift client to fictional local backend",
+  "trace": [
+    {
+      "auth_status": 200
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "4c7fea0ee69ffbb3609902bb3b5b9896e847063527775d1f9ee6a80b6a1c0ac2"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "8803a749ec88ddbffd0599b22236ebc2693047312898031819ff4441a541ec2a"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_detail_v1",
+      "status": 200,
+      "payload_sha256": "bea79632f7c541747b49c43a8c7d201716bf46151580c73cba06b5b07627d39b"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "ab379c5513250bb4e7aede017d91559199201eef5748895be33822a03305d789"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "76b435100d0287b6128d5c8ba915787284335146c8d80fe2657f1b3e73fbbb0e"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "auth_status": 204
+    },
+    {
+      "auth_status": 200
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "c805c2f050a8b9f43ee3e7c10d1ef0c5be18469d58d04f4f21c70492790ba7cd"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_detail_v1",
+      "status": 200,
+      "payload_sha256": "bea79632f7c541747b49c43a8c7d201716bf46151580c73cba06b5b07627d39b"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "b417bdc8b7f1206d67c5640f40fcb861f6734fba0f618d7d1e5910d624b4aead"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "auth_status": 204
+    },
+    {
+      "auth_status": 200
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_detail_v1",
+      "status": 200,
+      "payload_sha256": "bea79632f7c541747b49c43a8c7d201716bf46151580c73cba06b5b07627d39b"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "5e1961208e0d20df3e1b045411adbcd587bfc41c8bcc0717a43670e800239273"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "d980f9b489dfc89b1fa79e334df5a90e0b82f4668fa609b8c18a076ac233ce1c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "auth_status": 204
+    },
+    {
+      "auth_status": 200
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_detail_v1",
+      "status": 200,
+      "payload_sha256": "bea79632f7c541747b49c43a8c7d201716bf46151580c73cba06b5b07627d39b"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "6c3824c418d43ea5ed5c27f8e30a512aa0e56db589bdc2020e3c88eaf3bc9e4c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "auth_status": 204
+    },
+    {
+      "auth_status": 200
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_detail_v1",
+      "status": 200,
+      "payload_sha256": "bea79632f7c541747b49c43a8c7d201716bf46151580c73cba06b5b07627d39b"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "2ffe28bb49124394f2332a41a2e72fdf9a0d81d307a96914344ad7237d7b0c10"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "auth_status": 204
+    },
+    {
+      "auth_status": 200
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_detail_v1",
+      "status": 200,
+      "payload_sha256": "bea79632f7c541747b49c43a8c7d201716bf46151580c73cba06b5b07627d39b"
+    },
+    {
+      "auth_status": 204
+    },
+    {
+      "auth_status": 200
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_detail_v1",
+      "status": 200,
+      "payload_sha256": "bea79632f7c541747b49c43a8c7d201716bf46151580c73cba06b5b07627d39b"
+    },
+    {
+      "rpc": "challenge_command_v1",
+      "status": 200,
+      "payload_sha256": "0845c85a2c3256f9927266b4707b802efc7eaef4efabba927d8f3079997fa4ce"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "auth_status": 204
+    },
+    {
+      "auth_status": 200
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "5d320c7a7e7841c7f25f70fff9248f9a2a657d2b8fed45a18c1c55e1a6fc0988"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "428bf54743118e70b43454373c65527f8d9946418079f3b914b883d65da13a9c"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "fa0ea7ef7ac8453de70f70d039ea5b5a2cf7661ef1ea330d89302300d7101cab"
+    },
+    {
+      "rpc": "challenge_section_v1",
+      "status": 200,
+      "payload_sha256": "3c37df7d9467ec4fc90b9fc45ce4126a0e71193e5d58ef173f3c39d8c1337ca5"
+    },
+    {
+      "rpc": "challenge_access_status_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_community_catalog_v1",
+      "status": 200,
+      "payload_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "rpc": "challenge_detail_v1",
+      "status": 200,
+      "payload_sha256": "bea79632f7c541747b49c43a8c7d201716bf46151580c73cba06b5b07627d39b"
+    },
+    {
+      "auth_status": 204
+    }
+  ],
+  "gates_off": true,
+  "actors_revoked": 7
+}
