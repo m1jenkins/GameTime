@@ -26,3 +26,17 @@ Do not use a pre-existing Simulator or the original 5432x stack.
 and original resource identities live under `docs/evidence/beta-finish-line-b7/`.
 New source gates, real ingestion, Release navigation, hosted operations, distribution,
 recruitment, deletion and money stay disabled. No physical evidence is claimed.
+
+Firstmate inbox 001 handled: physical-source actions and timed-distance tolerance
+are retained in captain-held task `gametime-beta-source-acceptance-b7`. Neither is
+accepted. Continue independent work with sources disabled. M3 checkpoint `32ca057`
+records the actual client-level HTTP journey separately from the narrower SwiftUI
+sign-in/tab/sign-out traversal; no complete touch-driven challenge journey or
+physical acceptance is claimed by that checkpoint.
+
+M4 backend checkpoint: new migrations 20260908050105–20260908052202 implement the
+matrix, community, links and safety. SQL 490–494 pass 162 assertions on the owned
+stack. Next: connect the native selectors/personal agreement/community/age/link
+and safety workflows, execute all thirteen with production Swift HTTP clients,
+then concurrency/projection freshness/operational tooling and the full committed
+historical gate. The source and physical gates remain unchanged.

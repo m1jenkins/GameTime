@@ -42,3 +42,11 @@ declare c uuid; i integer; begin
 end $$;
 create temp table beta_ids(name text primary key,id uuid);
 grant all on beta_ids to authenticated;
+
+-- Fictional age confirmations; not evidence of any real person's age.
+do $$ declare i integer;begin
+ if to_regprocedure('public.challenge_confirm_age_v1(uuid,boolean)') is not null then
+  for i in 1..40 loop perform pg_temp.login_beta(i);perform public.challenge_confirm_age_v1(pg_temp.br(10000+i),true);end loop;
+  perform set_config('role','none',true);
+ end if;
+end $$;

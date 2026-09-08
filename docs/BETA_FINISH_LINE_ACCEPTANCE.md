@@ -77,3 +77,26 @@ M2 reversible resource choices: maximum 10 open drafts per creator, 30 pending d
 - M3 final focused run: `python3 scripts/beta-native-smoke.py --simulator 72A3249A-2DE0-4695-AF41-DCD2743B4666`, log `/tmp/gametime-finish-b7-evidence/m3-safe-exit.log`: 7 native tests (including one two/six-person HTTP journey and retained weekly held-auth race) and 1 authenticated native UI test passed. The HTTP journey exercised separate local Auth actors, production `SupabaseChallengeV1Client` and `ChallengeV1Store`, one actually lost committed create response, same actor durable recovery after account switch and admission pause, participant target proposals, complete roster consent, active progress, downward correction, delayed notice, last-second review filing, independent service fixture resolution, final history, cancellation, paused leave/refund and request abandonment preventing late mutation. UI automation verified sign-in, Home/Challenges/You and sign-out. These layers are separate from physical/human acceptance.
 - Native harness initially found disabled email login in the isolated copied configuration. Enabled `[auth.email].enable_signup` only under `/tmp/gametime-finish-b7-stack`, kept confirmation disabled, and restarted only project `gametime-finish-b7` preserving its database. No email was sent. Original config unchanged. Earlier test failures also caught a Python import/function naming collision, missing test temp directory and an ambiguous test protocol import; all corrected before the passing run.
 - Corrected portable run `0ed8a30`, `/tmp/gametime-weekly-verify.wCsuWTPR`: all 3,624 SQL assertions/74 files, 835 Deno tests, 113 core tests and persisted weekly lifecycle smoke passed. Logs `/tmp/gametime-finish-b7-evidence/portable-gate-rerun.log`; the separate verification stack was cleaned up.
+
+## M4 backend checkpoint — 2026-09-08
+
+Implemented the finite thirteen-policy evaluator and persisted lifecycle; canonical
+steps/seconds/millimetres/elapsed-seconds comparators; target-free leaderboard
+agreements; private personal preview → explicit consent → scheduled transaction;
+private community fixture publication/join/own-only projections; 21+ confirmation;
+256-bit reusable access links; private reports, blocking, scoped authenticated
+review/moderation and audited suspension. Real sources and publication remain off.
+A review that changes the allocation appends a new notice and grants another full
+48 hours. Prior agreements, notices, finals and historical migrations remain intact.
+
+Actually executed against the b7-owned disposable database: SQL files 490–494,
+**162 assertions** (30 + 18 + 50 + 42 + 22), all passed after fixing an ambiguous
+operator variable. Evidence: `/tmp/gametime-finish-b7-evidence/49*.test.sql.log`.
+These are authenticated SQL-role/fictional lifecycle assertions, not native or
+physical evidence. The 20-account ceiling was tested sequentially; concurrent
+last-slot, aggregate admission and session-revocation races remain to execute.
+Native matrix integration and the committed full historical gate remain pending.
+Personal policies cannot expose an intermediate lobby. Community settings are
+explicitly `unapproved_fixture_only`; no owner approval is inferred from tests.
+Raw redemption tokens are hashed before request journaling; the issuer's private
+exact-request receipt retains its reusable locator for response-loss recovery.
