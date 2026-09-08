@@ -119,7 +119,7 @@ struct ChallengeV1Create: View {
                     DatePicker(selection: $start, displayedComponents: .date) { Text("Starts").font(.body) }
                     ChallengeIntegerControl(value: $days, range: 1...30, id: "days", title: "Duration", display: "\(days) days")
                     LabeledContent("Time zone") {
-                        TextField("Area/City", text: $zone).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        TextField("Area/City", text: $zone, axis: .vertical).textInputAutocapitalization(.never).autocorrectionDisabled()
                             .accessibilityLabel("Time zone")
                     }
                     ChallengeIntegerControl(value: $dollars, range: 1...500, id: "amount", title: "Simulated dollars", display: "\(challengeMoney(dollars * 100)) simulated each")
