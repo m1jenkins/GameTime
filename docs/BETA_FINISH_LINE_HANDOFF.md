@@ -1,7 +1,7 @@
 # Beta finish-line handoff — b7
 
 Worktree: `/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta`.
-Branch: `fm/gametime-beta-finish-b7`; latest checkpoint `73cf99b`.
+Branch: `fm/gametime-beta-finish-b7`; latest checkpoint `22d2acc`.
 Authority: D134, [Beta plan](BETA_IMPLEMENTATION_PLAN.md),
 [roadmap](BETA_FINISH_LINE_ROADMAP.md). See [acceptance](BETA_FINISH_LINE_ACCEPTANCE.md)
 for implemented versus executed evidence and historical failed runs.
@@ -11,14 +11,14 @@ This task is **still active**. Do not stop at the completed native matrix.
 
 1. Finish the active native accessibility defect. Unfiltered audits still fail;
    see acceptance for disconfirming runs and exported largest-size screenshots.
-   Latest light run: `m6-a11y-light-full-diagnostic.log`. Stacked controls alone
+   Latest light run: `m6-a11y-stable-refresh.log`. Creation Dynamic Type now passes with native scroll groups; tab-area contrast remains. Stacked controls alone
    did not prove a fix. Inspect wrapping/scaling at normal and AX5, and preserve
    every unfiltered finding. Firstmate inbox 003 authorizes local correction.
-2. Run expanded native safety (report and a genuinely lost block response) and
+2. Expanded native safety passed in `m6-native-safety-refresh.log` (15 tests). Add nonfriend link admission/reconsent coverage and verify
    the new foreground preview launcher with account switching/clock/cleanup.
 3. Complete light/dark/large/compact and usable increment/decrement preparation,
    then broad historical UI regressions and the latest Debug/Release build.
-4. Commit current disclosures/rollout/13 admission-context assertions and execute
+4. Commit current disclosures/rollout/21 admission-context/reopened-projection assertions and execute
    the portable gate from that candidate. Last committed gate already passed
    3,819 SQL / 80 files, 835 Deno, 113 core and weekly persisted smoke.
 5. Reconcile top milestone/per-policy rows with final evidence, repeat source /

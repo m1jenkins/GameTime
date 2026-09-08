@@ -1,0 +1,22 @@
+begin;
+select no_plan();
+\ir fixtures/challenge-fixture.inc
+insert into beta_ids values('reopen',pg_temp.beta_group(1,2));
+create temp table prior_digest as select digest from app.challenge_agreements_v1 where challenge_id=(select id from beta_ids where name='reopen');grant select on prior_digest to authenticated;
+select pg_temp.login_beta(1);
+select pg_temp.beta_mutate((select id from beta_ids where name='reopen'),'reopen');
+select is(jsonb_typeof(public.challenge_detail_v1((select id from beta_ids where name='reopen'))->'agreement'),'null','reopened lobby does not present prior frozen terms as its current agreement');
+select ok(not exists(select 1 from jsonb_array_elements(public.challenge_detail_v1((select id from beta_ids where name='reopen'))->'members') m where (m->>'consented')::boolean),'reopened lobby shows no current consent');
+select pg_temp.beta_mutate((select id from beta_ids where name='reopen'),'target','{"target":10002}');
+select pg_temp.beta_mutate((select id from beta_ids where name='reopen'),'freeze');
+select isnt(public.challenge_detail_v1((select id from beta_ids where name='reopen'))->'agreement'->>'digest',(select digest from prior_digest),'new frozen targets get a new digest');
+select throws_ok($$select pg_temp.beta_mutate((select id from beta_ids where name='reopen'),'consent',jsonb_build_object('consent',true,'digest',(select digest from prior_digest)))$$,'22023','challenge_consent_mismatch','old digest cannot agree to the new roster and goals');
+select pg_temp.beta_mutate((select id from beta_ids where name='reopen'),'consent',jsonb_build_object('consent',true,'digest',public.challenge_detail_v1((select id from beta_ids where name='reopen'))->'agreement'->>'digest'));
+select is(public.challenge_detail_v1((select id from beta_ids where name='reopen'))->>'status','consent_pending','one new consent cannot inherit the other old consent');
+select pg_temp.login_beta(2);
+select pg_temp.beta_mutate((select id from beta_ids where name='reopen'),'consent',jsonb_build_object('consent',true,'digest',public.challenge_detail_v1((select id from beta_ids where name='reopen'))->'agreement'->>'digest'));
+select is(public.challenge_detail_v1((select id from beta_ids where name='reopen'))->>'status','scheduled','every participant must agree to the new version');
+reset role;
+select is((select count(*)::integer from app.challenge_agreements_v1 where challenge_id=(select id from beta_ids where name='reopen')),2,'both historical agreements remain immutable');
+select is((select count(*)::integer from app.challenge_consents_v1 where challenge_id=(select id from beta_ids where name='reopen') and version=1),2,'prior consent records remain as history');
+select * from finish();rollback;

@@ -43,3 +43,16 @@ The existing [source matrix](WEEKLY_SOURCE_METRICS_ACCEPTANCE.md) remains useful
 history. Its Exercise fixture unit does not change D134's integer-second unit.
 This UI intentionally supplies no scoring total, completion assertion, export,
 source approval switch or upload. Suggestions and adapters remain dependent work.
+
+## New readiness presentation mapping still needs reconciliation
+
+The governing Beta plan asks to preserve seven visible readiness states. The
+retained `PersonalHealthReadiness` implementation in
+`ios/GameTime/GameTime/PersonalAccountabilityClient.swift` has five historical
+cases and a different authorization contract. It is not widened or reused for
+new Beta consent. As the four physical policies are accepted, record the exact
+seven-state mapping and copy for the new source adapter, including unsupported,
+empty successful reads and interrupted/revoked access. A completed permission
+prompt never means Ready. The new local shell currently states that every real
+source is unavailable for scoring; fictional readiness is explicitly separate.
+No extra physical readiness state is inferred from these Simulator tests.

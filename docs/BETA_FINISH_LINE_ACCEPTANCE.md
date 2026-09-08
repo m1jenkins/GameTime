@@ -19,9 +19,9 @@ Nothing here accepts physical sources, hosted operations, distribution or money.
 | --- | --- | --- | --- |
 | M0 | Inherited checkpoint and isolation inventory | 101 SHA-256 comparisons, path checks | Maintain current handoff; verify original again at completion |
 | M1 | Debug-only separate investigation launch, explicit opt-in, volatile records, session/background clearing, stale read rejection | 3 native tests passed; Debug build. `/tmp/gametime-finish-b7-evidence/m1-native.log` | [Physical instructions](BETA_SOURCE_INVESTIGATION.md); every physical row unperformed |
-| M2 | Separate versioned thirteen-policy contract, forward migrations, immutable agreements and bounded operations | 256 new-domain SQL assertions executed locally; last committed portable gate 3,819 SQL / 80 files | Latest 13 SQL assertions still need committed portable rerun; real ingestion blocked |
+| M2 | Separate versioned thirteen-policy contract, forward migrations, immutable agreements and bounded operations | 264 new-domain SQL assertions executed locally; last committed portable gate 3,819 SQL / 80 files | Latest 21 SQL assertions still need committed portable rerun; real ingestion blocked |
 | M3 | Local opt-in shell, exact recovery/abandonment, complete steps journey and stable private Home sections | Two- and six-person authenticated native HTTP + focused SwiftUI touch through exact final history; section/auth/expiry regressions pass | Physical/replacement and final accessibility acceptance remain external or in progress |
-| M4 | All thirteen policies, private personal/community, selectors, age/link entry, safety and concurrent admission | All thirteen native HTTP correction/review/paused-exit/final flows; SQL admission/context; 15 real concurrency checks | Final expanded native block-response recovery rerun pending; real sources/community settings unaccepted |
+| M4 | All thirteen policies, private personal/community, selectors, age/link entry, safety and concurrent admission | All thirteen native HTTP correction/review/paused-exit/final flows; SQL admission/context; 15 real concurrency checks | Native block-response recovery passed; nonfriend link reconsent expansion pending; real sources/community settings unaccepted |
 | M5 | Disabled | No physical evidence | All four accepted policies; timed tolerance decision |
 | M6 | Scoped operator/worker/recovery, local disclosures and preview/rollout tooling | 11 authenticated CLI checks; 19 operations SQL; 385 broad native unit passes (4 skips); unsigned Release build | Unfiltered accessibility audit currently fails; preview execution and historical UI reruns still pending; physical/human/support external |
 | M7 | Release/host association template, replacement inventory, disable/recovery sequence prepared | Unsigned Release excludes new local shell/investigation; original 101 source hashes/status/DB identity rechecked | No replacement, hosted wiring/deploy or deletion until physical/replacement/owner approval |
@@ -265,3 +265,35 @@ retains external identity/retention/domain/community questions in captain-held
 `gametime-beta-release-readiness-b7`; source acceptance is separately captain-held.
 No answer or approval is inferred. Inbox 003 authorizes continued local Dynamic
 Type diagnosis; acceptance stays failed until a passing rerun exists.
+
+Further M6 diagnosis and contract correction:
+
+- `m6-a11y-isolated-control-final.log`: the same amount control passed its unfiltered
+  audit and real increment/decrement assertions. Two earlier isolated runs passed
+  the audit but failed the test selector; inspection showed generated
+  `beta.stepper.amount-Increment` / `-Decrement` identifiers, now used directly.
+- `m6-a11y-form-reference.log`: a plain system Form with body-style reference labels
+  reproduced partial Dynamic Type failures. `m6-a11y-scroll-reference.log` passed
+  the equivalent scroll-parent audit; `m6-a11y-tab-reference.log` passed the minimal
+  native tab reference. These are diagnostic reference surfaces, not product or
+  physical acceptance. They run only with their explicit controller modes.
+- Reusable native scroll groups replaced Beta Form parents; the actual creation
+  audit then passed Dynamic Type (`m6-a11y-native-scroll-forms.log`). Full product
+  audits still report tab-area contrast. Clipping, explicit toolbar scheme and
+  scroll-edge changes alone did not establish a full pass. No audit is filtered.
+- `m6-a11y-system-normal.log` had already failed six audit findings; its own
+  xcodebuild process then stalled after test completion. Only that task-owned child
+  was terminated, and controller cleanup ran. The next attempted controller bind
+  had correctly refused the still-owned port; it did not touch other resources.
+- `m6-native-safety-refresh.log` passed **15 native tests**: all prior policy/entry
+  cases plus an actual lost block response, exact retry, paused report/block and
+  own-only safe returns for both parties. The new held-refresh regression confirms
+  a routine read preserves a still-fresh layout, cannot extend monotonic visibility,
+  and cannot restore expired content after failure. Historical held-auth races pass.
+- SQL 499 first reproduced two display failures after reopening a scheduled lobby:
+  prior frozen agreement and consent labels still appeared current. Forward migration
+  `20260908075000_challenge_reopened_projection_v1.sql` hides current agreement/consent
+  while the lobby is open and preserves all old journals. **8 assertions now pass**,
+  including old-digest rejection and everyone consenting to the new version. Logs
+  `499-reconsent-before.log` (failure retained) / `499-reconsent-after.log` (pass).
+  New-domain SQL total is **264**; the next committed portable gate must cover it.
