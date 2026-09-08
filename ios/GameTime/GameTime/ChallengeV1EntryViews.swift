@@ -118,17 +118,27 @@ struct ChallengeV1Create: View {
                 ChallengeFormSection("Dates and amount") {
                     DatePicker(selection: $start, displayedComponents: .date) { Text("Starts").font(.body) }
                     ChallengeIntegerControl(value: $days, range: 1...30, id: "days", title: "Duration", display: "\(days) days")
-                    TextField("Time zone", text: $zone).autocorrectionDisabled()
+                    LabeledContent("Time zone") {
+                        TextField("Area/City", text: $zone).textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .accessibilityLabel("Time zone")
+                    }
                     ChallengeIntegerControl(value: $dollars, range: 1...500, id: "amount", title: "Simulated dollars", display: "\(challengeMoney(dollars * 100)) simulated each")
                     Text("Starts in 2–30 calendar days. Each day runs midnight to midnight in the selected time zone. Simulated stakes — no real money moves.").font(.body).fixedSize(horizontal: false, vertical: true)
-                    if metric == .timed { TextField("Whole run kilometres", text: $distance).keyboardType(.decimalPad) }
+                    if metric == .timed {
+                        Text("Whole run kilometres").font(.headline)
+                        TextField("Whole run kilometres", text: $distance).keyboardType(.decimalPad)
+                        if !distance.isEmpty && ChallengeV1Policy.Metric.distance.parse(distance) == nil { Text(ChallengeV1Policy.Metric.distance.inputHelp).font(.subheadline) }
+                    }
                 }
                 if mode == .personal {
                     ChallengeFormSection("Your goal") {
+                        Text(metric.targetPrompt).font(.headline)
                         TextField(metric.targetPrompt, text: $target).keyboardType(.numbersAndPunctuation)
+                        if !target.isEmpty && metric.parse(target) == nil { Text(metric.inputHelp).font(.subheadline) }
                         Text("Choose your own goal. A suggestion will appear only when eligible activity is available on this phone.").font(.body).fixedSize(horizontal: false, vertical: true)
                     }
                     Button("Review my agreement") { Task { await readPreview() } }.disabled(!canSubmit || metric.parse(target) == nil)
+                    if reading { ProgressView("Loading your agreement…") }
                     if let preview, let window = decodeWindow(preview.terms?["config"]) {
                         ChallengeFormSection("Your complete agreement") {
                             Text("Your goal: \(metric.display(metric.parse(target) ?? 0))").font(.headline)
@@ -148,6 +158,7 @@ struct ChallengeV1Create: View {
                     }}.disabled(!canSubmit).accessibilityIdentifier("beta.create.submit")
                 }
                 if store.access?.ageConfirmed != true { Text("Confirm that you are 21 or older in Challenges before continuing.") }
+                if store.busy { ProgressView("Saving your action…") }
                 if let error = previewError ?? store.error { Text(error) }
             }.navigationTitle(mode == .personal ? "Personal goal" : "Friend challenge")
                 .navigationBarTitleDisplayMode(.inline)

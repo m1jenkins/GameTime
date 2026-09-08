@@ -11,6 +11,7 @@ enum ChallengeLocalLaunch {
     let store: ChallengeV1Store?
     let sdk: SupabaseClient?
     var message: String?
+    private(set) var signingIn = false
     init() {
         let env = ProcessInfo.processInfo.environment
         guard let text = env["GAMETIME_BETA_LOCAL_URL"], let url = URL(string: text),
@@ -28,7 +29,9 @@ enum ChallengeLocalLaunch {
             requests: ChallengeV1RequestStore(directory: root.appendingPathComponent("GameTime/ChallengeV1Pending")))
     }
     func login(email: String, password: String) async {
-        guard let sdk, let store else { return }
+        guard let sdk, let store, !signingIn else { return }
+        signingIn = true
+        defer { signingIn = false }
         store.setActor(nil)
         do {
             let session = try await sdk.auth.signIn(email: email, password: password)
@@ -68,8 +71,9 @@ struct ChallengeLocalLaunchView: View {
                                 .accessibilityIdentifier("beta.login.email")
                             SecureField("Password", text: $password).accessibilityIdentifier("beta.login.password")
                             Button("Sign in") { Task { await session.login(email: email, password: password); password = ""; if session.store?.actor != nil { email = "" } } }
-                                .disabled(session.store == nil || email.isEmpty || password.isEmpty)
+                                .disabled(session.signingIn || session.store == nil || email.isEmpty || password.isEmpty)
                                 .accessibilityIdentifier("beta.login.submit")
+                            if session.signingIn { ProgressView("Signing in…") }
                         }
                         if let message = session.message { Text(message) }
                         if let message = invitation.message { Text(message) }
@@ -152,8 +156,14 @@ struct ChallengeV1Shell: View {
                         Text("Simulated stakes — no real money moves.").font(.subheadline)
                         recovery
                         if !dynamicTypeSize.isAccessibilitySize || !store.ordered.isEmpty { Text("Your challenges").font(.title2.bold()) }
-                        if store.ordered.isEmpty {
+                        if store.homeState == .loading {
+                            ProgressView("Loading your challenges…").accessibilityIdentifier("beta.home.loading")
+                        } else if store.homeState == .unavailable {
+                            Text("We couldn’t load your challenges. Refresh to try again.")
+                                .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("beta.home.unavailable")
+                        } else if store.homeState == .empty {
                             Text("No challenges yet.").font(.body).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("beta.home.empty")
                             Button("Explore challenges") { selection = 1 }.buttonStyle(ChallengeActionStyle())
                         }
                         ForEach(ChallengeV1Section.allCases, id: \.self) { section in
@@ -422,21 +432,26 @@ struct ChallengeV1Detail: View {
     @ViewBuilder private func people(_ row:ChallengeV1)->some View {
         Text(row.format.mode == .friend ? "People and activity" : "Your activity").font(.title2.bold())
         ForEach(row.rankedMembers) { person in
+            let departedCounterpart = person.exited && person.actorId != store.actor
+            let name = person.actorId == store.actor ? "You" : departedCounterpart ? "Former participant" : person.username
             VStack(alignment:.leading,spacing:6) {
                 HStack(alignment: .top) {
-                    Text(String(person.username.prefix(2)).uppercased()).font(.caption.bold()).padding(10).background(.quaternary,in:RoundedRectangle(cornerRadius:8))
-                        .accessibilityLabel(person.actorId == store.actor ? "Your profile" : "Profile for \(person.username)")
+                    Group {
+                        if departedCounterpart { Image(systemName: "person") }
+                        else { Text(String(person.username.prefix(2)).uppercased()) }
+                    }.font(.caption.bold()).padding(10).background(.quaternary,in:RoundedRectangle(cornerRadius:8))
+                        .accessibilityLabel(person.actorId == store.actor ? "Your profile" : "Profile for \(name)")
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(person.actorId==store.actor ? "You" : person.username).font(.headline).fixedSize(horizontal: false, vertical: true)
+                        Text(name).font(.headline).fixedSize(horizontal: false, vertical: true)
                         Text(person.exited ? "Left" : person.consented ? "Agreed" : person.selected ? "Selected" : "Requested").font(.caption).fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 0)
                 }
-                if row.format.hasTarget { Text(person.target.map { "Goal: \(row.format.metric.display($0))" } ?? "Goal not chosen") }
+                if row.format.hasTarget && !departedCounterpart { Text(person.target.map { "Goal: \(row.format.metric.display($0))" } ?? "Goal not chosen") }
                 if let finalStatus = row.final?.result.participants?[person.actorId.uuidString.lowercased()]?.status {
                     Text(resultText(finalStatus)).font(.subheadline.bold())
                 }
-                if let fact=person.fact {
+                if let fact=person.fact, !departedCounterpart {
                     Text(fact.value.map { "\(row.format.metric.display($0)) · fictional activity" } ?? "Activity unavailable")
                     Text("Updated \(fact.recordedAt.text(zone:row.config.timezone))").font(.caption)
                     if let value=fact.value, person.actorId==store.actor {
@@ -472,7 +487,9 @@ struct ChallengeV1Detail: View {
     }
     @ViewBuilder private func lobby(_ row:ChallengeV1)->some View {
         if row.format.hasTarget && row.own(store.actor)?.exited == false {
+            Text(row.format.metric.targetPrompt).font(.headline)
             TextField(row.format.metric.targetPrompt,text:$target).keyboardType(.numbersAndPunctuation).textFieldStyle(.roundedBorder).accessibilityIdentifier("beta.target.input")
+            if !target.isEmpty && row.format.metric.parse(target) == nil { Text(row.format.metric.inputHelp).font(.subheadline) }
             Button("Propose my goal") { Task { if let value=row.format.metric.parse(target) { await store.submit(op:"target",challenge:row,fields:["target":.integer(value)]) } } }.disabled(!canAct || row.format.metric.parse(target)==nil).accessibilityIdentifier("beta.target.submit")
         }
         if row.creatorId==store.actor {

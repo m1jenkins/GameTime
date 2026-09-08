@@ -7,6 +7,7 @@ import Observation
     private var detailRows: [UUID: ChallengeV1] = [:]
     private var detailReadAt: [UUID: TimeInterval] = [:]
     private let now: @MainActor () -> TimeInterval
+    private let visibilityInterval: Duration
     var challenges: [ChallengeV1] {
         var unique: [UUID: ChallengeV1] = [:]
         for section in ChallengeV1Section.allCases {
@@ -23,6 +24,13 @@ import Observation
     private(set) var error: String?
     private(set) var fresh = false
     private(set) var busy = false
+    private(set) var refreshing = false
+    var homeState: ChallengeV1HomeState {
+        if sections.values.contains(where: { !$0.rows.isEmpty }) { return .content }
+        if ChallengeV1Section.allCases.allSatisfy({ sections[$0]?.fresh == true }) { return .empty }
+        if refreshing || sections.isEmpty && error == nil { return .loading }
+        return .unavailable
+    }
     private(set) var lastReceipt: ChallengeV1Receipt?
     private var visible = true
     private var generation = UUID()
@@ -30,20 +38,24 @@ import Observation
     private let auth: any AuthClient
     let client: any ChallengeV1Client
     let requests: ChallengeV1RequestStore
-    init(auth: any AuthClient, client: any ChallengeV1Client, requests: ChallengeV1RequestStore, now: @escaping @MainActor () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
+    init(auth: any AuthClient, client: any ChallengeV1Client, requests: ChallengeV1RequestStore, now: @escaping @MainActor () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }, visibilityInterval: Duration = .seconds(5)) {
         self.now = now
+        self.visibilityInterval = visibilityInterval
         self.auth = auth; self.client = client; self.requests = requests
     }
     func setActor(_ actor: UUID?) {
         self.actor = actor; visible = true; generation = UUID(); refreshGeneration = UUID()
         access = nil; communities = []; entryFresh = false; entryError = nil
         sections = [:]; detailRows = [:]; detailReadAt = [:]; pending = nil; error = nil; fresh = false; busy = false; lastReceipt = nil
+        refreshing = false
     }
-    func hide() { visible = false; access = nil; communities = []; entryFresh = false; generation = UUID(); refreshGeneration = UUID(); sections = [:]; detailRows = [:]; detailReadAt = [:]; fresh = false; busy = false }
+    func hide() { visible = false; access = nil; communities = []; entryFresh = false; generation = UUID(); refreshGeneration = UUID(); sections = [:]; detailRows = [:]; detailReadAt = [:]; fresh = false; busy = false; refreshing = false }
     func show() async { visible = true; await refresh() }
     func refresh() async {
         guard visible, let actor else { return }
         let ticket = generation; let refresh = UUID(); refreshGeneration = refresh
+        refreshing = true
+        defer { if ticket == generation, refresh == refreshGeneration { refreshing = false } }
         purgeExpiredContent()
         do {
             let authenticated = await auth.currentUserID()
@@ -82,7 +94,7 @@ import Observation
             guard ticket == generation, refresh == refreshGeneration else { return }
             if (error as? ChallengeV1Error) == .accountChanged { setActor(nil) }
             else {
-                fresh = false; entryFresh = false; detailReadAt = [:]
+                fresh = false; entryFresh = false; detailRows = [:]; detailReadAt = [:]
                 for section in ChallengeV1Section.allCases { sections[section]?.fresh = false }
                 self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription
             }
@@ -149,14 +161,27 @@ import Observation
     }
     func watchVisibility() async {
         var ticks = 0
+        // Expiry must keep running even when auth or a page request never returns.
+        // One owned maintenance task bounds concurrent automatic network work.
+        var maintenance: Task<Void, Never>?
+        var maintenanceFinished = true
+        defer { maintenance?.cancel() }
         while !Task.isCancelled {
-            do { try await Task.sleep(for: .seconds(5)) } catch { return }
+            do { try await Task.sleep(for: visibilityInterval) } catch { return }
             guard visible else { continue }
-            let ticket = generation; let current = await auth.currentUserID()
-            guard !Task.isCancelled else { return }
-            if ticket == generation && current != actor { setActor(nil); return }
             purgeExpiredContent(); ticks += 1
-            if ticks % 6 == 0 && !busy { await refresh() }
+            guard maintenanceFinished else { continue }
+            maintenanceFinished = false
+            let ticket = generation
+            let shouldRefresh = ticks >= 6 && !busy && !refreshing
+            if shouldRefresh { ticks = 0 }
+            maintenance = Task {
+                defer { maintenanceFinished = true }
+                let current = await auth.currentUserID()
+                guard !Task.isCancelled, ticket == generation, visible else { return }
+                if current != actor { setActor(nil); return }
+                if shouldRefresh { await refresh() }
+            }
         }
     }
     private func refreshEntry(ticket: UUID, refresh: UUID, actor: UUID) async {
@@ -183,7 +208,7 @@ import Observation
         }
     }
     func submit(op: String, challenge: ChallengeV1? = nil, fields: [String: ChallengeJSON] = [:]) async {
-        guard let actor, !busy, pending == nil, challenge.map { isFresh($0) } ?? true else { return }
+        guard let actor, !busy, pending == nil, challenge.map({ isFresh($0) }) ?? true else { return }
         var payload = fields; payload["op"] = .string(op)
         if let challenge {
             payload["id"] = .string(challenge.id.uuidString.lowercased()); payload["revision"] = .integer(challenge.revision)

@@ -176,7 +176,11 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--simulator',required=True);parser.add_argument('--native-only',action='store_true');parser.add_argument('--touch-only',choices=['2','6']);parser.add_argument('--accessibility',choices=['light','dark','large','compact','control','form-reference','tab-reference','scroll-reference'])
-    args=parser.parse_args();assert args.simulator==OWNED_SIM,'Only b7-owned Simulator is allowed'
+    parser.add_argument('--derived-data',type=Path,default=Path('/tmp/gametime-finish-b7-derived'))
+    parser.add_argument('--evidence-dir',type=Path,default=Path('/tmp/gametime-finish-b7-evidence'))
+    args=parser.parse_args();assert args.derived_data.is_absolute() and args.evidence_dir.is_absolute(),'Use absolute task-owned build/evidence paths'
+    args.evidence_dir.mkdir(parents=True,exist_ok=True)
+    assert args.simulator==OWNED_SIM,'Only b7-owned Simulator is allowed'
     smoke=Smoke(); server=ThreadingHTTPServer(('127.0.0.1',58339),Handler);server.smoke=smoke
     running=False
     try:
@@ -187,7 +191,7 @@ def main():
             subprocess.run(['xcrun','simctl','ui',OWNED_SIM,'appearance','dark' if args.accessibility=='dark' else 'light'],check=True)
             subprocess.run(['xcrun','simctl','ui',OWNED_SIM,'content_size','accessibility-extra-extra-extra-large' if args.accessibility=='large' else 'large'],check=True)
         threading.Thread(target=server.serve_forever,daemon=True).start();running=True
-        command=['xcodebuild','test','-project','ios/GameTime/GameTime.xcodeproj','-scheme','GameTimeBetaLocal','-configuration','Debug','-destination',f'platform=iOS Simulator,id={OWNED_SIM}','-derivedDataPath','/tmp/gametime-finish-b7-derived','-parallel-testing-enabled','NO','-only-testing:GameTimeTests/ChallengeV1NativeSmokeTests','-only-testing:GameTimeTests/ChallengeV1NativeTests','-only-testing:GameTimeTests/ChallengePolicyTests','-only-testing:GameTimeTests/ChallengeSectionTests','-only-testing:GameTimeTests/WeeklySocialRefreshAuthRaceTests','CODE_SIGNING_ALLOWED=NO']
+        command=['xcodebuild','test','-project','ios/GameTime/GameTime.xcodeproj','-scheme','GameTimeBetaLocal','-configuration','Debug','-destination',f'platform=iOS Simulator,id={OWNED_SIM}','-derivedDataPath',str(args.derived_data),'-parallel-testing-enabled','NO','-only-testing:GameTimeTests/ChallengeV1NativeSmokeTests','-only-testing:GameTimeTests/ChallengeV1NativeTests','-only-testing:GameTimeTests/ChallengePolicyTests','-only-testing:GameTimeTests/ChallengeSectionTests','-only-testing:GameTimeTests/WeeklySocialRefreshAuthRaceTests','CODE_SIGNING_ALLOWED=NO']
         assert sum([args.native_only,bool(args.touch_only),bool(args.accessibility)]) <= 1
         if args.accessibility:
             command=[x for x in command if not x.startswith('-only-testing:')]
@@ -196,7 +200,7 @@ def main():
             command=[x for x in command if not x.startswith('-only-testing:')]
             command.append('-only-testing:GameTimeUITests/ChallengeV1UITests/test'+('Two' if args.touch_only=='2' else 'Six')+'PersonTouchJourney')
         elif not args.native_only:command.append('-only-testing:GameTimeUITests/ChallengeV1UITests')
-        result_path = Path('/tmp/gametime-finish-b7-evidence') / ('native-' + str(uuid.uuid4()) + '.xcresult')
+        result_path = args.evidence_dir / ('native-' + str(uuid.uuid4()) + '.xcresult')
         command += ['-resultBundlePath', str(result_path)]
         print('B7 result bundle: ' + str(result_path), flush=True)
         # A new process group belongs exclusively to this run. Never stop shared

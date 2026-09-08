@@ -1,5 +1,9 @@
 import Foundation
 
+enum ChallengeV1HomeState: Equatable {
+    case loading, empty, content, unavailable
+}
+
 enum ChallengeV1Section: String, CaseIterable, Codable, Sendable {
     case action, active, upcoming, history
     var title: String {

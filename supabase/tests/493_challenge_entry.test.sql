@@ -15,8 +15,8 @@ create function pg_temp.redeem_beta(n integer) returns jsonb language plpgsql as
 end $$;
 select is(pg_temp.redeem_beta(n)->>'status','pending_request','link unique account '||n||' is pending only') from generate_series(2,21) n;
 reset role;
-select is((select count(*) from app.challenge_redemptions_v1),20::bigint,'20 unique redemptions');
-select is((select count(*) from app.challenge_slots_v1),0::bigint,'pending entrants consume no slots');
+select is((select count(*) from app.challenge_redemptions_v1 where link_id=((select value->>'id' from beta_links))::uuid),20::bigint,'20 unique redemptions');
+select is((select count(*) from app.challenge_slots_v1 where actor_id in(select pg_temp.ba(n) from generate_series(1,40) n)),0::bigint,'pending entrants consume no slots');
 select is((select count(*) from app.challenge_members_v1 where challenge_id=(select id from beta_ids where name='lobby') and selected),1::bigint,'redemption does not select roster');
 -- Pre-existing all-friends fixture is not link-created friendship evidence.
 select pg_temp.login_beta(22);
@@ -33,7 +33,7 @@ select pg_temp.login_beta(1);
 select public.challenge_report_v1(pg_temp.br(23001),pg_temp.ba(2),'username');
 select is(public.challenge_report_v1(pg_temp.br(23001),pg_temp.ba(2),'username')->>'saved','true','report exact retry');
 reset role;
-select is((select count(*) from app.challenge_reports_v1),1::bigint,'one private report');
+select is((select count(*) from app.challenge_reports_v1 where reporter=pg_temp.ba(1)),1::bigint,'one private report');
 -- Community is a disabled unapproved fixture configuration.
 select throws_ok($$select public.challenge_publish_community_fixture_v1(pg_temp.br(24000),pg_temp.ba(40),'{"start_date":"2026-10-03","days":1,"timezone":"UTC","amount_cents":100}',100,2,4,false)$$,'42501','challenge_community_configuration_disabled','ordinary community configuration disabled');
 insert into beta_ids values('community',public.challenge_publish_community_fixture_v1(pg_temp.br(24001),pg_temp.ba(40),'{"start_date":"2026-10-03","days":1,"timezone":"UTC","amount_cents":100}',100,2,4,true));

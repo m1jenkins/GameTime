@@ -2,6 +2,87 @@ import XCTest
 @testable import GameTime
 
 @MainActor final class ChallengeSectionTests: XCTestCase {
+    func testUnreadablePendingRequestCannotLeaveDetailWithoutAnExpiry() async throws {
+        let actor = UUID(); let auth = SectionAuth(actor); let client = SectionClient(); let clock = SectionClock()
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = ChallengeV1Store(auth: auth, client: client, requests: ChallengeV1RequestStore(directory: directory), now: { clock.value })
+        let row = sample(actor, name: "Private detail", status: "active")
+        client.detailRow = row; store.setActor(actor); await store.loadDetail(row.id)
+        XCTAssertEqual(store.challenges, [row])
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let path = directory.appendingPathComponent(actor.uuidString.lowercased() + ".json")
+        let unreadable = Data("unreadable pending action".utf8)
+        try unreadable.write(to: path)
+        clock.value = 30; await store.refresh()
+        XCTAssertNotNil(store.error)
+        clock.value = 61; store.purgeExpiredContent()
+        XCTAssertTrue(store.challenges.isEmpty, "A failed local read cannot orphan private detail values")
+        XCTAssertEqual(try Data(contentsOf: path), unreadable, "Display cleanup must preserve the pending action for recovery")
+    }
+    func testActualWatchdogExpiresContentWhileItsAutomaticRefreshIsHeld() async throws {
+        let actor = UUID(); let auth = SectionAuth(actor); let client = SectionClient(); let clock = SectionClock()
+        let store = ChallengeV1Store(auth: auth, client: client, requests: ChallengeV1RequestStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)), now: { clock.value }, visibilityInterval: .milliseconds(1))
+        let row = sample(actor, name: "Private automatic refresh", status: "active")
+        client.values[.active] = page(.active, [row]); store.setActor(actor); await store.refresh()
+        clock.value = 30; client.holdSection = .active
+        let watchdog = Task { await store.watchVisibility() }
+        defer { watchdog.cancel() }
+        let deadline = Date().addingTimeInterval(2)
+        while client.held == nil && Date() < deadline { try await Task.sleep(for: .milliseconds(1)) }
+        XCTAssertNotNil(client.held, "The production watchdog must initiate the held read")
+        XCTAssertFalse(store.challenges.isEmpty)
+        clock.value = 90
+        // Only the real watchdog may expire content. The test never calls purge.
+        try await Task.sleep(for: .milliseconds(30))
+        XCTAssertTrue(store.challenges.isEmpty, "Network completion cannot control privacy expiry")
+        client.holdSection = nil
+        client.values[.active] = page(.active, [])
+        client.held?.resume(returning: page(.active, [row])); client.held = nil
+        try await Task.sleep(for: .milliseconds(30))
+        XCTAssertTrue(store.challenges.isEmpty, "The delayed response cannot restore expired content")
+        watchdog.cancel(); await watchdog.value
+    }
+    func testEmptyHomeRequiresSuccessfulReadsAndDoesNotHideFailureOrExpiry() async throws {
+        let actor = UUID(); let auth = SectionAuth(actor); let client = SectionClient(); let clock = SectionClock()
+        let store = ChallengeV1Store(auth: auth, client: client, requests: ChallengeV1RequestStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)), now: { clock.value })
+        store.setActor(actor)
+        XCTAssertEqual(store.homeState, .loading)
+        client.holdSection = .history
+        let first = Task { await store.refresh() }
+        while client.held == nil { await Task.yield() }
+        XCTAssertEqual(store.homeState, .loading, "Three empty sections cannot establish an empty Home")
+        client.held?.resume(throwing: ChallengeV1Error.unavailable); client.held = nil
+        await first.value
+        XCTAssertFalse(store.refreshing)
+        XCTAssertEqual(store.homeState, .unavailable)
+        client.holdSection = nil
+        await store.refresh()
+        XCTAssertEqual(store.homeState, .empty)
+        clock.value = 60; store.purgeExpiredContent()
+        XCTAssertEqual(store.homeState, .unavailable, "Expired empty reads are not a current absence of challenges")
+        store.setActor(UUID())
+        XCTAssertEqual(store.homeState, .loading, "A new account must not inherit an empty confirmation")
+    }
+    func testOldRefreshCannotStopNewAccountsLoadingIndicator() async throws {
+        let actor = UUID(); let auth = SectionAuth(actor); let client = SectionClient()
+        let store = ChallengeV1Store(auth: auth, client: client, requests: ChallengeV1RequestStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)))
+        store.setActor(actor); client.holdSection = .action
+        let old = Task { await store.refresh() }
+        while client.held == nil { await Task.yield() }
+        let oldResponse = client.held; client.held = nil
+        let replacement = UUID(); auth.actor = replacement; store.setActor(replacement)
+        let current = Task { await store.refresh() }
+        while client.held == nil { await Task.yield() }
+        oldResponse?.resume(returning: page(.action, [])); await old.value
+        XCTAssertTrue(store.refreshing)
+        XCTAssertEqual(store.homeState, .loading)
+        store.hide()
+        client.held?.resume(returning: page(.action, [])); client.held = nil
+        await current.value
+        XCTAssertFalse(store.refreshing)
+        XCTAssertTrue(store.sections.isEmpty)
+    }
     func testPartialFailurePreservesOnlyStillPermittedSectionsUntilMonotonicExpiry() async throws {
         let actor = UUID(); let auth = SectionAuth(actor); let client = SectionClient()
         let clock = SectionClock()
@@ -97,6 +178,7 @@ import XCTest
     var values: [ChallengeV1Section: ChallengeV1Page] = [:]
     var fail = Set<ChallengeV1Section>(); var revoked = false; var calls = 0
     var holdSection: ChallengeV1Section?
+    var detailRow: ChallengeV1?
     var holdMore = false; var held: CheckedContinuation<ChallengeV1Page, Error>?
     func page(_ section: ChallengeV1Section, cursor: ChallengeJSON?, actor: UUID) async throws -> ChallengeV1Page {
         calls += 1
@@ -106,7 +188,10 @@ import XCTest
         return values[section] ?? ChallengeV1Page(section: section, projectionRevision: UUID(), serverTime: ChallengeInstant(date: Date()), expiresAt: ChallengeInstant(date: Date().addingTimeInterval(120)), rows: [], nextCursor: nil)
     }
     func list(actor: UUID) async throws -> [ChallengeV1] { [] }
-    func detail(_ id: UUID, actor: UUID) async throws -> ChallengeV1 { throw ChallengeV1Error.unavailable }
+    func detail(_ id: UUID, actor: UUID) async throws -> ChallengeV1 {
+        guard let row = detailRow, row.id == id else { throw ChallengeV1Error.unavailable }
+        return row
+    }
     func submit(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt { throw ChallengeV1Error.unavailable }
     func abandon(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt { throw ChallengeV1Error.unavailable }
 }

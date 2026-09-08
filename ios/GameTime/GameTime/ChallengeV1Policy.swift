@@ -8,6 +8,13 @@ struct ChallengeV1Policy: Equatable, Hashable, Identifiable, Sendable {
         var title: String { switch self { case .steps: "Steps"; case .exercise: "Exercise time"; case .distance: "Running distance"; case .timed: "Timed run" } }
         var symbol: String { switch self { case .steps: "shoeprints.fill"; case .exercise: "clock"; case .distance: "figure.run"; case .timed: "stopwatch" } }
         var targetPrompt: String { switch self { case .steps: "Total steps"; case .exercise: "Total minutes:seconds"; case .distance: "Total kilometres"; case .timed: "Time to beat, minutes:seconds" } }
+        var inputHelp: String {
+            switch self {
+            case .steps: "Enter a whole number of steps from 1 to 1,000,000,000."
+            case .exercise, .timed: "Enter minutes and seconds, such as 30:00. Seconds must be 00–59, and the time must be greater than zero."
+            case .distance: "Enter kilometres greater than zero and up to 1,000, using a decimal point, such as 1.5. Use no more than six decimal places."
+            }
+        }
         func display(_ value: Int) -> String {
             switch self {
             case .steps: "\(value.formatted()) steps"
