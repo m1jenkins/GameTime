@@ -1,7 +1,7 @@
 # Beta finish-line handoff — b7
 
 Worktree: `/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta`.
-Branch: `fm/gametime-beta-finish-b7`; latest checkpoint `22d2acc`.
+Branch: `fm/gametime-beta-finish-b7`; latest checkpoint `9a5ae5a`.
 Authority: D134, [Beta plan](BETA_IMPLEMENTATION_PLAN.md),
 [roadmap](BETA_FINISH_LINE_ROADMAP.md). See [acceptance](BETA_FINISH_LINE_ACCEPTANCE.md)
 for implemented versus executed evidence and historical failed runs.
@@ -9,21 +9,24 @@ This task is **still active**. Do not stop at the completed native matrix.
 
 ## Next executable work
 
-1. Finish the active native accessibility defect. Unfiltered audits still fail;
-   see acceptance for disconfirming runs and exported largest-size screenshots.
-   Latest light run: `m6-a11y-stable-refresh.log`. Creation Dynamic Type now passes with native scroll groups; tab-area contrast remains. Stacked controls alone
-   did not prove a fix. Inspect wrapping/scaling at normal and AX5, and preserve
-   every unfiltered finding. Firstmate inbox 003 authorizes local correction.
-2. Expanded native safety passed in `m6-native-safety-refresh.log` (15 tests). Add nonfriend link admission/reconsent coverage and verify
-   the new foreground preview launcher with account switching/clock/cleanup.
-3. Complete light/dark/large/compact and usable increment/decrement preparation,
-   then broad historical UI regressions and the latest Debug/Release build.
-4. Commit current disclosures/rollout/21 admission-context/reopened-projection assertions and execute
-   the portable gate from that candidate. Last committed gate already passed
-   3,819 SQL / 80 files, 835 Deno, 113 core and weekly persisted smoke.
-5. Reconcile top milestone/per-policy rows with final evidence, repeat source /
-   database identity preservation check and ensure clean fast-forward to local main.
-   Continue all dependency-ready authorized work before terminal `done:`.
+1. The final four-mode accessibility candidate passed (light/dark/largest/320-point
+   compact, 16 unfiltered screen audits). See `a11y-preparation.json` and retained
+   disconfirming logs. This is preparation, not physical/human acceptance.
+2. Native recovery/reconsent/expiry passed **16 tests**, committed `9a5ae5a`.
+   Execute the new foreground `scripts/beta-preview.py` with real native sign-in,
+   switching, clock/progress/cleanup and invitation ingress where feasible.
+3. Rerun two- and six-person touch with the new opaque bottom navigation, broad
+   historical UI regressions and latest Debug/Release build. A NEW owned stack
+   `/tmp/gametime-finish-b7-weekly-stack` (project `gametime-finish-b7-weekly`, API
+   56321/DB56322/controller56329) is ready from committed 9a5ae5a. Run historical
+   `scripts/weekly-native-smoke.py --status-file /tmp/gametime-finish-b7-evidence/weekly-owned-status.json --simulator 72A3249A-2DE0-4695-AF41-DCD2743B4666 --derived-data /tmp/gametime-finish-b7-weekly-derived` after current Sim run.
+   The status file is mode 0600 and must not be committed.
+4. Commit current UI/harness/preview work and run the portable gate from that
+   candidate. Latest committed gate passed 3,819 SQL / 80 files, 835 Deno, 113
+   core and persisted weekly smoke; expected latest SQL is 3,840 / 82 files.
+5. Reconcile top milestone/per-policy rows, repeat original source/database
+   identity preservation and ensure clean fast-forward to local main. Continue
+   all dependency-ready authorized work before terminal `done:`.
 
 External privacy/support/retention/domain/community questions are retained in
 captain task `gametime-beta-release-readiness-b7`; physical/tolerance questions in
@@ -92,7 +95,7 @@ must not be committed. The ignored native manifest is removed on cleanup.
 Private source-tool launch (software verification only):
 `xcrun simctl launch 72A3249A-2DE0-4695-AF41-DCD2743B4666 com.mjenkins.gametime.staging --health-source-investigation`.
 The new shell requires `--beta-challenges-local` and explicit loopback connection
-environment variables; the morning launcher remains to implement. Legacy default
+environment variables; the morning launcher is authored but needs execution. Legacy default
 navigation is intact.
 
 ## Preservation and external gates

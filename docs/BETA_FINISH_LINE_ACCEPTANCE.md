@@ -23,7 +23,7 @@ Nothing here accepts physical sources, hosted operations, distribution or money.
 | M3 | Local opt-in shell, exact recovery/abandonment, complete steps journey and stable private Home sections | Two- and six-person authenticated native HTTP + focused SwiftUI touch through exact final history; section/auth/expiry regressions pass | Physical/replacement and final accessibility acceptance remain external or in progress |
 | M4 | All thirteen policies, private personal/community, selectors, age/link entry, safety and concurrent admission | All thirteen native HTTP correction/review/paused-exit/final flows; SQL admission/context; 15 real concurrency checks | Native block-response recovery passed; nonfriend link reconsent passed; real sources/community settings unaccepted |
 | M5 | Disabled | No physical evidence | All four accepted policies; timed tolerance decision |
-| M6 | Scoped operator/worker/recovery, local disclosures and preview/rollout tooling | 11 authenticated CLI checks; 19 operations SQL; 385 broad native unit passes (4 skips); unsigned Release build | Unfiltered accessibility audit currently fails; preview execution and historical UI reruns still pending; physical/human/support external |
+| M6 | Scoped operator/worker/recovery, local disclosures and preview/rollout tooling | 11 authenticated CLI checks; 19 operations SQL; 385 broad native unit passes (4 skips); unsigned Release build | Four-mode unfiltered accessibility preparation passed; preview execution and historical UI reruns still pending; physical/human/support external |
 | M7 | Release/host association template, replacement inventory, disable/recovery sequence prepared | Unsigned Release excludes new local shell/investigation; original 101 source hashes/status/DB identity rechecked | No replacement, hosted wiring/deploy or deletion until physical/replacement/owner approval |
 | M8 | Disabled | None | Separate distribution/recruitment authorization |
 
@@ -338,3 +338,52 @@ nonfriend link → proposal → selection → consent → reopen → changed goa
 digest rejection → both fresh consents → safe exit. Cleanup verified seven actors
 revoked and fixture gates off. The sanitized trace is
 `evidence/beta-finish-line-b7/native-reconsent-expiry-http-report.json`.
+
+The decisive contrast isolation used a minimal dark text card: it passed in
+`m6-a11y-minimal-card-reference.log`, then failed after adding the em-dash
+activity placeholder and paired values in `m6-a11y-placeholder-reference.log`.
+Replacing the actual card's absent activity with **No update** resolved both
+full-screen findings: `m6-a11y-descriptive-placeholder.log` passed one test with
+four unfiltered audits and real duration/amount increment/decrement actions.
+Dark/largest/compact verification is running next. Inert tab-appearance overrides
+and the temporary card/icon variants were removed; supplied custom icons remain.
+Automated findings are preparation, not human/physical accessibility acceptance;
+see [Apple's audit guidance](https://developer.apple.com/documentation/accessibility/performing-accessibility-audits-for-your-app).
+
+Dark mode initially found one partially visible creation paragraph at the sheet
+edge (`m6-a11y-dark-final.log`). Explicit viewport bounds and hiding scroll-edge
+effects alone did not resolve it (`m6-a11y-dark-safe-viewport.log`,
+`m6-a11y-dark-scroll-edge.log`). An inline creation title makes the navigation
+label explicit and removes the unused large-title area; the resulting dark run
+passed all four unfiltered screens and both controls in
+`m6-a11y-dark-inline-creation.log`. Largest and compact remain to execute.
+A separate historical native stack was created from committed `9a5ae5a` inputs:
+`/tmp/gametime-finish-b7-weekly-stack`, project `gametime-finish-b7-weekly`,
+API 56321, DB 56322, future controller 56329. Collision checks preceded creation;
+identity and pre-existing-stack inventory are under the private evidence directory.
+No other stack was reset or stopped.
+
+Largest system text (`accessibility-extra-extra-extra-large`) is now actually
+passing: `m6-a11y-largest-separated-navigation.log`, one test, four unfiltered
+screens, age confirmation, duration/amount increments and decrements, creation,
+Home and detail. Earlier `m6-a11y-largest-final.log` exposed an oversized three-tab
+bar; `m6-a11y-largest-navigation-menu.log` exposed a covered age action and a test
+that proceeded before submission. Accessibility sizes now use a standard
+navigation Menu. A VStack reserves separate space for navigation because the
+UIKit tab container did not honor an outer safe-area inset. The test also waits
+for real confirmation and actual sheet dismissal; it never treats a disabled
+Create button or an existing underlying row as success. No font scaling is capped.
+Compact and latest normal/dark reruns are in progress before checkpointing this UI.
+
+Final UI candidate passed **four actually executed tests**, one per light/dark/
+largest/compact mode, with **16 unfiltered screen audits** and real form controls:
+`m6-a11y-accepted-candidate-{light,dark,large,compact}.log`. Each run confirmed
+seven fictional accounts revoked and gates off. Compact means a 320-point app
+viewport on the owned Simulator, not physical compact-device evidence. A clipped
+roster status was moved under its name, and its monogram received a descriptive
+accessibility label after a follow-up inaccessible-text finding; failed logs are
+`m6-a11y-compact-final.log` and `m6-a11y-compact-roster.log`.
+[A11y evidence and result bundles](evidence/beta-finish-line-b7/a11y-preparation.json)
+and selected fictional screenshots are retained. Source/status/DB identity was
+rechecked at 08:44 UTC: all 101 hashes and exact status match. The preservation
+script now explicitly disables Git optional locks on the read-only original.

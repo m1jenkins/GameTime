@@ -51,16 +51,18 @@ final class ChallengeMemoryAuthStorage: AuthLocalStorage, @unchecked Sendable {
 struct ChallengeLocalLaunchView: View {
     @State private var session = ChallengeLocalSession()
     @State private var invitation = ChallengeInvitationIntent()
-    @State private var email = ""
-    @State private var password = ""
+    @State private var email = ProcessInfo.processInfo.environment["GAMETIME_BETA_LOCAL_EMAIL"] ?? ""
+    @State private var password = ProcessInfo.processInfo.environment["GAMETIME_BETA_LOCAL_PASSWORD"] ?? ""
     var body: some View {
         Group {
-            if let store = session.store, store.actor != nil {
+            if ProcessInfo.processInfo.arguments.contains("--beta-a11y-control-check") {
+                ChallengeControlDiagnostic()
+            } else if let store = session.store, store.actor != nil {
                 ChallengeV1Shell(store: store, invitation: invitation, logout: { await session.logout() })
             } else {
                 NavigationStack {
-                    Form {
-                        Section("Local challenge preview") {
+                    ChallengeForm {
+                        ChallengeFormSection("Local challenge preview") {
                             Text("Fictional activity and simulated stakes. Nothing can be paid out or redeemed.")
                             TextField("Local account email", text: $email).textInputAutocapitalization(.never).autocorrectionDisabled()
                                 .accessibilityIdentifier("beta.login.email")
@@ -74,7 +76,61 @@ struct ChallengeLocalLaunchView: View {
                     }.navigationTitle("GameTime")
                 }
             }
-        }.tint(CompetitiveTrustTheme.actionCoral).onOpenURL { invitation.receive($0) }
+        }.frame(maxWidth: ProcessInfo.processInfo.arguments.contains("--beta-compact-check") ? 320 : .infinity)
+            .tint(CompetitiveTrustTheme.actionCoral).onOpenURL { invitation.receive($0) }
+    }
+}
+
+struct ChallengeControlDiagnostic: View {
+    @State private var amount = 20
+    @State private var selected = 0
+    private var control: some View {
+        ChallengeIntegerControl(value: $amount, range: 1...500, id: "amount", title: "Simulated dollars", display: "\(challengeMoney(amount * 100)) simulated each")
+    }
+    var body: some View {
+        if ProcessInfo.processInfo.arguments.contains("--beta-a11y-scroll-parent") {
+            ScrollView { VStack(alignment: .leading, spacing: 24) {
+                Text("System scroll reference").font(.headline)
+                ForEach(0..<9) { n in Text("Body reference \(n)").font(.body) }
+                control
+            }.padding(20) }
+        } else if ProcessInfo.processInfo.arguments.contains("--beta-a11y-form-parent") {
+            Form {
+                Section("System form reference") {
+                    ForEach(0..<9) { n in Text("Body reference \(n)").font(.body) }
+                    control
+                }
+            }
+        } else if ProcessInfo.processInfo.arguments.contains("--beta-a11y-tab-parent") {
+            TabView(selection: $selected) {
+                VStack { Text("Body reference").font(.body); control }.padding().tabItem { Label("Home", systemImage: "house") }.tag(0)
+                Text("Second page").tabItem { Label("Challenges", systemImage: "flag") }.tag(1)
+                Text("Third page").tabItem { Label("You", systemImage: "person") }.tag(2)
+            }
+        } else { VStack(spacing: 24) { Text("Body reference").font(.body); control }.padding(20) }
+    }
+}
+
+struct ChallengeLocalDisclosures: View {
+    var body: some View {
+        ChallengeForm {
+            ChallengeFormSection("This local preview") {
+                Text("Fictional activity and simulated stakes only. No real money moves, and nothing can be paid out or redeemed.")
+                Text("Confirm that you are 21 or older before joining. We store your confirmation, not your birth date.")
+            }
+            ChallengeFormSection("Your information") {
+                Text("The local service saves your account, challenge agreements, consent, normalized fictional progress, corrections, reviews and results. Saved requests on this phone help recover an interrupted action.")
+                Text("Selected friends can see your username, agreed goal when there is one, current challenge activity and results. Personal activity and community activity are private to you; community screens show anonymous counts.")
+                Text("Assigned operators can inspect the limited challenge facts needed for reviews and safety reports. Raw Health records, routes and activity history outside the challenge are not shared.")
+                Text("The separate private activity check keeps its records on this phone and clears them when you leave the check. It does not send them to the challenge service.")
+                Text("There are no analytics or advertising in this preview. Local preview records are retained for verification; stopping the preview revokes its account sessions and preserves the records.")
+            }
+            ChallengeFormSection("Your choices") {
+                Text("Read each complete agreement before consenting. You can leave an unfinished challenge and recover your simulated entry. Results include a review deadline; an interrupted action can be retried or stopped from Home.")
+                Text("Report or block an account from a shared challenge. Shared details become hidden after a safety exit; your own final history remains available.")
+                Text("External support and account deletion for the new beta are not available in this local preview. They must be accepted before distribution. Existing account and historical records are preserved.")
+            }
+        }.navigationTitle("Privacy and terms")
     }
 }
 
@@ -85,17 +141,20 @@ struct ChallengeV1Shell: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var create = false
     @State private var selection = 0
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
+        VStack(spacing: 0) {
         TabView(selection: $selection) {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
-                        Text("GameTime").font(.largeTitle.bold().italic())
+                        if !dynamicTypeSize.isAccessibilitySize { Text("GameTime").font(.largeTitle.bold().italic()) }
                         Text("Simulated stakes — no real money moves.").font(.subheadline)
                         recovery
-                        Text("Your challenges").font(.title2.bold())
+                        if !dynamicTypeSize.isAccessibilitySize || !store.ordered.isEmpty { Text("Your challenges").font(.title2.bold()) }
                         if store.ordered.isEmpty {
-                            ContentUnavailableView("Start something together", systemImage: "flag", description: Text("Create a lobby, invite friends and each choose your own goal."))
+                            Text("No challenges yet.").font(.body).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
+                            Button("Explore challenges") { selection = 1 }.buttonStyle(ChallengeActionStyle())
                         }
                         ForEach(ChallengeV1Section.allCases, id: \.self) { section in
                             if let state = store.sections[section], !state.rows.isEmpty || state.error != nil {
@@ -111,10 +170,10 @@ struct ChallengeV1Shell: View {
                             }
                         }
                     }.padding(20)
-                }.refreshable { await store.refresh() }
+                }.modifier(ChallengeScrollLegibility()).refreshable { await store.refresh() }
                     .toolbar { Button("Refresh", systemImage: "arrow.clockwise") { Task { await store.refresh() } } }
                     .navigationBarTitleDisplayMode(.inline)
-            }.tabItem { Label("Home", systemImage: "house") }.tag(0)
+            }.toolbar(.hidden, for: .tabBar).tabItem { Label("Home", systemImage: "house") }.tag(0)
             NavigationStack {
                 List {
                     Section {
@@ -136,23 +195,27 @@ struct ChallengeV1Shell: View {
                         }
                     }
                 }.navigationTitle("Challenges").refreshable { await store.refresh() }
-            }.tabItem { Label("Challenges", systemImage: "flag") }.tag(1)
+            }.toolbar(.hidden, for: .tabBar).tabItem { Label("Challenges", systemImage: "flag") }.tag(1)
             NavigationStack {
-                Form {
-                    Section("Activity") {
+                ChallengeForm {
+                    ChallengeFormSection("Activity") {
                         Text("Fictional activity only").font(.headline)
                         Text("All four Apple Health sources still need physical testing. Real activity cannot score these challenges.")
                     }
-                    Section("Account") {
+                    ChallengeFormSection("Account") {
                         Text("Switching accounts clears shared content. Saved actions belong only to the account that made them.")
                         Button("Sign out") { Task { await logout() } }.accessibilityIdentifier("beta.signout")
                     }
-                    Section("Help and safety") {
+                    ChallengeFormSection("Help and safety") {
+                        NavigationLink("Privacy and terms") { ChallengeLocalDisclosures() }
                         Text("You can leave any unfinished challenge from its details. No real money moves.")
                         Text("Report or block someone from a shared challenge. External beta access is closed.")
                     }
                 }.navigationTitle("You")
-            }.tabItem { Label("You", systemImage: "person") }.tag(2)
+            }.toolbar(.hidden, for: .tabBar).tabItem { Label("You", systemImage: "person") }.tag(2)
+        }
+        .toolbar(.hidden, for: .tabBar).clipped()
+        ChallengeBottomNavigation(selection: $selection)
         }
         .sheet(isPresented: $create) { ChallengeV1Create(store: store) }
         .onChange(of: store.actor) { create = false }
@@ -176,30 +239,94 @@ struct ChallengeV1Shell: View {
     }
 }
 
+struct ChallengeBottomNavigation: View {
+    @Binding var selection: Int
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    private let tabs = [("Home", "house", "home"), ("Challenges", "flag", "challenges"), ("You", "person", "you")]
+    var body: some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                Menu {
+                    ForEach(tabs.indices, id: \.self) { index in
+                        Button { selection = index } label: { Label(tabs[index].0, systemImage: tabs[index].1) }
+                            .accessibilityIdentifier("beta.tab." + tabs[index].2)
+                    }
+                } label: {
+                    HStack {
+                        Text(tabs[selection].0).font(.body.bold()).fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 12)
+                        Image(systemName: "chevron.up.chevron.down").font(.body).accessibilityHidden(true)
+                    }.frame(maxWidth: .infinity, minHeight: 48).foregroundStyle(CompetitiveTrustTheme.primaryText)
+                }.accessibilityLabel("Navigation, " + tabs[selection].0).accessibilityIdentifier("beta.nav.menu")
+            } else {
+                HStack(alignment: .top, spacing: 8) {
+                    ForEach(tabs.indices, id: \.self) { index in
+                        Button { selection = index } label: {
+                            VStack(spacing: 5) {
+                                Image(systemName: tabs[index].1).font(.title3).accessibilityHidden(true)
+                                Text(tabs[index].0).font(.caption.bold()).fixedSize(horizontal: false, vertical: true)
+                            }.frame(maxWidth: .infinity, minHeight: 48)
+                                .foregroundStyle(selection == index ? CompetitiveTrustTheme.actionCoral : CompetitiveTrustTheme.primaryText)
+                                .contentShape(Rectangle())
+                        }.buttonStyle(.plain).accessibilityLabel(tabs[index].0)
+                            .accessibilityAddTraits(selection == index ? .isSelected : [])
+                            .accessibilityIdentifier("beta.tab." + tabs[index].2)
+                    }
+                }
+            }
+        }.padding(.horizontal, 20).padding(.vertical, 10)
+            .background(CompetitiveTrustTheme.paper)
+            .overlay(alignment: .top) { Rectangle().fill(CompetitiveTrustTheme.hairlineDivider).frame(height: 1) }
+    }
+}
+
+struct ChallengeScrollLegibility: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) { content.scrollEdgeEffectHidden(true, for: .all).clipped() }
+        else { content.clipped() }
+    }
+}
+struct ChallengeActionStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.font(.body.weight(.semibold))
+            .padding(.horizontal, 16).padding(.vertical, 12).frame(minHeight: 44)
+            .foregroundStyle(enabled ? CompetitiveTrustTheme.actionCoral : CompetitiveTrustTheme.primaryText)
+            .background(enabled ? CompetitiveTrustTheme.coralTint : CompetitiveTrustTheme.paperSunk, in: RoundedRectangle(cornerRadius: 12))
+            .opacity(configuration.isPressed ? 0.8 : 1)
+    }
+}
+
 struct MatchdayChallengeCard: View {
     let row: ChallengeV1; let actor: UUID?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HStack {
+            if !dynamicTypeSize.isAccessibilitySize { HStack {
                 MatchdayMetricIcon(metric: row.format.metric)
                 Text(row.format.metric.title.uppercased()).font(.caption.bold()); Spacer(minLength:0)
                 Text(row.format.mode.title).font(.caption)
-            }
+            } }
             Text(row.own(actor)?.exited == true ? "You left this challenge" : row.statusText).font(.subheadline)
-            Text(row.title.uppercased()).font(.largeTitle.bold()).fixedSize(horizontal:false,vertical:true)
+            Text(row.title.uppercased()).font(.title2.bold()).fixedSize(horizontal:false,vertical:true)
             if let own = row.own(actor) {
-                HStack(alignment:.top) {
-                    value(own.fact?.value.map { row.format.metric.display($0) } ?? "—", caption:"Your activity")
-                    Spacer(minLength:8)
-                    if row.format.hasTarget { value(own.target.map { row.format.metric.display($0) } ?? "Choose", caption:"Your goal") }
+                if dynamicTypeSize.isAccessibilitySize {
+                    Text("Your activity: " + (own.fact?.value.map { row.format.metric.display($0) } ?? "No update yet")).font(.body)
+                    if row.format.hasTarget { Text("Your goal: " + (own.target.map { row.format.metric.display($0) } ?? "Choose a goal")).font(.body) }
+                } else {
+                    HStack(alignment:.top) {
+                        value(own.fact?.value.map { row.format.metric.display($0) } ?? "No update", caption:"Your activity")
+                        Spacer(minLength:8)
+                        if row.format.hasTarget { value(own.target.map { row.format.metric.display($0) } ?? "Choose", caption:"Your goal") }
+                    }
                 }
             }
-            Divider().overlay(.gray)
+            Rectangle().fill(.white.opacity(0.65)).frame(height: 1).accessibilityHidden(true)
             Text("\(row.config.startDate) · \(row.config.days) days").font(.subheadline)
             Text("\(challengeMoney(row.config.amountCents)) simulated each · View challenge ↗").font(.caption)
         }.foregroundStyle(.white).padding(22).frame(maxWidth:.infinity,alignment:.leading)
             .background(Color(red:0.065,green:0.067,blue:0.063),in:RoundedRectangle(cornerRadius:18))
-            .accessibilityElement(children:.combine)
+            .accessibilityElement(children: .combine)
     }
     private func value(_ value:String,caption:String)->some View {
         VStack(alignment:.leading,spacing:4) {
@@ -279,6 +406,8 @@ struct ChallengeV1Detail: View {
             }.padding(20)
         }.navigationTitle("Challenge").navigationBarTitleDisplayMode(.inline)
             .task(id: id) { await store.loadDetail(id) }
+            .modifier(ChallengeScrollLegibility())
+            .buttonStyle(ChallengeActionStyle())
             .refreshable { await store.loadDetail(id) }
             .toolbar { Button("Refresh",systemImage:"arrow.clockwise") { Task { await store.loadDetail(id) } } }
             .onChange(of:row?.revision) { consent=false }
@@ -294,11 +423,14 @@ struct ChallengeV1Detail: View {
         Text(row.format.mode == .friend ? "People and activity" : "Your activity").font(.title2.bold())
         ForEach(row.rankedMembers) { person in
             VStack(alignment:.leading,spacing:6) {
-                HStack {
+                HStack(alignment: .top) {
                     Text(String(person.username.prefix(2)).uppercased()).font(.caption.bold()).padding(10).background(.quaternary,in:RoundedRectangle(cornerRadius:8))
-                    Text(person.actorId==store.actor ? "You" : person.username).font(.headline)
-                    Spacer(minLength:0)
-                    Text(person.exited ? "Left" : person.consented ? "Agreed" : person.selected ? "Selected" : "Requested").font(.caption)
+                        .accessibilityLabel(person.actorId == store.actor ? "Your profile" : "Profile for \(person.username)")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(person.actorId==store.actor ? "You" : person.username).font(.headline).fixedSize(horizontal: false, vertical: true)
+                        Text(person.exited ? "Left" : person.consented ? "Agreed" : person.selected ? "Selected" : "Requested").font(.caption).fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
                 }
                 if row.format.hasTarget { Text(person.target.map { "Goal: \(row.format.metric.display($0))" } ?? "Goal not chosen") }
                 if let finalStatus = row.final?.result.participants?[person.actorId.uuidString.lowercased()]?.status {

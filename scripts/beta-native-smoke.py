@@ -4,6 +4,7 @@ No hosted target, mail, Health inputs or pre-existing Simulator control.
 Secrets stay in an ignored, mode-0600 manifest and are removed on cleanup.
 """
 import argparse
+import signal
 import hashlib
 import http.client
 import json
@@ -47,7 +48,9 @@ class Smoke:
         self.trace = []
         self.lose = None
         self.owned = False
+        self.manifest_owned = False
     def setup(self):
+        assert not MANIFEST.exists(), 'An existing preview manifest requires scoped recovery before starting another run'
         assert sql('select not admission and not fixtures and not processing and cardinality(actors)=0 from app.challenge_runtime_v1 where singleton;') == 't'
         for i in range(7):
             email = f'beta-b7-{uuid.uuid4().hex}@example.invalid'
@@ -67,6 +70,7 @@ class Smoke:
                 sql(f"select public.challenge_readiness_metric_fixture_v1('{actor['id']}','{metric}');")
         MANIFEST.parent.mkdir(exist_ok=True)
         with MANIFEST.open('x') as stream:
+            self.manifest_owned = True
             os.chmod(MANIFEST,0o600)
             json.dump({'url':'http://127.0.0.1:58339','key':self.key,'controlToken':self.control,'password':self.password,'actors':self.actors},stream)
     def clock(self, value, admission=True, processing=True):
@@ -120,15 +124,27 @@ class Smoke:
             raise ValueError('Unknown control')
         return {'ok':True}
     def cleanup(self):
-        if self.owned:
-            sql("select public.challenge_discovery_fixture_v1(false); select public.challenge_runtime_v1(false,false,false,'{}',null);")
-        for actor in self.actors:
-            # Only this run's fictional actors, never another effort's sessions.
-            local_http('PUT','/auth/v1/admin/users/'+actor['id'],self.admin,json.dumps({'password':secrets.token_urlsafe(48),'ban_duration':'876000h'}))
-            sql(f"delete from auth.sessions where user_id='{actor['id']}'; delete from auth.refresh_tokens where user_id='{actor['id']}';")
-        MANIFEST.unlink(missing_ok=True)
-        REPORT.parent.mkdir(exist_ok=True)
-        REPORT.write_text(json.dumps({'evidence':'authenticated production Swift client to fictional local backend','trace':self.trace,'gates_off':True,'actors_revoked':len(self.actors)},indent=2)+'\n')
+        revoked = 0
+        failures = []
+        gates_off = False
+        try:
+            if self.owned:
+                sql("select public.challenge_discovery_fixture_v1(false); select public.challenge_runtime_v1(false,false,false,'{}',null);")
+            gates_off = sql('select not admission and not fixtures and not processing and cardinality(actors)=0 from app.challenge_runtime_v1 where singleton;') == 't'
+            for actor in self.actors:
+                # Only this run's fictional actors, never another effort's sessions.
+                status, _ = local_http('PUT','/auth/v1/admin/users/'+actor['id'],self.admin,json.dumps({'password':secrets.token_urlsafe(48),'ban_duration':'876000h'}))
+                sql(f"delete from auth.sessions where user_id='{actor['id']}'; delete from auth.refresh_tokens where user_id='{actor['id']}';")
+                if status >= 300:
+                    failures.append('fictional_actor_ban_failed')
+                else:
+                    revoked += 1
+        finally:
+            if self.manifest_owned:
+                MANIFEST.unlink(missing_ok=True)
+            REPORT.parent.mkdir(exist_ok=True)
+            REPORT.write_text(json.dumps({'evidence':'authenticated production Swift client to fictional local backend','trace':self.trace,'gates_off':gates_off,'actors_revoked':revoked,'cleanup_failures':failures},indent=2)+'\n')
+        assert gates_off and not failures and revoked == len(self.actors), 'Scoped fixture cleanup incomplete; inspect the report'
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*_):
@@ -159,23 +175,50 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--simulator',required=True);parser.add_argument('--native-only',action='store_true');parser.add_argument('--touch-only',choices=['2','6'])
+    parser=argparse.ArgumentParser();parser.add_argument('--simulator',required=True);parser.add_argument('--native-only',action='store_true');parser.add_argument('--touch-only',choices=['2','6']);parser.add_argument('--accessibility',choices=['light','dark','large','compact','control','form-reference','tab-reference','scroll-reference'])
     args=parser.parse_args();assert args.simulator==OWNED_SIM,'Only b7-owned Simulator is allowed'
     smoke=Smoke(); server=ThreadingHTTPServer(('127.0.0.1',58339),Handler);server.smoke=smoke
     running=False
     try:
-        smoke.setup();threading.Thread(target=server.serve_forever,daemon=True).start();running=True
+        smoke.setup()
+        if args.accessibility:
+            manifest=json.loads(MANIFEST.read_text());manifest['accessibilityMode']=args.accessibility
+            MANIFEST.write_text(json.dumps(manifest))
+            subprocess.run(['xcrun','simctl','ui',OWNED_SIM,'appearance','dark' if args.accessibility=='dark' else 'light'],check=True)
+            subprocess.run(['xcrun','simctl','ui',OWNED_SIM,'content_size','accessibility-extra-extra-extra-large' if args.accessibility=='large' else 'large'],check=True)
+        threading.Thread(target=server.serve_forever,daemon=True).start();running=True
         command=['xcodebuild','test','-project','ios/GameTime/GameTime.xcodeproj','-scheme','GameTimeBetaLocal','-configuration','Debug','-destination',f'platform=iOS Simulator,id={OWNED_SIM}','-derivedDataPath','/tmp/gametime-finish-b7-derived','-parallel-testing-enabled','NO','-only-testing:GameTimeTests/ChallengeV1NativeSmokeTests','-only-testing:GameTimeTests/ChallengeV1NativeTests','-only-testing:GameTimeTests/ChallengePolicyTests','-only-testing:GameTimeTests/ChallengeSectionTests','-only-testing:GameTimeTests/WeeklySocialRefreshAuthRaceTests','CODE_SIGNING_ALLOWED=NO']
-        assert not (args.native_only and args.touch_only)
-        if args.touch_only:
+        assert sum([args.native_only,bool(args.touch_only),bool(args.accessibility)]) <= 1
+        if args.accessibility:
+            command=[x for x in command if not x.startswith('-only-testing:')]
+            command.append('-only-testing:GameTimeUITests/ChallengeV1UITests/'+({'control':'testIsolatedDynamicTypeControl','form-reference':'testSystemFormDynamicTypeReference','tab-reference':'testSystemTabContrastReference','scroll-reference':'testSystemScrollDynamicTypeReference'}.get(args.accessibility,'testLocalAccessibilityPreparation')))
+        elif args.touch_only:
             command=[x for x in command if not x.startswith('-only-testing:')]
             command.append('-only-testing:GameTimeUITests/ChallengeV1UITests/test'+('Two' if args.touch_only=='2' else 'Six')+'PersonTouchJourney')
         elif not args.native_only:command.append('-only-testing:GameTimeUITests/ChallengeV1UITests')
-        result=subprocess.run(command,cwd=ROOT)
-        return result.returncode
+        result_path = Path('/tmp/gametime-finish-b7-evidence') / ('native-' + str(uuid.uuid4()) + '.xcresult')
+        command += ['-resultBundlePath', str(result_path)]
+        print('B7 result bundle: ' + str(result_path), flush=True)
+        # A new process group belongs exclusively to this run. Never stop shared
+        # Xcode or Simulator services when a failed audit stalls result reporting.
+        child = subprocess.Popen(command, cwd=ROOT, start_new_session=True)
+        try:
+            return child.wait(timeout=240 if args.accessibility else 1800)
+        except subprocess.TimeoutExpired:
+            print(f'B7 timeout: owned xcodebuild pid/pgid={child.pid}; result={result_path}', flush=True)
+            os.killpg(child.pid, signal.SIGTERM)
+            try:
+                child.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                os.killpg(child.pid, signal.SIGKILL)
+                child.wait()
+            return 124
     finally:
         if running:server.shutdown()
         server.server_close();smoke.cleanup()
+        if args.accessibility:
+            subprocess.run(['xcrun','simctl','ui',OWNED_SIM,'appearance','light'],check=True)
+            subprocess.run(['xcrun','simctl','ui',OWNED_SIM,'content_size','large'],check=True)
         print('B7 cleanup: source/admission/processing off; fictional sessions revoked; report tmp/beta-native-smoke-report.json',flush=True)
 if __name__=='__main__':
     raise SystemExit(main())

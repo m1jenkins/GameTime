@@ -1,6 +1,47 @@
 #if DEBUG
 import SwiftUI
 
+struct ChallengeForm<Content: View>: View {
+    let content: Content
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) { content }
+                .padding(20).frame(maxWidth: .infinity, alignment: .leading)
+        }.modifier(ChallengeScrollLegibility()).background(CompetitiveTrustTheme.paper)
+            .textFieldStyle(.roundedBorder)
+            .buttonStyle(ChallengeActionStyle())
+            .scrollDismissesKeyboard(.interactively)
+    }
+}
+struct ChallengeFormSection<Content: View>: View {
+    let title: String
+    let content: Content
+    init(_ title: String, @ViewBuilder content: () -> Content) { self.title = title; self.content = content() }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title).font(.headline).foregroundStyle(CompetitiveTrustTheme.primaryText)
+            VStack(alignment: .leading, spacing: 18) { content }
+                .frame(maxWidth: .infinity, alignment: .leading).padding(18)
+                .background(CompetitiveTrustTheme.card, in: RoundedRectangle(cornerRadius: 18))
+        }
+    }
+}
+
+struct ChallengeIntegerControl: View {
+    @Binding var value: Int
+    let range: ClosedRange<Int>
+    let id: String
+    let title: String
+    let display: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(display).font(.body).fixedSize(horizontal: false, vertical: true)
+            Stepper(title, value: $value, in: range).labelsHidden().accessibilityValue("\(value)").accessibilityIdentifier("beta.stepper." + id)
+        }
+    }
+}
+
 struct ChallengeAgreementText: View {
     let policy: ChallengeV1Policy; let window: ChallengeV1.Window; let minimum: Int
     var body: some View {
@@ -20,6 +61,12 @@ struct ChallengeAgreementText: View {
             if policy.mode == .friend {
                 Text("Everyone agrees to the displayed roster and goals, when this format has goals. Reopening the lobby requires everyone to agree again. Incomplete agreement at the start cancels the challenge.")
             }
+            if policy.mode == .friend {
+                Text("The selected friends can see your username, agreed goal when there is one, current challenge activity and results. Your activity history outside this challenge stays private.")
+            } else {
+                Text("Other participants cannot see your activity or results. Community challenges show anonymous participant counts.")
+            }
+            Text("An assigned reviewer can inspect the normalized challenge facts needed for your review. Raw Apple Health records are not shared.")
             Text("Up to three unfinished challenges at once. Friend challenges for the same activity cannot overlap. One community challenge may overlap your friend steps challenge.")
         }.font(.subheadline).fixedSize(horizontal: false, vertical: true)
     }
@@ -52,8 +99,8 @@ struct ChallengeV1Create: View {
     private var canSubmit: Bool { !store.busy && store.pending == nil && !reading && store.access?.ageConfirmed == true && (metric != .timed || ChallengeV1Policy.Metric.distance.parse(distance) != nil) }
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Choose your challenge") {
+            ChallengeForm {
+                ChallengeFormSection("Choose your challenge") {
                     Picker("Who", selection: $mode) {
                         Text("With friends").tag(ChallengeV1Policy.Mode.friend)
                         Text("Personal goal").tag(ChallengeV1Policy.Mode.personal)
@@ -63,27 +110,27 @@ struct ChallengeV1Create: View {
                     }
                     if mode == .friend {
                         Picker("Format", selection: $competition) {
-                            ForEach(ChallengeV1Policy.Competition.allCases, id: \.self) { Text($0.title).tag($0) }
+                            ForEach(ChallengeV1Policy.Competition.allCases, id: \.self) { Text($0 == .goal ? "Goal" : "Leaderboard").tag($0) }
                         }
                         Text(policy.hasTarget ? "Each friend chooses a goal before you lock in the roster and ask everyone to agree." : "Choose the roster, then everyone agrees. The best result wins; equal best results share the win.")
                     } else { Text("Choose your own goal and review the agreement. Only you can see your activity and result.") }
                 }
-                Section("Dates and amount") {
-                    DatePicker("Starts", selection: $start, displayedComponents: .date)
-                    Stepper("\(days) days", value: $days, in: 1...30)
+                ChallengeFormSection("Dates and amount") {
+                    DatePicker(selection: $start, displayedComponents: .date) { Text("Starts").font(.body) }
+                    ChallengeIntegerControl(value: $days, range: 1...30, id: "days", title: "Duration", display: "\(days) days")
                     TextField("Time zone", text: $zone).autocorrectionDisabled()
-                    Stepper("\(challengeMoney(dollars * 100)) simulated each", value: $dollars, in: 1...500)
-                    Text("Starts in 2–30 calendar days. Each day runs midnight to midnight in the selected time zone. Simulated stakes — no real money moves.").font(.footnote)
+                    ChallengeIntegerControl(value: $dollars, range: 1...500, id: "amount", title: "Simulated dollars", display: "\(challengeMoney(dollars * 100)) simulated each")
+                    Text("Starts in 2–30 calendar days. Each day runs midnight to midnight in the selected time zone. Simulated stakes — no real money moves.").font(.body).fixedSize(horizontal: false, vertical: true)
                     if metric == .timed { TextField("Whole run kilometres", text: $distance).keyboardType(.decimalPad) }
                 }
                 if mode == .personal {
-                    Section("Your goal") {
+                    ChallengeFormSection("Your goal") {
                         TextField(metric.targetPrompt, text: $target).keyboardType(.numbersAndPunctuation)
-                        Text("Choose your own goal. A suggestion will appear only when eligible activity is available on this phone.").font(.footnote)
+                        Text("Choose your own goal. A suggestion will appear only when eligible activity is available on this phone.").font(.body).fixedSize(horizontal: false, vertical: true)
                     }
                     Button("Review my agreement") { Task { await readPreview() } }.disabled(!canSubmit || metric.parse(target) == nil)
                     if let preview, let window = decodeWindow(preview.terms?["config"]) {
-                        Section("Your complete agreement") {
+                        ChallengeFormSection("Your complete agreement") {
                             Text("Your goal: \(metric.display(metric.parse(target) ?? 0))").font(.headline)
                             ChallengeAgreementText(policy: policy, window: window, minimum: 1)
                             Toggle("I have read the complete rules and agree", isOn: $consent)
@@ -103,7 +150,8 @@ struct ChallengeV1Create: View {
                 if store.access?.ageConfirmed != true { Text("Confirm that you are 21 or older in Challenges before continuing.") }
                 if let error = previewError ?? store.error { Text(error) }
             }.navigationTitle(mode == .personal ? "Personal goal" : "Friend challenge")
-                .toolbar { Button("Close") { dismiss() } }
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { Button("Close", systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly) }
                 .task {
                     if let now = store.access?.serverTime { start = Calendar.current.date(byAdding: .day, value: 2, to: now.date)! }
                 }
@@ -146,8 +194,8 @@ struct ChallengeEntryPanel: View {
                 if store.pending == nil { invitation.clear() }
             }
         }}.disabled(ChallengeInvitation.token(from: invitation.link) == nil || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
-        Text("An invitation grants beta access and requests a place in the lobby. The creator still chooses the roster. You agree separately. It does not add a friend.").font(.footnote)
-        if let error = store.entryError { Text(error).font(.footnote) }
+        Text("An invitation grants beta access and requests a place in the lobby. The creator still chooses the roster. You agree separately. It does not add a friend.").font(.body).fixedSize(horizontal: false, vertical: true)
+        if let error = store.entryError { Text(error).font(.body).fixedSize(horizontal: false, vertical: true) }
         ForEach(store.communities) { row in
             NavigationLink("Community steps · \(row.joinedCount) joined") { ChallengeCommunityJoin(store: store, community: row) }
         }
@@ -159,7 +207,7 @@ struct ChallengeCommunityJoin: View {
     let community: ChallengeV1Community
     @State private var consent = false
     var body: some View {
-        Form {
+        ChallengeForm {
             Text("Only your progress and anonymous counts are shared with you. There are no stranger standings.")
             if let target = community.terms["common_target"]?.integer { Text("Everyone’s goal: \(target.formatted()) steps").font(.headline) }
             if let window = decodeWindow(community.terms["config"]) {
@@ -189,7 +237,7 @@ struct ChallengeLinkIssuer: View {
         }}.disabled(!store.fresh || store.busy || store.pending != nil)
         if let issued, let token = issued.token, let id = issued.id {
             Text("gametime-beta://challenge-invite/\(token)").textSelection(.enabled).privacySensitive()
-            Text("Up to 20 different accounts, for at most 30 days while the lobby is open.").font(.footnote)
+            Text("Up to 20 different accounts, for at most 30 days while the lobby is open.").font(.body).fixedSize(horizontal: false, vertical: true)
             Button("Revoke invitation link") { Task {
                 await store.submit(op: "revoke_link", fields: ["id": .string(id.uuidString.lowercased())])
                 if store.pending == nil { self.issued = nil }

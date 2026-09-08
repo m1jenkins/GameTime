@@ -31,7 +31,11 @@ struct GameTimeApp: App {
     private let isFixtureTestLaunch: Bool
 
     init() {
+        #if DEBUG
+        if !ChallengeLocalLaunch.enabled && !SourceInvestigationLaunch.enabled { DaybreakAppearance.install() }
+        #else
         DaybreakAppearance.install()
+        #endif
 
         let notificationCoordinator = PushNotificationCoordinator()
         _pushCoordinator = State(initialValue: notificationCoordinator)

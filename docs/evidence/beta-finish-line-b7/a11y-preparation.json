@@ -1,0 +1,53 @@
+{
+  "scope": "Fictional authenticated native Simulator UI; no physical/human acceptance",
+  "runs": [
+    {
+      "mode": "light",
+      "exit_code": 0,
+      "log": "/tmp/gametime-finish-b7-evidence/m6-a11y-accepted-candidate-light.log",
+      "gates_off": true,
+      "actors_revoked": 7,
+      "bundle": "/tmp/gametime-finish-b7-evidence/native-8bc715f7-2715-476f-a6c3-e0d264bc1872.xcresult",
+      "screen_audits": 4,
+      "simulator": "72A3249A-2DE0-4695-AF41-DCD2743B4666",
+      "screenshot": "docs/evidence/beta-finish-line-b7/screenshots/home-light.png",
+      "screenshot_sha256": "554b74860a2117f749c7217268862a9393dc0e5a19cfd41b213cbee88ceb6181"
+    },
+    {
+      "mode": "dark",
+      "exit_code": 0,
+      "log": "/tmp/gametime-finish-b7-evidence/m6-a11y-accepted-candidate-dark.log",
+      "gates_off": true,
+      "actors_revoked": 7,
+      "bundle": "/tmp/gametime-finish-b7-evidence/native-9b7134d7-ee29-45ba-8b71-931b8b5450c9.xcresult",
+      "screen_audits": 4,
+      "simulator": "72A3249A-2DE0-4695-AF41-DCD2743B4666",
+      "screenshot": "docs/evidence/beta-finish-line-b7/screenshots/home-dark.png",
+      "screenshot_sha256": "094c134db28c20ce89330a4cd4c4f570b1e579ddcf05b07ba6db1b8bef2fcffe"
+    },
+    {
+      "mode": "large",
+      "exit_code": 0,
+      "log": "/tmp/gametime-finish-b7-evidence/m6-a11y-accepted-candidate-large.log",
+      "gates_off": true,
+      "actors_revoked": 7,
+      "bundle": "/tmp/gametime-finish-b7-evidence/native-4036f7df-a577-4946-a075-a834cb735083.xcresult",
+      "screen_audits": 4,
+      "simulator": "72A3249A-2DE0-4695-AF41-DCD2743B4666",
+      "screenshot": "docs/evidence/beta-finish-line-b7/screenshots/creation-largest.png",
+      "screenshot_sha256": "d83620cd7bee18daaea1a47409f0a762145f890ce4cda0d1f2f9bdc439725a32"
+    },
+    {
+      "mode": "compact",
+      "exit_code": 0,
+      "log": "/tmp/gametime-finish-b7-evidence/m6-a11y-accepted-candidate-compact.log",
+      "gates_off": true,
+      "actors_revoked": 7,
+      "bundle": "/tmp/gametime-finish-b7-evidence/native-4402eff6-e240-4b27-8513-cf3f47e38d56.xcresult",
+      "screen_audits": 4,
+      "simulator": "72A3249A-2DE0-4695-AF41-DCD2743B4666",
+      "screenshot": "docs/evidence/beta-finish-line-b7/screenshots/home-compact.png",
+      "screenshot_sha256": "dbb141fa651663dbdaa6f358897106d1054a72756f1142b3fc3147b5234ce24a"
+    }
+  ]
+}
