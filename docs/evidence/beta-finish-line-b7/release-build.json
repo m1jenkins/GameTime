@@ -1,8 +1,15 @@
 {
   "evidence": "unsigned local Release device build, not installed/distributed",
+  "log": "/tmp/gametime-finish-b7-evidence/m6-final-release-build.log",
   "bundle": "com.mjenkins.gametime",
   "private_debug_symbols_and_text_absent": true,
-  "source_check_string_absent": true,
+  "checked_strings": [
+    "--health-source-investigation",
+    "--beta-challenges-local",
+    "Begin private session",
+    "Private source investigation",
+    "GAMETIME_BETA_LOCAL_URL"
+  ],
   "health_purpose_is_historical_steps_only": true,
-  "executable_sha256": "7d2cefe480df6971c2b4c9dd9448b4f1533f687016a8fd84395fad6da7da6a08"
+  "executable_sha256": "b4c44e92797d2b369c58433b2a5b2dcdbe916a423caea37c3f88060bfc3e0b6b"
 }

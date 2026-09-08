@@ -1,0 +1,26 @@
+{
+  "evidence": "Native two-person touch on foreground preview, actor switching and final history; CLI clock and repeat processing; no physical data",
+  "touch_test": "m6-preview-two-touch.xcresult",
+  "touch_seconds": 241.789,
+  "touch_tests": 1,
+  "failures": 0,
+  "gates_off": true,
+  "actors_revoked": 7,
+  "limits": "Fictional local actors, facts, clock and operator actions; no human or device acceptance",
+  "invitation_ingress": {
+    "issuer": "actual native button",
+    "recipient": "previously unallowlisted nonfriend actor 7",
+    "url": "simctl openurl and actual system Open confirmation",
+    "relaunch_preserved_link": true,
+    "before_age_use_disabled": true,
+    "native_age_and_redeem": true,
+    "pending_row_visible": true,
+    "stored_intent_cleared": true,
+    "persisted_pending_access_no_consent_no_friendship": true
+  },
+  "fresh_preview_cleanup": {
+    "gates_off": true,
+    "actors_revoked": 7,
+    "manifest_removed": true
+  }
+}

@@ -56,3 +56,15 @@ empty successful reads and interrupted/revoked access. A completed permission
 prompt never means Ready. The new local shell currently states that every real
 source is unavailable for scoring; fictional readiness is explicitly separate.
 No extra physical readiness state is inferred from these Simulator tests.
+
+## Launch isolation regression — software evidence
+
+The app delegate previously installed the historical observer on a physical-path
+Debug launch even when the isolated investigation or local Beta flag was present.
+The regression reproduced both exclusions failing before the fix. The Debug-only
+launch guard now excludes both modes before observer registration. Normal legacy
+Debug/Staging/Release launch behavior is retained. Ten focused native tests passed
+(background delivery, private session races and probe). This used a simulated
+physical branch argument in software; no physical launch or Health read occurred.
+Evidence: `/tmp/gametime-finish-b7-evidence/m6-observer-exclusion-{before,after}.log`
+and corresponding `.xcresult` bundles (before failed; after passed).

@@ -2829,6 +2829,19 @@ final class PersonalHealthBackgroundDeliveryTests: XCTestCase {
         )
     }
 
+    #if DEBUG
+    func testPrivateInvestigationAndLocalBetaNeverStartLegacyObserverOnPhysicalLaunchPath() {
+        // Software branch coverage only: no device, Health query, or upload.
+        for argument in ["--health-source-investigation", "--beta-challenges-local"] {
+            XCTAssertFalse(GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(
+                environmentValue: "Debug", arguments: ["GameTime", argument],
+                processEnvironment: [:], isSimulator: false
+            ), argument)
+        }
+    }
+
+    #endif
+
     func testSimulatorFixtureAndUITestNeverStartHealthObserver() {
         XCTAssertFalse(
             GameTimeAppDelegate.shouldStartPersonalHealthBackgroundDelivery(

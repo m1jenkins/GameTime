@@ -387,3 +387,49 @@ accessibility label after a follow-up inaccessible-text finding; failed logs are
 and selected fictional screenshots are retained. Source/status/DB identity was
 rechecked at 08:44 UTC: all 101 hashes and exact status match. The preservation
 script now explicitly disables Git optional locks on the read-only original.
+
+## Preview and observer isolation checkpoint — 2026-09-08
+
+The foreground preview's authenticated two-person touch journey passed one test
+in 241.789 seconds against the production Swift client and owned local backend,
+including corrected progress, delayed review, final history and account exit.
+Then CLI account switching/sign-in showed the second actor's exact final history;
+clock control and repeat final processing succeeded. Seven preview actors were
+revoked and fixture/admission/processing gates disabled on Ctrl-C.
+`preview-execution.json` records this separately from physical/human acceptance.
+A fresh launcher invocation verified immediate username output and native prefill.
+
+The app-delegate regression reproduced both isolated launch modes incorrectly
+allowing the legacy observer on the physical software branch. Added Debug-only
+exclusions; **10 focused tests passed** (7 background delivery, 2 investigation,
+1 source probe). Before/after logs and result bundles are retained as
+`m6-observer-exclusion-{before,after}` under the private evidence directory. No
+physical activity was read. Normal historical launch behavior remains tested.
+
+The operator smoke script formerly ignored `--help` and ran its fictional checks.
+Added argument parsing before setup: help now prints usage without fixture work;
+the ordinary smoke then passed **11 checks** with scoped cleanup in
+`m6-operator-help-recovery.log`. No unrelated database or actor was changed.
+
+Committed `97d9026` passed a fresh portable gate: **3,840 SQL assertions / 82 files,
+835 Deno tests, 113 core Swift tests**, plus persisted historical weekly smoke.
+Evidence `m6-final-committed-portable-gate.log`, temp project
+`/tmp/gametime-weekly-verify.bSGu9akn` (its owned stack cleaned up). Its historical
+authenticated native weekly two/five/community/exact-recovery test also passed
+(one test, 4.896 seconds) on the separate 5632x stack; invoke the non-executable
+script with `python3`. Evidence `m6-historical-weekly-native-run2.log`,
+`tmp/weekly-native-c6ef6b52.xcresult`; earlier direct invocation exit 126 retained.
+
+A fresh preview additionally exercised actual native link issuance → system URL
+Open confirmation while signed out → app termination/relaunch → native sign-in
+as a previously unallowlisted nonfriend → persisted link with Use disabled before
+age confirmation → native age confirmation and redemption. The pending lobby
+appeared and the saved locator cleared. Four persisted checks confirmed pending
+/unselected/no target, access granted, no consent and no friendship. Early taps
+without an observed receipt and the unopened system confirmation were not counted.
+The opaque locator and credentials stayed in restricted temporary evidence.
+
+Latest unsigned Release-device build passed in `m6-final-release-build.log`;
+binary scan confirms the private/local launch strings and investigation copy are
+absent. The historical step-count Health purpose remains. This build was neither
+signed, installed on a physical device nor distributed.

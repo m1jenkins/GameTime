@@ -109,6 +109,13 @@ final class GameTimeAppDelegate: NSObject, UIApplicationDelegate {
     else {
       return false
     }
+    #if DEBUG
+    // These isolated tools must not install the legacy Health observer, even
+    // on a physical launch before the SwiftUI services are constructed.
+    guard !arguments.contains("--health-source-investigation"),
+      !arguments.contains("--beta-challenges-local")
+    else { return false }
+    #endif
     guard !isSimulator,
       !arguments.contains("--fixture-mode"),
       !arguments.contains("--disable-health-background-delivery"),
