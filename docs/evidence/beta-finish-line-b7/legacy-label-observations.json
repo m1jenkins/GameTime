@@ -85,7 +85,7 @@
       668
     ]
   },
-  "fix_status": "Test-only full-label case-insensitive static-text queries; seven affected tests passed, 382.704 seconds; full committed rerun pending",
+  "fix_status": "Accepted locally: seven focused passes followed by all 50 historical UI tests passing from committed 5436836; no product behavior or semantic assertion removed",
   "baseline_observations": [
     {
       "surface": "you",
@@ -159,5 +159,6 @@
     "seconds": 382.704,
     "log": "/tmp/gametime-finish-b7-evidence/m6-legacy-query-fix-seven.log",
     "xcresult": "/tmp/gametime-finish-b7-evidence/m6-legacy-query-fix-seven.xcresult"
-  }
+  },
+  "full_correction_run": "historical-ui-final.json"
 }

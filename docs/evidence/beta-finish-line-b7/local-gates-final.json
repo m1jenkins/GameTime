@@ -1,4 +1,5 @@
 {
+  "checked_at": "2026-09-08T10:48:12.242598+00:00",
   "project": "gametime-finish-b7",
   "api_port": 58321,
   "database_port": 58322,
@@ -17,5 +18,6 @@
     "actors": [],
     "fictional_now": null
   },
-  "external_readiness_gates_all_closed": true
+  "external_readiness_gates_all_closed": true,
+  "external_gate_count": 18
 }

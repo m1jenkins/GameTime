@@ -25,7 +25,17 @@
       },
       "log": "/private/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-finish-b7-legacy-native-xbrnnlhz/tmp/duel-native-44b635a8.log",
       "xcresult": "/private/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-finish-b7-legacy-native-xbrnnlhz/tmp/duel-native-44b635a8.xcresult",
-      "log_sha256": "6341129313934a51e8ecc8cda0c19ef3d74f736024e80995576d1946cadb5a0d"
+      "log_sha256": "6341129313934a51e8ecc8cda0c19ef3d74f736024e80995576d1946cadb5a0d",
+      "command": [
+        "python3",
+        "/private/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-finish-b7-legacy-native-xbrnnlhz/scripts/duel-native-local-smoke.py",
+        "--status-file",
+        "/tmp/gametime-finish-b7-evidence/weekly-owned-status.json",
+        "--simulator",
+        "72A3249A-2DE0-4695-AF41-DCD2743B4666",
+        "--derived-data",
+        "/tmp/gametime-finish-b7-legacy-derived"
+      ]
     },
     {
       "contract": "performance",
@@ -44,7 +54,17 @@
       },
       "log": "/private/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-finish-b7-legacy-native-xbrnnlhz/tmp/performance-commitment-native-d0c125f3.log",
       "xcresult": "/private/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-finish-b7-legacy-native-xbrnnlhz/tmp/performance-commitment-native-d0c125f3.xcresult",
-      "log_sha256": "6ed6f96184e90491c7b7b8dadfe49783e8d8e68f36a38d47f2d8f6c931589561"
+      "log_sha256": "6ed6f96184e90491c7b7b8dadfe49783e8d8e68f36a38d47f2d8f6c931589561",
+      "command": [
+        "python3",
+        "/private/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-finish-b7-legacy-native-xbrnnlhz/scripts/performance-commitment-native-smoke.py",
+        "--status-file",
+        "/tmp/gametime-finish-b7-evidence/weekly-owned-status.json",
+        "--simulator",
+        "72A3249A-2DE0-4695-AF41-DCD2743B4666",
+        "--derived-data",
+        "/tmp/gametime-finish-b7-legacy-derived"
+      ]
     }
   ],
   "final_gates": {

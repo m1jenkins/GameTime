@@ -1,0 +1,339 @@
+{
+  "candidate": "5436836c1fb19f1a65eb12b0766870f2b7242e20",
+  "product_code_candidate": "60d2e6d35034e7c7c716c3b6f3ea53e94af5e854",
+  "scope": "Historical fictional native Simulator UI; not physical Health or human acceptance",
+  "tests": 50,
+  "failures": 0,
+  "seconds": 1639.927,
+  "exit_code": 0,
+  "command": [
+    "xcodebuild",
+    "test",
+    "-project",
+    "ios/GameTime/GameTime.xcodeproj",
+    "-scheme",
+    "GameTimeBetaLocal",
+    "-configuration",
+    "Debug",
+    "-destination",
+    "platform=iOS Simulator,id=72A3249A-2DE0-4695-AF41-DCD2743B4666",
+    "-derivedDataPath",
+    "/tmp/gametime-finish-b7-derived",
+    "-parallel-testing-enabled",
+    "NO",
+    "-only-testing:GameTimeUITests",
+    "-skip-testing:GameTimeUITests/ChallengeV1UITests",
+    "-resultBundlePath",
+    "/tmp/gametime-finish-b7-evidence/m6-committed-historical-ui-accepted.xcresult",
+    "CODE_SIGNING_ALLOWED=NO"
+  ],
+  "log": "/tmp/gametime-finish-b7-evidence/m6-committed-historical-ui-accepted.log",
+  "log_sha256": "4bc1c805df9750f0686b81ccc643560371ee1bbb51a36c5416d4e08e30c00a8d",
+  "xcresult": "/tmp/gametime-finish-b7-evidence/m6-committed-historical-ui-accepted.xcresult",
+  "cases": [
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testBlockedContactStillAllowsSafeExitAtAccessibilitySize",
+      "status": "passed",
+      "seconds": 41.831
+    },
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testCorrectedNoticeReviewAndLostResponseRecovery",
+      "status": "passed",
+      "seconds": 23.213
+    },
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testCreateConsentReceiptAndLostResponseRecovery",
+      "status": "passed",
+      "seconds": 27.215
+    },
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testFinalResultKeepsSimulatedReturnSeparate",
+      "status": "passed",
+      "seconds": 13.568
+    },
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testGateOffDeclineWorksAtAccessibilityTextSize",
+      "status": "passed",
+      "seconds": 71.133
+    },
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testIncomingAcceptanceAndCancellationRetainHistory",
+      "status": "passed",
+      "seconds": 45.477
+    },
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testLinkOpensReviewWithoutConsentAndRejectsReplacement",
+      "status": "passed",
+      "seconds": 50.994
+    },
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testNormalPersonalLaunchHasNoDuelEntry",
+      "status": "passed",
+      "seconds": 6.725
+    },
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testRecordedReturnIsExplicitlySimulated",
+      "status": "passed",
+      "seconds": 16.957
+    },
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testRematchFreshConsentAndLinkRevocation",
+      "status": "passed",
+      "seconds": 37.08
+    },
+    {
+      "suite": "GameTimeUITests.DuelUITests",
+      "test": "testSummaryAndFullRulesDoNotAcceptInvitation",
+      "status": "passed",
+      "seconds": 25.599
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testAccountDeletionFailureRemainsVisibleAndRecoverable",
+      "status": "passed",
+      "seconds": 23.512
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testActiveStripeSandboxCancellationRetainsCancelledHistory",
+      "status": "passed",
+      "seconds": 17.729
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testAwaitingAndCompletedStripeSandboxChallengesCannotCancel",
+      "status": "passed",
+      "seconds": 17.397
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testCompletedAppleHealthPermissionCarriesIntoCreation",
+      "status": "passed",
+      "seconds": 37.162
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testCumulativeCreationOmitsFixedMetricAndStartSteps",
+      "status": "passed",
+      "seconds": 85.095
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testDemoEnvironmentDisclosureAcrossTabsAndVisibleCreationSheet",
+      "status": "passed",
+      "seconds": 37.306
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testDirtyCreationCloseUsesExactDiscardDialog",
+      "status": "passed",
+      "seconds": 17.54
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testExpiredReviewStatesOnlyThatTheRequestWindowEnded",
+      "status": "passed",
+      "seconds": 14.844
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testLegacyDiagnosticAndHoldStateStayOutOfPersonalV2UI",
+      "status": "passed",
+      "seconds": 39.371
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testLoadingEmptyAndOfflineStates",
+      "status": "passed",
+      "seconds": 23.867
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testMainModeCanStartNowAndExposeSyncNow",
+      "status": "passed",
+      "seconds": 84.275
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testNoDataStaleAndUploadDelayFixturesExplainProgressHonestly",
+      "status": "passed",
+      "seconds": 29.304
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testOnlyThreePersonalTabsAreReachable",
+      "status": "passed",
+      "seconds": 25.549
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testPaymentStatusCardCoversEveryAuthoritativeStateAndActionSet",
+      "status": "passed",
+      "seconds": 108.432
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testPaymentStatusManualRefreshMovesPendingToCharged",
+      "status": "passed",
+      "seconds": 13.396
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testPaymentStatusRefreshFailureKeepsStaleReviewAndDisablesReview",
+      "status": "passed",
+      "seconds": 11.748
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testPaymentStatusReviewCardSupportsAccessibilityXXXLAndReduceMotion",
+      "status": "passed",
+      "seconds": 13.634
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testPaymentStatusUnavailableRoutesToSupportWithoutPaymentRetry",
+      "status": "passed",
+      "seconds": 12.297
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testPendingCancellationFixturesStayActionableAndRouteToSupport",
+      "status": "passed",
+      "seconds": 25.817
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testPersonalDetailContainsLockedTermsAndNoCompetitiveLanguage",
+      "status": "passed",
+      "seconds": 26.327
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testPersonalDynamicTypeAccessibilityLabelsAndReduceMotion",
+      "status": "passed",
+      "seconds": 79.779
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testPersonalProgressReplacementFixturesStayConsistentAcrossSurfaces",
+      "status": "passed",
+      "seconds": 59.936
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testSandboxMetResultShowsZeroTestCharge",
+      "status": "passed",
+      "seconds": 13.423
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testSandboxMissingResultShowsZeroTestChargeAndGuarantee",
+      "status": "passed",
+      "seconds": 12.633
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testSavedSandboxPaymentRequestCanResumeAfterRelaunch",
+      "status": "passed",
+      "seconds": 68.986
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testScheduledAndCancelledFixturesUseLifecycleSpecificCopy",
+      "status": "passed",
+      "seconds": 31.336
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testSettingsKeepPrivacyHelpDocumentsAndAccountActionsReachable",
+      "status": "passed",
+      "seconds": 32.242
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testSignedOutAndPublicHandleOnboardingRoots",
+      "status": "passed",
+      "seconds": 13.8
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testStripeMissReviewUsesFixedReasonAndShowsSettlementPausedState",
+      "status": "passed",
+      "seconds": 26.186
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testStripeSandboxFlowUsesFixturePaymentAndExactConsent",
+      "status": "passed",
+      "seconds": 74.273
+    },
+    {
+      "suite": "GameTimeUITests.GameTimeUITests",
+      "test": "testTodayShowsAutomaticPersonalProgressTimeline",
+      "status": "passed",
+      "seconds": 34.639
+    },
+    {
+      "suite": "GameTimeUITests.PerformanceCommitmentUITests",
+      "test": "testAppendedSimulationIsSeparateAndNonredeemable",
+      "status": "passed",
+      "seconds": 12.075
+    },
+    {
+      "suite": "GameTimeUITests.PerformanceCommitmentUITests",
+      "test": "testChangingPreviewRequiresFreshConsent",
+      "status": "passed",
+      "seconds": 19.685
+    },
+    {
+      "suite": "GameTimeUITests.PerformanceCommitmentUITests",
+      "test": "testCorrectedResultReviewSurvivesLostResponseWithGateOff",
+      "status": "passed",
+      "seconds": 24.168
+    },
+    {
+      "suite": "GameTimeUITests.PerformanceCommitmentUITests",
+      "test": "testFinalResultDoesNotInventSimulatedReturnOrAllowExit",
+      "status": "passed",
+      "seconds": 13.049
+    },
+    {
+      "suite": "GameTimeUITests.PerformanceCommitmentUITests",
+      "test": "testGateOffSafeExitAtAccessibilitySize",
+      "status": "passed",
+      "seconds": 54.214
+    },
+    {
+      "suite": "GameTimeUITests.PerformanceCommitmentUITests",
+      "test": "testGoalConsentAndExactRecovery",
+      "status": "passed",
+      "seconds": 21.926
+    },
+    {
+      "suite": "GameTimeUITests.PerformanceCommitmentUITests",
+      "test": "testNormalPersonalLaunchHasNoRunningGoalEntry",
+      "status": "passed",
+      "seconds": 6.62
+    },
+    {
+      "suite": "GameTimeUITests.PerformanceCommitmentUITests",
+      "test": "testSummaryKeepsAmountAndFullRulesBeforeConsent",
+      "status": "passed",
+      "seconds": 16.56
+    }
+  ],
+  "previous_failed_batch_retained": "m6-final-historical-ui: 43 passes/seven failures",
+  "baseline_failed_batch_retained": "m6-legacy-baseline-seven: seven failures",
+  "focused_fix": "m6-legacy-query-fix-seven: seven passes, 382.704 seconds",
+  "collection_note": "Initial one-off collector rejected fully qualified suite names; corrected parser accounts for all 50 cases and agrees with XCTest totals."
+}

@@ -1,0 +1,24 @@
+{
+  "baseline": "577bc321e72750976e2e8027680387707070b0e3",
+  "candidate": "863776e87c62e899d987aedd664d983dfd19c911",
+  "historical_migration_blobs_checked": 55,
+  "historical_changes": [],
+  "forward_migrations": [
+    "supabase/migrations/20260908042918_challenge_steps_contract_v1.sql",
+    "supabase/migrations/20260908043438_challenge_steps_lifecycle_v1.sql",
+    "supabase/migrations/20260908044558_challenge_request_recovery_v1.sql",
+    "supabase/migrations/20260908050105_challenge_policy_matrix_v1.sql",
+    "supabase/migrations/20260908050701_challenge_community_entry_v1.sql",
+    "supabase/migrations/20260908050901_challenge_access_links_safety_v1.sql",
+    "supabase/migrations/20260908051945_challenge_contract_hardening_v1.sql",
+    "supabase/migrations/20260908052202_challenge_native_commands_v1.sql",
+    "supabase/migrations/20260908053125_challenge_projection_details_v1.sql",
+    "supabase/migrations/20260908053941_challenge_entrant_rejection_v1.sql",
+    "supabase/migrations/20260908054225_challenge_home_sections_v1.sql",
+    "supabase/migrations/20260908062409_challenge_operations_v1.sql",
+    "supabase/migrations/20260908071000_challenge_review_context_v1.sql",
+    "supabase/migrations/20260908075000_challenge_reopened_projection_v1.sql"
+  ],
+  "local_main_is_ancestor": true,
+  "scope": "Local git object comparison, independent from original byte/status/database identity check"
+}

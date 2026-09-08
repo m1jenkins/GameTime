@@ -1,0 +1,16 @@
+{
+  "candidate": "5436836c1fb19f1a65eb12b0766870f2b7242e20",
+  "scheme": "GameTimeBetaLocal",
+  "configuration": "Debug",
+  "path": "/tmp/gametime-finish-b7-derived/Build/Products/Debug-iphonesimulator/GameTime.app",
+  "bundle": "com.mjenkins.gametime.staging",
+  "simulator": "72A3249A-2DE0-4695-AF41-DCD2743B4666",
+  "build_and_test_exit": 0,
+  "sha256": {
+    "GameTime": "72609dce82eb4e7851d14417c04b8250c7382f00cb1d644a3b4c4f54289c5de4",
+    "Info.plist": "c1ce75bd76643e8747f674ac9ba04b9c63763897245fdf3812459f96fb67d2c7",
+    "GameTime.debug.dylib": "c7f1ac3c9c077808647abe366b66c01b16333a0d2707ab6cb03528a561205caf"
+  },
+  "launch_instructions": "docs/BETA_LOCAL_PREVIEW.md",
+  "release": "Unsigned device build in release-build.json remains byte-identical; not installed or distributed"
+}

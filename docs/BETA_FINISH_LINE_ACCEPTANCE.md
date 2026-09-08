@@ -4,6 +4,11 @@ Authority: D134 and [Beta implementation plan](BETA_IMPLEMENTATION_PLAN.md).
 Execution scope: authorized local milestones in [roadmap](BETA_FINISH_LINE_ROADMAP.md).
 Nothing here accepts physical sources, hosted operations, distribution or money.
 
+**Local delivery ready:** all dependency-ready authorized work is implemented and
+verified. All 50 committed historical UI tests passed after the documented test-only
+correction. External physical/product/human gates below remain open and disabled.
+See [morning walkthrough](BETA_LOCAL_PREVIEW.md) and [handoff](BETA_FINISH_LINE_HANDOFF.md).
+
 ## Baseline and preservation
 
 - Branch `fm/gametime-beta-finish-b7`, launched worktree `/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta`.
@@ -17,13 +22,13 @@ Nothing here accepts physical sources, hosted operations, distribution or money.
 
 | Milestone | Implemented | Executed verification | Remaining dependency / next task |
 | --- | --- | --- | --- |
-| M0 | Inherited checkpoint and isolation inventory | 101 SHA-256 comparisons, path checks | Maintain current handoff; verify original again at completion |
+| M0 | Inherited checkpoint and isolation inventory | 101 SHA-256 comparisons, path checks | Terminal source/status/HEAD/database identity check passed; see preservation-final.json |
 | M1 | Debug-only private investigation, explicit opt-in, volatile records, session/background clearing, stale read rejection; app-delegate observer exclusion | 10 focused native tests passed after reproducing both launch exclusions failing; Debug build/private UI inspected | [Physical instructions](BETA_SOURCE_INVESTIGATION.md); every physical row unperformed |
 | M2 | Separate versioned thirteen-policy contract, forward migrations, immutable agreements and bounded operations | 264 new-domain SQL assertions included in committed portable gate: 3,840 SQL / 82 files, 835 Deno, 113 core Swift and persisted weekly smoke | Real ingestion depends on accepted sources |
 | M3 | Local opt-in shell, exact recovery/abandonment, complete steps journey and stable private Home sections | Two- and six-person authenticated native HTTP + focused SwiftUI touch through exact final history; section/auth/expiry regressions pass | Four-mode automated accessibility preparation passed; physical/replacement and human acceptance remain external |
 | M4 | All thirteen policies, private personal/community, selectors, age/link entry, safety and concurrent admission | All thirteen native HTTP correction/review/paused-exit/final flows; SQL admission/context; 15 real concurrency checks | Native block-response recovery and nonfriend reconsent passed; actual URL/relaunch/sign-in/age/pending entry passed; real sources/community settings unaccepted |
 | M5 | Disabled | No physical evidence | All four accepted policies; timed tolerance decision |
-| M6 | Scoped operator/worker/recovery, local disclosures and preview/rollout tooling | 11 authenticated CLI checks; 19 operations SQL; 388 broad native unit passes (4 controller skips); unsigned Release build | Four-mode unfiltered accessibility and preview/URL entry passed; latest two/six touch and 392-test native suite passed (4 skips); historical UI rerun in progress; physical/human/support external |
+| M6 | Scoped operator/worker/recovery, local disclosures and preview/rollout tooling | 11 authenticated CLI checks; 19 operations SQL; 388 broad native unit passes (4 controller skips); unsigned Release build | Four-mode unfiltered accessibility and preview/URL entry passed; latest two/six touch and 392-test native suite passed (4 skips); all 50 committed historical UI tests and separate historical native controllers passed; physical/human/support external |
 | M7 | Release/host association template, replacement inventory, disable/recovery sequence prepared | Unsigned Release excludes new local shell/investigation; original 101 source hashes/status/DB identity rechecked | No replacement, hosted wiring/deploy or deletion until physical/replacement/owner approval |
 | M8 | Disabled | None | Separate distribution/recruitment authorization |
 
@@ -62,6 +67,10 @@ Every real source remains disabled. The following rows describe fictional new-co
 - No pipeline: local-only brief explicitly excludes it. No shared daemon operation.
 
 ## Executed runs
+
+The entries below preserve each historical checkpoint, including work then pending
+or running. Later results supersede those intermediate statuses; the milestone
+table and terminal verification section describe the final local state.
 
 - M1: `xcodebuild test -project ios/GameTime/GameTime.xcodeproj -scheme GameTime -configuration Debug -destination "platform=iOS Simulator,id=72A3249A-2DE0-4695-AF41-DCD2743B4666" -derivedDataPath /tmp/gametime-finish-b7-derived -parallel-testing-enabled NO -only-testing:GameTimeTests/SourceInvestigationTests -only-testing:GameTimeTests/WeeklyHealthSourceProbeTests CODE_SIGNING_ALLOWED=NO`: 3 tests, zero failures. This is native Simulator software evidence, not physical-source acceptance.
 - Disposable stack `gametime-finish-b7`, `/tmp/gametime-finish-b7-stack`, API 58321 / database 58322. Created from tracked inputs; no inherited credentials or storage. Start output with local credentials is restricted to mode 0600 and must not be committed.
@@ -226,7 +235,7 @@ unit host, without historical product or Watch services. Historical schemes and
 default navigation are unchanged. Debug-only Health purpose copy now explains the
 private exercise/workout investigation; Release/Staging legacy purpose is unchanged.
 
-## Active M6 accessibility and release preparation
+## Historical M6 accessibility and release preparation checkpoint
 
 The dedicated normal/largest unfiltered XCTest audits are deliberately still
 **failing**, not waived. Normal-size diagnostics found the Home empty-description
@@ -456,7 +465,7 @@ duel/performance runs below.
 Skips are not passes.
 Evidence `native-units-final.json` and `m6-final-native-units.xcresult`.
 
-## Historical regression follow-up (active; not acceptance)
+## Historical regression follow-up (resolved by committed rerun below)
 
 The historical UI batch on `60d2e6d` finished with **50 executed, 43 passed and
 seven failures**, 1582.711 seconds, normal exit 65. Failures were exact queries for
@@ -477,8 +486,8 @@ fixtures and contain no physical Health records.
 A TEST-ONLY query helper accommodates casing for the same four complete labels,
 retaining the static-text element kind and every downstream assertion. Focused
 seven-test validation passed all seven tests, zero failures, 382.704 seconds;
-full committed historical rerun follows.
-`legacy-health-heading` remains open until verification completes. See
+the full committed rerun then passed all 50 tests as recorded below.
+`legacy-health-heading` is resolved locally. See
 `legacy-label-observations.json` for actual observations, baseline and evidence.
 
 Prepared additional old duel/performance authenticated checks because their two
@@ -509,7 +518,39 @@ false, allowlists empty, owned sessions/refresh tokens zero and open slots zero.
 The old weekly stack is stopped with its volume backup retained after verification.
 These are fictional local backend/Swift evidence, not physical-source acceptance.
 
-The full 50-case historical UI rerun is running from committed `5436836`, after
-all seven focused query corrections passed. Log/bundle:
-`m6-committed-historical-ui-accepted`; its filename is not a success claim while
-execution remains in progress. Original seven failures and baseline are retained.
+The full 50-case historical UI rerun PASSED from committed `5436836`: **50 tests,
+zero failures, 1639.927 seconds**, exit 0. All seven focused query corrections had
+passed first. Log/bundle: `m6-committed-historical-ui-accepted`; the individual cases,
+exact command and log hash are in `historical-ui-final.json`. Original seven
+failures and baseline remain retained. No production heading/state behavior changed.
+
+
+Local git-object preservation check on `863776e`: all **55 historical migration
+blobs are unchanged**, with 14 new forward migrations. `main` is still baseline
+577bc32 and an ancestor. This is recorded in `migration-preservation.json`,
+separately from the original source/database identity check. Seven handoff/runbook
+Markdown files also passed 26 local-link existence checks; all Beta Python scripts
+parsed successfully. These are structural checks, not product/device tests.
+
+
+## Terminal local verification
+
+The working Debug Simulator build was produced by the successful committed full
+UI command; its executable/dylib/plist hashes are in `debug-build-final.json`.
+The unsigned Release device executable still matches the separately tested
+Release hash. No product edits followed that build. No physical installation or
+distribution occurred. The preview launcher and exact morning guide remain usable.
+
+At 2026-09-08T10:48Z, the original HEAD, exact status, all **101 source hashes** and
+original database container/volume/start identity matched. This is a read-only
+identity check, not a database content snapshot. The 5832x runtime has all ten
+gates off, no actors or fictional clock; all 18 external readiness gates remain
+false. Local monitoring reported due/notice-overdue/review-overdue/recent-failure
+counts zero. The second 5632x stack is stopped with its backup retained, both
+controller ports are free, and credential manifests are removed.
+
+M0, M1 tooling, M2–M4 and dependency-ready local M6/preparation work are delivered. Physical M1,
+M5 real ingestion, human M6 acceptance and M7/M8 activation remain incomplete for
+the explicit dependencies in the handoff. There is no remaining authorized,
+dependency-ready local implementation task. Historical default navigation,
+applied agreements, source restrictions and simulation/Release boundaries remain.
