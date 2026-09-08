@@ -487,8 +487,7 @@ struct ChallengeV1Detail: View {
     }
     @ViewBuilder private func lobby(_ row:ChallengeV1)->some View {
         if row.format.hasTarget && row.own(store.actor)?.exited == false {
-            Text(row.format.metric.targetPrompt).font(.headline)
-            TextField(row.format.metric.targetPrompt,text:$target).keyboardType(.numbersAndPunctuation).textFieldStyle(.roundedBorder).accessibilityIdentifier("beta.target.input")
+            TextField(row.format.metric.targetPrompt,text:$target).keyboardType(.numbersAndPunctuation).textFieldStyle(.roundedBorder).accessibilityLabel(row.format.metric.targetPrompt).accessibilityIdentifier("beta.target.input")
             if !target.isEmpty && row.format.metric.parse(target) == nil { Text(row.format.metric.inputHelp).font(.subheadline) }
             Button("Propose my goal") { Task { if let value=row.format.metric.parse(target) { await store.submit(op:"target",challenge:row,fields:["target":.integer(value)]) } } }.disabled(!canAct || row.format.metric.parse(target)==nil).accessibilityIdentifier("beta.target.submit")
         }
