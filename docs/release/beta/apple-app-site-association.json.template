@@ -1,0 +1,8 @@
+{
+  "applinks": {
+    "details": [{
+      "appIDs": ["REQUIRES_APPROVED_TEAM_ID.REQUIRES_APPROVED_RELEASE_BUNDLE_ID"],
+      "components": [{"/": "/challenge-invite/*", "comment": "Opaque invitation; no participant data before authenticated redemption and age confirmation"}]
+    }]
+  }
+}

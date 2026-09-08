@@ -1,7 +1,7 @@
 # Beta finish-line handoff — b7
 
 Worktree: `/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta`.
-Branch: `fm/gametime-beta-finish-b7`; latest checkpoint `e9e0ee3`.
+Branch: `fm/gametime-beta-finish-b7`; latest checkpoint `73cf99b`.
 Authority: D134, [Beta plan](BETA_IMPLEMENTATION_PLAN.md),
 [roadmap](BETA_FINISH_LINE_ROADMAP.md). See [acceptance](BETA_FINISH_LINE_ACCEPTANCE.md)
 for implemented versus executed evidence and historical failed runs.
@@ -9,22 +9,26 @@ This task is **still active**. Do not stop at the completed native matrix.
 
 ## Next executable work
 
-1. Local operations and all-policy review/exit expansion have passed. See
-   [operator runbook](BETA_OPERATIONS_LOCAL.md), 11 authenticated CLI checks and
-   19 operations SQL assertions. Commit this slice and run its portable gate.
-2. Broad native units passed 385 with 4 explicit controller skips on the new
-   isolated `GameTimeBetaLocal` scheme; preserve the historical native fixtures.
-3. Complete accessibility preparation (compact layout, large text, light/dark,
-   reduced motion, automated audit) and broad historical native/Release builds.
-   Physical VoiceOver/assistive control and human comprehension remain separate.
-4. Prepare new-product privacy/terms, approved-host link association template,
-   rollout/disable instructions and exact external questions. Do not publish.
-5. Add a usable foreground local preview launcher with fictional accounts, safe
-   fixture clock/progress controls, cleanup, exact launch instructions and a
-   short morning walkthrough.
-6. Run the full committed candidate gates, original source/hash/database identity
-   preservation check, and ensure a clean branch fast-forward onto local `main`.
-   Continue all other dependency-ready authorized roadmap work before `done:`.
+1. Finish the active native accessibility defect. Unfiltered audits still fail;
+   see acceptance for disconfirming runs and exported largest-size screenshots.
+   Latest light run: `m6-a11y-light-full-diagnostic.log`. Stacked controls alone
+   did not prove a fix. Inspect wrapping/scaling at normal and AX5, and preserve
+   every unfiltered finding. Firstmate inbox 003 authorizes local correction.
+2. Run expanded native safety (report and a genuinely lost block response) and
+   the new foreground preview launcher with account switching/clock/cleanup.
+3. Complete light/dark/large/compact and usable increment/decrement preparation,
+   then broad historical UI regressions and the latest Debug/Release build.
+4. Commit current disclosures/rollout/13 admission-context assertions and execute
+   the portable gate from that candidate. Last committed gate already passed
+   3,819 SQL / 80 files, 835 Deno, 113 core and weekly persisted smoke.
+5. Reconcile top milestone/per-policy rows with final evidence, repeat source /
+   database identity preservation check and ensure clean fast-forward to local main.
+   Continue all dependency-ready authorized work before terminal `done:`.
+
+External privacy/support/retention/domain/community questions are retained in
+captain task `gametime-beta-release-readiness-b7`; physical/tolerance questions in
+`gametime-beta-source-acceptance-b7`. No approvals. Local preview instructions and
+rollout/association/disclosure drafts are now authored and linked from acceptance.
 
 ## Implemented and executed
 

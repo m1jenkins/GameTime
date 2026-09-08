@@ -19,33 +19,33 @@ Nothing here accepts physical sources, hosted operations, distribution or money.
 | --- | --- | --- | --- |
 | M0 | Inherited checkpoint and isolation inventory | 101 SHA-256 comparisons, path checks | Maintain current handoff; verify original again at completion |
 | M1 | Debug-only separate investigation launch, explicit opt-in, volatile records, session/background clearing, stale read rejection | 3 native tests passed; Debug build. `/tmp/gametime-finish-b7-evidence/m1-native.log` | [Physical instructions](BETA_SOURCE_INVESTIGATION.md); every physical row unperformed |
-| M2 | Versioned lobby/terms/consent/slots, corrections, review/finals, safe exits; matrix extended in M4 | 162 new-domain SQL assertions; full portable gate passed at fd1e4cb | Multi-session concurrency verification remains |
-| M3 | Local opt-in Home/Challenges/You, typed client, actor-bound exact recovery and abandonment, steps lobby/consent/progress/review/finals, own exact-value chart, safe exits | 7 selected native tests + 1 authenticated UI test passed; production HTTP two/six journeys and paused cancellation/leave | Partial-section projection/cursors, broader native safety and accessibility remain |
-| M4 | All 13 backend policies, native selectors and private personal/community flows, age/links/safety | 162 new-domain SQL assertions and production native HTTP lifecycle for all 13; unit conversion/intent tests pass | Touch two/six completion, expanded native entry/safety, concurrency and per-policy recovery |
+| M2 | Separate versioned thirteen-policy contract, forward migrations, immutable agreements and bounded operations | 256 new-domain SQL assertions executed locally; last committed portable gate 3,819 SQL / 80 files | Latest 13 SQL assertions still need committed portable rerun; real ingestion blocked |
+| M3 | Local opt-in shell, exact recovery/abandonment, complete steps journey and stable private Home sections | Two- and six-person authenticated native HTTP + focused SwiftUI touch through exact final history; section/auth/expiry regressions pass | Physical/replacement and final accessibility acceptance remain external or in progress |
+| M4 | All thirteen policies, private personal/community, selectors, age/link entry, safety and concurrent admission | All thirteen native HTTP correction/review/paused-exit/final flows; SQL admission/context; 15 real concurrency checks | Final expanded native block-response recovery rerun pending; real sources/community settings unaccepted |
 | M5 | Disabled | No physical evidence | All four accepted policies; timed tolerance decision |
-| M6 | Local operator/monitor/recovery workflow implemented | 11 authenticated CLI checks; 19 operations SQL assertions; 385 native unit passes (4 skips) | Physical/human/accessibility/support acceptance separate |
-| M7 | Preparation only authorized | None | Physical/replacement acceptance; separate hosted approval |
+| M6 | Scoped operator/worker/recovery, local disclosures and preview/rollout tooling | 11 authenticated CLI checks; 19 operations SQL; 385 broad native unit passes (4 skips); unsigned Release build | Unfiltered accessibility audit currently fails; preview execution and historical UI reruns still pending; physical/human/support external |
+| M7 | Release/host association template, replacement inventory, disable/recovery sequence prepared | Unsigned Release excludes new local shell/investigation; original 101 source hashes/status/DB identity rechecked | No replacement, hosted wiring/deploy or deletion until physical/replacement/owner approval |
 | M8 | Disabled | None | Separate distribution/recruitment authorization |
 
 ## Per-policy ledger
 
-Every real source remains disabled. The following rows describe fictional new-contract software verification only. Historical weekly counts are separate. The matrix client run is recorded in `m4-native-http.log`; physical normalization is not established by canonical fictional input.
+Every real source remains disabled. The following rows describe fictional new-contract software verification only. Historical weekly counts are separate. The expanded matrix run is recorded in `m6-native-all-policy-review-exit.log`; physical normalization is not established by canonical fictional input.
 
 | Policy | Backend/native | Readiness/normalization | Ranking/qualification | Correction/review/exit/allocation | Physical |
 | --- | --- | --- | --- | --- | --- |
-| friend goal · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
-| friend goal · Exercise | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
-| friend goal · distance | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
-| friend goal · timed | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Tolerance unapproved |
-| friend leaderboard · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
-| friend leaderboard · Exercise | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
-| friend leaderboard · distance | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
-| friend leaderboard · timed | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Tolerance unapproved |
-| personal goal · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
-| personal goal · Exercise | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
-| personal goal · distance | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
-| personal goal · timed | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Tolerance unapproved |
-| community goal · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Settings unapproved |
+| friend goal · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
+| friend goal · Exercise | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
+| friend goal · distance | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
+| friend goal · timed | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Tolerance unapproved |
+| friend leaderboard · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
+| friend leaderboard · Exercise | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
+| friend leaderboard · distance | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
+| friend leaderboard · timed | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Tolerance unapproved |
+| personal goal · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
+| personal goal · Exercise | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
+| personal goal · distance | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
+| personal goal · timed | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Tolerance unapproved |
+| community goal · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Settings unapproved |
 
 ## External gates
 
@@ -224,3 +224,44 @@ are not relabeled as passes. The scheme launches only the local opt-in shell in 
 unit host, without historical product or Watch services. Historical schemes and
 default navigation are unchanged. Debug-only Health purpose copy now explains the
 private exercise/workout investigation; Release/Staging legacy purpose is unchanged.
+
+## Active M6 accessibility and release preparation
+
+The dedicated normal/largest unfiltered XCTest audits are deliberately still
+**failing**, not waived. Normal-size diagnostics found the Home empty-description
+contrast and default Form header contrast (corrected), then partial Dynamic Type
+findings on the Starts label, explanatory body, simulated amount and Close toolbar
+control. Explicit body fonts and stacked steppers alone did not establish a fix.
+Largest-size traversal initially needed test scrolling to reach a lazily created
+sign-in button. The subsequent full diagnostic traversed creation successfully but
+reported the menu format label clipped, the Close control's scaling and contrast
+under the floating tab bar for partially visible Home/detail text. Full logs:
+`m6-a11y-light-controls.log`, `m6-a11y-light-body.log`,
+`m6-a11y-light-stacked.log`, `m6-a11y-light-native-navigation.log`,
+`m6-a11y-largest-diagnostic.log`, `m6-a11y-largest-full-diagnostic.log`.
+Screenshots exported under `a11y-largest-all/` are fictional Simulator evidence.
+A compact large-text card, shorter format label and icon-only Close are later
+hypotheses still awaiting unfiltered acceptance. No audit type/finding is suppressed.
+
+SQL 498 passed **13 new assertions**, including prior-review/future activity
+admission, friend/community overlap and aggregate limit, unknown community minimum
+refunds, and narrowly scoped/expiring target-free operator case context. Its first
+fixture attempt failed because community processing had not opened the active
+window before capture; adding that explicit lifecycle step fixed the fixture.
+No production relaxation was made. New-domain total is now **256**.
+
+Committed `73cf99b` portable gate passed **3,819 SQL / 80 files**, 835 Deno,
+113 core and persisted historical weekly smoke in `/tmp/gametime-weekly-verify.Qy7n5SXM`.
+The unsigned Release device build passed (`m6-release-build.log`); binary/private
+text inspection is in `release-build.json`. This was not installed or distributed.
+Original HEAD, exact 101-path porcelain, 101 inherited byte hashes and original
+DB container/start/volume identity still match (`preservation-final.json`); repeat
+that read-only check at terminal handoff.
+
+[Local preview instructions](BETA_LOCAL_PREVIEW.md), [new privacy/terms draft](BETA_PRIVACY_TERMS_DRAFT.md)
+and [rollout preparation](BETA_ROLLOUT_PREPARATION.md) are authored. The preview
+launcher still needs actual launch/account-switch/cleanup verification. Inbox 002
+retains external identity/retention/domain/community questions in captain-held
+`gametime-beta-release-readiness-b7`; source acceptance is separately captain-held.
+No answer or approval is inferred. Inbox 003 authorizes continued local Dynamic
+Type diagnosis; acceptance stays failed until a passing rerun exists.

@@ -1,0 +1,9 @@
+{
+  "checked_at": "2026-09-08T07:11:59.294667+00:00",
+  "original_head": "577bc321e72750976e2e8027680387707070b0e3",
+  "source_files_checked": 101,
+  "source_status_matches": true,
+  "database_identity_matches": true,
+  "failures": [],
+  "limit": "Read-only byte/status/container identity verification; not a content snapshot or proof of unrelated external database activity."
+}

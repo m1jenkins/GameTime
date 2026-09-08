@@ -1,0 +1,25 @@
+{
+  "contract": "challenge_v1",
+  "scope": "local-only",
+  "money": "simulated_nonredeemable",
+  "gates": {
+    "steps_source_accepted": false,
+    "exercise_source_accepted": false,
+    "distance_source_accepted": false,
+    "timed_source_accepted": false,
+    "real_ingestion": false,
+    "human_comprehension": false,
+    "physical_accessibility": false,
+    "monitored_support": false,
+    "privacy_terms_approved": false,
+    "retention_deletion_approved": false,
+    "hosted_domain_approved": false,
+    "community_settings_approved": false,
+    "legacy_replacement_approved": false,
+    "hosted_deployment_authorized": false,
+    "distribution_authorized": false,
+    "recruitment_authorized": false,
+    "real_money_authorized": false,
+    "analytics": false
+  }
+}

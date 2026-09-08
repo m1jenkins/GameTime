@@ -1,0 +1,8 @@
+{
+  "evidence": "unsigned local Release device build, not installed/distributed",
+  "bundle": "com.mjenkins.gametime",
+  "private_debug_symbols_and_text_absent": true,
+  "source_check_string_absent": true,
+  "health_purpose_is_historical_steps_only": true,
+  "executable_sha256": "7d2cefe480df6971c2b4c9dd9448b4f1533f687016a8fd84395fad6da7da6a08"
+}
