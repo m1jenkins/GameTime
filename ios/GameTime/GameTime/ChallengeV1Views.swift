@@ -261,7 +261,9 @@ struct ChallengeV1Detail: View {
                         }
                     }
                     ForEach(row.reviews) { review in
-                        Text(review.decision == nil ? "Your review request is saved. We’re checking your result." : "Review complete. Refresh for the latest result.")
+                        Text(review.decision != nil ? "Review complete. Refresh for the latest result." :
+                             row.serverTime >= review.resolveBy ? "Review time has ended. Refresh to see your updated result and simulated return." :
+                             "Your review request is saved. We’re checking your result.")
                     }
                     if let final=row.final {
                         Text("Result confirmed").font(.title2.bold())

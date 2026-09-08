@@ -51,7 +51,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>GameTime automatically reads Apple Health step counts for your active challenge and its 24-hour finalization period, including updates from your available Health sources while excluding entries Apple marks as manually entered.</string>
+	<string>GameTime automatically reads Apple Health step counts for your active challenge and its 24-hour finalization period, including updates from your available Health sources while excluding entries Apple marks as manually entered. The optional private activity check can also read exercise time and running workouts. Those check records stay on this phone and are cleared when you leave the check.</string>
 	<key>SUPABASE_PUBLISHABLE_KEY</key>
 	<string>$(SUPABASE_PUBLISHABLE_KEY)</string>
 	<key>SUPABASE_URL</key>

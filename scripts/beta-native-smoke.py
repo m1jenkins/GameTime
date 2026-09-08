@@ -165,7 +165,7 @@ def main():
     running=False
     try:
         smoke.setup();threading.Thread(target=server.serve_forever,daemon=True).start();running=True
-        command=['xcodebuild','test','-project','ios/GameTime/GameTime.xcodeproj','-scheme','GameTime','-configuration','Debug','-destination',f'platform=iOS Simulator,id={OWNED_SIM}','-derivedDataPath','/tmp/gametime-finish-b7-derived','-parallel-testing-enabled','NO','-only-testing:GameTimeTests/ChallengeV1NativeSmokeTests','-only-testing:GameTimeTests/ChallengeV1NativeTests','-only-testing:GameTimeTests/ChallengePolicyTests','-only-testing:GameTimeTests/ChallengeSectionTests','-only-testing:GameTimeTests/WeeklySocialRefreshAuthRaceTests','CODE_SIGNING_ALLOWED=NO']
+        command=['xcodebuild','test','-project','ios/GameTime/GameTime.xcodeproj','-scheme','GameTimeBetaLocal','-configuration','Debug','-destination',f'platform=iOS Simulator,id={OWNED_SIM}','-derivedDataPath','/tmp/gametime-finish-b7-derived','-parallel-testing-enabled','NO','-only-testing:GameTimeTests/ChallengeV1NativeSmokeTests','-only-testing:GameTimeTests/ChallengeV1NativeTests','-only-testing:GameTimeTests/ChallengePolicyTests','-only-testing:GameTimeTests/ChallengeSectionTests','-only-testing:GameTimeTests/WeeklySocialRefreshAuthRaceTests','CODE_SIGNING_ALLOWED=NO']
         assert not (args.native_only and args.touch_only)
         if args.touch_only:
             command=[x for x in command if not x.startswith('-only-testing:')]

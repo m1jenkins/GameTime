@@ -155,60 +155,7 @@ import XCTest
     func matrix(_ sdk: SupabaseClient, _ store: ChallengeV1Store, _ client: SupabaseChallengeV1Client) async throws {
         var completed = Set<String>()
         for policy in ChallengeV1Policy.all {
-            try await control(["action": "clock", "now": "2026-10-01T12:00:00Z"])
-            try await login(0, sdk, store)
-            var conf: [String: ChallengeJSON] = ["start_date": .string("2026-10-03"), "days": .integer(1), "timezone": .string("UTC"), "amount_cents": .integer(100)]
-            if policy.metric == .timed { conf["distance_mm"] = .integer(1_609_344) }
-            let configJSON = ChallengeJSON.object(conf)
-            let id: UUID
-            if policy.mode == .personal {
-                let preview = try await client.read("challenge_personal_preview_v1", fields: ["p_policy": .string(policy.id), "p_config": configJSON, "p_target": .integer(100)], actor: config.actors[0].id, as: ChallengeV1.Agreement.self)
-                await store.submit(op: "personal_commit", fields: ["policy": .string(policy.id), "config": configJSON, "target": .integer(100), "digest": .string(preview.digest), "consent": .bool(true)])
-                XCTAssertNil(store.pending, store.error ?? policy.id)
-                id = try XCTUnwrap(store.lastReceipt?.id)
-            } else if policy.mode == .community {
-                try await control(["action": "community"])
-                for i in 0...1 {
-                    try await login(i, sdk, store)
-                    let catalog = try await client.read("challenge_community_catalog_v1", actor: config.actors[i].id, as: [ChallengeV1Community].self)
-                    let cohort = try XCTUnwrap(catalog.first)
-                    await store.submit(op: "join_community", fields: ["id": .string(cohort.id.uuidString.lowercased()), "digest": .string(cohort.digest), "consent": .bool(true)])
-                    XCTAssertNil(store.pending, store.error ?? policy.id)
-                }
-                id = try XCTUnwrap(store.lastReceipt?.id)
-            } else {
-                await store.submit(op: "create", fields: ["policy": .string(policy.id), "config": configJSON])
-                XCTAssertNil(store.pending, store.error ?? policy.id)
-                id = try XCTUnwrap(store.lastReceipt?.id)
-                var row = try await client.detail(id, actor: config.actors[0].id)
-                if policy.hasTarget {
-                    await store.submit(op: "target", challenge: row, fields: ["target": .integer(100)])
-                    row = try await client.detail(id, actor: config.actors[0].id)
-                }
-                await store.submit(op: "invite", challenge: row, fields: ["username": .string(config.actors[1].username)])
-                try await login(1, sdk, store)
-                if policy.hasTarget {
-                    row = try await client.detail(id, actor: config.actors[1].id)
-                    await store.submit(op: "target", challenge: row, fields: ["target": .integer(100)])
-                }
-                try await login(0, sdk, store)
-                row = try await client.detail(id, actor: config.actors[0].id)
-                await store.submit(op: "select", challenge: row, fields: ["actor_id": .string(config.actors[1].id.uuidString.lowercased()), "selected": .bool(true)])
-                row = try await client.detail(id, actor: config.actors[0].id)
-                await store.submit(op: "freeze", challenge: row)
-                for i in 0...1 {
-                    try await login(i, sdk, store)
-                    row = try await client.detail(id, actor: config.actors[i].id)
-                    if !policy.hasTarget {
-                        XCTAssertTrue(row.members.allSatisfy { $0.target == nil })
-                        if case .array(let people) = row.agreement?.terms?["participants"] {
-                            XCTAssertTrue(people.allSatisfy { $0["target"] == nil }, "Leaderboards have no target fields in the agreement")
-                        } else { XCTFail("Missing complete agreement") }
-                    }
-                    await store.submit(op: "consent", challenge: row, fields: ["digest": .string(try XCTUnwrap(row.agreement?.digest)), "consent": .bool(true)])
-                    XCTAssertNil(store.pending, store.error ?? policy.id)
-                }
-            }
+            let id = try await createPolicy(policy, sdk, store, client)
             try await control(["action": "clock", "now": "2026-10-03T12:00:00Z"])
             try await control(["action": "process", "id": id.uuidString])
             for i in 0..<(policy.mode == .personal ? 1 : 2) {
@@ -228,16 +175,90 @@ import XCTest
                 XCTAssertEqual(row.members.count, 1); XCTAssertNil(row.creatorId)
                 XCTAssertNil(row.notice?.result?.participants); XCTAssertNotNil(row.notice?.result?.own)
             }
+            await store.submit(op: "review", challenge: row, fields: ["notice_revision": .integer(try XCTUnwrap(row.notice?.revision)), "reason": .string("wrong_result")])
+            XCTAssertNil(store.pending, store.error ?? policy.id)
+            row = try await client.detail(id, actor: config.actors[0].id)
+            let review = try XCTUnwrap(row.reviews.first)
+            XCTAssertEqual(review.resolveBy, try ChallengeInstant("2026-10-13T12:00:00Z"), policy.id)
+            try await control(["action": "resolve", "review": review.id.uuidString])
             try await control(["action": "clock", "now": "2026-10-12T12:00:00Z"])
             try await control(["action": "process", "id": id.uuidString])
             row = try await client.detail(id, actor: config.actors[0].id)
             XCTAssertNotNil(row.final, policy.id)
             let own = row.final?.result.own ?? row.final?.result.participants?[config.actors[0].id.uuidString.lowercased()]
             XCTAssertEqual(own?.status, !policy.hasTarget ? "winner" : policy.metric == .timed ? "met" : "missed", policy.id)
+            let exitID = try await createPolicy(policy, sdk, store, client)
+            try await control(["action": "clock", "now": "2026-10-03T12:00:00Z"])
+            try await control(["action": "process", "id": exitID.uuidString])
+            try await login(0, sdk, store)
+            let beforeExit = try await client.detail(exitID, actor: config.actors[0].id)
+            try await control(["action": "clock", "now": "2026-10-03T12:00:00Z", "admission": false, "processing": false])
+            await store.submit(op: "leave", challenge: beforeExit)
+            XCTAssertNil(store.pending, store.error ?? policy.id)
+            let afterExit = try await client.detail(exitID, actor: config.actors[0].id)
+            XCTAssertTrue(afterExit.isClosed, policy.id)
+            XCTAssertEqual(afterExit.final?.result.own?.returnedCents, 100, "Safe paused exit: " + policy.id)
             completed.insert(policy.id)
         }
         XCTAssertEqual(completed.count, 13, "Every exact policy traversed the production native HTTP client")
         try await entry(sdk, store, client)
+    }
+    func createPolicy(_ policy: ChallengeV1Policy, _ sdk: SupabaseClient, _ store: ChallengeV1Store, _ client: SupabaseChallengeV1Client) async throws -> UUID {
+        try await control(["action": "clock", "now": "2026-10-01T12:00:00Z"])
+        try await login(0, sdk, store)
+        var conf: [String: ChallengeJSON] = ["start_date": .string("2026-10-03"), "days": .integer(1), "timezone": .string("UTC"), "amount_cents": .integer(100)]
+        if policy.metric == .timed { conf["distance_mm"] = .integer(1_609_344) }
+        let configJSON = ChallengeJSON.object(conf)
+        let id: UUID
+        if policy.mode == .personal {
+            let preview = try await client.read("challenge_personal_preview_v1", fields: ["p_policy": .string(policy.id), "p_config": configJSON, "p_target": .integer(100)], actor: config.actors[0].id, as: ChallengeV1.Agreement.self)
+            await store.submit(op: "personal_commit", fields: ["policy": .string(policy.id), "config": configJSON, "target": .integer(100), "digest": .string(preview.digest), "consent": .bool(true)])
+            XCTAssertNil(store.pending, store.error ?? policy.id)
+            id = try XCTUnwrap(store.lastReceipt?.id)
+        } else if policy.mode == .community {
+            try await control(["action": "community"])
+            for i in 0...1 {
+                try await login(i, sdk, store)
+                let catalog = try await client.read("challenge_community_catalog_v1", actor: config.actors[i].id, as: [ChallengeV1Community].self)
+                let cohort = try XCTUnwrap(catalog.first)
+                await store.submit(op: "join_community", fields: ["id": .string(cohort.id.uuidString.lowercased()), "digest": .string(cohort.digest), "consent": .bool(true)])
+                XCTAssertNil(store.pending, store.error ?? policy.id)
+            }
+            id = try XCTUnwrap(store.lastReceipt?.id)
+        } else {
+            await store.submit(op: "create", fields: ["policy": .string(policy.id), "config": configJSON])
+            XCTAssertNil(store.pending, store.error ?? policy.id)
+            id = try XCTUnwrap(store.lastReceipt?.id)
+            var row = try await client.detail(id, actor: config.actors[0].id)
+            if policy.hasTarget {
+                await store.submit(op: "target", challenge: row, fields: ["target": .integer(100)])
+                row = try await client.detail(id, actor: config.actors[0].id)
+            }
+            await store.submit(op: "invite", challenge: row, fields: ["username": .string(config.actors[1].username)])
+            try await login(1, sdk, store)
+            if policy.hasTarget {
+                row = try await client.detail(id, actor: config.actors[1].id)
+                await store.submit(op: "target", challenge: row, fields: ["target": .integer(100)])
+            }
+            try await login(0, sdk, store)
+            row = try await client.detail(id, actor: config.actors[0].id)
+            await store.submit(op: "select", challenge: row, fields: ["actor_id": .string(config.actors[1].id.uuidString.lowercased()), "selected": .bool(true)])
+            row = try await client.detail(id, actor: config.actors[0].id)
+            await store.submit(op: "freeze", challenge: row)
+            for i in 0...1 {
+                try await login(i, sdk, store)
+                row = try await client.detail(id, actor: config.actors[i].id)
+                if !policy.hasTarget {
+                    XCTAssertTrue(row.members.allSatisfy { $0.target == nil })
+                    if case .array(let people) = row.agreement?.terms?["participants"] {
+                        XCTAssertTrue(people.allSatisfy { $0["target"] == nil }, "Leaderboards have no target fields in the agreement")
+                    } else { XCTFail("Missing complete agreement") }
+                }
+                await store.submit(op: "consent", challenge: row, fields: ["digest": .string(try XCTUnwrap(row.agreement?.digest)), "consent": .bool(true)])
+                XCTAssertNil(store.pending, store.error ?? policy.id)
+            }
+        }
+        return id
     }
     func entry(_ sdk: SupabaseClient, _ store: ChallengeV1Store, _ client: SupabaseChallengeV1Client) async throws {
         try await control(["action": "clock", "now": "2026-10-01T12:00:00Z"])

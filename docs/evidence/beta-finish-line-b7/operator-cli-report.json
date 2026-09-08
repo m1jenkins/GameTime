@@ -1,0 +1,17 @@
+{
+  "evidence": "authenticated local CLI and Auth-server; fictional data",
+  "checks": [
+    "unassigned authenticated operator is rejected",
+    "assigned authenticated CLI reviewer sees the structured case",
+    "review context includes only agreed policy and filer\u2019s normalized result",
+    "authenticated CLI resolves its assigned case",
+    "operator exact recovery works across separate sign-ins",
+    "bounded CLI worker reaches final",
+    "worker exact retry is stable",
+    "operator logout leaves another participant session working",
+    "moderator CLI reads only its assigned structured reports",
+    "post-final suspension hides shared detail and preserves own final return",
+    "fixture-only publication and authenticated scoped closure work"
+  ],
+  "count": 11
+}

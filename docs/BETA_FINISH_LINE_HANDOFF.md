@@ -1,95 +1,109 @@
 # Beta finish-line handoff — b7
 
-Active work is on `fm/gametime-beta-finish-b7` in
-`/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta`.
-Read [acceptance](BETA_FINISH_LINE_ACCEPTANCE.md) for actual evidence and gates.
-The original checkout/database remain read-only sources and are not execution targets.
+Worktree: `/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta`.
+Branch: `fm/gametime-beta-finish-b7`; latest checkpoint `e9e0ee3`.
+Authority: D134, [Beta plan](BETA_IMPLEMENTATION_PLAN.md),
+[roadmap](BETA_FINISH_LINE_ROADMAP.md). See [acceptance](BETA_FINISH_LINE_ACCEPTANCE.md)
+for implemented versus executed evidence and historical failed runs.
+This task is **still active**. Do not stop at the completed native matrix.
 
-## Next executable task
+## Next executable work
 
-M1 tooling, M2 steps backend and M3 production native two/six-person journeys have
-passing local evidence. Continue M4 policy matrix and entry/safety flows. M3 still
-needs paginated section freshness and broader accessibility preparation.
-Physical instructions: [private source investigation](BETA_SOURCE_INVESTIGATION.md).
+1. Local operations and all-policy review/exit expansion have passed. See
+   [operator runbook](BETA_OPERATIONS_LOCAL.md), 11 authenticated CLI checks and
+   19 operations SQL assertions. Commit this slice and run its portable gate.
+2. Broad native units passed 385 with 4 explicit controller skips on the new
+   isolated `GameTimeBetaLocal` scheme; preserve the historical native fixtures.
+3. Complete accessibility preparation (compact layout, large text, light/dark,
+   reduced motion, automated audit) and broad historical native/Release builds.
+   Physical VoiceOver/assistive control and human comprehension remain separate.
+4. Prepare new-product privacy/terms, approved-host link association template,
+   rollout/disable instructions and exact external questions. Do not publish.
+5. Add a usable foreground local preview launcher with fictional accounts, safe
+   fixture clock/progress controls, cleanup, exact launch instructions and a
+   short morning walkthrough.
+6. Run the full committed candidate gates, original source/hash/database identity
+   preservation check, and ensure a clean branch fast-forward onto local `main`.
+   Continue all other dependency-ready authorized roadmap work before `done:`.
 
-## Launch state
+## Implemented and executed
 
-Owned Simulator: `72A3249A-2DE0-4695-AF41-DCD2743B4666` (`GameTimeFinishB7`).
-Owned build: `/tmp/gametime-finish-b7-derived/Build/Products/Debug-iphonesimulator/GameTime.app`.
-Run with `--health-source-investigation` for the separate private mode.
-Owned stack: `/tmp/gametime-finish-b7-stack`, project `gametime-finish-b7`, API 58321, DB 58322.
-Do not use a pre-existing Simulator or the original 5432x stack.
+- `c114078`: inherited planning/design bytes, authorship uncertainty and original
+  proposal status preserved separately (101 files / 51,192,467 bytes).
+- `c50125b`: private, explicit opt-in, volatile on-device investigation UI; 3
+  native tests; no physical observations.
+- `b8b708f` / `0ed8a30`: new steps backend and deterministic historical wrong-digest
+  regression. No historical production agreement/migration was widened.
+- `32ca057`: first production native two/six steps HTTP journeys and recovery.
+- `fd1e4cb`: all 13 policies, private personal consent, community fixtures,
+  age/links/report/block/scoped operators. 162 SQL assertions; portable gate passed.
+- `3886355`: native matrix/selectors/entry, previously unallowlisted link grant,
+  rejection/revocation, actual server-session revocation; 11 native tests and 210
+  new-domain SQL assertions. Full portable gate passed: 3,786 SQL / 78 files,
+  835 Deno, 113 Swift core, persisted historical weekly smoke.
+- `e9e0ee3`: stable actor-bound Home sections, partial-failure preservation,
+  monotonic 60-second visibility, background/auth/late-page fences, exact native
+  icon/chart labels. 14 native tests, 224 new-domain SQL assertions, 15 actual
+  multi-session checks. Concurrency rerun **passed from this commit** in
+  `/tmp/gametime-finish-b7-evidence/m6-committed-concurrency.log`.
+- Focused SIX touch passed from the prior native candidate in
+  `m4-six-touch-focused.log`; focused TWO touch passed with the section store in
+  `m6-two-touch-sections.log`. Both drive real SwiftUI participant controls and
+  assert the exact new final-history row/return. Operator/clock/facts remain
+  explicitly fictional controller actions. No physical/human evidence is claimed.
+- Current committed portable rerun is in
+  `/tmp/gametime-finish-b7-evidence/m6-sections-portable-gate.log`, temporary copy
+  `/tmp/gametime-weekly-verify.ampOQfYS`. It passed 3,800 SQL / 79 files, 835 Deno, 113 core and weekly lifecycle smoke.
 
-## Source checkpoint
+## Owned resources and commands
 
-`c114078` preserves all authorized inherited planning/design bytes; source manifest
-and original resource identities live under `docs/evidence/beta-finish-line-b7/`.
-New source gates, real ingestion, Release navigation, hosted operations, distribution,
-recruitment, deletion and money stay disabled. No physical evidence is claimed.
+Only this Simulator belongs to this task:
+`72A3249A-2DE0-4695-AF41-DCD2743B4666` (`GameTimeFinishB7`, iPhone 17 Pro/iOS 26.5).
+Derived build: `/tmp/gametime-finish-b7-derived`.
+App: `Build/Products/Debug-iphonesimulator/GameTime.app` beneath it;
+bundle `com.mjenkins.gametime.staging`.
 
-Firstmate inbox 001 handled: physical-source actions and timed-distance tolerance
-are retained in captain-held task `gametime-beta-source-acceptance-b7`. Neither is
-accepted. Continue independent work with sources disabled. M3 checkpoint `32ca057`
-records the actual client-level HTTP journey separately from the narrower SwiftUI
-sign-in/tab/sign-out traversal; no complete touch-driven challenge journey or
-physical acceptance is claimed by that checkpoint.
+Only this active implementation database belongs to this task:
+`/tmp/gametime-finish-b7-stack`, project `gametime-finish-b7`;
+API 58321, DB 58322, native controller 58339. Supabase CLI email login was enabled
+only in this temp config, with no confirmations/mail delivery. All real-source
+flags remain constrained off. Native scripts enable fictional actors/clock only
+while running, then disable gates and revoke only their own fictional sessions.
+The stack itself stays available. Do not run an unscoped reset.
 
-M4 backend checkpoint: new migrations 20260908050105–20260908052202 implement the
-matrix, community, links and safety. SQL 490–494 pass 162 assertions on the owned
-stack. Next: connect the native selectors/personal agreement/community/age/link
-and safety workflows, execute all thirteen with production Swift HTTP clients,
-then concurrency/projection freshness/operational tooling and the full committed
-historical gate. The source and physical gates remain unchanged.
+```sh
+scripts/beta-native-smoke.py --simulator 72A3249A-2DE0-4695-AF41-DCD2743B4666 --native-only
+scripts/beta-native-smoke.py --simulator 72A3249A-2DE0-4695-AF41-DCD2743B4666 --touch-only 2
+scripts/beta-native-smoke.py --simulator 72A3249A-2DE0-4695-AF41-DCD2743B4666 --touch-only 6
+scripts/beta-concurrency.py --owned-project gametime-finish-b7
+WEEKLY_VERIFY_PORT_BASE=59320 scripts/weekly-local-verify.sh
+```
 
-Native M4 work in progress: production Swift client traversed all thirteen policies
-in `/tmp/gametime-finish-b7-evidence/m4-native-http.log` (7 native tests plus the
-existing one UI traversal passed). A broader touch-driven two/six test is running;
-its first attempt had a test-helper concurrency build error and second attempt
-failed at email replacement on account switching. The preview now clears the email
-after successful login and clears submitted usernames. Do not treat touch coverage
-as accepted until the complete rerun passes. New Home pagination migration
-20260908054225 is authored but not yet applied/verified; it is independent follow-on
-work, not part of the previously committed backend evidence.
+Do not overlap concurrency/native scripts: both require the implementation stack's
+fixture gates off at entry. The portable gate makes its own project and can run
+independently from a committed candidate. Logs live under
+`/tmp/gametime-finish-b7-evidence`; local credential files/logs are restricted and
+must not be committed. The ignored native manifest is removed on cleanup.
 
-M4 native matrix now passes 11 tests in `m4-native-granted-access.log`; sanitized
-trace is tracked under evidence/native-matrix-http-report.json. SQL 495 passes
-48 more assertions (210 new-domain total). The complete six-person touch run is
-still unaccepted: one toggle stayed off, so the server refused to start. Next:
-`scripts/beta-native-smoke.py --simulator 72A3249A-2DE0-4695-AF41-DCD2743B4666 --touch-only 6`
-then `--touch-only 2`. These now assert explicit visible switch-on and the exact
-new final row. Continue afterward with Home sections (authored migration
-20260908054225 is still unapplied/unverified), concurrency, owner tooling,
-accessibility/Release/historical acceptance and rollout preparation. Do not stop
-at the native matrix checkpoint.
+Private source-tool launch (software verification only):
+`xcrun simctl launch 72A3249A-2DE0-4695-AF41-DCD2743B4666 com.mjenkins.gametime.staging --health-source-investigation`.
+The new shell requires `--beta-challenges-local` and explicit loopback connection
+environment variables; the morning launcher remains to implement. Legacy default
+navigation is intact.
 
-Focused SIX touch run passed (`m4-six-touch-focused.log`) with exact new final
-history/return assertion. Next executable: run native-only acceptance for current
-uncommitted section store and new tests; then focused TWO touch. Home section
-migration 20260908054225 is now applied on owned 58322 and 14 SQL assertions pass.
-Current uncommitted native section work includes monotonic 60-second visibility,
-per-section preservation/errors, stable cursors, late-page/auth guards and private
-background clearing; it has NOT yet compiled/run. Custom four metric icon paths
-now follow supplied SVG geometry. Continue concurrency/operations/accessibility
-and all other dependency-ready local work afterward.
+## Preservation and external gates
 
-Current section store compiled and passed 14 native tests (`m6-native-sections.log`).
-The new `scripts/beta-concurrency.py --owned-project gametime-finish-b7` passed 15
-real multi-session checks (`m6-concurrency.log`), preserving original resources.
-Focused TWO touch run is now running against current section UI in
-`m6-two-touch-sections.log`. After it passes, checkpoint this coherent section/
-concurrency slice and rerun concurrency + full portable gate from that commit.
-Still required: all-policy native review/exit expansion, scoped operator tooling,
-overdue/recovery worker and notices, accessibility/light-dark/compact preparation,
-Release build and broad historical native tests, source-independent legal/link/
-rollout materials, usable local-preview launch script and exact morning walkthrough,
-original hash/database identity recheck. M5 actual sources and M7 replacement remain
-blocked by unaccepted physical policies; do not retire historical default navigation.
+Original read-only repository: `/Users/user/Documents/GitHub/GameTime`, original
+HEAD `577bc321e72750976e2e8027680387707070b0e3`; original database `supabase_db_gametime`
+on 5432x ports. Identity/status/hash baselines are under
+`docs/evidence/beta-finish-line-b7/`. Neither original checkout/database nor any
+pre-existing Simulator/container may be changed. Reverify at terminal completion.
 
-Focused TWO touch passed with current paginated store (`m6-two-touch-sections.log`)
-and exact final-history assertion. Both TWO and SIX touch paths are now accepted
-software evidence. Section/concurrency checkpoint is ready; rerun concurrency and
-portable gate from its commit. New operations migration 20260908062409 is authored
-but NOT yet applied/tested: service-only overdue summary and bounded exact batch,
-scoped report reads and audited community closure. It intentionally scopes jobs to
-the active local fixture creator allowlist. Next implement/test the operator CLI,
-all-policy native review/exit expansion and remaining acceptance/preparation tasks.
+Firstmate inbox 001 was handled: physical iPhone/Watch actions and timed-distance
+tolerance are in captain-held task `gametime-beta-source-acceptance-b7`. Neither
+is accepted. [Physical instructions](BETA_SOURCE_INVESTIGATION.md) remain exact;
+raw Health records stay on-device, never in screenshots/logs/reports/commits.
+M5 real ingestion, all four sources, M7 legacy replacement and distribution remain
+disabled. Community settings, comprehension, monitored support/legal identities,
+hosted operations and TestFlight/recruitment remain external gates.
+No push, remote mutation, pipeline, legacy deletion or real money is authorized.

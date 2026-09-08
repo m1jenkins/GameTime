@@ -23,7 +23,7 @@ Nothing here accepts physical sources, hosted operations, distribution or money.
 | M3 | Local opt-in Home/Challenges/You, typed client, actor-bound exact recovery and abandonment, steps lobby/consent/progress/review/finals, own exact-value chart, safe exits | 7 selected native tests + 1 authenticated UI test passed; production HTTP two/six journeys and paused cancellation/leave | Partial-section projection/cursors, broader native safety and accessibility remain |
 | M4 | All 13 backend policies, native selectors and private personal/community flows, age/links/safety | 162 new-domain SQL assertions and production native HTTP lifecycle for all 13; unit conversion/intent tests pass | Touch two/six completion, expanded native entry/safety, concurrency and per-policy recovery |
 | M5 | Disabled | No physical evidence | All four accepted policies; timed tolerance decision |
-| M6 | Not yet | None | Operator workflow and local acceptance; human checks separate |
+| M6 | Local operator/monitor/recovery workflow implemented | 11 authenticated CLI checks; 19 operations SQL assertions; 385 native unit passes (4 skips) | Physical/human/accessibility/support acceptance separate |
 | M7 | Preparation only authorized | None | Physical/replacement acceptance; separate hosted approval |
 | M8 | Disabled | None | Separate distribution/recruitment authorization |
 
@@ -199,3 +199,28 @@ The section/concurrency slice adds 14 SQL assertions (new-domain total **224**) 
 15 separately executed real concurrency checks; it does not relabel either count
 as physical or human acceptance. Metric icons now use the supplied four SVG path
 geometries in native Canvas, and chart axes retain exact canonical unit labels.
+
+## M6 operations checkpoint
+
+Candidate `e9e0ee3` portable gate completed: **3,800 SQL / 79 files**, 835 Deno,
+113 core Swift and historical persisted weekly smoke passed, under
+`/tmp/gametime-weekly-verify.ampOQfYS/portable.log`. Its committed concurrency rerun
+also passed 15 checks (`m6-committed-concurrency.log`).
+
+All thirteen policies now additionally execute native authenticated review filing
+and active safe exits with admission and processing paused. The 14-test run passed
+in `m6-native-all-policy-review-exit.log`; independent resolution/clock/facts remain
+explicit service fixture controls. Operator acceptance is separately authenticated:
+`m6-operator-context-smoke.log` passed **11 CLI checks**, including minimum-data case
+context, assignments, exact recovery, scoped session logout and moderation. The
+[operator runbook](BETA_OPERATIONS_LOCAL.md) documents exact commands and decisions.
+SQL 497 passed **19 assertions** (`497_challenge_operations.test.sql.log`), bringing
+new-domain SQL to 243. The next committed portable run must cover these migrations.
+
+Broad Debug native units on the dedicated `GameTimeBetaLocal` test scheme passed:
+**389 executed, 4 explicitly skipped, 0 failures (385 passes)** in
+`m6-broad-native-unit.log`. Skips are controller-dependent Auth smoke tests; they
+are not relabeled as passes. The scheme launches only the local opt-in shell in the
+unit host, without historical product or Watch services. Historical schemes and
+default navigation are unchanged. Debug-only Health purpose copy now explains the
+private exercise/workout investigation; Release/Staging legacy purpose is unchanged.
