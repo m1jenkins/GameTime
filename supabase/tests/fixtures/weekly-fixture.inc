@@ -40,3 +40,10 @@ declare actor uuid; day date; begin
 end; $$;
 create temp table weekly_test_ids(name text primary key,id uuid);
 grant all on weekly_test_ids to authenticated;
+
+-- Deterministic wrong-consent boundary: exercise the identical implementation
+-- within the fixture's invitation window, independent of the wall clock.
+create function pg_temp.accept_with_digest(r uuid,c uuid,d text) returns uuid
+language sql security definer set search_path='' as $$
+ select app.weekly_join_at_v1(r,c,d,true,'friend','2026-08-31T11:00:00Z')
+$$;

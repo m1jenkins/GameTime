@@ -17,7 +17,7 @@ select pg_temp.login(2);
 select is(jsonb_array_length(public.get_weekly_v1((select id from weekly_test_ids where name='two'))->'roster'),2,'invited actor sees frozen two roster');
 select ok((public.get_weekly_v1((select id from weekly_test_ids where name='two'))->'own_progress')
  @> '{"status":"client_progress_only","qualifying_steps":null,"complete_day_count":null}'::jsonb,'invited actor without observations decodes the same absent basis');
-select throws_ok($$select public.accept_weekly_v1(pg_temp.req(101),(select id from weekly_test_ids where name='two'),'wrong',true)$$,'22023','weekly_consent_mismatch','wrong consent rejected');
+select throws_ok($$select pg_temp.accept_with_digest(pg_temp.req(101),(select id from weekly_test_ids where name='two'),'wrong')$$,'22023','weekly_consent_mismatch','wrong consent rejected');
 select pg_temp.accept(pg_temp.req(102),(select id from weekly_test_ids where name='two'));
 select is(public.get_weekly_v1((select id from weekly_test_ids where name='two'))->>'accepted_count','2','two explicit consents');
 select pg_temp.login(3);
