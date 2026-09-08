@@ -21,7 +21,7 @@ Nothing here accepts physical sources, hosted operations, distribution or money.
 | M1 | Debug-only separate investigation launch, explicit opt-in, volatile records, session/background clearing, stale read rejection | 3 native tests passed; Debug build. `/tmp/gametime-finish-b7-evidence/m1-native.log` | [Physical instructions](BETA_SOURCE_INVESTIGATION.md); every physical row unperformed |
 | M2 | Separate versioned thirteen-policy contract, forward migrations, immutable agreements and bounded operations | 264 new-domain SQL assertions executed locally; last committed portable gate 3,819 SQL / 80 files | Latest 21 SQL assertions still need committed portable rerun; real ingestion blocked |
 | M3 | Local opt-in shell, exact recovery/abandonment, complete steps journey and stable private Home sections | Two- and six-person authenticated native HTTP + focused SwiftUI touch through exact final history; section/auth/expiry regressions pass | Physical/replacement and final accessibility acceptance remain external or in progress |
-| M4 | All thirteen policies, private personal/community, selectors, age/link entry, safety and concurrent admission | All thirteen native HTTP correction/review/paused-exit/final flows; SQL admission/context; 15 real concurrency checks | Native block-response recovery passed; nonfriend link reconsent expansion pending; real sources/community settings unaccepted |
+| M4 | All thirteen policies, private personal/community, selectors, age/link entry, safety and concurrent admission | All thirteen native HTTP correction/review/paused-exit/final flows; SQL admission/context; 15 real concurrency checks | Native block-response recovery passed; nonfriend link reconsent passed; real sources/community settings unaccepted |
 | M5 | Disabled | No physical evidence | All four accepted policies; timed tolerance decision |
 | M6 | Scoped operator/worker/recovery, local disclosures and preview/rollout tooling | 11 authenticated CLI checks; 19 operations SQL; 385 broad native unit passes (4 skips); unsigned Release build | Unfiltered accessibility audit currently fails; preview execution and historical UI reruns still pending; physical/human/support external |
 | M7 | Release/host association template, replacement inventory, disable/recovery sequence prepared | Unsigned Release excludes new local shell/investigation; original 101 source hashes/status/DB identity rechecked | No replacement, hosted wiring/deploy or deletion until physical/replacement/owner approval |
@@ -297,3 +297,44 @@ Further M6 diagnosis and contract correction:
   including old-digest rejection and everyone consenting to the new version. Logs
   `499-reconsent-before.log` (failure retained) / `499-reconsent-after.log` (pass).
   New-domain SQL total is **264**; the next committed portable gate must cover it.
+
+## Current accessibility investigation and request freshness — 2026-09-08
+
+Creation no longer uses the system Form parent: the same shared amount control
+passed unfiltered in a plain VStack and ScrollView, while a system Form reference
+reproduced Dynamic Type failures. Native scroll groups removed those creation
+findings. The actual form's duration and amount increment/decrement actions now
+execute during each full audit; no audit type or issue is excluded.
+
+An opaque, adaptive SwiftUI bottom bar keeps Home/Challenges/You and each
+NavigationStack. It removed the lower action-button contrast findings. The first
+bar run failed because identifiers landed on an accessibility wrapper; placing
+them on the buttons corrected navigation. Historical default navigation is intact.
+Two unnamed contrast findings remain on Home/detail with the dark challenge card.
+The following disconfirming attempts are retained under
+`/tmp/gametime-finish-b7-evidence/`: `m6-a11y-opaque-bar-identifiers-run2.log`,
+`m6-a11y-card-children.log`, `m6-a11y-card-dark-surface.log`,
+`m6-a11y-card-divider.log`, `m6-a11y-card-icon-reference.log`, and
+`m6-a11y-card-foreground-color.log`. Removing grouping, explicit dark appearance,
+a stronger divider, a system icon, and foregroundColor did not resolve the two
+findings. Original custom icons are restored. Exported card screenshots and
+issue descriptions: `card-children-attachments/`.
+
+The first of these attempts reached its 240-second reporting deadline after
+recorded XCTest failures; it is failed/interrupted, never passed. Later failed
+runs reported normally and produced usable unique result bundles. The harness
+now owns a separate xcodebuild process group and reaps only that group on timeout.
+Firstmate inbox 004 authorized this scoped recovery; shared Xcode/Simulator
+services were never restarted. Fixture cleanup checks actual gate and session
+revocation outcomes, and removes only the manifest it created.
+
+The store now preserves still-fresh content through routine refresh, rejects
+responses held for 60 seconds, and reads current section state on failure so a
+watchdog-expired shared row cannot temporarily return. The expanded tests hold a
+later section while asserting that earlier expired rows remain absent. Native
+execution passed: `m6-native-invited-reconsent-expiry.log`, **16 tests, zero
+failures**, including the full prior thirteen-policy journey, held-auth regression,
+nonfriend link → proposal → selection → consent → reopen → changed goal → old
+digest rejection → both fresh consents → safe exit. Cleanup verified seven actors
+revoked and fixture gates off. The sanitized trace is
+`evidence/beta-finish-line-b7/native-reconsent-expiry-http-report.json`.

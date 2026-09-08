@@ -43,7 +43,8 @@ import Observation
     func show() async { visible = true; await refresh() }
     func refresh() async {
         guard visible, let actor else { return }
-        let ticket = generation; let refresh = UUID(); refreshGeneration = refresh; fresh = false
+        let ticket = generation; let refresh = UUID(); refreshGeneration = refresh
+        purgeExpiredContent()
         do {
             let authenticated = await auth.currentUserID()
             guard ticket == generation, refresh == refreshGeneration else { return }
@@ -52,19 +53,24 @@ import Observation
             guard ticket == generation, refresh == refreshGeneration else { return }
             pending = saved; error = nil
             for section in ChallengeV1Section.allCases {
-                var state = sections[section] ?? ChallengeV1SectionState(); state.fresh = false
-                sections[section] = state
+                let requestedAt = now()
                 do {
                     let page = try await client.page(section, cursor: nil, actor: actor)
                     let finalActor = await auth.currentUserID()
                     // Check after the final await, including each independent page.
                     guard ticket == generation, refresh == refreshGeneration else { return }
                     guard finalActor == actor else { setActor(nil); return }
+                    guard now() - requestedAt < 60 else { throw ChallengeV1Error.unavailable }
                     sections[section] = ChallengeV1SectionState(rows: page.rows, cursor: page.nextCursor, projectionRevision: page.projectionRevision, serverTime: page.serverTime, receivedAt: now(), error: nil, fresh: true)
                     for row in page.rows { detailRows.removeValue(forKey: row.id); detailReadAt.removeValue(forKey: row.id) }
                 } catch {
                     guard ticket == generation, refresh == refreshGeneration else { return }
                     if (error as? ChallengeV1Error) == .accountChanged { setActor(nil); return }
+                    // The watchdog may have expired this section while the request
+                    // was held. Read its current state instead of restoring a copy.
+                    purgeExpiredContent()
+                    var state = sections[section] ?? ChallengeV1SectionState()
+                    state.fresh = false
                     state.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription
                     sections[section] = state; self.error = state.error
                 }
@@ -75,18 +81,24 @@ import Observation
         } catch {
             guard ticket == generation, refresh == refreshGeneration else { return }
             if (error as? ChallengeV1Error) == .accountChanged { setActor(nil) }
-            else { self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription }
+            else {
+                fresh = false; entryFresh = false; detailReadAt = [:]
+                for section in ChallengeV1Section.allCases { sections[section]?.fresh = false }
+                self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription
+            }
         }
     }
     func loadMore(_ section: ChallengeV1Section) async {
         guard let actor, let cursor = sections[section]?.cursor, !busy else { return }
         let ticket = generation; let refresh = refreshGeneration
         let revision = sections[section]?.projectionRevision
+        let requestedAt = now()
         do {
             let page = try await client.page(section, cursor: cursor, actor: actor)
             let authenticated = await auth.currentUserID()
             guard ticket == generation, refresh == refreshGeneration, revision == sections[section]?.projectionRevision else { return }
             guard authenticated == actor else { setActor(nil); return }
+            guard now() - requestedAt < 60 else { throw ChallengeV1Error.unavailable }
             guard page.projectionRevision == revision else { throw ChallengeV1Error.invalidResponse }
             var state = sections[section] ?? ChallengeV1SectionState()
             let existing = Set(state.rows.map(\.id))
@@ -104,11 +116,13 @@ import Observation
     func loadDetail(_ id: UUID) async {
         guard let actor else { return }
         let ticket = generation; let refresh = refreshGeneration
+        let requestedAt = now()
         do {
             let row = try await client.detail(id, actor: actor)
             let authenticated = await auth.currentUserID()
             guard ticket == generation, refresh == refreshGeneration else { return }
             guard authenticated == actor else { setActor(nil); return }
+            guard now() - requestedAt < 60 else { throw ChallengeV1Error.unavailable }
             for section in ChallengeV1Section.allCases {
                 if let index = sections[section]?.rows.firstIndex(where: { $0.id == id }) { sections[section]?.rows[index] = row }
             }

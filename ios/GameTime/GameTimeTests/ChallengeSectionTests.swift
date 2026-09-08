@@ -4,21 +4,61 @@ import XCTest
 @MainActor final class ChallengeSectionTests: XCTestCase {
     func testPartialFailurePreservesOnlyStillPermittedSectionsUntilMonotonicExpiry() async throws {
         let actor = UUID(); let auth = SectionAuth(actor); let client = SectionClient()
-        var uptime: TimeInterval = 0
-        let store = ChallengeV1Store(auth: auth, client: client, requests: ChallengeV1RequestStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)), now: { uptime })
+        let clock = SectionClock()
+        let store = ChallengeV1Store(auth: auth, client: client, requests: ChallengeV1RequestStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)), now: { clock.value })
         let active = sample(actor, name: "Prior activity", status: "active")
         let upcoming = sample(actor, name: "Prior plan", status: "scheduled")
         client.values[.active] = page(.active, [active]); client.values[.upcoming] = page(.upcoming, [upcoming])
         store.setActor(actor); await store.refresh(); XCTAssertTrue(store.fresh)
-        uptime = 30; client.fail = [.active]
+        clock.value = 30; client.fail = [.active]
         let updated = sample(actor, name: "New plan", status: "scheduled")
         client.values[.upcoming] = page(.upcoming, [updated]); await store.refresh()
         XCTAssertEqual(store.sections[.active]?.rows, [active]); XCTAssertFalse(store.isFresh(active))
         XCTAssertEqual(store.sections[.upcoming]?.rows, [updated]); XCTAssertTrue(store.isFresh(updated))
-        uptime = 61; store.purgeExpiredContent()
+        clock.value = 61; store.purgeExpiredContent()
         XCTAssertTrue(store.sections[.active]?.rows.isEmpty == true)
         XCTAssertEqual(store.sections[.upcoming]?.rows, [updated])
         store.setActor(UUID()); XCTAssertTrue(store.challenges.isEmpty)
+    }
+    func testHeldRoutineRefreshKeepsFreshLayoutButDoesNotExtendVisibility() async throws {
+        let actor = UUID(); let auth = SectionAuth(actor); let client = SectionClient()
+        let clock = SectionClock()
+        let store = ChallengeV1Store(auth: auth, client: client, requests: ChallengeV1RequestStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)), now: { clock.value })
+        let row = sample(actor, name: "Still current", status: "active")
+        client.values[.active] = page(.active, [row]); store.setActor(actor); await store.refresh()
+        clock.value = 30; client.holdSection = .active
+        let refreshing = Task { await store.refresh() }
+        while client.held == nil { await Task.yield() }
+        XCTAssertTrue(store.isFresh(row)); XCTAssertEqual(store.sections[.active]?.rows, [row])
+        clock.value = 60; store.purgeExpiredContent()
+        XCTAssertFalse(store.isFresh(row)); XCTAssertTrue(store.sections[.active]?.rows.isEmpty == true)
+        let activeResponse = client.held; client.held = nil; client.holdSection = .history
+        activeResponse?.resume(throwing: ChallengeV1Error.unavailable)
+        while client.held == nil { await Task.yield() }
+        // Observe while the next section is still held, before end-of-refresh purge.
+        XCTAssertTrue(store.sections[.active]?.rows.isEmpty == true)
+        client.held?.resume(returning: page(.history, [])); client.held = nil
+        await refreshing.value
+        XCTAssertTrue(store.sections[.active]?.rows.isEmpty == true)
+    }
+    func testDelayedSuccessfulPageCannotRestartExpiredVisibility() async throws {
+        let actor = UUID(); let auth = SectionAuth(actor); let client = SectionClient()
+        let clock = SectionClock()
+        let store = ChallengeV1Store(auth: auth, client: client, requests: ChallengeV1RequestStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)), now: { clock.value })
+        let row = sample(actor, name: "Delayed private response", status: "active")
+        client.values[.active] = page(.active, [row]); store.setActor(actor); await store.refresh()
+        client.holdSection = .active
+        let refreshing = Task { await store.refresh() }
+        while client.held == nil { await Task.yield() }
+        clock.value = 60; store.purgeExpiredContent()
+        let response = client.held; client.held = nil; client.holdSection = .history
+        response?.resume(returning: page(.active, [row]))
+        while client.held == nil { await Task.yield() }
+        XCTAssertTrue(store.sections[.active]?.rows.isEmpty == true)
+        XCTAssertFalse(store.isFresh(row))
+        client.held?.resume(returning: page(.history, [])); client.held = nil
+        await refreshing.value
+        XCTAssertTrue(store.sections[.active]?.rows.isEmpty == true)
     }
     func testSupersededCursorCannotAppendOldSocialRows() async throws {
         let actor = UUID(); let auth = SectionAuth(actor); let client = SectionClient()
@@ -56,12 +96,13 @@ import XCTest
 @MainActor private final class SectionClient: ChallengeV1Client {
     var values: [ChallengeV1Section: ChallengeV1Page] = [:]
     var fail = Set<ChallengeV1Section>(); var revoked = false; var calls = 0
+    var holdSection: ChallengeV1Section?
     var holdMore = false; var held: CheckedContinuation<ChallengeV1Page, Error>?
     func page(_ section: ChallengeV1Section, cursor: ChallengeJSON?, actor: UUID) async throws -> ChallengeV1Page {
         calls += 1
         if revoked { throw ChallengeV1Error.accountChanged }
         if fail.contains(section) { throw ChallengeV1Error.unavailable }
-        if holdMore && cursor != nil { return try await withCheckedThrowingContinuation { held = $0 } }
+        if holdMore && cursor != nil || holdSection == section { return try await withCheckedThrowingContinuation { held = $0 } }
         return values[section] ?? ChallengeV1Page(section: section, projectionRevision: UUID(), serverTime: ChallengeInstant(date: Date()), expiresAt: ChallengeInstant(date: Date().addingTimeInterval(120)), rows: [], nextCursor: nil)
     }
     func list(actor: UUID) async throws -> [ChallengeV1] { [] }
@@ -77,3 +118,5 @@ import XCTest
     func signInWithApple(_ identity: AppleIdentity) async throws -> UUID { actor! }
     func signOut() async throws { actor = nil }
 }
+
+@MainActor private final class SectionClock { var value: TimeInterval = 0 }
