@@ -7,8 +7,9 @@ The original checkout/database remain read-only sources and are not execution ta
 
 ## Next executable task
 
-M1 local tooling is implemented and three tests pass. Continue M2 friend steps
-contract lifecycle and backend tests, then M3 production native journeys before policy breadth.
+M1 tooling, M2 steps backend and M3 production native two/six-person journeys have
+passing local evidence. Continue M4 policy matrix and entry/safety flows. M3 still
+needs paginated section freshness and broader accessibility preparation.
 Physical instructions: [private source investigation](BETA_SOURCE_INVESTIGATION.md).
 
 ## Launch state

@@ -33,7 +33,7 @@ struct GameTimeApp: App {
 
         let arguments = ProcessInfo.processInfo.arguments
         #if DEBUG
-        if SourceInvestigationLaunch.enabled {
+        if SourceInvestigationLaunch.enabled || ChallengeLocalLaunch.enabled {
             _liveModel = State(initialValue: nil)
             _demoModel = State(initialValue: nil)
             _livePersonalStore = State(initialValue: nil)
@@ -202,6 +202,8 @@ struct GameTimeApp: App {
                 #if DEBUG
                 if SourceInvestigationLaunch.enabled {
                     SourceInvestigationView()
+                } else if ChallengeLocalLaunch.enabled {
+                    ChallengeLocalLaunchView()
                 } else {
                     productRoot
                 }
@@ -211,13 +213,13 @@ struct GameTimeApp: App {
             }
             .task(id: isUsingDemoModel) {
                 #if DEBUG
-                guard !SourceInvestigationLaunch.enabled else { return }
+                guard !SourceInvestigationLaunch.enabled, !ChallengeLocalLaunch.enabled else { return }
                 #endif
                 await configureProductServices()
             }
             .onOpenURL { url in
                 #if DEBUG
-                guard !SourceInvestigationLaunch.enabled else { return }
+                guard !SourceInvestigationLaunch.enabled, !ChallengeLocalLaunch.enabled else { return }
                 #endif
                 _ = StripeAPI.handleURLCallback(with: url)
             }
