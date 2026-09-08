@@ -4,6 +4,10 @@ import Observation
 @MainActor @Observable final class ChallengeV1Store {
     private(set) var actor: UUID?
     private(set) var challenges: [ChallengeV1] = []
+    private(set) var access: ChallengeV1Access?
+    private(set) var communities: [ChallengeV1Community] = []
+    private(set) var entryError: String?
+    private(set) var entryFresh = false
     private(set) var pending: ChallengeV1Request?
     private(set) var error: String?
     private(set) var fresh = false
@@ -19,9 +23,10 @@ import Observation
     }
     func setActor(_ actor: UUID?) {
         self.actor = actor; generation = UUID(); refreshGeneration = UUID()
+        access = nil; communities = []; entryFresh = false; entryError = nil
         challenges = []; pending = nil; error = nil; fresh = false; busy = false; lastReceipt = nil
     }
-    func hide() { generation = UUID(); refreshGeneration = UUID(); challenges = []; fresh = false; busy = false }
+    func hide() { access = nil; communities = []; entryFresh = false; generation = UUID(); refreshGeneration = UUID(); challenges = []; fresh = false; busy = false }
     func refresh() async {
         guard let actor else { return }
         let ticket = generation; let refresh = UUID(); refreshGeneration = refresh; fresh = false
@@ -36,10 +41,31 @@ import Observation
             guard ticket == generation, refresh == refreshGeneration else { return }
             guard finalActor == actor else { setActor(nil); return }
             challenges = rows; pending = saved; fresh = true; error = nil
+            await refreshEntry(ticket: ticket, refresh: refresh, actor: actor)
         } catch {
             guard ticket == generation, refresh == refreshGeneration else { return }
             if (error as? ChallengeV1Error) == .accountChanged { setActor(nil) }
             else { self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription }
+        }
+    }
+    private func refreshEntry(ticket: UUID, refresh: UUID, actor: UUID) async {
+        entryFresh = false
+        do {
+            let access: ChallengeV1Access = try await client.read("challenge_access_status_v1", fields: [:], actor: actor, as: ChallengeV1Access.self)
+            let authenticated = await auth.currentUserID()
+            guard ticket == generation, refresh == refreshGeneration else { return }
+            guard authenticated == actor else { setActor(nil); return }
+            self.access = access
+            if access.suspended { challenges = challenges.filter { $0.socialHidden }; fresh = false }
+            let rows: [ChallengeV1Community] = try await client.read("challenge_community_catalog_v1", fields: [:], actor: actor, as: [ChallengeV1Community].self)
+            let finalActor = await auth.currentUserID()
+            guard ticket == generation, refresh == refreshGeneration else { return }
+            guard finalActor == actor else { setActor(nil); return }
+            communities = rows; entryFresh = true; entryError = nil
+        } catch {
+            guard ticket == generation, refresh == refreshGeneration else { return }
+            if (error as? ChallengeV1Error) == .accountChanged { setActor(nil) }
+            else { entryError = (error as? ChallengeV1Error ?? .unavailable).localizedDescription }
         }
     }
     func submit(op: String, challenge: ChallengeV1? = nil, fields: [String: ChallengeJSON] = [:]) async {

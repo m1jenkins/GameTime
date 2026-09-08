@@ -63,7 +63,8 @@ class Smoke:
         self.owned = True
         self.clock('2026-10-01T12:00:00Z')
         for actor in self.actors:
-            sql(f"select public.challenge_readiness_fixture_v1('{actor['id']}');")
+            for metric in ['steps','exercise','distance','timed']:
+                sql(f"select public.challenge_readiness_metric_fixture_v1('{actor['id']}','{metric}');")
         MANIFEST.parent.mkdir(exist_ok=True)
         with MANIFEST.open('x') as stream:
             os.chmod(MANIFEST,0o600)
@@ -77,7 +78,7 @@ class Smoke:
     def control_call(self, body):
         action=body['action']
         if action=='lose':
-            assert body['rpc']=='challenge_mutate_v1'
+            assert body['rpc']=='challenge_command_v1'
             self.lose=body['rpc']
         elif action=='clock':
             self.clock(body['now'],body.get('admission',True),body.get('processing',True))
@@ -93,6 +94,26 @@ class Smoke:
         elif action=='resolve':
             rid=str(uuid.UUID(body['review']))
             sql(f"select public.challenge_resolve_v1('{rid}','{self.actors[6]['id']}','upheld');")
+        elif action=='resolve_challenge':
+            cid=str(uuid.UUID(body['id']))
+            rid=sql(f"select id from app.challenge_reviews_v1 where challenge_id='{cid}' order by filed_at desc limit 1;")
+            sql(f"select public.challenge_resolve_v1('{str(uuid.UUID(rid))}','{self.actors[6]['id']}','upheld');")
+        elif action=='community':
+            cid = sql(f"select public.challenge_publish_community_fixture_v1('{uuid.uuid4()}','{self.actors[6]['id']}', '{{\"start_date\":\"2026-10-03\",\"days\":1,\"timezone\":\"UTC\",\"amount_cents\":100}}',100,2,6,true);")
+            sql('select public.challenge_discovery_fixture_v1(true);')
+        elif action=='unallow_actor':
+            actor=str(uuid.UUID(body['actor']))
+            assert actor in [a['id'] for a in self.actors]
+            sql(f"select public.challenge_runtime_v1(admission,fixtures,processing,array_remove(actors,'{actor}'::uuid),fictional_now) from app.challenge_runtime_v1 where singleton;")
+        elif action=='revoke_actor_sessions':
+            actor=str(uuid.UUID(body['actor']))
+            assert actor in [a['id'] for a in self.actors]
+            sql(f"delete from auth.sessions where user_id='{actor}';")
+        elif action=='latest':
+            actor=str(uuid.UUID(body['actor']))
+            assert actor in [a['id'] for a in self.actors]
+            cid=sql(f"select id from app.challenge_lobbies_v1 where creator_id='{actor}' and status='lobby_open' order by created_at desc,id limit 1;")
+            return {'id':cid}
         elif action=='snapshot':
             return {'trace':self.trace}
         else:
@@ -100,7 +121,7 @@ class Smoke:
         return {'ok':True}
     def cleanup(self):
         if self.owned:
-            sql("select public.challenge_runtime_v1(false,false,false,'{}',null);")
+            sql("select public.challenge_discovery_fixture_v1(false); select public.challenge_runtime_v1(false,false,false,'{}',null);")
         for actor in self.actors:
             # Only this run's fictional actors, never another effort's sessions.
             local_http('PUT','/auth/v1/admin/users/'+actor['id'],self.admin,json.dumps({'password':secrets.token_urlsafe(48),'ban_duration':'876000h'}))
@@ -138,13 +159,19 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--simulator',required=True)
+    parser=argparse.ArgumentParser();parser.add_argument('--simulator',required=True);parser.add_argument('--native-only',action='store_true');parser.add_argument('--touch-only',choices=['2','6'])
     args=parser.parse_args();assert args.simulator==OWNED_SIM,'Only b7-owned Simulator is allowed'
     smoke=Smoke(); server=ThreadingHTTPServer(('127.0.0.1',58339),Handler);server.smoke=smoke
     running=False
     try:
         smoke.setup();threading.Thread(target=server.serve_forever,daemon=True).start();running=True
-        result=subprocess.run(['xcodebuild','test','-project','ios/GameTime/GameTime.xcodeproj','-scheme','GameTime','-configuration','Debug','-destination',f'platform=iOS Simulator,id={OWNED_SIM}','-derivedDataPath','/tmp/gametime-finish-b7-derived','-parallel-testing-enabled','NO','-only-testing:GameTimeTests/ChallengeV1NativeSmokeTests','-only-testing:GameTimeTests/ChallengeV1NativeTests','-only-testing:GameTimeTests/WeeklySocialRefreshAuthRaceTests','-only-testing:GameTimeUITests/ChallengeV1UITests','CODE_SIGNING_ALLOWED=NO'],cwd=ROOT)
+        command=['xcodebuild','test','-project','ios/GameTime/GameTime.xcodeproj','-scheme','GameTime','-configuration','Debug','-destination',f'platform=iOS Simulator,id={OWNED_SIM}','-derivedDataPath','/tmp/gametime-finish-b7-derived','-parallel-testing-enabled','NO','-only-testing:GameTimeTests/ChallengeV1NativeSmokeTests','-only-testing:GameTimeTests/ChallengeV1NativeTests','-only-testing:GameTimeTests/ChallengePolicyTests','-only-testing:GameTimeTests/WeeklySocialRefreshAuthRaceTests','CODE_SIGNING_ALLOWED=NO']
+        assert not (args.native_only and args.touch_only)
+        if args.touch_only:
+            command=[x for x in command if not x.startswith('-only-testing:')]
+            command.append('-only-testing:GameTimeUITests/ChallengeV1UITests/test'+('Two' if args.touch_only=='2' else 'Six')+'PersonTouchJourney')
+        elif not args.native_only:command.append('-only-testing:GameTimeUITests/ChallengeV1UITests')
+        result=subprocess.run(command,cwd=ROOT)
         return result.returncode
     finally:
         if running:server.shutdown()

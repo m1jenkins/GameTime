@@ -19,9 +19,9 @@ Nothing here accepts physical sources, hosted operations, distribution or money.
 | --- | --- | --- | --- |
 | M0 | Inherited checkpoint and isolation inventory | 101 SHA-256 comparisons, path checks | Maintain current handoff; verify original again at completion |
 | M1 | Debug-only separate investigation launch, explicit opt-in, volatile records, session/background clearing, stale read rejection | 3 native tests passed; Debug build. `/tmp/gametime-finish-b7-evidence/m1-native.log` | [Physical instructions](BETA_SOURCE_INVESTIGATION.md); every physical row unperformed |
-| M2 | Separate friend steps lobby/terms/consent/slots, fictional facts/corrections, review/finals, safe exits | 48 new pgTAP assertions across two files passed on 58322 | Concurrency, full historical gate, M3 native HTTP, then matrix breadth |
+| M2 | Versioned lobby/terms/consent/slots, corrections, review/finals, safe exits; matrix extended in M4 | 162 new-domain SQL assertions; full portable gate passed at fd1e4cb | Multi-session concurrency verification remains |
 | M3 | Local opt-in Home/Challenges/You, typed client, actor-bound exact recovery and abandonment, steps lobby/consent/progress/review/finals, own exact-value chart, safe exits | 7 selected native tests + 1 authenticated UI test passed; production HTTP two/six journeys and paused cancellation/leave | Partial-section projection/cursors, broader native safety and accessibility remain |
-| M4 | Not yet | None | Expand after M3 first journey |
+| M4 | All 13 backend policies, native selectors and private personal/community flows, age/links/safety | 162 new-domain SQL assertions and production native HTTP lifecycle for all 13; unit conversion/intent tests pass | Touch two/six completion, expanded native entry/safety, concurrency and per-policy recovery |
 | M5 | Disabled | No physical evidence | All four accepted policies; timed tolerance decision |
 | M6 | Not yet | None | Operator workflow and local acceptance; human checks separate |
 | M7 | Preparation only authorized | None | Physical/replacement acceptance; separate hosted approval |
@@ -29,24 +29,23 @@ Nothing here accepts physical sources, hosted operations, distribution or money.
 
 ## Per-policy ledger
 
-All rows are disabled real sources and unexecuted new-contract verification.
-Historical weekly counts must not be reused here.
+Every real source remains disabled. The following rows describe fictional new-contract software verification only. Historical weekly counts are separate. The matrix client run is recorded in `m4-native-http.log`; physical normalization is not established by canonical fictional input.
 
 | Policy | Backend/native | Readiness/normalization | Ranking/qualification | Correction/review/exit/allocation | Physical |
 | --- | --- | --- | --- | --- | --- |
-| friend goal · steps | Pending | Pending | Pending | Pending | Unperformed |
-| friend goal · Exercise | Pending | Pending | Pending | Pending | Unperformed |
-| friend goal · distance | Pending | Pending | Pending | Pending | Unperformed |
-| friend goal · timed | Pending | Pending | Pending | Pending | Tolerance unapproved |
-| friend leaderboard · steps | Pending | Pending | Pending | Pending | Unperformed |
-| friend leaderboard · Exercise | Pending | Pending | Pending | Pending | Unperformed |
-| friend leaderboard · distance | Pending | Pending | Pending | Pending | Unperformed |
-| friend leaderboard · timed | Pending | Pending | Pending | Pending | Tolerance unapproved |
-| personal goal · steps | Pending | Pending | Pending | Pending | Unperformed |
-| personal goal · Exercise | Pending | Pending | Pending | Pending | Unperformed |
-| personal goal · distance | Pending | Pending | Pending | Pending | Unperformed |
-| personal goal · timed | Pending | Pending | Pending | Pending | Tolerance unapproved |
-| community goal · steps | Pending | Pending | Pending | Pending | Settings unapproved |
+| friend goal · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
+| friend goal · Exercise | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
+| friend goal · distance | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
+| friend goal · timed | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Tolerance unapproved |
+| friend leaderboard · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
+| friend leaderboard · Exercise | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
+| friend leaderboard · distance | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
+| friend leaderboard · timed | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Tolerance unapproved |
+| personal goal · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
+| personal goal · Exercise | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
+| personal goal · distance | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Unperformed |
+| personal goal · timed | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Tolerance unapproved |
+| community goal · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Downward correction + final; per-policy review/exit expanding | Settings unapproved |
 
 ## External gates
 
@@ -95,8 +94,55 @@ operator variable. Evidence: `/tmp/gametime-finish-b7-evidence/49*.test.sql.log`
 These are authenticated SQL-role/fictional lifecycle assertions, not native or
 physical evidence. The 20-account ceiling was tested sequentially; concurrent
 last-slot, aggregate admission and session-revocation races remain to execute.
-Native matrix integration and the committed full historical gate remain pending.
+At this checkpoint, native integration and the committed historical gate were pending; their subsequent executed runs are recorded below.
 Personal policies cannot expose an intermediate lobby. Community settings are
 explicitly `unapproved_fixture_only`; no owner approval is inferred from tests.
 Raw redemption tokens are hashed before request journaling; the issuer's private
 exact-request receipt retains its reusable locator for response-loss recovery.
+
+The committed backend checkpoint `fd1e4cb` passed the full portable gate:
+`WEEKLY_VERIFY_PORT_BASE=59320 scripts/weekly-local-verify.sh`, evidence
+`/tmp/gametime-weekly-verify.5JY0MX9u/` and
+`/tmp/gametime-finish-b7-evidence/m4-committed-portable-gate.log`.
+Actually executed **3,738 SQL assertions in 77 files, 835 Deno tests, 113 core
+Swift tests**, and the persisted historical weekly lifecycle smoke. This run
+includes the 162 new-domain assertions and preserves the historical tests.
+
+## M4 native matrix checkpoint — 2026-09-08
+
+Actually executed: `scripts/beta-native-smoke.py --simulator
+72A3249A-2DE0-4695-AF41-DCD2743B4666 --native-only`, log
+`/tmp/gametime-finish-b7-evidence/m4-native-granted-access.log`: **11 native tests,
+zero failures**. One test traverses the two/six steps journeys and every one of the
+13 policies through production `SupabaseChallengeV1Client`/`ChallengeV1Store` and
+separate authenticated local actors. All 13 include explicit consent, exact
+canonical input, downward correction, delayed notice and persisted final result;
+leaderboard ties are target-free, personal creation has no intermediate lobby,
+and community provisional/final allocations are own-only. The same test proves a
+previously unallowlisted entrant gains access through a link, remains unselected,
+retains granted access after rejection/revocation, recovers the exact receipt,
+and loses all native shared content after actual server-side session revocation.
+[Sanitized HTTP trace](evidence/beta-finish-line-b7/native-matrix-http-report.json)
+contains status and request-body hashes, never credentials or Health records.
+
+The other native tests cover exact unit parsing/rounding, no leaderboard
+suggestions, protected opaque invitation persistence without pre-auth detail
+reads, durable actor request isolation, hosted-URL rejection and held-auth races.
+Suggestions have arithmetic implementation but no accepted physical adapter or
+real baseline: they remain absent in the interface until eligible history exists.
+New native selectors, personal agreement, community join, age/link/report/block
+screens compile in Debug; historical default navigation remains intact.
+
+SQL 495 added **48 actually passing assertions** across all twelve friend/personal
+policies for last-second review filing, full resolution time, unresolved refund
+and safe exit with admission/processing paused. New-domain total now **210**,
+log `/tmp/gametime-finish-b7-evidence/495_challenge_policy_recovery.test.sql.log`.
+These additions still need the next committed portable run.
+
+Touch automation status: the broad two/six run completed the two-person path but
+failed when one six-person consent toggle remained off. The server correctly
+refused to start. This is **not accepted full six-person touch evidence**. Split
+focused two/six tests now assert the visible consent switch state, stop on first
+failure, and identify the exact new final-history row. Next execute those focused
+runs before claiming complete touch traversal. Earlier failures include the test
+helper's concurrency annotation and stale email replacement, both fixed.

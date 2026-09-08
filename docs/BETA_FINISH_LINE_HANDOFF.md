@@ -40,3 +40,24 @@ stack. Next: connect the native selectors/personal agreement/community/age/link
 and safety workflows, execute all thirteen with production Swift HTTP clients,
 then concurrency/projection freshness/operational tooling and the full committed
 historical gate. The source and physical gates remain unchanged.
+
+Native M4 work in progress: production Swift client traversed all thirteen policies
+in `/tmp/gametime-finish-b7-evidence/m4-native-http.log` (7 native tests plus the
+existing one UI traversal passed). A broader touch-driven two/six test is running;
+its first attempt had a test-helper concurrency build error and second attempt
+failed at email replacement on account switching. The preview now clears the email
+after successful login and clears submitted usernames. Do not treat touch coverage
+as accepted until the complete rerun passes. New Home pagination migration
+20260908054225 is authored but not yet applied/verified; it is independent follow-on
+work, not part of the previously committed backend evidence.
+
+M4 native matrix now passes 11 tests in `m4-native-granted-access.log`; sanitized
+trace is tracked under evidence/native-matrix-http-report.json. SQL 495 passes
+48 more assertions (210 new-domain total). The complete six-person touch run is
+still unaccepted: one toggle stayed off, so the server refused to start. Next:
+`scripts/beta-native-smoke.py --simulator 72A3249A-2DE0-4695-AF41-DCD2743B4666 --touch-only 6`
+then `--touch-only 2`. These now assert explicit visible switch-on and the exact
+new final row. Continue afterward with Home sections (authored migration
+20260908054225 is still unapplied/unverified), concurrency, owner tooling,
+accessibility/Release/historical acceptance and rollout preparation. Do not stop
+at the native matrix checkpoint.

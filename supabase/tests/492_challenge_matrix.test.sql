@@ -24,34 +24,8 @@ select is(app.challenge_evaluate_policy_v1('friend_steps_leaderboard_v1','[{"act
 select is(app.challenge_evaluate_policy_v1('personal_timed_goal_v1','[{"actor_id":"a","target":360,"value":360,"state":"complete","excluded":false}]',100,1)->'participants'->'a'->>'status','missed','strict timed equality is miss only with complete facts');
 select is(app.challenge_evaluate_policy_v1('personal_timed_goal_v1','[{"actor_id":"a","target":360,"value":null,"state":"unresolved","excluded":false}]',100,1)->'participants'->'a'->>'status','void','missing personal timed data voids');
 -- Persist every friend and personal policy with its own readiness and lifecycle.
-create function pg_temp.matrix_create(p text,a integer) returns uuid language plpgsql as $$
-declare cfg jsonb; preview jsonb; c uuid; m text:=split_part(p,'_',2); begin
- perform set_config('role','none',true);perform pg_temp.clock_beta('2026-10-01T12:00Z');
- perform public.challenge_readiness_metric_fixture_v1(pg_temp.ba(a),m);
- perform pg_temp.login_beta(a);
- cfg:='{"start_date":"2026-10-03","days":1,"timezone":"UTC","amount_cents":100}';
- if m='timed' then cfg:=cfg||'{"distance_mm":1609344}';end if;
- if split_part(p,'_',1)='personal' then
-  preview:=public.challenge_personal_preview_v1(p,cfg,100);
-  c:=(public.challenge_mutate_v1(extensions.gen_random_uuid(),jsonb_build_object('op','personal_commit','policy',p,'config',cfg,'target',100,'digest',preview->>'digest','consent',true))->>'id')::uuid;
-  perform set_config('role','none',true);return c;
- end if;
- c:=(public.challenge_mutate_v1(extensions.gen_random_uuid(),jsonb_build_object('op','create','policy',p,'config',cfg))->>'id')::uuid;
- if split_part(p,'_',3)='goal' then perform pg_temp.beta_mutate(c,'target','{"target":100}');end if;
- if split_part(p,'_',1)='friend' then
-  perform pg_temp.beta_mutate(c,'invite',jsonb_build_object('username','betafixture'||lpad((a+1)::text,4,'0')));
-  perform set_config('role','none',true);perform public.challenge_readiness_metric_fixture_v1(pg_temp.ba(a+1),m);
-  perform pg_temp.login_beta(a+1);
-  if split_part(p,'_',3)='goal' then perform pg_temp.beta_mutate(c,'target','{"target":100}');end if;
-  perform pg_temp.login_beta(a);perform pg_temp.beta_mutate(c,'select',jsonb_build_object('actor_id',pg_temp.ba(a+1),'selected',true));
- end if;
- perform pg_temp.beta_mutate(c,'freeze');
- perform pg_temp.beta_mutate(c,'consent',jsonb_build_object('consent',true,'digest',public.challenge_detail_v1(c)->'agreement'->>'digest'));
- if split_part(p,'_',1)='friend' then
-  perform pg_temp.login_beta(a+1);perform pg_temp.beta_mutate(c,'consent',jsonb_build_object('consent',true,'digest',public.challenge_detail_v1(c)->'agreement'->>'digest'));
- end if;
- perform set_config('role','none',true); return c;
-end $$;
+\ir fixtures/challenge-matrix-fixture.inc
+
 insert into beta_ids(name,id) select p,pg_temp.matrix_create(p,10) from (select mode||'_'||metric||'_'||competition||'_v1' p from unnest(array['friend','personal']) mode cross join unnest(array['steps','exercise','distance','timed']) metric cross join unnest(array['goal','leaderboard']) competition where mode='friend' or competition='goal' limit 1) policies;
 -- Close each before the next to exercise all types without bypassing admission.
 create function pg_temp.matrix_lifecycle_checks() returns setof text language plpgsql as $$ declare p text; c uuid; a uuid; begin

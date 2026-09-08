@@ -6,6 +6,10 @@ import Supabase
     func detail(_ id: UUID, actor: UUID) async throws -> ChallengeV1
     func submit(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt
     func abandon(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt
+    func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON], actor: UUID, as type: T.Type) async throws -> T
+}
+extension ChallengeV1Client {
+    func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON] = [:], actor: UUID, as type: T.Type) async throws -> T { throw ChallengeV1Error.unavailable }
 }
 private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
@@ -36,6 +40,7 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
             if http.statusCode == 401 { throw ChallengeV1Error.accountChanged }
             guard (200...299).contains(http.statusCode) else {
                 let error = try? JSONDecoder().decode(ServerError.self, from: data)
+                if error?.message == "challenge_session_required" { throw ChallengeV1Error.accountChanged }
                 throw ChallengeV1Error.server(error?.message ?? "unavailable")
             }
             return data
@@ -61,10 +66,14 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
         guard row.id == id else { throw ChallengeV1Error.invalidResponse }; try row.validate(actor: actor); return row
     }
     func submit(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt {
-        try decode(await send("challenge_mutate_v1", request.body, request.actorId))
+        try decode(await send("challenge_command_v1", request.body, request.actorId))
     }
     func abandon(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt {
-        try decode(await send("challenge_abandon_v1", request.body, request.actorId))
+        try decode(await send("challenge_stop_command_v1", request.body, request.actorId))
+    }
+    func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON] = [:], actor: UUID, as type: T.Type) async throws -> T {
+        guard ["challenge_access_status_v1", "challenge_personal_preview_v1", "challenge_community_catalog_v1", "challenge_operator_cases_v1"].contains(name) else { throw ChallengeV1Error.unavailable }
+        return try decode(await send(name, ChallengeJSON.data(.object(fields)), actor))
     }
     private func send(_ name: String, _ body: Data, _ actor: UUID) async throws -> Data {
         guard enabled else { throw ChallengeV1Error.unavailable }

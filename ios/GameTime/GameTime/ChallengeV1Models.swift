@@ -7,6 +7,7 @@ typealias ChallengeJSON = WeeklyJSON
 struct ChallengeV1: Codable, Equatable, Identifiable, Sendable {
     struct Window: Codable, Equatable, Sendable {
         let startDate: String; let days: Int; let timezone: String; let amountCents: Int
+        var distanceMm: Int? = nil
         let startsAt: ChallengeInstant; let endsAt: ChallengeInstant
         let syncBy: ChallengeInstant; let correctionsBy: ChallengeInstant; let noticeDue: ChallengeInstant
     }
@@ -28,18 +29,35 @@ struct ChallengeV1: Codable, Equatable, Identifiable, Sendable {
         let revision: Int; let recordedAt: ChallengeInstant; let reviewBy: ChallengeInstant; let result: Allocation?
     }
     struct Review: Codable, Equatable, Identifiable, Sendable {
+        var noticeRevision: Int? = nil
         let id: UUID; let reason: String; let filedAt: ChallengeInstant; let resolveBy: ChallengeInstant; let decision: String?
     }
     struct Final: Codable, Equatable, Sendable { let recordedAt: ChallengeInstant; let result: Allocation }
+    struct Counts: Codable, Equatable, Sendable { let joined: Int }
+    var counts: Counts? = nil
     let id: UUID; let creatorId: UUID?; let policy: String; let config: Window
     let status: String; let revision: Int; let agreementVersion: Int
     let serverTime: ChallengeInstant; let socialHidden: Bool; let agreement: Agreement?
     let members: [Member]; let notice: Notice?; let reviews: [Review]; let final: Final?
+    var rankedMembers: [Member] {
+        guard !format.hasTarget else { return members }
+        return members.sorted { a, b in
+            let av = a.fact?.state == "complete" ? a.fact?.value : nil
+            let bv = b.fact?.state == "complete" ? b.fact?.value : nil
+            if av != bv {
+                if let av, let bv { return format.metric == .timed ? av < bv : av > bv }
+                return av != nil
+            }
+            return a.actorId.uuidString < b.actorId.uuidString
+        }
+    }
     var isClosed: Bool { ["final", "void", "cancelled"].contains(status) }
     func own(_ actor: UUID?) -> Member? { members.first { $0.actorId == actor } }
-    var title: String { "Steps together" }
+    var format: ChallengeV1Policy { ChallengeV1Policy(rawValue: policy)! }
+    var title: String { ChallengeV1Policy(rawValue: policy)?.title ?? "Challenge" }
     var statusText: String {
         switch status {
+        case "published_open": "Joining is open"
         case "lobby_open": "Choose your goals"
         case "consent_pending": "Review and agree"
         case "scheduled": "Starts soon"
@@ -53,7 +71,10 @@ struct ChallengeV1: Codable, Equatable, Identifiable, Sendable {
         }
     }
     func validate(actor: UUID) throws {
-        guard policy == "friend_steps_goal_v1", revision > 0, (1...30).contains(config.days),
+        guard let format = ChallengeV1Policy(rawValue: policy),
+              (format.metric == .timed) == (config.distanceMm != nil),
+              format.hasTarget || members.allSatisfy({ $0.target == nil }),
+              format.mode != .community || socialHidden, revision > 0, (1...30).contains(config.days),
               (100...50000).contains(config.amountCents), config.amountCents % 100 == 0,
               config.startsAt < config.endsAt, members.count <= 30,
               Set(members.map(\.actorId)).count == members.count, own(actor) != nil,
@@ -72,7 +93,19 @@ struct ChallengeV1: Codable, Equatable, Identifiable, Sendable {
 }
 
 struct ChallengeV1Receipt: Codable, Equatable, Sendable {
-    let id: UUID?; let revision: Int?; let status: String
+    let id: UUID?; let revision: Int?; let status: String?
+    let token: String?; let expiresAt: ChallengeInstant?; let confirmed: Bool?; let saved: Bool?
+    init(id: UUID? = nil, revision: Int? = nil, status: String? = nil, token: String? = nil,
+         expiresAt: ChallengeInstant? = nil, confirmed: Bool? = nil, saved: Bool? = nil) {
+        self.id=id; self.revision=revision; self.status=status; self.token=token
+        self.expiresAt=expiresAt; self.confirmed=confirmed; self.saved=saved
+    }
+}
+struct ChallengeV1Access: Decodable, Equatable, Sendable {
+    let serverTime: ChallengeInstant?; let ageConfirmed: Bool; let betaAccess: Bool; let suspended: Bool
+}
+struct ChallengeV1Community: Decodable, Equatable, Identifiable, Sendable {
+    let id: UUID; let terms: ChallengeJSON; let digest: String; let serverTime: ChallengeInstant; let joinedCount: Int
 }
 struct ChallengeV1Request: Codable, Equatable, Sendable {
     let kind: String; let actorId: UUID; let requestId: UUID; let payload: ChallengeJSON
@@ -95,13 +128,15 @@ enum ChallengeV1Error: Error, LocalizedError, Equatable {
         case .storage: "We couldn’t save your action on this phone. Free some space and try again."
         case .server(let reason):
             switch reason {
+            case "challenge_age_required": "Confirm that you are 21 or older before continuing."
+            case "challenge_link_unavailable": "This invitation is unavailable. Ask the creator for a new link."
             case "challenge_stale": "The challenge changed. Refresh, then review the latest rules."
             case "challenge_readiness_required": "Your activity isn’t ready yet. Check Apple Health before agreeing."
             case "challenge_admission_paused": "New challenges are paused. You can still read, leave or request a review."
-            case "challenge_metric_overlap": "You already have a steps challenge during these dates. Choose different dates."
+            case "challenge_metric_overlap": "You already have a friend challenge for this activity during these dates. Choose different dates."
             case "challenge_unsettled_limit": "Three challenges still need a final result. Wait for one to finish before joining another."
             case "challenge_friend_unavailable": "We couldn’t find an available friend with that username. Check the exact spelling."
-            case "challenge_incomplete_roster": "Select two to six people and ask everyone to choose a goal before continuing."
+            case "challenge_incomplete_roster": "Select two to six people. For a goal challenge, everyone must choose their own goal before continuing."
             case "challenge_consent_mismatch": "The rules changed or agreement is closed. Refresh to see what happens next."
             case "challenge_review_closed": "This review window has ended. Refresh to see your result or contact support."
             default: "We couldn’t complete that action. Refresh the challenge, or retry your saved action."
