@@ -94,8 +94,9 @@ run evidence and unperformed physical/human/pilot gates.
 ## Current local Beta implementation
 
 D134 and [the Beta plan](docs/BETA_IMPLEMENTATION_PLAN.md) govern the new
-`challenge_*_v1` domain. Follow [acceptance](docs/BETA_FINISH_LINE_ACCEPTANCE.md)
-and [handoff](docs/BETA_FINISH_LINE_HANDOFF.md) for actual runs and next work.
+`challenge_*_v1` domain. Follow [continuation acceptance](docs/BETA_REAL_VALIDATION_ACCEPTANCE.md)
+and [handoff](docs/BETA_REAL_VALIDATION_HANDOFF.md) for current runs and next work;
+the linked b7 ledger preserves earlier evidence.
 Historical weekly acceptance is a separate contract, not Beta evidence.
 
 ## Maintaining this file

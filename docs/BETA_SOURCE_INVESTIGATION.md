@@ -68,3 +68,12 @@ Debug/Staging/Release launch behavior is retained. Ten focused native tests pass
 physical branch argument in software; no physical launch or Health read occurred.
 Evidence: `/tmp/gametime-finish-b7-evidence/m6-observer-exclusion-{before,after}.log`
 and corresponding `.xcresult` bundles (before failed; after passed).
+
+## Continuation session guide
+
+Use [the c8 grouped private sessions](BETA_PHYSICAL_SESSIONS.md) for short physical
+actions and exact categorical response prompts. It continues the existing
+`gametime-beta-source-acceptance-b7` dependency. All physical rows above remain
+unperformed until Firstmate relays actual observations and explicit device opt-in.
+Build from the isolated continuation named in [its handoff](BETA_REAL_VALIDATION_HANDOFF.md);
+the preserved b7 checkout itself stays read-only.

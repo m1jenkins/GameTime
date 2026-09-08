@@ -1,0 +1,22 @@
+{
+  "at": "2026-09-08T12:26:59.667752+00:00",
+  "candidate": "2480bca4d1db6253be4b91871af3bedfa50b146e",
+  "preview_app_path": "/private/tmp/gametime-real-validation-c8-derived/Build/Products/Debug-iphonesimulator/GameTime.app",
+  "installed_executable_matches_build": true,
+  "executable_sha256": "31abfab1ed13502f91f0d8db45883c6a86d6a72a4e9aba7b9a909dc918d7111f",
+  "controller_port": 58339,
+  "simulator": "72A3249A-2DE0-4695-AF41-DCD2743B4666",
+  "fictional": true,
+  "physical": false,
+  "after_actor_switch_installed_matches_c8": true,
+  "manual_checks": [
+    "actor 1 sign-in reached Home",
+    "fictional age confirmation saved",
+    "friend goal creation route inspected",
+    "friend leaderboard selector and explanatory copy inspected",
+    "personal goal 1.5 steps rejected with visible format help and disabled review",
+    "actor 2 sign-in reached separate empty Home",
+    "actor 1 relaunched and signed in again"
+  ],
+  "preview_status": "running; tracked PTY 65466; exact foreground relaunch in handoff"
+}

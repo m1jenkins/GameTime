@@ -1,0 +1,21 @@
+{
+  "gates": {
+    "fixtures": true,
+    "admission": true,
+    "analytics": false,
+    "discovery": false,
+    "ingestion": false,
+    "singleton": true,
+    "processing": true,
+    "steps_source": false,
+    "timed_source": false,
+    "distance_source": false,
+    "exercise_source": false
+  },
+  "due_count": 0,
+  "oldest_due": null,
+  "server_time": "2026-10-01T12:00:00+00:00",
+  "recent_failures": 0,
+  "notice_overdue_count": 0,
+  "review_overdue_count": 0
+}

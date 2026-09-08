@@ -1,0 +1,14 @@
+{
+  "at": "2026-09-08T11:48:15.936753+00:00",
+  "worktree": "/Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta",
+  "branch": "fm/gametime-beta-real-validation-c8",
+  "head": "cf82e25bd7905c851525b837259bba0f0aaf3d8f",
+  "b7_head": "cf82e25bd7905c851525b837259bba0f0aaf3d8f",
+  "b7_clean": true,
+  "original_head": "577bc321e72750976e2e8027680387707070b0e3",
+  "original_status_matches": false,
+  "original_files_checked": 101,
+  "changed_files": [],
+  "database_identity_matches": true,
+  "limit": "Database container/volume/start identity only. No private database contents read."
+}

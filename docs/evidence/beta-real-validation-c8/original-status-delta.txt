@@ -1,0 +1,15 @@
+--- b7 recorded original status
++++ c8 observed original status
+@@ -45,6 +45,12 @@
+ ?? .lavish/gametime-matchday-visuals-assets/stamps/pending-stamp.svg
+ ?? .lavish/gametime-matchday-visuals-assets/stamps/start-stamp.svg
+ ?? .lavish/gametime-matchday-visuals.html
++?? .lavish/gametime-state-2026-09-08.html
++?? .lavish/gametime-state-2026-09-08/design-reference.png
++?? .lavish/gametime-state-2026-09-08/firstmate-prompt.txt
++?? .lavish/gametime-state-2026-09-08/native-home.png
++?? .lavish/gametime-state-2026-09-08/overnight-handoff.md
++?? .lavish/gametime-state-2026-09-08/source-investigation.md
+ ?? .lavish/gametime-ui-direction-assets/01-clubhouse-home.png
+ ?? .lavish/gametime-ui-direction-assets/02-clubhouse-friends.png
+ ?? .lavish/gametime-ui-direction-assets/03-clubhouse-goal.png

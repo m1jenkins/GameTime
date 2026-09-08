@@ -1,0 +1,25 @@
+{
+  "candidate": "4744a3d41279b8dbb81703877ecec5726c91bca4",
+  "command": "WEEKLY_VERIFY_PORT_BASE=59320 scripts/weekly-local-verify.sh",
+  "exit_code": 0,
+  "disposable_project": "gametime-weekly-verify.a7yhtkvu",
+  "logs": "/tmp/gametime-weekly-verify.a7YHTkVu",
+  "database_port": 59322,
+  "sql": {
+    "files": 84,
+    "passed": 3882,
+    "failed": 0,
+    "skipped": 0
+  },
+  "deno": {
+    "passed": 835,
+    "failed": 0
+  },
+  "swift_core": {
+    "passed": 113,
+    "failed": 0
+  },
+  "weekly_persisted_smoke": "passed; transaction rolled back",
+  "cleanup": "owned disposable stack stopped with no-backup; retained b7 and original stacks not reset",
+  "physical": false
+}

@@ -156,3 +156,12 @@ The next executable product work depends on these exact external actions:
    execute M7 wiring/replacement and actual hosted acceptance. M8 distribution /
    recruitment and real money each require separate authorization. Prepared files
    and successful local tests grant none of these approvals.
+
+## September 8 continuation — c8
+
+The preserved b7 completion remains `cf82e25bd7905c851525b837259bba0f0aaf3d8f`.
+Continue from [the c8 handoff](BETA_REAL_VALIDATION_HANDOFF.md) and
+[its acceptance ledger](BETA_REAL_VALIDATION_ACCEPTANCE.md), which supersede
+the earlier no-dependency-ready-work conclusion with reproduced lifecycle/privacy
+fixes. c8 builds and documentation live in the isolated `/2/` checkout; b7 remains
+read-only. Prior runs above are historical evidence, not fresh c8 checks.

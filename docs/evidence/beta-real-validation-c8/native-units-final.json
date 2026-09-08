@@ -1,0 +1,12 @@
+{
+  "candidate": "2480bca4d1db6253be4b91871af3bedfa50b146e",
+  "log": "/tmp/gametime-real-validation-c8-evidence/native-units-final.log",
+  "result_bundle": "/tmp/gametime-real-validation-c8-evidence/native-units-final.xcresult",
+  "executed": 396,
+  "passed": 392,
+  "skipped": 4,
+  "failed": 0,
+  "seconds": 19.06,
+  "scope": "GameTimeTests; controller skips stay skipped; separate native HTTP run recorded separately",
+  "physical": false
+}

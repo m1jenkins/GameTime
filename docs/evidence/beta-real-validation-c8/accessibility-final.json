@@ -1,0 +1,50 @@
+{
+  "runs": [
+    {
+      "mode": "light",
+      "candidate": "2480bca4d1db6253be4b91871af3bedfa50b146e",
+      "log": "/tmp/gametime-real-validation-c8-evidence/accessibility-verified-light.log",
+      "result_bundle": "/tmp/gametime-real-validation-c8-evidence/native-9373fef0-5432-4c9a-8bba-2817a928750b.xcresult",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "unfiltered_screen_audits": 4,
+      "seconds": 36.411
+    },
+    {
+      "mode": "dark",
+      "candidate": "2480bca4d1db6253be4b91871af3bedfa50b146e",
+      "log": "/tmp/gametime-real-validation-c8-evidence/accessibility-verified-dark.log",
+      "result_bundle": "/tmp/gametime-real-validation-c8-evidence/native-025af197-60c5-4283-adb5-d40c0548d810.xcresult",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "unfiltered_screen_audits": 4,
+      "seconds": 36.848
+    },
+    {
+      "mode": "large",
+      "candidate": "2480bca4d1db6253be4b91871af3bedfa50b146e",
+      "log": "/tmp/gametime-real-validation-c8-evidence/accessibility-verified-large.log",
+      "result_bundle": "/tmp/gametime-real-validation-c8-evidence/native-3ecc99bd-cfce-4046-9631-91af58bb72cc.xcresult",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "unfiltered_screen_audits": 4,
+      "seconds": 67.773
+    },
+    {
+      "mode": "compact",
+      "candidate": "2480bca4d1db6253be4b91871af3bedfa50b146e",
+      "log": "/tmp/gametime-real-validation-c8-evidence/accessibility-compact-final.log",
+      "result_bundle": "/tmp/gametime-real-validation-c8-evidence/native-4a4a8147-4ef9-4ad1-a236-320a465e85f3.xcresult",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "unfiltered_screen_audits": 4,
+      "seconds": 36.429
+    }
+  ],
+  "physical": false,
+  "human_acceptance": false
+}
