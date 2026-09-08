@@ -1,0 +1,13 @@
+{
+  "requests": 24,
+  "admission": false,
+  "allowlist": 0,
+  "agreements": 5,
+  "held": false,
+  "trace_entries": 209,
+  "evidence": "Historical production Swift client to owned local authenticated backend; fictional actors, no physical data",
+  "candidate": "97d9026",
+  "tests_passed": 1,
+  "seconds": 4.896,
+  "log": "/tmp/gametime-finish-b7-evidence/m6-historical-weekly-native-run2.log"
+}

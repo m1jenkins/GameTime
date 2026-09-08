@@ -18,22 +18,22 @@ Nothing here accepts physical sources, hosted operations, distribution or money.
 | Milestone | Implemented | Executed verification | Remaining dependency / next task |
 | --- | --- | --- | --- |
 | M0 | Inherited checkpoint and isolation inventory | 101 SHA-256 comparisons, path checks | Maintain current handoff; verify original again at completion |
-| M1 | Debug-only separate investigation launch, explicit opt-in, volatile records, session/background clearing, stale read rejection | 3 native tests passed; Debug build. `/tmp/gametime-finish-b7-evidence/m1-native.log` | [Physical instructions](BETA_SOURCE_INVESTIGATION.md); every physical row unperformed |
-| M2 | Separate versioned thirteen-policy contract, forward migrations, immutable agreements and bounded operations | 264 new-domain SQL assertions executed locally; last committed portable gate 3,819 SQL / 80 files | Latest 21 SQL assertions still need committed portable rerun; real ingestion blocked |
-| M3 | Local opt-in shell, exact recovery/abandonment, complete steps journey and stable private Home sections | Two- and six-person authenticated native HTTP + focused SwiftUI touch through exact final history; section/auth/expiry regressions pass | Physical/replacement and final accessibility acceptance remain external or in progress |
-| M4 | All thirteen policies, private personal/community, selectors, age/link entry, safety and concurrent admission | All thirteen native HTTP correction/review/paused-exit/final flows; SQL admission/context; 15 real concurrency checks | Native block-response recovery passed; nonfriend link reconsent passed; real sources/community settings unaccepted |
+| M1 | Debug-only private investigation, explicit opt-in, volatile records, session/background clearing, stale read rejection; app-delegate observer exclusion | 10 focused native tests passed after reproducing both launch exclusions failing; Debug build/private UI inspected | [Physical instructions](BETA_SOURCE_INVESTIGATION.md); every physical row unperformed |
+| M2 | Separate versioned thirteen-policy contract, forward migrations, immutable agreements and bounded operations | 264 new-domain SQL assertions included in committed portable gate: 3,840 SQL / 82 files, 835 Deno, 113 core Swift and persisted weekly smoke | Real ingestion depends on accepted sources |
+| M3 | Local opt-in shell, exact recovery/abandonment, complete steps journey and stable private Home sections | Two- and six-person authenticated native HTTP + focused SwiftUI touch through exact final history; section/auth/expiry regressions pass | Four-mode automated accessibility preparation passed; physical/replacement and human acceptance remain external |
+| M4 | All thirteen policies, private personal/community, selectors, age/link entry, safety and concurrent admission | All thirteen native HTTP correction/review/paused-exit/final flows; SQL admission/context; 15 real concurrency checks | Native block-response recovery and nonfriend reconsent passed; actual URL/relaunch/sign-in/age/pending entry passed; real sources/community settings unaccepted |
 | M5 | Disabled | No physical evidence | All four accepted policies; timed tolerance decision |
-| M6 | Scoped operator/worker/recovery, local disclosures and preview/rollout tooling | 11 authenticated CLI checks; 19 operations SQL; 385 broad native unit passes (4 skips); unsigned Release build | Four-mode unfiltered accessibility preparation passed; preview execution and historical UI reruns still pending; physical/human/support external |
+| M6 | Scoped operator/worker/recovery, local disclosures and preview/rollout tooling | 11 authenticated CLI checks; 19 operations SQL; 388 broad native unit passes (4 controller skips); unsigned Release build | Four-mode unfiltered accessibility and preview/URL entry passed; latest two/six touch and 392-test native suite passed (4 skips); historical UI rerun in progress; physical/human/support external |
 | M7 | Release/host association template, replacement inventory, disable/recovery sequence prepared | Unsigned Release excludes new local shell/investigation; original 101 source hashes/status/DB identity rechecked | No replacement, hosted wiring/deploy or deletion until physical/replacement/owner approval |
 | M8 | Disabled | None | Separate distribution/recruitment authorization |
 
 ## Per-policy ledger
 
-Every real source remains disabled. The following rows describe fictional new-contract software verification only. Historical weekly counts are separate. The expanded matrix run is recorded in `m6-native-all-policy-review-exit.log`; physical normalization is not established by canonical fictional input.
+Every real source remains disabled. The following rows describe fictional new-contract software verification only. Historical weekly counts are separate. The expanded matrix and additional nonfriend reconsent run is recorded in `m6-native-invited-reconsent-expiry.log`; physical normalization is not established by canonical fictional input.
 
 | Policy | Backend/native | Readiness/normalization | Ranking/qualification | Correction/review/exit/allocation | Physical |
 | --- | --- | --- | --- | --- | --- |
-| friend goal · steps | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
+| friend goal · steps | SQL + native HTTP + two/six SwiftUI touch | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
 | friend goal · Exercise | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
 | friend goal · distance | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Unperformed |
 | friend goal · timed | SQL + native HTTP | Fictional readiness; canonical units | Exact SQL + native result | Native correction + review + paused exit + exact final | Tolerance unapproved |
@@ -49,10 +49,11 @@ Every real source remains disabled. The following rows describe fictional new-co
 
 ## External gates
 
-- `physical-source-actions`: opted-in iPhone/Watch observations required. Raw Health records stay in volatile on-device memory; no captures/logs/uploads/commits.
+- `physical-source-actions`: opted-in iPhone/Watch observations required; held in Firstmate task `gametime-beta-source-acceptance-b7`. Raw Health records stay in volatile on-device memory; no captures/logs/uploads/commits.
 - `timed-distance-tolerance`: owner selection only after whole-workout accuracy and pause tests.
 - `community-settings`: target, minimum/capacity, timezone, amount after source/comprehension findings.
-- Human comprehension, VoiceOver/assistive controls and voluntary exit; monitored support/legal text approval; hosted, distribution and recruitment remain unperformed/unapproved.
+- `beta-release-identities-retention`: monitored support/legal identity, retention/deletion, approved host and community choices are held in `gametime-beta-release-readiness-b7`; no approvals received.
+- Human comprehension, VoiceOver/assistive controls and voluntary exit; hosted, distribution and recruitment remain unperformed/unapproved.
 
 ## Reversible implementation decisions
 
@@ -433,3 +434,59 @@ Latest unsigned Release-device build passed in `m6-final-release-build.log`;
 binary scan confirms the private/local launch strings and investigation copy are
 absent. The historical step-count Health purpose remains. This build was neither
 signed, installed on a physical device nor distributed.
+
+## Final committed native journey — 60d2e6d
+
+`scripts/beta-native-smoke.py --simulator 72A3249A-2DE0-4695-AF41-DCD2743B4666
+--touch-only 6` passed **one native SwiftUI test, 636.211 seconds**, including each
+participant's target, frozen roster, separate explicit consents, progress, downward
+correction, delayed review, independent fixture resolution, exact final history
+and account exit. The production native client made 404 traced local requests.
+Clock/facts/operator actions were fictional controller actions; participant actions
+were actual UI. Cleanup disabled gates and revoked seven fixture actors. Evidence:
+`six-touch-final.json`, private `m6-final-six-touch.log` and its unique result bundle.
+This is separate from the latest two-person preview touch (one pass, 241.789 seconds)
+and authenticated HTTP two/six and thirteen-policy matrix evidence.
+
+Latest broad native regression on committed `60d2e6d`: **392 tests executed,
+4 controller-dependent skips, 388 passes, zero failures**, in 18.975 seconds.
+Includes the preserved weekly held-authentication race. Beta and weekly have separate authenticated controller evidence; older duel and
+performance controller checks are now being prepared on isolated committed inputs.
+Skips are not passes.
+Evidence `native-units-final.json` and `m6-final-native-units.xcresult`.
+
+## Historical regression follow-up (active; not acceptance)
+
+The historical UI batch on `60d2e6d` finished with **50 executed, 43 passed and
+seven failures**, 1582.711 seconds, normal exit 65. Failures were exact queries for
+four styled texts: Apple Health (two tests), In progress (two tests), Your pace
+(one test), and Help & documents (two tests, including Dynamic Type). Both the
+full failed batch and result bundle remain in `m6-final-historical-ui`.
+
+Firstmate inbox 005 authorized diagnosis and baseline comparison. The same seven
+unchanged tests on preserved main `577bc32` failed at the same assertions (seven
+failures, 289.992 seconds), using an independent committed-input copy and the same
+owned runtime/settings. Actual fixture AX/screenshot captures show the required
+text: all selected candidate labels were uppercase; baseline You returned mixed
+case, while baseline progress/help were uppercase. This variation occurs with the
+existing `textCase(.uppercase)` plus mixed-case accessibilityLabel; no missing
+heading or new progress-state bug was observed. These screenshots use fictional
+fixtures and contain no physical Health records.
+
+A TEST-ONLY query helper accommodates casing for the same four complete labels,
+retaining the static-text element kind and every downstream assertion. Focused
+seven-test validation passed all seven tests, zero failures, 382.704 seconds;
+full committed historical rerun follows.
+`legacy-health-heading` remains open until verification completes. See
+`legacy-label-observations.json` for actual observations, baseline and evidence.
+
+Prepared additional old duel/performance authenticated checks because their two
+controller tests skipped in the broad unit run.
+`python3 scripts/beta-legacy-native-prepare.py --candidate 60d2e6d` produced an
+independent native build copy from committed inputs. All **682 file hashes** are
+in `legacy-native-inputs.json`; only four test/controller files remap historical
+5432x/5732x literals to task-owned 5632x. Production Swift remains byte-identical.
+A first preparation attempt stopped before extraction on a macOS temporary-path
+symlink invariant; canonicalizing the new destination fixed it. Both candidate
+and baseline (`--candidate main`, commit 577bc32) then prepared successfully.
+The candidate build-for-testing passed; original 5432x services remain untouched.

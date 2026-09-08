@@ -220,7 +220,7 @@ final class GameTimeUITests: XCTestCase {
                 .waitForExistence(timeout: 5)
         )
         assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
-        XCTAssertTrue(app.staticTexts["In progress"].exists)
+        XCTAssertTrue(styledStaticText("In progress", in: app).exists)
         XCTAssertTrue(app.buttons["personal.challenge.sync-now"].exists)
     }
 
@@ -665,7 +665,7 @@ final class GameTimeUITests: XCTestCase {
                 .waitForExistence(timeout: 4)
         )
         assertDailyProgress(in: app)
-        XCTAssertTrue(app.staticTexts["Your pace"].exists)
+        XCTAssertTrue(styledStaticText("Your pace", in: app).exists)
         let syncNow = app.buttons["personal.challenge.sync-now"]
         XCTAssertTrue(syncNow.waitForExistence(timeout: 4))
         syncNow.tap()
@@ -1041,7 +1041,7 @@ final class GameTimeUITests: XCTestCase {
                 "personal.payment.status.card"
             ].exists
         )
-        XCTAssertTrue(app.staticTexts["Your pace"].exists)
+        XCTAssertTrue(styledStaticText("Your pace", in: app).exists)
         XCTAssertFalse(app.staticTexts["Steps received"].exists)
         assertEnvironmentDisclosure(in: app, mode: .testOnly)
 
@@ -1339,7 +1339,7 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
         )
-        XCTAssertTrue(app.staticTexts["In progress"].exists)
+        XCTAssertTrue(styledStaticText("In progress", in: app).exists)
         let syncNow = app.buttons["personal.challenge.sync-now"]
         for _ in 0..<8 where !syncNow.exists { app.swipeUp() }
         XCTAssertTrue(syncNow.waitForExistence(timeout: 3))
@@ -1354,7 +1354,7 @@ final class GameTimeUITests: XCTestCase {
             app.navigationBars["You"].waitForExistence(timeout: 4)
         )
         XCTAssertTrue(
-            app.staticTexts["Apple Health"]
+            styledStaticText("Apple Health", in: app)
                 .waitForExistence(timeout: 4)
         )
         XCTAssertFalse(
@@ -1376,7 +1376,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(
             app.navigationBars["You"].waitForExistence(timeout: 4)
         )
-        XCTAssertTrue(app.staticTexts["Apple Health"].exists)
+        XCTAssertTrue(styledStaticText("Apple Health", in: app).exists)
         let connectHealth = app.buttons["personal.health.verify"]
         XCTAssertTrue(connectHealth.waitForExistence(timeout: 4))
         XCTAssertEqual(connectHealth.label, "Connect Apple Health")
@@ -1424,7 +1424,7 @@ final class GameTimeUITests: XCTestCase {
         app.tabBars.buttons["You"].waitAndTap()
 
         XCTAssertTrue(
-            app.staticTexts["Apple Health"].waitForExistence(timeout: 5)
+            styledStaticText("Apple Health", in: app).waitForExistence(timeout: 5)
         )
         let connectHealth = app.buttons["personal.health.verify"]
         XCTAssertTrue(connectHealth.waitForExistence(timeout: 4))
@@ -2174,7 +2174,7 @@ final class GameTimeUITests: XCTestCase {
             line: line
         )
         XCTAssertTrue(
-            exactStaticText("Help & documents", in: app).exists,
+            styledStaticText("Help & documents", in: app).exists,
             file: file,
             line: line
         )
@@ -2412,6 +2412,18 @@ final class GameTimeUITests: XCTestCase {
                 "personal.health.status",
                 fragment
             )
+        ).firstMatch
+    }
+
+    /// The current runtime can expose textCase(.uppercase) in the AX label, even
+    /// with a mixed-case accessibilityLabel. Preserve the full semantic text
+    /// and element kind while allowing this observed visual casing difference.
+    private func styledStaticText(
+        _ label: String,
+        in app: XCUIApplication
+    ) -> XCUIElement {
+        app.staticTexts.matching(
+            NSPredicate(format: "label ==[c] %@", label)
         ).firstMatch
     }
 

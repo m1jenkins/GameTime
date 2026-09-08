@@ -1,0 +1,163 @@
+{
+  "scope": "Legacy fixture UI only; no physical Health data",
+  "candidate": "60d2e6d",
+  "runtime": "Owned iPhone 17 Pro Simulator, iOS 26.5, Xcode beta SDK 27.0",
+  "settings": "light; content size L; reduce motion NO (explicit launch arguments)",
+  "observations": [
+    {
+      "surface": "you",
+      "observed": [
+        {
+          "type": "Heading",
+          "AXLabel": "APPLE HEALTH",
+          "frame": {
+            "width": 97.66666666666666,
+            "height": 13.333333333333258,
+            "x": 24,
+            "y": 580.6666666666666
+          }
+        }
+      ],
+      "raw_ax_path": "/tmp/gametime-finish-b7-evidence/legacy-candidate-you-ax.json",
+      "screenshot": "docs/evidence/beta-finish-line-b7/screenshots/legacy-candidate-you.png",
+      "sha256": "8248f151de0ac7f2b24f3718112868279fd39decab59db5e67cb454aaa610f8e"
+    },
+    {
+      "surface": "progress",
+      "observed": [
+        {
+          "type": "StaticText",
+          "AXLabel": "IN PROGRESS",
+          "frame": {
+            "x": 46.00000000000003,
+            "width": 91,
+            "y": 177.16666666666669,
+            "height": 14.333333333333314
+          }
+        },
+        {
+          "type": "Heading",
+          "AXLabel": "YOUR PACE",
+          "frame": {
+            "y": 459.3333333333333,
+            "height": 13.333333333333314,
+            "x": 22.00000000000003,
+            "width": 74.66666666666666
+          }
+        }
+      ],
+      "raw_ax_path": "/tmp/gametime-finish-b7-evidence/legacy-candidate-progress-ax.json",
+      "screenshot": "docs/evidence/beta-finish-line-b7/screenshots/legacy-candidate-progress.png",
+      "sha256": "b0725ee1f005d0eb1e8936c34d762355cd20a89b395b48a21ef9a9b30b2f5ed6"
+    },
+    {
+      "surface": "help",
+      "observed": [
+        {
+          "type": "Heading",
+          "AXLabel": "HELP & DOCUMENTS",
+          "frame": {
+            "x": 24,
+            "width": 134.66666666666666,
+            "y": 162.33333333333331,
+            "height": 13.333333333333343
+          }
+        }
+      ],
+      "raw_ax_path": "/tmp/gametime-finish-b7-evidence/legacy-candidate-help-ax.json",
+      "screenshot": "docs/evidence/beta-finish-line-b7/screenshots/legacy-candidate-help.png",
+      "sha256": "073e866b91c5c4de7c4ae32ebe22a9c35bbb1ca0a364cd9718a500595c139d38"
+    }
+  ],
+  "baseline_comparison": {
+    "candidate": "577bc321e72750976e2e8027680387707070b0e3",
+    "tests": 7,
+    "failures": 7,
+    "seconds": 289.992,
+    "log": "/tmp/gametime-finish-b7-evidence/m6-legacy-baseline-seven.log",
+    "same_failure_lines": [
+      1379,
+      1426,
+      1342,
+      1682,
+      1586,
+      223,
+      668
+    ]
+  },
+  "fix_status": "Test-only full-label case-insensitive static-text queries; seven affected tests passed, 382.704 seconds; full committed rerun pending",
+  "baseline_observations": [
+    {
+      "surface": "you",
+      "observed": [
+        {
+          "type": "Heading",
+          "AXLabel": "Apple Health",
+          "frame": {
+            "width": 97.66666666666666,
+            "y": 580.6666666666666,
+            "height": 13.333333333333258,
+            "x": 24
+          }
+        }
+      ],
+      "raw_ax_path": "/tmp/gametime-finish-b7-evidence/legacy-baseline-you-ax.json",
+      "screenshot": "docs/evidence/beta-finish-line-b7/screenshots/legacy-baseline-you.png",
+      "sha256": "5e0c89f62bfaa53504225b845a81ebdc69335c79e9e3ff951879242f369d2aab"
+    },
+    {
+      "surface": "progress",
+      "observed": [
+        {
+          "type": "StaticText",
+          "AXLabel": "IN PROGRESS",
+          "frame": {
+            "y": 177.16666666666669,
+            "x": 46.00000000000003,
+            "height": 14.333333333333314,
+            "width": 91
+          }
+        },
+        {
+          "type": "Heading",
+          "AXLabel": "YOUR PACE",
+          "frame": {
+            "x": 22.00000000000003,
+            "width": 74.66666666666666,
+            "height": 13.333333333333314,
+            "y": 459.3333333333333
+          }
+        }
+      ],
+      "raw_ax_path": "/tmp/gametime-finish-b7-evidence/legacy-baseline-progress-ax.json",
+      "screenshot": "docs/evidence/beta-finish-line-b7/screenshots/legacy-baseline-progress.png",
+      "sha256": "7366d0bfc5d43a3accd629c06b759c0ddf35eb7964d36387fa4f42ab6e65a25e"
+    },
+    {
+      "surface": "help",
+      "observed": [
+        {
+          "type": "Heading",
+          "AXLabel": "HELP & DOCUMENTS",
+          "frame": {
+            "x": 24,
+            "width": 134.66666666666666,
+            "y": 162.33333333333331,
+            "height": 13.333333333333343
+          }
+        }
+      ],
+      "raw_ax_path": "/tmp/gametime-finish-b7-evidence/legacy-baseline-help-ax.json",
+      "screenshot": "docs/evidence/beta-finish-line-b7/screenshots/legacy-baseline-help.png",
+      "sha256": "51025fb66f2961f871bdb136f61af6fe160abd0df857a9fbb286b472f59b156a"
+    }
+  ],
+  "variation": "Baseline manual You snapshot returns mixed-case Apple Health, while its rendered heading is uppercase; other baseline/candidate captures return uppercase. The unchanged baseline tests all reproduce their original failures. An uppercase-only observation collector initially rejected this variation; raw values are now preserved.",
+  "focused_correction": {
+    "tests": 7,
+    "failures": 0,
+    "seconds": 382.704,
+    "log": "/tmp/gametime-finish-b7-evidence/m6-legacy-query-fix-seven.log",
+    "xcresult": "/tmp/gametime-finish-b7-evidence/m6-legacy-query-fix-seven.xcresult"
+  }
+}

@@ -3,6 +3,9 @@
 This is the new Beta shell on fictional local accounts. All stakes are simulated
 and nonredeemable; no Health data is scored. Legacy default navigation is intact.
 Physical-source evidence, human acceptance and distribution are still pending.
+The foreground launcher, two-person touch journey, account switching, final history,
+URL invitation through relaunch/sign-in/age, and scoped shutdown have been executed
+against the native client and authenticated local backend.
 
 ## Launch
 

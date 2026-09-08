@@ -1,0 +1,11 @@
+{
+  "candidate": "60d2e6d",
+  "evidence": "Simulator native unit regressions; controller-dependent integration cases skipped and recorded separately",
+  "tests_executed": 392,
+  "skipped": 4,
+  "passed": 388,
+  "failures": 0,
+  "seconds": 18.975,
+  "log": "/tmp/gametime-finish-b7-evidence/m6-final-native-units.log",
+  "bundle": "/tmp/gametime-finish-b7-evidence/m6-final-native-units.xcresult"
+}

@@ -1,0 +1,13 @@
+{
+  "evidence": "Six distinct Auth actors through actual native SwiftUI participant controls; fictional local facts, clock and operator",
+  "candidate": "60d2e6d",
+  "tests": 1,
+  "failures": 0,
+  "seconds": 636.211,
+  "log": "/tmp/gametime-finish-b7-evidence/m6-final-six-touch.log",
+  "result_bundle": "/tmp/gametime-finish-b7-evidence/native-aedc496f-8b2a-4ab8-8d3b-d100fedbd521.xcresult",
+  "gates_off": true,
+  "actors_revoked": 7,
+  "trace_entries": 404,
+  "physical": false
+}

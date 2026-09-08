@@ -1,0 +1,21 @@
+{
+  "project": "gametime-finish-b7",
+  "api_port": 58321,
+  "database_port": 58322,
+  "runtime": {
+    "singleton": true,
+    "admission": false,
+    "fixtures": false,
+    "processing": false,
+    "discovery": false,
+    "ingestion": false,
+    "steps_source": false,
+    "exercise_source": false,
+    "distance_source": false,
+    "timed_source": false,
+    "analytics": false,
+    "actors": [],
+    "fictional_now": null
+  },
+  "external_readiness_gates_all_closed": true
+}
