@@ -1,0 +1,9 @@
+ea483d697f6cd5c6369dfcb8e062f14ab6901b2654cbeddbf5ed52346b90dca0	supabase_db_gametime	public.ecr.aws/supabase/postgres:17.6.1.147	0.0.0.0:54322->5432/tcp, [::]:54322->5432/tcp
+5a05f0a2cabcf22455389f6a918d7f895c2ad5d323591a5d0aa088d4aa41c70e	gdluxx	ghcr.io/gdluxx/gdluxx:latest	0.0.0.0:7755->7755/tcp, [::]:7755->7755/tcp
+67aa9a9f8654498d717c385942d9c386f26c5f42304ec5fbba599a6d93ac443e	supabase_studio_gametime	public.ecr.aws/supabase/studio:2026.07.06-sha-66cf431	0.0.0.0:54323->3000/tcp, [::]:54323->3000/tcp
+8fe4f4a0fedbe92642c994a4733142037f1876aedd59f0d80fb524c558e0c3ba	supabase_pg_meta_gametime	public.ecr.aws/supabase/postgres-meta:v0.96.6	8080/tcp
+f427f1d4c34f730282671b963880226691d339e060f4de988d539c88e61d6396	supabase_storage_gametime	public.ecr.aws/supabase/storage-api:v1.62.5	5000/tcp
+c7a43965c558b459d6d77979be87031255e75858697f0f08671691c7a3b3d958	supabase_rest_gametime	public.ecr.aws/supabase/postgrest:v14.14	3000/tcp
+ec13a56178f9d7ff9ee8236697d8d2cc59c5da1cce72cd8c5b4c69ab73fe81ed	supabase_inbucket_gametime	public.ecr.aws/supabase/mailpit:v1.30.2	0.0.0.0:54324->8025/tcp, [::]:54324->8025/tcp
+a20d3b0b3eb26079793368ca0cb3b497cd28ae2726bf5bd2e5296debdabeccf6	supabase_auth_gametime	public.ecr.aws/supabase/gotrue:v2.192.0	9999/tcp
+c49cdc04a331658787ffcf8af937b6306331c17177436526833542517b58e314	supabase_kong_gametime	public.ecr.aws/supabase/kong:2.8.1	0.0.0.0:54321->8000/tcp, [::]:54321->8000/tcp

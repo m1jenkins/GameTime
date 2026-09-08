@@ -4765,3 +4765,73 @@ See [local acceptance](docs/WEEKLY_LOCAL_ACCEPTANCE.md) and the
 [independent review](docs/WEEKLY_INDEPENDENT_REVIEW.md) for verified behavior and
 remaining checks. Device, human accessibility, pilot, reminder-delivery and
 provider/legal/funded gates are not satisfied by this implementation decision.
+
+
+### D134. Audited Beta 1 contract expands formats, capacity and replacement scope
+
+**Owner decisions, September 6, 2026:** the audited Beta 1 plan is adopted as
+the future product target. It includes friend goals, friend leaderboards,
+personal performance commitments and one operator-published community steps
+goal. Friend and personal products support steps, Apple Exercise Time,
+cumulative running distance and timed running. Personal commitments are
+goal-only and use the same scheduled 1–30-full-calendar-day window family as
+friend challenges. Friend leaderboards have no qualifying target; highest
+cumulative or fastest eligible timed result wins, and equal normalized results
+create co-winners who split the active simulated pool.
+
+**Capacity and consent:** a friend challenge has the creator plus one to five
+friends, 2–6 total. This resolves and supersedes D132's five-total working
+interpretation for the new contract. Each participant proposes their own friend
+goal target; the creator freezes the complete roster and targets; every selected
+participant then consents to that immutable version. Any later roster or terms
+change creates a new version and clears all consent. The historical
+`weekly_*_v1` implementation remains frozen at 2–5 and is not relabeled.
+
+**Readiness and scoring:** final consent requires a positive eligible record in
+the prior 30 days for steps, Exercise Time and cumulative distance, or a
+comparable eligible timed workout in the prior 90 days. Leaderboards have no
+target suggestions. Friend goals and personal commitments may use on-device
+suggestions. Missing data never establishes a miss. An unresolved leaderboard
+voids. Exclusions/refunds may continue a friend goal only while at least two
+resolvable participants remain; fewer than two for any reason voids and returns
+all simulated entries. Timed goals use strict under-target whole elapsed seconds.
+The timed-distance tolerance remains an evidence-dependent disabled policy.
+
+**Links and admission:** after sign-in and 21+ confirmation, successful reusable
+link redemption grants full Beta 1 access and creates a pending lobby request;
+it does not create friendship or roster membership. A link closes after 20
+unique accounts or 30 days, whichever comes first. Revocation blocks future
+redemption without removing access already granted. A person may hold at most
+one overlapping friend challenge per metric plus the single community cohort
+and at most three unsettled friend/community/personal challenges total.
+
+**Lifecycle:** initial sync closes at end +24 hours and corrections at end +48.
+Provisional publication is due by end +72 as an operational service level.
+Review closes 48 hours after the actual provisional notice and operator
+resolution closes 72 hours after the actual filing. Scheduler delay never
+shortens those windows and does not by itself void a challenge.
+
+**Identity, shell and deferred photos:** keep exact case-insensitive username
+lookup. Profile photos and all photo-specific storage, UI, moderation, analytics
+and tests are deferred; keep username/account reporting, blocking, operator
+removal and audited suspension. The target shell is `Home · Challenges · You`.
+After replacement flows pass local and physical acceptance, remove legacy
+seven-day Personal creation, navigation, client wiring, background refresh and
+visible history. Preserve applied contracts and data until a separately
+reviewed, environment-guarded, explicitly approved non-production cleanup.
+
+**Drafting defaults adopted without objection:** friend and personal windows
+start/end at frozen local midnight, start 2–30 calendar days after creation, and
+last 1–30 calendar days. Friend and personal simulated amounts display as whole
+USD values from $1–$500 and persist as integer cents with no redeemable balance;
+the community amount remains unselected. Home is the action/status inbox;
+Challenges owns create/join/community/history; You owns account, Health
+readiness, safety, support and legal settings.
+
+The complete contract and acceptance matrix are in
+[docs/BETA_IMPLEMENTATION_PLAN.md](docs/BETA_IMPLEMENTATION_PLAN.md). This
+decision supersedes D131/D132 recommendations only for the future Beta 1 target.
+It does not mutate historical agreements or implemented behavior, satisfy any
+physical/human/hosted gate, select community launch settings, authorize
+TestFlight/recruitment/data deletion, or enable live money, payments, push,
+photos, Garmin or public deployment.

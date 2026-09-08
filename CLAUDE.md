@@ -7,7 +7,9 @@
   future product planning where older solo-only scope conflicts with it.
 - [README.md](README.md) — what works today, how to run it, how the evidence
   ledger works.
-- [docs/BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md) and [PLAN.md](PLAN.md) —
+- [docs/BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md),
+  [docs/BETA_IMPLEMENTATION_PLAN.md](docs/BETA_IMPLEMENTATION_PLAN.md), and
+  [PLAN.md](PLAN.md) —
   adopted products, recommended defaults, implementation order, and open gates.
 - [DECISIONS.md](DECISIONS.md) — why the product is shaped the way it is.
 - [docs/COPY.md](docs/COPY.md) — **required before writing or changing any
@@ -50,13 +52,18 @@ the same commit as the copy. Do not change historical consent strings.
 
 ## Product boundaries
 
-Future product authority is PROJECT_MEMORY.md, docs/BUSINESS_MODEL.md, PLAN.md
-and D123. Beta and design documents describing solo-only behavior govern the
+Future product authority is PROJECT_MEMORY.md, docs/BUSINESS_MODEL.md,
+docs/BETA_IMPLEMENTATION_PLAN.md, PLAN.md and D123/D134. Beta and design
+documents describing solo-only behavior govern the
 existing Personal implementation or their dated exploration, not future scope.
 Preserve Personal, Solo and legacy charity agreements and their test-only or
-sandbox restrictions. New products receive new terms, models and request
-formats; generic distance fields and dormant social code do not implement them.
-The pivot authorizes planning, not payments, hosted mutations or deployments.
+sandbox restrictions. D134 plans to remove legacy Personal creation, navigation,
+client wiring and visible history only after replacement acceptance; until that
+milestone, keep the current Personal app usable and do not delete or reinterpret
+its data. Any non-production cleanup remains separately approved and guarded.
+New products receive new terms, models and request formats; generic distance
+fields and dormant social code do not implement them. The pivot and audited plan
+authorize planning, not payments, hosted mutations or deployments.
 
 ## Engagement changes
 

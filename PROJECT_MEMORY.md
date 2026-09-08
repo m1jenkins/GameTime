@@ -1,5 +1,45 @@
 # GameTime project memory
 
+## Audited Beta 1 product contract — September 6, 2026
+
+The owner approved the audited Beta 1 planning contract recorded in D134 and
+[the Beta implementation plan](docs/BETA_IMPLEMENTATION_PLAN.md). Beta 1 now
+includes friend goals, friend leaderboards, personal performance commitments,
+and one operator-published community steps goal. Friend and personal formats use
+all four Apple Health metrics: steps, Apple Exercise Time, cumulative running
+distance, and timed running. Personal commitments are goal-only. Friend
+leaderboards have no target; equal normalized results create co-winners.
+
+This supersedes D132's unconfirmed capacity interpretation and the W1–W4
+sequence as the future product target. A friend challenge is the creator plus up
+to five friends, 2–6 total. In friend goals, each person proposes their own
+target before the creator freezes the full terms and everyone consents. Friend
+and personal windows are scheduled full local calendar days lasting 1–30 days.
+The adopted drafting default starts them 2–30 calendar days after creation.
+
+Reusable links grant full beta access after sign-in and 21+ confirmation, create
+a pending lobby request, and close after 20 unique accounts or 30 days. They do
+not create friendship or roster membership. Admission allows at most one
+overlapping friend challenge per metric plus the community cohort and three
+unsettled friend/community/personal challenges total. Fewer than two resolvable
+friend participants voids the challenge. Review and resolution windows run from
+the actual notice and filing and are never shortened by scheduler delay.
+
+Profile photos and every photo-specific task are deferred; keep username/account
+reporting, blocking, operator removal and audited suspension. The legacy
+seven-day Personal product is planned for removal from the new shell after the
+replacement flows pass acceptance. Its applied contracts and current behavior
+remain unchanged until that separately gated work occurs. The existing
+`weekly_*_v1` implementation remains frozen 2–5-person historical local behavior;
+do not relabel it as the new 2–6 contract.
+
+The audited plan is planning authority, not implementation or rollout evidence.
+Physical validation of all four sources still blocks distribution. The timed-run
+distance tolerance and community target/capacity/timezone/simulated amount remain
+evidence-dependent owner decisions. No hosted mutation, distribution,
+recruitment, legacy-data deletion, provider activity, or live money was
+authorized.
+
 ## Local weekly implementation execution — September 6, 2026
 
 The owner expanded execution to all feasible local W1–W4 work, starting with

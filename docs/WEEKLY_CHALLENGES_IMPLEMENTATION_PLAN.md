@@ -1,5 +1,11 @@
 # Weekly challenges: implementation specification
 
+> **Historical implemented-policy specification.** D134 and the
+> [audited Beta 1 plan](BETA_IMPLEMENTATION_PLAN.md) supersede this document as
+> the future product target. Preserve this document for the frozen local
+> `weekly_*_v1` 2–5-person, seven-date steps contract and its acceptance evidence;
+> do not reinterpret it as the new 2–6-person, 1–30-day, all-metric contract.
+
 Planning update: September 6, 2026 UTC, following the owner's September 5
 discussion. The owner subsequently authorized all feasible local W1–W4 work.
 This specification owns requirements; [local acceptance](WEEKLY_LOCAL_ACCEPTANCE.md)

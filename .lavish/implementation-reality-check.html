@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GameTime — implementation reality check</title>
+  <style>
+    :root {
+      --paper: #f2f2f7;
+      --card: #ffffff;
+      --ink: #1c1523;
+      --muted: #6c6c70;
+      --faint: #e5e5ea;
+      --orange: #fc5200;
+      --orange-soft: #fff0e6;
+      --green: #008f5d;
+      --green-soft: #e8fbf3;
+      --amber: #7a5400;
+      --amber-soft: #fff6d9;
+      --red: #b42318;
+      --red-soft: #fff0ee;
+      --violet: #6f52d9;
+      --shadow: 0 8px 28px rgba(28, 21, 35, .08);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 0 0, rgba(252,82,0,.11), transparent 31rem),
+        var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      line-height: 1.5;
+    }
+    main { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 46px 0 72px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { max-width: 900px; margin-bottom: 18px; font-size: clamp(2.3rem, 5.6vw, 5.2rem); line-height: .96; letter-spacing: -.055em; }
+    h2 { margin-bottom: 16px; font-size: clamp(1.55rem, 2.4vw, 2.3rem); letter-spacing: -.035em; }
+    h3 { margin-bottom: 7px; font-size: 1rem; }
+    code { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82em; }
+    .eyebrow { margin-bottom: 12px; color: var(--orange); font-size: .75rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .lede { max-width: 870px; margin-bottom: 26px; color: var(--muted); font-size: clamp(1.08rem, 1.7vw, 1.35rem); }
+    .verdict {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(220px, .65fr);
+      gap: 18px;
+      padding: 24px;
+      border: 1px solid #ffd5bd;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #fff 25%, var(--orange-soft));
+      box-shadow: var(--shadow);
+    }
+    .verdict strong { display: block; margin-bottom: 7px; font-size: clamp(1.35rem, 2.5vw, 2rem); letter-spacing: -.035em; }
+    .stamp { align-self: center; padding: 15px 17px; border: 1px solid rgba(252,82,0,.26); border-radius: 13px; background: rgba(255,255,255,.76); }
+    .stamp b { color: var(--green); }
+    section { margin-top: 48px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+    .metric, .card, .symptom, .next { min-width: 0; border: 1px solid var(--faint); border-radius: 16px; background: var(--card); box-shadow: 0 4px 16px rgba(28,21,35,.045); }
+    .metric { padding: 17px; }
+    .metric .value { display: block; font-size: 1.55rem; font-weight: 800; letter-spacing: -.04em; }
+    .metric .label { color: var(--muted); font-size: .83rem; }
+    .flow { padding: 22px; overflow: hidden; border: 1px solid var(--faint); border-radius: 18px; background: #111; color: #fff; }
+    .flow svg { display: block; width: 100%; height: auto; }
+    .flow-note { max-width: 780px; margin: 16px 0 0; color: #b8b8be; font-size: .92rem; }
+    .evidence-grid { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); gap: 20px; align-items: start; }
+    .phone { padding: 12px; border-radius: 22px; background: #101012; box-shadow: var(--shadow); }
+    .phone img { display: block; width: 100%; border-radius: 12px; }
+    .callouts { display: grid; gap: 12px; }
+    .symptom { padding: 18px; }
+    .symptom .tag, .status {
+      display: inline-block;
+      margin-bottom: 9px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: .69rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .tag.confirmed, .status.done { color: var(--green); background: var(--green-soft); }
+    .tag.gap, .status.partial { color: var(--amber); background: var(--amber-soft); }
+    .tag.bug, .status.missing { color: var(--red); background: var(--red-soft); }
+    .symptom p { margin-bottom: 0; color: var(--muted); }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--faint); border-radius: 18px; background: var(--card); box-shadow: var(--shadow); }
+    table { width: 100%; min-width: 870px; border-collapse: collapse; }
+    th, td { padding: 15px 16px; border-bottom: 1px solid var(--faint); vertical-align: top; text-align: left; overflow-wrap: anywhere; }
+    th { position: sticky; top: 0; z-index: 1; color: var(--muted); background: #fafafd; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { width: 19%; font-weight: 750; }
+    td:nth-child(2) { width: 27%; }
+    td:nth-child(3) { width: 18%; }
+    td:nth-child(4) { width: 36%; color: var(--muted); }
+    .split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .card { padding: 20px; }
+    .card ul { margin: 10px 0 0; padding-left: 20px; }
+    .card li + li { margin-top: 8px; }
+    .source { color: var(--muted); font-size: .82rem; }
+    .roadmap { position: relative; display: grid; gap: 12px; }
+    .next { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 13px; align-items: start; padding: 17px; }
+    .num { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: #fff; background: var(--orange); font-weight: 850; }
+    .next p { margin-bottom: 0; color: var(--muted); }
+    .priority { color: var(--orange); font-size: .72rem; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    .bottom-line { padding: 24px; border-radius: 18px; color: #fff; background: #111; }
+    .bottom-line p { max-width: 900px; margin-bottom: 0; color: #d0d0d4; font-size: 1.08rem; }
+    @media (max-width: 860px) {
+      main { width: min(100% - 22px, 760px); padding-top: 28px; }
+      .verdict, .evidence-grid, .split { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .next { grid-template-columns: 42px minmax(0, 1fr); }
+      .priority { grid-column: 2; }
+    }
+    @media (max-width: 480px) {
+      .metrics { grid-template-columns: 1fr; }
+      .verdict, .card, .symptom, .next { border-radius: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">GameTime · implementation reality check · September 6, 2026</div>
+      <h1>Your read of the app is correct.</h1>
+      <p class="lede">The repository contains a large amount of new challenge infrastructure, but the normal app still intentionally opens into the older Personal seven-day steps product. The recent work mostly built protected engines, contracts, tests, and internal-only screens—not the default customer journey.</p>
+      <div class="verdict">
+        <div>
+          <strong>You do not need to be on an old build to see this.</strong>
+          <span>The current merged <code>main</code> was built and launched successfully and reproduces the same visible behavior. I cannot identify the exact bits installed on your phone from here, but the new routes are gated behind internal launch flags, require a loopback database, and are compiled out or disabled for Release.</span>
+        </div>
+        <div class="stamp"><b>HEAD 577bc32</b><br />PR 17 merged<br />current source reproduced</div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><span class="value">71</span><span class="label">files changed by the weekly merge</span></div>
+        <div class="metric"><span class="value">+11,312</span><span class="label">lines added in that merge</span></div>
+        <div class="metric"><span class="value">+2,411</span><span class="label">production iOS lines; most are isolated screens/models</span></div>
+        <div class="metric"><span class="value">8</span><span class="label">lines added to the visible You screen</span></div>
+      </div>
+    </header>
+
+    <section aria-labelledby="where-title">
+      <div class="eyebrow">Where the work went</div>
+      <h2 id="where-title">Merged does not currently mean visible</h2>
+      <div class="flow">
+        <svg viewBox="0 0 1040 290" role="img" aria-labelledby="flow-title flow-desc">
+          <title id="flow-title">How recent implementation reaches—or does not reach—the visible app</title>
+          <desc id="flow-desc">Most new code flows into local-only gates and internal screens, while the default app continues to show the Personal product.</desc>
+          <defs>
+            <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#777780" /></marker>
+          </defs>
+          <g id="implemented-engine"><title>Implemented backend, evaluators, lifecycle, privacy, and retry behavior</title><rect x="18" y="42" width="240" height="92" rx="16" fill="#1e1e22" stroke="#00d084" stroke-width="2"/><text x="38" y="76" fill="#fff" font-size="18" font-weight="750">Implemented engines</text><text x="38" y="102" fill="#a9adb2" font-size="14">agreements · lifecycle</text><text x="38" y="123" fill="#a9adb2" font-size="14">privacy · retries · tests</text></g>
+          <path d="M268 88 H386" stroke="#777780" stroke-width="3" marker-end="url(#arrow)"/>
+          <g id="gates"><title>Runtime gates keep the new features off by default</title><rect x="400" y="25" width="244" height="126" rx="16" fill="#241a16" stroke="#fc5200" stroke-width="2"/><text x="422" y="58" fill="#fff" font-size="18" font-weight="750">Internal gates</text><text x="422" y="84" fill="#ffbe9b" font-size="14">--weekly / --duels</text><text x="422" y="105" fill="#ffbe9b" font-size="14">--commitments</text><text x="422" y="126" fill="#ffbe9b" font-size="14">loopback only · Release off</text></g>
+          <path d="M654 88 H772" stroke="#777780" stroke-width="3" marker-end="url(#arrow)"/>
+          <g id="internal-ui"><title>Internal opt-in views exist but are not the default product experience</title><rect x="786" y="42" width="236" height="92" rx="16" fill="#1e1e22" stroke="#6f52d9" stroke-width="2"/><text x="806" y="76" fill="#fff" font-size="18" font-weight="750">Internal screens</text><text x="806" y="102" fill="#bbb1ef" font-size="14">weekly · community</text><text x="806" y="123" fill="#bbb1ef" font-size="14">duels · running goals</text></g>
+          <path d="M522 161 V212" stroke="#777780" stroke-width="3" marker-end="url(#arrow)"/>
+          <g id="default-ui"><title>The normal UI remains the older Personal challenge experience</title><rect x="339" y="224" width="366" height="52" rx="16" fill="#fc5200"/><text x="522" y="257" fill="#111" font-size="18" font-weight="850" text-anchor="middle">Default app: Personal steps, still</text></g>
+        </svg>
+        <p class="flow-note">The critical product gap is the last mile: navigation, onboarding, truthful source state, primary create actions, and a coherent default journey were never made the delivery target.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="symptoms-title">
+      <div class="eyebrow">What is on-screen now</div>
+      <h2 id="symptoms-title">Every symptom has a concrete explanation</h2>
+      <div class="evidence-grid">
+        <figure class="phone">
+          <img src="current-today.jpg" alt="Current GameTime Today screen showing 17,832 of 70,000 steps above a daily pace card" />
+        </figure>
+        <div class="callouts">
+          <article class="symptom"><span class="tag bug">Confirmed UX bug</span><h3>“70,000 steps to finish the day”</h3><p>The open Personal challenge is cumulative: 70,000 across the week. The Today hero makes that weekly total dominant, while the lower pace panel correctly computes a 10,000-step day and 2,650 remaining today. The stored target is not corrupted in the reproduction; the screen hierarchy is.</p></article>
+          <article class="symptom"><span class="tag gap">Behavioral trap</span><h3>No way to create a challenge</h3><p>The normal create button appears only when there is no open Personal challenge. An existing 70,000-step challenge occupies that single slot. Friend-week creation lives in a separate internal route that normal launch does not expose.</p></article>
+          <article class="symptom"><span class="tag gap">Missing product flow</span><h3>No onboarding process</h3><p>There is a one-screen name/username setup for a newly authenticated account with no profile. Existing accounts never see it, and there is no onboarding for the new friend-challenge direction, Apple Health expectations, invitations, or product selection.</p></article>
+          <article class="symptom"><span class="tag gap">Misleading state label</span><h3>Apple Health “connects” instantly</h3><p>The implementation treats completion of Apple’s authorization request as connected. If the person has already answered the prompt, that call can return immediately. Apple does not reveal read denial directly, but the app still upgrades the label to “Health connected” before it proves that a usable read occurred.</p></article>
+          <article class="symptom"><span class="tag bug">Confirmed render bug</span><h3>Blank cards around Time zone</h3><p>The two blanks are the two Divider views. <code>DaybreakCard</code> styles multiple sibling views without first wrapping them in a VStack, so the runtime lays out and backgrounds the dividers as separate cards. This code predates the recent product work.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="matrix-title">
+      <div class="eyebrow">Plan reconciliation</div>
+      <h2 id="matrix-title">Implemented, exposed, and still missing</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Plan area</th><th>What exists now</th><th>Normal app</th><th>What remains</th></tr></thead>
+          <tbody>
+            <tr><td>W1A · weekly rules</td><td><span class="status done">Implemented</span><br />Versioned fictional weekly-step terms and deterministic evaluator for 2–5 participants.</td><td><span class="status missing">Not visible</span><br />No effect on the Personal screen.</td><td>Nothing more for fictional policy; real-source qualification remains blocked by device evidence.</td></tr>
+            <tr><td>W1B/C · friend weeks</td><td><span class="status done">Implemented locally</span><br />Consent, roster, individual targets, invitations, progress, review, exits, final results, simulated allocation, recovery, and internal native views.</td><td><span class="status missing">Hidden</span><br />Requires <code>--weekly</code>, Debug/Staging, and explicit loopback configuration.</td><td>Default navigation and create entry, real Apple Health input, physical-device proof, human accessibility/comprehension, and release/hosted admission.</td></tr>
+            <tr><td>W2 · community week</td><td><span class="status done">Implemented locally</span><br />Common fixture target, solo join, capacity/privacy rules, and simulated outcomes.</td><td><span class="status missing">Hidden</span></td><td>Select the actual target, connect a real source, run the authorized human pilot, and decide rollout.</td></tr>
+            <tr><td>W3 · Exercise minutes</td><td><span class="status partial">Prototype only</span><br />Separate source/metric contracts and fixtures.</td><td><span class="status missing">Unavailable</span></td><td>Physical Watch/source lineage, correction semantics, scoring admission, lifecycle, and customer UI.</td></tr>
+            <tr><td>W4 · distance</td><td><span class="status partial">Prototype only</span><br />Cumulative/timed-distance policy fixtures and a private on-device notebook.</td><td><span class="status missing">Unavailable</span></td><td>Real source validation, selected-distance UI, full lifecycle/review/following, and proof-of-miss rules.</td></tr>
+            <tr><td>Earlier duels</td><td><span class="status done">Implemented locally</span><br />Two-person fictional 5K agreements through result, review, rematch, and named links.</td><td><span class="status missing">Hidden</span><br /><code>--duels</code> plus loopback only.</td><td>The fixed 5K is historical, not the adopted launch default. Productize participant-selected formats and real proof.</td></tr>
+            <tr><td>Performance commitments</td><td><span class="status partial">Partial native</span><br />Deep backend, result/review, and an internal goal-agreement screen.</td><td><span class="status missing">Hidden</span><br /><code>--commitments</code> plus loopback only.</td><td>Native attempts, milestones/progress, following, current non-5K format, real proof, and default product integration.</td></tr>
+            <tr><td>Product shell & onboarding</td><td><span class="status partial">Legacy only</span><br />Today / Challenges / You plus first-profile setup.</td><td><span class="status partial">Still Personal</span></td><td>New-product information architecture, friend creation/discovery, contextual onboarding, empty states, migration from an existing Personal challenge, and coherent default copy.</td></tr>
+            <tr><td>Operations & money</td><td><span class="status partial">Simulation only</span><br />Local/CI tests and nonredeemable ledgers.</td><td><span class="status missing">Disabled</span></td><td>Hosted operation, reminders, real pilot, support process, provider/legal/platform clearance, financial limits, and any live money.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="accomplished-title">
+      <div class="eyebrow">What the commits genuinely accomplished</div>
+      <h2 id="accomplished-title">A strong engine, not a product conversion</h2>
+      <div class="split">
+        <article class="card"><h3>Substantial and real</h3><ul><li>New private database domains for duels, commitments, weekly friend groups, and community weeks.</li><li>Immutable consent, exact retry recovery, account isolation, correction/review windows, safe exits, and simulated outcomes.</li><li>Internal Swift screens and clients for the new domains.</li><li>Large automated coverage across SQL, Deno, Swift, UI fixtures, and authenticated local HTTP.</li></ul></article>
+        <article class="card"><h3>Not accomplished</h3><ul><li>The default app was not changed from Personal to friend challenges and commitments.</li><li>The normal navigation does not advertise the new products.</li><li>Apple Health is not connected to weekly scoring.</li><li>The current visible Personal bugs were not part of the acceptance gate.</li><li>No physical-device, human, pilot, hosted, notification, or funded rollout was completed.</li></ul></article>
+      </div>
+      <p class="source">Evidence: <code>PROJECT_MEMORY.md</code>, <code>PLAN.md</code>, <code>docs/WEEKLY_EXECUTION.md</code>, <code>docs/WEEKLY_LOCAL_ACCEPTANCE.md</code>, current source, Git history, and a fresh simulator build from <code>577bc32</code>.</p>
+    </section>
+
+    <section aria-labelledby="next-title">
+      <div class="eyebrow">Recommended correction to the roadmap</div>
+      <h2 id="next-title">Close the visible-product gap before adding more backend breadth</h2>
+      <div class="roadmap">
+        <article class="next"><span class="num">1</span><div><h3>Repair the current product surface</h3><p>Fix the profile card container, make weekly-versus-today progress unmistakable, show why creation is unavailable when a challenge is active, and replace the premature Health “connected” state.</p></div><span class="priority">Immediate</span></article>
+        <article class="next"><span class="num">2</span><div><h3>Make one friend-week journey the default internal product</h3><p>Put “Start a friend challenge” in primary navigation, expose accepted-friend selection and invitations, and keep simulated/no-money rules. Remove reliance on obscure process flags for ordinary development builds.</p></div><span class="priority">Productization</span></article>
+        <article class="next"><span class="num">3</span><div><h3>Add contextual onboarding and migration</h3><p>Explain the new product to existing accounts, truthfully guide Apple Health access, and decide what happens when an old Personal week is already active.</p></div><span class="priority">Productization</span></article>
+        <article class="next"><span class="num">4</span><div><h3>Run the already-authorized physical Health investigation</h3><p>Validate phone/Watch source identity, edits, duplicates, late sync, locked/offline behavior, permission loss, and time-zone behavior before real weekly scoring.</p></div><span class="priority">Acceptance</span></article>
+        <article class="next"><span class="num">5</span><div><h3>Human acceptance, then pilot</h3><p>VoiceOver, Dynamic Type, comprehension, voluntary exit, and then a separately authorized two-round simulated pilot. Only after that should hosted reminders or money be considered.</p></div><span class="priority">Later gates</span></article>
+      </div>
+    </section>
+
+    <section class="bottom-line" aria-labelledby="bottom-title">
+      <div class="eyebrow">Bottom line</div>
+      <h2 id="bottom-title">We completed infrastructure-heavy slices while leaving the launch experience largely untouched.</h2>
+      <p>The codebase is much more capable than it looks, but the current app is an honest reflection of what was productized: almost none of the pivot. The next milestone should be judged by a visible end-to-end friend challenge in the default internal build—not by another large test count.</p>
+    </section>
+  </main>
+</body>
+</html>

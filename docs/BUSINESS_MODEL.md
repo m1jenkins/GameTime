@@ -41,9 +41,9 @@ created. The [prior plan](archive/2026-09-04_PRE_PIVOT_PLAN.md) is preserved.
 | --- | --- |
 | Adopted | Friend challenges and personal commitments, athletic focus, no mandatory fixed 5K, participant-selected supported distances/targets, stakes in design scope and responsible engagement; no spectator betting or public prediction exchange |
 | Implemented | The existing Personal seven-day Apple Health steps app, internal test-only and Stripe sandbox paths, dormant historical systems below, the isolated local Phase 1A simulated duel agreement backend with an opt-in Phase 1B native fixture/local flow, Phase 2(a)'s pure fictional-result evaluator, Phase 2(b)'s private fictional proof/operator boundary, Phases 2(c–e)'s local lifecycle/native results/rematches/links, and Phase 3(a–e)'s separate commitment agreements/attempts/manual progress/following/result-review backend |
-| Adopted beta/launch scope | Up to five friends; one common weekly community step goal. Working interpretations: five participants total and individual completion of the same target (D132) |
-| Recommended | Weekly friend steps first, one community experiment, then Exercise minutes and configurable distance; all timing, target, simulation and pilot defaults are reversible |
-| Unresolved | Community rollout clearance and numeric common weekly step target, demand, source validation, provider access, money structure, forfeiture/remainder recipients, fees, limits, jurisdictions and launch clearance |
+| Adopted Beta 1 scope | Creator plus up to five friends (2–6 total); four friend goal and four target-free friend leaderboard policies; personal goals across the same four Apple Health metrics; one common community steps goal; scheduled 1–30-day windows (D134) |
+| Historical implemented sequence | Weekly friend steps first, one community experiment, then Exercise minutes and configurable distance; retained as evidence/history, not the current Beta 1 target |
+| Unresolved | Timed-run distance tolerance; community target/capacity/timezone/amount; rollout clearance; demand; source validation; provider access; money structure; forfeiture/remainder recipients; fees; limits; jurisdictions and launch clearance |
 
 ## Current format authority
 
@@ -60,7 +60,10 @@ The existing fictional official-5K implementation and immutable agreements
 remain historical local functionality. New formats need separate versions,
 requests and source/review rules. Read [the weekly implementation specification](WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md)
 for W1–W4, the reuse/pause inventory, acceptance and current W1A build prompt.
-D130 responsible-engagement requirements remain in force alongside D131 and D132.
+D130 responsible-engagement requirements remain in force alongside D131–D134.
+The audited [Beta 1 implementation plan](BETA_IMPLEMENTATION_PLAN.md) owns the
+current product contract. The weekly-first sequence and five-total interpretation
+below remain historical planning and implementation context where retained.
 
 ## Audience, positioning, and engagement
 
@@ -98,16 +101,20 @@ appear because they joined the same cohort. Free-form chat, public feeds and
 automatic contact imports remain deferred. Privacy, blocks, reports/support,
 account clearing and safe exits are part of the first usable community flow.
 
-## First sport, format, and proof recommendation
+## Historical weekly-first sport, format, and proof recommendation
 
-**Recommended sequence:** cumulative weekly steps with friends; a single weekly
+The following sequence produced the current local weekly implementation. D134
+and the audited Beta 1 plan supersede it as the future product target.
+
+**Historical sequence:** cumulative weekly steps with friends; a single weekly
 community experiment; Apple Watch Exercise minutes; configurable cumulative or
 timed distance goals. This reuses the working Personal steps foundation and
 social/consent patterns while avoiding an organized-event dependency. It does
 not turn historical Personal snapshots into competitive proof automatically.
 
 W1 starts with a fictional, pure weekly-steps evaluator, then a separate step
-source investigation and new local agreement/lifecycle. The beta supports up to five friends, interpreted as 2–5 total participants
+source investigation and new local agreement/lifecycle. That historical weekly
+contract interpreted up to five friends as 2–5 total participants
 including the creator. Everyone consents to the frozen roster, each person’s
 target and the same seven calendar dates/timezone before starting. No forced
 daily streak. The owner selected one common weekly step goal for community
@@ -140,7 +147,7 @@ Garmin access is not a dependency for weekly steps. Organizer results remain an
 optional later format with source permission and review, not the launch path.
 No provider is selected and the human pilot requires actual source acceptance.
 
-## Proposed weekly and community money mechanics
+## Historical weekly and community simulation mechanics
 
 These are **simulation defaults and commercial hypotheses**, not approved real
 money. The W1 fixture uses 2,000 nonredeemable example cents each and zero fee.

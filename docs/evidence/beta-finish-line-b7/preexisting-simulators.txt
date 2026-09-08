@@ -1,0 +1,12 @@
+== Devices ==
+-- iOS 26.5 --
+    GameTimeBeta1Acceptance (50711E3B-FC27-43EA-A24D-0145D7043298) (Booted) 
+    GameTimeBeta1Accessibility (BDB36285-B387-4AD0-9195-EE692E9C21AD) (Booted) 
+    GameTimeWeeklyAcceptance (5F2D8936-85BC-43FE-A9B3-FA23B2FEC28F) (Booted) 
+    iPhone 17 Pro (39D6A4BA-2A22-446F-83AA-3C8F73A99AF7) (Booted) 
+    iPhone 17e (58877227-2C84-45DF-BD1D-4E01C26A00A8) (Booted) 
+-- iOS 27.0 --
+    GameTimeBeta1Accessibility27 (DB7D6062-68D0-40D8-82BB-FB893D1D3F32) (Booted) 
+    iPhone 17 Pro (B3E5DFC7-ED3F-4620-B86A-4F20B2AEAA2A) (Booted) 
+-- watchOS 26.5 --
+-- watchOS 27.0 --

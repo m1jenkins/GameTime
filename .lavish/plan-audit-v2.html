@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GameTime Beta plan — second audit</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f2f2f7;
+      --paper-sunk: #e9e9ef;
+      --card: #ffffff;
+      --ink: #17131d;
+      --muted: #66616d;
+      --hairline: #dedde4;
+      --orange: #fc5200;
+      --orange-ink: #9e3100;
+      --orange-soft: #fff0e8;
+      --green: #00885b;
+      --green-soft: #e8faf3;
+      --amber: #7c5600;
+      --amber-soft: #fff5d6;
+      --red: #b42318;
+      --red-soft: #fff0ee;
+      --blue: #2457c5;
+      --blue-soft: #edf3ff;
+      --shadow: 0 12px 34px rgba(24, 18, 31, .08);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    :where(.grid, .flex, .cards, .split, .stats, .choice-grid) > * { min-width: 0; }
+    :where(p, h1, h2, h3, li, td, th, label, span, code, a) { overflow-wrap: anywhere; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 0 0, rgba(252, 82, 0, .10), transparent 29rem),
+        linear-gradient(180deg, rgba(255,255,255,.55), transparent 26rem),
+        var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.52;
+    }
+    main { width: min(1160px, calc(100% - 30px)); margin: 0 auto; padding: 44px 0 96px; }
+    h1, h2, h3, p, ul, table { margin-top: 0; }
+    h1 { max-width: 940px; margin-bottom: 16px; font-size: clamp(2.25rem, 5.6vw, 4.7rem); line-height: .98; letter-spacing: -.055em; }
+    h2 { margin-bottom: 9px; font-size: clamp(1.55rem, 2.6vw, 2.25rem); letter-spacing: -.035em; }
+    h3 { margin-bottom: 7px; font-size: 1.05rem; letter-spacing: -.012em; }
+    p { margin-bottom: 12px; }
+    code { padding: 1px 5px; border-radius: 5px; background: rgba(23,19,29,.06); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .84em; }
+    a { color: var(--orange-ink); text-underline-offset: 2px; }
+    section { margin-top: 56px; scroll-margin-top: 20px; }
+    .eyebrow { margin-bottom: 11px; color: var(--orange-ink); font-size: .73rem; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+    .lede { max-width: 880px; color: var(--muted); font-size: clamp(1.05rem, 1.7vw, 1.28rem); }
+    .sec-intro { max-width: 880px; margin-bottom: 20px; color: var(--muted); }
+    .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+    .toc a { padding: 7px 12px; border: 1px solid var(--hairline); border-radius: 999px; color: var(--ink); background: rgba(255,255,255,.82); text-decoration: none; font-size: .83rem; font-weight: 700; }
+    .toc a:hover { border-color: var(--orange); color: var(--orange-ink); }
+
+    .verdict { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; margin-top: 28px; padding: 26px; border: 1px solid #ffd0b7; border-radius: 20px; background: linear-gradient(135deg, #fff 25%, var(--orange-soft)); box-shadow: var(--shadow); }
+    @media (min-width: 760px) { .verdict { grid-template-columns: minmax(0, 1.55fr) minmax(260px, .7fr); } }
+    .verdict strong { display: block; margin-bottom: 9px; font-size: clamp(1.35rem, 2.5vw, 2rem); line-height: 1.15; letter-spacing: -.035em; }
+    .verdict p:last-child { margin-bottom: 0; }
+    .stamp { align-self: start; padding: 16px 18px; border: 1px solid rgba(252,82,0,.25); border-radius: 14px; background: rgba(255,255,255,.8); font-size: .89rem; }
+    .stamp div + div { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--hairline); }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 12px; margin-top: 16px; }
+    .stat { padding: 16px; border: 1px solid var(--hairline); border-radius: 15px; background: var(--card); box-shadow: 0 4px 16px rgba(23,19,29,.045); }
+    .stat b { display: block; font-size: 2rem; line-height: 1; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+    .stat span { display: block; margin-top: 7px; color: var(--muted); font-size: .82rem; }
+    .stat.ok b { color: var(--green); } .stat.warn b { color: var(--amber); } .stat.risk b { color: var(--red); } .stat.info b { color: var(--blue); }
+
+    .cards { display: grid; gap: 14px; }
+    .cards.two { grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); }
+    .card { padding: 20px; border: 1px solid var(--hairline); border-radius: 16px; background: var(--card); box-shadow: 0 4px 16px rgba(23,19,29,.045); }
+    .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+    .rule-ok { border-left: 4px solid var(--green); }
+    .rule-warn { border-left: 4px solid var(--amber); }
+    .rule-risk { border-left: 4px solid var(--red); }
+    .tag { display: inline-block; margin-left: 5px; padding: 2px 8px; border-radius: 999px; font-size: .67rem; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; vertical-align: 1px; white-space: nowrap; }
+    .tag.done { color: var(--green); background: var(--green-soft); border: 1px solid rgba(0,136,91,.24); }
+    .tag.block { color: var(--red); background: var(--red-soft); border: 1px solid rgba(180,35,24,.24); }
+    .tag.clarify { color: var(--amber); background: var(--amber-soft); border: 1px solid rgba(124,86,0,.26); }
+
+    .tbl-wrap { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 15px; background: var(--card); }
+    table { width: 100%; min-width: 720px; margin: 0; border-collapse: collapse; font-size: .88rem; }
+    th, td { padding: 11px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--hairline); }
+    th { color: var(--muted); background: #fafafd; font-size: .69rem; letter-spacing: .09em; text-transform: uppercase; }
+    tbody tr:last-child td { border-bottom: 0; }
+    td:first-child { font-weight: 750; }
+
+    .callout { padding: 15px 17px; border-left: 4px solid var(--blue); border-radius: 0 12px 12px 0; background: var(--blue-soft); font-size: .91rem; }
+    .callout.good { border-left-color: var(--green); background: var(--green-soft); }
+    .callout.warn { border-left-color: var(--amber); background: var(--amber-soft); }
+
+    .q { padding: 20px; border: 1px solid var(--hairline); border-radius: 17px; background: var(--card); box-shadow: 0 4px 16px rgba(23,19,29,.045); }
+    .q + .q { margin-top: 13px; }
+    .q > p { color: var(--muted); font-size: .9rem; }
+    .choice-grid { display: grid; gap: 8px; margin-top: 12px; }
+    .choice-grid label { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 11px; align-items: start; padding: 11px 13px; border: 1px solid var(--hairline); border-radius: 12px; background: #fcfcfe; cursor: pointer; font-size: .91rem; }
+    .choice-grid label:hover { border-color: rgba(252,82,0,.4); background: #fff; }
+    .choice-grid input { margin-top: 3px; accent-color: var(--orange); }
+    .choice-grid em { display: block; margin-top: 3px; color: var(--muted); font-size: .81rem; font-style: normal; }
+    .rec { font-weight: 780; }
+    .short-answer { display: block; width: 100%; min-height: 78px; margin-top: 11px; padding: 11px 12px; border: 1px solid var(--hairline); border-radius: 11px; color: var(--ink); background: #fcfcfe; font: inherit; resize: vertical; }
+    .short-answer:focus { outline: 2px solid rgba(252,82,0,.28); border-color: var(--orange); }
+    .submitbar { position: sticky; bottom: 10px; z-index: 4; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-top: 22px; padding: 15px 18px; border: 1px solid #ffcbaa; border-radius: 15px; background: linear-gradient(135deg, rgba(255,255,255,.97), rgba(255,240,232,.97)); box-shadow: var(--shadow); backdrop-filter: blur(10px); }
+    .submitbar span { color: var(--muted); font-size: .85rem; }
+    .submitbar button { padding: 11px 20px; border: 0; border-radius: 11px; color: #fff; background: var(--orange); font: inherit; font-weight: 820; cursor: pointer; }
+    .submitbar button:hover { background: #dc4700; }
+    ul.tight { margin-bottom: 0; padding-left: 20px; }
+    ul.tight li { margin-bottom: 6px; }
+    ul.tight li:last-child { margin-bottom: 0; }
+    .fine { color: var(--muted); font-size: .81rem; }
+  </style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Second-pass plan audit · decisions captured September 6, 2026</p>
+  <h1>Audit closed. Beta 1 now has one coherent contract.</h1>
+  <p class="lede">Your answers deliberately expand the beta beyond the existing weekly implementation: six-person friend groups, all four friend formats, and all four personal goal formats are now in scope. Photos stay later.</p>
+
+  <div class="verdict">
+    <div>
+      <strong>The audited plan is build-ready for local implementation.</strong>
+      <p>Targets, leaderboard outcomes, personal commitments, positive-history readiness, link admission, overlap limits, minimum viable competition, and late-processing deadlines are deterministic.</p>
+      <p>The only remaining choices are evidence gates: timed-run distance tolerance and community target/capacity/timezone/amount.</p>
+      <p>The reconciled source is now <code>docs/BETA_IMPLEMENTATION_PLAN.md</code>; D134 records the owner decisions and supersessions.</p>
+    </div>
+    <div class="stamp">
+      <div><b style="color:var(--green)">Captured:</b> 9 of 9 audit decisions</div>
+      <div><b style="color:var(--orange-ink)">Deferred:</b> every photo-specific task</div>
+      <div><b style="color:var(--green)">Follow-up closed:</b> four personal goal metrics, 1–30 days</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat ok"><b>9</b><span>contract decisions captured</span></div>
+    <div class="stat ok"><b>3</b><span>drafting defaults adopted</span></div>
+    <div class="stat info"><b>2–6</b><span>friend participants, creator included</span></div>
+    <div class="stat ok"><b>0</b><span>unresolved local contract choices</span></div>
+  </div>
+
+  <nav class="toc" aria-label="Audit sections">
+    <a href="#decisions">1 · Decisions</a>
+    <a href="#impact">2 · Plan impact</a>
+    <a href="#photos">3 · Photo deferral</a>
+    <a href="#followup">4 · Final commitment rule</a>
+  </nav>
+
+  <section id="decisions">
+    <p class="eyebrow">Owner decisions</p>
+    <h2>The nine answers, normalized into implementation language</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Area</th><th>Adopted Beta 1 rule</th><th>Direct consequence</th></tr></thead>
+        <tbody>
+          <tr><td>Product scope</td><td>Include friend challenges, the community cohort, and personal performance commitments across all four goal metrics on 1–30-day windows. Retire the legacy seven-day Personal product from creation/UI.</td><td>The complete matrix is eight friend policies, four personal goal policies, and one community policy.</td></tr>
+          <tr><td>Friend capacity</td><td>Creator plus up to five friends: 2–6 total participants.</td><td>The existing 2–5 <code>weekly_*_v1</code> contract stays historical; new acceptance covers every size through six.</td></tr>
+          <tr><td>Friend goals</td><td>Each participant proposes their own target. The creator freezes the complete roster and targets; only then does everyone consent to one immutable version.</td><td>Any later roster or target change creates a new lobby version and clears every consent.</td></tr>
+          <tr><td>Leaderboards</td><td>No qualifying target. Highest cumulative total or fastest eligible timed run wins. Equal normalized results create co-winners who split the active pool.</td><td>Target suggestions do not appear in leaderboard creation or terms.</td></tr>
+          <tr><td>Health readiness</td><td>Require a positive eligible record in the prior 30 days for steps, Exercise Time, and cumulative running distance; require a comparable eligible timed workout in the prior 90 days for timed running.</td><td>An empty successful read never establishes readiness.</td></tr>
+          <tr><td>Reusable links</td><td>Successful redemption grants full beta access immediately. Each link closes at 20 unique accounts or 30 days, whichever comes first.</td><td>Redemption creates a pending lobby request, not friendship or roster membership. Revocation blocks future use without removing already granted beta access.</td></tr>
+          <tr><td>Overlap</td><td>At most one overlapping friend challenge per metric plus the one community cohort, and at most three unsettled challenges total per person.</td><td>Admission and concurrent retries enforce both the per-metric and aggregate caps.</td></tr>
+          <tr><td>Minimum competition</td><td>If any exclusion leaves fewer than two resolvable participants, void the whole challenge and return every simulated entry.</td><td>Applies consistently to missing data, withdrawal, deletion, blocking, and operator removal.</td></tr>
+          <tr><td>Late processing</td><td>Review closes 48 hours after actual provisional publication; resolution closes 72 hours after actual filing. Processing delay never shortens either window, and scheduler lateness alone does not void.</td><td>The end +72-hour publication target is an operational SLA, not a consent-window anchor.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="impact">
+    <p class="eyebrow">Required plan edits</p>
+    <h2>What changes throughout the implementation plan</h2>
+    <div class="cards two">
+      <div class="card rule-ok"><h3>Acceptance matrix <span class="tag done">update</span></h3><p>Replace “two- and five-person” with “two- and six-person,” and test all roster sizes 2–6. Keep four metrics × two friend formats as eight policies because friend goals have individual targets only and leaderboards have none.</p></div>
+      <div class="card rule-ok"><h3>Suggestions <span class="tag done">narrow</span></h3><p>Compute suggestions only for friend goals and whichever personal commitment policy is selected. Leaderboards have no target and therefore no target suggestion.</p></div>
+      <div class="card rule-ok"><h3>Invitation limits <span class="tag done">freeze</span></h3><p>Persist issuance, 30-day expiry, unique-account redemptions, the 20-account closure, revocation, and exact recovery. Pending entrants still do not consume roster capacity.</p></div>
+      <div class="card rule-ok"><h3>Admission <span class="tag done">freeze</span></h3><p>Apply the three-unsettled aggregate cap and same-metric overlap rule under participant locks. Existing reads, exits, reviews, and finalization survive admission pause.</p></div>
+      <div class="card rule-ok"><h3>Window defaults <span class="tag done">adopted</span></h3><p>For friend challenges: creator-zone midnight boundaries; start 2–30 calendar days ahead; duration 1–30 local calendar days; start inclusive and end exclusive.</p></div>
+      <div class="card rule-ok"><h3>Shell ownership <span class="tag done">adopted</span></h3><p><b>Home</b> is the action/status inbox; <b>Challenges</b> owns create, join, community discovery, and full history; <b>You</b> owns account, Health readiness, safety, support, and legal settings.</p></div>
+    </div>
+    <div class="callout warn" style="margin-top:16px"><b>Historical boundary:</b> the existing local <code>weekly_*_v1</code> implementation remains valid evidence for its frozen 2–5 weekly-steps policy. It is not upgraded in place or described as six-person Beta 1 behavior.</div>
+  </section>
+
+  <section id="photos">
+    <p class="eyebrow">Confirmed scope change</p>
+    <h2>Every photo task moves to a later milestone</h2>
+    <div class="cards two">
+      <div class="card rule-ok"><h3>Removed from Beta 1</h3><p>Storage bucket, picker, upload, square re-encoding, metadata removal, signed read URLs, replacement/version cleanup, deletion cleanup, photo reports, photo moderation, photo analytics rules, and photo acceptance tests.</p></div>
+      <div class="card rule-ok"><h3>Still required</h3><p>Use initials/monograms. Keep exact username discovery, username/account reporting, blocking, operator removal, audited suspension, and link-abuse handling. The privacy policy’s current “No photos” statement remains accurate.</p></div>
+    </div>
+  </section>
+
+  <section id="followup">
+    <p class="eyebrow">Final clarification captured</p>
+    <h2>Personal commitments use all four goal metrics for 1–30 days</h2>
+    <div class="cards two">
+      <div class="card rule-ok"><h3>Four goal policies <span class="tag done">adopted</span></h3><p>Steps, Apple Exercise Time, cumulative running distance, and timed running. There is no personal leaderboard.</p></div>
+      <div class="card rule-ok"><h3>Same window family <span class="tag done">adopted</span></h3><p>Scheduled full local days, start 2–30 calendar days after creation, duration 1–30 days, start inclusive and end exclusive.</p></div>
+    </div>
+    <div class="callout good" style="margin-top:16px"><b>Historical separation:</b> the existing fixed-5K, 28–90-day <code>performance_commitment_*</code> contract remains unchanged. The new four-metric commitment is part of <code>challenge_*_v1</code>.</div>
+  </section>
+</main>
+</body>
+</html>

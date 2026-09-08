@@ -1,6 +1,15 @@
 # Build friend duels and personal performance commitments
 
-Updated September 6, 2026. The owner adopted this model; Phase 1A's isolated local
+Updated September 6, 2026. The owner adopted this model. The current future
+product contract is the audited
+[Beta 1 implementation plan](docs/BETA_IMPLEMENTATION_PLAN.md), recorded in
+D134. It includes 2–6-person friend goals and target-free friend leaderboards,
+personal goals, all four Apple Health metrics, one private community steps goal,
+scheduled 1–30-day windows, nonredeemable simulation, and no profile photos.
+The weekly W1–W4 material below remains the implementation record and historical
+dependency plan for frozen `weekly_*_v1`; it does not implement the new contract.
+
+Phase 1A's isolated local
 agreement backend and Phase 1B's opt-in native flow are accepted locally.
 Phase 2(a–e)'s evaluator, private proof/operator boundary, simulated lifecycle,
 native results, rematches and invitation links are implemented locally. Phase
@@ -19,8 +28,9 @@ implementation, executed checks and gates that remain unperformed.
 The previous 502-line plan is preserved verbatim under its archive header in
 [the pre-pivot plan](docs/archive/2026-09-04_PRE_PIVOT_PLAN.md). Historical
 Personal, Solo and charity agreements retain their original meanings. Old
-milestone numbers M0–M12 and completed slices of Phases 0–3 are historical. W1–W4 define
-the new recommended work; Phase 6 retains the requirements for actual money.
+milestone numbers M0–M12, completed slices of Phases 0–3, and W1–W4 are
+historical implementation context. D134 and the audited Beta plan define the
+new product target; Phase 6 retains the requirements for actual money.
 
 ## Starting point and boundaries
 
@@ -35,27 +45,48 @@ checks rerun for this plan. See the code inventory in
 [BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md#repository-inspection-reuse-and-gaps).
 
 Current direction: participant-selected distances/targets and separately
-validated metric policies; no mandatory fixed 5K. The recommended build sequence
-is weekly friend steps, one community experiment, Exercise minutes and custom
-distance goals. The owner selected a beta friend cap of five and a common
-weekly community step goal (D132); five total participants and individual
-completion of that same goal are explicit working interpretations. The numeric
-community target, rollout clearance and real-money terms remain unselected. Historical 5K
-phases record what was built, not the future launch format. Keep their
-agreements intact.
+validated metric policies; no mandatory fixed 5K. D134 supersedes the earlier
+weekly-first sequence and D132's five-total working interpretation as the future
+target. The numeric community target/capacity/timezone/amount, rollout clearance,
+timed distance tolerance and real-money terms remain unselected. Historical 5K
+and weekly phases record what was built, not the future launch format. Keep
+their agreements intact.
 Use [responsible engagement](docs/BUSINESS_MODEL.md#responsible-engagement-and-commercial-incentives)
 as acceptance requirements for all new work. New prices, timing rules, limits
 and pilot thresholds remain recommendations. Live money, deployment, publication,
 recruitment and provider contact remain separately gated.
 
-Keep the existing Personal app usable and its records readable. Do not widen
+Keep the existing Personal app usable and its records readable until the
+replacement shell passes its required acceptance and the separately gated
+retirement work begins. Do not widen
 old settlement enums, unfreeze terms, convert charity obligations to prizes,
 change the Personal step policy, turn on dormant Solo, or copy old social UI
 wholesale. New backend capability must be default-off and separately admitted;
 a client toggle alone is insufficient. “Simulated” means no redeemable balance,
 provider object, charge, transfer, external settlement, or prize of value.
 
-## Current implementation order after the engagement review
+## Current audited Beta 1 target
+
+The new plan is intentionally broader than the existing weekly implementation:
+
+| Area | Owner-approved target | Current implementation boundary |
+| --- | --- | --- |
+| Friend challenges | Creator plus up to five friends; four goal and four leaderboard policies; 1–30 full calendar days | `weekly_*_v1` is frozen at 2–5 participants, seven dates and steps goals only |
+| Personal commitments | Goal-only across steps, Exercise Time, cumulative distance and timed running; 1–30 full calendar days | Historical `performance_commitment_*` is a separate fixed-5K/28–90-day local contract |
+| Community | One scheduled steps goal with own progress and anonymous counts | Fictional weekly community backend/native path exists; launch settings remain unselected |
+| Identity and growth | Exact username lookup; reusable links close at 20 accounts or 30 days; immediate beta access after 21+ confirmation | Named-recipient duel links exist; general lobby redemption does not |
+| Shell | Home · Challenges · You; legacy Personal removed after replacement acceptance | Today · Challenges · You remains Release-reachable and Personal-first |
+
+Implementation must preserve every historical agreement and build a new
+`challenge_*_v1` aggregate rather than widening those contracts. Source work may
+proceed in dependency order, but TestFlight distribution waits for all four
+source policies and the complete 13-policy product matrix. See the dedicated
+plan for the full rules, interfaces, tests, rollout gates and evidence-dependent
+decisions.
+
+<a id="current-implementation-order-after-the-engagement-review"></a>
+
+## Historical implementation order after the engagement review
 
 This order incorporates the weekly-challenge discussion and supersedes the old
 organizer-first dependency chain. The owner subsequently authorized all feasible

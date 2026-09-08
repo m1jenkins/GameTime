@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GameTime — implementation plan audit</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f2f2f7;
+      --card: #ffffff;
+      --ink: #1c1523;
+      --muted: #6c6c70;
+      --faint: #e5e5ea;
+      --orange: #fc5200;
+      --orange-soft: #fff0e6;
+      --green: #008f5d;
+      --green-soft: #e8fbf3;
+      --amber: #7a5400;
+      --amber-soft: #fff6d9;
+      --red: #b42318;
+      --red-soft: #fff0ee;
+      --violet: #6f52d9;
+      --violet-soft: #f2eeff;
+      --shadow: 0 8px 28px rgba(28, 21, 35, .08);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    :where(.grid, .flex) > * { min-width: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 0 0, rgba(252,82,0,.11), transparent 31rem),
+        var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      line-height: 1.5;
+    }
+    main { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 46px 0 90px; }
+    h1, h2, h3, h4, p, ul, ol, table { margin-top: 0; }
+    h1 { max-width: 940px; margin-bottom: 18px; font-size: clamp(2.2rem, 5.2vw, 4.4rem); line-height: .98; letter-spacing: -.05em; }
+    h2 { margin-bottom: 8px; font-size: clamp(1.5rem, 2.4vw, 2.15rem); letter-spacing: -.035em; }
+    h3 { margin-bottom: 8px; font-size: 1.06rem; letter-spacing: -.01em; }
+    h4 { margin-bottom: 6px; font-size: .93rem; }
+    p { margin-bottom: 12px; }
+    code { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .84em; background: rgba(28,21,35,.055); padding: 1px 5px; border-radius: 5px; }
+    :where(p, li, td, th, h1, h2, h3, h4, dd, blockquote, span, strong, b, em, code, label) { overflow-wrap: anywhere; }
+    a { color: var(--orange); }
+    .eyebrow { margin-bottom: 12px; color: var(--orange); font-size: .74rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .lede { max-width: 880px; margin-bottom: 26px; color: var(--muted); font-size: clamp(1.05rem, 1.6vw, 1.3rem); }
+    section { margin-top: 56px; scroll-margin-top: 20px; }
+    .sec-intro { max-width: 860px; color: var(--muted); margin-bottom: 22px; }
+
+    .verdict {
+      display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px;
+      padding: 26px; border: 1px solid #ffd5bd; border-radius: 18px;
+      background: linear-gradient(135deg, #fff 22%, var(--orange-soft)); box-shadow: var(--shadow);
+    }
+    @media (min-width: 760px) {
+      .verdict { grid-template-columns: minmax(0, 1.6fr) minmax(0, .7fr); }
+    }
+    .verdict strong { display: block; margin-bottom: 9px; font-size: clamp(1.3rem, 2.4vw, 1.9rem); letter-spacing: -.035em; line-height: 1.15; }
+    .verdict p:last-child { margin-bottom: 0; }
+    .stamp { align-self: start; padding: 16px 18px; border: 1px solid rgba(252,82,0,.26); border-radius: 13px; background: rgba(255,255,255,.8); font-size: .9rem; }
+    .stamp b { color: var(--green); }
+    .stamp div + div { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--faint); }
+
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 12px; margin-top: 18px; }
+    .metric { min-width: 0; padding: 16px; border: 1px solid var(--faint); border-radius: 15px; background: var(--card); box-shadow: 0 4px 16px rgba(28,21,35,.045); }
+    .metric b { display: block; font-size: 2rem; line-height: 1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+    .metric span { display: block; margin-top: 7px; color: var(--muted); font-size: .82rem; }
+    .m-red b { color: var(--red); } .m-amber b { color: var(--amber); } .m-green b { color: var(--green); } .m-violet b { color: var(--violet); }
+
+    .card { min-width: 0; padding: 20px; border: 1px solid var(--faint); border-radius: 16px; background: var(--card); box-shadow: 0 4px 16px rgba(28,21,35,.045); }
+    .cards { display: grid; gap: 14px; }
+    .cards.two { grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+
+    .conflict { border-left: 4px solid var(--red); }
+    .conflict.frozen { border-left-color: #7a1710; background: linear-gradient(100deg, var(--red-soft) 0 6px, var(--card) 6px); }
+    .conflict h3 { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+    .tag { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    .t-sql { background: #7a1710; color: #fff; }
+    .t-doc { background: var(--red-soft); color: var(--red); border: 1px solid rgba(180,35,24,.28); }
+    .t-test { background: var(--violet-soft); color: var(--violet); border: 1px solid rgba(111,82,217,.28); }
+    .t-ok { background: var(--green-soft); color: var(--green); border: 1px solid rgba(0,143,93,.28); }
+    .t-warn { background: var(--amber-soft); color: var(--amber); border: 1px solid rgba(122,84,0,.3); }
+
+    .vs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0; margin-top: 12px; border: 1px solid var(--faint); border-radius: 12px; overflow: hidden; }
+    .vs > div { min-width: 0; padding: 14px 16px; }
+    .vs > div + div { border-top: 1px solid var(--faint); }
+    @media (min-width: 720px) { .vs > div + div { border-top: 0; border-left: 1px solid var(--faint); } }
+    .vs .h { font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+    .vs .plan { background: var(--orange-soft); }
+    .vs .repo { background: #fafafc; }
+    .vs blockquote { margin: 0; font-size: .93rem; }
+    .cite { display: block; margin-top: 8px; color: var(--muted); font-size: .78rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    .tbl-wrap { overflow-x: auto; border: 1px solid var(--faint); border-radius: 14px; background: var(--card); }
+    table { width: 100%; border-collapse: collapse; font-size: .89rem; }
+    th, td { padding: 11px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--faint); }
+    th { font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); background: #fafafc; position: sticky; top: 0; }
+    tbody tr:last-child td { border-bottom: 0; }
+    td.n { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    figure { margin: 0 0 6px; padding: 20px; border: 1px solid var(--faint); border-radius: 16px; background: var(--card); box-shadow: 0 4px 16px rgba(28,21,35,.045); }
+    figure svg { display: block; width: 100%; height: auto; }
+    figcaption { margin-top: 12px; color: var(--muted); font-size: .85rem; }
+
+    .q { padding: 20px; border: 1px solid var(--faint); border-radius: 16px; background: var(--card); box-shadow: 0 4px 16px rgba(28,21,35,.045); }
+    .q + .q { margin-top: 12px; }
+    .q > p { color: var(--muted); font-size: .9rem; }
+    .opts { display: grid; gap: 8px; margin-top: 12px; }
+    .opts label { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 11px; align-items: start; padding: 11px 13px; border: 1px solid var(--faint); border-radius: 11px; cursor: pointer; font-size: .91rem; background: #fcfcfd; }
+    .opts label:hover { border-color: rgba(252,82,0,.4); background: #fff; }
+    .opts input { margin-top: 3px; accent-color: var(--orange); }
+    .opts em { display: block; margin-top: 3px; color: var(--muted); font-style: normal; font-size: .82rem; }
+    .rec { font-weight: 700; }
+    .submitbar { position: sticky; bottom: 0; margin-top: 22px; padding: 16px 20px; border: 1px solid #ffd5bd; border-radius: 16px; background: linear-gradient(135deg, #fff 30%, var(--orange-soft)); box-shadow: var(--shadow); display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
+    .submitbar button { border: 0; border-radius: 11px; padding: 12px 22px; background: var(--orange); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+    .submitbar button:hover { background: #dd4800; }
+    .submitbar span { color: var(--muted); font-size: .86rem; }
+
+    ul.tight { padding-left: 20px; margin-bottom: 0; }
+    ul.tight li { margin-bottom: 6px; font-size: .92rem; }
+    ul.tight li:last-child { margin-bottom: 0; }
+    .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+    .toc a { padding: 7px 13px; border: 1px solid var(--faint); border-radius: 999px; background: var(--card); text-decoration: none; color: var(--ink); font-size: .84rem; font-weight: 600; }
+    .toc a:hover { border-color: var(--orange); color: var(--orange); }
+    .note { padding: 14px 16px; border-left: 3px solid var(--violet); background: var(--violet-soft); border-radius: 0 11px 11px 0; font-size: .9rem; }
+  </style>
+</head>
+<body>
+<main>
+
+  <p class="eyebrow">Plan audit · verified against HEAD 577bc32 · September 6, 2026</p>
+  <h1>The diagnosis is right. Six of the prescriptions collide with decisions already frozen in SQL.</h1>
+  <p class="lede">
+    The plan's premise — that merged backend work never became a visible product — is correct and well evidenced.
+    But as written it reverses six recorded decisions without saying so, contradicts itself in four places, and
+    puts its own release gate behind work it declares out of scope. None of that is fatal. All of it is cheaper
+    to settle now than after the shell is rebuilt.
+  </p>
+
+  <div class="verdict">
+    <div>
+      <strong>Build it — after eight decisions and one scope correction.</strong>
+      <p>Everything below was checked against the repository, not against the plan's own account of it.
+      Where the plan and the codebase disagree, both sides are quoted with a file and line.</p>
+      <p>The single highest-risk item is not a contradiction. It is that <b>zero physical-device Apple Health
+      validation has ever been performed</b> — 0 of 109 checks — while the plan makes all four metrics blocking
+      with no descope path.</p>
+    </div>
+    <div class="stamp">
+      <div><b>Right:</b> the reality-check premise, the new-domain-not-widening call, no generic rule DSL, exclusion-before-pool, unallocated remainders</div>
+      <div><b>Wrong:</b> retiring Personal, no discovery opt-out, withdrawal-as-miss, $1–$500, cohort leaderboard, warm paper</div>
+      <div><b>Missing:</b> concurrency caps, account deletion mid-challenge, App Review path</div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric m-red"><b>6</b><span>conflicts with recorded decisions — 2 frozen in shipped SQL</span></div>
+    <div class="metric m-amber"><b>4</b><span>places the plan contradicts itself</span></div>
+    <div class="metric m-red"><b>0<span style="font-size:1.1rem">/109</span></b><span>physical-device Health checks ever performed</span></div>
+    <div class="metric m-green"><b>163</b><span>tables already built — far more exists than the plan assumes</span></div>
+    <div class="metric m-violet"><b>18</b><span>open questions that change what gets built</span></div>
+  </div>
+
+  <div class="toc">
+    <a href="#conflicts">1 · Conflicts</a>
+    <a href="#internal">2 · Self-contradictions</a>
+    <a href="#gate">3 · The Gate 2 inversion</a>
+    <a href="#have">4 · Already built</a>
+    <a href="#missing">5 · Actually missing</a>
+    <a href="#health">6 · The Health risk</a>
+    <a href="#decisions">7 · Decisions I need</a>
+    <a href="#bugs">8 · Bugs found in passing</a>
+  </div>
+
+  <!-- ============================================ -->
+  <section id="conflicts">
+    <p class="eyebrow">Section 1</p>
+    <h2>Six conflicts with decisions already made</h2>
+    <p class="sec-intro">
+      Two of these are frozen in migrations that have already run, which makes them the expensive ones —
+      <code>PLAN.md:124</code> states "Terms and policy versions are immutable; corrections append."
+      Changing them means a new policy version, not an edit. The rest are documented decisions the plan
+      can supersede, but only explicitly.
+    </p>
+
+    <div class="cards">
+
+      <div class="card conflict frozen">
+        <h3>Voluntary withdrawal after start counts as a confirmed miss <span class="tag t-sql">frozen in SQL</span></h3>
+        <div class="vs">
+          <div class="plan"><div class="h">The plan</div><blockquote>"Voluntary withdrawal after start counts as a confirmed miss."</blockquote></div>
+          <div class="repo"><div class="h">The repository</div><blockquote>"Voluntary withdrawal after start | In simulated pilot, end as <code>withdrawn_no_contest</code>, <b>zero consequence</b>. Track separately from a completed loss."</blockquote><span class="cite">docs/BUSINESS_MODEL.md:218 · D124 DECISIONS.md:4423 · D132:4728</span></div>
+        </div>
+        <p style="margin-top:12px;font-size:.9rem">
+          The rule is not just written down, it is compiled into the frozen weekly policy:
+          <code>"safeExitRule":"group_void_no_simulated_loss"</code> for friends and
+          <code>"refund_withdrawn_individual"</code> for community
+          (<code>supabase/migrations/20260906053958_weekly_local_v1.sql:184,274</code>). Those strings are
+          inside the hashed <code>terms</code> document, so reversing this invalidates every existing consent digest.
+        </p>
+      </div>
+
+      <div class="card conflict frozen">
+        <h3>Simulated amounts of $1–$500 <span class="tag t-sql">frozen in SQL</span></h3>
+        <div class="vs">
+          <div class="plan"><div class="h">The plan</div><blockquote>"One identical simulated amount per participant, selected by the creator from $1–$500 in whole dollars."</blockquote></div>
+          <div class="repo"><div class="h">The repository</div><blockquote>Personal is a five-value DB check constraint: <code>commitment_amount_minor in (1000, 2000, 3000, 4000, 5000)</code>. Weekly freezes <code>"simulatedCentsEach":2000</code>. D133 sets a <b>6,000-cent total bound per actor</b>.</blockquote><span class="cite">20260802165312_personal_v1_backend.sql:69 · 20260906053958:184 · DECISIONS.md:4751</span></div>
+        </div>
+        <p style="margin-top:12px;font-size:.9rem">
+          A single $500 challenge exceeds the entire per-actor simulation bound by more than eight times.
+          The flat <b>$20 community amount is consistent</b> with everything on record — it is only the friend range that breaks.
+        </p>
+      </div>
+
+      <div class="card conflict">
+        <h3>Retire the seven-day Personal challenge from navigation <span class="tag t-doc">contradicts 4 sources</span></h3>
+        <div class="vs">
+          <div class="plan"><div class="h">The plan</div><blockquote>"Retire the old seven-day Personal challenge from navigation and creation… stop creating or presenting those agreements."</blockquote></div>
+          <div class="repo"><div class="h">The repository</div><blockquote>"<b>Retain Today, Challenges, and You</b> as a starting navigation structure. Add typed new destinations <b>while preserving Personal</b>." · "Keep the existing Personal app usable and its records readable."</blockquote><span class="cite">docs/BUSINESS_MODEL.md:91 · PLAN.md:8, :51 · CLAUDE.md:56</span></div>
+        </div>
+        <p style="margin-top:12px;font-size:.9rem">
+          Worth separating two things the plan merges. "Personal performance commitments" in D123 means the
+          <b>new</b> 28–90-day <code>performance_commitment_*</code> product, not the legacy seven-day steps app.
+          Retiring the seven-day app is a third decision the pivot never authorized. It is also the
+          <b>only Release-reachable product in the app</b> — everything else is behind a compile fence.
+        </p>
+      </div>
+
+      <div class="card conflict">
+        <h3>Every profile is searchable, with no discovery opt-out <span class="tag t-doc">reverses D28</span> <span class="tag t-test">breaks tests</span></h3>
+        <div class="vs">
+          <div class="plan"><div class="h">The plan</div><blockquote>"Replace exact-only profile lookup with authenticated fuzzy search… <b>There is intentionally no discovery opt-out.</b>"</blockquote></div>
+          <div class="repo"><div class="h">The repository</div><blockquote>"M1 made profiles non-enumerable and discovery exact-match <b>precisely so that knowing a handle is not a route to a stranger</b>… which is a scam and harassment vector aimed at people who never opted into contact."</blockquote><span class="cite">D28 DECISIONS.md:671 · SQL comment 20260724203000:676</span></div>
+        </div>
+        <p style="margin-top:12px;font-size:.9rem">
+          Three practical consequences. <b>An opt-out already exists</b> — D19 makes blocking remove both parties
+          from handle discovery (<code>DECISIONS.md:404</code>). <b>Negative tests defend the current behavior</b> —
+          <code>supabase/tests/010_identity.test.sql:320-332</code> asserts a prefix returns empty and that <code>%</code>
+          is not treated as a pattern. And <code>pg_trgm</code> is not enabled in any migration, so fuzzy search is a
+          new extension plus a new RPC plus deleting those tests.
+        </p>
+        <p class="note" style="margin-top:12px">
+          <b>The aggravating factor the plan does not mention:</b> usernames are permanent and there is no profile
+          editing anywhere in the app — <code>GameTimeApp.swift:671</code> tells the person "Pick carefully — you
+          can't change your username yet." Permanent username + typo-tolerant search + no opt-out means a person
+          who attracts unwanted attention can neither rename nor disappear.
+        </p>
+      </div>
+
+      <div class="card conflict">
+        <h3>A 30-person cohort leaderboard with usernames and goal status <span class="tag t-doc">reverses shipped behavior</span></h3>
+        <div class="vs">
+          <div class="plan"><div class="h">The plan</div><blockquote>"Cohort-member leaderboard showing usernames, positions, totals, goal status, and freshness."</blockquote></div>
+          <div class="repo"><div class="h">The repository</div><blockquote>Community rosters are redacted by construction: <code>redacted := c.mode='community'</code>, projection <code>'counts_and_own_only'</code>. "Joining does not expose strangers' goals… or a financial leaderboard."</blockquote><span class="cite">20260906070927:12-15 · 20260906053958:274 · WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md:206</span></div>
+        </div>
+        <p style="margin-top:12px;font-size:.9rem">
+          Also collides with D130's ban on "money-won leaderboards" and "public humiliation"
+          (<code>docs/BUSINESS_MODEL.md:363</code>) and with the instruction to "<b>defer</b>… financial leaderboards" (<code>:82</code>).
+          Showing 30 people who missed their goal is the case D130 was written about.
+          <b>"Leaderboard" is also a banned on-screen word</b> under the same rule.
+        </p>
+      </div>
+
+      <div class="card conflict">
+        <h3>Age 21+ <span class="tag t-warn">overstates settledness</span></h3>
+        <div class="vs">
+          <div class="plan"><div class="h">The plan</div><blockquote>"Confirm 21+ eligibility." · "invited TestFlight beta for people age 21+"</blockquote></div>
+          <div class="repo"><div class="h">The repository</div><blockquote>"<b>Pilot recruitment may use an 18+ minimum for simulated play</b>; the real-money minimum could differ." Age is listed as a counsel decision, and the privacy policy currently says "not for anyone under 18."</blockquote><span class="cite">docs/BUSINESS_MODEL.md:515 · D123:4383 · docs/PRIVACY_POLICY.md:166</span></div>
+        </div>
+        <p style="margin-top:12px;font-size:.9rem">
+          21+ is defensible and conservative. It is just not a recorded decision, no rationale exists for it
+          anywhere, and it disagrees with the only number in the corpus. There is also <b>no age gate of any kind
+          in the app today</b> — zero matches across <code>ios/</code>.
+        </p>
+      </div>
+
+      <div class="card conflict">
+        <h3>The "selected athletic-light direction: warm paper background" <span class="tag t-doc">names a superseded direction</span></h3>
+        <div class="vs">
+          <div class="plan"><div class="h">The plan</div><blockquote>"Apply the selected athletic-light direction: <b>warm paper background</b>, sharp black typography, orange actions, green progress."</blockquote></div>
+          <div class="repo"><div class="h">The repository</div><blockquote>The current design decision is titled "<b>zero-beige reset</b>" and states "The previous warm editorial options are superseded." Its image brief bans "beige, cream, parchment, <b>warm paper</b>" by name, twice.</blockquote><span class="cite">docs/design/CHALLENGE_SCREEN_REDESIGN.md:1-16 · CHALLENGE_SCREEN_IMAGE_PROMPTS.md:30, :188</span></div>
+        </div>
+        <p style="margin-top:12px;font-size:.9rem">
+          The palette the plan describes is mockup direction B — <code>#F7F6F2</code> / <code>#111</code> /
+          <code>#FF4D00</code> / <code>#1D7A3D</code> in <code>docs/design/better-bet-mockups/gen.py:143</code> — from a
+          folder headed "<b>Historical design reference</b>… Better Bet is an old concept name."
+          Two of the four attributes already ship: <code>signalOrange #FC5200</code> and
+          <code>athleticGreen #00D084</code> in <code>CompetitiveTrustTheme.swift:6-9</code>, under a token set
+          literally named "R1 Athletic Design System." Only the background conflicts —
+          <code>paper</code> is <code>#F2F2F7</code>, a cool gray. <b>Where was direction B selected?</b>
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <section id="internal">
+    <p class="eyebrow">Section 2</p>
+    <h2>Four places the plan disagrees with itself</h2>
+
+    <div class="cards two">
+      <div class="card">
+        <h3>Withdrawal is a miss, but missing proof is not a loss</h3>
+        <p style="font-size:.92rem">The plan states both "Voluntary withdrawal after start counts as a confirmed miss"
+        and "incomplete proof causes no loss." A withdrawal is exactly the case where proof is incomplete.
+        The repository resolves this the other way, and D125 adds that a miss requires "explicit owner
+        confirmation of the complete sorted nomination set" or "an explicit no-attempt acknowledgement"
+        (<code>DECISIONS.md:4456</code>) — a withdrawal is neither.</p>
+      </div>
+      <div class="card">
+        <h3>Step 1 deletes the only working product</h3>
+        <p style="font-size:.92rem">The sequence makes the new shell default and retires Personal <em>first</em>,
+        then builds onboarding, the domain model, lobbies, Health adapters and the community template in
+        steps 2–6. Between step 1 and step 6 the app has no shippable product. Fine on an unreleased branch —
+        but the plan presents it as an ordered delivery sequence and "stop presenting those agreements"
+        directly contradicts "keep records readable."</p>
+      </div>
+      <div class="card">
+        <h3>Three lookback windows, one of them unsatisfiable</h3>
+        <p style="font-size:.92rem">Eligibility uses 30 days, cumulative targets use a trailing 28-day baseline,
+        timed targets use the best run from 90 days. Nothing relates them. More concretely: requiring "at least
+        one eligible readable sample from the previous 30 days for the selected metric" means
+        <b>a person who has not run in a month cannot join a running challenge</b> — including someone starting
+        a running challenge in order to start running.</p>
+      </div>
+      <div class="card">
+        <h3>Goal vocabulary applied to leaderboards</h3>
+        <p style="font-size:.92rem">"Confirmed miss" and "successful participants" are goal-challenge concepts.
+        A leaderboard has no target to miss, yet the withdrawal rule, the exclusion rule and the settlement
+        language all use them. The figure below marks the cells this leaves undefined.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">Where the settlement rules run out</h3>
+    <figure>
+      <svg viewBox="0 0 940 330" role="img" aria-labelledby="settle-t settle-d" xmlns="http://www.w3.org/2000/svg">
+        <title id="settle-t">Settlement outcome matrix for goal and leaderboard challenges</title>
+        <desc id="settle-d">A two-row matrix. Goal challenges define the all-succeed and some-succeed cases but leave the nobody-succeeds case undefined for friends. Leaderboard challenges define a clear winner, conflict with existing decisions on ties, and leave no-qualifying-result and tie precision undefined.</desc>
+        <defs>
+          <style>
+            .lbl { font: 600 13px -apple-system, "Helvetica Neue", sans-serif; fill: #1c1523; }
+            .hd  { font: 800 11px -apple-system, "Helvetica Neue", sans-serif; fill: #6c6c70; letter-spacing: .08em; text-transform: uppercase; }
+            .rw  { font: 800 14px -apple-system, "Helvetica Neue", sans-serif; fill: #1c1523; }
+            .sm  { font: 400 11.5px -apple-system, "Helvetica Neue", sans-serif; fill: #6c6c70; }
+            .ok  { font: 700 11px -apple-system, "Helvetica Neue", sans-serif; fill: #008f5d; letter-spacing: .06em; }
+            .bad { font: 700 11px -apple-system, "Helvetica Neue", sans-serif; fill: #b42318; letter-spacing: .06em; }
+            .amb { font: 700 11px -apple-system, "Helvetica Neue", sans-serif; fill: #7a5400; letter-spacing: .06em; }
+          </style>
+        </defs>
+
+        <text x="176" y="22" class="hd">All succeed / clear winner</text>
+        <text x="366" y="22" class="hd">Mixed outcome</text>
+        <text x="556" y="22" class="hd">Nobody succeeds</text>
+        <text x="746" y="22" class="hd">Tie at the top</text>
+
+        <!-- Goal row -->
+        <text x="8" y="86" class="rw">Goal</text>
+        <text x="8" y="104" class="sm">2–5 friends</text>
+        <text x="8" y="120" class="sm">or 30-person cohort</text>
+
+        <g id="cell-g1"><title>Goal, all succeed: defined</title>
+          <rect x="176" y="36" width="176" height="106" rx="11" fill="#e8fbf3" stroke="#008f5d" stroke-width="1.4"/>
+          <text x="190" y="60" class="ok">DEFINED</text>
+          <text x="190" y="82" class="lbl">All stakes returned</text>
+          <text x="190" y="102" class="sm">Zero bonus. Matches the</text>
+          <text x="190" y="118" class="sm">frozen community rule.</text>
+        </g>
+        <g id="cell-g2"><title>Goal, mixed: defined and conserved</title>
+          <rect x="366" y="36" width="176" height="106" rx="11" fill="#e8fbf3" stroke="#008f5d" stroke-width="1.4"/>
+          <text x="380" y="60" class="ok">DEFINED</text>
+          <text x="380" y="82" class="lbl">Recover own +</text>
+          <text x="380" y="100" class="lbl">split the misses</text>
+          <text x="380" y="120" class="sm">Conserves. Cents unallocated.</text>
+        </g>
+        <g id="cell-g3"><title>Goal, nobody succeeds: undefined for friend challenges</title>
+          <rect x="556" y="36" width="176" height="106" rx="11" fill="#fff6d9" stroke="#7a5400" stroke-width="1.4" stroke-dasharray="6 4"/>
+          <text x="570" y="60" class="amb">UNDEFINED</text>
+          <text x="570" y="82" class="lbl">Friends: not stated</text>
+          <text x="570" y="104" class="sm">The community section says</text>
+          <text x="570" y="120" class="sm">"unallocated." Friends do not.</text>
+        </g>
+        <g id="cell-g4"><title>Goal, tie: not applicable</title>
+          <rect x="746" y="36" width="176" height="106" rx="11" fill="#fafafc" stroke="#e5e5ea" stroke-width="1.4"/>
+          <text x="760" y="60" class="hd">N/A</text>
+          <text x="760" y="86" class="sm">A goal is pass or fail.</text>
+          <text x="760" y="104" class="sm">No tie exists.</text>
+        </g>
+
+        <!-- Leaderboard row -->
+        <text x="8" y="238" class="rw">Leaderboard</text>
+        <text x="8" y="256" class="sm">most steps, most</text>
+        <text x="8" y="272" class="sm">minutes, distance,</text>
+        <text x="8" y="288" class="sm">fastest run</text>
+
+        <g id="cell-l1"><title>Leaderboard, clear winner: defined</title>
+          <rect x="176" y="188" width="176" height="106" rx="11" fill="#e8fbf3" stroke="#008f5d" stroke-width="1.4"/>
+          <text x="190" y="212" class="ok">DEFINED</text>
+          <text x="190" y="234" class="lbl">Winner takes the pool</text>
+          <text x="190" y="256" class="sm">Max loss stays one stake.</text>
+        </g>
+        <g id="cell-l2"><title>Leaderboard, mixed: defined</title>
+          <rect x="366" y="188" width="176" height="106" rx="11" fill="#e8fbf3" stroke="#008f5d" stroke-width="1.4"/>
+          <text x="380" y="212" class="ok">DEFINED</text>
+          <text x="380" y="234" class="lbl">Same — one winner</text>
+          <text x="380" y="256" class="sm">Excluded players refunded</text>
+          <text x="380" y="272" class="sm">before the pool is computed.</text>
+        </g>
+        <g id="cell-l3"><title>Leaderboard, nobody posts a qualifying result: undefined</title>
+          <rect x="556" y="188" width="176" height="106" rx="11" fill="#fff6d9" stroke="#7a5400" stroke-width="1.4" stroke-dasharray="6 4"/>
+          <text x="570" y="212" class="amb">UNDEFINED</text>
+          <text x="570" y="234" class="lbl">No qualifying run</text>
+          <text x="570" y="256" class="sm">Everyone tied at zero?</text>
+          <text x="570" y="272" class="sm">Void? Pool unallocated?</text>
+        </g>
+        <g id="cell-l4"><title>Leaderboard tie: the plan conflicts with D54 and the product rule</title>
+          <rect x="746" y="188" width="176" height="106" rx="11" fill="#fff0ee" stroke="#b42318" stroke-width="1.4"/>
+          <text x="760" y="212" class="bad">CONFLICTS</text>
+          <text x="760" y="234" class="lbl">Plan: split the pool</text>
+          <text x="760" y="254" class="sm">Repo: "return both stakes"</text>
+          <text x="760" y="270" class="sm">and precision is undefined.</text>
+        </g>
+
+        <line x1="168" y1="30" x2="168" y2="302" stroke="#e5e5ea" stroke-width="1.4"/>
+      </svg>
+      <figcaption>
+        Green cells are fully specified and conserve the pool. The tie cell conflicts with D54 —
+        "a tie the declared tie-break genuinely cannot separate is <em>reported, not guessed</em>"
+        (<code>DECISIONS.md:1512</code>) — and with the product rule "Tie at agreed precision | Tie, return both
+        simulated stakes" (<code>docs/BUSINESS_MODEL.md:210</code>). The plan also never states the precision at
+        which two run times count as tied, which is what D54 is about.
+      </figcaption>
+    </figure>
+
+    <div class="cards two" style="margin-top:18px">
+      <div class="card">
+        <h3>Exclusion is an unpriced escape hatch</h3>
+        <p style="font-size:.92rem">Two rules refund a participant and remove them from settlement:
+        "unresolved technical evidence" and a "health-and-safety withdrawal… without requiring medical uploads."
+        Both are the correct humane defaults. Both are also a free exit from a losing position, and the plan
+        names no rate limit, no per-account cap, no disclosure to the others, and does not say whether the pool
+        is recomputed. Since a person controls their own Health permissions, "unresolved evidence" is partly
+        self-inducible.</p>
+      </div>
+      <div class="card">
+        <h3>Individual targets leak baseline fitness</h3>
+        <p style="font-size:.92rem">Goal challenges may use "individual targets" derived from each person's
+        trailing 28-day baseline, and every participant must "review the complete agreement and consent."
+        Consenting to the complete agreement means seeing everyone's target, and a target derived from a
+        28-day step average <em>is</em> health information about that person. The plan carefully keeps raw proof
+        private and then publishes a derivative of it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <section id="gate">
+    <p class="eyebrow">Section 3</p>
+    <h2>Gate 2 requires the work the plan declares out of scope</h2>
+    <p class="sec-intro">
+      This is the structural problem, and it is not a matter of interpretation. The plan says
+      "Real payments, deposits, fees, payouts, <b>deployment approval</b>, and jurisdiction decisions remain
+      outside this plan," and then sets Gate 2 as "invited TestFlight cohort." An invited external TestFlight
+      build is a deployment, and the repository already wrote down what it costs.
+    </p>
+
+    <figure>
+      <svg viewBox="0 0 940 300" role="img" aria-labelledby="gate-t gate-d" xmlns="http://www.w3.org/2000/svg">
+        <title id="gate-t">Gate 2 depends on four items the plan places out of scope</title>
+        <desc id="gate-d">A dashed region labelled "declared out of scope" contains hosted backend, Beta App Review, accurate privacy policy, and in-app account deletion. All four have arrows pointing into the Gate 2 node, showing the milestone cannot be reached without them.</desc>
+        <defs>
+          <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#b42318"/>
+          </marker>
+          <style>
+            .gl  { font: 600 13px -apple-system, "Helvetica Neue", sans-serif; fill: #1c1523; }
+            .gs  { font: 400 11px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #6c6c70; }
+            .gh  { font: 800 11px -apple-system, "Helvetica Neue", sans-serif; fill: #b42318; letter-spacing: .1em; text-transform: uppercase; }
+            .gg  { font: 800 16px -apple-system, "Helvetica Neue", sans-serif; fill: #fff; }
+            .ggs { font: 500 11.5px -apple-system, "Helvetica Neue", sans-serif; fill: #ffd9c6; }
+          </style>
+        </defs>
+
+        <rect x="6" y="26" width="470" height="262" rx="16" fill="#fff0ee" stroke="#b42318" stroke-width="1.6" stroke-dasharray="8 5"/>
+        <text x="26" y="52" class="gh">Declared out of scope by the plan</text>
+
+        <g id="dep-backend"><title>A working hosted backend is required for external testers</title>
+          <rect x="26" y="66" width="430" height="46" rx="10" fill="#fff" stroke="#e5e5ea"/>
+          <text x="42" y="86" class="gl">A working hosted backend</text>
+          <text x="42" y="103" class="gs">linked project is 26 migrations behind; deployed fns stale</text>
+        </g>
+        <g id="dep-review"><title>External TestFlight requires Beta App Review</title>
+          <rect x="26" y="120" width="430" height="46" rx="10" fill="#fff" stroke="#e5e5ea"/>
+          <text x="42" y="140" class="gl">Beta App Review under §§2.2, 3.1, 5.3</text>
+          <text x="42" y="157" class="gs">BETA_PRODUCT_DESIGN_AUDIT.md:511-520</text>
+        </g>
+        <g id="dep-privacy"><title>The privacy policy must be accurate and linked</title>
+          <rect x="26" y="174" width="430" height="46" rx="10" fill="#fff" stroke="#e5e5ea"/>
+          <text x="42" y="194" class="gl">An accurate, linked privacy policy</text>
+          <text x="42" y="211" class="gs">currently says "No photos" and "not for anyone under 18"</text>
+        </g>
+        <g id="dep-delete"><title>In-app account deletion currently throws in production</title>
+          <rect x="26" y="228" width="430" height="46" rx="10" fill="#fff0ee" stroke="#b42318" stroke-width="1.4"/>
+          <text x="42" y="248" class="gl">In-app account deletion — currently broken</text>
+          <text x="42" y="265" class="gs">delete-account throws at boot when GAMETIME_ENV=production</text>
+        </g>
+
+        <path d="M 462 89  C 530 89, 560 140, 636 152" stroke="#b42318" stroke-width="1.8" fill="none" marker-end="url(#arw)"/>
+        <path d="M 462 143 C 530 143, 560 148, 636 154" stroke="#b42318" stroke-width="1.8" fill="none" marker-end="url(#arw)"/>
+        <path d="M 462 197 C 530 197, 560 168, 636 158" stroke="#b42318" stroke-width="1.8" fill="none" marker-end="url(#arw)"/>
+        <path d="M 462 251 C 530 251, 560 180, 636 162" stroke="#b42318" stroke-width="1.8" fill="none" marker-end="url(#arw)"/>
+
+        <g id="gate2"><title>Gate 2: invited TestFlight cohort</title>
+          <rect x="644" y="108" width="288" height="100" rx="16" fill="#fc5200"/>
+          <text x="668" y="146" class="gg">Gate 2</text>
+          <text x="668" y="170" class="ggs">Invited TestFlight cohort,</text>
+          <text x="668" y="188" class="ggs">age 21+, simulated amounts only</text>
+        </g>
+      </svg>
+      <figcaption>
+        Internal TestFlight — testers added to the App Store Connect team — skips Beta App Review and would
+        change this picture. The plan says "invited," which reads as external. If the intent is internal-only,
+        say so; it removes three of the four arrows.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================================ -->
+  <section id="have">
+    <p class="eyebrow">Section 4</p>
+    <h2>Far more exists than the plan credits</h2>
+    <p class="sec-intro">
+      The plan treats several items as net-new that are already built and tested. This is the cheapest
+      correction in the audit: it moves work out of the estimate rather than into it.
+    </p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>The plan asks for</th><th>What already exists</th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td><b>Three tabs: Home · Challenges · You</b></td><td>Ships today as <b>Today · Challenges · You</b>. This is a rename plus new content, not a new shell.</td><td class="n"><code>AppShellView.swift:15-74</code></td></tr>
+          <tr><td><b>A shared agreement envelope</b> freezing scope, metric, roster, window, deadlines, digest and consent</td><td>Built three times over. <code>terms jsonb</code> plus a generated <code>terms_digest</code> sha256, per-participant <code>consent_digest</code>, and a server-side recompute that rejects any drift. Weekly already freezes ~20 policy fields including upload, correction and finality deadlines.</td><td class="n"><code>20260906053958:12, :186-212, :238-240</code></td></tr>
+          <tr><td><b>Four metric-specific sources</b></td><td>The metric enum already has all four: <code>steps, distance_meters, active_energy_kcal, exercise_minutes</code>. Manual-entry exclusion is a <b>generated column</b>: <code>is_admissible = provenance in ('device','third_party')</code>.</td><td class="n"><code>20260724230000:47-52</code> · <code>20260725140000:306</code></td></tr>
+          <tr><td><b>Attested ingestion boundary</b></td><td>Real Apple App Attest — attestation and assertion, x5c chain to Apple Root CA, derived HMAC challenge, independent PKCS#7 receipt verification, body hashed before parse. Not a stub.</td><td class="n"><code>_shared/appattest.ts:879-1040</code></td></tr>
+          <tr><td><b>Operator-owned community challenge, 30-person capacity</b></td><td>Exists. <code>mode in ('friend','community')</code>, a community row has a NULL creator by construction, <code>check(capacity between 2 and 30)</code>, service-only curation, capacity enforced under a row lock.</td><td class="n"><code>20260906053958:10, :14, :262, :313</code></td></tr>
+          <tr><td><b>Server-authoritative beta allowlist and kill switch</b></td><td>An established per-product pattern. <code>duel_beta_allowlist</code>, <code>performance_commitment_beta_allowlist</code>, ten <code>*_runtime</code> singletons all seeded disabled, and JWT metadata explicitly ignored as an authorization input.</td><td class="n"><code>20260904225326:49</code> · <code>20260807151320:81</code></td></tr>
+          <tr><td><b>Concurrency safety</b> (not in the plan)</td><td>Already enforced in the database — <code>duel_slot_occupied</code> and <code>performance_commitment_slot_occupied</code> cap a person at one unsettled duel plus one commitment. <b>The plan silently drops this without a replacement.</b></td><td class="n"><code>20260904225326:380</code> · <code>20260905180726:267</code></td></tr>
+          <tr><td><b>Orange actions, green progress, athletic light</b></td><td>Shipping. <code>signalOrange #FC5200</code>, <code>athleticGreen #00D084</code>, light mode forced app-wide, tokens named "R1 Athletic Design System."</td><td class="n"><code>CompetitiveTrustTheme.swift:6-9, :192</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <section id="missing">
+    <p class="eyebrow">Section 5</p>
+    <h2>What is genuinely missing, including things the plan assumes</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Reality</th><th>Consequence</th></tr></thead>
+        <tbody>
+          <tr><td><b>Fuzzy profile search</b></td><td>No <code>pg_trgm</code>, no search UI at all, and the exact-match client method is unreachable behind a fixture-only flag.</td><td>New extension, new RPC, new UI, and three negative tests to delete.</td></tr>
+          <tr><td><b>Profile photos</b></td><td>No storage bucket exists anywhere. <code>profiles.avatar_path</code> is a dangling column whose comment references a bucket that was never created. The app draws initials.</td><td>Bucket, policies, upload RPC, picker, image pipeline, plus a privacy-policy change — <code>PRIVACY_POLICY.md:88</code> currently says "No photos."</td></tr>
+          <tr><td><b>Share links</b></td><td>No associated-domains entitlement, no universal links. <code>DuelInvitationLink.swift:13</code> says so outright. Release registers only the <code>gametime-beta</code> scheme.</td><td>A hosted domain, an AASA file, and an Apple provisioning change the plan does not mention.</td></tr>
+          <tr><td><b>Working notifications</b></td><td>The outbox, APNs with ES256, and device tokens are real — but <code>claim_push_deliveries_v1</code> hard-filters to <code>contest_lead_lost</code> and joins on <code>contest_standing_snapshots</code>, so the other ~28 event types structurally cannot deliver. Zero preferences schema.</td><td>D130 requires contextual consent, per-category preferences, quiet hours, caps, suppression and dedup <b>as one flow</b> before any push. The plan's notification section is a fraction of that.</td></tr>
+          <tr><td><b>In-app account deletion</b></td><td>Exists in the UI, but the edge function throws at boot under <code>GAMETIME_ENV=production</code> because it imports the Stripe sandbox config.</td><td>An App Store requirement that is currently broken. Blocks Gate 2 by itself.</td></tr>
+          <tr><td><b>A hosted environment matching this code</b></td><td>The linked project is <b>26 migrations behind</b> — nothing from duel, performance or weekly has been pushed — and the three verifiably deployed functions are stale against the working tree.</td><td>The plan asks to confirm the project is non-production. The larger issue is that no matching hosted environment exists yet.</td></tr>
+          <tr><td><b>Multi-device step dedup</b></td><td>Does not exist. Both step paths hand merging to HealthKit and never verify it. <code>WeeklySourceFeasibility.swift:106</code> hardcodes <code>qualifyingTotal = nil</code> because "summing raw samples double-counts overlapping devices/imports."</td><td>Written from zero, then validated on a phone and Watch.</td></tr>
+          <tr><td><b>The 99%–105% distance band</b></td><td>New. Existing qualification uses absolute millimetre tolerances that default to zero, and the docs say those "are not field accuracy approvals."</td><td>Needs measured samples before it can be frozen.</td></tr>
+          <tr><td><b>Age gate</b></td><td>Zero matches across <code>ios/</code>.</td><td>Net-new, and self-attestation is not enforcement.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note" style="margin-top:18px">
+      <b>One more gate the plan understates.</b> Making the new experience default is not just "without special
+      launch arguments." Each product is triple-locked: a compile-time fence (Release defines no
+      <code>SWIFT_ACTIVE_COMPILATION_CONDITIONS</code>, <code>project.pbxproj:698</code>), a launch argument, and
+      <code>SupabaseWeeklyClient.isExplicitLoopback()</code> — the Supabase URL must literally be
+      <code>127.0.0.1</code> or <code>localhost</code> (<code>SupabaseWeeklyClient.swift:72-78</code>).
+      That third lock is the one worth removing deliberately rather than incidentally.
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <section id="health">
+    <p class="eyebrow">Section 6</p>
+    <h2>The Apple Health gate is the real schedule risk</h2>
+    <p class="sec-intro">
+      Everything above is a decision. This one is an unknown, and the plan converts it into a single point of failure.
+    </p>
+
+    <div class="cards two">
+      <div class="card" style="border-left:4px solid var(--red)">
+        <h3>No physical-device validation has ever happened</h3>
+        <p style="font-size:.92rem"><code>docs/PERSONAL_HEALTH_SNAPSHOT_V2_ACCEPTANCE.md</code> has
+        <b>0 of 109 boxes checked</b>. Its entire physical-device section is unchecked, including
+        "Watch-written steps catch up after delayed synchronization" and "Late Watch data during the full
+        24-hour grace updates the open snapshot." <code>README.md:203</code> states the Simulator
+        "cannot prove Apple Health values, observer wakes, locked-device retry, or late Watch delivery."</p>
+        <p style="font-size:.92rem;margin-bottom:0">This is true for <b>steps</b> — the one metric that ships.
+        Gate 1 is not adding three metrics to a proven one. It is validating four from zero.</p>
+      </div>
+      <div class="card" style="border-left:4px solid var(--amber)">
+        <h3>The plan removes the existing descope path</h3>
+        <p style="font-size:.92rem">The current spec degrades gracefully: "If valid filtering cannot distinguish
+        manual/imported credit, <b>keep the mode unavailable</b> or propose a separately named sensor-workout
+        policy" (<code>WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md:256</code>).</p>
+        <p style="font-size:.92rem;margin-bottom:0">The plan replaces that with:
+        "<b>failure to validate any one of these sources blocks that beta milestone</b>." Honest, but it means
+        the least certain item gates everything else, with no fallback. Exercise minutes is the least certain
+        — a ring total can include manually added workouts, and <b>no production code reads
+        <code>appleExerciseTime</code> today</b>.</p>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:16px">
+      <b>Worth recording as a supersession, not a UI detail:</b> the plan's rule that a scored challenge requires
+      "at least one eligible readable sample from the previous 30 days" reinstates a gate that D120 deliberately
+      removed — <code>README.md:205</code>: "the permission request, not a positive sample, is the creation gate."
+      Reinstating it is the <em>right</em> call, because HealthKit cannot report read denial and the code
+      acknowledges this in four places. It just needs to supersede D120 explicitly.
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <section id="decisions">
+    <p class="eyebrow">Section 7</p>
+    <h2>The eight decisions I need before building</h2>
+    <p class="sec-intro">
+      Each of these changes what gets written. Pick an option, or annotate any of them if none fits.
+      Ten further questions that do not block the start are listed after the form.
+    </p>
+
+    <form id="decisions-form" data-lavish-question="plan-audit-decisions" onsubmit="return false;">
+
+      <div class="q">
+        <h3>1 · The seven-day Personal challenge</h3>
+        <p>Four sources say preserve it and it is the only Release-reachable product today.</p>
+        <div class="opts">
+          <label><input type="radio" name="personal" value="Keep Personal reachable alongside the new products"><span><span class="rec">Keep it reachable alongside the new products (recommended)</span><em>Honors BUSINESS_MODEL.md:91 and CLAUDE.md:56. Costs one tab entry.</em></span></label>
+          <label><input type="radio" name="personal" value="Retire Personal from creation, keep records readable"><span>Retire from <em>creation</em> only, keep records readable<em>Closest to the plan's intent without contradicting "keep records readable."</em></span></label>
+          <label><input type="radio" name="personal" value="Fully retire Personal from navigation and creation as the plan states"><span>Fully retire as written<em>Requires superseding four documents, including CLAUDE.md.</em></span></label>
+        </div>
+      </div>
+
+      <div class="q">
+        <h3>2 · Profile discovery</h3>
+        <p>D28 made exact-match the security model. Usernames are permanent and cannot be edited.</p>
+        <div class="opts">
+          <label><input type="radio" name="discovery" value="Fuzzy search with a discovery opt-out and an editable username"><span><span class="rec">Fuzzy search, but add an opt-out and make usernames editable (recommended)</span><em>Gets the discoverability the plan wants without leaving a harassed person with no exit.</em></span></label>
+          <label><input type="radio" name="discovery" value="Keep exact-match only, per D28"><span>Keep exact-match only<em>No new extension, no test deletions, no reversal. Invites go by exact username or link.</em></span></label>
+          <label><input type="radio" name="discovery" value="Fuzzy search with no opt-out exactly as the plan states"><span>Fuzzy, no opt-out, as written<em>Explicitly supersedes D28 and D19; needs a written safety rationale.</em></span></label>
+        </div>
+      </div>
+
+      <div class="q">
+        <h3>3 · Voluntary withdrawal after a challenge starts</h3>
+        <p>Frozen in SQL as <code>group_void_no_simulated_loss</code>. The plan's rule also contradicts its own "incomplete proof causes no loss."</p>
+        <div class="opts">
+          <label><input type="radio" name="withdrawal" value="Keep zero consequence for withdrawal, per BUSINESS_MODEL.md:218"><span><span class="rec">Keep zero consequence (recommended)</span><em>Matches the frozen policy and resolves the plan's internal contradiction.</em></span></label>
+          <label><input type="radio" name="withdrawal" value="Withdrawal excludes and refunds the person, others settle normally"><span>Exclude and refund, others settle normally<em>Middle path. Still needs an abuse control, since it is a free exit from a losing position.</em></span></label>
+          <label><input type="radio" name="withdrawal" value="Withdrawal after start counts as a confirmed miss, as the plan states"><span>Confirmed miss, as written<em>Needs a new policy version — it invalidates existing consent digests.</em></span></label>
+        </div>
+      </div>
+
+      <div class="q">
+        <h3>4 · Simulated stake range for friend challenges</h3>
+        <p>Every frozen amount is $10–$50 or a flat $20. D133 caps total per-actor simulation at 6,000 cents.</p>
+        <div class="opts">
+          <label><input type="radio" name="stakes" value="Keep the existing $10-$50 ladder for friend challenges"><span><span class="rec">Keep the $10–$50 ladder (recommended)</span><em>No frozen constraint changes. $20 community is already consistent.</em></span></label>
+          <label><input type="radio" name="stakes" value="Allow $1-$100 with a server-enforced aggregate exposure cap"><span>$1–$100 with a server-enforced aggregate cap<em>Wider range, but restores the exposure limit the plan drops.</em></span></label>
+          <label><input type="radio" name="stakes" value="Allow $1-$500 as the plan states, and raise the D133 per-actor bound"><span>$1–$500 as written<em>Requires raising the per-actor bound by more than 8×, with a stated rationale.</em></span></label>
+        </div>
+      </div>
+
+      <div class="q">
+        <h3>5 · What a 30-person cohort can see about each other</h3>
+        <p>Currently redacted to <code>counts_and_own_only</code>. D130 bans public humiliation and money-won leaderboards.</p>
+        <div class="opts">
+          <label><input type="radio" name="cohort" value="Show a leaderboard of participants who opted in to being listed"><span><span class="rec">Opt-in visibility (recommended)</span><em>Gives the social pull the plan wants; nobody is listed as having missed without agreeing to it.</em></span></label>
+          <label><input type="radio" name="cohort" value="Keep counts and own progress only, per the frozen projection"><span>Keep counts and own progress only<em>No reversal. Weakest social hook.</em></span></label>
+          <label><input type="radio" name="cohort" value="Full cohort leaderboard with usernames and goal status as the plan states"><span>Full leaderboard as written<em>Supersedes the frozen projection and needs a D130 exception on record.</em></span></label>
+        </div>
+      </div>
+
+      <div class="q">
+        <h3>6 · If one Health metric cannot be validated on device</h3>
+        <p>Zero device validation exists today, for any metric. Exercise minutes is the least certain.</p>
+        <div class="opts">
+          <label><input type="radio" name="health" value="Ship the validated subset and hold unvalidated metrics back"><span><span class="rec">Ship the validated subset, hold the rest (recommended)</span><em>Matches the existing "keep the mode unavailable" rule and keeps the beta reachable.</em></span></label>
+          <label><input type="radio" name="health" value="Validate steps first as a standalone gate, then add metrics one at a time"><span>Steps first as a standalone gate, then add one at a time<em>Slowest to full scope, fastest to a real beta.</em></span></label>
+          <label><input type="radio" name="health" value="All four metrics block the beta milestone as the plan states"><span>All four block the beta, as written<em>No descope path. The least certain item gates everything.</em></span></label>
+        </div>
+      </div>
+
+      <div class="q">
+        <h3>7 · Where the new challenge domain lives</h3>
+        <p>The repo is at 163 tables. <code>weekly_*_v1</code> already has friend + community, 2–5 and 2–30 capacity, terms and consent digests, lifecycle, review, allocations and exits — and has <b>never been pushed to a hosted project</b>, so freezing it protects zero production rows.</p>
+        <div class="opts">
+          <label><input type="radio" name="domain" value="Evolve weekly_v1 into weekly_v2 rather than creating a fourth domain"><span><span class="rec">Evolve <code>weekly_*_v1</code> into a <code>v2</code> policy (recommended)</span><em>Reuses 17 tables and their tests. Version discipline is preserved by the new policy version, which is what the rule actually requires.</em></span></label>
+          <label><input type="radio" name="domain" value="Create a fourth versioned challenge domain as the plan states"><span>A fourth domain, as written<em>Cleanest separation. Roughly 20 more tables and a parallel test suite.</em></span></label>
+        </div>
+      </div>
+
+      <div class="q">
+        <h3>8 · Age and the TestFlight path</h3>
+        <p>The only documented number is 18+ for simulated play. External TestFlight triggers Beta App Review; internal does not.</p>
+        <div class="opts">
+          <label><input type="radio" name="age" value="18+ self-attested, internal TestFlight only for the first beta"><span><span class="rec">18+, internal TestFlight only for the first beta (recommended)</span><em>Matches BUSINESS_MODEL.md:515 and removes three of the four Gate 2 blockers.</em></span></label>
+          <label><input type="radio" name="age" value="21+ self-attested, internal TestFlight only for the first beta"><span>21+, internal TestFlight only<em>Conservative age, still avoids Beta App Review.</em></span></label>
+          <label><input type="radio" name="age" value="21+ with external TestFlight, accepting the App Review and hosted backend work"><span>21+, external TestFlight<em>Accepts App Review, a working hosted backend, an accurate privacy policy and a fixed delete-account into scope.</em></span></label>
+        </div>
+      </div>
+
+      <div class="submitbar">
+        <span id="answered-count">Nothing selected yet. Unanswered questions stay open.</span>
+        <button type="button" data-lavish-action onclick="queueDecisions()">Queue my decisions</button>
+      </div>
+    </form>
+
+    <h3 style="margin-top:34px">Ten more that do not block the start</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:34%">Question</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td><b>Concurrency cap</b></td><td>The DB caps a person at one unsettled duel plus one commitment. The plan has no cap at all. How many live challenges can one person hold?</td></tr>
+          <tr><td><b>Account deletion mid-challenge</b></td><td>Deletion pseudonymizes the actor (D81). What happens to a 5-person lobby or a 30-person cohort when a participant deletes? Void, exclude-and-refund, or continue as a placeholder?</td></tr>
+          <tr><td><b>Timed run: strict or inclusive</b></td><td>"Under a target" — is hitting exactly the target time a pass? The W4 spec explicitly flags "strict versus inclusive time comparisons" as needing a decision.</td></tr>
+          <tr><td><b>The 105% distance ceiling</b></td><td>The 99% floor is anti-cheat. The ceiling only disqualifies honest longer runs — running further makes your time worse, so there is no cheating incentive it prevents. Keep it?</td></tr>
+          <tr><td><b>Workout provenance</b></td><td>Steps exclude manual entries. Nothing stated prevents a fabricated running workout written by a third-party app, and routes are never read, so <code>totalDistance</code> is the only signal.</td></tr>
+          <tr><td><b>Rolling-window baseline timezone</b></td><td>Rolling challenges freeze no timezone, but the trailing 28-day baseline needs day boundaries.</td></tr>
+          <tr><td><b>Community cohort mechanics</b></td><td>Recurring weekly or one-shot? Which timezone for 30 people (the existing spec proposes America/Chicago)? Minimum participants (the existing spec says two)? What happens to the 31st person? Can the operator void mid-flight?</td></tr>
+          <tr><td><b>Link-join safety</b></td><td>Can a blocked person join via a forwarded link? Can the creator eject a link-joiner? Can a link-joiner see the roster before the creator finalizes?</td></tr>
+          <tr><td><b>First-invite notifications</b></td><td>Permission is requested "after the first challenge is joined or created," but invitations arrive before that. The first invite a person ever receives is silent.</td></tr>
+          <tr><td><b>Vocabulary</b></td><td>Of the plan's eleven terms, <em>evidence</em> and <em>attested</em> are banned on screen and enforced by a UI-test regex, <em>roster</em> is banned on Personal screens, <em>leaderboard</em> is a scope conflict as well as a copy one, five need existing COPY.md mappings, and <em>exclusion</em> and <em>cohort</em> need new glossary rows. CLAUDE.md requires adding glossary rows rather than a parallel vocabulary.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <section id="bugs">
+    <p class="eyebrow">Section 8</p>
+    <h2>Found while auditing — unrelated to the plan</h2>
+    <p class="sec-intro">Two of these are live scoring defects with no test and no decision record covering them.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Finding</th><th>Detail</th><th>Location</th></tr></thead>
+        <tbody>
+          <tr><td><b>Midnight-straddling steps are silently dropped</b></td><td><code>[.strictStartDate, .strictEndDate]</code> together require a sample to be entirely inside the day, so a sample crossing local midnight counts for neither day. The legacy path deliberately uses <code>options: []</code> so HealthKit prorates, and D50 makes proration the rule. No test, no decision record.</td><td class="n"><code>PersonalHealthStepReader.swift:148</code></td></tr>
+          <tr><td><b>Revoking Health permission overwrites a good snapshot with zeros</b></td><td>A nil statistic maps to <code>0</code> without erroring. HealthKit returns empty rather than throwing after read-authorization revocation, and D120 makes "a successful zero or downward Health edit authoritative" — so seven zero days replace a higher total.</td><td class="n"><code>PersonalHealthStepReader.swift:133-136</code></td></tr>
+          <tr><td><b>The cadence-blind hero also breaks daily challenges</b></td><td>The reported "70,000 in one day" bug has a mirror: a daily challenge renders "17,832 / 10,000 steps." The existing regression assertion cannot catch it because the hero splits the value across two <code>Text</code> nodes.</td><td class="n"><code>TodayView.swift:92-115</code></td></tr>
+          <tr><td><b>Blank profile cards</b></td><td>Confirmed mechanism: five bare siblings are passed into <code>DaybreakCard</code>, so SwiftUI applies padding, background and shadow to each <code>Divider()</code> individually. This is the only unwrapped call site; the other six wrap in a container first.</td><td class="n"><code>YouView.swift:52-85</code></td></tr>
+          <tr><td><b><code>.lavish/</code> is untracked and not gitignored</b></td><td>The prior reality-check artifact is the only place two known UI defects are documented, and it is not in version control.</td><td class="n"><code>git status</code></td></tr>
+          <tr><td><b>A request-time attestation bypass</b></td><td><code>ATTEST_DEV_BYPASS</code> is checked per request in the two ingest functions, restrained only by a module-load env check. The two safer functions have no such path.</td><td class="n"><code>ingest-metrics/handler.ts:242</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+<script>
+  var FORM = document.getElementById('decisions-form');
+  var LABELS = {
+    personal: 'Seven-day Personal challenge',
+    discovery: 'Profile discovery',
+    withdrawal: 'Voluntary withdrawal after start',
+    stakes: 'Friend stake range',
+    cohort: 'Cohort visibility',
+    health: 'Health metric validation gate',
+    domain: 'Challenge domain architecture',
+    age: 'Age and TestFlight path'
+  };
+  var ORDER = ['personal','discovery','withdrawal','stakes','cohort','health','domain','age'];
+
+  function currentAnswers() {
+    var data = new FormData(FORM);
+    var out = [];
+    ORDER.forEach(function (key) {
+      var v = data.get(key);
+      if (v) out.push({ key: key, label: LABELS[key], answer: v });
+    });
+    return out;
+  }
+
+  FORM.addEventListener('change', function () {
+    var n = currentAnswers().length;
+    var el = document.getElementById('answered-count');
+    if (n === 0) { el.textContent = 'Nothing selected yet. Unanswered questions stay open.'; return; }
+    el.textContent = n + ' of 8 selected. Unanswered questions stay open.';
+  });
+
+  function queueDecisions() {
+    var answers = currentAnswers();
+    if (!answers.length) {
+      document.getElementById('answered-count').textContent = 'Select at least one option first.';
+      return;
+    }
+    var lines = answers.map(function (a, i) { return (i + 1) + '. ' + a.label + ' — ' + a.answer + '.'; });
+    var unanswered = ORDER.filter(function (k) {
+      return !answers.some(function (a) { return a.key === k; });
+    }).map(function (k) { return LABELS[k]; });
+
+    var prompt = 'Plan audit decisions:\n\n' + lines.join('\n');
+    if (unanswered.length) {
+      prompt += '\n\nStill undecided: ' + unanswered.join('; ') + '. Leave these open and flag them again before the work reaches them.';
+    }
+    prompt += '\n\nUpdate the implementation plan and the affected repository documents to match these decisions, recording each one as an explicit supersession where it reverses something already written.';
+
+    window.lavish.queuePrompt(prompt, {
+      tag: 'decisions',
+      text: answers.length + ' of 8 plan decisions',
+      element: FORM,
+      queueKey: 'plan-audit-decisions',
+      data: { answers: answers, unanswered: unanswered }
+    });
+  }
+</script>
+</main>
+</body>
+</html>

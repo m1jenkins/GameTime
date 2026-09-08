@@ -73,9 +73,10 @@ all unaccepted. The proposed 20–30-person pilot needs separate authorization.
 
 ## Unchanged gates
 
-- Five means 2–5 total including creator only as the documented working
-  interpretation. Numeric targets and example cents are fixtures, not approved
-  health recommendations, launch targets or prices.
+- The frozen `weekly_*_v1` implementation remains 2–5 total including creator;
+  D134's new Beta 1 contract separately supports the creator plus five friends
+  (2–6 total). Numeric targets and example cents in this execution record are
+  fixtures, not approved health recommendations, launch targets or prices.
 - Personal, Solo, charity and fictional official-5K contracts retain their
   original versioned behavior. Organizer-event screens remain paused.
 - Required device records must cover identity/manual/imported data, overlaps,

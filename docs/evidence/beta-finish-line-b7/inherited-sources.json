@@ -1,0 +1,614 @@
+{
+  "source": "/Users/user/Documents/GitHub/GameTime",
+  "head": "577bc321e72750976e2e8027680387707070b0e3",
+  "worktree": "/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta",
+  "authorship": "Inherited uncommitted source; authorship not independently established. Design references remain proposals; D134 and Beta plan govern behavior.",
+  "files": [
+    {
+      "path": ".lavish/beta-finish-line-roadmap.html",
+      "bytes": 38540,
+      "sha256": "a94cb7793e7a56044ec450ee33c11a911b3b28a10cb5b3484307b810f9562ef9",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/current-today.jpg",
+      "bytes": 51539,
+      "sha256": "722c1bbdb185babca2c2b2ef7b8453a5366d89a5acba961bdac305a942f3d531",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/finish-line-assets/current-today.jpg",
+      "bytes": 51539,
+      "sha256": "722c1bbdb185babca2c2b2ef7b8453a5366d89a5acba961bdac305a942f3d531",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/finish-line-assets/friend.png",
+      "bytes": 1197667,
+      "sha256": "4021f8eb0e13500fb9315be35bcfe1093f32d17b0ececb8e1765a0414975e119",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/finish-line-assets/goal.png",
+      "bytes": 1145972,
+      "sha256": "58edd4835148644efe1993d0f504dea09a0924a068b705a83675457837e87c2a",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/finish-line-assets/home.png",
+      "bytes": 1203204,
+      "sha256": "4cd596841e6316380c188f08574787f2305982476b2ccd2353b87b3c4a9494cf",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/finish-line-assets/roadmap.md",
+      "bytes": 21475,
+      "sha256": "56d8408116ed40ee6206fbf7f6789c50ef3ee5bd169538de20760121b968b5f6",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-assets/01-matchday-home.png",
+      "bytes": 1203204,
+      "sha256": "4cd596841e6316380c188f08574787f2305982476b2ccd2353b87b3c4a9494cf",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-assets/02-matchday-challenge.png",
+      "bytes": 1197667,
+      "sha256": "4021f8eb0e13500fb9315be35bcfe1093f32d17b0ececb8e1765a0414975e119",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-assets/03-matchday-goal.png",
+      "bytes": 1145972,
+      "sha256": "58edd4835148644efe1993d0f504dea09a0924a068b705a83675457837e87c2a",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-assets/README.md",
+      "bytes": 8526,
+      "sha256": "afb128d87dcfcde59d4bc1d5549da720eec846c9748cec0ebbd61f55c7ea1452",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-assets/previous-home.png",
+      "bytes": 1313963,
+      "sha256": "03235eaa3bbfb36052594ac2681f250a452ca9c77faf488f99fd0993174e66d1",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-assets/prompts.md",
+      "bytes": 14238,
+      "sha256": "a4766732c434ad673cf949e0d718ae92e691e91ff31fd95953d4881f6dd3797e",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-assets/revision-prompts.md",
+      "bytes": 1760,
+      "sha256": "49c03b7bec7f635324128fe7cb9811427431728e96fc0567ef6234db846a3c72",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-refinement.html",
+      "bytes": 19839,
+      "sha256": "5f64f000951c882388b1a41450d46a5fc70f2b578a25da41d8be90b19564f51e",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/01-metric-artwork.png",
+      "bytes": 1582409,
+      "sha256": "4c524739a2313843425ea4f10e51b9360a39ec5d77d90891d7d6f0a13c768678",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/02-home-refined.png",
+      "bytes": 1220536,
+      "sha256": "eb6a85a88eaf423bcacf3cc5bec7be2ad09d5c35237600089fc123b888e6df12",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/03-icon-sheet.png",
+      "bytes": 73363,
+      "sha256": "e5c085e2d707459cf40d1d9be880d93c073ea8d3c3d405cadc4c4b0c72b94d1b",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/03-icon-sheet.svg",
+      "bytes": 9335,
+      "sha256": "26100cbe18b802f32f81b46fedf07a16143c10c4f34e93453a6e61fe1e7d5fa3",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/README.md",
+      "bytes": 5506,
+      "sha256": "e2db95b9139fb09117139204add8c74354aefe3a38ac770f20b8129a3052d057",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/exercise-time.svg",
+      "bytes": 417,
+      "sha256": "879247cffa246dcf88eba7cce80e38f23d3e0520a4f0e70839b46a9ee6172c41",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/friend-goals.svg",
+      "bytes": 356,
+      "sha256": "4fcc920d64c2fd03a16bf4ee901e58af3ce526215329a8fda39199f840e7387c",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/goal-met.svg",
+      "bytes": 321,
+      "sha256": "ace2f52201d0afc0eacd43d2fbf9c07d597293bd0fde903369df16fad038ed01",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/invitation.svg",
+      "bytes": 365,
+      "sha256": "2b982b98adea408516003ca8444b306f72aba7495eeb0869f97cf32abc9b039b",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/leaderboard.svg",
+      "bytes": 369,
+      "sha256": "d3b741e29f9ca601897d3163e7b5afc9476d4420c9745deaec4c68394255d462",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/personal-goal.svg",
+      "bytes": 327,
+      "sha256": "8fc6d89e48035b80512bdc1b26b4e4c462efb6c9281e13aa6af40de187be37b8",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/rules.svg",
+      "bytes": 340,
+      "sha256": "f884f2d2a0b4786dbbe4c0bd12df8390828794eb5e5d4762ba62f61c69902d4f",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/running-distance.svg",
+      "bytes": 396,
+      "sha256": "b5e6ab74580f36a356663eeb85f01d64392fd1b73fca5225496a32e21a4d506f",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/scheduled.svg",
+      "bytes": 385,
+      "sha256": "9aa5cf5b1dbdf93c30efdc5f7f8645f7d00b2e74d08e2b9a136b4a59b695b3d9",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/steps.svg",
+      "bytes": 468,
+      "sha256": "8be82c82c17a33fb2399ec106916193087d8f6c280ca1537999b2cac9aa5e81f",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/timed-run.svg",
+      "bytes": 387,
+      "sha256": "54a064b893a6e7109508b62deaf1eca5c1cf7a579b7e61bd58b94e985aeb365e",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/icons/waiting-for-data.svg",
+      "bytes": 416,
+      "sha256": "2c6e6b35596146a025da2201fc8969d028b62f78e626bcdf5bc479068b2ea3cb",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/mobbin-sources.json",
+      "bytes": 3016,
+      "sha256": "f04c8b03d7fe591b26e5aabd393ac33b71a779a6a5cebcd2b4b40a489767078a",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/previous-home.png",
+      "bytes": 1203204,
+      "sha256": "4cd596841e6316380c188f08574787f2305982476b2ccd2353b87b3c4a9494cf",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/prompts.md",
+      "bytes": 5792,
+      "sha256": "0857156667f6f0a1bb80b28bfc05598f007d2318a2fb412fd15279e4d7c9f66a",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/stamps/finish-stamp.svg",
+      "bytes": 390,
+      "sha256": "ff353eebe0e8c64dafb205e7975afc1ef9415b12e926208ed8eeff56c39a249d",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/stamps/pending-stamp.svg",
+      "bytes": 401,
+      "sha256": "9766b649ab9b7bf32969174b98d9798b607fe50ce6d0d60339e30d48585f3ee3",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals-assets/stamps/start-stamp.svg",
+      "bytes": 371,
+      "sha256": "bdd06e3014a81ec840151788111a7c9b416664e4c001fd074e15b7b33973d308",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-matchday-visuals.html",
+      "bytes": 29172,
+      "sha256": "cf3bb82f2407384559fc6244ee530a43441658b641c7d4af824d311880e77e89",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-ui-direction-assets/01-clubhouse-home.png",
+      "bytes": 1313963,
+      "sha256": "03235eaa3bbfb36052594ac2681f250a452ca9c77faf488f99fd0993174e66d1",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-ui-direction-assets/02-clubhouse-friends.png",
+      "bytes": 1105260,
+      "sha256": "e1e02fdeaba0b7e335b81bac14f3b41adf5a98ca9ce16bde4d7bfa8f6264dc94",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-ui-direction-assets/03-clubhouse-goal.png",
+      "bytes": 966928,
+      "sha256": "1acde92ed8c2bf9837265f28b5b0ae1fc36c5fd4964302f75f87a2c60f0ff882",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-ui-direction-assets/04-scoreboard-home.png",
+      "bytes": 1136413,
+      "sha256": "8d125a5eeec40ff2d34306e1ee448002d0b70ff25a87490040ecd6f57126e8be",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-ui-direction-assets/README.md",
+      "bytes": 7004,
+      "sha256": "194d972b88f41d0f99bd23ba585bdbf0623d961deecd676efe161e1dbde63811",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-ui-direction-assets/prompts.md",
+      "bytes": 11046,
+      "sha256": "3d0e79b82eebd08b67300910ca22b10a75c49ff6521c1ab8cfb639a04c2e24ce",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-ui-direction-assets/revision-prompts.md",
+      "bytes": 1074,
+      "sha256": "8e6c093265092505dbe445d7bc4a97255f2af04e1dd2749c138c27014eb227a3",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/gametime-ui-direction.html",
+      "bytes": 25584,
+      "sha256": "851cc74b63df985f9494b38b3ac5a2b2f0967c5fd85589c077d630c73849d5c4",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/implementation-reality-check.html",
+      "bytes": 21763,
+      "sha256": "1b248cff6777f174e5b1767ef775a5d58bd29af0bf7fbda9a6d05550ffea780e",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/plan-audit-v2.html",
+      "bytes": 17297,
+      "sha256": "557cff1a550554c756ecf54a99c3773eb575cf0b2b95bf7efdf82bdad6d0b460",
+      "source_status": "untracked"
+    },
+    {
+      "path": ".lavish/plan-audit.html",
+      "bytes": 64899,
+      "sha256": "5f40d64b56781f724ae8fc68f788fde0f148ff53a5913f76b2818d0736b1b571",
+      "source_status": "untracked"
+    },
+    {
+      "path": "CLAUDE.md",
+      "bytes": 4921,
+      "sha256": "758f4aba44385725db8fe7dcf314e79824d3285f0ebe86d7f5ebf9607d8889ff",
+      "source_status": "modified tracked"
+    },
+    {
+      "path": "DECISIONS.md",
+      "bytes": 282268,
+      "sha256": "cd468fb7b69dfa35331feeb1395b634de1f8ba2b45ec69979012bbbb785bd966",
+      "source_status": "modified tracked"
+    },
+    {
+      "path": "PLAN.md",
+      "bytes": 48795,
+      "sha256": "74655c2f232132f0ccef37576a305902e583a28e7b1d365a80b13c820df403b5",
+      "source_status": "modified tracked"
+    },
+    {
+      "path": "PROJECT_MEMORY.md",
+      "bytes": 35854,
+      "sha256": "03a68867d693ab16f5394d9614b4565ee74c063862c572dbc85388accc64b021",
+      "source_status": "modified tracked"
+    },
+    {
+      "path": "README.md",
+      "bytes": 54264,
+      "sha256": "0562c9c74183ced25921b96377ef40c5513cd6baf35230ebbebeb00744b4df78",
+      "source_status": "modified tracked"
+    },
+    {
+      "path": "docs/BETA_FINISH_LINE_ROADMAP.md",
+      "bytes": 21475,
+      "sha256": "56d8408116ed40ee6206fbf7f6789c50ef3ee5bd169538de20760121b968b5f6",
+      "source_status": "untracked"
+    },
+    {
+      "path": "docs/BETA_IMPLEMENTATION_PLAN.md",
+      "bytes": 20251,
+      "sha256": "b79cf88961df3edbea6762fa62986d1dd138508352651a923ed803128bb21703",
+      "source_status": "untracked"
+    },
+    {
+      "path": "docs/BUSINESS_MODEL.md",
+      "bytes": 48738,
+      "sha256": "ab6dc1f5ff0f110ca8156e11a3296c01385832eac22ea8b79095abf4c249d784",
+      "source_status": "modified tracked"
+    },
+    {
+      "path": "docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md",
+      "bytes": 26776,
+      "sha256": "5019fe782dfd610c0ad74ad97de20a16223080486d5a7f735821cf934f935aff",
+      "source_status": "modified tracked"
+    },
+    {
+      "path": "docs/WEEKLY_EXECUTION.md",
+      "bytes": 8635,
+      "sha256": "43dd6938230834ca1a632ba60831256c19317a9d36bb6e58a796064babf295b7",
+      "source_status": "modified tracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/01-metric-artwork.png",
+      "bytes": 1582409,
+      "sha256": "4c524739a2313843425ea4f10e51b9360a39ec5d77d90891d7d6f0a13c768678",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/02-home-refined.png",
+      "bytes": 1220536,
+      "sha256": "eb6a85a88eaf423bcacf3cc5bec7be2ad09d5c35237600089fc123b888e6df12",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/03-icon-sheet.png",
+      "bytes": 73363,
+      "sha256": "e5c085e2d707459cf40d1d9be880d93c073ea8d3c3d405cadc4c4b0c72b94d1b",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/03-icon-sheet.svg",
+      "bytes": 9335,
+      "sha256": "26100cbe18b802f32f81b46fedf07a16143c10c4f34e93453a6e61fe1e7d5fa3",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/README.md",
+      "bytes": 5506,
+      "sha256": "e2db95b9139fb09117139204add8c74354aefe3a38ac770f20b8129a3052d057",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/gametime-visual-kit.zip",
+      "bytes": 2635550,
+      "sha256": "0b260f707bc9825e34d944516a312b478e975981a3ac0b9e025ad5250fdca59c",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/exercise-time.svg",
+      "bytes": 417,
+      "sha256": "879247cffa246dcf88eba7cce80e38f23d3e0520a4f0e70839b46a9ee6172c41",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/friend-goals.svg",
+      "bytes": 356,
+      "sha256": "4fcc920d64c2fd03a16bf4ee901e58af3ce526215329a8fda39199f840e7387c",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/goal-met.svg",
+      "bytes": 321,
+      "sha256": "ace2f52201d0afc0eacd43d2fbf9c07d597293bd0fde903369df16fad038ed01",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/invitation.svg",
+      "bytes": 365,
+      "sha256": "2b982b98adea408516003ca8444b306f72aba7495eeb0869f97cf32abc9b039b",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/leaderboard.svg",
+      "bytes": 369,
+      "sha256": "d3b741e29f9ca601897d3163e7b5afc9476d4420c9745deaec4c68394255d462",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/personal-goal.svg",
+      "bytes": 327,
+      "sha256": "8fc6d89e48035b80512bdc1b26b4e4c462efb6c9281e13aa6af40de187be37b8",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/rules.svg",
+      "bytes": 340,
+      "sha256": "f884f2d2a0b4786dbbe4c0bd12df8390828794eb5e5d4762ba62f61c69902d4f",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/running-distance.svg",
+      "bytes": 396,
+      "sha256": "b5e6ab74580f36a356663eeb85f01d64392fd1b73fca5225496a32e21a4d506f",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/scheduled.svg",
+      "bytes": 385,
+      "sha256": "9aa5cf5b1dbdf93c30efdc5f7f8645f7d00b2e74d08e2b9a136b4a59b695b3d9",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/steps.svg",
+      "bytes": 468,
+      "sha256": "8be82c82c17a33fb2399ec106916193087d8f6c280ca1537999b2cac9aa5e81f",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/timed-run.svg",
+      "bytes": 387,
+      "sha256": "54a064b893a6e7109508b62deaf1eca5c1cf7a579b7e61bd58b94e985aeb365e",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/icons/waiting-for-data.svg",
+      "bytes": 416,
+      "sha256": "2c6e6b35596146a025da2201fc8969d028b62f78e626bcdf5bc479068b2ea3cb",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/mobbin-sources.json",
+      "bytes": 3016,
+      "sha256": "f04c8b03d7fe591b26e5aabd393ac33b71a779a6a5cebcd2b4b40a489767078a",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/prompts.md",
+      "bytes": 5792,
+      "sha256": "0857156667f6f0a1bb80b28bfc05598f007d2318a2fb412fd15279e4d7c9f66a",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/review.html",
+      "bytes": 5391465,
+      "sha256": "7c16d8a4e6d1ed53a7049728d24a8532b1ff8a4bd15394f66617ce27d8193e9a",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/stamps/finish-stamp.svg",
+      "bytes": 390,
+      "sha256": "ff353eebe0e8c64dafb205e7975afc1ef9415b12e926208ed8eeff56c39a249d",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/stamps/pending-stamp.svg",
+      "bytes": 401,
+      "sha256": "9766b649ab9b7bf32969174b98d9798b607fe50ce6d0d60339e30d48585f3ee3",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday-visuals/stamps/start-stamp.svg",
+      "bytes": 371,
+      "sha256": "bdd06e3014a81ec840151788111a7c9b416664e4c001fd074e15b7b33973d308",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday/01-matchday-home.png",
+      "bytes": 1203204,
+      "sha256": "4cd596841e6316380c188f08574787f2305982476b2ccd2353b87b3c4a9494cf",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday/02-matchday-challenge.png",
+      "bytes": 1197667,
+      "sha256": "4021f8eb0e13500fb9315be35bcfe1093f32d17b0ececb8e1765a0414975e119",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday/03-matchday-goal.png",
+      "bytes": 1145972,
+      "sha256": "58edd4835148644efe1993d0f504dea09a0924a068b705a83675457837e87c2a",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday/README.md",
+      "bytes": 8526,
+      "sha256": "afb128d87dcfcde59d4bc1d5549da720eec846c9748cec0ebbd61f55c7ea1452",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday/mobbin-sources.json",
+      "bytes": 6671,
+      "sha256": "1c0322068d08ab5db082fbf94f1736ef34206d0250762cfc5ec71d54c79ef52b",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday/prompts.md",
+      "bytes": 14238,
+      "sha256": "a4766732c434ad673cf949e0d718ae92e691e91ff31fd95953d4881f6dd3797e",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday/review.html",
+      "bytes": 8105074,
+      "sha256": "08bcc264500020d943fccc7844a7dd425adfe2598788e7960261d1695d9ac443",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-matchday/revision-prompts.md",
+      "bytes": 1760,
+      "sha256": "49c03b7bec7f635324128fe7cb9811427431728e96fc0567ef6234db846a3c72",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-mobbin-direction/01-clubhouse-home.png",
+      "bytes": 1313963,
+      "sha256": "03235eaa3bbfb36052594ac2681f250a452ca9c77faf488f99fd0993174e66d1",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-mobbin-direction/02-clubhouse-friends.png",
+      "bytes": 1105260,
+      "sha256": "e1e02fdeaba0b7e335b81bac14f3b41adf5a98ca9ce16bde4d7bfa8f6264dc94",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-mobbin-direction/03-clubhouse-goal.png",
+      "bytes": 966928,
+      "sha256": "1acde92ed8c2bf9837265f28b5b0ae1fc36c5fd4964302f75f87a2c60f0ff882",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-mobbin-direction/04-scoreboard-home.png",
+      "bytes": 1136413,
+      "sha256": "8d125a5eeec40ff2d34306e1ee448002d0b70ff25a87490040ecd6f57126e8be",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-mobbin-direction/README.md",
+      "bytes": 7004,
+      "sha256": "194d972b88f41d0f99bd23ba585bdbf0623d961deecd676efe161e1dbde63811",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-mobbin-direction/mobbin-sources.json",
+      "bytes": 3068,
+      "sha256": "3b24d8e3a55bb93619ca886262e01d77bb6083e5e164c6ec6cc2d1440e5d2885",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-mobbin-direction/prompts.md",
+      "bytes": 11046,
+      "sha256": "3d0e79b82eebd08b67300910ca22b10a75c49ff6521c1ab8cfb639a04c2e24ce",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-mobbin-direction/review.html",
+      "bytes": 6055563,
+      "sha256": "c46c4eea84eb75fb88acb3ede831067e280c58d5bc4eeb0e1a67238538d90618",
+      "source_status": "untracked"
+    },
+    {
+      "path": "outputs/design/2026-09-07-mobbin-direction/revision-prompts.md",
+      "bytes": 1074,
+      "sha256": "8e6c093265092505dbe445d7bc4a97255f2af04e1dd2749c138c27014eb227a3",
+      "source_status": "untracked"
+    }
+  ]
+}

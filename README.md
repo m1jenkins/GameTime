@@ -1,5 +1,15 @@
 # GameTime
 
+September 6 audited Beta 1 plan: the owner selected a new
+[Beta implementation contract](docs/BETA_IMPLEMENTATION_PLAN.md) with the creator
+plus up to five friends, friend goals and target-free leaderboards, personal
+goals, all four Apple Health metrics, one private community steps goal, and
+scheduled 1–30-day windows. Profile photos are deferred. This is the future
+target, not current implementation or rollout evidence; the existing weekly,
+duel, commitment and Personal contracts remain unchanged until new versioned
+work passes its gates. D134 records the supersessions and remaining source/
+community evidence decisions.
+
 September 6 implementation update: separate fictional weekly friend/community
 steps contracts, local lifecycle/native work and Exercise/distance prototypes
 are tracked in the [local acceptance record](docs/WEEKLY_LOCAL_ACCEPTANCE.md).
@@ -13,7 +23,7 @@ September 6 responsible-engagement update: local simulated duel/goal reviews
 now show concise summaries and expandable complete rules; native legacy
 lead-loss/comeback notification setup and launch permission prompting are
 removed, with push still disabled. See [scope and verification](docs/RESPONSIBLE_ENGAGEMENT_ACCEPTANCE.md)
-and [current implementation order](PLAN.md#current-implementation-order-after-the-engagement-review).
+and [current Beta target](PLAN.md#current-audited-beta-1-target).
 Future formats honor participant-selected distances/metrics; the existing
 fictional-5K implementation and agreements remain unchanged. Native progress,
 notification preferences and aggregate financial controls remain planned work.
