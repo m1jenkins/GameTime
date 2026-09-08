@@ -18,7 +18,7 @@ Nothing here accepts physical sources, hosted operations, distribution or money.
 | Milestone | Implemented | Executed verification | Remaining dependency / next task |
 | --- | --- | --- | --- |
 | M0 | Inherited checkpoint and isolation inventory | 101 SHA-256 comparisons, path checks | Maintain current handoff; verify original again at completion |
-| M1 | Existing probe only; investigation UI in progress | No new tests yet; no physical testing | Implement local UI, then human/device matrix |
+| M1 | Debug-only separate investigation launch, explicit opt-in, volatile records, session/background clearing, stale read rejection | 3 native tests passed; Debug build. `/tmp/gametime-finish-b7-evidence/m1-native.log` | [Physical instructions](BETA_SOURCE_INVESTIGATION.md); every physical row unperformed |
 | M2 | Not yet | None | New friend steps contract/backend |
 | M3 | Not yet | None | Two/six-person production native client journeys |
 | M4 | Not yet | None | Expand after M3 first journey |
@@ -60,3 +60,8 @@ Historical weekly counts must not be reused here.
 - Keep default navigation unchanged; new shell local opt-in only, excluded from Release.
 - Use independent versioned types/tables/requests; retain every applied migration.
 - No pipeline: local-only brief explicitly excludes it. No shared daemon operation.
+
+## Executed runs
+
+- M1: `xcodebuild test -project ios/GameTime/GameTime.xcodeproj -scheme GameTime -configuration Debug -destination "platform=iOS Simulator,id=72A3249A-2DE0-4695-AF41-DCD2743B4666" -derivedDataPath /tmp/gametime-finish-b7-derived -parallel-testing-enabled NO -only-testing:GameTimeTests/SourceInvestigationTests -only-testing:GameTimeTests/WeeklyHealthSourceProbeTests CODE_SIGNING_ALLOWED=NO`: 3 tests, zero failures. This is native Simulator software evidence, not physical-source acceptance.
+- Disposable stack `gametime-finish-b7`, `/tmp/gametime-finish-b7-stack`, API 58321 / database 58322. Created from tracked inputs; no inherited credentials or storage. Start output with local credentials is restricted to mode 0600 and must not be committed.

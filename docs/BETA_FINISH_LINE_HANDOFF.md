@@ -7,14 +7,17 @@ The original checkout/database remain read-only sources and are not execution ta
 
 ## Next executable task
 
-Implement the Debug-only opt-in Health investigation around `WeeklyHealthSourceProbe`,
-with actor/window fences and memory clearing. Then create the separate friend steps
-`challenge_*_v1` contract, disposable backend and native journey before policy breadth.
+M1 local tooling is implemented and three tests pass. Continue M2 friend steps
+contract lifecycle and backend tests, then M3 production native journeys before policy breadth.
+Physical instructions: [private source investigation](BETA_SOURCE_INVESTIGATION.md).
 
 ## Launch state
 
-No new local build/stack has been created yet. Do not use a pre-existing Simulator
-or the original 5432x Supabase stack. Launch commands will be added after verification.
+Owned Simulator: `72A3249A-2DE0-4695-AF41-DCD2743B4666` (`GameTimeFinishB7`).
+Owned build: `/tmp/gametime-finish-b7-derived/Build/Products/Debug-iphonesimulator/GameTime.app`.
+Run with `--health-source-investigation` for the separate private mode.
+Owned stack: `/tmp/gametime-finish-b7-stack`, project `gametime-finish-b7`, API 58321, DB 58322.
+Do not use a pre-existing Simulator or the original 5432x stack.
 
 ## Source checkpoint
 

@@ -32,6 +32,18 @@ struct GameTimeApp: App {
         _pushCoordinator = State(initialValue: notificationCoordinator)
 
         let arguments = ProcessInfo.processInfo.arguments
+        #if DEBUG
+        if SourceInvestigationLaunch.enabled {
+            _liveModel = State(initialValue: nil)
+            _demoModel = State(initialValue: nil)
+            _livePersonalStore = State(initialValue: nil)
+            _demoPersonalStore = State(initialValue: nil)
+            _isUsingDemoModel = State(initialValue: false)
+            configurationFailure = nil
+            isFixtureTestLaunch = true
+            return
+        }
+        #endif
         let fixtureLaunch = arguments.contains("--fixture-mode")
         let interactiveDemoLaunch = arguments.contains("--demo-interactive")
             || arguments.contains("--fixture-demo-interactive")
@@ -187,6 +199,33 @@ struct GameTimeApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
+                #if DEBUG
+                if SourceInvestigationLaunch.enabled {
+                    SourceInvestigationView()
+                } else {
+                    productRoot
+                }
+                #else
+                productRoot
+                #endif
+            }
+            .task(id: isUsingDemoModel) {
+                #if DEBUG
+                guard !SourceInvestigationLaunch.enabled else { return }
+                #endif
+                await configureProductServices()
+            }
+            .onOpenURL { url in
+                #if DEBUG
+                guard !SourceInvestigationLaunch.enabled else { return }
+                #endif
+                _ = StripeAPI.handleURLCallback(with: url)
+            }
+            .preferredColorScheme(.light)
+        }
+    }
+
+    @ViewBuilder private var productRoot: some View {
                 if isUsingDemoModel,
                     let demoModel,
                     let demoPersonalStore
@@ -222,8 +261,9 @@ struct GameTimeApp: App {
                             ?? "GameTime isn’t set up correctly on this device."
                     )
                 }
-            }
-            .task(id: isUsingDemoModel) {
+    }
+
+    private func configureProductServices() async {
                 #if DEBUG || STAGING
                 watchConnectivity.activate()
                 #endif
@@ -246,12 +286,6 @@ struct GameTimeApp: App {
                     environment: liveModel.configuration.environment,
                     bundleID: Bundle.main.bundleIdentifier
                 )
-            }
-            .onOpenURL { url in
-                _ = StripeAPI.handleURLCallback(with: url)
-            }
-            .preferredColorScheme(.light)
-        }
     }
 
     private var demoModeAccess: DemoModeAccess {
