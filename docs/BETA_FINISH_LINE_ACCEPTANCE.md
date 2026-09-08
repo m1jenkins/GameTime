@@ -450,8 +450,9 @@ and authenticated HTTP two/six and thirteen-policy matrix evidence.
 
 Latest broad native regression on committed `60d2e6d`: **392 tests executed,
 4 controller-dependent skips, 388 passes, zero failures**, in 18.975 seconds.
-Includes the preserved weekly held-authentication race. Beta and weekly have separate authenticated controller evidence; older duel and
-performance controller checks are now being prepared on isolated committed inputs.
+Includes the preserved weekly held-authentication race. All four skipped controller
+suites now have separate authenticated executed evidence, including the historical
+duel/performance runs below.
 Skips are not passes.
 Evidence `native-units-final.json` and `m6-final-native-units.xcresult`.
 
@@ -490,3 +491,25 @@ A first preparation attempt stopped before extraction on a macOS temporary-path
 symlink invariant; canonicalizing the new destination fixed it. Both candidate
 and baseline (`--candidate main`, commit 577bc32) then prepared successfully.
 The candidate build-for-testing passed; original 5432x services remain untouched.
+
+
+## Historical authenticated controllers — committed production inputs
+
+Both additional native controllers passed on the task-owned 5632x stack using
+production Swift byte-identical to `60d2e6d`, after the four isolated port remaps
+recorded in `legacy-native-inputs.json`. Actual runs:
+
+- Duel: **one test passed, 11.149 seconds**, 177 authenticated local requests.
+- Personal performance commitment: **one test passed, 5.405 seconds**, 60 requests.
+
+They cover their preserved agreement, lifecycle and exact recovery behavior through
+the production native clients. Cleanup confirmed admission/lifecycle/attempt gates
+false, allowlists empty, owned sessions/refresh tokens zero and open slots zero.
+`legacy-controllers-final.json` records result bundles, log hashes and checks.
+The old weekly stack is stopped with its volume backup retained after verification.
+These are fictional local backend/Swift evidence, not physical-source acceptance.
+
+The full 50-case historical UI rerun is running from committed `5436836`, after
+all seven focused query corrections passed. Log/bundle:
+`m6-committed-historical-ui-accepted`; its filename is not a success claim while
+execution remains in progress. Original seven failures and baseline are retained.

@@ -1,7 +1,7 @@
 # Beta finish-line handoff — b7
 
 Worktree: `/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta`.
-Branch: `fm/gametime-beta-finish-b7`; latest implementation checkpoint `60d2e6d`.
+Branch: `fm/gametime-beta-finish-b7`; latest tested correction checkpoint `5436836` (product code `60d2e6d`).
 Authority: D134, [Beta plan](BETA_IMPLEMENTATION_PLAN.md),
 [roadmap](BETA_FINISH_LINE_ROADMAP.md). See [acceptance](BETA_FINISH_LINE_ACCEPTANCE.md)
 for implemented versus executed evidence and historical failed runs.
@@ -9,41 +9,38 @@ This task is **still active**. Do not stop at the completed native matrix.
 
 ## Next executable work
 
-1. The original historical UI batch FINISHED with exit 65: **50 executed, 43
-   passed, seven failed**, 1582.711 seconds. Retain
-   `m6-final-historical-ui.log` / `.xcresult`; no reporting stall occurred.
-2. All seven unchanged baseline tests FAILED at the same assertions on preserved
-   main 577bc32, 289.992 seconds. Evidence `m6-legacy-baseline-seven.log/.xcresult`.
-   Baseline and candidate builds succeeded in separate disposable derived folders.
-   Their actual fixture AX/screenshot captures are in `legacy-label-observations.json`.
-   Baseline You returned mixed-case Apple Health while its screenshot was uppercase;
-   the other selected baseline labels and all candidate captures returned uppercase.
-   Keep that observed variation; do not claim a missing heading or all-uppercase AX.
-3. TEST-ONLY full-label case-insensitive static-text queries accommodate the four
-   observed styled labels. The full expected text, element kind and downstream
-   behavior assertions remain. All seven affected tests PASSED, zero failures,
-   382.704 seconds, `m6-legacy-query-fix-seven.log/.xcresult`.
-4. Commit the tested fix and run all 50 historical UI tests again from that
-   candidate. Preserve the prior 43-pass/seven-failure batch and all baseline
-   failures. Firstmate inbox 005 was acknowledged; local acceptance key
-   `legacy-health-heading` stays open until full verification finishes.
-5. Also run old duel and performance native controllers sequentially from the
-   isolated candidate copy in `legacy-native-preparation.json`, ports 5632x. Only
-   four test/controller port literals changed across 682 hashed committed inputs;
-   production Swift is byte-identical to 60d2e6d. The generic build-for-testing
-   passed in `/tmp/gametime-finish-b7-legacy-derived`. The private
-   `weekly-owned-status.json` is refreshed and five old-domain idle/gate checks
-   passed. The task-owned weekly stack is running only for these checks; stop it
-   afterward with backup retention. Never run original 5432x controller defaults.
-6. Latest six-person touch passed on 60d2e6d (636.211 seconds); two-person preview
+1. The full 50-test historical UI gate is RUNNING from committed `5436836` on the
+   owned Simulator. Process group 26236, bounded 2700 seconds; log/result bundle
+   `/tmp/gametime-finish-b7-evidence/m6-committed-historical-ui-accepted`. Despite
+   that destination name, it is NOT acceptance until the run finishes successfully.
+   Do not drive this Simulator concurrently. The exact command is saved in
+   `/tmp/gametime-finish-b7-evidence/historical-ui-active.json`.
+2. Prior full batch: 43 passed/seven failed. All seven failures reproduced on main
+   577bc32. Actual candidate/baseline AX captures establish styled-label casing
+   variation, including mixed-case baseline Apple Health. Test-only complete-label
+   case-insensitive queries then passed all seven affected tests (382.704 seconds).
+   Preserve every failed batch. Key `legacy-health-heading` stays open until the
+   full committed rerun passes; Firstmate inbox 005 was handled.
+3. Historical duel and performance authenticated controllers both PASSED from
+   committed 60d2e6d production Swift inputs in an independent copy. Only four
+   controller/test port literals changed to 5632x across 682 hashed input files.
+   Duel: one pass, 11.149 seconds, 177 requests. Performance: one pass, 5.405
+   seconds, 60 requests. Gates, allowlists, sessions and unfinished slots are zero.
+   `legacy-controllers-final.json` records exact logs/bundles and cleanup. The owned
+   weekly stack is stopped with volume backup retained; no original stack changed.
+4. Latest six-person touch passed on 60d2e6d (636.211 seconds); two-person preview
    touch passed (241.789 seconds). Broad native suite: 392 executed, 388 passes,
-   four explicit controller skips. Beta/weekly native controllers have separate
-   executed evidence; older duel/performance above remain pending. Source guard
-   focused 10-test suite, native URL/relaunch/age entry and Release build passed.
-7. Finish fresh Debug build, original preservation/runtime gates, clean fast-forward
-   check, ledger reconciliation and committed handoff before terminal readiness.
+   four explicit controller skips; all four controller suites now have separately
+   executed authenticated evidence. Source guard 10-test suite, native
+   URL/relaunch/age entry and unsigned Release build passed.
+5. After full UI gate passes, record its actual counts/time, resolve the exact local
+   blocker key, verify original 101 source hashes/status/HEAD/database identity and
+   all local gates, reconcile this handoff and commit. The full UI command also
+   builds the working local Debug app. No additional product changes followed the
+   tested Release candidate; do not repeat passed suites without a new concern.
+6. Recheck local `main` ancestry and clean committed branch before terminal status.
    Latest portable gate on 97d9026 passed 3,840 SQL / 82 files, 835 Deno, 113 core
-   Swift and persisted weekly smoke. Do not recycle counts as new runs.
+   Swift and persisted weekly smoke. Counts identify actual runs, not new executions.
 
 External privacy/support/retention/domain/community questions are retained in
 captain task `gametime-beta-release-readiness-b7`; physical/tolerance questions in
@@ -100,9 +97,9 @@ A second retained stack, also created by this task, is
 (API 56321 / DB 56322). It ran the historical authenticated weekly journey with
 separate fixture users and gates. Its credential status file is restricted at
 `/tmp/gametime-finish-b7-evidence/weekly-owned-status.json`; do not print or commit it.
-The weekly verification stack was stopped with its default volume backup retained,
-then restarted only to run the two additional historical native controller checks.
-Stop it again with backup retention after those checks; keep the 5832x preview stack.
+The weekly verification stack ran weekly, duel and performance native controllers.
+All owned gates/allowlists/sessions were checked closed before stopping it again
+with the default volume backup retained. Keep the 5832x preview stack available.
 Neither is the original 5432x development database.
 
 

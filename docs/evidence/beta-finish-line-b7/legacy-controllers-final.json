@@ -1,0 +1,59 @@
+{
+  "candidate": "60d2e6d35034e7c7c716c3b6f3ea53e94af5e854",
+  "production_inputs": "Byte-identical committed Swift; four historical test/controller port remaps only; see legacy-native-inputs.json",
+  "evidence_type": "Authenticated production Swift client to task-owned local backend; fictional actors/events/facts, not physical source evidence",
+  "project": "gametime-finish-b7-weekly",
+  "ports": [
+    56321,
+    56322,
+    56329
+  ],
+  "runs": [
+    {
+      "contract": "duel",
+      "tests": 1,
+      "failures": 0,
+      "seconds": 11.149,
+      "traced_requests": 177,
+      "cleanup": {
+        "admission": false,
+        "allowlist": 0,
+        "sessions": 0,
+        "refreshTokens": 0,
+        "lifecycleGate": false,
+        "openSlots": 0
+      },
+      "log": "/private/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-finish-b7-legacy-native-xbrnnlhz/tmp/duel-native-44b635a8.log",
+      "xcresult": "/private/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-finish-b7-legacy-native-xbrnnlhz/tmp/duel-native-44b635a8.xcresult",
+      "log_sha256": "6341129313934a51e8ecc8cda0c19ef3d74f736024e80995576d1946cadb5a0d"
+    },
+    {
+      "contract": "performance",
+      "tests": 1,
+      "failures": 0,
+      "seconds": 5.405,
+      "traced_requests": 60,
+      "cleanup": {
+        "admission": false,
+        "allowlist": 0,
+        "sessions": 0,
+        "refreshTokens": 0,
+        "lifecycleGate": false,
+        "attemptGate": false,
+        "openSlots": 0
+      },
+      "log": "/private/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-finish-b7-legacy-native-xbrnnlhz/tmp/performance-commitment-native-d0c125f3.log",
+      "xcresult": "/private/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-finish-b7-legacy-native-xbrnnlhz/tmp/performance-commitment-native-d0c125f3.xcresult",
+      "log_sha256": "6ed6f96184e90491c7b7b8dadfe49783e8d8e68f36a38d47f2d8f6c931589561"
+    }
+  ],
+  "final_gates": {
+    "duel_admission": false,
+    "duel_allowlist": 0,
+    "duel_lifecycle": false,
+    "commitment_admission": false,
+    "commitment_allowlist": 0,
+    "commitment_lifecycle": false,
+    "commitment_attempts": false
+  }
+}
