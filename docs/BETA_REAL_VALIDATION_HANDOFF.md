@@ -5,13 +5,14 @@ loading, errors and labeled forms. It remains a local fictional candidate.
 **No physical source is accepted; Beta is not finished.** See [exact acceptance
 and test evidence](BETA_REAL_VALIDATION_ACCEPTANCE.md) and [screen review](BETA_NATIVE_REVIEW_C8.md).
 
-September 9: [D9 round 2](BETA_D9_REMEDIATION_ROUND2.md) supplies the remaining
-overlapping-response correction at `0a2fd0c5a750c8fed784a846537351bc6392c67d`,
-finalized before/after mounted evidence and 37 focused native passes. The existing
-reviewer closed D9-1 after Phase A; D9-2 now awaits re-review. The complete gate
-remains paused. The prior preview below is preserved and has not been replaced
-with this corrected build; round 2 documents its separate build/launch path.
-Prompt 0A remains a separate task; no landing is authorized here.
+September 9: [D9 round 3](BETA_D9_REMEDIATION_ROUND3.md) covers the partial
+departure-redaction race at `d18deb3b85270cc23301a945c95464fa5593e205`, with
+finalized before/after mounted evidence and 46 focused native passes. The reviewer
+has closed D9-1 and original own-only D9-2/D9-3; the related D9-4 correction now
+awaits re-review. The complete gate remains paused. The prior preview below is
+preserved and has not been replaced with this corrected build; round 3 gives its
+separate build/launch path. Prompt 0A remains a separate task; no landing is
+authorized here.
 
 ## Retained preview state — September 8
 
