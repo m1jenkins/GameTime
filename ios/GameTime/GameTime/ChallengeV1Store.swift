@@ -154,7 +154,7 @@ import Observation
             else { detailRows.removeValue(forKey: id); detailReadAt.removeValue(forKey: id); self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription }
         }
     }
-    /// An own-only response invalidates reads already in flight for that ID.
+    /// A restricted response invalidates reads already in flight for that ID.
     /// Revisions and cursor snapshots do not order authorization changes. A
     /// fresh request begun after the fence can still accept a permitted future
     /// projection. Reject obsolete pages atomically, retaining existing rows,
@@ -167,7 +167,9 @@ import Observation
     /// read time so updating one ID never renews unrelated content or old pages.
     private func reconcile(_ rows: [ChallengeV1]) {
         for row in rows {
-            if row.socialHidden {
+            // R5 keeps a departed counterpart's pseudonymous membership while
+            // hiding their current fields, even when other sharing continues.
+            if row.socialHidden || row.members.contains(where: { $0.actorId != actor && $0.exited }) {
                 projectionEpoch += 1
                 restrictionFences[row.id] = (projectionEpoch, now())
             }
