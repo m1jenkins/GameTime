@@ -6,6 +6,8 @@ import Observation
     private(set) var sections: [ChallengeV1Section: ChallengeV1SectionState] = [:]
     private var detailRows: [UUID: ChallengeV1] = [:]
     private var detailReadAt: [UUID: TimeInterval] = [:]
+    private var projectionEpoch = 0
+    private var restrictionFences: [UUID: (epoch: Int, receivedAt: TimeInterval)] = [:]
     private let now: @MainActor () -> TimeInterval
     private let visibilityInterval: Duration
     var challenges: [ChallengeV1] {
@@ -47,9 +49,10 @@ import Observation
         self.actor = actor; visible = true; generation = UUID(); refreshGeneration = UUID()
         access = nil; communities = []; entryFresh = false; entryError = nil
         sections = [:]; detailRows = [:]; detailReadAt = [:]; pending = nil; error = nil; fresh = false; busy = false; lastReceipt = nil
+        projectionEpoch = 0; restrictionFences = [:]
         refreshing = false
     }
-    func hide() { visible = false; access = nil; communities = []; entryFresh = false; generation = UUID(); refreshGeneration = UUID(); sections = [:]; detailRows = [:]; detailReadAt = [:]; fresh = false; busy = false; refreshing = false }
+    func hide() { visible = false; access = nil; communities = []; entryFresh = false; generation = UUID(); refreshGeneration = UUID(); sections = [:]; detailRows = [:]; detailReadAt = [:]; projectionEpoch = 0; restrictionFences = [:]; fresh = false; busy = false; refreshing = false }
     func show() async { visible = true; await refresh() }
     func refresh() async {
         guard visible, let actor else { return }
@@ -66,6 +69,7 @@ import Observation
             pending = saved; error = nil
             for section in ChallengeV1Section.allCases {
                 let requestedAt = now()
+                let requestedEpoch = projectionEpoch
                 do {
                     let page = try await client.page(section, cursor: nil, actor: actor)
                     let finalActor = await auth.currentUserID()
@@ -73,6 +77,7 @@ import Observation
                     guard ticket == generation, refresh == refreshGeneration else { return }
                     guard finalActor == actor else { setActor(nil); return }
                     guard now() - requestedAt < 60 else { throw ChallengeV1Error.unavailable }
+                    guard permits(page.rows, requestedEpoch: requestedEpoch) else { continue }
                     sections[section] = ChallengeV1SectionState(rows: page.rows, cursor: page.nextCursor, projectionRevision: page.projectionRevision, serverTime: page.serverTime, receivedAt: now(), error: nil, fresh: true)
                     reconcile(page.rows)
                 } catch {
@@ -105,13 +110,16 @@ import Observation
         let ticket = generation; let refresh = refreshGeneration
         let revision = sections[section]?.projectionRevision
         let requestedAt = now()
+        let requestedEpoch = projectionEpoch
         do {
             let page = try await client.page(section, cursor: cursor, actor: actor)
             let authenticated = await auth.currentUserID()
-            guard ticket == generation, refresh == refreshGeneration, revision == sections[section]?.projectionRevision else { return }
+            guard ticket == generation, refresh == refreshGeneration, revision == sections[section]?.projectionRevision,
+                  cursor == sections[section]?.cursor else { return }
             guard authenticated == actor else { setActor(nil); return }
             guard now() - requestedAt < 60 else { throw ChallengeV1Error.unavailable }
             guard page.projectionRevision == revision else { throw ChallengeV1Error.invalidResponse }
+            guard permits(page.rows, requestedEpoch: requestedEpoch) else { return }
             var state = sections[section] ?? ChallengeV1SectionState()
             let existing = Set(state.rows.map(\.id))
             state.rows.append(contentsOf: page.rows.filter { !existing.contains($0.id) })
@@ -130,12 +138,14 @@ import Observation
         guard let actor else { return }
         let ticket = generation; let refresh = refreshGeneration
         let requestedAt = now()
+        let requestedEpoch = projectionEpoch
         do {
             let row = try await client.detail(id, actor: actor)
             let authenticated = await auth.currentUserID()
             guard ticket == generation, refresh == refreshGeneration else { return }
             guard authenticated == actor else { setActor(nil); return }
             guard now() - requestedAt < 60 else { throw ChallengeV1Error.unavailable }
+            guard permits([row], requestedEpoch: requestedEpoch) else { return }
             reconcile([row])
             detailRows[id] = row; detailReadAt[id] = now(); error = nil
         } catch {
@@ -144,11 +154,23 @@ import Observation
             else { detailRows.removeValue(forKey: id); detailReadAt.removeValue(forKey: id); self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription }
         }
     }
-    /// A current projection supersedes every cached copy of that challenge,
+    /// An own-only response invalidates reads already in flight for that ID.
+    /// Revisions and cursor snapshots do not order authorization changes. A
+    /// fresh request begun after the fence can still accept a permitted future
+    /// projection. Reject obsolete pages atomically, retaining existing rows,
+    /// cursors and their lifetimes rather than mixing old and current values.
+    private func permits(_ rows: [ChallengeV1], requestedEpoch: Int) -> Bool {
+        rows.allSatisfy { (restrictionFences[$0.id]?.epoch ?? 0) <= requestedEpoch }
+    }
+    /// An accepted projection supersedes every cached copy of that challenge,
     /// including equal-revision safety restrictions. Keep each cache's original
     /// read time so updating one ID never renews unrelated content or old pages.
     private func reconcile(_ rows: [ChallengeV1]) {
         for row in rows {
+            if row.socialHidden {
+                projectionEpoch += 1
+                restrictionFences[row.id] = (projectionEpoch, now())
+            }
             for section in ChallengeV1Section.allCases {
                 guard let state = sections[section] else { continue }
                 sections[section]?.rows = state.rows.map { $0.id == row.id ? row : $0 }
@@ -169,6 +191,9 @@ import Observation
             }
         }
         for (id, read) in detailReadAt where (now() - read) >= 60 { detailRows.removeValue(forKey: id); detailReadAt.removeValue(forKey: id) }
+        // Every response is already rejected at age 60s. After that interval,
+        // no pre-fence request can qualify, so its ID-only marker can expire.
+        restrictionFences = restrictionFences.filter { now() - $0.value.receivedAt < 60 }
     }
     func watchVisibility() async {
         var ticks = 0
