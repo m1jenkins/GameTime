@@ -5,11 +5,13 @@ its historical successes, failures and limits. It records software validation wi
 fictional activity separately from physical observation and owner acceptance.
 **Beta is not finished.** No physical source has been accepted or enabled.
 
-September 9 update: [D9 remediation Phase A](BETA_D9_REMEDIATION.md) records
-correction commit `d8f49c3e7e9b2cf01528d700672ec1232b8ec311`, fresh focused
-SQL/native runtime results and the independent-review handoff. The earlier
-evidence below stays historical; the complete corrected-candidate gate has not
-started and no canonical acceptance or landing is inferred.
+September 9 update: [D9 round 2](BETA_D9_REMEDIATION_ROUND2.md) records correction
+`0a2fd0c5a750c8fed784a846537351bc6392c67d`: the new overlap suite fails all ten
+methods on 75064ba; the corrected focused group passes 37/37, with no skips.
+The independent reviewer closed D9-1 after [Phase A](BETA_D9_REMEDIATION.md);
+D9-2 awaits re-review of this remaining overlap correction. Prior evidence stays
+historical. The complete corrected-candidate gate has not started, and no
+canonical acceptance or landing is inferred.
 
 ## Identity and preservation
 

@@ -5,11 +5,13 @@ loading, errors and labeled forms. It remains a local fictional candidate.
 **No physical source is accepted; Beta is not finished.** See [exact acceptance
 and test evidence](BETA_REAL_VALIDATION_ACCEPTANCE.md) and [screen review](BETA_NATIVE_REVIEW_C8.md).
 
-September 9: [D9 remediation Phase A](BETA_D9_REMEDIATION.md) supplies the two
-authorized privacy/session corrections and focused runtime proof. Next is the
-existing independent review, followed by the separately sequenced fresh complete
-gate. The prior preview below is preserved and has not been replaced with the
-corrected build. Prompt 0A remains a separate task; no landing is authorized here.
+September 9: [D9 round 2](BETA_D9_REMEDIATION_ROUND2.md) supplies the remaining
+overlapping-response correction at `0a2fd0c5a750c8fed784a846537351bc6392c67d`,
+finalized before/after mounted evidence and 37 focused native passes. The existing
+reviewer closed D9-1 after Phase A; D9-2 now awaits re-review. The complete gate
+remains paused. The prior preview below is preserved and has not been replaced
+with this corrected build; round 2 documents its separate build/launch path.
+Prompt 0A remains a separate task; no landing is authorized here.
 
 ## Retained preview state — September 8
 
