@@ -40,7 +40,10 @@ write_project_fixture() {
   local device_family="$3"
   local icon_name="$4"
 
-  mkdir -p "${root}/ios/GameTime/GameTime.xcodeproj"
+  mkdir -p "${root}/ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes"
+  cat >"${root}/ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes/GameTime.xcscheme" <<'EOF'
+<Scheme><BuildAction><BuildableReference BlueprintIdentifier="TARGET" BlueprintName="GameTime" /></BuildAction></Scheme>
+EOF
   cat >"${root}/ios/GameTime/GameTime.xcodeproj/project.pbxproj" <<EOF
 {
   "objects": {
@@ -51,8 +54,10 @@ write_project_fixture() {
       "productType": "com.apple.product-type.application",
       "buildConfigurationList": "CONFIG_LIST",
       "dependencies": [],
-      "buildPhases": []
+      "buildPhases": [],
+      "fileSystemSynchronizedGroups": ["SOURCES"]
     },
+    "SOURCES": {"isa": "PBXFileSystemSynchronizedRootGroup", "path": "GameTime", "sourceTree": "<group>"},
     "CONFIG_LIST": {
       "isa": "XCConfigurationList",
       "buildConfigurations": ["RELEASE"]
@@ -61,6 +66,7 @@ write_project_fixture() {
       "isa": "XCBuildConfiguration",
       "name": "Release",
       "buildSettings": {
+        "CODE_SIGN_ENTITLEMENTS": "GameTime/GameTime.entitlements",
         "PRODUCT_BUNDLE_IDENTIFIER": "${bundle_identifier}",
         "TARGETED_DEVICE_FAMILY": "${device_family}",
         "ASSETCATALOG_COMPILER_APPICON_NAME": "${icon_name}",
@@ -213,6 +219,9 @@ make_passing_fixture() {
     "${root}/ios/GameTime/Configuration" \
     "${root}/ios/GameTime/GameTime"
 
+  cat >"${root}/ios/GameTime/GameTime/GameTime.entitlements" <<'EOF'
+<?xml version="1.0"?><plist version="1.0"><dict><key>com.apple.developer.healthkit</key><true/></dict></plist>
+EOF
   write_project_fixture \
     "$root" \
     "com.acme.gametime" \
@@ -229,10 +238,6 @@ import SwiftUI
 
 @main
 struct GameTimeApp: App {
-    #if DEBUG || STAGING
-    private let watchConnectivity = PhoneWatchConnectivityCoordinator()
-    #endif
-
     var body: some Scene {
         WindowGroup { Text("Fixture") }
     }
@@ -248,6 +253,9 @@ make_blocked_fixture() {
     "${root}/ios/GameTime/Configuration" \
     "${root}/ios/GameTime/GameTime"
 
+  cat >"${root}/ios/GameTime/GameTime/GameTime.entitlements" <<'EOF'
+<?xml version="1.0"?><plist version="1.0"><dict><key>com.apple.developer.healthkit</key><true/></dict></plist>
+EOF
   write_project_fixture \
     "$root" \
     "com.example.gametime.staging" \

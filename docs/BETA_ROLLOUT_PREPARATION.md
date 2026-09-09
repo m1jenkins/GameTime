@@ -1,5 +1,13 @@
 # Beta rollout preparation — no rollout authorized
 
+[D135's remaining-work contract](BETA_REMAINING_WORK_CONTRACT.md) is current:
+no dedicated GameTime Watch runtime; paired Watch required at launch; authorized
+pre-hardware work may proceed. One private operator cohort, delayed five-person
+aggregate disclosure and explicit Beta/long-term workload targets are remaining
+requirements, not server implementation or publication/scale acceptance. Source
+and human/hosted acceptance still block distribution. All amounts stay visibly
+nonredeemable simulation; all 18 external gates remain false.
+
 The installed candidate is a **local Debug opt-in**, backed by a disposable
 fictional database. The unsigned Release device build preserves historical default
 navigation and excludes the private investigation/new local shell. Building it is

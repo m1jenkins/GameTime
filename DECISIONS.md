@@ -4835,3 +4835,38 @@ It does not mutate historical agreements or implemented behavior, satisfy any
 physical/human/hosted gate, select community launch settings, authorize
 TestFlight/recruitment/data deletion, or enable live money, payments, push,
 photos, Garmin or public deployment.
+
+
+### D135. Beta has an iPhone-only runtime and an explicit remaining-work contract
+
+**Explicit owner decisions, September 9, 2026:**
+
+1. Beta has no GameTime watchOS app or WatchConnectivity dependency. Apple Watch
+   records into Apple Health; iPhone reads eligible Watch-origin HealthKit data
+   and uploads only minimum normalized scoring facts.
+2. A paired physical Apple Watch is required for launch, but does not block
+   pre-hardware implementation waves.
+3. Beta community is one operator-published private cohort. User-hosted community
+   challenges require a separately versioned future feature.
+4. Own progress may be current. Exact anonymous aggregates require at least five
+   joined, active, nonremoved disclosure-cohort participants and a server snapshot
+   at least 15 minutes old. Under five, expose no exact numerator, denominator,
+   participant count, qualifier count, total or alternative differential signal.
+   Five is a disclosure threshold, not the challenge outcome minimum.
+5. Beta planning target is 2,000 registered, 250 DAU, 100 concurrent sessions,
+   25 requests/second burst and one 250-person cohort. Long-term characterization
+   is 25,000 registered / 5,000 DAU / 1,000 concurrent / 150 requests/second /
+   10,000 community. These are workload targets, not load-test results or approved
+   publication settings.
+6. All amounts remain visibly nonredeemable simulation.
+
+The [remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md) owns the
+implementation boundary and validation/handoff requirements. D135 supplements
+D134; it supersedes D114's permission for an active Debug/Staging Watch foundation
+and any unrestricted anonymous-count or hardware-blocked future sequencing.
+Historical agreements, source/data policies and dated evidence remain unchanged.
+Prompt 0A only removes active Watch runtime/build links and records these rules;
+it does not implement source semantics, ingestion, community disclosure, scale
+work or later waves, publish a cohort, accept a candidate, authorize landing or
+open any of the 18 external gates. Physical/policy decisions remain in the
+existing source/release tasks, with timed tolerance still unselected.

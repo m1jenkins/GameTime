@@ -1,5 +1,11 @@
 # GameTime business model
 
+September 9: [D135's remaining-work contract](BETA_REMAINING_WORK_CONTRACT.md)
+controls current Beta architecture, private operator community, delayed aggregate
+disclosure and capacity planning. All amounts remain visibly nonredeemable
+simulation. Hardware availability does not block authorized pre-hardware work;
+paired Watch/source acceptance is still required for launch.
+
 Adopted direction: September 4, 2026. Planning baseline: local `c403b88` plus
 the owner's existing guidance changes. This is a repository inspection and
 product plan; no new app capability, hosted state, or payment approval is claimed.
@@ -49,10 +55,10 @@ created. The [prior plan](archive/2026-09-04_PRE_PIVOT_PLAN.md) is preserved.
 
 The owner dropped a mandatory fixed-5K format on September 5 and requested this
 implementation-plan reconciliation. Friend challenges and personal commitments
-remain adopted. People may choose supported distances/targets. The recommended
-next build is cumulative weekly steps with friends; one official weekly
+remain adopted. People may choose supported distances/targets. The historical September 6
+sequence began with cumulative weekly steps with friends; one official weekly
 community experiment follows, then Exercise minutes and configurable-distance
-policies. This is a planning sequence, not confirmation that every proposed
+policies. That was a planning sequence, not confirmation that every proposed
 mode or payment arrangement has been selected. D132 selects the community
 launch format as one common weekly step goal; rollout clearance remains separate.
 

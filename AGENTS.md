@@ -56,7 +56,7 @@ the same commit as the copy. Do not change historical consent strings.
 ## Product boundaries
 
 Future product authority is PROJECT_MEMORY.md, docs/BUSINESS_MODEL.md,
-docs/BETA_IMPLEMENTATION_PLAN.md, PLAN.md and D123/D134. Beta and design
+docs/BETA_IMPLEMENTATION_PLAN.md, PLAN.md and D123/D134/D135. Beta and design
 documents describing solo-only behavior govern the
 existing Personal implementation or their dated exploration, not future scope.
 Preserve Personal, Solo and legacy charity agreements and their test-only or
@@ -93,10 +93,14 @@ run evidence and unperformed physical/human/pilot gates.
 
 ## Current local Beta implementation
 
-D134 and [the Beta plan](docs/BETA_IMPLEMENTATION_PLAN.md) govern the new
+D134/D135 and [the Beta plan](docs/BETA_IMPLEMENTATION_PLAN.md) govern the new
 `challenge_*_v1` domain. Follow [continuation acceptance](docs/BETA_REAL_VALIDATION_ACCEPTANCE.md)
 and [handoff](docs/BETA_REAL_VALIDATION_HANDOFF.md) for current runs and next work;
 the linked b7 ledger preserves earlier evidence.
+[The remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md) governs
+Watch retirement, community disclosure and capacity planning. Historical Watch
+source is inert; use `scripts/check-iphone-product.py` for active input/product
+guards. Hardware is required for launch, not pre-hardware implementation.
 Historical weekly acceptance is a separate contract, not Beta evidence.
 
 ## Maintaining this file

@@ -5,14 +5,19 @@ loading, errors and labeled forms. It remains a local fictional candidate.
 **No physical source is accepted; Beta is not finished.** See [exact acceptance
 and test evidence](BETA_REAL_VALIDATION_ACCEPTANCE.md) and [screen review](BETA_NATIVE_REVIEW_C8.md).
 
-September 9: [D9 round 3](BETA_D9_REMEDIATION_ROUND3.md) covers the partial
-departure-redaction race at `d18deb3b85270cc23301a945c95464fa5593e205`, with
-finalized before/after mounted evidence and 46 focused native passes. The reviewer
-has closed D9-1 and original own-only D9-2/D9-3; the related D9-4 correction now
-awaits re-review. The complete gate remains paused. The prior preview below is
-preserved and has not been replaced with this corrected build; round 3 gives its
-separate build/launch path. Prompt 0A remains a separate task; no landing is
-authorized here.
+September 9: Firstmate independently reconciled D9-1 through D9-4 closure and
+the complete fresh Prompt 0 gate at `9c84459e88246e1a34cd2acd6c6f9477384cefec`.
+[The acceptance update](BETA_REAL_VALIDATION_ACCEPTANCE.md) identifies that private
+parent evidence. The captain permits isolated Prompt 0A implementation from this
+exact unlanded descendant; acceptance and landing remain pending.
+
+[D135's contract](BETA_REMAINING_WORK_CONTRACT.md) owns current remaining-work
+scope. The Prompt 0A branch retires the dedicated Watch runtime across all product
+configurations while preserving iPhone HealthKit and inert historical source.
+Its clean exact commit becomes the common parent for subsequently authorized
+Wave 1 tasks. This task stops after Prompt 0A. Hardware remains required for launch,
+not pre-hardware implementation. The retained preview instructions below are
+historical c8 resources, not permission for another task to drive them.
 
 ## Retained preview state — September 8
 
@@ -140,7 +145,7 @@ human comprehension script. The unsigned historical Release still selects the
 legacy default app; local new-shell acceptance is not production replacement.
 No test result opens any readiness gate.
 
-## Next human action and implementation slice
+## Remaining physical action and source implementation slice
 
 Firstmate must deliver: **“I opt in to a private on-device investigation on [exact
 selected iPhone], paired with [selected Watch].”** No device has yet been selected
@@ -151,7 +156,8 @@ No private physical screen capture, automation, logs, upload or screenshot is al
 Supporting accuracy measurements remain on-device; timed tolerance is unselected.
 Empty reads never prove a missed goal.
 
-After each source policy is accepted, implement its versioned real-source terms,
+Hardware-independent work may proceed when separately authorized. After each
+source policy is accepted, implement its versioned real-source terms,
 adapter, seven-state readiness, applicable on-device suggestions, and minimum-data
 attested ingestion with source binding, replay protection, downward corrections
 and recovery. Prove progress → correction → review → final simulated history.

@@ -1,8 +1,10 @@
 # Private source investigation — physical execution pending
 
-Build `GameTime` / Debug from the b7 worktree. In the Xcode Run scheme add
+Build `GameTime` / Debug from the separately authorized isolated candidate. In the Xcode Run scheme add
 `--health-source-investigation`. This mode returns before constructing product
-services and skips auth, upload, product background reads and Watch connectivity.
+services and skips auth, upload and product background reads. D135 removes
+the dedicated Watch runtime from all active configurations; no Watch app or
+connectivity session is built or launched.
 It is absent from Staging and Release. Nothing is installed on a physical device
 by this task without an explicitly opted-in device session.
 

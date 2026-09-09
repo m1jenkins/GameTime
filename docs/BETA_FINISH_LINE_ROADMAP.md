@@ -1,5 +1,12 @@
 # GameTime: current state and proposed finish-line roadmap
 
+September 9 remaining-work authority is [D135](BETA_REMAINING_WORK_CONTRACT.md).
+The milestone order and “what to do next” below are the historical finish-line
+plan. Paired Watch is required for launch but does not block authorized
+pre-hardware waves. D135's private operator cohort, delayed disclosure and
+workload targets supersede less specific community/capacity statements below.
+Prompt 0A does not execute M1–M6, later prompts, publication or any external gate.
+
 Assessment: September 7, 2026, against `main` at `577bc32`, the current working
 tree, native/backend source, acceptance records, and the final GitHub checks for
 PR 17. This is a proposed execution sequence for the adopted

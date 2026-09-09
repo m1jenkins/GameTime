@@ -274,8 +274,6 @@ targeted_device_family=""
 app_icon_name=""
 marketing_version=""
 build_number=""
-excluded_sources=""
-watch_project_integration="1"
 
 if [[ ! -f "$project_file" ]]; then
   block_check \
@@ -326,46 +324,9 @@ if release_configuration is None:
 
 settings = release_configuration.get("buildSettings", {})
 
-excluded_source_setting = settings.get("EXCLUDED_SOURCE_FILE_NAMES", "")
-if isinstance(excluded_source_setting, list):
-    excluded_source_names = " ".join(
-        str(value) for value in excluded_source_setting
-    )
-else:
-    excluded_source_names = excluded_source_setting
-
-
 def safe_value(value):
     return str(value or "").replace("\n", " ").replace("\t", " ")
 
-
-def object_label(value):
-    return " ".join(
-        safe_value(value.get(key))
-        for key in ("name", "path", "productName")
-    ).lower()
-
-
-watch_integration = False
-
-for dependency_id in target.get("dependencies", []):
-    dependency = objects.get(dependency_id, {})
-    dependency_target = objects.get(dependency.get("target"), {})
-    if "watch" in object_label(dependency_target):
-        watch_integration = True
-
-for phase_id in target.get("buildPhases", []):
-    phase = objects.get(phase_id, {})
-    if phase.get("isa") != "PBXCopyFilesBuildPhase":
-        continue
-    if "watch" in object_label(phase):
-        watch_integration = True
-    for build_file_id in phase.get("files", []):
-        build_file = objects.get(build_file_id, {})
-        reference_id = build_file.get("fileRef") or build_file.get("productRef")
-        reference = objects.get(reference_id, {})
-        if "watch" in object_label(reference):
-            watch_integration = True
 
 values = {
     "bundle_identifier": settings.get("PRODUCT_BUNDLE_IDENTIFIER", ""),
@@ -376,8 +337,6 @@ values = {
     ),
     "marketing_version": settings.get("MARKETING_VERSION", ""),
     "build_number": settings.get("CURRENT_PROJECT_VERSION", ""),
-    "excluded_sources": excluded_source_names,
-    "watch_project_integration": "1" if watch_integration else "0",
 }
 
 for key, value in values.items():
@@ -397,8 +356,6 @@ PY
         app_icon_name) app_icon_name="$value" ;;
         marketing_version) marketing_version="$value" ;;
         build_number) build_number="$value" ;;
-        excluded_sources) excluded_sources="$value" ;;
-        watch_project_integration) watch_project_integration="$value" ;;
       esac
     done <<<"$project_snapshot"
   fi
@@ -564,144 +521,17 @@ else
     "Set a positive resolved build number; verify uniqueness at candidate freeze."
 fi
 
-watch_source_reachable="0"
-if [[ -d "$app_source" ]]; then
-  watch_source_reachable="$(
-    python3 - "$app_source" "$excluded_sources" <<'PY'
-import ast
-import pathlib
-import re
-import sys
-
-app_source = pathlib.Path(sys.argv[1])
-excluded_sources = set(sys.argv[2].split())
-watch_pattern = re.compile(
-    r"import\s+WatchConnectivity|WCSession|"
-    r"PhoneWatchConnectivityCoordinator|GameTimeWatch"
-)
-directive_pattern = re.compile(
-    r"^\s*#(if|elseif|else|endif)\b(?:\s+(.*))?$"
-)
-
-
-def release_condition(expression):
-    """Evaluate only conditions composed of known Release-false flags."""
-    if expression is None:
-        return None
-
-    identifiers = set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", expression))
-    if not identifiers.issubset({"DEBUG", "STAGING"}):
-        return None
-
-    translated = re.sub(r"\bDEBUG\b", "False", expression)
-    translated = re.sub(r"\bSTAGING\b", "False", translated)
-    translated = translated.replace("&&", " and ")
-    translated = translated.replace("||", " or ")
-    translated = re.sub(r"!(?!=)", " not ", translated)
-
-    try:
-        tree = ast.parse(translated.strip(), mode="eval")
-    except SyntaxError:
-        return None
-
-    allowed_nodes = (
-        ast.Expression,
-        ast.BoolOp,
-        ast.UnaryOp,
-        ast.Constant,
-        ast.And,
-        ast.Or,
-        ast.Not,
-        ast.Load,
-    )
-    if any(not isinstance(node, allowed_nodes) for node in ast.walk(tree)):
-        return None
-
-    return bool(eval(compile(tree, "<release-condition>", "eval"), {}, {}))
-
-
-def contains_release_watch_reference(source_file):
-    active = True
-    frames = []
-
-    for line in source_file.read_text(encoding="utf-8").splitlines():
-        directive = directive_pattern.match(line)
-        if directive:
-            kind, expression = directive.groups()
-            if kind == "if":
-                condition = release_condition(expression)
-                if condition is None:
-                    frames.append(
-                        {
-                            "parent_active": active,
-                            "passthrough": True,
-                            "branch_taken": False,
-                        }
-                    )
-                else:
-                    frames.append(
-                        {
-                            "parent_active": active,
-                            "passthrough": False,
-                            "branch_taken": condition,
-                        }
-                    )
-                    active = active and condition
-            elif kind == "elseif" and frames:
-                frame = frames[-1]
-                if frame["passthrough"]:
-                    active = frame["parent_active"]
-                elif frame["branch_taken"]:
-                    active = False
-                else:
-                    condition = release_condition(expression)
-                    if condition is None:
-                        frame["passthrough"] = True
-                        active = frame["parent_active"]
-                    else:
-                        frame["branch_taken"] = condition
-                        active = frame["parent_active"] and condition
-            elif kind == "else" and frames:
-                frame = frames[-1]
-                if frame["passthrough"]:
-                    active = frame["parent_active"]
-                else:
-                    active = frame["parent_active"] and not frame["branch_taken"]
-                    frame["branch_taken"] = True
-            elif kind == "endif" and frames:
-                frame = frames.pop()
-                active = frame["parent_active"]
-            continue
-
-        if active and watch_pattern.search(line):
-            return True
-
-    return False
-
-
-for source_file in app_source.rglob("*.swift"):
-    if source_file.name in excluded_sources:
-        continue
-    if contains_release_watch_reference(source_file):
-        print("1")
-        break
-else:
-    print("0")
-PY
-  )"
-fi
-
-if
-  [[ "$watch_project_integration" == "0" ]] &&
-    [[ "$watch_source_reachable" == "0" ]]
-then
+# D135 applies to every configuration and shared scheme, including standalone
+# targets. Historical source must be outside target membership, not hidden by
+# Release-only preprocessor flags or EXCLUDED_SOURCE_FILE_NAMES.
+if python3 "${script_dir}/check-iphone-product.py" --root "$repo_root" >/dev/null; then
   pass_check \
     "watch-isolation" \
-    "Watch work is not embedded in or reachable from the iPhone candidate."
+    "All active iPhone targets and schemes exclude the dedicated Watch runtime."
 else
   block_check \
     "watch-isolation" \
-    "Keep concurrent Watch work outside the iPhone beta target and root journey."
+    "Remove Watch targets, launch entries and connectivity from active product inputs."
 fi
 
 supabase_url=""

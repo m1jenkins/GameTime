@@ -1,5 +1,11 @@
 # Private physical sessions — prepared, not performed
 
+[D135](BETA_REMAINING_WORK_CONTRACT.md) requires a paired physical Apple Watch
+for launch, not for pre-hardware implementation. Beta has no GameTime Watch app
+and no WatchConnectivity dependency: the Watch records into Apple Health and
+the iPhone investigates eligible Watch-origin data. Do not build, install or
+launch a GameTime watchOS app for these sessions.
+
 Continuation from D134 and [source investigation](BETA_SOURCE_INVESTIGATION.md).
 Owner task: **gametime-beta-source-acceptance-b7**; decision key
 **physical-source-actions**. Do not create another source-acceptance task.

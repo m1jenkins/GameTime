@@ -1,5 +1,13 @@
 # Build friend duels and personal performance commitments
 
+September 9 authority: [D135's remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md)
+adds the iPhone-only runtime with inert historical Watch source, paired Watch as
+a launch requirement rather than a pre-hardware blocker, one private operator
+cohort, delayed five-person aggregate disclosure and explicit Beta/long-term
+workload targets. Those community/source requirements remain planned; Prompt 0A
+changes the contract and active Watch build/bootstrap path only. All 18 external
+gates remain false; no acceptance, landing or later-wave authorization is implied.
+
 Updated September 6, 2026. The owner adopted this model. The current future
 product contract is the audited
 [Beta 1 implementation plan](docs/BETA_IMPLEMENTATION_PLAN.md), recorded in
@@ -73,7 +81,7 @@ The new plan is intentionally broader than the existing weekly implementation:
 | --- | --- | --- |
 | Friend challenges | Creator plus up to five friends; four goal and four leaderboard policies; 1–30 full calendar days | `weekly_*_v1` is frozen at 2–5 participants, seven dates and steps goals only |
 | Personal commitments | Goal-only across steps, Exercise Time, cumulative distance and timed running; 1–30 full calendar days | Historical `performance_commitment_*` is a separate fixed-5K/28–90-day local contract |
-| Community | One scheduled steps goal with own progress and anonymous counts | Fictional weekly community backend/native path exists; launch settings remain unselected |
+| Community | One private operator cohort; current own progress, exact anonymous aggregates only under D135’s five-person/15-minute rule | Fictional weekly community backend/native path exists; launch settings remain unselected |
 | Identity and growth | Exact username lookup; reusable links close at 20 accounts or 30 days; immediate beta access after 21+ confirmation | Named-recipient duel links exist; general lobby redemption does not |
 | Shell | Home · Challenges · You; legacy Personal removed after replacement acceptance | Today · Challenges · You remains Release-reachable and Personal-first |
 
@@ -627,7 +635,7 @@ that implementation. Their solo-only and no-payout future rules are superseded
 by D123; their no-live-money restrictions remain. Design mockups remain visual
 references, not implementation proof or new product constraints.
 
-## Current next implementation task
+## Historical September 6 next implementation task
 
 The owner has authorized reconciling and merging
 [PR 17](https://github.com/m1jenkins/GameTime/pull/17) after its required checks

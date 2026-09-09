@@ -1,6 +1,6 @@
 # GameTime Beta 1 implementation plan
 
-Owner-approved planning target, September 6, 2026. This document owns the
+Owner-approved planning target, September 6, with D135 amendments September 9, 2026. This document owns the
 future Beta 1 product contract. D134 in [DECISIONS.md](../DECISIONS.md) records
 the choices made during the plan audit. The older
 [weekly specification](WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md) and its
@@ -12,6 +12,11 @@ This is an implementation plan, not evidence that the product exists. It does
 not authorize hosted mutations, TestFlight distribution, recruitment, data
 deletion, notification delivery, payment-provider activity, or live money.
 
+D135 and [the remaining-work contract](BETA_REMAINING_WORK_CONTRACT.md) add six
+explicit owner decisions. Their Watch architecture, hardware sequencing,
+community disclosure and workload targets govern remaining work. They do not
+claim those source/server behaviors have been implemented.
+
 ## Product contract
 
 Beta 1 includes three products:
@@ -21,7 +26,7 @@ Beta 1 includes three products:
 | Friend goal | Each person qualifies independently | Steps, Apple Exercise Time, cumulative running distance, timed running | Creator plus one to five friends; 2–6 total | Each participant proposes their own target before the creator freezes the roster and terms |
 | Friend leaderboard | Best eligible result wins | Steps, Apple Exercise Time, cumulative running distance, timed running | Creator plus one to five friends; 2–6 total | No qualifying target or target suggestion; highest cumulative result or fastest eligible timed run wins |
 | Personal performance commitment | The owner qualifies against their own target | Steps, Apple Exercise Time, cumulative running distance, timed running | One | Owner-selected target |
-| Community goal | Each entrant qualifies independently against one common value | Steps only | Operator-configured minimum and capacity | One operator-published target for everyone |
+| Community goal | Each entrant qualifies independently against one common value | Steps only | One private operator-published cohort; outcome minimum and publication capacity remain configurable/unapproved | One common target; user-hosted communities are a separately versioned future feature |
 
 Friend and personal policies use scheduled full-day windows lasting 1–30 local
 calendar days. The window starts and ends at midnight in its frozen creator or
@@ -225,6 +230,15 @@ Do not enable either timed-running policy until physical tests produce an
 approved whole-workout distance tolerance. Record that value as a new policy
 decision; never invent or silently reuse the zero-tolerance fixture.
 
+## iPhone and Apple Watch architecture
+
+Beta has no GameTime watchOS app or WatchConnectivity dependency. Apple Watch
+records activity into Apple Health; GameTime iPhone reads eligible Watch-origin
+HealthKit data and uploads only minimum normalized scoring facts. Preserve iPhone
+HealthKit and historical agreements. A paired physical Watch is a launch
+requirement, not a blocker to authorized pre-hardware implementation. Real source
+semantics, completeness, adapters and ingestion still require separate acceptance.
+
 ## Health readiness, suggestions, and ingestion
 
 Preserve the seven visible readiness states. Completing a permission prompt or
@@ -296,11 +310,22 @@ accounts and new-product data. Cleanup requires a separately reviewed,
 environment-guarded admin runbook and explicit destructive-cleanup approval;
 the plan itself does not authorize execution.
 
-Community Beta 1 is one manually published scheduled steps-goal cohort. Show a
-participant only their own progress and anonymous aggregate counts—no stranger
-usernames, totals, ranking, or inferred friend access. Keep its target, capacity,
-timezone, and simulated amount disabled and configurable until selected after
+Community Beta 1 is one operator-published private scheduled steps-goal cohort.
+User-hosted communities require a separately versioned future feature. Own progress
+may be current. Exact anonymous aggregates require at least five joined, active,
+nonremoved disclosure-cohort participants and a server snapshot at least 15 minutes
+old. Under five expose no exact numerator, denominator, participant count,
+qualifier count, total or alternative differential signal. Five is a disclosure
+threshold, not the challenge outcome minimum. No stranger usernames, ranking or
+inferred friend access is permitted. These are remaining server/UI requirements,
+not acceptance of current fictional projections. Keep target, outcome minimum,
+publication capacity, timezone and simulated amount disabled until selected after
 source and comprehension testing.
+
+Beta planning workload: 2,000 registered, 250 DAU, 100 concurrent sessions,
+25 requests/second burst, one 250-person cohort. Long-term characterization:
+25,000 registered, 5,000 DAU, 1,000 concurrent, 150 requests/second, 10,000 community.
+These are planning targets, not measured throughput or approved publication values.
 
 ## Public interfaces
 

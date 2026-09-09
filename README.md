@@ -1,5 +1,13 @@
 # GameTime
 
+September 9 authority: [D135's remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md)
+adds the iPhone-only runtime with inert historical Watch source, paired Watch as
+a launch requirement rather than a pre-hardware blocker, one private operator
+cohort, delayed five-person aggregate disclosure and explicit Beta/long-term
+workload targets. Those community/source requirements remain planned; Prompt 0A
+changes the contract and active Watch build/bootstrap path only. All 18 external
+gates remain false; no acceptance, landing or later-wave authorization is implied.
+
 September 6 audited Beta 1 plan: the owner selected a new
 [Beta implementation contract](docs/BETA_IMPLEMENTATION_PLAN.md) with the creator
 plus up to five friends, friend goals and target-free leaderboards, personal

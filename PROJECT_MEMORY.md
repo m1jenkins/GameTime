@@ -1,5 +1,27 @@
 # GameTime project memory
 
+## Remaining-work authority — September 9, 2026
+
+D135 and [the remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md)
+record the owner's six current decisions: no GameTime watchOS app or
+WatchConnectivity; eligible Watch-origin Health data read by iPhone with minimum
+normalized scoring uploads; paired Watch required for launch but not pre-hardware
+implementation; one operator-published private cohort; exact anonymous aggregates
+only at five joined/active/nonremoved participants and from server snapshots at
+least 15 minutes old, with no exact or differential signals under five; Beta
+2,000/250 DAU/100 concurrent/25 requests per second/250-person cohort planning
+and long-term 25,000/5,000/1,000/150/10,000 characterization; visibly nonredeemable
+simulation. Five is a disclosure threshold, not an outcome minimum.
+
+Prompt 0A retires the active dedicated Watch runtime while preserving inert
+historical source and iPhone HealthKit. Community privacy, capacity and source
+architecture above are adopted requirements, not newly implemented server/source
+behavior. Physical source policies, timed tolerance, launch community settings,
+human/hosted acceptance and all 18 external gates remain unresolved/false. Prior
+"next physical task" statements below describe historical sequencing; hardware
+availability does not block otherwise authorized pre-hardware work. Acceptance,
+landing and later waves remain separately controlled.
+
 ## Audited Beta 1 product contract — September 6, 2026
 
 The owner approved the audited Beta 1 planning contract recorded in D134 and

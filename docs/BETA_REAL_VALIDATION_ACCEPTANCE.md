@@ -5,14 +5,22 @@ its historical successes, failures and limits. It records software validation wi
 fictional activity separately from physical observation and owner acceptance.
 **Beta is not finished.** No physical source has been accepted or enabled.
 
-September 9 update: [D9 round 3](BETA_D9_REMEDIATION_ROUND3.md) records correction
-`d18deb3b85270cc23301a945c95464fa5593e205`: nine departure-redaction methods fail
-on f4aeafe; the corrected focused group passes 46/46 with no skips. The existing
-reviewer closed D9-1 and the original own-only D9-2/D9-3 schedules, then identified
-the related preexisting D9-4 partial-redaction omission. This correction awaits
-the same independent re-review. Prior evidence stays historical. The complete
-corrected-candidate gate has not started, and no canonical acceptance or landing
-is inferred.
+## September 9 parent gate and Prompt 0A contract
+
+Firstmate supplied independent closure of D9-1 through D9-4 and the complete fresh
+Prompt 0 software gate at `9c84459e88246e1a34cd2acd6c6f9477384cefec`: 24 required
+top-level commands exited 0; 510 Xcode executions in 14 bundles passed with zero
+failures/skips; four builds passed. The exact report/index, commands, collision
+map and preservation are in the private task record
+`/Users/user/firstmate-workspace/data/gametime-beta-real-validation-c8/gate-9c84459-20260909-1905/`.
+This is supplied parent evidence, not tests rerun by Prompt 0A or acceptance/landing.
+
+[D135's remaining-work contract](BETA_REMAINING_WORK_CONTRACT.md) now governs
+architecture, hardware sequencing, private community disclosure, workload targets
+and simulation. Prompt 0A removes active Watch build/bootstrap dependencies only;
+its exact child-commit verification belongs to the private contract task report.
+No independent Prompt 0A review or full Prompt 0 rerun is implied. The ledgers
+below retain earlier c8 results, including prior skips/failures, as dated history.
 
 ## Identity and preservation
 
