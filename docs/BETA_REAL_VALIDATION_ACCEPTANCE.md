@@ -5,6 +5,12 @@ its historical successes, failures and limits. It records software validation wi
 fictional activity separately from physical observation and owner acceptance.
 **Beta is not finished.** No physical source has been accepted or enabled.
 
+September 9 update: [D9 remediation Phase A](BETA_D9_REMEDIATION.md) records
+correction commit `d8f49c3e7e9b2cf01528d700672ec1232b8ec311`, fresh focused
+SQL/native runtime results and the independent-review handoff. The earlier
+evidence below stays historical; the complete corrected-candidate gate has not
+started and no canonical acceptance or landing is inferred.
+
 ## Identity and preservation
 
 - Continuation: `fm/gametime-beta-real-validation-c8`, isolated checkout

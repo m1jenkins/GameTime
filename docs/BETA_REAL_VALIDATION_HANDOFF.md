@@ -5,7 +5,13 @@ loading, errors and labeled forms. It remains a local fictional candidate.
 **No physical source is accepted; Beta is not finished.** See [exact acceptance
 and test evidence](BETA_REAL_VALIDATION_ACCEPTANCE.md) and [screen review](BETA_NATIVE_REVIEW_C8.md).
 
-## Current review state
+September 9: [D9 remediation Phase A](BETA_D9_REMEDIATION.md) supplies the two
+authorized privacy/session corrections and focused runtime proof. Next is the
+existing independent review, followed by the separately sequenced fresh complete
+gate. The prior preview below is preserved and has not been replaced with the
+corrected build. Prompt 0A remains a separate task; no landing is authorized here.
+
+## Retained preview state — September 8
 
 As of 2026-09-08 12:32 UTC the newly built c8 app is open at fictional account 1's
 Home on the owned Simulator. Preview PID **10336**, tracked foreground PTY **65466**,
