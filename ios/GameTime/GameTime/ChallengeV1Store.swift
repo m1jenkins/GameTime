@@ -74,7 +74,7 @@ import Observation
                     guard finalActor == actor else { setActor(nil); return }
                     guard now() - requestedAt < 60 else { throw ChallengeV1Error.unavailable }
                     sections[section] = ChallengeV1SectionState(rows: page.rows, cursor: page.nextCursor, projectionRevision: page.projectionRevision, serverTime: page.serverTime, receivedAt: now(), error: nil, fresh: true)
-                    for row in page.rows { detailRows.removeValue(forKey: row.id); detailReadAt.removeValue(forKey: row.id) }
+                    reconcile(page.rows)
                 } catch {
                     guard ticket == generation, refresh == refreshGeneration else { return }
                     if (error as? ChallengeV1Error) == .accountChanged { setActor(nil); return }
@@ -118,6 +118,7 @@ import Observation
             state.cursor = page.nextCursor; state.serverTime = page.serverTime
             // A later page does not extend earlier rows' visibility lifetime.
             sections[section] = state
+            reconcile(page.rows)
             purgeExpiredContent()
         } catch {
             guard ticket == generation, refresh == refreshGeneration else { return }
@@ -135,14 +136,24 @@ import Observation
             guard ticket == generation, refresh == refreshGeneration else { return }
             guard authenticated == actor else { setActor(nil); return }
             guard now() - requestedAt < 60 else { throw ChallengeV1Error.unavailable }
-            for section in ChallengeV1Section.allCases {
-                if let index = sections[section]?.rows.firstIndex(where: { $0.id == id }) { sections[section]?.rows[index] = row }
-            }
+            reconcile([row])
             detailRows[id] = row; detailReadAt[id] = now(); error = nil
         } catch {
             guard ticket == generation, refresh == refreshGeneration else { return }
             if (error as? ChallengeV1Error) == .accountChanged { setActor(nil) }
             else { detailRows.removeValue(forKey: id); detailReadAt.removeValue(forKey: id); self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription }
+        }
+    }
+    /// A current projection supersedes every cached copy of that challenge,
+    /// including equal-revision safety restrictions. Keep each cache's original
+    /// read time so updating one ID never renews unrelated content or old pages.
+    private func reconcile(_ rows: [ChallengeV1]) {
+        for row in rows {
+            for section in ChallengeV1Section.allCases {
+                guard let state = sections[section] else { continue }
+                sections[section]?.rows = state.rows.map { $0.id == row.id ? row : $0 }
+            }
+            if detailRows[row.id] != nil { detailRows[row.id] = row }
         }
     }
     func isFresh(_ row: ChallengeV1) -> Bool {
