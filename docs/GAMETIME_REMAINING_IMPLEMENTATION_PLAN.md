@@ -21,7 +21,7 @@ they are not instructions to reset another checkout.
 | Current product /Users/user/firstmate-workspace/projects/gametime-beta | Main affd367ebe5411969fd5b7abd45629e0746a5a7d: accepted Cobalt UI over a18f00fa19ac95f946c4686ba3b6a068064d797b. Normal challenge transport is closed; demos do not create live friend challenges. |
 | Prompts 0, 0A and 3 | Implemented. Preserve c8, Watch retirement and the Health contracts/fakes. |
 | Prompt 2 | Reviewed baseline at e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 in fm/gametime-beta-load-prep-e2. Reuse scripts/challenge-load, docs/load and its published evidence without importing unrelated gate changes. |
-| Prompt 4 | Unaccepted d0742eac0fab4d182338dc75d5aacb77658e0c09, parent a18f00f, in pool 9 / fm/gametime-beta-scoped-locks-p4. Preserve and finish this work on the current product baseline. |
+| Prompt 4 | Preserved partial d0742eac0fab4d182338dc75d5aacb77658e0c09 remains in pool 9. Completed and locally verified at b67776c8b3fc1173f4e7f44bd794db9f81b2b7a0 on isolated codex/lean-beta-preparation, based on 201d7459bad293c9f942de067c1b6afd99b58479. Product main has not moved. |
 | Gate recovery | ff71ee28b05456dfa487d48ddd044105c9bdab37 was cancelled, never accepted. Retain the evidence; do not restart its infrastructure or make it a local product dependency. |
 
 The original dirty diff contains 27 modified documents, 10 native source files,
@@ -37,6 +37,9 @@ Recovery disposition:
 [closure](/Users/user/firstmate-workspace/data/gametime-beta-verification-recovery-e10/captain-closure-20260911.md).
 The preparation report for this cleanup is
 [here](../outputs/reports/2026-09-11-beta-simplification.md).
+Final P4 source, validation and limitations are in the
+[completion report](../outputs/reports/2026-09-11-p4-completion.md).
+P5/P6 remain unstarted; reconcile this completed branch before any later task.
 
 ## Product requirements stay intact
 
@@ -85,7 +88,7 @@ behavior is untested.
 
 | Prompt | Deliverable | Dependency |
 | --- | --- | --- |
-| 4 | Finish scoped locks, durable bounded claims and cancelled-work fix | Current product, existing P4 and P2 evidence |
+| 4 | Completed locally: scoped locks, durable bounded claims and cancelled-work fix | Isolated result above; not landed on product main |
 | 5 | Bound expensive queries/history; measured indexes | P4 correctness accepted |
 | 6 | Community disclosure, 250 capacity, moderator boundaries and quotas | P4/P5 accepted locally |
 | 7 | Physical source decisions | Device opt-in and owner participation; may accompany unrelated local work |

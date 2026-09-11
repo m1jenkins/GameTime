@@ -1,0 +1,74 @@
+{
+  "before": {
+    "projects": {
+      "gametime-p4-final-20260911": {
+        "gates": {
+          "fixtures": false,
+          "admission": false,
+          "analytics": false,
+          "discovery": false,
+          "ingestion": false,
+          "singleton": true,
+          "processing": false,
+          "steps_source": false,
+          "timed_source": false,
+          "fictional_now": null,
+          "distance_source": false,
+          "exercise_source": false
+        },
+        "actors": 0,
+        "version": "PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit"
+      },
+      "gametime-p4-baseline-20260911": {
+        "gates": {
+          "fixtures": false,
+          "admission": false,
+          "analytics": false,
+          "discovery": false,
+          "ingestion": false,
+          "singleton": true,
+          "processing": false,
+          "steps_source": false,
+          "timed_source": false,
+          "fictional_now": null,
+          "distance_source": false,
+          "exercise_source": false
+        },
+        "actors": 0,
+        "version": "PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit"
+      }
+    },
+    "containers": "4786eb9326fb supabase_db_gametime-p4-final-20260911 Up 7 minutes (healthy)\n87e121fbdbe3 supabase_db_gametime-p4-baseline-20260911 Up 7 minutes (healthy)\n9d1cac8ce8f4 supabase_rest_gametime-p4-baseline-20260911 Up 27 minutes\neec68ff54fea supabase_auth_gametime-p4-baseline-20260911 Up 7 minutes (healthy)\nc1a49567a18e supabase_kong_gametime-p4-baseline-20260911 Up 27 minutes (healthy)\na060e9a0e0f4 supabase_rest_gametime-p4-final-20260911 Up 39 minutes\n5f8bb99d3d62 supabase_auth_gametime-p4-final-20260911 Up 7 minutes (healthy)\nea1762db73c1 supabase_kong_gametime-p4-final-20260911 Up 39 minutes (healthy)\n5a05f0a2cabc gdluxx Up 4 hours\n67aa9a9f8654 supabase_studio_gametime Up 4 hours (healthy)\nf427f1d4c34f supabase_storage_gametime Restarting (1) 23 seconds ago\n"
+  },
+  "after_containers": "5a05f0a2cabc gdluxx Up 4 hours\n67aa9a9f8654 supabase_studio_gametime Up 4 hours (healthy)\nf427f1d4c34f supabase_storage_gametime Restarting (1) 34 seconds ago\n",
+  "retained_volumes": [
+    "supabase_db_gametime-p4-baseline-20260911",
+    "supabase_db_gametime-p4-final-20260911"
+  ],
+  "retained_network": {
+    "name": "gametime-p4-final-20260911",
+    "id": "40e3a7da4000bf1d48d7fd1ec2a8ce3e6f76942be9dfa7cc8b13120f7b5ba9e7",
+    "ipam": {
+      "Driver": "default",
+      "Options": {},
+      "Config": [
+        {
+          "Subnet": "10.253.214.0/24",
+          "Gateway": "10.253.214.1"
+        }
+      ]
+    }
+  },
+  "commands": [
+    {
+      "command": "supabase stop --project-id gametime-p4-final-20260911 --workdir /private/tmp/gametime-p4-final-20260911/stack",
+      "exit_code": 0,
+      "output": "Using workdir /private/tmp/gametime-p4-final-20260911/stack\nStopping containers...\nStopped supabase local development setup.\nA new version of Supabase CLI is available: v2.117.0 (currently installed v2.109.1)\nWe recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli\nLocal data are backed up to docker volume. Use docker to show them: docker volume ls --filter label=com.supabase.cli.project=gametime-p4-final-20260911\n"
+    },
+    {
+      "command": "supabase stop --project-id gametime-p4-baseline-20260911 --workdir /private/tmp/gametime-p4-final-20260911/baseline",
+      "exit_code": 0,
+      "output": "Using workdir /private/tmp/gametime-p4-final-20260911/baseline\nStopping containers...\nStopped supabase local development setup.\nA new version of Supabase CLI is available: v2.117.0 (currently installed v2.109.1)\nWe recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli\nLocal data are backed up to docker volume. Use docker to show them: docker volume ls --filter label=com.supabase.cli.project=gametime-p4-baseline-20260911\n"
+    }
+  ]
+}

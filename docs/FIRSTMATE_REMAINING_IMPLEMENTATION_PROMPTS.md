@@ -3,8 +3,12 @@
 Updated September 11, 2026. Use the [simplified plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md).
 The [previous pack](archive/2026-09-11_PRE_SIMPLIFICATION_FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md)
 is historical. Prompts 0, 0A and 3 are complete; Prompt 2 evidence is available.
-Start with the existing Prompt 4 work. Use the common instructions with one task;
-Codex or Firstmate can execute it without a new supervision system.
+Prompt 4 is now completed and locally verified on the isolated continuation at
+`b67776c8b3fc1173f4e7f44bd794db9f81b2b7a0`; see its
+[completion report](../outputs/reports/2026-09-11-p4-completion.md).
+Product main has not moved. Reconcile that result before later work; do not
+restart P4 or automatically start P5/P6. The task text below is retained for its
+contract. Use the common instructions with one requested task at a time.
 
 ## Common instructions
 

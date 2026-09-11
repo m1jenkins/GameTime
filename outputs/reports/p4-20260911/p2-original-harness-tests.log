@@ -1,0 +1,32 @@
+test_http_200_empty_page_fails_burst (test_bursts.BurstFaultTests) ... ok
+test_http_200_foreign_page_fails_burst (test_bursts.BurstFaultTests) ... ok
+test_missing_preflight_refuses_before_http (test_bursts.BurstFaultTests) ... ok
+test_postflight_failure_fails_otherwise_successful_burst (test_bursts.BurstFaultTests) ... ok
+test_stale_preflight_refuses_before_http (test_bursts.BurstFaultTests) ... ok
+test_arrivals_do_not_depend_on_completion (test_harness.HarnessTests) ... ok
+test_auth_token_binds_actual_session_and_actor (test_harness.HarnessTests) ... ok
+test_collision_stops_before_any_write_or_start (test_harness.HarnessTests) ... ok
+test_copied_config_uses_allocated_ports_and_no_seed (test_harness.HarnessTests) ... ok
+test_empty_or_foreign_api_identity_fails_before_mutation (test_harness.HarnessTests) ... ok
+test_empty_page_and_changed_receipt_fail_closed (test_harness.HarnessTests) ... ok
+test_existing_run_is_never_reused (test_harness.HarnessTests) ... ok
+test_first_oracle_failure_stops_new_dispatch (test_harness.HarnessTests) ... ok
+test_literal_leaderboard_and_community_contracts (test_harness.HarnessTests) ... ok
+test_privileged_sql_cannot_inherit_hostaddr_or_service (test_harness.HarnessTests) ... ok
+test_product_drift_is_rejected_without_any_process_start (test_harness.HarnessTests) ... ok
+test_slow_successes_with_drops_fail_capacity (test_harness.HarnessTests) ... ok
+test_tie_remainder_and_strict_timed_boundary (test_harness.HarnessTests) ... ok
+test_void_rpc_204_is_success (test_harness.HarnessTests) ... ok
+test_aborted_final_is_not_a_completed_planned_window (test_scale_reporting.ReportingCaptureTests) ... ok
+test_append_after_capture_keeps_exact_count_and_hash (test_scale_reporting.ReportingCaptureTests) ... ok
+test_final_accounting_mismatch_never_imports_pass (test_scale_reporting.ReportingCaptureTests) ... ok
+test_final_publication_during_capture_remains_partial (test_scale_reporting.ReportingCaptureTests) ... ok
+test_matching_final_binds_events_spec_summary_and_reporter (test_scale_reporting.ReportingCaptureTests) ... ok
+test_partial_tail_is_hashed_but_not_counted_or_final (test_scale_reporting.ReportingCaptureTests) ... ok
+test_changed_history_never_publishes_tier_and_independent_runner_refuses (test_scale_reporting.ScalePublicationTests) ... ok
+test_matching_history_publishes_independently_admissible_tier (test_scale_reporting.ScalePublicationTests) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.746s
+
+OK

@@ -1,5 +1,16 @@
 # GameTime project memory
 
+## Prompt 4 local completion — September 11, 2026
+
+Scoped read/mutation locks, durable bounded claims and cancelled-work exclusion
+are implemented and locally verified at
+`b67776c8b3fc1173f4e7f44bd794db9f81b2b7a0` on the isolated
+`codex/lean-beta-preparation` branch. The
+[completion report](outputs/reports/2026-09-11-p4-completion.md) records final-source
+tests, before/after measurements, preserved failures and limitations. The separate
+product main remains `affd367ebe5411969fd5b7abd45629e0746a5a7d`; local completion
+does not imply landing or rollout. Prompt 5 and Prompt 6 remain unstarted.
+
 ## Simplified local execution — September 11, 2026
 
 The owner asked to simplify the remaining prompts and implementation only where
@@ -12,8 +23,8 @@ Cancelled candidate-gate recovery is not a local implementation prerequisite.
 This does not accept its failed verification or the partial Prompt 4 candidate.
 
 The separate current product includes Cobalt over the c8-derived backend. The
-original dirty checkout remains preserved. Resume existing P4 work on the current
-product baseline, then run P5/P6 sequentially when requested and locally accepted.
+original dirty checkout remains preserved. The P4 continuation below was completed
+locally as recorded above; run P5/P6 sequentially only when requested and locally accepted.
 Do not restart completed prompts or import the entire dirty copy/design patch.
 The [cleanup report](outputs/reports/2026-09-11-beta-simplification.md) records
 the exact branches, safe changes and remaining work. Product agreements, source

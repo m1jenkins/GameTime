@@ -1,0 +1,49 @@
+{
+  "planned_offers": 500,
+  "offered": 500,
+  "not_offered_after_abort": 0,
+  "duration_seconds": 10,
+  "elapsed_seconds": 10.006367749999999,
+  "dispatch_ended_seconds": 9.982340999999998,
+  "drain_seconds": 0.006367749999999006,
+  "completed_after_window": 0,
+  "counts": {
+    "started": 500,
+    "completed": 500,
+    "completed_in_window": 500,
+    "failed": 0,
+    "oracle_failures": 0
+  },
+  "aborted": false,
+  "offered_rps": 50.0,
+  "completed_in_window_rps": 50.0,
+  "completed_including_drain_rps": 49.9681815112182,
+  "accounting_ok": true,
+  "capacity_pass": true,
+  "http_p50_ms": 4.165125000000103,
+  "http_p95_ms": 6.240707999999984,
+  "lock_wait_count": 0,
+  "lock_wait_p95_ms": null,
+  "lock_wait_max_ms": 0,
+  "sampled_wait_count": 0,
+  "deadlocks": 0,
+  "worker_entries": 100,
+  "lock_residence": {
+    "session": {
+      "observed_transactions": 37,
+      "lower_p95_ms": 0.0,
+      "upper_p95_ms": 10.11204719543457
+    },
+    "advisory": {
+      "observed_transactions": 66,
+      "lower_p95_ms": 0.0,
+      "upper_p95_ms": 10.042905807495117
+    }
+  },
+  "sample_interval_p95_ms": 5.182027816772461,
+  "fixture_postflight": {
+    "cancelled": 100,
+    "remaining_due_inventory": 0,
+    "unique_completed_challenges": 100
+  }
+}

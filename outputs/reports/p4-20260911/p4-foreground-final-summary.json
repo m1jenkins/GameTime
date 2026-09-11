@@ -1,0 +1,22 @@
+{
+  "completed": 192,
+  "failed": 0,
+  "elapsed_seconds": 0.1464045830000007,
+  "completed_rps": 1311.4343558493595,
+  "http_p50_ms": 18.58495900000179,
+  "http_p95_ms": 55.506041999997535,
+  "lock_wait_count": 0,
+  "lock_wait_p95_ms": null,
+  "lock_wait_max_ms": 0,
+  "sampled_wait_count": 0,
+  "deadlocks": 0,
+  "worker_entries": 0,
+  "lock_residence": {
+    "session": {
+      "observed_transactions": 60,
+      "lower_p95_ms": 4.1790008544921875,
+      "upper_p95_ms": 10.257959365844727
+    }
+  },
+  "sample_interval_p95_ms": 5.8269500732421875
+}

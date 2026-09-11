@@ -1,0 +1,44 @@
+{
+  "planned_offers": 500,
+  "offered": 500,
+  "not_offered_after_abort": 0,
+  "duration_seconds": 10,
+  "elapsed_seconds": 10.006140334000001,
+  "dispatch_ended_seconds": 9.985744209,
+  "drain_seconds": 0.006140334000001246,
+  "completed_after_window": 0,
+  "counts": {
+    "started": 500,
+    "completed": 500,
+    "completed_in_window": 500,
+    "failed": 0,
+    "oracle_failures": 0
+  },
+  "aborted": false,
+  "offered_rps": 50.0,
+  "completed_in_window_rps": 50.0,
+  "completed_including_drain_rps": 49.969317170282245,
+  "accounting_ok": true,
+  "capacity_pass": true,
+  "http_p50_ms": 4.250082999998739,
+  "http_p95_ms": 6.3130839999985255,
+  "lock_wait_count": 0,
+  "lock_wait_p95_ms": null,
+  "lock_wait_max_ms": 0,
+  "sampled_wait_count": 0,
+  "deadlocks": 0,
+  "worker_entries": 100,
+  "lock_residence": {
+    "session": {
+      "observed_transactions": 38,
+      "lower_p95_ms": 0.0,
+      "upper_p95_ms": 10.043859481811523
+    },
+    "advisory": {
+      "observed_transactions": 71,
+      "lower_p95_ms": 0.0,
+      "upper_p95_ms": 10.103940963745117
+    }
+  },
+  "sample_interval_p95_ms": 5.170106887817383
+}
