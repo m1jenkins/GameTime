@@ -12,7 +12,6 @@ enum ChallengeInvitation {
     }
 }
 
-#if DEBUG
 @MainActor @Observable final class ChallengeInvitationIntent {
     private let file: URL
     var link = ""
@@ -39,4 +38,3 @@ enum ChallengeInvitation {
         } catch { message = "We couldn’t clear the saved invitation. Try again." }
     }
 }
-#endif

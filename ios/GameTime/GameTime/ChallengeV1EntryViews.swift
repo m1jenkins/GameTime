@@ -1,4 +1,3 @@
-#if DEBUG
 import SwiftUI
 
 struct ChallengeForm<Content: View>: View {
@@ -274,4 +273,3 @@ struct ChallengePersonSafety: View {
     }
     private func report(_ reason: String) { Task { await store.submit(op: "report", fields: ["subject": .string(person.actorId.uuidString.lowercased()), "reason": .string(reason)]) } }
 }
-#endif

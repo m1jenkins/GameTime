@@ -359,6 +359,15 @@ struct RootView: View {
     let demoMode: DemoModeAccess
     let pushCoordinator: PushNotificationCoordinator
 
+    private var usesCobaltShell: Bool {
+        #if DEBUG || STAGING
+        // Historical fixture/demo journeys remain explicit, reproducible regressions.
+        if ProcessInfo.processInfo.arguments.contains("--cobalt-shell") { return true }
+        if ProcessInfo.processInfo.arguments.contains("--fixture-mode") { return false }
+        #endif
+        return !demoMode.isActive
+    }
+
     private var isShowingRunningExperiment: Bool {
         #if DEBUG || STAGING
         return router.selectedTab == .you && (
@@ -374,7 +383,7 @@ struct RootView: View {
         @Bindable var router = router
 
         VStack(spacing: 0) {
-            if router.presentedSheet == nil && !isShowingRunningExperiment {
+            if (!usesCobaltShell || model.phase != .signedIn) && router.presentedSheet == nil && !isShowingRunningExperiment {
                 EnvironmentDisclosureBanner(
                     settlementMode:
                         model.configuration.personalSettlementMode,
@@ -404,7 +413,11 @@ struct RootView: View {
                         namePrefill: model.onboardingNamePrefill
                     )
                 case .signedIn:
-                    AppShellView()
+                    if usesCobaltShell {
+                        CobaltProductShell()
+                    } else {
+                        AppShellView()
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

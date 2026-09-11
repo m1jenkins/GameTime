@@ -64,6 +64,7 @@ enum ActivitySyncViewState: Equatable, Sendable {
 @Observable
 final class AppModel {
     let configuration: AppConfiguration
+    let challengesV1: ChallengeV1Store
     let duels: DuelStore
     let metricPrototypes: MetricPrototypeStore?
     let weekly: WeeklyStore
@@ -108,6 +109,10 @@ final class AppModel {
     init(configuration: AppConfiguration, services: AppServices) {
         self.configuration = configuration
         self.services = services
+        let challengeDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("GameTime/ProductChallengeV1Pending")
+        challengesV1 = ChallengeV1Store(auth: services.auth, client: UnavailableChallengeV1Client(),
+            requests: ChallengeV1RequestStore(directory: challengeDirectory))
         duels = DuelStore(enabled: configuration.duelRuntimeEnabled,
             auth: services.auth, client: services.duels,
             friendships: services.friendships, pendingStore: services.pendingDuels)
@@ -1217,6 +1222,7 @@ final class AppModel {
     }
 
     private func clearUserState() {
+        challengesV1.setActor(nil)
         duels.setActor(nil)
         performanceCommitments.setActor(nil)
         weekly.setActor(nil)

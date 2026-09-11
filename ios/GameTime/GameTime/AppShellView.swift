@@ -46,27 +46,7 @@ struct AppShellView: View {
             }
             .tag(AppTab.challenges)
 
-            NavigationStack(path: $router.youPath) {
-                YouView()
-                    .navigationDestination(for: YouRoute.self) { route in
-                        switch route {
-                        #if DEBUG || STAGING
-                        case .duels:
-                            DuelHomeView()
-                        case .duelInvitation:
-                            DuelInvitationView()
-                        case .weekly:
-                            WeeklyHomeView()
-                        case .performanceCommitments:
-                            PerformanceCommitmentHomeView()
-                        #endif
-                        case .trustAndPrivacy:
-                            TrustAndPrivacyView()
-                        case .accountSupport:
-                            AccountSupportView()
-                        }
-                    }
-            }
+            AppAccountNavigationView()
             .tabItem {
                 Label("You", systemImage: "person.crop.circle")
                     .accessibilityIdentifier("tab.you")
@@ -128,5 +108,85 @@ private struct PersonalV1UnavailableRouteView: View {
             )
         )
         .daybreakScreenChrome()
+    }
+}
+
+/// Shared account routes keep support, privacy and sign-out available in both shells.
+struct AppAccountNavigationView: View {
+    @Environment(AppRouter.self) private var router
+    var body: some View {
+        @Bindable var router = router
+        NavigationStack(path: $router.youPath) {
+            YouView()
+                .navigationDestination(for: YouRoute.self) { route in
+                    switch route {
+                    #if DEBUG || STAGING
+                    case .duels:
+                        DuelHomeView()
+                    case .duelInvitation:
+                        DuelInvitationView()
+                    case .weekly:
+                        WeeklyHomeView()
+                    case .performanceCommitments:
+                        PerformanceCommitmentHomeView()
+                    #endif
+                    case .trustAndPrivacy:
+                        TrustAndPrivacyView()
+                    case .accountSupport:
+                        AccountSupportView()
+                    }
+                }
+        }
+    }
+}
+
+struct CobaltChallengeUnavailableView: View {
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            ContentUnavailableView("New challenges aren’t open yet", systemImage: "flag",
+                description: Text("You can still view and manage your existing challenges from Home."))
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }.tint(CompetitiveTrustTheme.brand)
+    }
+}
+
+/// Uses the real signed-in actor, with a closed client until hosted challenges are accepted.
+struct CobaltProductShell: View {
+    @Environment(AppModel.self) private var model
+    @Environment(AppRouter.self) private var router
+    @State private var invitation = ChallengeInvitationIntent()
+    @State private var showingExistingChallenges = false
+
+    var body: some View {
+        ChallengeV1Shell(store: model.challengesV1, invitation: invitation,
+            logout: { await model.signOut() },
+            accountContent: AnyView(AppAccountNavigationView()),
+            existingChallenges: AnyView(Button {
+                router.selectedTab = .challenges
+                showingExistingChallenges = true
+            } label: {
+                Label("Existing challenges", systemImage: "clock.arrow.circlepath")
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            }.accessibilityIdentifier("cobalt.existing-challenges")),
+            serviceAvailable: false)
+            .tint(CompetitiveTrustTheme.brand)
+            .task(id: model.userID) {
+                model.challengesV1.setActor(model.userID)
+                await model.challengesV1.refresh()
+            }
+            .onDisappear { model.challengesV1.hide() }
+            .fullScreenCover(isPresented: $showingExistingChallenges) {
+                VStack(spacing: 0) {
+                    EnvironmentDisclosureBanner(settlementMode: model.configuration.personalSettlementMode, isDemo: false)
+                    HStack {
+                        Text("Existing challenges").font(.headline)
+                        Spacer()
+                        Button("Done") { showingExistingChallenges = false }
+                            .accessibilityIdentifier("cobalt.existing.done")
+                    }.padding()
+                    AppShellView()
+                }.background(CompetitiveTrustTheme.canvas)
+            }
     }
 }

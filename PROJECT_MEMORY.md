@@ -1,5 +1,20 @@
 # GameTime project memory
 
+## Default app interface — September 11, 2026
+
+The owner selected `codex/crisp-cobalt-ui` as the default UI and authorized a
+direct install on Mason’s iPhone. Normal signed-in Debug, Staging and Release
+launches now use Cobalt Home, Challenges and You. Existing Personal agreements
+remain accessible through **Existing challenges**; account support and privacy
+remain available in You. Historical fixture/demo journeys keep their original
+navigation for regression coverage.
+
+This is UI activation, not hosted challenge admission: the regular app uses a
+closed challenge client and explains that new challenges are not open. The local
+preview remains an explicit Debug route. No sample scores are shown as account
+data, and no hosted backend, Health scoring or money gate was enabled. See
+[activation verification](docs/design/crisp-cobalt/DEFAULT_UI.md).
+
 ## Remaining-work authority — September 9, 2026
 
 D135 and [the remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md)

@@ -1,4 +1,3 @@
-#if DEBUG
 import SwiftUI
 
 struct CobaltNotice<Content: View>: View {
@@ -325,4 +324,3 @@ struct CobaltNavigationMaterial: ViewModifier {
         }
     }
 }
-#endif

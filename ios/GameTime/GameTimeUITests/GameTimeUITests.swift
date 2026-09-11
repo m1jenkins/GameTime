@@ -26,6 +26,36 @@ final class GameTimeUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    func testCobaltProductShellPreservesAccountAndExistingChallenges() {
+        let app = launch("--cobalt-shell")
+        XCTAssertTrue(app.staticTexts["beta.home.heading"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.descendants(matching: .any)["cobalt.service.closed"].exists)
+        XCTAssertFalse(app.staticTexts["42,850"].exists)
+        attachScreenshot(of: app, named: "Cobalt default signed-in Home")
+
+        app.buttons["beta.home.create"].tap()
+        XCTAssertTrue(app.staticTexts["New challenges aren’t open yet"].waitForExistence(timeout: 4))
+        XCTAssertFalse(app.buttons["beta.create.submit"].exists)
+        app.buttons["Done"].tap()
+
+        app.buttons["cobalt.existing-challenges"].tap()
+        XCTAssertTrue(app.tabBars.buttons["Today"].waitForExistence(timeout: 4))
+        assertEnvironmentDisclosure(in: app, mode: .testOnly)
+        app.buttons["cobalt.existing.done"].tap()
+        XCTAssertTrue(app.staticTexts["beta.home.heading"].waitForExistence(timeout: 4))
+
+        app.buttons["beta.tab.you"].tap()
+        let support = app.buttons["account-support.open"]
+        scrollUntilHittable(support, in: app)
+        support.tap()
+        XCTAssertTrue(app.navigationBars["Account & support"].waitForExistence(timeout: 4))
+        let signout = app.buttons["account-support.sign-out"]
+        scrollUntilHittable(signout, in: app)
+        signout.tap()
+        XCTAssertTrue(app.buttons["Sign in with Apple"].waitForExistence(timeout: 6))
+        XCTAssertFalse(app.staticTexts["beta.home.heading"].exists)
+    }
+
     func testSignedOutAndPublicHandleOnboardingRoots() {
         let signedOut = launch("--fixture-signed-out")
         XCTAssertTrue(

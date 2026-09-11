@@ -1,6 +1,7 @@
-#if DEBUG
 import Supabase
 import SwiftUI
+
+#if DEBUG
 
 enum ChallengeLocalLaunch {
     static var enabled: Bool { ProcessInfo.processInfo.arguments.contains("--beta-challenges-local") }
@@ -137,10 +138,15 @@ struct ChallengeLocalDisclosures: View {
     }
 }
 
+#endif
+
 struct ChallengeV1Shell: View {
     @Bindable var store: ChallengeV1Store
     @Bindable var invitation: ChallengeInvitationIntent
     let logout: @MainActor () async -> Void
+    var accountContent: AnyView? = nil
+    var existingChallenges: AnyView? = nil
+    var serviceAvailable = true
     @Environment(\.scenePhase) private var scenePhase
     @State private var create = false
     @State private var selection = 0
@@ -152,8 +158,14 @@ struct ChallengeV1Shell: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
                         CobaltHomeHeader(create: { create = true }, refresh: { Task { await store.refresh() } })
-                        recovery
-                        if store.homeState == .loading {
+                        if let existingChallenges { existingChallenges }
+                        if serviceAvailable { recovery }
+                        if !serviceAvailable {
+                            CobaltNotice {
+                                Text("Your next challenge starts here").font(.headline)
+                                Text("Friend challenges and new personal goals aren’t open yet. You can still view and manage your existing challenges.")
+                            }.accessibilityIdentifier("cobalt.service.closed")
+                        } else if store.homeState == .loading {
                             ProgressView("Loading your challenges…").accessibilityIdentifier("beta.home.loading")
                         } else if store.homeState == .unavailable {
                             Text("We couldn’t load your challenges. Refresh to try again.")
@@ -194,8 +206,14 @@ struct ChallengeV1Shell: View {
                     Section {
                         Button("Create a challenge") { create = true }.accessibilityIdentifier("beta.create.open")
                         Text("Choose a friend goal, a best-result challenge or a personal goal.").font(.footnote)
-                        ChallengeEntryPanel(store: store, invitation: invitation)
+                        if serviceAvailable {
+                            ChallengeEntryPanel(store: store, invitation: invitation)
+                        } else {
+                            Text("New challenges aren’t open yet. You can still view and manage your existing challenges.")
+                            if let existingChallenges { existingChallenges }
+                        }
                     }
+                    if serviceAvailable {
                     ForEach(ChallengeV1Section.allCases, id: \.self) { section in
                         Section(section.title) {
                             if let state = store.sections[section] {
@@ -209,31 +227,44 @@ struct ChallengeV1Shell: View {
                             }
                         }
                     }
+                    }
                 }.scrollContentBackground(.hidden).background(CompetitiveTrustTheme.canvas).navigationTitle("Challenges").refreshable { await store.refresh() }
             }.toolbar(.hidden, for: .tabBar).tabItem { Label("Challenges", systemImage: "flag") }.tag(1)
-            NavigationStack {
-                ChallengeForm {
-                    ChallengeFormSection("Activity") {
-                        Text("Fictional activity only").font(.headline)
-                        Text("All four Apple Health sources still need physical testing. Real activity cannot score these challenges.")
+            Group {
+                if let accountContent { accountContent }
+                else {
+                    #if DEBUG
+                    NavigationStack {
+                        ChallengeForm {
+                            ChallengeFormSection("Activity") {
+                                Text("Fictional activity only").font(.headline)
+                                Text("All four Apple Health sources still need physical testing. Real activity cannot score these challenges.")
+                            }
+                            ChallengeFormSection("Account") {
+                                Text("Switching accounts clears shared content. Saved actions belong only to the account that made them.")
+                                Button("Sign out") { Task { await logout() } }.accessibilityIdentifier("beta.signout")
+                            }
+                            ChallengeFormSection("Help and safety") {
+                                NavigationLink("Privacy and terms") { ChallengeLocalDisclosures() }
+                                Text("You can leave any unfinished challenge from its details. No real money moves.")
+                                Text("Report or block someone from a shared challenge. External beta access is closed.")
+                            }
+                        }.navigationTitle("You")
                     }
-                    ChallengeFormSection("Account") {
-                        Text("Switching accounts clears shared content. Saved actions belong only to the account that made them.")
-                        Button("Sign out") { Task { await logout() } }.accessibilityIdentifier("beta.signout")
-                    }
-                    ChallengeFormSection("Help and safety") {
-                        NavigationLink("Privacy and terms") { ChallengeLocalDisclosures() }
-                        Text("You can leave any unfinished challenge from its details. No real money moves.")
-                        Text("Report or block someone from a shared challenge. External beta access is closed.")
-                    }
-                }.navigationTitle("You")
+                    #else
+                    NavigationStack { Button("Sign out") { Task { await logout() } }.navigationTitle("You") }
+                    #endif
+                }
             }.toolbar(.hidden, for: .tabBar).tabItem { Label("You", systemImage: "person") }.tag(2)
         }
         .toolbar(.hidden, for: .tabBar).clipped()
         ChallengeBottomNavigation(selection: $selection)
         }
         .background(CompetitiveTrustTheme.canvas.ignoresSafeArea())
-        .sheet(isPresented: $create) { ChallengeV1Create(store: store) }
+        .sheet(isPresented: $create) {
+            if serviceAvailable { ChallengeV1Create(store: store) }
+            else { CobaltChallengeUnavailableView() }
+        }
         .onChange(of: store.actor) { create = false }
         .onChange(of: scenePhase) { _, value in
             if value != .active { store.hide() }
@@ -495,4 +526,3 @@ struct ChallengeV1Detail: View {
         }
     }
 }
-#endif

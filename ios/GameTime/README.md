@@ -1,3 +1,15 @@
+# Default interface — September 11, 2026
+
+Normal sign-in now opens Cobalt **Home / Challenges / You** in every build
+configuration. **Existing challenges** opens the retained Personal journey;
+You keeps the real account, privacy, support and sign-out routes. New challenge
+service admission remains closed and is explained on screen. No launch flag
+is needed on an installed phone. The explicit fixture/demo and Debug local
+preview routes remain available for their existing regression scenarios.
+
+See [activation verification](../../docs/design/crisp-cobalt/DEFAULT_UI.md).
+The following sections describe the retained Personal implementation.
+
 # GameTime product app
 
 > **Product direction — September 4, 2026.** This README describes the

@@ -138,3 +138,11 @@ actor ChallengeV1RequestStore {
     }
     private func path(_ actor: UUID) -> URL { directory.appendingPathComponent(actor.uuidString.lowercased()+".json") }
 }
+
+/// No transport or fabricated data. Installing the new UI does not admit hosted challenges.
+@MainActor final class UnavailableChallengeV1Client: ChallengeV1Client {
+    func list(actor: UUID) async throws -> [ChallengeV1] { throw ChallengeV1Error.unavailable }
+    func detail(_ id: UUID, actor: UUID) async throws -> ChallengeV1 { throw ChallengeV1Error.unavailable }
+    func submit(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt { throw ChallengeV1Error.unavailable }
+    func abandon(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt { throw ChallengeV1Error.unavailable }
+}
