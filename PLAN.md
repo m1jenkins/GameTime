@@ -1,5 +1,12 @@
 # Build friend duels and personal performance commitments
 
+For current execution, use the September 11
+[remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
+[one-task prompts](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
+They account for the c8/Cobalt implementation and the existing partial P4 work.
+The September 6 roadmap below is historical context; do not restart its completed
+phases or use its old implementation-status statements as the current baseline.
+
 September 9 authority: [D135's remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md)
 adds the iPhone-only runtime with inert historical Watch source, paired Watch as
 a launch requirement rather than a pre-hardware blocker, one private operator

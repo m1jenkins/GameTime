@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Focused real-session races for Prompt 4 on a task-owned disposable DB."""
 import argparse
+from collections.abc import Callable
 import json
 import os
 from pathlib import Path
@@ -14,6 +15,25 @@ def literal(value: object) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 
+def cleanup_owned(
+    processes: list[subprocess.Popen[str]],
+    disable_gates: Callable[[], subprocess.CompletedProcess[str]],
+) -> None:
+    # A timed-out contender can still hold the shared gate. Close our sessions
+    # before asking the database for the exclusive gate used by shutdown.
+    for process in processes:
+        if process.poll() is None:
+            process.kill()
+    try:
+        for process in processes:
+            process.communicate(timeout=5)
+    finally:
+        result = disable_gates()
+        if result.returncode != 0:
+            raise RuntimeError("Could not disable owned Prompt 4 gates: " + result.stderr.strip())
+    print("Owned Prompt 4 gates disabled; fictional rows remain only in the disposable database.", flush=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--db-url", required=True)
@@ -23,6 +43,7 @@ def main() -> None:
     config = (args.owned_root / "supabase/config.toml").read_text()
     assert f'project_id = "{args.owned_project}"' in config
     assert "127.0.0.1:59432" in args.db_url
+    owned_processes: list[subprocess.Popen[str]] = []
 
     def sql(source: str, check: bool = True) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
@@ -31,6 +52,7 @@ def main() -> None:
             text=True,
             capture_output=True,
             check=check,
+            timeout=20,
         )
 
     def value(source: str) -> str:
@@ -67,6 +89,7 @@ def main() -> None:
                 text=True,
                 bufsize=1,
             )
+            owned_processes.append(self.process)
             assert self.process.stdin and self.process.stdout
             self.process.stdin.write("begin; " + source + "; select 1;\n")
             self.process.stdin.flush()
@@ -98,6 +121,7 @@ def main() -> None:
             text=True,
             env={**os.environ, "PGAPPNAME": name},
         )
+        owned_processes.append(process)
         assert process.stdin
         process.stdin.write(source)
         process.stdin.close()
@@ -257,8 +281,10 @@ def main() -> None:
         second = json.loads(value(f"select public.challenge_run_batch_v1('{run_two}',1)::text"))
         check(len(second["processed"]) == 1 and second["processed"][0]["id"] == first_due, "released challenge is claimed by an independent worker completion")
     finally:
-        sql("select public.challenge_runtime_v1(false,false,false,'{}',null)", check=False)
-        print("Owned Prompt 4 gates disabled; fictional rows remain only in the disposable database.", flush=True)
+        cleanup_owned(
+            owned_processes,
+            lambda: sql("select public.challenge_runtime_v1(false,false,false,'{}',null)", check=False),
+        )
 
     print(json.dumps({"evidence": "real concurrent SQL sessions on task-owned disposable DB", "count": len(checks), "checks": checks}, indent=2))
 

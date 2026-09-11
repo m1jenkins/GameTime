@@ -1,5 +1,24 @@
 # GameTime project memory
 
+## Simplified local execution — September 11, 2026
+
+The owner asked to simplify the remaining prompts and implementation only where
+there is a concrete benefit. Use the current
+[remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
+[prompt pack](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for next work.
+Keep focused correctness, privacy, revocation, retry and migration checks;
+reserve the complete runtime/release matrix and long soak for integration/release.
+Cancelled candidate-gate recovery is not a local implementation prerequisite.
+This does not accept its failed verification or the partial Prompt 4 candidate.
+
+The separate current product includes Cobalt over the c8-derived backend. The
+original dirty checkout remains preserved. Resume existing P4 work on the current
+product baseline, then run P5/P6 sequentially when requested and locally accepted.
+Do not restart completed prompts or import the entire dirty copy/design patch.
+The [cleanup report](outputs/reports/2026-09-11-beta-simplification.md) records
+the exact branches, safe changes and remaining work. Product agreements, source
+acceptance, community requirements and external-action boundaries stay intact.
+
 ## Default app interface — September 11, 2026
 
 The owner selected `codex/crisp-cobalt-ui` as the default UI and authorized a

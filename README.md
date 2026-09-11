@@ -1,5 +1,11 @@
 # GameTime
 
+Current local Beta work follows the September 11
+[remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
+[prompt pack](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
+The newer c8/Cobalt product is in the separate current checkout identified there;
+the original dirty checkout and historical implementation notes below are preserved.
+
 September 9 authority: [D135's remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md)
 adds the iPhone-only runtime with inert historical Watch source, paired Watch as
 a launch requirement rather than a pre-hardware blocker, one private operator
