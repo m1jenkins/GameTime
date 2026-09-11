@@ -143,12 +143,7 @@ private struct LaunchRetryContent: View {
 private struct BetterBetWordmark: View {
   var body: some View {
     Text(GameTimePublicIdentity.name)
-      .font(
-        CompetitiveTrustTheme.displayFont(
-          size: 30,
-          relativeTo: .title2
-        )
-      )
+      .modifier(CobaltDisplay(size: 30))
       .tracking(-0.6)
       .foregroundStyle(CompetitiveTrustTheme.coralInk)
       .accessibilityLabel(Text(GameTimePublicIdentity.name))

@@ -14,7 +14,8 @@ import XCTest
         let file=root.appendingPathComponent("tmp/beta-native-smoke.json")
         guard FileManager.default.fileExists(atPath:file.path) else { throw XCTSkip("Run scripts/beta-native-smoke.py with the owned Simulator.") }
         config=try JSONDecoder().decode(Config.self,from:Data(contentsOf:file))
-        XCTAssertEqual(config.url.absoluteString,"http://127.0.0.1:58339")
+        XCTAssertTrue(SupabaseWeeklyClient.isExplicitLoopback(config.url))
+        XCTAssertEqual(config.url.absoluteString, ProcessInfo.processInfo.environment["GAMETIME_BETA_EXPECTED_LOCAL_URL"] ?? "http://127.0.0.1:58339")
         let sdk=SupabaseClient(supabaseURL:config.url,supabaseKey:config.key,options:.init(auth:.init(storage:ChallengeMemoryAuthStorage(),autoRefreshToken:false,emitLocalSessionAsInitialSession:true)))
         let directory=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)

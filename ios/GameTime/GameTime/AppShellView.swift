@@ -74,11 +74,7 @@ struct AppShellView: View {
             .tag(AppTab.you)
         }
         .tint(CompetitiveTrustTheme.actionCoral)
-        .toolbarBackground(
-            CompetitiveTrustTheme.paper,
-            for: .tabBar
-        )
-        .toolbarBackground(.visible, for: .tabBar)
+        .daybreakTabChrome()
         .toolbarColorScheme(.light, for: .tabBar)
         .preferredColorScheme(.light)
         .sheet(item: $router.presentedSheet) { destination in

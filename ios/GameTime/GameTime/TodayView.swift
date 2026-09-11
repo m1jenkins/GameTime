@@ -160,7 +160,6 @@ struct TodayView: View {
                         progress: progress,
                         terms: summary.terms
                     )
-                    .colorScheme(.dark)
                 }
 
                 Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
@@ -169,7 +168,6 @@ struct TodayView: View {
                     presentation: healthPresentation,
                     policy: summary.stepDataPolicy
                 )
-                .colorScheme(.dark)
 
                 Button("See details") {
                     router.todayPath.append(

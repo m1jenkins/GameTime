@@ -169,7 +169,7 @@ import XCTest
         try await Task.sleep(for: .milliseconds(300))
         let name = "overlap-\(detail ? "detail" : "home")-old-revision-\(revision)"
         let before = try capture(window, controller, name: name + "-shared")
-        if detail { XCTAssertTrue(before.contains("sharedfriend")); XCTAssertTrue(before.contains("321 steps")) }
+        if detail { XCTAssertTrue(before.contains("sharedfriend")); XCTAssertTrue(before.contains("321 of 2,000 steps")) }
         else { XCTAssertFalse(before.contains("you left this challenge")); XCTAssertTrue(before.contains("507")) }
         fixture.client.holding = true; fixture.clock.value = 20
         let a = Task { await fixture.store.loadMore(.active) }
@@ -181,14 +181,14 @@ import XCTest
         let calls = fixture.client.detailCalls
         try await Task.sleep(for: .milliseconds(300))
         let restricted = try capture(window, controller, name: name + "-restricted")
-        if detail { XCTAssertFalse(restricted.contains("sharedfriend")); XCTAssertFalse(restricted.contains("321 steps")) }
+        if detail { XCTAssertFalse(restricted.contains("sharedfriend")); XCTAssertFalse(restricted.contains("321 of 2,000 steps")) }
         else { XCTAssertTrue(restricted.contains("you left this challenge")); XCTAssertTrue(restricted.contains("507")) }
         fixture.clock.value = 40
         responseA.finish(fixture.client.pageValue(.active, rows: [fixture.row(hidden: false, revision: revision)], cursor: nil)); await a.value
         try await Task.sleep(for: .milliseconds(300))
         let late = try capture(window, controller, name: name + "-after-late-response")
         XCTAssertEqual(fixture.client.detailCalls, calls, "No extra detail fetch or remount can conceal the late response")
-        if detail { XCTAssertFalse(late.contains("sharedfriend")); XCTAssertFalse(late.contains("321 steps")); XCTAssertTrue(late.contains("100 steps")) }
+        if detail { XCTAssertFalse(late.contains("sharedfriend")); XCTAssertFalse(late.contains("321 of 2,000 steps")); XCTAssertTrue(late.contains("100 of 1,000 steps")) }
         else { XCTAssertTrue(late.contains("you left this challenge")); XCTAssertTrue(late.contains("507")) }
         assertRestricted(fixture)
         XCTAssertNotNil(controller.view.window)
@@ -207,7 +207,8 @@ import XCTest
         let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
         let image = UIGraphicsImageRenderer(size: window.bounds.size, format: format).image { controller.view.layer.render(in: $0.cgContext) }
         let cg = try XCTUnwrap(image.cgImage); var lines: [String] = []
-        for y in stride(from: 0, to: cg.height, by: 650) {
+        // Keep text crossing a crop edge whole in at least one OCR tile.
+        for y in stride(from: 0, to: cg.height, by: 550) {
             let tile = try XCTUnwrap(cg.cropping(to: CGRect(x: 0, y: y, width: cg.width, height: min(650, cg.height - y))))
             let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
             request.recognitionLanguages = ["en-US"]; request.minimumTextHeight = 0.005

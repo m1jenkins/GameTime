@@ -37,7 +37,7 @@ struct YouView: View {
                 settingsSection
                 demoSection
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, 20)
             .padding(.top, 4)
         }
         .daybreakTabScrollClearance()
@@ -49,7 +49,7 @@ struct YouView: View {
     @ViewBuilder
     private var profileCard: some View {
         if let profile = model.profile {
-            DaybreakCard {
+            CobaltOpenSection {
                 HStack(spacing: 15) {
                     InitialsAvatar(
                         initials: profile.initials,
@@ -58,12 +58,7 @@ struct YouView: View {
                     )
                     VStack(alignment: .leading, spacing: 3) {
                         Text(profile.displayName)
-                            .font(
-                                CompetitiveTrustTheme.displayFont(
-                                    size: 23,
-                                    relativeTo: .title2
-                                )
-                            )
+                            .font(.title2.bold())
                             .tracking(-0.65)
                         Text("@\(profile.handle)")
                             .font(.subheadline)
@@ -124,7 +119,7 @@ struct YouView: View {
     private var healthSection: some View {
         Group {
             DaybreakSectionLabel(text: "Apple Health")
-            DaybreakCard {
+            CobaltOpenSection {
                 VStack(alignment: .leading, spacing: 12) {
                     Label(
                         personalStore.healthReadiness.permitsCreation
@@ -134,12 +129,7 @@ struct YouView: View {
                             ? "checkmark.circle.fill"
                             : "heart.fill"
                     )
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: 18,
-                                relativeTo: .headline
-                            )
-                        )
+                        .font(.headline)
                     Text(
                         personalStore.healthReadiness.permitsCreation
                             ? "GameTime can update your challenge automatically from your Apple Health step history."
@@ -191,7 +181,7 @@ struct YouView: View {
     private var settingsSection: some View {
         Group {
             DaybreakSectionLabel(text: "Settings")
-            DaybreakCard {
+            CobaltOpenSection {
                 VStack(spacing: 0) {
                     Button {
                         router.youPath.append(.trustAndPrivacy)
@@ -258,7 +248,7 @@ struct YouView: View {
     private var demoSection: some View {
         if demoMode.isAvailable {
             DaybreakSectionLabel(text: "Demo")
-            DaybreakCard {
+            CobaltOpenSection {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(demoMode.isActive ? "Exit demo mode" : "Open demo mode")
@@ -347,7 +337,7 @@ struct TrustAndPrivacyView: View {
                     icon: "lock.fill"
                 )
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, 20)
             .padding(.top, 18)
         }
         .daybreakTabScrollClearance()
@@ -361,7 +351,7 @@ struct TrustAndPrivacyView: View {
         detail: String,
         icon: String
     ) -> some View {
-        DaybreakCard {
+        CobaltOpenSection {
             HStack(alignment: .top, spacing: 13) {
                 Image(systemName: icon)
                     .font(.system(size: 20, weight: .bold))
@@ -370,12 +360,7 @@ struct TrustAndPrivacyView: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 5) {
                     Text(title)
-                        .font(
-                            CompetitiveTrustTheme.displayFont(
-                                size: 18,
-                                relativeTo: .headline
-                            )
-                        )
+                        .font(.headline)
                     Text(detail)
                         .font(.subheadline)
                         .foregroundStyle(CompetitiveTrustTheme.secondaryText)
@@ -404,7 +389,7 @@ struct AccountSupportView: View {
                 accountSection
                 versionNote
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, 20)
             .padding(.top, 4)
         }
         .daybreakTabScrollClearance()
@@ -435,7 +420,7 @@ struct AccountSupportView: View {
     private var helpDocumentsSection: some View {
         Group {
             DaybreakSectionLabel(text: "Help & documents")
-            DaybreakCard {
+            CobaltOpenSection {
                 VStack(spacing: 0) {
                     externalRow(
                         title: "Apple Health help",
@@ -470,7 +455,7 @@ struct AccountSupportView: View {
     private var accountSection: some View {
         Group {
             DaybreakSectionLabel(text: "Account")
-            DaybreakCard {
+            CobaltOpenSection {
                 VStack(spacing: 12) {
                     if !demoMode.isActive {
                         Button(role: .destructive) {

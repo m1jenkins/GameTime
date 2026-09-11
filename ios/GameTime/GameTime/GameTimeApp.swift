@@ -570,13 +570,13 @@ private struct SignedOutView: View {
                 Spacer(minLength: 56)
 
                 Text(GameTimePublicIdentity.name)
-                    .font(.system(size: 20, weight: .black, design: .rounded))
+                    .modifier(CobaltDisplay(size: 28))
                     .foregroundStyle(CompetitiveTrustTheme.actionCoral)
                     .accessibilityLabel(Text(GameTimePublicIdentity.name))
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Commit clearly.\nShow up daily.")
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                        .modifier(CobaltDisplay(size: 36))
                     Text(
                         "Set one step goal, put a little on the line, and see it through for seven days."
                     )

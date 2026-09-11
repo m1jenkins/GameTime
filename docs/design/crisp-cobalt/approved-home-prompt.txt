@@ -1,0 +1,57 @@
+Use case: ui-mockup
+Asset type: GameTime iPhone home screen, original second visual concept.
+Input image: the local GameTime v1 image is the EDIT TARGET. Preserve its single front-facing iPhone, pale neutral background, full-device portrait framing, native status bar and device safe areas. Completely redesign the UI inside the screen according to the direction below. Preserve the exact underlying content and app semantics, not the old layout or typography.
+
+DESIGN INTENT
+Make this feel like a distinctive premium athletic product. The first image was too timid and generic. Build a dramatically stronger composition using a saturated cobalt leaderboard, bold tightly spaced condensed athletic typography, tabular statistics, and open editorial spacing. High-quality contemporary sports art direction with warmth and confidence. General lessons from inspected Nike Run Club references: expressive condensed numerals and strong scale contrast. General lessons from inspected Strava references: easy-to-scan rank, athlete, and metric columns. The user's Robinhood reference suggests confident data emphasis and purposeful restraint. Do not copy any reference layout, logo, or signature brand motif. Do not introduce trading charts, financial indicators, or fake activity histories.
+
+PALETTE AND MATERIAL
+Light mode, white or near-white page, deep ink #101724, vivid saturated cobalt #244DE6, pale cool gray #E9EDF4. The hero is a FLAT OPAQUE cobalt block, not glass. The rest of the progress content is fully opaque. Use expressive heavy condensed/slightly oblique display type for the feature title and key numerals; readable upright sans serif for names, supporting text and controls. Cobalt is the one dominant accent. No neon, lime, orange, photography, gradients, drop shadows around data panels, or overdecorated icons.
+
+LAYOUT AND HIERARCHY
+Design at approximately 402 x 874 logical points. All three sections must be clearly visible above the bottom navigation in the first viewport. About 20–24 pt side margins; balanced real phone spacing. Use one prominent contained feature, then open sections directly on white. No stack of identical rounded cards. Give the content corners a restrained radius around 12 points, reserving softer glass shapes for the controls.
+
+Header, approximately screen y 75–180:
+A smaller custom-feeling bold slightly oblique "GameTime" wordmark at upper left, approximately 25pt, and a compact "New challenge" control at upper right with plus sign and subtle frosted glass. Below, "Good morning, Alex" in confident readable upright type around 23pt. A smaller gray "Friday, Sep 11" beneath. Keep the greeting secondary to the main featured challenge.
+
+FEATURED FRIEND LEADERBOARD, approximately y 195–520:
+A dominant rich cobalt opaque rectangle with crisp restrained rounded corners, approximately 355pt wide and 320pt tall. At top left the exact title "Weekly steps", around 37pt in bold condensed slightly oblique WHITE display type, one line if it fits cleanly. Supporting line "You + 2 friends" in readable white. Another line "Ends Sun, Sep 13" in readable off-white. In the header's far-right empty area only, include two thin subtle curved line accents that loosely suggest the bend of a running track; this is quiet brand decoration, not a chart, ring, goal, or swoosh logo. It must not compete with text.
+Below, three generous scoreboard rows, precisely aligned:
+rank 1 | circle with initial M | Maya | 42,850 steps
+rank 2 | circle with initial A | You | 38,620 steps
+rank 3 | circle with initial J | Jordan | 35,400 steps
+Every rank numeral, initial, name, comma-separated number and unit must be legible. Use white tabular numerals around 27pt for step counts, names around 17pt, units around 12–13pt. Values right aligned, units on the same baseline or immediately below if necessary. Avatar circles small and restrained, with blue-gray opaque fills and very readable initials. All avatars use initials, no photos. The second row gets a slightly lighter cobalt opaque strip and a thin white leading rule; it remains a subtle emphasis. Use very fine white separators at low opacity. All content and text have high contrast. The rank is a plain number, no medal. This is a TARGET-FREE leaderboard: no progress bars, no completion percentages, no target, no sparkline, no invented historical data. Do not repeat the step count elsewhere in the header.
+
+PERSONAL GOAL, approximately y 550–675:
+Place directly on the WHITE page, no outer card. Title "Your exercise goal" in bold readable ink at left; smaller "Sep 7–13" at right.
+Below, "95 of 150 min" on one baseline, with 95 around 48pt in heavyweight condensed slightly oblique INK numerals and "of 150 min" smaller upright ink-gray. Strong optical alignment.
+Below that, a distinctive clean horizontal measurement-style progress bar: slim flat cobalt filled portion and cool-gray remaining track, gently squared ends with just 2pt rounding, rather than a fat rounded iOS pill. The full bar spans the section width and the cobalt fill is exactly approximately 63.3%, leaving 36.7% cool gray. A tiny flat vertical end-cap at the fill boundary may add precision. No printed percentage or extra labels. This is the ONLY progress bar in the entire screen.
+
+UPCOMING GOAL, approximately y 695–765:
+An open compact row separated by a thin ink-gray hairline, generous whitespace, no outer rounded card and no generic runner pictogram. Exact small label "Your next goal", then bold text "Run 20 km". Place "Sep 14–20" at the right with a small simple diagonal arrow as a quiet detail-link control. Keep the reading order clear and the date readable. Do not add a race time, pace or progress indication.
+
+NAVIGATION, approximately y 795–855:
+One very restrained floating liquid-glass bar with three items: Home, Challenges, You. Icons: simple house, simple flag, simple person outline. Home selected in cobalt with a subtle pale-blue local selection shape. Small readable labels. Blur/refraction only here and the New challenge control. Keep enough white safe space that the bottom bar never overlaps the upcoming row. Black native home indicator below.
+
+EXACT STRINGS TO PRESERVE
+"GameTime"
+"New challenge"
+"Good morning, Alex"
+"Friday, Sep 11"
+"Weekly steps"
+"You + 2 friends"
+"Ends Sun, Sep 13"
+"1", "M", "Maya", "42,850", "steps"
+"2", "A", "You", "38,620", "steps"
+"3", "J", "Jordan", "35,400", "steps"
+"Your exercise goal"
+"95 of 150 min"
+"Sep 7–13"
+"Your next goal"
+"Run 20 km"
+"Sep 14–20"
+"Home", "Challenges", "You"
+No extra words or captions. Preserve September 11 as Friday and the Sunday/Monday date ranges.
+
+FINISH
+Produce one polished, sharp, high-resolution PNG-like visual with the complete front-facing iPhone large in frame, realistic proportions, a slim dark frame, a subtle shadow, and pale neutral surrounding background. Prioritize impeccable typography, high contrast, and confident use of cobalt. No trophies, crowns, medals, streaks, flames, gambling symbolism, financial stakes, exercise pressure, warnings, red badges, confetti, copied brands, or watermarks. This is a visual concept only; maintain native-looking status and safe-area spacing.

@@ -6,21 +6,28 @@ struct DaybreakSectionLabel: View {
 
     var body: some View {
         Text(text)
-            .textCase(.uppercase)
-            .font(
-                CompetitiveTrustTheme.uiFont(
-                    size: 11,
-                    relativeTo: .caption,
-                    weight: .bold
-                )
-            )
-            .tracking(1.05)
-            .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+            .font(.headline)
+            .foregroundStyle(CompetitiveTrustTheme.textPrimary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 6)
             .padding(.top, 4)
             .accessibilityLabel(text)
             .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// Quiet, growing sections for account, forms and supporting content.
+struct CobaltOpenSection<Content: View>: View {
+    let content: Content
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) { content }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 16)
+            .foregroundStyle(CompetitiveTrustTheme.textPrimary)
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(CompetitiveTrustTheme.divider).frame(height: 1)
+            }
     }
 }
 
@@ -64,13 +71,7 @@ struct DaybreakCard<Content: View>: View {
                         .stroke(borderColor, lineWidth: 1)
                 }
             }
-            .shadow(
-                color: CompetitiveTrustTheme.primaryText.opacity(
-                    tone == .standard ? 0.05 : 0
-                ),
-                radius: 7,
-                y: 3
-            )
+
     }
 
     private var background: Color {
@@ -78,7 +79,7 @@ struct DaybreakCard<Content: View>: View {
         case .standard:
             CompetitiveTrustTheme.card
         case .inverse:
-            CompetitiveTrustTheme.primaryText
+            CompetitiveTrustTheme.feature
         case .pledge:
             CompetitiveTrustTheme.sunTint
         }
@@ -91,7 +92,7 @@ struct DaybreakCard<Content: View>: View {
     }
 
     private var cardShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: 24, style: .continuous)
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
     }
 }
 

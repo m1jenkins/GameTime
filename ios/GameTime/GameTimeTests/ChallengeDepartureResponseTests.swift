@@ -143,8 +143,8 @@ import XCTest
         try await Task.sleep(for: .milliseconds(300))
         let name = "departure-\(detail ? "detail" : "home")-old-revision-\(oldRevision)"
         let before = try capture(window, controller, name: name + "-shared")
-        XCTAssertTrue(before.contains("100 steps"))
-        if detail { XCTAssertTrue(before.contains("departedfriend")); XCTAssertTrue(before.contains("321 steps")); XCTAssertTrue(before.contains("2,000 steps")) }
+        XCTAssertTrue(before.contains("100 of 1,000 steps"))
+        if detail { XCTAssertTrue(before.contains("departedfriend")); XCTAssertTrue(before.contains("321 of 2,000 steps")); XCTAssertTrue(before.contains("2,000 steps")) }
         else { XCTAssertTrue(before.contains("507")) }
         fixture.clock.value = 20; fixture.client.holding = true
         let old = begin(.refresh, fixture); let releaseOld = try await held(.refresh, fixture)
@@ -165,14 +165,14 @@ import XCTest
         XCTAssertNotNil(controller.view.window)
     }
     private func assertRendered(_ text: String, detail: Bool, file: StaticString = #filePath, line: UInt = #line) {
-        XCTAssertTrue(text.contains("109 steps"), file: file, line: line)
+        XCTAssertTrue(text.contains("109 of 1,000 steps"), file: file, line: line)
         if detail {
             XCTAssertFalse(text.contains("departedfriend"), file: file, line: line)
-            XCTAssertFalse(text.contains("321 steps"), file: file, line: line)
+            XCTAssertFalse(text.contains("321 of 2,000 steps"), file: file, line: line)
             XCTAssertFalse(text.contains("2,000 steps"), file: file, line: line)
             XCTAssertTrue(text.contains("former participant"), file: file, line: line)
             XCTAssertTrue(text.contains("continuingfriend"), file: file, line: line)
-            XCTAssertTrue(text.contains("654 steps"), file: file, line: line)
+            XCTAssertTrue(text.contains("654 of 3,000 steps"), file: file, line: line)
         } else { XCTAssertTrue(text.contains("507"), file: file, line: line) }
     }
     private func assertRedacted(_ fixture: DepartureFixture, expected: ChallengeV1? = nil, file: StaticString = #filePath, line: UInt = #line) {
@@ -192,7 +192,9 @@ import XCTest
         let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
         let image = UIGraphicsImageRenderer(size: window.bounds.size, format: format).image { controller.view.layer.render(in: $0.cgContext) }
         let cg = try XCTUnwrap(image.cgImage); var lines: [String] = []
-        for y in stride(from: 0, to: cg.height, by: 650) {
+        // Overlap crops so a line crossing a tile edge is recognized whole in
+        // the next tile. The cobalt Home value crosses the old 650-point edge.
+        for y in stride(from: 0, to: cg.height, by: 550) {
             let tile = try XCTUnwrap(cg.cropping(to: CGRect(x: 0, y: y, width: cg.width, height: min(650, cg.height - y))))
             let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
             request.recognitionLanguages = ["en-US"]; request.minimumTextHeight = 0.005

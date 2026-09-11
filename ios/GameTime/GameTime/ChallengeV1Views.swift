@@ -1,5 +1,4 @@
 #if DEBUG
-import Charts
 import Supabase
 import SwiftUI
 
@@ -81,7 +80,7 @@ struct ChallengeLocalLaunchView: View {
                 }
             }
         }.frame(maxWidth: ProcessInfo.processInfo.arguments.contains("--beta-compact-check") ? 320 : .infinity)
-            .tint(CompetitiveTrustTheme.actionCoral).onOpenURL { invitation.receive($0) }
+            .tint(CompetitiveTrustTheme.brand).background(CompetitiveTrustTheme.canvas).onOpenURL { invitation.receive($0) }
     }
 }
 
@@ -124,7 +123,7 @@ struct ChallengeLocalDisclosures: View {
             }
             ChallengeFormSection("Your information") {
                 Text("The local service saves your account, challenge agreements, consent, normalized fictional progress, corrections, reviews and results. Saved requests on this phone help recover an interrupted action.")
-                Text("Selected friends can see your username, agreed goal when there is one, current challenge activity and results. Personal activity and community activity are private to you; community screens show anonymous counts.")
+                Text("Selected friends can see your username, agreed goal when there is one, current challenge activity and results. Personal activity and community activity are private to you. Participant totals are unavailable in this preview.")
                 Text("Assigned operators can inspect the limited challenge facts needed for reviews and safety reports. Raw Health records, routes and activity history outside the challenge are not shared.")
                 Text("The separate private activity check keeps its records on this phone and clears them when you leave the check. It does not send them to the challenge service.")
                 Text("There are no analytics or advertising in this preview. Local preview records are retained for verification; stopping the preview revokes its account sessions and preserves the records.")
@@ -152,10 +151,8 @@ struct ChallengeV1Shell: View {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
-                        if !dynamicTypeSize.isAccessibilitySize { Text("GameTime").font(.largeTitle.bold().italic()) }
-                        Text("Simulated stakes — no real money moves.").font(.subheadline)
+                        CobaltHomeHeader(create: { create = true }, refresh: { Task { await store.refresh() } })
                         recovery
-                        if !dynamicTypeSize.isAccessibilitySize || !store.ordered.isEmpty { Text("Your challenges").font(.title2.bold()) }
                         if store.homeState == .loading {
                             ProgressView("Loading your challenges…").accessibilityIdentifier("beta.home.loading")
                         } else if store.homeState == .unavailable {
@@ -167,21 +164,29 @@ struct ChallengeV1Shell: View {
                             Button("Explore challenges") { selection = 1 }.buttonStyle(ChallengeActionStyle())
                         }
                         ForEach(ChallengeV1Section.allCases, id: \.self) { section in
-                            if let state = store.sections[section], !state.rows.isEmpty || state.error != nil {
-                                Text(section.title).font(.headline)
-                                if let message = state.error { Text(message).font(.caption) }
+                            if let state = store.sections[section], !state.rows.isEmpty || (state.error != nil && state.error != store.error) {
+                                if section == .action || section == .history { Text(section.title).font(.headline).accessibilityAddTraits(.isHeader) }
+                                if let message = state.error, message != store.error { Text(message).font(.caption) }
                                 if !state.fresh && !state.rows.isEmpty { Text("Last saved view · refresh before making a choice.").font(.caption) }
-                                ForEach(state.rows) { row in
+                                ForEach(homeRows(state.rows, section: section)) { row in
                                     NavigationLink { ChallengeV1Detail(store: store, id: row.id) } label: {
-                                        MatchdayChallengeCard(row: row, actor: store.actor)
+                                        if row.id == featuredID {
+                                            CobaltFeaturedChallenge(row: row, actor: store.actor)
+                                        } else {
+                                            CobaltChallengeSummary(row: row, actor: store.actor)
+                                        }
                                     }.buttonStyle(.plain)
                                 }
                                 if state.cursor != nil { Button("More in \(section.title.lowercased())") { Task { await store.loadMore(section) } } }
                             }
                         }
-                    }.padding(20)
-                }.modifier(ChallengeScrollLegibility()).refreshable { await store.refresh() }
-                    .toolbar { Button("Refresh", systemImage: "arrow.clockwise") { Task { await store.refresh() } } }
+                        if featuredID == nil {
+                            Text("Simulated stakes — no real money moves.")
+                                .font(.footnote).foregroundStyle(CompetitiveTrustTheme.textSecondary)
+                        }
+                    }.padding(.horizontal, 20).padding(.vertical, 12)
+                }.background(CompetitiveTrustTheme.canvas).modifier(ChallengeScrollLegibility()).refreshable { await store.refresh() }
+                    .toolbar(.hidden, for: .navigationBar)
                     .navigationBarTitleDisplayMode(.inline)
             }.toolbar(.hidden, for: .tabBar).tabItem { Label("Home", systemImage: "house") }.tag(0)
             NavigationStack {
@@ -197,14 +202,14 @@ struct ChallengeV1Shell: View {
                                 if let message = state.error { Text(message).font(.caption) }
                                 ForEach(state.rows) { row in
                                     NavigationLink { ChallengeV1Detail(store: store, id: row.id) } label: {
-                                        VStack(alignment: .leading) { Text(row.title); Text(row.own(store.actor)?.exited == true ? "You left this challenge" : row.statusText).font(.caption) }
+                                        CobaltChallengeSummary(row: row, actor: store.actor)
                                     }.accessibilityIdentifier("beta.row.\(row.status).\(row.policy).\(row.id.uuidString)")
                                 }
                                 if state.cursor != nil { Button("Show more") { Task { await store.loadMore(section) } }.accessibilityIdentifier("beta.more.\(section.rawValue)") }
                             }
                         }
                     }
-                }.navigationTitle("Challenges").refreshable { await store.refresh() }
+                }.scrollContentBackground(.hidden).background(CompetitiveTrustTheme.canvas).navigationTitle("Challenges").refreshable { await store.refresh() }
             }.toolbar(.hidden, for: .tabBar).tabItem { Label("Challenges", systemImage: "flag") }.tag(1)
             NavigationStack {
                 ChallengeForm {
@@ -227,6 +232,7 @@ struct ChallengeV1Shell: View {
         .toolbar(.hidden, for: .tabBar).clipped()
         ChallengeBottomNavigation(selection: $selection)
         }
+        .background(CompetitiveTrustTheme.canvas.ignoresSafeArea())
         .sheet(isPresented: $create) { ChallengeV1Create(store: store) }
         .onChange(of: store.actor) { create = false }
         .onChange(of: scenePhase) { _, value in
@@ -235,15 +241,26 @@ struct ChallengeV1Shell: View {
         }
         .task(id: store.actor) { await store.watchVisibility() }
     }
+    private var featuredID: UUID? {
+        store.sections[.active]?.rows.first {
+            $0.format.mode == .friend && $0.status == "active" && !$0.socialHidden && $0.own(store.actor)?.exited == false
+        }?.id
+    }
+    private func homeRows(_ rows: [ChallengeV1], section: ChallengeV1Section) -> [ChallengeV1] {
+        guard section == .active else { return rows }
+        let featured = rows.filter { $0.id == featuredID }
+        let others = rows.filter { $0.id != featuredID }
+        return featured + others.filter { $0.format.mode == .personal } + others.filter { $0.format.mode != .personal }
+    }
     @ViewBuilder var recovery: some View {
         if let error = store.error { Text(error).foregroundStyle(.secondary).accessibilityIdentifier("beta.error") }
         if store.pending != nil {
-            VStack(alignment: .leading, spacing: 12) {
+            CobaltNotice {
                 Text("Your action is saved on this phone.").font(.headline)
                 Text("Retry checks the same action. Stop waiting checks whether it completed and prevents a late request from changing anything.")
                 Button("Retry saved action") { Task { await store.retry() } }.accessibilityIdentifier("beta.retry")
                 Button("Stop waiting for this action") { Task { await store.abandon() } }.accessibilityIdentifier("beta.abandon")
-            }.disabled(store.busy)
+            }.buttonStyle(ChallengeActionStyle()).disabled(store.busy)
         }
         if !store.fresh && !store.challenges.isEmpty { Text("Last saved view · refresh before making a choice.").font(.caption) }
     }
@@ -273,10 +290,11 @@ struct ChallengeBottomNavigation: View {
                     ForEach(tabs.indices, id: \.self) { index in
                         Button { selection = index } label: {
                             VStack(spacing: 5) {
-                                Image(systemName: tabs[index].1).font(.title3).accessibilityHidden(true)
+                                Image(systemName: selection == index ? tabs[index].1 + ".fill" : tabs[index].1).font(.title2).accessibilityHidden(true)
                                 Text(tabs[index].0).font(.caption.bold()).fixedSize(horizontal: false, vertical: true)
                             }.frame(maxWidth: .infinity, minHeight: 48)
                                 .foregroundStyle(selection == index ? CompetitiveTrustTheme.actionCoral : CompetitiveTrustTheme.primaryText)
+                                .background(selection == index ? CompetitiveTrustTheme.selection : .clear, in: RoundedRectangle(cornerRadius: 16))
                                 .contentShape(Rectangle())
                         }.buttonStyle(.plain).accessibilityLabel(tabs[index].0)
                             .accessibilityAddTraits(selection == index ? .isSelected : [])
@@ -284,9 +302,10 @@ struct ChallengeBottomNavigation: View {
                     }
                 }
             }
-        }.padding(.horizontal, 20).padding(.vertical, 10)
-            .background(CompetitiveTrustTheme.paper)
-            .overlay(alignment: .top) { Rectangle().fill(CompetitiveTrustTheme.hairlineDivider).frame(height: 1) }
+        }.padding(8)
+            .modifier(CobaltNavigationMaterial())
+            .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 4)
+            .background(CompetitiveTrustTheme.canvas)
     }
 }
 
@@ -300,49 +319,30 @@ struct ChallengeActionStyle: ButtonStyle {
     @Environment(\.isEnabled) private var enabled
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.font(.body.weight(.semibold))
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 16).padding(.vertical, 12).frame(minHeight: 44)
-            .foregroundStyle(enabled ? CompetitiveTrustTheme.actionCoral : CompetitiveTrustTheme.primaryText)
+            .foregroundStyle(configuration.role == .destructive ? CompetitiveTrustTheme.error : enabled ? CompetitiveTrustTheme.brand : CompetitiveTrustTheme.textSecondary)
             .background(enabled ? CompetitiveTrustTheme.coralTint : CompetitiveTrustTheme.paperSunk, in: RoundedRectangle(cornerRadius: 12))
             .opacity(configuration.isPressed ? 0.8 : 1)
     }
 }
 
 struct MatchdayChallengeCard: View {
-    let row: ChallengeV1; let actor: UUID?
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    let row: ChallengeV1
+    let actor: UUID?
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            if !dynamicTypeSize.isAccessibilitySize { HStack {
-                MatchdayMetricIcon(metric: row.format.metric)
-                Text(row.format.metric.title.uppercased()).font(.caption.bold()); Spacer(minLength:0)
-                Text(row.format.mode.title).font(.caption)
-            } }
-            Text(row.own(actor)?.exited == true ? "You left this challenge" : row.statusText).font(.subheadline)
-            Text(row.title.uppercased()).font(.title2.bold()).fixedSize(horizontal:false,vertical:true)
-            if let own = row.own(actor) {
-                if dynamicTypeSize.isAccessibilitySize {
-                    Text("Your activity: " + (own.fact?.value.map { row.format.metric.display($0) } ?? "No update yet")).font(.body)
-                    if row.format.hasTarget { Text("Your goal: " + (own.target.map { row.format.metric.display($0) } ?? "Choose a goal")).font(.body) }
-                } else {
-                    HStack(alignment:.top) {
-                        value(own.fact?.value.map { row.format.metric.display($0) } ?? "No update", caption:"Your activity")
-                        Spacer(minLength:8)
-                        if row.format.hasTarget { value(own.target.map { row.format.metric.display($0) } ?? "Choose", caption:"Your goal") }
-                    }
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            Text(row.title).modifier(CobaltDisplay(size: 34))
+                .fixedSize(horizontal: false, vertical: true)
+            Text(row.own(actor)?.exited == true ? "You left this challenge" : row.statusText).font(.headline)
+            Text(ChallengePresentation.dates(row)).font(.subheadline)
+            if row.format.metric == .timed, let distance = row.config.distanceMm {
+                Text("Whole run: \(ChallengeV1Policy.Metric.distance.display(distance))").font(.subheadline)
             }
-            Rectangle().fill(.white.opacity(0.65)).frame(height: 1).accessibilityHidden(true)
-            Text("\(row.config.startDate) · \(row.config.days) days").font(.subheadline)
-            Text("\(challengeMoney(row.config.amountCents)) simulated each · View challenge ↗").font(.caption)
-        }.foregroundStyle(.white).padding(22).frame(maxWidth:.infinity,alignment:.leading)
-            .background(Color(red:0.065,green:0.067,blue:0.063),in:RoundedRectangle(cornerRadius:18))
+            Text("\(challengeMoney(row.config.amountCents)) simulated each").font(.footnote)
+        }.foregroundStyle(CompetitiveTrustTheme.textPrimary)
+            .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 12)
             .accessibilityElement(children: .combine)
-    }
-    private func value(_ value:String,caption:String)->some View {
-        VStack(alignment:.leading,spacing:4) {
-            Text(value).font(.title.bold().monospacedDigit()).foregroundStyle(CompetitiveTrustTheme.signalOrange)
-            Text(caption).font(.caption)
-        }
     }
 }
 func challengeMoney(_ cents: Int) -> String { (Double(cents)/100).formatted(.currency(code:"USD")) }
@@ -369,19 +369,8 @@ struct ChallengeV1Detail: View {
                         Button("Stop waiting for this action") { Task { await store.abandon() } }
                     }
                     if row.socialHidden { Text("Shared details are hidden. Your own records and safe actions remain available.") }
-                    if let counts = row.counts { Text("\(counts.joined) people joined").font(.subheadline) }
-                    people(row)
-                    rules(row)
-                    if row.status == "lobby_open" { lobby(row) }
-                    if row.status == "consent_pending", let own = row.own(store.actor),own.selected && !own.exited && !own.consented {
-                        Toggle("I have read the complete rules and agree",isOn:$consent).accessibilityIdentifier("beta.consent.toggle")
-                        Button("Agree to this challenge") { Task {
-                            await store.submit(op:"consent",challenge:row,fields:["digest":.string(row.agreement?.digest ?? ""),"consent":.bool(true)])
-                            consent=false
-                        }}.disabled(!consent || !canAct).accessibilityIdentifier("beta.consent")
-                    }
-                    if row.format.mode == .friend && row.creatorId == store.actor && ["consent_pending","scheduled"].contains(row.status) {
-                        Button("Reopen lobby and ask everyone again") { Task { await store.submit(op:"reopen",challenge:row) } }.disabled(!canAct)
+                    if row.format.mode == .community {
+                        Text("Participant totals are unavailable in this preview.").font(.subheadline)
                     }
                     if let notice = row.notice {
                         Text("Latest result update").font(.title2.bold())
@@ -406,6 +395,19 @@ struct ChallengeV1Detail: View {
                         Text("Result confirmed").font(.title2.bold())
                         allocation(final.result,row:row,confirmed:true)
                     }
+                    people(row)
+                    rules(row)
+                    if row.status == "lobby_open" { lobby(row) }
+                    if row.status == "consent_pending", let own = row.own(store.actor),own.selected && !own.exited && !own.consented {
+                        Toggle("I have read the complete rules and agree",isOn:$consent).accessibilityIdentifier("beta.consent.toggle")
+                        Button("Agree to this challenge") { Task {
+                            await store.submit(op:"consent",challenge:row,fields:["digest":.string(row.agreement?.digest ?? ""),"consent":.bool(true)])
+                            consent=false
+                        }}.disabled(!consent || !canAct).accessibilityIdentifier("beta.consent")
+                    }
+                    if row.format.mode == .friend && row.creatorId == store.actor && ["consent_pending","scheduled"].contains(row.status) {
+                        Button("Reopen lobby and ask everyone again") { Task { await store.submit(op:"reopen",challenge:row) } }.disabled(!canAct)
+                    }
                     if !row.isClosed && row.own(store.actor)?.exited == false {
                         Button("Leave challenge",role:.destructive) { exitAction="leave" }.disabled(!canAct).accessibilityIdentifier("beta.leave")
                         if row.creatorId==store.actor && row.serverTime < row.config.startsAt {
@@ -414,7 +416,8 @@ struct ChallengeV1Detail: View {
                     }
                 } else { ContentUnavailableView("Refresh this challenge",systemImage:"arrow.clockwise",description:Text("Sign in to the same account and refresh to see its latest details.")) }
             }.padding(20)
-        }.navigationTitle("Challenge").navigationBarTitleDisplayMode(.inline)
+        }.background(CompetitiveTrustTheme.canvas).navigationTitle("Challenge").navigationBarTitleDisplayMode(.inline)
+            .toolbar(.visible, for: .navigationBar)
             .task(id: id) { await store.loadDetail(id) }
             .modifier(ChallengeScrollLegibility())
             .buttonStyle(ChallengeActionStyle())
@@ -433,39 +436,17 @@ struct ChallengeV1Detail: View {
         Text(row.format.mode == .friend ? "People and activity" : "Your activity").font(.title2.bold())
         ForEach(row.rankedMembers) { person in
             let departedCounterpart = person.exited && person.actorId != store.actor
-            let name = person.actorId == store.actor ? "You" : departedCounterpart ? "Former participant" : person.username
             VStack(alignment:.leading,spacing:6) {
-                HStack(alignment: .top) {
-                    Group {
-                        if departedCounterpart { Image(systemName: "person") }
-                        else { Text(String(person.username.prefix(2)).uppercased()) }
-                    }.font(.caption.bold()).padding(10).background(.quaternary,in:RoundedRectangle(cornerRadius:8))
-                        .accessibilityLabel(person.actorId == store.actor ? "Your profile" : "Profile for \(name)")
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(name).font(.headline).fixedSize(horizontal: false, vertical: true)
-                        Text(person.exited ? "Left" : person.consented ? "Agreed" : person.selected ? "Selected" : "Requested").font(.caption).fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer(minLength: 0)
+                CobaltParticipantRow(row: row, person: person, actor: store.actor, showsState: ["lobby_open", "consent_pending", "scheduled"].contains(row.status),
+                                     showsMetric: !row.format.hasTarget || departedCounterpart)
+                if row.format.hasTarget && !departedCounterpart {
+                    CobaltGoalProgress(row: row, member: person, actor: store.actor)
                 }
-                if row.format.hasTarget && !departedCounterpart { Text(person.target.map { "Goal: \(row.format.metric.display($0))" } ?? "Goal not chosen") }
                 if let finalStatus = row.final?.result.participants?[person.actorId.uuidString.lowercased()]?.status {
                     Text(resultText(finalStatus)).font(.subheadline.bold())
                 }
                 if let fact=person.fact, !departedCounterpart {
-                    Text(fact.value.map { "\(row.format.metric.display($0)) · fictional activity" } ?? "Activity unavailable")
-                    Text("Updated \(fact.recordedAt.text(zone:row.config.timezone))").font(.caption)
-                    if let value=fact.value, person.actorId==store.actor {
-                        Chart {
-                            BarMark(x:.value(row.format.metric.title,value),y:.value("Activity","You"))
-                                .foregroundStyle(CompetitiveTrustTheme.signalOrange)
-                            if let target=person.target { RuleMark(x:.value("Goal",target)).lineStyle(StrokeStyle(dash:[4])) }
-                        }.chartXScale(domain:0...max(1,value,person.target ?? 0))
-                            .chartXAxis { AxisMarks(values: .automatic(desiredCount: 3)) { axis in
-                                AxisGridLine(); AxisValueLabel { if let exact = axis.as(Int.self) { Text(row.format.metric.display(exact)) } }
-                            } }.frame(height:100)
-                            .accessibilityLabel("Your activity: \(row.format.metric.display(value)).")
-                            .accessibilityValue(person.target.map { "Goal: \(row.format.metric.display($0))" } ?? "Best result wins")
-                    }
+                    Text("Fictional activity · Updated \(fact.recordedAt.text(zone:row.config.timezone))").font(.caption)
                 }
                 if person.actorId != store.actor { ChallengePersonSafety(store: store, person: person) }
                 if row.status=="lobby_open",row.creatorId==store.actor,person.actorId != store.actor,!person.exited {

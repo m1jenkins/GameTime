@@ -300,9 +300,9 @@ struct CreatePersonalChallengeFlow: View {
         }
         .padding(14)
         .background(CompetitiveTrustTheme.graphiteSurface)
-        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(
                     selected
                         ? CompetitiveTrustTheme.signalOrange
@@ -340,9 +340,9 @@ struct CreatePersonalChallengeFlow: View {
             }
             .padding(14)
             .background(CompetitiveTrustTheme.graphiteSurface)
-            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
             )
 
@@ -368,9 +368,9 @@ struct CreatePersonalChallengeFlow: View {
                                     ? CompetitiveTrustTheme.signalOrange
                                     : CompetitiveTrustTheme.secondaryText
                             )
-                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
                                     .stroke(
                                         draft.targetSteps == preset
                                             ? CompetitiveTrustTheme.signalOrange
@@ -409,9 +409,9 @@ struct CreatePersonalChallengeFlow: View {
                     }
                 }
                 .background(CompetitiveTrustTheme.graphiteSurface)
-                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
                 )
             } else {
@@ -429,9 +429,9 @@ struct CreatePersonalChallengeFlow: View {
                     }
                 }
                 .background(CompetitiveTrustTheme.graphiteSurface)
-                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
                 )
             }
@@ -460,12 +460,12 @@ struct CreatePersonalChallengeFlow: View {
             .frame(maxWidth: .infinity, minHeight: 44)
             .background(
                 isSelected
-                    ? CompetitiveTrustTheme.signalOrange
+                    ? CompetitiveTrustTheme.feature
                     : CompetitiveTrustTheme.graphiteSurface
             )
             .foregroundStyle(
                 isSelected
-                    ? Color.black
+                    ? CompetitiveTrustTheme.onBrand
                     : CompetitiveTrustTheme.primaryText
             )
         }
@@ -1415,9 +1415,9 @@ private struct AthleticCard<Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .foregroundStyle(CompetitiveTrustTheme.primaryText)
             .background(CompetitiveTrustTheme.graphiteSurface)
-            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
             )
     }

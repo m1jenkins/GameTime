@@ -15,14 +15,16 @@ final class ChallengeV1UITests:XCTestCase {
         let password=app.secureTextFields["beta.login.password"];password.tap();password.typeText(config["password"] as! String)
         app.buttons["beta.login.submit"].tap()
         XCTAssertTrue(app.buttons["beta.tab.home"].waitForExistence(timeout:15))
-        XCTAssertTrue(app.staticTexts["Your challenges"].exists)
+        XCTAssertTrue(app.buttons["beta.home.create"].exists)
+        XCTAssertTrue(app.staticTexts["beta.home.heading"].waitForExistence(timeout:5))
+        XCTAssertEqual(app.staticTexts["beta.home.heading"].label, "GameTime")
         app.buttons["beta.tab.challenges"].tap()
         XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout:5))
         app.buttons["beta.tab.you"].tap()
         XCTAssertTrue(app.staticTexts["Fictional activity only"].waitForExistence(timeout:5))
         app.buttons["beta.signout"].tap()
         XCTAssertTrue(email.waitForExistence(timeout:10))
-        XCTAssertFalse(app.staticTexts["Your challenges"].exists)
+        XCTAssertFalse(app.buttons["beta.home.create"].exists)
     }
     @MainActor func testLocalAccessibilityPreparation() throws {
         continueAfterFailure = true
@@ -145,6 +147,72 @@ final class ChallengeV1UITests:XCTestCase {
     }
     @MainActor func testTwoPersonTouchJourney() async throws { try await touchJourney([2]) }
     @MainActor func testSixPersonTouchJourney() async throws { try await touchJourney([6]) }
+
+    @MainActor func testMetricChoicesAndPersonalConsentAfterEditing() throws {
+        continueAfterFailure = false
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let file = root.appendingPathComponent("tmp/beta-native-smoke.json")
+        guard FileManager.default.fileExists(atPath: file.path) else { throw XCTSkip("Local Beta controller required") }
+        let config = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: file)) as? [String: Any])
+        let actors = try XCTUnwrap(config["actors"] as? [[String: String]])
+        let app = XCUIApplication(); app.launchArguments = ["--beta-challenges-local"]
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_URL"] = config["url"] as? String
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_KEY"] = config["key"] as? String
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_EMAIL"] = actors[0]["email"]
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_PASSWORD"] = config["password"] as? String
+        app.launch()
+        func bring(_ element: XCUIElement) {
+            for _ in 0..<15 where !element.isHittable { app.swipeUp() }
+            XCTAssertTrue(element.waitForExistence(timeout: 10))
+        }
+        func capture(_ name: String) {
+            let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = "Cobalt " + name
+            attachment.lifetime = .keepAlways; add(attachment)
+        }
+        func choose(_ identifier: String, _ value: String) {
+            let control = app.buttons[identifier]
+            for _ in 0..<15 where !control.isHittable { app.swipeDown() }
+            control.tap(); app.buttons[value].tap()
+        }
+        let signIn = app.buttons["beta.login.submit"]; XCTAssertTrue(signIn.waitForExistence(timeout: 10)); signIn.tap()
+        let challenges = app.buttons["beta.tab.challenges"]; XCTAssertTrue(challenges.waitForExistence(timeout: 15)); challenges.tap()
+        let age = app.switches["beta.age.toggle"]
+        if age.waitForExistence(timeout: 1) {
+            age.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap(); app.buttons["beta.age.submit"].tap()
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: age)], timeout: 10), .completed)
+        }
+        app.buttons["beta.create.open"].tap()
+        choose("beta.create.competition", "Leaderboard")
+        for metric in ["Steps", "Exercise time", "Running distance", "Timed run"] {
+            choose("beta.create.metric", metric)
+            XCTAssertFalse(app.textFields["beta.create.target"].exists)
+            capture("leaderboard-create-" + metric)
+        }
+        choose("beta.create.mode", "Personal goal")
+        choose("beta.create.metric", "Steps")
+        XCTAssertFalse(app.buttons["beta.create.competition"].exists)
+        let target = app.textFields["beta.create.target"]
+        bring(target); target.tap(); target.typeText("0\n")
+        let preview = app.buttons["beta.personal.preview"]; bring(preview); XCTAssertFalse(preview.isEnabled)
+        target.tap(); target.typeText(XCUIKeyboardKey.delete.rawValue + "15000\n")
+        bring(preview); XCTAssertTrue(preview.isEnabled); preview.tap()
+        let consent = app.switches["beta.personal.consent"]
+        bring(consent); XCTAssertEqual(consent.value as? String, "0")
+        consent.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
+        capture("personal-complete-agreement")
+        let increment = app.buttons["beta.stepper.amount-Increment"]
+        for _ in 0..<15 where !increment.isHittable { app.swipeDown() }
+        increment.tap()
+        XCTAssertFalse(consent.exists, "Editing the amount discards the previous consent")
+        bring(preview); preview.tap(); bring(consent)
+        XCTAssertEqual(consent.value as? String, "0", "The revised agreement requires another explicit choice")
+        consent.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
+        let commit = app.buttons["beta.personal.commit"]; bring(commit); XCTAssertTrue(commit.isEnabled); commit.tap()
+        XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 15))
+        capture("personal-scheduled")
+        app.buttons["beta.tab.you"].tap(); capture("you")
+        app.buttons["Privacy and terms"].tap(); capture("privacy-and-terms")
+    }
     @MainActor private func touchJourney(_ counts: [Int]) async throws {
         continueAfterFailure = false
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
@@ -156,6 +224,12 @@ final class ChallengeV1UITests:XCTestCase {
         app.launchEnvironment["GAMETIME_BETA_LOCAL_URL"] = config["url"] as? String
         app.launchEnvironment["GAMETIME_BETA_LOCAL_KEY"] = config["key"] as? String
         app.launch()
+        func capture(_ name: String) {
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = "Cobalt " + name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
         func bring(_ element: XCUIElement) {
             for _ in 0..<20 { if element.exists && element.isHittable { return }; app.swipeUp() }
         }
@@ -196,6 +270,7 @@ final class ChallengeV1UITests:XCTestCase {
         for count in counts {
             _ = try await betaControl(config, ["action": "clock", "now": "2026-10-01T12:00:00Z"])
             login(0); tap(app.buttons["beta.create.open"])
+            capture("creation-\(count)-people")
             tap(app.buttons["beta.create.submit"])
             XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 10))
             open("lobby_open"); target("10000")
@@ -207,6 +282,7 @@ final class ChallengeV1UITests:XCTestCase {
                 logout(); login(0); open("lobby_open")
                 tap(app.buttons["beta.select." + actors[i]["username"]!])
             }
+            capture("lobby-\(count)-people")
             tap(app.buttons["beta.freeze"])
             logout()
             for i in 0..<count {
@@ -217,6 +293,7 @@ final class ChallengeV1UITests:XCTestCase {
                 XCTAssertTrue(agreementSwitch.isHittable)
                 agreementSwitch.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
                 XCTAssertEqual(agreementSwitch.value as? String, "1", "Explicit consent must visibly be on before submitting")
+                if i == 0 { capture("consent-\(count)-people") }
                 tap(agreementButton)
                 logout()
             }
@@ -224,13 +301,15 @@ final class ChallengeV1UITests:XCTestCase {
             _ = try await betaControl(config, ["action": "process", "id": id])
             for i in 0..<count { _ = try await betaControl(config, ["action": "capture", "id": id, "actor": actors[i]["id"]!, "value": 12000]) }
             login(0); open("active")
-            XCTAssertTrue(app.staticTexts["12,000 steps · fictional activity"].firstMatch.waitForExistence(timeout: 10))
+            XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "12,000 steps")).firstMatch.waitForExistence(timeout: 10))
+            capture("active-\(count)-people")
             logout()
             _ = try await betaControl(config, ["action": "clock", "now": "2026-10-11T12:00:00Z"])
             _ = try await betaControl(config, ["action": "capture", "id": id, "actor": actors[0]["id"]!, "value": 100])
             _ = try await betaControl(config, ["action": "clock", "now": "2026-10-20T12:00:00Z"])
             _ = try await betaControl(config, ["action": "process", "id": id])
             login(0); open("review")
+            capture("review-\(count)-people")
             tap(app.buttons["beta.review"])
             XCTAssertTrue(app.staticTexts["Your review request is saved. We’re checking your result."].waitForExistence(timeout: 10))
             logout()
@@ -245,6 +324,7 @@ final class ChallengeV1UITests:XCTestCase {
             tap(history)
             let result = app.staticTexts["Recorded simulated return: $0.00"]
             bring(result); XCTAssertTrue(result.waitForExistence(timeout: 10))
+            capture("final-\(count)-people")
             logout()
         }
     }

@@ -60,6 +60,8 @@
 	<array>
 		<string>BricolageGrotesque.ttf</string>
 		<string>HankenGrotesk.ttf</string>
+		<string>BarlowCondensed-BlackItalic.ttf</string>
+		<string>BarlowCondensed-Black.ttf</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
