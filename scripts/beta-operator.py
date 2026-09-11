@@ -11,12 +11,13 @@ import os
 from pathlib import Path
 import subprocess
 import uuid
+from challenge_worker import run_once
 
 ROOT=Path(__file__).resolve().parents[1]
 STACK=Path('/tmp/gametime-finish-b7-stack')
 
-def request(path, body, headers):
-    conn=http.client.HTTPConnection('127.0.0.1',58321,timeout=30)
+def request(path, body, headers, timeout=30):
+    conn=http.client.HTTPConnection('127.0.0.1',58321,timeout=timeout)
     try:
         conn.request('POST',path,json.dumps(body),headers)
         response=conn.getresponse(); raw=response.read(); data=json.loads(raw) if raw else None
@@ -64,8 +65,10 @@ def main():
         headers['Authorization']='Bearer '+session['access_token']
     try:
         c=args.command
+        if c=='run-once':
+            print(json.dumps(run_once(lambda name,body: request('/rest/v1/rpc/'+name,body,headers,timeout=5),args.run_id,args.limit),indent=2))
+            return
         if c=='status':name='challenge_operations_status_v1';body={}
-        elif c=='run-once':name='challenge_run_batch_v1';body={'p_run_id':str(args.run_id),'p_limit':args.limit}
         elif c=='grant':name='challenge_grant_operator_v1';body={'p_actor':str(args.actor),'p_id':str(args.challenge),'p_capability':args.capability,'p_expires':args.expires}
         elif c in ['cases','reports']:name='challenge_operator_'+c+'_v1';body={'p_id':str(args.challenge)}
         elif c=='close-community':name='challenge_operator_close_v1';body={'p_request_id':str(args.request_id),'p_id':str(args.challenge)}

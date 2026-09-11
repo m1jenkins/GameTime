@@ -1,16 +1,17 @@
 begin;
 select no_plan();
 \ir fixtures/challenge-fixture.inc
+\ir fixtures/challenge-worker-fixture.inc
 
 select ok(not has_function_privilege(role_name,'app.challenge_lock_v1(text,uuid)','execute'),role_name||' cannot invoke scoped locks')
 from unnest(array['anon','authenticated','service_role']) role_name;
-select ok(not has_function_privilege(role_name,'app.challenge_claim_work_v1(integer)','execute'),role_name||' cannot claim worker rows')
+select ok(not has_function_privilege(role_name,'app.challenge_work_item_v1(uuid)','execute'),role_name||' cannot claim worker rows')
 from unnest(array['anon','authenticated','service_role']) role_name;
 select is(proconfig,array['search_path=""'],'session helper keeps an empty search path')
 from pg_proc where oid='app.challenge_session_v1()'::regprocedure;
 select ok(pg_get_functiondef('app.challenge_session_v1()'::regprocedure) not like '%challenge_runtime_v1 where singleton for update%','session no longer takes the singleton row mutex');
 select ok(pg_get_functiondef('app.challenge_tick_v1(uuid,boolean)'::regprocedure) not like '%challenge_runtime_v1 where singleton for update%','worker tick no longer takes the singleton row mutex');
-select ok(pg_get_functiondef('public.challenge_run_batch_v1(uuid,integer)'::regprocedure) not like '%challenge_runtime_v1 where singleton for update%','worker batch no longer takes the singleton row mutex');
+select ok(pg_get_functiondef('public.challenge_claim_batch_v1(uuid,integer)'::regprocedure) not like '%challenge_runtime_v1 where singleton for update%','worker batch no longer takes the singleton row mutex');
 select is((select pg_get_constraintdef(oid) from pg_constraint where conrelid='app.challenge_lobbies_v1'::regclass and conname='challenge_lobbies_v1_capacity_check'),'CHECK ((((capacity >= 1) AND (capacity <= 250)) AND (capacity >= minimum)))','community fixture schema admits the 250-person planning boundary');
 
 -- Two due challenges are claimed one at a time and complete independently.
@@ -21,12 +22,12 @@ select public.challenge_capture_fixture_v1(extensions.gen_random_uuid(),challeng
 from app.challenge_slots_v1 where challenge_id in(select id from beta_ids where name in('claim_a','claim_b'));
 select pg_temp.clock_beta('2026-10-20T12:00Z',false,true);
 create temp table first_claim(value jsonb);
-insert into first_claim select public.challenge_run_batch_v1(pg_temp.br(51001),1);
+insert into first_claim select pg_temp.beta_run_batch(pg_temp.br(51001),1);
 select is(jsonb_array_length((select value->'processed' from first_claim)),1,'bounded worker claims exactly its requested limit');
-select is(public.challenge_run_batch_v1(pg_temp.br(51001),1),(select value from first_claim),'worker run exact retry is idempotent');
-select throws_ok($$select public.challenge_run_batch_v1(pg_temp.br(51001),2)$$,'22023','challenge_request_conflict','worker run ID rejects a changed claim limit');
+select is(pg_temp.beta_run_batch(pg_temp.br(51001),1),(select value from first_claim),'worker run exact retry is idempotent');
+select throws_ok($$select pg_temp.beta_run_batch(pg_temp.br(51001),2)$$,'22023','challenge_request_conflict','worker run ID rejects a changed claim limit');
 create temp table second_claim(value jsonb);
-insert into second_claim select public.challenge_run_batch_v1(pg_temp.br(51002),1);
+insert into second_claim select pg_temp.beta_run_batch(pg_temp.br(51002),1);
 select is(jsonb_array_length((select value->'processed' from second_claim)),1,'an independent worker run claims the other challenge');
 select isnt((select value->'processed'->0->>'id' from first_claim),(select value->'processed'->0->>'id' from second_claim),'independent worker runs do not process the same challenge');
 

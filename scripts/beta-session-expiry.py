@@ -23,7 +23,7 @@ def main():
     args = parser.parse_args()
     os.umask(0o077)
     config = (args.stack / 'supabase/config.toml').read_text()
-    assert args.owned_project.startswith('gametime-d9-'), 'Only an explicitly named D9 disposable lab'
+    assert args.owned_project.startswith(('gametime-d9-', 'gametime-p4-')), 'Only an explicitly named D9/P4 disposable lab'
     assert re.search(r'^project_id\s*=\s*"' + re.escape(args.owned_project) + r'"$', config, re.M)
     db_section = config.split('[db]', 1)[1].split('\n[', 1)[0]
     assert re.search(r'^port\s*=\s*' + str(args.port) + r'\s*$', db_section, re.M)

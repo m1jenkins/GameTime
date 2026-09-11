@@ -1,24 +1,25 @@
 begin;
 select no_plan();
 \ir fixtures/challenge-fixture.inc
+\ir fixtures/challenge-worker-fixture.inc
 insert into beta_ids values('worker',pg_temp.beta_group(1,2));
 select pg_temp.clock_beta('2026-10-10T12:00Z');
 select public.challenge_capture_fixture_v1(extensions.gen_random_uuid(),(select id from beta_ids where name='worker'),pg_temp.ba(n),20000,'complete') from generate_series(1,2)n;
 select pg_temp.clock_beta('2026-10-20T12:00Z',false,false);
 select is(public.challenge_operations_status_v1()->>'notice_overdue_count','1','delayed notice is explicitly overdue');
-select is(public.challenge_run_batch_v1(pg_temp.br(40001),1)->'processed'->0->>'status','scheduled','paused processing preserves lifecycle while safe checks remain available');
+select is(jsonb_array_length(pg_temp.beta_run_batch(pg_temp.br(40001),1)->'processed'),0,'paused processing creates no leases while safe actions remain available');
 select pg_temp.clock_beta('2026-10-20T12:00Z',false,true);
 create temp table batch_receipt(value jsonb);grant all on batch_receipt to authenticated;
-insert into batch_receipt select public.challenge_run_batch_v1(pg_temp.br(40002),1);
+insert into batch_receipt select pg_temp.beta_run_batch(pg_temp.br(40002),1);
 select is((select value->'processed'->0->>'status' from batch_receipt),'review','bounded worker catches up delayed lifecycle');
 select is((select review_by from app.challenge_notices_v1 where challenge_id=(select id from beta_ids where name='worker')),'2026-10-22T12:00Z'::timestamptz,'recovery preserves full 48 hours from actual notice');
 select is(public.challenge_operations_status_v1()->>'notice_overdue_count','0','recorded notice clears overdue publication alert');
 select public.challenge_runtime_v1(false,false,false,'{}',null);
-select is(public.challenge_run_batch_v1(pg_temp.br(40002),1),(select value from batch_receipt),'exact batch response survives gate and clock changes');
-select throws_ok($$select public.challenge_run_batch_v1(pg_temp.br(40002),2)$$,'22023','challenge_request_conflict','batch cannot change content under same run ID');
-select ok(not has_function_privilege('authenticated','public.challenge_run_batch_v1(uuid,integer)','execute'),'participant cannot drive worker');
+select is(pg_temp.beta_run_batch(pg_temp.br(40002),1),(select value from batch_receipt),'exact batch response survives gate and clock changes');
+select throws_ok($$select pg_temp.beta_run_batch(pg_temp.br(40002),2)$$,'22023','challenge_request_conflict','batch cannot change content under same run ID');
+select ok(not has_function_privilege('authenticated','public.challenge_claim_batch_v1(uuid,integer)','execute'),'participant cannot drive worker');
 select pg_temp.clock_beta('2026-10-20T12:00Z');
-select throws_ok($$select public.challenge_run_batch_v1(pg_temp.br(40003),51)$$,'22023','challenge_invalid_batch','worker pass is bounded');
+select throws_ok($$select pg_temp.beta_run_batch(pg_temp.br(40003),51)$$,'22023','challenge_invalid_batch','worker pass is bounded');
 select pg_temp.login_beta(1);
 select public.challenge_report_v1(pg_temp.br(40004),pg_temp.ba(2),'unwanted_contact');
 select pg_temp.beta_mutate((select id from beta_ids where name='worker'),'review','{"notice_revision":1,"reason":"wrong_total"}');
@@ -30,10 +31,10 @@ select is(jsonb_array_length(public.challenge_operator_reports_v1((select id fro
 reset role;
 select pg_temp.clock_beta('2026-10-24T12:00Z');
 select is(public.challenge_operations_status_v1()->>'review_overdue_count','1','unanswered review is overdue at its actual deadline');
-select is(public.challenge_run_batch_v1(pg_temp.br(40005),20)->>'failed_count','0','timeout recovery completes without raw error logging');
+select is(pg_temp.beta_run_batch(pg_temp.br(40005),20)->>'failed_count','0','timeout recovery completes without raw error logging');
 select is((select max(review_by) from app.challenge_notices_v1 where challenge_id=(select id from beta_ids where name='worker')),'2026-10-26T12:00Z'::timestamptz,'changed timeout outcome gets a new full review window');
 select pg_temp.clock_beta('2026-10-26T12:00Z');
-select public.challenge_run_batch_v1(pg_temp.br(40006),20);
+select pg_temp.beta_run_batch(pg_temp.br(40006),20);
 select is((select status from app.challenge_lobbies_v1 where id=(select id from beta_ids where name='worker')),'void','unresolved review returns entries after fair finality');
 select pg_temp.clock_beta('2026-10-20T12:00Z');
 insert into beta_ids values('community',public.challenge_publish_community_fixture_v1(pg_temp.br(40007),pg_temp.ba(40),'{"start_date":"2026-10-22","days":1,"timezone":"UTC","amount_cents":100}',100,2,6,true));
