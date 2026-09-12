@@ -7,6 +7,9 @@ P4/P5/P6 are completed locally and preserved with their reports. P7 is prepared
 only; its [checkpoint](../outputs/reports/2026-09-12-p7-preparation.md) and
 [physical guide](BETA_PHYSICAL_SESSIONS.md) own the next interactive work.
 All real-source gates remain closed. P8/P9 depend on accepted source policies.
+P10 device-independent preparation is [completed locally](../outputs/reports/2026-09-12-p10-completion.md);
+its contract below remains the scope record, not a request to repeat the task.
+Hosted execution remains unperformed and unauthorized.
 
 The completed P4/P5/P6 task contracts remain in Git history at `1b8fe6a` and in
 the completion reports linked by the working baseline. They are not pending

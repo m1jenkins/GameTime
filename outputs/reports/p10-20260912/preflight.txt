@@ -1,0 +1,23 @@
+PASS personal-automatic-copy: Personal shipping source contains no removed manual-sync copy or hooks.
+PASS release-environment: Release uses the distribution runtime environment.
+PASS personal-snapshot-auth: Personal snapshot v2 uses the signed-in account rather than App Attest.
+PASS settlement-mode: Release exposes only the Stripe sandbox settlement path.
+PASS stripe-return-scheme: Release declares a non-development GameTime Stripe redirect contract.
+PASS app-url-scheme: The declared Stripe scheme is registered in AppInfo.plist.
+PASS release-bundle-id: Release declares a resolved non-development app identity.
+PASS iphone-only: Release targets iPhone only.
+PASS app-icon-setting: Release selects the AppIcon asset set.
+PASS app-icon-catalog: The main app catalog has a decodable opaque 1024 px icon.
+PASS privacy-manifest: The main app has a parseable privacy manifest input.
+PASS marketing-version: Release has a resolved marketing version.
+PASS build-number: Release has a positive resolved build number.
+PASS watch-isolation: All active iPhone targets and schemes exclude the dedicated Watch runtime.
+PASS public-client-config: Release has a Supabase HTTPS URL and public publishable key.
+BLOCKER privacy-policy-url: Publish the privacy policy (docs/PRIVACY_POLICY.md) and set GAMETIME_PRIVACY_POLICY_URL.
+BLOCKER beta-terms-url: Publish the beta terms and set GAMETIME_BETA_TERMS_URL.
+BLOCKER support-contact: Open a monitored support inbox and set GAMETIME_SUPPORT_EMAIL.
+PASS public-client-binding: Release includes the public client configuration exactly once.
+PASS public-client-secrets: No secret-shaped literal was found in public Release inputs.
+
+Beta candidate source preflight: 17 passed, 3 blocker(s).
+Evidence boundary: this does not prove account identity, hosted runtime, signing, archive contents, Apple Health behavior, snapshot authorization, device behavior, or TestFlight.

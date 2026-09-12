@@ -10,6 +10,11 @@ active branch `codex/beta-working-baseline`, with Cobalt/P4/P5/P6 and P7 checkpo
 only: resume the [private physical sessions](BETA_PHYSICAL_SESSIONS.md) after
 device-specific opt-in. No physical source or real ingestion is accepted.
 
+P10 device-independent hosted preparation is recorded in the
+[hosted plan](BETA_HOSTED_PREPARATION.md) and [P10 handoff](../outputs/reports/2026-09-12-p10-completion.md).
+Use those for current operator permissions and remaining release-readiness inputs.
+P7–P9 remain pending and all external gates remain closed.
+
 The historical c8 preview resources and commands below are retained references,
 not today's checkout, process state or next-task instructions. Recheck resource
 ownership before reuse. Normal Cobalt is now the default signed-in shell with a

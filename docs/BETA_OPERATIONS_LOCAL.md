@@ -1,4 +1,8 @@
-# Beta local operations — b7
+# Beta local operations — historical b7 tool, current permission notes
+
+P10 hosted preparation lives in [BETA_HOSTED_PREPARATION.md](BETA_HOSTED_PREPARATION.md).
+The commands below retain their historical resource binding; they do not select
+a current authorized target. Verify ownership before using a retained preview.
 
 This runbook targets only project `gametime-finish-b7`, API 58321, DB 58322.
 Run commands from the isolated branch worktree. The CLI refuses any other project
@@ -16,7 +20,8 @@ The status includes source/processing/admission switches, due count, missing
 notice count after the operational +72-hour deadline, overdue reviews and recent
 SQLSTATE-only failures. No raw records or request bodies enter these summaries.
 A batch examines at most 50 challenges belonging to currently allowlisted
-fictional creators. With processing paused, safety checks still run. An outage
+fictional creators. With processing paused, the P4 claim path creates no new
+leases; explicit safe participant/operator actions remain available. An outage
 never silently shortens the actual notice's 48-hour review window. A changed
 allocation produces another notice and full window. Unanswered reviews exclude
 the affected result conservatively; insufficient eligible participants void the
@@ -48,6 +53,9 @@ scripts/beta-operator.py --owned-project gametime-finish-b7 --local-actor 7 \
   --decision upheld --request-id "$REQUEST_UUID"
 ```
 
+The sample grant date above assumes the historical fictional clock; for an
+authorized local session, choose an expiry within seven days of its server time.
+
 Choose `upheld` only when the normalized result matches the agreed rule. `exclude`
 removes the disputed result, returns its simulated entry, and may void a leaderboard
 or an undersized group. Do not infer missing physical-source facts. Case context
@@ -58,10 +66,14 @@ report reads and operator actions are audited. No freeform sensitive review text
 is collected. Deadline equality closes resolution; actual time is returned by status.
 
 For safety, grant `moderate` with the same scope/expiry. Commands `reports`,
-`remove`, `suspend`, and `close-community` have `--help`. Removal affects the named
-challenge; suspension hides shared data and triggers safe settlement of unfinished
-participation. Own final history remains available. Blocking and voluntary leaving
-remain participant actions. Community closure returns all simulated entries and
+`remove`, and `close-community` have `--help`. Removal affects the named challenge.
+After P6, the old CLI `suspend` command is rejected: global suspension requires
+a separate support grant and `challenge_support_suspend_v1`. This CLI has no
+global-support, appeal or grant-revocation commands. Use the [current RPC operating
+contract](BETA_SUPPORT_RETENTION_PREPARATION.md) when preparing that interface.
+Authorized suspension hides shared data and safely ends unfinished participation.
+Own final history remains available. Blocking and voluntary leaving remain
+participant actions. Community closure returns all simulated entries and
 preserves the agreement and audit history. These actions do not delete accounts,
 Health records, historical agreements or legacy rows.
 
@@ -70,7 +82,7 @@ config JSON, target, minimum, capacity and request UUID. It stores
 `unapproved_fixture_only`. Community settings have not been accepted for a pilot;
 real publication and discovery must stay disabled.
 
-## Executed drills and pending acceptance
+## Historical executed drills and pending acceptance
 
 `scripts/beta-operator-smoke.py` passed 11 authenticated local CLI checks, including
 unauthorized rejection, scoped context, exact recovery across separate logins,

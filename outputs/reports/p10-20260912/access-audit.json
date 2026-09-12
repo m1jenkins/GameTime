@@ -1,0 +1,1518 @@
+{
+    "scope": "P10 closed local baseline; not hosted acceptance",
+    "runtime": {
+        "fixtures": false,
+        "admission": false,
+        "analytics": false,
+        "discovery": false,
+        "ingestion": false,
+        "singleton": true,
+        "processing": false,
+        "steps_source": false,
+        "timed_source": false,
+        "distance_source": false,
+        "exercise_source": false,
+        "actor_allowlist_empty": true,
+        "fictional_clock_absent": true
+    },
+    "violations": [
+    ],
+    "exposure_note": "Database grants are not the Data API schema allowlist. Verify actual hosted schemas and HTTP denial separately. Legacy API inventory requires its own deployment allowlist.",
+    "migration_head": "20260912013929",
+    "migration_count": 76,
+    "private_helper_count": 43,
+    "legacy_cron_inventory": [
+        {
+            "name": "gametime-activate-due-contests",
+            "active": true,
+            "schedule": "* * * * *"
+        },
+        {
+            "name": "gametime-dispatch-push",
+            "active": true,
+            "schedule": "* * * * *"
+        },
+        {
+            "name": "gametime-process-quarantine-review-deadlines",
+            "active": true,
+            "schedule": "* * * * *"
+        },
+        {
+            "name": "gametime-prune-raw-evidence",
+            "active": true,
+            "schedule": "17 * * * *"
+        },
+        {
+            "name": "gametime-publish-personal-results",
+            "active": false,
+            "schedule": "*/5 * * * *"
+        }
+    ],
+    "private_relation_count": 36,
+    "challenge_rpc_inventory": [
+        {
+            "anon": false,
+            "signature": "public.challenge_abandon_v1(uuid,jsonb)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_access_status_v1()",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_appeal_v1(uuid)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_block_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_capture_community_snapshot_v1(uuid)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_capture_fixture_v1(uuid,uuid,uuid,bigint,text)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_claim_batch_v1(uuid,integer)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_command_v1(uuid,jsonb)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_community_catalog_v1()",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_complete_claim_v1(uuid,uuid)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_confirm_age_v1(uuid,boolean)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_detail_v1(uuid)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_discovery_fixture_v1(boolean)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_grant_operator_v1(uuid,uuid,text,timestamp with time zone)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_grant_support_v1(uuid,timestamp with time zone)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_issue_link_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_join_community_v1(uuid,jsonb)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_list_v1()",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_mutate_v1(uuid,jsonb)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_operations_status_v1()",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_operator_action_v1(uuid,jsonb)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_operator_cases_v1(uuid)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_operator_close_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_operator_reports_v1(uuid)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_own_appeals_v1()",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_personal_preview_v1(text,jsonb,bigint)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_preview_v1(jsonb)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_process_v1(uuid)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_publish_community_fixture_v1(uuid,uuid,jsonb,bigint,integer,integer,boolean)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_readiness_fixture_v1(uuid)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_readiness_metric_fixture_v1(uuid,text)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_redeem_link_v1(uuid,text)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_report_scoped_v1(uuid,uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_report_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_resolve_appeal_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_resolve_v1(uuid,uuid,text)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_revoke_link_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_revoke_operator_v1(uuid,uuid,text)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_revoke_support_v1(uuid)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_run_batch_v1(uuid,integer)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_runtime_v1(boolean,boolean,boolean,uuid[],timestamp with time zone)",
+            "service_role": true,
+            "authenticated": false,
+            "intended_local_role": "service_role"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_section_v1(text,jsonb,integer)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_stop_command_v1(uuid,jsonb)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_support_appeals_v1()",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_support_reports_v1(timestamp with time zone,uuid)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        },
+        {
+            "anon": false,
+            "signature": "public.challenge_support_suspend_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true,
+            "intended_local_role": "authenticated"
+        }
+    ],
+    "other_public_function_inventory": [
+        {
+            "anon": false,
+            "signature": "public.accept_duel_v1(uuid,uuid,text,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.accept_weekly_v1(uuid,uuid,text,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.account_deletion_provider_ids(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.advance_solo_contract_v1(uuid,uuid,public.solo_contract_status)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.apply_personal_stripe_sandbox_webhook_v1(text,bytea,text,text,text,timestamp with time zone,text,text,text,boolean,text,text,integer,text,text,uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.assert_active_actor(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.begin_personal_stripe_sandbox_setup_service_v1(uuid,uuid,public.contest_cadence,integer,integer,text,text,timestamp with time zone,text,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.begin_personal_stripe_sandbox_setup_v1(uuid,public.contest_cadence,integer,integer,text,text,timestamp with time zone,text,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.block_commitment_follow_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.cancel_contest(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.cancel_duel_event_v1(uuid,uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.cancel_duel_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.cancel_personal_challenge_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.cancel_solo_contract_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.capture_commitment_attempt_fixture_v1(uuid,uuid,uuid,jsonb)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.capture_duel_proof_fixture_v1(uuid,uuid,jsonb)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.capture_weekly_fixture_v1(uuid,uuid,uuid,date,text,integer)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.claim_personal_stripe_sandbox_charges_v1(uuid,integer)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.claim_push_deliveries_v1(uuid,integer)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.clear_evidence_quarantine_v1(uuid,uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.clear_legacy_evidence_quarantine_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.close_performance_commitment_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.commit_commitment_lifecycle_v1(jsonb,jsonb)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.commit_duel_lifecycle_v1(jsonb,jsonb)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.commit_personal_stripe_sandbox_challenge_service_v1(uuid,uuid,uuid,public.contest_cadence,integer,integer,text,text,timestamp with time zone,text,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.commit_personal_stripe_sandbox_challenge_service_v2(uuid,uuid,uuid,public.contest_cadence,integer,integer,text,text,timestamp with time zone,text,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.commit_weekly_lifecycle_v1(jsonb,jsonb)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.confirm_commitment_attempt_set_v1(uuid,uuid,uuid[],boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_commitment_milestone_v1(uuid,uuid,text,timestamp with time zone)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_contest_with_invites_v1(uuid,text,public.contest_metric,public.contest_cadence,numeric,integer,timestamp with time zone,timestamp with time zone,text,uuid,uuid[],smallint,public.contest_tie_break,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_contest(text,public.contest_metric,public.contest_cadence,numeric,integer,timestamp with time zone,timestamp with time zone,text,uuid,smallint,public.contest_tie_break,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_duel_v1(uuid,uuid,uuid,text,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_performance_commitment_v1(uuid,integer,timestamp with time zone,timestamp with time zone,text,text,text,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_personal_challenge_v1(uuid,public.contest_cadence,integer,integer,text,timestamp with time zone)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_personal_challenge_v2(uuid,public.contest_cadence,integer,integer,text,timestamp with time zone)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_personal_challenge_with_stripe_sandbox_v2(uuid,uuid,public.contest_cadence,integer,integer,text,text,timestamp with time zone,text,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_retention_hold(public.account_capability_scope_kind,uuid,text,timestamp with time zone)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.create_solo_contract_v1(uuid,text,public.contest_cadence,integer,integer,text,date,smallint)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_solo_contract_with_fake_authorization_v2(uuid,text,public.contest_cadence,integer,integer,text,date,smallint)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.create_weekly_friend_v1(uuid,jsonb,text,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.curate_commitment_fixture_event_v1(uuid,timestamp with time zone,timestamp with time zone)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.curate_duel_fixture_event_v1(uuid,timestamp with time zone,timestamp with time zone,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.curate_weekly_cohort_v1(uuid,date,text,integer,integer)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.cutover_personal_health_snapshots_v2(uuid,timestamp with time zone)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.decide_solo_appeal_v1(uuid,uuid,public.solo_appeal_decision,text,text,bytea)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.decline_duel_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.delete_account(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.end_commitment_follow_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.exit_duel_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.exit_weekly_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.file_commitment_review_v1(uuid,uuid,integer,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.file_duel_review_v1(uuid,uuid,integer,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.file_solo_appeal_v1(uuid,uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.file_weekly_review_v1(uuid,uuid,integer,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.find_profile_by_handle(text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_account_deletion_participant_event(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_commitment_attempt_snapshot_v1(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.get_commitment_attempt_source_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_commitment_attempts_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_commitment_follow_report_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_commitment_follow_v1(uuid,integer,integer,integer)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_commitment_lifecycle_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_commitment_progress_v1(uuid,integer,integer,integer)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_commitment_publications_v1(uuid,integer,integer,integer)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_contest_standings_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_duel_lifecycle_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_duel_proof_source_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_duel_proof_status_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_duel_review_cases_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_duel_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_evidence_quarantine_resolution_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_legacy_evidence_quarantine_resolution_v1(uuid)",
+            "service_role": false,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.get_my_accountability_challenge_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_my_accountability_challenge_v2(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_my_duel_link_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_my_personal_eligibility_v1()",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_my_personal_stripe_sandbox_status_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_performance_commitment_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_quarantine_revision_history(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_weekly_preferences_v1()",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.get_weekly_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.invite_commitment_follower_v1(uuid,uuid,uuid,text,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.issue_duel_link_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.join_group_by_code(text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.join_weekly_cohort_v1(uuid,uuid,text,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_commitment_attempt_events_v1(uuid,integer)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_commitment_follow_reports_v1(integer,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_commitment_follows_v1(integer,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_contest_quarantine_reviews(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_my_accountability_challenges_v1()",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_my_accountability_challenges_v2()",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_my_challenge_summaries_v1()",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_my_duels_v1(integer,timestamp with time zone,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_my_evidence_quarantines(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_my_friendship_cards()",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_my_legacy_evidence_quarantines(uuid)",
+            "service_role": false,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.list_my_performance_commitments_v1(integer,timestamp with time zone,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_my_weekly_v1()",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_shared_weekly_progress_v1()",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_weekly_cohorts_v1()",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_weekly_follow_requests_v1()",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.list_weekly_sharing_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.load_commitment_lifecycle_v1(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.load_contest_integrity_input_v1(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.load_duel_lifecycle_v1(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.load_legacy_contest_integrity_input_v1(uuid)",
+            "service_role": false,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.load_personal_stripe_sandbox_setup_service_v1(uuid,uuid,uuid,public.contest_cadence,integer,integer,text,text,timestamp with time zone,text,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.load_weekly_lifecycle_v1(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.mark_device_receipt_verified(bytea,bytea)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.nominate_commitment_attempt_v1(uuid,uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.preview_performance_commitment_v1(integer,timestamp with time zone,timestamp with time zone,text,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.preview_weekly_friend_v1(jsonb,date,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.publish_commitment_progress_v1(uuid,uuid,integer)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.publish_contest_standings_v1(uuid,timestamp with time zone,text,text,jsonb,jsonb,timestamp with time zone)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.publish_personal_result_v1(uuid,uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.react_commitment_progress_v1(uuid,uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.read_commitment_follow_support_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.read_commitment_lifecycle_operator_v1(uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.record_commitment_progress_v1(uuid,uuid,text,timestamp with time zone,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.record_contest_integrity_assessment_v1(uuid,timestamp with time zone,text,text,bytea,bytea,jsonb,jsonb)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_evidence_quarantine(uuid,text,text,bigint,jsonb)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_geofence_checkin(uuid,uuid,uuid,uuid,bytea,jsonb,uuid,timestamp with time zone,timestamp with time zone,text,text,public.metric_provenance,bytea,bigint)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_metric_batch(uuid,uuid,uuid,bytea,timestamp with time zone,jsonb,bytea,bigint)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_personal_assessment_v1(uuid,uuid,public.personal_evidence_state,text,bytea,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_personal_stripe_sandbox_charge_v1(uuid,uuid,text,text,text,boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_personal_stripe_sandbox_customer_v1(uuid,text,boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_personal_stripe_sandbox_setup_v1(uuid,uuid,text,text,text,text,boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_personal_sync_coverage_v1(uuid,uuid,uuid,bytea,timestamp with time zone,jsonb,bytea,bigint)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_push_delivery_v1(uuid,uuid,text,integer,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_solo_evaluation_v1(uuid,uuid,public.solo_evaluation_outcome,text,text,bytea)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_trusted_personal_diagnostic_v1(uuid,uuid,bytea,timestamp with time zone,timestamp with time zone,timestamp with time zone,integer,bytea,bigint)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.record_weekly_pilot_event_v1(uuid,uuid,text,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.record_weekly_progress_v1(uuid,uuid,date,integer)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.register_device_key(uuid,bytea,bytea,bytea,public.attestation_environment)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.register_push_device_v1(text,public.push_token_environment,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.rematch_duel_v1(uuid,uuid,uuid,text,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.report_commitment_follow_v1(uuid,uuid,text,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.request_personal_stripe_sandbox_review_service_v1(uuid,uuid,text,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.request_timezone_change(uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.resolve_commitment_follow_support_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.resolve_commitment_review_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.resolve_duel_link_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.resolve_duel_review_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.resolve_personal_evidence_quarantine_v1(uuid,uuid,public.personal_quarantine_resolution,text,bytea)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.resolve_weekly_request_v1(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.resolve_weekly_review_v1(uuid,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.respond_commitment_follow_v1(uuid,uuid,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.respond_weekly_follow_v1(uuid,uuid,uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.retract_commitment_progress_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.review_commitment_attempt_v1(uuid,uuid,uuid,integer,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.review_evidence_quarantine(uuid,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.review_legacy_evidence_quarantine(uuid,boolean)",
+            "service_role": false,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.review_timezone_change(uuid,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.revoke_duel_link_v1(uuid,uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.rotate_group_join_code(uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.send_comeback_reaction_v1(uuid,uuid)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.set_commitment_attempt_reviewer_v1(uuid,uuid,uuid,boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_commitment_attempts_enabled_v1(boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_commitment_follow_reminder_v1(uuid,uuid,timestamp with time zone)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.set_commitment_follow_support_v1(uuid,uuid,timestamp with time zone)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_commitment_following_enabled_v1(boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_commitment_lifecycle_enabled_v1(boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_commitment_lifecycle_operator_v1(uuid,uuid,uuid,text,timestamp with time zone)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_commitment_milestone_status_v1(uuid,uuid,uuid,text,integer)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.set_commitment_progress_enabled_v1(boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_duel_admission_v1(boolean,uuid[])",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_duel_lifecycle_enabled_v1(boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_duel_proof_enabled_v1(boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_duel_proof_reviewer_v1(uuid,uuid,uuid,boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_performance_commitment_admission_v1(boolean,uuid[])",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_personal_stripe_sandbox_beta_eligibility_v1(uuid,uuid,boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_personal_stripe_sandbox_runtime_v1(uuid,boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_solo_beta_eligibility_v1(uuid,uuid,boolean)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_solo_contract_runtime_v1(uuid,boolean,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_weekly_entry_pause_v1(uuid,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.set_weekly_pilot_consent_v1(uuid,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.set_weekly_runtime_v1(boolean,boolean,boolean,uuid[])",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.set_weekly_sharing_v1(uuid,uuid,uuid,boolean)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.set_workflow_retention_state(public.account_capability_scope_kind,uuid,boolean,timestamp with time zone,timestamp with time zone,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.settle_commitment_simulation_v1(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.settle_duel_simulation_v1(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.settle_personal_stripe_sandbox_review_v1(uuid,text,text,text)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.settle_solo_contract_v1(uuid,uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.settle_weekly_simulation_v1(uuid)",
+            "service_role": true,
+            "authenticated": false
+        },
+        {
+            "anon": false,
+            "signature": "public.submit_commitment_support_correction_v1(uuid,uuid,text,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.submit_duel_proof_v1(uuid,uuid,uuid,integer,jsonb)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.submit_duel_support_correction_v1(uuid,uuid,jsonb)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.submit_weekly_support_v1(uuid,uuid,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.unregister_push_device_v1(text,public.push_token_environment,text)",
+            "service_role": false,
+            "authenticated": true
+        },
+        {
+            "anon": false,
+            "signature": "public.upsert_my_personal_health_snapshot_v2(uuid,text,timestamp with time zone,timestamp with time zone,jsonb)",
+            "service_role": false,
+            "authenticated": true
+        }
+    ]
+}

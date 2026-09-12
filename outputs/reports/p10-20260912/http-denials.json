@@ -1,0 +1,478 @@
+[
+  {
+    "case": "challenge_readiness_metric_fixture_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_readiness_metric_fixture_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_revoke_operator_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_revoke_operator_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_list_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_preview_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_mutate_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_process_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_process_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_capture_fixture_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_capture_fixture_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_readiness_fixture_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_readiness_fixture_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_resolve_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_resolve_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_abandon_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_runtime_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_runtime_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_community_catalog_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_revoke_support_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_revoke_support_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_appeal_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_own_appeals_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_access_status_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_grant_operator_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_grant_operator_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_personal_preview_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_confirm_age_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_issue_link_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_report_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_stop_command_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_command_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_detail_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_section_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_operator_reports_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_run_batch_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_run_batch_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_block_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_claim_batch_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_claim_batch_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_operations_status_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_operations_status_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_complete_claim_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_complete_claim_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_discovery_fixture_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_discovery_fixture_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_join_community_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_publish_community_fixture_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_publish_community_fixture_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_revoke_link_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_operator_action_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_operator_cases_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_operator_close_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_redeem_link_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_capture_community_snapshot_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_capture_community_snapshot_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_grant_support_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_grant_support_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_report_scoped_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_resolve_appeal_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_support_appeals_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_support_reports_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_support_suspend_v1",
+    "role": "anon",
+    "status": 401,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_detail_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_operator_cases_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "challenge_support_reports_v1",
+    "role": "authenticated",
+    "status": 403,
+    "code": "42501",
+    "passed": true
+  },
+  {
+    "case": "private_app_schema",
+    "role": "authenticated",
+    "status": 406,
+    "code": "PGRST106",
+    "passed": true
+  },
+  {
+    "case": "no_public_challenge_table",
+    "role": "authenticated",
+    "status": 404,
+    "code": "PGRST205",
+    "passed": true
+  }
+]

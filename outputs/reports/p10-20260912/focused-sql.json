@@ -1,0 +1,58 @@
+[
+  {
+    "file": "supabase/tests/493_challenge_entry.test.sql",
+    "exit_code": 0,
+    "assertions": 42,
+    "passed": true,
+    "skips": 0
+  },
+  {
+    "file": "supabase/tests/497_challenge_operations.test.sql",
+    "exit_code": 0,
+    "assertions": 19,
+    "passed": true,
+    "skips": 0
+  },
+  {
+    "file": "supabase/tests/498_challenge_admission_context.test.sql",
+    "exit_code": 0,
+    "assertions": 13,
+    "passed": true,
+    "skips": 0
+  },
+  {
+    "file": "supabase/tests/502_challenge_session_lock_expiry.test.sql",
+    "exit_code": 0,
+    "assertions": 13,
+    "passed": true,
+    "skips": 0
+  },
+  {
+    "file": "supabase/tests/504_challenge_durable_claims.test.sql",
+    "exit_code": 0,
+    "assertions": 40,
+    "passed": true,
+    "skips": 0
+  },
+  {
+    "file": "supabase/tests/506_challenge_private_community.test.sql",
+    "exit_code": 0,
+    "assertions": 49,
+    "passed": true,
+    "skips": 0
+  },
+  {
+    "file": "supabase/tests/507_challenge_community_guards.test.sql",
+    "exit_code": 0,
+    "assertions": 18,
+    "passed": true,
+    "skips": 0
+  },
+  {
+    "file": "supabase/tests/508_challenge_community_progress.test.sql",
+    "exit_code": 0,
+    "assertions": 9,
+    "passed": true,
+    "skips": 0
+  }
+]

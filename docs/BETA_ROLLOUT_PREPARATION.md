@@ -18,6 +18,14 @@ remain. Building or consolidating this source does not authorize distribution.
 [readiness.json](release/beta/readiness.json) is an explicit all-closed external
 acceptance register, not executable configuration. Test results cannot open it.
 
+## P10 continuation
+
+The [hosted operation plan](BETA_HOSTED_PREPARATION.md), [support/retention worksheet](BETA_SUPPORT_RETENTION_PREPARATION.md),
+unapproved settings and executed local privilege audit now extend the existing
+release-readiness task. They prepare all device-independent P10 scope; real
+source-backed operation and hosted acceptance still depend on P7–P9, owner
+inputs and separate action approval. No readiness entry changed.
+
 ## Dependency-ready material prepared
 
 - Separate forward `challenge_*_v1` migrations, RLS/private projections, permission

@@ -18,6 +18,19 @@ preserved. Do not start new work from their stale status notes or import the
 original dirty patch. The consolidation changes documentation and local branch
 selection, not product behavior, databases or device state.
 
+## P10 device-independent preparation — September 12, 2026 UTC
+
+P10 extends the existing release-readiness-b7 task on isolated
+`codex/hosted-preparation-p10`, based on consolidated `fd193e7`. The
+[handoff](outputs/reports/2026-09-12-p10-completion.md) records hosted identity/settings
+preparation, actual local RPC privileges, scheduler/monitoring/rollback design,
+P6 operator permissions and support/retention decisions. All owner-selected
+publication/hosting/policy values remain unapproved; no device participation was
+needed or performed. P7–P9 and hosted acceptance remain pending, all 18 readiness
+entries remain false, and normal signed-in challenges remain unavailable.
+The consolidated branch and every earlier local copy remain preserved; no push,
+deployment, credential change, external message or user-data deletion occurred.
+
 ## Historical completion records
 
 The dated records below preserve what was true at each task's completion. Their

@@ -73,7 +73,7 @@ behavior is untested.
 | 7 | Prepared only; physical source decisions remain | Device opt-in and owner participation; may accompany unrelated local work |
 | 8 | Versioned minimal-fact ingestion | Accepted source policies |
 | 9 | Four adapters and usable native friend/personal journeys | 8 and accepted sources |
-| 10 | Hosted configuration/operator preparation | Local integration ready |
+| 10 | Device-independent preparation completed locally; [handoff](../outputs/reports/2026-09-12-p10-completion.md) | Hosted execution still requires P7–P9 integration, exact approved settings and separate authorization |
 | 11 | Hosted capacity/recovery | Approved target, budget and actions |
 | 12–13 | Integrated release audit, physical accessibility and human acceptance | Tested source-backed candidate |
 

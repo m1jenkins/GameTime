@@ -34,7 +34,8 @@ installation is part of this consolidation.
 | P6 | Completed and locally verified; private 250-member community, moderation, quotas and native controls | [Completion](../outputs/reports/2026-09-12-p6-completion.md), handoff `39e5f202ab0eae0ac6c23cb784afd3df28d1ad37` |
 | P7 | Preparation only; signed Debug build checked, no physical sessions or accepted sources | [Checkpoint](../outputs/reports/2026-09-12-p7-preparation.md) |
 | P8/P9 | Real ingestion and four adapters/integrated journeys remain | [Remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) |
-| P10–13 | Hosted operation, capacity/recovery and integrated physical/human/release acceptance remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
+| P10 | Device-independent hosted preparation completed on isolated `codex/hosted-preparation-p10`; hosted acceptance remains pending | [P10 handoff](../outputs/reports/2026-09-12-p10-completion.md), [hosted plan](BETA_HOSTED_PREPARATION.md) |
+| P11–13 | Hosted capacity/recovery and integrated physical/human/release acceptance remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
 
 Do not restart P4/P5/P6 or the cancelled candidate-gate recovery. Historical
 reports retain their exact input/output identities, failures and resource paths;
@@ -51,7 +52,10 @@ copied by this consolidation. No physical source is accepted.
 P8 uses accepted source policies; P9 connects their adapters and actual journeys.
 Use the simplified focused-check policy in the remaining plan. Reserve the full
 release matrix and long soak for integration/release. P10 preparation can advance
-where separately requested work has no unresolved dependency.
+where separately requested work has no unresolved dependency. Its device-independent
+scope is now completed as recorded above; do not repeat preparation or treat it as
+source-backed hosted acceptance. This P10 branch is a preserved local deliverable,
+not an automatic change to the consolidated branch.
 
 Normal signed-in Cobalt still uses the unavailable challenge client; development
 transport remains loopback-only. All 18 readiness entries remain false. This
