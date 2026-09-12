@@ -1,0 +1,10 @@
+{
+  "relative_links_checked": 106,
+  "json_and_python_parse": "passed",
+  "owner_and_source_inputs": "all_unselected",
+  "active_configuration_and_product_diff": [],
+  "readiness_gates_closed": 18,
+  "final_source_sql_assertions_passed": 203,
+  "local_http_denials_passed": 68,
+  "permission_audit_violations": 0
+}
