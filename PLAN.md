@@ -1,11 +1,17 @@
 # Build friend duels and personal performance commitments
 
-For current execution, use the September 11
+For current execution, start from the durable
+[working baseline](docs/WORKING_BASELINE.md), then use the
 [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [one-task prompts](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
-They account for the c8/Cobalt implementation and the existing partial P4 work.
-The September 6 roadmap below is historical context; do not restart its completed
-phases or use its old implementation-status statements as the current baseline.
+Cobalt/P4/P5/P6 are implemented locally. P7 is prepared, with physical sessions
+pending; P8/P9 and hosted/human/release acceptance remain. Do not restart completed
+prompts or use the preserved earlier `main` as the current working branch.
+
+## Historical roadmap
+
+The September 6/9 roadmap and implementation-status statements below are
+historical context. The current remaining plan owns execution order.
 
 September 9 authority: [D135's remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md)
 adds the iPhone-only runtime with inert historical Watch source, paired Watch as

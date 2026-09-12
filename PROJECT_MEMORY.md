@@ -1,5 +1,28 @@
 # GameTime project memory
 
+## Current working baseline — September 12, 2026 UTC
+
+The owner requested consolidation of the completed local work. Use
+`/Users/user/firstmate-workspace/projects/gametime-beta` on
+`codex/beta-working-baseline`, containing P7 checkpoint `1b8fe6a` and the complete
+Cobalt/P4/P5/P6 ancestry. [WORKING_BASELINE.md](docs/WORKING_BASELINE.md) owns the
+current source identity, status, evidence and next-work instructions.
+
+P4/P5/P6 are locally completed. P7 is prepared only: no physical session has run
+and no source is accepted. Resume its existing private iPhone/Watch session after
+device-specific opt-in. P8/P9 still depend on accepted policies. Normal signed-in
+challenges remain unavailable; all external readiness entries remain false.
+
+Earlier `main`, temporary task checkouts and the original dirty checkout are
+preserved. Do not start new work from their stale status notes or import the
+original dirty patch. The consolidation changes documentation and local branch
+selection, not product behavior, databases or device state.
+
+## Historical completion records
+
+The dated records below preserve what was true at each task's completion. Their
+branch locations and next-task statements are superseded by the baseline above.
+
 ## Prompt 6 local completion — September 12, 2026 UTC
 
 The private operator community is locally implemented at

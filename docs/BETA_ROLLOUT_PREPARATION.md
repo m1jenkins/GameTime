@@ -3,15 +3,18 @@
 [D135's remaining-work contract](BETA_REMAINING_WORK_CONTRACT.md) is current:
 no dedicated GameTime Watch runtime; paired Watch required at launch; authorized
 pre-hardware work may proceed. One private operator cohort, delayed five-person
-aggregate disclosure and explicit Beta/long-term workload targets are remaining
-requirements, not server implementation or publication/scale acceptance. Source
+aggregate disclosure and explicit Beta/long-term workload targets govern the
+product. P6 implements the local disclosure/capacity contract; publication and
+hosted scale acceptance remain pending. Source
 and human/hosted acceptance still block distribution. All amounts stay visibly
 nonredeemable simulation; all 18 external gates remain false.
 
-The installed candidate is a **local Debug opt-in**, backed by a disposable
-fictional database. The unsigned Release device build preserves historical default
-navigation and excludes the private investigation/new local shell. Building it is
-not acceptance of the replacement product or authorization to distribute it.
+Use the [working baseline](WORKING_BASELINE.md) for current source and status.
+Cobalt is the normal signed-in shell, with its challenge client still unavailable;
+functional challenge previews and the private investigation remain explicit local
+Debug paths. P4/P5/P6 are implemented locally, including community capacity and
+disclosure. P7 physical acceptance, real ingestion and operational release work
+remain. Building or consolidating this source does not authorize distribution.
 [readiness.json](release/beta/readiness.json) is an explicit all-closed external
 acceptance register, not executable configuration. Test results cannot open it.
 
@@ -34,12 +37,12 @@ acceptance register, not executable configuration. Test results cannot open it.
 
 ## Replacement inventory and preservation
 
-The opt-in `ChallengeV1Shell` already contains Home, Challenges and You and no
-legacy Personal creation/history. Default `GameTimeApp.productRoot`, `RootView`,
-legacy routers, stores, client refresh, historical challenge agreements and applied
-migrations remain intact. After physical and replacement acceptance, select the
-new production shell, wire approved authenticated configuration and retire only
-legacy navigation/refresh exposure. Re-run the held-authentication regression,
+Cobalt provides normal signed-in Home, Challenges and You. **Existing challenges**
+still opens the preserved Personal shell; historical routers, stores, refresh,
+agreements and applied migrations remain intact. The functional local challenge
+preview remains separate. After physical and replacement acceptance, wire the
+approved authenticated production configuration and retire only the planned legacy
+navigation/refresh exposure. Re-run the held-authentication regression,
 account deletion/suspension privacy, exact request recovery and historical suites.
 Do not widen weekly 2–5/seven-day types into the new 2–6/1–30-day contract.
 

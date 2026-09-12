@@ -1,37 +1,22 @@
-# Real-activity continuation — c8 handoff
+# GameTime real-activity handoff
 
-## Current local handoff — P6 complete
+## Current continuation — September 12, 2026 UTC
 
-P6 is locally completed on `codex/private-community-p6`, implementation
-`05f405c24453fe6743ece994d646058958bfdbb2`, based on P5
-`e16cff4b3beaa7bcce95db6b0e82eedaa94865fa`. The dedicated checkout is
-`/private/tmp/gametime-p6-20260912/GameTime`. Read the
-[P6 completion report](../outputs/reports/2026-09-12-p6-completion.md) for scope,
-actual checks, retained failures and limitations. Original/product/P4/P5 branches
-are preserved. **P7 is unstarted and needs explicit physical-device opt-in.**
-Earlier status records below are historical; do not restart completed P4/P5/P6
-or enable hosted/source/money/distribution gates from this local completion.
+Use [WORKING_BASELINE.md](WORKING_BASELINE.md) and the
+[remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
+The durable checkout is `/Users/user/firstmate-workspace/projects/gametime-beta`,
+active branch `codex/beta-working-baseline`, with Cobalt/P4/P5/P6 and P7 checkpoint
+`1b8fe6a` preserved in one ancestry. P4/P5/P6 are completed locally. P7 is prepared
+only: resume the [private physical sessions](BETA_PHYSICAL_SESSIONS.md) after
+device-specific opt-in. No physical source or real ingestion is accepted.
 
-## Current local handoff — September 11, P5
+The historical c8 preview resources and commands below are retained references,
+not today's checkout, process state or next-task instructions. Recheck resource
+ownership before reuse. Normal Cobalt is now the default signed-in shell with a
+closed challenge client; the earlier statement that Release uses the old default
+shell is superseded by [Cobalt activation](design/crisp-cobalt/DEFAULT_UI.md).
 
-P5 is locally completed on `codex/bounded-queries-p5` at
-`e0a94bd793e4720ae04795760d614b049005618b`, from exact completed P4
-`369e7b90dfeb74314244a923a87864e368348412`. The dedicated checkout is
-`/private/tmp/gametime-p5-20260911/GameTime`. Read the
-[P5 completion report](../outputs/reports/2026-09-11-p5-completion.md) for final
-measurements, 88-file/3,998-assertion SQL pass, repeated actual-session races,
-194-assertion upgrade, storage/write costs and blocked CLI checks.
-
-History cursors now use bounded keysets and expire if the actor's history order
-changes; privacy is still projected live. Old offset cursors retain their original
-lifetime. Live discovery remains linear in the eligible live set. P2 failures
-and P4 limitations remain historical evidence, not new passes.
-
-Product main remains `affd367ebe5411969fd5b7abd45629e0746a5a7d`; the original dirty
-checkout and completed P4 branch are unchanged. **Stop after P5. P6 has not started.**
-Use the current remaining plan for the next separately requested task. No source,
-hosted, payment, distribution or human-acceptance gate opened. The c8 resources
-and instructions below are historical and are not this task's database.
+## Historical c8 continuation and evidence
 
 The continuation fixes five reproduced lifecycle/privacy defects and refines native
 loading, errors and labeled forms. It remains a local fictional candidate.

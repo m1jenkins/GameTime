@@ -1,69 +1,24 @@
 # GameTime remaining implementation plan
 
-## P7 preparation — physical session pending
+Updated September 12, 2026 UTC after consolidating Cobalt and P4–P7 preparation.
+The [working baseline](WORKING_BASELINE.md) owns source identity and evidence:
+`/Users/user/firstmate-workspace/projects/gametime-beta`, active branch
+`codex/beta-working-baseline`, descended from P7 checkpoint `1b8fe6a`.
+Earlier `main` and temporary task checkouts are preserved historical sources.
 
-The isolated `codex/physical-source-p7` continuation starts from P6 handoff commit
-`39e5f202ab0eae0ac6c23cb784afd3df28d1ad37`. A signed Debug device build is ready;
-physical observations and source acceptance remain unperformed. Continue from
-the [P7 checkpoint](../outputs/reports/2026-09-12-p7-preparation.md) after the
-owner names and opts in the iPhone and paired Watch. P8 remains dependent on
-accepted source policies. The P6 status below is its preserved earlier handoff.
+P4/P5/P6 are completed and locally verified. P7 has a prepared signed Debug build;
+physical observations and all four source acceptances are still unperformed.
+Continue its [checkpoint](../outputs/reports/2026-09-12-p7-preparation.md) and
+[physical sessions](BETA_PHYSICAL_SESSIONS.md) after device-specific opt-in.
+Do not restart completed prompts or the cancelled candidate-gate recovery.
 
-## Current local handoff — P6 complete
-
-P6 is locally completed on `codex/private-community-p6`, implementation
-`05f405c24453fe6743ece994d646058958bfdbb2`, based on P5
-`e16cff4b3beaa7bcce95db6b0e82eedaa94865fa`. The dedicated checkout is
-`/private/tmp/gametime-p6-20260912/GameTime`. Read the
-[P6 completion report](../outputs/reports/2026-09-12-p6-completion.md) for scope,
-actual checks, retained failures and limitations. Original/product/P4/P5 branches
-are preserved. **P7 is unstarted and needs explicit physical-device opt-in.**
-Earlier status records below are historical; do not restart completed P4/P5/P6
-or enable hosted/source/money/distribution gates from this local completion.
-
-Updated September 11, 2026 after the owner asked to simplify the work and code
-where useful. Use the [prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md)
-for one task at a time. The [previous plan](archive/2026-09-11_PRE_SIMPLIFICATION_GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md)
-is historical.
-
-The objective is a usable, correct local Beta, followed by source and release
-acceptance. Full release verification is no longer a prerequisite for each
-local task. Missing correctness checks for the change itself still prevent
-accepting that change. This cleanup does not mark unfinished work passed.
-
-## Reuse the current work
-
-These are observed September 11 identities. Recheck the branch before starting;
-they are not instructions to reset another checkout.
-
-| Work | Disposition |
-| --- | --- |
-| Original /Users/user/Documents/GitHub/GameTime | Dirty at 577bc321e72750976e2e8027680387707070b0e3. Preserve it; it is not the current Beta code baseline. |
-| Current product /Users/user/firstmate-workspace/projects/gametime-beta | Main affd367ebe5411969fd5b7abd45629e0746a5a7d: accepted Cobalt UI over a18f00fa19ac95f946c4686ba3b6a068064d797b. Normal challenge transport is closed; demos do not create live friend challenges. |
-| Prompts 0, 0A and 3 | Implemented. Preserve c8, Watch retirement and the Health contracts/fakes. |
-| Prompt 2 | Reviewed baseline at e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 in fm/gametime-beta-load-prep-e2. Reuse scripts/challenge-load, docs/load and its published evidence without importing unrelated gate changes. |
-| Prompt 4 | Preserved partial d0742eac0fab4d182338dc75d5aacb77658e0c09 remains in pool 9. Completed and locally verified at b67776c8b3fc1173f4e7f44bd794db9f81b2b7a0 on isolated codex/lean-beta-preparation, based on 201d7459bad293c9f942de067c1b6afd99b58479. Product main has not moved. |
-| Gate recovery | ff71ee28b05456dfa487d48ddd044105c9bdab37 was cancelled, never accepted. Retain the evidence; do not restart its infrastructure or make it a local product dependency. |
-
-The original dirty diff contains 27 modified documents, 10 native source files,
-nine tests/smoke scripts and 52 deleted design/documentation files. Most code
-edits are copy changes, including removed disclosures with stale UI assertions.
-Review useful changes individually; do not apply that whole patch to Cobalt or
-restore/delete unrelated assets during cleanup.
-
-Current UI evidence lives in the current product's
-docs/design/crisp-cobalt/DEFAULT_UI.md and VERIFICATION.md. Existing P4 evidence:
-[task report](/Users/user/firstmate-workspace/data/gametime-beta-scoped-locks-p4/report.md).
-Recovery disposition:
-[closure](/Users/user/firstmate-workspace/data/gametime-beta-verification-recovery-e10/captain-closure-20260911.md).
-The preparation report for this cleanup is
-[here](../outputs/reports/2026-09-11-beta-simplification.md).
-Final P4 source, validation and limitations are in the
-[completion report](../outputs/reports/2026-09-11-p4-completion.md).
-P5 is now locally completed at `e0a94bd793e4720ae04795760d614b049005618b` on
-`codex/bounded-queries-p5`, based on completed P4 `369e7b90dfeb74314244a923a87864e368348412`.
-See [P5 measurements/checks and handoff](../outputs/reports/2026-09-11-p5-completion.md).
-P6 remains unstarted. Product main and the retained P4 checkout have not moved.
+Use the [prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for one task
+at a time. The objective is a usable, correct local Beta, followed by source and
+release acceptance. Full release verification is not a prerequisite for every
+local task; missing correctness checks for the change itself still prevent
+accepting it. Prior [simplification](../outputs/reports/2026-09-11-beta-simplification.md)
+and [archived plan](archive/2026-09-11_PRE_SIMPLIFICATION_GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md)
+remain historical records. The original dirty patch was not imported.
 
 ## Product requirements stay intact
 
@@ -112,18 +67,19 @@ behavior is untested.
 
 | Prompt | Deliverable | Dependency |
 | --- | --- | --- |
-| 4 | Completed locally: scoped locks, durable bounded claims and cancelled-work fix | Isolated result above; not landed on product main |
-| 5 | Completed locally: bounded history keysets and measured query/index improvements | Isolated P5 result above; not landed on product main |
-| 6 | Community disclosure, 250 capacity, moderator boundaries and quotas | P4/P5 accepted locally |
-| 7 | Physical source decisions | Device opt-in and owner participation; may accompany unrelated local work |
+| 4 | Completed locally: scoped locks, durable bounded claims and cancelled-work fix | Included in the working baseline |
+| 5 | Completed locally: bounded history keysets and measured query/index improvements | Included in the working baseline |
+| 6 | Completed locally: private community disclosure, 250 capacity, moderator boundaries and quotas | Included in the working baseline |
+| 7 | Prepared only; physical source decisions remain | Device opt-in and owner participation; may accompany unrelated local work |
 | 8 | Versioned minimal-fact ingestion | Accepted source policies |
 | 9 | Four adapters and usable native friend/personal journeys | 8 and accepted sources |
 | 10 | Hosted configuration/operator preparation | Local integration ready |
 | 11 | Hosted capacity/recovery | Approved target, budget and actions |
 | 12–13 | Integrated release audit, physical accessibility and human acceptance | Tested source-backed candidate |
 
-Run shared SQL tasks 4/5/6 sequentially. Each requested task ends with its scoped
-changes, actual results and limitations. Do not automatically start later prompts
+Shared SQL tasks 4/5/6 were completed sequentially and are included in this
+baseline. Each subsequent requested task ends with scoped changes, actual results
+and limitations. Do not automatically start later prompts
 or change another checkout's branch. Local work does not authorize push, deployment,
 distribution, real Health access, money or user-data deletion.
 
@@ -134,10 +90,14 @@ one completion 4.388542 ms late; the 250-arrival join storm had 14 disconnects a
 the existing 100-member cap; the 25k-account attempt had 15 failures and 10,039
 unoffered arrivals. It recorded 123,500 worker entries for 100 cancelled challenges.
 
-P4/P5 need short comparable measurements of their changed bottlenecks, including
-throughput and actual lock waits. P2 did not measure per-request lock-hold duration:
-measure that in both comparison runs. Sparse zero-wait samples are not proof of no
-contention. Keep failed scenarios; short local improvements do not prove hosted capacity.
+P4's [comparison](../outputs/reports/2026-09-11-p4-completion.md) records short
+throughput, actual lock waits and sampled lock residence before/after. P5's
+[measurements](../outputs/reports/2026-09-11-p5-completion.md) record identical
+query fixtures, plans, latency and storage/write costs. P6's
+[250-arrival burst](../outputs/reports/2026-09-12-p6-completion.md) verifies local
+capacity and retries. Retain their sampling limits, blocked CLI advisors/lint and
+historical P2 failures. These are local results, not hosted capacity acceptance;
+no additional general load task is required by this consolidation.
 
 The Beta target remains 2,000 accounts / 250 DAU / 100 concurrent / 25 requests
 per second / one 250-person community. Hosted acceptance retains the proposed

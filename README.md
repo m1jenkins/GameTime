@@ -1,10 +1,20 @@
 # GameTime
 
-Current local Beta work follows the September 11
-[remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
-[prompt pack](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
-The newer c8/Cobalt product is in the separate current checkout identified there;
-the original dirty checkout and historical implementation notes below are preserved.
+Current local Beta work uses the durable
+[working baseline](docs/WORKING_BASELINE.md):
+`/Users/user/firstmate-workspace/projects/gametime-beta`, branch
+`codex/beta-working-baseline`. Cobalt and P4/P5/P6 are implemented locally.
+P7 has a prepared Debug build; physical sessions and all four source acceptances
+remain pending. Normal signed-in challenge transport remains closed.
+
+Use the [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
+[prompt pack](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for subsequent
+work. The original dirty checkout and prior branches are preserved.
+
+## Historical implementation notes
+
+The dated descriptions below retain earlier product and execution states. Use
+the working baseline above for current status and next work.
 
 September 9 authority: [D135's remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md)
 adds the iPhone-only runtime with inert historical Watch source, paired Watch as
