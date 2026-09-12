@@ -1,0 +1,29 @@
+1..21
+{"sub":"ec111111-1111-1111-1111-111111111111"}
+ok 1 - an omitted start still opens at the next local midnight
+ok 2 - an omitted start still closes seven local dates later
+{"sub":"ec111111-1111-1111-1111-111111111111"}
+ok 3 - an omitted-start retry still hashes to the same committed request
+{"sub":"ec555555-5555-5555-5555-555555555555"}
+ok 4 - start now opens the scored window at today's local midnight
+ok 5 - start now still closes after seven scored local dates
+ok 6 - start now activates the challenge before creation returns
+ok 7 - main-mode start now freezes the current Health snapshot policy
+ok 8 - start now expects coverage beginning at midnight so earlier steps can count
+{"sub":"ec555555-5555-5555-5555-555555555555"}
+ok 9 - an exact start-now retry returns the same active challenge
+{"sub":"ec222222-2222-2222-2222-222222222222"}
+ok 10 - a chosen start opens the window on exactly that instant
+ok 11 - the seventh local date still closes at local midnight
+ok 12 - the frozen evidence cutoff stays 24 hours after the seventh day
+ok 13 - a 15:00 start expects only the nine completed hours left in day one
+ok 14 - the first expected bucket is the chosen hour itself, not a partial one
+ok 15 - every expected bucket lands in exactly the seven scored local dates
+{"sub":"ec333333-3333-3333-3333-333333333333"}
+ok 16 - a whole local hour in a +05:30 zone is accepted though it is :30 in UTC
+ok 17 - a whole UTC hour that is :30 locally is refused in a +05:30 zone
+{"sub":"ec444444-4444-4444-4444-444444444444"}
+ok 18 - a start from an earlier local date is refused
+ok 19 - a start beyond ninety days is refused
+ok 20 - an exact retry of a chosen start returns the same challenge
+ok 21 - the same request UUID with a different start is refused, not silently reused

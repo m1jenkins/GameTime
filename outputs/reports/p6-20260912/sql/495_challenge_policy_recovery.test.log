@@ -1,0 +1,90 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - friend_steps_goal_v1 late filing retains its 72-hour resolution window
+ok 2 - friend_steps_goal_v1 unresolved minimum voids without a confirmed miss
+ok 3 - friend_steps_goal_v1 missing data returns entry
+ok 4 - friend_steps_goal_v1 voluntary exit works during admission and processing pause
+ok 5 - friend_steps_leaderboard_v1 late filing retains its 72-hour resolution window
+ok 6 - friend_steps_leaderboard_v1 unresolved minimum voids without a confirmed miss
+ok 7 - friend_steps_leaderboard_v1 missing data returns entry
+ok 8 - friend_steps_leaderboard_v1 voluntary exit works during admission and processing pause
+ok 9 - personal_steps_goal_v1 late filing retains its 72-hour resolution window
+ok 10 - personal_steps_goal_v1 unresolved minimum voids without a confirmed miss
+ok 11 - personal_steps_goal_v1 missing data returns entry
+ok 12 - personal_steps_goal_v1 voluntary exit works during admission and processing pause
+ok 13 - friend_exercise_goal_v1 late filing retains its 72-hour resolution window
+ok 14 - friend_exercise_goal_v1 unresolved minimum voids without a confirmed miss
+ok 15 - friend_exercise_goal_v1 missing data returns entry
+ok 16 - friend_exercise_goal_v1 voluntary exit works during admission and processing pause
+ok 17 - friend_exercise_leaderboard_v1 late filing retains its 72-hour resolution window
+ok 18 - friend_exercise_leaderboard_v1 unresolved minimum voids without a confirmed miss
+ok 19 - friend_exercise_leaderboard_v1 missing data returns entry
+ok 20 - friend_exercise_leaderboard_v1 voluntary exit works during admission and processing pause
+ok 21 - personal_exercise_goal_v1 late filing retains its 72-hour resolution window
+ok 22 - personal_exercise_goal_v1 unresolved minimum voids without a confirmed miss
+ok 23 - personal_exercise_goal_v1 missing data returns entry
+ok 24 - personal_exercise_goal_v1 voluntary exit works during admission and processing pause
+ok 25 - friend_distance_goal_v1 late filing retains its 72-hour resolution window
+ok 26 - friend_distance_goal_v1 unresolved minimum voids without a confirmed miss
+ok 27 - friend_distance_goal_v1 missing data returns entry
+ok 28 - friend_distance_goal_v1 voluntary exit works during admission and processing pause
+ok 29 - friend_distance_leaderboard_v1 late filing retains its 72-hour resolution window
+ok 30 - friend_distance_leaderboard_v1 unresolved minimum voids without a confirmed miss
+ok 31 - friend_distance_leaderboard_v1 missing data returns entry
+ok 32 - friend_distance_leaderboard_v1 voluntary exit works during admission and processing pause
+ok 33 - personal_distance_goal_v1 late filing retains its 72-hour resolution window
+ok 34 - personal_distance_goal_v1 unresolved minimum voids without a confirmed miss
+ok 35 - personal_distance_goal_v1 missing data returns entry
+ok 36 - personal_distance_goal_v1 voluntary exit works during admission and processing pause
+ok 37 - friend_timed_goal_v1 late filing retains its 72-hour resolution window
+ok 38 - friend_timed_goal_v1 unresolved minimum voids without a confirmed miss
+ok 39 - friend_timed_goal_v1 missing data returns entry
+ok 40 - friend_timed_goal_v1 voluntary exit works during admission and processing pause
+ok 41 - friend_timed_leaderboard_v1 late filing retains its 72-hour resolution window
+ok 42 - friend_timed_leaderboard_v1 unresolved minimum voids without a confirmed miss
+ok 43 - friend_timed_leaderboard_v1 missing data returns entry
+ok 44 - friend_timed_leaderboard_v1 voluntary exit works during admission and processing pause
+ok 45 - personal_timed_goal_v1 late filing retains its 72-hour resolution window
+ok 46 - personal_timed_goal_v1 unresolved minimum voids without a confirmed miss
+ok 47 - personal_timed_goal_v1 missing data returns entry
+ok 48 - personal_timed_goal_v1 voluntary exit works during admission and processing pause
+1..48

@@ -1,0 +1,68 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+active
+1
+
+ok 1 - own progress immediately current
+1
+
+ok 2 - stranger activity does not advance own revision
+ok 3 - stranger current value absent from full response
+2
+
+ok 4 - downward own correction immediately current
+ok 5 - own freshness independent of delayed aggregate
+
+
+{"saved": true}
+
+ok 6 - five eligible can still see only old snapshot of six
+
+{"saved": true}
+
+ok 7 - suspension to four suppresses exact counts immediately
+ok 8 - replacement cohort preserves every historical entry
+ok 9 - 251 active participants still rejected
+1..9

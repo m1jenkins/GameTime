@@ -1,0 +1,48 @@
+ok 1 - the local harness provides the multi-session concurrency driver
+OK
+OK
+OK
+OK
+SET
+SET
+SET
+SET
+UPDATE 1
+GRANT
+BEGIN
+SET
+SET
+ok 2 - the first setup is admitted while runtime and exact eligibility are on
+BEGIN
+SET
+ok 3 - the atomic runtime-off then eligibility-revoke transaction starts
+ok 4 - the control transaction waits for the admitted setup shared control lock
+ok 5 - committing the admitted setup releases its control snapshot
+0
+ok 6 - both control changes complete in order without a deadlock
+ok 7 - the runtime and eligibility changes commit atomically
+ok 8 - the pre-control setup commits with provenance and both later controls are off
+SET
+SET
+ok 9 - a new setup request is blocked after the atomic control transaction
+RESET
+ok 10 - the blocked post-control request persists no second setup
+ok 11 - payment activity is re-enabled for the independent deletion race
+BEGIN
+SET
+ok 12 - account deletion reaches its uncommitted tombstone while retaining locks
+SET
+ok 13 - the charge worker starts while account deletion is uncommitted
+ok 14 - the charge worker waits on the deleting owner profile serialization lock
+ok 15 - committing deletion releases the owner profile lock
+0
+ok 16 - the waiting claim rechecks the committed tombstone and returns no work
+ok 17 - deletion wins atomically: the review stays provisional and no command is created or leased
+RESET
+SET
+ok 18 - committed concurrency fixtures are removed and runtime is restored off
+ok 19 - the charge-claim session disconnects cleanly
+ok 20 - the deletion session disconnects cleanly
+ok 21 - the atomic-control session disconnects cleanly
+OK
+1..21

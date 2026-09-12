@@ -1,0 +1,90 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - knowing ID/digest cannot bypass discovery authorization
+
+b7000000-0000-0000-0000-000000000001
+{"sub":"b7000000-0000-0000-0000-000000000001","session_id":"b7000000-0000-0000-0000-000000000002"}
+ok 2 - unentitled account cannot discover
+{"policy": "age_21_v1", "confirmed": true}
+ok 3 - age alone does not grant Beta discovery
+
+{"id": "49922ec5-366a-4f5e-a716-68fb28ae9ad3", "status": "published_open", "revision": 1}
+
+ok 4 - direct mutation budget applies across routes
+ok 5 - exact dispatcher retry survives exhausted mutation quota
+ok 6 - quota cannot block own read
+ok 7 - quota cannot block safe exit
+
+ok 8 - join has its own shared budget
+ok 9 - quota failure rolls back membership and capacity atomically
+ok 10 - quota failure reserves no slot for rejected actor
+
+{"id": "b47f1aba-b2f6-4bc8-a73d-bdbccb7634b2", "status": "lobby_open", "revision": 2}
+{"saved": true}
+
+
+ok 11 - overlapping roster does not expose differently scoped report
+
+
+ok 12 - matching report scope is visible
+
+
+ok 13 - moderator grant expires exactly at deadline
+
+
+
+
+{"saved": true}
+
+{"saved": true}
+
+{"saved": true}
+ok 14 - reinstatement never revives exited membership
+ok 15 - reinstatement never recreates ended exposure
+
+
+ok 16 - global support expiry equality enforced
+ok 17 - unmetered mutate unavailable to client
+ok 18 - unmetered redemption unavailable to client
+1..18

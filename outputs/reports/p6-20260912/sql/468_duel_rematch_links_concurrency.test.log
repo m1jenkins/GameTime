@@ -1,0 +1,32 @@
+OK
+OK
+OK
+COMMIT
+CREATE FUNCTION
+CREATE FUNCTION
+UPDATE 1
+ok 1 - rematch rechecks expiry after runtime wait
+UPDATE 1
+ok 2 - one concurrent creator reservation
+UPDATE 1
+ok 3 - link issue rechecks expiry after runtime wait
+UPDATE 1
+ok 4 - revocation completes after authorized link commit
+ok 5 - revoked session cannot recover link issue
+INSERT 0 1
+ok 6 - concurrent issue exact retry recovers
+ok 7 - waiting resolution sees revocation
+fb1d3175-c53f-49bb-8bf9-fd1eec4949fb
+ok 8 - waiting resolution sees acceptance without adding consent
+ok 9 - accept vs resolve: observed lock wait
+ok 10 - issue vs exact retry: observed lock wait
+ok 11 - link session expiry: observed lock wait
+ok 12 - link then session revocation: observed lock wait
+ok 13 - rematch session expiry: observed lock wait
+ok 14 - rematch vs rematch: observed lock wait
+ok 15 - revoke vs resolve: observed lock wait
+SET
+OK
+OK
+OK
+1..15

@@ -1,0 +1,107 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - age records private
+ok 2 - anonymous link detail denied
+ok 3 - participants cannot grant operator scopes
+
+ok 4 - 256-bit invitation token
+ok 5 - issue exact retry
+ok 6 - link unique account 2 is pending only
+ok 7 - link unique account 3 is pending only
+ok 8 - link unique account 4 is pending only
+ok 9 - link unique account 5 is pending only
+ok 10 - link unique account 6 is pending only
+ok 11 - link unique account 7 is pending only
+ok 12 - link unique account 8 is pending only
+ok 13 - link unique account 9 is pending only
+ok 14 - link unique account 10 is pending only
+ok 15 - link unique account 11 is pending only
+ok 16 - link unique account 12 is pending only
+ok 17 - link unique account 13 is pending only
+ok 18 - link unique account 14 is pending only
+ok 19 - link unique account 15 is pending only
+ok 20 - link unique account 16 is pending only
+ok 21 - link unique account 17 is pending only
+ok 22 - link unique account 18 is pending only
+ok 23 - link unique account 19 is pending only
+ok 24 - link unique account 20 is pending only
+ok 25 - link unique account 21 is pending only
+ok 26 - 20 unique redemptions
+ok 27 - pending entrants consume no slots
+ok 28 - redemption does not select roster
+
+ok 29 - 21st unique redemption rejected and attempt counted
+
+ok 30 - same account idempotent after ceiling
+
+{"revoked": true}
+
+ok 31 - revocation preserves granted access
+
+ok 32 - revocation stops new redemption and counts attempt
+
+{"saved": true}
+ok 33 - report exact retry
+ok 34 - one private report
+ok 35 - ordinary community configuration disabled
+
+ok 36 - discovery off by default
+
+
+ok 37 - one fictional cohort discoverable
+{"id": "0486ac4f-3750-46e1-af5a-b1f58f5439f0", "status": "published_open", "revision": 1}
+
+{"id": "0486ac4f-3750-46e1-af5a-b1f58f5439f0", "status": "published_open", "revision": 1}
+ok 38 - community exposes only own member
+ok 39 - below-five community count suppressed
+ok 40 - operator identity hidden
+
+ok 41 - community minimum schedules at start
+1
+1
+
+review
+
+final
+
+ok 42 - community own conserved simulation
+1..42

@@ -1,0 +1,21 @@
+1..19
+ok 1 - public.charities exists
+ok 2 - charities is keyed by a surrogate id
+ok 3 - row level security is enabled on charities
+ok 4 - a charity is active unless retired
+ok 5 - an unformatted EIN is refused
+ok 6 - a slug must be lowercase and hyphenated
+ok 7 - a charity URL must be https
+ok 8 - a charity needs a name
+ok 9 - an EIN identifies one charity
+ok 10 - a slug identifies one charity
+ok 11 - a mixed-case slug still resolves to the charity
+ok 12 - authenticated may read the charity list
+ok 13 - authenticated cannot add a charity
+ok 14 - authenticated cannot edit a charity
+ok 15 - authenticated cannot remove a charity
+ok 16 - anon cannot read the charity list either
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 17 - a retired charity is still readable, so existing nominations render
+ok 18 - and so is an active one
+ok 19 - charities composes reference-data reads with the restrictive active-actor guard

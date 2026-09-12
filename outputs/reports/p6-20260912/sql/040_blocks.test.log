@@ -1,0 +1,37 @@
+1..25
+ok 1 - public.blocks exists
+ok 2 - a block is keyed by the directed pair
+ok 3 - row level security is enabled on blocks
+ok 4 - you cannot block yourself
+ok 5 - blocks cannot be updated; unblocking is a delete
+ok 6 - anon cannot select blocks
+ok 7 - blocks are directed, so a mutual block is two rows
+ok 8 - alice and bob start out friends
+ok 9 - blocking severs the friendship immediately
+ok 10 - severing works whichever party blocks, despite the canonical ordering
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 11 - the blocker can see the block they created
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 12 - the blocked party cannot see that they were blocked
+ok 13 - the blocked party cannot delete the block
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 14 - nobody can create a block on somebody else's behalf
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 15 - the blocker can unblock
+ok 16 - and the block is gone
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 17 - alice sees bob through their shared group
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 18 - after blocking, alice no longer sees bob despite the shared group
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 19 - and bob no longer sees alice either
+ok 20 - a blocked user cannot resolve the blocker's handle
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 21 - and the blocker cannot resolve theirs
+ok 22 - discovery of unrelated users is unaffected
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 23 - you cannot join a group containing somebody you blocked
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 24 - and cannot join a group containing somebody who blocked you
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 25 - unblocking restores the ability to join

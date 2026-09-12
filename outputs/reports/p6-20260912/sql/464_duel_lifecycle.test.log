@@ -1,0 +1,237 @@
+t
+da000000-0000-0000-0000-000000001000
+ok 1 - lifecycle is default off
+ok 2 - anon has no SELECT on duel_lifecycle_runtime
+ok 3 - anon has no INSERT on duel_lifecycle_runtime
+ok 4 - anon has no UPDATE on duel_lifecycle_runtime
+ok 5 - anon has no DELETE on duel_lifecycle_runtime
+ok 6 - anon has no TRUNCATE on duel_lifecycle_runtime
+ok 7 - authenticated has no SELECT on duel_lifecycle_runtime
+ok 8 - authenticated has no INSERT on duel_lifecycle_runtime
+ok 9 - authenticated has no UPDATE on duel_lifecycle_runtime
+ok 10 - authenticated has no DELETE on duel_lifecycle_runtime
+ok 11 - authenticated has no TRUNCATE on duel_lifecycle_runtime
+ok 12 - service_role has no SELECT on duel_lifecycle_runtime
+ok 13 - service_role has no INSERT on duel_lifecycle_runtime
+ok 14 - service_role has no UPDATE on duel_lifecycle_runtime
+ok 15 - service_role has no DELETE on duel_lifecycle_runtime
+ok 16 - service_role has no TRUNCATE on duel_lifecycle_runtime
+ok 17 - anon has no SELECT on duel_lifecycle_notices
+ok 18 - anon has no INSERT on duel_lifecycle_notices
+ok 19 - anon has no UPDATE on duel_lifecycle_notices
+ok 20 - anon has no DELETE on duel_lifecycle_notices
+ok 21 - anon has no TRUNCATE on duel_lifecycle_notices
+ok 22 - authenticated has no SELECT on duel_lifecycle_notices
+ok 23 - authenticated has no INSERT on duel_lifecycle_notices
+ok 24 - authenticated has no UPDATE on duel_lifecycle_notices
+ok 25 - authenticated has no DELETE on duel_lifecycle_notices
+ok 26 - authenticated has no TRUNCATE on duel_lifecycle_notices
+ok 27 - service_role has no SELECT on duel_lifecycle_notices
+ok 28 - service_role has no INSERT on duel_lifecycle_notices
+ok 29 - service_role has no UPDATE on duel_lifecycle_notices
+ok 30 - service_role has no DELETE on duel_lifecycle_notices
+ok 31 - service_role has no TRUNCATE on duel_lifecycle_notices
+ok 32 - anon has no SELECT on duel_lifecycle_cases
+ok 33 - anon has no INSERT on duel_lifecycle_cases
+ok 34 - anon has no UPDATE on duel_lifecycle_cases
+ok 35 - anon has no DELETE on duel_lifecycle_cases
+ok 36 - anon has no TRUNCATE on duel_lifecycle_cases
+ok 37 - authenticated has no SELECT on duel_lifecycle_cases
+ok 38 - authenticated has no INSERT on duel_lifecycle_cases
+ok 39 - authenticated has no UPDATE on duel_lifecycle_cases
+ok 40 - authenticated has no DELETE on duel_lifecycle_cases
+ok 41 - authenticated has no TRUNCATE on duel_lifecycle_cases
+ok 42 - service_role has no SELECT on duel_lifecycle_cases
+ok 43 - service_role has no INSERT on duel_lifecycle_cases
+ok 44 - service_role has no UPDATE on duel_lifecycle_cases
+ok 45 - service_role has no DELETE on duel_lifecycle_cases
+ok 46 - service_role has no TRUNCATE on duel_lifecycle_cases
+ok 47 - anon has no SELECT on duel_lifecycle_resolutions
+ok 48 - anon has no INSERT on duel_lifecycle_resolutions
+ok 49 - anon has no UPDATE on duel_lifecycle_resolutions
+ok 50 - anon has no DELETE on duel_lifecycle_resolutions
+ok 51 - anon has no TRUNCATE on duel_lifecycle_resolutions
+ok 52 - authenticated has no SELECT on duel_lifecycle_resolutions
+ok 53 - authenticated has no INSERT on duel_lifecycle_resolutions
+ok 54 - authenticated has no UPDATE on duel_lifecycle_resolutions
+ok 55 - authenticated has no DELETE on duel_lifecycle_resolutions
+ok 56 - authenticated has no TRUNCATE on duel_lifecycle_resolutions
+ok 57 - service_role has no SELECT on duel_lifecycle_resolutions
+ok 58 - service_role has no INSERT on duel_lifecycle_resolutions
+ok 59 - service_role has no UPDATE on duel_lifecycle_resolutions
+ok 60 - service_role has no DELETE on duel_lifecycle_resolutions
+ok 61 - service_role has no TRUNCATE on duel_lifecycle_resolutions
+ok 62 - anon has no SELECT on duel_lifecycle_closures
+ok 63 - anon has no INSERT on duel_lifecycle_closures
+ok 64 - anon has no UPDATE on duel_lifecycle_closures
+ok 65 - anon has no DELETE on duel_lifecycle_closures
+ok 66 - anon has no TRUNCATE on duel_lifecycle_closures
+ok 67 - authenticated has no SELECT on duel_lifecycle_closures
+ok 68 - authenticated has no INSERT on duel_lifecycle_closures
+ok 69 - authenticated has no UPDATE on duel_lifecycle_closures
+ok 70 - authenticated has no DELETE on duel_lifecycle_closures
+ok 71 - authenticated has no TRUNCATE on duel_lifecycle_closures
+ok 72 - service_role has no SELECT on duel_lifecycle_closures
+ok 73 - service_role has no INSERT on duel_lifecycle_closures
+ok 74 - service_role has no UPDATE on duel_lifecycle_closures
+ok 75 - service_role has no DELETE on duel_lifecycle_closures
+ok 76 - service_role has no TRUNCATE on duel_lifecycle_closures
+ok 77 - anon has no SELECT on duel_lifecycle_results
+ok 78 - anon has no INSERT on duel_lifecycle_results
+ok 79 - anon has no UPDATE on duel_lifecycle_results
+ok 80 - anon has no DELETE on duel_lifecycle_results
+ok 81 - anon has no TRUNCATE on duel_lifecycle_results
+ok 82 - authenticated has no SELECT on duel_lifecycle_results
+ok 83 - authenticated has no INSERT on duel_lifecycle_results
+ok 84 - authenticated has no UPDATE on duel_lifecycle_results
+ok 85 - authenticated has no DELETE on duel_lifecycle_results
+ok 86 - authenticated has no TRUNCATE on duel_lifecycle_results
+ok 87 - service_role has no SELECT on duel_lifecycle_results
+ok 88 - service_role has no INSERT on duel_lifecycle_results
+ok 89 - service_role has no UPDATE on duel_lifecycle_results
+ok 90 - service_role has no DELETE on duel_lifecycle_results
+ok 91 - service_role has no TRUNCATE on duel_lifecycle_results
+ok 92 - anon has no SELECT on duel_lifecycle_settlements
+ok 93 - anon has no INSERT on duel_lifecycle_settlements
+ok 94 - anon has no UPDATE on duel_lifecycle_settlements
+ok 95 - anon has no DELETE on duel_lifecycle_settlements
+ok 96 - anon has no TRUNCATE on duel_lifecycle_settlements
+ok 97 - authenticated has no SELECT on duel_lifecycle_settlements
+ok 98 - authenticated has no INSERT on duel_lifecycle_settlements
+ok 99 - authenticated has no UPDATE on duel_lifecycle_settlements
+ok 100 - authenticated has no DELETE on duel_lifecycle_settlements
+ok 101 - authenticated has no TRUNCATE on duel_lifecycle_settlements
+ok 102 - service_role has no SELECT on duel_lifecycle_settlements
+ok 103 - service_role has no INSERT on duel_lifecycle_settlements
+ok 104 - service_role has no UPDATE on duel_lifecycle_settlements
+ok 105 - service_role has no DELETE on duel_lifecycle_settlements
+ok 106 - service_role has no TRUNCATE on duel_lifecycle_settlements
+ok 107 - anon has no SELECT on duel_lifecycle_support
+ok 108 - anon has no INSERT on duel_lifecycle_support
+ok 109 - anon has no UPDATE on duel_lifecycle_support
+ok 110 - anon has no DELETE on duel_lifecycle_support
+ok 111 - anon has no TRUNCATE on duel_lifecycle_support
+ok 112 - authenticated has no SELECT on duel_lifecycle_support
+ok 113 - authenticated has no INSERT on duel_lifecycle_support
+ok 114 - authenticated has no UPDATE on duel_lifecycle_support
+ok 115 - authenticated has no DELETE on duel_lifecycle_support
+ok 116 - authenticated has no TRUNCATE on duel_lifecycle_support
+ok 117 - service_role has no SELECT on duel_lifecycle_support
+ok 118 - service_role has no INSERT on duel_lifecycle_support
+ok 119 - service_role has no UPDATE on duel_lifecycle_support
+ok 120 - service_role has no DELETE on duel_lifecycle_support
+ok 121 - service_role has no TRUNCATE on duel_lifecycle_support
+ok 122 - anon has no SELECT on duel_lifecycle_activations
+ok 123 - anon has no INSERT on duel_lifecycle_activations
+ok 124 - anon has no UPDATE on duel_lifecycle_activations
+ok 125 - anon has no DELETE on duel_lifecycle_activations
+ok 126 - anon has no TRUNCATE on duel_lifecycle_activations
+ok 127 - authenticated has no SELECT on duel_lifecycle_activations
+ok 128 - authenticated has no INSERT on duel_lifecycle_activations
+ok 129 - authenticated has no UPDATE on duel_lifecycle_activations
+ok 130 - authenticated has no DELETE on duel_lifecycle_activations
+ok 131 - authenticated has no TRUNCATE on duel_lifecycle_activations
+ok 132 - service_role has no SELECT on duel_lifecycle_activations
+ok 133 - service_role has no INSERT on duel_lifecycle_activations
+ok 134 - service_role has no UPDATE on duel_lifecycle_activations
+ok 135 - service_role has no DELETE on duel_lifecycle_activations
+ok 136 - service_role has no TRUNCATE on duel_lifecycle_activations
+ok 137 - anon has no SELECT on duel_lifecycle_gate_events
+ok 138 - anon has no INSERT on duel_lifecycle_gate_events
+ok 139 - anon has no UPDATE on duel_lifecycle_gate_events
+ok 140 - anon has no DELETE on duel_lifecycle_gate_events
+ok 141 - anon has no TRUNCATE on duel_lifecycle_gate_events
+ok 142 - authenticated has no SELECT on duel_lifecycle_gate_events
+ok 143 - authenticated has no INSERT on duel_lifecycle_gate_events
+ok 144 - authenticated has no UPDATE on duel_lifecycle_gate_events
+ok 145 - authenticated has no DELETE on duel_lifecycle_gate_events
+ok 146 - authenticated has no TRUNCATE on duel_lifecycle_gate_events
+ok 147 - service_role has no SELECT on duel_lifecycle_gate_events
+ok 148 - service_role has no INSERT on duel_lifecycle_gate_events
+ok 149 - service_role has no UPDATE on duel_lifecycle_gate_events
+ok 150 - service_role has no DELETE on duel_lifecycle_gate_events
+ok 151 - service_role has no TRUNCATE on duel_lifecycle_gate_events
+ok 152 - anon cannot execute private duel_lifecycle_admit_v1
+ok 153 - authenticated cannot execute private duel_lifecycle_admit_v1
+ok 154 - service_role cannot execute private duel_lifecycle_admit_v1
+ok 155 - anon cannot execute private duel_lifecycle_case_at_v1
+ok 156 - authenticated cannot execute private duel_lifecycle_case_at_v1
+ok 157 - service_role cannot execute private duel_lifecycle_case_at_v1
+ok 158 - anon cannot execute private duel_lifecycle_clock_v1
+ok 159 - authenticated cannot execute private duel_lifecycle_clock_v1
+ok 160 - service_role cannot execute private duel_lifecycle_clock_v1
+ok 161 - anon cannot execute private duel_lifecycle_commit_at_v1
+ok 162 - authenticated cannot execute private duel_lifecycle_commit_at_v1
+ok 163 - service_role cannot execute private duel_lifecycle_commit_at_v1
+ok 164 - anon cannot execute private duel_lifecycle_exit_at_v1
+ok 165 - authenticated cannot execute private duel_lifecycle_exit_at_v1
+ok 166 - service_role cannot execute private duel_lifecycle_exit_at_v1
+ok 167 - anon cannot execute private duel_lifecycle_guard_v1
+ok 168 - authenticated cannot execute private duel_lifecycle_guard_v1
+ok 169 - service_role cannot execute private duel_lifecycle_guard_v1
+ok 170 - anon cannot execute private duel_lifecycle_load_at_v1
+ok 171 - authenticated cannot execute private duel_lifecycle_load_at_v1
+ok 172 - service_role cannot execute private duel_lifecycle_load_at_v1
+ok 173 - anon cannot execute private duel_lifecycle_proof_open_v1
+ok 174 - authenticated cannot execute private duel_lifecycle_proof_open_v1
+ok 175 - service_role cannot execute private duel_lifecycle_proof_open_v1
+ok 176 - anon cannot execute private duel_lifecycle_resolve_at_v1
+ok 177 - authenticated cannot execute private duel_lifecycle_resolve_at_v1
+ok 178 - service_role cannot execute private duel_lifecycle_resolve_at_v1
+ok 179 - anon cannot execute private duel_lifecycle_settle_at_v1
+ok 180 - authenticated cannot execute private duel_lifecycle_settle_at_v1
+ok 181 - service_role cannot execute private duel_lifecycle_settle_at_v1
+ok 182 - anon cannot execute private duel_lifecycle_snapshot_v1
+ok 183 - authenticated cannot execute private duel_lifecycle_snapshot_v1
+ok 184 - service_role cannot execute private duel_lifecycle_snapshot_v1
+ok 185 - anon cannot execute worker commit_duel_lifecycle_v1
+ok 186 - authenticated cannot execute worker commit_duel_lifecycle_v1
+ok 187 - anon cannot execute worker settle_duel_simulation_v1
+ok 188 - authenticated cannot execute worker settle_duel_simulation_v1
+ok 189 - anon cannot execute worker set_duel_lifecycle_enabled_v1
+ok 190 - authenticated cannot execute worker set_duel_lifecycle_enabled_v1
+ok 191 - anon cannot execute worker load_duel_lifecycle_v1
+ok 192 - authenticated cannot execute worker load_duel_lifecycle_v1
+ok 193 - anon cannot execute worker cancel_duel_event_v1
+ok 194 - authenticated cannot execute worker cancel_duel_event_v1
+ok 195 - no scheduler
+ok 196 - default off blocks worker
+t
+ok 197 - complete initial notice history
+ok 198 - not active before start
+{"now": "2026-08-01T15:00:00+00:00", "closure": null, "notices": [], "reviews": [], "agreement": {"id": "e2637fc5-e65e-4bd2-a207-18cfbc5c0c7e", "terms": {"event": {"id": "da000000-0000-0000-0000-000000001000", "wave": "fixture_common_wave_v1", "course": "fixture_course_5k_v1", "ends_at": "2026-08-01T17:00:00+00:00", "starts_at": "2026-08-01T15:00:00+00:00", "event_name": "Fictional local 5K", "policy_version": "duel-fixture-5k-v1", "display_timezone": "America/Chicago"}, "policy": {"tie": "return_both_zero_fee", "mode": "simulated", "sport": "outdoor_running", "source": "fixture_official_5k_v1", "winner": "lower_valid_chip_seconds", "attempts": 1, "currency": "USD", "handicap": "none", "settlement": "simulation_only_after_dispute_deadline_and_review", "corrections": "append_only_no_automatic_new_consequence", "timing_basis": "organizer_chip", "both_nonfinish": "void_zero_consequence", "fee_cents_each": 0, "review_timeout": "void_zero_consequence", "consent_version": "duel-simulated-consent-v1", "distance_meters": 5000, "stake_cents_each": 2000, "participant_count": 2, "precision_seconds": 1, "accept_within_hours": 72, "confirmed_nonfinish": "qualifying_finisher_wins_after_review", "poststart_withdrawal": "withdrawn_no_contest_zero_consequence", "prestart_cancellation": "creator_or_either_accepted_runner_zero_consequence", "results_after_end_hours": 72, "finality_after_end_hours": 720, "accept_before_start_hours": 1, "review_after_filing_hours": 168, "missing_or_ambiguous_proof": "review_then_void_zero_consequence", "injury_or_event_cancellation": "void_zero_consequence", "dispute_after_durable_notice_hours": 168}, "accept_by": "2026-08-01T14:00:00+00:00", "created_at": "2026-07-31T12:00:00+00:00", "creator_id": "d9000000-0000-0000-0000-000000000001", "invitee_id": "d9000000-0000-0000-0000-000000000002", "policy_version": "duel-fixture-5k-v1", "results_due_at": "2026-08-04T17:00:00+00:00", "finality_due_at": "2026-08-31T17:00:00+00:00", "agreement_version": 1}, "status": "scheduled", "event_id": "da000000-0000-0000-0000-000000001000", "accept_by": "2026-08-01T14:00:00+00:00", "closed_at": null, "starts_at": "2026-08-01T15:00:00+00:00", "created_at": "2026-07-31T12:00:00+00:00", "creator_id": "d9000000-0000-0000-0000-000000000001", "invitee_id": "d9000000-0000-0000-0000-000000000002", "close_reason": null, "participants": [{"role": "creator", "actor_id": "d9000000-0000-0000-0000-000000000001", "accepted_at": "2026-07-31T12:00:00+00:00", "declined_at": null, "challenge_id": "e2637fc5-e65e-4bd2-a207-18cfbc5c0c7e", "consent_terms_digest": "7c1d543eb4e33e475f58276f417b6be6e45c11e837128bf189d1bb2055575ffb", "consent_policy_version": "duel-fixture-5k-v1"}, {"role": "invitee", "actor_id": "d9000000-0000-0000-0000-000000000002", "accepted_at": "2026-07-31T13:00:00+00:00", "declined_at": null, "challenge_id": "e2637fc5-e65e-4bd2-a207-18cfbc5c0c7e", "consent_terms_digest": "7c1d543eb4e33e475f58276f417b6be6e45c11e837128bf189d1bb2055575ffb", "consent_policy_version": "duel-fixture-5k-v1"}], "terms_digest": "7c1d543eb4e33e475f58276f417b6be6e45c11e837128bf189d1bb2055575ffb", "policy_version": "duel-fixture-5k-v1"}, "finalResult": null, "proofRevisions": []}
+{"now": "2026-08-01T15:01:00+00:00", "closure": null, "notices": [], "reviews": [], "agreement": {"id": "e2637fc5-e65e-4bd2-a207-18cfbc5c0c7e", "terms": {"event": {"id": "da000000-0000-0000-0000-000000001000", "wave": "fixture_common_wave_v1", "course": "fixture_course_5k_v1", "ends_at": "2026-08-01T17:00:00+00:00", "starts_at": "2026-08-01T15:00:00+00:00", "event_name": "Fictional local 5K", "policy_version": "duel-fixture-5k-v1", "display_timezone": "America/Chicago"}, "policy": {"tie": "return_both_zero_fee", "mode": "simulated", "sport": "outdoor_running", "source": "fixture_official_5k_v1", "winner": "lower_valid_chip_seconds", "attempts": 1, "currency": "USD", "handicap": "none", "settlement": "simulation_only_after_dispute_deadline_and_review", "corrections": "append_only_no_automatic_new_consequence", "timing_basis": "organizer_chip", "both_nonfinish": "void_zero_consequence", "fee_cents_each": 0, "review_timeout": "void_zero_consequence", "consent_version": "duel-simulated-consent-v1", "distance_meters": 5000, "stake_cents_each": 2000, "participant_count": 2, "precision_seconds": 1, "accept_within_hours": 72, "confirmed_nonfinish": "qualifying_finisher_wins_after_review", "poststart_withdrawal": "withdrawn_no_contest_zero_consequence", "prestart_cancellation": "creator_or_either_accepted_runner_zero_consequence", "results_after_end_hours": 72, "finality_after_end_hours": 720, "accept_before_start_hours": 1, "review_after_filing_hours": 168, "missing_or_ambiguous_proof": "review_then_void_zero_consequence", "injury_or_event_cancellation": "void_zero_consequence", "dispute_after_durable_notice_hours": 168}, "accept_by": "2026-08-01T14:00:00+00:00", "created_at": "2026-07-31T12:00:00+00:00", "creator_id": "d9000000-0000-0000-0000-000000000001", "invitee_id": "d9000000-0000-0000-0000-000000000002", "policy_version": "duel-fixture-5k-v1", "results_due_at": "2026-08-04T17:00:00+00:00", "finality_due_at": "2026-08-31T17:00:00+00:00", "agreement_version": 1}, "status": "scheduled", "event_id": "da000000-0000-0000-0000-000000001000", "accept_by": "2026-08-01T14:00:00+00:00", "closed_at": null, "starts_at": "2026-08-01T15:00:00+00:00", "created_at": "2026-07-31T12:00:00+00:00", "creator_id": "d9000000-0000-0000-0000-000000000001", "invitee_id": "d9000000-0000-0000-0000-000000000002", "close_reason": null, "participants": [{"role": "creator", "actor_id": "d9000000-0000-0000-0000-000000000001", "accepted_at": "2026-07-31T12:00:00+00:00", "declined_at": null, "challenge_id": "e2637fc5-e65e-4bd2-a207-18cfbc5c0c7e", "consent_terms_digest": "7c1d543eb4e33e475f58276f417b6be6e45c11e837128bf189d1bb2055575ffb", "consent_policy_version": "duel-fixture-5k-v1"}, {"role": "invitee", "actor_id": "d9000000-0000-0000-0000-000000000002", "accepted_at": "2026-07-31T13:00:00+00:00", "declined_at": null, "challenge_id": "e2637fc5-e65e-4bd2-a207-18cfbc5c0c7e", "consent_terms_digest": "7c1d543eb4e33e475f58276f417b6be6e45c11e837128bf189d1bb2055575ffb", "consent_policy_version": "duel-fixture-5k-v1"}], "terms_digest": "7c1d543eb4e33e475f58276f417b6be6e45c11e837128bf189d1bb2055575ffb", "policy_version": "duel-fixture-5k-v1"}, "finalResult": null, "proofRevisions": []}
+ok 199 - activation is idempotent
+ok 200 - activation retains both slots
+ok 201 - cutoff publishes durable pair notices
+ok 202 - duplicate old input is stale after notices
+ok 203 - one notice per runner and revision
+ok 204 - notices never release slots
+
+ok 205 - unnoticed revision rejected
+ok 206 - participant files in window
+ok 207 - exact retry after deadline
+ok 208 - filing deadline equality rejected
+ok 209 - own case receipt available
+
+ok 210 - last microsecond accepted
+
+ok 211 - unrelated actor denied
+ok 212 - case filing invalidates old snapshot
+38
+
+ok 213 - self review rejected
+
+ok 214 - resolution exact timeout rejected
+ok 215 - resolution last microsecond accepted
+39
+
+ok 216 - revoked reviewer cannot recover resolution
+f
+
+ok 217 - safe exit passes closed lifecycle gate
+ok 218 - safe exit request payload frozen
+ok 219 - owner cannot edit notices with write setting
+psql:supabase/tests/464_duel_lifecycle.test.sql:141: NOTICE:  truncate cascades to table "duel_lifecycle_resolutions"
+ok 220 - case history cannot truncate
+1..220

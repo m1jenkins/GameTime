@@ -1,0 +1,96 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - anon has no claim-table access
+ok 2 - authenticated has no claim-table access
+ok 3 - service_role has no claim-table access
+ok 4 - anon cannot drive claims
+ok 5 - authenticated cannot drive claims
+ok 6 - anon cannot complete claims
+ok 7 - authenticated cannot complete claims
+ok 8 - worker RPCs have fixed definer search paths
+ok 9 - worker RPCs have fixed definer search paths
+ok 10 - read validation has no gate or actor mutex
+ok 11 - old batch API cannot silently keep a transaction open across work
+ok 12 - claim batch is bounded
+ok 13 - completion needs a challenge and token
+
+ok 14 - claim retry returns exactly the same lease
+ok 15 - live lease is not offered to another worker
+on
+ok 16 - item failure persists categorical SQLSTATE
+ok 17 - failed tick rolls back lifecycle effects
+ok 18 - failed later transition rolls back the preceding notice insert
+ok 19 - failed item is scheduled for retry
+ok 20 - first failure gets bounded backoff
+ok 21 - duplicate failed completion returns its exact result
+ok 22 - backoff prevents immediate retry
+ok 23 - retry count is visible without raw errors
+ok 24 - fifth failed attempt is dead-lettered and visible
+ok 25 - attempts count each acquired lease
+ok 26 - dead letters cannot spin on subsequent polls
+off
+
+
+ok 27 - safe detail works while processing and admission are paused
+ok 28 - safe exit completes despite dead-lettered worker and pause
+ok 29 - exit synchronously returns unsettled entries below minimum
+ok 30 - closed challenge is excluded from active dead-letter inventory
+
+
+
+ok 31 - expired last lease remains visible until recovery
+ok 32 - abandoned fifth lease is retired instead of reclaimed
+ok 33 - abandoned exhaustion becomes a dead letter
+
+
+on
+ok 34 - transient item fails after prior lifecycle writes
+off
+ok 35 - scheduled retry successfully publishes the notice
+ok 36 - successful completion resets the consecutive failure budget
+ok 37 - old failed completion response remains exact after recovery
+ok 38 - successful retry starts a full review period at actual notice time
+
+
+ok 39 - filing a review remains safe during admission and processing pauses
+ok 40 - paused-worker review keeps 72 hours from actual filing
+1..40

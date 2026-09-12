@@ -1,0 +1,114 @@
+ok 1 - admission defaults off
+ok 2 - empty admission list
+ok 3 - no commitment schedule
+ok 4 - RLS on every new table
+ok 5 - empty definer search paths
+ok 6 - no private helper or clock grant
+ok 7 - five owner RPCs only
+ok 8 - no anonymous RPCs
+
+ok 9 - gate-off rejects create
+ok 10 - participant cannot enable admission
+ok 11 - private agreements cannot be read directly
+ok 12 - private payloads cannot be read directly
+t
+ok 13 - allowlist required
+t
+t
+ec200000-0000-0000-0000-000000000100
+
+ef36c454-2c51-470a-9212-e79d0529360b
+
+ok 14 - explicit consent required
+ok 15 - null consent rejected
+ok 16 - wrong digest rejected
+ok 17 - old policy cannot authorize new agreement
+ok 18 - unknown timezone rejected
+ok 19 - nonfinite dates rejected
+ok 20 - zero target rejected
+ok 21 - null target rejected
+ok 22 - target bounded
+ok 23 - one microsecond short of 28 elapsed days rejected
+ok 24 - one microsecond over 90 days rejected
+ok 25 - creation at start is too late
+ok 26 - start beyond 30 days rejected
+ok 27 - exact retry recovers original
+ok 28 - changed target under key rejected
+ok 29 - changed display zone under key rejected
+ok 30 - changed consent under key rejected
+ok 31 - one open commitment
+ok 32 - past deadline and finality cap do not implicitly release slot
+ok 33 - request namespace spans operations
+ok 34 - owner reads scheduled agreement
+ok 35 - owner history
+ok 36 - bounded history
+ok 37 - paired cursor required
+ok 38 - 60 day window across DST
+ok 39 - no recipient implied
+ok 40 - simulation only
+ok 41 - strict target frozen
+ok 42 - whole seconds represented as integer milliseconds
+ok 43 - cutoff preserves microseconds
+ok 44 - consent binds exact terms and acceptance time
+ok 45 - start equality is active
+ok 46 - deadline equality waits for proof
+ok 47 - overdue agreement never becomes an inferred miss
+ok 48 - clock projection does not release slot
+on
+ok 49 - frozen target immutable
+ok 50 - consent immutable
+ok 51 - agreements retained
+ok 52 - retry history cannot be truncated
+ok 53 - deferred invariant rejects release without aggregate closure
+
+ok 54 - other actor cannot read
+ok 55 - other actor cannot close
+ok 56 - other actor history empty
+
+
+ok 57 - leap day remains in window
+
+
+ok 58 - session timezone cannot change payload identity
+f
+ok 59 - gate-off keeps committed recovery
+ok 60 - gate-off keeps owner reads
+ok 61 - cancel equality too late
+ok 62 - withdrawal not prestart cancellation
+ok 63 - gate-off prestart cancellation works
+ok 64 - close exact retry
+ok 65 - close reason cannot change under key
+ok 66 - closed agreement cannot transition again
+ok 67 - old create retry does not reopen closed goal
+ok 68 - closure and slot release atomic
+t
+ok 69 - replacement requires new agreement and consent
+
+ok 70 - withdrawal at start allowed
+
+ok 71 - injury exit needs no medical upload
+ok 72 - injury retained as withdrawal, not miss
+
+ok 73 - public preview and creation bind one consent
+ok 74 - revoked session cannot read saved content
+ok 75 - revoked session cannot mutate
+
+ok 76 - expired session rejected
+
+ok 77 - existing deletion closes new prestart agreement
+ok 78 - deletion reason retained
+ok 79 - deletion preserves consent
+ok 80 - deletion preserves exact request
+ok 81 - deletion removes admission
+ok 82 - deleted actor cannot recover stale request
+
+ok 83 - deletion safely closes active simulated commitment
+ok 84 - active deletion is withdrawal
+ok 85 - Personal terms unchanged throughout commitment create/close/delete
+ok 86 - commitment never consumes or releases duel slots
+ok 87 - duel terms unchanged
+ok 88 - Solo remains untouched
+ok 89 - legacy retention still runs
+ok 90 - legacy retention cannot prune open or deleted commitment agreements
+ok 91 - legacy retention preserves new consents
+1..91

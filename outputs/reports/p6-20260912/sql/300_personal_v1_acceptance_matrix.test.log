@@ -1,0 +1,43 @@
+1..17
+
+
+
+
+
+
+
+
+
+ok 1 - all matrix fixtures activate with one owner
+
+
+
+
+f9d345b2-2145-4fe2-af21-57dba49c7b69
+522d12e4-b3ac-4349-8885-e6ac93bd443f
+c31eec4e-e6b7-4891-90d0-470c72805df8
+cd3eb002-2b18-4630-be34-2ccdb6a2abc6
+9e80ecda-b761-4a68-80d8-32cb9757aa06
+45c83c18-3089-4755-a385-edb155ecab43
+0e2309c8-5a92-47be-b5aa-0d9a1490836c
+2f404a59-390f-475f-82be-f0697006ff8f
+ok 2 - daily succeeds only when all seven trusted days meet target
+ok 3 - one verified missed day makes a complete daily challenge miss
+ok 4 - the daily miss fixture contains exactly one sub-target day
+ok 5 - cumulative succeeds at the exact seven-day target
+ok 6 - cumulative misses below the seven-day target
+ok 7 - missing coverage is inconclusive and waived
+ok 8 - quarantined evidence is inconclusive and waived
+ok 9 - conflicting evidence is inconclusive and waived
+ok 10 - unresolved evidence is inconclusive and waived
+ok 11 - non-device inconclusive outcomes never place an eligibility hold
+2026-09-12 02:07:41.788594+00
+2026-09-12 02:07:42.204629+00
+ok 12 - trusted metric and coverage backfill both land after day seven within grace
+ok 13 - final assessment cannot run before the full 24-hour grace expires
+ok 14 - the database matches the Edge cap of 100000 diagnostic samples
+ok 15 - late trusted backfill appears in owner progress before final assessment
+{"sub":"f0999999-9999-9999-9999-999999999999"}
+ok 16 - the owner can read their own coverage batch and interval
+{"sub":"f0555555-5555-5555-5555-555555555555"}
+ok 17 - two-user RLS hides both another owner coverage batch and its intervals

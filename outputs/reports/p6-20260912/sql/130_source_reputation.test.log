@@ -1,0 +1,26 @@
+1..23
+ok 1 - source reputation has a dedicated M3 metadata sidecar
+ok 2 - the source sidecar invokes metric_snapshots RLS
+ok 3 - authenticated participants may read visible source metadata
+ok 4 - anonymous callers cannot read source metadata
+ok 5 - five current provenance contributions produce five sidecar rows
+ok 6 - a reviewed bundle identifier is preserved exactly
+ok 7 - an unknown but well-formed bundle identifier is preserved
+ok 8 - missing source attribution stays explicitly null
+ok 9 - malformed syntax remains visible for TypeScript to flag
+ok 10 - device and third-party provenance stay distinguishable
+ok 11 - known, unrecognized, missing, malformed, and device rows remain admissible
+ok 12 - source reputation removes no rows from contest_evidence
+ok 13 - and it changes none of the values M4 scores
+ok 14 - an identical current observation does not duplicate the source signal
+ok 15 - the retry resolves to the same source identifier
+ok 16 - the append-only ledger still retains both observations
+ok 17 - the scoring view reports both observations without double-counting the value
+ok 18 - the retry leaves the scored value deterministic
+ok 19 - malformed third-party source evidence still scores
+ok 20 - missing third-party source evidence still scores
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 21 - an unrelated account cannot enumerate source reputation metadata
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 22 - an accepted opponent cannot inspect source identifiers
+ok 23 - or bypass D77 through the hourly scoring view

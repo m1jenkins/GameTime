@@ -1,0 +1,61 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - session helper remains security invoker
+ok 2 - session helper keeps an empty search path
+ok 3 - anon cannot invoke the internal session helper
+ok 4 - authenticated cannot invoke the internal session helper
+ok 5 - service_role cannot invoke the internal session helper
+ok 6 - public detail remains a fixed-path definer
+ok 7 - authenticated detail entry point remains granted
+ok 8 - anonymous detail remains denied
+
+ok 9 - an unbounded active session remains valid
+
+ok 10 - an unexpired finite session remains valid
+
+ok 11 - expiry at the current clock denies private detail
+
+{"sub": "bf000000-0000-0000-0000-000000000001", "session_id": "ba000000-0000-0000-0000-000000000002"}
+ok 12 - another actor session never grants detail
+
+ok 13 - a session without an active profile binding grants no detail
+1..13

@@ -1,0 +1,33 @@
+OK
+OK
+OK
+DO
+ok 1 - notice append invalidates competing worker input
+ok 2 - safe exit wins over stale provisional publication
+ok 3 - deletion tombstone invalidates worker
+provisional
+CREATE FUNCTION
+ok 4 - case append invalidates worker
+ok 5 - only one final result commits
+ok 6 - one immutable final result
+ok 7 - concurrent final releases slots once
+ok 8 - initial proof admitted before cutoff
+ok 9 - correction appends revision two
+ok 10 - correction invalidates evaluated input
+ok 11 - resolution invalidates worker input
+ok 12 - second initial proof admitted
+ok 13 - final result commits
+ok 14 - waiting correction denied after finality
+ok 15 - case vs worker: second session waited on first
+ok 16 - correction vs worker: second session waited on first
+ok 17 - deletion vs worker: second session waited on first
+ok 18 - exit vs worker: second session waited on first
+ok 19 - final vs correction: second session waited on first
+ok 20 - final vs final: second session waited on first
+ok 21 - notice vs notice: second session waited on first
+ok 22 - resolution vs worker: second session waited on first
+SET
+OK
+OK
+OK
+1..22

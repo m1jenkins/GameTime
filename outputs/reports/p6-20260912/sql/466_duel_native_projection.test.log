@@ -1,0 +1,48 @@
+t
+t
+provisional
+provisional
+f
+f
+
+ok 1 - gate off retains safe exit
+ok 2 - gate off retains review
+ok 3 - server clock observed
+ok 4 - no invented exit
+29cbd1f8-09bb-42f3-8197-0197bef3e98a
+ok 5 - filed revision unavailable
+ok 6 - own review receipt
+ok 7 - case redacted
+82a98b36-3720-46db-8e4e-850c302e78ff
+ok 8 - saved injury visible before worker
+ok 9 - own receipt identified without raw actor
+ok 10 - saved exit cannot be sent again
+ok 11 - exit does not invent final result
+ok 12 - exit does not invent return
+
+ok 13 - opponent cannot read case
+ok 14 - opponent retains own review window
+ok 15 - shared exit has no actor ID
+ok 16 - blocked opponent injury hidden
+ok 17 - blocked result notices hidden
+
+ok 18 - blocked actor retains own exit
+ok 19 - blocked actor retains own case
+
+ok 20 - elapsed review deadline is closed
+t
+final
+f
+ok 21 - final result disables exit with historical scheduled agreement
+ok 22 - final result still awaits separate return
+t
+{"mode": "simulated", "fee_cents": 0, "redeemable": false, "recorded_at": "2026-09-12T02:07:59.82051+00:00", "challenge_id": "8104925a-c991-4c97-9aa7-b45dc73da170", "creator_cents": 2000, "invitee_cents": 2000}
+f
+ok 23 - separate own simulated return
+
+ok 24 - unrelated actor denied
+
+ok 25 - revoked session denied
+ok 26 - anonymous cannot read
+ok 27 - no service participant read
+1..27

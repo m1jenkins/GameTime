@@ -1,0 +1,37 @@
+OK
+OK
+OK
+COMMIT
+CREATE FUNCTION
+CREATE FUNCTION
+ok 1 - competing exact check-ins return identical sequence
+ok 2 - one manual check-in committed
+ok 3 - waiting changed payload cannot reuse request
+ok 4 - first status change committed
+ok 5 - waiting status update observes changed revision
+ok 6 - exact concurrent status changes append once
+ok 7 - waiting check-in sees shutdown
+true
+UPDATE 1
+ok 8 - natural session expiry rechecked after runtime wait
+UPDATE 1
+ok 9 - waiting note observes safe closure
+ok 10 - revoked session cannot recover receipt
+INSERT 0 1
+ok 11 - waiting history read sees deletion
+ok 12 - changed exact payload: observed lock wait
+ok 13 - competing status updates: observed lock wait
+ok 14 - deletion then history read: observed lock wait
+ok 15 - exact check-in retries: observed lock wait
+ok 16 - exact status retries: observed lock wait
+ok 17 - gate shutdown then check-in: observed lock wait
+ok 18 - natural expiry while waiting: observed lock wait
+ok 19 - session revocation then recovery: observed lock wait
+ok 20 - withdrawal then check-in: observed lock wait
+ok 21 - only five authorized entries retained after deletion
+ok 22 - progress hold survives deletion
+COMMIT
+OK
+OK
+OK
+1..22

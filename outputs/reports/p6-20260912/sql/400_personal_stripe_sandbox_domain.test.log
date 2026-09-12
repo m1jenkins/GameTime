@@ -1,0 +1,26 @@
+ok 1 - all Stripe sandbox state lives in six private app tables
+ok 2 - RLS is enabled on every private Stripe sandbox table
+ok 3 - private Stripe sandbox tables intentionally have no RLS policies
+ok 4 - public, clients, and service_role have no direct table privileges
+ok 5 - the database has no client secret, webhook secret, raw body, or card column
+ok 6 - authenticated setup consent has a versioned boundary
+ok 7 - Edge setup consent has an explicit verified-owner boundary
+ok 8 - Customer binding has a service boundary
+ok 9 - canonical SetupIntent refresh has a service boundary
+ok 10 - Edge commit load has an explicit verified-owner boundary
+ok 11 - Edge challenge commit has an explicit verified-owner boundary
+ok 12 - verified-owner review filing has a service-only boundary
+ok 13 - review settlement is isolated from the V1 result publisher
+ok 14 - the leased charge worker has a versioned claim boundary
+ok 15 - the leased charge worker has a normalized record boundary
+ok 16 - normalized webhook reconciliation has a versioned service boundary
+ok 17 - authenticated clients receive only begin, direct commit, and owner-safe status
+ok 18 - clients cannot load provider IDs, refresh provider state, or run workers
+ok 19 - service_role receives the explicit Edge and worker boundaries
+ok 20 - the result trigger opens review and cannot create a charge command
+ok 21 - one result trigger owns the provisional review opening
+ok 22 - a definite worker failure terminalizes without requiring a PaymentIntent
+ok 23 - claim independently enforces the deadline and discovers expired unreviewed misses
+ok 24 - paid challenge commit blocks while an earlier review or collection is unresolved
+ok 25 - ambiguous same-key recovery is bounded to 23 hours from first attempt
+1..25

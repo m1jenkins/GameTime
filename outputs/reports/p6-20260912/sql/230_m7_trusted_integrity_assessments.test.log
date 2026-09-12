@@ -1,0 +1,66 @@
+1..62
+ok 1 - complete integrity assessments persist outside the exposed API schema
+ok 2 - every new result can bind to its exact completed assessment
+ok 3 - M7 exposes one service-only complete trusted loader
+ok 4 - M7 exposes one service-only atomic assessment recorder
+ok 5 - trusted loader and recorder intentionally cross private RLS boundaries
+ok 6 - only service_role can load or record complete integrity evidence
+ok 7 - even service_role must use the narrow recorder rather than the private table
+ok 8 - the private assessment ledger also has RLS enabled as defense in depth
+ok 9 - assessment facts have an append-only mutation trigger
+ok 10 - results reference an assessment from the same contest
+ok 11 - both result identity and every final standing are assessment-gated
+f6042652-6f0e-42f4-8d2b-8281b339134d
+ok 12 - the trusted loader refuses to snapshot evidence before grace closes
+ok 13 - the recorder also refuses to enable assessment before grace closes
+ok 14 - a pre-grace attempt persists no partial assessment
+ok 15 - the complete input document is explicitly schema-versioned
+ok 16 - the evidence cutoff is the one server-owned ingest-grace boundary
+ok 17 - the loader can never omit a required evidence sidecar
+ok 18 - contest_evidence is loaded
+ok 19 - source reputation evidence is loaded
+ok 20 - applied timezone events are loaded
+ok 21 - existing quarantine state is loaded before current materialization
+ok 22 - check-in integrity outcomes are loaded
+ok 23 - only trusted accepted attested location observations are loaded
+ok 24 - the in-memory pipeline receives the exact source reputation input
+ok 25 - the in-memory pipeline receives the applied timezone epoch
+ok 26 - check-in disposition and its validation version stay paired
+ok 27 - raw trusted coordinates exist only in the ephemeral service load
+ok 28 - the late aggregate maps to one exact snapshot with server-derived lag
+ok 29 - the frozen evidence identity is a full SHA-256 digest
+ok 30 - the full input digest separately commits to observed quarantine state
+{"sub":"a7111111-1111-1111-1111-111111111111"}
+ok 31 - an active participant JWT cannot invoke the trusted loader
+{"sub":"a7333333-3333-3333-3333-333333333333"}
+ok 32 - a stale JWT for a deleted account cannot invoke the trusted loader
+ok 33 - a stale JWT cannot bypass the RPC through the private base table
+ok 34 - anon cannot invoke the trusted loader
+ok 35 - an incomplete assessment document is refused after trusted loading
+ok 36 - an incomplete assessment materializes no partial quarantine
+ok 37 - service_role records the complete assessment atomically
+ok 38 - one immutable assessment exists for the version tuple
+ok 39 - the required current-version quarantine was materialized
+ok 40 - materialization appends without rewriting the historical quarantine
+ok 41 - the assessment names the exact durable quarantine row it completed
+ok 42 - required and materialized quarantine counts cannot diverge
+ok 43 - the durable assessment does not copy raw source ids or coordinates
+ok 44 - an exact lost-response retry returns the original assessment id
+ok 45 - an idempotent retry creates no duplicate assessment
+ok 46 - a stale or substituted frozen-evidence digest is refused
+ok 47 - a post-grace metric ingest cannot race or stale the assessment
+ok 48 - a post-grace check-in cannot race or stale the assessment
+ok 49 - an applied timezone epoch cannot be appended after evidence freezes
+ok 50 - an assessment cannot be rewritten
+ok 51 - an assessment cannot be deleted
+ok 52 - zero quarantine rows alone cannot enable finalization
+ok 53 - a genuinely empty sidecar is represented by six explicit arrays
+ok 54 - a complete genuinely clean zero-quarantine assessment records
+ok 55 - the clean assessment explicitly requires zero quarantines
+ok 56 - the clean assessment explicitly materializes zero quarantines
+ok 57 - final standings cannot differ from the completed assessment
+ok 58 - the exact clean completed assessment can enable the existing final boundary
+ok 59 - the immutable result records the exact assessment it used
+ok 60 - the existing final publisher changes lifecycle only after the assessment gate
+ok 61 - a materialized pending quarantine still requires adjudication
+ok 62 - an unresolved review leaves no partial result

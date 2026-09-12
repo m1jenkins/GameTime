@@ -1,0 +1,189 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - snapshot capture is service only
+ok 2 - raw helper private
+ok 3 - capacity reservations private
+
+{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "status": "published_open", "revision": 1}
+{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "status": "published_open", "revision": 1}
+{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "status": "published_open", "revision": 1}
+{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "status": "published_open", "revision": 1}
+ok 4 - four members suppress exact count
+ok 5 - below-five count null
+ok 6 - catalog also suppresses count
+
+{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "status": "published_open", "revision": 1}
+ok 7 - join receipt/detail use member revision
+ok 8 - fifth member still waits for delayed snapshot
+
+
+
+
+ok 9 - 899 seconds suppresses snapshot
+
+
+ok 10 - 900 seconds releases snapshot
+ok 11 - catalog uses identical mature snapshot
+
+
+ok 12 - 901 seconds keeps fixed snapshot
+ok 13 - snapshot time is original server capture
+{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "status": "published_open", "revision": 1}
+
+ok 14 - another join cannot change own revision
+ok 15 - fresh sixth join remains hidden
+ok 16 - legacy list uses same delayed count
+ok 17 - section uses same delayed count
+ok 18 - stranger identities/activity omitted
+ok 19 - publisher identity hidden
+ok 20 - dispatcher exact join retry hides total
+
+{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "status": "published_open", "revision": 2}
+
+ok 21 - another exit cannot change own revision
+ok 22 - five eligible retains mature count
+
+{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "status": "published_open", "revision": 2}
+
+ok 23 - exit to four suppresses previously released count
+ok 24 - threshold does not leak snapshot metadata
+ok 25 - exits release narrow capacity reservation
+
+
+ok 26 - moderator cannot globally suspend
+{"saved": true}
+ok 27 - removal releases reservation
+ok 28 - removal is local only
+
+{"saved": true}
+{"saved": true}
+
+ok 29 - only explicitly scoped report visible
+ok 30 - moderator cannot read global reports
+
+
+ok 31 - revoked moderator cannot read
+
+
+
+ok 32 - audited global support reads both scopes
+{"saved": true}
+
+ok 33 - global suspension explicit
+ok 34 - suspended actor cannot discover
+ok 35 - suspended member retains safe own read
+{"saved": true}
+ok 36 - appeal exact retry
+ok 37 - actor-only account status records filed appeal
+ok 38 - actor sees own appeal
+
+ok 39 - original suspender cannot decide appeal
+
+{"saved": true}
+
+ok 40 - independent support reinstates account
+ok 41 - own appeal decision visible
+
+
+ok 42 - revoked global support cannot read
+
+
+ok 43 - read remains available during pause
+{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "status": "published_open", "revision": 2}
+ok 44 - exit remains available during pause
+
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+{"message": "challenge_link_unavailable"}
+ok 45 - 21st token guess is limited
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+[{"id": "bc530eaa-2f53-4348-95e2-7472eb0cf833", "terms": {"mode": "community", "unit": "whole_counts", "config": {"days": 1, "ends_at": "2026-10-04T00:00:00+00:00", "sync_by": "2026-10-05T00:00:00+00:00", "timezone": "UTC", "starts_at": "2026-10-03T00:00:00+00:00", "notice_due": "2026-10-07T00:00:00+00:00", "start_date": "2026-10-03", "amount_cents": 100, "corrections_by": "2026-10-06T00:00:00+00:00"}, "metric": "steps", "policy": "community_steps_goal_v1", "source": "fictional_steps_v1", "minimum": 2, "capacity": 250, "exit_rule": "exclude_refund_minimum", "simulation": "nonredeemable", "competition": "goal", "missing_rule": "exclude_refund_minimum", "review_hours": 48, "common_target": 100, "allocation_rule": "return_qualifiers_split_misses_remainder_unallocated", "settings_status": "unapproved_fixture_only", "resolution_hours": 72}, "counts": {"as_of": null, "state": "threshold", "joined": null}, "digest": "2215d04b70de16ab9a8fa6e312d3b2286e71d6adf63904f04bdf0bf22798ffd7", "server_time": "2026-10-01T12:31:00+00:00", "joined_count": null}]
+ok 46 - 31st discovery call is limited
+ok 47 - failed guesses persist quota
+ok 48 - denied discovery does not grow storage
+ok 49 - grants reports suspension appeals and revocation audited
+1..49

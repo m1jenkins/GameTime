@@ -1,0 +1,49 @@
+1..37
+{"sub":"11111111-1111-1111-1111-111111111111"}
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 1 - accepting without a timezone and a charity is refused
+ok 2 - and not with a timezone Postgres does not recognise
+ok 3 - bob accepts, naming his zone and his charity
+ok 4 - and the acceptance is stamped
+ok 5 - the timezone is frozen at accept and cannot be moved afterwards
+ok 6 - but the charity may still be changed while the contest is pending
+ok 7 - though not to a charity that has been retired
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 8 - an invitee cannot file their own refusal as silence
+ok 9 - carol declines
+ok 10 - and declining leaves no acceptance stamp behind
+ok 11 - a decline is final; there is no route back to accepted
+{"sub":"44444444-4444-4444-4444-444444444444"}
+ok 12 - nothing is at stake before the window opens, so dave may still step out
+ok 13 - and what he had agreed to stays on the row
+ok 14 - but withdrawing is final too
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 15 - the author of a contest cannot withdraw from it
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 16 - and nobody can answer an invitation that is not theirs
+{"sub":"66666666-6666-6666-6666-666666666666"}
+ok 17 - frank can see the author who invited him
+ok 18 - and blocking her while the contest is only pending hides her again
+ok 19 - the roster row survives the block rather than being retracted
+{"sub":"55555555-5555-5555-5555-555555555555"}
+{"sub":"77777777-7777-7777-7777-777777777777"}
+ok 20 - the sweep reports on every contest that had come due
+ok 21 - a contest nobody joined voids itself rather than running with one participant
+ok 22 - and says so, rather than looking like the author called it off
+ok 23 - a contest with a quorum opens
+ok 24 - and records when it did
+ok 25 - the invitation nobody answered lapses at the bell
+ok 26 - and a contest that is not due yet is left alone
+{"sub":"77777777-7777-7777-7777-777777777777"}
+ok 27 - once the window is open there is no way off the roster
+ok 28 - and nothing else on the row moves either
+ok 29 - blocking a counterparty in a live contest does not hide them
+ok 30 - even though the block did sever the friendship, as blocks do
+ok 31 - and she is still on the roster, still owing whatever the result says
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 32 - and the author cannot add anyone to a contest already under way
+ok 33 - a participant may write their own status, which is how answering works
+ok 34 - but not who invited them
+ok 35 - nor when they accepted, which the trigger derives
+ok 36 - a client cannot run the activation sweep
+ok 37 - service_role retains guarded operational recovery access

@@ -1,0 +1,76 @@
+1..44
+ok 1 - contest request idempotency is private app state
+ok 2 - the caller-bounded friendship card RPC exists
+ok 3 - the versioned atomic contest RPC exists
+ok 4 - both M8.1 RPCs use bounded definer access
+ok 5 - the active-actor lock makes both functions honestly volatile
+ok 6 - only authenticated app callers may execute the M8.1 surfaces
+ok 7 - the request ledger is invisible to every Data API role
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 8 - the caller reloads all of their pending and accepted relationships
+ok 9 - an incoming request retains its requester direction
+ok 10 - an outgoing request retains its requester direction
+ok 11 - an accepted relationship includes only the other profile card
+{"sub":"a2222222-2222-2222-2222-222222222222"}
+ok 12 - another caller receives only relationships they are party to
+ok 13 - caller isolation does not leak somebody else's accepted friend
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 14 - blocking immediately removes the relationship card
+ok 15 - the card RPC does not reveal the blocker or blocked profile
+{"deletedAt": "2026-09-12T02:07:38.491191+00:00", "capabilities": []}
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 16 - account deletion removes the tombstoned relationship from reloads
+ok 17 - a retained tombstone is never returned as a profile card
+{"sub":"a5555555-5555-5555-5555-555555555555"}
+ok 18 - a tombstoned stale JWT cannot reload friendship cards
+ok 19 - a tombstoned stale JWT cannot create a contest
+{"sub":"81111111-1111-1111-1111-111111111111"}
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 20 - a valid request returns a contest UUID
+ok 21 - the atomic request creates one contest
+ok 22 - the contest and complete multi-friend challenge roster commit together
+ok 23 - the author is accepted with their frozen timezone and charity
+ok 24 - every selected friend is invited on the same contest
+ok 25 - the private request ledger commits with the contest
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 26 - an equivalent retry returns the original contest UUID
+ok 27 - an identical retry does not duplicate the contest
+ok 28 - an identical retry does not duplicate participants
+ok 29 - an identical retry does not duplicate its ledger row
+{"deletedAt": "2026-09-12T02:07:38.54672+00:00", "capabilities": []}
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 30 - an identical retry still returns the original after the invitee is tombstoned
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 31 - the same request UUID cannot name changed terms
+ok 32 - changed-payload rejection leaves both contest and ledger unchanged
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 33 - an ineligible invitee rejects the whole creation request
+ok 34 - a failed invitation leaves no orphan contest
+ok 35 - a failed invitation leaves no idempotency record
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 36 - duplicate invitee IDs are rejected before mutation
+ok 37 - the author cannot appear in the invitation array
+ok 38 - the local harness provides the test-only concurrency driver
+OK
+INSERT 0 1
+OK
+OK
+OK
+BEGIN
+UPDATE 1
+SET
+SET
+SET
+SET
+ok 39 - the first duplicate request is queued behind the concurrency gate
+ok 40 - the second duplicate request is queued independently
+COMMIT
+ok 41 - concurrent identical submissions return the same contest UUID
+ok 42 - concurrent duplicate submissions commit one contest
+ok 43 - the concurrently created contest has one complete challenge roster
+ok 44 - concurrent duplicate submissions commit one request ledger row
+OK
+OK
+OK
+SET
+OK

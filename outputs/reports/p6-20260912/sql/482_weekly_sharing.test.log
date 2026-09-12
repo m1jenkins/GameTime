@@ -1,0 +1,79 @@
+t
+
+ok 1 - friendship alone never shares progress
+
+ee000000-0000-0000-0000-000000000901
+ok 2 - exact sharing consent retry
+ok 3 - changed sharing recipient cannot reuse consent
+
+ok 4 - owner offer alone does not make recipient follow
+ok 5 - recipient sees explicit pending offer
+ee000000-0000-0000-0000-000000000951
+ok 6 - accepted selected friend receives display projection
+ok 7 - missing observation is null rather than zero
+ok 8 - shared display contains no qualification financial or roster fields
+ok 9 - sharing does not grant participant agreement access
+ok 10 - recipient cannot enumerate other viewers
+ok 11 - sharing never enrolls recipient
+f
+
+ee000000-0000-0000-0000-000000000902
+
+ok 12 - revocation works gate off
+
+ee000000-0000-0000-0000-000000000903
+
+ee000000-0000-0000-0000-000000000953
+ok 13 - block suppresses shared display immediately at read
+
+ok 14 - blocked recipient identity hidden from owner sharing list
+ee000000-0000-0000-0000-000000000904
+
+
+ok 15 - unblock and new friendship do not revive grant
+
+ee000000-0000-0000-0000-000000000906
+
+ok 16 - old offer cannot consent to renewed owner grant
+ee000000-0000-0000-0000-000000000957
+ee000000-0000-0000-0000-000000000958
+ok 17 - recipient can safely unfollow gate off
+
+ok 18 - decline or unfollow prevents repeated invitation for same agreement
+ee000000-0000-0000-0000-000000000905
+
+ee000000-0000-0000-0000-000000000959
+{"deletedAt": "2026-09-12T02:08:20.946574+00:00", "capabilities": []}
+
+ok 19 - deletion revokes display grant
+ok 20 - deletion retains disabled consent history only
+ok 21 - no sharing base table enumeration
+ok 22 - no anonymous display access
+
+ok 23 - revoked session cannot read shared progress
+t
+f
+
+ok 24 - owner may offer at final eligible microsecond
+ee000000-0000-0000-0000-000000000971
+ok 25 - owner cannot offer at exact week end
+ok 26 - owner cannot offer one microsecond after week end
+ok 27 - expiry preserves exact committed owner receipt
+
+ok 28 - recipient may accept at final eligible microsecond
+ok 29 - shared display readable at final eligible microsecond
+ok 30 - shared display hidden at exact week end
+ok 31 - shared display hidden one microsecond after week end
+ok 32 - expiry preserves exact committed recipient receipt
+ok 33 - recipient can unfollow after expiry gate off
+
+ok 34 - pending offer visible at final eligible microsecond
+ok 35 - pending offer hidden at exact week end
+ok 36 - pending offer hidden one microsecond after week end
+ok 37 - recipient cannot accept at exact week end
+ok 38 - recipient cannot accept one microsecond after week end
+ok 39 - recipient can decline after expiry
+
+ok 40 - owner can revoke after expiry
+ok 41 - injected sharing clocks are private and never client authority
+1..41

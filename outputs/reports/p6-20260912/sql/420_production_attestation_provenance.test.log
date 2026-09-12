@@ -1,0 +1,39 @@
+1..32
+2026-09-12 02:07:47.061393+00
+2026-09-12 02:07:47.082519+00
+2026-09-12 02:07:47.061393+00
+2026-09-12 02:07:47.083305+00
+ok 1 - a production metric batch snapshots production provenance
+ok 2 - a development metric batch snapshots development provenance
+ok 3 - an unattested metric batch retains unknown provenance
+ok 4 - a production coverage batch snapshots production provenance
+ok 5 - a development coverage batch snapshots development provenance
+ok 6 - coverage with a missing historical key retains unknown provenance
+ok 7 - a production diagnostic snapshots production provenance
+ok 8 - a development diagnostic snapshots development provenance
+ok 9 - a diagnostic with a missing historical key retains unknown provenance
+ok 10 - an exact metric retry with the original key remains idempotent
+ok 11 - a production key cannot adopt a development metric retry
+ok 12 - an exact coverage retry with the original key remains idempotent
+ok 13 - a production key cannot adopt a development coverage retry
+ok 14 - an exact diagnostic retry with the original key remains idempotent
+ok 15 - a production key cannot adopt a development diagnostic retry
+ok 16 - rejected cross-key retries do not consume the production assertion counter
+ok 17 - development-origin metric evidence cannot enter a complete assessment
+ok 18 - unknown-origin metric evidence cannot enter a complete assessment
+ok 19 - development-origin coverage cannot enter a complete assessment
+ok 20 - unknown-origin coverage cannot enter a complete assessment
+
+ok 21 - an exact legacy assessment retry cannot bypass the provenance guard
+ok 22 - a legacy development assessment cannot be published as a result
+ok 23 - production-only evidence may enter a complete assessment
+ok 24 - non-complete fail-closed assessments remain available
+
+ok 25 - a development diagnostic cannot clear a Personal eligibility hold
+ok 26 - a rejected development clearance rolls back its diagnostic and assertion counter
+ok 27 - a production diagnostic may clear a Personal eligibility hold
+ok 28 - the cleared hold retains durable production diagnostic provenance
+ok 29 - service_role cannot bypass the public coverage retry guard
+ok 30 - service_role cannot bypass the public diagnostic retry guard
+ok 31 - service_role cannot bypass the public assessment retry guard
+ok 32 - service_role cannot call the private provenance assertion directly

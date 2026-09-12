@@ -1,0 +1,72 @@
+ok 1 - Step 2B leaves the authoritative Solo creation switch disabled
+ok 2 - Step 2B leaves the Solo beta allowlist empty
+ok 3 - the service explicitly enables the local fake test fixture
+ok 4 - every fake lifecycle fixture is explicitly beta eligible
+ok 5 - the public v2 boundary deterministically returns one safe authorized result
+ok 6 - one transaction persists the complete immutable link and one initial event
+ok 7 - the service disables the success owner after the committed response
+ok 8 - the service disables creation after the committed response
+ok 9 - an exact committed v2 retry recovers before both mutable gates
+ok 10 - a committed v2 request UUID rejects changed amount before mutable gates
+ok 11 - exact and conflicting retries leave one authorization linkage
+t
+t
+{"sub":"d7222222-2222-2222-2222-222222222222"}
+ok 12 - deterministic refusal commits only a safe exact-request result and no half-link
+f
+f
+ok 13 - an exact committed refusal retry also recovers before mutable gates
+ok 14 - a committed refusal request rejects a changed typed payload
+t
+t
+{"sub":"d7333333-3333-3333-3333-333333333333"}
+ok 15 - a retryable fake result persists no candidate contract or identifier
+ok 16 - the same retryable request returns the exact committed retry result
+ok 17 - a fresh request after a retryable result creates one atomic authorization
+{"sub":"d7444444-4444-4444-4444-444444444444"}
+ok 18 - the deterministic injected failure occurs after candidate creation
+ok 19 - injected failure rolls back contract, authorization, events, and both request ledgers
+{"sub":"d7555555-5555-5555-5555-555555555555"}
+ok 20 - pre-start cancellation resolves contract and fake authorization atomically
+ok 21 - fake cancellation records one exact logical outcome at the contract timestamp
+ok 22 - an exact cancellation retry remains recoverable after the start boundary
+ok 23 - an exact cancellation retry cannot double-resolve the fake authorization
+
+
+
+
+
+
+ok 24 - activation and evidence close do not resolve a fake authorization
+ok 25 - preliminary evaluation alone does not resolve a fake authorization
+4effcac7-f203-4568-b538-3e12797104ce
+8b572fab-5a99-4d32-be03-a1148f2ffc2f
+16daccca-ff5f-4c37-9fb1-a3bbdc18791c
+{"sub":"d7999999-9999-9999-9999-999999999999"}
+{"sub":"d7aaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"}
+{"sub":"d7bbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"}
+ok 26 - filing an appeal leaves the fake authorization pending
+c3f2ae83-1f2d-4c40-a82d-d3b2a105c723
+3106540e-e1c6-4317-9deb-4ce13b691f1b
+d187e235-430d-4e69-b2ea-618eeb0a8ed0
+ok 27 - an appeal decision still waits for the explicit logical settlement RPC
+1c98616a-81da-4b79-b9c3-ba14f1b6d24d
+5fae3aa5-ecb1-429d-9f85-c0f3f8199d36
+60dff3a2-0c3a-4219-8b5d-3a3db446e7d6
+ok 28 - pass, inconclusive, failure, and every appeal decision map to one deterministic fake outcome
+ok 29 - every settled fake authorization has one initial and exactly one terminal event
+ok 30 - pre-start deletion cancels contract and fake authorization in the D81 transaction
+{"sub":"d7cccccc-cccc-cccc-cccc-cccccccccccc"}
+ok 31 - a deleted pre-start owner stale JWT reads no Solo contract
+ok 32 - a stale owner token has no private authorization-table access
+ok 33 - a deleted pre-start owner stale JWT cannot mutate the contract
+a36283a5-dc29-4941-bbfb-8a4ccd5af197
+ok 34 - post-start deletion retains contract and unresolved fake authorization for service finality
+{"sub":"d7dddddd-dddd-dddd-dddd-dddddddddddd"}
+ok 35 - a deleted post-start owner stale JWT cannot read retained facts
+ok 36 - a deleted post-start owner stale JWT cannot invoke v2 creation
+{}
+a36283a5-dc29-4941-bbfb-8a4ccd5af197
+a36283a5-dc29-4941-bbfb-8a4ccd5af197
+ok 37 - the service finishes retained post-start facts with one logical fake resolution
+1..37

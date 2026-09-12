@@ -1,0 +1,75 @@
+ok 1 - Solo contracts have a dedicated owner aggregate
+ok 2 - Solo preliminary evaluations have a dedicated append-only ledger
+ok 3 - Solo appeal filings and decisions have a dedicated append-only ledger
+ok 4 - Solo policy versions live in a private append-only registry
+ok 5 - the Solo creation switch is database authoritative
+ok 6 - Solo beta eligibility is database authoritative
+ok 7 - Solo mutations share an exact-request ledger
+ok 8 - the Solo lifecycle has only the reviewed states
+ok 9 - Step 2A has no live-money settlement mode
+ok 10 - the seeded policy locks the reviewed commitment, duration, and review windows
+ok 11 - one unsettled Solo slot per owner is backed by a partial unique index
+ok 12 - the locked Solo policy fails closed if the shared Social cadence enum expands
+ok 13 - owner creation has a versioned RPC
+ok 14 - owner cancellation has a versioned RPC
+ok 15 - owner appeal filing has a versioned RPC
+ok 16 - the runtime switch has a versioned service RPC
+ok 17 - beta eligibility has a versioned service RPC
+ok 18 - RLS is enabled on every owner-readable Solo table
+ok 19 - each public Solo table has one authenticated owner-read policy
+ok 20 - clients can only select public Solo rows and no service role bypasses RPCs through table grants
+ok 21 - private Solo policy, rollout, eligibility, and idempotency state has no direct API-role grants
+ok 22 - owner and service RPC privileges are mutually bounded
+ok 23 - every public Solo RPC is executable by exactly its reviewed API role
+ok 24 - no API role can invoke a private Solo helper or deterministic test-time boundary
+ok 25 - the reviewed Solo mutation surface is volatile and security definer
+{"sub":"b3111111-1111-1111-1111-111111111111"}
+ok 26 - creation is denied when both the runtime switch and beta eligibility are off
+ok 27 - the service can add an active owner to the database beta allowlist
+ok 28 - an exact beta-eligibility retry returns its committed result
+ok 29 - a beta-eligibility request UUID cannot be reused with another value
+{"sub":"b3111111-1111-1111-1111-111111111111"}
+ok 30 - beta eligibility cannot bypass a disabled creation switch
+ok 31 - the service can enable creation for the active reviewed policy
+ok 32 - an exact runtime-switch retry returns its committed result
+ok 33 - a runtime-switch request UUID cannot be reused with other settings
+{"sub":"b3333333-3333-3333-3333-333333333333","user_metadata":{"solo_beta":true}}
+ok 34 - JWT metadata cannot fabricate database beta eligibility
+{"sub":"b3111111-1111-1111-1111-111111111111"}
+ok 35 - creation fails closed when the client policy version is stale
+ok 36 - an eligible owner can create the minimum commitment and one-day contract
+ok 37 - the owner RPC rejects a commitment below $10
+ok 38 - the owner RPC rejects a commitment above $50
+ok 39 - the owner RPC rejects a zero-day contract
+ok 40 - the owner RPC rejects a contract longer than seven days
+ok 41 - a distinct request cannot create a second unsettled contract
+ok 42 - a second active owner can be added to the beta allowlist
+{"sub":"b3222222-2222-2222-2222-222222222222"}
+ok 43 - an eligible owner can create the maximum commitment and seven-day contract
+ok 44 - the minimum contract persists an exact policy digest and complete locked terms
+ok 45 - the maximum contract spans seven complete local days
+ok 46 - terminal contract shape makes every nullable closure field explicit
+ok 47 - appeal decision shape makes every nullable decision field explicit
+
+ok 48 - even a privileged direct insert cannot bypass the versioned creation path
+ok 49 - clients and privileged SQL cannot write lifecycle state outside a versioned path
+ok 50 - locked contract terms are immutable after insert
+ok 51 - evaluation rows can only be inserted by the versioned service path
+ok 52 - appeal events can only be inserted by a versioned owner or service path
+ok 53 - a published Solo policy version cannot be rewritten
+ok 54 - Solo contract history cannot be deleted directly
+{"sub":"b3111111-1111-1111-1111-111111111111"}
+ok 55 - an authenticated owner can read exactly their own Solo contract
+ok 56 - the first owner cannot read the second owner contract
+{"sub":"b3222222-2222-2222-2222-222222222222"}
+ok 57 - the second authenticated owner also sees exactly one contract
+ok 58 - the second owner cannot read the first owner contract
+{"sub":"b3333333-3333-3333-3333-333333333333"}
+ok 59 - an owner with no contract cannot enumerate another owner records
+ok 60 - the service can revoke future Solo creation eligibility
+ok 61 - the service can disable new Solo creation
+{"sub":"b3111111-1111-1111-1111-111111111111"}
+ok 62 - an exact committed creation retry recovers after both rollout gates turn off
+ok 63 - a reused request UUID cannot change locked terms even after gates turn off
+ok 64 - idempotent retries and rejected requests leave exactly one contract per owner
+1..64

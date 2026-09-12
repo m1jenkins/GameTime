@@ -1,0 +1,55 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+not ok 1 - knowing ID/digest cannot bypass discovery authorization
+# Failed test 1: "knowing ID/digest cannot bypass discovery authorization"
+#       caught: no exception
+#       wanted: 42501
+
+b7000000-0000-0000-0000-000000000001
+{"sub":"b7000000-0000-0000-0000-000000000001","session_id":"b7000000-0000-0000-0000-000000000002"}
+ok 2 - unentitled account cannot discover
+{"policy": "age_21_v1", "confirmed": true}
+ok 3 - age alone does not grant Beta discovery
+
+psql:supabase/tests/507_challenge_community_guards.test.sql:22: ERROR:  challenge_join_closed
+CONTEXT:  PL/pgSQL function public.challenge_join_community_v1(uuid,jsonb) line 12 at RAISE

@@ -1,0 +1,86 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1
+1
+
+review
+ok 1 - previous activity window is finished but result is still in review
+ok 2 - future friend window can coexist with prior review and counts both unsettled slots
+ok 3 - overlapping friend goal and leaderboard of same metric are rejected
+
+
+ok 4 - one community may overlap the friend steps window
+ok 5 - community exception still consumes aggregate unsettled slot
+ok 6 - different-metric personal challenge cannot exceed three unsettled
+
+{"id": "73ac5e0e-6bcd-4da8-ad01-3befe435fc87", "status": "published_open", "revision": 1}
+
+active
+1
+1
+
+review
+
+void
+
+ok 7 - community unknown leaves fewer than minimum and returns known participant entry
+
+ok 8 - unknown community result returns its own entry
+
+1
+1
+
+review
+
+{"id": "93392f01-8c57-4277-8cc0-620a59023715", "status": "review", "revision": 12}
+
+
+ok 9 - reviewer context also keeps leaderboards target-free
+ok 10 - assigned reviewer sees only normalized filer total
+ok 11 - review context does not contain other participant histories or roster
+
+ok 12 - unassigned actor cannot obtain normalized case context
+
+
+ok 13 - assignment expiry equality closes case context
+1..13

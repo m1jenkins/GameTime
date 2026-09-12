@@ -1,0 +1,79 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - fall DST is full local day
+ok 2 - spring DST is full local day
+ok 3 - one day lead rejected
+ok 4 - maximum lead and duration accepted
+ok 5 - 31 day lead rejected
+ok 6 - 31 day duration rejected
+ok 7 - fractional dollar rejected
+
+{"id": "70c23eab-9358-43b4-a1f1-cb6683744cb3", "status": "lobby_open", "revision": 2}
+{"id": "70c23eab-9358-43b4-a1f1-cb6683744cb3", "status": "lobby_open", "revision": 3}
+
+{"id": "70c23eab-9358-43b4-a1f1-cb6683744cb3", "status": "lobby_open", "revision": 4}
+
+{"id": "70c23eab-9358-43b4-a1f1-cb6683744cb3", "status": "lobby_open", "revision": 5}
+ok 8 - overlapping friend metric rejected at slot claim
+
+
+{"id": "e4f95832-9f07-43a7-91ce-23c8bc0519f1", "status": "scheduled", "revision": 25}
+ok 9 - six-person safe exit continues five despite pause
+
+1
+1
+1
+1
+1
+
+review
+
+ok 10 - five known plus one exit final
+ok 11 - exit refunded
+ok 12 - four qualifiers split one miss
+ok 13 - integer remainder unallocated
+ok 14 - all miss unallocated
+ok 15 - fewer than two known void
+ok 16 - unknown refunded with two resolvable
+ok 17 - unknown does not enlarge active pool
+ok 18 - simulation conserves every cent
+1..18

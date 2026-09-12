@@ -1,0 +1,94 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+on
+
+ok 1 - first history page bounded
+ok 2 - second history page bounded
+ok 3 - last partial page
+ok 4 - terminal page explicit
+ok 5 - one ordering identity across keyset pages
+ok 6 - all 105 agreements exactly once in original mixed-direction order
+ok 7 - same cursor retry returns current same rows
+ok 8 - page size can change at cursor boundary
+ok 9 - zero limit denied
+ok 10 - large limit denied
+ok 11 - malformed cursor denied
+ok 12 - null tie-breaker denied
+ok 13 - invented boundary denied
+ok 14 - keyset cursor cannot downgrade to offset
+
+ok 15 - cursor cannot cross accounts
+ok 16 - other actor has no leaked history
+ok 17 - direct detail still denies other account
+
+ok 18 - keyset cursor cannot cross sections
+ok 19 - new pages store zero history IDs
+ok 20 - history projection private
+ok 21 - history revisions private
+ok 22 - caller cannot supply another actor to private projector
+ok 23 - legacy adapter is private
+ok 24 - no anonymous pages
+
+ok 25 - order-changing final expires stale cursor
+ok 26 - fresh cursor reflects late final at top
+
+ok 27 - visible counterpart before block
+{"blocked": true}
+ok 28 - same cursor reauthorizes after block
+ok 29 - continuation reveals only own member after block
+
+ok 30 - wall-expired keyset rejected
+
+ok 31 - revoked session cannot resume history
+
+{"id": "97a84af7-edc3-45a0-a1b4-6afacb8eac21", "status": "lobby_open", "revision": 2}
+ok 32 - set discovery equals original for healthy future work
+ok 33 - pending blocked member does not change discovery
+ok 34 - selected directed block matches original immediate due
+ok 35 - blocked selected pair due now
+ok 36 - exited blocked member ignored by both discoveries
+ok 37 - suspended selected member matches original discovery
+ok 38 - suspended selected member due now
+ok 39 - terminal history excluded
+
+ok 40 - paused discovery retains safe-work visibility
+1..40

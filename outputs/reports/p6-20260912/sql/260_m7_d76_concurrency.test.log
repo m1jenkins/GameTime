@@ -1,0 +1,59 @@
+ok 1 - the local harness provides the test-only multi-session driver
+OK
+OK
+OK
+SET
+SET
+GRANT
+SET
+SET
+ok 2 - the clearance race escalates from a committed peer rejection
+RESET
+RESET
+DO
+SET
+SET
+ok 3 - the peer reviewer begins a lock-retaining transaction
+ok 4 - the peer approval succeeds while retaining the quarantine lock
+ok 5 - the exact-boundary deadline sweep starts concurrently
+ok 6 - the deadline sweep skips rather than waits on the in-flight review
+ok 7 - the skipped row creates no speculative adjudication or result
+ok 8 - the peer approval commits after the non-blocking sweep
+RESET
+RESET
+ok 9 - the committed approval remains approved with no adjudication
+ok 10 - the service clearance begins a lock-retaining transaction
+SET
+ok 11 - the service clearance appends one event before its deadline
+ok 12 - the competing timeout sweep starts while clearance is uncommitted
+ok 13 - the timeout waits at the clearance serialization lock
+ok 14 - committing clearance releases the timeout worker
+ok 15 - the waiting timer rechecks clearance and reports no timeout transition
+ok 16 - clearance wins without fabricating a result or finalizing the contest
+ok 17 - the exact-boundary escalation worker begins a lock-retaining transaction
+ok 18 - the exact peer boundary creates one adjudication and no result
+SET
+SET
+ok 19 - a competing peer approval starts while escalation is uncommitted
+ok 20 - the peer approval waits at the escalation serialization lock
+ok 21 - committing escalation releases the late peer review
+ok 22 - the late peer approval rechecks and cannot overtake adjudication
+RESET
+RESET
+DO
+ok 23 - worker-first escalation preserves peer silence and freezes an assessment
+ok 24 - the terminal timeout worker begins a lock-retaining transaction
+ok 25 - the due timer creates one fail-closed result while retaining its locks
+SET
+ok 26 - a competing service clearance starts while timeout is uncommitted
+ok 27 - late clearance waits at the timeout serialization lock
+ok 28 - committing timeout releases the late clearance
+ok 29 - the late clearance rechecks and rejects the already-terminal contest
+RESET
+ok 30 - timeout wins only as inconclusive review_timeout with no obligation
+SET
+ok 31 - the committed concurrency fixtures are removed after verification
+ok 32 - the first concurrency session disconnects cleanly
+ok 33 - the second concurrency session disconnects cleanly
+OK
+1..33

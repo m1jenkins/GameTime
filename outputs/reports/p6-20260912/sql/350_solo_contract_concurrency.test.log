@@ -1,0 +1,74 @@
+ok 1 - the local harness provides the multi-session concurrency driver
+OK
+OK
+OK
+OK
+OK
+OK
+OK
+OK
+DO
+SET
+BEGIN
+SET
+UPDATE 1
+SET
+SET
+SET
+SET
+SET
+SET
+ok 2 - the first distinct Solo create request starts asynchronously
+ok 3 - the second distinct Solo create request starts asynchronously
+ok 4 - both create callers are visibly blocked on the authoritative runtime row
+ok 5 - releasing the runtime row lets the two creation transactions serialize
+0
+0
+ok 6 - exactly one simultaneous distinct request creates a Solo contract
+ok 7 - the competing distinct request receives the one-unsettled conflict
+ok 8 - the create race commits one unsettled contract
+ok 9 - only the winning creation request reaches the exact-request ledger
+SET
+SET
+SET
+RESET
+ok 10 - the appeal-first fixture advances to active under a synthetic clock
+ok 11 - the appeal-first fixture reaches its evidence cutoff
+ok 12 - the settlement-first fixture advances to active under a synthetic clock
+ok 13 - the settlement-first fixture reaches its evidence cutoff
+ok 14 - both fixtures have one committed preliminary failure
+SET
+SET
+SET
+BEGIN
+SET
+ok 15 - deadline settlement starts while the timely appeal is uncommitted
+ok 16 - pg_blocking_pids observes settlement waiting on the appeal transaction
+ok 17 - the timely appeal commits before deadline settlement
+0
+ok 18 - the winning appeal returns its immutable filing UUID
+ok 19 - settlement rechecks state after the lock and rejects an appeal-pending contract
+ok 20 - appeal-first serialization leaves one filing, no settlement, and no failed settlement ledger row
+SET
+BEGIN
+SET
+SET
+SET
+ok 21 - the timely appeal starts while deadline settlement is uncommitted
+ok 22 - pg_blocking_pids observes the appeal waiting on the settlement transaction
+ok 23 - deadline settlement commits before the competing appeal
+0
+ok 24 - the winning settlement returns its contract UUID
+ok 25 - the appeal rechecks state after the lock and rejects a settled contract
+ok 26 - settlement-first serialization forfeits logically, writes one ledger row, and creates no appeal
+ok 27 - the first create caller disconnects cleanly
+ok 28 - the second create caller disconnects cleanly
+ok 29 - the create gate disconnects cleanly
+ok 30 - the appeal-first caller disconnects cleanly
+ok 31 - the blocked settlement caller disconnects cleanly
+ok 32 - the settlement-first caller disconnects cleanly
+ok 33 - the blocked appeal caller disconnects cleanly
+SET
+ok 34 - external Solo concurrency fixtures are removed and the creation switch is restored
+ok 35 - the setup session disconnects cleanly
+1..35

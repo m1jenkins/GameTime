@@ -1,5 +1,24 @@
 # GameTime project memory
 
+## Prompt 6 local completion — September 12, 2026 UTC
+
+The private operator community is locally implemented at
+`05f405c24453fe6743ece994d646058958bfdbb2` on `codex/private-community-p6`, in
+`/private/tmp/gametime-p6-20260912/GameTime`, from P5
+`e16cff4b3beaa7bcce95db6b0e82eedaa94865fa`. Read the
+[P6 completion and handoff](outputs/reports/2026-09-12-p6-completion.md) and
+[community contract](docs/PRIVATE_COMMUNITY_V1.md) before later work.
+
+P6 adds 250-current-member reservations, delayed five-person-threshold counts,
+private member revisions, scoped reports, separately audited global support,
+appeals/reinstatement and quotas. Historical exits keep their unsettled returns;
+replacements no longer break settlement. New native count/report/appeal controls
+are locally verified. The report records actual SQL, HTTP, upgrade, concurrency
+and native evidence, preserved failures and blocked CLI advisors. Snapshot
+capture is service-only; no hosted periodic scheduler or external support is
+configured. Product main and original/P4/P5 checkouts remain unchanged. P7 has
+not started; real-source, money, hosted and distribution gates remain closed.
+
 ## Prompt 5 local completion — September 11, 2026
 
 Bounded history keysets, shared private row projection and measured set-based

@@ -1,0 +1,88 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1
+1
+1
+
+review
+
+{"id": "6dc9f931-d1c4-4632-95ad-adb63fc28e34", "status": "review", "revision": 19}
+ok 1 - participant cannot read operator cases
+ok 2 - participant cannot become own reviewer
+
+
+ok 3 - assigned authenticated independent reviewer can read structured case
+{"saved": true}
+ok 4 - operator exact retry
+
+ok 5 - changed outcome starts a fresh review window
+ok 6 - new result appended without replacing prior notice
+ok 7 - new notice gives full actual 48 hours
+
+final
+ok 8 - review exclusion refunds
+
+ok 9 - expired scope cannot read cases
+ok 10 - grants, reads and actions audited
+
+
+{"blocked": true}
+ok 11 - block hides social details immediately
+ok 12 - block safely ends two-person participation
+ok 13 - existing account block preserved
+
+
+
+{"saved": true}
+
+ok 14 - suspension has explicit state
+ok 15 - suspended actor retains only own receipt
+ok 16 - suspension prevents new admission
+ok 17 - suspended participant still has safe report
+
+ok 18 - personal cannot create a social lobby
+ok 19 - uncommitted redemption can be fenced
+ok 20 - late redemption cannot bypass stop
+ok 21 - changed link cannot reuse exact request
+ok 22 - raw redemption token not persisted in journal
+1..22

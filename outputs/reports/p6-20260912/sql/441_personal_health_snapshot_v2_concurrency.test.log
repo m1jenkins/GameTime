@@ -1,0 +1,62 @@
+ok 1 - the local harness provides the multi-session concurrency driver
+OK
+OK
+OK
+OK
+OK
+SET
+SET
+SET
+GRANT
+SET
+SET
+SET
+SET
+BEGIN
+UPDATE 1
+ok 2 - the first initial upload starts
+ok 3 - the second initial upload starts
+ok 4 - both initial uploads wait at the same contest serialization point
+ok 5 - releasing the gate lets one whole snapshot win
+0
+0
+ok 6 - simultaneous identical first inserts converge through replay semantics
+ok 7 - the initial race persists exactly one private row
+ok 8 - equal observation time with different contents loses deterministically
+ok 9 - a newer observation replaces the whole snapshot
+ok 10 - a still-newer observation may replace all totals downward
+ok 11 - the final whole replacement persists the lower authoritative total
+BEGIN
+RESET
+SET
+SET
+ok 12 - an uploader starts while terminal publication remains uncommitted
+ok 13 - the uploader waits behind terminal publication locks
+ok 14 - committing publication releases the cutoff serialization point
+0
+ok 15 - the waiting uploader fails after publication finalizes the challenge
+ok 16 - the cutoff race leaves one immutable result and no mutable snapshot
+t
+t
+GRANT
+RESET
+RESET
+SET
+SET
+BEGIN
+UPDATE 1
+ok 17 - the unmarked Stripe commit enters the policy race
+ok 18 - the Health-marked Stripe commit enters the policy race
+ok 19 - both Stripe policies wait behind the same owner serialization point
+ok 20 - releasing the owner lock lets exactly one Stripe policy commit
+0
+0
+ok 21 - one Stripe policy wins and the opposite policy cannot acknowledge its challenge
+ok 22 - the committed Stripe policy exactly matches the winning boundary
+SET
+ok 23 - the first uploader disconnects cleanly
+ok 24 - the second uploader disconnects cleanly
+ok 25 - the publisher disconnects cleanly
+OK
+OK
+1..25

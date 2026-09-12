@@ -1,0 +1,44 @@
+1..38
+ok 1 - lead loss has a closed notification event type
+ok 2 - standings reactions are durable
+ok 3 - APNs device addresses have a dedicated table
+ok 4 - best-effort delivery state is separate from business intents
+ok 5 - all new public tables have RLS enabled
+ok 6 - authenticated users receive only the narrow device and reaction RPCs
+ok 7 - clients cannot read device addresses or bypass the reaction RPC
+ok 8 - only the delivery worker can claim and record APNs work
+ok 9 - an initial ranking does not manufacture a lead-loss event
+{"sub":"e7111111-1111-1111-1111-111111111111"}
+ok 10 - the signed-in actor can register an address before the lead-loss event
+ok 11 - falling from rank one appends exactly one intent
+ok 12 - the prior leader is the recipient
+ok 13 - the new snapshot is the opaque idempotent event id
+{"sub":"e7111111-1111-1111-1111-111111111111"}
+ok 14 - the trailing participant can send a comeback reaction
+ok 15 - retrying the same reaction returns its original identity
+ok 16 - staging cannot register a production APNs address
+{"sub":"e7222222-2222-2222-2222-222222222222"}
+ok 17 - the current leader cannot send a comeback reaction
+ok 18 - the token is bound to the authenticated actor
+ok 19 - the idempotent reaction exists exactly once
+ok 20 - remaining behind does not emit another lead-loss event
+{"sub":"e7111111-1111-1111-1111-111111111111"}
+ok 21 - a stale standings snapshot cannot receive a new reaction
+ok 22 - the worker claims the due intent for the active device
+ok 23 - the claim resolves the snapshot to its opaque contest route
+ok 24 - the lease owner can record APNs acceptance
+ok 25 - delivery acceptance is recorded outside the business intent
+{"sub":"e7111111-1111-1111-1111-111111111111"}
+ok 26 - a later device binding can register without inheriting prior outbox work
+ok 27 - a newly bound device does not receive a historical lead-loss event
+ok 28 - a regain followed by a later loss emits a new event for that participant
+ok 29 - the later snapshot is its own idempotent lead-loss event
+ok 30 - the later event is claimed once for each device already bound to the actor
+ok 31 - both claims belong only to the later snapshot
+ok 32 - the final retry attempt is recorded without stranding the delivery
+ok 33 - attempt eight terminalizes a retryable failure
+ok 34 - retry exhaustion has a bounded terminal reason
+ok 35 - APNs unregistration permanently records the delivery
+ok 36 - APNs unregistration invalidates the matching device token
+ok 37 - terminal and invalidated deliveries are not claimed again
+ok 38 - one named minute worker dispatches due push work

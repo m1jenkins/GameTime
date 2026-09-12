@@ -1,0 +1,9 @@
+1..8
+ok 1 - the account deletion provider lookup exists
+ok 2 - only service_role can execute the provider lookup
+ok 3 - the service lookup returns the provider id for the active actor
+ok 4 - the service lookup returns no provider id for another actor
+ok 5 - the lookup rejects a non-service caller
+ok 6 - the lookup rejects a non-service caller before actor validation
+ok 7 - authenticated cannot read the private provider binding
+ok 8 - anon cannot read the private provider binding

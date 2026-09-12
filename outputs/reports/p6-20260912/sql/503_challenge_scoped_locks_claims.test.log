@@ -1,0 +1,76 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - anon cannot invoke scoped locks
+ok 2 - authenticated cannot invoke scoped locks
+ok 3 - service_role cannot invoke scoped locks
+ok 4 - anon cannot claim worker rows
+ok 5 - authenticated cannot claim worker rows
+ok 6 - service_role cannot claim worker rows
+ok 7 - session helper keeps an empty search path
+ok 8 - session no longer takes the singleton row mutex
+ok 9 - worker tick no longer takes the singleton row mutex
+ok 10 - worker batch no longer takes the singleton row mutex
+ok 11 - community fixture schema admits the 250-person planning boundary
+
+1
+1
+1
+1
+
+ok 12 - bounded worker claims exactly its requested limit
+ok 13 - worker run exact retry is idempotent
+ok 14 - worker run ID rejects a changed claim limit
+ok 15 - an independent worker run claims the other challenge
+ok 16 - independent worker runs do not process the same challenge
+
+
+{"id": "70c5cead-7bea-4509-a918-05e22c6565c9", "status": "cancelled", "revision": 2}
+ok 17 - cancelled terminal draft is absent from worker discovery
+on
+
+ok 18 - first 248 community joins succeed
+ok 19 - 249th community join succeeds
+ok 20 - 250th community join succeeds
+ok 21 - community retains exactly 250 joined actors
+ok 22 - 251st community join is rejected without revealing live count
+ok 23 - 251st rejection does not overfill capacity
+1..23

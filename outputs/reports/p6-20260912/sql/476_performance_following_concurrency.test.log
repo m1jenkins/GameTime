@@ -1,0 +1,57 @@
+OK
+OK
+OK
+COMMIT
+ok 1 - concurrent invitations return same grant
+ok 2 - changed friend loses exact request race
+ok 3 - concurrent acceptances return same receipt
+ok 4 - waiting read loses shared content after revocation
+
+ok 5 - read already holding authorization finishes before revocation
+ok 6 - revocation waits for in-flight read then commits
+
+ok 7 - waiting continuation must refresh after retraction
+ok 8 - waiting reaction observes closed gate
+true
+UPDATE 1
+ok 9 - expiry is rechecked after runtime wait
+UPDATE 1
+ok 10 - session revocation denies exact recovery
+INSERT 0 1
+ok 11 - waiting operator loses revoked case access
+
+ok 12 - support expiry rechecked after grant wait
+
+ok 13 - exact support resolution appends once
+ok 14 - waiting read sees block
+INSERT 0 1
+ok 15 - re-friending cannot restore an ended follow
+
+ok 16 - raw legacy unfriend also serializes and revokes follow
+INSERT 0 1
+
+ok 17 - follower deletion clears read for both parties
+ok 18 - closure rejects waiting social write
+ok 19 - block then shared read: observed lock wait
+ok 20 - changed invitation payload: observed lock wait
+ok 21 - exact acceptances: observed lock wait
+ok 22 - exact invitations: observed lock wait
+ok 23 - exact support resolution: observed lock wait
+ok 24 - follower deletion then read: observed lock wait
+ok 25 - natural session expiry: observed lock wait
+ok 26 - owner withdrawal then reaction: observed lock wait
+ok 27 - read then revocation: observed lock wait
+ok 28 - retraction then old page: observed lock wait
+ok 29 - revocation then read: observed lock wait
+ok 30 - session revocation then recovery: observed lock wait
+ok 31 - shutdown then reaction: observed lock wait
+ok 32 - support natural expiry: observed lock wait
+ok 33 - support revoked then read: observed lock wait
+ok 34 - unfriend then shared read: observed lock wait
+ok 35 - closure leaves no open follows
+ok 36 - no denied race wrote a reaction
+COMMIT
+OK
+OK
+OK
+1..36

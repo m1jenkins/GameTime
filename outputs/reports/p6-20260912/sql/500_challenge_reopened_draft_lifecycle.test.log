@@ -1,0 +1,77 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{"id": "3a98746e-76a9-4543-ab04-1c85a8549f2b", "status": "lobby_open", "revision": 7}
+ok 1 - initial draft remains open after pending rejection
+ok 2 - initial draft remains open after processing
+
+{"id": "3d13618e-7360-415e-986b-3855b0d6582c", "status": "lobby_open", "revision": 11}
+ok 3 - reopened draft remains visibly open after pending rejection
+
+{"id": "b176eb8c-ca26-4e62-a312-3053e9b3774a", "status": "lobby_open", "revision": 11}
+
+ok 4 - reopened draft remains visibly open after pending participant leaves
+ok 5 - processing a reopened draft does not finalize an earlier agreement
+ok 6 - all five drafts have no final
+ok 7 - open and reopened drafts claim no admission slots
+ok 8 - rejection, exit and processing preserve every historical agreement and consent byte
+ok 9 - direct: can change own target and freeze a new roster
+ok 10 - direct: creator may consent to new terms
+ok 11 - direct: old second-person consent is never inherited
+ok 12 - direct: second participant may consent to new terms
+ok 13 - direct: both fresh consents schedule the challenge
+ok 14 - reject: can change own target and freeze a new roster
+ok 15 - reject: creator may consent to new terms
+ok 16 - reject: old second-person consent is never inherited
+ok 17 - reject: second participant may consent to new terms
+ok 18 - reject: both fresh consents schedule the challenge
+ok 19 - leave: can change own target and freeze a new roster
+ok 20 - leave: creator may consent to new terms
+ok 21 - leave: old second-person consent is never inherited
+ok 22 - leave: second participant may consent to new terms
+ok 23 - leave: both fresh consents schedule the challenge
+ok 24 - process: can change own target and freeze a new roster
+ok 25 - process: creator may consent to new terms
+ok 26 - process: old second-person consent is never inherited
+ok 27 - process: second participant may consent to new terms
+ok 28 - process: both fresh consents schedule the challenge
+1..28

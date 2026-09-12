@@ -1,0 +1,132 @@
+t
+
+
+
+ok 1 - progress defaults off
+ok 2 - six private tables have RLS
+ok 3 - anon cannot access performance_progress_retention
+ok 4 - authenticated cannot access performance_progress_retention
+ok 5 - service_role cannot access performance_progress_retention
+ok 6 - anon cannot access performance_progress_audit
+ok 7 - authenticated cannot access performance_progress_audit
+ok 8 - service_role cannot access performance_progress_audit
+ok 9 - anon cannot access performance_progress_runtime
+ok 10 - authenticated cannot access performance_progress_runtime
+ok 11 - service_role cannot access performance_progress_runtime
+ok 12 - anon cannot access performance_progress_milestones
+ok 13 - authenticated cannot access performance_progress_milestones
+ok 14 - service_role cannot access performance_progress_milestones
+ok 15 - anon cannot access performance_progress_entries
+ok 16 - authenticated cannot access performance_progress_entries
+ok 17 - service_role cannot access performance_progress_entries
+ok 18 - anon cannot access performance_progress_requests
+ok 19 - authenticated cannot access performance_progress_requests
+ok 20 - service_role cannot access performance_progress_requests
+ok 21 - anon cannot call private performance_progress_guard_v1
+ok 22 - authenticated cannot call private performance_progress_guard_v1
+ok 23 - service_role cannot call private performance_progress_guard_v1
+ok 24 - anon cannot call private performance_progress_lock_v1
+ok 25 - authenticated cannot call private performance_progress_lock_v1
+ok 26 - service_role cannot call private performance_progress_lock_v1
+ok 27 - anon cannot call private performance_progress_entry_v1
+ok 28 - authenticated cannot call private performance_progress_entry_v1
+ok 29 - service_role cannot call private performance_progress_entry_v1
+ok 30 - anon cannot call private write_commitment_progress_at_v1
+ok 31 - authenticated cannot call private write_commitment_progress_at_v1
+ok 32 - service_role cannot call private write_commitment_progress_at_v1
+ok 33 - gate-off denies new progress
+ok 34 - empty history available gate-off
+ok 35 - owner cannot open gate
+ok 36 - anon cannot read
+t
+t
+f
+ok 37 - exact create retry returns identical receipt
+ok 38 - changed request rejected
+ok 39 - request identity binds operation
+ok 40 - request ID required
+ok 41 - empty name rejected
+ok 42 - names never silently trimmed
+ok 43 - name bounded
+ok 44 - control characters rejected
+ok 45 - null name rejected
+ok 46 - infinite due date rejected
+ok 47 - milestone due at deadline rejected
+ok 48 - past due date rejected by one microsecond
+ok 49 - pre-start planning and equal-now UTC offset allowed
+ok 50 - notes bounded
+ok 51 - null check-in rejected
+ok 52 - future self-report rejected by one microsecond
+ok 53 - pre-agreement self-report rejected
+ok 54 - linked check-in cannot predate milestone
+ok 55 - unknown milestone denied
+ok 56 - receipt explicitly self-reported
+ok 57 - manual time claim is not proof
+ok 58 - server receipt preserves microseconds
+ok 59 - wrong milestone revision rejected
+ok 60 - exact transition retry returns receipt
+ok 61 - repeated status under new request rejected
+ok 62 - stale status update rejected
+ok 63 - first page freezes upper sequence
+ok 64 - bounded page reports more
+ok 65 - completed milestone can reopen
+ok 66 - next page neither skips nor duplicates
+ok 67 - snapshot page excludes concurrent append
+ok 68 - snapshot milestone status is stable across writes
+ok 69 - fresh page sees reopened milestone
+ok 70 - page size capped
+ok 71 - null page size rejected
+ok 72 - negative cursor rejected
+ok 73 - future snapshot rejected
+ok 74 - reversed cursor rejected
+ok 75 - retirement appends history
+ok 76 - retirement is terminal
+ok 77 - retired milestone rejects linked check-ins
+
+ok 78 - another owner cannot read
+ok 79 - another actor cannot recover request
+ok 80 - other actor sees own history
+
+ok 81 - expired session cannot read
+ok 82 - expired session cannot recover
+ok 83 - service cannot impersonate owner read
+f
+ok 84 - gate-off exact create recovery
+ok 85 - gate-off check-in recovery
+ok 86 - gate-off status recovery
+ok 87 - gate-off denies new notes
+ok 88 - gate-off history readable
+t
+ok 89 - manual completion and fast run claim leave entire scorer snapshot unchanged
+ok 90 - manual progress never creates proof hold
+ok 91 - separate progress retention hold
+ok 92 - manual completion never releases slot
+ok 93 - definitions immutable even in write context
+ok 94 - history retained
+ok 95 - retention cannot truncate
+off
+ok 96 - direct writes need RPC context
+ok 97 - legacy retention runs independently
+ok 98 - legacy purge preserves progress
+t
+ok 99 - deadline is exclusive
+ok 100 - last microsecond before deadline admitted
+
+ok 101 - 32 milestones admitted on separate owner
+ok 102 - 33rd milestone rejected
+ok 103 - milestone cannot cross agreement or owner
+ok 104 - history bounded at 512 entries
+ok 105 - 513th entry rejected
+ok 106 - exact retry survives full history
+ok 107 - full history never blocks safe exit
+ok 108 - recovery survives safe closure
+ok 109 - closed agreement denies new notes
+ok 110 - closed history remains readable
+{"deletedAt": "2026-09-12T02:08:07.857613+00:00", "capabilities": []}
+ok 111 - deletion retains progress
+ok 112 - deletion retains exact receipts
+ok 113 - deletion retains product hold
+
+ok 114 - deleted owner cannot read history
+ok 115 - deleted owner cannot recover old requests
+1..115

@@ -1,5 +1,17 @@
 # GameTime remaining prompts
 
+## Current local handoff — P6 complete
+
+P6 is locally completed on `codex/private-community-p6`, implementation
+`05f405c24453fe6743ece994d646058958bfdbb2`, based on P5
+`e16cff4b3beaa7bcce95db6b0e82eedaa94865fa`. The dedicated checkout is
+`/private/tmp/gametime-p6-20260912/GameTime`. Read the
+[P6 completion report](../outputs/reports/2026-09-12-p6-completion.md) for scope,
+actual checks, retained failures and limitations. Original/product/P4/P5 branches
+are preserved. **P7 is unstarted and needs explicit physical-device opt-in.**
+Earlier status records below are historical; do not restart completed P4/P5/P6
+or enable hosted/source/money/distribution gates from this local completion.
+
 Updated September 11, 2026. Use the [simplified plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md).
 The [previous pack](archive/2026-09-11_PRE_SIMPLIFICATION_FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md)
 is historical. Prompts 0, 0A and 3 are complete; Prompt 2 evidence is available.

@@ -1,0 +1,35 @@
+1..17
+ok 1 - the local harness provides the multi-session concurrency driver
+OK
+OK
+OK
+OK
+GRANT
+BEGIN
+UPDATE 1
+SET
+SET
+SET
+SET
+SET
+SET
+ok 2 - the first distinct create request starts asynchronously
+ok 3 - the second distinct create request starts asynchronously
+ok 4 - both callers wait on the same owner serialization lock
+ok 5 - releasing the gate lets the two create transactions race
+0
+0
+ok 6 - exactly one simultaneous distinct request creates a challenge
+ok 7 - the competing distinct request gets the one-open unique conflict
+ok 8 - the race commits one open personal challenge
+ok 9 - the winning transaction commits exactly one owner participant
+ok 10 - the winning transaction commits exactly one frozen terms row
+ok 11 - only the winning request reaches the idempotency ledger
+ok 12 - the winner retries to its UUID while the loser remains a slot conflict
+ok 13 - retries still cannot create a second personal challenge
+ok 14 - the first caller disconnects cleanly
+ok 15 - the second caller disconnects cleanly
+OK
+SET
+ok 16 - the committed external concurrency fixture is removed
+ok 17 - the setup session disconnects cleanly

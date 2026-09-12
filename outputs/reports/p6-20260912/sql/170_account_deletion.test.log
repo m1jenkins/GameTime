@@ -1,0 +1,83 @@
+1..71
+ok 1 - profiles carry an explicit account-deletion tombstone timestamp
+ok 2 - deleted-account capabilities use a closed scope vocabulary
+ok 3 - capabilities are limited to contest lineages and standalone cases
+ok 4 - private deletion, capability, and retention state all exist
+ok 5 - the launch retention policy is versioned with its D81 intervals
+ok 6 - auth, device, snapshot, and roster cascades cannot erase durable facts
+ok 7 - every authenticated public table composes a restrictive active-actor policy
+ok 8 - private deletion and retention tables grant no direct application access
+ok 9 - only service_role can invoke atomic account deletion
+ok 10 - retention state, holds, and pruning are service-only APIs
+ok 11 - clients cannot tombstone profiles or invoke private HMAC/capability helpers
+ok 12 - participant acceptance uses the narrow contest-first locking boundary
+ok 13 - one named hourly cron entry invokes the guarded retention worker
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 14 - ordinary authenticated acceptance crosses the contest-first trigger without private-marker privileges
+{}
+11111111-1111-1111-1111-111111111111
+ok 15 - a caller-set deletion GUC cannot forge the private transaction marker
+
+ok 16 - direct Auth deletion refuses an onboarded active account
+ok 17 - the refused direct delete leaves both auth and profile live
+deleted-225b9ee7d8c8ca66bb09
+ok 18 - service deletion leaves only the random public tombstone shape
+ok 19 - the same transaction removes auth, the live binding, and its private marker
+ok 20 - the former handle survives only as a private keyed HMAC reservation
+ok 21 - a deleted durable actor UUID can never be registered in Auth again
+ok 22 - Auth actor UUIDs cannot be reassigned through UPDATE
+ok 23 - the normalized former handle cannot be claimed again
+ok 24 - account deletion cannot replay the one-time capability response
+ok 25 - friendships, blocks, and only the departing group membership are removed
+ok 26 - a pending contest authored by the departing actor is cancelled
+ok 27 - the authored contest lapses its unanswered invitation
+ok 28 - other pending contests distinguish accepted withdrawal from silence
+ok 29 - both account-deletion departures commit immutable D80 intents for the creator
+ok 30 - account-deletion participation events are immutable
+ok 31 - the cancellation and its recipient outbox rows commit with deletion
+ok 32 - deletion returns one capability for the retained active lineage
+ok 33 - only the returned plaintext and its private SHA-256 hash exist
+ok 34 - the hash-only lineage capability resolves while its workflow is open
+ok 35 - deletion preserves the active contest and accepted stake
+ok 36 - the operational device registration is retained but revoked
+ok 37 - the attested ingest batch and key fingerprint survive auth deletion
+ok 38 - raw metric and its adjudicated quarantine survive auth deletion
+ok 39 - the check-in fact and its raw samples survive auth deletion
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 40 - the active contest creator can resolve both exact departure event IDs
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 41 - an unrelated active actor learns nothing from an exact departure event ID
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 42 - the deleted actor stale JWT cannot resolve a departure event
+ok 43 - a tombstoned stale JWT reads no public table rows
+ok 44 - a tombstoned stale JWT cannot mutate a public table
+ok 45 - a tombstoned stale JWT cannot invoke an authenticated RPC
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 46 - an active survivor cannot discover either former or tombstone handle
+{}
+ok 47 - the service active-actor boundary rejects a NULL actor
+ok 48 - retention holds require a finite expiry
+ok 49 - the retention worker rejects a non-finite authority clock
+ok 50 - even the owner cannot directly delete a raw metric
+ok 51 - even the owner cannot directly delete a raw location
+ok 52 - even the owner cannot directly scrub a source identifier
+ok 53 - even a revoked registration can be removed only by the worker
+ok 54 - opaque App Attest receipts share the same worker guard
+
+ok 55 - closing a scope persists finality and the versioned maximum cutoff
+ok 56 - the capability expires after the closed scope cutoff
+ok 57 - an append-only scoped hold transactionally extends the persisted cutoff
+ok 58 - an unexpired hold keeps the deleted actor capability reachable
+ok 59 - retention holds are append-only audit facts
+ok 60 - the capability expires again when both cutoff and hold have elapsed
+ok 61 - the worker reports exactly the eligible raw rows it pruned
+ok 62 - eligible metric values, exact locations, and source IDs are minimized
+ok 63 - an open workflow keeps all of its raw metric and location material
+ok 64 - an eligible revoked registration and its opaque receipt are pruned together
+ok 65 - an active key/counter survives while its aged receipt becomes a digest summary
+ok 66 - roster, ingest, quarantine, check-in, and hash-only key lineage remain durable
+ok 67 - every raw deletion or scrub appends one typed retention event
+ok 68 - retention events keep only permanent target digests and policy provenance
+ok 69 - retention events are immutable
+ok 70 - a repeated worker run is idempotent
+ok 71 - an idempotent rerun appends no duplicate retention events

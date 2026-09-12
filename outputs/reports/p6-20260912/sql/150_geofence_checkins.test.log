@@ -1,0 +1,65 @@
+1..60
+ok 1 - the service cannot append new geofence terms after activation
+2026-09-11 21:07:37.16033-05
+ok 2 - contest geofences are durable service-managed definitions
+ok 3 - check-in attempts have an append-only audit table
+ok 4 - raw samples have a separate append-only audit table
+ok 5 - M6 exposes an integrity sidecar without changing scoring evidence
+ok 6 - accepted attested inside samples feed M5 location observations
+ok 7 - all three M6 tables have RLS enabled
+ok 8 - accepted visit and workout ranges both have exclusion constraints
+ok 9 - accepted workout UUID reuse has a partial unique-index backstop
+ok 10 - cross-contest owner location history has a user-leading time index
+ok 11 - both M6 views invoke the base-table RLS policies
+ok 12 - authenticated can read visible check-ins but cannot forge or mutate them
+ok 13 - service_role can create immutable geofences while clients cannot
+ok 14 - only service_role can call the attested check-in RPC
+ok 15 - service_role can inspect M6 facts but must create them through the guarded RPC
+ok 16 - the exact configured dwell and workout-overlap boundaries are accepted
+ok 17 - adjacent inside segments sum to exactly 60 seconds of dwell
+ok 18 - workout overlap is the exact intersection with credited segments
+ok 19 - the check-in records its raw sample count
+ok 20 - the server reclassifies all center-point samples as inside at zero distance
+ok 21 - the raw CoreLocation accessory signal is persisted for audit
+ok 22 - visit ranges are half-open
+ok 23 - an accepted attested check-in consumes the shared device counter
+ok 24 - an identical retry is returned before checking its spent counter
+ok 25 - the retry returns the original immutable attempt
+ok 26 - the retry creates neither a second attempt nor duplicate location rows
+ok 27 - the same client id with a different digest is rejected
+ok 28 - a simulated CoreLocation sample produces an explicit failed outcome
+ok 29 - the auditable simulated attempt still consumes its valid assertion
+ok 30 - a fresh request cannot replay the spent shared counter
+ok 31 - zero accuracy is malformed and rejected before attestation consumption
+ok 32 - duplicate absolute sample timestamps are rejected
+ok 33 - a location envelope longer than eight hours is rejected
+ok 34 - a single sample cannot establish a visit interval
+ok 35 - an active row cannot accept check-ins after its ingest grace period
+ok 36 - accuracy just above the configured inclusive maximum is explicit
+ok 37 - the parent outcome and full-precision per-sample boundary classifications agree
+ok 38 - a location materially outside the configured radius is stored as such
+ok 39 - 58 seconds is explicitly below the 60-second dwell threshold
+ok 40 - inside samples beyond the maximum gap do not manufacture dwell
+ok 41 - 29 seconds is explicitly below the 30-second workout-overlap threshold
+ok 42 - a manual HealthKit workout stays visible but is not trusted
+ok 43 - past evidence outside the agreed contest window is retained and labelled
+ok 44 - inside-window evidence from the future has its own auditable outcome
+ok 45 - all nine well-formed validation failures remain in the audit ledger
+ok 46 - an otherwise valid visit overlapping an accepted visit is recorded, not inserted as accepted
+ok 47 - a visit beginning exactly at the prior half-open upper bound is accepted
+ok 48 - the two boundary-touching accepted visits coexist
+ok 49 - a HealthKit workout UUID already accepted for this user cannot be reused
+ok 50 - a distinct workout range overlapping accepted workout evidence is explicit
+ok 51 - a privileged writer cannot rewrite geofence terms
+ok 52 - a privileged writer cannot relabel a failed check-in
+ok 53 - a privileged writer cannot move a raw location sample
+ok 54 - the accepted attempt is visible through the unchanged integrity sidecar
+ok 55 - only the three inside samples from the accepted attested attempt are trusted locations
+ok 56 - an accepted development-bypass check-in never enters the trusted location feed
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 57 - the owner can read all of their M6 audit facts
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 58 - a finalized rival sees shared outcomes but not another user's exact coordinates
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 59 - a declined participant cannot enumerate venue or location evidence
+ok 60 - authenticated cannot bypass the service-only RPC with a direct insert

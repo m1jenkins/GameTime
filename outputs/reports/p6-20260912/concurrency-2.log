@@ -1,0 +1,107 @@
+PASS: same-actor work waits on its actor scope
+PASS: ordinary reads proceed while the same actor mutation scope is held
+PASS: an unrelated account proceeds while another actor is locked
+PASS: waiting actor work completes after its scope is released
+PASS: same-actor exact requests both wait on one actor scope
+PASS: same-actor exact retries return one stable response
+PASS: same-actor exact race stores one receipt
+PASS: same-challenge member mutations share one challenge scope
+PASS: same-challenge race yields one commit and one explicit stale retry
+PASS: same-link final-slot requests both wait on the link row
+PASS: same-link race admits exactly the twentieth account
+PASS: same-link race preserves the twenty-account ceiling
+PASS: redemption waits behind link revocation
+PASS: revoked link rejects waiting redemption
+PASS: revocation denial occurred below capacity with no redemption effect
+PASS: request waits behind an in-flight session revocation
+PASS: revoked session cannot commit after waiting
+PASS: four conflicting personal admissions reserve exactly three unsettled slots
+PASS: consent and reopen wait on the same agreement scope
+PASS: consent/reopen race has one commit and one stale revision
+PASS: different callers coordinate cross-challenge admission on the entrant profile
+PASS: cross-challenge freeze/join race preserves three-unsettled admission limit
+PASS: conflicting admissions leave exactly three entrant slots
+PASS: personal admission waits behind an uncommitted operator suspension
+PASS: personal admission rechecks suspension after its profile wait
+PASS: reciprocal invites wait on the same lowest profile first
+PASS: reciprocal invitations complete without an inverted profile deadlock
+PASS: link issuance and join both reach their challenge wait before cutoff
+PASS: link issuance and community join refresh time after waiting past their cutoff
+PASS: worker skips a concurrently locked durable claim row
+PASS: another committed claim skips the live lease and owns independent work
+PASS: completion waits only on its own busy challenge
+PASS: independent worker completion commits while another completion waits
+PASS: waiting independent completion commits after its challenge is released
+PASS: duplicate completion returns its exact saved response
+PASS: abandoned claims are visible to operations
+PASS: expired claim receives a new token and incremented attempt
+PASS: stale worker cannot apply a recovered claim
+PASS: duplicate completions serialize on one challenge
+PASS: concurrent duplicate completions return one exact result
+PASS: duplicate completion changes lifecycle revision only once
+PASS: repeated poll excludes all cancelled work
+PASS: repeated poll excludes all cancelled work
+PASS: repeated poll excludes all cancelled work
+PASS: repeated poll excludes all cancelled work
+PASS: cancelled revisions remain unchanged across repeated polls
+PASS: ordinary read proceeds while the exclusive control-plane gate is held
+PASS: moderator read waits on its exact grant row
+PASS: revoked grant rejects waiting report read
+PASS: owned community closes through the operator API after the races
+Owned Prompt 4 gates disabled; fictional rows remain only in the disposable database.
+{
+  "evidence": "real concurrent SQL sessions on task-owned disposable DB",
+  "count": 50,
+  "checks": [
+    "same-actor work waits on its actor scope",
+    "ordinary reads proceed while the same actor mutation scope is held",
+    "an unrelated account proceeds while another actor is locked",
+    "waiting actor work completes after its scope is released",
+    "same-actor exact requests both wait on one actor scope",
+    "same-actor exact retries return one stable response",
+    "same-actor exact race stores one receipt",
+    "same-challenge member mutations share one challenge scope",
+    "same-challenge race yields one commit and one explicit stale retry",
+    "same-link final-slot requests both wait on the link row",
+    "same-link race admits exactly the twentieth account",
+    "same-link race preserves the twenty-account ceiling",
+    "redemption waits behind link revocation",
+    "revoked link rejects waiting redemption",
+    "revocation denial occurred below capacity with no redemption effect",
+    "request waits behind an in-flight session revocation",
+    "revoked session cannot commit after waiting",
+    "four conflicting personal admissions reserve exactly three unsettled slots",
+    "consent and reopen wait on the same agreement scope",
+    "consent/reopen race has one commit and one stale revision",
+    "different callers coordinate cross-challenge admission on the entrant profile",
+    "cross-challenge freeze/join race preserves three-unsettled admission limit",
+    "conflicting admissions leave exactly three entrant slots",
+    "personal admission waits behind an uncommitted operator suspension",
+    "personal admission rechecks suspension after its profile wait",
+    "reciprocal invites wait on the same lowest profile first",
+    "reciprocal invitations complete without an inverted profile deadlock",
+    "link issuance and join both reach their challenge wait before cutoff",
+    "link issuance and community join refresh time after waiting past their cutoff",
+    "worker skips a concurrently locked durable claim row",
+    "another committed claim skips the live lease and owns independent work",
+    "completion waits only on its own busy challenge",
+    "independent worker completion commits while another completion waits",
+    "waiting independent completion commits after its challenge is released",
+    "duplicate completion returns its exact saved response",
+    "abandoned claims are visible to operations",
+    "expired claim receives a new token and incremented attempt",
+    "stale worker cannot apply a recovered claim",
+    "duplicate completions serialize on one challenge",
+    "concurrent duplicate completions return one exact result",
+    "duplicate completion changes lifecycle revision only once",
+    "repeated poll excludes all cancelled work",
+    "repeated poll excludes all cancelled work",
+    "repeated poll excludes all cancelled work",
+    "repeated poll excludes all cancelled work",
+    "cancelled revisions remain unchanged across repeated polls",
+    "ordinary read proceeds while the exclusive control-plane gate is held",
+    "moderator read waits on its exact grant row",
+    "revoked grant rejects waiting report read",
+    "owned community closes through the operator API after the races"
+  ]
+}

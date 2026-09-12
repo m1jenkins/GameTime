@@ -1,0 +1,77 @@
+[
+  {
+    "name": "concurrency-1",
+    "command": [
+      "python3",
+      "/private/tmp/gametime-p6-20260912/p4-adapter.py",
+      "--db-url",
+      "postgresql://postgres:postgres@127.0.0.1:59722/postgres",
+      "--owned-root",
+      "/private/tmp/gametime-p6-20260912/stack",
+      "--owned-project",
+      "gametime-p6-20260912"
+    ],
+    "exit_code": 0,
+    "seconds": 7.591859792
+  },
+  {
+    "name": "concurrency-2",
+    "command": [
+      "python3",
+      "/private/tmp/gametime-p6-20260912/p4-adapter.py",
+      "--db-url",
+      "postgresql://postgres:postgres@127.0.0.1:59722/postgres",
+      "--owned-root",
+      "/private/tmp/gametime-p6-20260912/stack",
+      "--owned-project",
+      "gametime-p6-20260912"
+    ],
+    "exit_code": 0,
+    "seconds": 7.728779374999999
+  },
+  {
+    "name": "p5-concurrency",
+    "command": [
+      "python3",
+      "scripts/beta-p5-pagination-races.py",
+      "--db-url",
+      "postgresql://postgres:postgres@127.0.0.1:59722/postgres",
+      "--owned-root",
+      "/private/tmp/gametime-p6-20260912/stack",
+      "--owned-project",
+      "gametime-p6-20260912"
+    ],
+    "exit_code": 0,
+    "seconds": 2.4415200830000003
+  },
+  {
+    "name": "checker",
+    "command": [
+      "psql",
+      "postgresql://postgres:postgres@127.0.0.1:59722/postgres",
+      "-XqAt",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-f",
+      "outputs/reports/p4-20260911/direct-lint.sql"
+    ],
+    "exit_code": 0,
+    "seconds": 0.13935587499999968
+  },
+  {
+    "name": "advisors",
+    "command": [
+      "supabase",
+      "db",
+      "advisors",
+      "--db-url",
+      "postgresql://postgres:postgres@127.0.0.1:59722/postgres",
+      "--type",
+      "all",
+      "--fail-on",
+      "error"
+    ],
+    "exit_code": 1,
+    "seconds": 0.8915746250000005
+  }
+]

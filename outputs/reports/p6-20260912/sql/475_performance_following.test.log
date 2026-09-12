@@ -1,0 +1,248 @@
+t
+t
+
+ok 1 - following defaults off
+ok 2 - all ten tables private with RLS
+ok 3 - anon cannot access performance_following_runtime
+ok 4 - authenticated cannot access performance_following_runtime
+ok 5 - service_role cannot access performance_following_runtime
+ok 6 - anon cannot access performance_following_grants
+ok 7 - authenticated cannot access performance_following_grants
+ok 8 - service_role cannot access performance_following_grants
+ok 9 - anon cannot access performance_following_publications
+ok 10 - authenticated cannot access performance_following_publications
+ok 11 - service_role cannot access performance_following_publications
+ok 12 - anon cannot access performance_following_content
+ok 13 - authenticated cannot access performance_following_content
+ok 14 - service_role cannot access performance_following_content
+ok 15 - anon cannot access performance_following_reactions
+ok 16 - authenticated cannot access performance_following_reactions
+ok 17 - service_role cannot access performance_following_reactions
+ok 18 - anon cannot access performance_following_cases
+ok 19 - authenticated cannot access performance_following_cases
+ok 20 - service_role cannot access performance_following_cases
+ok 21 - anon cannot access performance_following_support_grants
+ok 22 - authenticated cannot access performance_following_support_grants
+ok 23 - service_role cannot access performance_following_support_grants
+ok 24 - anon cannot access performance_following_requests
+ok 25 - authenticated cannot access performance_following_requests
+ok 26 - service_role cannot access performance_following_requests
+ok 27 - anon cannot access performance_following_retention
+ok 28 - authenticated cannot access performance_following_retention
+ok 29 - service_role cannot access performance_following_retention
+ok 30 - anon cannot access performance_following_audit
+ok 31 - authenticated cannot access performance_following_audit
+ok 32 - service_role cannot access performance_following_audit
+ok 33 - anon cannot call private performance_following_guard_v1
+ok 34 - authenticated cannot call private performance_following_guard_v1
+ok 35 - service_role cannot call private performance_following_guard_v1
+ok 36 - anon cannot call private performance_following_lock_v1
+ok 37 - authenticated cannot call private performance_following_lock_v1
+ok 38 - service_role cannot call private performance_following_lock_v1
+ok 39 - anon cannot call private performance_following_pair_allowed_v1
+ok 40 - authenticated cannot call private performance_following_pair_allowed_v1
+ok 41 - service_role cannot call private performance_following_pair_allowed_v1
+ok 42 - anon cannot call private performance_following_replay_v1
+ok 43 - authenticated cannot call private performance_following_replay_v1
+ok 44 - service_role cannot call private performance_following_replay_v1
+ok 45 - anon cannot call private performance_following_save_v1
+ok 46 - authenticated cannot call private performance_following_save_v1
+ok 47 - service_role cannot call private performance_following_save_v1
+ok 48 - anon cannot call private mutate_performance_following_v1
+ok 49 - authenticated cannot call private mutate_performance_following_v1
+ok 50 - service_role cannot call private mutate_performance_following_v1
+ok 51 - anon cannot call private performance_following_grant_audit_v1
+ok 52 - authenticated cannot call private performance_following_grant_audit_v1
+ok 53 - service_role cannot call private performance_following_grant_audit_v1
+ok 54 - anon cannot call private performance_following_cards_v1
+ok 55 - authenticated cannot call private performance_following_cards_v1
+ok 56 - service_role cannot call private performance_following_cards_v1
+ok 57 - anon cannot call private performance_following_sever_v1
+ok 58 - authenticated cannot call private performance_following_sever_v1
+ok 59 - service_role cannot call private performance_following_sever_v1
+ok 60 - anon cannot call private performance_following_support_lock_v1
+ok 61 - authenticated cannot call private performance_following_support_lock_v1
+ok 62 - service_role cannot call private performance_following_support_lock_v1
+ok 63 - gate-off denies invitation
+ok 64 - owner cannot open following gate
+ok 65 - owner can inspect empty publications gate-off
+ok 66 - anonymous discovery denied
+ok 67 - anonymous detail denied
+ok 68 - service cannot impersonate owner
+t
+t
+f
+ok 69 - explicit versioned sharing scope required
+ok 70 - explicit owner consent required
+ok 71 - self following denied
+ok 72 - nonfriend denied
+ok 73 - pending friendship denied
+ok 74 - exact invitation recovery
+ok 75 - request binds exact friend
+ok 76 - duplicate open pair denied
+ok 77 - invitation alone grants no progress access
+
+ok 78 - unrelated user denied
+ok 79 - unrelated acceptance denied
+
+ok 80 - named friend discovers locator
+ok 81 - locator list contains no shared content
+ok 82 - pending follower cannot see goal
+ok 83 - friend has no private progress access
+ok 84 - follower cannot use owner endpoint
+ok 85 - follower explicit consent required
+ok 86 - exact acceptance receipt
+ok 87 - accept request cannot become decline
+ok 88 - accepted follow shows selected goal facts
+ok 89 - existing private progress never auto-publishes
+ok 90 - reminders default off
+ok 91 - follower cannot act as owner
+
+ok 92 - cannot publish nonexistent entry
+ok 93 - exact publication recovery
+ok 94 - publication request binds exact entry
+ok 95 - new request cannot duplicate visible entry
+
+ok 96 - bounded selected-progress page
+ok 97 - only selected milestone name published
+ok 98 - shared projection excludes private notes, amounts and proof
+ok 99 - next page includes selected note occurrence only
+ok 100 - check-in cannot become proof
+ok 101 - page limit capped
+ok 102 - continuation requires content revision
+ok 103 - no freeform social comments
+ok 104 - exact structured reaction recovery
+ok 105 - follower sees own reaction
+
+ok 106 - owner receives bounded aggregate reactions
+ok 107 - owner retracts selected milestone
+
+ok 108 - retraction invalidates old page revision
+ok 109 - fresh page omits retracted content
+ok 110 - cannot react to retracted card
+ok 111 - own reaction can be removed after retraction
+ok 112 - infinite reminder rejected
+ok 113 - past reminder rejected
+ok 114 - reminder horizon bounded
+ok 115 - follower explicitly schedules own in-app reminder
+ok 116 - future reminder is not due
+ok 117 - explicitly scheduled reminder becomes due on read
+f
+ok 118 - gate-off suppresses reminders
+ok 119 - gate-off reminder cancellation
+ok 120 - gate-off new reminder denied
+ok 121 - gate-off report exact recovery
+ok 122 - reporter retains private report
+ok 123 - reporter can rediscover case after losing local receipt
+ok 124 - report discovery is bounded
+
+ok 125 - reported peer cannot read case
+ok 126 - reported peer cannot discover private cases
+ok 127 - gate-off invite recovery
+ok 128 - gate-off owner revocation
+
+ok 129 - revocation clears shared projection
+ok 130 - revoked read contains no cached cards
+ok 131 - revoked read contains no goal
+ok 132 - post-revocation exact receipt is only own past action
+ok 133 - exact acceptance never reactivates grant
+t
+ok 134 - owner cannot be support operator
+ok 135 - reporter cannot be support operator
+
+
+ok 136 - unassigned operator denied
+
+ok 137 - assigned operator sees only submitted report
+ok 138 - support assignment exposes no commitment or proof
+ok 139 - support assignment confers no progress access
+ok 140 - support exact resolution recovery
+ok 141 - recorded resolution immutable
+ok 142 - support read audited
+
+ok 143 - revoked support assignment denied
+
+ok 144 - reporter sees resolution without other case data
+
+
+ok 145 - regrant needs fresh follower consent
+ok 146 - dedicated exact block works
+ok 147 - block removes follower access
+ok 148 - reporting available after block
+ok 149 - unblock and renewed friendship cannot restore old permission
+
+
+ok 150 - follower can decline
+
+
+ok 151 - fresh invitation accepted
+ok 152 - follower independently unfollows
+
+ok 153 - expired session cannot read
+ok 154 - expired session cannot recover
+t
+ok 155 - all social actions leave complete evaluator snapshot unchanged
+ok 156 - following and support never release commitment slot
+ok 157 - published snapshots immutable
+ok 158 - sharing consent immutable
+ok 159 - exact receipts retained
+ok 160 - report retention cannot truncate through foreign keys
+ok 161 - following hold cannot truncate
+ok 162 - legacy purge remains separate
+ok 163 - legacy purge preserves reports
+
+ok 164 - expired invitation read has no content
+ok 165 - expired invitation cannot be accepted
+
+ok 166 - new request expires old pending invite and issues fresh consent
+{"status": "revoked", "revision": 2, "follow_id": "15f51ea4-27af-4090-8b99-e2489d157062", "reminder_at": null}
+{"status": "pending", "revision": 1, "follow_id": "4f09ecf4-a972-4b92-af10-593a4ff34921"}
+{"status": "pending", "revision": 1, "follow_id": "7313de40-390a-43b3-a3b8-7e076ef289d5"}
+{"status": "pending", "revision": 1, "follow_id": "e8c2040c-cc68-422b-ac80-717d43be0306"}
+{"status": "pending", "revision": 1, "follow_id": "6c5626c9-c410-420a-a2d4-41939cecc496"}
+{"status": "pending", "revision": 1, "follow_id": "7d508cc0-8be9-4f6b-8f41-036aa9047667"}
+{"status": "pending", "revision": 1, "follow_id": "460c6913-9bd0-41dd-b195-57560c5493e2"}
+{"status": "pending", "revision": 1, "follow_id": "94eb2d0e-6f26-4732-b495-d8a182f922d4"}
+{"status": "pending", "revision": 1, "follow_id": "ac97fa26-e9a6-42d6-a17c-e7e766c9f407"}
+{"status": "pending", "revision": 1, "follow_id": "10532b5b-de65-4980-94be-22fb269d0618"}
+{"status": "pending", "revision": 1, "follow_id": "344f665f-3357-4396-b489-e861de8e5a24"}
+{"status": "pending", "revision": 1, "follow_id": "fbae8c57-29a8-409f-bf06-1cb5137fae4d"}
+{"status": "pending", "revision": 1, "follow_id": "18a2d6a3-0f5f-4473-8a54-4a93a25b00a7"}
+{"status": "pending", "revision": 1, "follow_id": "8361362a-7680-4a98-a451-0f66a73d32fd"}
+{"status": "pending", "revision": 1, "follow_id": "2649938f-0afc-4ef1-a2c0-8c3b55b242bf"}
+{"status": "pending", "revision": 1, "follow_id": "87bbea13-8ada-47a6-b008-bcc638c75872"}
+{"status": "pending", "revision": 1, "follow_id": "2e9f857a-d350-40ff-8d84-6564e7cdcd47"}
+{"status": "pending", "revision": 1, "follow_id": "88c2f551-4da7-400e-9272-58449de481e0"}
+{"status": "pending", "revision": 1, "follow_id": "a8c62b41-c455-4f54-b31d-a838a0c2221a"}
+{"status": "pending", "revision": 1, "follow_id": "3d6f8132-425a-453e-bde1-5bb4150de284"}
+{"status": "pending", "revision": 1, "follow_id": "2704d1f2-4486-4e66-b3e4-2c16eea23806"}
+{"status": "pending", "revision": 1, "follow_id": "24d2c686-53cc-4a59-ae6c-80ac9b3e1e01"}
+{"status": "pending", "revision": 1, "follow_id": "8e565939-9e70-4d8d-8c2f-5bed8c9690d8"}
+{"status": "pending", "revision": 1, "follow_id": "c639eb6e-65c8-44b8-afa9-8e4243cefcfa"}
+{"status": "pending", "revision": 1, "follow_id": "d5222779-6c72-4039-a929-7cd13984a060"}
+{"status": "pending", "revision": 1, "follow_id": "e1aeaa9d-18ac-43cc-865b-311d660d183b"}
+{"status": "pending", "revision": 1, "follow_id": "98399d71-29af-469e-aee7-f193e1b98ac8"}
+{"status": "pending", "revision": 1, "follow_id": "ca5ce3d3-faba-4e41-a2b9-977905461d6a"}
+{"status": "pending", "revision": 1, "follow_id": "1e7911d7-2698-44de-a099-fff0728d6ddf"}
+{"status": "pending", "revision": 1, "follow_id": "38aa50aa-13b1-407b-b4d7-7bbe03526733"}
+{"status": "pending", "revision": 1, "follow_id": "f20396f4-1094-40cd-9ae2-e88ac2d18792"}
+{"status": "pending", "revision": 1, "follow_id": "6faaaa3b-1403-4c33-871e-7f92d4318ad2"}
+ok 167 - 33rd open following invitation rejected
+ok 168 - capacity never prevents exact recovery
+ok 169 - even privileged mutation cannot revive ended consent
+ok 170 - 129th historical invitation rejected
+ok 171 - full invitation history allows safe revocation
+{"deletedAt": "2026-09-12T02:08:09.845413+00:00", "capabilities": []}
+ok 172 - follower deletion ends pending follow
+ok 173 - active owner can report after peer deletion
+ok 174 - safe closure remains available
+ok 175 - owner retains own publications after closure
+{"deletedAt": "2026-09-12T02:08:09.865665+00:00", "capabilities": []}
+
+ok 176 - owner deletion leaves no follower content
+ok 177 - reporter retains own receipt after owner deletion
+
+ok 178 - deleted owner loses exact recovery
+ok 179 - separate following hold survives closure and deletion
+ok 180 - selected snapshots retained privately after deletion
+1..180

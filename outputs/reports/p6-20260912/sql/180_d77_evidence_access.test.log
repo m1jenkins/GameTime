@@ -1,0 +1,62 @@
+1..47
+ok 1 - subjects have a contest-scoped quarantine status surface
+ok 2 - reviewers have a contest-scoped redacted inbox
+ok 3 - reviewers have a separately authorized redacted revision surface
+ok 4 - the bounded APIs can intentionally read through owner-only base RLS
+ok 5 - only authenticated clients execute the D77 read surfaces
+ok 6 - the full status view is trusted-code-only
+ok 7 - raw audit policies are owner-only plus the restrictive active-actor guard
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 8 - Alice can inspect her raw audit rows in contest A
+ok 9 - and her independent raw audit rows in contest B
+ok 10 - the security-invoker scoring view remains available to its evidence owner
+ok 11 - the evidence owner may inspect retained source attribution
+{"sub":"82222222-2222-2222-2222-222222222222"}
+ok 12 - Bob cannot directly read Alice batches from their shared contest A
+ok 13 - Bob cannot directly read Alice hourly snapshots from A
+ok 14 - Bob cannot directly read Alice quarantine rows from A
+ok 15 - sharing A does not expose Alice batches belonging to B
+ok 16 - sharing A does not expose Alice hourly snapshots belonging to B
+ok 17 - sharing A does not expose Alice quarantine records belonging to B
+ok 18 - the aggregate hourly view is not a rival bypass
+ok 19 - and neither is its source-identifier sidecar
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 20 - Alice sees her own quarantine status for A
+ok 21 - and sees B only when she requests B
+{"sub":"82222222-2222-2222-2222-222222222222"}
+ok 22 - Bob cannot turn the subject surface into cross-contest access
+ok 23 - Bob receives the pending claim in accepted contest A
+ok 24 - but requesting Alice contest B returns no claim
+{"sub":"83333333-3333-3333-3333-333333333333"}
+ok 25 - Carol receives the pending claim in her accepted contest B
+ok 26 - but Carol receives nothing from A
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 27 - the evidence subject is never treated as their own reviewer
+{"sub":"82222222-2222-2222-2222-222222222222"}
+ok 28 - guessing B's quarantine UUID still returns no revision history
+ok 29 - sharing A cannot authorize a vote on Alice evidence from contest B
+ok 30 - an open contest labels its bounded claim live
+ok 31 - an ended contest inside ingest grace labels the claim awaiting_ingest
+ok 32 - a post-grace pending claim is under_review
+ok 33 - finalization closes the raw peer-review surface
+ok 34 - the reviewer inbox exposes exactly the bounded D77 claim fields
+ok 35 - revision history exposes no identifiers beyond the bounded claim
+ok 36 - the allowed history is ordered and identifies only the quarantined revision
+ok 37 - source, device, signal, and private-detail sentinels never cross the review API
+ok 38 - Bob can vote on the visible pending claim
+ok 39 - Bob loses the bounded evidence surface after casting his vote
+{"sub":"84444444-4444-4444-4444-444444444444"}
+ok 40 - Dave still sees the claim while his vote is required
+ok 41 - Dave can supply the approval that resolves the claim
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 42 - the subject sees correct aggregate approval state without reviewer identities
+{"sub":"85555555-5555-5555-5555-555555555555"}
+ok 43 - a new reviewer vote is refused after the claim resolves
+{"sub":"84444444-4444-4444-4444-444444444444"}
+ok 44 - resolved claims stay absent from every reviewer inbox
+{"sub":"82222222-2222-2222-2222-222222222222"}
+ok 45 - a reviewer can directly inspect only their own immutable vote
+{"sub":"81111111-1111-1111-1111-111111111111"}
+ok 46 - the evidence subject cannot enumerate reviewer identities
+{"sub":"82222222-2222-2222-2222-222222222222"}
+ok 47 - an identical retry remains idempotent after resolution

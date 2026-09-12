@@ -1,0 +1,71 @@
+OK
+OK
+OK
+DO
+ok 1 - competing distinct creation loses actor slot
+ok 2 - concurrent exact retry returns same committed agreement
+ok 3 - concurrent changed payload refuses reused request
+ok 4 - opposing creates serialize stable pair order without deadlock
+ok 5 - cancel after accepted commit closes scheduled agreement
+ok 6 - accept-winning order retains both consents
+ok 7 - cancel-winning order refuses acceptance
+ok 8 - cancel-winning order never records second consent
+ok 9 - expiry cannot close accepted agreement
+ok 10 - accept-before-cutoff commit wins expiry race
+ok 11 - expiry-winning order refuses acceptance
+ok 12 - expiry-winning order remains durable
+ok 13 - deletion waits for acceptance and succeeds
+ok 14 - deletion closes accepted pair
+ok 15 - deletion preserves committed second consent
+ok 16 - deleted stale actor cannot consent after waiting
+ok 17 - deletion-winning invitation is cancelled
+ok 18 - two incoming accepts cannot reserve two slots
+ok 19 - unique enrollment survives concurrent acceptance
+ok 20 - invitee deletion after create closes invitation
+ok 21 - creation after invitee deletion denied
+ok 22 - decline prevents later acceptance
+DO
+
+COMMIT
+ok 23 - waiting past cutoff rejects despite earlier transaction start
+ok 24 - no late consent after lock wait
+ok 25 - gate-off commit blocks waiting acceptance
+ok 26 - accept then cancel: second session actually waited on a database lock
+ok 27 - accept then delete: second session actually waited on a database lock
+ok 28 - accept then expire: second session actually waited on a database lock
+ok 29 - cancel then accept: second session actually waited on a database lock
+ok 30 - changed payload: second session actually waited on a database lock
+ok 31 - create then delete: second session actually waited on a database lock
+ok 32 - decline then accept: second session actually waited on a database lock
+ok 33 - delete then accept: second session actually waited on a database lock
+ok 34 - delete then create: second session actually waited on a database lock
+ok 35 - distinct create: second session actually waited on a database lock
+ok 36 - exact create: second session actually waited on a database lock
+ok 37 - expire then accept: second session actually waited on a database lock
+ok 38 - gate then accept: second session actually waited on a database lock
+ok 39 - opposing create: second session actually waited on a database lock
+ok 40 - two acceptances: second session actually waited on a database lock
+ok 41 - wait past cutoff: second session actually waited on a database lock
+ok 42 - accept then cancel: first operation succeeded
+ok 43 - accept then delete: first operation succeeded
+ok 44 - accept then expire: first operation succeeded
+ok 45 - cancel then accept: first operation succeeded
+ok 46 - changed payload: first operation succeeded
+ok 47 - create then delete: first operation succeeded
+ok 48 - decline then accept: first operation succeeded
+ok 49 - delete then accept: first operation succeeded
+ok 50 - delete then create: first operation succeeded
+ok 51 - distinct create: first operation succeeded
+ok 52 - exact create: first operation succeeded
+ok 53 - expire then accept: first operation succeeded
+ok 54 - gate then accept: first operation succeeded
+ok 55 - opposing create: first operation succeeded
+ok 56 - two acceptances: first operation succeeded
+ok 57 - wait past cutoff: first operation succeeded
+ok 58 - no actor has more than one unsettled duel after all races
+ok 59 - every closed race released all slots
+SET
+OK
+OK
+OK
+1..59

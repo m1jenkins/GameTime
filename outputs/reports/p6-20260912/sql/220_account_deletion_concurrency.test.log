@@ -1,0 +1,103 @@
+1..57
+ok 1 - the local harness provides the test-only multi-session driver
+OK
+OK
+OK
+SET
+SET
+CREATE FUNCTION
+GRANT
+INSERT 0 2
+BEGIN
+SET
+ok 2 - the scheduled worker makes the due two-person challenge active
+SET
+ok 3 - account deletion starts while activation is still uncommitted
+ok 4 - activation holds the workflow row until its transition and outbox commit
+COMMIT
+RESET
+ok 5 - the committed activation cannot be rewritten as cancellation by deletion
+ok 6 - the deleted actor stays on the frozen active roster
+ok 7 - activation-first deletion removes authentication but keeps the durable actor
+ok 8 - deletion returns one continuation capability for the activated lineage
+ok 9 - only the hash of the activation-first continuation secret is retained
+ok 10 - activation and both durable recipient intents commit together
+ok 11 - deletion does not manufacture a departure from an active roster
+BEGIN
+SET
+ok 12 - pending deletion issues no active-lineage continuation capability
+SET
+ok 13 - the scheduled worker starts while deletion is still uncommitted
+ok 14 - deletion holds the same workflow row before changing participation
+COMMIT
+RESET
+ok 15 - the worker deterministically cancels the one-person post-deletion roster
+ok 16 - deletion-first activation leaves one complete cancellation outcome
+ok 17 - deletion records the prior acceptance as withdrawal before activation
+ok 18 - the deletion-first race retains one immutable accepted-to-withdrawn event
+ok 19 - only the surviving accepted creator receives the cancellation intent
+ok 20 - no activation intent survives the deletion-first cancellation
+BEGIN
+SET
+SET
+ok 21 - the active authenticated invitee accepts before deletion commits
+SET
+ok 22 - deletion starts while invitation acceptance is still uncommitted
+ok 23 - accepted participation holds the actor and pending workflow locks
+COMMIT
+RESET
+ok 24 - deletion serially converts the committed pending acceptance to withdrawal
+ok 25 - the durable withdrawn row retains terms but no longer claims active acceptance
+ok 26 - the immutable departure event proves acceptance committed before deletion
+ok 27 - the other creator pending contest stays pending and issues no capability
+ok 28 - acceptance-first deletion still removes authentication atomically
+ok 29 - the acceptance-first departure and creator intent commit together
+BEGIN
+SET
+SET
+SET
+ok 30 - the stale acceptance starts while deletion is still uncommitted
+ok 31 - the stale JWT waits at the actor-deletion serialization lock
+COMMIT
+RESET
+RESET
+ok 32 - the post-deletion stale acceptance is rejected
+ok 33 - the stale acceptance receives deterministic insufficient-privilege authorization
+ok 34 - the rejected acceptance leaves no partial terms or accepted timestamp
+ok 35 - only the deletion-authored invited-to-lapsed event survives
+ok 36 - the failed acceptance neither activates the contest nor creates a capability
+ok 37 - the deletion event has one durable creator intent and no partial duplicate
+BEGIN
+SET
+ok 38 - the attested batch is complete before its transaction is released
+SET
+ok 39 - deletion starts while the attested batch is still uncommitted
+ok 40 - ingest holds the actor lock through counter, batch, and snapshot writes
+COMMIT
+RESET
+ok 41 - deletion returns the active lineage capability after ingest commits
+ok 42 - deletion revokes but does not erase the consumed attestation counter
+ok 43 - the attested ingest audit row survives account deletion intact
+ok 44 - the one committed metric fact survives with its exact source classification
+ok 45 - ingest-first deletion retains the accepted durable actor and active agreement
+ok 46 - the continuation capability remains attached to its durable actor and scope
+BEGIN
+SET
+SET
+ok 47 - the attested ingest starts while deletion is still uncommitted
+ok 48 - the metric writer waits at the same active-actor serialization lock
+COMMIT
+RESET
+ok 49 - the post-deletion metric write is rejected
+ok 50 - metric ingest receives deterministic insufficient-privilege authorization
+ok 51 - the losing ingest transaction leaves no batch record
+ok 52 - the losing ingest transaction leaves no metric snapshot
+ok 53 - failed ingest consumes no assertion counter before the revoked key is observed
+ok 54 - deletion-first ingest retains the active agreement and its continuation
+ok 55 - all race products retain their participant, actor, outbox, evidence, and scope parents
+ok 56 - every successful deletion removes its private transaction marker
+ok 57 - all six races end with one durable tombstone and no live authentication
+SET
+OK
+OK
+OK

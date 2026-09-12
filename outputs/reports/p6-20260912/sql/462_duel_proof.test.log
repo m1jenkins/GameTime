@@ -1,0 +1,249 @@
+ok 1 - fresh proof admission is off
+ok 2 - no reviewer is seeded
+ok 3 - private proof tables all enable RLS
+ok 4 - every proof definer has a fixed empty search path
+ok 5 - no duel schedule created
+ok 6 - anon has no SELECT on duel_proof_runtime
+ok 7 - anon has no SELECT on duel_proof_grants
+ok 8 - anon has no SELECT on duel_proof_sources
+ok 9 - anon has no SELECT on duel_proof_revisions
+ok 10 - anon has no SELECT on duel_proof_access_audit
+ok 11 - authenticated has no SELECT on duel_proof_runtime
+ok 12 - authenticated has no SELECT on duel_proof_grants
+ok 13 - authenticated has no SELECT on duel_proof_sources
+ok 14 - authenticated has no SELECT on duel_proof_revisions
+ok 15 - authenticated has no SELECT on duel_proof_access_audit
+ok 16 - service_role has no SELECT on duel_proof_runtime
+ok 17 - service_role has no SELECT on duel_proof_grants
+ok 18 - service_role has no SELECT on duel_proof_sources
+ok 19 - service_role has no SELECT on duel_proof_revisions
+ok 20 - service_role has no SELECT on duel_proof_access_audit
+ok 21 - anon has no INSERT on duel_proof_runtime
+ok 22 - anon has no INSERT on duel_proof_grants
+ok 23 - anon has no INSERT on duel_proof_sources
+ok 24 - anon has no INSERT on duel_proof_revisions
+ok 25 - anon has no INSERT on duel_proof_access_audit
+ok 26 - authenticated has no INSERT on duel_proof_runtime
+ok 27 - authenticated has no INSERT on duel_proof_grants
+ok 28 - authenticated has no INSERT on duel_proof_sources
+ok 29 - authenticated has no INSERT on duel_proof_revisions
+ok 30 - authenticated has no INSERT on duel_proof_access_audit
+ok 31 - service_role has no INSERT on duel_proof_runtime
+ok 32 - service_role has no INSERT on duel_proof_grants
+ok 33 - service_role has no INSERT on duel_proof_sources
+ok 34 - service_role has no INSERT on duel_proof_revisions
+ok 35 - service_role has no INSERT on duel_proof_access_audit
+ok 36 - anon has no UPDATE on duel_proof_runtime
+ok 37 - anon has no UPDATE on duel_proof_grants
+ok 38 - anon has no UPDATE on duel_proof_sources
+ok 39 - anon has no UPDATE on duel_proof_revisions
+ok 40 - anon has no UPDATE on duel_proof_access_audit
+ok 41 - authenticated has no UPDATE on duel_proof_runtime
+ok 42 - authenticated has no UPDATE on duel_proof_grants
+ok 43 - authenticated has no UPDATE on duel_proof_sources
+ok 44 - authenticated has no UPDATE on duel_proof_revisions
+ok 45 - authenticated has no UPDATE on duel_proof_access_audit
+ok 46 - service_role has no UPDATE on duel_proof_runtime
+ok 47 - service_role has no UPDATE on duel_proof_grants
+ok 48 - service_role has no UPDATE on duel_proof_sources
+ok 49 - service_role has no UPDATE on duel_proof_revisions
+ok 50 - service_role has no UPDATE on duel_proof_access_audit
+ok 51 - anon has no DELETE on duel_proof_runtime
+ok 52 - anon has no DELETE on duel_proof_grants
+ok 53 - anon has no DELETE on duel_proof_sources
+ok 54 - anon has no DELETE on duel_proof_revisions
+ok 55 - anon has no DELETE on duel_proof_access_audit
+ok 56 - authenticated has no DELETE on duel_proof_runtime
+ok 57 - authenticated has no DELETE on duel_proof_grants
+ok 58 - authenticated has no DELETE on duel_proof_sources
+ok 59 - authenticated has no DELETE on duel_proof_revisions
+ok 60 - authenticated has no DELETE on duel_proof_access_audit
+ok 61 - service_role has no DELETE on duel_proof_runtime
+ok 62 - service_role has no DELETE on duel_proof_grants
+ok 63 - service_role has no DELETE on duel_proof_sources
+ok 64 - service_role has no DELETE on duel_proof_revisions
+ok 65 - service_role has no DELETE on duel_proof_access_audit
+ok 66 - anon has no TRUNCATE on duel_proof_runtime
+ok 67 - anon has no TRUNCATE on duel_proof_grants
+ok 68 - anon has no TRUNCATE on duel_proof_sources
+ok 69 - anon has no TRUNCATE on duel_proof_revisions
+ok 70 - anon has no TRUNCATE on duel_proof_access_audit
+ok 71 - authenticated has no TRUNCATE on duel_proof_runtime
+ok 72 - authenticated has no TRUNCATE on duel_proof_grants
+ok 73 - authenticated has no TRUNCATE on duel_proof_sources
+ok 74 - authenticated has no TRUNCATE on duel_proof_revisions
+ok 75 - authenticated has no TRUNCATE on duel_proof_access_audit
+ok 76 - service_role has no TRUNCATE on duel_proof_runtime
+ok 77 - service_role has no TRUNCATE on duel_proof_grants
+ok 78 - service_role has no TRUNCATE on duel_proof_sources
+ok 79 - service_role has no TRUNCATE on duel_proof_revisions
+ok 80 - service_role has no TRUNCATE on duel_proof_access_audit
+ok 81 - anon cannot execute private duel_proof_append_at_v1
+ok 82 - authenticated cannot execute private duel_proof_append_at_v1
+ok 83 - service_role cannot execute private duel_proof_append_at_v1
+ok 84 - anon cannot execute private duel_proof_authority_v1
+ok 85 - authenticated cannot execute private duel_proof_authority_v1
+ok 86 - service_role cannot execute private duel_proof_authority_v1
+ok 87 - anon cannot execute private duel_proof_capture_at_v1
+ok 88 - authenticated cannot execute private duel_proof_capture_at_v1
+ok 89 - service_role cannot execute private duel_proof_capture_at_v1
+ok 90 - anon cannot execute private duel_proof_guard_v1
+ok 91 - authenticated cannot execute private duel_proof_guard_v1
+ok 92 - service_role cannot execute private duel_proof_guard_v1
+ok 93 - anon cannot execute private duel_proof_history_v1
+ok 94 - authenticated cannot execute private duel_proof_history_v1
+ok 95 - service_role cannot execute private duel_proof_history_v1
+ok 96 - anon cannot execute private duel_proof_keys_v1
+ok 97 - authenticated cannot execute private duel_proof_keys_v1
+ok 98 - service_role cannot execute private duel_proof_keys_v1
+ok 99 - anon cannot execute private duel_proof_lock_v1
+ok 100 - authenticated cannot execute private duel_proof_lock_v1
+ok 101 - service_role cannot execute private duel_proof_lock_v1
+ok 102 - anon cannot execute private duel_proof_require_pair_v1
+ok 103 - authenticated cannot execute private duel_proof_require_pair_v1
+ok 104 - service_role cannot execute private duel_proof_require_pair_v1
+ok 105 - anon cannot execute private duel_proof_require_reviewer_v1
+ok 106 - authenticated cannot execute private duel_proof_require_reviewer_v1
+ok 107 - service_role cannot execute private duel_proof_require_reviewer_v1
+ok 108 - anon cannot execute private duel_proof_require_session_v1
+ok 109 - authenticated cannot execute private duel_proof_require_session_v1
+ok 110 - service_role cannot execute private duel_proof_require_session_v1
+ok 111 - anon cannot execute private duel_proof_validate_source_v1
+ok 112 - authenticated cannot execute private duel_proof_validate_source_v1
+ok 113 - service_role cannot execute private duel_proof_validate_source_v1
+t
+d6000000-0000-0000-0000-000000001000
+ok 114 - source capture respects default-off gate
+ok 115 - service cannot appoint either contestant as reviewer
+1
+2
+3
+4
+5
+ok 116 - grant request identity includes reviewer
+t
+d6000000-0000-0000-0000-000000000100
+d6000000-0000-0000-0000-000000000101
+d6000000-0000-0000-0000-000000000102
+d6000000-0000-0000-0000-000000000103
+ok 117 - source capture exact replay preserves identity
+ok 118 - source cannot be repointed
+ok 119 - foreign actors cannot enter source
+ok 120 - source identity must match agreed event
+ok 121 - arbitrary source URL or extra raw fields rejected
+ok 122 - partial source cannot erase opponent
+ok 123 - duplicate expected bib mapping rejected
+ok 124 - pre-end capture refused
+ok 125 - nonfinite retrieval refused
+
+ok 126 - reviewer cannot enable ingestion
+ok 127 - reviewer cannot grant authority
+ok 128 - reviewer cannot invent source times or bib mapping
+ok 129 - reviewer cannot inject server clock
+ok 130 - private evaluator history has no client grant
+ok 131 - assigned active reviewer can read source
+ok 132 - source cannot cross agreement binding
+ok 133 - proof cannot cross source binding
+ok 134 - receipt cannot precede source capture
+ok 135 - both identity verdicts required
+ok 136 - reviewer cannot overwrite source timing
+ok 137 - duplicate runner verdict refused
+ok 138 - initial full proof appends revision one
+ok 139 - exact reviewer retry returns original revision
+ok 140 - retry binds expected revision
+ok 141 - stale predecessor cannot overwrite latest revision
+ok 142 - correction receipts are monotonic
+ok 143 - correction allowed at initial cutoff after admitted first proof
+ok 144 - initial submission exactly at cutoff is late
+ok 145 - late initial cannot masquerade as correction
+ok 146 - last microsecond before initial cutoff allowed
+ok 147 - last microsecond before hard cap allowed
+ok 148 - correction exactly at cap refused
+ok 149 - historical retry after cap returns first receipt
+
+ok 150 - contestant cannot submit own proof
+ok 151 - contestant cannot read raw source
+ok 152 - participant sees authoritative receipt revision
+ok 153 - participant projection is an exact redacted allowlist
+
+ok 154 - invitee can read receipt
+
+ok 155 - unrelated actor denied redacted read
+ok 156 - unrelated actor denied raw read
+{"sub": "d5000000-0000-0000-0000-000000000012", "session_id": "d6000000-0000-0000-0000-000000009012", "app_metadata": {"duel_reviewer": true}, "user_metadata": {"duel_reviewer": true}}
+ok 157 - JWT metadata cannot grant reviewer power
+ok 158 - authorized raw read is audited, denied reads return no source
+ok 159 - canonical content digest is server computed
+ok 160 - reviewer identity comes from authenticated session
+ok 161 - stored timing comes from captured source
+ok 162 - receipt preserves six microsecond digits
+ok 163 - private evaluator projection retains whole chain
+ok 164 - projection binds predecessor
+ok 165 - proof never releases participant slots
+ok 166 - proof does not invent lifecycle/result state
+d6000000-0000-0000-0000-000000000110
+
+ok 167 - duplicate published bib cannot be confirmed
+ok 168 - unresolved identities can be recorded without assigning a loss
+d6000000-0000-0000-0000-000000000111
+ok 169 - missing proof cannot receive identity confirmation
+ok 170 - correction carries the missing opponent explicitly
+ok 171 - latest correction never falls back to old opponent data
+6
+1
+ok 172 - revoked reviewer cannot recover private request
+ok 173 - old grant replay does not undo revocation
+7
+f
+ok 174 - gate-off preserves authorized committed retry
+ok 175 - gate-off rejects new proof
+
+ok 176 - gate-off preserves receipt reads
+t
+
+ok 177 - revoked session cannot act with stale JWT
+ok 178 - expired session cannot read raw source
+{"sub": "d5000000-0000-0000-0000-000000000010", "session_id": "d6000000-0000-0000-0000-000000009011"}
+ok 179 - session must belong to reviewer
+
+
+ok 180 - blocked pair cannot gain proof receipt access
+
+ok 181 - blocked pair suppresses new operator access
+{"deletedAt": "2026-09-12T02:07:53.110182+00:00", "capabilities": []}
+ok 182 - participant deletion denies new proof
+
+ok 183 - deleted actor cannot read with stale token
+{"deletedAt": "2026-09-12T02:07:53.129491+00:00", "capabilities": []}
+
+ok 184 - deleted reviewer cannot read with stale token
+ok 185 - service can revoke after participant and reviewer deletion
+ok 186 - duel_proof_sources: authenticated raw read denied
+ok 187 - duel_proof_revisions: authenticated raw read denied
+ok 188 - duel_proof_grants: authenticated raw read denied
+ok 189 - duel_proof_access_audit: authenticated raw read denied
+ok 190 - duel_proof_runtime: authenticated raw read denied
+on
+ok 191 - spoofed write GUC confers no authority
+ok 192 - anonymous RPC denied
+ok 193 - duel_proof_sources: anonymous raw read denied
+ok 194 - duel_proof_revisions: anonymous raw read denied
+ok 195 - duel_proof_grants: anonymous raw read denied
+ok 196 - duel_proof_access_audit: anonymous raw read denied
+ok 197 - duel_proof_sources: service direct read denied
+ok 198 - duel_proof_revisions: service direct read denied
+ok 199 - duel_proof_grants: service direct read denied
+ok 200 - duel_proof_access_audit: service direct read denied
+ok 201 - service cannot impersonate independent reviewer
+ok 202 - duel_proof_revisions: privileged update forbidden
+ok 203 - duel_proof_grants: privileged update forbidden
+ok 204 - duel_proof_access_audit: privileged update forbidden
+ok 205 - source document immutable
+ok 206 - duel_proof_sources: privileged deletion forbidden
+ok 207 - duel_proof_revisions: privileged deletion forbidden
+ok 208 - duel_proof_grants: privileged deletion forbidden
+ok 209 - duel_proof_access_audit: privileged deletion forbidden
+psql:supabase/tests/462_duel_proof.test.sql:273: NOTICE:  truncate cascades to table "duel_proof_revisions"
+psql:supabase/tests/462_duel_proof.test.sql:273: NOTICE:  truncate cascades to table "duel_proof_access_audit"
+ok 210 - privileged truncate forbidden
+1..210

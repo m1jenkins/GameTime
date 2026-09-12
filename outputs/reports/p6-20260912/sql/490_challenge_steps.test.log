@@ -1,0 +1,98 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - private lobbies
+ok 2 - participants cannot author completeness
+ok 3 - anonymous details denied
+ok 4 - private worker
+ok 5 - real source cannot be enabled even by fixture operator
+ok 6 - two consents schedule
+ok 7 - six admission slots
+
+ok 8 - two participant projection
+
+ok 9 - stranger denied
+
+{"id": "668d6f86-e4c5-4459-bcb1-b86dfe50e527", "status": "lobby_open", "revision": 25}
+ok 10 - reopen releases slots
+
+{"id": "668d6f86-e4c5-4459-bcb1-b86dfe50e527", "status": "lobby_open", "revision": 26}
+
+ok 11 - cannot propose another person target
+{"id": "668d6f86-e4c5-4459-bcb1-b86dfe50e527", "status": "consent_pending", "revision": 27}
+ok 12 - new immutable agreement version
+ok 13 - new version clears all prior consent
+ok 14 - old consents retained
+
+1
+1
+
+ok 15 - downward correction accepted at exact cutoff
+
+ok 16 - correction after cutoff rejected
+
+ok 17 - delayed worker publishes review
+ok 18 - full actual notice window
+
+
+{"id": "2e900c0d-3380-4ab2-8662-82b7b3a72439", "status": "review", "revision": 15}
+ok 19 - full resolution from filing
+
+ok 20 - open review prevents premature final
+ok 21 - participant cannot resolve
+
+ok 22 - resolved complete facts finalize
+ok 23 - qualifier returns own and confirmed miss
+ok 24 - final releases slots
+ok 25 - final immutable
+ok 26 - repeated worker preserves final
+review
+
+ok 27 - all missing never establishes misses
+ok 28 - missing refunds whole group
+
+
+{"id": "f89ebae7-3120-4bac-b120-c5e76a88c146", "status": "lobby_open", "revision": 1}
+
+
+ok 29 - exact retry recovers old committed result with admission off
+ok 30 - changed request rejected
+1..30

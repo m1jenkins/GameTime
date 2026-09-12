@@ -1,0 +1,35 @@
+OK
+OK
+OK
+COMMIT
+CREATE FUNCTION
+CREATE FUNCTION
+ok 1 - one concurrent reservation per owner
+ok 2 - concurrent exact retries recover one agreement
+ok 3 - waiting create observes deletion
+ok 4 - waiting deletion closes newly committed agreement
+ok 5 - waiting replacement observes released slot
+ok 6 - one terminal close only
+ok 7 - waiting create observes gate-off
+true
+ok 8 - waiting create observes revoked session
+ok 9 - wall clock sampled after blocking locks
+UPDATE 1
+ok 10 - session expiry rechecked after runtime lock
+ok 11 - cancel then create: observed lock wait
+ok 12 - create then delete: observed lock wait
+ok 13 - delete then create: observed lock wait
+ok 14 - exact create retry: observed lock wait
+ok 15 - gate closes then create: observed lock wait
+ok 16 - revoke session then create: observed lock wait
+ok 17 - two closes: observed lock wait
+ok 18 - two creates: observed lock wait
+ok 19 - wait crosses session expiry: observed lock wait
+ok 20 - wait crosses start: observed lock wait
+ok 21 - only actor two remains open
+ok 22 - exact retry created one request
+COMMIT
+OK
+OK
+OK
+1..22

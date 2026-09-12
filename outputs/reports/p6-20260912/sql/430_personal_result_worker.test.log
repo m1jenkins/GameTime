@@ -1,0 +1,19 @@
+1..17
+ok 1 - one named five-minute Personal result job is configured but dormant
+ok 2 - only the bounded worker entry point is available to service_role
+ok 3 - exact production coverage is classified complete
+ok 4 - absent coverage is classified fail-closed as missing
+ok 5 - positive production evidence with exact coverage is complete
+ok 6 - the injected limit bounds one sweep to exactly one due challenge
+ok 7 - one sweep publishes complete and incomplete results while isolating failure
+ok 8 - complete zero-step evidence publishes one immutable target miss
+ok 9 - incomplete evidence publishes a waived inconclusive result
+ok 10 - positive complete evidence publishes a met result without creating a hold
+ok 11 - a guarded publication failure stores SQLSTATE only and no result
+ok 12 - a rerun skips both terminal results and retries only the unresolved failure
+ok 13 - safe rerun neither duplicates nor replaces an immutable result
+ok 14 - bounded attempt state keeps one row per challenge and increments retries
+ok 15 - the worker creates no Social result, donation obligation, or charge command
+{"sub":"fb111111-1111-1111-1111-111111111111"}
+ok 16 - an authenticated owner sees their worker result but not another account result
+ok 17 - daily health check exposes only aggregate overdue and failure signals

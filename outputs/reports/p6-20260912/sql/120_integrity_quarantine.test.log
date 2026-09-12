@@ -1,0 +1,43 @@
+1..36
+ok 1 - retroactive quarantines have durable state
+ok 2 - each quarantine snapshots its immutable review denominator
+ok 3 - and reviews are a separate append-only ledger
+ok 4 - review state is computed rather than overwritten
+ok 5 - quarantines have RLS enabled
+ok 6 - clients cannot create, rewrite, or delete quarantine facts
+ok 7 - clients cannot bypass review eligibility with a direct insert
+ok 8 - only the trusted evaluator can record a quarantine
+ok 9 - the evaluator reaches quarantine creation as service_role
+ok 10 - signed-in participants can use the guarded review function
+ok 11 - service_role must use the recorder and cannot forge review state directly
+ok 12 - a qualifying late observation gets one quarantine row
+ok 13 - reporting lag is derived by the server and meets the recorded threshold
+ok 14 - the evidence owner is copied from the snapshot, not trusted from a caller
+ok 15 - quarantine does not rewrite generated admissibility
+ok 16 - and the exact same value remains in the M4 scoring view
+ok 17 - silence leaves retroactive evidence visibly pending
+ok 18 - a duel requires its one opponent
+ok 19 - retrying the identical evaluator write is idempotent
+ok 20 - the quarantine and its one opponent-review intent are idempotent together
+ok 21 - the same rule version cannot silently change what it claimed
+ok 22 - a threshold the observation did not cross cannot manufacture a quarantine
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 23 - the evidence owner cannot approve their own retroactive evidence
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 24 - an unrelated account cannot review it
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 25 - the accepted opponent can approve it
+ok 26 - one opponent approval resolves a duel quarantine
+ok 27 - retrying the same vote is idempotent
+ok 28 - approval and its one subject-resolution intent are idempotent together
+ok 29 - a reviewer cannot reverse a recorded vote
+ok 30 - quarantine facts are immutable even to a privileged writer
+ok 31 - review votes are immutable even to a privileged writer
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 32 - the evidence owner sees the quarantine
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 33 - their accepted opponent cannot bypass the bounded review surface
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 34 - an unrelated account cannot enumerate integrity flags
+ok 35 - reviewer account deletion retains a pseudonymous quarantine vote
+ok 36 - account deletion cannot shrink the denominator or reopen approval

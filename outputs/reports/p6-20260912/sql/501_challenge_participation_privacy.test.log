@@ -1,0 +1,66 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{"blocked": true}
+ok 1 - an unselected outsider cannot void the two selected participants
+ok 2 - outsider block does not end a selected participant agreement
+ok 3 - the outsider account block is still honored
+
+ok 4 - selected participant retains permitted shared roster
+ok 5 - blocked outsider identity is absent from selected projection
+
+active
+1
+
+ok 6 - selected counterpart can see shared fictional activity before withdrawal
+
+{"id": "6967e2f7-0a43-4e48-9ba2-8866000645ab", "status": "active", "revision": 15}
+ok 7 - the person who leaves has an own-only projection
+ok 8 - withdrawal preserves the departing person’s own fictional activity receipt
+
+ok 9 - two remaining selected participants continue
+ok 10 - counterpart no longer receives departed activity
+ok 11 - counterpart no longer receives departed username
+ok 12 - counterpart receives no current departed target
+ok 13 - block and withdrawal leave immutable agreements byte-identical
+ok 14 - display privacy does not delete retained fictional facts
+1..14

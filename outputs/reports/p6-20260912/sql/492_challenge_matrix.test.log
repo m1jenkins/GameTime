@@ -1,0 +1,92 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - exact thirteen policy combinations
+ok 2 - no personal leaderboard
+ok 3 - friend_steps_goal_v1 normalized results score
+ok 4 - friend_steps_goal_v1 exact comparator
+ok 5 - friend_steps_leaderboard_v1 normalized results score
+ok 6 - friend_steps_leaderboard_v1 exact comparator
+ok 7 - personal steps equality rule
+ok 8 - friend_exercise_goal_v1 normalized results score
+ok 9 - friend_exercise_goal_v1 exact comparator
+ok 10 - friend_exercise_leaderboard_v1 normalized results score
+ok 11 - friend_exercise_leaderboard_v1 exact comparator
+ok 12 - personal exercise equality rule
+ok 13 - friend_distance_goal_v1 normalized results score
+ok 14 - friend_distance_goal_v1 exact comparator
+ok 15 - friend_distance_leaderboard_v1 normalized results score
+ok 16 - friend_distance_leaderboard_v1 exact comparator
+ok 17 - personal distance equality rule
+ok 18 - friend_timed_goal_v1 normalized results score
+ok 19 - friend_timed_goal_v1 exact comparator
+ok 20 - friend_timed_leaderboard_v1 normalized results score
+ok 21 - friend_timed_leaderboard_v1 exact comparator
+ok 22 - personal timed equality rule
+ok 23 - leaderboard co-winners preserve remainder
+ok 24 - any unresolved leaderboard voids
+ok 25 - strict timed equality is miss only with complete facts
+ok 26 - missing personal timed data voids
+ok 27 - friend_steps_goal_v1 schedules after full consent
+ok 28 - friend_steps_goal_v1 immutable final persisted
+ok 29 - friend_steps_leaderboard_v1 schedules after full consent
+ok 30 - friend_steps_leaderboard_v1 immutable final persisted
+ok 31 - personal_steps_goal_v1 schedules after full consent
+ok 32 - personal_steps_goal_v1 immutable final persisted
+ok 33 - friend_exercise_goal_v1 schedules after full consent
+ok 34 - friend_exercise_goal_v1 immutable final persisted
+ok 35 - friend_exercise_leaderboard_v1 schedules after full consent
+ok 36 - friend_exercise_leaderboard_v1 immutable final persisted
+ok 37 - personal_exercise_goal_v1 schedules after full consent
+ok 38 - personal_exercise_goal_v1 immutable final persisted
+ok 39 - friend_distance_goal_v1 schedules after full consent
+ok 40 - friend_distance_goal_v1 immutable final persisted
+ok 41 - friend_distance_leaderboard_v1 schedules after full consent
+ok 42 - friend_distance_leaderboard_v1 immutable final persisted
+ok 43 - personal_distance_goal_v1 schedules after full consent
+ok 44 - personal_distance_goal_v1 immutable final persisted
+ok 45 - friend_timed_goal_v1 schedules after full consent
+ok 46 - friend_timed_goal_v1 immutable final persisted
+ok 47 - friend_timed_leaderboard_v1 schedules after full consent
+ok 48 - friend_timed_leaderboard_v1 immutable final persisted
+ok 49 - personal_timed_goal_v1 schedules after full consent
+ok 50 - personal_timed_goal_v1 immutable final persisted
+1..50

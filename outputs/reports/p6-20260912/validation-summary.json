@@ -1,0 +1,19 @@
+{
+  "implementation": "05f405c24453fe6743ece994d646058958bfdbb2",
+  "base": "e16cff4b3beaa7bcce95db6b0e82eedaa94865fa",
+  "full_sql_files": 91,
+  "full_sql_assertions": 4073,
+  "final_affected_file_assertions": 49,
+  "unique_final_sql_assertions": 4074,
+  "upgrade_assertions": 197,
+  "concurrency_checks": [
+    50,
+    50,
+    5
+  ],
+  "native_unique_tests": 21,
+  "final_affected_native_tests": 8,
+  "checker_errors": 0,
+  "checker_warnings": 25,
+  "cli_advisors": "blocked: LegacyDbConnectError"
+}

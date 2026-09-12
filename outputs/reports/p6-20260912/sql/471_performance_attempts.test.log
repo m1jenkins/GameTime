@@ -1,0 +1,104 @@
+t
+
+ee200000-0000-0000-0000-000000000101
+ee200000-0000-0000-0000-000000000102
+ee200000-0000-0000-0000-000000000103
+ok 1 - attempt admission defaults off
+ok 2 - no attempt schedule
+ok 3 - all attempt storage has RLS
+ok 4 - no private clock/helper grants
+ok 5 - no anonymous APIs
+ok 6 - empty definer search paths
+ok 7 - new gate required
+ok 8 - owner cannot open gate
+ok 9 - owner cannot read source table
+ok 10 - owner cannot request private snapshot
+t
+ok 11 - event end at exclusive deadline rejected
+ok 12 - nomination at event start too late
+ok 13 - bounded bib
+ok 14 - exact nomination retry
+ok 15 - changed retry rejected
+ok 16 - same event cannot be nominated twice
+ok 17 - owner has two distinct attempts
+ok 18 - event reads bounded
+
+ok 19 - stranger cannot read attempts
+ok 20 - stranger cannot nominate
+1
+ok 21 - self review forbidden
+ok 22 - wrong source rejected
+ok 23 - mile cannot pass as 5K
+ok 24 - subsecond precision rejected
+ok 25 - fractional chip time rejected
+ok 26 - wrong bib rejected
+ok 27 - actual start one microsecond too early rejected
+ok 28 - extra fields rejected
+ok 29 - PostgreSQL-only timestamp spelling rejected
+ok 30 - timezone-free timestamp rejected
+ok 31 - excess source precision rejected without rounding
+ok 32 - numeric source bib is not a string
+ok 33 - explicit offsets preserve microseconds
+on
+ok 34 - historical source retains exact replay before new validation
+ok 35 - historical malformed source cannot be rewritten
+ee200000-0000-0000-0000-000000000301
+ok 36 - exact source capture replay
+ok 37 - source cannot be overwritten
+ee200000-0000-0000-0000-000000000302
+
+ok 38 - owner cannot read raw proof
+
+ok 39 - ungranted reviewer denied
+
+ok 40 - review requires audited source retrieval
+{"id": "ee200000-0000-0000-0000-000000000301", "document": {"source": "fixture_official_5k_v1", "status": "finished", "event_id": "ee200000-0000-0000-0000-000000000101", "started_at": "2026-07-03T12:00:00.123456+00:00", "finished_at": "2026-07-03T12:05:59.123456+00:00", "chip_seconds": 359, "precision_ms": 1000, "timing_basis": "organizer_chip", "published_bib": "bib-1", "distance_meters": 5000}, "attempt_id": "b4011ff2-06bf-4d7c-aaa7-1ed6c39601bb", "captured_at": "2026-08-04T12:00:00.123456+00:00", "commitment_id": "93da3d38-f6be-43a1-b6a7-bea2e259dc28"}
+ok 41 - explicit identity review required
+ok 42 - independent first review
+ok 43 - exact review retry
+{"id": "ee200000-0000-0000-0000-000000000302", "document": {"source": "fixture_official_5k_v1", "status": "finished", "event_id": "ee200000-0000-0000-0000-000000000102", "started_at": "2026-08-03T12:00:00.123456+00:00", "finished_at": "2026-08-03T12:06:40.123456+00:00", "chip_seconds": 400, "precision_ms": 1000, "timing_basis": "organizer_chip", "published_bib": "bib-1", "distance_meters": 5000}, "attempt_id": "9957f252-00b8-4ceb-99a4-c1bd3088ce06", "captured_at": "2026-08-04T12:00:00.123456+00:00", "commitment_id": "93da3d38-f6be-43a1-b6a7-bea2e259dc28"}
+ok 44 - second attempt review appended
+ok 45 - review retry cannot switch sources
+ee200000-0000-0000-0000-000000000303
+{"id": "ee200000-0000-0000-0000-000000000303", "document": {"source": "fixture_official_5k_v1", "status": "finished", "event_id": "ee200000-0000-0000-0000-000000000101", "started_at": "2026-07-03T12:00:00.123456+00:00", "finished_at": "2026-07-03T12:06:20.123456+00:00", "chip_seconds": 380, "precision_ms": 1000, "timing_basis": "organizer_chip", "published_bib": "bib-1", "distance_meters": 5000}, "attempt_id": "b4011ff2-06bf-4d7c-aaa7-1ed6c39601bb", "captured_at": "2026-09-04T12:00:00.123456+00:00", "commitment_id": "93da3d38-f6be-43a1-b6a7-bea2e259dc28"}
+ok 46 - stale predecessor rejected
+ok 47 - explicit correction after initial cutoff
+
+ok 48 - cannot claim no attempts with nominations
+ok 49 - complete set cannot omit a nominated attempt
+ok 50 - confirmation before deadline rejected
+ok 51 - confirmation at proof cutoff rejected
+ok 52 - confirmation requires explicit true
+ok 53 - owner confirms exact completed set
+ok 54 - confirmation exact recovery
+ok 55 - owner projection redacts proof, bib and reviewers
+ok 56 - explicit product retention hold
+ok 57 - corrections retain all revisions
+ok 58 - attempts and scoring do not close agreement
+ok 59 - no slot release
+on
+ok 60 - sources cannot be purged
+ok 61 - corrections immutable
+ok 62 - retention hold cannot be truncated
+ok 63 - legacy retention can run independently
+ok 64 - legacy retention does not remove long-goal proof
+f
+ok 65 - gate-off preserves exact nominations
+ok 66 - gate-off preserves exact confirmations
+ok 67 - gate-off retains own receipts
+
+ok 68 - gate-off preserves exact reviewed request
+ok 69 - gate-off stops raw source reads
+2
+1
+ok 70 - old grant replay never restores revoked reviewer access
+t
+3
+ok 71 - expired session denied
+{"deletedAt": "2026-09-12T02:08:06.320549+00:00", "capabilities": []}
+ok 72 - account deletion retains scoped proof
+ok 73 - existing deletion closes at zero consequence
+ok 74 - reviewer cannot read deleted owner proof
+
+ok 75 - deleted owner cannot read
+1..75

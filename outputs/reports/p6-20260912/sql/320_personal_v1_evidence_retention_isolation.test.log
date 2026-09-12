@@ -1,0 +1,56 @@
+1..39
+ok 1 - personal evidence flags have a dedicated terminal-resolution ledger
+ok 2 - trusted personal flag resolution has a versioned RPC
+ok 3 - the resolution path is service-RPC-only with no direct table surface
+ok 4 - coverage cutoff and diagnostic freshness are rechecked after the device lock while exact retries remain first
+ok 5 - coverage keys and diagnostic aggregates are explicitly classified as retained derived audit facts
+ok 6 - retained personal audit facts keep a key fingerprint without pinning the operational device row
+
+
+
+
+ok 7 - personal evidence fixtures activate with one owner each
+
+
+ok 8 - an attested personal upload still cannot score third-party provenance
+ok 9 - an exact personal operator-resolution retry returns the first ledger row
+ok 10 - a resolution request cannot change its terminal personal decision
+ok 11 - personal operator resolutions are append-only
+e3093818-4cbb-4f40-8a0e-d2ba0d8cebb6
+{"sub":"ac111111-1111-1111-1111-111111111111"}
+ok 12 - a personal owner can read their underlying step observation
+ok 13 - a personal owner can read their underlying trusted ingest activity
+{"sub":"ac222222-2222-2222-2222-222222222222"}
+ok 14 - a second user cannot read another personal owner step observations
+ok 15 - a second user cannot read another personal owner ingest activity
+ok 16 - the personal owner receives no legacy peer-review state
+ok 17 - the inherited peer-review inbox has no personal row
+ok 18 - the inherited peer revision route exposes no personal history
+ok 19 - personal evidence categorically rejects an inherited peer vote
+{}
+ok 20 - the legacy operator-clearance endpoint rejects a personal flag
+ok 21 - the legacy social integrity loader rejects a personal challenge
+ok 22 - the inherited adjudication ledger rejects a personal escalation
+ok 23 - the legacy deadline worker skips personal flags instead of poisoning its sweep
+ok 24 - operator-cleared flagged evidence can complete and meet the personal goal
+ok 25 - personal publication closes the D81 contest-lineage scope at user finality
+ok 26 - unresolved and rejected personal flags fail closed
+ok 27 - a personal flag unresolved at result time becomes inconclusive and waived without a hold
+ok 28 - personal flag resolution creates no legacy winner result
+{"sub":"ac111111-1111-1111-1111-111111111111"}
+ok 29 - completed personal history initially renders its frozen result totals
+{}
+ok 30 - D81 prunes terminal personal raw metric observations after the policy horizon
+ok 31 - D81 can prune a revoked device while personal coverage and diagnostic audit facts retain only its fingerprint
+{"sub":"ac111111-1111-1111-1111-111111111111"}
+ok 32 - completed history remains identical after its raw metric rows are pruned
+{}
+{"sub":"ac444444-4444-4444-4444-444444444444"}
+{}
+ok 33 - account deletion can atomically cancel a pending personal challenge
+ok 34 - pending personal terms close at the account-deletion cancellation boundary
+ok 35 - a never-activated personal cancellation does not leave an open retention scope
+ok 36 - an active personal challenge cannot be cancelled outside account deletion
+ok 37 - account deletion preserves an active personal challenge for retained service finalization
+ok 38 - active deletion does not violate the post-start cancellation lock and retains scoped service continuity
+ok 39 - retained service finalization waives deleted-owner sync failure, closes scope, and creates no unusable hold

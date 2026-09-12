@@ -1,0 +1,57 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{"id": "b68e62ac-7dce-4ae5-8987-78d5e2985ff2", "status": "lobby_open", "revision": 9}
+ok 1 - reopened lobby does not present prior frozen terms as its current agreement
+ok 2 - reopened lobby shows no current consent
+{"id": "b68e62ac-7dce-4ae5-8987-78d5e2985ff2", "status": "lobby_open", "revision": 10}
+{"id": "b68e62ac-7dce-4ae5-8987-78d5e2985ff2", "status": "consent_pending", "revision": 11}
+ok 3 - new frozen targets get a new digest
+ok 4 - old digest cannot agree to the new roster and goals
+{"id": "b68e62ac-7dce-4ae5-8987-78d5e2985ff2", "status": "consent_pending", "revision": 12}
+ok 5 - one new consent cannot inherit the other old consent
+
+{"id": "b68e62ac-7dce-4ae5-8987-78d5e2985ff2", "status": "scheduled", "revision": 13}
+ok 6 - every participant must agree to the new version
+ok 7 - both historical agreements remain immutable
+ok 8 - prior consent records remain as history
+1..8

@@ -1,0 +1,201 @@
+t
+t
+ok 1 - lifecycle defaults off
+ok 2 - all twelve tables use RLS
+ok 3 - anon cannot access performance_lifecycle_retention
+ok 4 - authenticated cannot access performance_lifecycle_retention
+ok 5 - service_role cannot access performance_lifecycle_retention
+ok 6 - anon cannot access performance_lifecycle_audit
+ok 7 - authenticated cannot access performance_lifecycle_audit
+ok 8 - service_role cannot access performance_lifecycle_audit
+ok 9 - anon cannot access performance_lifecycle_runtime
+ok 10 - authenticated cannot access performance_lifecycle_runtime
+ok 11 - service_role cannot access performance_lifecycle_runtime
+ok 12 - anon cannot access performance_lifecycle_activations
+ok 13 - authenticated cannot access performance_lifecycle_activations
+ok 14 - service_role cannot access performance_lifecycle_activations
+ok 15 - anon cannot access performance_lifecycle_notices
+ok 16 - authenticated cannot access performance_lifecycle_notices
+ok 17 - service_role cannot access performance_lifecycle_notices
+ok 18 - anon cannot access performance_lifecycle_cases
+ok 19 - authenticated cannot access performance_lifecycle_cases
+ok 20 - service_role cannot access performance_lifecycle_cases
+ok 21 - anon cannot access performance_lifecycle_grants
+ok 22 - authenticated cannot access performance_lifecycle_grants
+ok 23 - service_role cannot access performance_lifecycle_grants
+ok 24 - anon cannot access performance_lifecycle_resolutions
+ok 25 - authenticated cannot access performance_lifecycle_resolutions
+ok 26 - service_role cannot access performance_lifecycle_resolutions
+ok 27 - anon cannot access performance_lifecycle_results
+ok 28 - authenticated cannot access performance_lifecycle_results
+ok 29 - service_role cannot access performance_lifecycle_results
+ok 30 - anon cannot access performance_lifecycle_settlements
+ok 31 - authenticated cannot access performance_lifecycle_settlements
+ok 32 - service_role cannot access performance_lifecycle_settlements
+ok 33 - anon cannot access performance_lifecycle_support
+ok 34 - authenticated cannot access performance_lifecycle_support
+ok 35 - service_role cannot access performance_lifecycle_support
+ok 36 - anon cannot access performance_lifecycle_requests
+ok 37 - authenticated cannot access performance_lifecycle_requests
+ok 38 - service_role cannot access performance_lifecycle_requests
+ok 39 - anon cannot call private performance_lifecycle_follow_open_v1
+ok 40 - authenticated cannot call private performance_lifecycle_follow_open_v1
+ok 41 - service_role cannot call private performance_lifecycle_follow_open_v1
+ok 42 - anon cannot call private performance_lifecycle_recover_v1
+ok 43 - authenticated cannot call private performance_lifecycle_recover_v1
+ok 44 - service_role cannot call private performance_lifecycle_recover_v1
+ok 45 - anon cannot call private performance_lifecycle_case_at_v1
+ok 46 - authenticated cannot call private performance_lifecycle_case_at_v1
+ok 47 - service_role cannot call private performance_lifecycle_case_at_v1
+ok 48 - anon cannot call private performance_lifecycle_operator_v1
+ok 49 - authenticated cannot call private performance_lifecycle_operator_v1
+ok 50 - service_role cannot call private performance_lifecycle_operator_v1
+ok 51 - anon cannot call private performance_lifecycle_guard_v1
+ok 52 - authenticated cannot call private performance_lifecycle_guard_v1
+ok 53 - service_role cannot call private performance_lifecycle_guard_v1
+ok 54 - anon cannot call private performance_lifecycle_lock_v1
+ok 55 - authenticated cannot call private performance_lifecycle_lock_v1
+ok 56 - service_role cannot call private performance_lifecycle_lock_v1
+ok 57 - anon cannot call private performance_lifecycle_admit_v1
+ok 58 - authenticated cannot call private performance_lifecycle_admit_v1
+ok 59 - service_role cannot call private performance_lifecycle_admit_v1
+ok 60 - anon cannot call private performance_lifecycle_clock_v1
+ok 61 - authenticated cannot call private performance_lifecycle_clock_v1
+ok 62 - service_role cannot call private performance_lifecycle_clock_v1
+ok 63 - anon cannot call private performance_lifecycle_save_v1
+ok 64 - authenticated cannot call private performance_lifecycle_save_v1
+ok 65 - service_role cannot call private performance_lifecycle_save_v1
+ok 66 - anon cannot call private performance_lifecycle_snapshot_v1
+ok 67 - authenticated cannot call private performance_lifecycle_snapshot_v1
+ok 68 - service_role cannot call private performance_lifecycle_snapshot_v1
+ok 69 - anon cannot call private performance_lifecycle_load_at_v1
+ok 70 - authenticated cannot call private performance_lifecycle_load_at_v1
+ok 71 - service_role cannot call private performance_lifecycle_load_at_v1
+ok 72 - anon cannot call private performance_lifecycle_commit_at_v1
+ok 73 - authenticated cannot call private performance_lifecycle_commit_at_v1
+ok 74 - service_role cannot call private performance_lifecycle_commit_at_v1
+ok 75 - anon cannot call private performance_lifecycle_settle_at_v1
+ok 76 - authenticated cannot call private performance_lifecycle_settle_at_v1
+ok 77 - service_role cannot call private performance_lifecycle_settle_at_v1
+ok 78 - anon cannot call private performance_lifecycle_resolve_at_v1
+ok 79 - authenticated cannot call private performance_lifecycle_resolve_at_v1
+ok 80 - service_role cannot call private performance_lifecycle_resolve_at_v1
+ok 81 - anon cannot call private performance_lifecycle_proof_open_v1
+ok 82 - authenticated cannot call private performance_lifecycle_proof_open_v1
+ok 83 - service_role cannot call private performance_lifecycle_proof_open_v1
+ok 84 - anon cannot call private performance_lifecycle_agreement_open_v1
+ok 85 - authenticated cannot call private performance_lifecycle_agreement_open_v1
+ok 86 - service_role cannot call private performance_lifecycle_agreement_open_v1
+ok 87 - anonymous history denied
+ok 88 - anonymous snapshot denied
+t
+8bdddf7d-cc23-4e97-a2ff-d811aeae48d3
+f491821c-261c-4284-a714-78919c418b64
+3f89e3d0-a4c2-426c-8761-5c909d030114
+0d1a2c7f-f847-479b-9999-ce37c46ff107
+63483fa2-8298-4a65-a153-a7818ab7a032
+f
+ok 89 - worker gate off
+
+ok 90 - owner reads empty history gate off
+ok 91 - owner cannot load private proof
+ok 92 - owner cannot commit outcome
+ok 93 - owner cannot settle
+ok 94 - owner cannot enable worker
+ok 95 - other owner history private
+ok 96 - owner cannot independently review
+ok 97 - service cannot impersonate owner
+t
+ok 98 - scheduled returns without result
+ok 99 - activation at start
+ok 100 - one activation
+ok 101 - deadline alone creates no result
+ok 102 - deadline keeps slot
+ok 103 - no simulation before final
+ok 104 - microsecond clock boundary
+ok 105 - durable notice saved
+ok 106 - notice invalidates old snapshot
+ok 107 - notice exact retry
+ok 108 - notice timestamp never reset
+
+ok 109 - owner projection redacted
+ok 110 - request required
+ok 111 - reason required
+ok 112 - notice required for revision
+ok 113 - filing closes at exact full seven days
+f
+
+ok 114 - case recovery gate off ignores retry clock
+ok 115 - request binds reason
+ok 116 - one case per notice
+t
+ok 117 - owner cannot receive operator grant
+ok 118 - operator grant at most seven days
+
+ok 119 - unassigned independent actor denied
+
+ok 120 - review read required before decision
+ok 121 - assigned operator audited read
+ok 122 - resolution exact recovery
+ok 123 - operator request binds decision
+6
+ok 124 - revoked operator cannot read
+ok 125 - revocation denies operator exact recovery
+ok 126 - final persists independently
+ok 127 - no implicit settlement
+ok 128 - original agreement receipt preserved
+ok 129 - final releases slot
+ok 130 - uncertain result returns simulated amount
+ok 131 - no simulated loss for missing proof
+ok 132 - settlement exact retry
+
+ok 133 - owner case recovery after final
+ok 134 - withdrawal cannot alter final
+ok 135 - new proof blocked after final
+7
+
+ok 136 - support read required
+{"cases": [{"id": "d1c7d0cd-8948-45c2-a1d9-c8bd0f5dd6e6", "reason": "wrong_result", "recorded_at": "2026-07-11T12:00:00.123455+00:00", "commitment_id": "8bdddf7d-cc23-4e97-a2ff-d811aeae48d3", "proof_revision": 0}], "support": [], "snapshot": {"now": "2026-09-12T02:08:12.817188+00:00", "notices": [{"actorId": "e7100000-0000-0000-0000-000000000001", "recordedAt": "2026-07-04T12:00:00.123456+00:00", "proofRevision": 0}], "reviews": [{"id": "d1c7d0cd-8948-45c2-a1d9-c8bd0f5dd6e6", "filedAt": "2026-07-11T12:00:00.123455+00:00", "filedBy": "e7100000-0000-0000-0000-000000000001", "resolution": {"decision": "uphold", "decidedAt": "2026-07-12T12:00:00.123456+00:00", "reviewerId": "e7100000-0000-0000-0000-000000000030"}, "proofRevision": 0}], "attempts": [], "agreement": {"id": "8bdddf7d-cc23-4e97-a2ff-d811aeae48d3", "terms": {"policy": {"miss": "complete_confirmed_attempt_set_or_explicit_no_attempt_acknowledgement_after_review", "mode": "simulated", "payee": null, "sport": "outdoor_running", "source": "fixture_official_5k_v1", "success": "any_qualifying_attempt", "attempts": "multiple_nominated_events", "currency": "USD", "fee_cents": 0, "comparator": "lt", "milestones": "not_qualifying_proof", "redeemable": false, "corrections": "append_only_no_automatic_new_consequence", "precision_ms": 1000, "timing_basis": "organizer_chip", "attempt_window": "start_inclusive_finish_exclusive", "duration_basis": "elapsed_utc", "review_timeout": "inconclusive_zero_consequence", "consent_version": "performance-commitment-simulated-consent-v1", "distance_meters": 5000, "account_deletion": "close_unfinalized_zero_consequence_retain_agreement", "commitment_cents": 2000, "start_within_hours": 720, "target_max_seconds": 86400, "target_min_seconds": 1, "forfeiture_recipient": "unselected", "slower_later_attempt": "does_not_undo_success", "withdrawal_or_injury": "zero_consequence", "prestart_cancellation": "zero_consequence", "maximum_duration_hours": 2160, "minimum_duration_hours": 672, "review_after_filing_hours": 168, "confirmed_miss_disposition": "simulated_loss_no_payee_no_transfer", "missing_or_ambiguous_proof": "review_then_inconclusive_zero_consequence", "results_after_deadline_hours": 72, "finality_after_deadline_hours": 720, "dispute_after_durable_notice_hours": 168}, "actor_id": "e7100000-0000-0000-0000-000000000001", "starts_at": "2026-05-02T12:00:00.123456+00:00", "target_ms": 360000, "deadline_at": "2026-07-01T12:00:00.123456+00:00", "policy_version": "performance-commitment-fixture-5k-v1", "results_due_at": "2026-07-04T12:00:00.123456+00:00", "finality_due_at": "2026-07-31T12:00:00.123456+00:00", "display_timezone": "America/Chicago", "agreement_version": 1}, "status": "open", "consent": {"actor_id": "e7100000-0000-0000-0000-000000000001", "accepted_at": "2026-05-01T12:00:00.123456+00:00", "terms_digest": "2ff02f9da6a9c78cbe6c34911e5c5f55059de9e9c3d80aa66a617eb955b14c06", "commitment_id": "8bdddf7d-cc23-4e97-a2ff-d811aeae48d3", "policy_version": "performance-commitment-fixture-5k-v1"}, "actor_id": "e7100000-0000-0000-0000-000000000001", "closed_at": null, "starts_at": "2026-05-02T12:00:00.123456+00:00", "created_at": "2026-05-01T12:00:00.123456+00:00", "deadline_at": "2026-07-01T12:00:00.123456+00:00", "close_reason": null, "terms_digest": "2ff02f9da6a9c78cbe6c34911e5c5f55059de9e9c3d80aa66a617eb955b14c06", "policy_version": "performance-commitment-fixture-5k-v1", "target_seconds": 360, "display_timezone": "America/Chicago"}, "finalResult": {"outcome": {"kind": "inconclusive", "reason": "unresolved_proof"}, "version": "performance-fixture-official-5k-v1", "finalizedAt": "2026-07-18T12:00:00.123456+00:00", "termsDigest": "2ff02f9da6a9c78cbe6c34911e5c5f55059de9e9c3d80aa66a617eb955b14c06", "commitmentId": "8bdddf7d-cc23-4e97-a2ff-d811aeae48d3", "proofRevision": 0}, "confirmation": null, "proofRevisions": [], "capturedSources": []}}
+ok 137 - empty correction note rejected
+ok 138 - support exact request
+ok 139 - support request binds full note
+ok 140 - support never becomes proof
+ok 141 - support cannot rewrite result
+on
+ok 142 - final immutable even with write marker
+ok 143 - simulation immutable
+ok 144 - support retained
+ok 145 - retention hold immutable
+
+ok 146 - support owner receipt omits raw note
+ok 147 - deletion after final remains possible
+ok 148 - deleted owner loses result access
+ok 149 - deletion preserves final
+
+ok 150 - separately assigned support survives owner deletion
+ok 151 - expired operator session denied
+
+ok 152 - unfinalized deletion closes agreement
+ok 153 - deletion closure preserved for evaluator
+on
+ok 154 - arbitrary slot release still rejected
+
+t
+t
+{"kind": "check_in", "note": "PRIVATE manual progress is not proof", "status": null, "sequence": 1, "provenance": "owner_reported", "occurred_at": "2026-09-12T02:08:12.982778+00:00", "recorded_at": "2026-09-12T02:08:12.983159+00:00", "milestone_id": null, "commitment_id": "905d38d5-fe5a-458f-adf3-76ede9a5eb97", "counts_as_proof": false}
+{"sequence": 1, "published_at": "2026-09-12T02:08:12.98422+00:00", "publication_id": "405ae761-7271-4900-8a5a-6da9a5f1e588"}
+
+{"status": "active", "revision": 3, "follow_id": "3dadd056-dac7-45c7-91b2-ef8946428339", "reminder_at": "2026-09-14T02:08:12.987657+00:00"}
+ok 155 - following consent active before final
+ok 156 - accepted follower still cannot read results
+ok 157 - manual note, publication, following and reminder cannot affect scoring input
+ok 158 - accelerated final closes social access
+
+ok 159 - final removes follower goal/cards
+ok 160 - old acceptance recovers only original receipt
+ok 161 - exact acceptance never restores access
+
+ok 162 - new following cannot admit a final agreement
+ok 163 - new manual progress cannot append to a final agreement
+ok 164 - final clears durable reminder
+1..164

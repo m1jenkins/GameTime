@@ -1,0 +1,85 @@
+ok 1 - the local harness provides the multi-session concurrency driver
+OK
+OK
+OK
+OK
+DO
+ok 2 - concurrency wrappers never create a persistent public function
+SET
+SET
+SET
+BEGIN
+UPDATE 1
+SET
+SET
+SET
+SET
+ok 3 - the first same-request v2 creation starts asynchronously
+ok 4 - the second same-request v2 creation starts asynchronously
+ok 5 - both same-request creators wait on the authoritative runtime row
+ok 6 - releasing the runtime row lets same-request creators serialize
+0
+0
+ok 7 - simultaneous exact retries return the same contract and authorization IDs
+ok 8 - the shared same-request result is an authorized fake outcome
+ok 9 - the same-request race commits one contract, authorization, initial event, and exact-request pair
+BEGIN
+UPDATE 1
+SET
+SET
+SET
+SET
+ok 10 - the first distinct v2 creation starts asynchronously
+ok 11 - the second distinct v2 creation starts asynchronously
+ok 12 - both distinct creators wait on the authoritative runtime row
+ok 13 - releasing the runtime row lets distinct creators serialize
+0
+0
+ok 14 - exactly one distinct request wins fake authorization
+ok 15 - the losing distinct request receives the one-unsettled conflict
+ok 16 - the distinct-request race leaves one fully linked aggregate and no losing ledger row
+SET
+SET
+RESET
+ok 17 - the same-request settlement fixture advances to active
+ok 18 - the same-request settlement fixture reaches its evidence cutoff
+ok 19 - the same-request settlement fixture is ready to settle
+SET
+SET
+RESET
+ok 20 - the distinct-request settlement fixture advances to active
+ok 21 - the distinct-request settlement fixture reaches its evidence cutoff
+ok 22 - the distinct-request settlement fixture is ready to settle
+BEGIN
+d8333333-3333-3333-3333-333333333333
+SET
+SET
+ok 23 - the first exact settlement retry starts asynchronously
+ok 24 - the second exact settlement retry starts asynchronously
+ok 25 - both exact settlement retries wait on the owner finality lock
+ok 26 - releasing the owner lets exact settlement retries serialize
+0
+0
+ok 27 - simultaneous exact settlement retries return the same contract ID
+ok 28 - both exact settlement callers recover the committed result
+ok 29 - exact settlement retries append one release event and one ledger row
+BEGIN
+d8444444-4444-4444-4444-444444444444
+SET
+SET
+ok 30 - the first distinct settlement request starts asynchronously
+ok 31 - the second distinct settlement request starts asynchronously
+ok 32 - both distinct settlement requests wait on the owner finality lock
+ok 33 - releasing the owner lets distinct settlement requests serialize
+0
+0
+ok 34 - exactly one distinct settlement request wins finality
+ok 35 - the losing distinct settlement request is rejected after serialization
+ok 36 - the distinct settlement race appends one release event and one ledger row
+ok 37 - the first fake-authorization worker disconnects cleanly
+ok 38 - the second fake-authorization worker disconnects cleanly
+ok 39 - the fake-authorization gate disconnects cleanly
+SET
+ok 40 - external fake-authorization fixtures are removed, the allowlist is empty, and creation is disabled
+ok 41 - the fake-authorization setup session disconnects cleanly
+1..41

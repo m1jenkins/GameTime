@@ -1,0 +1,22 @@
+ERROR:  challenge_invalid_evaluation
+CONTEXT:  PL/pgSQL function app.challenge_evaluate_policy_v1(text,jsonb,integer,integer,boolean) line 11 at RAISE
+PL/pgSQL function app.challenge_evaluate_v1(uuid,boolean) line 10 at RETURN
+Traceback (most recent call last):
+  File "/private/tmp/gametime-p6-20260912/GameTime/scripts/beta-p6-community-load.py", line 54, in main
+    assert sql(f"select count(*) from app.challenge_slots_v1 where challenge_id={q(cid)}")== '250'
+AssertionError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/gametime-p6-20260912/GameTime/scripts/beta-p6-community-load.py", line 65, in <module>
+    if __name__=='__main__':main()
+  File "/private/tmp/gametime-p6-20260912/GameTime/scripts/beta-p6-community-load.py", line 63, in main
+    sql(f"begin;select app.challenge_gate_v1();select app.challenge_lock_v1('challenge',{q(cid)});select id from public.profiles where id in(select actor_id from app.challenge_members_v1 where challenge_id={q(cid)}) order by id for update;select set_config('app.challenge_write_v1','on',true);select app.challenge_finish_v1({q(cid)},app.challenge_evaluate_v1({q(cid)},true),'cancelled');commit;select public.challenge_runtime_v1(false,false,false,'{{}}',null);")
+  File "/private/tmp/gametime-p6-20260912/GameTime/scripts/beta-p6-community-load.py", line 12, in sql
+    return subprocess.check_output(['psql',db,'-XqAt','-v','ON_ERROR_STOP=1'],input=s,text=True,timeout=40).strip()
+  File "/Applications/Xcode-beta.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/subprocess.py", line 424, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+  File "/Applications/Xcode-beta.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/subprocess.py", line 528, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['psql', 'postgresql://postgres:postgres@127.0.0.1:59722/postgres', '-XqAt', '-v', 'ON_ERROR_STOP=1']' returned non-zero exit status 3.

@@ -1,0 +1,168 @@
+ok 1 - fresh admission is off
+ok 2 - fresh allowlist is empty
+ok 3 - no stale dated event is seeded
+ok 4 - no duel scheduler registered
+ok 5 - every new table has RLS enabled
+ok 6 - all new definers have an empty search path
+d2000000-0000-0000-0000-000000001001
+d2000000-0000-0000-0000-000000001002
+d2000000-0000-0000-0000-000000001003
+d2000000-0000-0000-0000-000000001004
+d2000000-0000-0000-0000-000000001005
+ok 7 - curated event identity cannot be repointed
+ok 8 - non-finite event rejected
+ok 9 - unknown display timezone rejected
+
+ok 10 - off gate rejects create
+ok 11 - client cannot enable gate
+ok 12 - client cannot curate
+ok 13 - client cannot inject time
+t
+ok 14 - both actors must be allowlisted
+t
+ok 15 - self duel refused
+ok 16 - unaccepted friendship refused
+ok 17 - unknown event refused
+ok 18 - unsupported source/policy refused
+ok 19 - explicit creator consent required
+ok 20 - there is no amount fee or live-mode request overload
+ok 21 - event ending one microsecond beyond 30 elapsed days refused
+ok 22 - creation at start minus one hour is too late
+ok 23 - exact create retry returns same agreement
+ok 24 - changed invitee under key refused
+ok 25 - changed event under key refused
+ok 26 - creator has only one slot
+ok 27 - server fixes simulated 2000 cents
+ok 28 - fee fixed to zero
+ok 29 - mode fixed to simulation
+ok 30 - pair sees exactly two consent rows
+ok 31 - creator consents at creation
+ok 32 - cutoff uses common event instant across DST
+ok 33 - changing display timezone never changes frozen JSON
+ok 34 - exact retry independent of session timezone
+ok 35 - creator cannot supply second consent
+
+ok 36 - unrelated agreement hidden by RLS
+ok 37 - unrelated detail denied
+ok 38 - unrelated accept denied
+
+ok 39 - invitee sees both pending invitations
+ok 40 - invitee reads identical complete terms
+ok 41 - invitee reads identical complete digest
+ok 42 - wrong full digest refused
+ok 43 - wrong policy version refused
+ok 44 - unaccepted invitee uses decline, cannot cancel
+ok 45 - cutoff equality is too late
+ok 46 - one microsecond before cutoff accepts
+ok 47 - two consents persist scheduled
+ok 48 - accepted actor cannot occupy second duel
+ok 49 - new key cannot consent twice
+ok 50 - request key cannot change operation
+ok 51 - exactly A B and C hold slots
+ok 52 - refused requests leave no committed request row
+f
+
+ok 53 - create recovery survives cutoff and gate off
+
+ok 54 - accept recovery survives cutoff and gate off
+ok 55 - history survives gate off and removed allowlist
+ok 56 - gate off blocks new acceptance
+ok 57 - cancel at start equality refused
+ok 58 - accepted invitee can safely cancel with gate off
+ok 59 - exact cancellation recovery after start
+ok 60 - decline safely works with gate off
+ok 61 - decline exact recovery survives time
+ok 62 - cancel and decline release all slots
+ok 63 - cancellation preserves explicit consents
+ok 64 - decline history retained
+ok 65 - policy immutable
+ok 66 - event immutable
+ok 67 - complete terms immutable
+ok 68 - consent immutable
+ok 69 - request ledger retained
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_participants"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_requests"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_proof_grants"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_proof_sources"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_proof_revisions"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_lifecycle_activations"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_lifecycle_notices"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_lifecycle_closures"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_lifecycle_results"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_rematches"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_invitation_links"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_enrollments"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_proof_access_audit"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_lifecycle_cases"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_lifecycle_resolutions"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_lifecycle_settlements"
+psql:supabase/tests/460_duel_agreement.test.sql:156: NOTICE:  truncate cascades to table "duel_lifecycle_support"
+ok 70 - privileged truncate cannot erase agreement audit
+ok 71 - service cannot invent policy
+ok 72 - service direct gate write denied
+ok 73 - service cannot call private clock helper
+ok 74 - service cannot impersonate user RPC
+on
+ok 75 - client direct update denied with forged GUC
+ok 76 - client cannot add third participant
+ok 77 - client cannot delete consent
+ok 78 - requests private
+ok 79 - enrollments private
+ok 80 - allowlist private
+ok 81 - history pagination bounded
+ok 82 - anonymous detail denied
+ok 83 - anonymous table read denied
+t
+
+ok 84 - 72 elapsed hour cutoff wins for later event
+ok 85 - expiry before cutoff no-op
+ok 86 - expiry at equality closes
+ok 87 - repeated expiry is no-op
+
+ok 88 - next create atomically expires overdue creator slot
+ok 89 - next create acquires released slot
+
+ok 90 - exact 30 elapsed day window accepted
+ok 91 - late write failure rolls back complete creation
+ok 92 - failed create rolls back opportunistic expiry too
+ok 93 - failed create leaves no request
+ok 94 - failed create leaves exactly original slot
+
+
+ok 95 - late acceptance failure rolls back state consent and slot
+ok 96 - failed acceptance preserves invitation
+ok 97 - failed acceptance records no second consent
+ok 98 - failed acceptance reserves no invitee slot
+
+ok 99 - blocked pair cannot create
+
+
+ok 100 - block after creation prevents acceptance
+ok 101 - duel does not grant opponent profile visibility across block
+
+ok 102 - block does not prevent safe cancellation
+d2000000-0000-0000-0000-000000001010
+
+
+53736554-33f2-494a-b68f-18385a4c72f3
+{"deletedAt": "2026-09-12T02:07:49.335536+00:00", "capabilities": []}
+ok 103 - pre-start deletion cancels scheduled duel
+ok 104 - deletion reason retained
+ok 105 - deletion releases both slots
+ok 106 - deletion preserves both consents
+ok 107 - actor is tombstoned
+ok 108 - deletion revokes allowlist
+
+ok 109 - stale JWT cannot read duel rows
+ok 110 - stale JWT cannot read consents
+ok 111 - deleted actor detail denied
+ok 112 - deleted actor cannot recover committed create
+
+ok 113 - active peer can recover committed consent after opponent deletion
+ok 114 - active peer retains minimal agreement history
+
+ok 115 - deleted invitee refused
+
+ok 116 - read reports overdue invitation
+ok 117 - read does not mutate expired state
+1..117

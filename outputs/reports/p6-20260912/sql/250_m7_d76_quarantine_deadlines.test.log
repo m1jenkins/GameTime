@@ -1,0 +1,70 @@
+ok 1 - each quarantine stores one immutable peer-review deadline
+ok 2 - the peer-review duration is one named 72-hour server setting
+ok 3 - the adjudication duration is one named seven-day server setting
+ok 4 - escalations have a private durable ledger
+ok 5 - terminal adjudication decisions have a separate append-only ledger
+ok 6 - both private D76 ledgers have RLS defense in depth
+ok 7 - application roles cannot inspect or forge private adjudication history
+ok 8 - explicit clearance is service_role-only
+ok 9 - service_role gets only the real-clock worker, not its test-time helper
+ok 10 - signed-in participants receive only the bounded resolution RPC
+ok 11 - the D76 worker has one named scheduler-registry entry
+ok 12 - the D76 worker follows the one-minute timer convention
+ok 13 - the registry calls only the real-clock service worker
+ok 14 - the named D76 job is enabled
+ok 15 - a quarantine created before grace anchors its full peer window at grace close
+ok 16 - a quarantine created after grace receives a full window from creation
+ok 17 - no quarantine deadline is anchored before ingest-grace close
+{"sub":"d7222222-2222-2222-2222-222222222222"}
+ok 18 - a peer may approve strictly before the deadline
+ok 19 - a peer may reject strictly before the deadline
+ok 20 - a second early rejection uses the same escalation path
+ok 21 - the boundary fixture also escalates from a real peer rejection
+ok 22 - peer approval remains an immutable peer result
+ok 23 - an approved peer review never escalates
+ok 24 - rejection remains visible as the peer decision
+ok 25 - the rejecting vote appends adjudication in the same transaction
+ok 26 - the operator deadline is seven days after the grace-anchored escalation
+ok 27 - early escalation emits one payload-free intent per accepted participant
+ok 28 - the approved fixture records its complete frozen assessment
+ok 29 - the rejected fixture records its complete frozen assessment before clearance
+ok 30 - the silent-review fixture records its complete frozen assessment
+ok 31 - the tombstone fixture records its complete frozen assessment
+ok 32 - the exact-boundary fixture records its complete frozen assessment
+ok 33 - one request UUID cannot clear a different quarantine
+ok 34 - same-request clearance retry returns the first event id
+ok 35 - same-request retry appends exactly one clearance event
+ok 36 - clearance opens the gate without rewriting the rejected peer vote
+ok 37 - clearance emits one generic resolution intent per accepted participant
+ok 38 - peer approval permits the unchanged assessment outcome to finalize
+ok 39 - explicit clearance permits the unchanged assessment outcome to finalize
+ok 40 - clearance does not fabricate a winner or rewrite the assessment outcome
+ok 41 - the cleared void assessment creates no actionable obligation
+ok 42 - one microsecond before the peer deadline does not escalate silence
+ok 43 - the inclusive peer deadline escalates one still-pending quarantine
+ok 44 - peer silence is recorded as timeout escalation, never approval
+ok 45 - duplicate execution at the same peer instant is a no-op
+ok 46 - duplicate worker execution cannot duplicate escalation intents
+ok 47 - clearance loses at the exact adjudication deadline
+ok 48 - account deletion tombstones identity without erasing the accepted review lineage
+{"sub":"d7111111-1111-1111-1111-111111111111"}
+ok 49 - a stale JWT for the tombstoned participant cannot read D76 state
+ok 50 - a stale JWT cannot append a late peer review
+ok 51 - an authenticated caller cannot invoke the service-only clearance RPC
+ok 52 - operator silence after two early rejections terminalizes both contests
+ok 53 - operator silence after a peer-review timeout terminalizes that contest
+ok 54 - a later duplicate sweep finds no transition left to perform
+ok 55 - peer-silence and rejection adjudication timeouts all end inconclusive
+ok 56 - every review_timeout result remains bound to one frozen assessment
+ok 57 - each timeout publishes one final snapshot from the frozen assessment
+ok 58 - timeout finality preserves the complete accepted roster
+ok 59 - review_timeout never creates an actionable settlement obligation
+ok 60 - duplicate workers cannot append a second first result
+ok 61 - each due adjudication records exactly one timeout event
+ok 62 - timeout finality emits exactly one generic result intent per retained participant
+ok 63 - timeout resolution intents are exactly once even for a tombstoned recipient
+ok 64 - D76 reuses the payload-free outbox shape
+ok 65 - tombstoning cannot erase the retained participant timeout intent
+ok 66 - adjudication requests are append-only
+ok 67 - adjudication terminal events are append-only
+1..67

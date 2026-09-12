@@ -1,0 +1,59 @@
+OK
+OK
+OK
+DO
+ok 1 - one initial revision wins after lock wait
+ok 2 - concurrent retry returns original receipt
+ok 3 - same key changed payload rejected after wait
+ok 4 - concurrent correction has one authoritative successor
+ok 5 - waiting proof sees fresh server-owned revocation
+ok 6 - revocation follows committed proof without rewriting it
+ok 7 - waiting raw read sees fresh revocation
+ok 8 - waiting proof cannot bypass participant deletion
+ok 9 - deletion follows committed proof without deadlock
+ok 10 - proof committed before deletion remains retained
+ok 11 - competing corrections retain exactly revisions one and two
+DO
+ok 12 - public proof samples time after waiting past cutoff
+ok 13 - capturing earlier does not admit a late review
+DO
+
+1
+COMMIT
+ok 14 - public correction samples time after waiting past hard cap
+ok 15 - hard cap preserves only the admitted first revision
+ok 16 - gate-off blocks a waiting new proof
+DO
+ok 17 - stale reviewer session loses to deletion
+ok 18 - changed request payload: competing session demonstrably waited
+ok 19 - competing corrections: competing session demonstrably waited
+ok 20 - competing initial: competing session demonstrably waited
+ok 21 - delete reviewer then submit: competing session demonstrably waited
+ok 22 - delete then submit: competing session demonstrably waited
+ok 23 - gate then submit: competing session demonstrably waited
+ok 24 - revoke then read: competing session demonstrably waited
+ok 25 - revoke then submit: competing session demonstrably waited
+ok 26 - same exact request: competing session demonstrably waited
+ok 27 - submit then delete: competing session demonstrably waited
+ok 28 - submit then revoke: competing session demonstrably waited
+ok 29 - wait past cap: competing session demonstrably waited
+ok 30 - wait past cutoff: competing session demonstrably waited
+ok 31 - changed request payload: first operation succeeded
+ok 32 - competing corrections: first operation succeeded
+ok 33 - competing initial: first operation succeeded
+ok 34 - delete reviewer then submit: first operation succeeded
+ok 35 - delete then submit: first operation succeeded
+ok 36 - gate then submit: first operation succeeded
+ok 37 - revoke then read: first operation succeeded
+ok 38 - revoke then submit: first operation succeeded
+ok 39 - same exact request: first operation succeeded
+ok 40 - submit then delete: first operation succeeded
+ok 41 - submit then revoke: first operation succeeded
+ok 42 - wait past cap: first operation succeeded
+ok 43 - wait past cutoff: first operation succeeded
+ok 44 - every committed revision contains the complete pair
+SET
+OK
+OK
+OK
+1..44

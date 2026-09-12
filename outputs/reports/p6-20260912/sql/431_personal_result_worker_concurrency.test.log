@@ -1,0 +1,23 @@
+1..11
+ok 1 - the local harness provides the multi-session concurrency driver
+OK
+OK
+OK
+SET
+SET
+GRANT
+BEGIN
+ok 2 - the worker creates one result while retaining its serialization locks
+ok 3 - the final metric sync starts while the result remains uncommitted
+ok 4 - the final metric sync waits on the worker profile lock
+ok 5 - committing the result releases the final-sync serialization point
+SET
+ok 6 - the waiting metric sync fails closed after immutable publication wins
+0
+ok 7 - one terminal result persists and the rejected metric sync persists nothing
+ok 8 - the committed concurrent result remains an exact immutable retry
+SET
+ok 9 - the committed concurrency fixture is removed after verification
+ok 10 - the worker session disconnects cleanly
+ok 11 - the final-sync session disconnects cleanly
+OK

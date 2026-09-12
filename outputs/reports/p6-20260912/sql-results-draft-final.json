@@ -1,0 +1,807 @@
+[
+  {
+    "file": "supabase/tests/000_harness.test.sql",
+    "exit_code": 0,
+    "assertions": 9,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.04728187499999997
+  },
+  {
+    "file": "supabase/tests/010_identity.test.sql",
+    "exit_code": 0,
+    "assertions": 40,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.25599270900000004
+  },
+  {
+    "file": "supabase/tests/020_friendships.test.sql",
+    "exit_code": 0,
+    "assertions": 30,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.14128224999999994
+  },
+  {
+    "file": "supabase/tests/030_groups.test.sql",
+    "exit_code": 0,
+    "assertions": 42,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.18896045800000005
+  },
+  {
+    "file": "supabase/tests/040_blocks.test.sql",
+    "exit_code": 0,
+    "assertions": 25,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.11989908399999993
+  },
+  {
+    "file": "supabase/tests/050_charities.test.sql",
+    "exit_code": 0,
+    "assertions": 19,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.0814855000000001
+  },
+  {
+    "file": "supabase/tests/060_contests.test.sql",
+    "exit_code": 0,
+    "assertions": 52,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.25331495800000003
+  },
+  {
+    "file": "supabase/tests/070_invitations.test.sql",
+    "exit_code": 0,
+    "assertions": 26,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.2503768340000001
+  },
+  {
+    "file": "supabase/tests/080_participant_lifecycle.test.sql",
+    "exit_code": 0,
+    "assertions": 37,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.33660683300000005
+  },
+  {
+    "file": "supabase/tests/090_device_attestations.test.sql",
+    "exit_code": 0,
+    "assertions": 61,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.08931074999999988
+  },
+  {
+    "file": "supabase/tests/100_metric_snapshots.test.sql",
+    "exit_code": 0,
+    "assertions": 28,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.19600995800000032
+  },
+  {
+    "file": "supabase/tests/110_attested_ingest.test.sql",
+    "exit_code": 0,
+    "assertions": 47,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.18316970800000032
+  },
+  {
+    "file": "supabase/tests/120_integrity_quarantine.test.sql",
+    "exit_code": 0,
+    "assertions": 36,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.1923865410000003
+  },
+  {
+    "file": "supabase/tests/130_source_reputation.test.sql",
+    "exit_code": 0,
+    "assertions": 23,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.1456012499999999
+  },
+  {
+    "file": "supabase/tests/140_timezone_change_consent.test.sql",
+    "exit_code": 0,
+    "assertions": 69,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.5946079160000002
+  },
+  {
+    "file": "supabase/tests/150_geofence_checkins.test.sql",
+    "exit_code": 0,
+    "assertions": 60,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.19423320900000007
+  },
+  {
+    "file": "supabase/tests/160_notification_outbox_scheduler.test.sql",
+    "exit_code": 0,
+    "assertions": 58,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.2658560419999998
+  },
+  {
+    "file": "supabase/tests/170_account_deletion.test.sql",
+    "exit_code": 0,
+    "assertions": 71,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.31368154199999987
+  },
+  {
+    "file": "supabase/tests/171_account_deletion_provider_lookup.test.sql",
+    "exit_code": 0,
+    "assertions": 8,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.08267350000000029
+  },
+  {
+    "file": "supabase/tests/180_d77_evidence_access.test.sql",
+    "exit_code": 0,
+    "assertions": 47,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.37713083299999983
+  },
+  {
+    "file": "supabase/tests/190_m8_1_live_social_loop.test.sql",
+    "exit_code": 0,
+    "assertions": 44,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.32196708299999965
+  },
+  {
+    "file": "supabase/tests/210_m8_3c_standings_results_obligations.test.sql",
+    "exit_code": 0,
+    "assertions": 48,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.42423608400000035
+  },
+  {
+    "file": "supabase/tests/220_account_deletion_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 57,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.5209678329999994
+  },
+  {
+    "file": "supabase/tests/230_m7_trusted_integrity_assessments.test.sql",
+    "exit_code": 0,
+    "assertions": 62,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.3468377079999998
+  },
+  {
+    "file": "supabase/tests/240_m7_integrity_assessment_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 13,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.1360316250000002
+  },
+  {
+    "file": "supabase/tests/250_m7_d76_quarantine_deadlines.test.sql",
+    "exit_code": 0,
+    "assertions": 67,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.3606722920000003
+  },
+  {
+    "file": "supabase/tests/260_m7_d76_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 33,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.3480095419999998
+  },
+  {
+    "file": "supabase/tests/270_lead_loss_push_reactions.test.sql",
+    "exit_code": 0,
+    "assertions": 38,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.13276474999999976
+  },
+  {
+    "file": "supabase/tests/280_personal_v1_foundation_privacy.test.sql",
+    "exit_code": 0,
+    "assertions": 44,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.29899962499999955
+  },
+  {
+    "file": "supabase/tests/290_personal_v1_lifecycle_scoring.test.sql",
+    "exit_code": 0,
+    "assertions": 34,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.49112249999999946
+  },
+  {
+    "file": "supabase/tests/300_personal_v1_acceptance_matrix.test.sql",
+    "exit_code": 0,
+    "assertions": 17,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.5364067910000001
+  },
+  {
+    "file": "supabase/tests/310_personal_v1_creation_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 17,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.2480436250000011
+  },
+  {
+    "file": "supabase/tests/320_personal_v1_evidence_retention_isolation.test.sql",
+    "exit_code": 0,
+    "assertions": 39,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.41321474999999985
+  },
+  {
+    "file": "supabase/tests/330_solo_contract_domain.test.sql",
+    "exit_code": 0,
+    "assertions": 64,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.30809058300000025
+  },
+  {
+    "file": "supabase/tests/340_solo_contract_lifecycle_appeals.test.sql",
+    "exit_code": 0,
+    "assertions": 57,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.6043865840000002
+  },
+  {
+    "file": "supabase/tests/350_solo_contract_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 35,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.31229450000000014
+  },
+  {
+    "file": "supabase/tests/360_solo_fake_authorization_domain.test.sql",
+    "exit_code": 0,
+    "assertions": 90,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.1905889579999993
+  },
+  {
+    "file": "supabase/tests/370_solo_fake_authorization_lifecycle.test.sql",
+    "exit_code": 0,
+    "assertions": 37,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.7625407499999994
+  },
+  {
+    "file": "supabase/tests/380_solo_fake_authorization_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 41,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.30856758299999854
+  },
+  {
+    "file": "supabase/tests/390_personal_custom_start_time.test.sql",
+    "exit_code": 0,
+    "assertions": 21,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.4755610000000008
+  },
+  {
+    "file": "supabase/tests/400_personal_stripe_sandbox_domain.test.sql",
+    "exit_code": 0,
+    "assertions": 25,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.07866941700000041
+  },
+  {
+    "file": "supabase/tests/410_personal_stripe_sandbox_lifecycle.test.sql",
+    "exit_code": 0,
+    "assertions": 26,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.4851729579999997
+  },
+  {
+    "file": "supabase/tests/411_personal_stripe_sandbox_beta_controls.test.sql",
+    "exit_code": 0,
+    "assertions": 56,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.48534524999999995
+  },
+  {
+    "file": "supabase/tests/412_personal_stripe_sandbox_beta_controls_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 21,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.25673300000000054
+  },
+  {
+    "file": "supabase/tests/420_production_attestation_provenance.test.sql",
+    "exit_code": 0,
+    "assertions": 32,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.20030570900000022
+  },
+  {
+    "file": "supabase/tests/430_personal_result_worker.test.sql",
+    "exit_code": 0,
+    "assertions": 17,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.2604265839999993
+  },
+  {
+    "file": "supabase/tests/431_personal_result_worker_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 11,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.13972079200000032
+  },
+  {
+    "file": "supabase/tests/440_personal_health_snapshot_v2.test.sql",
+    "exit_code": 0,
+    "assertions": 37,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.49569145899999967
+  },
+  {
+    "file": "supabase/tests/441_personal_health_snapshot_v2_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 25,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.30106291699999943
+  },
+  {
+    "file": "supabase/tests/450_personal_sandbox_active_cancellation.test.sql",
+    "exit_code": 3,
+    "assertions": 0,
+    "passed": false,
+    "skips": [],
+    "failures": [
+      "psql:supabase/tests/450_personal_sandbox_active_cancellation.test.sql:150: ERROR:  new row for relation \"personal_health_snapshots_v2\" violates check constraint \"personal_health_snapshots_v2_times_finite\""
+    ],
+    "seconds": 0.24323729199999988
+  },
+  {
+    "file": "supabase/tests/460_duel_agreement.test.sql",
+    "exit_code": 0,
+    "assertions": 117,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.43459725000000127
+  },
+  {
+    "file": "supabase/tests/461_duel_agreement_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 59,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 3.3413773749999987
+  },
+  {
+    "file": "supabase/tests/462_duel_proof.test.sql",
+    "exit_code": 0,
+    "assertions": 210,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.5277752089999979
+  },
+  {
+    "file": "supabase/tests/463_duel_proof_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 44,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 5.150604791999999
+  },
+  {
+    "file": "supabase/tests/464_duel_lifecycle.test.sql",
+    "exit_code": 0,
+    "assertions": 220,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.4407709170000018
+  },
+  {
+    "file": "supabase/tests/465_duel_lifecycle_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 22,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.9359838330000017
+  },
+  {
+    "file": "supabase/tests/466_duel_native_projection.test.sql",
+    "exit_code": 0,
+    "assertions": 27,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.24165445899999938
+  },
+  {
+    "file": "supabase/tests/467_duel_rematch_links.test.sql",
+    "exit_code": 0,
+    "assertions": 36,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.25015141600000135
+  },
+  {
+    "file": "supabase/tests/468_duel_rematch_links_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 15,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 1.9500617909999995
+  },
+  {
+    "file": "supabase/tests/469_performance_commitment_agreement.test.sql",
+    "exit_code": 0,
+    "assertions": 91,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 1.4974650840000017
+  },
+  {
+    "file": "supabase/tests/470_performance_commitment_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 22,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 2.5134010000000018
+  },
+  {
+    "file": "supabase/tests/471_performance_attempts.test.sql",
+    "exit_code": 0,
+    "assertions": 75,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.2521728749999994
+  },
+  {
+    "file": "supabase/tests/472_performance_attempts_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 20,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 1.2146424170000003
+  },
+  {
+    "file": "supabase/tests/473_performance_progress.test.sql",
+    "exit_code": 0,
+    "assertions": 115,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.3183201670000031
+  },
+  {
+    "file": "supabase/tests/474_performance_progress_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 22,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 1.213064708999994
+  },
+  {
+    "file": "supabase/tests/475_performance_following.test.sql",
+    "exit_code": 0,
+    "assertions": 180,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.7710015420000005
+  },
+  {
+    "file": "supabase/tests/476_performance_following_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 36,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 2.218854792000002
+  },
+  {
+    "file": "supabase/tests/477_performance_lifecycle.test.sql",
+    "exit_code": 0,
+    "assertions": 164,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 1.1647675839999962
+  },
+  {
+    "file": "supabase/tests/478_performance_lifecycle_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 48,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 3.425350417000004
+  },
+  {
+    "file": "supabase/tests/480_weekly_backend.test.sql",
+    "exit_code": 0,
+    "assertions": 77,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 1.2135270420000026
+  },
+  {
+    "file": "supabase/tests/481_weekly_concurrency.test.sql",
+    "exit_code": 0,
+    "assertions": 25,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 2.3540228749999983
+  },
+  {
+    "file": "supabase/tests/482_weekly_sharing.test.sql",
+    "exit_code": 0,
+    "assertions": 41,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.8495096250000032
+  },
+  {
+    "file": "supabase/tests/490_challenge_steps.test.sql",
+    "exit_code": 0,
+    "assertions": 30,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.7793464999999955
+  },
+  {
+    "file": "supabase/tests/491_challenge_boundaries.test.sql",
+    "exit_code": 0,
+    "assertions": 18,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.8703638749999953
+  },
+  {
+    "file": "supabase/tests/492_challenge_matrix.test.sql",
+    "exit_code": 0,
+    "assertions": 50,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.9946741250000031
+  },
+  {
+    "file": "supabase/tests/493_challenge_entry.test.sql",
+    "exit_code": 0,
+    "assertions": 42,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.7509656249999992
+  },
+  {
+    "file": "supabase/tests/494_challenge_safety.test.sql",
+    "exit_code": 0,
+    "assertions": 22,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.7762507499999955
+  },
+  {
+    "file": "supabase/tests/495_challenge_policy_recovery.test.sql",
+    "exit_code": 0,
+    "assertions": 48,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 1.2266155419999976
+  },
+  {
+    "file": "supabase/tests/496_challenge_sections.test.sql",
+    "exit_code": 0,
+    "assertions": 14,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.7107534579999992
+  },
+  {
+    "file": "supabase/tests/497_challenge_operations.test.sql",
+    "exit_code": 3,
+    "assertions": 9,
+    "passed": false,
+    "skips": [],
+    "failures": [
+      "psql:supabase/tests/497_challenge_operations.test.sql:24: ERROR:  column reference \"target\" is ambiguous"
+    ],
+    "seconds": 0.7105632920000033
+  },
+  {
+    "file": "supabase/tests/498_challenge_admission_context.test.sql",
+    "exit_code": 0,
+    "assertions": 13,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.8056140829999947
+  },
+  {
+    "file": "supabase/tests/499_challenge_reconsent_projection.test.sql",
+    "exit_code": 0,
+    "assertions": 8,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.753131916000001
+  },
+  {
+    "file": "supabase/tests/500_challenge_reopened_draft_lifecycle.test.sql",
+    "exit_code": 0,
+    "assertions": 28,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.7751035000000002
+  },
+  {
+    "file": "supabase/tests/501_challenge_participation_privacy.test.sql",
+    "exit_code": 0,
+    "assertions": 14,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.7408274579999983
+  },
+  {
+    "file": "supabase/tests/502_challenge_session_lock_expiry.test.sql",
+    "exit_code": 0,
+    "assertions": 13,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.6937803329999994
+  },
+  {
+    "file": "supabase/tests/503_challenge_scoped_locks_claims.test.sql",
+    "exit_code": 0,
+    "assertions": 23,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 4.557565625000002
+  },
+  {
+    "file": "supabase/tests/504_challenge_durable_claims.test.sql",
+    "exit_code": 0,
+    "assertions": 40,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.8159619170000028
+  },
+  {
+    "file": "supabase/tests/505_challenge_bounded_queries.test.sql",
+    "exit_code": 0,
+    "assertions": 40,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.7445335000000028
+  },
+  {
+    "file": "supabase/tests/506_challenge_private_community.test.sql",
+    "exit_code": 0,
+    "assertions": 48,
+    "passed": true,
+    "skips": [],
+    "failures": [],
+    "seconds": 0.7937494170000008
+  }
+]

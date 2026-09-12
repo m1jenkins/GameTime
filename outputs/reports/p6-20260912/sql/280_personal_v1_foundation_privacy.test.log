@@ -1,0 +1,49 @@
+1..44
+ok 1 - the immutable model discriminator preserves legacy and reserves social V2
+ok 2 - contests carry an explicit challenge model
+ok 3 - a contest can never fall back to an ambiguous model
+ok 4 - every pre-existing seeded contest was backfilled as legacy charity history
+ok 5 - the discriminator backfill preserves seeded legacy terms, roster states, and charity selections byte-for-value
+ok 6 - pre-existing social results remain attached only to legacy contests
+ok 7 - frozen personal participant terms have a dedicated table
+ok 8 - Stage A has no database vocabulary for a live fee
+ok 9 - one open personal slot is backed by a partial unique index
+ok 10 - direct participant reads use the self-only policy
+ok 11 - the former peer-roster SELECT policy is absent
+ok 12 - legacy social history has a bounded summary RPC
+ok 13 - personal creation has a dedicated versioned RPC
+ok 14 - personal detail has a dedicated owner RPC
+ok 15 - personal cancellation has an idempotent versioned RPC
+ok 16 - creation and cancellation sample authoritative time only after their serialization locks
+ok 17 - only an authenticated owner can use the personal creation surface
+ok 18 - assessment and publication remain service-only
+{"sub":"d8111111-1111-1111-1111-111111111111"}
+ok 19 - the unchanged social creation path always creates legacy history
+{"sub":"d8222222-2222-2222-2222-222222222222"}
+ok 20 - an invitee can directly read only their own participant row
+ok 21 - the bounded legacy summary retains exact aggregate roster counts
+ok 22 - personal creation stamps the model explicitly
+ok 23 - personal challenge mirror fields cannot carry social or unsupported terms
+ok 24 - creation atomically installs one accepted owner and no charity
+ok 25 - the agreed personal terms are frozen with server-enforced test-only settlement
+ok 26 - the challenge starts at local midnight in the frozen zone
+ok 27 - creation selects the next local calendar day
+ok 28 - the window spans seven complete local calendar days
+ok 29 - the final trusted sync grace is exactly 24 hours
+ok 30 - an exact creation retry returns the original challenge
+ok 31 - a reused request UUID cannot change frozen terms
+ok 32 - a second open personal challenge collides at the database boundary
+ok 33 - the creation RPC rejects a zero step target
+ok 34 - the creation RPC rejects a target above one million steps
+ok 35 - personal rows never leak through the legacy social summary
+ok 36 - the personal list returns only the caller personal history
+{"sub":"d8111111-1111-1111-1111-111111111111"}
+ok 37 - another authenticated account cannot enumerate the owner personal challenge
+ok 38 - terms RLS hides another account terms
+{"sub":"d8222222-2222-2222-2222-222222222222"}
+ok 39 - the owner can read their own frozen terms
+ok 40 - even a privileged path cannot add a peer to a personal challenge
+ok 41 - a personal challenge can never be reinterpreted as legacy history
+ok 42 - personal scoring cannot create a standings artifact
+ok 43 - personal terms are owner-readable and never client-writable
+ok 44 - the authoritative terms table independently rejects targets above one million

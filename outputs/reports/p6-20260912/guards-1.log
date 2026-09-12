@@ -1,0 +1,48 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - knowing ID/digest cannot bypass discovery authorization
+
+{"sub":"b7000000-0000-0000-0000-000000000001","session_id":"b7000000-0000-0000-0000-000000000002"}
+psql:supabase/tests/507_challenge_community_guards.test.sql:16: ERROR:  challenge_session_required
+CONTEXT:  PL/pgSQL function app.challenge_session_v1() line 11 at RAISE
+PL/pgSQL function public.challenge_community_catalog_v1() line 2 during statement block local variable initialization

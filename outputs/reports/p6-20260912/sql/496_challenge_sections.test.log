@@ -1,0 +1,60 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok 1 - first page respects requested bound
+ok 2 - stable opaque cursor returned
+ok 3 - independent empty history is an explicit success
+
+ok 4 - cursor cannot cross actors
+
+ok 5 - cursor cannot cross sections
+ok 6 - page payload bounded at fifty
+ok 7 - original ordering retains the next two rows
+ok 8 - same ordering revision across pages
+ok 9 - new rows enter only a fresh ordering snapshot
+ok 10 - last page ends explicitly
+ok 11 - fresh first page includes new lobby
+{"id": "4b0d5eb8-08b0-4691-8c16-056465d4cc90", "status": "cancelled", "revision": 2}
+ok 12 - safe cancellation immediately enters own history
+ok 13 - cursor storage private
+ok 14 - no anonymous section access
+1..14

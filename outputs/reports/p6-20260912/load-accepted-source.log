@@ -1,0 +1,2 @@
+{"arrivals": 250, "concurrency": 25, "seconds": 0.5151325830000002, "per_second": 485.3119531753632, "p50_ms": 41.94545800000027, "p95_ms": 111.94274999999988, "p99_ms": 144.4713750000002, "unexpected_errors": 0, "capacity_251_rejected": true, "exact_retries": 10, "one_free_slot_race": true, "http_failed_attempt_quota": true}
+P6 gates disabled; fictional records retained.

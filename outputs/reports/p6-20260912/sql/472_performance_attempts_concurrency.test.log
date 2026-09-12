@@ -1,0 +1,39 @@
+OK
+OK
+OK
+COMMIT
+CREATE FUNCTION
+CREATE FUNCTION
+{"id": "ef200000-0000-0000-0000-000000000301", "document": {"source": "fixture_official_5k_v1", "status": "finished", "event_id": "ef200000-0000-0000-0000-000000000101", "started_at": "2026-09-04T02:08:06.451866+00:00", "finished_at": "2026-09-04T02:14:05.451866+00:00", "chip_seconds": 359, "precision_ms": 1000, "timing_basis": "organizer_chip", "published_bib": "bib-1", "distance_meters": 5000}, "attempt_id": "6df554f7-1f51-46a8-97b5-2e81ef44b42b", "captured_at": "2026-09-12T02:08:06.482904+00:00", "commitment_id": "a8cb0ecf-43f7-4042-b316-5c69de085036"}
+{"id": "ef200000-0000-0000-0000-000000000301", "document": {"source": "fixture_official_5k_v1", "status": "finished", "event_id": "ef200000-0000-0000-0000-000000000101", "started_at": "2026-09-04T02:08:06.451866+00:00", "finished_at": "2026-09-04T02:14:05.451866+00:00", "chip_seconds": 359, "precision_ms": 1000, "timing_basis": "organizer_chip", "published_bib": "bib-1", "distance_meters": 5000}, "attempt_id": "6df554f7-1f51-46a8-97b5-2e81ef44b42b", "captured_at": "2026-09-12T02:08:06.482904+00:00", "commitment_id": "a8cb0ecf-43f7-4042-b316-5c69de085036"}
+ok 1 - first reviewer appends once
+ok 2 - waiting reviewer sees changed predecessor
+{"id": "ef200000-0000-0000-0000-000000000302", "document": {"source": "fixture_official_5k_v1", "status": "finished", "event_id": "ef200000-0000-0000-0000-000000000101", "started_at": "2026-09-04T02:08:06.451866+00:00", "finished_at": "2026-09-04T02:14:06.451866+00:00", "chip_seconds": 360, "precision_ms": 1000, "timing_basis": "organizer_chip", "published_bib": "bib-1", "distance_meters": 5000}, "attempt_id": "6df554f7-1f51-46a8-97b5-2e81ef44b42b", "captured_at": "2026-09-12T02:08:06.483414+00:00", "commitment_id": "a8cb0ecf-43f7-4042-b316-5c69de085036"}
+ok 3 - concurrent exact correction retries return one revision
+ok 4 - one correction appended
+ok 5 - one nomination per event under contention
+ok 6 - waiting nomination observes gate-off
+true
+{"id": "ef200000-0000-0000-0000-000000000303", "document": {"source": "fixture_official_5k_v1", "status": "finished", "event_id": "ef200000-0000-0000-0000-000000000101", "started_at": "2026-09-04T02:08:06.451866+00:00", "finished_at": "2026-09-04T02:14:07.451866+00:00", "chip_seconds": 361, "precision_ms": 1000, "timing_basis": "organizer_chip", "published_bib": "bib-1", "distance_meters": 5000}, "attempt_id": "6df554f7-1f51-46a8-97b5-2e81ef44b42b", "captured_at": "2026-09-12T02:08:06.483613+00:00", "commitment_id": "a8cb0ecf-43f7-4042-b316-5c69de085036"}
+ok 7 - waiting correction observes revoked grant
+{"id": "ef200000-0000-0000-0000-000000000303", "document": {"source": "fixture_official_5k_v1", "status": "finished", "event_id": "ef200000-0000-0000-0000-000000000101", "started_at": "2026-09-04T02:08:06.451866+00:00", "finished_at": "2026-09-04T02:14:07.451866+00:00", "chip_seconds": 361, "precision_ms": 1000, "timing_basis": "organizer_chip", "published_bib": "bib-1", "distance_meters": 5000}, "attempt_id": "6df554f7-1f51-46a8-97b5-2e81ef44b42b", "captured_at": "2026-09-12T02:08:06.483613+00:00", "commitment_id": "a8cb0ecf-43f7-4042-b316-5c69de085036"}
+ok 8 - waiting correction observes session revocation
+UPDATE 1
+ok 9 - session natural expiry rechecked after wait
+UPDATE 1
+ok 10 - waiting nomination sees deletion
+ok 11 - competing reviews: observed lock wait
+ok 12 - deletion then nomination: observed lock wait
+ok 13 - duplicate event nominations: observed lock wait
+ok 14 - exact correction retries: observed lock wait
+ok 15 - gate off then nominate: observed lock wait
+ok 16 - grant revoked then correction: observed lock wait
+ok 17 - session expiry while waiting: observed lock wait
+ok 18 - session revoked then correction: observed lock wait
+ok 19 - only two authorized revisions retained
+ok 20 - deletion preserves all proof sources
+COMMIT
+OK
+OK
+OK
+1..20

@@ -1,0 +1,36 @@
+OK
+OK
+OK
+DO
+DO
+ok 1 - simultaneous community join respects capacity
+ok 2 - cancel wins over waiting accept
+ok 3 - block wins over waiting accept
+ok 4 - deletion closes group before waiting accept
+ok 5 - same actor simultaneous overlapping enrollments serialize
+ok 6 - correction invalidates competing final snapshot
+ok 7 - final blocks late correction
+ok 8 - exactly one immutable final persisted
+ok 9 - simultaneous allocations return identical single ledger record
+UPDATE 1
+ok 10 - session expiry while waiting on agreement denies mutation
+ok 11 - retirement serializes against delayed original create
+ok 12 - consent revocation wins over optional measurement append
+ok 13 - sharing revocation linearizes before waiting recipient refresh
+ok 14 - allocation_allocation demonstrated actual independent-session blocking
+ok 15 - block_accept demonstrated actual independent-session blocking
+ok 16 - cancel_accept demonstrated actual independent-session blocking
+ok 17 - capacity demonstrated actual independent-session blocking
+ok 18 - correction_final demonstrated actual independent-session blocking
+ok 19 - delete_accept demonstrated actual independent-session blocking
+ok 20 - expiry_wait demonstrated actual independent-session blocking
+ok 21 - final_correction demonstrated actual independent-session blocking
+ok 22 - overlap demonstrated actual independent-session blocking
+ok 23 - retire_create demonstrated actual independent-session blocking
+ok 24 - revoke_event demonstrated actual independent-session blocking
+ok 25 - share_revoke_read demonstrated actual independent-session blocking
+SET
+OK
+OK
+OK
+1..25

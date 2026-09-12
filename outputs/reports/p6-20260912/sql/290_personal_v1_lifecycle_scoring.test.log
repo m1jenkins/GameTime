@@ -1,0 +1,51 @@
+1..34
+
+
+
+
+
+
+ok 1 - model-dispatched activation accepts one owner for every personal fixture
+ok 2 - a Chicago spring-forward week has 167 authoritative hourly intervals
+ok 3 - ordinary one-hour DST remains non-overlapping and scoreable
+ok 4 - a Lord Howe fall-back week preserves its half-hour Calendar interval keys
+ok 5 - Lord Howe exposes the overlapping HealthKit query interval risk
+ok 6 - a Troll two-hour spring transition derives 166 intervals without magic counts
+ok 7 - the two-hour transition stays scoreable when its intervals do not overlap
+2026-09-12 02:07:41.310201+00
+2026-09-12 02:07:41.580137+00
+2026-09-12 02:07:41.310201+00
+2026-09-12 02:07:41.58081+00
+
+
+ok 8 - complete one-hour-DST evidence publishes a generic target-missed result
+ok 9 - Lord Howe overlapping intervals cannot be assessed as complete
+ok 10 - the fail-closed Lord Howe result is an outage waiver
+ok 11 - a GameTime calendar limitation never penalizes or blocks the owner
+ok 12 - the transition day is never presented as complete in progress
+ok 13 - complete cumulative evidence publishes the generic target-reached result
+ok 14 - result publication is an exact immutable retry
+ok 15 - result publication finalizes the challenge and closes its frozen terms
+ok 16 - personal results never enter the legacy winner/result table
+ok 17 - a user/device failure waives and places one unresolved eligibility hold
+{"sub":"e9333333-3333-3333-3333-333333333333"}
+ok 18 - an active eligibility hold blocks another personal challenge
+ok 19 - a diagnostic whose HealthKit query began before the hold cannot clear it
+ok 20 - a fresh post-hold trusted diagnostic clears the hold atomically
+ok 21 - the durable hold retains its clearing diagnostic audit link
+{"sub":"e9333333-3333-3333-3333-333333333333"}
+ok 22 - eligibility reload restores the latest trusted diagnostic and cleared state
+ok 23 - the owner can cancel before the next-midnight start
+ok 24 - an exact cancellation retry returns the same challenge
+ok 25 - pre-start cancellation closes terms and releases the open slot
+ok 26 - a cancelled challenge no longer occupies the one-open slot
+{"sub":"e9666666-6666-6666-6666-666666666666"}
+ok 27 - an ended internal challenge awaiting its result is no longer active-cancellable
+ok 28 - client clock-skew tolerance cannot certify an unfinished server interval
+ok 29 - coverage cannot claim a bucket unfinished at signed observation time
+ok 30 - the same completed bucket is accepted at its signed end time
+ok 31 - an exact coverage retry succeeds after its App Attest counter was consumed
+ok 32 - coverage idempotency persists one batch
+{"sub":"e9555555-5555-5555-5555-555555555555"}
+ok 33 - two-user RLS hides terms, diagnostic state, result, and eligibility hold
+ok 34 - the evidence assessment ledger is reachable only through service RPCs

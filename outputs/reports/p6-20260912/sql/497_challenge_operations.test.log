@@ -1,0 +1,83 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1
+1
+
+ok 1 - delayed notice is explicitly overdue
+ok 2 - paused processing creates no leases while safe actions remain available
+
+ok 3 - bounded worker catches up delayed lifecycle
+ok 4 - recovery preserves full 48 hours from actual notice
+ok 5 - recorded notice clears overdue publication alert
+
+ok 6 - exact batch response survives gate and clock changes
+ok 7 - batch cannot change content under same run ID
+ok 8 - participant cannot drive worker
+
+ok 9 - worker pass is bounded
+
+{"saved": true}
+{"id": "112b484f-4413-4a5f-bf59-08108cbdee7f", "status": "review", "revision": 14}
+ok 10 - ordinary participant cannot read report queue
+
+
+ok 11 - assigned moderator reads minimum structured report
+
+ok 12 - unanswered review is overdue at its actual deadline
+ok 13 - timeout recovery completes without raw error logging
+ok 14 - changed timeout outcome gets a new full review window
+
+{"run_id": "ba000000-0000-0000-0000-000000040006", "processed": [{"id": "112b484f-4413-4a5f-bf59-08108cbdee7f", "status": "void", "claim_token": "c700e179-1686-4f08-9eec-0d3471c4b6e6"}], "server_time": "2026-10-26T12:00:00+00:00", "failed_count": 0}
+ok 15 - unresolved review returns entries after fair finality
+
+
+
+
+{"id": "9be77b3e-a70e-47ac-993d-9551c7d1c6d4", "status": "published_open", "revision": 1}
+
+ok 16 - assigned independent operator closes community safely
+ok 17 - operator closure exact retry
+
+ok 18 - community closure returns own simulated entry
+ok 19 - operator report reads and closure are audited
+1..19

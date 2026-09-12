@@ -1,0 +1,10 @@
+1..9
+ok 1 - pgcrypto is installed in extensions
+ok 2 - citext is installed in extensions
+ok 3 - btree_gist is installed in extensions
+ok 4 - app schema exists
+ok 5 - app.set_updated_at() exists
+ok 6 - app.forbid_mutation() exists
+ok 7 - anon cannot use the app schema
+ok 8 - forbid_mutation blocks UPDATE on an append-only table
+ok 9 - forbid_mutation blocks DELETE on an append-only table

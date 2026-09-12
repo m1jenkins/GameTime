@@ -1,0 +1,29 @@
+1..28
+ok 1 - public.metric_snapshots exists
+ok 2 - row level security is enabled on metric_snapshots
+ok 3 - a bucket is not unique per participant: revisions append
+ok 4 - someone who only ever held an invitation cannot record evidence
+ok 5 - and someone who was never on the roster cannot either
+ok 6 - a bucket before the window opened is refused
+ok 7 - a bucket inside the window but still in the future is refused
+ok 8 - the hour currently in progress is refused: it has not finished
+ok 9 - a finished hour inside the window is accepted
+ok 10 - a UTC-aligned bucket is refused for a participant whose zone is +05:30
+ok 11 - and the same hour aligned to *his* local hour is accepted
+ok 12 - local_day is stamped from the participant's zone, not taken from the client
+ok 13 - and so is local_hour
+ok 14 - the client's own local_day was discarded rather than trusted
+ok 15 - a banked figure cannot be revised downward
+ok 16 - but it can be revised upward, which is what a late sync looks like
+ok 17 - and the revision appended rather than overwriting: both observations survive
+ok 18 - a decrease cannot be smuggled in behind an increase in one statement
+ok 19 - a hand-typed observation is stored rather than refused
+ok 20 - and it is inadmissible
+ok 21 - device and third-party observations are admissible
+ok 22 - is_admissible cannot be written: it is generated from provenance
+ok 23 - the ledger refuses UPDATE, even to superuser
+ok 24 - and so does the batch record
+ok 25 - alice has banked evidence before the deletion
+ok 26 - an account with banked evidence can still be deleted
+ok 27 - banked evidence remains available to the retention worker
+ok 28 - the other participant's evidence survived

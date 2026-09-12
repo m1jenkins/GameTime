@@ -1,0 +1,46 @@
+1..40
+ok 1 - public.profiles exists
+ok 2 - handle is citext, so uniqueness is case-insensitive
+ok 3 - id is the primary key
+ok 4 - display_name is required
+ok 5 - timezone defaults to UTC
+ok 6 - row level security is enabled on profiles
+ok 7 - profile id is no longer an auth.users FK; the durable actor outlives authentication
+ok 8 - handle uniqueness is case-insensitive: ALICE collides with alice
+ok 9 - handle must be at least 3 characters
+ok 10 - handle must start with a letter
+ok 11 - handle rejects characters outside [A-Za-z0-9_]
+ok 12 - reserved handles are rejected regardless of case
+ok 13 - display_name cannot be empty
+ok 14 - a well-formed mixed-case handle with an underscore is accepted
+ok 15 - an unknown IANA zone is rejected
+ok 16 - a real IANA zone is accepted
+ok 17 - created_at is immutable
+ok 18 - id is immutable
+ok 19 - set_updated_at overrides a client-supplied updated_at
+ok 20 - anon cannot select profiles
+ok 21 - anon cannot insert profiles
+ok 22 - authenticated is not granted DELETE on profiles
+ok 23 - profile edits are column-scoped and never grant UPDATE on deleted_at
+ok 24 - anon cannot execute find_profile_by_handle
+ok 25 - authenticated can execute find_profile_by_handle
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 26 - alice sees exactly two profiles: herself and her friend bob
+ok 27 - alice can read a friend's profile
+ok 28 - alice cannot read a stranger's profile
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 29 - a pending friend request does not make a profile visible
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 30 - alice can update her own profile
+ok 31 - alice cannot update a friend's profile
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 32 - a user cannot create a profile for somebody else
+ok 33 - handle lookup is case-insensitive: mikej finds MikeJ
+ok 34 - handle lookup is case-insensitive in the other direction too
+ok 35 - a stranger is discoverable by exact handle
+ok 36 - lookup does not prefix-match, so the directory is not enumerable
+ok 37 - lookup does not treat input as a pattern
+ok 38 - an unused handle resolves to nothing
+ok 39 - the lookup card exposes only id, handle, display_name, avatar_path
+
+ok 40 - an unauthenticated caller is denied handle discovery

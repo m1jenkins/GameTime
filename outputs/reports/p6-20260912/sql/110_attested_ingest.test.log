@@ -1,0 +1,54 @@
+1..47
+2026-09-12 02:07:36.010915+00
+2026-09-12 02:07:36.010915+00
+ok 1 - authenticated cannot insert into the ledger
+ok 2 - nor update it
+ok 3 - nor delete from it
+ok 4 - and it cannot forge a batch record either
+ok 5 - reading is the only verb a client holds
+ok 6 - authenticated cannot call record_metric_batch
+ok 7 - service_role can, which is how the Edge Function reaches it
+ok 8 - the grace period is not a client-callable function either
+ok 9 - the batch reports what it recorded
+ok 10 - and it is not a replay
+ok 11 - a batch carrying a key and a counter is recorded as attested
+ok 12 - and the assertion counter was consumed
+ok 13 - a retry of the same batch is reported as a replay
+ok 14 - and it returns the original batch rather than making a second one
+ok 15 - the retry did not double-count the evidence
+ok 16 - and it did not consume a second counter value
+ok 17 - one batch id with two different payloads is refused, not quietly deduplicated
+ok 18 - a fresh batch replaying a spent counter is refused
+ok 19 - and so is one that winds the counter backward
+ok 20 - a counter that has advanced is accepted
+ok 21 - a batch cannot be signed with another account's key
+ok 22 - and an unknown key gives exactly the same error
+ok 23 - a revoked key cannot sign a batch
+ok 24 - one bad observation fails the whole batch
+ok 25 - and no batch record is left behind
+ok 26 - nor any of its good observations
+ok 27 - an empty batch is refused
+ok 28 - and so is an observation list that is not a list
+ok 29 - a batch with no key at all is accepted, which is the bypass path
+ok 30 - and it is permanently marked unattested
+ok 31 - a batch cannot be marked attested without a key and a counter
+(6442f58a-e732-4e7d-9029-8feeb66b6cca,1,f)
+(fde614d0-c119-472a-9d00-d939734c10b1,1,f)
+ok 32 - the view reports the highest observation for a bucket
+ok 33 - and says how many observations it came from
+ok 34 - a bucket whose only observation was hand-typed is absent from the view
+ok 35 - though the ledger still holds it, because the attempt is itself a fact
+ok 36 - contest_evidence is declared security_invoker
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 37 - carol cannot read alice's evidence through the view
+ok 38 - nor through the table
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 39 - an accepted opponent cannot read her hourly evidence
+ok 40 - or her attested ingest audit trail
+ok 41 - evidence tables compose read policies with restrictive active-actor guards
+ok 42 - one batch may carry the same bucket once per source
+ok 43 - all three land, including the hand-typed one
+ok 44 - the view adds the admissible sources and leaves the hand-typed one out
+ok 45 - a late sync revises one source upward
+ok 46 - the revision replaced that source's figure rather than adding to it
+ok 47 - monotonicity is per source, so a smaller figure from a smaller source is fine

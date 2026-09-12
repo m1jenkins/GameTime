@@ -1,0 +1,80 @@
+ok 1 - three private tables own runtime, exact eligibility, and control requests
+ok 2 - RLS is enabled on all private Stripe beta control tables
+ok 3 - private Stripe beta control tables expose no RLS policy
+ok 4 - API roles have no direct Stripe beta control-table privileges
+ok 5 - the global Stripe sandbox payment switch starts disabled
+ok 6 - the exact tester allowlist starts empty
+ok 7 - the control request ledger starts empty
+ok 8 - the kill switch has one versioned service boundary
+ok 9 - the exact tester allowlist has one versioned service boundary
+ok 10 - only service_role can change the switch or exact tester allowlist
+ok 11 - the common admission and control-lock helpers remain private
+ok 12 - setups and agreements persist frozen beta-authorization provenance
+ok 13 - service_role cannot bypass the versioned kill-switch RPC
+ok 14 - service_role cannot bypass the versioned allowlist RPC
+ok 15 - service_role can add one exact active tester
+ok 16 - an identical allowlist request is an exact replay
+ok 17 - an allowlist request UUID cannot be reused with another value
+{"sub":"ca111111-1111-1111-1111-111111111111"}
+ok 18 - allowlisting alone cannot bypass the default-off runtime switch
+ok 19 - service_role can enable local sandbox payment activity
+ok 20 - an identical runtime request is an exact replay
+ok 21 - a runtime request UUID cannot be reused with another value
+{"sub":"ca222222-2222-2222-2222-222222222222","user_metadata":{"personal_stripe_sandbox_beta":true}}
+ok 22 - forged JWT metadata cannot manufacture database beta eligibility
+ok 23 - the service setup path cannot bypass the exact tester allowlist
+{"sub":"ca111111-1111-1111-1111-111111111111"}
+ok 24 - runtime-on plus the exact allowlist admits a direct setup mutation
+{"replayed": false, "stripe_customer_id": "cus_ca111111111111111111111111111111"}
+{"status": "succeeded", "replayed": false, "setup_id": "d1e98296-819c-4b3d-89b7-6586709b0d01", "stripe_customer_id": "cus_ca111111111111111111111111111111", "stripe_setup_intent_id": "seti_ca11111111111111111111111111111"}
+ok 25 - a newly admitted setup freezes its control authorization
+ok 26 - a newly admitted commitment freezes its control authorization
+{"status": "succeeded", "replayed": false, "setup_id": "d7e81aa8-7330-459b-a96d-9e068b53772c", "stripe_customer_id": "cus_ca111111111111111111111111111111", "stripe_setup_intent_id": "seti_ca11111111111111111111111111112"}
+t
+ok 27 - an allowlisted second owner still cannot consume another owner setup
+f
+t
+{"deletedAt": "2026-09-12T02:07:46.608522+00:00", "capabilities": []}
+ok 28 - a deleted explicit service owner cannot start a Stripe setup
+{"sub":"ca333333-3333-3333-3333-333333333333"}
+ok 29 - a stale JWT cannot start a Stripe setup after account deletion
+{}
+ok 30 - stale actor refusals leave no Stripe setup row
+01227874-bd50-4189-9124-b93b87399c68
+7fe50104-4dae-4f55-9c07-4cfbdbe69be2
+a778d354-264d-4330-a903-57932f94b686
+53de066c-f65b-4883-84b5-95f5ae80d214
+t
+ok 31 - the enabled worker claims only the exact allowlisted owner
+ok 32 - an allowlisted controls-era miss may become charge-authorized
+ok 33 - a nonallowlisted expired miss remains provisional
+ok 34 - a nonallowlisted owner receives no simulated charge command
+ok 35 - the admitted command is leased for exactly one provider attempt
+f
+f
+ok 36 - an exact controls-era setup retry survives switch-off and revocation
+ok 37 - an exact controls-era commitment retry survives switch-off and revocation
+ok 38 - an exact terminal settlement retry survives switch-off and revocation
+ok 39 - a changed setup retry remains rejected while controls are off
+ok 40 - a changed commitment retry remains rejected while controls are off
+ok 41 - switch-off refuses a new service setup
+{"sub":"ca111111-1111-1111-1111-111111111111"}
+ok 42 - switch-off refuses the authenticated commitment wrapper
+{}
+ok 43 - a blocked commitment leaves the admitted setup unused
+ok 44 - a pre-controls setup row cannot claim the exact-retry exemption
+ok 45 - a pre-controls agreement row cannot claim the exact-retry exemption
+ok 46 - review filing remains available while payment activity is off
+ok 47 - switch-off refuses a new charge-authorizing review decision
+ok 48 - an audited no-charge waiver remains available while off
+ok 49 - the off-state waiver creates no charge command
+ok 50 - switch-off returns no charge work to the dispatcher
+ok 51 - the off-state worker still closes an overdue filed review with no charge
+ok 52 - switch-off does not lease an existing command for another dispatch
+ok 53 - normalized webhook reconciliation remains operational while off
+ok 54 - the identical off-state webhook is an idempotent replay
+{"sub":"ca111111-1111-1111-1111-111111111111"}
+ok 55 - the owner can read authoritative charged status while controls are off
+{"sub":"ca222222-2222-2222-2222-222222222222"}
+ok 56 - another authenticated owner cannot discover Stripe status while off
+1..56

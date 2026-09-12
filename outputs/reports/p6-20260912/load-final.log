@@ -1,0 +1,7 @@
+P6 gates disabled; fictional records retained.
+Traceback (most recent call last):
+  File "/private/tmp/gametime-p6-20260912/GameTime/scripts/beta-p6-community-load.py", line 69, in <module>
+    if __name__=='__main__':main()
+  File "/private/tmp/gametime-p6-20260912/GameTime/scripts/beta-p6-community-load.py", line 45, in main
+    extra=join(250);assert extra['status']==400 and extra['data']['message']=='challenge_join_closed',extra
+AssertionError: {'index': 250, 'status': 500, 'data': {'code': '55000', 'details': None, 'hint': None, 'message': 'challenge_join_closed'}, 'ms': 3.0580420000001496}

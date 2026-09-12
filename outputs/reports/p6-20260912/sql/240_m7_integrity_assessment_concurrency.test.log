@@ -1,0 +1,24 @@
+1..13
+ok 1 - the local harness provides the test-only multi-session driver
+OK
+OK
+OK
+SET
+SET
+GRANT
+ok 2 - the first assessor begins a transaction that retains its locks
+SET
+ok 3 - the first assessor creates one complete assessment
+ok 4 - the competing assessor starts asynchronously
+ok 5 - the competing assessor waits on the first assessment lock
+ok 6 - committing the first assessment releases the serialization point
+SET
+ok 7 - the concurrent retry returns the exact first assessment id
+ok 8 - concurrent execution persists exactly one assessment
+ok 9 - the concurrent clean assessment remains an explicit zero-quarantine fact
+ok 10 - the winning assessment retained the complete clean document
+SET
+ok 11 - the external concurrency fixture is removed after verification
+ok 12 - the first assessment session disconnects cleanly
+ok 13 - the second assessment session disconnects cleanly
+OK

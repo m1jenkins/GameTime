@@ -1,0 +1,57 @@
+t
+t
+provisional
+final
+db200000-0000-0000-0000-000000000100
+
+ok 1 - fresh creator consent required
+ok 2 - rematch is a fresh aggregate
+ok 3 - provenance is separate
+ok 4 - only fresh creator consent saved
+ok 5 - historical consent preserved
+ok 6 - exact rematch retry
+ok 7 - changed rematch payload rejected
+ok 8 - unfinished prior duel cannot rematch
+ok 9 - creator issues link
+ok 10 - link bounded by 24h and consent cutoff
+ok 11 - creator is not named recipient
+ok 12 - no direct private link read
+ok 13 - private clock seam denied
+
+ok 14 - forwarded link grants no access
+
+ok 15 - target resolves only destination
+ok 16 - recipient cannot read issuer token record
+ok 17 - recipient cannot issue
+ok 18 - opening link never consents
+ok 19 - expiry equality denied
+ok 20 - blocked target denied
+f
+
+ok 21 - gate-off recovers prior rematch
+ok 22 - gate-off recovers prior link request
+ok 23 - gate-off denies new link
+ok 24 - gate-off safe revoke
+ok 25 - issue retry never reactivates revoked link
+ok 26 - revoked creator projection empty
+
+ok 27 - revoked link denied
+t
+
+fce9a309-3d4b-4f23-9de8-130e31373c2f
+ok 28 - replacement uses new token
+fce9a309-3d4b-4f23-9de8-130e31373c2f
+
+ok 29 - cancelled invitation link closes immediately
+{"deletedAt": "2026-09-12T02:08:00.028479+00:00", "capabilities": []}
+ok 30 - creator cannot share with deleted recipient
+
+ok 31 - deleted recipient cannot open stale link
+
+ok 32 - second actor explicitly consents to new rules
+ok 33 - accepted invitation link closes
+ok 34 - two fresh consents
+
+ok 35 - revoked session loses even exact recovery
+ok 36 - unauthenticated link resolution denied
+1..36

@@ -1,0 +1,60 @@
+OK
+OK
+OK
+COMMIT
+ok 1 - existing notice commits idempotently
+ok 2 - reviewed correction invalidates loaded snapshot
+ok 3 - case invalidates loaded final
+ok 4 - resolution invalidates loaded final
+ok 5 - withdrawal invalidates loaded final
+ok 6 - deletion invalidates loaded final
+ok 7 - final blocks waiting withdrawal
+ok 8 - final blocks waiting proof
+ok 9 - second final must reload authoritative first result
+ok 10 - concurrent settlement returns same receipt
+ok 11 - captured source also invalidates complete proof snapshot
+ok 12 - waiting worker observes disabled gate
+t
+UPDATE 1
+ok 13 - natural session expiry rechecked after runtime wait
+ok 14 - revoked session cannot read history
+ok 15 - waiting operator loses revoked permission
+22
+ok 16 - operator expiry rechecked after wait
+ok 17 - case then worker: observed lock wait
+ok 18 - correction then worker: observed lock wait
+ok 19 - deletion then worker: observed lock wait
+ok 20 - exit then worker: observed lock wait
+ok 21 - final then correction: observed lock wait
+ok 22 - final then exit: observed lock wait
+ok 23 - final then final: observed lock wait
+ok 24 - gate shutdown then worker: observed lock wait
+ok 25 - notice retries: observed lock wait
+ok 26 - operator expiry during wait: observed lock wait
+ok 27 - operator revocation then read: observed lock wait
+ok 28 - resolution then worker: observed lock wait
+ok 29 - session expiry during wait: observed lock wait
+ok 30 - session revocation then history: observed lock wait
+ok 31 - settlement then settlement: observed lock wait
+ok 32 - unreviewed source then worker: observed lock wait
+ok 33 - case then worker: first action succeeded
+ok 34 - correction then worker: first action succeeded
+ok 35 - deletion then worker: first action succeeded
+ok 36 - exit then worker: first action succeeded
+ok 37 - final then correction: first action succeeded
+ok 38 - final then exit: first action succeeded
+ok 39 - final then final: first action succeeded
+ok 40 - gate shutdown then worker: first action succeeded
+ok 41 - notice retries: first action succeeded
+ok 42 - operator expiry during wait: first action succeeded
+ok 43 - operator revocation then read: first action succeeded
+ok 44 - resolution then worker: first action succeeded
+ok 45 - session expiry during wait: first action succeeded
+ok 46 - session revocation then history: first action succeeded
+ok 47 - settlement then settlement: first action succeeded
+ok 48 - unreviewed source then worker: first action succeeded
+COMMIT
+OK
+OK
+OK
+1..48

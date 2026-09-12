@@ -1,0 +1,46 @@
+t
+t
+t
+t
+t
+t
+t
+t
+{"replayed": false, "stripe_customer_id": "cus_FA111111111111111111111111111111"}
+{"status": "succeeded", "replayed": false, "setup_id": "be5edaef-d28b-451d-8ac3-e5d40ca73cf4", "stripe_customer_id": "cus_FA111111111111111111111111111111", "stripe_setup_intent_id": "seti_FA11111111111111111111111111111"}
+ok 1 - service load returns the canonical SetupIntent only for identical terms
+ok 2 - service commit is an exact replay
+{"replayed": false, "stripe_customer_id": "cus_FA777777777777777777777777777777"}
+{"status": "succeeded", "replayed": false, "setup_id": "43916871-41ca-4efe-a9c9-4ad5a1ab7ca1", "stripe_customer_id": "cus_FA777777777777777777777777777777", "stripe_setup_intent_id": "seti_FA77777777777777777777777777777"}
+ok 3 - a Health-policy retry cannot acknowledge an unmarked Personal V1 commit
+ok 4 - Stripe sandbox start now freezes the scored start at today's midnight
+ok 5 - Stripe sandbox start now activates before commit returns
+ok 6 - Stripe sandbox start now keeps the Health snapshot policy
+ok 7 - an unmarked legacy Edge commit preserves Personal V1 and adds one sandbox-only agreement atomically
+{"sub":"fa111111-1111-1111-1111-111111111111"}
+ok 8 - owner status exposes workflow state but no Stripe identifier
+{"sub":"fa111111-1111-1111-1111-111111111111"}
+ok 9 - an owner may end an active Stripe sandbox challenge
+a301bcf1-61d3-4e3a-a1c3-1f2d19a8c003
+8f72ac43-a0bb-422c-bd44-6c882a342ec8
+eb5e9ab4-e8f2-47ce-bc29-fec6d67a78e9
+b94689bf-3833-409b-b778-ab371472a084
+ok 10 - a confirmed evidence miss opens one provisional review
+ok 11 - publishing a miss does not create a charge command
+ok 12 - met, inconclusive, and cancelled challenges never enter payment review
+ok 13 - the verified owner can file a bounded review before the deadline
+ok 14 - an identical owner review request is an exact replay
+ok 15 - a conflicting review retry is rejected
+ok 16 - a different owner cannot file or discover the review
+ok 17 - a provisional miss cannot be confirmed before its absolute deadline
+ok 18 - a review request at or after the absolute deadline is rejected
+ok 19 - the worker auto-confirms an expired unreviewed miss and claims it once
+ok 20 - claim uses the Edge snake_case shape and deterministic idempotency key
+{"status": "succeeded", "replayed": false, "command_id": "86b2aefe-6c7e-4ed7-adc0-7520636315e3"}
+ok 21 - an expired review_open row is confirmed only on the worker deadline tick
+ok 22 - the leased worker records one terminal sandbox success
+ok 23 - the first verified normalized webhook receipt is applied once
+ok 24 - the same Stripe event ID and digest is an idempotent replay
+ok 25 - met, inconclusive, and cancelled challenges never produce a charge command
+ok 26 - a timely unresolved review produces no charge command
+1..26

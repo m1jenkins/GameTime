@@ -1,0 +1,81 @@
+1..69
+ok 1 - timezone consent has a closed computed-state vocabulary
+ok 2 - timezone requests are durable
+ok 3 - each request snapshots its immutable consent denominator
+ok 4 - timezone reviews are a separate vote ledger
+ok 5 - applied timezone epochs are explicit events
+ok 6 - request status is computed rather than overwritten
+ok 7 - the status view invokes underlying RLS
+ok 8 - all three consent ledgers have RLS enabled
+ok 9 - the request participant foreign key and unresolved scan are indexed
+ok 10 - the review reviewer foreign key is indexed
+ok 11 - applied epochs are indexed by contest, participant, and effective time
+ok 12 - one participant cannot have two ambiguous epochs at the same instant
+ok 13 - authenticated roster members may select consent facts
+ok 14 - authenticated callers cannot write any consent fact directly
+ok 15 - anonymous callers cannot read consent facts
+ok 16 - authenticated callers reach only the guarded consent functions
+ok 17 - anonymous callers cannot invoke the consent functions
+ok 18 - service_role can inspect consent facts but cannot bypass guarded user writes
+{"sub":"44444444-4444-4444-4444-444444444444"}
+ok 19 - an invited but unaccepted roster member cannot request a change
+{"sub":"55555555-5555-5555-5555-555555555555"}
+ok 20 - an outsider cannot request a change
+{"sub":"11111111-1111-1111-1111-111111111111"}
+ok 21 - a pending contest cannot accept a timezone request
+ok 22 - an active row whose ends_at has passed cannot accept a request
+ok 23 - the requested target must be a valid IANA zone
+ok 24 - the target must differ from the currently effective zone
+ok 25 - silence leaves the request pending
+ok 26 - a group request requires every other accepted participant
+ok 27 - an identical pending request retry returns the same id
+ok 28 - the request retry cannot duplicate either opponent-consent intent
+ok 29 - a different target cannot replace an unresolved request
+ok 30 - the requester cannot approve their own timezone change
+{"sub":"55555555-5555-5555-5555-555555555555"}
+ok 31 - an outsider cannot review a timezone change
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 32 - one accepted opponent may approve
+ok 33 - one approval is still pending in a three-person contest
+ok 34 - partial approval creates no applied event
+ok 35 - partial approval does not tell the requester consent is resolved
+ok 36 - an identical vote retry is idempotent
+ok 37 - a conflicting vote retry cannot rewrite history
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 38 - the final accepted opponent may approve
+ok 39 - unanimous approval resolves the group request
+ok 40 - unanimous approval creates exactly one applied event
+ok 41 - the final approval supplies effective_at from the server clock
+ok 42 - retrying the final approval remains idempotent
+ok 43 - a final-approval retry cannot duplicate the applied event
+ok 44 - final approval and its requester-resolution intent are idempotent together
+ok 45 - the roster timezone remains the immutable initial zone
+{"sub":"11111111-1111-1111-1111-111111111111"}
+{"sub":"22222222-2222-2222-2222-222222222222"}
+ok 46 - an accepted opponent may reject
+ok 47 - one rejection is terminal under unanimous consent
+ok 48 - a rejected request creates no applied event
+ok 49 - an identical rejection retry is idempotent
+ok 50 - rejection and its requester-resolution intent are idempotent together
+{"sub":"33333333-3333-3333-3333-333333333333"}
+ok 51 - no later vote can reopen a rejected request
+ok 52 - request facts cannot be updated even by a privileged writer
+ok 53 - review facts cannot be updated even by a privileged writer
+ok 54 - applied events cannot be updated even by a privileged writer
+ok 55 - consent does not unfreeze contest_participants.timezone
+ok 56 - a bucket before the change still uses the initial UTC epoch
+ok 57 - a late upward revision before the change keeps the old zone
+ok 58 - both old-epoch observations are stamped from UTC
+ok 59 - a bucket at the effective boundary uses the new Kolkata epoch
+ok 60 - new-epoch local fields come from Asia/Kolkata
+ok 61 - an hour with an effective_at strictly inside it is rejected
+{"sub":"44444444-4444-4444-4444-444444444444"}
+ok 62 - an invited roster member may read the contest consent history
+{"sub":"55555555-5555-5555-5555-555555555555"}
+ok 63 - an unrelated account cannot enumerate consent history
+ok 64 - an authenticated caller cannot bypass the request function
+ok 65 - a privileged writer cannot persist a sub-millisecond timezone epoch
+ok 66 - an epoch on the contest boundary is rejected even for a privileged writer
+ok 67 - account deletion retains all three consent ledgers
+ok 68 - account deletion may retain the reviewer UUID as a pseudonymous audit fact
+ok 69 - reviewer deletion neither reopens approval nor turns silence into consent
