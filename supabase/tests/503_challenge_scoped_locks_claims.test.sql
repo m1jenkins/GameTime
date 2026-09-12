@@ -80,11 +80,12 @@ $$;
 create temp table capacity_terms as
 select c.id,a.digest from app.challenge_lobbies_v1 c join app.challenge_agreements_v1 a on a.challenge_id=c.id and a.version=c.agreement_version
 where c.id=(select id from beta_ids where name='capacity_250');
+select public.challenge_discovery_fixture_v1(true);
 select lives_ok($$select pg_temp.join_capacity(n,(select id from capacity_terms),(select digest from capacity_terms)) from generate_series(1,248)n$$,'first 248 community joins succeed');
 select is(pg_temp.join_capacity(249,(select id from capacity_terms),(select digest from capacity_terms))->>'status','published_open','249th community join succeeds');
 select is(pg_temp.join_capacity(250,(select id from capacity_terms),(select digest from capacity_terms))->>'status','published_open','250th community join succeeds');
 select is((select count(*) from app.challenge_members_v1 where challenge_id=(select id from capacity_terms) and exited_at is null),250::bigint,'community retains exactly 250 joined actors');
-select throws_ok($$select pg_temp.join_capacity(251,(select id from capacity_terms),(select digest from capacity_terms))$$,'23505','challenge_capacity','251st community join is rejected');
+select throws_ok($$select pg_temp.join_capacity(251,(select id from capacity_terms),(select digest from capacity_terms))$$,'P0001','challenge_join_closed','251st community join is rejected without revealing live count');
 select is((select count(*) from app.challenge_members_v1 where challenge_id=(select id from capacity_terms) and exited_at is null),250::bigint,'251st rejection does not overfill capacity');
 
 select * from finish();

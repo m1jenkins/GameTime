@@ -124,7 +124,7 @@ struct ChallengeLocalDisclosures: View {
             }
             ChallengeFormSection("Your information") {
                 Text("The local service saves your account, challenge agreements, consent, normalized fictional progress, corrections, reviews and results. Saved requests on this phone help recover an interrupted action.")
-                Text("Selected friends can see your username, agreed goal when there is one, current challenge activity and results. Personal activity and community activity are private to you. Participant totals are unavailable in this preview.")
+                Text("Selected friends can see your username, agreed goal when there is one, current challenge activity and results. Personal activity and community activity are private to you. Community totals require at least five current participants and are delayed by at least 15 minutes.")
                 Text("Assigned operators can inspect the limited challenge facts needed for reviews and safety reports. Raw Health records, routes and activity history outside the challenge are not shared.")
                 Text("The separate private activity check keeps its records on this phone and clears them when you leave the check. It does not send them to the challenge service.")
                 Text("There are no analytics or advertising in this preview. Local preview records are retained for verification; stopping the preview revokes its account sessions and preserves the records.")
@@ -242,6 +242,15 @@ struct ChallengeV1Shell: View {
                             }
                             ChallengeFormSection("Account") {
                                 Text("Switching accounts clears shared content. Saved actions belong only to the account that made them.")
+                                if store.access?.suspended == true {
+                                    Text("New challenges are paused for your account.")
+                                    if store.access?.appealFiled == true { Text("Your account review request is saved.") }
+                                    else {
+                                        Button("Ask us to review your account") { Task { await store.submit(op: "appeal") } }
+                                            .disabled(!store.entryFresh || store.busy || store.pending != nil)
+                                    }
+                                }
+
                                 Button("Sign out") { Task { await logout() } }.accessibilityIdentifier("beta.signout")
                             }
                             ChallengeFormSection("Help and safety") {
@@ -387,6 +396,7 @@ struct ChallengeV1Detail: View {
     @State private var consent = false
     @State private var exitAction: String?
     @State private var reviewReason = "wrong_total"
+    @State private var communityReportSaved = false
     private var row: ChallengeV1? { store.challenges.first { $0.id == id } }
     var body: some View {
         ScrollView {
@@ -401,7 +411,16 @@ struct ChallengeV1Detail: View {
                     }
                     if row.socialHidden { Text("Shared details are hidden. Your own records and safe actions remain available.") }
                     if row.format.mode == .community {
-                        Text("Participant totals are unavailable in this preview.").font(.subheadline)
+                        Text((row.counts ?? .init(joined: nil)).text(at: row.serverTime)).font(.subheadline)
+                        Text("Reports about this community go to its assigned moderator.").font(.caption)
+                        Button("Report unsafe behavior in this community") { Task {
+                            let actor = store.actor
+                            guard !store.busy, store.pending == nil else { return }
+                            await store.submit(op: "report_scoped", fields: ["id": .string(row.id.uuidString.lowercased()), "subject": .null, "reason": .string("unsafe_behavior")])
+                            if store.actor == actor, store.pending == nil, store.error == nil, store.lastReceipt?.saved == true { communityReportSaved = true }
+                        }}.disabled(store.busy || store.pending != nil)
+                        if communityReportSaved { Text("Your community report is saved.") }
+
                     }
                     if let notice = row.notice {
                         Text("Latest result update").font(.title2.bold())
@@ -455,6 +474,7 @@ struct ChallengeV1Detail: View {
             .refreshable { await store.loadDetail(id) }
             .toolbar { Button("Refresh",systemImage:"arrow.clockwise") { Task { await store.loadDetail(id) } } }
             .onChange(of:row?.revision) { consent=false }
+            .onChange(of:store.actor) { communityReportSaved=false }
             .onChange(of:store.actor) { consent=false;target="";username="";exitAction=nil }
             .confirmationDialog("Leave safely?",isPresented:Binding(get:{exitAction != nil},set:{if !$0 {exitAction=nil}}),titleVisibility:.visible) {
                 Button(exitAction=="cancel" ? "Cancel challenge" : "Leave challenge",role:.destructive) {

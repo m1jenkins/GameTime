@@ -95,6 +95,12 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
             let data = try await rpc(name, body)
             guard binding() == before else { throw ChallengeV1Error.accountChanged }
             guard data.count <= 2_000_000 else { throw ChallengeV1Error.invalidResponse }
+            // SQL attempt quotas also return structured errors to direct RPC
+            // adapters, preserving the counter when a lookup is rejected.
+            if let error = try? JSONDecoder().decode(ServerError.self, from: data) {
+                if error.message == "challenge_session_required" { throw ChallengeV1Error.accountChanged }
+                throw ChallengeV1Error.server(error.message)
+            }
             return data
         } catch {
             guard binding() == before else { throw ChallengeV1Error.accountChanged }

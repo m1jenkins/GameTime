@@ -21,7 +21,7 @@ select ok(not has_function_privilege('authenticated','public.challenge_claim_bat
 select pg_temp.clock_beta('2026-10-20T12:00Z');
 select throws_ok($$select pg_temp.beta_run_batch(pg_temp.br(40003),51)$$,'22023','challenge_invalid_batch','worker pass is bounded');
 select pg_temp.login_beta(1);
-select public.challenge_report_v1(pg_temp.br(40004),pg_temp.ba(2),'unwanted_contact');
+select public.challenge_report_scoped_v1(pg_temp.br(40004),(select id from beta_ids where name='worker'),pg_temp.ba(2),'unwanted_contact');
 select pg_temp.beta_mutate((select id from beta_ids where name='worker'),'review','{"notice_revision":1,"reason":"wrong_total"}');
 select throws_ok($$select public.challenge_operator_reports_v1((select id from beta_ids where name='worker'))$$,'42501','challenge_operator_required','ordinary participant cannot read report queue');
 reset role;

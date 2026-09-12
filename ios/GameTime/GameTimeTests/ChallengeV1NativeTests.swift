@@ -55,6 +55,29 @@ import XCTest
         XCTAssertTrue(store.challenges.isEmpty)
         XCTAssertNil(store.actor)
     }
+    func testCommunityCountsRequireMatureServerSnapshot() throws {
+        let time = try ChallengeInstant("2026-10-01T12:00:00Z")
+        let counts = ChallengeV1.Counts(joined: 5, state: "available", asOf: time)
+        XCTAssertNil(counts.disclosedJoined(at: try ChallengeInstant("2026-10-01T12:14:59Z")))
+        XCTAssertEqual(counts.disclosedJoined(at: try ChallengeInstant("2026-10-01T12:15:00Z")), 5)
+        XCTAssertEqual(counts.disclosedJoined(at: try ChallengeInstant("2026-10-01T12:15:01Z")), 5)
+        XCTAssertNil(ChallengeV1.Counts(joined: 4, state: "available", asOf: time).disclosedJoined(at: try ChallengeInstant("2026-10-01T13:00:00Z")))
+        XCTAssertNil(ChallengeV1.Counts(joined: 6, state: "threshold", asOf: time).disclosedJoined(at: try ChallengeInstant("2026-10-01T13:00:00Z")))
+        let decoder = JSONDecoder(); decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let hidden = try decoder.decode(ChallengeV1.Counts.self, from: Data(#"{"joined":null,"state":"threshold","as_of":null}"#.utf8))
+        XCTAssertNil(hidden.joined)
+        XCTAssertNil(hidden.disclosedJoined(at: time))
+    }
+    func testQuotaErrorCannotDecodeAsSuccessfulReceipt() async throws {
+        let actor = UUID()
+        let client = SupabaseChallengeV1Client(url: URL(string: "http://127.0.0.1:58321")!, binding: { .init(actorID: actor, identity: "session") }, rpc: { _, _ in
+            Data(#"{"message":"challenge_rate_limited"}"#.utf8)
+        })
+        do {
+            _ = try await client.submit(ChallengeV1Request(actor: actor, payload: .object(["op": .string("redeem_link")])))
+            XCTFail("Quota rejection is not a successful receipt")
+        } catch { XCTAssertEqual(error as? ChallengeV1Error, .server("challenge_rate_limited")) }
+    }
     private func sample(_ actor:UUID,_ name:String)->ChallengeV1 {
         let start=ChallengeInstant(date:Date());let end=ChallengeInstant(date:Date().addingTimeInterval(86400))
         return ChallengeV1(id:UUID(),creatorId:actor,policy:"friend_steps_goal_v1",config:.init(startDate:"2026-10-03",days:1,timezone:"UTC",amountCents:100,startsAt:start,endsAt:end,syncBy:end,correctionsBy:end,noticeDue:end),status:"lobby_open",revision:1,agreementVersion:0,serverTime:start,socialHidden:false,agreement:nil,members:[.init(actorId:actor,username:name,target:100,selected:true,exited:false,consented:false,fact:nil)],notice:nil,reviews:[],final:nil)

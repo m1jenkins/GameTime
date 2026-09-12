@@ -219,7 +219,8 @@ struct ChallengeCommunityJoin: View {
     @State private var consent = false
     var body: some View {
         ChallengeForm {
-            Text("Only your progress and result appear here. Participant totals are unavailable in this preview.")
+            Text("Only your progress and result appear here.")
+            Text((community.counts ?? .init(joined: nil)).text(at: community.serverTime))
             if let target = community.terms["common_target"]?.integer { Text("Everyone’s goal: \(target.formatted()) steps").font(.headline) }
             if let window = decodeWindow(community.terms["config"]) {
                 ChallengeAgreementText(policy: ChallengeV1Policy(rawValue: "community_steps_goal_v1")!, window: window, minimum: community.terms["minimum"]?.integer ?? 2)

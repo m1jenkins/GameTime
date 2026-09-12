@@ -20,7 +20,7 @@ select is((select count(*) from app.challenge_slots_v1 where actor_id in(select 
 select is((select count(*) from app.challenge_members_v1 where challenge_id=(select id from beta_ids where name='lobby') and selected),1::bigint,'redemption does not select roster');
 -- Pre-existing all-friends fixture is not link-created friendship evidence.
 select pg_temp.login_beta(22);
-select throws_ok($$select public.challenge_redeem_link_v1(pg_temp.br(20022),(select value->>'token' from beta_links))$$,'42501','challenge_link_unavailable','21st unique redemption rejected');
+select is(public.challenge_redeem_link_v1(pg_temp.br(20022),(select value->>'token' from beta_links))->>'message','challenge_link_unavailable','21st unique redemption rejected and attempt counted');
 select pg_temp.login_beta(2);
 select is(public.challenge_redeem_link_v1(pg_temp.br(21002),(select value->>'token' from beta_links))->>'beta_access','true','same account idempotent after ceiling');
 select pg_temp.login_beta(1);
@@ -28,7 +28,7 @@ select public.challenge_revoke_link_v1(pg_temp.br(22001),((select value->>'id' f
 select pg_temp.login_beta(2);
 select is(public.challenge_access_status_v1()->>'beta_access','true','revocation preserves granted access');
 select pg_temp.login_beta(22);
-select throws_ok($$select public.challenge_redeem_link_v1(pg_temp.br(22022),(select value->>'token' from beta_links))$$,'42501','challenge_link_unavailable','revocation stops new redemption');
+select is(public.challenge_redeem_link_v1(pg_temp.br(22022),(select value->>'token' from beta_links))->>'message','challenge_link_unavailable','revocation stops new redemption and counts attempt');
 select pg_temp.login_beta(1);
 select public.challenge_report_v1(pg_temp.br(23001),pg_temp.ba(2),'username');
 select is(public.challenge_report_v1(pg_temp.br(23001),pg_temp.ba(2),'username')->>'saved','true','report exact retry');
@@ -46,7 +46,7 @@ select public.challenge_join_community_v1(pg_temp.br(25002),jsonb_build_object('
 select pg_temp.login_beta(3);
 select public.challenge_join_community_v1(pg_temp.br(25003),jsonb_build_object('op','join_community','id',(select id from beta_ids where name='community'),'digest',public.challenge_community_catalog_v1()->0->>'digest','consent',true));
 select is(jsonb_array_length(public.challenge_detail_v1((select id from beta_ids where name='community'))->'members'),1,'community exposes only own member');
-select is(public.challenge_detail_v1((select id from beta_ids where name='community'))->'counts'->>'joined','2','anonymous joined count');
+select is(public.challenge_detail_v1((select id from beta_ids where name='community'))->'counts'->>'joined',null,'below-five community count suppressed');
 select ok(public.challenge_detail_v1((select id from beta_ids where name='community'))->'creator_id'='null','operator identity hidden');
 reset role;select pg_temp.clock_beta('2026-10-03T12:00Z');
 select is(public.challenge_process_v1((select id from beta_ids where name='community')),'active','community minimum schedules at start');

@@ -1,0 +1,64 @@
+begin;
+select no_plan();
+\ir fixtures/challenge-fixture.inc
+insert into beta_ids values('community',public.challenge_publish_community_fixture_v1(pg_temp.br(70001),pg_temp.ba(40),'{"start_date":"2026-10-03","days":1,"timezone":"UTC","amount_cents":100}',100,2,250,true));
+select public.challenge_discovery_fixture_v1(false);
+create function pg_temp.community() returns uuid language sql as $$select id from beta_ids where name='community'$$;
+create temp table community_terms as select digest from app.challenge_agreements_v1 where challenge_id=pg_temp.community();
+grant all on community_terms to authenticated;
+select pg_temp.login_beta(1);
+select throws_ok($$select public.challenge_join_community_v1(pg_temp.br(70002),jsonb_build_object('op','join_community','id',pg_temp.community(),'digest',(select digest from community_terms),'consent',true))$$,'42501','challenge_discovery_disabled','knowing ID/digest cannot bypass discovery authorization');
+reset role;select public.challenge_discovery_fixture_v1(true);
+-- A new active account with no age or Beta grant cannot discover or join.
+insert into auth.users(id) values('b7000000-0000-0000-0000-000000000001');
+insert into public.profiles(id,handle,display_name,timezone) values('b7000000-0000-0000-0000-000000000001','p6unguarded','Fictional guard','UTC');
+insert into auth.sessions(id,user_id) values('b7000000-0000-0000-0000-000000000002','b7000000-0000-0000-0000-000000000001');
+select set_config('request.jwt.claim.sub','b7000000-0000-0000-0000-000000000001',true);
+select set_config('request.jwt.claims','{"sub":"b7000000-0000-0000-0000-000000000001","session_id":"b7000000-0000-0000-0000-000000000002"}',true);set local role authenticated;
+select is(jsonb_array_length(public.challenge_community_catalog_v1()),0,'unentitled account cannot discover');
+select public.challenge_confirm_age_v1(pg_temp.br(70003),true);
+select is(jsonb_array_length(public.challenge_community_catalog_v1()),0,'age alone does not grant Beta discovery');
+reset role;
+select pg_temp.login_beta(1);
+select public.challenge_join_community_v1(pg_temp.br(70004),jsonb_build_object('op','join_community','id',pg_temp.community(),'digest',(select digest from community_terms),'consent',true));
+reset role;
+-- Fill independent budgets to show shared entry-point enforcement and safe escape.
+insert into app.challenge_quotas_v1 values(pg_temp.ba(1),'mutations',clock_timestamp(),120) on conflict(actor_id,bucket) do update set used=120,window_at=clock_timestamp();
+select pg_temp.login_beta(1);
+select throws_ok($$select public.challenge_confirm_age_v1(pg_temp.br(70005),true)$$,'P0001','challenge_rate_limited','direct mutation budget applies across routes');
+select is(public.challenge_command_v1(pg_temp.br(70004),jsonb_build_object('op','join_community','id',pg_temp.community(),'digest',(select digest from community_terms),'consent',true))->>'revision','1','exact dispatcher retry survives exhausted mutation quota');
+select lives_ok($$select public.challenge_detail_v1(pg_temp.community())$$,'quota cannot block own read');
+select lives_ok($$select public.challenge_mutate_v1(pg_temp.br(70006),jsonb_build_object('op','leave','id',pg_temp.community(),'revision',1))$$,'quota cannot block safe exit');
+reset role;
+insert into app.challenge_quotas_v1 values(pg_temp.ba(2),'joins',clock_timestamp(),6);
+select pg_temp.login_beta(2);
+select throws_ok($$select public.challenge_join_community_v1(pg_temp.br(70007),jsonb_build_object('op','join_community','id',pg_temp.community(),'digest',(select digest from community_terms),'consent',true))$$,'P0001','challenge_rate_limited','join has its own shared budget');
+reset role;
+select is((select reserved from app.challenge_community_capacity_v1 where challenge_id=pg_temp.community()),0,'quota failure rolls back membership and capacity atomically');
+select is((select count(*) from app.challenge_slots_v1 where challenge_id=pg_temp.community() and actor_id=pg_temp.ba(2)),0::bigint,'quota failure reserves no slot for rejected actor');
+-- Report boundaries: two rosters sharing people must not share unrelated reports.
+insert into beta_ids values('a',pg_temp.beta_group(3,2));
+-- New draft shares both actors but no second frozen agreement/overlap.
+select pg_temp.login_beta(3);insert into beta_ids values('b',pg_temp.beta_create());
+select pg_temp.beta_mutate((select id from beta_ids where name='b'),'invite','{"username":"betafixture0004"}');
+select public.challenge_report_scoped_v1(pg_temp.br(70100),(select id from beta_ids where name='a'),pg_temp.ba(4),'username');
+reset role;select public.challenge_grant_operator_v1(pg_temp.ba(40),(select id from beta_ids where name='b'),'moderate','2026-10-02T00:00Z');select pg_temp.login_beta(40);
+select is(jsonb_array_length(public.challenge_operator_reports_v1((select id from beta_ids where name='b'))),0,'overlapping roster does not expose differently scoped report');
+reset role;select public.challenge_grant_operator_v1(pg_temp.ba(40),(select id from beta_ids where name='a'),'moderate','2026-10-02T00:00Z');select pg_temp.login_beta(40);
+select is(jsonb_array_length(public.challenge_operator_reports_v1((select id from beta_ids where name='a'))),1,'matching report scope is visible');
+reset role;select pg_temp.clock_beta('2026-10-02T00:00Z');select pg_temp.login_beta(40);
+select throws_ok($$select public.challenge_operator_reports_v1((select id from beta_ids where name='a'))$$,'42501','challenge_operator_required','moderator grant expires exactly at deadline');
+reset role;select pg_temp.clock_beta('2026-10-01T12:00Z');select public.challenge_grant_support_v1(pg_temp.ba(39),'2026-10-02T00:00Z');
+select public.challenge_grant_support_v1(pg_temp.ba(38),'2026-10-02T00:00Z');select pg_temp.login_beta(39);
+select public.challenge_support_suspend_v1(pg_temp.br(70200),pg_temp.ba(4),'unsafe_behavior');
+select pg_temp.login_beta(4);select public.challenge_appeal_v1(pg_temp.br(70201));
+select pg_temp.login_beta(38);select public.challenge_resolve_appeal_v1(pg_temp.br(70202),pg_temp.br(70201),'reinstate');
+reset role;
+select ok((select exited_at is not null from app.challenge_members_v1 where challenge_id=(select id from beta_ids where name='a') and actor_id=pg_temp.ba(4)),'reinstatement never revives exited membership');
+select ok(not exists(select 1 from app.challenge_slots_v1 where actor_id=pg_temp.ba(4)),'reinstatement never recreates ended exposure');
+select pg_temp.clock_beta('2026-10-02T00:00Z');select pg_temp.login_beta(39);
+select throws_ok($$select public.challenge_support_reports_v1()$$,'42501','challenge_support_required','global support expiry equality enforced');
+reset role;
+select ok(not has_function_privilege('authenticated','app.challenge_mutate_unmetered_v1(uuid,jsonb)','execute'),'unmetered mutate unavailable to client');
+select ok(not has_function_privilege('authenticated','app.challenge_redeem_unmetered_v1(uuid,text)','execute'),'unmetered redemption unavailable to client');
+select * from finish();rollback;

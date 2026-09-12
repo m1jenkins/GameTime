@@ -40,11 +40,30 @@ import XCTest
             let required = policy.metric == .timed ? ["km"] : [policy.metric == .steps ? "steps" : policy.metric == .exercise ? "min" : "km"]
             try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
                               name: policy.id, height: 3000, required: required,
-                              forbidden: policy.mode == .community ? ["Maya", "Jordan", "joined"] : [])
+                              forbidden: policy.mode == .community ? ["Maya", "Jordan", "4 people joined"] : [])
             if policy.mode == .personal || policy.competition == .leaderboard {
                 XCTAssertEqual(row.members.allSatisfy { $0.target == nil }, !policy.hasTarget)
             }
         }
+    }
+
+    func testCommunityDelayedCountsInDetailAndJoin() async throws {
+        let fixture = CobaltFixture(); defer { fixture.clean() }
+        var row = fixture.row("community_steps_goal_v1")
+        let snapshot = ChallengeInstant(date: row.serverTime.date.addingTimeInterval(-900))
+        row.counts = .init(joined: 5, state: "available", asOf: snapshot)
+        fixture.rows = [row]; try await fixture.start()
+        try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
+                          name: "community-mature-detail", height: 2400,
+                          required: ["5 people joined", "15 minutes ago", "assigned moderator", "Report unsafe behavior"], forbidden: ["Maya", "Jordan"])
+        let community = ChallengeV1Community(id: row.id, terms: .object(["common_target": .integer(50000)]), digest: "fixture", serverTime: row.serverTime, joinedCount: 5, counts: row.counts)
+        try await capture(NavigationStack { ChallengeCommunityJoin(store: fixture.store, community: community) },
+                          name: "community-mature-join", required: ["5 people joined", "Join community challenge"])
+        row.counts = .init(joined: nil, state: "threshold", asOf: nil)
+        fixture.rows = [row]; try await fixture.start()
+        try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
+                          name: "community-threshold-detail", height: 2400,
+                          required: ["Participant totals stay hidden"], forbidden: ["5 people joined", "Maya", "Jordan"])
     }
 
     func testUnknownCorrectedTiedRedactedAndRecoveryPresentation() async throws {

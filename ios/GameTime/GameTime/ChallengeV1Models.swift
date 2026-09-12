@@ -33,7 +33,23 @@ struct ChallengeV1: Codable, Equatable, Identifiable, Sendable {
         let id: UUID; let reason: String; let filedAt: ChallengeInstant; let resolveBy: ChallengeInstant; let decision: String?
     }
     struct Final: Codable, Equatable, Sendable { let recordedAt: ChallengeInstant; let result: Allocation }
-    struct Counts: Codable, Equatable, Sendable { let joined: Int }
+    struct Counts: Codable, Equatable, Sendable {
+        let joined: Int?
+        var state: String? = nil
+        var asOf: ChallengeInstant? = nil
+
+        func disclosedJoined(at serverTime: ChallengeInstant) -> Int? {
+            guard state == "available", let joined, (5...250).contains(joined), let asOf,
+                  serverTime.microseconds - asOf.microseconds >= 900_000_000 else { return nil }
+            return joined
+        }
+        func text(at serverTime: ChallengeInstant) -> String {
+            if let joined = disclosedJoined(at: serverTime) {
+                return "\(joined.formatted()) people joined · updated at least 15 minutes ago."
+            }
+            return "Participant totals stay hidden until at least five people have joined and a delayed update is available."
+        }
+    }
     var counts: Counts? = nil
     let id: UUID; let creatorId: UUID?; let policy: String; let config: Window
     let status: String; let revision: Int; let agreementVersion: Int
@@ -103,9 +119,11 @@ struct ChallengeV1Receipt: Codable, Equatable, Sendable {
 }
 struct ChallengeV1Access: Decodable, Equatable, Sendable {
     let serverTime: ChallengeInstant?; let ageConfirmed: Bool; let betaAccess: Bool; let suspended: Bool
+    var appealFiled: Bool? = nil
 }
 struct ChallengeV1Community: Decodable, Equatable, Identifiable, Sendable {
-    let id: UUID; let terms: ChallengeJSON; let digest: String; let serverTime: ChallengeInstant; let joinedCount: Int
+    let id: UUID; let terms: ChallengeJSON; let digest: String; let serverTime: ChallengeInstant; let joinedCount: Int?
+    var counts: ChallengeV1.Counts? = nil
 }
 struct ChallengeV1Request: Codable, Equatable, Sendable {
     let kind: String; let actorId: UUID; let requestId: UUID; let payload: ChallengeJSON
@@ -128,6 +146,9 @@ enum ChallengeV1Error: Error, LocalizedError, Equatable {
         case .storage: "We couldn’t save your action on this phone. Free some space and try again."
         case .server(let reason):
             switch reason {
+            case "challenge_rate_limited": "You’ve tried several times. Wait a minute before trying again; invitation links and reports may need an hour. You can still read, leave or request a review."
+            case "challenge_join_closed": "This community challenge isn’t accepting your entry. Refresh to see the current options."
+            case "challenge_discovery_disabled": "Community joining is paused. You can still open a challenge you joined or leave it."
             case "challenge_age_required": "Confirm that you are 21 or older before continuing."
             case "challenge_link_unavailable": "This invitation is unavailable. Ask the creator for a new link."
             case "challenge_stale": "The challenge changed. Refresh, then review the latest rules."
