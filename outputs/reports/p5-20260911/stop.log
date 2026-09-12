@@ -1,0 +1,6 @@
+Using workdir /private/tmp/gametime-p5-20260911/stack
+Stopping containers...
+Stopped supabase local development setup.
+A new version of Supabase CLI is available: v2.117.0 (currently installed v2.109.1)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+Local data are backed up to docker volume. Use docker to show them: docker volume ls --filter label=com.supabase.cli.project=gametime-p5-20260911

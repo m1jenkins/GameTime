@@ -39,7 +39,10 @@ The preparation report for this cleanup is
 [here](../outputs/reports/2026-09-11-beta-simplification.md).
 Final P4 source, validation and limitations are in the
 [completion report](../outputs/reports/2026-09-11-p4-completion.md).
-P5/P6 remain unstarted; reconcile this completed branch before any later task.
+P5 is now locally completed at `e0a94bd793e4720ae04795760d614b049005618b` on
+`codex/bounded-queries-p5`, based on completed P4 `369e7b90dfeb74314244a923a87864e368348412`.
+See [P5 measurements/checks and handoff](../outputs/reports/2026-09-11-p5-completion.md).
+P6 remains unstarted. Product main and the retained P4 checkout have not moved.
 
 ## Product requirements stay intact
 
@@ -89,7 +92,7 @@ behavior is untested.
 | Prompt | Deliverable | Dependency |
 | --- | --- | --- |
 | 4 | Completed locally: scoped locks, durable bounded claims and cancelled-work fix | Isolated result above; not landed on product main |
-| 5 | Bound expensive queries/history; measured indexes | P4 correctness accepted |
+| 5 | Completed locally: bounded history keysets and measured query/index improvements | Isolated P5 result above; not landed on product main |
 | 6 | Community disclosure, 250 capacity, moderator boundaries and quotas | P4/P5 accepted locally |
 | 7 | Physical source decisions | Device opt-in and owner participation; may accompany unrelated local work |
 | 8 | Versioned minimal-fact ingestion | Accepted source policies |

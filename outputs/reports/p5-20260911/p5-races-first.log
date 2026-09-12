@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/private/tmp/gametime-p5-20260911/GameTime/scripts/beta-p5-pagination-races.py", line 78, in <module>
+    if __name__=='__main__':main()
+  File "/private/tmp/gametime-p5-20260911/GameTime/scripts/beta-p5-pagination-races.py", line 50, in main
+    if db.query(f"select exists(select 1 from pg_locks where locktype='advisory' and objid={key} and not granted)").strip()=='t':break
+  File "/private/tmp/gametime-p5-20260911/GameTime/scripts/beta-p5-pagination-races.py", line 22, in query
+    def query(self,sql):self.start(sql);return self.finish()
+  File "/private/tmp/gametime-p5-20260911/GameTime/scripts/beta-p5-pagination-races.py", line 21, in finish
+    raise TimeoutError('P5 SQL session timed out')
+TimeoutError: P5 SQL session timed out

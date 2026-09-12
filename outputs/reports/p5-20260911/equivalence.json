@@ -1,0 +1,17 @@
+{
+  "work": {
+    "equal": true,
+    "sha256": "f203a6603fe9aea3ab6ea8e91bf505a6b56ce67623e61dbfeb9f36580e6b7a7d",
+    "items": 1000
+  },
+  "history_order": {
+    "equal": true,
+    "sha256": "7c9646d448dfbffd43439516fff50ae9898547b07ee62bf781a91baf7cf4acd7",
+    "items": 10025
+  },
+  "projections": {
+    "equal": true,
+    "sha256": "422167ed2df1196dc031354ce5df2636e4aef2597efecde19c37148e2d04a06c",
+    "items": 50
+  }
+}

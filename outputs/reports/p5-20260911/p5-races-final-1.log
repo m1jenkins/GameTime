@@ -1,0 +1,10 @@
+{
+  "passed": 5,
+  "checks": [
+    "history: wall expiry during page generation rejected",
+    "upcoming: wall expiry during page generation rejected",
+    "safe cancellation commits while history read waits",
+    "concurrent history insertion expires in-flight page",
+    "fresh page includes newly cancelled agreement"
+  ]
+}

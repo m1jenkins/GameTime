@@ -1,0 +1,45 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+on
+psql:supabase/tests/505_challenge_bounded_queries.test.sql:12: ERROR:  record "new" has no field "id"
+CONTEXT:  PL/pgSQL assignment "cid:=case when tg_table_name='challenge_lobbies_v1' then new.id else new.challenge_id end"
+PL/pgSQL function app.challenge_refresh_history_v1() line 4 at assignment

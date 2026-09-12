@@ -1,0 +1,12 @@
+{
+  "project": "gametime-p5-20260911",
+  "stopped": true,
+  "gates_false_before_stop": true,
+  "retained_db_volume": "supabase_db_gametime-p5-20260911",
+  "retained_network": "gametime-p5-20260911",
+  "other_resources_preserved": [
+    "gdluxx",
+    "supabase_studio_gametime",
+    "supabase_storage_gametime"
+  ]
+}

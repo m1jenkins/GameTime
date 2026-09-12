@@ -1,0 +1,14 @@
+home_history {'warm_median_ms': 10.264, 'warm_p95_ms': 10.377, 'first_ms': 10.816, 'shared_hits': 5548, 'shared_reads': 0}
+home_active {'warm_median_ms': 2.215, 'warm_p95_ms': 2.238, 'first_ms': 2.264, 'shared_hits': 1992, 'shared_reads': 0}
+home_upcoming {'warm_median_ms': 2.3015, 'warm_p95_ms': 2.367, 'first_ms': 2.221, 'shared_hits': 1992, 'shared_reads': 0}
+home_action {'warm_median_ms': 2.3739999999999997, 'warm_p95_ms': 2.483, 'first_ms': 2.346, 'shared_hits': 1998, 'shared_reads': 0}
+detail {'warm_median_ms': 2.6174999999999997, 'warm_p95_ms': 2.676, 'first_ms': 2.729, 'shared_hits': 2310, 'shared_reads': 0}
+work_inventory {'warm_median_ms': 1.428, 'warm_p95_ms': 1.527, 'first_ms': 1.4, 'shared_hits': 1401, 'shared_reads': 0}
+worker_status {'warm_median_ms': 1.9609999999999999, 'warm_p95_ms': 2.1, 'first_ms': 2.017, 'shared_hits': 1907, 'shared_reads': 0}
+Traceback (most recent call last):
+  File "/private/tmp/gametime-p5-20260911/measure.py", line 25, in <module>
+    result=json.loads(q('begin;'+setup+'explain(analyze,buffers,wal,format json) '+sql+';rollback;'))
+  File "/private/tmp/gametime-p5-20260911/measure.py", line 6, in q
+    if p.returncode:raise RuntimeError(p.stderr)
+RuntimeError: ERROR:  challenge_fixture_disabled
+CONTEXT:  PL/pgSQL function public.challenge_claim_batch_v1(uuid,integer) line 18 at RAISE

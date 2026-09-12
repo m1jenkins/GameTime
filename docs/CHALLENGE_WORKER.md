@@ -43,8 +43,11 @@ request; five bounded lanes isolate individual request failures. The operator
 uses a five-second network timeout and a default limit of 20.
 
 Claims are limited to 1–50 coordination rows with `FOR UPDATE SKIP LOCKED`.
-Discovery evaluates the work inventory once per batch. It does not tick a
-challenge or hold challenge/profile locks. The run ID has an immutable receipt;
+P5 discovery filters terminal history through a partial live-lobby index, checks
+availability once per distinct live actor, and joins directed block edges as sets.
+It still reads the eligible live inventory once per batch; exact status counts
+also remain linear in live work. It does not tick a challenge or hold
+challenge/profile locks. The run ID has an immutable receipt;
 an exact retry returns the same tokens and a changed limit is rejected.
 
 Each challenge has one private durable coordination row. Leases last 60 wall
@@ -83,3 +86,24 @@ items, so silently keeping that execution path would defeat the new contract.
 The P2 harness remains unchanged for its historical baseline; its P4 comparison
 adapter uses the new driver. SQL test adapters exercise behavior inside rollback
 transactions; the real-session and HTTP runs establish transaction isolation.
+
+## P5 history and projection bounds
+
+New history pages use a private ordering projection and keyset ranges preserving
+`coalesce(final.recorded_at, ends_at) DESC, starts_at, id`. A page requests at most
+50 rows plus one lookahead; server cursor records contain no history ID array.
+The cursor stays actor/section-bound with a two-minute lifetime. If a new history
+entry, exit or final changes that actor's history ordering, the next page returns
+`challenge_page_expired`; refresh starts the new order. It never silently skips
+or duplicates a changed agreement. Existing offset snapshots remain readable
+through their original lifetime. Other sections keep their existing snapshots.
+
+Every row uses current membership/privacy projection. Sections validate the
+session before reading and again before returning, including wall-clock expiry
+during slow work. The private actor-parameter projector is not callable by clients.
+Neither social content nor facts are copied into ordering metadata. Member changes
+refresh only that member; lobby/final ordering changes refresh the affected roster.
+The original agreements, consent, facts, results and immutable retries are intact.
+
+The measurements and remaining query bounds are recorded in the
+[P5 completion report](../outputs/reports/2026-09-11-p5-completion.md).

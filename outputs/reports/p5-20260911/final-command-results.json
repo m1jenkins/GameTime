@@ -1,0 +1,108 @@
+[
+  {
+    "name": "p4-races-final-1",
+    "command": [
+      "python3",
+      "scripts/beta-scoped-locks-p4-concurrency.py",
+      "--db-url",
+      "postgresql://postgres:postgres@127.0.0.1:59622/postgres",
+      "--owned-root",
+      "/private/tmp/gametime-p5-20260911/stack",
+      "--owned-project",
+      "gametime-p5-20260911"
+    ],
+    "exit_code": 0,
+    "seconds": 7.4305812079999995
+  },
+  {
+    "name": "p5-races-final-1",
+    "command": [
+      "python3",
+      "scripts/beta-p5-pagination-races.py",
+      "--db-url",
+      "postgresql://postgres:postgres@127.0.0.1:59622/postgres",
+      "--owned-root",
+      "/private/tmp/gametime-p5-20260911/stack",
+      "--owned-project",
+      "gametime-p5-20260911"
+    ],
+    "exit_code": 0,
+    "seconds": 2.417425250000001
+  },
+  {
+    "name": "p4-races-final-2",
+    "command": [
+      "python3",
+      "scripts/beta-scoped-locks-p4-concurrency.py",
+      "--db-url",
+      "postgresql://postgres:postgres@127.0.0.1:59622/postgres",
+      "--owned-root",
+      "/private/tmp/gametime-p5-20260911/stack",
+      "--owned-project",
+      "gametime-p5-20260911"
+    ],
+    "exit_code": 0,
+    "seconds": 7.407180457999999
+  },
+  {
+    "name": "p5-races-final-2",
+    "command": [
+      "python3",
+      "scripts/beta-p5-pagination-races.py",
+      "--db-url",
+      "postgresql://postgres:postgres@127.0.0.1:59622/postgres",
+      "--owned-root",
+      "/private/tmp/gametime-p5-20260911/stack",
+      "--owned-project",
+      "gametime-p5-20260911"
+    ],
+    "exit_code": 0,
+    "seconds": 2.419904958
+  },
+  {
+    "name": "direct-lint",
+    "command": [
+      "psql",
+      "postgresql://postgres:postgres@127.0.0.1:59622/postgres",
+      "-XqAt",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-f",
+      "outputs/reports/p4-20260911/direct-lint.sql"
+    ],
+    "exit_code": 0,
+    "seconds": 0.13662012500000031
+  },
+  {
+    "name": "advisors",
+    "command": [
+      "supabase",
+      "db",
+      "advisors",
+      "--db-url",
+      "postgresql://postgres:postgres@127.0.0.1:59622/postgres",
+      "--type",
+      "all",
+      "--fail-on",
+      "error"
+    ],
+    "exit_code": 1,
+    "seconds": 0.9843520419999976
+  },
+  {
+    "name": "cli-lint",
+    "command": [
+      "supabase",
+      "db",
+      "lint",
+      "--db-url",
+      "postgresql://postgres:postgres@127.0.0.1:59622/postgres",
+      "--schema",
+      "app,public",
+      "--fail-on",
+      "error"
+    ],
+    "exit_code": 1,
+    "seconds": 0.8478205410000008
+  }
+]

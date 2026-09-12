@@ -1,0 +1,20 @@
+begin;
+set search_path=public,extensions;
+select no_plan();
+create function pg_temp.p5_digest(s text,t text) returns text language plpgsql as $$declare d text;begin
+ execute format('select md5(coalesce(jsonb_agg(to_jsonb(r)-''history_revision'' order by (to_jsonb(r)-''history_revision'')::text)::text,''[]'')) from %I.%I r',s,t) into d;return d;
+end $$;
+select is(pg_temp.p5_digest(schema_name,table_name),digest,schema_name||'.'||table_name||' old rows preserved') from p5_upgrade_evidence.snapshots order by schema_name,table_name;
+select ok((select count(*)>0 from app.weekly_agreements),'historical weekly agreements existed before upgrade');
+select ok((select count(*)>0 from app.challenge_agreements_v1),'historical Beta agreements existed before upgrade');
+select is(public.challenge_run_batch_v1(md5('p5-recent-failure')::uuid,20),'{"failed_count":3}'::jsonb,'old receipt remains exact');
+select is(public.challenge_operations_status_v1()->>'recent_failures','3','historical failure count preserved');
+select is((select count(*) from app.challenge_history_v1),(select count(*) from app.challenge_lobbies_v1 c join app.challenge_members_v1 m on m.challenge_id=c.id where m.exited_at is not null or c.status in ('final','void','cancelled')),'all pre-upgrade histories indexed');
+select set_config('request.jwt.claims',(select jsonb_build_object('sub',id,'session_id',session_id)::text from challenge_load_fixture.actors where ordinal=0),true);
+select set_config('request.jwt.claim.sub',(select id::text from challenge_load_fixture.actors where ordinal=0),true);
+create temp table expected(value text);
+insert into expected select p.ids[2]::text from app.challenge_pages_v1 p join p5_upgrade_evidence.old_cursor o on p.id=(o.value->>'projection_revision')::uuid;
+grant all on expected to authenticated;
+set local role authenticated;
+select is(public.challenge_section_v1('history',(select value->'next_cursor' from p5_upgrade_evidence.old_cursor),1)->'rows'->0->>'id',(select value from expected),'pre-upgrade offset cursor resumes original ordering');
+select * from finish();rollback;

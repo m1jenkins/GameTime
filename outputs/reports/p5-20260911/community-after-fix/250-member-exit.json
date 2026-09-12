@@ -1,0 +1,450 @@
+[
+  {
+    "plan": {
+      "Plan": {
+        "Node Type": "ModifyTable",
+        "Operation": "Update",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Relation Name": "challenge_members_v1",
+        "Alias": "challenge_members_v1",
+        "Startup Cost": 0.29,
+        "Total Cost": 8.3,
+        "Plan Rows": 0,
+        "Plan Width": 0,
+        "Actual Startup Time": 1.873,
+        "Actual Total Time": 1.873,
+        "Actual Rows": 0,
+        "Actual Loops": 1,
+        "Shared Hit Blocks": 3361,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 2,
+        "Shared Written Blocks": 2,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0,
+        "WAL Records": 1218,
+        "WAL FPI": 0,
+        "WAL Bytes": 96002,
+        "Plans": [
+          {
+            "Node Type": "Index Scan",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Scan Direction": "Forward",
+            "Index Name": "challenge_members_v1_pkey",
+            "Relation Name": "challenge_members_v1",
+            "Alias": "challenge_members_v1",
+            "Startup Cost": 0.29,
+            "Total Cost": 8.3,
+            "Plan Rows": 1,
+            "Plan Width": 14,
+            "Actual Startup Time": 0.003,
+            "Actual Total Time": 0.036,
+            "Actual Rows": 250,
+            "Actual Loops": 1,
+            "Index Cond": "(challenge_id = 'b46a07fb-4e96-ff4c-5631-4b8b6add537d'::uuid)",
+            "Rows Removed by Index Recheck": 0,
+            "Shared Hit Blocks": 167,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "WAL Records": 0,
+            "WAL FPI": 0,
+            "WAL Bytes": 0
+          }
+        ]
+      },
+      "Planning": {
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 0.027,
+      "Triggers": [
+        {
+          "Trigger Name": "RI_ConstraintTrigger_c_23191",
+          "Constraint Name": "challenge_members_v1_challenge_id_fkey",
+          "Relation": "challenge_members_v1",
+          "Time": 0.643,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "RI_ConstraintTrigger_c_23196",
+          "Constraint Name": "challenge_members_v1_actor_id_fkey",
+          "Relation": "challenge_members_v1",
+          "Time": 0.607,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "challenge_guard",
+          "Relation": "challenge_members_v1",
+          "Time": 0.968,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "challenge_history_member",
+          "Relation": "challenge_members_v1",
+          "Time": 15.999,
+          "Calls": 250
+        }
+      ],
+      "Execution Time": 19.159
+    },
+    "history_rows": 250,
+    "transaction_wal_bytes": 236656
+  },
+  {
+    "plan": {
+      "Plan": {
+        "Node Type": "ModifyTable",
+        "Operation": "Update",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Relation Name": "challenge_members_v1",
+        "Alias": "challenge_members_v1",
+        "Startup Cost": 0.29,
+        "Total Cost": 8.3,
+        "Plan Rows": 0,
+        "Plan Width": 0,
+        "Actual Startup Time": 2.125,
+        "Actual Total Time": 2.125,
+        "Actual Rows": 0,
+        "Actual Loops": 1,
+        "Shared Hit Blocks": 3418,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 2,
+        "Shared Written Blocks": 2,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0,
+        "WAL Records": 1262,
+        "WAL FPI": 0,
+        "WAL Bytes": 99168,
+        "Plans": [
+          {
+            "Node Type": "Index Scan",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Scan Direction": "Forward",
+            "Index Name": "challenge_members_v1_pkey",
+            "Relation Name": "challenge_members_v1",
+            "Alias": "challenge_members_v1",
+            "Startup Cost": 0.29,
+            "Total Cost": 8.3,
+            "Plan Rows": 1,
+            "Plan Width": 14,
+            "Actual Startup Time": 0.002,
+            "Actual Total Time": 0.034,
+            "Actual Rows": 250,
+            "Actual Loops": 1,
+            "Index Cond": "(challenge_id = 'b46a07fb-4e96-ff4c-5631-4b8b6add537d'::uuid)",
+            "Rows Removed by Index Recheck": 0,
+            "Shared Hit Blocks": 140,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "WAL Records": 0,
+            "WAL FPI": 0,
+            "WAL Bytes": 0
+          }
+        ]
+      },
+      "Planning": {
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 0.014,
+      "Triggers": [
+        {
+          "Trigger Name": "RI_ConstraintTrigger_c_23191",
+          "Constraint Name": "challenge_members_v1_challenge_id_fkey",
+          "Relation": "challenge_members_v1",
+          "Time": 0.632,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "RI_ConstraintTrigger_c_23196",
+          "Constraint Name": "challenge_members_v1_actor_id_fkey",
+          "Relation": "challenge_members_v1",
+          "Time": 0.618,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "challenge_guard",
+          "Relation": "challenge_members_v1",
+          "Time": 0.936,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "challenge_history_member",
+          "Relation": "challenge_members_v1",
+          "Time": 16.455,
+          "Calls": 250
+        }
+      ],
+      "Execution Time": 19.868
+    },
+    "history_rows": 250,
+    "transaction_wal_bytes": 240008
+  },
+  {
+    "plan": {
+      "Plan": {
+        "Node Type": "ModifyTable",
+        "Operation": "Update",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Relation Name": "challenge_members_v1",
+        "Alias": "challenge_members_v1",
+        "Startup Cost": 0.29,
+        "Total Cost": 8.3,
+        "Plan Rows": 0,
+        "Plan Width": 0,
+        "Actual Startup Time": 2.891,
+        "Actual Total Time": 2.891,
+        "Actual Rows": 0,
+        "Actual Loops": 1,
+        "Shared Hit Blocks": 3401,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 5,
+        "Shared Written Blocks": 4,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0,
+        "WAL Records": 1244,
+        "WAL FPI": 1,
+        "WAL Bytes": 113485,
+        "Plans": [
+          {
+            "Node Type": "Index Scan",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Scan Direction": "Forward",
+            "Index Name": "challenge_members_v1_pkey",
+            "Relation Name": "challenge_members_v1",
+            "Alias": "challenge_members_v1",
+            "Startup Cost": 0.29,
+            "Total Cost": 8.3,
+            "Plan Rows": 1,
+            "Plan Width": 14,
+            "Actual Startup Time": 0.002,
+            "Actual Total Time": 0.037,
+            "Actual Rows": 250,
+            "Actual Loops": 1,
+            "Index Cond": "(challenge_id = 'b46a07fb-4e96-ff4c-5631-4b8b6add537d'::uuid)",
+            "Rows Removed by Index Recheck": 0,
+            "Shared Hit Blocks": 173,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "WAL Records": 0,
+            "WAL FPI": 0,
+            "WAL Bytes": 0
+          }
+        ]
+      },
+      "Planning": {
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 0.017,
+      "Triggers": [
+        {
+          "Trigger Name": "RI_ConstraintTrigger_c_23191",
+          "Constraint Name": "challenge_members_v1_challenge_id_fkey",
+          "Relation": "challenge_members_v1",
+          "Time": 0.643,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "RI_ConstraintTrigger_c_23196",
+          "Constraint Name": "challenge_members_v1_actor_id_fkey",
+          "Relation": "challenge_members_v1",
+          "Time": 0.594,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "challenge_guard",
+          "Relation": "challenge_members_v1",
+          "Time": 0.928,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "challenge_history_member",
+          "Relation": "challenge_members_v1",
+          "Time": 16.274,
+          "Calls": 250
+        }
+      ],
+      "Execution Time": 20.433
+    },
+    "history_rows": 250,
+    "transaction_wal_bytes": 257040
+  },
+  {
+    "plan": {
+      "Plan": {
+        "Node Type": "ModifyTable",
+        "Operation": "Update",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Relation Name": "challenge_members_v1",
+        "Alias": "challenge_members_v1",
+        "Startup Cost": 0.29,
+        "Total Cost": 8.3,
+        "Plan Rows": 0,
+        "Plan Width": 0,
+        "Actual Startup Time": 2.034,
+        "Actual Total Time": 2.034,
+        "Actual Rows": 0,
+        "Actual Loops": 1,
+        "Shared Hit Blocks": 3405,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 3,
+        "Shared Written Blocks": 3,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0,
+        "WAL Records": 1250,
+        "WAL FPI": 0,
+        "WAL Bytes": 98417,
+        "Plans": [
+          {
+            "Node Type": "Index Scan",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Scan Direction": "Forward",
+            "Index Name": "challenge_members_v1_pkey",
+            "Relation Name": "challenge_members_v1",
+            "Alias": "challenge_members_v1",
+            "Startup Cost": 0.29,
+            "Total Cost": 8.3,
+            "Plan Rows": 1,
+            "Plan Width": 14,
+            "Actual Startup Time": 0.006,
+            "Actual Total Time": 0.036,
+            "Actual Rows": 250,
+            "Actual Loops": 1,
+            "Index Cond": "(challenge_id = 'b46a07fb-4e96-ff4c-5631-4b8b6add537d'::uuid)",
+            "Rows Removed by Index Recheck": 0,
+            "Shared Hit Blocks": 145,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "WAL Records": 0,
+            "WAL FPI": 0,
+            "WAL Bytes": 0
+          }
+        ]
+      },
+      "Planning": {
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 0.012,
+      "Triggers": [
+        {
+          "Trigger Name": "RI_ConstraintTrigger_c_23191",
+          "Constraint Name": "challenge_members_v1_challenge_id_fkey",
+          "Relation": "challenge_members_v1",
+          "Time": 0.624,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "RI_ConstraintTrigger_c_23196",
+          "Constraint Name": "challenge_members_v1_actor_id_fkey",
+          "Relation": "challenge_members_v1",
+          "Time": 0.639,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "challenge_guard",
+          "Relation": "challenge_members_v1",
+          "Time": 1.006,
+          "Calls": 250
+        },
+        {
+          "Trigger Name": "challenge_history_member",
+          "Relation": "challenge_members_v1",
+          "Time": 16.207,
+          "Calls": 250
+        }
+      ],
+      "Execution Time": 19.534
+    },
+    "history_rows": 250,
+    "transaction_wal_bytes": 239136
+  }
+]

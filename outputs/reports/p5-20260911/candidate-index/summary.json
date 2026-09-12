@@ -1,0 +1,72 @@
+{
+  "home_history": {
+    "warm_median_ms": 11.5595,
+    "warm_p95_ms": 13.028,
+    "first_ms": 17.524,
+    "shared_hits": 5034,
+    "shared_reads": 0
+  },
+  "home_active": {
+    "warm_median_ms": 2.6319999999999997,
+    "warm_p95_ms": 2.991,
+    "first_ms": 2.513,
+    "shared_hits": 1952,
+    "shared_reads": 0
+  },
+  "home_upcoming": {
+    "warm_median_ms": 9.7715,
+    "warm_p95_ms": 10.123,
+    "first_ms": 9.983,
+    "shared_hits": 4332,
+    "shared_reads": 0
+  },
+  "home_action": {
+    "warm_median_ms": 2.7910000000000004,
+    "warm_p95_ms": 3.002,
+    "first_ms": 2.779,
+    "shared_hits": 1960,
+    "shared_reads": 0
+  },
+  "detail": {
+    "warm_median_ms": 2.9299999999999997,
+    "warm_p95_ms": 3.271,
+    "first_ms": 3.025,
+    "shared_hits": 2310,
+    "shared_reads": 0
+  },
+  "work_inventory": {
+    "warm_median_ms": 9.873999999999999,
+    "warm_p95_ms": 10.315,
+    "first_ms": 10.514,
+    "shared_hits": 12280,
+    "shared_reads": 0
+  },
+  "worker_status": {
+    "warm_median_ms": 11.331,
+    "warm_p95_ms": 12.036,
+    "first_ms": 12.297,
+    "shared_hits": 13128,
+    "shared_reads": 0
+  },
+  "claim_batch": {
+    "warm_median_ms": 13.563500000000001,
+    "warm_p95_ms": 14.067,
+    "first_ms": 14.364,
+    "shared_hits": 14308,
+    "shared_reads": 0
+  },
+  "history_ids": {
+    "warm_median_ms": 9.0115,
+    "warm_p95_ms": 9.312,
+    "first_ms": 8.991,
+    "shared_hits": 861,
+    "shared_reads": 0
+  },
+  "recent_failures": {
+    "warm_median_ms": 0.0285,
+    "warm_p95_ms": 0.032,
+    "first_ms": 0.041,
+    "shared_hits": 3,
+    "shared_reads": 0
+  }
+}

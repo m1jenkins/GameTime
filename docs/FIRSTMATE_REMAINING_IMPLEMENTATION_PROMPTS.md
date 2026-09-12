@@ -6,8 +6,11 @@ is historical. Prompts 0, 0A and 3 are complete; Prompt 2 evidence is available.
 Prompt 4 is now completed and locally verified on the isolated continuation at
 `b67776c8b3fc1173f4e7f44bd794db9f81b2b7a0`; see its
 [completion report](../outputs/reports/2026-09-11-p4-completion.md).
+Prompt 5 is also locally completed at `e0a94bd793e4720ae04795760d614b049005618b`
+on `codex/bounded-queries-p5`; see its
+[completion report](../outputs/reports/2026-09-11-p5-completion.md).
 Product main has not moved. Reconcile that result before later work; do not
-restart P4 or automatically start P5/P6. The task text below is retained for its
+restart P4/P5 or automatically start P6. The task text below is retained for its
 contract. Use the common instructions with one requested task at a time.
 
 ## Common instructions

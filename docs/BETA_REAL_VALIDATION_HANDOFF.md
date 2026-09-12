@@ -1,5 +1,26 @@
 # Real-activity continuation — c8 handoff
 
+## Current local handoff — September 11, P5
+
+P5 is locally completed on `codex/bounded-queries-p5` at
+`e0a94bd793e4720ae04795760d614b049005618b`, from exact completed P4
+`369e7b90dfeb74314244a923a87864e368348412`. The dedicated checkout is
+`/private/tmp/gametime-p5-20260911/GameTime`. Read the
+[P5 completion report](../outputs/reports/2026-09-11-p5-completion.md) for final
+measurements, 88-file/3,998-assertion SQL pass, repeated actual-session races,
+194-assertion upgrade, storage/write costs and blocked CLI checks.
+
+History cursors now use bounded keysets and expire if the actor's history order
+changes; privacy is still projected live. Old offset cursors retain their original
+lifetime. Live discovery remains linear in the eligible live set. P2 failures
+and P4 limitations remain historical evidence, not new passes.
+
+Product main remains `affd367ebe5411969fd5b7abd45629e0746a5a7d`; the original dirty
+checkout and completed P4 branch are unchanged. **Stop after P5. P6 has not started.**
+Use the current remaining plan for the next separately requested task. No source,
+hosted, payment, distribution or human-acceptance gate opened. The c8 resources
+and instructions below are historical and are not this task's database.
+
 The continuation fixes five reproduced lifecycle/privacy defects and refines native
 loading, errors and labeled forms. It remains a local fictional candidate.
 **No physical source is accepted; Beta is not finished.** See [exact acceptance

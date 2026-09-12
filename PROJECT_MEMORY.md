@@ -1,5 +1,20 @@
 # GameTime project memory
 
+## Prompt 5 local completion — September 11, 2026
+
+Bounded history keysets, shared private row projection and measured set-based
+worker discovery are implemented and locally verified at
+`e0a94bd793e4720ae04795760d614b049005618b` on `codex/bounded-queries-p5`, in
+`/private/tmp/gametime-p5-20260911/GameTime`, based exactly on completed P4
+`369e7b90dfeb74314244a923a87864e368348412`. The
+[completion report](outputs/reports/2026-09-11-p5-completion.md) records identical
+fixtures/plans, latency and storage/write cost, 3,998 SQL assertions, actual-session
+races and old-data upgrade proof. New history cursors explicitly expire when
+history ordering changes; old offset cursors retain their original lifetime.
+CLI advisors/lint remain blocked; live discovery still scans the live eligible
+set. Product main and the original dirty/P4 checkouts are preserved. P6 remains
+unstarted; no hosted/source/money/distribution gate opened.
+
 ## Prompt 4 local completion — September 11, 2026
 
 Scoped read/mutation locks, durable bounded claims and cancelled-work exclusion
@@ -9,7 +24,7 @@ are implemented and locally verified at
 [completion report](outputs/reports/2026-09-11-p4-completion.md) records final-source
 tests, before/after measurements, preserved failures and limitations. The separate
 product main remains `affd367ebe5411969fd5b7abd45629e0746a5a7d`; local completion
-does not imply landing or rollout. Prompt 5 and Prompt 6 remain unstarted.
+does not imply landing or rollout. At P4 completion, P5/P6 were unstarted; current P5 status is above.
 
 ## Simplified local execution — September 11, 2026
 
