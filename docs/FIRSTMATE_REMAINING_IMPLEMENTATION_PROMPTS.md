@@ -1,5 +1,15 @@
 # GameTime remaining prompts
 
+## P7 preparation — physical session pending
+
+P7 has an isolated continuation at `/private/tmp/gametime-p7-20260912/GameTime`,
+branch `codex/physical-source-p7`, from P6 handoff commit
+`39e5f202ab0eae0ac6c23cb784afd3df28d1ad37`. Its signed Debug device build and
+iPhone product checks passed. Read the [P7 checkpoint](../outputs/reports/2026-09-12-p7-preparation.md)
+before continuing. No physical session, installation or Health read has run;
+explicit opt-in naming the iPhone and paired Watch is still required. All source
+gates remain closed. The P6 status below is its preserved earlier handoff.
+
 ## Current local handoff — P6 complete
 
 P6 is locally completed on `codex/private-community-p6`, implementation

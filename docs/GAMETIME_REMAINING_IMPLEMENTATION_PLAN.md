@@ -1,5 +1,14 @@
 # GameTime remaining implementation plan
 
+## P7 preparation — physical session pending
+
+The isolated `codex/physical-source-p7` continuation starts from P6 handoff commit
+`39e5f202ab0eae0ac6c23cb784afd3df28d1ad37`. A signed Debug device build is ready;
+physical observations and source acceptance remain unperformed. Continue from
+the [P7 checkpoint](../outputs/reports/2026-09-12-p7-preparation.md) after the
+owner names and opts in the iPhone and paired Watch. P8 remains dependent on
+accepted source policies. The P6 status below is its preserved earlier handoff.
+
 ## Current local handoff — P6 complete
 
 P6 is locally completed on `codex/private-community-p6`, implementation
