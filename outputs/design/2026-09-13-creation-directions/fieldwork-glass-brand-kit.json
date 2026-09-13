@@ -1,0 +1,328 @@
+{
+  "theme": "fieldwork_glass",
+  "provider": "Higgsfield Marketing Studio",
+  "brand_kit_id": "f86e0493-f35b-462e-9a08-ff72c072c1b8",
+  "status": "completed",
+  "created_at": "2026-09-13T03:58:05.237616Z",
+  "design_status": "Owner selected Fieldwork for continued ideation. Fieldwork Glass remains a proposed design exploration, not final native implementation approval.",
+  "sources": [
+    "outputs/design/2026-09-13-creation-directions/FIELDWORK_GLASS.md",
+    "outputs/design/2026-09-13-creation-directions/README.md",
+    "/Users/user/.codex/visualizations/2026/09/13/01a098a6-d4c5-7e50-854d-66187c883295/fieldwork-glass.html",
+    "docs/COPY.md",
+    "docs/BUSINESS_MODEL.md",
+    "docs/BETA_IMPLEMENTATION_PLAN.md",
+    "docs/WORKING_BASELINE.md"
+  ],
+  "brand_kit": {
+    "brand_name": "GameTime — Fieldwork Glass",
+    "website_url": null,
+    "logo": null,
+    "business_overview": "GameTime's adopted product direction centers on friend challenges and personal performance commitments. The Fieldwork Glass design exploration expresses an inviting sports club with the clarity of a score sheet: athletic progress, plain rules, readable results and voluntary participation. This kit records the owner's selected direction for continued ideation and the existing prototype's proposed styling; it is not a final native redesign approval or a claim of launch readiness. Current Beta amounts are nonredeemable simulation. Real activity source acceptance and normal signed-in challenge availability remain gated.",
+    "short_description": "fieldwork_glass: warm paper, deep club green, condensed athletic typography and restrained citrus, with floating glass controls.",
+    "tagline": null,
+    "fonts": [
+      {
+        "name": "Barlow Condensed",
+        "type": "Condensed sans serif",
+        "usage": "Existing concept display study: 600 for major activity numbers, 700 for short headings, 800 for the typographic GameTime wordmark. Keep away from long paragraphs, dates, rules and consent. Native font bundling and Dynamic Type are not yet selected."
+      },
+      {
+        "name": "DM Sans",
+        "type": "Sans serif",
+        "usage": "Existing concept body/control study: 400 regular body; 500 supporting controls; 600 emphasis and monograms; 700 selected states. Use for dates, explanations, rules, controls and aligned tabular values. Native implementation remains a separate decision."
+      }
+    ],
+    "colors": [
+      {
+        "hex": "#F5F3EC",
+        "rgb": "245, 243, 236",
+        "usage": "Light canvas; dominant quiet background",
+        "name": "Warm chalk",
+        "role": "canvas",
+        "appearance": "light"
+      },
+      {
+        "hex": "#193B32",
+        "rgb": "25, 59, 50",
+        "usage": "Signature club-board header and friend challenge feature; same in both appearances",
+        "name": "Club green",
+        "role": "club-board",
+        "appearance": "both"
+      },
+      {
+        "hex": "#D9EE92",
+        "rgb": "217, 238, 146",
+        "usage": "Large own activity numbers and faint oval lane art on the club board; restrained emphasis",
+        "name": "Citrus on green",
+        "role": "club-board-accent",
+        "appearance": "both"
+      },
+      {
+        "hex": "#F4F5DE",
+        "rgb": "244, 245, 222",
+        "usage": "Headings, dates and supporting text on the club board",
+        "name": "Cream on green",
+        "role": "club-board-text",
+        "appearance": "both"
+      },
+      {
+        "hex": "#162837",
+        "rgb": "22, 40, 55",
+        "usage": "Primary text on light backgrounds",
+        "name": "Ink",
+        "role": "text-primary",
+        "appearance": "light"
+      },
+      {
+        "hex": "#193B31",
+        "rgb": "25, 59, 49",
+        "usage": "Primary actions and selected-control emphasis in light appearance",
+        "name": "Action green",
+        "role": "action",
+        "appearance": "light"
+      },
+      {
+        "hex": "#FCFFF5",
+        "rgb": "252, 255, 245",
+        "usage": "Text on light-appearance green primary actions",
+        "name": "Action text",
+        "role": "action-text",
+        "appearance": "light"
+      },
+      {
+        "hex": "#E7EBDF",
+        "rgb": "231, 235, 223",
+        "usage": "Selected rows, personal-goal panels and quiet emphasis",
+        "name": "Soft sage",
+        "role": "selection",
+        "appearance": "light"
+      },
+      {
+        "hex": "#D9EF85",
+        "rgb": "217, 239, 133",
+        "usage": "Small supporting accent from the original Fieldwork theme",
+        "name": "Fieldwork citrus",
+        "role": "accent",
+        "appearance": "light"
+      },
+      {
+        "hex": "#FFFEF9",
+        "rgb": "255, 254, 249",
+        "usage": "Solid content and opaque control fallback",
+        "name": "Paper white",
+        "role": "surface",
+        "appearance": "light"
+      },
+      {
+        "hex": "#56616A",
+        "rgb": "86, 97, 106",
+        "usage": "Supporting body text on light backgrounds",
+        "name": "Muted ink",
+        "role": "text-secondary",
+        "appearance": "light"
+      },
+      {
+        "hex": "#D5D8D0",
+        "rgb": "213, 216, 208",
+        "usage": "Fine dividers and neutral chart guides; not body text",
+        "name": "Rule grey",
+        "role": "divider",
+        "appearance": "light"
+      },
+      {
+        "hex": "#2A5945",
+        "rgb": "42, 89, 69",
+        "usage": "Own activity and selected day bars in light appearance",
+        "name": "Progress green",
+        "role": "chart-primary",
+        "appearance": "light"
+      },
+      {
+        "hex": "#ADBAAA",
+        "rgb": "173, 186, 170",
+        "usage": "Secondary chart bars, paired with exact text values",
+        "name": "Sage bar",
+        "role": "chart-secondary",
+        "appearance": "light"
+      },
+      {
+        "hex": "#EEE9DB",
+        "rgb": "238, 233, 219",
+        "usage": "Initials backgrounds in light appearance",
+        "name": "Warm monogram",
+        "role": "monogram",
+        "appearance": "light"
+      },
+      {
+        "hex": "#FFFEF6",
+        "rgb": "255, 254, 246",
+        "usage": "Control material only; prototype alpha 184/255 (about 72.2%), with subtle edge highlights and background blur",
+        "name": "Light glass tint",
+        "role": "glass-tint",
+        "appearance": "light"
+      },
+      {
+        "hex": "#171E25",
+        "rgb": "23, 30, 37",
+        "usage": "Dark canvas",
+        "name": "Night ink",
+        "role": "canvas",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#222E39",
+        "rgb": "34, 46, 57",
+        "usage": "Dark solid content and opaque control fallback",
+        "name": "Dark panel",
+        "role": "surface",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#F1F2E9",
+        "rgb": "241, 242, 233",
+        "usage": "Primary text on dark backgrounds",
+        "name": "Night cream",
+        "role": "text-primary",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#B6C0C6",
+        "rgb": "182, 192, 198",
+        "usage": "Supporting body text in dark appearance",
+        "name": "Muted night text",
+        "role": "text-secondary",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#2C3A35",
+        "rgb": "44, 58, 53",
+        "usage": "Dark selected rows and personal-goal panels",
+        "name": "Night sage",
+        "role": "selection",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#D5F073",
+        "rgb": "213, 240, 115",
+        "usage": "Primary action fill and selected-control emphasis in dark appearance",
+        "name": "Night action",
+        "role": "action",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#18271F",
+        "rgb": "24, 39, 31",
+        "usage": "Text on dark-appearance citrus primary actions",
+        "name": "Night action ink",
+        "role": "action-text",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#C2DC78",
+        "rgb": "194, 220, 120",
+        "usage": "Supporting citrus accent in dark appearance",
+        "name": "Night accent",
+        "role": "accent",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#394550",
+        "rgb": "57, 69, 80",
+        "usage": "Dark dividers and chart guides; not body text",
+        "name": "Night rule",
+        "role": "divider",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#D4ED8C",
+        "rgb": "212, 237, 140",
+        "usage": "Own activity and selected day bars in dark appearance",
+        "name": "Night progress",
+        "role": "chart-primary",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#718771",
+        "rgb": "113, 135, 113",
+        "usage": "Secondary activity bars in dark appearance, paired with exact values",
+        "name": "Night secondary bar",
+        "role": "chart-secondary",
+        "appearance": "dark"
+      },
+      {
+        "hex": "#273631",
+        "rgb": "39, 54, 49",
+        "usage": "Control material only; prototype alpha 217/255 (about 85.1%), with restrained highlights and background blur",
+        "name": "Dark glass tint",
+        "role": "glass-tint",
+        "appearance": "dark"
+      }
+    ],
+    "brand_values": [
+      "Informed, voluntary participation",
+      "Clear agreements and understandable results",
+      "Athletic progress without pressure",
+      "Private, deliberate sharing",
+      "Readable information and accessible controls",
+      "Easy exits and reachable review"
+    ],
+    "brand_aesthetics": [
+      "Editorial sports-club character with score-sheet clarity: warm chalk, deep green, quiet cream and small citrus accents.",
+      "Default visual recommendation: green club-board challenge header. The quieter paper scorecard remains a comparison variant, not a separate brand.",
+      "Strong condensed typography for short headings, the GameTime typographic wordmark and major athletic numbers. Normal-width readable type for controls, dates, rules and explanations.",
+      "Signature motifs: thin parallel rules, aligned scores, compact labels, circular initials and faint oval running-lane linework. Lane artwork is decorative, not activity data.",
+      "Glass belongs to the navigation and control layer: circular back/add/options buttons, floating segmented controls, labeled bottom navigation and a tinted primary action.",
+      "Use solid backgrounds for titles, standings, charts, dates, amounts and consequential explanations. Keep exact values, units and update state beside metrics.",
+      "Prototype glass: translucent cream or green-tinted fill, subtle edge highlights, restrained shadow and background blur. This is a browser material study, not native Liquid Glass acceptance.",
+      "Use initial monograms rather than profile photography in Beta app examples. No approved standalone logo image or photographic asset was supplied for this theme.",
+      "Use deliberate spacing and a strong information hierarchy instead of a card around every fact; the concept proposes 20–24-point gutters and at least 44-point actions.",
+      "Provide opaque fallbacks and respect reduced transparency, increased contrast and reduced motion. Native accessibility remains a separate acceptance step.",
+      "Keep charts honest: proportional bars paired with exact values; visibly distinguish partial, future, stale and unavailable activity. Prototype examples are fictional and cannot become product data."
+    ],
+    "tone_of_voice": [
+      "Warm, direct and conversational; speak to a person checking their challenge.",
+      "Use 'we' for GameTime and 'you' for the person; prefer active voice.",
+      "Give one clear next step. Errors explain what happened and what the person can do.",
+      "Use plain labels such as 'With friends', 'Just for me', 'Your week', 'Challenge details' and 'Ask us to review this result'.",
+      "Celebrate athletic progress with equal treatment across amounts; keep money, consent, review and exit language calm and exact.",
+      "Never use shame, loss-recovery prompts, fabricated urgency or pressure to exercise injured. Missing data alone never implies a loss.",
+      "Keep internal identifiers, infrastructure jargon and financial hype out of audience-facing copy. Preserve exact historical consent text and accurate simulation disclosures."
+    ],
+    "products_or_services": [
+      "Friend challenges: agreed individual goals and target-free leaderboards (adopted Beta direction)",
+      "Personal athletic goals and performance commitments (adopted product direction)",
+      "Private operator community steps goal (adopted Beta direction; not public user-hosted clubs)"
+    ],
+    "images": [],
+    "social_links": {
+      "instagram": null,
+      "tiktok": null,
+      "youtube": null,
+      "twitter": null,
+      "linkedin": null,
+      "facebook": null,
+      "pinterest": null
+    },
+    "keywords": [
+      "fieldwork_glass",
+      "GameTime",
+      "Fieldwork Glass",
+      "editorial sports club",
+      "green club board",
+      "paper scorecard",
+      "warm chalk",
+      "deep green",
+      "restrained citrus",
+      "condensed typography",
+      "floating glass controls",
+      "oval lane motif",
+      "initial monograms",
+      "clear athletic progress",
+      "voluntary participation"
+    ],
+    "industry": "Health and fitness",
+    "company_type": "iPhone app",
+    "detected_language": "en"
+  }
+}
