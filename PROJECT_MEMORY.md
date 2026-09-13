@@ -1,35 +1,41 @@
 # GameTime project memory
 
-## Current working baseline — September 12, 2026 UTC
+## Current working baseline — September 12, 2026 local consolidation
 
-The owner requested consolidation of the completed local work. Use
-`/Users/user/firstmate-workspace/projects/gametime-beta` on
-`codex/beta-working-baseline`, containing P7 checkpoint `1b8fe6a` and the complete
-Cobalt/P4/P5/P6 ancestry. [WORKING_BASELINE.md](docs/WORKING_BASELINE.md) owns the
-current source identity, status, evidence and next-work instructions.
+Use `/Users/user/Documents/GitHub/GameTime` on `main` for development.
+[WORKING_BASELINE.md](docs/WORKING_BASELINE.md) owns current source identity,
+status, verification and next work. The owner authorized consolidating the local
+work and retiring redundant checkouts. The current history includes Cobalt,
+completed P4/P5/P6, P7 preparation and P10 preparation through `01f1dd15`, followed
+by the reusable preview tooling and consolidated entry documents.
 
-P4/P5/P6 are locally completed. P7 is prepared only: no physical session has run
-and no source is accepted. Resume its existing private iPhone/Watch session after
-device-specific opt-in. P8/P9 still depend on accepted policies. Normal signed-in
-challenges remain unavailable; all external readiness entries remain false.
+P4/P5/P6 are completed locally. P10's device-independent preparation is included.
+P7 physical sessions and all four source acceptances remain pending; P8/P9 still
+need those source policies. Normal signed-in challenges remain unavailable, and
+all 18 readiness gates remain false. Design review can use the fictional
+[local preview](docs/BETA_LOCAL_PREVIEW.md).
 
-Earlier `main`, temporary task checkouts and the original dirty checkout are
-preserved. Do not start new work from their stale status notes or import the
-original dirty patch. The consolidation changes documentation and local branch
-selection, not product behavior, databases or device state.
+The earlier dirty application/copy/assets and competing Beta1 implementation are
+preserved in named archive branches and a verified external backup. They were
+not imported wholesale. [The consolidation map](docs/WORKTREE_CONSOLIDATION_STATUS.md)
+records recovery locations and the disposition of earlier checkouts. Historical
+paths and next-task instructions below do not select today's working folder.
+Local consolidation does not authorize push, deployment, physical Health access,
+distribution or money.
 
 ## P10 device-independent preparation — September 12, 2026 UTC
 
-P10 extends the existing release-readiness-b7 task on isolated
-`codex/hosted-preparation-p10`, based on consolidated `fd193e7`. The
+P10 extended the existing release-readiness-b7 task on
+`codex/hosted-preparation-p10`, based on `fd193e7`; its result is now included
+in local `main`. The
 [handoff](outputs/reports/2026-09-12-p10-completion.md) records hosted identity/settings
 preparation, actual local RPC privileges, scheduler/monitoring/rollback design,
 P6 operator permissions and support/retention decisions. All owner-selected
 publication/hosting/policy values remain unapproved; no device participation was
 needed or performed. P7–P9 and hosted acceptance remain pending, all 18 readiness
 entries remain false, and normal signed-in challenges remain unavailable.
-The consolidated branch and every earlier local copy remain preserved; no push,
-deployment, credential change, external message or user-data deletion occurred.
+The P10 completion report preserves its original branch and resource identities.
+No hosted operation or external readiness was established.
 
 ## Historical completion records
 

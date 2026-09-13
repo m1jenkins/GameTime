@@ -1,0 +1,2098 @@
+{
+  "audited_at_utc": "2026-09-13T01:26:04.138485+00:00",
+  "audited_at_local": "2026-09-12T20:26:04.138485-05:00",
+  "scope": "Read-only branch/worktree audit plus report files and disposable scratch Git index. No product refs moved.",
+  "remote_main": "577bc321e72750976e2e8027680387707070b0e3",
+  "candidate": "01f1dd159839769fe31ce33804e757876eb4b573",
+  "main_exclusive_commits": 0,
+  "candidate_exclusive_commits": 44,
+  "baseline_to_p10_commits": 2,
+  "remote_ci": {
+    "run_id": 34061887531,
+    "conclusion": "failure",
+    "all_four_jobs_started": false,
+    "annotation": "Account billing/spending limit prevented execution"
+  },
+  "checkouts": [
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "d0742eac0fab4d182338dc75d5aacb77658e0c09",
+      "branch": "fm/gametime-beta-scoped-locks-p4",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": false,
+      "relative_to_p10": "14\t1",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "1512009cb650af05a6111749d68998a4ce4d8669",
+      "branch": "fm/gametime-beta-candidate-gate-d9",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": false,
+      "relative_to_p10": "14\t16",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "7c34d52bc0250053819e35342a2b4fd9ed5d7382",
+      "branch": "fm/gametime-beta-contract-d9",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": true,
+      "relative_to_p10": "15\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "cf82e25bd7905c851525b837259bba0f0aaf3d8f",
+      "branch": "fm/gametime-beta-finish-b7",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": true,
+      "relative_to_p10": "26\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "ff71ee28b05456dfa487d48ddd044105c9bdab37",
+      "branch": "fm/gametime-beta-verification-recovery-e10",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": false,
+      "relative_to_p10": "14\t37",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0",
+      "branch": "fm/gametime-beta-load-prep-e2",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": false,
+      "relative_to_p10": "14\t13",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "1512009cb650af05a6111749d68998a4ce4d8669",
+      "branch": "",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": false,
+      "relative_to_p10": "14\t16",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "9c84459e88246e1a34cd2acd6c6f9477384cefec",
+      "branch": "fm/gametime-beta-real-validation-c8",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": true,
+      "relative_to_p10": "16\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "a18f00fa19ac95f946c4686ba3b6a068064d797b",
+      "branch": "fm/gametime-beta-health-prep-e3",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": true,
+      "relative_to_p10": "14\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/Documents/GitHub/GameTime",
+      "origin": "https://github.com/m1jenkins/GameTime.git",
+      "head": "577bc321e72750976e2e8027680387707070b0e3",
+      "branch": "main",
+      "common": "/Users/user/Documents/GitHub/GameTime/.git",
+      "worktrees": "worktree /Users/user/Documents/GitHub/GameTime\nHEAD 577bc321e72750976e2e8027680387707070b0e3\nbranch refs/heads/main\n\nworktree /Users/user/firstmate/projects/beta1-policy/GameTime\nHEAD 0f5491009f956c623041863d96dc54ddcaad2477\nbranch refs/heads/codex/beta1-policy-foundation",
+      "refs": "codex/beta1-policy-foundation 0f5491009f956c623041863d96dc54ddcaad2477 feat: add fictional friend steps lifecycle engine\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/ios-accessibility-audit 8e2e267d2c853175ec4bf63cd5555419b639c983 Implement game time tracking improvements\ndaybreak-ledger-tokens 0957d075c7fba85e8f4b07647b2fd0bdec6c672b Finish Daybreak Ledger on You with grouped Health, Account, and Payment lists.\nmain 577bc321e72750976e2e8027680387707070b0e3 Merge pull request #17 from m1jenkins/codex/weekly-local-roadmap",
+      "included_in_p10": true,
+      "relative_to_p10": "44\t0",
+      "status_before_report": [
+        " M CLAUDE.md",
+        " M DECISIONS.md",
+        " M PLAN.md",
+        " M PROJECT_MEMORY.md",
+        " M README.md",
+        " M docs/BETA_IMPLEMENTATION_PROMPTS.md",
+        " M docs/BETA_LAUNCH_AUDIT.md",
+        " M docs/BETA_PRODUCT_DESIGN_AUDIT.md",
+        " M docs/BUSINESS_MODEL.md",
+        " M docs/COPY.md",
+        " M docs/DUEL_NATIVE_LIFECYCLE_V1_ACCEPTANCE.md",
+        " M docs/DUEL_NATIVE_V1_ACCEPTANCE.md",
+        " M docs/DUEL_REMATCH_LINK_V1_ACCEPTANCE.md",
+        " M docs/NEXT_BUSINESS_MODEL_PROMPT.md",
+        " M docs/PERFORMANCE_COMMITMENT_AGREEMENT_V1_ACCEPTANCE.md",
+        " M docs/PERFORMANCE_COMMITMENT_NATIVE_V1_ACCEPTANCE.md",
+        " M docs/PERFORMANCE_FOLLOWING_V1_ACCEPTANCE.md",
+        " M docs/PERFORMANCE_LIFECYCLE_V1_ACCEPTANCE.md",
+        " M docs/PERSONAL_V1_ACCEPTANCE.md",
+        " M docs/PHASE_3D_CHECKPOINT.md",
+        " M docs/PRIVACY_POLICY.md",
+        " M docs/WEEKLY_BACKEND_V1_ACCEPTANCE.md",
+        " M docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md",
+        " M docs/WEEKLY_EXECUTION.md",
+        " M docs/WEEKLY_NATIVE_V1_ACCEPTANCE.md",
+        " M docs/archive/2026-09-04_PRE_PIVOT_PLAN.md",
+        " D docs/design/CHALLENGE_SCREEN_DAYMARK.md",
+        " D docs/design/CHALLENGE_SCREEN_IMAGE_PROMPTS.md",
+        " D docs/design/CHALLENGE_SCREEN_PACE_TAPE.md",
+        " D docs/design/CHALLENGE_SCREEN_REDESIGN.md",
+        " D docs/design/better-bet-mockups/HANDOFF.md",
+        " D docs/design/better-bet-mockups/README.md",
+        " D docs/design/better-bet-mockups/a-position-today.html",
+        " D docs/design/better-bet-mockups/a-position-today.png",
+        " D docs/design/better-bet-mockups/a-position-week.html",
+        " D docs/design/better-bet-mockups/a-position-week.png",
+        " D docs/design/better-bet-mockups/a2-glass-today.html",
+        " D docs/design/better-bet-mockups/a2-glass-week-ahead.html",
+        " D docs/design/better-bet-mockups/a2-glass-week-behind.html",
+        " D docs/design/better-bet-mockups/a3-commit.html",
+        " D docs/design/better-bet-mockups/a3-result-lost.html",
+        " D docs/design/better-bet-mockups/a3-result-won.html",
+        " D docs/design/better-bet-mockups/a3-you.html",
+        " D docs/design/better-bet-mockups/b-traininglog-today.html",
+        " D docs/design/better-bet-mockups/b-traininglog-today.png",
+        " D docs/design/better-bet-mockups/b-traininglog-week.html",
+        " D docs/design/better-bet-mockups/b-traininglog-week.png",
+        " D docs/design/better-bet-mockups/better-bet-all-screens.html",
+        " D docs/design/better-bet-mockups/c-nightsplits-today.html",
+        " D docs/design/better-bet-mockups/c-nightsplits-today.png",
+        " D docs/design/better-bet-mockups/c-nightsplits-week.html",
+        " D docs/design/better-bet-mockups/c-nightsplits-week.png",
+        " D docs/design/better-bet-mockups/gallery-check.png",
+        " D docs/design/better-bet-mockups/gen.py",
+        " D docs/design/better-bet-mockups/sheet.html",
+        " D docs/design/challenge-mockups/challenge-duel-active-v1.png",
+        " D docs/design/challenge-mockups/gametime-challenge-night-course-v2.png",
+        " D docs/design/challenge-mockups/gametime-challenge-signal-sheet-v2.png",
+        " D docs/design/challenge-mockups/gametime-challenge-training-splits-v2.png",
+        " D docs/design/challenge-mockups/gametime-daymark-result-v1.png",
+        " D docs/design/challenge-mockups/gametime-daymark-review-v1.png",
+        " D docs/design/challenge-mockups/gametime-daymark-today-v1.png",
+        " D docs/design/challenge-mockups/gametime-pace-tape-result-v1.png",
+        " D docs/design/challenge-mockups/gametime-pace-tape-review-v1.png",
+        " D docs/design/challenge-mockups/gametime-pace-tape-today-v1.png",
+        " D docs/design/gametime-pace-tape.html",
+        " D docs/design/gametime-screen-atlas.html",
+        " M ios/GameTime/GameTime/CompetitiveTrustTheme.swift",
+        " M ios/GameTime/GameTime/DuelLifecycleModels.swift",
+        " M ios/GameTime/GameTime/DuelLifecycleViews.swift",
+        " M ios/GameTime/GameTime/DuelViews.swift",
+        " M ios/GameTime/GameTime/PerformanceCommitmentLifecycleModels.swift",
+        " M ios/GameTime/GameTime/PerformanceCommitmentLifecycleViews.swift",
+        " M ios/GameTime/GameTime/PerformanceCommitmentViews.swift",
+        " M ios/GameTime/GameTime/PersonalChallengeDetailView.swift",
+        " M ios/GameTime/GameTime/PersonalChallengeReceiptPresentation.swift",
+        " M ios/GameTime/GameTime/WeeklyViews.swift",
+        " M ios/GameTime/GameTimeTests/PersonalChallengeReceiptPresentationTests.swift",
+        " M ios/GameTime/GameTimeUITests/DuelUITests.swift",
+        " M ios/GameTime/GameTimeUITests/GameTimeUITests.swift",
+        " M ios/GameTime/GameTimeUITests/PerformanceCommitmentUITests.swift",
+        " M ios/GameTime/README.md",
+        " D outputs/design/2026-09-06-game-time-concepts/01-today.png",
+        " D outputs/design/2026-09-06-game-time-concepts/02-duel.png",
+        " D outputs/design/2026-09-06-game-time-concepts/03-goal.png",
+        " D outputs/design/2026-09-06-game-time-concepts/04-connections.png",
+        " D outputs/design/2026-09-06-game-time-concepts/05-weekly-steps.png",
+        " D outputs/design/2026-09-06-game-time-concepts/06-weekly-minutes.png",
+        " D outputs/design/2026-09-06-game-time-concepts/README.md",
+        " D outputs/design/2026-09-06-game-time-concepts/index.html",
+        " D outputs/design/2026-09-06-game-time-concepts/prompts.md",
+        " D outputs/design/2026-09-06-game-time-concepts/weekly-challenges.md",
+        " D outputs/design/2026-09-06-game-time-concepts/weekly-prompts.md",
+        "?? .lavish/beta-finish-line-roadmap.html",
+        "?? .lavish/current-today.jpg",
+        "?? .lavish/finish-line-assets/current-today.jpg",
+        "?? .lavish/finish-line-assets/friend.png",
+        "?? .lavish/finish-line-assets/goal.png",
+        "?? .lavish/finish-line-assets/home.png",
+        "?? .lavish/finish-line-assets/roadmap.md",
+        "?? .lavish/gametime-ai-concept-source.png",
+        "?? .lavish/gametime-match-sheet-review.html",
+        "?? .lavish/gametime-match-sheet-v1.png",
+        "?? .lavish/gametime-remaining-implementation-plan.html",
+        "?? .lavish/gametime-remaining-plan-decisions.html",
+        "?? .lavish/gametime-state-2026-09-08.html",
+        "?? .lavish/gametime-state-2026-09-08/design-reference.png",
+        "?? .lavish/gametime-state-2026-09-08/firstmate-prompt.txt",
+        "?? .lavish/gametime-state-2026-09-08/native-home.png",
+        "?? .lavish/gametime-state-2026-09-08/overnight-handoff.md",
+        "?? .lavish/gametime-state-2026-09-08/source-investigation.md",
+        "?? .lavish/gametime-your-week-plan.html",
+        "?? .lavish/gametime-your-week.html",
+        "?? .lavish/gametime-your-week/generation-prompt.txt",
+        "?? .lavish/gametime-your-week/implementation-plan.md",
+        "?? .lavish/gametime-your-week/mockup.png",
+        "?? .lavish/implementation-reality-check.html",
+        "?? .lavish/plan-audit-v2.html",
+        "?? .lavish/plan-audit.html",
+        "?? docs/BETA_FINISH_LINE_ROADMAP.md",
+        "?? docs/BETA_IMPLEMENTATION_PLAN.md",
+        "?? docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md",
+        "?? docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md",
+        "?? docs/WORKING_BASELINE.md",
+        "?? docs/archive/2026-09-11_PRE_SIMPLIFICATION_FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md",
+        "?? docs/archive/2026-09-11_PRE_SIMPLIFICATION_GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md",
+        "?? docs/design/CRISP_BLUE_UI_IMPLEMENTATION_PROMPT.md",
+        "?? docs/design/CRISP_BLUE_UI_SCREEN_MATRIX.md",
+        "?? docs/design/your-week-ui/implementation-plan.md",
+        "?? docs/design/your-week-ui/reference-mockup.png",
+        "?? output/imagegen/gametime-home-crisp-blue-v1.edit-prompt.txt",
+        "?? output/imagegen/gametime-home-crisp-blue-v1.notes.md",
+        "?? output/imagegen/gametime-home-crisp-blue-v1.png",
+        "?? output/imagegen/gametime-home-crisp-blue-v1.prompt.txt",
+        "?? output/imagegen/gametime-home-crisp-blue-v2.notes.md",
+        "?? output/imagegen/gametime-home-crisp-blue-v2.png",
+        "?? output/imagegen/gametime-home-crisp-blue-v2.prompt.txt",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/README.md",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/crisp-cobalt.bundle",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/DESIGN_SYSTEM.md",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/IMPLEMENTATION.md",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/SCREEN_LEDGER.md",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/VERIFICATION.md",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/approved-home-prompt.txt",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/approved-home.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/before-local-entry.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Beta Home light.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Beta audit screen light.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Beta creation light.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt leaderboard-create-Exercise time.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt leaderboard-create-Running distance.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt leaderboard-create-Steps.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt leaderboard-create-Timed run.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt personal-complete-agreement.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt personal-scheduled.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt privacy-and-terms.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt you.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Beta Home light.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Beta audit screen light.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Beta creation light.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt leaderboard-create-Exercise time.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt leaderboard-create-Running distance.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt leaderboard-create-Steps.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt leaderboard-create-Timed run.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt personal-complete-agreement.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt personal-scheduled.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt privacy-and-terms.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt you.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-accessibility.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-compact.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-dark.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-empty.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-loading.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-stale-recovery.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-unavailable.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical You.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical account support.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical deletion confirmation.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical empty.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical loading.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical offline.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical onboarding.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical privacy.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical sign-in.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/beta-creation-cadence-accessibility-xxxl.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/commitment-created.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/commitment-injury-accessibility-xxxl.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/confirmation-receipt-accessibility-xxxl.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/duel-blocked-injury-accessibility-xxxl.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/duel-creator-receipt.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-community_steps_goal_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_distance_goal_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_distance_leaderboard_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_exercise_goal_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_exercise_leaderboard_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_steps_goal_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_steps_leaderboard_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_timed_goal_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_timed_leaderboard_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-accessibility.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-compact.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-dark.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-empty.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-loading.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-stale-recovery.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-unavailable.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-leaderboard-unknown-tied-departed.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-personal_distance_goal_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-personal_exercise_goal_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-personal_steps_goal_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-personal_timed_goal_v1.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-active-2-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-active-6-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-consent-2-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-consent-6-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-creation-2-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-creation-6-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-final-2-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-final-6-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-lobby-2-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-lobby-6-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-review-2-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-review-6-people.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/weekly/community-common-target-solo.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/weekly/five-person-invitation-accessibility3.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/weekly/five-person-invitation.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/weekly/provisional-final-refund-recovery.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/weekly/unaccepted-final-closed-invitation.png",
+        "?? outputs/cobalt-ui-2026-09-11-01a091f5/source.patch",
+        "?? outputs/cobalt-ui-default-2026-09-11/README.md",
+        "?? outputs/cobalt-ui-default-2026-09-11/VERIFICATION.md",
+        "?? outputs/cobalt-ui-default-2026-09-11/default-signed-in.png",
+        "?? outputs/design/2026-09-08-match-sheet/01-match-sheet-comparison.png",
+        "?? outputs/design/2026-09-08-match-sheet/README.md",
+        "?? outputs/design/2026-09-08-match-sheet/mobbin-sources.json",
+        "?? outputs/design/2026-09-08-match-sheet/prompt.md",
+        "?? outputs/design/2026-09-08-weekly-friend-challenge/README.md",
+        "?? outputs/design/2026-09-08-weekly-friend-challenge/fonts/archivo-latin.woff2",
+        "?? outputs/design/2026-09-08-weekly-friend-challenge/gametime-your-week-mockup.png",
+        "?? outputs/design/2026-09-08-weekly-friend-challenge/mobbin-sources.json",
+        "?? outputs/design/2026-09-08-weekly-friend-challenge/screen.html",
+        "?? outputs/design/2026-09-08-weekly-rules/README.md",
+        "?? outputs/design/2026-09-08-weekly-rules/gametime-this-weeks-rules-mockup.png",
+        "?? outputs/design/2026-09-08-your-week-score-window/gametime-your-week-score-window.png",
+        "?? outputs/design/2026-09-08-your-week-score-window/screen.html",
+        "?? outputs/reports/2026-09-10-firstmate-next-prompts.md",
+        "?? outputs/reports/2026-09-10-firstmate-work-audit.md",
+        "?? outputs/reports/2026-09-11-beta-simplification.md",
+        "?? outputs/reports/2026-09-12-working-baseline-consolidation.md"
+      ]
+    },
+    {
+      "path": "/private/tmp/gametime-p6-20260912/GameTime",
+      "origin": "/private/tmp/gametime-p5-20260911/GameTime",
+      "head": "39e5f202ab0eae0ac6c23cb784afd3df28d1ad37",
+      "branch": "codex/private-community-p6",
+      "common": "/private/tmp/gametime-p6-20260912/GameTime/.git",
+      "worktrees": "worktree /private/tmp/gametime-p6-20260912/GameTime\nHEAD 39e5f202ab0eae0ac6c23cb784afd3df28d1ad37\nbranch refs/heads/codex/private-community-p6",
+      "refs": "codex/bounded-queries-p5 e16cff4b3beaa7bcce95db6b0e82eedaa94865fa Record P5 measurements, final validation, and local handoff\ncodex/private-community-p6 39e5f202ab0eae0ac6c23cb784afd3df28d1ad37 Record P6 local verification and handoff",
+      "included_in_p10": true,
+      "relative_to_p10": "4\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/private/tmp/gametime-p7-20260912/GameTime",
+      "origin": "/private/tmp/gametime-p6-20260912/GameTime",
+      "head": "1b8fe6a3f7299ca851edf1a4255551425590e150",
+      "branch": "codex/physical-source-p7",
+      "common": "/private/tmp/gametime-p7-20260912/GameTime/.git",
+      "worktrees": "worktree /private/tmp/gametime-p7-20260912/GameTime\nHEAD 1b8fe6a3f7299ca851edf1a4255551425590e150\nbranch refs/heads/codex/physical-source-p7",
+      "refs": "codex/physical-source-p7 1b8fe6a3f7299ca851edf1a4255551425590e150 Prepare P7 private physical source session handoff\ncodex/private-community-p6 39e5f202ab0eae0ac6c23cb784afd3df28d1ad37 Record P6 local verification and handoff",
+      "included_in_p10": true,
+      "relative_to_p10": "3\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/private/tmp/gametime-p5-20260911/GameTime",
+      "origin": "/private/tmp/gametime-simplify-20260911-byc27c1u/GameTime",
+      "head": "e16cff4b3beaa7bcce95db6b0e82eedaa94865fa",
+      "branch": "codex/bounded-queries-p5",
+      "common": "/private/tmp/gametime-p5-20260911/GameTime/.git",
+      "worktrees": "worktree /private/tmp/gametime-p5-20260911/GameTime\nHEAD e16cff4b3beaa7bcce95db6b0e82eedaa94865fa\nbranch refs/heads/codex/bounded-queries-p5",
+      "refs": "codex/bounded-queries-p5 e16cff4b3beaa7bcce95db6b0e82eedaa94865fa Record P5 measurements, final validation, and local handoff\ncodex/lean-beta-preparation 369e7b90dfeb74314244a923a87864e368348412 Record Prompt 4 validation and local completion",
+      "included_in_p10": true,
+      "relative_to_p10": "6\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/private/tmp/gametime-p10-20260912",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "01f1dd159839769fe31ce33804e757876eb4b573",
+      "branch": "codex/hosted-preparation-p10",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": true,
+      "relative_to_p10": "0\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/private/tmp/gametime-crisp-cobalt-20260911",
+      "origin": "/Users/user/firstmate-workspace/projects/gametime-beta",
+      "head": "affd367ebe5411969fd5b7abd45629e0746a5a7d",
+      "branch": "codex/crisp-cobalt-ui",
+      "common": "/private/tmp/gametime-crisp-cobalt-20260911/.git",
+      "worktrees": "worktree /private/tmp/gametime-crisp-cobalt-20260911\nHEAD affd367ebe5411969fd5b7abd45629e0746a5a7d\nbranch refs/heads/codex/crisp-cobalt-ui",
+      "refs": "codex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\nmain a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios",
+      "included_in_p10": true,
+      "relative_to_p10": "12\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/private/tmp/gametime-simplify-20260911-byc27c1u/GameTime",
+      "origin": "/Users/user/firstmate-workspace/projects/gametime-beta",
+      "head": "369e7b90dfeb74314244a923a87864e368348412",
+      "branch": "codex/lean-beta-preparation",
+      "common": "/private/tmp/gametime-simplify-20260911-byc27c1u/GameTime/.git",
+      "worktrees": "worktree /private/tmp/gametime-simplify-20260911-byc27c1u/GameTime\nHEAD 369e7b90dfeb74314244a923a87864e368348412\nbranch refs/heads/codex/lean-beta-preparation",
+      "refs": "codex/lean-beta-preparation 369e7b90dfeb74314244a923a87864e368348412 Record Prompt 4 validation and local completion\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": true,
+      "relative_to_p10": "8\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/private/tmp/gametime-baseline-consolidation-20260912/GameTime",
+      "origin": "/private/tmp/gametime-p7-20260912/GameTime",
+      "head": "fd193e71b12dccbbb680eb78682e0a36cd7b1ffd",
+      "branch": "codex/beta-working-baseline",
+      "common": "/private/tmp/gametime-baseline-consolidation-20260912/GameTime/.git",
+      "worktrees": "worktree /private/tmp/gametime-baseline-consolidation-20260912/GameTime\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/physical-source-p7 1b8fe6a3f7299ca851edf1a4255551425590e150 Prepare P7 private physical source session handoff",
+      "included_in_p10": true,
+      "relative_to_p10": "2\t0",
+      "status_before_report": []
+    },
+    {
+      "path": "/private/tmp/gametime-p4-final-20260911/p2-source",
+      "origin": "/private/tmp/gametime-simplify-20260911-byc27c1u/GameTime",
+      "head": "e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0",
+      "branch": "",
+      "common": "/private/tmp/gametime-p4-final-20260911/p2-source/.git",
+      "worktrees": "worktree /private/tmp/gametime-p4-final-20260911/p2-source\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\ndetached",
+      "refs": "codex/lean-beta-preparation 201d7459bad293c9f942de067c1b6afd99b58479 Simplify Beta continuation plan and bound P4 test cleanup",
+      "included_in_p10": false,
+      "relative_to_p10": "14\t13",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/firstmate-workspace/projects/gametime-beta",
+      "origin": "/Users/user/Documents/GitHub/GameTime",
+      "head": "fd193e71b12dccbbb680eb78682e0a36cd7b1ffd",
+      "branch": "codex/beta-working-baseline",
+      "common": "/Users/user/firstmate-workspace/projects/gametime-beta/.git",
+      "worktrees": "worktree /Users/user/firstmate-workspace/projects/gametime-beta\nHEAD fd193e71b12dccbbb680eb78682e0a36cd7b1ffd\nbranch refs/heads/codex/beta-working-baseline\n\nworktree /private/tmp/gametime-p10-20260912\nHEAD 01f1dd159839769fe31ce33804e757876eb4b573\nbranch refs/heads/codex/hosted-preparation-p10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta\nHEAD cf82e25bd7905c851525b837259bba0f0aaf3d8f\nbranch refs/heads/fm/gametime-beta-finish-b7\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta\nHEAD 9c84459e88246e1a34cd2acd6c6f9477384cefec\nbranch refs/heads/fm/gametime-beta-real-validation-c8\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\ndetached\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta\nHEAD e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0\nbranch refs/heads/fm/gametime-beta-load-prep-e2\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta\nHEAD a18f00fa19ac95f946c4686ba3b6a068064d797b\nbranch refs/heads/fm/gametime-beta-health-prep-e3\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta\nHEAD 7c34d52bc0250053819e35342a2b4fd9ed5d7382\nbranch refs/heads/fm/gametime-beta-contract-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta\nHEAD 1512009cb650af05a6111749d68998a4ce4d8669\nbranch refs/heads/fm/gametime-beta-candidate-gate-d9\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta\nHEAD ff71ee28b05456dfa487d48ddd044105c9bdab37\nbranch refs/heads/fm/gametime-beta-verification-recovery-e10\n\nworktree /Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta\nHEAD d0742eac0fab4d182338dc75d5aacb77658e0c09\nbranch refs/heads/fm/gametime-beta-scoped-locks-p4",
+      "refs": "codex/beta-working-baseline fd193e71b12dccbbb680eb78682e0a36cd7b1ffd Consolidate local Beta working baseline and remaining handoff\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/hosted-preparation-p10 01f1dd159839769fe31ce33804e757876eb4b573 Record P10 completion, validation limits, and remaining dependencies\nfm/gametime-beta-candidate-gate-d9 1512009cb650af05a6111749d68998a4ce4d8669 Handle built-in Docker networks in candidate IPAM preflight\nfm/gametime-beta-contract-d9 7c34d52bc0250053819e35342a2b4fd9ed5d7382 Record Beta remaining-work contract and retire active Watch runtime\nfm/gametime-beta-finish-b7 cf82e25bd7905c851525b837259bba0f0aaf3d8f Finish local Beta acceptance and morning handoff\nfm/gametime-beta-health-prep-e3 a18f00fa19ac95f946c4686ba3b6a068064d797b Add closed Challenge Health contracts and synthetic scenarios\nfm/gametime-beta-load-prep-e2 e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0 Integrate reviewed Prompt 1 contracts with local load baseline\nfm/gametime-beta-real-validation-c8 9c84459e88246e1a34cd2acd6c6f9477384cefec Record partial-redaction runtime proof and round-3 handoff\nfm/gametime-beta-scoped-locks-p4 d0742eac0fab4d182338dc75d5aacb77658e0c09 Scope challenge locks and bound worker claims\nfm/gametime-beta-verification-recovery-e10 ff71ee28b05456dfa487d48ddd044105c9bdab37 Record and collect every candidate Gate session\nmain affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface",
+      "included_in_p10": true,
+      "relative_to_p10": "2\t0",
+      "status_before_report": [
+        " M scripts/beta-native-smoke.py",
+        " M scripts/beta-preview.py"
+      ]
+    },
+    {
+      "path": "/Users/user/firstmate/projects/GameTime",
+      "origin": "https://github.com/m1jenkins/GameTime.git",
+      "head": "6476d474438c6aa9e5acc86de8fdffb39e3846dc",
+      "branch": "codex/weekly-local-roadmap",
+      "common": "/Users/user/firstmate/projects/GameTime/.git",
+      "worktrees": "worktree /Users/user/firstmate/projects/GameTime\nHEAD 6476d474438c6aa9e5acc86de8fdffb39e3846dc\nbranch refs/heads/codex/weekly-local-roadmap",
+      "refs": "codex/weekly-local-roadmap 6476d474438c6aa9e5acc86de8fdffb39e3846dc no-mistakes(ci): Fixed the Xcode 26.2 Swift compile failure by renaming DeleteAccountView\u2019s nested State enum to DeleteAccountState, preventing it from shadowing SwiftUI\u2019s @State property wrapper. Verified with git diff --check and a successful Debug iOS Simulator product build using local Xcode 27.0\nmain 913967986f6fa0486002dcb5e1061f8919e8b2e5 Checkpoint local duels and commitments through Phase 3(c)",
+      "included_in_p10": false,
+      "relative_to_p10": "71\t21",
+      "status_before_report": []
+    },
+    {
+      "path": "/Users/user/firstmate/projects/beta1-policy/GameTime",
+      "origin": "https://github.com/m1jenkins/GameTime.git",
+      "head": "0f5491009f956c623041863d96dc54ddcaad2477",
+      "branch": "codex/beta1-policy-foundation",
+      "common": "/Users/user/Documents/GitHub/GameTime/.git",
+      "worktrees": "worktree /Users/user/Documents/GitHub/GameTime\nHEAD 577bc321e72750976e2e8027680387707070b0e3\nbranch refs/heads/main\n\nworktree /Users/user/firstmate/projects/beta1-policy/GameTime\nHEAD 0f5491009f956c623041863d96dc54ddcaad2477\nbranch refs/heads/codex/beta1-policy-foundation",
+      "refs": "codex/beta1-policy-foundation 0f5491009f956c623041863d96dc54ddcaad2477 feat: add fictional friend steps lifecycle engine\ncodex/crisp-cobalt-ui affd367ebe5411969fd5b7abd45629e0746a5a7d Make Cobalt the default signed-in app interface\ncodex/ios-accessibility-audit 8e2e267d2c853175ec4bf63cd5555419b639c983 Implement game time tracking improvements\ndaybreak-ledger-tokens 0957d075c7fba85e8f4b07647b2fd0bdec6c672b Finish Daybreak Ledger on You with grouped Health, Account, and Payment lists.\nmain 577bc321e72750976e2e8027680387707070b0e3 Merge pull request #17 from m1jenkins/codex/weekly-local-roadmap",
+      "included_in_p10": false,
+      "relative_to_p10": "44\t19",
+      "status_before_report": [
+        " M CLAUDE.md",
+        " M DECISIONS.md",
+        " M PLAN.md",
+        " M PROJECT_MEMORY.md",
+        " M README.md",
+        " M docs/BUSINESS_MODEL.md",
+        " M docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md",
+        " M docs/WEEKLY_EXECUTION.md",
+        "?? docs/BETA_IMPLEMENTATION_PLAN.md"
+      ]
+    },
+    {
+      "path": "/Users/user/firstmate/projects/pr17-final/GameTime",
+      "origin": "https://github.com/m1jenkins/GameTime.git",
+      "head": "c452a662120acdcb4e2b1acd5069cb74ae0f7f1c",
+      "branch": "codex/weekly-steps-source-investigation",
+      "common": "/Users/user/firstmate/projects/pr17-final/GameTime/.git",
+      "worktrees": "worktree /Users/user/firstmate/projects/pr17-final/GameTime\nHEAD c452a662120acdcb4e2b1acd5069cb74ae0f7f1c\nbranch refs/heads/codex/weekly-steps-source-investigation",
+      "refs": "codex/weekly-local-roadmap fddcbcd0c8238d511c72b1d862c24e776cf238b0 fix: fence weekly sharing after suspended authentication\ncodex/weekly-steps-source-investigation c452a662120acdcb4e2b1acd5069cb74ae0f7f1c docs: record weekly merge and physical source investigation handoff\nmain dcefd7912f2987e84bdbf1b62e6b5afc1e89e6cf Implement performance commitments and weekly roadmap",
+      "included_in_p10": false,
+      "relative_to_p10": "44\t2",
+      "status_before_report": []
+    }
+  ],
+  "refs": [
+    {
+      "name": "codex/beta-working-baseline",
+      "head": "fd193e71b12dccbbb680eb78682e0a36cd7b1ffd",
+      "subject": "Consolidate local Beta working baseline and remaining handoff",
+      "included": true,
+      "counts": "2\t0"
+    },
+    {
+      "name": "codex/crisp-cobalt-ui",
+      "head": "affd367ebe5411969fd5b7abd45629e0746a5a7d",
+      "subject": "Make Cobalt the default signed-in app interface",
+      "included": true,
+      "counts": "12\t0"
+    },
+    {
+      "name": "codex/hosted-preparation-p10",
+      "head": "01f1dd159839769fe31ce33804e757876eb4b573",
+      "subject": "Record P10 completion, validation limits, and remaining dependencies",
+      "included": true,
+      "counts": "0\t0"
+    },
+    {
+      "name": "fm/gametime-beta-candidate-gate-d9",
+      "head": "1512009cb650af05a6111749d68998a4ce4d8669",
+      "subject": "Handle built-in Docker networks in candidate IPAM preflight",
+      "included": false,
+      "counts": "14\t16"
+    },
+    {
+      "name": "fm/gametime-beta-contract-d9",
+      "head": "7c34d52bc0250053819e35342a2b4fd9ed5d7382",
+      "subject": "Record Beta remaining-work contract and retire active Watch runtime",
+      "included": true,
+      "counts": "15\t0"
+    },
+    {
+      "name": "fm/gametime-beta-finish-b7",
+      "head": "cf82e25bd7905c851525b837259bba0f0aaf3d8f",
+      "subject": "Finish local Beta acceptance and morning handoff",
+      "included": true,
+      "counts": "26\t0"
+    },
+    {
+      "name": "fm/gametime-beta-health-prep-e3",
+      "head": "a18f00fa19ac95f946c4686ba3b6a068064d797b",
+      "subject": "Add closed Challenge Health contracts and synthetic scenarios",
+      "included": true,
+      "counts": "14\t0"
+    },
+    {
+      "name": "fm/gametime-beta-load-prep-e2",
+      "head": "e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0",
+      "subject": "Integrate reviewed Prompt 1 contracts with local load baseline",
+      "included": false,
+      "counts": "14\t13"
+    },
+    {
+      "name": "fm/gametime-beta-real-validation-c8",
+      "head": "9c84459e88246e1a34cd2acd6c6f9477384cefec",
+      "subject": "Record partial-redaction runtime proof and round-3 handoff",
+      "included": true,
+      "counts": "16\t0"
+    },
+    {
+      "name": "fm/gametime-beta-scoped-locks-p4",
+      "head": "d0742eac0fab4d182338dc75d5aacb77658e0c09",
+      "subject": "Scope challenge locks and bound worker claims",
+      "included": false,
+      "counts": "14\t1"
+    },
+    {
+      "name": "fm/gametime-beta-verification-recovery-e10",
+      "head": "ff71ee28b05456dfa487d48ddd044105c9bdab37",
+      "subject": "Record and collect every candidate Gate session",
+      "included": false,
+      "counts": "14\t37"
+    },
+    {
+      "name": "main",
+      "head": "affd367ebe5411969fd5b7abd45629e0746a5a7d",
+      "subject": "Make Cobalt the default signed-in app interface",
+      "included": true,
+      "counts": "12\t0"
+    },
+    {
+      "name": "codex/beta1-policy-foundation",
+      "head": "0f5491009f956c623041863d96dc54ddcaad2477",
+      "subject": "feat: add fictional friend steps lifecycle engine",
+      "included": false,
+      "counts": "44\t19"
+    },
+    {
+      "name": "codex/ios-accessibility-audit",
+      "head": "8e2e267d2c853175ec4bf63cd5555419b639c983",
+      "subject": "Implement game time tracking improvements",
+      "included": false,
+      "counts": "81\t2"
+    },
+    {
+      "name": "daybreak-ledger-tokens",
+      "head": "0957d075c7fba85e8f4b07647b2fd0bdec6c672b",
+      "subject": "Finish Daybreak Ledger on You with grouped Health, Account, and Payment lists.",
+      "included": false,
+      "counts": "73\t2"
+    },
+    {
+      "name": "main",
+      "head": "577bc321e72750976e2e8027680387707070b0e3",
+      "subject": "Merge pull request #17 from m1jenkins/codex/weekly-local-roadmap",
+      "included": true,
+      "counts": "44\t0"
+    },
+    {
+      "name": "codex/bounded-queries-p5",
+      "head": "e16cff4b3beaa7bcce95db6b0e82eedaa94865fa",
+      "subject": "Record P5 measurements, final validation, and local handoff",
+      "included": true,
+      "counts": "6\t0"
+    },
+    {
+      "name": "codex/private-community-p6",
+      "head": "39e5f202ab0eae0ac6c23cb784afd3df28d1ad37",
+      "subject": "Record P6 local verification and handoff",
+      "included": true,
+      "counts": "4\t0"
+    },
+    {
+      "name": "codex/physical-source-p7",
+      "head": "1b8fe6a3f7299ca851edf1a4255551425590e150",
+      "subject": "Prepare P7 private physical source session handoff",
+      "included": true,
+      "counts": "3\t0"
+    },
+    {
+      "name": "codex/lean-beta-preparation",
+      "head": "369e7b90dfeb74314244a923a87864e368348412",
+      "subject": "Record Prompt 4 validation and local completion",
+      "included": true,
+      "counts": "8\t0"
+    },
+    {
+      "name": "main",
+      "head": "a18f00fa19ac95f946c4686ba3b6a068064d797b",
+      "subject": "Add closed Challenge Health contracts and synthetic scenarios",
+      "included": true,
+      "counts": "14\t0"
+    },
+    {
+      "name": "codex/lean-beta-preparation",
+      "head": "201d7459bad293c9f942de067c1b6afd99b58479",
+      "subject": "Simplify Beta continuation plan and bound P4 test cleanup",
+      "included": true,
+      "counts": "10\t0"
+    },
+    {
+      "name": "codex/weekly-local-roadmap",
+      "head": "6476d474438c6aa9e5acc86de8fdffb39e3846dc",
+      "subject": "no-mistakes(ci): Fixed the Xcode 26.2 Swift compile failure by renaming DeleteAccountView\u2019s nested State enum to DeleteAccountState, preventing it from shadowing SwiftUI\u2019s @State property wrapper. Verified with git diff --check and a successful Debug iOS Simulator product build using local Xcode 27.0",
+      "included": false,
+      "counts": "71\t21"
+    },
+    {
+      "name": "main",
+      "head": "913967986f6fa0486002dcb5e1061f8919e8b2e5",
+      "subject": "Checkpoint local duels and commitments through Phase 3(c)",
+      "included": true,
+      "counts": "71\t0"
+    },
+    {
+      "name": "codex/weekly-local-roadmap",
+      "head": "fddcbcd0c8238d511c72b1d862c24e776cf238b0",
+      "subject": "fix: fence weekly sharing after suspended authentication",
+      "included": true,
+      "counts": "45\t0"
+    },
+    {
+      "name": "codex/weekly-steps-source-investigation",
+      "head": "c452a662120acdcb4e2b1acd5069cb74ae0f7f1c",
+      "subject": "docs: record weekly merge and physical source investigation handoff",
+      "included": false,
+      "counts": "44\t2"
+    },
+    {
+      "name": "main",
+      "head": "dcefd7912f2987e84bdbf1b62e6b5afc1e89e6cf",
+      "subject": "Implement performance commitments and weekly roadmap",
+      "included": true,
+      "counts": "70\t0"
+    }
+  ],
+  "dirty_file_classifications": {
+    "/Users/user/Documents/GitHub/GameTime": [
+      {
+        "status": " M",
+        "path": "CLAUDE.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "DECISIONS.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "PLAN.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "PROJECT_MEMORY.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "README.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "docs/BETA_IMPLEMENTATION_PROMPTS.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/BETA_LAUNCH_AUDIT.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/BETA_PRODUCT_DESIGN_AUDIT.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/BUSINESS_MODEL.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "docs/COPY.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/DUEL_NATIVE_LIFECYCLE_V1_ACCEPTANCE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/DUEL_NATIVE_V1_ACCEPTANCE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/DUEL_REMATCH_LINK_V1_ACCEPTANCE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/NEXT_BUSINESS_MODEL_PROMPT.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/PERFORMANCE_COMMITMENT_AGREEMENT_V1_ACCEPTANCE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/PERFORMANCE_COMMITMENT_NATIVE_V1_ACCEPTANCE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/PERFORMANCE_FOLLOWING_V1_ACCEPTANCE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/PERFORMANCE_LIFECYCLE_V1_ACCEPTANCE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/PERSONAL_V1_ACCEPTANCE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/PHASE_3D_CHECKPOINT.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/PRIVACY_POLICY.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/WEEKLY_BACKEND_V1_ACCEPTANCE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "docs/WEEKLY_EXECUTION.md",
+        "classification": "same_as_target"
+      },
+      {
+        "status": " M",
+        "path": "docs/WEEKLY_NATIVE_V1_ACCEPTANCE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "docs/archive/2026-09-04_PRE_PIVOT_PLAN.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/CHALLENGE_SCREEN_DAYMARK.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/CHALLENGE_SCREEN_IMAGE_PROMPTS.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/CHALLENGE_SCREEN_PACE_TAPE.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/CHALLENGE_SCREEN_REDESIGN.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/HANDOFF.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/README.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a-position-today.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a-position-today.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a-position-week.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a-position-week.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a2-glass-today.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a2-glass-week-ahead.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a2-glass-week-behind.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a3-commit.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a3-result-lost.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a3-result-won.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/a3-you.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/b-traininglog-today.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/b-traininglog-today.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/b-traininglog-week.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/b-traininglog-week.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/better-bet-all-screens.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/c-nightsplits-today.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/c-nightsplits-today.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/c-nightsplits-week.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/c-nightsplits-week.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/gallery-check.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/gen.py",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/better-bet-mockups/sheet.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/challenge-mockups/challenge-duel-active-v1.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/challenge-mockups/gametime-challenge-night-course-v2.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/challenge-mockups/gametime-challenge-signal-sheet-v2.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/challenge-mockups/gametime-challenge-training-splits-v2.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/challenge-mockups/gametime-daymark-result-v1.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/challenge-mockups/gametime-daymark-review-v1.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/challenge-mockups/gametime-daymark-today-v1.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/challenge-mockups/gametime-pace-tape-result-v1.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/challenge-mockups/gametime-pace-tape-review-v1.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/challenge-mockups/gametime-pace-tape-today-v1.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/gametime-pace-tape.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "docs/design/gametime-screen-atlas.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTime/CompetitiveTrustTheme.swift",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTime/DuelLifecycleModels.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTime/DuelLifecycleViews.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTime/DuelViews.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTime/PerformanceCommitmentLifecycleModels.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTime/PerformanceCommitmentLifecycleViews.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTime/PerformanceCommitmentViews.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTime/PersonalChallengeDetailView.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTime/PersonalChallengeReceiptPresentation.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTime/WeeklyViews.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTimeTests/PersonalChallengeReceiptPresentationTests.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTimeUITests/DuelUITests.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTimeUITests/GameTimeUITests.swift",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/GameTimeUITests/PerformanceCommitmentUITests.swift",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "ios/GameTime/README.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/01-today.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/02-duel.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/03-goal.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/04-connections.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/05-weekly-steps.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/06-weekly-minutes.png",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/README.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/index.html",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/prompts.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/weekly-challenges.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " D",
+        "path": "outputs/design/2026-09-06-game-time-concepts/weekly-prompts.md",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/beta-finish-line-roadmap.html",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/current-today.jpg",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/finish-line-assets/current-today.jpg",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/finish-line-assets/friend.png",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/finish-line-assets/goal.png",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/finish-line-assets/home.png",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/finish-line-assets/roadmap.md",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-ai-concept-source.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-match-sheet-review.html",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-match-sheet-v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-remaining-implementation-plan.html",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-remaining-plan-decisions.html",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-state-2026-09-08.html",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-state-2026-09-08/design-reference.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-state-2026-09-08/firstmate-prompt.txt",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-state-2026-09-08/native-home.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-state-2026-09-08/overnight-handoff.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-state-2026-09-08/source-investigation.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-your-week-plan.html",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-your-week.html",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-your-week/generation-prompt.txt",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-your-week/implementation-plan.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/gametime-your-week/mockup.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/implementation-reality-check.html",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/plan-audit-v2.html",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": ".lavish/plan-audit.html",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": "docs/BETA_FINISH_LINE_ROADMAP.md",
+        "classification": "new_content_at_existing_path"
+      },
+      {
+        "status": "??",
+        "path": "docs/BETA_IMPLEMENTATION_PLAN.md",
+        "classification": "new_content_at_existing_path"
+      },
+      {
+        "status": "??",
+        "path": "docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md",
+        "classification": "new_content_at_existing_path"
+      },
+      {
+        "status": "??",
+        "path": "docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md",
+        "classification": "new_content_at_existing_path"
+      },
+      {
+        "status": "??",
+        "path": "docs/WORKING_BASELINE.md",
+        "classification": "new_content_at_existing_path"
+      },
+      {
+        "status": "??",
+        "path": "docs/archive/2026-09-11_PRE_SIMPLIFICATION_FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": "docs/archive/2026-09-11_PRE_SIMPLIFICATION_GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": "docs/design/CRISP_BLUE_UI_IMPLEMENTATION_PROMPT.md",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": "docs/design/CRISP_BLUE_UI_SCREEN_MATRIX.md",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": "docs/design/your-week-ui/implementation-plan.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "docs/design/your-week-ui/reference-mockup.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "output/imagegen/gametime-home-crisp-blue-v1.edit-prompt.txt",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "output/imagegen/gametime-home-crisp-blue-v1.notes.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "output/imagegen/gametime-home-crisp-blue-v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "output/imagegen/gametime-home-crisp-blue-v1.prompt.txt",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "output/imagegen/gametime-home-crisp-blue-v2.notes.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "output/imagegen/gametime-home-crisp-blue-v2.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "output/imagegen/gametime-home-crisp-blue-v2.prompt.txt",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/README.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/crisp-cobalt.bundle",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/DESIGN_SYSTEM.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/IMPLEMENTATION.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/SCREEN_LEDGER.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/VERIFICATION.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/approved-home-prompt.txt",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/approved-home.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/before-local-entry.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Beta Home light.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Beta audit screen light.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Beta creation light.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt leaderboard-create-Exercise time.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt leaderboard-create-Running distance.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt leaderboard-create-Steps.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt leaderboard-create-Timed run.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt personal-complete-agreement.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt personal-scheduled.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt privacy-and-terms.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/forms/Cobalt you.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Beta Home light.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Beta audit screen light.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Beta creation light.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt leaderboard-create-Exercise time.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt leaderboard-create-Running distance.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt leaderboard-create-Steps.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt leaderboard-create-Timed run.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt personal-complete-agreement.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt personal-scheduled.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt privacy-and-terms.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/Cobalt you.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-accessibility.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-compact.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-dark.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-empty.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-loading.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-stale-recovery.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home-unavailable.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/ios18/cobalt-home.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical You.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical account support.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical deletion confirmation.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical empty.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical loading.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical offline.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical onboarding.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical privacy.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/Cobalt historical sign-in.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/beta-creation-cadence-accessibility-xxxl.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/commitment-created.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/commitment-injury-accessibility-xxxl.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/confirmation-receipt-accessibility-xxxl.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/duel-blocked-injury-accessibility-xxxl.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/legacy/duel-creator-receipt.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-community_steps_goal_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_distance_goal_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_distance_leaderboard_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_exercise_goal_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_exercise_leaderboard_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_steps_goal_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_steps_leaderboard_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_timed_goal_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-friend_timed_leaderboard_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-accessibility.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-compact.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-dark.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-empty.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-loading.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-stale-recovery.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home-unavailable.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-home.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-leaderboard-unknown-tied-departed.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-personal_distance_goal_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-personal_exercise_goal_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-personal_steps_goal_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/native/cobalt-personal_timed_goal_v1.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-active-2-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-active-6-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-consent-2-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-consent-6-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-creation-2-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-creation-6-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-final-2-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-final-6-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-lobby-2-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-lobby-6-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-review-2-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/touch-before-final-layout/cobalt-review-6-people.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/weekly/community-common-target-solo.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/weekly/five-person-invitation-accessibility3.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/weekly/five-person-invitation.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/weekly/provisional-final-refund-recovery.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/review/screenshots/weekly/unaccepted-final-closed-invitation.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-2026-09-11-01a091f5/source.patch",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-default-2026-09-11/README.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-default-2026-09-11/VERIFICATION.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/cobalt-ui-default-2026-09-11/default-signed-in.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-match-sheet/01-match-sheet-comparison.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-match-sheet/README.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-match-sheet/mobbin-sources.json",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-match-sheet/prompt.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-weekly-friend-challenge/README.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-weekly-friend-challenge/fonts/archivo-latin.woff2",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-weekly-friend-challenge/gametime-your-week-mockup.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-weekly-friend-challenge/mobbin-sources.json",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-weekly-friend-challenge/screen.html",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-weekly-rules/README.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-weekly-rules/gametime-this-weeks-rules-mockup.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-your-week-score-window/gametime-your-week-score-window.png",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/design/2026-09-08-your-week-score-window/screen.html",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/reports/2026-09-10-firstmate-next-prompts.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/reports/2026-09-10-firstmate-work-audit.md",
+        "classification": "untracked_absent_in_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/reports/2026-09-11-beta-simplification.md",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": "outputs/reports/2026-09-12-working-baseline-consolidation.md",
+        "classification": "untracked_absent_in_target"
+      }
+    ],
+    "/Users/user/firstmate/projects/beta1-policy/GameTime": [
+      {
+        "status": " M",
+        "path": "CLAUDE.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "DECISIONS.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "PLAN.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "PROJECT_MEMORY.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "README.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "docs/BUSINESS_MODEL.md",
+        "classification": "both_changed"
+      },
+      {
+        "status": " M",
+        "path": "docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md",
+        "classification": "same_as_target"
+      },
+      {
+        "status": " M",
+        "path": "docs/WEEKLY_EXECUTION.md",
+        "classification": "same_as_target"
+      },
+      {
+        "status": "??",
+        "path": "docs/BETA_IMPLEMENTATION_PLAN.md",
+        "classification": "new_content_at_existing_path"
+      }
+    ],
+    "/Users/user/firstmate-workspace/projects/gametime-beta": [
+      {
+        "status": " M",
+        "path": "scripts/beta-native-smoke.py",
+        "classification": "target_unchanged_from_base"
+      },
+      {
+        "status": " M",
+        "path": "scripts/beta-preview.py",
+        "classification": "target_unchanged_from_base"
+      }
+    ]
+  },
+  "scratch_checks": {
+    "scratch": "/var/folders/sy/7p0tvz116ng_87l_lqp82qn80000gn/T/gametime-main-audit-bvlbeeq1",
+    "target": "01f1dd159839769fe31ce33804e757876eb4b573",
+    "checks": {
+      "preview_patch_on_p10": {
+        "exit": 0,
+        "details": ""
+      },
+      "scripts/beta-native-smoke.py": {
+        "syntax": "passed",
+        "sha256": "8c690f4100438ace1adddec710e26bc3e2847f5e010a8fd235e0d70f357228c8"
+      },
+      "scripts/beta-preview.py": {
+        "syntax": "passed",
+        "sha256": "65bc70d67952284fd6c31597b9415d57a46284c030adceb118a1101976f6030a"
+      },
+      "original_patch_on_p10": {
+        "exit": 0,
+        "details": "Applied patch to 'CLAUDE.md' with conflicts.\nApplied patch to 'DECISIONS.md' with conflicts.\nApplied patch to 'PLAN.md' with conflicts.\nApplied patch to 'PROJECT_MEMORY.md' with conflicts.\nApplied patch to 'README.md' with conflicts.\nApplied patch to 'docs/BETA_IMPLEMENTATION_PROMPTS.md' cleanly.\nApplied patch to 'docs/BETA_LAUNCH_AUDIT.md' cleanly.\nApplied patch to 'docs/BETA_PRODUCT_DESIGN_AUDIT.md' cleanly.\nApplied patch to 'docs/BUSINESS_MODEL.md' with conflicts.\nApplied patch to 'docs/COPY.md' cleanly.\nApplied patch to 'docs/DUEL_NATIVE_LIFECYCLE_V1_ACCEPTANCE.md' cleanly.\nApplied patch to 'docs/DUEL_NATIVE_V1_ACCEPTANCE.md' cleanly.\nApplied patch to 'docs/DUEL_REMATCH_LINK_V1_ACCEPTANCE.md' cleanly.\nApplied patch to 'docs/NEXT_BUSINESS_MODEL_PROMPT.md' cleanly.\nApplied patch to 'docs/PERFORMANCE_COMMITMENT_AGREEMENT_V1_ACCEPTANCE.md' cleanly.\nApplied patch to 'docs/PERFORMANCE_COMMITMENT_NATIVE_V1_ACCEPTANCE.md' cleanly.\nApplied patch to 'docs/PERFORMANCE_FOLLOWING_V1_ACCEPTANCE.md' cleanly.\nApplied patch to 'docs/PERFORMANCE_LIFECYCLE_V1_ACCEPTANCE.md' cleanly.\nApplied patch to 'docs/PERSONAL_V1_ACCEPTANCE.md' cleanly.\nApplied patch to 'docs/PHASE_3D_CHECKPOINT.md' cleanly.\nApplied patch to 'docs/PRIVACY_POLICY.md' cleanly.\nApplied patch to 'docs/WEEKLY_BACKEND_V1_ACCEPTANCE.md' cleanly.\nApplied patch to 'docs/WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md' cleanly.\nApplied patch to 'docs/WEEKLY_EXECUTION.md' cleanly.\nApplied patch to 'docs/WEEKLY_NATIVE_V1_ACCEPTANCE.md' cleanly.\nApplied patch to 'docs/archive/2026-09-04_PRE_PIVOT_PLAN.md' cleanly.\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nApplied patch to 'ios/GameTime/GameTime/CompetitiveTrustTheme.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTime/DuelLifecycleModels.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTime/DuelLifecycleViews.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTime/DuelViews.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTime/PerformanceCommitmentLifecycleModels.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTime/PerformanceCommitmentLifecycleViews.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTime/PerformanceCommitmentViews.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTime/PersonalChallengeDetailView.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTime/PersonalChallengeReceiptPresentation.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTime/WeeklyViews.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTimeTests/PersonalChallengeReceiptPresentationTests.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTimeUITests/DuelUITests.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTimeUITests/GameTimeUITests.swift' cleanly.\nApplied patch to 'ios/GameTime/GameTimeUITests/PerformanceCommitmentUITests.swift' cleanly.\nApplied patch to 'ios/GameTime/README.md' cleanly.\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\nFalling back to direct application...\n"
+      },
+      "combined_preview_tree": {
+        "tree": "afef25ede4cbad7072a6b7e12bcab244ab53519a",
+        "diff_check_exit": 0,
+        "changed_paths": [
+          "scripts/beta-native-smoke.py",
+          "scripts/beta-preview.py"
+        ]
+      },
+      "original_patch_materialized": {
+        "exit": 1,
+        "conflicts": [
+          "CLAUDE.md",
+          "DECISIONS.md",
+          "PLAN.md",
+          "PROJECT_MEMORY.md",
+          "README.md",
+          "docs/BUSINESS_MODEL.md"
+        ]
+      }
+    }
+  },
+  "final_drift": []
+}

@@ -1,12 +1,13 @@
 # Build friend duels and personal performance commitments
 
-For current execution, start from the durable
-[working baseline](docs/WORKING_BASELINE.md), then use the
+Start from `main` in `/Users/user/Documents/GitHub/GameTime` and read the
+[working baseline](docs/WORKING_BASELINE.md),
 [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [one-task prompts](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
-Cobalt/P4/P5/P6 are implemented locally. P7 is prepared, with physical sessions
-pending; P8/P9 and hosted/human/release acceptance remain. Do not restart completed
-prompts or use the preserved earlier `main` as the current working branch.
+Cobalt/P4/P5/P6 are implemented locally and P10's independent preparation is
+included. P7 is prepared, with physical sessions pending; P8/P9 and
+hosted/human/release acceptance remain. Do not restart completed prompts or
+resume old temporary checkouts from their historical instructions.
 
 ## Historical roadmap
 

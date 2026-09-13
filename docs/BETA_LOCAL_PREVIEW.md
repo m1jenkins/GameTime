@@ -1,149 +1,92 @@
-# Morning local preview — b7
+# Local Cobalt preview
 
-This is the new Beta shell on fictional local accounts. All stakes are simulated
-and nonredeemable; no Health data is scored. Legacy default navigation is intact.
-Physical-source evidence, human acceptance and distribution are still pending.
-The foreground launcher, two-person touch journey, account switching, final history,
-URL invitation through relaunch/sign-in/age, and scoped shutdown have been executed
-against the native client and authenticated local backend.
+Run from `/Users/user/Documents/GitHub/GameTime` on `main`. This opens the newer
+friend/personal ChallengeV1 shell with fictional local accounts. It does not use
+Demo Mode or connect real Health data. Normal signed-in challenge transport stays
+closed. Amounts are nonredeemable simulation.
 
-## Launch
+## Choose owned resources
 
-Use this worktree, not either primary checkout:
+The launcher accepts `GAMETIME_BETA_PREVIEW_PROJECT`, `PORT_BASE`, `STACK`,
+`SIMULATOR` and `APP`, each with the `GAMETIME_BETA_PREVIEW_` prefix.
+Select an existing disposable stack with the committed migrations applied, an
+available Simulator and a Debug Simulator build. These variables select resources;
+they do not provision a stack or authorize resetting another database.
 
-```sh
-cd /Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta
-scripts/beta-preview.py --owned-project gametime-finish-b7 serve
-```
-
-Keep that command in its foreground terminal. It makes seven fictional accounts,
-prints their usernames, starts a loopback controller on 58339, installs the Debug
-build on **only** Simulator `72A3249A-2DE0-4695-AF41-DCD2743B4666`, and opens the
-local sign-in screen with account 1 filled in. Tap **Sign in**. Credentials are in
-a temporary mode-0600 manifest and process environment, not in these instructions.
-Do not run this alongside a native, operator-smoke or concurrency test controller.
-
-The already-created stack is `/tmp/gametime-finish-b7-stack`, project
-`gametime-finish-b7`, API 58321 / DB 58322. If its services are stopped, first check
-`supabase status --workdir /tmp/gametime-finish-b7-stack`, then start **only** it:
+The following b7 stack and Cobalt review Simulator were present during the
+September 12 cleanup. Recheck their availability before use. The legacy b7 defaults
+remain compatible with existing native tests and the operator helper.
 
 ```sh
-DO_NOT_TRACK=1 supabase start --workdir /tmp/gametime-finish-b7-stack \
-  -x edge-runtime,studio,imgproxy,mailpit,storage-api,vector
+cd /Users/user/Documents/GitHub/GameTime
+export GAMETIME_BETA_PREVIEW_PROJECT=gametime-finish-b7
+export GAMETIME_BETA_PREVIEW_PORT_BASE=58320
+export GAMETIME_BETA_PREVIEW_STACK=/tmp/gametime-finish-b7-stack
+export GAMETIME_BETA_PREVIEW_SIMULATOR=F7C22A78-F71A-4071-B122-55E68F8E5EF1
+export GAMETIME_BETA_PREVIEW_APP=/tmp/gametime-main-preview-derived/Build/Products/Debug-iphonesimulator/GameTime.app
+xcrun simctl list devices booted
+supabase status --workdir "$GAMETIME_BETA_PREVIEW_STACK"
 ```
 
-No reset is needed. Never use an unscoped reset or touch the original 5432x stack.
-If the owned Simulator is shut down, boot exactly that UUID with `xcrun simctl boot`.
-The reusable Debug build lives at
-`/tmp/gametime-finish-b7-derived/Build/Products/Debug-iphonesimulator/GameTime.app`.
-Rebuild locally if necessary:
+API, database and controller ports are `PORT_BASE + 1`, `+ 2` and `+ 19`.
+The launcher verifies that the stack's actual identity and loopback endpoints
+match the selected project. Do not run a second controller against that stack.
+If the selected stack is stopped, start only that known stack without resetting
+it. If it is absent, prepare a separate owned stack using the local operating
+instructions before launching; do not substitute the original development stack.
+
+Build the local scheme into the chosen output directory:
 
 ```sh
 xcodebuild build -project ios/GameTime/GameTime.xcodeproj \
   -scheme GameTimeBetaLocal -configuration Debug \
-  -destination 'platform=iOS Simulator,id=72A3249A-2DE0-4695-AF41-DCD2743B4666' \
-  -derivedDataPath /tmp/gametime-finish-b7-derived CODE_SIGNING_ALLOWED=NO
+  -destination "platform=iOS Simulator,id=$GAMETIME_BETA_PREVIEW_SIMULATOR" \
+  -derivedDataPath /tmp/gametime-main-preview-derived CODE_SIGNING_ALLOWED=NO
+scripts/beta-preview.py --owned-project "$GAMETIME_BETA_PREVIEW_PROJECT" serve
 ```
 
-## Try a two-person steps goal
+Keep the foreground command running. It creates seven fictional accounts, prints
+usernames and fills the local sign-in screen for account 1. Tap **Sign in** and
+confirm age if asked. It does not submit challenge consent. Credentials stay in a
+temporary mode-0600 manifest; do not copy them into source or documentation.
 
-1. In **Challenges**, confirm age, create the default friend steps lobby, and open
-   it. Propose **10000** steps. In another terminal, run `accounts` (below), copy
-   account 2's username into **Exact friend username**, then **Invite friend**.
-   Use `latest` now to obtain this lobby's UUID for the later clock commands.
-2. Run `open --actor 2`, tap Sign in and confirm age. Open the lobby and propose
-   **10001**. Switch back to account 1 and select account 2 for the roster.
-3. Tap **Lock in roster and goals**. Each account must separately open the full
-   agreement, turn on **I have read the complete rules and agree**, then agree.
-   Merely opening or signing in never submits consent. The challenge becomes
-   scheduled only after both agree. Reopening terms requires both again.
-4. Advance the fictional clock and add progress using the commands below. Refresh
-   in the app to see exact 12,000-step totals. Then lower account 2 to 100 during
-   the correction period. No chart point is fabricated or interpolated.
-5. Process a deliberately delayed result notice. Account 2 can ask for a review
-   from the detail page. The notice grants a full 48 hours from its actual time.
-   Use the assigned independent operator workflow below to inspect and resolve it.
-6. Advance to the end of that review window and process. Home/Challenges history
-   shows the exact final result. For the default $20 simulated entry and these
-   confirmed values, account 1 receives a $40 simulated return and account 2 $0.
-   Nothing can be paid out or redeemed.
+Custom preview projects use a separate manifest named
+`tmp/beta-native-smoke-<project>.json`. The b7 default and native test runner retain
+`tmp/beta-native-smoke.json`, which existing native/UI tests and the b7 operator
+helper expect. The native runner forwards its expected loopback controller URL to
+Xcode's test runner. Only one native smoke controller can use a checkout at once.
 
-Run these from a second terminal in the same worktree:
+## Review the journey
+
+Use the same environment settings in a second terminal in the main checkout:
 
 ```sh
-scripts/beta-preview.py --owned-project gametime-finish-b7 accounts
-scripts/beta-preview.py --owned-project gametime-finish-b7 latest --actor 1
-scripts/beta-preview.py --owned-project gametime-finish-b7 open --actor 2
-scripts/beta-preview.py --owned-project gametime-finish-b7 open --actor 1
+scripts/beta-preview.py --owned-project "$GAMETIME_BETA_PREVIEW_PROJECT" accounts
+scripts/beta-preview.py --owned-project "$GAMETIME_BETA_PREVIEW_PROJECT" open --actor 2
+scripts/beta-preview.py --owned-project "$GAMETIME_BETA_PREVIEW_PROJECT" open --actor 1
 ```
 
-Set `CHALLENGE_UUID` to the returned lobby ID (do not use an old run's ID):
+1. As account 1, create a friend goal and propose a target. Invite account 2 by its
+   exact printed username.
+2. Switch to account 2, sign in, confirm age, open the invitation and propose its
+   own target. Switch back to account 1 and select the roster.
+3. Lock the agreement. Each account must independently read and consent before
+   it becomes scheduled. Account switching never submits consent.
+4. Try a friend leaderboard, where no goal field is required, and a personal goal.
+   Navigate Home, Challenges and You. All four activity options are fictional.
+5. Use `latest --actor 1` to obtain a new challenge ID. The launcher's `clock`,
+   `progress` and `process` commands advance only fictional scenarios; inspect
+   their `--help` and the selected agreement dates before using them.
 
-```sh
-CHALLENGE_UUID='PASTE_THIS_PREVIEW_LOBBY_UUID'
-scripts/beta-preview.py --owned-project gametime-finish-b7 clock --to 2026-10-05T12:00:00Z
-scripts/beta-preview.py --owned-project gametime-finish-b7 process --challenge "$CHALLENGE_UUID"
-scripts/beta-preview.py --owned-project gametime-finish-b7 progress --challenge "$CHALLENGE_UUID" --actor 1 --value 12000
-scripts/beta-preview.py --owned-project gametime-finish-b7 progress --challenge "$CHALLENGE_UUID" --actor 2 --value 12000
-scripts/beta-preview.py --owned-project gametime-finish-b7 clock --to 2026-10-11T12:00:00Z
-scripts/beta-preview.py --owned-project gametime-finish-b7 progress --challenge "$CHALLENGE_UUID" --actor 2 --value 100
-scripts/beta-preview.py --owned-project gametime-finish-b7 clock --to 2026-10-20T12:00:00Z
-scripts/beta-preview.py --owned-project gametime-finish-b7 process --challenge "$CHALLENGE_UUID"
-```
+The prior Cobalt review recorded these journeys interactively. Consult its
+screens and the [current baseline](WORKING_BASELINE.md) for the limits of that
+record. Consolidating source does not establish new physical, human or hosted
+acceptance. The b7-specific operator walkthrough is retained in Git history;
+[local operations](BETA_OPERATIONS_LOCAL.md) owns current permission boundaries.
 
-After filing the review in the app, set `OPERATOR_UUID` to account 7's UUID from
-`accounts`. Grant scope, read its assigned case, and set `REVIEW_UUID` to that case:
+## Stop the preview
 
-```sh
-OPERATOR_UUID='PASTE_ACCOUNT_7_UUID'
-scripts/beta-operator.py --owned-project gametime-finish-b7 grant \
-  --actor "$OPERATOR_UUID" --challenge "$CHALLENGE_UUID" \
-  --capability review --expires 2026-10-25T12:00:00Z
-scripts/beta-operator.py --owned-project gametime-finish-b7 --local-actor 7 \
-  cases --challenge "$CHALLENGE_UUID"
-REVIEW_UUID='PASTE_REVIEW_UUID'
-REQUEST_UUID="$(uuidgen)"
-scripts/beta-operator.py --owned-project gametime-finish-b7 --local-actor 7 \
-  resolve --challenge "$CHALLENGE_UUID" --review "$REVIEW_UUID" \
-  --decision upheld --request-id "$REQUEST_UUID"
-scripts/beta-preview.py --owned-project gametime-finish-b7 clock --to 2026-10-22T12:00:00Z
-scripts/beta-preview.py --owned-project gametime-finish-b7 process --challenge "$CHALLENGE_UUID"
-```
-
-`upheld` is appropriate for these explicit fictional values. For a disputed result
-that cannot be established, follow the runbook's conservative exclusion rule.
-Changing an allocation issues a new notice with another full review window.
-
-## More things to try
-
-- Invite accounts 2–6 and repeat roster/targets/consent for a six-person journey.
-- Try all four activities and both friend formats; leaderboards have no goal field.
-  Personal creation previews one private agreement and requires its own consent.
-- Use **Leave** before finality, or cancel a lobby before it starts. Review the
-  explanation before confirming; your simulated entry returns. Report/block is
-  available from a shared participant's controls. Own history stays available.
-- Issue/revoke an invitation in the lobby; opening its opaque link does not grant
-  access until authenticated redemption and age confirmation. Account 7 has no
-  pre-existing friendship with accounts 1–6.
-- Run `lose-next-response`, then take one app action. It commits but returns a
-  deliberate connection failure. **Retry saved action** retrieves the same result;
-  **Stop waiting** checks completion or prevents a late request from committing.
-  Switch accounts and return to verify the saved action stays with its owner.
-- Run a `clock` command with `--pause-admission --pause-processing`. New admission
-  stops, while safe reads, exits, reviews and exact recovery still work. Omit the
-  pause flags in another clock command to resume this fictional controller.
-- **You → Privacy and terms** explains local data and simulated stakes. External
-  support, deletion policy, real sources and distribution remain unaccepted.
-
-## Cleanup and return to historical navigation
-
-Press **Ctrl-C** in the `serve` terminal. It disables fixture/admission/processing /
-community discovery, revokes only this preview's sessions, removes its credential
-manifest and keeps all historical/fictional records. It leaves the owned database
-running and touches no pre-existing stack or Simulator. The app then rejects the
-revoked session; another `serve` creates a fresh cohort.
-
-To open historical default navigation without the local opt-in, terminate and
-launch the app on this owned Simulator with no Beta argument. Do not sign in to a
-hosted account during local verification. No real-source permission or device
-acceptance can be inferred from any of these fictional Simulator journeys.
+Press **Ctrl-C** in its `serve` terminal. The launcher closes fixture gates,
+revokes only its preview sessions and removes its credential manifest. Historical
+and fictional database records remain. It does not stop other stacks or erase a
+Simulator. Starting another preview creates a fresh fictional cohort.

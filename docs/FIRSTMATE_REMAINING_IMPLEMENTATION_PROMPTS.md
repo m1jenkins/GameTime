@@ -22,14 +22,15 @@ Read PROJECT_MEMORY.md, CLAUDE.md and the current remaining implementation plan.
 Implement only the numbered task below. Change working code only for a concrete
 correctness, maintenance or performance benefit.
 
-Reconcile existing workers and branches first. Use the current accepted head of
-codex/beta-working-baseline in
-/Users/user/firstmate-workspace/projects/gametime-beta, or its explicitly accepted
-successor. This branch contains the full Cobalt/P4/P5/P6/P7-preparation chain;
-1b8fe6a is the imported P7 checkpoint, not a permanent HEAD pin.
-Use an isolated branch/worktree for new implementation. Preserve the dirty
-original, historical main, prior task branches and retained resources. Do not
-import the original dirty diff, restart completed prompts or duplicate active work.
+Reconcile existing workers and branches first. Use current accepted main in
+/Users/user/Documents/GitHub/GameTime. This includes the full Cobalt/P4/P5/P6/
+P7-preparation chain and P10's device-independent preparation. Recorded checkpoint
+hashes are provenance, not permanent HEAD pins.
+Use a short-lived branch for new implementation. Create a worktree only when
+isolation is needed; avoid additional full clones and retire temporary worktrees
+after landing their work and preserving their evidence. Preserve archive branches
+and retained resources. Do not import the old dirty diff, restart completed
+prompts or duplicate active work.
 
 Cancelled candidate-gate recovery is not a prerequisite for local work. Reuse
 specific tools/evidence; do not restart completed prompts or import an entire

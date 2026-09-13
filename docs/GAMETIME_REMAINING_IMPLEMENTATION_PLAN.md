@@ -1,10 +1,10 @@
 # GameTime remaining implementation plan
 
-Updated September 12, 2026 UTC after consolidating Cobalt and P4–P7 preparation.
+Updated September 12, 2026 after local consolidation onto `main`.
 The [working baseline](WORKING_BASELINE.md) owns source identity and evidence:
-`/Users/user/firstmate-workspace/projects/gametime-beta`, active branch
-`codex/beta-working-baseline`, descended from P7 checkpoint `1b8fe6a`.
-Earlier `main` and temporary task checkouts are preserved historical sources.
+`/Users/user/Documents/GitHub/GameTime`, branch `main`, containing the full
+Cobalt/P4/P5/P6/P7-preparation chain and P10 through `01f1dd15`.
+The [consolidation map](WORKTREE_CONSOLIDATION_STATUS.md) records archived sources.
 
 P4/P5/P6 are completed and locally verified. P7 has a prepared signed Debug build;
 physical observations and all four source acceptances are still unperformed.

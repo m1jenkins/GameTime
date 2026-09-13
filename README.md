@@ -1,15 +1,17 @@
 # GameTime
 
-Current local Beta work uses the durable
-[working baseline](docs/WORKING_BASELINE.md):
-`/Users/user/firstmate-workspace/projects/gametime-beta`, branch
-`codex/beta-working-baseline`. Cobalt and P4/P5/P6 are implemented locally.
-P7 has a prepared Debug build; physical sessions and all four source acceptances
-remain pending. Normal signed-in challenge transport remains closed.
+Develop in `/Users/user/Documents/GitHub/GameTime` on `main`.
+The [working baseline](docs/WORKING_BASELINE.md) and
+[consolidation map](docs/WORKTREE_CONSOLIDATION_STATUS.md) give the current status
+and the recovery locations for older work.
 
-Use the [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
-[prompt pack](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for subsequent
-work. The original dirty checkout and prior branches are preserved.
+Cobalt and P4/P5/P6 are implemented locally; P10's independent preparation is
+included. P7 physical sessions, real ingestion/adapters and hosted/human/release
+acceptance remain. Normal signed-in challenge transport is still closed.
+Use the [fictional local preview](docs/BETA_LOCAL_PREVIEW.md) to review the newer
+friend and personal journeys, then the
+[remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
+[prompt pack](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for further work.
 
 ## Historical implementation notes
 

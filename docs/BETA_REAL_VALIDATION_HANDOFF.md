@@ -4,9 +4,9 @@
 
 Use [WORKING_BASELINE.md](WORKING_BASELINE.md) and the
 [remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
-The durable checkout is `/Users/user/firstmate-workspace/projects/gametime-beta`,
-active branch `codex/beta-working-baseline`, with Cobalt/P4/P5/P6 and P7 checkpoint
-`1b8fe6a` preserved in one ancestry. P4/P5/P6 are completed locally. P7 is prepared
+The active checkout is `/Users/user/Documents/GitHub/GameTime` on `main`,
+with Cobalt/P4/P5/P6, P7 checkpoint `1b8fe6a` and P10 through `01f1dd15`
+preserved in one ancestry. P4/P5/P6 are completed locally. P7 is prepared
 only: resume the [private physical sessions](BETA_PHYSICAL_SESSIONS.md) after
 device-specific opt-in. No physical source or real ingestion is accepted.
 

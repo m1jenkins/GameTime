@@ -1,0 +1,266 @@
+{
+  "recorded_at_utc": "2026-09-13T01:50:09.616498+00:00",
+  "destination": "/Users/user/Documents/GitHub/GameTime",
+  "branch": "main",
+  "p10_input": "01f1dd159839769fe31ce33804e757876eb4b573",
+  "preview_code_commit": "e7b4bd554654786c545d4a57a6a8789a3c04b46e",
+  "archive": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation",
+  "archive_checkpoints": [
+    {
+      "snapshot": "original",
+      "branch": "codex/archive-original-20260912",
+      "commit": "8014c97d1b5e7798c0d1669047efc1bfad01fb12"
+    },
+    {
+      "snapshot": "beta1",
+      "branch": "codex/archive-beta1-20260912",
+      "commit": "8d63f93aec65c6d56eecd022b28fcbd6bbbd6d88"
+    }
+  ],
+  "retired_checkouts": [
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/9/gametime-beta",
+      "action": "removed clean linked worktree after preservation",
+      "head": "d0742eac0fab4d182338dc75d5aacb77658e0c09",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/treehouse-9",
+      "ignored_files_preserved": 0,
+      "artifact_moves": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta",
+      "action": "removed clean linked worktree after preservation",
+      "head": "1512009cb650af05a6111749d68998a4ce4d8669",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/treehouse-7",
+      "ignored_files_preserved": 249506,
+      "artifact_moves": [
+        {
+          "from": "/Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta/scripts/__pycache__",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/treehouse-7/scripts/__pycache__",
+          "inode": 21941105
+        },
+        {
+          "from": "/Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta/scripts/tests/__pycache__",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/treehouse-7/scripts/tests/__pycache__",
+          "inode": 21941126
+        },
+        {
+          "from": "/Users/user/.treehouse/gametime-beta-7b9cca/7/gametime-beta/tmp",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/treehouse-7/tmp",
+          "inode": 21941109
+        }
+      ]
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/6/gametime-beta",
+      "action": "removed clean linked worktree after preservation",
+      "head": "7c34d52bc0250053819e35342a2b4fd9ed5d7382",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/treehouse-6",
+      "ignored_files_preserved": 0,
+      "artifact_moves": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta",
+      "action": "removed clean linked worktree after preservation",
+      "head": "cf82e25bd7905c851525b837259bba0f0aaf3d8f",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/treehouse-1",
+      "ignored_files_preserved": 51,
+      "artifact_moves": [
+        {
+          "from": "/Users/user/.treehouse/gametime-beta-7b9cca/1/gametime-beta/tmp",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/treehouse-1/tmp",
+          "inode": 19790564
+        }
+      ]
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta",
+      "action": "removed clean linked worktree after preservation",
+      "head": "ff71ee28b05456dfa487d48ddd044105c9bdab37",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/treehouse-8",
+      "ignored_files_preserved": 456391,
+      "artifact_moves": [
+        {
+          "from": "/Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta/.build",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/treehouse-8/.build",
+          "inode": 23555680
+        },
+        {
+          "from": "/Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta/scripts/__pycache__",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/treehouse-8/scripts/__pycache__",
+          "inode": 23232264
+        },
+        {
+          "from": "/Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta/scripts/tests/__pycache__",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/treehouse-8/scripts/tests/__pycache__",
+          "inode": 23234981
+        },
+        {
+          "from": "/Users/user/.treehouse/gametime-beta-7b9cca/8/gametime-beta/tmp",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/treehouse-8/tmp",
+          "inode": 23234594
+        }
+      ]
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/4/gametime-beta",
+      "action": "removed clean linked worktree after preservation",
+      "head": "e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/treehouse-4",
+      "ignored_files_preserved": 0,
+      "artifact_moves": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/3/gametime-beta",
+      "action": "removed clean linked worktree after preservation",
+      "head": "1512009cb650af05a6111749d68998a4ce4d8669",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/treehouse-3",
+      "ignored_files_preserved": 0,
+      "artifact_moves": []
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta",
+      "action": "removed clean linked worktree after preservation",
+      "head": "9c84459e88246e1a34cd2acd6c6f9477384cefec",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/treehouse-2",
+      "ignored_files_preserved": 7,
+      "artifact_moves": [
+        {
+          "from": "/Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta/tmp",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/treehouse-2/tmp",
+          "inode": 20313880
+        }
+      ]
+    },
+    {
+      "path": "/Users/user/.treehouse/gametime-beta-7b9cca/5/gametime-beta",
+      "action": "removed clean linked worktree after preservation",
+      "head": "a18f00fa19ac95f946c4686ba3b6a068064d797b",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/treehouse-5",
+      "ignored_files_preserved": 0,
+      "artifact_moves": []
+    },
+    {
+      "path": "/private/tmp/gametime-p10-20260912",
+      "action": "removed clean linked worktree after preservation",
+      "head": "01f1dd159839769fe31ce33804e757876eb4b573",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/gametime-p10-20260912",
+      "ignored_files_preserved": 0,
+      "artifact_moves": []
+    },
+    {
+      "path": "/Users/user/firstmate/projects/beta1-policy/GameTime",
+      "action": "removed clean linked worktree after preservation",
+      "head": "8d63f93aec65c6d56eecd022b28fcbd6bbbd6d88",
+      "metadata": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/worktree-metadata/beta1-policy",
+      "ignored_files_preserved": 1751,
+      "artifact_moves": [
+        {
+          "from": "/Users/user/firstmate/projects/beta1-policy/GameTime/ios/GameTimeCore/.build",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/beta1-policy/ios/GameTimeCore/.build",
+          "inode": 18967113
+        },
+        {
+          "from": "/Users/user/firstmate/projects/beta1-policy/GameTime/tmp",
+          "to": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/local-artifacts/beta1-policy/tmp",
+          "inode": 19116336
+        }
+      ]
+    },
+    {
+      "path": "/private/tmp/gametime-p6-20260912/GameTime",
+      "action": "moved complete standalone checkout to archive",
+      "archive_path": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/checkouts/gametime-p6-20260912",
+      "head": "39e5f202ab0eae0ac6c23cb784afd3df28d1ad37",
+      "inode": 27654495
+    },
+    {
+      "path": "/private/tmp/gametime-p7-20260912/GameTime",
+      "action": "moved complete standalone checkout to archive",
+      "archive_path": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/checkouts/gametime-p7-20260912",
+      "head": "1b8fe6a3f7299ca851edf1a4255551425590e150",
+      "inode": 27770196
+    },
+    {
+      "path": "/private/tmp/gametime-p5-20260911/GameTime",
+      "action": "moved complete standalone checkout to archive",
+      "archive_path": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/checkouts/gametime-p5-20260911",
+      "head": "e16cff4b3beaa7bcce95db6b0e82eedaa94865fa",
+      "inode": 27573303
+    },
+    {
+      "path": "/private/tmp/gametime-crisp-cobalt-20260911",
+      "action": "moved complete standalone checkout to archive",
+      "archive_path": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/checkouts/gametime-crisp-cobalt-20260911",
+      "head": "affd367ebe5411969fd5b7abd45629e0746a5a7d",
+      "inode": 26774499
+    },
+    {
+      "path": "/private/tmp/gametime-simplify-20260911-byc27c1u/GameTime",
+      "action": "moved complete standalone checkout to archive",
+      "archive_path": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/checkouts/gametime-simplify-20260911-byc27c1u",
+      "head": "369e7b90dfeb74314244a923a87864e368348412",
+      "inode": 27514241
+    },
+    {
+      "path": "/private/tmp/gametime-baseline-consolidation-20260912/GameTime",
+      "action": "moved complete standalone checkout to archive",
+      "archive_path": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/checkouts/gametime-baseline-consolidation-20260912",
+      "head": "fd193e71b12dccbbb680eb78682e0a36cd7b1ffd",
+      "inode": 27819615
+    },
+    {
+      "path": "/private/tmp/gametime-p4-final-20260911/p2-source",
+      "action": "moved complete standalone checkout to archive",
+      "archive_path": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/checkouts/p2-source",
+      "head": "e3b6b92c48695abfb6f5ecbc0a60ec84a3f99dc0",
+      "inode": 27553544
+    },
+    {
+      "path": "/Users/user/firstmate/projects/GameTime",
+      "action": "moved complete standalone checkout to archive",
+      "archive_path": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/checkouts/weekly-roadmap",
+      "head": "6476d474438c6aa9e5acc86de8fdffb39e3846dc",
+      "inode": 16825106
+    },
+    {
+      "path": "/Users/user/firstmate/projects/pr17-final/GameTime",
+      "action": "moved complete standalone checkout to archive",
+      "archive_path": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/checkouts/source-investigation",
+      "head": "c452a662120acdcb4e2b1acd5069cb74ae0f7f1c",
+      "inode": 18625041
+    },
+    {
+      "path": "/Users/user/firstmate-workspace/projects/gametime-beta",
+      "action": "moved complete standalone checkout to archive",
+      "archive_path": "/Users/user/Documents/GameTime-Archives/2026-09-12-consolidation/checkouts/canonical-beta",
+      "head": "fd193e71b12dccbbb680eb78682e0a36cd7b1ffd",
+      "inode": 19696751
+    }
+  ],
+  "verification": {
+    "bundle_refs": 157,
+    "loose_file_records": 264,
+    "independent_bundle_restore_and_fsck": "passed",
+    "native_build": "passed",
+    "native_tests": {
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0
+    },
+    "python_tests": {
+      "preview_config": 4,
+      "iphone_product_guard": 14,
+      "worker_driver": 2
+    },
+    "migrations_unchanged": 76,
+    "p10_product_config_readiness_changed_paths": [],
+    "physical_or_hosted_acceptance": false,
+    "fresh_authenticated_ui_walkthrough": false
+  },
+  "publication": {
+    "pushed": false,
+    "last_inspected_remote_main": "577bc321e72750976e2e8027680387707070b0e3",
+    "ci_run": 34061887531,
+    "ci_note": "All four jobs blocked before execution by GitHub account billing/spending limit"
+  }
+}
