@@ -1,0 +1,15 @@
+{
+  "agreementVariants": 18,
+  "fullRuleSectionsPreserved": 72,
+  "consentPreserved": true,
+  "browser320pxLightAndDarkScreens": 44,
+  "browser398pxImageOptions": 12,
+  "documentHorizontalOverflowFailures": 0,
+  "imageLoadFailures": 0,
+  "contentBlurFailures": 0,
+  "flowsChecked": [
+    "invitation \u2192 review \u2192 explicit consent \u2192 receipt",
+    "personal timed run \u2192 draft \u2192 review \u2192 explicit consent \u2192 receipt"
+  ],
+  "nativeAcceptancePerformed": false
+}

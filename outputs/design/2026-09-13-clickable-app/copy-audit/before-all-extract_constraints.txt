@@ -1,0 +1,888 @@
+{
+  "input_length": 13966,
+  "constraint_count": 147,
+  "constraints": [
+    {
+      "type": "count",
+      "value": "3 people",
+      "start": 131,
+      "end": 139
+    },
+    {
+      "type": "number",
+      "value": "38,620",
+      "start": 164,
+      "end": 170
+    },
+    {
+      "type": "time",
+      "value": "9:38 AM",
+      "start": 197,
+      "end": 204
+    },
+    {
+      "type": "range",
+      "value": "7\u201313",
+      "start": 221,
+      "end": 225
+    },
+    {
+      "type": "proper_noun",
+      "value": "Home Challenges You",
+      "start": 342,
+      "end": 361
+    },
+    {
+      "type": "proper_noun",
+      "value": "Upcoming History",
+      "start": 427,
+      "end": 443
+    },
+    {
+      "type": "number",
+      "value": "42,850",
+      "start": 488,
+      "end": 494
+    },
+    {
+      "type": "number",
+      "value": "38,620",
+      "start": 501,
+      "end": 507
+    },
+    {
+      "type": "count",
+      "value": "3 people",
+      "start": 508,
+      "end": 516
+    },
+    {
+      "type": "range",
+      "value": "7\u201313",
+      "start": 523,
+      "end": 527
+    },
+    {
+      "type": "range",
+      "value": "7\u201313",
+      "start": 569,
+      "end": 573
+    },
+    {
+      "type": "proper_noun",
+      "value": "Home Challenges You",
+      "start": 702,
+      "end": 721
+    },
+    {
+      "type": "range",
+      "value": "7\u201313",
+      "start": 856,
+      "end": 860
+    },
+    {
+      "type": "year",
+      "value": "2026",
+      "start": 862,
+      "end": 866
+    },
+    {
+      "type": "number",
+      "value": "38,620",
+      "start": 867,
+      "end": 873
+    },
+    {
+      "type": "count",
+      "value": "3 people",
+      "start": 892,
+      "end": 900
+    },
+    {
+      "type": "proper_noun",
+      "value": "Standings Your",
+      "start": 901,
+      "end": 915
+    },
+    {
+      "type": "proper_noun",
+      "value": "Steps Highest",
+      "start": 935,
+      "end": 948
+    },
+    {
+      "type": "proper_noun",
+      "value": "Maya Updated",
+      "start": 999,
+      "end": 1011
+    },
+    {
+      "type": "time",
+      "value": "9:35 AM",
+      "start": 1012,
+      "end": 1019
+    },
+    {
+      "type": "number",
+      "value": "42,850",
+      "start": 1020,
+      "end": 1026
+    },
+    {
+      "type": "proper_noun",
+      "value": "You Updated",
+      "start": 1038,
+      "end": 1049
+    },
+    {
+      "type": "time",
+      "value": "9:38 AM",
+      "start": 1050,
+      "end": 1057
+    },
+    {
+      "type": "number",
+      "value": "38,620",
+      "start": 1058,
+      "end": 1064
+    },
+    {
+      "type": "proper_noun",
+      "value": "Jordan Updated",
+      "start": 1076,
+      "end": 1090
+    },
+    {
+      "type": "time",
+      "value": "9:31 AM",
+      "start": 1091,
+      "end": 1098
+    },
+    {
+      "type": "number",
+      "value": "35,400",
+      "start": 1099,
+      "end": 1105
+    },
+    {
+      "type": "number",
+      "value": "50,000",
+      "start": 1114,
+      "end": 1120
+    },
+    {
+      "type": "proper_noun",
+      "value": "Your Saturday",
+      "start": 1127,
+      "end": 1140
+    },
+    {
+      "type": "number",
+      "value": "5,900",
+      "start": 1141,
+      "end": 1146
+    },
+    {
+      "type": "proper_noun",
+      "value": "Sunday Sep",
+      "start": 1187,
+      "end": 1197
+    },
+    {
+      "type": "time",
+      "value": "12:00 AM",
+      "start": 1203,
+      "end": 1211
+    },
+    {
+      "type": "proper_noun",
+      "value": "Central Time",
+      "start": 1212,
+      "end": 1224
+    },
+    {
+      "type": "currency",
+      "value": "$20",
+      "start": 1225,
+      "end": 1228
+    },
+    {
+      "type": "currency",
+      "value": "$0",
+      "start": 1250,
+      "end": 1252
+    },
+    {
+      "type": "proper_noun",
+      "value": "Home Challenges You",
+      "start": 1349,
+      "end": 1368
+    },
+    {
+      "type": "count",
+      "value": "6 people",
+      "start": 1787,
+      "end": 1795
+    },
+    {
+      "type": "proper_noun",
+      "value": "You Your",
+      "start": 1798,
+      "end": 1806
+    },
+    {
+      "type": "number",
+      "value": "50,000",
+      "start": 1815,
+      "end": 1821
+    },
+    {
+      "type": "proper_noun",
+      "value": "Maya Proposed",
+      "start": 1838,
+      "end": 1851
+    },
+    {
+      "type": "number",
+      "value": "55,000",
+      "start": 1853,
+      "end": 1859
+    },
+    {
+      "type": "proper_noun",
+      "value": "Jordan Proposed",
+      "start": 1877,
+      "end": 1892
+    },
+    {
+      "type": "number",
+      "value": "45,000",
+      "start": 1894,
+      "end": 1900
+    },
+    {
+      "type": "proper_noun",
+      "value": "Alex Proposed",
+      "start": 1918,
+      "end": 1931
+    },
+    {
+      "type": "number",
+      "value": "48,000",
+      "start": 1933,
+      "end": 1939
+    },
+    {
+      "type": "proper_noun",
+      "value": "Sam Proposed",
+      "start": 1952,
+      "end": 1964
+    },
+    {
+      "type": "number",
+      "value": "52,000",
+      "start": 1966,
+      "end": 1972
+    },
+    {
+      "type": "proper_noun",
+      "value": "Lee Proposed",
+      "start": 1985,
+      "end": 1997
+    },
+    {
+      "type": "number",
+      "value": "40,000",
+      "start": 1999,
+      "end": 2005
+    },
+    {
+      "type": "proper_noun",
+      "value": "Add Your",
+      "start": 2012,
+      "end": 2020
+    },
+    {
+      "type": "proper_noun",
+      "value": "Activity Steps Format Everyone",
+      "start": 2302,
+      "end": 2332
+    },
+    {
+      "type": "proper_noun",
+      "value": "Dates Sep",
+      "start": 2344,
+      "end": 2353
+    },
+    {
+      "type": "date_natural",
+      "value": "Sep 22, 2026",
+      "start": 2357,
+      "end": 2369
+    },
+    {
+      "type": "year",
+      "value": "2026",
+      "start": 2365,
+      "end": 2369
+    },
+    {
+      "type": "currency",
+      "value": "$20",
+      "start": 2387,
+      "end": 2390
+    },
+    {
+      "type": "currency",
+      "value": "$0",
+      "start": 2402,
+      "end": 2404
+    },
+    {
+      "type": "currency",
+      "value": "$20",
+      "start": 2930,
+      "end": 2933
+    },
+    {
+      "type": "currency",
+      "value": "$0",
+      "start": 2945,
+      "end": 2947
+    },
+    {
+      "type": "proper_noun",
+      "value": "From Maya Run",
+      "start": 3152,
+      "end": 3165
+    },
+    {
+      "type": "proper_noun",
+      "value": "Dates Sep",
+      "start": 3298,
+      "end": 3307
+    },
+    {
+      "type": "range",
+      "value": "16\u201322",
+      "start": 3308,
+      "end": 3313
+    },
+    {
+      "type": "year",
+      "value": "2026",
+      "start": 3315,
+      "end": 3319
+    },
+    {
+      "type": "proper_noun",
+      "value": "People Maya",
+      "start": 3320,
+      "end": 3331
+    },
+    {
+      "type": "measurement",
+      "value": "20 km",
+      "start": 3360,
+      "end": 3365
+    },
+    {
+      "type": "measurement",
+      "value": "15 km",
+      "start": 3380,
+      "end": 3385
+    },
+    {
+      "type": "measurement",
+      "value": "20 km",
+      "start": 3405,
+      "end": 3410
+    },
+    {
+      "type": "currency",
+      "value": "$20",
+      "start": 3428,
+      "end": 3431
+    },
+    {
+      "type": "currency",
+      "value": "$0",
+      "start": 3443,
+      "end": 3445
+    },
+    {
+      "type": "proper_noun",
+      "value": "Challenge Steps How",
+      "start": 3758,
+      "end": 3777
+    },
+    {
+      "type": "number",
+      "value": "50000",
+      "start": 3814,
+      "end": 3819
+    },
+    {
+      "type": "date_natural",
+      "value": "Sep 16, 2026",
+      "start": 3833,
+      "end": 3845
+    },
+    {
+      "type": "year",
+      "value": "2026",
+      "start": 3841,
+      "end": 3845
+    },
+    {
+      "type": "time",
+      "value": "12:00 AM",
+      "start": 3848,
+      "end": 3856
+    },
+    {
+      "type": "date_natural",
+      "value": "Sep 23, 2026",
+      "start": 3862,
+      "end": 3874
+    },
+    {
+      "type": "year",
+      "value": "2026",
+      "start": 3870,
+      "end": 3874
+    },
+    {
+      "type": "time",
+      "value": "12:00 AM",
+      "start": 3877,
+      "end": 3885
+    },
+    {
+      "type": "proper_noun",
+      "value": "Central Time Simulated",
+      "start": 3896,
+      "end": 3918
+    },
+    {
+      "type": "currency",
+      "value": "$20",
+      "start": 3926,
+      "end": 3929
+    },
+    {
+      "type": "currency",
+      "value": "$0",
+      "start": 3945,
+      "end": 3947
+    },
+    {
+      "type": "number",
+      "value": "50000",
+      "start": 3980,
+      "end": 3985
+    },
+    {
+      "type": "number",
+      "value": "55,000",
+      "start": 3999,
+      "end": 4005
+    },
+    {
+      "type": "number",
+      "value": "45,000",
+      "start": 4022,
+      "end": 4028
+    },
+    {
+      "type": "proper_noun",
+      "value": "Apple Watch",
+      "start": 4063,
+      "end": 4074
+    },
+    {
+      "type": "proper_noun",
+      "value": "Apple Health",
+      "start": 4087,
+      "end": 4099
+    },
+    {
+      "type": "range",
+      "value": "7\u201313",
+      "start": 5918,
+      "end": 5922
+    },
+    {
+      "type": "proper_noun",
+      "value": "Sunday Sep",
+      "start": 6057,
+      "end": 6067
+    },
+    {
+      "type": "time",
+      "value": "12:00 AM",
+      "start": 6073,
+      "end": 6081
+    },
+    {
+      "type": "proper_noun",
+      "value": "Central Time Fictional",
+      "start": 6082,
+      "end": 6104
+    },
+    {
+      "type": "time",
+      "value": "9:38 AM",
+      "start": 6121,
+      "end": 6128
+    },
+    {
+      "type": "currency",
+      "value": "$20",
+      "start": 6302,
+      "end": 6305
+    },
+    {
+      "type": "currency",
+      "value": "$0",
+      "start": 6322,
+      "end": 6324
+    },
+    {
+      "type": "proper_noun",
+      "value": "Home Challenges You",
+      "start": 6383,
+      "end": 6402
+    },
+    {
+      "type": "date_natural",
+      "value": "September 15, 2026",
+      "start": 6457,
+      "end": 6475
+    },
+    {
+      "type": "year",
+      "value": "2026",
+      "start": 6471,
+      "end": 6475
+    },
+    {
+      "type": "range",
+      "value": "7\u201313",
+      "start": 6506,
+      "end": 6510
+    },
+    {
+      "type": "number",
+      "value": "52,310",
+      "start": 6530,
+      "end": 6536
+    },
+    {
+      "type": "number",
+      "value": "49,870",
+      "start": 6564,
+      "end": 6570
+    },
+    {
+      "type": "number",
+      "value": "45,260",
+      "start": 6586,
+      "end": 6592
+    },
+    {
+      "type": "time",
+      "value": "9:00 AM",
+      "start": 6641,
+      "end": 6648
+    },
+    {
+      "type": "proper_noun",
+      "value": "Central Time",
+      "start": 6649,
+      "end": 6661
+    },
+    {
+      "type": "time",
+      "value": "9:00 AM",
+      "start": 6691,
+      "end": 6698
+    },
+    {
+      "type": "proper_noun",
+      "value": "Central Time",
+      "start": 6699,
+      "end": 6711
+    },
+    {
+      "type": "currency",
+      "value": "$60",
+      "start": 6776,
+      "end": 6779
+    },
+    {
+      "type": "currency",
+      "value": "$0",
+      "start": 6788,
+      "end": 6790
+    },
+    {
+      "type": "currency",
+      "value": "$0.",
+      "start": 6815,
+      "end": 6818
+    },
+    {
+      "type": "proper_noun",
+      "value": "Optional Your",
+      "start": 7317,
+      "end": 7330
+    },
+    {
+      "type": "time",
+      "value": "9:00 AM",
+      "start": 7445,
+      "end": 7452
+    },
+    {
+      "type": "proper_noun",
+      "value": "Central Time",
+      "start": 7453,
+      "end": 7465
+    },
+    {
+      "type": "proper_noun",
+      "value": "Challenge Weekly",
+      "start": 7657,
+      "end": 7673
+    },
+    {
+      "type": "range",
+      "value": "7\u201313",
+      "start": 7686,
+      "end": 7690
+    },
+    {
+      "type": "proper_noun",
+      "value": "Reason Some",
+      "start": 7691,
+      "end": 7702
+    },
+    {
+      "type": "date_natural",
+      "value": "Sep 15, 2026",
+      "start": 7745,
+      "end": 7757
+    },
+    {
+      "type": "year",
+      "value": "2026",
+      "start": 7753,
+      "end": 7757
+    },
+    {
+      "type": "time",
+      "value": "9:41 AM",
+      "start": 7760,
+      "end": 7767
+    },
+    {
+      "type": "proper_noun",
+      "value": "Apple Health Not",
+      "start": 8500,
+      "end": 8516
+    },
+    {
+      "type": "proper_noun",
+      "value": "Home Challenges You",
+      "start": 8771,
+      "end": 8790
+    },
+    {
+      "type": "proper_noun",
+      "value": "Apple Health Your",
+      "start": 8807,
+      "end": 8824
+    },
+    {
+      "type": "proper_noun",
+      "value": "Apple Watch",
+      "start": 8875,
+      "end": 8886
+    },
+    {
+      "type": "proper_noun",
+      "value": "Apple Health",
+      "start": 8901,
+      "end": 8913
+    },
+    {
+      "type": "proper_noun",
+      "value": "Apple Health Back",
+      "start": 9577,
+      "end": 9594
+    },
+    {
+      "type": "proper_noun",
+      "value": "Home Challenges You",
+      "start": 10480,
+      "end": 10499
+    },
+    {
+      "type": "proper_noun",
+      "value": "Check Apple Health",
+      "start": 10723,
+      "end": 10741
+    },
+    {
+      "type": "proper_noun",
+      "value": "Username Use",
+      "start": 11136,
+      "end": 11148
+    },
+    {
+      "type": "range",
+      "value": "3\u201324",
+      "start": 11149,
+      "end": 11153
+    },
+    {
+      "type": "proper_noun",
+      "value": "Challenge Weekly",
+      "start": 11580,
+      "end": 11596
+    },
+    {
+      "type": "range",
+      "value": "7\u201313",
+      "start": 11609,
+      "end": 11613
+    },
+    {
+      "type": "currency",
+      "value": "$20",
+      "start": 11635,
+      "end": 11638
+    },
+    {
+      "type": "proper_noun",
+      "value": "Activity How",
+      "start": 12277,
+      "end": 12289
+    },
+    {
+      "type": "proper_noun",
+      "value": "Steps Every",
+      "start": 12347,
+      "end": 12358
+    },
+    {
+      "type": "proper_noun",
+      "value": "No Apple Health",
+      "start": 12521,
+      "end": 12536
+    },
+    {
+      "type": "proper_noun",
+      "value": "Format Your",
+      "start": 12606,
+      "end": 12617
+    },
+    {
+      "type": "proper_noun",
+      "value": "Leaderboard The",
+      "start": 12764,
+      "end": 12779
+    },
+    {
+      "type": "proper_noun",
+      "value": "Schedule Make",
+      "start": 12996,
+      "end": 13009
+    },
+    {
+      "type": "range",
+      "value": "1\u201330 days",
+      "start": 13129,
+      "end": 13138
+    },
+    {
+      "type": "proper_noun",
+      "value": "Central Time Eastern Time Pacific Time Continue",
+      "start": 13149,
+      "end": 13196
+    },
+    {
+      "type": "year",
+      "value": "2026",
+      "start": 13225,
+      "end": 13229
+    },
+    {
+      "type": "proper_noun",
+      "value": "Steps Individual",
+      "start": 13374,
+      "end": 13390
+    },
+    {
+      "type": "proper_noun",
+      "value": "Dates Sep",
+      "start": 13424,
+      "end": 13433
+    },
+    {
+      "type": "date_natural",
+      "value": "Sep 22, 2026",
+      "start": 13437,
+      "end": 13449
+    },
+    {
+      "type": "year",
+      "value": "2026",
+      "start": 13445,
+      "end": 13449
+    },
+    {
+      "type": "proper_noun",
+      "value": "Starts Sep",
+      "start": 13450,
+      "end": 13460
+    },
+    {
+      "type": "time",
+      "value": "12:00 AM",
+      "start": 13466,
+      "end": 13474
+    },
+    {
+      "type": "proper_noun",
+      "value": "Ends Sep",
+      "start": 13475,
+      "end": 13483
+    },
+    {
+      "type": "time",
+      "value": "12:00 AM",
+      "start": 13489,
+      "end": 13497
+    },
+    {
+      "type": "proper_noun",
+      "value": "Central Time Duration",
+      "start": 13498,
+      "end": 13519
+    },
+    {
+      "type": "proper_noun",
+      "value": "People You",
+      "start": 13532,
+      "end": 13542
+    },
+    {
+      "type": "currency",
+      "value": "$0.",
+      "start": 13680,
+      "end": 13683
+    }
+  ]
+}

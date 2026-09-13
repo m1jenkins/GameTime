@@ -1,0 +1,50 @@
+{
+  "genre": "prose",
+  "prose_paragraphs": 26,
+  "flags": [
+    {
+      "metric": "silhouette_penalty",
+      "value": 9.0,
+      "threshold": ">= 1.0",
+      "severity": "soft",
+      "detail": "The document's idea arrangement matches a templated AI silhouette (preview-then-fulfill, rotating scaffold openers, recap loop).",
+      "suggestion": "Rearrange around the actual argument instead of a symmetric outline; cut previews and the closing recap."
+    },
+    {
+      "metric": "preview_fulfillment",
+      "value": 1.0,
+      "threshold": "human fence 0.25 (weight 1.0)",
+      "severity": "soft",
+      "detail": "preview_fulfillment at 1.0 clears the human upper fence 0.25.",
+      "suggestion": "The body just fulfills an outline previewed in the intro; drop the preview."
+    },
+    {
+      "metric": "callback_content",
+      "value": 1.0,
+      "threshold": "human fence 0.3 (weight 1.5)",
+      "severity": "soft",
+      "detail": "callback_content at 1.0 clears the human upper fence 0.3.",
+      "suggestion": "The ending loops back to opening vocabulary; end on a concrete final point."
+    }
+  ],
+  "flagged": {
+    "silhouette_penalty": true,
+    "preview_fulfillment": true,
+    "callback_content": true
+  },
+  "metrics": {
+    "scaffold_opener_share": 0.0,
+    "role_entropy_bits": -0.0,
+    "heading_preview": null,
+    "preview_fulfillment": 1.0,
+    "callback_content": 1.0
+  },
+  "contributions": {
+    "scaffold_opener_share": 0.0,
+    "role_entropy_bits": 0.0,
+    "heading_preview": null,
+    "preview_fulfillment": 4.0,
+    "callback_content": 5.0
+  },
+  "penalty": 9.0
+}

@@ -1,0 +1,63 @@
+{
+  "flesch_kincaid_grade": 3.7,
+  "flesch_reading_ease": 77.5,
+  "sentence_count": 18,
+  "word_count": 92,
+  "avg_sentence_length": 5.1,
+  "sentence_length_variance": 6.0,
+  "min_sentence_length": 3,
+  "max_sentence_length": 11,
+  "consecutive_similar_length": 8,
+  "word_repetition_score": 21.9,
+  "top_repeated_words": [
+    [
+      "your",
+      11
+    ],
+    [
+      "challenge",
+      3
+    ],
+    [
+      "choose",
+      2
+    ],
+    [
+      "friends",
+      2
+    ],
+    [
+      "here",
+      2
+    ],
+    [
+      "review",
+      2
+    ],
+    [
+      "activity",
+      2
+    ],
+    [
+      "challenges",
+      2
+    ],
+    [
+      "dates",
+      2
+    ],
+    [
+      "week",
+      1
+    ]
+  ],
+  "paragraph_count": 18,
+  "avg_paragraph_length": 5.1,
+  "flags": [
+    "Low sentence length variance (monotonous rhythm)",
+    "8+ consecutive similar-length sentences",
+    "High word repetition (21.9%)",
+    "Very short sentences (may feel choppy)",
+    "Staccato cadence: 8 consecutive tiny sentences (anti-slop AI tell)"
+  ]
+}

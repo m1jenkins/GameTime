@@ -1,0 +1,63 @@
+{
+  "flesch_kincaid_grade": 2.7,
+  "flesch_reading_ease": 84.1,
+  "sentence_count": 22,
+  "word_count": 101,
+  "avg_sentence_length": 4.6,
+  "sentence_length_variance": 4.2,
+  "min_sentence_length": 2,
+  "max_sentence_length": 9,
+  "consecutive_similar_length": 17,
+  "word_repetition_score": 17.9,
+  "top_repeated_words": [
+    [
+      "your",
+      6
+    ],
+    [
+      "company",
+      3
+    ],
+    [
+      "good",
+      3
+    ],
+    [
+      "little",
+      2
+    ],
+    [
+      "here",
+      2
+    ],
+    [
+      "yours",
+      2
+    ],
+    [
+      "room",
+      2
+    ],
+    [
+      "home",
+      2
+    ],
+    [
+      "week",
+      1
+    ],
+    [
+      "way",
+      1
+    ]
+  ],
+  "paragraph_count": 18,
+  "avg_paragraph_length": 5.6,
+  "flags": [
+    "Low sentence length variance (monotonous rhythm)",
+    "17+ consecutive similar-length sentences",
+    "High word repetition (17.9%)",
+    "Very short sentences (may feel choppy)",
+    "Staccato cadence: 12 consecutive tiny sentences (anti-slop AI tell)"
+  ]
+}

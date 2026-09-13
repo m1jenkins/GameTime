@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "total_constraints": 0,
+  "preserved": 0,
+  "missing_count": 0,
+  "missing": [],
+  "warnings": []
+}

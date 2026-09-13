@@ -1,0 +1,36 @@
+{
+  "flags": [
+    {
+      "metric": "opener_repetition",
+      "value": 0.453,
+      "threshold": "unique ratio < 0.55, one opener > 25% with 4+ uses, or 4 consecutive identical openers",
+      "severity": "soft",
+      "detail": "Sentence openings repeat in a template-like rhythm.",
+      "suggestion": "Rewrite repeated starts; step-by-step docs may need repeated imperative openers."
+    }
+  ],
+  "flagged": {
+    "opener_repetition": true
+  },
+  "metrics": {
+    "sentence_burstiness": 0.883,
+    "summary_sandwich": 0.0,
+    "paragraph_cv": 0.613,
+    "sentence_mean_len": 12.1,
+    "triad_density": 1.665,
+    "em_dash_per_1k": 4.163,
+    "bold_colon_listicle_count": 0,
+    "one_line_staccato_share": 0.0,
+    "connective_paragraph_openers": 0,
+    "every_template_openers": 0,
+    "signpost_density": 0.0,
+    "opener_unique_ratio": 0.453,
+    "top_opener_share": 0.068,
+    "max_consecutive_opener": 2,
+    "participial_closer_share": 0.0,
+    "conclusion_coda": false
+  },
+  "genre": "prose",
+  "prose_sentences": 198,
+  "prose_paragraphs": 26
+}

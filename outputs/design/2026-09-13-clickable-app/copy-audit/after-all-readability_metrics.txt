@@ -1,0 +1,61 @@
+{
+  "flesch_kincaid_grade": 7.0,
+  "flesch_reading_ease": 66.2,
+  "sentence_count": 198,
+  "word_count": 2402,
+  "avg_sentence_length": 12.1,
+  "sentence_length_variance": 114.7,
+  "min_sentence_length": 2,
+  "max_sentence_length": 81,
+  "consecutive_similar_length": 4,
+  "word_repetition_score": 79.7,
+  "top_repeated_words": [
+    [
+      "your",
+      90
+    ],
+    [
+      "challenge",
+      46
+    ],
+    [
+      "steps",
+      36
+    ],
+    [
+      "activity",
+      31
+    ],
+    [
+      "simulated",
+      29
+    ],
+    [
+      "sep",
+      28
+    ],
+    [
+      "screen",
+      27
+    ],
+    [
+      "result",
+      25
+    ],
+    [
+      "goal",
+      21
+    ],
+    [
+      "challenges",
+      21
+    ]
+  ],
+  "paragraph_count": 26,
+  "avg_paragraph_length": 92.4,
+  "flags": [
+    "4+ consecutive similar-length sentences",
+    "High word repetition (79.7%)",
+    "Staccato cadence: 3 consecutive tiny sentences (anti-slop AI tell)"
+  ]
+}

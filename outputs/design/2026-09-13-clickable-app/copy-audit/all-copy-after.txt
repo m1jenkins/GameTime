@@ -1,0 +1,77 @@
+SCREEN: home
+GameTime / Saturday, September 12 Your week so far. M Maya invited you A running goal for next week With friends · 3 people Day 6 of 7 Weekly steps 38,620 your steps Updated today, 9:38 AM 2nd place · Sep 7–13 Your exercise goal 95 of 150 minutes Your total so far this week. See all challenges Active, upcoming, and finished Home Challenges You
+
+SCREEN: challenges
+GameTime / Your challenges. Active · 2 Upcoming History WITH FRIENDS Day 6 of 7 Weekly steps 1 Maya 42,850 2 You 38,620 3 people · Sep 7–13 Steps · Updated today ↗ JUST FOR YOU Sep 7–13 Your exercise goal 95 of 150 minutes 55 minutes to your goal across the week. GameTime community A private group, a shared goal Home Challenges You
+
+SCREEN: detail
+Friend challenge Your activity this week Challenge details THREE PEOPLE. ONE WEEK. Day 6 of 7 Weekly steps. September 7–13, 2026 38,620 Your steps 2nd of 3 people Standings Your week The standings Steps Highest total wins. Equal best totals share the win. 01 M Maya Updated 9:35 AM 42,850 steps 02 Y You Updated 9:38 AM 38,620 steps 03 J Jordan Updated 9:31 AM 35,400 steps 0 50,000 steps Your Saturday 5,900 steps so far · See your week Ends after Sunday Sep 14 · 12:00 AM Central Time $20 simulated each · Fee $0 · No real money moves. Nothing can be paid out or redeemed. Challenge details, review & leaving Home Challenges You
+
+SCREEN: create
+New challenge × A new challenge Start a challenge. Start with who you’re doing this for. Y + + VS. With friends A shared challenge. Two to six people. ✓ Just for me Set a goal of your own. Continue ↗ You’ll review the details before anything starts.
+
+SCREEN: lobby
+Your friend lobby Choose your friends. Choose who’s in. Everyone reviews the complete challenge before it starts. 3 of 6 people M You Your target: 50,000 steps Creator M Maya Proposed: 55,000 steps Included J Jordan Proposed: 45,000 steps Included A Alex Proposed: 48,000 steps Add S Sam Proposed: 52,000 steps Add L Lee Proposed: 40,000 steps Add Your proposed target · steps Preview an invitation About invitation links A link can be used by up to 20 unique accounts and closes after 30 days. After signing in and confirming they are 21 or older, people request to join. You choose the final group; opening a link is not agreement. Everyone has a goal Steps You + up to five friends. 7 full days · Central Time Sep 16 — Sep 22 2026 Starts Sep 16, 2026 · 12:00 AM Ends Sep 23, 2026 · 12:00 AM Simulated entry $20 per person Fee $0. Simulated stakes — no real money moves. Nothing can be paid out or redeemed. Review the complete challenge Edit challenge
+
+SCREEN: invitePreview
+Invitation preview Your invitation preview. Here’s what your friends will see. Join my GameTime challenge Steps · Sep 16–Sep 22 We each choose our own goal. Opening an invitation lets a friend request to join after signing in and confirming they are 21 or older. You choose the group before everyone agrees. This invitation lasts 30 days or until 20 unique accounts use it. Simulated entry $20 per person Fee $0. Simulated stakes — no real money moves. Nothing can be paid out or redeemed. No link has been created or shared. This is a local invitation preview. Back to your lobby
+
+SCREEN: invitation
+An invitation M From Maya Running distance · Individual goals Next week’s kilometres Your proposed goal 20 km of running Maya’s goal is 20 km. Jordan’s is 15 km. Everyone can meet their own goal. 7 full days · Central Time Sep 16 — Sep 22 2026 Starts Sep 16, 2026 · 12:00 AM Ends Sep 23, 2026 · 12:00 AM Simulated entry $20 per person Fee $0. Reviewing this invitation doesn’t mean you’ve agreed. Simulated stakes — no real money moves. Nothing can be paid out or redeemed. Review invitation Decline invitation
+
+SCREEN: agreement
+Review & agree With friends Review your challenge. Read what you’re signing up for. Steps 50000 steps Your own goal 7 full days · Central Time Sep 16 — Sep 22 2026 Starts Sep 16, 2026 · 12:00 AM Ends Sep 23, 2026 · 12:00 AM Everyone in this challenge You M J You: 50000 steps. Maya: 55,000 steps · Jordan: 45,000 steps. Simulated entry $20 per person Fee $0. What counts? Only eligible Apple Watch activity in Apple Health during these exact dates counts. Manually added or imported activity does not count. Your eligible activity adds up across the full window. Missing or unreadable data never establishes a miss. Possible results and simulated amounts People who meet their goals recover their own simulated entries and evenly share the entries from confirmed misses. People whose results we can’t confirm get their entries back. Remainders and a group where everyone misses stay unallocated. With fewer than two people whose results we can confirm, the challenge doesn’t count and all entries return. Nothing can be paid out or redeemed. Final checks and review We accept the final activity update for 24 hours after the challenge ends, and corrections for 48 hours after the end. You get 48 full hours from the actual result notice to ask for a review. We pause the simulated result while reviewing it. Delays never shorten your review time. Leaving and privacy You can leave before the result is final and your simulated entry returns. The friend challenge continues only with at least two people whose results we can confirm. Friends see only the agreed challenge activity and result, not your other activity. Simulated stakes — no real money moves. Nothing can be paid out or redeemed. I’ve read this challenge and agree to its rules, dates, and simulated amount. Agree in this preview Go back
+
+SCREEN: scheduled
+Your confirmation Your part is done. Your example agreement is saved in this preview. Everyone else still needs to agree. Details reviewed You reviewed the activity, dates, and amount. Waiting for the other people If anyone hasn’t agreed when it starts, the challenge won’t count and all simulated entries return. Simulated stakes — no real money moves. Nothing can be paid out or redeemed. Back to Home
+
+SCREEN: goal
+Just for you × September 7–13 Your exercise goal. A week to move your way. YOUR EXERCISE TIME 95 of 150 minutes 55 minutes to your goal across the week. Ends after Sunday Sep 14 · 12:00 AM Central Time Fictional update · Today, 9:38 AM Your personal activity and result stay private. How it counts Your exercise minutes add up across the full challenge window. Missing activity alone does not confirm a loss. $20 simulated · Fee $0 No real money moves. Nothing can be paid out or redeemed. Home Challenges You
+
+SCREEN: result
+Weekly steps · result Sample result · September 15, 2026 A week well walked. September 7–13 · Your final steps 52,310 Highest total · You M Maya 49,870 steps J Jordan 45,260 steps Time to check the result. Notice: Sep 15, 9:00 AM Central Time. Ask for a review by Sep 17, 9:00 AM Central Time. The result is not final yet. Simulated result Expected return: $60 to you; $0 to Maya and Jordan. Fee $0. These are proposed simulated results, not recorded returns. No real money moves. Nothing can be paid out or redeemed. Simulated stakes — no real money moves. Nothing can be paid out or redeemed. Ask us to review this result Back to Challenges
+
+SCREEN: review
+Review this result Something doesn’t look right? Tell us what to check. Your request pauses the simulated result. What should we review? Choose a reason Some activity is missing The activity total looks wrong Something else Anything else? Optional Your friends won’t see your message. You don’t need to share routes or personal health details. Review by September 17 9:00 AM Central Time · Sample deadline Preview review request Keep this result
+
+SCREEN: reviewReceipt
+Your review request We have your request. Example receipt · Nothing was sent. The simulated result is paused. Weekly steps Sep 7–13 Some activity is missing Saved in this preview Sep 15, 2026 · 9:41 AM CT Review updates appear here and on Home. You don’t need a push notification to find them. Back to the result
+
+SCREEN: community
+GameTime community One goal. Your own way. A private GameTime group. Everyone works toward the same step goal, individually. Join details aren’t ready. We’ll show the exact goal, dates, and simulated amount here before you decide to join. Private by default Your name and individual activity stay private. Group counts only appear when at least five people have joined and the update is at least 15 minutes old. This screen previews the unavailable state. No group size, goal, or amount has been chosen for launch. Back to Challenges
+
+SCREEN: you
+GameTime / M You. @mason Your profile Username and account Apple Health Not connected Privacy & sharing Your activity, your choices Here when you need us Help & support Account or challenge help Existing challenges Your earlier agreements You set the pace. You can leave a challenge or ask us to review a result from its details. Home Challenges You
+
+SCREEN: health
+Apple Health Connect Apple Health. GameTime uses eligible Apple Watch activity from Apple Health for your challenge. Not connected. Choose what to share before you connect. In this prototype, no activity leaves your device and no permission prompt opens. Steps & exercise time We read only the activity your selected challenge needs. Exercise time is not the total duration of every workout. Running distance & timed runs Distance goals add up eligible runs. Timed goals use your best eligible whole run, including pauses. What stays private? Routes, heart rate, and your other health records are not shown to friends. We use only the activity needed to score the challenge you agreed to. Need help connecting? Check permissions or get help Preview connecting Apple Health Back to You
+
+SCREEN: privacy
+Privacy & sharing Who sees your activity. Clear choices about who sees your activity. In a friend challenge The people in your challenge can see its agreed activity total, your goal when there is one, and your result. They can’t see routes, heart rate, or your activity outside the challenge. Your personal goals Your activity and result stay private. This preview does not add public profiles or automatic sharing. In the community Other members don’t see your name or individual activity. Group counts only appear when there are at least five people and the update is at least 15 minutes old. Take a break. You can pause starting new challenges. Existing challenges continue, and you can still leave or ask for a review. Pause new challenges Preview preference only Blocking or reporting Get help with another account No contact imports. No automatic result sharing. Home Challenges You
+
+SCREEN: support
+Help & support Let’s get it sorted. Get help with your account, activity, or a challenge. Review a result Weekly steps · sample result My activity hasn’t updated Your last confirmed activity stays visible. Check Apple Health permissions and reopen GameTime. Missing activity alone does not establish a miss. I want to leave a challenge Open its details and choose Leave challenge. Before the result is final, your simulated entry returns. You do not need to give a reason. How can we help? Preview support message
+
+SCREEN: profile
+Your profile A name your friends know. Your username appears in your friend challenges. Username Use 3–24 letters, numbers, or underscores. Your profile picture We use your initial for your profile picture. Save preview profile
+
+SCREEN: existing
+Existing challenges Your earlier challenges. No earlier challenges in this preview. In the app, your previous Personal challenges and the original rules you agreed to stay available here. Back to You
+
+SCREEN: leave
+Leave challenge It’s okay to step away. You don’t need to give a reason. Weekly steps Sep 7–13 Your simulated entry: $20 What happens next Leaving ends your participation. Your simulated entry returns. The friend challenge continues only with at least two people whose results we can confirm. Your earlier agreement remains in your history. No real money moves, and nothing can be paid out or redeemed. Leave in this preview Keep participating
+
+SCREEN: left
+Challenge left You’ve left the challenge. You left this example challenge. No real participation changed. Simulated return Update pending Your saved exit is separate from the final result and return record. Back to Challenges
+
+SCREEN: create-2
+New challenge × 02 / Activity How will you move? Choose what counts toward this challenge. Steps Every step adds up. ✓ Exercise time Minutes that count. Running distance Add up all your runs. Timed run Your fastest whole run. These concepts use fictional activity. No Apple Health data is connected. Continue ↗
+
+SCREEN: create-3
+New challenge × 03 / Format Your own goals. Or the top spot? Two different ways to challenge your friends. Everyone has a goal Each person sets their own. Everyone can meet it. ✓ Leaderboard The highest total wins. Equal best totals share the win. You and your friends choose your own targets in the lobby. Everyone agrees to the complete challenge after that. Continue ↗
+
+SCREEN: create-4
+New challenge × 04 / Schedule Choose your dates. Choose full days for your challenge. Starts at midnight How long? 3 days 7 days 14 days 30 days Or choose 1–30 days Time zone Central Time Eastern Time Pacific Time Continue ↗ Example dates · September 2026
+
+SCREEN: create-5
+New challenge × 05 / Draft preview Here’s your challenge. Check the details. You can go back to change anything. WITH FRIENDS Steps Individual goals · everyone can meet theirs Dates Sep 16–Sep 22, 2026 Starts Sep 16 · 12:00 AM Ends Sep 23 · 12:00 AM Central Time Duration 7 full days People You + up to five friends Simulated amount · USD per person Simulated stakes — no real money moves. Nothing can be paid out or redeemed. Fee: $0. What happens next? Create the lobby, then invite your friends. Each person proposes their own target. You choose the people before everyone reviews and agrees. Creating a lobby does not start the challenge. Back to edit ↗ Draft concept · invitations and consent are a separate step.

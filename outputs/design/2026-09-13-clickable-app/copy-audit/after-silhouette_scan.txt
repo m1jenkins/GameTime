@@ -1,0 +1,21 @@
+{
+  "genre": "prose",
+  "prose_paragraphs": 18,
+  "flags": [],
+  "flagged": {},
+  "metrics": {
+    "scaffold_opener_share": 0.0,
+    "role_entropy_bits": -0.0,
+    "heading_preview": null,
+    "preview_fulfillment": 0.0,
+    "callback_content": 0.167
+  },
+  "contributions": {
+    "scaffold_opener_share": 0.0,
+    "role_entropy_bits": 0.0,
+    "heading_preview": null,
+    "preview_fulfillment": 0.0,
+    "callback_content": 0.835
+  },
+  "penalty": 0.835
+}

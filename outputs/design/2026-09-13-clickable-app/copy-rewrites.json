@@ -1,0 +1,92 @@
+[
+  {
+    "before": "Your week,<br>your way.",
+    "after": "Your week<br>so far.",
+    "finding": "Home shows current progress; 'your way' adds no information about that screen."
+  },
+  {
+    "before": "A little friendly<br>company.",
+    "after": "Choose your<br>friends.",
+    "finding": "The lobby heading hides the selection task behind generic warmth."
+  },
+  {
+    "before": "Good company<br>starts here.",
+    "after": "Your invitation<br>preview.",
+    "finding": "The heading does not name the preview or its state."
+  },
+  {
+    "before": "A little preview of what your friends will see.",
+    "after": "Here’s what your friends will see.",
+    "finding": "'A little preview' repeats the title and adds an unnecessary diminutive."
+  },
+  {
+    "before": "Clear from<br>the start.",
+    "after": "Review your<br>challenge.",
+    "finding": "Generic assurance obscures the review task."
+  },
+  {
+    "before": "Read what you’re signing up for. The choice is yours.",
+    "after": "Read what you’re signing up for.",
+    "finding": "The second sentence repeats the choice already made explicit by consent and the exit button."
+  },
+  {
+    "before": "Room for<br>your goal.",
+    "after": "Your goal<br>is scheduled.",
+    "finding": "The receipt heading uses a metaphor instead of the supplied scheduling state."
+  },
+  {
+    "before": "Your movement.<br>Counted clearly.",
+    "after": "Connect<br>Apple Health.",
+    "finding": "The heading praises counting rather than naming the connection task."
+  },
+  {
+    "before": "Yours to<br>share.",
+    "after": "Who sees<br>your activity.",
+    "finding": "An ambiguous ownership slogan obscures the screen's actual visibility information."
+  },
+  {
+    "before": "Every agreement<br>has a home.",
+    "after": "Your earlier<br>challenges.",
+    "finding": "Inanimate agency replaces the history screen's concrete contents."
+  },
+  {
+    "before": "Keep it simple.",
+    "after": "Your profile picture",
+    "finding": "A vague imperative adds nothing to the following explanation of initials."
+  },
+  {
+    "before": "Good things<br>in motion.",
+    "after": "Your<br>challenges.",
+    "finding": "An empty evaluation does not name the list."
+  },
+  {
+    "before": "Good company.<br>Great challenge.",
+    "after": "Start a<br>challenge.",
+    "finding": "Unsupported generic praise replaces the creation task."
+  },
+  {
+    "before": "Make room<br>for it.",
+    "after": "Choose<br>your dates.",
+    "finding": "The ambiguous pronoun and metaphor hide the schedule task."
+  },
+  {
+    "before": "Take it<br>at your pace.",
+    "after": "You’ve left<br>the challenge.",
+    "finding": "The exit receipt gives general advice instead of the supplied completed action."
+  },
+  {
+    "before": "Unresolved people get their entries back.",
+    "after": "People whose results we can’t confirm get their entries back.",
+    "finding": "People are not unresolved; the unclear results are the condition for return."
+  },
+  {
+    "before": "A review update belongs here and on Home. No push notification is needed to find it.",
+    "after": "Review updates appear here and on Home. You don’t need a push notification to find them.",
+    "finding": "'Belongs here' reads as an implementation note; make the supplied intended location concrete without changing it."
+  },
+  {
+    "before": "You chose the activity, dates, and amount.",
+    "after": "You reviewed the activity, dates, and amount.",
+    "finding": "The receipt is also reached from an invitation with details proposed by Maya; choosing them is not the same as reviewing them."
+  }
+]

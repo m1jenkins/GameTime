@@ -1,0 +1,718 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-13T16:49:20.326005+00:00",
+  "title": "Design System: GameTime \u2014 Signal (local proposal)",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "oklch(94.479% 0.00915 258.336)",
+        "tonalRamp": [
+          "oklch(15.000% 0.00915 258.336)",
+          "oklch(26.429% 0.00915 258.336)",
+          "oklch(37.857% 0.00915 258.336)",
+          "oklch(49.286% 0.00915 258.336)",
+          "oklch(60.714% 0.00915 258.336)",
+          "oklch(72.143% 0.00915 258.336)",
+          "oklch(83.571% 0.00915 258.336)",
+          "oklch(95.000% 0.00915 258.336)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "oklch(99.087% 0.00286 264.542)",
+        "tonalRamp": [
+          "oklch(15.000% 0.00286 264.542)",
+          "oklch(26.429% 0.00286 264.542)",
+          "oklch(37.857% 0.00286 264.542)",
+          "oklch(49.286% 0.00286 264.542)",
+          "oklch(60.714% 0.00286 264.542)",
+          "oklch(72.143% 0.00286 264.542)",
+          "oklch(83.571% 0.00286 264.542)",
+          "oklch(95.000% 0.00286 264.542)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "canonical": "oklch(100.000% 0.00000 0.000)",
+        "tonalRamp": [
+          "oklch(15.000% 0.00000 0.000)",
+          "oklch(26.429% 0.00000 0.000)",
+          "oklch(37.857% 0.00000 0.000)",
+          "oklch(49.286% 0.00000 0.000)",
+          "oklch(60.714% 0.00000 0.000)",
+          "oklch(72.143% 0.00000 0.000)",
+          "oklch(83.571% 0.00000 0.000)",
+          "oklch(95.000% 0.00000 0.000)"
+        ]
+      },
+      "soft": {
+        "role": "neutral",
+        "displayName": "Soft",
+        "canonical": "oklch(96.255% 0.00795 253.853)",
+        "tonalRamp": [
+          "oklch(15.000% 0.00795 253.853)",
+          "oklch(26.429% 0.00795 253.853)",
+          "oklch(37.857% 0.00795 253.853)",
+          "oklch(49.286% 0.00795 253.853)",
+          "oklch(60.714% 0.00795 253.853)",
+          "oklch(72.143% 0.00795 253.853)",
+          "oklch(83.571% 0.00795 253.853)",
+          "oklch(95.000% 0.00795 253.853)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(22.458% 0.02637 258.317)",
+        "tonalRamp": [
+          "oklch(15.000% 0.02637 258.317)",
+          "oklch(26.429% 0.02637 258.317)",
+          "oklch(37.857% 0.02637 258.317)",
+          "oklch(49.286% 0.02637 258.317)",
+          "oklch(60.714% 0.02637 258.317)",
+          "oklch(72.143% 0.02637 258.317)",
+          "oklch(83.571% 0.02637 258.317)",
+          "oklch(95.000% 0.02637 258.317)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "oklch(51.187% 0.03201 253.410)",
+        "tonalRamp": [
+          "oklch(15.000% 0.03201 253.410)",
+          "oklch(26.429% 0.03201 253.410)",
+          "oklch(37.857% 0.03201 253.410)",
+          "oklch(49.286% 0.03201 253.410)",
+          "oklch(60.714% 0.03201 253.410)",
+          "oklch(72.143% 0.03201 253.410)",
+          "oklch(83.571% 0.03201 253.410)",
+          "oklch(95.000% 0.03201 253.410)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "oklch(90.386% 0.01734 256.285)",
+        "tonalRamp": [
+          "oklch(15.000% 0.01734 256.285)",
+          "oklch(26.429% 0.01734 256.285)",
+          "oklch(37.857% 0.01734 256.285)",
+          "oklch(49.286% 0.01734 256.285)",
+          "oklch(60.714% 0.01734 256.285)",
+          "oklch(72.143% 0.01734 256.285)",
+          "oklch(83.571% 0.01734 256.285)",
+          "oklch(95.000% 0.01734 256.285)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent",
+        "canonical": "oklch(52.719% 0.23051 264.574)",
+        "tonalRamp": [
+          "oklch(15.000% 0.23051 264.574)",
+          "oklch(26.429% 0.23051 264.574)",
+          "oklch(37.857% 0.23051 264.574)",
+          "oklch(49.286% 0.23051 264.574)",
+          "oklch(60.714% 0.23051 264.574)",
+          "oklch(72.143% 0.23051 264.574)",
+          "oklch(83.571% 0.23051 264.574)",
+          "oklch(95.000% 0.23051 264.574)"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Accent Soft",
+        "canonical": "oklch(95.157% 0.02282 266.909)",
+        "tonalRamp": [
+          "oklch(15.000% 0.02282 266.909)",
+          "oklch(26.429% 0.02282 266.909)",
+          "oklch(37.857% 0.02282 266.909)",
+          "oklch(49.286% 0.02282 266.909)",
+          "oklch(60.714% 0.02282 266.909)",
+          "oklch(72.143% 0.02282 266.909)",
+          "oklch(83.571% 0.02282 266.909)",
+          "oklch(95.000% 0.02282 266.909)"
+        ]
+      },
+      "on-accent": {
+        "role": "primary",
+        "displayName": "On Accent",
+        "canonical": "oklch(100.000% 0.00000 0.000)",
+        "tonalRamp": [
+          "oklch(15.000% 0.00000 0.000)",
+          "oklch(26.429% 0.00000 0.000)",
+          "oklch(37.857% 0.00000 0.000)",
+          "oklch(49.286% 0.00000 0.000)",
+          "oklch(60.714% 0.00000 0.000)",
+          "oklch(72.143% 0.00000 0.000)",
+          "oklch(83.571% 0.00000 0.000)",
+          "oklch(95.000% 0.00000 0.000)"
+        ]
+      },
+      "bar": {
+        "role": "primary",
+        "displayName": "Bar",
+        "canonical": "oklch(62.186% 0.09438 263.530)",
+        "tonalRamp": [
+          "oklch(15.000% 0.09438 263.530)",
+          "oklch(26.429% 0.09438 263.530)",
+          "oklch(37.857% 0.09438 263.530)",
+          "oklch(49.286% 0.09438 263.530)",
+          "oklch(60.714% 0.09438 263.530)",
+          "oklch(72.143% 0.09438 263.530)",
+          "oklch(83.571% 0.09438 263.530)",
+          "oklch(95.000% 0.09438 263.530)"
+        ]
+      },
+      "glass": {
+        "role": "neutral",
+        "displayName": "Glass",
+        "canonical": "oklch(98.965% 0.00511 247.876 / 0.68)",
+        "tonalRamp": [
+          "oklch(15.000% 0.00511 247.876 / 0.68)",
+          "oklch(26.429% 0.00511 247.876 / 0.68)",
+          "oklch(37.857% 0.00511 247.876 / 0.68)",
+          "oklch(49.286% 0.00511 247.876 / 0.68)",
+          "oklch(60.714% 0.00511 247.876 / 0.68)",
+          "oklch(72.143% 0.00511 247.876 / 0.68)",
+          "oklch(83.571% 0.00511 247.876 / 0.68)",
+          "oklch(95.000% 0.00511 247.876 / 0.68)"
+        ]
+      },
+      "edge": {
+        "role": "neutral",
+        "displayName": "Edge",
+        "canonical": "oklch(100.000% 0.00000 0.000 / 0.96)",
+        "tonalRamp": [
+          "oklch(15.000% 0.00000 0.000 / 0.96)",
+          "oklch(26.429% 0.00000 0.000 / 0.96)",
+          "oklch(37.857% 0.00000 0.000 / 0.96)",
+          "oklch(49.286% 0.00000 0.000 / 0.96)",
+          "oklch(60.714% 0.00000 0.000 / 0.96)",
+          "oklch(72.143% 0.00000 0.000 / 0.96)",
+          "oklch(83.571% 0.00000 0.000 / 0.96)",
+          "oklch(95.000% 0.00000 0.000 / 0.96)"
+        ]
+      },
+      "lens": {
+        "role": "neutral",
+        "displayName": "Lens",
+        "canonical": "oklch(100.000% 0.00000 0.000 / 0.74)",
+        "tonalRamp": [
+          "oklch(15.000% 0.00000 0.000 / 0.74)",
+          "oklch(26.429% 0.00000 0.000 / 0.74)",
+          "oklch(37.857% 0.00000 0.000 / 0.74)",
+          "oklch(49.286% 0.00000 0.000 / 0.74)",
+          "oklch(60.714% 0.00000 0.000 / 0.74)",
+          "oklch(72.143% 0.00000 0.000 / 0.74)",
+          "oklch(83.571% 0.00000 0.000 / 0.74)",
+          "oklch(95.000% 0.00000 0.000 / 0.74)"
+        ]
+      },
+      "danger": {
+        "role": "error",
+        "displayName": "Danger",
+        "canonical": "oklch(49.533% 0.14647 24.191)",
+        "tonalRamp": [
+          "oklch(15.000% 0.14647 24.191)",
+          "oklch(26.429% 0.14647 24.191)",
+          "oklch(37.857% 0.14647 24.191)",
+          "oklch(49.286% 0.14647 24.191)",
+          "oklch(60.714% 0.14647 24.191)",
+          "oklch(72.143% 0.14647 24.191)",
+          "oklch(83.571% 0.14647 24.191)",
+          "oklch(95.000% 0.14647 24.191)"
+        ]
+      },
+      "dark-canvas": {
+        "role": "neutral",
+        "displayName": "Dark Canvas",
+        "canonical": "oklch(17.228% 0.01601 261.510)",
+        "tonalRamp": [
+          "oklch(15.000% 0.01601 261.510)",
+          "oklch(26.429% 0.01601 261.510)",
+          "oklch(37.857% 0.01601 261.510)",
+          "oklch(49.286% 0.01601 261.510)",
+          "oklch(60.714% 0.01601 261.510)",
+          "oklch(72.143% 0.01601 261.510)",
+          "oklch(83.571% 0.01601 261.510)",
+          "oklch(95.000% 0.01601 261.510)"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "canonical": "oklch(21.603% 0.01999 258.345)",
+        "tonalRamp": [
+          "oklch(15.000% 0.01999 258.345)",
+          "oklch(26.429% 0.01999 258.345)",
+          "oklch(37.857% 0.01999 258.345)",
+          "oklch(49.286% 0.01999 258.345)",
+          "oklch(60.714% 0.01999 258.345)",
+          "oklch(72.143% 0.01999 258.345)",
+          "oklch(83.571% 0.01999 258.345)",
+          "oklch(95.000% 0.01999 258.345)"
+        ]
+      },
+      "dark-panel": {
+        "role": "neutral",
+        "displayName": "Dark Panel",
+        "canonical": "oklch(21.603% 0.01999 258.345)",
+        "tonalRamp": [
+          "oklch(15.000% 0.01999 258.345)",
+          "oklch(26.429% 0.01999 258.345)",
+          "oklch(37.857% 0.01999 258.345)",
+          "oklch(49.286% 0.01999 258.345)",
+          "oklch(60.714% 0.01999 258.345)",
+          "oklch(72.143% 0.01999 258.345)",
+          "oklch(83.571% 0.01999 258.345)",
+          "oklch(95.000% 0.01999 258.345)"
+        ]
+      },
+      "dark-soft": {
+        "role": "neutral",
+        "displayName": "Dark Soft",
+        "canonical": "oklch(26.560% 0.02595 255.749)",
+        "tonalRamp": [
+          "oklch(15.000% 0.02595 255.749)",
+          "oklch(26.429% 0.02595 255.749)",
+          "oklch(37.857% 0.02595 255.749)",
+          "oklch(49.286% 0.02595 255.749)",
+          "oklch(60.714% 0.02595 255.749)",
+          "oklch(72.143% 0.02595 255.749)",
+          "oklch(83.571% 0.02595 255.749)",
+          "oklch(95.000% 0.02595 255.749)"
+        ]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Dark Ink",
+        "canonical": "oklch(96.884% 0.00909 258.335)",
+        "tonalRamp": [
+          "oklch(15.000% 0.00909 258.335)",
+          "oklch(26.429% 0.00909 258.335)",
+          "oklch(37.857% 0.00909 258.335)",
+          "oklch(49.286% 0.00909 258.335)",
+          "oklch(60.714% 0.00909 258.335)",
+          "oklch(72.143% 0.00909 258.335)",
+          "oklch(83.571% 0.00909 258.335)",
+          "oklch(95.000% 0.00909 258.335)"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Dark Muted",
+        "canonical": "oklch(74.930% 0.02851 255.126)",
+        "tonalRamp": [
+          "oklch(15.000% 0.02851 255.126)",
+          "oklch(26.429% 0.02851 255.126)",
+          "oklch(37.857% 0.02851 255.126)",
+          "oklch(49.286% 0.02851 255.126)",
+          "oklch(60.714% 0.02851 255.126)",
+          "oklch(72.143% 0.02851 255.126)",
+          "oklch(83.571% 0.02851 255.126)",
+          "oklch(95.000% 0.02851 255.126)"
+        ]
+      },
+      "dark-line": {
+        "role": "neutral",
+        "displayName": "Dark Line",
+        "canonical": "oklch(35.277% 0.03379 257.100)",
+        "tonalRamp": [
+          "oklch(15.000% 0.03379 257.100)",
+          "oklch(26.429% 0.03379 257.100)",
+          "oklch(37.857% 0.03379 257.100)",
+          "oklch(49.286% 0.03379 257.100)",
+          "oklch(60.714% 0.03379 257.100)",
+          "oklch(72.143% 0.03379 257.100)",
+          "oklch(83.571% 0.03379 257.100)",
+          "oklch(95.000% 0.03379 257.100)"
+        ]
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Dark Accent",
+        "canonical": "oklch(74.441% 0.13077 266.441)",
+        "tonalRamp": [
+          "oklch(15.000% 0.13077 266.441)",
+          "oklch(26.429% 0.13077 266.441)",
+          "oklch(37.857% 0.13077 266.441)",
+          "oklch(49.286% 0.13077 266.441)",
+          "oklch(60.714% 0.13077 266.441)",
+          "oklch(72.143% 0.13077 266.441)",
+          "oklch(83.571% 0.13077 266.441)",
+          "oklch(95.000% 0.13077 266.441)"
+        ]
+      },
+      "dark-accent-soft": {
+        "role": "primary",
+        "displayName": "Dark Accent Soft",
+        "canonical": "oklch(34.076% 0.06943 263.501)",
+        "tonalRamp": [
+          "oklch(15.000% 0.06943 263.501)",
+          "oklch(26.429% 0.06943 263.501)",
+          "oklch(37.857% 0.06943 263.501)",
+          "oklch(49.286% 0.06943 263.501)",
+          "oklch(60.714% 0.06943 263.501)",
+          "oklch(72.143% 0.06943 263.501)",
+          "oklch(83.571% 0.06943 263.501)",
+          "oklch(95.000% 0.06943 263.501)"
+        ]
+      },
+      "dark-on-accent": {
+        "role": "primary",
+        "displayName": "Dark On Accent",
+        "canonical": "oklch(23.183% 0.05721 263.767)",
+        "tonalRamp": [
+          "oklch(15.000% 0.05721 263.767)",
+          "oklch(26.429% 0.05721 263.767)",
+          "oklch(37.857% 0.05721 263.767)",
+          "oklch(49.286% 0.05721 263.767)",
+          "oklch(60.714% 0.05721 263.767)",
+          "oklch(72.143% 0.05721 263.767)",
+          "oklch(83.571% 0.05721 263.767)",
+          "oklch(95.000% 0.05721 263.767)"
+        ]
+      },
+      "dark-bar": {
+        "role": "primary",
+        "displayName": "Dark Bar",
+        "canonical": "oklch(64.562% 0.10306 265.812)",
+        "tonalRamp": [
+          "oklch(15.000% 0.10306 265.812)",
+          "oklch(26.429% 0.10306 265.812)",
+          "oklch(37.857% 0.10306 265.812)",
+          "oklch(49.286% 0.10306 265.812)",
+          "oklch(60.714% 0.10306 265.812)",
+          "oklch(72.143% 0.10306 265.812)",
+          "oklch(83.571% 0.10306 265.812)",
+          "oklch(95.000% 0.10306 265.812)"
+        ]
+      },
+      "dark-glass": {
+        "role": "neutral",
+        "displayName": "Dark Glass",
+        "canonical": "oklch(33.402% 0.03584 258.328 / 0.64)",
+        "tonalRamp": [
+          "oklch(15.000% 0.03584 258.328 / 0.64)",
+          "oklch(26.429% 0.03584 258.328 / 0.64)",
+          "oklch(37.857% 0.03584 258.328 / 0.64)",
+          "oklch(49.286% 0.03584 258.328 / 0.64)",
+          "oklch(60.714% 0.03584 258.328 / 0.64)",
+          "oklch(72.143% 0.03584 258.328 / 0.64)",
+          "oklch(83.571% 0.03584 258.328 / 0.64)",
+          "oklch(95.000% 0.03584 258.328 / 0.64)"
+        ]
+      },
+      "dark-edge": {
+        "role": "neutral",
+        "displayName": "Dark Edge",
+        "canonical": "oklch(90.578% 0.04555 260.675 / 0.27)",
+        "tonalRamp": [
+          "oklch(15.000% 0.04555 260.675 / 0.27)",
+          "oklch(26.429% 0.04555 260.675 / 0.27)",
+          "oklch(37.857% 0.04555 260.675 / 0.27)",
+          "oklch(49.286% 0.04555 260.675 / 0.27)",
+          "oklch(60.714% 0.04555 260.675 / 0.27)",
+          "oklch(72.143% 0.04555 260.675 / 0.27)",
+          "oklch(83.571% 0.04555 260.675 / 0.27)",
+          "oklch(95.000% 0.04555 260.675 / 0.27)"
+        ]
+      },
+      "dark-lens": {
+        "role": "neutral",
+        "displayName": "Dark Lens",
+        "canonical": "oklch(60.206% 0.06325 258.905 / 0.25)",
+        "tonalRamp": [
+          "oklch(15.000% 0.06325 258.905 / 0.25)",
+          "oklch(26.429% 0.06325 258.905 / 0.25)",
+          "oklch(37.857% 0.06325 258.905 / 0.25)",
+          "oklch(49.286% 0.06325 258.905 / 0.25)",
+          "oklch(60.714% 0.06325 258.905 / 0.25)",
+          "oklch(72.143% 0.06325 258.905 / 0.25)",
+          "oklch(83.571% 0.06325 258.905 / 0.25)",
+          "oklch(95.000% 0.06325 258.905 / 0.25)"
+        ]
+      },
+      "dark-danger": {
+        "role": "error",
+        "displayName": "Dark Danger",
+        "canonical": "oklch(83.452% 0.09161 19.181)",
+        "tonalRamp": [
+          "oklch(15.000% 0.09161 19.181)",
+          "oklch(26.429% 0.09161 19.181)",
+          "oklch(37.857% 0.09161 19.181)",
+          "oklch(49.286% 0.09161 19.181)",
+          "oklch(60.714% 0.09161 19.181)",
+          "oklch(72.143% 0.09161 19.181)",
+          "oklch(83.571% 0.09161 19.181)",
+          "oklch(95.000% 0.09161 19.181)"
+        ]
+      },
+      "contrast-line": {
+        "role": "neutral",
+        "displayName": "Contrast Line",
+        "canonical": "oklch(60.381% 0.03691 260.964)",
+        "tonalRamp": [
+          "oklch(15.000% 0.03691 260.964)",
+          "oklch(26.429% 0.03691 260.964)",
+          "oklch(37.857% 0.03691 260.964)",
+          "oklch(49.286% 0.03691 260.964)",
+          "oklch(60.714% 0.03691 260.964)",
+          "oklch(72.143% 0.03691 260.964)",
+          "oklch(83.571% 0.03691 260.964)",
+          "oklch(95.000% 0.03691 260.964)"
+        ]
+      },
+      "dark-contrast-line": {
+        "role": "neutral",
+        "displayName": "Dark Contrast Line",
+        "canonical": "oklch(65.632% 0.03342 258.938)",
+        "tonalRamp": [
+          "oklch(15.000% 0.03342 258.938)",
+          "oklch(26.429% 0.03342 258.938)",
+          "oklch(37.857% 0.03342 258.938)",
+          "oklch(49.286% 0.03342 258.938)",
+          "oklch(60.714% 0.03342 258.938)",
+          "oklch(72.143% 0.03342 258.938)",
+          "oklch(83.571% 0.03342 258.938)",
+          "oklch(95.000% 0.03342 258.938)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "metric": {
+        "displayName": "Exact activity total",
+        "purpose": "Primary tabular readout with separate units and time context."
+      },
+      "performance": {
+        "displayName": "Personal exercise total",
+        "purpose": "High-contrast athletic progress on an opaque blue field."
+      },
+      "invitation-value": {
+        "displayName": "Proposed or agreed goal",
+        "purpose": "One goal receives typographic emphasis while full terms remain readable."
+      }
+    },
+    "shadows": [
+      {
+        "name": "glass-light",
+        "value": "0 5px 18px rgba(19,38,71,.13),inset 0 1px 1px rgba(255,255,255,.98),inset 0 -1px 1px rgba(59,88,136,.16)",
+        "purpose": "Control elevation and directional inset rims in light appearance."
+      },
+      {
+        "name": "glass-dark",
+        "value": "0 6px 22px rgba(0,0,0,.3),inset 0 1px 1px rgba(227,239,255,.3),inset 0 -1px 1px rgba(0,0,0,.65)",
+        "purpose": "Control elevation and directional inset rims in dark appearance."
+      },
+      {
+        "name": "navigation-lens",
+        "value": "inset 0 1px 1px var(--edge),0 2px 5px rgba(18,36,61,.07)",
+        "purpose": "Selected navigation inset."
+      },
+      {
+        "name": "segment-lens",
+        "value": "inset 0 1px 1px var(--edge),0 2px 5px rgba(18,36,61,.08)",
+        "purpose": "Selected segmented-control inset."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "Declared easing for controls and the selected-day callout."
+      },
+      {
+        "name": "chart-lens",
+        "value": "130ms",
+        "purpose": "Selected-day position."
+      },
+      {
+        "name": "selected-control-lens",
+        "value": "340ms",
+        "purpose": "Navigation and segment transforms; browser rerenders do not prove native morphing."
+      },
+      {
+        "name": "rank-chevron",
+        "value": "250ms",
+        "purpose": "Expanded row indicator."
+      },
+      {
+        "name": "switch-thumb",
+        "value": "200ms",
+        "purpose": "Privacy switch state."
+      },
+      {
+        "name": "press",
+        "value": "scale(.97)",
+        "purpose": "Control press feedback; removed with reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "hide-notes",
+        "value": "1120px"
+      },
+      {
+        "name": "phone",
+        "value": "700px"
+      },
+      {
+        "name": "narrow-phone",
+        "value": "360px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Tinted glass action; consent remains explicit in the app.",
+      "html": "<button class=\"ds-primary ds-glass\">Review invitation</button>",
+      "css": ".ds-glass{position:relative;background:var(--glass,rgba(249,252,255,.68));backdrop-filter:blur(20px) saturate(1.5) contrast(1.03);-webkit-backdrop-filter:blur(20px) saturate(1.5) contrast(1.03);box-shadow:var(--glass-shadow,0 5px 18px rgba(19,38,71,.13),inset 0 1px 1px rgba(255,255,255,.98),inset 0 -1px 1px rgba(59,88,136,.16));border:1px solid var(--edge,rgba(255,255,255,.96));isolation:isolate}.ds-glass::before{content:\"\";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at var(--gx,25%) var(--gy,0%),rgba(255,255,255,.32),transparent 60%),linear-gradient(155deg,rgba(255,255,255,.14),transparent 43%,rgba(128,164,231,.08));box-shadow:inset 1px 0 1px rgba(255,255,255,.3),inset -1px 0 1px rgba(174,207,255,.1)}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ds-glass{background:var(--soft,#eff3f8);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border-color:var(--line,#d8e0eb)}.ds-glass::before{display:none}.ds-primary{background:var(--accent,#2458ed)}}.ds-primary{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:13px 20px;min-height:50px;border-radius:26px;font-size:14px;font-weight:650;background:color-mix(in srgb,var(--accent,#2458ed) 87%,transparent);color:var(--on-accent,#fff);border-color:color-mix(in srgb,var(--accent,#2458ed) 58%,white 42%)}.ds-primary{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer}.ds-primary:hover{filter:brightness(.97)}.ds-primary:focus-visible{outline:3px solid var(--accent,#2458ed);outline-offset:3px}.ds-primary:active{transform:scale(.97)}@media(prefers-reduced-motion:reduce){.ds-primary:active{transform:none}}"
+    },
+    {
+      "name": "Primary action \u00b7 solid",
+      "kind": "button",
+      "refersTo": "button-primary-solid",
+      "description": "Opaque control mode preserves the action geometry.",
+      "html": "<button class=\"ds-primary ds-solid\">Review invitation</button>",
+      "css": ".ds-primary{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:13px 20px;min-height:50px;border-radius:26px;font-size:14px;font-weight:650;background:color-mix(in srgb,var(--accent,#2458ed) 87%,transparent);color:var(--on-accent,#fff);border-color:color-mix(in srgb,var(--accent,#2458ed) 58%,white 42%)}.ds-solid{background:var(--accent,#2458ed);border:1px solid var(--accent,#2458ed)}.ds-primary{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer}.ds-primary:hover{filter:brightness(.97)}.ds-primary:focus-visible{outline:3px solid var(--accent,#2458ed);outline-offset:3px}.ds-primary:active{transform:scale(.97)}@media(prefers-reduced-motion:reduce){.ds-primary:active{transform:none}}"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A quieter full-width glass action.",
+      "html": "<button class=\"ds-secondary ds-glass\">View agreement</button>",
+      "css": ".ds-glass{position:relative;background:var(--glass,rgba(249,252,255,.68));backdrop-filter:blur(20px) saturate(1.5) contrast(1.03);-webkit-backdrop-filter:blur(20px) saturate(1.5) contrast(1.03);box-shadow:var(--glass-shadow,0 5px 18px rgba(19,38,71,.13),inset 0 1px 1px rgba(255,255,255,.98),inset 0 -1px 1px rgba(59,88,136,.16));border:1px solid var(--edge,rgba(255,255,255,.96));isolation:isolate}.ds-glass::before{content:\"\";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at var(--gx,25%) var(--gy,0%),rgba(255,255,255,.32),transparent 60%),linear-gradient(155deg,rgba(255,255,255,.14),transparent 43%,rgba(128,164,231,.08));box-shadow:inset 1px 0 1px rgba(255,255,255,.3),inset -1px 0 1px rgba(174,207,255,.1)}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ds-glass{background:var(--soft,#eff3f8);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border-color:var(--line,#d8e0eb)}.ds-glass::before{display:none}.ds-primary{background:var(--accent,#2458ed)}}.ds-secondary{display:flex;align-items:center;justify-content:center;width:100%;min-height:47px;border-radius:25px;font-size:14px;font-weight:600;padding:11px 18px}.ds-secondary{color:var(--ink,#141c28)}.ds-secondary{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer}.ds-secondary:hover{filter:brightness(.97)}.ds-secondary:focus-visible{outline:3px solid var(--accent,#2458ed);outline-offset:3px}.ds-secondary:active{transform:scale(.97)}@media(prefers-reduced-motion:reduce){.ds-secondary:active{transform:none}}"
+    },
+    {
+      "name": "Toolbar action",
+      "kind": "button",
+      "refersTo": "button-icon",
+      "description": "A 44px circular control with an explicit accessible label.",
+      "html": "<button class=\"ds-icon-button ds-glass\" aria-label=\"Create a challenge\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg></button>",
+      "css": ".ds-glass{position:relative;background:var(--glass,rgba(249,252,255,.68));backdrop-filter:blur(20px) saturate(1.5) contrast(1.03);-webkit-backdrop-filter:blur(20px) saturate(1.5) contrast(1.03);box-shadow:var(--glass-shadow,0 5px 18px rgba(19,38,71,.13),inset 0 1px 1px rgba(255,255,255,.98),inset 0 -1px 1px rgba(59,88,136,.16));border:1px solid var(--edge,rgba(255,255,255,.96));isolation:isolate}.ds-glass::before{content:\"\";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at var(--gx,25%) var(--gy,0%),rgba(255,255,255,.32),transparent 60%),linear-gradient(155deg,rgba(255,255,255,.14),transparent 43%,rgba(128,164,231,.08));box-shadow:inset 1px 0 1px rgba(255,255,255,.3),inset -1px 0 1px rgba(174,207,255,.1)}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ds-glass{background:var(--soft,#eff3f8);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border-color:var(--line,#d8e0eb)}.ds-glass::before{display:none}.ds-primary{background:var(--accent,#2458ed)}}.ds-icon-button{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:50%;padding:0}.ds-icon-button{color:var(--ink,#141c28)}.ds-icon-button{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer}.ds-icon-button:hover{filter:brightness(.97)}.ds-icon-button:focus-visible{outline:3px solid var(--accent,#2458ed);outline-offset:3px}.ds-icon-button:active{transform:scale(.97)}@media(prefers-reduced-motion:reduce){.ds-icon-button:active{transform:none}}"
+    },
+    {
+      "name": "Labeled field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Solid form entry separated from optical controls.",
+      "html": "<label class=\"ds-form-field\"><span>Challenge name</span><input value=\"Weekly steps\" autocomplete=\"off\"/></label>",
+      "css": ".ds-form-field{display:block;margin:22px 0}.ds-form-field>span{display:block;font-size:12px;font-weight:600;margin-bottom:8px}.ds-form-field{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;color:var(--ink,#141c28)}.ds-form-field input{width:calc(100% - 26px);border:1px solid var(--line,#d8e0eb);border-radius:8px;min-height:23px;padding:12px;background:var(--panel,#fff);color:var(--ink,#141c28);font:inherit}.ds-form-field input:hover{border-color:var(--muted,#5a6879)}.ds-form-field input:focus-visible{outline:3px solid var(--accent,#2458ed);outline-offset:2px}"
+    },
+    {
+      "name": "Floating navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Three destinations share one glass enclosure and selected inset.",
+      "html": "<nav class=\"ds-bottom-nav ds-glass\" aria-label=\"Main navigation\"><button class=\"ds-active\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z\"/></svg><span>Home</span></button><button><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 22V3m0 0c5-4 9 4 14 0v11c-5 4-9-4-14 0\"/></svg><span>Challenges</span></button><button><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0M4 21v-2a8 8 0 0 1 16 0v2\"/></svg><span>You</span></button></nav>",
+      "css": ".ds-glass{position:relative;background:var(--glass,rgba(249,252,255,.68));backdrop-filter:blur(20px) saturate(1.5) contrast(1.03);-webkit-backdrop-filter:blur(20px) saturate(1.5) contrast(1.03);box-shadow:var(--glass-shadow,0 5px 18px rgba(19,38,71,.13),inset 0 1px 1px rgba(255,255,255,.98),inset 0 -1px 1px rgba(59,88,136,.16));border:1px solid var(--edge,rgba(255,255,255,.96));isolation:isolate}.ds-glass::before{content:\"\";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at var(--gx,25%) var(--gy,0%),rgba(255,255,255,.32),transparent 60%),linear-gradient(155deg,rgba(255,255,255,.14),transparent 43%,rgba(128,164,231,.08));box-shadow:inset 1px 0 1px rgba(255,255,255,.3),inset -1px 0 1px rgba(174,207,255,.1)}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ds-glass{background:var(--soft,#eff3f8);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border-color:var(--line,#d8e0eb)}.ds-glass::before{display:none}.ds-primary{background:var(--accent,#2458ed)}}.ds-bottom-nav{position:absolute;bottom:21px;left:17px;right:17px;display:grid;grid-template-columns:repeat(3,1fr);border-radius:33px;padding:5px;height:65px;z-index:10}.ds-bottom-nav::after{content:\"\";position:absolute;inset:5px auto 5px 5px;width:calc((100% - 10px)/3);border-radius:28px;background:var(--lens,rgba(255,255,255,.74));box-shadow:inset 0 1px 1px var(--edge,rgba(255,255,255,.96)),0 2px 5px rgba(18,36,61,.07);transform:translateX(calc(var(--selected,0)*100%));transition:transform 340ms var(--ease,cubic-bezier(.16,1,.3,1));pointer-events:none;z-index:-1}.ds-bottom-nav button{background:transparent;color:var(--muted,#5a6879);display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;font-size:10px;border-radius:28px}.ds-bottom-nav button.ds-active{color:var(--accent,#2458ed);font-weight:650}.ds-bottom-nav{position:relative;left:auto;right:auto;bottom:auto;width:330px}.ds-bottom-nav button{border:0}.ds-bottom-nav button{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer}.ds-bottom-nav button:hover{filter:brightness(.97)}.ds-bottom-nav button:focus-visible{outline:3px solid var(--accent,#2458ed);outline-offset:3px}.ds-bottom-nav button:active{transform:scale(.97)}@media(prefers-reduced-motion:reduce){.ds-bottom-nav button:active{transform:none}}"
+    },
+    {
+      "name": "Status tag",
+      "kind": "chip",
+      "refersTo": "status-tag",
+      "description": "A compact status label; it is not a reward badge.",
+      "html": "<span class=\"ds-pill\">In progress</span>",
+      "css": ".ds-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;background:var(--accent-soft,#e8efff);color:var(--accent,#2458ed);border-radius:5px;font-size:10px;font-weight:600}.ds-pill{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif}"
+    },
+    {
+      "name": "Solid notice",
+      "kind": "card",
+      "refersTo": "notice",
+      "description": "One restrained opaque inset for consequential context.",
+      "html": "<aside class=\"ds-notice\"><strong>Simulated stakes \u2014 no real money moves.</strong><p>Nothing can be paid out or redeemed.</p></aside>",
+      "css": ".ds-notice{background:var(--soft,#eff3f8);padding:15px 16px;border-radius:9px;margin:20px 0;font-size:12px;line-height:1.6}.ds-notice strong{display:block;font-size:13px;font-weight:620;margin-bottom:3px}.ds-notice p{color:var(--muted,#5a6879);font-size:12px}.ds-notice{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;color:var(--ink,#141c28)}.ds-notice p{margin:0}"
+    },
+    {
+      "name": "Ranked friend row",
+      "kind": "custom",
+      "refersTo": "ranked-row",
+      "description": "Aligned rank, person and activity total; the live prototype expands its timeline.",
+      "html": "<button class=\"ds-rank-row\" aria-expanded=\"false\"><span class=\"ds-rank-number\">2</span><span class=\"ds-rank-person\">You<small>Updated 9:38 AM</small></span><span class=\"ds-rank-result\">38,620<small>steps</small></span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m6 9 6 6 6-6\"/></svg></button>",
+      "css": ".ds-rank-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto 13px;gap:11px;width:100%;text-align:left;background:var(--surface,#fbfcfe);min-height:73px;align-items:center;border-bottom:1px solid var(--line,#d8e0eb);padding:13px 0}.ds-rank-number{font-size:24px;font-weight:420;letter-spacing:-.03em}.ds-rank-person{font-size:15px;font-weight:620}.ds-rank-person small{display:block;font-size:10px;color:var(--muted,#5a6879);font-weight:430;margin-top:4px}.ds-rank-result{text-align:right;font-size:22px;font-weight:510;letter-spacing:-.03em}.ds-rank-result small{display:block;font-size:10px;color:var(--muted,#5a6879);font-weight:430;letter-spacing:0}.ds-rank-row{border:0;border-bottom:1px solid var(--line,#d8e0eb);color:var(--ink,#141c28)}.ds-rank-row svg{width:14px;height:14px}.ds-rank-row{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer}.ds-rank-row:hover{filter:brightness(.97)}.ds-rank-row:focus-visible{outline:3px solid var(--accent,#2458ed);outline-offset:3px}.ds-rank-row:active{transform:scale(.97)}@media(prefers-reduced-motion:reduce){.ds-rank-row:active{transform:none}}"
+    },
+    {
+      "name": "Selected-day readout",
+      "kind": "custom",
+      "refersTo": "chart-callout",
+      "description": "A pointer-inert readout following the selected bar in the live chart.",
+      "html": "<div class=\"ds-chart-lens ds-glass\"><span><b>Sat, Sep 12</b> \u00b7 So far</span><strong>5,220 <small>steps</small></strong></div>",
+      "css": ".ds-glass{position:relative;background:var(--glass,rgba(249,252,255,.68));backdrop-filter:blur(20px) saturate(1.5) contrast(1.03);-webkit-backdrop-filter:blur(20px) saturate(1.5) contrast(1.03);box-shadow:var(--glass-shadow,0 5px 18px rgba(19,38,71,.13),inset 0 1px 1px rgba(255,255,255,.98),inset 0 -1px 1px rgba(59,88,136,.16));border:1px solid var(--edge,rgba(255,255,255,.96));isolation:isolate}.ds-glass::before{content:\"\";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at var(--gx,25%) var(--gy,0%),rgba(255,255,255,.32),transparent 60%),linear-gradient(155deg,rgba(255,255,255,.14),transparent 43%,rgba(128,164,231,.08));box-shadow:inset 1px 0 1px rgba(255,255,255,.3),inset -1px 0 1px rgba(174,207,255,.1)}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ds-glass{background:var(--soft,#eff3f8);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border-color:var(--line,#d8e0eb)}.ds-glass::before{display:none}.ds-primary{background:var(--accent,#2458ed)}}.ds-chart-lens{position:absolute;top:0;left:var(--lens-x,65%);transform:translateX(-50%);border-radius:13px;min-width:125px;max-width:150px;padding:8px 12px;pointer-events:none;z-index:2;transition:left 130ms var(--ease,cubic-bezier(.16,1,.3,1))}.ds-chart-lens{position:relative;top:auto;left:auto;transform:none;font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;color:var(--ink,#141c28)}.ds-chart-lens>span{font-size:10px;color:var(--muted,#5a6879);display:block}.ds-chart-lens strong{font-size:21px;font-weight:570;display:block;font-variant-numeric:tabular-nums}.ds-chart-lens small{font-size:11px}"
+    },
+    {
+      "name": "Personal progress band",
+      "kind": "custom",
+      "description": "Solid athletic progress with proportional recorded segments; no glass or motion.",
+      "html": "<section class=\"ds-performance-slab\"><div class=\"ds-performance-readout\"><div class=\"ds-performance-number\">95<span>min</span></div><p>Exercise minutes<br>this week</p></div><div class=\"ds-performance-track\" role=\"img\" aria-label=\"95 of 150 exercise minutes\"><div><span style=\"flex:28\"></span><span style=\"flex:35\"></span><span style=\"flex:32\"></span></div></div><p class=\"ds-performance-goal\">Your agreed goal \u00b7 150 minutes across the week</p></section>",
+      "css": "\n.ds-performance-slab{background:var(--accent,#2458ed);color:var(--on-accent,#fff);margin:24px -24px 0;padding:22px 24px 20px}\n.ds-performance-readout{display:flex;justify-content:space-between;align-items:center;gap:20px}\n.ds-performance-number{font-size:88px;font-weight:520;letter-spacing:-.04em;line-height:1}\n.ds-performance-number>span{font-size:25px;font-weight:450;margin-left:5px;letter-spacing:-.02em}\n.ds-performance-readout>p{font-size:12px;line-height:1.45;max-width:112px}\n.ds-performance-track{height:6px;margin:23px 0 10px;background:color-mix(in srgb,var(--on-accent,#fff) 25%,var(--accent,#2458ed));border-radius:3px;overflow:hidden}\n.ds-performance-track>div{display:flex;gap:2px;width:63.333333%;height:100%}.ds-performance-track>div>span{background:var(--on-accent,#fff);border-radius:2px}\n.ds-performance-goal{font-size:11px;line-height:1.5}\n.ds-performance-context{display:flex;gap:24px;justify-content:space-between;margin-top:20px}\n.ds-performance-context>p{font-size:10px;max-width:140px}\n.ds-performance-context strong{font-size:18px;font-weight:570;margin-right:3px}.ds-performance-number{font-size:78px}.ds-performance-context{gap:12px}.ds-performance-slab,.ds-invitation-focus{background:Canvas;color:CanvasText}.ds-performance-track{background:Canvas;border:1px solid CanvasText}.ds-performance-track>div>span{background:Highlight}.ds-performance-slab{margin:0;font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;font-variant-numeric:tabular-nums;}.ds-performance-slab p{margin:0}.ds-performance-slab .ds-performance-goal{margin-top:10px}"
+    },
+    {
+      "name": "Personal privacy statement",
+      "kind": "custom",
+      "description": "An open statement of personal ownership before the activity history.",
+      "html": "<section class=\"ds-personal-story\"><div><h2>This goal<br>is yours.</h2></div><p>There\u2019s no ranking. Your personal activity and result stay private.</p></section>",
+      "css": "\n.ds-personal-story{padding:25px 0 23px;border-bottom:1px solid var(--line,#d8e0eb)}\n.ds-personal-story>div{display:flex;justify-content:space-between;align-items:flex-end;gap:25px}\n.ds-personal-story h2{font-size:32px;font-weight:620;line-height:1.05}\n.ds-personal-story .ds-icon{width:32px;height:32px;color:var(--accent,#2458ed);margin-bottom:3px}\n.ds-personal-story>p{font-size:13px;color:var(--muted,#5a6879);max-width:275px;margin-top:12px;line-height:1.6}.ds-personal-story{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;font-variant-numeric:tabular-nums;color:var(--ink,#141c28)}.ds-personal-story h2{margin:0;letter-spacing:-.025em}"
+    },
+    {
+      "name": "Exact date span",
+      "kind": "custom",
+      "description": "Two full date and midnight boundaries with a shared time zone.",
+      "html": "<section class=\"ds-date-window\"><div class=\"ds-date-window-points\"><div><span class=\"ds-date-window-label\">Starts</span><time datetime=\"2026-09-16T00:00:00\"><strong>Sep 16, 2026</strong><span>12:00 AM</span></time></div><span class=\"ds-date-window-arrow\"><svg viewBox=\"0 0 24 24\" width=\"21\" height=\"21\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></span><div><span class=\"ds-date-window-label\">Ends</span><time datetime=\"2026-09-23T00:00:00\"><strong>Sep 23, 2026</strong><span>12:00 AM</span></time></div></div><p class=\"ds-date-window-zone\">7 full days \u00b7 Central Time</p></section>",
+      "css": "\n.ds-date-window{padding:23px 0 20px;border-bottom:1px solid var(--line,#d8e0eb)}\n.ds-date-window-points{display:grid;grid-template-columns:minmax(0,1fr) 26px minmax(0,1fr);gap:12px;align-items:center}\n.ds-date-window-points>div:last-child{text-align:right}\n.ds-date-window-label{display:block;color:var(--muted,#5a6879);font-size:11px;margin-bottom:7px}\n.ds-date-window time{display:block}\n.ds-date-window time strong{font-size:17px;font-weight:590;letter-spacing:-.025em}\n.ds-date-window time span{display:block;color:var(--muted,#5a6879);font-size:11px;margin-top:3px}\n.ds-date-window-arrow{display:flex;justify-content:center;color:var(--muted,#5a6879)}\n.ds-date-window-zone{text-align:center;color:var(--muted,#5a6879);font-size:11px;margin-top:15px}\n.ds-date-window-zone>span{margin:0 5px}\n.ds-date-window+.ds-entry-summary{border-top:0;margin-top:0}.ds-date-window-points{gap:6px;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr)}.ds-date-window time strong{font-size:15px}.ds-date-window{font-family:-apple-system,BlinkMacSystemFont,\"Helvetica Neue\",Arial,sans-serif;font-variant-numeric:tabular-nums;color:var(--ink,#141c28)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The cool performance instrument",
+    "overview": "Signal uses large tabular totals, daily bars and aligned activity rows on cool white or dark ink. One blue family carries performance and interaction. Opaque information supports a separate optical layer for controls. This records the user's pinned direction as built, not a new identity choice.\n\nThis document and its [sidecar](.impeccable/design.json) apply only to this folder's **browser proposal**. They do not establish production identity, product policy or native acceptance. The [README](README.md) records behavior and scope; [PRODUCT.md](PRODUCT.md), [research](MOBBIN_RESEARCH.md) and [material review](LIQUID_GLASS_REVIEW.md) provide context. The HTML contract records seed `798c9301`, degraded without challengers, no approved comp and a code-led browser study. The initial study\u2019s independent finish verdict was **ship**: saved agreement snapshots, product-specific exit receipts, keyboard focus retention and desktop eyebrow removal are resolved, with no remaining issues in its reviewed scope.",
+    "keyCharacteristics": [
+      "One blue family on a cool neutral field.",
+      "Exact totals with date, units and completion state.",
+      "Solid charts, rows, terms, consent and results.",
+      "Glass controls with opaque and accessibility fallbacks."
+    ],
+    "rules": [
+      {
+        "name": "The One Performance Accent Rule",
+        "body": "Use the blue family for performance and interaction; reserve danger for errors and exit-related actions.",
+        "section": "colors"
+      },
+      {
+        "name": "The Exact Readout Rule",
+        "body": "Pair important totals with units and time context; distinguish complete, partial and future activity without inventing a zero.",
+        "section": "typography"
+      },
+      {
+        "name": "The Solid Information Rule",
+        "body": "Keep data, histories, terms, consent and results opaque; reserve glass for navigation, actions, segments and the chart's selected-day readout.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Same Geometry Rule",
+        "body": "Opaque fallbacks keep control geometry and selected states while removing blur, reflections and glass elevation.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** preserve the blue family, cool neutrals and tabular readouts within this proposal.",
+      "**Do** keep information opaque and optical material on the established controls.",
+      "**Do** retain dates, units, partial/future states, keyboard focus, explicit consent and easy review/exit routes.",
+      "**Do** preserve geometry and selection when material or accessibility settings change."
+    ],
+    "donts": [
+      "**Don't** spread blur or glare across data, terms, consent or results.",
+      "**Don't** introduce warm paper, vintage print, condensed display, monograms, profile photos, decorative heroes or repeated soft cards into this pinned world.",
+      "**Don't** use color or motion alone to communicate state, or turn status tags into reward badges.",
+      "**Don't** promote the phone frame, study typography, mark, fictional fixtures or browser optics into adopted production identity, policy or native acceptance."
+    ]
+  }
+}

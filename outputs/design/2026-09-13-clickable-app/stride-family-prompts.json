@@ -1,0 +1,20 @@
+[
+  {
+    "key": "lace",
+    "name": "lace-up-print-v1",
+    "source": "/Users/user/.codex/generated_images/01a09902-1ef3-7343-9691-027e93bc5c82/exec-4191affa-f493-41a7-96d0-6864712bed06.png",
+    "prompt": "Use case: stylized-concept. Create a NEW companion artwork for the GameTime Fieldwork Glass app. Input image is a STYLE REFERENCE ONLY: match its photographic halftone screenprint, dark forest green ink #193B32, tiny off-register citrus #D9EE92 accents, softly textured warm chalk paper #F5F3EC. New subject: close crop of two hands tying the laces of a plain unbranded running shoe, one ankle and sock visible; anatomically natural, relaxed preparation before a walk. Horizontal 3:2 composition, subject centered with generous paper space on all sides, photo-derived realistic forms and coarse analog print texture. Keep the restrained two-ink palette and subtle imperfect registration of the reference. No text, logos, letters, numbers, UI, borders, gradients, extra objects, or faces. This is one standalone artwork, not a collage or layout. Calm everyday sport, no hype."
+  },
+  {
+    "key": "bump",
+    "name": "fist-bump-print-v1",
+    "source": "/Users/user/.codex/generated_images/01a09902-1ef3-7343-9691-027e93bc5c82/exec-432094cf-f6b3-4a13-86ff-db6a24649644.png",
+    "prompt": "Use case: stylized-concept. Create a NEW companion artwork for GameTime Fieldwork Glass. Input image is STYLE REFERENCE ONLY: match the photographic halftone screenprint, dark forest green ink #193B32, tiny off-register citrus #D9EE92 accents, warm chalk paper #F5F3EC with fine grain. New subject: two friends giving a relaxed fist bump, two forearms entering naturally from left and right, fists meeting slightly above center, anatomically convincing hands, casual short sleeves cropped at image edges. No faces or full bodies. Horizontal 3:2 composition with ample paper space above and below, wide simple silhouette that reads at mobile size. Photo-derived real forms with coarse analog print texture, restrained two-ink palette and subtle imperfect registration like the reference. No text, logos, lettering, numbers, UI, borders, gradients, watches, jewelry, or other objects. One standalone artwork, not a collage. Friendly everyday camaraderie; not a victory celebration."
+  },
+  {
+    "key": "run",
+    "name": "running-print-v1",
+    "source": "/Users/user/.codex/generated_images/01a09902-1ef3-7343-9691-027e93bc5c82/exec-b4068e5e-8d4f-490f-80f1-c80955da1d76.png",
+    "prompt": "Use case: stylized-concept. Create a NEW companion artwork for GameTime Fieldwork Glass. Input image is STYLE REFERENCE ONLY: reproduce its dark forest green #193B32 photographic halftone screenprint, very small off-register citrus #D9EE92 highlights, warm chalk paper #F5F3EC and fine grain. New subject: a single recreational runner's bent legs, viewed from the side mid-jog, knees and lower legs only cropped just above knees. Rear foot lifted, leading leg naturally bent, plain athletic shoes and crew socks, anatomically believable. Clearly different pose from reference walking stride. Horizontal 3:2 composition, compact dynamic silhouette centered, generous paper space, all shoes inside frame. Photo-derived realistic forms, dry ink speckle, vintage sports club print. Subtle everyday motion, no competition or excessive exertion. No text, logos, lettering, numerals, UI, borders, gradients, extra objects, or faces. One standalone illustration, not a collage."
+  }
+]

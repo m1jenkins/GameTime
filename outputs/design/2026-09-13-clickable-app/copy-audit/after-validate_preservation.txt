@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "total_constraints": 0,
+  "preserved": 0,
+  "missing_count": 0,
+  "missing": [],
+  "warnings": [
+    "Negation count dropped 1->0. Verify no claim was inverted or weakened (e.g. 'does not support' -> 'supports').",
+    "Scope/precision word 'every' not in output. Verify the claim's scope is unchanged."
+  ]
+}

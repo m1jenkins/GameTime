@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "Saved receipt keeps accepted name after another draft",
+    "Saved receipt keeps accepted amount",
+    "Saved full agreement keeps accepted date window",
+    "Draft cannot rewrite accepted agreement",
+    "Saved agreement is read-only, no fresh consent action",
+    "Departed friends view reopens its own receipt",
+    "Departed personal view reopens its own receipt",
+    "Keyboard focus retained [data-detail=\"week\"]",
+    "Keyboard focus retained [data-overview=\"upcoming\"]",
+    "Keyboard focus retained [data-result=\"tie\"]",
+    "Keyboard focus retained [data-kind=\"personal\"]",
+    "Keyboard focus retained [data-action=\"pause\"]",
+    "Keyboard focus retained [data-action=\"share\"]",
+    "Keyboard focus retained metric choice",
+    "No desktop eyebrows light glass",
+    "No desktop eyebrows light solid",
+    "No desktop eyebrows dark glass",
+    "No desktop eyebrows dark solid",
+    "No JavaScript errors"
+  ],
+  "errors": []
+}

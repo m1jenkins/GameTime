@@ -1,0 +1,93 @@
+{
+  "generator": "Built-in image_gen (not CLI)",
+  "created": "2026-09-13",
+  "assets": [
+    {
+      "name": "Club morning",
+      "path": "assets/club-morning-v1.png",
+      "previewPath": "assets/club-morning-v1.webp",
+      "prompt": "Use case: photorealistic-natural. Asset type: small editorial photograph for GameTime's Fieldwork Glass iPhone fitness challenge app, to be cropped into a short wide 3:1 banner or a small square thumbnail. Primary request: a quiet, candid club-morning moment of two adult friends walking side by side outdoors. Scene: pale warm-chalk paved path beside deep green grass. Subject: only their lower bodies from mid-thigh down, natural walking strides, understated unbranded cream and dark forest-green sportswear, socks and realistic unbranded walking/running shoes. No faces. One pair of legs has medium brown skin, one has lighter skin. Composition: landscape 3:2, closely framed at shoe height with both pairs of shoes fully visible in the central middle third, plenty of real pale pavement across the frame; humans occupy about half the image width; clean decisive composition legible at 80px, warm natural side light and believable soft shadows. Style: premium editorial sports-club photography, tactile real fabric and pavement, relaxed everyday movement, no staged victory. Color palette: harmonize with warm chalk #F5F3EC, deep club green #193B32, warm cream #F4F5DE, only a tiny muted citrus #D9EE92 detail. This is an atmospheric illustration of movement, not a user photo or proof of activity. No text, no logos, no watermark, no app UI, no medals, no money, no decorative glass, no glossy advertising finish."
+    },
+    {
+      "name": "Stride print",
+      "path": "assets/stride-print-v1.png",
+      "previewPath": "assets/stride-print-v1.webp",
+      "prompt": "Use case: stylized-concept. Asset type: small editorial raster graphic for GameTime Fieldwork Glass, a friendly athletic challenge iPhone app. Primary request: an expressive but restrained vintage sports-publication screenprint of a walking stride, suitable for cropping to a short 3:1 banner and a small square thumbnail. Scene: warm chalk paper #F5F3EC. Subject: two realistic cropped lower legs and unbranded running shoes in a relaxed walking stride, shown diagonally across the middle in an editorial photomontage/screen-print treatment. Shoes and anatomy remain believable. Medium: two-color photographic halftone screenprint, visible fine ink grain, off-register ink edge, tactile sports-club annual aesthetic, dense forest-green #193B32 photographic silhouette and one restrained citrus #D9EE92 offset shadow shape; cream highlights. Composition: landscape 3:2, central main stride occupying middle 55% of height, generous warm-paper breathing space above and below for flexible crops, bold shoe silhouette easily read at 80px. Refined art direction with intentional contrast and sparse composition. This is an atmospheric graphic, not a route, chart, progress gauge or activity proof. No text, no logos, no numbers, no watermark, no app UI, no trophies, no coins, no fitness pressure, no generic cartoon character, no 3D, no gradients, no shiny glass, no decorative tiny stars."
+    },
+    {
+      "name": "Lace up print",
+      "path": "assets/lace-up-print-v1.png",
+      "previewPath": "assets/lace-up-print-v1.webp",
+      "prompt": "Use case: stylized-concept. Create a NEW companion artwork for the GameTime Fieldwork Glass app. Input image is a STYLE REFERENCE ONLY: match its photographic halftone screenprint, dark forest green ink #193B32, tiny off-register citrus #D9EE92 accents, softly textured warm chalk paper #F5F3EC. New subject: close crop of two hands tying the laces of a plain unbranded running shoe, one ankle and sock visible; anatomically natural, relaxed preparation before a walk. Horizontal 3:2 composition, subject centered with generous paper space on all sides, photo-derived realistic forms and coarse analog print texture. Keep the restrained two-ink palette and subtle imperfect registration of the reference. No text, logos, letters, numbers, UI, borders, gradients, extra objects, or faces. This is one standalone artwork, not a collage or layout. Calm everyday sport, no hype.",
+      "styleReference": "assets/stride-print-v1.png"
+    },
+    {
+      "name": "Fist bump print",
+      "path": "assets/fist-bump-print-v1.png",
+      "previewPath": "assets/fist-bump-print-v1.webp",
+      "prompt": "Use case: stylized-concept. Create a NEW companion artwork for GameTime Fieldwork Glass. Input image is STYLE REFERENCE ONLY: match the photographic halftone screenprint, dark forest green ink #193B32, tiny off-register citrus #D9EE92 accents, warm chalk paper #F5F3EC with fine grain. New subject: two friends giving a relaxed fist bump, two forearms entering naturally from left and right, fists meeting slightly above center, anatomically convincing hands, casual short sleeves cropped at image edges. No faces or full bodies. Horizontal 3:2 composition with ample paper space above and below, wide simple silhouette that reads at mobile size. Photo-derived real forms with coarse analog print texture, restrained two-ink palette and subtle imperfect registration like the reference. No text, logos, lettering, numbers, UI, borders, gradients, watches, jewelry, or other objects. One standalone artwork, not a collage. Friendly everyday camaraderie; not a victory celebration.",
+      "styleReference": "assets/stride-print-v1.png"
+    },
+    {
+      "name": "Running print",
+      "path": "assets/running-print-v1.png",
+      "previewPath": "assets/running-print-v1.webp",
+      "prompt": "Use case: stylized-concept. Create a NEW companion artwork for GameTime Fieldwork Glass. Input image is STYLE REFERENCE ONLY: reproduce its dark forest green #193B32 photographic halftone screenprint, very small off-register citrus #D9EE92 highlights, warm chalk paper #F5F3EC and fine grain. New subject: a single recreational runner's bent legs, viewed from the side mid-jog, knees and lower legs only cropped just above knees. Rear foot lifted, leading leg naturally bent, plain athletic shoes and crew socks, anatomically believable. Clearly different pose from reference walking stride. Horizontal 3:2 composition, compact dynamic silhouette centered, generous paper space, all shoes inside frame. Photo-derived realistic forms, dry ink speckle, vintage sports club print. Subtle everyday motion, no competition or excessive exertion. No text, logos, lettering, numerals, UI, borders, gradients, extra objects, or faces. One standalone illustration, not a collage.",
+      "styleReference": "assets/stride-print-v1.png"
+    }
+  ],
+  "mobbin": [
+    {
+      "query": "Fitness app home screen with a small editorial photograph alongside activity progress or workout cards",
+      "screens": [
+        {
+          "id": "186461a8-d5e5-44f1-b990-5414b3886019",
+          "image_url": "https://mobbin.com/api/mcp/short/ej6OF1oD",
+          "mobbin_url": "https://mobbin.com/screens/186461a8-d5e5-44f1-b990-5414b3886019",
+          "app_name": "Future Pro",
+          "platform": "ios"
+        },
+        {
+          "id": "9e3ecc20-23ec-4ee6-bcbf-1cbe5c71d50b",
+          "image_url": "https://mobbin.com/api/mcp/short/3g8qhctI",
+          "mobbin_url": "https://mobbin.com/screens/9e3ecc20-23ec-4ee6-bcbf-1cbe5c71d50b",
+          "app_name": "Tonal",
+          "platform": "ios"
+        },
+        {
+          "id": "397e4e9d-aab0-476f-8c4b-764f78a3cb4f",
+          "image_url": "https://mobbin.com/api/mcp/short/hx0OF1tC",
+          "mobbin_url": "https://mobbin.com/screens/397e4e9d-aab0-476f-8c4b-764f78a3cb4f",
+          "app_name": "Apple Fitness",
+          "platform": "ios"
+        }
+      ]
+    },
+    {
+      "query": "Running app challenge detail screen with a photographic banner above challenge information",
+      "screens": [
+        {
+          "id": "50763ff9-a5fa-4fb2-aafb-bcca4fd03b2c",
+          "image_url": "https://mobbin.com/api/mcp/short/DY53aoqx",
+          "mobbin_url": "https://mobbin.com/screens/50763ff9-a5fa-4fb2-aafb-bcca4fd03b2c",
+          "app_name": "Strava",
+          "platform": "ios"
+        },
+        {
+          "id": "a603a303-54ff-49b3-bf77-742dd7e1164d",
+          "image_url": "https://mobbin.com/api/mcp/short/efnBIrjg",
+          "mobbin_url": "https://mobbin.com/screens/a603a303-54ff-49b3-bf77-742dd7e1164d",
+          "app_name": "Garmin Connect",
+          "platform": "ios"
+        },
+        {
+          "id": "e36affec-339c-439d-800b-b3ebbfff66a2",
+          "image_url": "https://mobbin.com/api/mcp/short/w7B4N9xf",
+          "mobbin_url": "https://mobbin.com/screens/e36affec-339c-439d-800b-b3ebbfff66a2",
+          "app_name": "Tempo",
+          "platform": "ios"
+        }
+      ]
+    }
+  ]
+}

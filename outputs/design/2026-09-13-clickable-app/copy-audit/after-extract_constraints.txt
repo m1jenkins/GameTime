@@ -1,0 +1,12 @@
+{
+  "input_length": 566,
+  "constraint_count": 1,
+  "constraints": [
+    {
+      "type": "proper_noun",
+      "value": "Connect Apple Health",
+      "start": 186,
+      "end": 206
+    }
+  ]
+}
