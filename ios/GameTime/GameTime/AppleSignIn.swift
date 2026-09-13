@@ -167,7 +167,7 @@ struct NativeAppleReauthenticationButton: View {
                 Label("Continue with Apple", systemImage: "apple.logo")
                     .frame(maxWidth: .infinity, minHeight: 52)
             }
-            .buttonStyle(TrustPrimaryButtonStyle())
+            .buttonStyle(SignalPrimaryButtonStyle())
             .accessibilityLabel("Continue with Apple to delete your account")
             .accessibilityIdentifier("account-deletion.fixture-reauthenticate")
         } else {

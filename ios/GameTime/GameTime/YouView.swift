@@ -40,8 +40,8 @@ struct YouView: View {
             .padding(.horizontal, 20)
             .padding(.top, 4)
         }
-        .daybreakTabScrollClearance()
-        .daybreakScreenChrome()
+        .signalTabScrollClearance()
+        .signalScreenChrome()
         .navigationTitle("You")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -49,12 +49,12 @@ struct YouView: View {
     @ViewBuilder
     private var profileCard: some View {
         if let profile = model.profile {
-            CobaltOpenSection {
+            SignalOpenSection {
                 HStack(spacing: 15) {
                     InitialsAvatar(
                         initials: profile.initials,
                         size: 60,
-                        color: CompetitiveTrustTheme.coral
+                        color: SignalTheme.accent
                     )
                     VStack(alignment: .leading, spacing: 3) {
                         Text(profile.displayName)
@@ -62,7 +62,7 @@ struct YouView: View {
                             .tracking(-0.65)
                         Text("@\(profile.handle)")
                             .font(.subheadline)
-                            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                            .foregroundStyle(SignalTheme.textSecondary)
                             .accessibilityLabel(
                                 "Username \(profile.handle)"
                             )
@@ -70,11 +70,11 @@ struct YouView: View {
                     Spacer(minLength: 0)
                 }
                 Divider()
-                    .overlay(CompetitiveTrustTheme.border)
+                    .overlay(SignalTheme.divider)
                     .padding(.vertical, 12)
                 settingRow("Time zone", profile.timezone)
                 Divider()
-                    .overlay(CompetitiveTrustTheme.border)
+                    .overlay(SignalTheme.divider)
                     .padding(.vertical, 12)
                 historyMetrics
             }
@@ -118,8 +118,8 @@ struct YouView: View {
 
     private var healthSection: some View {
         Group {
-            DaybreakSectionLabel(text: "Apple Health")
-            CobaltOpenSection {
+            SignalSectionLabel(text: "Apple Health")
+            SignalOpenSection {
                 VStack(alignment: .leading, spacing: 12) {
                     Label(
                         personalStore.healthReadiness.permitsCreation
@@ -136,7 +136,7 @@ struct YouView: View {
                             : "Connect Apple Health so GameTime can update your challenge automatically from your step history."
                     )
                     .font(.caption)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
 
                     if !personalStore.healthReadiness.permitsCreation {
                         Button(
@@ -145,20 +145,20 @@ struct YouView: View {
                                 : "Connect Apple Health"
                         ) {
                             Task {
-                                DaybreakAccessibility.announce("Connecting…")
+                                SignalAccessibility.announce("Connecting…")
                                 let connected = await personalStore
                                     .verifyHealthAccess(
                                     timezone: model.profile?.timezone
                                         ?? TimeZone.current.identifier
                                 )
-                                DaybreakAccessibility.announce(
+                                SignalAccessibility.announce(
                                     connected
                                         ? "Health connected."
                                         : "Apple Health connection failed."
                                 )
                             }
                         }
-                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .buttonStyle(SignalSecondaryButtonStyle())
                         .disabled(
                             personalStore.isVerifyingHealthAccess
                                 || !personalStore.configuration.activitySyncEnabled
@@ -171,7 +171,7 @@ struct YouView: View {
                             "Health connection checks aren’t available yet."
                         )
                         .font(.caption2)
-                        .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                        .foregroundStyle(SignalTheme.textSecondary)
                     }
                 }
             }
@@ -180,8 +180,8 @@ struct YouView: View {
 
     private var settingsSection: some View {
         Group {
-            DaybreakSectionLabel(text: "Settings")
-            CobaltOpenSection {
+            SignalSectionLabel(text: "Settings")
+            SignalOpenSection {
                 VStack(spacing: 0) {
                     Button {
                         router.youPath.append(.trustAndPrivacy)
@@ -190,13 +190,13 @@ struct YouView: View {
                             title: "Your privacy",
                             detail: "What we read, what we send, and what stays on your phone",
                             icon: "checkmark.shield.fill",
-                            iconColor: CompetitiveTrustTheme.mintInk
+                            iconColor: SignalTheme.accent
                         )
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("privacy.open")
 
-                    Divider().overlay(CompetitiveTrustTheme.border)
+                    Divider().overlay(SignalTheme.divider)
 
                     Button {
                         router.openAccountSupport()
@@ -205,7 +205,7 @@ struct YouView: View {
                             title: "Account & support",
                             detail: "Support, documents, sign out, and account deletion",
                             icon: "person.crop.circle.badge.questionmark",
-                            iconColor: CompetitiveTrustTheme.actionCoral
+                            iconColor: SignalTheme.accent
                         )
                     }
                     .buttonStyle(.plain)
@@ -232,23 +232,23 @@ struct YouView: View {
                 Text(detail)
                     .font(.caption)
                     .foregroundStyle(
-                        CompetitiveTrustTheme.secondaryText
+                        SignalTheme.textSecondary
                     )
             }
             Spacer(minLength: 8)
             Image(systemName: "chevron.right")
-                .foregroundStyle(CompetitiveTrustTheme.guide)
+                .foregroundStyle(SignalTheme.divider)
                 .accessibilityHidden(true)
         }
         .padding(.vertical, 10)
-        .daybreakTappableRow()
+        .signalTappableRow()
     }
 
     @ViewBuilder
     private var demoSection: some View {
         if demoMode.isAvailable {
-            DaybreakSectionLabel(text: "Demo")
-            CobaltOpenSection {
+            SignalSectionLabel(text: "Demo")
+            SignalOpenSection {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(demoMode.isActive ? "Exit demo mode" : "Open demo mode")
@@ -259,13 +259,13 @@ struct YouView: View {
                                 : "Try the app out with sample data."
                         )
                         .font(.caption)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .foregroundStyle(SignalTheme.textSecondary)
                     }
                     Spacer(minLength: 8)
                     Button(demoMode.isActive ? "Exit" : "Open") {
                         demoMode.isActive ? demoMode.exit() : demoMode.enter()
                     }
-                    .buttonStyle(TrustCompactButtonStyle())
+                    .buttonStyle(SignalCompactButtonStyle())
                     .accessibilityIdentifier(
                         demoMode.isActive ? "demo.exit" : "demo.enter"
                     )
@@ -280,7 +280,7 @@ struct YouView: View {
             Spacer(minLength: 8)
             Text(value)
                 .font(.subheadline)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
                 .multilineTextAlignment(.trailing)
         }
         .padding(.vertical, 5)
@@ -291,14 +291,14 @@ struct YouView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(value)
                 .font(
-                    CompetitiveTrustTheme.displayFont(
+                    SignalTheme.displayFont(
                         size: 21,
                         relativeTo: .title3
                     )
                 )
             Text(label)
                 .font(.caption)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -340,8 +340,8 @@ struct TrustAndPrivacyView: View {
             .padding(.horizontal, 20)
             .padding(.top, 18)
         }
-        .daybreakTabScrollClearance()
-        .daybreakScreenChrome()
+        .signalTabScrollClearance()
+        .signalScreenChrome()
         .navigationTitle("Privacy")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -351,11 +351,11 @@ struct TrustAndPrivacyView: View {
         detail: String,
         icon: String
     ) -> some View {
-        CobaltOpenSection {
+        SignalOpenSection {
             HStack(alignment: .top, spacing: 13) {
                 Image(systemName: icon)
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(CompetitiveTrustTheme.coral)
+                    .foregroundStyle(SignalTheme.accent)
                     .frame(width: 28)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 5) {
@@ -363,7 +363,7 @@ struct TrustAndPrivacyView: View {
                         .font(.headline)
                     Text(detail)
                         .font(.subheadline)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .foregroundStyle(SignalTheme.textSecondary)
                 }
             }
         }
@@ -392,8 +392,8 @@ struct AccountSupportView: View {
             .padding(.horizontal, 20)
             .padding(.top, 4)
         }
-        .daybreakTabScrollClearance()
-        .daybreakScreenChrome()
+        .signalTabScrollClearance()
+        .signalScreenChrome()
         .navigationTitle("Account & support")
         .navigationBarTitleDisplayMode(.inline)
         .alert(
@@ -419,8 +419,8 @@ struct AccountSupportView: View {
 
     private var helpDocumentsSection: some View {
         Group {
-            DaybreakSectionLabel(text: "Help & documents")
-            CobaltOpenSection {
+            SignalSectionLabel(text: "Help & documents")
+            SignalOpenSection {
                 VStack(spacing: 0) {
                     externalRow(
                         title: "Apple Health help",
@@ -428,9 +428,9 @@ struct AccountSupportView: View {
                         icon: "heart.text.square.fill",
                         destination: URL(string: "https://support.apple.com/en-us/HT204351")
                     )
-                    Divider().overlay(CompetitiveTrustTheme.border)
+                    Divider().overlay(SignalTheme.divider)
                     supportRow
-                    Divider().overlay(CompetitiveTrustTheme.border)
+                    Divider().overlay(SignalTheme.divider)
                     documentRow(
                         title: "Privacy Policy",
                         detail: "How GameTime handles your data",
@@ -439,7 +439,7 @@ struct AccountSupportView: View {
                         accessibilityIdentifier:
                             "account-support.privacy-policy"
                     )
-                    Divider().overlay(CompetitiveTrustTheme.border)
+                    Divider().overlay(SignalTheme.divider)
                     documentRow(
                         title: "Beta Terms",
                         detail: "The terms for this beta release",
@@ -454,16 +454,16 @@ struct AccountSupportView: View {
 
     private var accountSection: some View {
         Group {
-            DaybreakSectionLabel(text: "Account")
-            CobaltOpenSection {
+            SignalSectionLabel(text: "Account")
+            SignalOpenSection {
                 VStack(spacing: 12) {
                     if !demoMode.isActive {
                         Button(role: .destructive) {
-                            DaybreakAccessibility.announce("Signing out…")
+                            SignalAccessibility.announce("Signing out…")
                             Task { await model.signOut() }
                         } label: {
                             if model.isMutating {
-                                DaybreakAsyncStatus(message: "Signing out…")
+                                SignalAsyncStatus(message: "Signing out…")
                                     .frame(
                                         maxWidth: .infinity,
                                         alignment: .leading
@@ -480,7 +480,7 @@ struct AccountSupportView: View {
                                 )
                             }
                         }
-                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .buttonStyle(SignalSecondaryButtonStyle())
                         .disabled(model.isMutating)
                         .accessibilityIdentifier("account-support.sign-out")
                     }
@@ -491,7 +491,7 @@ struct AccountSupportView: View {
                         Label("Delete account", systemImage: "person.crop.circle.badge.minus")
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .buttonStyle(TrustSecondaryButtonStyle())
+                    .buttonStyle(SignalSecondaryButtonStyle())
                     .disabled(model.isMutating || demoMode.isActive)
                     .accessibilityIdentifier("account-support.delete")
                 }
@@ -509,7 +509,7 @@ struct AccountSupportView: View {
                         icon: "envelope.fill"
                     )
                 }
-                .foregroundStyle(CompetitiveTrustTheme.actionCoral)
+                .foregroundStyle(SignalTheme.accent)
                 .accessibilityIdentifier("account-support.contact")
             } else {
                 rowLabel(
@@ -517,7 +517,7 @@ struct AccountSupportView: View {
                     detail: "Support contact isn’t configured for this build",
                     icon: "envelope.badge.shield.half.filled"
                 )
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
             }
         }
     }
@@ -533,14 +533,14 @@ struct AccountSupportView: View {
                 Link(destination: destination) {
                     rowLabel(title: title, detail: detail, icon: icon)
                 }
-                .foregroundStyle(CompetitiveTrustTheme.actionCoral)
+                .foregroundStyle(SignalTheme.accent)
             } else {
                 rowLabel(
                     title: title,
                     detail: "Help link isn’t configured for this build",
                     icon: icon
                 )
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
             }
         }
     }
@@ -570,24 +570,24 @@ struct AccountSupportView: View {
     ) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .foregroundStyle(CompetitiveTrustTheme.actionCoral)
+                .foregroundStyle(SignalTheme.accent)
                 .frame(width: 24)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 Text(title).font(.body.weight(.semibold))
                 Text(detail)
                     .font(.caption)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
             }
             .fixedSize(horizontal: false, vertical: true)
             .layoutPriority(1)
             Spacer(minLength: 8)
             Image(systemName: "arrow.up.right")
-                .foregroundStyle(CompetitiveTrustTheme.guide)
+                .foregroundStyle(SignalTheme.divider)
                 .accessibilityHidden(true)
         }
         .padding(.vertical, 10)
-        .daybreakTappableRow()
+        .signalTappableRow()
     }
 
     private var versionNote: some View {
@@ -599,7 +599,7 @@ struct AccountSupportView: View {
         ) as? String ?? "—"
         return Text("Version \(version) (\(build))")
             .font(.caption2)
-            .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+            .foregroundStyle(SignalTheme.textSecondary)
     }
 }
 
@@ -629,7 +629,7 @@ struct DeleteAccountView: View {
                 }
                 .padding(20)
             }
-            .daybreakScreenChrome()
+            .signalScreenChrome()
             .navigationTitle("Delete account")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -646,7 +646,7 @@ struct DeleteAccountView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Confirm with Apple")
                 .font(
-                    CompetitiveTrustTheme.displayFont(
+                    SignalTheme.displayFont(
                         size: 25,
                         relativeTo: .title2
                     )
@@ -654,7 +654,7 @@ struct DeleteAccountView: View {
             Text(
                 "For your protection, Apple requires a fresh sign-in before GameTime can delete this account."
             )
-            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            .foregroundStyle(SignalTheme.textSecondary)
             NativeAppleReauthenticationButton { result in
                 handleReauthentication(result)
             }
@@ -667,7 +667,7 @@ struct DeleteAccountView: View {
             Text("Deleting your account…")
                 .font(.title3.weight(.semibold))
             Text("Revoking Apple access, removing server data, and clearing this phone.")
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
         }
     }
 
@@ -675,17 +675,17 @@ struct DeleteAccountView: View {
         VStack(alignment: .leading, spacing: 14) {
             Label("Deletion didn’t finish", systemImage: "exclamationmark.triangle.fill")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(CompetitiveTrustTheme.actionCoral)
+                .foregroundStyle(SignalTheme.accent)
             Text(message)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
             Button("Try again") {
                 state = .reauthenticate
             }
-            .buttonStyle(TrustSecondaryButtonStyle())
+            .buttonStyle(SignalSecondaryButtonStyle())
             if let supportURL = model.configuration.supportMailtoURL {
                 Link("Contact beta support", destination: supportURL)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(CompetitiveTrustTheme.actionCoral)
+                    .foregroundStyle(SignalTheme.accent)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                     .contentShape(Rectangle())
@@ -699,20 +699,20 @@ struct DeleteAccountView: View {
         switch result {
         case .failure(let error):
             state = .failed(error.localizedDescription)
-            DaybreakAccessibility.announce("Account deletion failed.")
+            SignalAccessibility.announce("Account deletion failed.")
         case .success(let identity):
             state = .deleting
-            DaybreakAccessibility.announce("Deleting your account…")
+            SignalAccessibility.announce("Deleting your account…")
             Task {
                 do {
                     _ = try await model.deleteAccount(with: identity)
-                    DaybreakAccessibility.announce("Account deleted.")
+                    SignalAccessibility.announce("Account deleted.")
                     dismiss()
                 } catch is CancellationError {
                     state = .reauthenticate
                 } catch {
                     state = .failed(error.localizedDescription)
-                    DaybreakAccessibility.announce(
+                    SignalAccessibility.announce(
                         "Account deletion failed."
                     )
                 }
@@ -768,7 +768,7 @@ struct PublicSupportLinksView: View {
         destination: URL
     ) -> some View {
         Link(title, destination: destination)
-            .foregroundStyle(CompetitiveTrustTheme.actionCoral)
+            .foregroundStyle(SignalTheme.accent)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: 44)
             .contentShape(Rectangle())

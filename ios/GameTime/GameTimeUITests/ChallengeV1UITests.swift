@@ -166,7 +166,7 @@ final class ChallengeV1UITests:XCTestCase {
             XCTAssertTrue(element.waitForExistence(timeout: 10))
         }
         func capture(_ name: String) {
-            let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = "Cobalt " + name
+            let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = "Signal " + name
             attachment.lifetime = .keepAlways; add(attachment)
         }
         func choose(_ identifier: String, _ value: String) {
@@ -226,7 +226,7 @@ final class ChallengeV1UITests:XCTestCase {
         app.launch()
         func capture(_ name: String) {
             let attachment = XCTAttachment(screenshot: app.screenshot())
-            attachment.name = "Cobalt " + name
+            attachment.name = "Signal " + name
             attachment.lifetime = .keepAlways
             add(attachment)
         }

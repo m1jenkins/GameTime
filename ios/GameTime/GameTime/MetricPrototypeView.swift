@@ -21,13 +21,13 @@ struct MetricPrototypeView: View {
     }
 
     var body: some View {
-        Form {
+        SignalForm {
             Section {
                 Text("Private practice only") .font(.headline)
                 Text("These fictional records stay on this phone. Apple Health is not connected. No money moves. Nobody else can follow your progress.")
                 Text("Your updates remain unresolved and are not evaluated. This tool cannot publish a result or prove a real goal was met.")
                 Text("Exercise-minute choices are not available in this practice tool.")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(SignalTheme.textSecondary)
             }
             if store.actorID == nil {
                 Text("Sign in to keep your practice records separate from other accounts.")
@@ -43,7 +43,7 @@ struct MetricPrototypeView: View {
                         ForEach(MetricPrototypeDistanceUnit.allCases, id: \.self) { Text($0.rawValue.capitalized).tag($0) }
                     }
                     Text("Enter decimals with a period. One mile is exactly 1,609.344 meters; 1,600 meters is a different distance.")
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .font(.footnote).foregroundStyle(SignalTheme.textSecondary)
                     if fields.format == .timedDistance {
                         TextField("Elapsed time limit in seconds", text: $fields.elapsedSeconds).keyboardType(.decimalPad)
                         Picker("Time comparison", selection: $fields.comparator) {
@@ -82,7 +82,7 @@ struct MetricPrototypeView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(agreement.terms.draft.format.title)
                             Text(agreement.exitedAt == nil ? "Unresolved · not evaluated" : "Left · not evaluated")
-                                .font(.subheadline).foregroundStyle(.secondary)
+                                .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                         }
                     }
                 }
@@ -132,7 +132,7 @@ private struct MetricPrototypeDetail: View {
         return .init(state: .observed, value: value, startsAt: DuelInstant(date: fields.startsAt), endsAt: DuelInstant(date: fields.endsAt))
     }
     var body: some View {
-        Form {
+        SignalForm {
             if let agreement {
                 Section("What you agreed to") { MetricPrototypeRules(draft: agreement.terms.draft) }
                 Section("Your private updates") {

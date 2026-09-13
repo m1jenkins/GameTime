@@ -11,7 +11,7 @@ struct DuelInvitationView: View {
             if let id = store.resolvedInvitationID {
                 DuelDetailView(challengeID: id).id(model.userID)
             } else {
-                Form {
+                SignalForm {
                     DuelDisclosure()
                     Text(store.invitationError ?? "Opening your invitation does not mean you agreed. Review the rules before deciding.")
                     Button("Open invitation") { Task { await store.openPendingInvitation() } }

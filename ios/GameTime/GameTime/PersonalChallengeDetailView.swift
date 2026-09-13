@@ -34,14 +34,14 @@ struct PersonalChallengeDetailView: View {
                 } else {
                     ProgressView("Loading…")
                         .frame(maxWidth: .infinity)
-                        .trustCard()
+                        .signalSection()
                 }
             }
             .padding(.horizontal, 18)
             .padding(.top, 4)
         }
-        .daybreakTabScrollClearance()
-        .daybreakScreenChrome()
+        .signalTabScrollClearance()
+        .signalScreenChrome()
         .navigationTitle("Your challenge")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: challengeID) {
@@ -98,12 +98,12 @@ struct PersonalChallengeDetailView: View {
                     )
                     Text(challenge.terms.commitmentText)
                         .font(
-                            CompetitiveTrustTheme.monoFont(
+                            SignalTheme.monoFont(
                                 size: 20,
                                 weight: .bold
                             )
                         )
-                        .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                        .foregroundStyle(SignalTheme.textPrimary)
                 }
             } else {
                 HStack {
@@ -114,17 +114,17 @@ struct PersonalChallengeDetailView: View {
                     Spacer(minLength: 8)
                     Text(challenge.terms.commitmentText)
                         .font(
-                            CompetitiveTrustTheme.monoFont(
+                            SignalTheme.monoFont(
                                 size: 20,
                                 weight: .bold
                             )
                         )
-                        .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                        .foregroundStyle(SignalTheme.textPrimary)
                 }
             }
             Text(challenge.terms.targetText)
                 .font(
-                    CompetitiveTrustTheme.displayFont(
+                    SignalTheme.displayFont(
                         size: dynamicTypeSize.isAccessibilitySize
                             ? 22
                             : 28,
@@ -133,7 +133,7 @@ struct PersonalChallengeDetailView: View {
                             : .title
                     )
                 )
-                .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                .foregroundStyle(SignalTheme.textPrimary)
                 .tracking(-0.8)
             if let progress {
                 PersonalProgressBar(
@@ -158,7 +158,7 @@ struct PersonalChallengeDetailView: View {
                 )
             }
         }
-        .trustCard()
+        .signalSection()
     }
 
     private func canSyncNow(
@@ -176,7 +176,7 @@ struct PersonalChallengeDetailView: View {
                 "Apple Health access may be limited, or this phone may not have recent device-recorded steps."
             )
             .font(.subheadline)
-            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            .foregroundStyle(SignalTheme.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
 
             healthRefreshButton(
@@ -189,7 +189,7 @@ struct PersonalChallengeDetailView: View {
                 string: "https://support.apple.com/en-us/HT204351"
             ) {
                 Link("Apple Health help", destination: destination)
-                    .buttonStyle(TrustSecondaryButtonStyle())
+                    .buttonStyle(SignalSecondaryButtonStyle())
                     .accessibilityIdentifier(
                         "personal.challenge.health-help"
                     )
@@ -198,7 +198,7 @@ struct PersonalChallengeDetailView: View {
             Button("Account & support") {
                 router.openAccountSupport()
             }
-            .buttonStyle(TrustSecondaryButtonStyle())
+            .buttonStyle(SignalSecondaryButtonStyle())
             .accessibilityIdentifier("personal.challenge.account-support")
         }
     }
@@ -212,7 +212,7 @@ struct PersonalChallengeDetailView: View {
             HStack(spacing: 8) {
                 if isSyncNowRequested || stepProgress.isRefreshing {
                     ProgressView()
-                        .tint(CompetitiveTrustTheme.coralInk)
+                        .tint(SignalTheme.accent)
                 } else {
                     Image(systemName: "arrow.clockwise")
                         .accessibilityHidden(true)
@@ -225,7 +225,7 @@ struct PersonalChallengeDetailView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(TrustSecondaryButtonStyle())
+        .buttonStyle(SignalSecondaryButtonStyle())
         .disabled(
             !canRetry || isSyncNowRequested || stepProgress.isRefreshing
         )
@@ -259,9 +259,9 @@ struct PersonalChallengeDetailView: View {
         if progress?.days.isEmpty != false {
             Text(emptyPaceMessage(for: challenge))
                 .font(.subheadline)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .trustCard()
+                .signalSection()
         } else if let progress {
             let summary = PersonalPaceSummary(
                 detail: challenge,
@@ -309,7 +309,7 @@ struct PersonalChallengeDetailView: View {
                 )
                 Text(presentation.title)
                     .font(
-                        CompetitiveTrustTheme.displayFont(
+                        SignalTheme.displayFont(
                             size: 23,
                             relativeTo: .title2
                         )
@@ -318,11 +318,11 @@ struct PersonalChallengeDetailView: View {
                     Text(detail)
                         .font(.subheadline)
                         .foregroundStyle(
-                            CompetitiveTrustTheme.secondaryText
+                            SignalTheme.textSecondary
                         )
                 }
             }
-            .trustCard()
+            .signalSection()
             .accessibilityIdentifier("personal.result")
         }
     }
@@ -370,7 +370,7 @@ struct PersonalChallengeDetailView: View {
             ) {
                 showingCancelConfirmation = true
             }
-            .buttonStyle(TrustSecondaryButtonStyle())
+            .buttonStyle(SignalSecondaryButtonStyle())
             .disabled(isCancellationRequested || store.isMutating)
             .accessibilityIdentifier("personal.cancel")
         }

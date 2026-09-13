@@ -7,7 +7,7 @@ struct WeeklyHomeView: View {
     @State private var creation: WeeklyCreationSheet?
     private var store: WeeklyStore { model.weekly }
     var body: some View {
-        List {
+        SignalList {
             WeeklyDisclosure()
             WeeklyRecoverySection(store: store)
             Section {
@@ -62,7 +62,7 @@ struct WeeklyHomeView: View {
                 }
             }
         }
-        .navigationTitle("Weekly challenges").daybreakScreenChrome()
+        .navigationTitle("Weekly challenges").signalScreenChrome()
         .refreshable { await store.refresh() }
         .toolbar { Button("Refresh", systemImage: "arrow.clockwise") { Task { await store.refresh() } }.disabled(store.isLoading || store.isSending).accessibilityIdentifier("weekly.refresh") }
         .task(id: store.actorID) { await store.refresh() }
@@ -150,7 +150,7 @@ struct WeeklyCreationView: View {
     }
     var body: some View {
         NavigationStack {
-            Form {
+            SignalForm {
                 WeeklyDisclosure()
                 WeeklyRecoverySection(store: store)
                 if let preview = store.previewed {
@@ -196,7 +196,7 @@ struct WeeklyCreationView: View {
                             .accessibilityIdentifier("weekly.preview")
                     }.disabled(store.isLoading || store.isSending)
                 }
-            }.navigationTitle("Friend week").daybreakScreenChrome()
+            }.navigationTitle("Friend week").signalScreenChrome()
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
                 .onAppear {
                     var calendar = Calendar(identifier: .iso8601); calendar.timeZone = TimeZone(identifier: zone) ?? .gmt
@@ -227,7 +227,7 @@ struct WeeklyDetailView: View {
     private var store: WeeklyStore { model.weekly }
     let challengeID: UUID
     var body: some View {
-        List {
+        SignalList {
             WeeklyDisclosure()
             WeeklyRecoverySection(store: store)
             if let row = store.challenges.first(where: { $0.id == challengeID }) {
@@ -307,7 +307,7 @@ struct WeeklyDetailView: View {
                     Text("A new week never renews automatically. Your earlier review stays open on its original terms.")
                 }
             } else { Text("Refresh to load your current weekly agreement and choices.") }
-        }.navigationTitle("Your week").daybreakScreenChrome()
+        }.navigationTitle("Your week").signalScreenChrome()
             .toolbar { Button("Refresh", systemImage: "arrow.clockwise") { Task { await store.refresh() } }.disabled(store.isSending || store.isLoading) }
             .confirmationDialog("Leave this week?", isPresented: Binding(get: { exit != nil }, set: { if !$0 { exit = nil } })) {
                 if let exit { Button("Confirm exit") { Task { await store.submit(.exit(challengeID, kind: exit)); self.exit = nil } } }
@@ -324,7 +324,7 @@ struct WeeklyCohortView: View {
     let cohortID: UUID
     private var store: WeeklyStore { model.weekly }
     var body: some View {
-        List {
+        SignalList {
             WeeklyDisclosure(); WeeklyRecoverySection(store: store)
             if let own = store.challenges.first(where: { $0.id == cohortID }) {
                 Section("You joined this week") { NavigationLink("Open your community week") { WeeklyDetailView(challengeID: own.id) } }
@@ -339,7 +339,7 @@ struct WeeklyCohortView: View {
                         .disabled(!consent || !store.canEnter || cohort.participantCount >= cohort.capacity).accessibilityIdentifier("weekly.join")
                 }
             } else { Text("This community week is not available. Refresh Weekly challenges to see current choices.") }
-        }.navigationTitle("Community week").daybreakScreenChrome()
+        }.navigationTitle("Community week").signalScreenChrome()
             .onChange(of: store.actorID) { _, _ in consent = false }
     }
 }

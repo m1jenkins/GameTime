@@ -193,7 +193,7 @@ import XCTest
         let image = UIGraphicsImageRenderer(size: window.bounds.size, format: format).image { controller.view.layer.render(in: $0.cgContext) }
         let cg = try XCTUnwrap(image.cgImage); var lines: [String] = []
         // Overlap crops so a line crossing a tile edge is recognized whole in
-        // the next tile. The cobalt Home value crosses the old 650-point edge.
+        // the next tile. The signal Home value crosses the old 650-point edge.
         for y in stride(from: 0, to: cg.height, by: 550) {
             let tile = try XCTUnwrap(cg.cropping(to: CGRect(x: 0, y: y, width: cg.width, height: min(650, cg.height - y))))
             let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate

@@ -31,12 +31,12 @@ struct PersonalChallengeCard: View {
                         )
                         Text(challenge.terms.commitmentText)
                             .font(
-                                CompetitiveTrustTheme.monoFont(
+                                SignalTheme.monoFont(
                                     size: 18,
                                     weight: .bold
                                 )
                             )
-                            .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                            .foregroundStyle(SignalTheme.textPrimary)
                     }
                 } else {
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -47,18 +47,18 @@ struct PersonalChallengeCard: View {
                         Spacer(minLength: 8)
                         Text(challenge.terms.commitmentText)
                             .font(
-                                CompetitiveTrustTheme.monoFont(
+                                SignalTheme.monoFont(
                                     size: 18,
                                     weight: .bold
                                 )
                             )
-                            .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                            .foregroundStyle(SignalTheme.textPrimary)
                     }
                 }
 
                 Text(challenge.terms.targetText)
                     .font(
-                        CompetitiveTrustTheme.displayFont(
+                        SignalTheme.displayFont(
                             size: dynamicTypeSize.isAccessibilitySize
                                 ? 19
                                 : 22,
@@ -67,7 +67,7 @@ struct PersonalChallengeCard: View {
                                 : .title2
                         )
                     )
-                    .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                    .foregroundStyle(SignalTheme.textPrimary)
                     .tracking(-0.5)
 
                 if let progress {
@@ -86,7 +86,7 @@ struct PersonalChallengeCard: View {
                         .accessibilityHidden(true)
                     Text(dateSummary(status: status))
                         .font(
-                            CompetitiveTrustTheme.tabularFont(
+                            SignalTheme.tabularFont(
                                 size: 12,
                                 weight: .semibold
                             )
@@ -95,9 +95,9 @@ struct PersonalChallengeCard: View {
                     Image(systemName: "chevron.right")
                         .accessibilityHidden(true)
                 }
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
             }
-            .trustCard()
+            .signalSection()
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(
@@ -130,7 +130,7 @@ struct PersonalStatusPill: View {
     let outcome: PersonalOutcomeKind?
 
     var body: some View {
-        TrustStatusPill(text: text, kind: kind)
+        SignalStatusTag(text: text, kind: kind)
     }
 
     private var text: String {
@@ -151,7 +151,7 @@ struct PersonalStatusPill: View {
         }
     }
 
-    private var kind: TrustStatusPill.Kind {
+    private var kind: SignalStatusTag.Kind {
         if let outcome {
             switch outcome {
             case .metGoal: return .positive
@@ -172,7 +172,7 @@ struct PersonalProgressBar: View {
     let progress: PersonalDisplayedProgress
     let terms: FrozenPersonalTerms
 
-    @Environment(\.daybreakSecondaryForeground)
+    @Environment(\.signalSecondaryForeground)
     private var secondaryForeground
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -183,13 +183,13 @@ struct PersonalProgressBar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             ProgressView(value: presentation.fraction)
-                .tint(CompetitiveTrustTheme.coral)
+                .tint(SignalTheme.accent)
                 .accessibilityLabel(Text(presentation.accessibilityLabel))
                 .accessibilityValue(Text(presentation.accessibilityValue))
                 .accessibilityIdentifier("personal.progress")
             progressFacts
             .font(
-                CompetitiveTrustTheme.uiFont(
+                SignalTheme.uiFont(
                     size: 12,
                     relativeTo: .caption,
                     weight: .semibold
@@ -420,7 +420,7 @@ struct PersonalHealthProgressStatus: View {
     let presentation: PersonalHealthProgressPresentation
     let policy: PersonalStepDataPolicy
 
-    @Environment(\.daybreakSecondaryForeground)
+    @Environment(\.signalSecondaryForeground)
     private var secondaryForeground
 
     @ViewBuilder
@@ -428,7 +428,7 @@ struct PersonalHealthProgressStatus: View {
         if policy.usesAutomaticHealthProgress {
             Label(presentation.message, systemImage: presentation.symbol)
                 .font(
-                    CompetitiveTrustTheme.uiFont(
+                    SignalTheme.uiFont(
                         size: 11.5,
                         relativeTo: .caption,
                         weight: .semibold
@@ -491,7 +491,7 @@ struct PendingPersonalCancellationRecoveryCard: View {
                     systemImage: "arrow.triangle.2.circlepath"
                 )
                 .font(
-                    CompetitiveTrustTheme.displayFont(
+                    SignalTheme.displayFont(
                         size: 19,
                         relativeTo: .headline
                         )
@@ -503,7 +503,7 @@ struct PendingPersonalCancellationRecoveryCard: View {
                 .accessibilityIdentifier("personal.cancellation.pending")
                 Text(recoveryMessage)
                     .font(.subheadline)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Button(action: retryCancellation) {
@@ -513,7 +513,7 @@ struct PendingPersonalCancellationRecoveryCard: View {
                         action: .retry
                     )
                 }
-                .buttonStyle(TrustPrimaryButtonStyle())
+                .buttonStyle(SignalPrimaryButtonStyle())
                 .disabled(actionsAreDisabled)
                 .accessibilityIdentifier("personal.cancellation.retry")
 
@@ -524,20 +524,20 @@ struct PendingPersonalCancellationRecoveryCard: View {
                         action: .refresh
                     )
                 }
-                .buttonStyle(TrustSecondaryButtonStyle())
+                .buttonStyle(SignalSecondaryButtonStyle())
                 .disabled(actionsAreDisabled)
                 .accessibilityIdentifier("personal.cancellation.refresh")
 
                 if let contactSupport {
                     Button("Contact Support", action: contactSupport)
-                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .buttonStyle(SignalSecondaryButtonStyle())
                         .disabled(actionsAreDisabled)
                         .accessibilityIdentifier(
                             "personal.cancellation.support"
                         )
                 }
             }
-            .trustCard()
+            .signalSection()
         }
     }
 
@@ -628,7 +628,7 @@ struct PersonalSevenDayTimeline: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(dayLabel(index: index, localDate: day.localDate))
                             .font(
-                                CompetitiveTrustTheme.uiFont(
+                                SignalTheme.uiFont(
                                     size: 14,
                                     relativeTo: .subheadline,
                                     weight: .bold
@@ -636,17 +636,17 @@ struct PersonalSevenDayTimeline: View {
                             )
                         Text(evidenceLabel(for: day))
                             .font(
-                                CompetitiveTrustTheme.uiFont(
+                                SignalTheme.uiFont(
                                     size: 12,
                                     relativeTo: .caption
                                 )
                             )
-                            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                            .foregroundStyle(SignalTheme.textSecondary)
                     }
                     Spacer(minLength: 8)
-                    Text(day.totalSteps.formatted())
+                    Text(day.state == .future ? "—" : day.totalSteps.formatted())
                         .font(
-                            CompetitiveTrustTheme.tabularFont(
+                            SignalTheme.tabularFont(
                                 size: 14,
                                 weight: .bold
                             )
@@ -656,7 +656,7 @@ struct PersonalSevenDayTimeline: View {
                 .accessibilityElement(children: .combine)
 
                 if index < days.count - 1 {
-                    Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
+                    Divider().overlay(SignalTheme.divider)
                 }
             }
         }
@@ -679,14 +679,14 @@ struct PersonalSevenDayTimeline: View {
     }
 
     private func color(for day: PersonalDisplayedDay) -> Color {
-        if day.metTarget == true { return CompetitiveTrustTheme.mintInk }
+        if day.metTarget == true { return SignalTheme.accent }
         if day.state == .complete, day.metTarget == nil {
-            return CompetitiveTrustTheme.guide
+            return SignalTheme.divider
         }
         switch day.state {
-        case .future: return CompetitiveTrustTheme.guide
-        case .current: return CompetitiveTrustTheme.coral
-        case .complete: return CompetitiveTrustTheme.sunInk
+        case .future: return SignalTheme.divider
+        case .current: return SignalTheme.accent
+        case .complete: return SignalTheme.textPrimary
         }
     }
 
@@ -710,7 +710,7 @@ struct LegacyPersonalReadinessNotice: View {
                 systemImage: "exclamationmark.shield.fill"
             )
             .font(
-                CompetitiveTrustTheme.displayFont(
+                SignalTheme.displayFont(
                     size: 19,
                     relativeTo: .headline
                 )
@@ -719,21 +719,21 @@ struct LegacyPersonalReadinessNotice: View {
                 "Something is wrong with the steps coming from your phone. Run a Health check to start another challenge — and don’t worry, your last one doesn’t count against you."
             )
             .font(
-                CompetitiveTrustTheme.uiFont(
+                SignalTheme.uiFont(
                     size: 13,
                     relativeTo: .subheadline
                 )
             )
-            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            .foregroundStyle(SignalTheme.textSecondary)
             if let hold, let reason = PersonalReasonText.sentence(
                 for: hold.reasonCode
             ) {
                 Text(reason)
                     .font(.caption)
-                    .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
             }
         }
-        .trustCard()
+        .signalSection()
         .accessibilityIdentifier("personal.legacy-hold")
     }
 }

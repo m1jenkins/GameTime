@@ -41,7 +41,7 @@ struct ChallengesView: View {
                             "The week you’re working on, and every week you’ve finished, will show up here.",
                         systemImage: "flag.checkered"
                     )
-                    .trustCard()
+                    .signalSection()
                 }
 
                 if store.hasVerifiedCreationState,
@@ -50,7 +50,7 @@ struct ChallengesView: View {
                     Button("Start a challenge") {
                         router.presentedSheet = .createPersonalChallenge
                     }
-                    .buttonStyle(TrustPrimaryButtonStyle())
+                    .buttonStyle(SignalPrimaryButtonStyle())
                     .disabled(!store.canCreate)
                     .accessibilityIdentifier("personal.create")
                 }
@@ -58,8 +58,8 @@ struct ChallengesView: View {
             .padding(.horizontal, 18)
             .padding(.top, 4)
         }
-        .daybreakTabScrollClearance()
-        .daybreakScreenChrome()
+        .signalTabScrollClearance()
+        .signalScreenChrome()
         .navigationTitle("Challenges")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable {
@@ -89,7 +89,7 @@ struct ChallengesView: View {
                 state: store.loadState,
                 retry: { Task { await refreshWithAnnouncement() } }
             )
-            .trustCard()
+            .signalSection()
         case .idle, .loaded, .empty:
             EmptyView()
         }
@@ -100,7 +100,7 @@ struct ChallengesView: View {
         if let pending = store.pendingCreation {
             AthleticSectionHeader(text: "Unfinished setup")
             VStack(alignment: .leading, spacing: 11) {
-                TrustStatusPill(
+                SignalStatusTag(
                     text: store.hasPendingCreationRecoveryIssue
                         ? "Needs attention"
                         : "Ready to finish",
@@ -110,7 +110,7 @@ struct ChallengesView: View {
                     ? "\(pending.request.targetSteps.formatted()) steps a day"
                     : "\(pending.request.targetSteps.formatted()) steps this week")
                     .font(
-                        CompetitiveTrustTheme.displayFont(
+                        SignalTheme.displayFont(
                             size: 20,
                             relativeTo: .headline
                         )
@@ -119,11 +119,11 @@ struct ChallengesView: View {
                     "We saved exactly what you picked, so you can pick up where you left off."
                 )
                 .font(.caption)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
                 Button("Continue setup") {
                     router.presentedSheet = .createPersonalChallenge
                 }
-                .buttonStyle(TrustSecondaryButtonStyle())
+                .buttonStyle(SignalSecondaryButtonStyle())
                 .disabled(store.hasPendingCreationRecoveryIssue)
                 .accessibilityIdentifier("personal.pending.resume")
                 Button("Delete draft", role: .destructive) {
@@ -131,18 +131,18 @@ struct ChallengesView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .trustCard()
+            .signalSection()
         } else if store.hasPendingCreationRecoveryIssue {
             EmptyTrustState(
                 title: "Saved setup needs attention",
                 message: "GameTime couldn’t safely open the setup saved on this phone.",
                 systemImage: "exclamationmark.triangle.fill"
             )
-            .trustCard()
+            .signalSection()
             Button("Try saving again") {
                 Task { await store.retryPendingCreationRecovery() }
             }
-            .buttonStyle(TrustSecondaryButtonStyle())
+            .buttonStyle(SignalSecondaryButtonStyle())
         }
     }
 
@@ -162,14 +162,14 @@ struct AthleticSectionHeader: View {
         Text(text)
             .textCase(.uppercase)
             .font(
-                CompetitiveTrustTheme.uiFont(
+                SignalTheme.uiFont(
                     size: 11,
                     relativeTo: .caption,
                     weight: .bold
                 )
             )
             .tracking(1.05)
-            .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+            .foregroundStyle(SignalTheme.textSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 4)
             .padding(.top, 4)

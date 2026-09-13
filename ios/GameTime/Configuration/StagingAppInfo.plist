@@ -30,13 +30,6 @@
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
-	<key>UIAppFonts</key>
-	<array>
-		<string>BricolageGrotesque.ttf</string>
-		<string>HankenGrotesk.ttf</string>
-		<string>BarlowCondensed-BlackItalic.ttf</string>
-		<string>BarlowCondensed-Black.ttf</string>
-	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>GAMETIME_CONTEST_MUTATIONS_ENABLED</key>

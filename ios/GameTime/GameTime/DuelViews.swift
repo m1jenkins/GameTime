@@ -10,7 +10,7 @@ struct DuelHomeView: View {
     var body: some View {
         Group {
             if model.configuration.duelRuntimeEnabled {
-                List {
+                SignalList {
                     DuelDisclosure()
                     if creation == nil { DuelRecoverySection(store: store) }
                     Section {
@@ -78,7 +78,7 @@ private struct DuelRecoverySection: View {
     var body: some View {
         if let error = store.errorMessage {
             Section {
-                Text(error).foregroundStyle(.secondary)
+                Text(error).foregroundStyle(SignalTheme.textSecondary)
                     .accessibilityIdentifier("duel.error")
                 Button("Refresh duels") { Task { await store.refresh() } }
                     .disabled(store.isSending || store.isLoading)
@@ -129,7 +129,7 @@ private struct DuelCreateView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            SignalForm {
                 DuelDisclosure()
                 if review == nil { DuelRecoverySection(store: store) }
                 Section("Choose a friend") {
@@ -200,7 +200,7 @@ private struct DuelCreatorReviewView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            SignalForm {
                 if let receiptID {
                     Section("Invitation confirmed") {
                         Text("Your invitation is saved. Your friend still needs to agree.")
@@ -271,7 +271,7 @@ struct DuelDetailView: View {
     private var store: DuelStore { model.duels }
 
     var body: some View {
-        Form {
+        SignalForm {
             DuelDisclosure()
             DuelRecoverySection(store: store)
             if let duel = store.agreements.first(where: { $0.id == challengeID }),

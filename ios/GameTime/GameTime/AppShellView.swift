@@ -53,10 +53,10 @@ struct AppShellView: View {
             }
             .tag(AppTab.you)
         }
-        .tint(CompetitiveTrustTheme.actionCoral)
-        .daybreakTabChrome()
-        .toolbarColorScheme(.light, for: .tabBar)
-        .preferredColorScheme(.light)
+        .tint(SignalTheme.accent)
+        .signalTabChrome()
+
+
         .sheet(item: $router.presentedSheet) { destination in
             switch destination {
             case .createPersonalChallenge:
@@ -107,7 +107,7 @@ private struct PersonalV1UnavailableRouteView: View {
                 "This part of the app isn’t open right now."
             )
         )
-        .daybreakScreenChrome()
+        .signalScreenChrome()
     }
 }
 
@@ -140,19 +140,20 @@ struct AppAccountNavigationView: View {
     }
 }
 
-struct CobaltChallengeUnavailableView: View {
+struct SignalChallengeUnavailableView: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         NavigationStack {
             ContentUnavailableView("New challenges aren’t open yet", systemImage: "flag",
                 description: Text("You can still view and manage your existing challenges from Home."))
+                .signalScreenChrome()
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-        }.tint(CompetitiveTrustTheme.brand)
+        }.tint(SignalTheme.accent)
     }
 }
 
 /// Uses the real signed-in actor, with a closed client until hosted challenges are accepted.
-struct CobaltProductShell: View {
+struct SignalProductShell: View {
     @Environment(AppModel.self) private var model
     @Environment(AppRouter.self) private var router
     @State private var invitation = ChallengeInvitationIntent()
@@ -168,9 +169,9 @@ struct CobaltProductShell: View {
             } label: {
                 Label("Existing challenges", systemImage: "clock.arrow.circlepath")
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-            }.accessibilityIdentifier("cobalt.existing-challenges")),
+            }.accessibilityIdentifier("signal.existing-challenges")),
             serviceAvailable: false)
-            .tint(CompetitiveTrustTheme.brand)
+            .tint(SignalTheme.accent)
             .task(id: model.userID) {
                 model.challengesV1.setActor(model.userID)
                 await model.challengesV1.refresh()
@@ -183,10 +184,10 @@ struct CobaltProductShell: View {
                         Text("Existing challenges").font(.headline)
                         Spacer()
                         Button("Done") { showingExistingChallenges = false }
-                            .accessibilityIdentifier("cobalt.existing.done")
+                            .accessibilityIdentifier("signal.existing.done")
                     }.padding()
                     AppShellView()
-                }.background(CompetitiveTrustTheme.canvas)
+                }.background(SignalTheme.canvas)
             }
     }
 }

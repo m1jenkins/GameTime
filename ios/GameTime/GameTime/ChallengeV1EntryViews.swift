@@ -6,8 +6,9 @@ struct ChallengeForm<Content: View>: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) { content }
-                .padding(20).frame(maxWidth: .infinity, alignment: .leading)
-        }.modifier(ChallengeScrollLegibility()).background(CompetitiveTrustTheme.paper)
+                .padding(SignalTheme.contentInset).frame(maxWidth: .infinity, alignment: .leading)
+                .modifier(SignalGlassGroup())
+        }.modifier(ChallengeScrollLegibility()).background(SignalTheme.canvas)
             .textFieldStyle(.roundedBorder)
             .buttonStyle(ChallengeActionStyle())
             .scrollDismissesKeyboard(.interactively)
@@ -19,11 +20,11 @@ struct ChallengeFormSection<Content: View>: View {
     init(_ title: String, @ViewBuilder content: () -> Content) { self.title = title; self.content = content() }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title).font(.title3.bold()).foregroundStyle(CompetitiveTrustTheme.textPrimary).accessibilityAddTraits(.isHeader)
+            Text(title).font(.title3.bold()).foregroundStyle(SignalTheme.textPrimary).accessibilityAddTraits(.isHeader)
             VStack(alignment: .leading, spacing: 18) { content }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 24)
-                .overlay(alignment: .bottom) { Rectangle().fill(CompetitiveTrustTheme.divider).frame(height: 1) }
+                .overlay(alignment: .bottom) { Rectangle().fill(SignalTheme.divider).frame(height: 1) }
         }
     }
 }
@@ -49,9 +50,7 @@ struct ChallengeAgreementText: View {
             Text(policy.scoring)
             Text("Source: fictional activity for this local preview. No Apple Health activity is scored.")
             if let distance = window.distanceMm { Text("Whole run distance: \(ChallengeV1Policy.Metric.distance.display(distance)). Only fictional matching runs are available until the distance rules pass physical testing.") }
-            Text("Starts: \(window.startsAt.text(zone: window.timezone))")
-            Text("Ends, not included: \(window.endsAt.text(zone: window.timezone))")
-            Text("Time zone: \(window.timezone). \(window.days) full calendar days.")
+            SignalDateSpan(window: window)
             Text("Initial updates through \(window.syncBy.text(zone: window.timezone)). Corrections through \(window.correctionsBy.text(zone: window.timezone)).")
             Text("\(challengeMoney(window.amountCents)) simulated per person. Nothing can be paid out or redeemed. No real money moves.")
             Text(policy.missing)
@@ -141,7 +140,7 @@ struct ChallengeV1Create: View {
                     if reading { ProgressView("Loading your agreement…") }
                     if let preview, let window = decodeWindow(preview.terms?["config"]) {
                         ChallengeFormSection("Your complete agreement") {
-                            Text("Your goal: \(metric.display(metric.parse(target) ?? 0))").font(.headline)
+                            if let goal = metric.parse(target) { SignalTargetBand(value: goal, metric: metric) }
                             ChallengeAgreementText(policy: policy, window: window, minimum: 1)
                             Toggle("I have read the complete rules and agree", isOn: $consent).accessibilityIdentifier("beta.personal.consent")
                             Button("Start my personal goal") { Task {
@@ -160,7 +159,8 @@ struct ChallengeV1Create: View {
                 if store.access?.ageConfirmed != true { Text("Confirm that you are 21 or older in Challenges before continuing.") }
                 if store.busy { ProgressView("Saving your action…") }
                 if let error = previewError ?? store.error { Text(error) }
-            }.navigationTitle(mode == .personal ? "Personal goal" : "Friend challenge")
+            }.safeAreaInset(edge: .top, spacing: 0) { SignalSimulationBanner() }
+                .navigationTitle(mode == .personal ? "Personal goal" : "Friend challenge")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { Button("Close", systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly) }
                 .task {

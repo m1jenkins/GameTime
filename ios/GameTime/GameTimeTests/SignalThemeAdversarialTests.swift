@@ -4,29 +4,30 @@ import XCTest
 
 @testable import GameTime
 
-final class CompetitiveTrustThemeAdversarialTests: XCTestCase {
+final class SignalThemeAdversarialTests: XCTestCase {
 
     func testSemanticTextAndControlsMeetContrastInBothAppearances() {
         for style in [UIUserInterfaceStyle.light, .dark] {
-            let surfaces = [CompetitiveTrustTheme.canvas, CompetitiveTrustTheme.surface, CompetitiveTrustTheme.selection]
+            let surfaces = [SignalTheme.canvas, SignalTheme.surface, SignalTheme.selection]
             for surface in surfaces {
-                for foreground in [CompetitiveTrustTheme.textPrimary, CompetitiveTrustTheme.textSecondary,
-                                   CompetitiveTrustTheme.brand, CompetitiveTrustTheme.error] {
+                for foreground in [SignalTheme.textPrimary, SignalTheme.textSecondary,
+                                   SignalTheme.accent, SignalTheme.danger] {
                     XCTAssertGreaterThanOrEqual(calculateContrastRatio(UIColor(foreground), UIColor(surface), style: style), 4.5)
                 }
             }
-            XCTAssertGreaterThanOrEqual(calculateContrastRatio(UIColor(CompetitiveTrustTheme.onBrand), UIColor(CompetitiveTrustTheme.feature), style: style), 4.5)
-            for foreground in [CompetitiveTrustTheme.success, CompetitiveTrustTheme.warning] {
-                XCTAssertGreaterThanOrEqual(calculateContrastRatio(UIColor(foreground), UIColor(CompetitiveTrustTheme.canvas), style: style), 4.5)
+            XCTAssertGreaterThanOrEqual(calculateContrastRatio(UIColor(SignalTheme.onAccent), UIColor(SignalTheme.accent), style: style), 4.5)
+            for foreground in [SignalTheme.accent, SignalTheme.textPrimary] {
+                XCTAssertGreaterThanOrEqual(calculateContrastRatio(UIColor(foreground), UIColor(SignalTheme.canvas), style: style), 4.5)
             }
         }
     }
 
-    func testBundledDisplayFontIsItalicAndScalesForAccessibility() throws {
-        let font = try XCTUnwrap(UIFont(name: "BarlowCondensed-BlackItalic", size: 48))
-        XCTAssertTrue(font.fontDescriptor.symbolicTraits.contains(.traitItalic))
-        XCTAssertNotNil(UIFont(name: "BarlowCondensed-Black", size: 48))
-        XCTAssertNotNil(UIFont(name: "HankenGrotesk-Regular", size: 17))
+    func testSystemTypographyScalesAndNoBundledFontsAreRegistered() throws {
+        let font = UIFont.systemFont(ofSize: 48, weight: .medium)
+        XCTAssertFalse(font.fontDescriptor.symbolicTraits.contains(.traitItalic))
+        XCTAssertFalse(font.fontDescriptor.symbolicTraits.contains(.traitCondensed))
+        XCTAssertNil(Bundle.main.object(forInfoDictionaryKey: "UIAppFonts"))
+        XCTAssertTrue(Bundle.main.urls(forResourcesWithExtension: "ttf", subdirectory: nil)?.isEmpty ?? true)
         let metrics = UIFontMetrics(forTextStyle: .largeTitle)
         let regular = metrics.scaledFont(for: font, compatibleWith: UITraitCollection(preferredContentSizeCategory: .large))
         let accessible = metrics.scaledFont(for: font, compatibleWith: UITraitCollection(preferredContentSizeCategory: .accessibilityExtraExtraExtraLarge))
@@ -35,7 +36,7 @@ final class CompetitiveTrustThemeAdversarialTests: XCTestCase {
 
     func testContentThemeDoesNotAddDropShadows() throws {
         let file = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent("GameTime/CompetitiveTrustTheme.swift")
+            .appendingPathComponent("GameTime/SignalTheme.swift")
         let source = try String(contentsOf: file, encoding: .utf8)
         XCTAssertFalse(source.contains(".shadow("))
     }

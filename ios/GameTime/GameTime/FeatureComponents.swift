@@ -9,7 +9,7 @@ struct FriendshipCardRow: View {
         HStack(spacing: 12) {
             InitialsAvatar(
                 initials: card.profileCard.initials,
-                color: CompetitiveTrustTheme.avatarColor(
+                color: SignalTheme.avatarColor(
                     for: card.otherUserID
                 )
             )
@@ -17,28 +17,28 @@ struct FriendshipCardRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(card.displayName)
                     .font(
-                        CompetitiveTrustTheme.uiFont(
+                        SignalTheme.uiFont(
                             size: 15,
                             relativeTo: .headline,
                             weight: .bold
                         )
                     )
-                    .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                    .foregroundStyle(SignalTheme.textPrimary)
                 Text("@\(card.handle)")
                     .font(
-                        CompetitiveTrustTheme.uiFont(
+                        SignalTheme.uiFont(
                             size: 13,
                             relativeTo: .subheadline
                         )
                     )
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
             }
 
             Spacer(minLength: 8)
 
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
-                    .buttonStyle(TrustCompactButtonStyle())
+                    .buttonStyle(SignalCompactButtonStyle())
                     .accessibilityLabel(
                         "\(actionTitle) \(card.displayName)"
                     )
@@ -60,12 +60,12 @@ struct ContestCardRow: View {
                 HStack(alignment: .top, spacing: 12) {
                     Text(contest.title)
                         .font(
-                            CompetitiveTrustTheme.displayFont(
+                            SignalTheme.displayFont(
                                 size: 18,
                                 relativeTo: .headline
                             )
                         )
-                        .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                        .foregroundStyle(SignalTheme.textPrimary)
                         .tracking(-0.5)
                         .multilineTextAlignment(.leading)
                         .lineSpacing(1)
@@ -89,7 +89,7 @@ struct ContestCardRow: View {
                 HStack(spacing: 10) {
                     Text("\(contest.metric.title) · \(contest.cadence.title.lowercased())")
                     Circle()
-                        .fill(CompetitiveTrustTheme.disabledText)
+                        .fill(SignalTheme.textSecondary)
                         .frame(width: 3, height: 3)
                         .accessibilityHidden(true)
                     Text(
@@ -98,29 +98,29 @@ struct ContestCardRow: View {
                             : contest.daybreakTargetText
                     )
                     Spacer()
-                    TrustStatusPill(
+                    SignalStatusTag(
                         text: "\(contest.stakeText) each",
                         kind: .pledge
                     )
                 }
                 .font(
-                    CompetitiveTrustTheme.uiFont(
+                    SignalTheme.uiFont(
                         size: 12.5,
                         relativeTo: .caption
                     )
                 )
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
 
                 Text(contextText)
                     .font(
-                        CompetitiveTrustTheme.uiFont(
+                        SignalTheme.uiFont(
                             size: 11.5,
                             relativeTo: .caption
                         )
                     )
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
             }
-            .trustCard()
+            .signalSection()
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilitySummary)
@@ -129,20 +129,20 @@ struct ContestCardRow: View {
     @ViewBuilder
     private var statusPill: some View {
         if contest.myStatus == .invited {
-            TrustStatusPill(text: "Needs you", kind: .action)
+            SignalStatusTag(text: "Needs you", kind: .action)
         } else if contest.status == .active {
-            TrustStatusPill(text: "Live", kind: .live)
+            SignalStatusTag(text: "Live", kind: .live)
         } else if contest.status == .finalized {
-            TrustStatusPill(text: "Final", kind: .positive)
+            SignalStatusTag(text: "Final", kind: .positive)
         } else {
-            TrustStatusPill(text: "Upcoming", kind: .neutral)
+            SignalStatusTag(text: "Upcoming", kind: .neutral)
         }
     }
 
     private var participantColors: [Color] {
         let participantIDs = contest.resolvedParticipants.map(\.userID)
         return participantIDs.map {
-            CompetitiveTrustTheme.participantColor(
+            SignalTheme.participantColor(
                 for: $0,
                 participantIDs: participantIDs,
                 currentUserID: currentUserID
@@ -182,16 +182,16 @@ struct InlineLoadStateView: View {
         case .loading:
             HStack(spacing: 10) {
                 ProgressView()
-                    .tint(CompetitiveTrustTheme.coral)
+                    .tint(SignalTheme.accent)
                 Text("Updating…")
                     .font(
-                        CompetitiveTrustTheme.uiFont(
+                        SignalTheme.uiFont(
                             size: 14,
                             relativeTo: .subheadline,
                             weight: .semibold
                         )
                     )
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("state.loading")
@@ -199,22 +199,22 @@ struct InlineLoadStateView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Label("Couldn’t refresh", systemImage: "wifi.slash")
                     .font(
-                        CompetitiveTrustTheme.displayFont(
+                        SignalTheme.displayFont(
                             size: 18,
                             relativeTo: .headline
                         )
                     )
                 Text(message)
                     .font(
-                        CompetitiveTrustTheme.uiFont(
+                        SignalTheme.uiFont(
                             size: 13,
                             relativeTo: .subheadline
                         )
                     )
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
                 Button("Try again", action: retry)
                     .buttonStyle(
-                        TrustCompactButtonStyle(tone: .quiet)
+                        SignalCompactButtonStyle(tone: .quiet)
                     )
             }
             .accessibilityIdentifier("state.offline")
@@ -231,16 +231,16 @@ struct EmptyTrustState: View {
         VStack(spacing: 10) {
             Image(systemName: systemImage)
                 .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(CompetitiveTrustTheme.coralInk)
+                .foregroundStyle(SignalTheme.accent)
                 .frame(width: 52, height: 52)
                 .background(
-                    CompetitiveTrustTheme.coralTint,
+                    SignalTheme.selection,
                     in: Circle()
                 )
                 .accessibilityHidden(true)
             Text(title)
                 .font(
-                    CompetitiveTrustTheme.displayFont(
+                    SignalTheme.displayFont(
                         size: 21,
                         relativeTo: .title3
                     )
@@ -248,12 +248,12 @@ struct EmptyTrustState: View {
                 .tracking(-0.55)
             Text(message)
                 .font(
-                    CompetitiveTrustTheme.uiFont(
+                    SignalTheme.uiFont(
                         size: 13.5,
                         relativeTo: .subheadline
                     )
                 )
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
                 .multilineTextAlignment(.center)
                 .lineSpacing(2)
         }
@@ -272,7 +272,7 @@ struct TermRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(label)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
             Spacer(minLength: 16)
             Text(value)
                 .foregroundStyle(emphasis)
@@ -280,7 +280,7 @@ struct TermRow: View {
                 .multilineTextAlignment(.trailing)
         }
         .font(
-            CompetitiveTrustTheme.uiFont(
+            SignalTheme.uiFont(
                 size: 14,
                 relativeTo: .subheadline
             )

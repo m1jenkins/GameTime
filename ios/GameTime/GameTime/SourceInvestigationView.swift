@@ -100,7 +100,7 @@ struct SourceInvestigationView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            SignalForm {
                 Section("Private activity investigation") {
                     Text("This separate local session does not sign in, score challenges or send activity anywhere. Records remain in memory on this phone.")
                     Text("Do not take screenshots, record the screen, or copy activity records. Leaving this screen or locking the phone clears the session.")

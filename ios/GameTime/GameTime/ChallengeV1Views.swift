@@ -81,7 +81,7 @@ struct ChallengeLocalLaunchView: View {
                 }
             }
         }.frame(maxWidth: ProcessInfo.processInfo.arguments.contains("--beta-compact-check") ? 320 : .infinity)
-            .tint(CompetitiveTrustTheme.brand).background(CompetitiveTrustTheme.canvas).onOpenURL { invitation.receive($0) }
+            .tint(SignalTheme.accent).background(SignalTheme.canvas).onOpenURL { invitation.receive($0) }
     }
 }
 
@@ -153,25 +153,26 @@ struct ChallengeV1Shell: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         VStack(spacing: 0) {
+        SignalSimulationBanner()
         TabView(selection: $selection) {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
-                        CobaltHomeHeader(create: { create = true }, refresh: { Task { await store.refresh() } })
+                        SignalHomeHeader(create: { create = true }, refresh: { Task { await store.refresh() } })
                         if let existingChallenges { existingChallenges }
                         if serviceAvailable { recovery }
                         if !serviceAvailable {
-                            CobaltNotice {
+                            SignalNotice {
                                 Text("Your next challenge starts here").font(.headline)
                                 Text("Friend challenges and new personal goals aren’t open yet. You can still view and manage your existing challenges.")
-                            }.accessibilityIdentifier("cobalt.service.closed")
+                            }.accessibilityIdentifier("signal.service.closed")
                         } else if store.homeState == .loading {
                             ProgressView("Loading your challenges…").accessibilityIdentifier("beta.home.loading")
                         } else if store.homeState == .unavailable {
                             Text("We couldn’t load your challenges. Refresh to try again.")
                                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("beta.home.unavailable")
                         } else if store.homeState == .empty {
-                            Text("No challenges yet.").font(.body).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
+                            Text("No challenges yet.").font(.body).foregroundStyle(SignalTheme.textPrimary).fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("beta.home.empty")
                             Button("Explore challenges") { selection = 1 }.buttonStyle(ChallengeActionStyle())
                         }
@@ -183,24 +184,20 @@ struct ChallengeV1Shell: View {
                                 ForEach(homeRows(state.rows, section: section)) { row in
                                     NavigationLink { ChallengeV1Detail(store: store, id: row.id) } label: {
                                         if row.id == featuredID {
-                                            CobaltFeaturedChallenge(row: row, actor: store.actor)
+                                            SignalFeaturedChallenge(row: row, actor: store.actor)
                                         } else {
-                                            CobaltChallengeSummary(row: row, actor: store.actor)
+                                            SignalChallengeSummary(row: row, actor: store.actor)
                                         }
                                     }.buttonStyle(.plain)
                                 }
                                 if state.cursor != nil { Button("More in \(section.title.lowercased())") { Task { await store.loadMore(section) } } }
                             }
                         }
-                        if featuredID == nil {
-                            Text("Simulated stakes — no real money moves.")
-                                .font(.footnote).foregroundStyle(CompetitiveTrustTheme.textSecondary)
-                        }
-                    }.padding(.horizontal, 20).padding(.vertical, 12)
-                }.background(CompetitiveTrustTheme.canvas).modifier(ChallengeScrollLegibility()).refreshable { await store.refresh() }
+                    }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 12).modifier(SignalGlassGroup())
+                }.background(SignalTheme.canvas).modifier(ChallengeScrollLegibility()).refreshable { await store.refresh() }
                     .toolbar(.hidden, for: .navigationBar)
                     .navigationBarTitleDisplayMode(.inline)
-            }.toolbar(.hidden, for: .tabBar).tabItem { Label("Home", systemImage: "house") }.tag(0)
+            }.tabItem { Label("Home", systemImage: "house").accessibilityIdentifier("beta.tab.home") }.tag(0)
             NavigationStack {
                 List {
                     Section {
@@ -220,7 +217,7 @@ struct ChallengeV1Shell: View {
                                 if let message = state.error { Text(message).font(.caption) }
                                 ForEach(state.rows) { row in
                                     NavigationLink { ChallengeV1Detail(store: store, id: row.id) } label: {
-                                        CobaltChallengeSummary(row: row, actor: store.actor)
+                                        SignalChallengeSummary(row: row, actor: store.actor)
                                     }.accessibilityIdentifier("beta.row.\(row.status).\(row.policy).\(row.id.uuidString)")
                                 }
                                 if state.cursor != nil { Button("Show more") { Task { await store.loadMore(section) } }.accessibilityIdentifier("beta.more.\(section.rawValue)") }
@@ -228,8 +225,8 @@ struct ChallengeV1Shell: View {
                         }
                     }
                     }
-                }.scrollContentBackground(.hidden).background(CompetitiveTrustTheme.canvas).navigationTitle("Challenges").refreshable { await store.refresh() }
-            }.toolbar(.hidden, for: .tabBar).tabItem { Label("Challenges", systemImage: "flag") }.tag(1)
+                }.listStyle(.plain).scrollContentBackground(.hidden).background(SignalTheme.canvas).navigationTitle("Challenges").refreshable { await store.refresh() }
+            }.tabItem { Label("Challenges", systemImage: "flag").accessibilityIdentifier("beta.tab.challenges") }.tag(1)
             Group {
                 if let accountContent { accountContent }
                 else {
@@ -264,15 +261,14 @@ struct ChallengeV1Shell: View {
                     NavigationStack { Button("Sign out") { Task { await logout() } }.navigationTitle("You") }
                     #endif
                 }
-            }.toolbar(.hidden, for: .tabBar).tabItem { Label("You", systemImage: "person") }.tag(2)
+            }.tabItem { Label("You", systemImage: "person").accessibilityIdentifier("beta.tab.you") }.tag(2)
         }
-        .toolbar(.hidden, for: .tabBar).clipped()
-        ChallengeBottomNavigation(selection: $selection)
+        .signalTabChrome()
         }
-        .background(CompetitiveTrustTheme.canvas.ignoresSafeArea())
+        .background(SignalTheme.canvas.ignoresSafeArea())
         .sheet(isPresented: $create) {
             if serviceAvailable { ChallengeV1Create(store: store) }
-            else { CobaltChallengeUnavailableView() }
+            else { SignalChallengeUnavailableView() }
         }
         .onChange(of: store.actor) { create = false }
         .onChange(of: scenePhase) { _, value in
@@ -293,9 +289,9 @@ struct ChallengeV1Shell: View {
         return featured + others.filter { $0.format.mode == .personal } + others.filter { $0.format.mode != .personal }
     }
     @ViewBuilder var recovery: some View {
-        if let error = store.error { Text(error).foregroundStyle(.secondary).accessibilityIdentifier("beta.error") }
+        if let error = store.error { Text(error).foregroundStyle(SignalTheme.textSecondary).accessibilityIdentifier("beta.error") }
         if store.pending != nil {
-            CobaltNotice {
+            SignalNotice {
                 Text("Your action is saved on this phone.").font(.headline)
                 Text("Retry checks the same action. Stop waiting checks whether it completed and prevents a late request from changing anything.")
                 Button("Retry saved action") { Task { await store.retry() } }.accessibilityIdentifier("beta.retry")
@@ -306,49 +302,6 @@ struct ChallengeV1Shell: View {
     }
 }
 
-struct ChallengeBottomNavigation: View {
-    @Binding var selection: Int
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    private let tabs = [("Home", "house", "home"), ("Challenges", "flag", "challenges"), ("You", "person", "you")]
-    var body: some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                Menu {
-                    ForEach(tabs.indices, id: \.self) { index in
-                        Button { selection = index } label: { Label(tabs[index].0, systemImage: tabs[index].1) }
-                            .accessibilityIdentifier("beta.tab." + tabs[index].2)
-                    }
-                } label: {
-                    HStack {
-                        Text(tabs[selection].0).font(.body.bold()).fixedSize(horizontal: false, vertical: true)
-                        Spacer(minLength: 12)
-                        Image(systemName: "chevron.up.chevron.down").font(.body).accessibilityHidden(true)
-                    }.frame(maxWidth: .infinity, minHeight: 48).foregroundStyle(CompetitiveTrustTheme.primaryText)
-                }.accessibilityLabel("Navigation, " + tabs[selection].0).accessibilityIdentifier("beta.nav.menu")
-            } else {
-                HStack(alignment: .top, spacing: 8) {
-                    ForEach(tabs.indices, id: \.self) { index in
-                        Button { selection = index } label: {
-                            VStack(spacing: 5) {
-                                Image(systemName: selection == index ? tabs[index].1 + ".fill" : tabs[index].1).font(.title2).accessibilityHidden(true)
-                                Text(tabs[index].0).font(.caption.bold()).fixedSize(horizontal: false, vertical: true)
-                            }.frame(maxWidth: .infinity, minHeight: 48)
-                                .foregroundStyle(selection == index ? CompetitiveTrustTheme.actionCoral : CompetitiveTrustTheme.primaryText)
-                                .background(selection == index ? CompetitiveTrustTheme.selection : .clear, in: RoundedRectangle(cornerRadius: 16))
-                                .contentShape(Rectangle())
-                        }.buttonStyle(.plain).accessibilityLabel(tabs[index].0)
-                            .accessibilityAddTraits(selection == index ? .isSelected : [])
-                            .accessibilityIdentifier("beta.tab." + tabs[index].2)
-                    }
-                }
-            }
-        }.padding(8)
-            .modifier(CobaltNavigationMaterial())
-            .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 4)
-            .background(CompetitiveTrustTheme.canvas)
-    }
-}
-
 struct ChallengeScrollLegibility: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) { content.scrollEdgeEffectHidden(true, for: .all).clipped() }
@@ -356,35 +309,47 @@ struct ChallengeScrollLegibility: ViewModifier {
     }
 }
 struct ChallengeActionStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var enabled
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.body.weight(.semibold))
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, 16).padding(.vertical, 12).frame(minHeight: 44)
-            .foregroundStyle(configuration.role == .destructive ? CompetitiveTrustTheme.error : enabled ? CompetitiveTrustTheme.brand : CompetitiveTrustTheme.textSecondary)
-            .background(enabled ? CompetitiveTrustTheme.coralTint : CompetitiveTrustTheme.paperSunk, in: RoundedRectangle(cornerRadius: 12))
-            .opacity(configuration.isPressed ? 0.8 : 1)
+        SignalSecondaryButtonStyle().makeBody(configuration: configuration)
     }
 }
 
-struct MatchdayChallengeCard: View {
+struct SignalChallengeHeader: View {
     let row: ChallengeV1
     let actor: UUID?
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(row.title).modifier(CobaltDisplay(size: 34))
-                .fixedSize(horizontal: false, vertical: true)
-            Text(row.own(actor)?.exited == true ? "You left this challenge" : row.statusText).font(.headline)
-            Text(ChallengePresentation.dates(row)).font(.subheadline)
-            if row.format.metric == .timed, let distance = row.config.distanceMm {
+        VStack(alignment: .leading, spacing: 20) {
+            Text(row.title).modifier(SignalDisplay(size: 32))
+                .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+            SignalStatusTag(text: row.own(actor)?.exited == true ? "You left this challenge" : row.statusText, kind: .neutral)
+            if row.format.hasTarget, let own = row.own(actor), !own.exited, !row.isClosed {
+                VStack(alignment: .leading, spacing: 12) {
+                    if ["lobby_open", "consent_pending", "scheduled", "published_open"].contains(row.status) {
+                        Text("Your goal").font(.subheadline)
+                        if let target = own.target {
+                            SignalMetricValue(value: target, metric: row.format.metric)
+                        } else { Text("Goal not chosen").font(.title2) }
+                        if row.format.metric == .timed, let distance = row.config.distanceMm {
+                            Text("Whole run: \(ChallengeV1Policy.Metric.distance.display(distance))").font(.subheadline)
+                        }
+                    } else {
+                        Text("Your activity").font(.subheadline)
+                        SignalGoalProgress(onAccent: true, row: row, member: own, actor: actor)
+                    }
+                }
+                .padding(SignalTheme.contentInset).frame(maxWidth: .infinity, alignment: .leading)
+                .foregroundStyle(SignalTheme.onAccent).background(SignalTheme.accent)
+                .padding(.horizontal, -SignalTheme.contentInset)
+            } else if row.format.metric == .timed, let distance = row.config.distanceMm {
                 Text("Whole run: \(ChallengeV1Policy.Metric.distance.display(distance))").font(.subheadline)
             }
-            Text("\(challengeMoney(row.config.amountCents)) simulated each").font(.footnote)
-        }.foregroundStyle(CompetitiveTrustTheme.textPrimary)
+            SignalDateSpan(window: row.config)
+            SignalFactRow(label: "Simulated entry", value: "\(challengeMoney(row.config.amountCents)) simulated each")
+        }.foregroundStyle(SignalTheme.textPrimary)
             .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 12)
-            .accessibilityElement(children: .combine)
     }
 }
+
 func challengeMoney(_ cents: Int) -> String { (Double(cents)/100).formatted(.currency(code:"USD")) }
 
 
@@ -402,9 +367,8 @@ struct ChallengeV1Detail: View {
         ScrollView {
             VStack(alignment:.leading,spacing:20) {
                 if let row {
-                    Text("Simulated stakes — no real money moves.").font(.caption)
-                    MatchdayChallengeCard(row:row,actor:store.actor)
-                    if let error = store.error { Text(error).foregroundStyle(.secondary) }
+                    SignalChallengeHeader(row:row,actor:store.actor)
+                    if let error = store.error { Text(error).foregroundStyle(SignalTheme.textSecondary) }
                     if store.pending != nil {
                         Button("Retry saved action") { Task { await store.retry() } }
                         Button("Stop waiting for this action") { Task { await store.abandon() } }
@@ -445,6 +409,12 @@ struct ChallengeV1Detail: View {
                         Text("Result confirmed").font(.title2.bold())
                         allocation(final.result,row:row,confirmed:true)
                     }
+                    if row.format.mode == .personal {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Label("Just for you", systemImage: "lock").font(.title2.weight(.semibold))
+                            Text("Other participants cannot see your activity or results.").font(.subheadline)
+                        }.padding(.vertical, 12)
+                    }
                     people(row)
                     rules(row)
                     if row.status == "lobby_open" { lobby(row) }
@@ -465,8 +435,8 @@ struct ChallengeV1Detail: View {
                         }
                     }
                 } else { ContentUnavailableView("Refresh this challenge",systemImage:"arrow.clockwise",description:Text("Sign in to the same account and refresh to see its latest details.")) }
-            }.padding(20)
-        }.background(CompetitiveTrustTheme.canvas).navigationTitle("Challenge").navigationBarTitleDisplayMode(.inline)
+            }.padding(SignalTheme.contentInset).modifier(SignalGlassGroup())
+        }.background(SignalTheme.canvas).navigationTitle("Challenge").navigationBarTitleDisplayMode(.inline)
             .toolbar(.visible, for: .navigationBar)
             .task(id: id) { await store.loadDetail(id) }
             .modifier(ChallengeScrollLegibility())
@@ -488,10 +458,10 @@ struct ChallengeV1Detail: View {
         ForEach(row.rankedMembers) { person in
             let departedCounterpart = person.exited && person.actorId != store.actor
             VStack(alignment:.leading,spacing:6) {
-                CobaltParticipantRow(row: row, person: person, actor: store.actor, showsState: ["lobby_open", "consent_pending", "scheduled"].contains(row.status),
+                SignalParticipantRow(row: row, person: person, actor: store.actor, showsState: ["lobby_open", "consent_pending", "scheduled"].contains(row.status),
                                      showsMetric: !row.format.hasTarget || departedCounterpart)
                 if row.format.hasTarget && !departedCounterpart {
-                    CobaltGoalProgress(row: row, member: person, actor: store.actor)
+                    SignalGoalProgress(row: row, member: person, actor: store.actor)
                 }
                 if let finalStatus = row.final?.result.participants?[person.actorId.uuidString.lowercased()]?.status {
                     Text(resultText(finalStatus)).font(.subheadline.bold())

@@ -11,7 +11,7 @@ final class DomainAndConfigurationTests: XCTestCase {
             .deletingLastPathComponent()
             .appendingPathComponent("Configuration", isDirectory: true)
 
-        for filename in ["AppInfo.plist", "StagingAppInfo.plist"] {
+        for filename in ["AppInfo.plist", "DebugAppInfo.plist", "StagingAppInfo.plist"] {
             let data = try Data(
                 contentsOf: configurationDirectory.appendingPathComponent(
                     filename
@@ -33,58 +33,14 @@ final class DomainAndConfigurationTests: XCTestCase {
         }
     }
 
-    func testAthleticTextRolesMeetNormalTextContrast() {
-        let darkBackground = UIColor(CompetitiveTrustTheme.darkBackground)
-        let graphiteCard = UIColor(CompetitiveTrustTheme.graphiteSurface)
-
-        let darkPairs: [(name: String, foreground: UIColor, background: UIColor)] = [
-            ("Primary text on dark background", UIColor(CompetitiveTrustTheme.primaryText), darkBackground),
-            ("Primary text on graphite card", UIColor(CompetitiveTrustTheme.primaryText), graphiteCard),
-            ("Secondary text on dark background", UIColor(CompetitiveTrustTheme.secondaryText), darkBackground),
-            ("Secondary text on graphite card", UIColor(CompetitiveTrustTheme.secondaryText), graphiteCard),
-            ("Signal Orange on dark background", UIColor(CompetitiveTrustTheme.signalOrange), darkBackground),
-            ("Signal Orange on graphite card", UIColor(CompetitiveTrustTheme.signalOrange), graphiteCard),
-            ("Athletic Green on dark background", UIColor(CompetitiveTrustTheme.athleticGreen), darkBackground),
-            ("Athletic Green on graphite card", UIColor(CompetitiveTrustTheme.athleticGreen), graphiteCard),
-            ("Primary button dark label", .black, UIColor(CompetitiveTrustTheme.signalOrange)),
-            (
-                "Inverse secondary text",
-                UIColor(CompetitiveTrustTheme.inverseSecondaryText),
-                UIColor(CompetitiveTrustTheme.primaryText)
-            ),
-            (
-                "Caution text on dark background",
-                UIColor(CompetitiveTrustTheme.sunInk),
-                darkBackground
-            ),
-        ]
-
-        let lightPaper = UIColor(CompetitiveTrustTheme.paper)
-        let lightCard = UIColor(CompetitiveTrustTheme.card)
-        let lightPairs: [(name: String, foreground: UIColor, background: UIColor)] = [
-            ("Primary text on light paper", UIColor(CompetitiveTrustTheme.primaryText), lightPaper),
-            ("Primary text on light card", UIColor(CompetitiveTrustTheme.primaryText), lightCard),
-            ("Secondary text on light paper", UIColor(CompetitiveTrustTheme.secondaryText), lightPaper),
-            ("Secondary text on light card", UIColor(CompetitiveTrustTheme.secondaryText), lightCard),
-            ("Coral Ink on light paper", UIColor(CompetitiveTrustTheme.coralInk), lightPaper),
-            ("Mint Ink on light paper", UIColor(CompetitiveTrustTheme.mintInk), lightPaper),
-            ("Sun Ink on light paper", UIColor(CompetitiveTrustTheme.sunInk), lightPaper),
-        ]
-
-        for pair in darkPairs {
-            XCTAssertGreaterThanOrEqual(
-                contrastRatio(pair.foreground, pair.background, style: .dark),
-                4.5,
-                "\(pair.name) in Dark Mode must meet WCAG AA normal text contrast (>= 4.5:1)."
-            )
-        }
-
-        for pair in lightPairs {
-            XCTAssertGreaterThanOrEqual(
-                contrastRatio(pair.foreground, pair.background, style: .light),
-                4.5,
-                "\(pair.name) in Light Mode must meet WCAG AA normal text contrast (>= 4.5:1)."
-            )
+    func testSignalTextAndAccentBandsMeetNormalTextContrast() {
+        for style in [UIUserInterfaceStyle.light, .dark] {
+            for surface in [SignalTheme.canvas, SignalTheme.surface, SignalTheme.soft] {
+                for text in [SignalTheme.textPrimary, SignalTheme.textSecondary, SignalTheme.accent] {
+                    XCTAssertGreaterThanOrEqual(contrastRatio(UIColor(text), UIColor(surface), style: style), 4.5)
+                }
+            }
+            XCTAssertGreaterThanOrEqual(contrastRatio(UIColor(SignalTheme.onAccent), UIColor(SignalTheme.accent), style: style), 4.5)
         }
     }
 
@@ -110,36 +66,36 @@ final class DomainAndConfigurationTests: XCTestCase {
                 )
             }
 
-            let tabularFont = CompetitiveTrustTheme.tabularFont(size: 16)
+            let tabularFont = SignalTheme.tabularFont(size: 16)
             XCTAssertNotNil(tabularFont, "tabularFont should generate valid Font")
-            let monoFont = CompetitiveTrustTheme.monoFont(size: 16)
+            let monoFont = SignalTheme.monoFont(size: 16)
             XCTAssertNotNil(monoFont, "monoFont should generate valid Font")
         }
     }
 
-    func testZeroDropShadowsAndBricolageFontsInCompetitiveTrustTheme() throws {
+    func testZeroDropShadowsAndBricolageFontsInSignalTheme() throws {
         let themeFileURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-            .appendingPathComponent("GameTime/CompetitiveTrustTheme.swift")
+            .appendingPathComponent("GameTime/SignalTheme.swift")
 
         let codeContent = try String(contentsOf: themeFileURL, encoding: .utf8)
 
         XCTAssertFalse(
             codeContent.contains(".shadow("),
-            "CompetitiveTrustTheme.swift must NOT contain any SwiftUI drop shadow calls (.shadow(...))."
+            "SignalTheme.swift must NOT contain any SwiftUI drop shadow calls (.shadow(...))."
         )
         XCTAssertFalse(
             codeContent.contains("shadow(color:"),
-            "CompetitiveTrustTheme.swift must NOT contain any shadow(color: ...) calls."
+            "SignalTheme.swift must NOT contain any shadow(color: ...) calls."
         )
         XCTAssertFalse(
             codeContent.contains("Bricolage"),
-            "CompetitiveTrustTheme.swift must NOT contain any references to Bricolage font."
+            "SignalTheme.swift must NOT contain any references to Bricolage font."
         )
         XCTAssertFalse(
             codeContent.contains("Hanken"),
-            "CompetitiveTrustTheme.swift must NOT contain any references to Hanken font."
+            "SignalTheme.swift must NOT contain any references to Hanken font."
         )
     }
 

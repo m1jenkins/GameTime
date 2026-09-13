@@ -32,7 +32,7 @@ struct PersonalPaymentStatusCard: View {
             ForEach(presentation.details, id: \.self) { detail in
                 Text(detail)
                     .font(.subheadline)
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -46,7 +46,7 @@ struct PersonalPaymentStatusCard: View {
             if let reviewDeadline = freshReviewDeadline
                 ?? retainedReviewDeadline
             {
-                Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
+                Divider().overlay(SignalTheme.divider)
                 reviewControls(
                     deadline: reviewDeadline,
                     isEnabled: freshReviewDeadline == reviewDeadline
@@ -58,7 +58,7 @@ struct PersonalPaymentStatusCard: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .trustCard()
+        .signalSection()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("personal.payment.status.card")
     }
@@ -69,7 +69,7 @@ struct PersonalPaymentStatusCard: View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             if presentation.isChecking {
                 ProgressView()
-                    .tint(CompetitiveTrustTheme.coralInk)
+                    .tint(SignalTheme.accent)
                     .accessibilityHidden(true)
             } else {
                 Image(systemName: presentation.symbol)
@@ -79,7 +79,7 @@ struct PersonalPaymentStatusCard: View {
 
             Text(presentation.title)
                 .font(.headline.weight(.bold))
-                .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                .foregroundStyle(SignalTheme.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -112,8 +112,8 @@ struct PersonalPaymentStatusCard: View {
         }
         .foregroundStyle(
             statusState.isStale
-                ? CompetitiveTrustTheme.sunInk
-                : CompetitiveTrustTheme.secondaryText
+                ? SignalTheme.textPrimary
+                : SignalTheme.textSecondary
         )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(message)
@@ -126,7 +126,7 @@ struct PersonalPaymentStatusCard: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Why are you asking for a review?")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                .foregroundStyle(SignalTheme.textPrimary)
 
             ForEach(PersonalReviewReason.allCases) { reason in
                 let isSelected = selectedReviewReason == reason
@@ -141,20 +141,20 @@ struct PersonalPaymentStatusCard: View {
                         )
                         .foregroundStyle(
                             isSelected
-                                ? CompetitiveTrustTheme.actionCoral
-                                : CompetitiveTrustTheme.guide
+                                ? SignalTheme.accent
+                                : SignalTheme.divider
                         )
                         .accessibilityHidden(true)
 
                         Text(reason.title)
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(
-                                CompetitiveTrustTheme.primaryText
+                                SignalTheme.textPrimary
                             )
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer(minLength: 8)
                     }
-                    .daybreakTappableRow()
+                    .signalTappableRow()
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -184,7 +184,7 @@ struct PersonalPaymentStatusCard: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(TrustPrimaryButtonStyle())
+            .buttonStyle(SignalPrimaryButtonStyle())
             .disabled(
                 !isEnabled
                     || store.isRequestingReview
@@ -226,7 +226,7 @@ struct PersonalPaymentStatusCard: View {
                 HStack(spacing: 8) {
                     if statusState.isLoading {
                         ProgressView()
-                            .tint(CompetitiveTrustTheme.coralInk)
+                            .tint(SignalTheme.accent)
                             .accessibilityHidden(true)
                     } else {
                         Image(systemName: "arrow.clockwise")
@@ -238,7 +238,7 @@ struct PersonalPaymentStatusCard: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(TrustSecondaryButtonStyle())
+            .buttonStyle(SignalSecondaryButtonStyle())
             .disabled(
                 statusState.isLoading
                     || isWaitingForInitialLoad(statusState)
@@ -252,7 +252,7 @@ struct PersonalPaymentStatusCard: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(TrustSecondaryButtonStyle())
+            .buttonStyle(SignalSecondaryButtonStyle())
             .accessibilityIdentifier("personal.payment.status.support")
         }
     }
@@ -454,13 +454,13 @@ private struct PersonalPaymentStatusPresentation {
     var color: Color {
         switch tone {
         case .neutral:
-            CompetitiveTrustTheme.secondaryText
+            SignalTheme.textSecondary
         case .pending:
-            CompetitiveTrustTheme.sunInk
+            SignalTheme.textPrimary
         case .positive:
-            CompetitiveTrustTheme.mintInk
+            SignalTheme.accent
         case .attention:
-            CompetitiveTrustTheme.coralInk
+            SignalTheme.accent
         }
     }
 }

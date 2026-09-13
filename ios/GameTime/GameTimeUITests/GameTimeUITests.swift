@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 
 @MainActor
 final class GameTimeUITests: XCTestCase {
@@ -26,23 +27,23 @@ final class GameTimeUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    func testCobaltProductShellPreservesAccountAndExistingChallenges() {
-        let app = launch("--cobalt-shell")
-        XCTAssertTrue(app.staticTexts["beta.home.heading"].waitForExistence(timeout: 8))
-        XCTAssertTrue(app.descendants(matching: .any)["cobalt.service.closed"].exists)
+    func testSignalProductShellPreservesAccountAndExistingChallenges() {
+        let app = launch("--fixture-product-shell")
+        XCTAssertTrue(app.descendants(matching: .any)["beta.home.heading"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.descendants(matching: .any)["signal.service.closed"].exists)
         XCTAssertFalse(app.staticTexts["42,850"].exists)
-        attachScreenshot(of: app, named: "Cobalt default signed-in Home")
+        attachScreenshot(of: app, named: "Signal default signed-in Home")
 
         app.buttons["beta.home.create"].tap()
         XCTAssertTrue(app.staticTexts["New challenges aren’t open yet"].waitForExistence(timeout: 4))
         XCTAssertFalse(app.buttons["beta.create.submit"].exists)
         app.buttons["Done"].tap()
 
-        app.buttons["cobalt.existing-challenges"].tap()
+        app.buttons["signal.existing-challenges"].tap()
         XCTAssertTrue(app.tabBars.buttons["Today"].waitForExistence(timeout: 4))
         assertEnvironmentDisclosure(in: app, mode: .testOnly)
-        app.buttons["cobalt.existing.done"].tap()
-        XCTAssertTrue(app.staticTexts["beta.home.heading"].waitForExistence(timeout: 4))
+        app.buttons["signal.existing.done"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["beta.home.heading"].waitForExistence(timeout: 4))
 
         app.buttons["beta.tab.you"].tap()
         let support = app.buttons["account-support.open"]
@@ -53,7 +54,7 @@ final class GameTimeUITests: XCTestCase {
         scrollUntilHittable(signout, in: app)
         signout.tap()
         XCTAssertTrue(app.buttons["Sign in with Apple"].waitForExistence(timeout: 6))
-        XCTAssertFalse(app.staticTexts["beta.home.heading"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["beta.home.heading"].exists)
     }
 
     func testSignedOutAndPublicHandleOnboardingRoots() {
@@ -66,7 +67,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(signedOut.staticTexts["GameTime"].exists)
         XCTAssertFalse(signedOut.staticTexts["Compete fairly."].exists)
         assertNoForbiddenLanguage(in: signedOut)
-        attachScreenshot(of: signedOut, named: "Cobalt historical sign-in")
+        attachScreenshot(of: signedOut, named: "Signal historical sign-in")
         signedOut.terminate()
 
         let onboarding = launch("--fixture-onboarding")
@@ -93,7 +94,7 @@ final class GameTimeUITests: XCTestCase {
         )
         assertEnvironmentDisclosure(in: onboarding, mode: .testOnly)
         assertNoForbiddenLanguage(in: onboarding)
-        attachScreenshot(of: onboarding, named: "Cobalt historical onboarding")
+        attachScreenshot(of: onboarding, named: "Signal historical onboarding")
     }
 
     func testDirtyCreationCloseUsesExactDiscardDialog() {
@@ -599,7 +600,7 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-payment-status=review_open",
             "--fixture-open-result-challenge",
             "-UIPreferredContentSizeCategoryName",
-            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+            UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue,
             "-UIAccessibilityReduceMotionEnabled",
             "YES"
         )
@@ -1579,7 +1580,7 @@ final class GameTimeUITests: XCTestCase {
             ).firstMatch.exists
         )
         assertNoForbiddenLanguage(in: loading)
-        attachScreenshot(of: loading, named: "Cobalt historical loading")
+        attachScreenshot(of: loading, named: "Signal historical loading")
         loading.terminate()
 
         let empty = launch("--fixture-empty")
@@ -1588,7 +1589,7 @@ final class GameTimeUITests: XCTestCase {
                 .waitForExistence(timeout: 5)
         )
         assertNoForbiddenLanguage(in: empty)
-        attachScreenshot(of: empty, named: "Cobalt historical empty")
+        attachScreenshot(of: empty, named: "Signal historical empty")
         empty.terminate()
 
         let offline = launch("--fixture-offline")
@@ -1608,7 +1609,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertFalse(offline.staticTexts["No challenges yet"].exists)
         XCTAssertFalse(offline.buttons["personal.create"].exists)
         assertNoForbiddenLanguage(in: offline)
-        attachScreenshot(of: offline, named: "Cobalt historical offline")
+        attachScreenshot(of: offline, named: "Signal historical offline")
     }
 
     func testSettingsKeepPrivacyHelpDocumentsAndAccountActionsReachable() {
@@ -1618,7 +1619,7 @@ final class GameTimeUITests: XCTestCase {
         app.tabBars.buttons["You"].waitAndTap()
         XCTAssertTrue(app.navigationBars["You"].waitForExistence(timeout: 4))
         assertEnvironmentDisclosure(in: app, mode: .testOnly)
-        attachScreenshot(of: app, named: "Cobalt historical You")
+        attachScreenshot(of: app, named: "Signal historical You")
         assertSettingsReachability(in: app)
     }
 
@@ -1626,7 +1627,7 @@ final class GameTimeUITests: XCTestCase {
         let app = launch(
             "--fixture-empty",
             "-UIPreferredContentSizeCategoryName",
-            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+            UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue,
             "-UIAccessibilityReduceMotionEnabled",
             "YES"
         )
@@ -1720,7 +1721,20 @@ final class GameTimeUITests: XCTestCase {
 
     private func tapCreationContinue(in app: XCUIApplication) {
         let button = app.buttons["personal.continue"]
-        for _ in 0..<12 where !button.isHittable { app.swipeUp() }
+        for _ in 0..<24 {
+            let keyboardDone = app.buttons["personal.target.done"]
+            if keyboardDone.exists && keyboardDone.isHittable {
+                keyboardDone.tap()
+            }
+            if button.isHittable && button.frame.maxY < app.frame.maxY - 60 { break }
+            app.scrollViews["personal.creation.scroll"].swipeUp()
+        }
+        if !button.isHittable {
+            let snapshot = XCTAttachment(string: app.debugDescription)
+            snapshot.name = "Personal setup accessibility failure"
+            snapshot.lifetime = .keepAlways
+            add(snapshot)
+        }
         XCTAssertTrue(button.isHittable)
         button.tap()
     }
@@ -1972,7 +1986,12 @@ final class GameTimeUITests: XCTestCase {
         )
 
         let details = app.buttons["personal.receipt.more-details"]
-        for _ in 0..<12 where !details.isHittable { app.swipeUp() }
+        // XCTest can report a clipped button as hittable at the home indicator.
+        // Bring the complete row inside the viewport before exercising disclosure.
+        for _ in 0..<24 where !details.isHittable
+            || details.frame.maxY > app.frame.maxY - 60 {
+            app.swipeUp()
+        }
         XCTAssertTrue(details.isHittable, file: file, line: line)
         XCTAssertEqual(details.label, "More details", file: file, line: line)
         XCTAssertEqual(
@@ -2185,7 +2204,7 @@ final class GameTimeUITests: XCTestCase {
         assertNoForbiddenLanguage(in: app, file: file, line: line)
 
         let back = app.navigationBars["Privacy"].buttons["You"]
-        attachScreenshot(of: app, named: "Cobalt historical privacy")
+        attachScreenshot(of: app, named: "Signal historical privacy")
         XCTAssertTrue(back.waitForExistence(timeout: 3), file: file, line: line)
         back.tap()
         XCTAssertTrue(
@@ -2237,7 +2256,7 @@ final class GameTimeUITests: XCTestCase {
         }
 
         let signOut = app.buttons["account-support.sign-out"]
-        attachScreenshot(of: app, named: "Cobalt historical account support")
+        attachScreenshot(of: app, named: "Signal historical account support")
         for _ in 0..<12 where !signOut.isHittable { app.swipeUp() }
         XCTAssertTrue(signOut.isHittable, file: file, line: line)
 
@@ -2260,7 +2279,7 @@ final class GameTimeUITests: XCTestCase {
             line: line
         )
         XCTAssertTrue(alert.buttons["Continue"].exists, file: file, line: line)
-        attachScreenshot(of: app, named: "Cobalt historical deletion confirmation")
+        attachScreenshot(of: app, named: "Signal historical deletion confirmation")
         alert.buttons["Cancel"].waitAndTap()
         assertNoForbiddenLanguage(in: app, file: file, line: line)
     }

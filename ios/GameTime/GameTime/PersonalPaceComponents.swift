@@ -516,11 +516,11 @@ struct PersonalPaceCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             header
+            selectedDay
             chart
             dayLabels
-            selectedDay
         }
-        .trustCard()
+        .signalSection()
     }
 
     private var header: some View {
@@ -528,7 +528,7 @@ struct PersonalPaceCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(summary.headline)
                     .font(
-                        CompetitiveTrustTheme.tabularFont(
+                        SignalTheme.tabularFont(
                             size: dynamicTypeSize.isAccessibilitySize
                                 ? 26
                                 : 38,
@@ -540,13 +540,13 @@ struct PersonalPaceCard: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Text(summary.headlineCaption)
                     .font(
-                        CompetitiveTrustTheme.uiFont(
+                        SignalTheme.uiFont(
                             size: 13,
                             relativeTo: .footnote,
                             weight: .semibold
                         )
                     )
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
             }
             Spacer(minLength: 8)
             if !dynamicTypeSize.isAccessibilitySize {
@@ -568,7 +568,7 @@ struct PersonalPaceCard: View {
             Text(summary.dayCountText)
         }
         .font(
-            CompetitiveTrustTheme.tabularFont(
+            SignalTheme.tabularFont(
                 size: 12,
                 weight: .bold
             )
@@ -576,12 +576,12 @@ struct PersonalPaceCard: View {
         .padding(.horizontal, 11)
         .padding(.vertical, 6)
         .background(
-            CompetitiveTrustTheme.card,
+            SignalTheme.surface,
             in: RoundedRectangle(cornerRadius: 6, style: .continuous)
         )
         .overlay {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
+                .stroke(SignalTheme.divider, lineWidth: 1)
         }
         .fixedSize()
     }
@@ -604,15 +604,15 @@ struct PersonalPaceCard: View {
         VStack(alignment: .trailing, spacing: 2) {
             Text(summary.goalLineText)
                 .font(
-                    CompetitiveTrustTheme.tabularFont(
+                    SignalTheme.tabularFont(
                         size: 10,
                         weight: .bold
                     )
                 )
-                .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
             PaceGuideLine()
                 .stroke(
-                    CompetitiveTrustTheme.hairlineDivider,
+                    SignalTheme.divider,
                     style: StrokeStyle(lineWidth: 1, dash: [4, 4])
                 )
                 .frame(height: 1)
@@ -629,10 +629,14 @@ struct PersonalPaceCard: View {
         } label: {
             VStack(spacing: 0) {
                 Spacer(minLength: 0)
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(fill(for: day.verdict))
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(hasKnownValue(day) ? (isSelected ? SignalTheme.accent : SignalTheme.bar) : .clear)
                     .frame(height: barHeight(for: day))
                     .overlay {
+                        if !hasKnownValue(day) {
+                            RoundedRectangle(cornerRadius: 3)
+                                .stroke(SignalTheme.textSecondary, style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                        }
                         if isSelected {
                             RoundedRectangle(
                                 cornerRadius: 6,
@@ -640,7 +644,7 @@ struct PersonalPaceCard: View {
                             )
                             .inset(by: -2)
                             .stroke(
-                                CompetitiveTrustTheme.primaryText,
+                                SignalTheme.textPrimary,
                                 lineWidth: 1.5
                             )
                         }
@@ -661,15 +665,15 @@ struct PersonalPaceCard: View {
             ForEach(summary.days) { day in
                 Text(day.shortLabel)
                     .font(
-                        CompetitiveTrustTheme.tabularFont(
+                        SignalTheme.tabularFont(
                             size: 11,
                             weight: .bold
                         )
                     )
                     .foregroundStyle(
                         day.id == resolvedDay?.id
-                            ? CompetitiveTrustTheme.primaryText
-                            : CompetitiveTrustTheme.tertiaryText
+                            ? SignalTheme.textPrimary
+                            : SignalTheme.textSecondary
                     )
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
@@ -683,64 +687,15 @@ struct PersonalPaceCard: View {
     private var selectedDay: some View {
         if let day = resolvedDay {
             let text = summary.detailText(for: day)
-            VStack(spacing: 0) {
-                Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
-                HStack(alignment: .center, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(day.longLabel)
-                            .textCase(.uppercase)
-                            .font(
-                                CompetitiveTrustTheme.monoFont(
-                                    size: 11,
-                                    weight: .bold
-                                )
-                            )
-                            .tracking(0.6)
-                            .foregroundStyle(
-                                CompetitiveTrustTheme.secondaryText
-                            )
-                        Text(text.value)
-                            .font(
-                                CompetitiveTrustTheme.tabularFont(
-                                    size: 24,
-                                    weight: .bold
-                                )
-                            )
-                            .tracking(-0.5)
-                        Text(text.caption)
-                            .font(
-                                CompetitiveTrustTheme.uiFont(
-                                    size: 12.5,
-                                    relativeTo: .footnote
-                                )
-                            )
-                            .foregroundStyle(
-                                CompetitiveTrustTheme.secondaryText
-                            )
-                            .fixedSize(
-                                horizontal: false,
-                                vertical: true
-                            )
-                    }
-                    Spacer(minLength: 8)
-                    Image(systemName: "figure.walk")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(CompetitiveTrustTheme.signalOrange)
-                        .frame(width: 36, height: 36)
-                        .background(
-                            CompetitiveTrustTheme.card,
-                            in: Circle()
-                        )
-                        .overlay {
-                            Circle().stroke(
-                                CompetitiveTrustTheme.hairlineDivider,
-                                lineWidth: 1
-                            )
-                        }
-                        .accessibilityHidden(true)
-                }
-                .padding(.top, 14)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(day.longLabel) · \(day.id)").font(.caption.weight(.semibold))
+                    .foregroundStyle(SignalTheme.textSecondary)
+                Text(text.value).font(.title2.weight(.medium)).monospacedDigit()
+                Text(text.caption).font(.footnote).foregroundStyle(SignalTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+            .modifier(SignalControlMaterial(interactive: false, cornerRadius: 13))
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("personal.pace.selected-day")
         }
@@ -751,9 +706,7 @@ struct PersonalPaceCard: View {
     }
 
     private var headlineColor: Color {
-        summary.headlineTone == .positive
-            ? CompetitiveTrustTheme.athleticGreen
-            : CompetitiveTrustTheme.signalOrange
+        SignalTheme.textPrimary
     }
 
     private var goalHeight: CGFloat {
@@ -762,25 +715,17 @@ struct PersonalPaceCard: View {
     }
 
     private func barHeight(for day: PersonalPaceSummary.Day) -> CGFloat {
-        guard day.verdict != .future else { return 5 }
+        guard hasKnownValue(day) else { return 5 }
         guard summary.barCeiling > 0 else { return 8 }
         let scaled =
             CGFloat(Double(day.steps) / summary.barCeiling) * barScale
-        return max(8, min(barScale, scaled))
+        return max(day.steps == 0 ? 1 : 3, min(barScale, scaled))
     }
 
-    private func fill(for verdict: PersonalPaceSummary.Verdict) -> Color {
-        switch verdict {
-        case .future, .waiting:
-            CompetitiveTrustTheme.rail
-        case .today:
-            CompetitiveTrustTheme.signalOrange
-        case .metGoal, .waived:
-            CompetitiveTrustTheme.athleticGreen
-        case .underGoal:
-            CompetitiveTrustTheme.signalOrange.opacity(0.8)
-        case .problem:
-            CompetitiveTrustTheme.sun
+    private func hasKnownValue(_ day: PersonalPaceSummary.Day) -> Bool {
+        switch day.verdict {
+        case .today, .metGoal, .underGoal: true
+        case .future, .waiting, .waived, .problem: false
         }
     }
 
@@ -813,7 +758,7 @@ struct PersonalPaceTiles: View {
                     ForEach(Array(tiles.enumerated()), id: \.element.id) { index, tile in
                         tileCell(tile)
                         if index < tiles.count - 1 {
-                            Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
+                            Divider().overlay(SignalTheme.divider)
                         }
                     }
                 }
@@ -822,52 +767,46 @@ struct PersonalPaceTiles: View {
                     ForEach(Array(tiles.enumerated()), id: \.element.id) { index, tile in
                         tileCell(tile)
                         if index < tiles.count - 1 {
-                            Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
+                            Divider().overlay(SignalTheme.divider)
                         }
                     }
                 }
             }
         }
-        .background(
-            CompetitiveTrustTheme.card,
-            in: RoundedRectangle(cornerRadius: 10, style: .continuous)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(CompetitiveTrustTheme.hairlineDivider, lineWidth: 1)
-        }
+        .background(SignalTheme.canvas)
+        .overlay(alignment: .top) { Divider().overlay(SignalTheme.divider) }
+        .overlay(alignment: .bottom) { Divider().overlay(SignalTheme.divider) }
     }
 
     private func tileCell(_ tile: PersonalPaceSummary.Tile) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(tile.label.uppercased())
                 .font(
-                    CompetitiveTrustTheme.monoFont(
+                    SignalTheme.monoFont(
                         size: 10,
                         weight: .bold
                     )
                 )
                 .tracking(0.5)
-                .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
 
             Text(tile.value)
                 .font(
-                    CompetitiveTrustTheme.tabularFont(
+                    SignalTheme.tabularFont(
                         size: dynamicTypeSize.isAccessibilitySize ? 20 : 22,
                         weight: .bold
                     )
                 )
-                .foregroundStyle(CompetitiveTrustTheme.primaryText)
+                .foregroundStyle(SignalTheme.textPrimary)
 
             Text(tile.caption)
                 .font(
-                    CompetitiveTrustTheme.uiFont(
+                    SignalTheme.uiFont(
                         size: 11,
                         relativeTo: .caption
                     )
                 )
-                .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
-                .lineLimit(2)
+                .foregroundStyle(SignalTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 12)
@@ -899,7 +838,7 @@ struct PersonalChallengeDetailsCard: View {
                 header
             }
             .buttonStyle(.plain)
-            .daybreakTappableRow()
+            .signalTappableRow()
             .accessibilityIdentifier("personal.details")
             .accessibilityLabel("Challenge details")
             .accessibilityValue(isShowingTerms ? "Showing" : "Hidden")
@@ -942,19 +881,19 @@ struct PersonalChallengeDetailsCard: View {
                 }
             }
         }
-        .trustCard()
+        .signalSection()
     }
 
     private var header: some View {
         HStack(spacing: 12) {
             Image(systemName: "doc.text")
                 .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(CompetitiveTrustTheme.tertiaryText)
+                .foregroundStyle(SignalTheme.textSecondary)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Challenge details")
                     .font(
-                        CompetitiveTrustTheme.uiFont(
+                        SignalTheme.uiFont(
                             size: 14,
                             relativeTo: .subheadline,
                             weight: .bold
@@ -962,24 +901,24 @@ struct PersonalChallengeDetailsCard: View {
                     )
                 Text(summaryLine)
                     .font(
-                        CompetitiveTrustTheme.uiFont(
+                        SignalTheme.uiFont(
                             size: 11.5,
                             relativeTo: .caption
                         )
                     )
-                    .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                    .foregroundStyle(SignalTheme.textSecondary)
                     .multilineTextAlignment(.leading)
             }
             Spacer(minLength: 8)
             Text(isShowingTerms ? "Hide" : "Show")
                 .font(
-                    CompetitiveTrustTheme.uiFont(
+                    SignalTheme.uiFont(
                         size: 12,
                         relativeTo: .caption,
                         weight: .bold
                     )
                 )
-                .foregroundStyle(CompetitiveTrustTheme.signalOrange)
+                .foregroundStyle(SignalTheme.accent)
         }
         .contentShape(Rectangle())
     }
@@ -1000,7 +939,7 @@ struct PersonalChallengeDetailsCard: View {
                         .font(.subheadline.weight(.semibold))
                     Text(value)
                         .font(.subheadline)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .foregroundStyle(SignalTheme.textSecondary)
                         .multilineTextAlignment(.leading)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1011,7 +950,7 @@ struct PersonalChallengeDetailsCard: View {
                     Spacer(minLength: 8)
                     Text(value)
                         .font(.subheadline)
-                        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+                        .foregroundStyle(SignalTheme.textSecondary)
                         .multilineTextAlignment(.trailing)
                 }
             }
@@ -1021,6 +960,6 @@ struct PersonalChallengeDetailsCard: View {
     }
 
     private var divider: some View {
-        Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
+        Divider().overlay(SignalTheme.divider)
     }
 }

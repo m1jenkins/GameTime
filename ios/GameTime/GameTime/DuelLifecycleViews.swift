@@ -146,7 +146,7 @@ struct DuelParticipantReviewView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            SignalForm {
                 DuelDisclosure()
                 Section("The result you want reviewed") {
                     Text("Update saved \(notice.recordedAt.text(zone: agreement.terms.event.displayTimezone))")

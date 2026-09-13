@@ -7,11 +7,9 @@ import XCTest
 
 /// Native, model-backed renders. Fixture responses never report mutation success.
 /// These supplement the authenticated touch journeys; they are not VoiceOver proof.
-@MainActor final class CobaltRenderedTests: XCTestCase {
+@MainActor final class SignalRenderedTests: XCTestCase {
     func testHomeHierarchyAtCurrentCompactDarkAndAccessibilitySizes() async throws {
-        let italic = try XCTUnwrap(UIFont(name: "BarlowCondensed-BlackItalic", size: 48))
-        XCTAssertTrue(italic.fontDescriptor.symbolicTraits.contains(.traitItalic), "The display face must render a real italic font")
-        let fixture = CobaltFixture(); defer { fixture.clean() }
+        let fixture = SignalFixture(); defer { fixture.clean() }
         fixture.rows = [fixture.row("personal_exercise_goal_v1"),
                         fixture.row("friend_steps_leaderboard_v1"),
                         fixture.row("personal_distance_goal_v1", status: "scheduled")]
@@ -25,21 +23,18 @@ import XCTest
             try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {})
                 .environment(\.colorScheme, scheme).environment(\.dynamicTypeSize, type),
                 name: name, width: width, height: height,
-                // The iOS 18 OCR model reads the white condensed G as C. The
-                // named font is checked above; UI tests check the actual header
-                // label. Keep the visual header anchor and all metric checks.
-                required: ["home", "home-dark"].contains(name) ? ["New challenge", "42,850", "95", "20 km", "Your next goal"] : ["New challenge"])
+                required: ["GameTime", "Today", "Simulated"])
         }
     }
 
     func testAllMetricsAndCommunityPrivacyRenderFromValidatedRows() async throws {
-        let fixture = CobaltFixture(); defer { fixture.clean() }
+        let fixture = SignalFixture(); defer { fixture.clean() }
         for policy in ChallengeV1Policy.all {
             let row = fixture.row(policy.id)
             fixture.rows = [row]; try await fixture.start()
             let required = policy.metric == .timed ? ["km"] : [policy.metric == .steps ? "steps" : policy.metric == .exercise ? "min" : "km"]
             try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
-                              name: policy.id, height: 3000, required: required,
+                              name: policy.id, scrolls: true, required: required,
                               forbidden: policy.mode == .community ? ["Maya", "Jordan", "4 people joined"] : [])
             if policy.mode == .personal || policy.competition == .leaderboard {
                 XCTAssertEqual(row.members.allSatisfy { $0.target == nil }, !policy.hasTarget)
@@ -48,30 +43,30 @@ import XCTest
     }
 
     func testCommunityDelayedCountsInDetailAndJoin() async throws {
-        let fixture = CobaltFixture(); defer { fixture.clean() }
+        let fixture = SignalFixture(); defer { fixture.clean() }
         var row = fixture.row("community_steps_goal_v1")
         let snapshot = ChallengeInstant(date: row.serverTime.date.addingTimeInterval(-900))
         row.counts = .init(joined: 5, state: "available", asOf: snapshot)
         fixture.rows = [row]; try await fixture.start()
         try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
-                          name: "community-mature-detail", height: 2400,
+                          name: "community-mature-detail", scrolls: true,
                           required: ["5 people joined", "15 minutes ago", "assigned moderator", "Report unsafe behavior"], forbidden: ["Maya", "Jordan"])
         let community = ChallengeV1Community(id: row.id, terms: .object(["common_target": .integer(50000)]), digest: "fixture", serverTime: row.serverTime, joinedCount: 5, counts: row.counts)
         try await capture(NavigationStack { ChallengeCommunityJoin(store: fixture.store, community: community) },
-                          name: "community-mature-join", required: ["5 people joined", "Join community challenge"])
+                          name: "community-mature-join", scrolls: true, required: ["5 people joined", "Join community challenge"])
         row.counts = .init(joined: nil, state: "threshold", asOf: nil)
         fixture.rows = [row]; try await fixture.start()
         try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
-                          name: "community-threshold-detail", height: 2400,
+                          name: "community-threshold-detail", scrolls: true,
                           required: ["Participant totals stay hidden"], forbidden: ["5 people joined", "Maya", "Jordan"])
     }
 
     func testUnknownCorrectedTiedRedactedAndRecoveryPresentation() async throws {
-        let fixture = CobaltFixture(); defer { fixture.clean() }
+        let fixture = SignalFixture(); defer { fixture.clean() }
         let row = fixture.row("friend_steps_leaderboard_v1", edge: true)
         fixture.rows = [row]; try await fixture.start()
         try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
-                          name: "leaderboard-unknown-tied-departed", height: 3200,
+                          name: "leaderboard-unknown-tied-departed", scrolls: true,
                           required: ["No update yet", "Former participant", "Activity hidden"], forbidden: ["Private name"])
         fixture.rows = []; try await fixture.start()
         try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}),
@@ -82,7 +77,7 @@ import XCTest
         await fixture.store.refresh()
         fixture.fail = true; await fixture.store.refresh()
         try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}),
-                          name: "home-stale-recovery", height: 2200,
+                          name: "home-stale-recovery", scrolls: true,
                           required: ["Retry saved action", "Last saved view", "No update yet"])
         fixture.store.setActor(fixture.actor)
         try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}),
@@ -92,9 +87,58 @@ import XCTest
                           name: "home-unavailable", required: ["Refresh to try again"])
     }
 
+    func testTwoAndSixPeopleReflowWithLongNamesAndSolidControls() async throws {
+        let fixture = SignalFixture(); defer { fixture.clean() }
+        for count in [2, 6] {
+            let row = fixture.row("friend_steps_leaderboard_v1", people: count)
+            fixture.rows = [row]; try await fixture.start()
+            for accessible in [false, true] {
+                try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) }
+                    .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large)
+                    .environment(\.colorScheme, accessible ? .dark : .light),
+                    name: "people-\(count)-\(accessible ? "large-dark-solid" : "compact-solid")",
+                    width: 375, scrolls: true, contrast: .high,
+                    required: ["You", "Maya", "Leave challenge"])
+            }
+        }
+    }
+
+    func testAllAgreementsKeepLongRulesAndDatesReadable() async throws {
+        let fixture = SignalFixture(); defer { fixture.clean() }
+        for policy in ChallengeV1Policy.all {
+            let row = fixture.row(policy.id, status: "scheduled")
+            try await capture(NavigationStack {
+                ChallengeForm {
+                    SignalChallengeHeader(row: row, actor: fixture.actor)
+                    ChallengeAgreementText(policy: policy, window: row.config, minimum: policy.mode == .personal ? 1 : 2)
+                }.navigationTitle("Your agreement")
+            }, name: "agreement-" + policy.id, width: 375, scrolls: true,
+                required: ["Starts", "Ends, not included", "America/Chicago", "No real money moves", "48 hours", "72 hours"])
+        }
+    }
+
+    func testControlFallbackGeometryAndUnknownValues() async throws {
+        struct Controls: View {
+            var body: some View {
+                VStack(spacing: 16) {
+                    Button("Agree to this challenge") {}.buttonStyle(SignalPrimaryButtonStyle())
+                    Button("Leave challenge", role: .destructive) {}.buttonStyle(SignalSecondaryButtonStyle())
+                    Button("Start my personal goal") {}.buttonStyle(SignalPrimaryButtonStyle()).disabled(true)
+                    SignalMetricValue(value: 1_000_000_000, metric: .steps)
+                }.padding(24).modifier(SignalGlassGroup()).background(SignalTheme.canvas)
+            }
+        }
+        for solid in [false, true] {
+            try await capture(Controls(), name: solid ? "controls-solid" : "controls-glass",
+                width: 375, contrast: solid ? .high : .normal, required: ["Agree to this challenge", "Leave challenge", "1,000,000,000"])
+        }
+    }
+
     private func capture<V: View>(_ view: V, name: String, width: CGFloat = 430, height: CGFloat = 932,
+                                 scrolls: Bool = false, contrast: UIAccessibilityContrast = .normal,
                                  required: [String] = [], forbidden: [String] = []) async throws {
         let host = UIHostingController(rootView: view)
+        host.traitOverrides.accessibilityContrast = contrast
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
         let previous = scene.windows.first(where: \.isKeyWindow)
         let window = UIWindow(windowScene: scene)
@@ -103,32 +147,56 @@ import XCTest
         defer { window.isHidden = true; previous?.makeKeyAndVisible() }
         try await Task.sleep(for: .milliseconds(300))
         host.view.setNeedsLayout(); host.view.layoutIfNeeded()
-        let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
-        let image = UIGraphicsImageRenderer(size: window.bounds.size, format: format).image { host.view.layer.render(in: $0.cgContext) }
-        let cg = try XCTUnwrap(image.cgImage)
         var lines: [String] = []
-        for y in stride(from: 0, to: cg.height, by: 550) {
-            let tile = try XCTUnwrap(cg.cropping(to: CGRect(x: 0, y: y, width: cg.width, height: min(700, cg.height - y))))
-            let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
-            request.customWords = ["GameTime"]
-            request.recognitionLanguages = ["en-US"]; request.minimumTextHeight = 0.005
-            try VNImageRequestHandler(cgImage: tile).perform([request])
-            lines += (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+        for page in 0..<40 {
+            // Glass is compositor-backed. Draw the actual UIKit viewport, then
+            // scroll its native content; oversized synthetic windows cannot
+            // capture the compositor and CALayer.render omits glass entirely.
+            let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
+            let image = UIGraphicsImageRenderer(size: window.bounds.size, format: format).image { _ in
+                host.view.drawHierarchy(in: host.view.bounds, afterScreenUpdates: true)
+            }
+            let cg = try XCTUnwrap(image.cgImage)
+            for y in stride(from: 0, to: cg.height, by: 550) {
+                let tile = try XCTUnwrap(cg.cropping(to: CGRect(x: 0, y: y, width: cg.width, height: min(700, cg.height - y))))
+                let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
+                request.customWords = ["GameTime"]
+                request.recognitionLanguages = ["en-US"]; request.minimumTextHeight = 0.005
+                try VNImageRequestHandler(cgImage: tile).perform([request])
+                lines += (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+            }
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "signal-" + name + "-page-\(page)"; attachment.lifetime = .keepAlways; add(attachment)
+            guard scrolls, let scroll = scrollView(in: host.view) else { break }
+            let bottom = max(-scroll.adjustedContentInset.top,
+                             scroll.contentSize.height - scroll.bounds.height + scroll.adjustedContentInset.bottom)
+            let next = min(bottom, scroll.contentOffset.y + scroll.bounds.height * 0.7)
+            guard next > scroll.contentOffset.y + 1 else { break }
+            scroll.setContentOffset(CGPoint(x: scroll.contentOffset.x, y: next), animated: false)
+            try await Task.sleep(for: .milliseconds(120))
+            host.view.layoutIfNeeded()
+            XCTAssertLessThan(page, 39, "The complete route must fit the bounded scroll capture")
         }
         let text = lines.joined(separator: " ").lowercased()
-        // Vision may split the condensed wordmark into "Game Time". Ignore
-        // OCR whitespace for presence checks, including privacy exclusions.
         let searchable = text.filter { !$0.isWhitespace }
-        let attachment = XCTAttachment(image: image); attachment.name = "cobalt-" + name; attachment.lifetime = .keepAlways; add(attachment)
-        let transcription = XCTAttachment(string: text); transcription.name = "cobalt-" + name + "-text"; transcription.lifetime = .keepAlways; add(transcription)
-        for value in required { XCTAssertTrue(searchable.contains(value.lowercased().filter { !$0.isWhitespace }), "Missing rendered text: \(value)") }
-        for value in forbidden { XCTAssertFalse(searchable.contains(value.lowercased().filter { !$0.isWhitespace }), "Private text rendered: \(value)") }
+        let transcription = XCTAttachment(string: text)
+        transcription.name = "signal-" + name + "-text"; transcription.lifetime = .keepAlways; add(transcription)
+        for value in required { XCTAssertTrue(searchable.contains(value.lowercased().filter { !$0.isWhitespace }), "Missing rendered text in \(name): \(value)") }
+        for value in forbidden { XCTAssertFalse(searchable.contains(value.lowercased().filter { !$0.isWhitespace }), "Private text rendered in \(name): \(value)") }
     }
+
+    private func scrollView(in view: UIView) -> UIScrollView? {
+        guard !view.isHidden, view.alpha > 0 else { return nil }
+        if let scroll = view as? UIScrollView, scroll.isScrollEnabled,
+           scroll.contentSize.height > scroll.bounds.height { return scroll }
+        return view.subviews.lazy.compactMap { self.scrollView(in: $0) }.first
+    }
+
 }
 
-@MainActor private final class CobaltFixture: ChallengeV1Client, AuthClient {
+@MainActor private final class SignalFixture: ChallengeV1Client, AuthClient {
     let actor = UUID(), maya = UUID(), jordan = UUID()
-    let directory = FileManager.default.temporaryDirectory.appendingPathComponent("cobalt-render-" + UUID().uuidString)
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent("signal-render-" + UUID().uuidString)
     var rows: [ChallengeV1] = [], fail = false
     lazy var store = ChallengeV1Store(auth: self, client: self, requests: ChallengeV1RequestStore(directory: directory), now: { 0 })
     func clean() { store.hide(); try? FileManager.default.removeItem(at: directory) }
@@ -136,7 +204,7 @@ import XCTest
         for row in rows { try row.validate(actor: actor) }
         store.setActor(actor); await store.refresh(); XCTAssertNil(store.error)
     }
-    func row(_ policy: String, status: String = "active", edge: Bool = false) -> ChallengeV1 {
+    func row(_ policy: String, status: String = "active", edge: Bool = false, people: Int = 3) -> ChallengeV1 {
         let format = ChallengeV1Policy(rawValue: policy)!
         let start = ChallengeInstant(date: Date(timeIntervalSince1970: 1788757200 + (status == "scheduled" ? 7 * 86400 : 0)))
         let end = ChallengeInstant(date: start.date.addingTimeInterval(7 * 86400))
@@ -147,7 +215,16 @@ import XCTest
                                selected: true, exited: false, consented: true,
                                fact: status == "scheduled" ? nil : .init(value: values[index], state: "complete", recordedAt: start, revision: 1))
         }
-        if format.mode != .friend { members = members.filter { $0.actorId == actor } }
+        if format.mode == .friend {
+            if people == 2 { members = Array(members.prefix(2)) }
+            if people == 6 {
+                members += ["alexandertheweekendrunner", "Taylor", "Sam"].map {
+                    .init(actorId: UUID(), username: $0, target: format.hasTarget ? target : nil,
+                          selected: true, exited: false, consented: true,
+                          fact: .init(value: values[2], state: "complete", recordedAt: start, revision: 1))
+                }
+            }
+        } else { members = members.filter { $0.actorId == actor } }
         if edge {
             members = [members[0], .init(actorId: actor, username: "Fictional You", target: nil, selected: true, exited: false, consented: true, fact: nil),
                        .init(actorId: jordan, username: "Jordan", target: nil, selected: true, exited: false, consented: true, fact: members[0].fact),

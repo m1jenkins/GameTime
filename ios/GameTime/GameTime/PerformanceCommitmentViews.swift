@@ -10,7 +10,7 @@ struct PerformanceCommitmentHomeView: View {
     var body: some View {
         Group {
             if model.configuration.performanceCommitmentRuntimeEnabled {
-                List {
+                SignalList {
                     CommitmentDisclosure()
                     if creation == nil { CommitmentRecoverySection(store: store) }
                     Section {
@@ -50,7 +50,7 @@ struct PerformanceCommitmentHomeView: View {
             }
         }
         .navigationTitle("Running goals")
-        .daybreakScreenChrome()
+        .signalScreenChrome()
         .toolbar {
             Button("Refresh", systemImage: "arrow.clockwise") { Task { await store.refresh() } }
                 .disabled(store.isLoading || store.isSending)
@@ -124,7 +124,7 @@ struct PerformanceCommitmentCreationView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            SignalForm {
                 CommitmentDisclosure()
                 CommitmentRecoverySection(store: store)
                 if let createdID {
@@ -268,7 +268,7 @@ struct PerformanceCommitmentDetailView: View {
     private var store: PerformanceCommitmentStore { model.performanceCommitments }
     private var agreement: PerformanceCommitmentAgreement? { store.agreements.first { $0.id == commitmentID } }
     var body: some View {
-        List {
+        SignalList {
             CommitmentDisclosure()
             if action == nil { CommitmentRecoverySection(store: store) }
             if let agreement {
@@ -288,7 +288,7 @@ struct PerformanceCommitmentDetailView: View {
             }
         }
         .navigationTitle("Your running goal")
-        .daybreakScreenChrome()
+        .signalScreenChrome()
         .toolbar {
             Button("Refresh", systemImage: "arrow.clockwise") { Task { await store.refreshDetail(commitmentID) } }
                 .disabled(store.isSending || store.isLoading)
@@ -319,7 +319,7 @@ private struct CommitmentActionView: View {
     private var store: PerformanceCommitmentStore { model.performanceCommitments }
     var body: some View {
         NavigationStack {
-            Form {
+            SignalForm {
                 CommitmentDisclosure()
                 CommitmentRecoverySection(store: store)
                 switch action {

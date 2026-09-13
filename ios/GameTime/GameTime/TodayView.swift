@@ -22,8 +22,8 @@ struct TodayView: View {
             .padding(.horizontal, 18)
             .padding(.top, 4)
         }
-        .daybreakTabScrollClearance()
-        .daybreakScreenChrome()
+        .signalTabScrollClearance()
+        .signalScreenChrome()
         .navigationTitle("Today")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable {
@@ -39,7 +39,7 @@ struct TodayView: View {
                 state: store.loadState,
                 retry: { Task { await refreshWithAnnouncement() } }
             )
-            .trustCard()
+            .signalSection()
         case .idle, .loaded, .empty:
             EmptyView()
         }
@@ -81,12 +81,12 @@ struct TodayView: View {
                     Spacer(minLength: 8)
                     Text(summary.terms.commitmentText)
                         .font(
-                            CompetitiveTrustTheme.displayFont(
+                            SignalTheme.displayFont(
                                 size: 20,
                                 relativeTo: .headline
                             )
                         )
-                        .foregroundStyle(CompetitiveTrustTheme.signalOrange)
+                        .foregroundStyle(SignalTheme.accent)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -94,7 +94,7 @@ struct TodayView: View {
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Text(progress.totalSteps.formatted())
                                 .font(
-                                    CompetitiveTrustTheme.tabularFont(
+                                    SignalTheme.tabularFont(
                                         size: dynamicTypeSize.isAccessibilitySize
                                             ? 30
                                             : 40,
@@ -104,19 +104,19 @@ struct TodayView: View {
                                 .tracking(-0.8)
                             Text("/ \(summary.terms.targetSteps.formatted()) steps")
                                 .font(
-                                    CompetitiveTrustTheme.tabularFont(
+                                    SignalTheme.tabularFont(
                                         size: 16,
                                         weight: .bold
                                     )
                                 )
                                 .foregroundStyle(
-                                    CompetitiveTrustTheme.secondaryText
+                                    SignalTheme.textSecondary
                                 )
                         }
                     } else {
                         Text(summary.terms.targetText)
                             .font(
-                                CompetitiveTrustTheme.tabularFont(
+                                SignalTheme.tabularFont(
                                     size: dynamicTypeSize.isAccessibilitySize
                                         ? 20
                                         : 28,
@@ -130,26 +130,26 @@ struct TodayView: View {
                         HStack(spacing: 6) {
                             Text(paceSummary.headline)
                                 .font(
-                                    CompetitiveTrustTheme.tabularFont(
+                                    SignalTheme.tabularFont(
                                         size: 14,
                                         weight: .bold
                                     )
                                 )
                                 .foregroundStyle(
                                     paceSummary.headlineTone == .positive
-                                        ? CompetitiveTrustTheme.athleticGreen
-                                        : CompetitiveTrustTheme.signalOrange
+                                        ? SignalTheme.accent
+                                        : SignalTheme.accent
                                 )
                             Text(paceSummary.headlineCaption)
                                 .font(
-                                    CompetitiveTrustTheme.uiFont(
+                                    SignalTheme.uiFont(
                                         size: 12.5,
                                         relativeTo: .caption,
                                         weight: .semibold
                                     )
                                 )
                                 .foregroundStyle(
-                                    CompetitiveTrustTheme.secondaryText
+                                    SignalTheme.textSecondary
                                 )
                         }
                     }
@@ -162,7 +162,7 @@ struct TodayView: View {
                     )
                 }
 
-                Divider().overlay(CompetitiveTrustTheme.hairlineDivider)
+                Divider().overlay(SignalTheme.divider)
 
                 PersonalHealthProgressStatus(
                     presentation: healthPresentation,
@@ -174,10 +174,10 @@ struct TodayView: View {
                         .personalChallenge(summary.id)
                     )
                 }
-                .buttonStyle(TrustPrimaryButtonStyle())
+                .buttonStyle(SignalPrimaryButtonStyle())
                 .accessibilityIdentifier("personal.today.open")
             }
-            .trustCard()
+            .signalSection()
 
             if let paceSummary {
                 PersonalPaceCard(summary: paceSummary)
@@ -200,11 +200,11 @@ struct TodayView: View {
             Button("Start a challenge") {
                 router.presentedSheet = .createPersonalChallenge
             }
-            .buttonStyle(TrustPrimaryButtonStyle())
+            .buttonStyle(SignalPrimaryButtonStyle())
             .disabled(!store.canCreate)
             .accessibilityIdentifier("personal.create")
         }
-        .trustCard()
+        .signalSection()
     }
 
     private func refreshWithAnnouncement() async {

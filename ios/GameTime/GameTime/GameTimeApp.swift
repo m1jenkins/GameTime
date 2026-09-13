@@ -23,11 +23,7 @@ struct GameTimeApp: App {
     private let isFixtureTestLaunch: Bool
 
     init() {
-        #if DEBUG
-        if !ChallengeLocalLaunch.enabled && !SourceInvestigationLaunch.enabled { DaybreakAppearance.install() }
-        #else
-        DaybreakAppearance.install()
-        #endif
+        SignalAppearance.install()
 
         let notificationCoordinator = PushNotificationCoordinator()
         _pushCoordinator = State(initialValue: notificationCoordinator)
@@ -224,15 +220,9 @@ struct GameTimeApp: App {
                 #endif
                 _ = StripeAPI.handleURLCallback(with: url)
             }
-            .preferredColorScheme(productColorScheme)
+            .tint(SignalTheme.accent)
+            .foregroundStyle(SignalTheme.textPrimary)
         }
-    }
-
-    private var productColorScheme: ColorScheme? {
-        #if DEBUG
-        if SourceInvestigationLaunch.enabled || ChallengeLocalLaunch.enabled { return nil }
-        #endif
-        return .light
     }
 
     @ViewBuilder private var productRoot: some View {
@@ -251,7 +241,7 @@ struct GameTimeApp: App {
                     .environment(demoPersonalStore)
                     .environment(demoPersonalStore.stepProgress)
                     .environment(router)
-                    .tint(CompetitiveTrustTheme.actionCoral)
+                    .tint(SignalTheme.accent)
                 } else if let liveModel, let livePersonalStore {
                     RootView(
                         model: liveModel,
@@ -264,7 +254,7 @@ struct GameTimeApp: App {
                     .environment(livePersonalStore)
                     .environment(livePersonalStore.stepProgress)
                     .environment(router)
-                    .tint(CompetitiveTrustTheme.actionCoral)
+                    .tint(SignalTheme.accent)
                 } else {
                     ConfigurationFailureView(
                         message: configurationFailure
@@ -359,10 +349,10 @@ struct RootView: View {
     let demoMode: DemoModeAccess
     let pushCoordinator: PushNotificationCoordinator
 
-    private var usesCobaltShell: Bool {
+    private var usesProductShell: Bool {
         #if DEBUG || STAGING
         // Historical fixture/demo journeys remain explicit, reproducible regressions.
-        if ProcessInfo.processInfo.arguments.contains("--cobalt-shell") { return true }
+        if ProcessInfo.processInfo.arguments.contains("--fixture-product-shell") { return true }
         if ProcessInfo.processInfo.arguments.contains("--fixture-mode") { return false }
         #endif
         return !demoMode.isActive
@@ -383,17 +373,14 @@ struct RootView: View {
         @Bindable var router = router
 
         VStack(spacing: 0) {
-            if (!usesCobaltShell || model.phase != .signedIn) && router.presentedSheet == nil && !isShowingRunningExperiment {
+            if (!usesProductShell || model.phase != .signedIn) && router.presentedSheet == nil && !isShowingRunningExperiment {
                 EnvironmentDisclosureBanner(
                     settlementMode:
                         model.configuration.personalSettlementMode,
                     isDemo: demoMode.isActive
                 )
                 .background(
-                    (demoMode.isActive
-                        ? CompetitiveTrustTheme.actionCoral
-                        : CompetitiveTrustTheme.sun)
-                        .ignoresSafeArea(edges: .top)
+                    SignalTheme.soft.ignoresSafeArea(edges: .top)
                 )
             }
 
@@ -413,8 +400,8 @@ struct RootView: View {
                         namePrefill: model.onboardingNamePrefill
                     )
                 case .signedIn:
-                    if usesCobaltShell {
-                        CobaltProductShell()
+                    if usesProductShell {
+                        SignalProductShell()
                     } else {
                         AppShellView()
                     }
@@ -541,12 +528,12 @@ private struct ConfigurationFailureView: View {
         VStack(spacing: 18) {
             Image(systemName: "lock.trianglebadge.exclamationmark")
                 .font(.system(size: 42, weight: .semibold))
-                .foregroundStyle(CompetitiveTrustTheme.amber)
+                .foregroundStyle(SignalTheme.textSecondary)
                 .accessibilityHidden(true)
             Text("GameTime can’t start")
                 .font(.title2.bold())
             Text(message)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(SignalTheme.textSecondary)
                 .multilineTextAlignment(.center)
             PublicSupportLinksView(
                 privacyURL: AppConfiguration.publishedPolicyURL(
@@ -568,8 +555,7 @@ private struct ConfigurationFailureView: View {
         }
         .padding(28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(CompetitiveTrustTheme.ink)
-        .preferredColorScheme(.light)
+        .background(SignalTheme.canvas)
     }
 }
 
@@ -583,18 +569,18 @@ private struct SignedOutView: View {
                 Spacer(minLength: 56)
 
                 Text(GameTimePublicIdentity.name)
-                    .modifier(CobaltDisplay(size: 28))
-                    .foregroundStyle(CompetitiveTrustTheme.actionCoral)
+                    .modifier(SignalDisplay(size: 28))
+                    .foregroundStyle(SignalTheme.accent)
                     .accessibilityLabel(Text(GameTimePublicIdentity.name))
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Commit clearly.\nShow up daily.")
-                        .modifier(CobaltDisplay(size: 36))
+                        .modifier(SignalDisplay(size: 36))
                     Text(
                         "Set one step goal, put a little on the line, and see it through for seven days."
                     )
                     .font(.body)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(SignalTheme.textSecondary)
                 }
 
                 VStack(spacing: 10) {
@@ -602,7 +588,7 @@ private struct SignedOutView: View {
                         .disabled(model.isMutating)
 
                     if model.isMutating {
-                        DaybreakAsyncStatus(message: "Signing in…")
+                        SignalAsyncStatus(message: "Signing in…")
                             .accessibilityIdentifier("auth.sign-in.status")
                     }
                 }
@@ -613,8 +599,8 @@ private struct SignedOutView: View {
                         systemImage: "checkmark.circle.fill"
                     )
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(CompetitiveTrustTheme.mintInk)
-                    .trustCard()
+                    .foregroundStyle(SignalTheme.accent)
+                    .signalSection()
                     .accessibilityIdentifier("account-deletion.success")
                 }
 
@@ -625,12 +611,12 @@ private struct SignedOutView: View {
                     )
                 }
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .trustCard()
+                .foregroundStyle(SignalTheme.textSecondary)
+                .signalSection()
 
                 if demoMode.isAvailable, !demoMode.isActive {
                     Button("Try demo mode", action: demoMode.enter)
-                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .buttonStyle(SignalSecondaryButtonStyle())
                         .accessibilityIdentifier("demo.enter")
                 }
 
@@ -638,7 +624,7 @@ private struct SignedOutView: View {
                     "Signing in creates your private account. Apple only shares your name the first time, and you can change it on the next screen."
                 )
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(SignalTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
 
                 PublicSupportLinksView(
@@ -649,15 +635,14 @@ private struct SignedOutView: View {
             }
             .padding(24)
         }
-        .background(CompetitiveTrustTheme.ink)
-        .preferredColorScheme(.light)
+        .background(SignalTheme.canvas)
         .onChange(of: model.isMutating) { _, isSigningIn in
             guard isSigningIn else { return }
-            DaybreakAccessibility.announce("Signing in…")
+            SignalAccessibility.announce("Signing in…")
         }
         .onChange(of: model.presentedError) { _, message in
             guard let message else { return }
-            DaybreakAccessibility.announce(message)
+            SignalAccessibility.announce(message)
         }
     }
 }
@@ -685,7 +670,7 @@ private struct OnboardingView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Make GameTime yours")
                                 .font(
-                                    CompetitiveTrustTheme.displayFont(
+                                    SignalTheme.displayFont(
                                         size: 32,
                                         relativeTo: .largeTitle
                                     )
@@ -695,13 +680,13 @@ private struct OnboardingView: View {
                             )
                             .font(.subheadline)
                             .foregroundStyle(
-                                CompetitiveTrustTheme.secondaryText
+                                SignalTheme.textSecondary
                             )
                         }
 
-                        DaybreakSectionLabel(text: "Your profile")
+                        SignalSectionLabel(text: "Your profile")
 
-                        DaybreakCard {
+                        SignalSection {
                             VStack(alignment: .leading, spacing: 18) {
                                 onboardingField(
                                     title: "Your name",
@@ -711,7 +696,7 @@ private struct OnboardingView: View {
                                     submitLabel: .next
                                 )
 
-                                Divider().overlay(CompetitiveTrustTheme.border)
+                                Divider().overlay(SignalTheme.divider)
 
                                 onboardingField(
                                     title: "Username",
@@ -726,7 +711,7 @@ private struct OnboardingView: View {
                                 )
                                 .font(.caption)
                                 .foregroundStyle(
-                                    CompetitiveTrustTheme.secondaryText
+                                    SignalTheme.textSecondary
                                 )
                             }
                         }
@@ -735,7 +720,7 @@ private struct OnboardingView: View {
                             Text(message)
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(
-                                    CompetitiveTrustTheme.actionCoral
+                                    SignalTheme.accent
                                 )
                                 .accessibilityIdentifier(
                                     "onboarding.general.error"
@@ -752,7 +737,7 @@ private struct OnboardingView: View {
                             )
                             .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(TrustPrimaryButtonStyle())
+                        .buttonStyle(SignalPrimaryButtonStyle())
                         .disabled(
                             model.isMutating
                                 || handle.isEmpty
@@ -766,7 +751,7 @@ private struct OnboardingView: View {
                             focusedField = nil
                             Task { await model.signOut() }
                         }
-                        .buttonStyle(TrustSecondaryButtonStyle())
+                        .buttonStyle(SignalSecondaryButtonStyle())
                         .disabled(model.isMutating)
                         .accessibilityIdentifier(
                             "onboarding.use-different-account"
@@ -775,7 +760,7 @@ private struct OnboardingView: View {
                     .padding(20)
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .daybreakScreenChrome()
+                .signalScreenChrome()
                 .onChange(of: focusedField) { _, field in
                     guard let field else { return }
                     Task { @MainActor in
@@ -821,7 +806,7 @@ private struct OnboardingView: View {
                 }
             }
         }
-        .preferredColorScheme(.light)
+
     }
 
     private func onboardingField(
@@ -851,8 +836,8 @@ private struct OnboardingView: View {
                 .padding(.horizontal, 14)
                 .frame(minHeight: 50)
                 .background(
-                    CompetitiveTrustTheme.paperSunk,
-                    in: RoundedRectangle(cornerRadius: 14)
+                    SignalTheme.soft,
+                    in: RoundedRectangle(cornerRadius: 8)
                 )
                 .disabled(model.isMutating)
                 .accessibilityLabel(title)
@@ -862,8 +847,8 @@ private struct OnboardingView: View {
                 .font(.caption)
                 .foregroundStyle(
                     error(for: field) == nil
-                        ? CompetitiveTrustTheme.secondaryText
-                        : CompetitiveTrustTheme.actionCoral
+                        ? SignalTheme.textSecondary
+                        : SignalTheme.accent
                 )
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier(

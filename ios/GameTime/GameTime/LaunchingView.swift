@@ -6,7 +6,7 @@ struct LaunchingView: View {
 
   var body: some View {
     ZStack {
-      CompetitiveTrustTheme.paper
+      SignalTheme.canvas
         .ignoresSafeArea()
 
       if let errorMessage {
@@ -18,6 +18,7 @@ struct LaunchingView: View {
       } else {
         LaunchLoadingContent()
           .padding(24)
+          .accessibilityElement(children: .contain)
           .accessibilityIdentifier("launch.loading")
       }
 
@@ -26,13 +27,13 @@ struct LaunchingView: View {
           Spacer()
           Text("Offline")
             .font(
-              CompetitiveTrustTheme.uiFont(
+              SignalTheme.uiFont(
                 size: 12,
                 relativeTo: .caption
               )
             )
             .foregroundStyle(
-              CompetitiveTrustTheme.tertiaryText
+              SignalTheme.textSecondary
             )
             .padding(.horizontal, 34)
             .padding(.bottom, 30)
@@ -40,7 +41,7 @@ struct LaunchingView: View {
         }
       }
     }
-    .preferredColorScheme(.light)
+
   }
 
   private var isOffline: Bool {
@@ -56,33 +57,15 @@ struct LaunchingView: View {
 }
 
 private struct LaunchLoadingContent: View {
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
-  @State private var hasAppeared = false
-
   var body: some View {
     VStack(spacing: 18) {
-      BetterBetWordmark()
-      DaybreakSpinner()
+      SignalWordmark()
+      ProgressView()
+        .accessibilityLabel("Loading \(GameTimePublicIdentity.name)")
+        .tint(SignalTheme.accent)
       Text("Loading…")
-        .font(
-          CompetitiveTrustTheme.uiFont(
-            size: 16,
-            relativeTo: .body,
-            weight: .bold
-          )
-        )
-        .foregroundStyle(CompetitiveTrustTheme.primaryText)
-    }
-    .opacity(hasAppeared ? 1 : 0)
-    .offset(y: reduceMotion || hasAppeared ? 0 : 6)
-    .onAppear {
-      if reduceMotion {
-        hasAppeared = true
-      } else {
-        withAnimation(.easeOut(duration: 0.5)) {
-          hasAppeared = true
-        }
-      }
+        .font(.body)
+        .foregroundStyle(SignalTheme.textSecondary)
     }
   }
 }
@@ -93,46 +76,46 @@ private struct LaunchRetryContent: View {
 
   var body: some View {
     VStack(spacing: 16) {
-      BetterBetWordmark()
+      SignalWordmark()
 
       Text("!")
         .font(
-          CompetitiveTrustTheme.uiFont(
+          SignalTheme.uiFont(
             size: 18,
             relativeTo: .headline,
             weight: .bold
           )
         )
-        .foregroundStyle(CompetitiveTrustTheme.sunInk)
+        .foregroundStyle(SignalTheme.textPrimary)
         .frame(width: 34, height: 34)
-        .background(CompetitiveTrustTheme.sunTint, in: Circle())
+        .background(SignalTheme.soft, in: Circle())
         .accessibilityHidden(true)
 
       Text("Couldn’t load your challenges")
         .font(
-          CompetitiveTrustTheme.uiFont(
+          SignalTheme.uiFont(
             size: 16,
             relativeTo: .body,
             weight: .bold
           )
         )
-        .foregroundStyle(CompetitiveTrustTheme.primaryText)
+        .foregroundStyle(SignalTheme.textPrimary)
         .multilineTextAlignment(.center)
         .accessibilityIdentifier("launch.retry")
 
       Text(message)
         .font(
-          CompetitiveTrustTheme.uiFont(
+          SignalTheme.uiFont(
             size: 13,
             relativeTo: .subheadline
           )
         )
-        .foregroundStyle(CompetitiveTrustTheme.secondaryText)
+        .foregroundStyle(SignalTheme.textSecondary)
         .multilineTextAlignment(.center)
         .lineSpacing(1.5)
 
       Button("Try again", action: retry)
-        .buttonStyle(TrustSecondaryButtonStyle())
+        .buttonStyle(SignalSecondaryButtonStyle())
         .padding(.top, 4)
         .accessibilityIdentifier("launch.retry.button")
     }
@@ -140,53 +123,13 @@ private struct LaunchRetryContent: View {
   }
 }
 
-private struct BetterBetWordmark: View {
+private struct SignalWordmark: View {
   var body: some View {
     Text(GameTimePublicIdentity.name)
-      .modifier(CobaltDisplay(size: 30))
+      .modifier(SignalDisplay(size: 30))
       .tracking(-0.6)
-      .foregroundStyle(CompetitiveTrustTheme.coralInk)
+      .foregroundStyle(SignalTheme.accent)
       .accessibilityLabel(Text(GameTimePublicIdentity.name))
-  }
-}
-
-private struct DaybreakSpinner: View {
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
-  @State private var rotation = 0.0
-
-  var body: some View {
-    Circle()
-      .stroke(
-        CompetitiveTrustTheme.coral.opacity(0.2),
-        lineWidth: 3
-      )
-      .overlay {
-        Circle()
-          .trim(from: 0, to: 0.24)
-          .stroke(
-            CompetitiveTrustTheme.coral,
-            style: StrokeStyle(
-              lineWidth: 3,
-              lineCap: .round
-            )
-          )
-      }
-      .frame(width: 34, height: 34)
-      .rotationEffect(.degrees(rotation))
-      .animation(
-        reduceMotion
-          ? nil
-          : .linear(duration: 0.9)
-            .repeatForever(autoreverses: false),
-        value: rotation
-      )
-      .onAppear {
-        guard !reduceMotion else { return }
-        rotation = 360
-      }
-      .accessibilityLabel(
-        Text("Loading \(GameTimePublicIdentity.name)")
-      )
   }
 }
 
@@ -195,8 +138,5 @@ private struct DaybreakSpinner: View {
 }
 
 #Preview("Launch retry") {
-  LaunchingView(
-    errorMessage: "You appear to be offline.",
-    retry: {}
-  )
+  LaunchingView(errorMessage: "You appear to be offline.", retry: {})
 }
