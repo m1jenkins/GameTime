@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Production Swift-client HTTP acceptance on the b7-owned disposable stack.
+"""Production Swift-client HTTP acceptance on an owned disposable stack.
 No hosted target, mail, Health inputs or pre-existing Simulator control.
 Secrets stay in an ignored, mode-0600 manifest and are removed on cleanup.
 """
@@ -17,17 +17,24 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = Path(__file__).resolve().parents[1]
-STACK = Path('/tmp/gametime-finish-b7-stack')
-DB = 'postgresql://postgres:postgres@127.0.0.1:58322/postgres'
+OWNED_PROJECT = os.environ.get('GAMETIME_BETA_PREVIEW_PROJECT', 'gametime-finish-b7')
+PORT_BASE = int(os.environ.get('GAMETIME_BETA_PREVIEW_PORT_BASE', '58320'))
+API_PORT = PORT_BASE + 1
+DB_PORT = PORT_BASE + 2
+CONTROLLER_PORT = PORT_BASE + 19
+STACK = Path(os.environ.get('GAMETIME_BETA_PREVIEW_STACK', f'/tmp/{OWNED_PROJECT}-stack'))
+DB = f'postgresql://postgres:postgres@127.0.0.1:{DB_PORT}/postgres'
+# Native and UI smoke tests read this established per-checkout location.
+# The interactive preview scopes its own manifest separately.
 MANIFEST = ROOT / 'tmp/beta-native-smoke.json'
 REPORT = ROOT / 'tmp/beta-native-smoke-report.json'
-OWNED_SIM = '72A3249A-2DE0-4695-AF41-DCD2743B4666'
+OWNED_SIM = os.environ.get('GAMETIME_BETA_PREVIEW_SIMULATOR', '72A3249A-2DE0-4695-AF41-DCD2743B4666')
 
 def sql(statement):
     return subprocess.run(['psql', DB, '-XAt', '-v', 'ON_ERROR_STOP=1'], input=statement, text=True, capture_output=True, check=True).stdout.strip()
 
 def local_http(method, path, headers, body=None):
-    conn = http.client.HTTPConnection('127.0.0.1', 58321, timeout=30)
+    conn = http.client.HTTPConnection('127.0.0.1', API_PORT, timeout=30)
     try:
         conn.request(method, path, body, headers)
         res = conn.getresponse()
@@ -37,9 +44,9 @@ def local_http(method, path, headers, body=None):
 
 class Smoke:
     def __init__(self):
-        assert 'project_id = "gametime-finish-b7"' in (STACK/'supabase/config.toml').read_text()
+        assert f'project_id = "{OWNED_PROJECT}"' in (STACK/'supabase/config.toml').read_text()
         settings = json.loads(subprocess.check_output(['supabase', 'status', '--workdir', str(STACK), '-o', 'json'], stderr=subprocess.DEVNULL))
-        assert settings['API_URL'] == 'http://127.0.0.1:58321' and settings['DB_URL'] == DB
+        assert settings['API_URL'] == f'http://127.0.0.1:{API_PORT}' and settings['DB_URL'] == DB
         self.key = settings['PUBLISHABLE_KEY']
         self.admin = {'apikey': settings['SERVICE_ROLE_KEY'], 'Authorization': 'Bearer '+settings['SERVICE_ROLE_KEY'], 'Content-Type': 'application/json'}
         self.password = secrets.token_urlsafe(28)
@@ -72,7 +79,7 @@ class Smoke:
         with MANIFEST.open('x') as stream:
             self.manifest_owned = True
             os.chmod(MANIFEST,0o600)
-            json.dump({'url':'http://127.0.0.1:58339','key':self.key,'controlToken':self.control,'password':self.password,'actors':self.actors},stream)
+            json.dump({'url':f'http://127.0.0.1:{CONTROLLER_PORT}','key':self.key,'controlToken':self.control,'password':self.password,'actors':self.actors},stream)
     def clock(self, value, admission=True, processing=True):
         # Caller values are parsed before SQL interpolation.
         from datetime import datetime
@@ -176,12 +183,12 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--simulator',required=True);parser.add_argument('--native-only',action='store_true');parser.add_argument('--touch-only',choices=['2','6']);parser.add_argument('--accessibility',choices=['light','dark','large','compact','control','form-reference','tab-reference','scroll-reference'])
-    parser.add_argument('--derived-data',type=Path,default=Path('/tmp/gametime-finish-b7-derived'))
-    parser.add_argument('--evidence-dir',type=Path,default=Path('/tmp/gametime-finish-b7-evidence'))
+    parser.add_argument('--derived-data',type=Path,default=Path(f'/tmp/{OWNED_PROJECT}-derived'))
+    parser.add_argument('--evidence-dir',type=Path,default=Path(f'/tmp/{OWNED_PROJECT}-evidence'))
     args=parser.parse_args();assert args.derived_data.is_absolute() and args.evidence_dir.is_absolute(),'Use absolute task-owned build/evidence paths'
     args.evidence_dir.mkdir(parents=True,exist_ok=True)
-    assert args.simulator==OWNED_SIM,'Only b7-owned Simulator is allowed'
-    smoke=Smoke(); server=ThreadingHTTPServer(('127.0.0.1',58339),Handler);server.smoke=smoke
+    assert args.simulator==OWNED_SIM,'Only the configured owned Simulator is allowed'
+    smoke=Smoke(); server=ThreadingHTTPServer(('127.0.0.1',CONTROLLER_PORT),Handler);server.smoke=smoke
     running=False
     try:
         smoke.setup()
@@ -202,14 +209,16 @@ def main():
         elif not args.native_only:command.append('-only-testing:GameTimeUITests/ChallengeV1UITests')
         result_path = args.evidence_dir / ('native-' + str(uuid.uuid4()) + '.xcresult')
         command += ['-resultBundlePath', str(result_path)]
-        print('B7 result bundle: ' + str(result_path), flush=True)
+        print('Preview result bundle: ' + str(result_path), flush=True)
         # A new process group belongs exclusively to this run. Never stop shared
         # Xcode or Simulator services when a failed audit stalls result reporting.
-        child = subprocess.Popen(command, cwd=ROOT, start_new_session=True)
+        env = os.environ.copy()
+        env['TEST_RUNNER_GAMETIME_BETA_EXPECTED_LOCAL_URL'] = f'http://127.0.0.1:{CONTROLLER_PORT}'
+        child = subprocess.Popen(command, cwd=ROOT, env=env, start_new_session=True)
         try:
             return child.wait(timeout=240 if args.accessibility else 1800)
         except subprocess.TimeoutExpired:
-            print(f'B7 timeout: owned xcodebuild pid/pgid={child.pid}; result={result_path}', flush=True)
+            print(f'Preview timeout: owned xcodebuild pid/pgid={child.pid}; result={result_path}', flush=True)
             os.killpg(child.pid, signal.SIGTERM)
             try:
                 child.wait(timeout=10)
@@ -223,6 +232,6 @@ def main():
         if args.accessibility:
             subprocess.run(['xcrun','simctl','ui',OWNED_SIM,'appearance','light'],check=True)
             subprocess.run(['xcrun','simctl','ui',OWNED_SIM,'content_size','large'],check=True)
-        print('B7 cleanup: source/admission/processing off; fictional sessions revoked; report tmp/beta-native-smoke-report.json',flush=True)
+        print(f'Preview cleanup: source/admission/processing off; fictional sessions revoked; report {REPORT}',flush=True)
 if __name__=='__main__':
     raise SystemExit(main())

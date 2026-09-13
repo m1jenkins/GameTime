@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Foreground, fictional local preview; owns only b7 stack actors and Simulator.
+"""Foreground, fictional local preview; owns only its scoped stack actors and Simulator.
 No automatic consent, external network, source enabling, or legacy data cleanup.
 """
 import argparse
@@ -17,12 +17,18 @@ import plistlib
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('beta_preview_support',ROOT/'scripts/beta-native-smoke.py')
 support=importlib.util.module_from_spec(spec);spec.loader.exec_module(support)
-APP=Path('/tmp/gametime-finish-b7-derived/Build/Products/Debug-iphonesimulator/GameTime.app')
+if support.OWNED_PROJECT != 'gametime-finish-b7':
+    support.MANIFEST = ROOT / f'tmp/beta-native-smoke-{support.OWNED_PROJECT}.json'
+    support.REPORT = ROOT / f'tmp/beta-native-smoke-report-{support.OWNED_PROJECT}.json'
+APP=Path(os.environ.get(
+    'GAMETIME_BETA_PREVIEW_APP',
+    f'/tmp/{support.OWNED_PROJECT}-derived/Build/Products/Debug-iphonesimulator/GameTime.app',
+))
 BUNDLE='com.mjenkins.gametime.staging'
 
 def manifest():
     value=json.loads(support.MANIFEST.read_text())
-    assert value['url']=='http://127.0.0.1:58339'
+    assert value['url']==f'http://127.0.0.1:{support.CONTROLLER_PORT}'
     assert value.get('controllerKind') == 'preview', 'Use the foreground preview, not a test controller'
     return value
 
@@ -47,7 +53,7 @@ def accounts():
         print(f'{i}: {actor["username"]}  ({actor["id"]})'+(' — independent operator' if i==7 else ''), flush=True)
 
 def control(body):
-    value=manifest();conn=http.client.HTTPConnection('127.0.0.1',58339,timeout=30)
+    value=manifest();conn=http.client.HTTPConnection('127.0.0.1',support.CONTROLLER_PORT,timeout=30)
     try:
         conn.request('POST','/__beta/control',json.dumps(body),{'Content-Type':'application/json','X-Beta-Control':value['controlToken']})
         response=conn.getresponse();data=response.read();assert response.status==200,'Local fixture action failed'
@@ -55,7 +61,7 @@ def control(body):
     finally:conn.close()
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--owned-project',required=True,choices=['gametime-finish-b7'])
+    parser=argparse.ArgumentParser();parser.add_argument('--owned-project',required=True)
     sub=parser.add_subparsers(dest='command',required=True)
     serve=sub.add_parser('serve');serve.add_argument('--no-open',action='store_true');serve.add_argument('--app',type=Path,default=APP,help='Absolute Debug Simulator app bundle; retained for account switching')
     op=sub.add_parser('open');op.add_argument('--actor',type=int,choices=range(1,8),default=1)
@@ -66,9 +72,10 @@ def main():
     latest=sub.add_parser('latest');latest.add_argument('--actor',type=int,choices=range(1,8),default=1)
     sub.add_parser('lose-next-response')
     args=parser.parse_args()
+    assert args.owned_project == support.OWNED_PROJECT, 'Owned project must match GAMETIME_BETA_PREVIEW_PROJECT'
     if args.command=='serve':
         validate_app(args.app)
-        smoke=support.Smoke();server=support.ThreadingHTTPServer(('127.0.0.1',58339),support.Handler);server.smoke=smoke
+        smoke=support.Smoke();server=support.ThreadingHTTPServer(('127.0.0.1',support.CONTROLLER_PORT),support.Handler);server.smoke=smoke
         stopped=threading.Event();running=False
         for name in [signal.SIGINT,signal.SIGTERM]:signal.signal(name,lambda *_:stopped.set())
         try:
