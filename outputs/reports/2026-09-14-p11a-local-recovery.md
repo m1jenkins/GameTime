@@ -14,8 +14,8 @@ or merge into `main` was performed.
 - S2 integration merge: `fa1b4d9fab24858e318250fe10bc621890aa2f91`
 - P8 integration merge: `07fd61b693d3f7545beba3cd31f8ffaba431cf9a`
 - Exact pre-P11A combined candidate: `07fd61b693d3f7545beba3cd31f8ffaba431cf9a`
-- Final P11A code before this handoff report: `2640b4d1412782a63304daca35024df7f0b7e3c8`
-- Fresh-session regression commit: `27b18793c04b9f7ab8683c79f0931f37cd4a8270`
+- Final P11A code before this handoff report: `27b18793c04b9f7ab8683c79f0931f37cd4a8270`
+- Scoped fresh-session guard fix: `2640b4d1412782a63304daca35024df7f0b7e3c8`
 - Report commit: recorded in the private evidence index after this report is
   committed.
 
@@ -132,8 +132,15 @@ All final-source evidence is private under
   preserved. No real participant or Health data was used.
 - Native Simulator acceptance used only the task-owned
   `GameTimeP11ARecovery-20260914` iPhone 17 simulator
-  (`B2E26A46-CAE3-4643-A292-589906E8945D`) and task-owned DerivedData. The
-  authenticated matrix passed 22/22 and the recovery run passed 22/22, each
+  (`B2E26A46-CAE3-4643-A292-589906E8945D`) and task-owned DerivedData. An
+  initial controller run is retained only as a historical observed output
+  (`private/native-matrix/native-ea6b0d84-8728-4d8c-b85f-4c61eb1c0718.xcresult`)
+  with a 21/22 result and a local Auth email/password-disabled diagnosis; its
+  separate saved receipt is not present in the private evidence root, so it is
+  not counted as acceptance. The pure XcodeBuildMCP suite was observed to
+  return `timed out awaiting tools/call after 300s`; no saved transport receipt
+  was located, and this is not a test failure. Later direct owned `xcodebuild`
+  runs passed 22/22 for the authenticated matrix and 22/22 for recovery, each
   with zero failures/skips. Cleanup reports show gates off, seven fictional
   actors revoked and no cleanup failures. No physical iPhone/Watch, Health
   access, human acceptance or release acceptance was claimed.
@@ -147,25 +154,35 @@ The task evidence root is mode 700 and raw evidence remains private. The
 task-owned stack used network
 `gametime-p11a-local-recovery-20260913-network` (`10.253.250.0/24`), DB port
 65322 and API port 65321. A first CLI start stopped before containers because
-Docker's address pool was exhausted. A second CLI configuration exposed its
-owned API/DB/mailpit bindings on `0.0.0.0`/`::`; that episode was detected,
-recorded and only the task-owned stack was stopped. No work proceeded on that
-exposed configuration.
+Docker's address pool was exhausted. There were then two separate broad-binding
+CLI stack episodes: the first is recorded by the `api-stack-attempt2` start and
+binding receipts, and a later/restarted broad state is recorded by
+`api-stack-attempt2-exposure-receipt.txt` and `exposure-before-stop.txt`. Both
+published owned API/DB (and Studio/Mailpit in the captured stack) on
+`0.0.0.0`/`::`. Each was detected and only the task-owned services were
+stopped. The later restart reused the retained task DB volume after it already
+held fictional P8/P11 data, so the final exposure probes must not be read as an
+empty-database-before-fixture-admission claim.
 
 The corrected task-local setup used explicit `127.0.0.1` bindings for the
 owned DB and Kong/API, internal-only Auth/REST bindings, and Docker Engine
 29.6.2. `docker inspect`, `lsof`, non-loopback IPv4, IPv6 loopback and
-non-loopback reachability checks were performed before fictional fixture
-admission. Final probes showed only loopback listeners and refused the host's
-non-loopback address and `::1` for API/DB. Final owned containers are stopped;
+non-loopback reachability checks were performed for the corrected setup. Final
+probes showed only loopback listeners and refused the host's non-loopback
+address and `::1` for API/DB. Final owned containers are stopped;
 the task network, DB volume, dumps and evidence remain retained. The owned
 Simulator is shut down. Prior stacks, devices, networks, previews and source
 checkouts were not stopped, reset, reused or reconfigured.
 
-Supabase advisors were unavailable after repeated
-`LegacyDbConnectError`; no further CLI/default-linked-target retries were made.
-Direct psql, pgTAP, actual role/RLS catalog checks and the explicit local
-target were used instead. No hosted MCP/default target, login, shared CLI
+The explicitly scoped advisor check
+`supabase db advisors --db-url <task-owned loopback URL>` remains
+unperformed/unavailable: no actual advisor call/result is evidenced in the
+retained task receipts. The separate CLI SQL/migration connection attempt in
+`sql-focused-final.log` and `sql-focused-final-v2.log` returned
+`LegacyDbConnectError` with `PgClient: Failed to connect`; that failure is not
+attributed to an advisor. Direct psql, pgTAP, actual role/RLS catalog checks
+and the explicit local target were used instead. No further CLI/default-linked-
+target retries were made. No hosted MCP/default target, login, shared CLI
 repair, external alert, hosted schedule or real credential was used.
 
 ## Remaining limitations and dependency
