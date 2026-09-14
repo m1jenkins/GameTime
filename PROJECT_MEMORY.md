@@ -1,6 +1,6 @@
 # GameTime project memory
 
-## Current working baseline — September 13, 2026
+## Current working baseline — September 14, 2026
 
 Use `/Users/user/Documents/GitHub/GameTime` on `main` for development.
 [WORKING_BASELINE.md](docs/WORKING_BASELINE.md) owns current source identity,
@@ -17,16 +17,22 @@ search found no applicable native Signal candidate; it does not validate the
 earlier unlocated completion claim. [The migration contract](docs/design/SIGNAL_UI_MIGRATION.md)
 and adopted study remain design authority. Dated cobalt records are historical.
 
-The owner has no Apple Watch yet and wants simulator-only development, without
-physical Watch actions. Defer P7 device sessions. The combined S2/P8/P11A local recovery candidate landed
-on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`. The subsequent
-local operator CLI slice is on a separate reviewable branch; see the
-[working baseline](docs/WORKING_BASELINE.md) for source status and checks. Physical source acceptance
+The owner has an iPhone 17 available and previously reported no Apple Watch.
+P7 physical source sessions remain deferred. The combined S2/P8/P11A local
+recovery candidate landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`;
+the operator CLI slice subsequently landed at
+`6fea1c28d98ef0ee86a3f9aec72e47b8088c5ec1` with the owner's approval. See the
+[working baseline](docs/WORKING_BASELINE.md) for source status and recorded checks.
+The owner's next request is a fresh review of the implementation plan and the
+path to private Beta. No new implementation or external action is authorized by
+that review. Physical source acceptance
 remains a later launch requirement. Do not claim that simulation accepts a source.
 The complete original migration and supporting records are preserved locally at
 `823ee0a`; only native source/tests/configuration were authorized by automatic
-approval review for the public push. Local documentation/evidence changes remain
-in the working copy and must be preserved.
+approval review for the original public push. The subsequent `885e8ad`
+consolidation committed the supporting documentation/evidence; preserve those
+tracked records and their original limits. The September 14 local landings
+did not push or open any readiness gate.
 
 P4/P5/P6 are completed locally. P10's device-independent preparation is included.
 P7 physical sessions and all four source acceptances remain pending. The revised

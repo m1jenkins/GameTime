@@ -15,7 +15,8 @@ scheduler, publishes, deletes records or sends a message.
 September 14 current local status: the combined S2/P8/P11A recovery candidate
 landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`. The subsequent
 [operator CLI slice](../outputs/reports/2026-09-14-p11a-operator.md) completes the
-minimum local human interface on its own branch. Its [guide](BETA_OPERATIONS_LOCAL.md)
+minimum local human interface and also landed on local main at `6fea1c2`.
+Its [guide](BETA_OPERATIONS_LOCAL.md)
 records role separation, exact human recovery and administrator-retry limits.
 The P10 inventory and dated reports below retain their original scope; neither
 local landing nor CLI verification accepts a hosted target or operating policy.

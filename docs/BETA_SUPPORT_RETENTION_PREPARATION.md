@@ -54,8 +54,9 @@ challenge-scoped `suspend` command is rejected; suspension uses only the separat
 support RPC. Grant/revoke APIs have no durable request receipt, so ambiguous
 administrator responses require inspection before reissue. See the
 [operator report](../outputs/reports/2026-09-14-p11a-operator.md) for actual local
-checks and branch status. The prior combined local recovery candidate landed at
-`a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`; dated reports retain their original limits.
+checks. The combined local recovery candidate landed at `a3d2c3f`; the operator
+slice also landed on local main at `6fea1c2`, with owner approval on September 14.
+Dated reports retain their original pre-landing status and verification limits.
 This remains fictional loopback operation, not hosted Apple authentication,
 real operator assignment, monitored support or retention-policy acceptance.
 

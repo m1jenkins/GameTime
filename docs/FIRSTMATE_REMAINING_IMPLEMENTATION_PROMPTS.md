@@ -14,13 +14,15 @@ P8/P9 may proceed
 one accepted metric at a time. All four sources and all 13 policies remain
 required before distribution.
 
-The owner has no Apple Watch yet and selected simulator-only work. Do not start
-the physical P7 prompt or request Watch actions now. The bounded P11A local
-recovery slice is implemented on an unlanded task branch; its [report](../outputs/reports/2026-09-14-p11a-local-recovery.md)
-records the combined source, interfaces and validation limits.
-The [September 14 community follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
-closes the verification gap and recommends separate local landing approval for
-its exact reviewed tip; it does not authorize another implementation slice.
+The owner has an iPhone 17 available and previously reported no Apple Watch.
+P7 physical source acceptance remains deferred. The combined S2/P8/P11A recovery
+candidate landed locally at `a3d2c3f`; the operator CLI followed at `6fea1c2`,
+with owner approval on September 14. The [recovery report](../outputs/reports/2026-09-14-p11a-local-recovery.md),
+[community follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
+and [operator report](../outputs/reports/2026-09-14-p11a-operator.md) retain their
+dated pre-landing statements and actual verification limits. Do not rerun these
+completed implementation slices. The next requested task is a fresh Beta plan
+review; the prompts below remain scope contracts, not dispatch instructions.
 This remains local implementation evidence, not real P7/P8/P9 or hosted acceptance. The next
 dependency is an accepted real-source contract and a separately authorized
 hosted target. The physical-source and real-integration prompts below retain
@@ -208,11 +210,12 @@ Resolve three groups of owner inputs as the dependent work becomes concrete:
 
 ## Prompt 11A — finish the operating code locally
 
-The captain's completed local slice is limited to worker/scheduler recovery:
-durable invocation identity, scoped dispatch, bounded retries, individual
-dead-letter recovery, delayed community snapshots and sanitized local status.
-Operator-tooling expansion, account deletion and retention-policy-dependent work
-remain deferred and are not implied by the report below.
+Local worker/scheduler recovery and the authenticated operator CLI are completed
+and landed. Their reports record invocation identity, bounded recovery, delayed
+snapshots, sanitized status and scoped human operations. Account deletion,
+retention-policy-dependent work and hosted operation remain incomplete. The
+original full-scope prompt below is retained for acceptance context; select only
+remaining work after the requested Beta plan review.
 
 ```text
 Turn P10's prepared operation into the minimum working local implementation, using

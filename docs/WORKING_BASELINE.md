@@ -4,6 +4,13 @@ Develop in `/Users/user/Documents/GitHub/GameTime` on `main`.
 Read `git status --short --branch` and `git log -1` before starting work.
 This is the current local development line; GitHub publication is a separate step.
 
+September 14: the owner approved and completed the local fast-forward of the
+operator slice to `6fea1c28d98ef0ee86a3f9aec72e47b8088c5ec1`. This includes the
+previously landed S2/P8/P11A recovery candidate at `a3d2c3f`. The following
+documentation-only update records the landing for a fresh Beta plan review.
+No push or readiness change accompanied this landing. The dated test reports
+remain the verification record; those suites were not rerun for the fast-forward.
+
 The history contains Cobalt, completed P4/P5/P6, P7 preparation and P10 through
 `01f1dd159839769fe31ce33804e757876eb4b573`, followed by the consolidated preview
 launcher, entry documents and September 13 browser design studies at `b25834c`.
@@ -19,8 +26,9 @@ Personal access, and remove superseded rendering and fonts. See the
 identity, actual checks and limits, and the [contract](design/SIGNAL_UI_MIGRATION.md)
 for continuing design requirements. The complete migration, including its local
 documentation and screenshots, is preserved at `823ee0a` on
-`codex/signal-native-migration`. Those supporting files remain local working-copy
-changes: automatic approval review rejected their inclusion in the public push.
+`codex/signal-native-migration`. Automatic approval review excluded those supporting
+files from the original native-only push; the later `885e8ad` consolidation
+committed them, and they are tracked in the current baseline.
 The later combined S2/P8/P11A candidate landed on local main at
 `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`. See the current-work record below.
 
@@ -37,21 +45,25 @@ The later combined S2/P8/P11A candidate landed on local main at
 | P7 | Preparation only; physical sessions and four accepted sources pending | [P7 checkpoint](../outputs/reports/2026-09-12-p7-preparation.md) |
 | P10 | Device-independent hosted/support/retention preparation included; actual hosting unperformed | [P10 report](../outputs/reports/2026-09-12-p10-completion.md) |
 | P11A — local recovery | Combined S2/P8/P11A candidate landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`; community verification gap closed with a test-only correction and focused review. Hosted schedules, credentials and external alerts remain disabled | [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [September 14 follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md) |
-| P11A — operator CLI | Separate local branch completes scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery; not merged by this task | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
+| P11A — operator CLI | Landed on local main at `6fea1c2`: scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery. Reported verification: 131 CLI/HTTP checks, 8 unit tests and 86 SQL assertions passed; administrator grant response reconciliation remains manual | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
 | Local design preview | Fictional friend/personal journeys with configurable owned resources | [Preview guide](BETA_LOCAL_PREVIEW.md) |
 | P8/P9 | Real ingestion, accepted adapters, authenticated transport/links and integrated journeys remain; reuse existing closed contracts and screens | [Remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) |
 | P11–13 | Operating code/deletion, hosted capacity/recovery, physical/human/release acceptance, then authorized private Beta remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
 
 ## Next work
 
-The owner has no Apple Watch yet and explicitly selected simulator-only work.
-Do not request physical Watch actions or start P7 device sessions now. The
+The owner requested a fresh implementation-plan review of the path to private
+Beta from the consolidated local main. Identify remaining implementation,
+owner decisions and physical/hosted/human acceptance in dependency order.
+The owner has an iPhone 17 available and previously reported no Apple Watch;
+phone availability alone does not authorize device or Health actions. The
 bounded P11A local recovery slice and S2/P8 corrections landed on local main at
 `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`, reverified September 14. The
 [community follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
 retains its original pre-landing status and validation limits. The subsequent
-[operator CLI slice](../outputs/reports/2026-09-14-p11a-operator.md) is delivered on
-its own local branch and needs separate exact-commit landing approval.
+[operator CLI slice](../outputs/reports/2026-09-14-p11a-operator.md) also landed,
+at `6fea1c28d98ef0ee86a3f9aec72e47b8088c5ec1`. Its dated pre-landing report is
+preserved; there is no remaining merge dependency for these completed slices.
 P7 source acceptance remains deferred until
 hardware is available; simulator success cannot accept a source or select
 timed-distance tolerance. All four sources still gate distribution. The next

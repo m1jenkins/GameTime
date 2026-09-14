@@ -13,10 +13,14 @@ landed on local main at
 `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`, reverified September 14.
 The [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md) and
 [verification follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
-retain their dated pre-landing statements and original limits. The remaining local
-operator interface is implemented on a separate reviewable branch; its
-[operator report](../outputs/reports/2026-09-14-p11a-operator.md) records actual
-CLI/Auth HTTP checks and the separate landing dependency.
+retain their dated pre-landing statements and original limits. The local operator
+interface also landed on local main at
+`6fea1c28d98ef0ee86a3f9aec72e47b8088c5ec1`, with owner approval on September 14.
+Its [operator report](../outputs/reports/2026-09-14-p11a-operator.md) retains the
+actual CLI/Auth HTTP checks and historical pre-landing status. The owner now
+requests a fresh review of this plan from the consolidated baseline; phone-only
+testing can be planned around the available iPhone 17, with device actions still
+separately scoped.
 It does not complete real P8/P9 or hosted operation. Defer physical P7, while
 preserving its later source/distribution requirements.
 
@@ -34,7 +38,7 @@ another design, infrastructure or general audit workstream.
 | P7 | [Preparation](../outputs/reports/2026-09-12-p7-preparation.md) is complete; physical observations, four source policies and timed-distance tolerance remain unaccepted. |
 | P8/P9 | Reusable contracts, adapters, stores and fictional journeys exist. Real consent/ingestion are explicitly disabled; ordinary sign-in uses `UnavailableChallengeV1Client`, and working challenge transport is loopback-only. Implement the real path, rather than merely changing flags. |
 | P10 | [Device-independent preparation](../outputs/reports/2026-09-12-p10-completion.md) is complete. Approved settings, functioning hosted scheduler/alerts, retention/deletion and operating acceptance are still missing. |
-| P11A | Local-only durable invocation/retry identity, scoped worker dispatch, bounded item recovery, delayed snapshot dispatch and sanitized status projection landed on local main at `a3d2c3f`. Scoped human operator tooling is completed on a separate local branch. No hosted schedule, credential, alert recipient, deletion or retention-policy work was added. [Report](../outputs/reports/2026-09-14-p11a-local-recovery.md) |
+| P11A | Local worker/recovery/snapshot/status code landed at `a3d2c3f`; scoped human operator tooling landed at `6fea1c2`. Administrator grant response reconciliation remains manual. Hosted schedules, credentials, alerts, deletion and retention-policy work remain outstanding. [Recovery report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [operator report](../outputs/reports/2026-09-14-p11a-operator.md) |
 | P11–P13 | Operated backend, integrated candidate, physical/human acceptance and authorized distribution remain. Public App Store submission is a later milestone. |
 
 The landed combined candidate contains S2's Signal adaptations of the
@@ -73,8 +77,7 @@ or external acceptance.
 | Private TestFlight, then public launch | After acceptance/authorization, run a small supervised simulated pilot, fix observed problems, then prepare the App Store release. | Actual Beta results, working support and separate submission/release authorization. |
 
 P7 remains the next source-dependent task, deferred while the owner lacks a Watch.
-The P11A local recovery slice is landed. The separate local operator CLI slice
-is complete and awaits its own landing approval; neither resolves P10's hosted
+The P11A local recovery and operator CLI slices are both landed; neither resolves P10's hosted
 inputs. Next work depends on accepted real-source contracts and an explicitly
 authorized hosted target. Do not fabricate source policies to fill time. Each
 prompt is separately scoped; this plan does not dispatch later work.
