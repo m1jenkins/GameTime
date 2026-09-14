@@ -6,6 +6,7 @@ import Observation
     private(set) var sections: [ChallengeV1Section: ChallengeV1SectionState] = [:]
     private var detailRows: [UUID: ChallengeV1] = [:]
     private var detailReadAt: [UUID: TimeInterval] = [:]
+    private var detailRequests: [UUID: UUID] = [:]
     private var projectionEpoch = 0
     private var restrictionFences: [UUID: (epoch: Int, receivedAt: TimeInterval)] = [:]
     private let now: @MainActor () -> TimeInterval
@@ -34,6 +35,7 @@ import Observation
         return .unavailable
     }
     private(set) var lastReceipt: ChallengeV1Receipt?
+    private(set) var issuedLinks: [ChallengeIssuedLink] = []
     private var visible = true
     private var generation = UUID()
     private var refreshGeneration = UUID()
@@ -49,14 +51,16 @@ import Observation
         self.actor = actor; visible = true; generation = UUID(); refreshGeneration = UUID()
         access = nil; communities = []; entryFresh = false; entryError = nil
         sections = [:]; detailRows = [:]; detailReadAt = [:]; pending = nil; error = nil; fresh = false; busy = false; lastReceipt = nil
-        projectionEpoch = 0; restrictionFences = [:]
+        issuedLinks = []
+        projectionEpoch = 0; restrictionFences = [:]; detailRequests = [:]
         refreshing = false
     }
-    func hide() { visible = false; access = nil; communities = []; entryFresh = false; generation = UUID(); refreshGeneration = UUID(); sections = [:]; detailRows = [:]; detailReadAt = [:]; projectionEpoch = 0; restrictionFences = [:]; fresh = false; busy = false; refreshing = false }
+    func hide() { visible = false; access = nil; communities = []; entryFresh = false; generation = UUID(); refreshGeneration = UUID(); sections = [:]; detailRows = [:]; detailReadAt = [:]; projectionEpoch = 0; restrictionFences = [:]; detailRequests = [:]; issuedLinks = []; fresh = false; busy = false; refreshing = false }
     func show() async { visible = true; await refresh() }
     func refresh() async {
         guard visible, let actor else { return }
         let ticket = generation; let refresh = UUID(); refreshGeneration = refresh
+        detailRequests = [:]
         refreshing = true
         defer { if ticket == generation, refresh == refreshGeneration { refreshing = false } }
         purgeExpiredContent()
@@ -67,6 +71,9 @@ import Observation
             let saved = try await requests.load(actor)
             guard ticket == generation, refresh == refreshGeneration else { return }
             pending = saved; error = nil
+            let links = try await requests.loadIssuedLinks(actor)
+            guard ticket == generation, refresh == refreshGeneration else { return }
+            issuedLinks = links
             for section in ChallengeV1Section.allCases {
                 let requestedAt = now()
                 let requestedEpoch = projectionEpoch
@@ -99,7 +106,7 @@ import Observation
             guard ticket == generation, refresh == refreshGeneration else { return }
             if (error as? ChallengeV1Error) == .accountChanged { setActor(nil) }
             else {
-                fresh = false; entryFresh = false; detailRows = [:]; detailReadAt = [:]
+                fresh = false; entryFresh = false; detailRows = [:]; detailReadAt = [:]; issuedLinks = []
                 for section in ChallengeV1Section.allCases { sections[section]?.fresh = false }
                 self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription
             }
@@ -137,6 +144,8 @@ import Observation
     func loadDetail(_ id: UUID) async {
         guard let actor else { return }
         let ticket = generation; let refresh = refreshGeneration
+        let request = UUID(); detailRequests[id] = request
+        defer { if detailRequests[id] == request { detailRequests.removeValue(forKey: id) } }
         let requestedAt = now()
         let requestedEpoch = projectionEpoch
         do {
@@ -144,14 +153,23 @@ import Observation
             let authenticated = await auth.currentUserID()
             guard ticket == generation, refresh == refreshGeneration else { return }
             guard authenticated == actor else { setActor(nil); return }
+            // A newer same-ID request supersedes ordinary replies, not safety
+            // restrictions. Authorization still uses its independent fence.
+            guard detailRequests[id] == request || isRestricted(row) else { return }
             guard now() - requestedAt < 60 else { throw ChallengeV1Error.unavailable }
             guard permits([row], requestedEpoch: requestedEpoch) else { return }
             reconcile([row])
             detailRows[id] = row; detailReadAt[id] = now(); error = nil
         } catch {
             guard ticket == generation, refresh == refreshGeneration else { return }
+            // An older request can discover a newer session revocation. Only
+            // ordinary failures are superseded by the per-detail request order.
             if (error as? ChallengeV1Error) == .accountChanged { setActor(nil) }
-            else { detailRows.removeValue(forKey: id); detailReadAt.removeValue(forKey: id); self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription }
+            else {
+                guard detailRequests[id] == request else { return }
+                detailRows.removeValue(forKey: id); detailReadAt.removeValue(forKey: id)
+                self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription
+            }
         }
     }
     /// A restricted response invalidates reads already in flight for that ID.
@@ -162,6 +180,9 @@ import Observation
     private func permits(_ rows: [ChallengeV1], requestedEpoch: Int) -> Bool {
         rows.allSatisfy { (restrictionFences[$0.id]?.epoch ?? 0) <= requestedEpoch }
     }
+    private func isRestricted(_ row: ChallengeV1) -> Bool {
+        row.socialHidden || row.members.contains { $0.actorId != actor && $0.exited }
+    }
     /// An accepted projection supersedes every cached copy of that challenge,
     /// including equal-revision safety restrictions. Keep each cache's original
     /// read time so updating one ID never renews unrelated content or old pages.
@@ -169,7 +190,7 @@ import Observation
         for row in rows {
             // R5 keeps a departed counterpart's pseudonymous membership while
             // hiding their current fields, even when other sharing continues.
-            if row.socialHidden || row.members.contains(where: { $0.actorId != actor && $0.exited }) {
+            if isRestricted(row) {
                 projectionEpoch += 1
                 restrictionFences[row.id] = (projectionEpoch, now())
             }
@@ -245,36 +266,43 @@ import Observation
             else { entryError = (error as? ChallengeV1Error ?? .unavailable).localizedDescription }
         }
     }
-    func submit(op: String, challenge: ChallengeV1? = nil, fields: [String: ChallengeJSON] = [:]) async {
-        guard let actor, !busy, pending == nil, challenge.map({ isFresh($0) }) ?? true else { return }
+    @discardableResult
+    func submit(op: String, challenge: ChallengeV1? = nil, fields: [String: ChallengeJSON] = [:]) async -> ChallengeV1Receipt? {
+        guard let actor, !busy, pending == nil, challenge.map({ isFresh($0) }) ?? true else { return nil }
         var payload = fields; payload["op"] = .string(op)
         if let challenge {
             payload["id"] = .string(challenge.id.uuidString.lowercased()); payload["revision"] = .integer(challenge.revision)
         }
         let request = ChallengeV1Request(actor: actor, payload: .object(payload))
-        await perform(request, abandon: false)
+        return await perform(request, abandon: false)
     }
-    func retry() async { if let pending, !busy { await perform(pending, abandon: false) } }
-    func abandon() async { if let pending, !busy { await perform(pending, abandon: true) } }
-    private func perform(_ request: ChallengeV1Request, abandon: Bool) async {
-        guard request.actorId == actor else { return }
+    func retry() async { if let pending, !busy { _ = await perform(pending, abandon: false) } }
+    func abandon() async { if let pending, !busy { _ = await perform(pending, abandon: true) } }
+    private func perform(_ request: ChallengeV1Request, abandon: Bool) async -> ChallengeV1Receipt? {
+        guard request.actorId == actor else { return nil }
         let ticket = generation; busy = true; error = nil
         defer { if ticket == generation { busy = false } }
         do {
             try await requests.save(request)
-            guard ticket == generation else { return }
+            guard ticket == generation else { return nil }
             pending = request
             let receipt = try await (abandon ? client.abandon(request) : client.submit(request))
-            guard ticket == generation else { return }
+            guard ticket == generation else { return nil }
+            let links = try await requests.recordIssuedLinkReceipt(receipt, for: request)
+            guard ticket == generation else { return nil }
             try await requests.remove(request)
-            guard ticket == generation else { return }
+            guard ticket == generation else { return nil }
+            if let links { issuedLinks = links }
             pending = nil; lastReceipt = receipt
             await refresh()
+            guard ticket == generation, actor == request.actorId else { return nil }
+            return receipt
         } catch {
-            guard ticket == generation else { return }
+            guard ticket == generation else { return nil }
             fresh = false
             self.error = (error as? ChallengeV1Error ?? .unavailable).localizedDescription
             if (error as? ChallengeV1Error) == .accountChanged { setActor(nil) }
+            return nil
         }
     }
     var ordered: [ChallengeV1] {

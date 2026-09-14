@@ -4,6 +4,8 @@ No hosted target, mail, Health inputs or pre-existing Simulator control.
 Secrets stay in an ignored, mode-0600 manifest and are removed on cleanup.
 """
 import argparse
+import base64
+from collections import deque
 import signal
 import hashlib
 import http.client
@@ -13,6 +15,7 @@ from pathlib import Path
 import secrets
 import subprocess
 import threading
+import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -53,9 +56,33 @@ class Smoke:
         self.control = secrets.token_urlsafe(32)
         self.actors = []
         self.trace = []
+        self.request_times = {}
+        self.pacing_lock = threading.Lock()
         self.lose = None
         self.owned = False
         self.manifest_owned = False
+    def pace(self, path, authorization):
+        # The matrix compresses weeks of use into minutes. Pace only this local
+        # driver below the unchanged production quotas; never reset quota rows
+        # or turn a rate-limit response into a successful response.
+        limit = {'/rest/v1/rpc/challenge_community_catalog_v1': 14,
+                 '/rest/v1/rpc/challenge_command_v1': 56}.get(path)
+        if limit is None:
+            return
+        encoded = authorization.split('.')[1]
+        actor = json.loads(base64.urlsafe_b64decode(encoded + '=' * (-len(encoded) % 4)))['sub']
+        assert actor in [a['id'] for a in self.actors]
+        with self.pacing_lock:
+            recent = self.request_times.setdefault((actor, path), deque())
+            now = time.monotonic()
+            while recent and recent[0] <= now - 30.5:
+                recent.popleft()
+            if len(recent) >= limit:
+                time.sleep(max(0, recent[0] + 30.5 - now))
+                now = time.monotonic()
+                while recent and recent[0] <= now - 30.5:
+                    recent.popleft()
+            recent.append(now)
     def setup(self):
         assert not MANIFEST.exists(), 'An existing preview manifest requires scoped recovery before starting another run'
         assert sql('select not admission and not fixtures and not processing and cardinality(actors)=0 from app.challenge_runtime_v1 where singleton;') == 't'
@@ -112,6 +139,18 @@ class Smoke:
         elif action=='community':
             cid = sql(f"select public.challenge_publish_community_fixture_v1('{uuid.uuid4()}','{self.actors[6]['id']}', '{{\"start_date\":\"2026-10-03\",\"days\":1,\"timezone\":\"UTC\",\"amount_cents\":100}}',100,2,6,true);")
             sql('select public.challenge_discovery_fixture_v1(true);')
+            return {'id': cid}
+        elif action=='community_snapshot':
+            cid=str(uuid.UUID(body['id']))
+            assert sql(f"select creator_id='{self.actors[6]['id']}' from app.challenge_lobbies_v1 where id='{cid}';") == 't'
+            sql(f"select public.challenge_capture_community_snapshot_v1('{cid}');")
+        elif action=='community_moderator':
+            cid=str(uuid.UUID(body['id']))
+            assert sql(f"select creator_id='{self.actors[6]['id']}' from app.challenge_lobbies_v1 where id='{cid}';") == 't'
+            if body.get('revoke') is True:
+                sql(f"select public.challenge_revoke_operator_v1('{self.actors[6]['id']}','{cid}','moderate');")
+            else:
+                sql(f"select public.challenge_grant_operator_v1('{self.actors[6]['id']}','{cid}','moderate','2026-10-05T00:00:00Z');")
         elif action=='unallow_actor':
             actor=str(uuid.UUID(body['actor']))
             assert actor in [a['id'] for a in self.actors]
@@ -167,12 +206,21 @@ class Handler(BaseHTTPRequestHandler):
             if not self.path.startswith(('/rest/v1/rpc/challenge_','/auth/v1/')):
                 self.reply(403,b'{}'); return
             headers={k:v for k,v in self.headers.items() if k.lower() not in ('host','content-length','connection')}
+            smoke.pace(self.path, self.headers.get('Authorization', ''))
             status,data=local_http('POST',self.path,headers,body)
             rpc=self.path.rsplit('/',1)[-1]
             if self.path.startswith('/auth/v1/'):
                 smoke.trace.append({'auth_status':status})
             if self.path.startswith('/rest/v1/rpc/'):
-                smoke.trace.append({'rpc':rpc,'status':status,'payload_sha256':hashlib.sha256(body).hexdigest()})
+                event = {'rpc':rpc,'status':status,'payload_sha256':hashlib.sha256(body).hexdigest()}
+                if status >= 400:
+                    try:
+                        message = json.loads(data).get('message', '')
+                        if message.startswith('challenge_') and all(c.islower() or c == '_' for c in message):
+                            event['error_code'] = message
+                    except (ValueError, AttributeError):
+                        pass
+                smoke.trace.append(event)
             if status<300 and smoke.lose==rpc:
                 smoke.lose=None; self.reply(503,b'{"message":"response_lost"}'); return
             self.reply(status,data)
@@ -182,9 +230,11 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--simulator',required=True);parser.add_argument('--native-only',action='store_true');parser.add_argument('--touch-only',choices=['2','6']);parser.add_argument('--accessibility',choices=['light','dark','large','compact','control','form-reference','tab-reference','scroll-reference'])
+    parser=argparse.ArgumentParser();parser.add_argument('--simulator',required=True);parser.add_argument('--native-only',action='store_true');parser.add_argument('--touch-only',choices=['2','6','entry']);parser.add_argument('--accessibility',choices=['light','dark','large','compact','control','form-reference','tab-reference','scroll-reference'])
     parser.add_argument('--derived-data',type=Path,default=Path(f'/tmp/{OWNED_PROJECT}-derived'))
     parser.add_argument('--evidence-dir',type=Path,default=Path(f'/tmp/{OWNED_PROJECT}-evidence'))
+    parser.add_argument('--native-phase', choices=['all', 'matrix', 'recovery'], default='all',
+                        help='Scope native HTTP checks; all includes both matrix and recovery/privacy')
     args=parser.parse_args();assert args.derived_data.is_absolute() and args.evidence_dir.is_absolute(),'Use absolute task-owned build/evidence paths'
     args.evidence_dir.mkdir(parents=True,exist_ok=True)
     assert args.simulator==OWNED_SIM,'Only the configured owned Simulator is allowed'
@@ -192,6 +242,9 @@ def main():
     running=False
     try:
         smoke.setup()
+        assert args.native_phase == 'all' or args.native_only, 'A scoped native phase requires --native-only'
+        manifest=json.loads(MANIFEST.read_text());manifest['nativePhase']=args.native_phase
+        MANIFEST.write_text(json.dumps(manifest))
         if args.accessibility:
             manifest=json.loads(MANIFEST.read_text());manifest['accessibilityMode']=args.accessibility
             MANIFEST.write_text(json.dumps(manifest))
@@ -205,10 +258,15 @@ def main():
             command.append('-only-testing:GameTimeUITests/ChallengeV1UITests/'+({'control':'testIsolatedDynamicTypeControl','form-reference':'testSystemFormDynamicTypeReference','tab-reference':'testSystemTabContrastReference','scroll-reference':'testSystemScrollDynamicTypeReference'}.get(args.accessibility,'testLocalAccessibilityPreparation')))
         elif args.touch_only:
             command=[x for x in command if not x.startswith('-only-testing:')]
-            command.append('-only-testing:GameTimeUITests/ChallengeV1UITests/test'+('Two' if args.touch_only=='2' else 'Six')+'PersonTouchJourney')
+            tests = {
+                '2': ['testTwoPersonTouchJourney'],
+                '6': ['testSixPersonTouchJourney'],
+                'entry': ['testAuthenticatedLocalShellHistoryAndAccountExit', 'testMetricChoicesAndPersonalConsentAfterEditing'],
+            }[args.touch_only]
+            command += ['-only-testing:GameTimeUITests/ChallengeV1UITests/' + test for test in tests]
         elif not args.native_only:command.append('-only-testing:GameTimeUITests/ChallengeV1UITests')
         result_path = args.evidence_dir / ('native-' + str(uuid.uuid4()) + '.xcresult')
-        command += ['-resultBundlePath', str(result_path)]
+        command += ['-resultBundlePath', str(result_path), '-collect-test-diagnostics', 'never']
         print('Preview result bundle: ' + str(result_path), flush=True)
         # A new process group belongs exclusively to this run. Never stop shared
         # Xcode or Simulator services when a failed audit stalls result reporting.
@@ -216,7 +274,7 @@ def main():
         env['TEST_RUNNER_GAMETIME_BETA_EXPECTED_LOCAL_URL'] = f'http://127.0.0.1:{CONTROLLER_PORT}'
         child = subprocess.Popen(command, cwd=ROOT, env=env, start_new_session=True)
         try:
-            return child.wait(timeout=240 if args.accessibility else 1800)
+            return child.wait(timeout=240 if args.accessibility else 1200)
         except subprocess.TimeoutExpired:
             print(f'Preview timeout: owned xcodebuild pid/pgid={child.pid}; result={result_path}', flush=True)
             os.killpg(child.pid, signal.SIGTERM)

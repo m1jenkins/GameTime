@@ -132,17 +132,17 @@ import XCTest
     private func mounted(detail: Bool, oldRevision: Int) async throws {
         let fixture = DepartureFixture(); defer { fixture.clean() }
         try await fixture.start()
-        let view = detail ? AnyView(NavigationStack { ChallengeV1Detail(store: fixture.store, id: fixture.id) }) :
+        let view = detail ? AnyView(NavigationStack { ChallengeV1Detail(store: fixture.store, id: fixture.id) }.environment(\.dynamicTypeSize, .accessibility1)) :
             AnyView(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}))
         let controller = UIHostingController(rootView: view)
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
         let previous = scene.windows.first(where: \.isKeyWindow)
-        let window = UIWindow(windowScene: scene); window.frame = CGRect(x: 0, y: 0, width: 430, height: 3000)
+        let window = UIWindow(windowScene: scene); window.frame = CGRect(x: 0, y: 0, width: 430, height: 932)
         window.rootViewController = controller; window.makeKeyAndVisible(); controller.view.frame = window.bounds
         defer { window.isHidden = true; previous?.makeKeyAndVisible() }
         try await Task.sleep(for: .milliseconds(300))
         let name = "departure-\(detail ? "detail" : "home")-old-revision-\(oldRevision)"
-        let before = try capture(window, controller, name: name + "-shared")
+        let before = try await capture(window, controller, name: name + "-shared")
         XCTAssertTrue(before.contains("100 of 1,000 steps"))
         if detail { XCTAssertTrue(before.contains("departedfriend")); XCTAssertTrue(before.contains("321 of 2,000 steps")); XCTAssertTrue(before.contains("2,000 steps")) }
         else { XCTAssertTrue(before.contains("507")) }
@@ -153,12 +153,12 @@ import XCTest
         releaseRestriction(fixture.redacted); await restriction.value
         let detailCalls = fixture.client.detailCalls
         try await Task.sleep(for: .milliseconds(300))
-        let redacted = try capture(window, controller, name: name + "-redacted")
+        let redacted = try await capture(window, controller, name: name + "-redacted")
         assertRendered(redacted, detail: detail)
         fixture.clock.value = 40
         releaseOld(fixture.row(departed: false, revision: oldRevision)); await old.value
         try await Task.sleep(for: .milliseconds(300))
-        let late = try capture(window, controller, name: name + "-after-late-response")
+        let late = try await capture(window, controller, name: name + "-after-late-response")
         assertRendered(late, detail: detail)
         XCTAssertEqual(fixture.client.detailCalls, detailCalls, "No extra detail fetch or remount can conceal the late completion")
         assertRedacted(fixture)
@@ -172,7 +172,9 @@ import XCTest
             XCTAssertFalse(text.contains("2,000 steps"), file: file, line: line)
             XCTAssertTrue(text.contains("former participant"), file: file, line: line)
             XCTAssertTrue(text.contains("continuingfriend"), file: file, line: line)
-            XCTAssertTrue(text.contains("654 of 3,000 steps"), file: file, line: line)
+            // Vision reads the small "f" beside this mixed-size number as "r"
+            // in the retained screenshot. Keep the exact activity/goal pair.
+            XCTAssertNotNil(text.range(of: #"\b654\s+o[fr]\s+3,000 steps\b"#, options: .regularExpression), file: file, line: line)
         } else { XCTAssertTrue(text.contains("507"), file: file, line: line) }
     }
     private func assertRedacted(_ fixture: DepartureFixture, expected: ChallengeV1? = nil, file: StaticString = #filePath, line: UInt = #line) {
@@ -187,25 +189,10 @@ import XCTest
         XCTAssertEqual(expected.members.first { $0.actorId == fixture.continuing }?.username, "Continuingfriend", file: file, line: line)
         XCTAssertEqual(expected.agreement, fixture.agreement, file: file, line: line)
     }
-    private func capture(_ window: UIWindow, _ controller: UIViewController, name: String) throws -> String {
-        controller.view.setNeedsLayout(); controller.view.layoutIfNeeded()
-        let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
-        let image = UIGraphicsImageRenderer(size: window.bounds.size, format: format).image { controller.view.layer.render(in: $0.cgContext) }
-        let cg = try XCTUnwrap(image.cgImage); var lines: [String] = []
-        // Overlap crops so a line crossing a tile edge is recognized whole in
-        // the next tile. The signal Home value crosses the old 650-point edge.
-        for y in stride(from: 0, to: cg.height, by: 550) {
-            let tile = try XCTUnwrap(cg.cropping(to: CGRect(x: 0, y: y, width: cg.width, height: min(650, cg.height - y))))
-            let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
-            request.recognitionLanguages = ["en-US"]; request.minimumTextHeight = 0.005
-            try VNImageRequestHandler(cgImage: tile).perform([request])
-            lines += (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
-        }
-        let attachment = XCTAttachment(image: image); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
-        let text = lines.joined(separator: " ").lowercased()
-        let transcription = XCTAttachment(string: text); transcription.name = name + "-recognized-text"; transcription.lifetime = .keepAlways; add(transcription)
-        return text
+    private func capture(_ window: UIWindow, _ controller: UIViewController, name: String) async throws -> String {
+        try await captureMountedSignal(window, controller: controller, name: name, test: self)
     }
+
 }
 
 @MainActor private final class DepartureFixture {

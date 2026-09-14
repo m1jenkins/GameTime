@@ -123,7 +123,7 @@ struct ChallengeLocalDisclosures: View {
                 Text("Confirm that you are 21 or older before joining. We store your confirmation, not your birth date.")
             }
             ChallengeFormSection("Your information") {
-                Text("The local service saves your account, challenge agreements, consent, normalized fictional progress, corrections, reviews and results. Saved requests on this phone help recover an interrupted action.")
+                Text("The local service saves your account, challenge agreements, consent, normalized fictional progress, corrections, reviews and results. Saved requests and issued invitation links on this phone help recover interrupted actions and manage your links.")
                 Text("Selected friends can see your username, agreed goal when there is one, current challenge activity and results. Personal activity and community activity are private to you. Community totals require at least five current participants and are delayed by at least 15 minutes.")
                 Text("Assigned operators can inspect the limited challenge facts needed for reviews and safety reports. Raw Health records, routes and activity history outside the challenge are not shared.")
                 Text("The separate private activity check keeps its records on this phone and clears them when you leave the check. It does not send them to the challenge service.")

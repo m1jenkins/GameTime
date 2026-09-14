@@ -111,10 +111,12 @@ struct ChallengeV1: Codable, Equatable, Identifiable, Sendable {
 struct ChallengeV1Receipt: Codable, Equatable, Sendable {
     let id: UUID?; let revision: Int?; let status: String?
     let token: String?; let expiresAt: ChallengeInstant?; let confirmed: Bool?; let saved: Bool?
+    var revoked: Bool? = nil
     init(id: UUID? = nil, revision: Int? = nil, status: String? = nil, token: String? = nil,
-         expiresAt: ChallengeInstant? = nil, confirmed: Bool? = nil, saved: Bool? = nil) {
+         expiresAt: ChallengeInstant? = nil, confirmed: Bool? = nil, saved: Bool? = nil, revoked: Bool? = nil) {
         self.id=id; self.revision=revision; self.status=status; self.token=token
         self.expiresAt=expiresAt; self.confirmed=confirmed; self.saved=saved
+        self.revoked=revoked
     }
 }
 struct ChallengeV1Access: Decodable, Equatable, Sendable {

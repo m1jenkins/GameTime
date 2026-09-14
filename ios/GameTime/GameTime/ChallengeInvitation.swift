@@ -37,4 +37,8 @@ enum ChallengeInvitation {
             link = ""; message = nil
         } catch { message = "We couldn’t clear the saved invitation. Try again." }
     }
+    func clear(ifMatching submittedLink: String) {
+        guard link == submittedLink else { return }
+        clear()
+    }
 }
