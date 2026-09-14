@@ -4,9 +4,41 @@ select no_plan();
 select ok(not has_function_privilege('authenticated','public.challenge_capture_community_snapshot_v1(uuid)','execute'),'snapshot capture is service only');
 select ok(not has_function_privilege('authenticated','app.challenge_community_counts_v1(uuid)','execute'),'raw helper private');
 select ok(not has_table_privilege('authenticated','app.challenge_community_capacity_v1','select'),'capacity reservations private');
+select ok(not has_function_privilege('anon','public.challenge_capture_community_snapshot_v1(uuid)','execute'),'anonymous cannot capture snapshots');
+select ok(not has_function_privilege('anon','app.challenge_community_counts_v1(uuid)','execute'),'anonymous cannot execute raw counts helper');
+select ok(has_function_privilege('service_role','public.challenge_capture_community_snapshot_v1(uuid)','execute'),'service role can capture snapshots');
+select ok(not exists(
+ select 1 from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl
+ where p.oid in ('public.challenge_capture_community_snapshot_v1(uuid)'::regprocedure,
+  'app.challenge_community_counts_v1(uuid)'::regprocedure,
+  'public.challenge_prepare_community_snapshot_invocation_v1(uuid,uuid)'::regprocedure,
+  'public.challenge_dispatch_community_snapshot_invocation_v1(uuid)'::regprocedure)
+ and acl.grantee=0 and acl.privilege_type='EXECUTE'
+),'snapshot boundaries have no PUBLIC execute inheritance');
 insert into beta_ids values('community',public.challenge_publish_community_fixture_v1(pg_temp.br(60001),pg_temp.ba(40),'{"start_date":"2026-10-03","days":1,"timezone":"UTC","amount_cents":100}',100,2,250,true));
 select public.challenge_discovery_fixture_v1(true);
 create function pg_temp.community() returns uuid language sql as $$select id from beta_ids where name='community'$$;
+-- Unrelated reports must not change this suite's expected report identities.
+-- Create them through authorized operations, without erasing retained history.
+insert into beta_ids values('other_reports',pg_temp.beta_group(30,2));
+select pg_temp.login_beta(30);
+select public.challenge_report_scoped_v1(pg_temp.br(60700),(select id from beta_ids where name='other_reports'),pg_temp.ba(31),'unsafe_behavior');
+select public.challenge_report_v1(pg_temp.br(60701),pg_temp.ba(31),'unwanted_contact');
+reset role;
+select pg_temp.community()::text as community_id,pg_temp.br(60810)::text as snapshot_invocation_id \gset
+set local role anon;
+select throws_ok(format('select public.challenge_capture_community_snapshot_v1(%L::uuid)', :'community_id'),'42501','permission denied for function challenge_capture_community_snapshot_v1','anonymous snapshot call is denied');
+select throws_ok(format('select app.challenge_community_counts_v1(%L::uuid)', :'community_id'),'42501','permission denied for schema app','anonymous private schema access is denied');
+select throws_ok(format('select public.challenge_prepare_community_snapshot_invocation_v1(%L::uuid,%L::uuid)', :'snapshot_invocation_id', :'community_id'),'42501','permission denied for function challenge_prepare_community_snapshot_invocation_v1','anonymous cannot prepare snapshot invocation');
+select throws_ok(format('select public.challenge_dispatch_community_snapshot_invocation_v1(%L::uuid)', :'snapshot_invocation_id'),'42501','permission denied for function challenge_dispatch_community_snapshot_invocation_v1','anonymous cannot dispatch snapshot invocation');
+reset role;
+select pg_temp.login_beta(1);
+select throws_ok($$select public.challenge_capture_community_snapshot_v1(pg_temp.community())$$,'42501','permission denied for function challenge_capture_community_snapshot_v1','participant snapshot call is denied');
+select throws_ok($$select app.challenge_community_counts_v1(pg_temp.community())$$,'42501','permission denied for function challenge_community_counts_v1','participant private helper call is denied');
+select throws_ok($$select * from app.challenge_community_snapshots_v1$$,'42501','permission denied for table challenge_community_snapshots_v1','participant cannot read raw snapshots');
+select throws_ok($$select public.challenge_prepare_community_snapshot_invocation_v1(pg_temp.br(60800),pg_temp.community())$$,'42501','permission denied for function challenge_prepare_community_snapshot_invocation_v1','participant cannot prepare snapshot invocation');
+select throws_ok($$select public.challenge_dispatch_community_snapshot_invocation_v1(pg_temp.br(60800))$$,'42501','permission denied for function challenge_dispatch_community_snapshot_invocation_v1','participant cannot dispatch snapshot invocation');
+reset role;
 create function pg_temp.join_community(n integer) returns jsonb language plpgsql as $$begin
  perform pg_temp.login_beta(n);
  return public.challenge_join_community_v1(pg_temp.br(60100+n),jsonb_build_object('op','join_community','id',pg_temp.community(),'digest',public.challenge_community_catalog_v1()->0->>'digest','consent',true));
@@ -16,13 +48,20 @@ select is(public.challenge_detail_v1(pg_temp.community())->'counts'->>'state','t
 select is(public.challenge_detail_v1(pg_temp.community())->'counts'->'joined','null'::jsonb,'below-five count null');
 select is(public.challenge_community_catalog_v1()->0->'joined_count','null'::jsonb,'catalog also suppresses count');
 reset role;
-select public.challenge_capture_community_snapshot_v1(pg_temp.community());
+set local role service_role;
+select throws_ok(format('select app.challenge_community_counts_v1(%L::uuid)', :'community_id'),'42501','permission denied for function challenge_community_counts_v1','service role cannot call raw counts helper');
+select throws_ok($$select * from app.challenge_community_snapshots_v1$$,'42501','permission denied for table challenge_community_snapshots_v1','service role cannot read raw snapshot table');
+select lives_ok(format('select public.challenge_capture_community_snapshot_v1(%L::uuid)', :'community_id'),'actual service role captures snapshot');
+reset role;
 select pg_temp.join_community(5);
 select is(public.challenge_detail_v1(pg_temp.community())->>'revision','1','join receipt/detail use member revision');
 select is(public.challenge_detail_v1(pg_temp.community())->'counts'->>'state','pending','fifth member still waits for delayed snapshot');
 reset role;
 select pg_temp.clock_beta('2026-10-01T12:15Z');
-select public.challenge_capture_community_snapshot_v1(pg_temp.community());
+set local role service_role;
+select lives_ok(format('select public.challenge_prepare_community_snapshot_invocation_v1(%L::uuid,%L::uuid)', :'snapshot_invocation_id', :'community_id'),'actual service role prepares scoped snapshot');
+select is(public.challenge_dispatch_community_snapshot_invocation_v1(:'snapshot_invocation_id'::uuid)->>'status','checked','actual service role dispatches scoped snapshot');
+reset role;
 select pg_temp.clock_beta('2026-10-01T12:29:59Z');select pg_temp.login_beta(1);
 select is(public.challenge_detail_v1(pg_temp.community())->'counts'->'joined','null'::jsonb,'899 seconds suppresses snapshot');
 reset role;select pg_temp.clock_beta('2026-10-01T12:30Z');select pg_temp.login_beta(1);
@@ -72,7 +111,18 @@ reset role;
 select public.challenge_grant_support_v1(pg_temp.ba(39),'2026-10-05T00:00Z');
 select public.challenge_grant_support_v1(pg_temp.ba(38),'2026-10-05T00:00Z');
 select pg_temp.login_beta(39);
-select is(jsonb_array_length(public.challenge_support_reports_v1()),2,'audited global support reads both scopes');
+-- The bounded global page can legitimately contain retained reports. Compare
+-- this transaction's exact report IDs, subjects and scopes instead of its size.
+select results_eq(
+ $$select (r->>'id')::uuid,(r->>'subject')::uuid,r->>'reason',(r->>'challenge_id')::uuid
+   from jsonb_array_elements(public.challenge_support_reports_v1()) r
+   where r->>'id' in (pg_temp.br(60400)::text,pg_temp.br(60401)::text,pg_temp.br(60700)::text,pg_temp.br(60701)::text)
+   order by r->>'id'$$,
+ $$values (pg_temp.br(60400),pg_temp.ba(40),'unsafe_behavior'::text,pg_temp.community()),
+          (pg_temp.br(60401),pg_temp.ba(2),'username'::text,null::uuid),
+          (pg_temp.br(60700),pg_temp.ba(31),'unsafe_behavior'::text,(select id from beta_ids where name='other_reports')),
+          (pg_temp.br(60701),pg_temp.ba(31),'unwanted_contact'::text,null::uuid)$$,
+ 'audited global support reads exact fixture reports across both scopes');
 select public.challenge_support_suspend_v1(pg_temp.br(60500),pg_temp.ba(3),'unsafe_behavior');
 select pg_temp.login_beta(3);
 select is(public.challenge_access_status_v1()->>'suspended','true','global suspension explicit');
