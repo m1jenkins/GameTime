@@ -155,14 +155,14 @@ task-owned stack used network
 `gametime-p11a-local-recovery-20260913-network` (`10.253.250.0/24`), DB port
 65322 and API port 65321. A first CLI start stopped before containers because
 Docker's address pool was exhausted. There were then two separate broad-binding
-CLI stack episodes: the first is recorded by the `api-stack-attempt2` start and
-binding receipts, and a later/restarted broad state is recorded by
-`api-stack-attempt2-exposure-receipt.txt` and `exposure-before-stop.txt`. Both
-published owned API/DB (and Studio/Mailpit in the captured stack) on
-`0.0.0.0`/`::`. Each was detected and only the task-owned services were
-stopped. The later restart reused the retained task DB volume after it already
-held fictional P8/P11 data, so the final exposure probes must not be read as an
-empty-database-before-fixture-admission claim.
+CLI stack episodes. The earlier episode, timestamped 2026-09-14 04:30:48 UTC,
+is recorded by `exposure-before-stop.txt`; the later restart is recorded by the
+`api-stack-attempt2` start, binding and exposure receipts. Both published owned
+API/DB (and Studio/Mailpit in the captured stack) on `0.0.0.0`/`::`. Each was
+detected and only the task-owned services were stopped. The later restart reused
+the retained task DB volume after it already held fictional P8/P11 data, so the
+final exposure probes must not be read as an empty-database-before-fixture-
+admission claim.
 
 The corrected task-local setup used explicit `127.0.0.1` bindings for the
 owned DB and Kong/API, internal-only Auth/REST bindings, and Docker Engine
