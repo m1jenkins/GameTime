@@ -28,7 +28,7 @@ its data handling, access, retention and deletion must be approved too.
 | Global username/account safety | Separately granted support reads `challenge_support_reports_v1(p_before,p_before_id)`; uses `challenge_support_suspend_v1(p_request_id,p_subject,p_reason)` | Both cursor fields travel together; pages contain at most 100 rows. Reasons are `username`, `unwanted_contact`, `unsafe_behavior`. Challenge moderators cannot suspend globally. Support cannot suspend itself. |
 | Suspension appeal | Person files `challenge_appeal_v1(p_request_id)` and reads `challenge_own_appeals_v1()`; support reads `challenge_support_appeals_v1()` and decides through `challenge_resolve_appeal_v1(p_request_id,p_appeal,p_decision)` | Decision `upheld` or `reinstate`; decider differs from appellant and original suspender. Reinstatement permits future admission, never restores ended membership or consent. |
 | Access withdrawn from operator | Administrator calls `challenge_revoke_operator_v1(p_actor,p_id,p_capability)` or `challenge_revoke_support_v1(p_actor)` | Record named operator, exact scope and reason in approved restricted operational record; verify revoked session/grant cannot read or act. No direct audit-row edits. |
-| Deletion/retention request | Authenticate requester using approved account process; record request in approved support system and escalate to policy owner | No approved new-domain purge/deidentification workflow exists. Do not invoke historical `delete-account` or a SQL cascade as a substitute. Do not promise completed deletion without evidence. |
+| Deletion/retention request | Use the scoped account-deletion receipt flow below; independent reviewer/appeal decider releases the applicable restricted record after deciding | This is the limited September 14 approval only. Do not invoke historical `delete-account` or a SQL cascade by itself, do not extend it to another record class, and do not promise backup erasure without verification. |
 
 Grant/revoke APIs are service-only; human work uses the human's active authenticated
 session. `challenge_grant_operator_v1(p_actor,p_id,p_capability,p_expires)` and
@@ -62,10 +62,10 @@ real operator assignment, monitored support or retention-policy acceptance.
 
 ## Retention decision worksheet
 
-For **every row**, owner approval must specify: purpose; event starting the clock;
+For **every row except the limited account-deletion scope below**, owner approval must specify: purpose; event starting the clock;
 duration; active/dispute/legal holds; deletion versus deidentification; approver;
 which roles retain access; backup expiration/restoration treatment; and verification
-of completion. Every duration and deletion policy remains **unselected**. Local
+of completion. Every other duration and deletion policy remains **unselected**. Local
 immutable fixture retention is implementation behavior, not permission to retain
 future participants' data forever. Agreement deadlines and local cursor lifetimes
 are not retention approvals.
@@ -86,7 +86,34 @@ are not retention approvals.
 | Backups, exports, provider logs, replicas | Select plan, RPO/RTO and lifecycle; define expiring copies and how restored data replays deletion/revocation decisions. Logical database backups do not automatically cover every external provider/store. Verify exact coverage on the selected plan. |
 | Historical Personal/Solo/charity/duel/weekly/commitment rows | Existing agreements and their own retention holds remain separate. New Beta policy does not reinterpret, purge or authorize operating historical payment/push/retention paths. |
 
-## Policy-approved deletion workflow to implement later
+### Scoped account-deletion approval — September 14, 2026
+
+This records the owner-approved, local `challenge_*_v1` account-deletion scope;
+it does **not** approve this worksheet as a whole, legal clearance, a legal hold,
+hosting, provider operation, or backup erasure.
+
+- From server acceptance, remove identifying profile/contact/access data and
+  unnecessary Beta drafts or invitation material within **seven days** (the
+  implementation may remove it sooner). Retain only necessary normalized facts
+  and case content until **thirty days** after the relevant result and case are
+  closed. Retain the minimum pseudonymous Beta agreements, consent, results and
+  operator audit until **one hundred eighty days** after finality or case
+  closure, whichever is later. Historical records keep their separate governing
+  rules, and pseudonymous records can still be linkable.
+- Deletion does not waive a review or appeal. The existing full 48-hour notice
+  and 72-hour filing/resolution windows remain unchanged. The assigned
+  independent reviewer releases a review hold; the independent appeal decider
+  releases an appeal hold. Review unresolved holds every **thirty days** without
+  silently cancelling the right. Ordinary account access ends at durable
+  acceptance; only narrow own-review, appeal and deletion-status access remains.
+- Keep the deletion-status receipt for **ninety days** after all required steps
+  and cases finish. Exact duplicates recover the saved outcome instead of
+  repeating effects. Keep the deleted-account marker while historical references
+  need it, expire only this receipt (not project-wide requests), report retained
+  records separately from account closure, and never claim backups are erased
+  without verification.
+
+## Scoped deletion workflow
 
 1. Inventory the exact environment, actor references, affected record classes,
    active agreements/reviews and retention holds. Produce a restricted dry-run

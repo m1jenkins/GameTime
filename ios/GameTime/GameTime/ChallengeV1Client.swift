@@ -142,6 +142,12 @@ actor ChallengeV1RequestStore {
         guard try load(request.actorId) == request else { return }
         do { try FileManager.default.removeItem(at: path(request.actorId)) } catch { throw ChallengeV1Error.storage }
     }
+    func removeAll(for actor: UUID) throws {
+        let file = path(actor)
+        guard FileManager.default.fileExists(atPath: file.path) else { return }
+        do { try FileManager.default.removeItem(at: file) }
+        catch { throw ChallengeV1Error.storage }
+    }
     private func path(_ actor: UUID) -> URL { directory.appendingPathComponent(actor.uuidString.lowercased()+".json") }
 }
 

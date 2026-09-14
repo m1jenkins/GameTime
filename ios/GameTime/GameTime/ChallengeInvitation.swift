@@ -41,4 +41,16 @@ enum ChallengeInvitation {
         guard link == submittedLink else { return }
         clear()
     }
+
+    /// Used only after this device has durably accepted account deletion. The
+    /// opaque invitation is intentionally not attributed to a later account.
+    static func clearPersisted() throws {
+        guard let root = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first else { return }
+        let file = root.appendingPathComponent("GameTime/ChallengeInvitation/pending.txt")
+        guard FileManager.default.fileExists(atPath: file.path) else { return }
+        try FileManager.default.removeItem(at: file)
+    }
 }

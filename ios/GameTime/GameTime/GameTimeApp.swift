@@ -562,6 +562,7 @@ private struct ConfigurationFailureView: View {
 private struct SignedOutView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.demoMode) private var demoMode
+    @State private var showingAccountDeletionReceipt = false
 
     var body: some View {
         ScrollView {
@@ -604,6 +605,14 @@ private struct SignedOutView: View {
                     .accessibilityIdentifier("account-deletion.success")
                 }
 
+                if model.accountDeletionReceipt != nil {
+                    Button("Check account deletion") {
+                        showingAccountDeletionReceipt = true
+                    }
+                    .buttonStyle(SignalSecondaryButtonStyle())
+                    .accessibilityIdentifier("account-deletion.receipt")
+                }
+
                 VStack(alignment: .leading, spacing: 12) {
                     Label(
                         "Hit it every day, or hit a weekly total",
@@ -636,6 +645,9 @@ private struct SignedOutView: View {
             .padding(24)
         }
         .background(SignalTheme.canvas)
+        .sheet(isPresented: $showingAccountDeletionReceipt) {
+            AccountDeletionReceiptView()
+        }
         .onChange(of: model.isMutating) { _, isSigningIn in
             guard isSigningIn else { return }
             SignalAccessibility.announce("Signing in…")

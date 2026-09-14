@@ -34,7 +34,18 @@ No publication, legal acceptance or hosted data handling is claimed here.
 - Local fixture records are retained for verification. Stopping a preview disables
   its fixture gates and revokes only its fictional sessions. It does not delete
   accounts, new agreements, historical rows or any original development data.
-  No new-product retention/deletion policy has been approved or enabled.
+  The owner approved a limited local account-deletion flow for this Beta. When
+  GameTime accepts a deletion, normal access to both this Beta and the shared
+  historical Personal account ends right away. We remove identifying/access
+  data and unnecessary Beta drafts or invitation material within seven days;
+  keep necessary challenge facts and case content until thirty days after the
+  related result and case close; and keep the minimum pseudonymous agreements,
+  consent, results and operator records for 180 days after finality or case
+  closure, whichever is later. A saved status receipt remains for 90 days after
+  all required work and cases finish. Review and appeal rights keep their
+  existing windows, with only the narrow access needed to use them. This local
+  product scope does not change historical record rules or promise backup
+  erasure.
 - All stakes are simulated and nonredeemable. There is no new-product Stripe
   payment, payout, analytics, advertising, photos or contact import.
 
@@ -76,9 +87,10 @@ Do not substitute guessed values for any of these:
    dispute language. This draft describes implementation, not legal conclusions.
 2. A monitored support inbox and stable privacy/terms URLs; verify delivery and
    response only after the owner authorizes a real test message.
-3. Retention and deletion rules for new challenge facts, immutable agreements,
-   reviews, moderation and operator audit records. Build a forward deidentification
-   workflow after that policy is accepted; do not delete historical agreements.
+3. Legal review of this limited local retention/deletion implementation, the
+   selected hosted providers and physical backup behavior. The scoped approval
+   does not approve broader new-product retention, legal conclusions or deletion
+   of historical agreements.
 4. Approved hosting/providers, signed-in entry flow, domain association and actual
    deployed data flows. Loopback preview HTTP is not a production transport promise.
 5. Accepted physical source policies and exact disclosure of their provenance,

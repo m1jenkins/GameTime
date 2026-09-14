@@ -78,6 +78,7 @@ enum LiveServicesFactory {
         let pendingWeekly = try FilePendingWeeklyRequestStore.applicationSupport()
         let metricPrototypes = try MetricPrototypeStore.applicationSupport(enabled: configuration.weeklyRuntimeEnabled)
         let pendingPerformanceCommitments = try FilePendingPerformanceCommitmentRequestStore.applicationSupport()
+        let accountDeletionReceipts = try FileAccountDeletionReceiptStore.applicationSupport()
         return AppServices(
             auth: SupabaseAuthClient(client: client),
             profiles: SupabaseProfileClient(client: client),
@@ -108,6 +109,7 @@ enum LiveServicesFactory {
                 client: client,
                 configuration: configuration
             ),
+            accountDeletionReceipts: accountDeletionReceipts,
             localStateCleanup: AccountLocalStateCleaner(
                 pendingChallenges: pendingChallenges,
                 activitySync: activitySync,
@@ -136,15 +138,21 @@ enum LiveServicesFactory {
 @MainActor
 final class SupabaseAccountDeletionClient: AccountDeletionClient {
     private struct RequestBody: Encodable {
-        let appleAuthorizationCode: String
+        let operation: String?
+        let deletionRequestID: UUID?
+        let deletionReceipt: String
+        let appleAuthorizationCode: String?
 
         enum CodingKeys: String, CodingKey {
+            case operation
+            case deletionRequestID = "deletionRequestId"
+            case deletionReceipt
             case appleAuthorizationCode = "appleAuthorizationCode"
         }
     }
 
     private struct ResponseBody: Decodable {
-        let deleted: Bool
+        let deletion: AccountDeletionStatus
     }
 
     private let client: SupabaseClient
@@ -163,8 +171,10 @@ final class SupabaseAccountDeletionClient: AccountDeletionClient {
 
     func deleteAccount(
         ownerID: UUID,
+        requestID: UUID,
+        receiptSecret: String,
         appleAuthorizationCode: String
-    ) async throws {
+    ) async throws -> AccountDeletionStatus {
         guard !appleAuthorizationCode.trimmingCharacters(
             in: .whitespacesAndNewlines
         ).isEmpty else {
@@ -177,21 +187,118 @@ final class SupabaseAccountDeletionClient: AccountDeletionClient {
             throw AccountDeletionError.accountChanged
         }
 
+        return try await send(
+            RequestBody(
+                operation: nil,
+                deletionRequestID: requestID,
+                deletionReceipt: receiptSecret,
+                appleAuthorizationCode: appleAuthorizationCode
+            ),
+            authorization: liveSession.accessToken
+        )
+    }
+
+    func resumeAccountDeletion(
+        requestID: UUID,
+        receiptSecret: String,
+        appleAuthorizationCode: String?
+    ) async throws -> AccountDeletionStatus {
+        try await send(
+            RequestBody(
+                operation: "resume",
+                deletionRequestID: requestID,
+                deletionReceipt: receiptSecret,
+                appleAuthorizationCode: appleAuthorizationCode
+            ),
+            authorization: nil
+        )
+    }
+
+    func accountDeletionStatus(
+        receiptSecret: String
+    ) async throws -> AccountDeletionStatus {
+        try await send(
+            RequestBody(
+                operation: "status",
+                deletionRequestID: nil,
+                deletionReceipt: receiptSecret,
+                appleAuthorizationCode: nil
+            ),
+            authorization: nil
+        )
+    }
+
+    func fileAccountDeletionReview(
+        requestID: UUID,
+        receiptSecret: String,
+        challengeID: UUID,
+        noticeRevision: Int,
+        reason: String
+    ) async throws {
+        struct ReviewBody: Encodable {
+            let operation = "review"
+            let deletionRequestId: UUID
+            let deletionReceipt: String
+            let challengeId: UUID
+            let noticeRevision: Int
+            let reason: String
+        }
+        _ = try await sendData(
+            ReviewBody(
+                deletionRequestId: requestID,
+                deletionReceipt: receiptSecret,
+                challengeId: challengeID,
+                noticeRevision: noticeRevision,
+                reason: reason
+            ),
+            authorization: nil
+        )
+    }
+
+    func fileAccountDeletionAppeal(
+        requestID: UUID,
+        receiptSecret: String
+    ) async throws {
+        struct AppealBody: Encodable {
+            let operation = "appeal"
+            let deletionRequestId: UUID
+            let deletionReceipt: String
+        }
+        _ = try await sendData(
+            AppealBody(
+                deletionRequestId: requestID,
+                deletionReceipt: receiptSecret
+            ),
+            authorization: nil
+        )
+    }
+
+    private func send(
+        _ body: RequestBody,
+        authorization: String?
+    ) async throws -> AccountDeletionStatus {
+        let data = try await sendData(body, authorization: authorization)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        guard let response = try? decoder.decode(ResponseBody.self, from: data) else {
+            throw AccountDeletionError.invalidResponse
+        }
+        return response.deletion
+    }
+
+    private func sendData<Body: Encodable>(
+        _ body: Body,
+        authorization: String?
+    ) async throws -> Data {
         var request = URLRequest(url: try endpointURL())
         request.httpMethod = "POST"
-        request.httpBody = try JSONEncoder().encode(
-            RequestBody(appleAuthorizationCode: appleAuthorizationCode)
-        )
+        request.httpBody = try JSONEncoder().encode(body)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue(
-            configuration.supabasePublishableKey,
-            forHTTPHeaderField: "apikey"
-        )
-        request.setValue(
-            "Bearer \(liveSession.accessToken)",
-            forHTTPHeaderField: "Authorization"
-        )
+        request.setValue(configuration.supabasePublishableKey, forHTTPHeaderField: "apikey")
+        if let authorization {
+            request.setValue("Bearer \(authorization)", forHTTPHeaderField: "Authorization")
+        }
 
         let data: Data
         let response: URLResponse
@@ -205,6 +312,9 @@ final class SupabaseAccountDeletionClient: AccountDeletionClient {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw AccountDeletionError.invalidResponse
         }
+        if httpResponse.statusCode == 410 {
+            throw AccountDeletionError.receiptExpired
+        }
         if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
             throw AccountDeletionError.authenticationRequired
         }
@@ -217,11 +327,7 @@ final class SupabaseAccountDeletionClient: AccountDeletionClient {
         guard data.count <= 64 * 1024 else {
             throw AccountDeletionError.invalidResponse
         }
-        guard (try? JSONDecoder().decode(ResponseBody.self, from: data))?.deleted
-            == true
-        else {
-            throw AccountDeletionError.invalidResponse
-        }
+        return data
     }
 
     private func endpointURL() throws -> URL {
@@ -299,6 +405,22 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
         catch { failures.append("running goal request") }
         do { try await pendingChallenges.remove(for: ownerID) }
         catch { failures.append("challenge retry") }
+        do {
+            let root = try FileManager.default.url(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: false
+            )
+            try await ChallengeV1RequestStore(
+                directory: root.appendingPathComponent("GameTime/ProductChallengeV1Pending")
+            ).removeAll(for: ownerID)
+            try await ChallengeV1RequestStore(
+                directory: root.appendingPathComponent("GameTime/ChallengeV1Pending")
+            ).removeAll(for: ownerID)
+        } catch { failures.append("challenge action") }
+        do { try ChallengeInvitationIntent.clearPersisted() }
+        catch { failures.append("invitation") }
         do { try await pendingPersonalChallenges.remove(for: ownerID) }
         catch { failures.append("personal challenge retry") }
         do { try await pendingPersonalCancellations.remove(for: ownerID) }

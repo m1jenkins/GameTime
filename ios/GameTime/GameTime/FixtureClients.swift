@@ -27,7 +27,12 @@ enum FixtureServicesFactory {
             (any PersonalStepSnapshotCaching)? = nil,
         personalHealthSnapshotUploader:
             (any PersonalHealthSnapshotUploading)? = nil,
-        accountDeletionClient: (any AccountDeletionClient)? = nil
+        accountDeletionClient: (any AccountDeletionClient)? = nil,
+        accountDeletionReceiptStore: any AccountDeletionReceiptStoring =
+            EphemeralAccountDeletionReceiptStore(),
+        accountLocalStateCleaner: any AccountLocalStateCleaning =
+            NoOpAccountLocalStateCleaner(),
+        profileClient: (any ProfileClient)? = nil
     ) -> AppServices {
         let scenario = FixtureScenario(arguments: arguments)
         let store = FixtureStore(scenario: scenario)
@@ -70,7 +75,7 @@ enum FixtureServicesFactory {
         duelBackend.loseNextResponse = arguments.contains("--fixture-duel-lost-response")
         return AppServices(
             auth: authClient ?? FixtureAuthClient(store: store),
-            profiles: FixtureProfileClient(store: store),
+            profiles: profileClient ?? FixtureProfileClient(store: store),
             friendships: friendshipsClient
                 ?? FixtureFriendshipsClient(store: store),
             contests: contestsClient ?? FixtureContestsClient(store: store),
@@ -127,6 +132,8 @@ enum FixtureServicesFactory {
                 ?? (scenario.accountDeletionFails
                     ? FixtureFailingAccountDeletionClient()
                     : DisabledAccountDeletionClient()),
+            accountDeletionReceipts: accountDeletionReceiptStore,
+            localStateCleanup: accountLocalStateCleaner,
             duels: FixtureDuelClient(backend: duelBackend, currentActor: { store.userID }),
             performanceCommitments: FixturePerformanceCommitmentClient(currentActor: { store.userID }, arguments: arguments),
             weekly: weeklyClient ?? DisabledWeeklyClient(),
@@ -2040,10 +2047,47 @@ private final class FixtureFailingAccountDeletionClient:
 {
     func deleteAccount(
         ownerID: UUID,
+        requestID: UUID,
+        receiptSecret: String,
         appleAuthorizationCode: String
-    ) async throws {
-        _ = (ownerID, appleAuthorizationCode)
+    ) async throws -> AccountDeletionStatus {
+        _ = (ownerID, requestID, receiptSecret, appleAuthorizationCode)
         try await Task.sleep(for: .milliseconds(250))
+        throw AccountDeletionError.unavailable
+    }
+
+    func resumeAccountDeletion(
+        requestID: UUID,
+        receiptSecret: String,
+        appleAuthorizationCode: String?
+    ) async throws -> AccountDeletionStatus {
+        _ = (requestID, receiptSecret, appleAuthorizationCode)
+        throw AccountDeletionError.unavailable
+    }
+
+    func accountDeletionStatus(
+        receiptSecret: String
+    ) async throws -> AccountDeletionStatus {
+        _ = receiptSecret
+        throw AccountDeletionError.unavailable
+    }
+
+    func fileAccountDeletionReview(
+        requestID: UUID,
+        receiptSecret: String,
+        challengeID: UUID,
+        noticeRevision: Int,
+        reason: String
+    ) async throws {
+        _ = (requestID, receiptSecret, challengeID, noticeRevision, reason)
+        throw AccountDeletionError.unavailable
+    }
+
+    func fileAccountDeletionAppeal(
+        requestID: UUID,
+        receiptSecret: String
+    ) async throws {
+        _ = (requestID, receiptSecret)
         throw AccountDeletionError.unavailable
     }
 }

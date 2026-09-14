@@ -406,7 +406,7 @@ struct AccountSupportView: View {
             }
         } message: {
             Text(
-                "Your name, username, and profile will be replaced with an anonymous placeholder. Your sign-in and setup saved on this phone will be removed, and your Stripe test customer and saved payment method will be deleted. Your step data will no longer be readable and will be removed on the schedule in the Privacy Policy. A small anonymous record that a challenge existed and how it was scored will remain. This can’t be undone."
+                "Deleting your GameTime account ends normal access to this Beta and your existing Personal account. We’ll stop new participation and sharing right away. We’ll remove account details and unneeded Beta drafts within seven days, while keeping what we need to finish results, reviews, and appeals. You can check a saved account-deletion receipt after signing out. This can’t be undone."
             )
         }
         .sheet(item: $presentedSheet) { sheet in
@@ -652,9 +652,11 @@ struct DeleteAccountView: View {
                     )
                 )
             Text(
-                "For your protection, Apple requires a fresh sign-in before GameTime can delete this account."
+                "Deleting your GameTime account ends normal access to this Beta and your existing Personal account. We’ll stop new challenges and sharing right away. We keep the small set of records needed to finish results and reviews."
             )
             .foregroundStyle(SignalTheme.textSecondary)
+            Text("Apple asks you to confirm before we start. You can check the saved account-deletion receipt after signing out.")
+                .foregroundStyle(SignalTheme.textSecondary)
             NativeAppleReauthenticationButton { result in
                 handleReauthentication(result)
             }
@@ -664,9 +666,9 @@ struct DeleteAccountView: View {
     private var deletingContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             ProgressView()
-            Text("Deleting your account…")
+            Text("Saving your account deletion…")
                 .font(.title3.weight(.semibold))
-            Text("Revoking Apple access, removing server data, and clearing this phone.")
+            Text("We’re ending normal access and clearing saved account data from this phone.")
                 .foregroundStyle(SignalTheme.textSecondary)
         }
     }
@@ -706,7 +708,7 @@ struct DeleteAccountView: View {
             Task {
                 do {
                     _ = try await model.deleteAccount(with: identity)
-                    SignalAccessibility.announce("Account deleted.")
+                    SignalAccessibility.announce("Account deletion saved.")
                     dismiss()
                 } catch is CancellationError {
                     state = .reauthenticate
@@ -717,6 +719,234 @@ struct DeleteAccountView: View {
                     )
                 }
             }
+        }
+    }
+}
+
+struct AccountDeletionReceiptView: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    @State private var message: String?
+    @State private var isWorking = false
+    @State private var reviewReason = "wrong_total"
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    if let status = model.accountDeletionStatus {
+                        receipt(status)
+                    } else {
+                        if let error = model.accountDeletionStatusError {
+                            Text(error)
+                                .foregroundStyle(SignalTheme.textSecondary)
+                            Button("Try again") {
+                                Task { await model.refreshAccountDeletionStatus() }
+                            }
+                            .buttonStyle(SignalSecondaryButtonStyle())
+                        } else {
+                            ProgressView("Checking your account deletion…")
+                        }
+                    }
+                    if let message {
+                        Text(message)
+                            .foregroundStyle(SignalTheme.textSecondary)
+                    }
+                }
+                .padding(20)
+            }
+            .signalScreenChrome()
+            .navigationTitle("Account deletion")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .task { await model.refreshAccountDeletionStatus() }
+    }
+
+    @ViewBuilder
+    private func receipt(_ status: AccountDeletionStatus) -> some View {
+        switch status.state {
+        case .pendingProvider:
+            Text("We stopped normal account access")
+                .font(.title3.weight(.semibold))
+            Text("Confirm with Apple again so we can finish account closure. Your saved receipt keeps this as the same request.")
+                .foregroundStyle(SignalTheme.textSecondary)
+            NativeAppleReauthenticationButton { result in
+                resumeWithApple(result)
+            }
+            .disabled(isWorking)
+        case .pendingAccountClose:
+            Text("Finishing account closure")
+                .font(.title3.weight(.semibold))
+            Text("Apple confirmation is complete. We can finish closing the account now.")
+                .foregroundStyle(SignalTheme.textSecondary)
+            Button("Finish account closure") {
+                Task { await resumeWithoutApple() }
+            }
+            .buttonStyle(SignalSecondaryButtonStyle())
+            .disabled(isWorking)
+        case .held:
+            Text("Account access is closed")
+                .font(.title3.weight(.semibold))
+            Text("A review or appeal is still open. We keep only the records needed to finish it.")
+                .foregroundStyle(SignalTheme.textSecondary)
+        case .completed:
+            Text("Account closure is complete")
+                .font(.title3.weight(.semibold))
+            Text("Normal sign-in and new participation are closed.")
+                .foregroundStyle(SignalTheme.textSecondary)
+        }
+
+        if !status.retained.isEmpty {
+            SignalSectionLabel(text: "What we still keep")
+            ForEach(status.retained) { record in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(record.category.capitalized)
+                        .font(.subheadline.weight(.semibold))
+                    if let completedAt = record.completedAt {
+                        Text("Finished \(receiptDate(completedAt)).")
+                            .font(.footnote)
+                            .foregroundStyle(SignalTheme.textSecondary)
+                    } else if let until = record.until {
+                        Text("Kept until \(receiptDate(until)).")
+                            .font(.footnote)
+                            .foregroundStyle(SignalTheme.textSecondary)
+                    }
+                }
+            }
+        }
+        if let expires = status.receiptExpiresAt {
+            Text("This receipt is available until \(receiptDate(expires)).")
+                .font(.footnote)
+                .foregroundStyle(SignalTheme.textSecondary)
+        }
+        if let accountClosedAt = status.accountClosedAt {
+            Text("Normal account access closed \(receiptDate(accountClosedAt)).")
+                .font(.footnote)
+                .foregroundStyle(SignalTheme.textSecondary)
+        }
+        if model.hasPendingAccountDeletionRightsRequest {
+            Text("A saved review or appeal request still needs a response from us.")
+                .foregroundStyle(SignalTheme.textSecondary)
+            Button("Retry saved request") {
+                Task { await retrySavedRightsRequest() }
+            }
+            .buttonStyle(SignalSecondaryButtonStyle())
+            .disabled(isWorking)
+        }
+        rights(status)
+    }
+
+    @ViewBuilder
+    private func rights(_ status: AccountDeletionStatus) -> some View {
+        if let rights = status.rights {
+            if !rights.reviewNotices.isEmpty || rights.appealAvailable {
+                SignalSectionLabel(text: "Your open options")
+            }
+            ForEach(rights.reviewNotices) { notice in
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Ask us to review this result by \(receiptDate(notice.reviewBy)).")
+                        .foregroundStyle(SignalTheme.textSecondary)
+                    Picker("Reason", selection: $reviewReason) {
+                        Text("My total looks wrong").tag("wrong_total")
+                        Text("Activity is missing").tag("missing_activity")
+                        Text("My result looks wrong").tag("wrong_result")
+                    }
+                    .pickerStyle(.menu)
+                    Button("Ask us to review") {
+                        Task { await fileReview(notice) }
+                    }
+                    .buttonStyle(SignalSecondaryButtonStyle())
+                    .disabled(isWorking)
+                }
+            }
+            if rights.appealAvailable {
+                Text("You can ask for an independent appeal of the account decision.")
+                    .foregroundStyle(SignalTheme.textSecondary)
+                Button("Ask for an appeal") {
+                    Task { await fileAppeal() }
+                }
+                .buttonStyle(SignalSecondaryButtonStyle())
+                .disabled(isWorking)
+            }
+            if rights.holdsReviewDue {
+                Text("We will check the open review or appeal every 30 days. It stays open until the assigned decision is complete.")
+                    .font(.footnote)
+                    .foregroundStyle(SignalTheme.textSecondary)
+            }
+        }
+    }
+
+    private func receiptDate(_ value: String) -> String {
+        guard let date = ISO8601DateFormatter().date(from: value) else { return value }
+        return date.formatted(date: .abbreviated, time: .omitted)
+    }
+
+    private func resumeWithApple(_ result: Result<AppleIdentity, Error>) {
+        guard case let .success(identity) = result else {
+            message = "We couldn’t get Apple confirmation. Try again."
+            return
+        }
+        isWorking = true
+        Task {
+            defer { isWorking = false }
+            do {
+                _ = try await model.resumeAccountDeletion(with: identity)
+                await model.refreshAccountDeletionStatus()
+            } catch {
+                message = error.localizedDescription
+            }
+        }
+    }
+
+    private func resumeWithoutApple() async {
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            _ = try await model.resumeAccountDeletion(with: nil)
+            await model.refreshAccountDeletionStatus()
+        } catch {
+            message = error.localizedDescription
+        }
+    }
+
+    private func fileReview(_ notice: AccountDeletionStatus.ReviewNotice) async {
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            try await model.fileAccountDeletionReview(
+                notice: notice,
+                reason: reviewReason
+            )
+            message = "We saved your review request."
+        } catch {
+            message = error.localizedDescription
+        }
+    }
+
+    private func fileAppeal() async {
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            try await model.fileAccountDeletionAppeal()
+            message = "We saved your appeal request."
+        } catch {
+            message = error.localizedDescription
+        }
+    }
+
+    private func retrySavedRightsRequest() async {
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            try await model.retryPendingAccountDeletionRightsRequest()
+            message = "We saved your request."
+        } catch {
+            message = error.localizedDescription
         }
     }
 }

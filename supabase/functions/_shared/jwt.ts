@@ -20,6 +20,8 @@ export interface CallerIdentity {
   readonly userId: string;
   readonly role: string;
   readonly expiresAt: number;
+  /** Supabase's live-session identifier when the token is session-bound. */
+  readonly sessionId?: string;
 }
 
 /** The public verification keys Supabase injects into hosted Edge Functions. */
@@ -281,7 +283,16 @@ function callerFromClaims(
     throw new AuthError("the JWT carries no account id");
   }
 
-  return { userId: sub, role, expiresAt: exp };
+  const sessionId = claims["session_id"];
+  if (sessionId !== undefined && (typeof sessionId !== "string" || !UUID.test(sessionId))) {
+    throw new AuthError("the JWT carries an invalid session id");
+  }
+  return {
+    userId: sub,
+    role,
+    expiresAt: exp,
+    ...(typeof sessionId === "string" ? { sessionId } : {}),
+  };
 }
 
 /**

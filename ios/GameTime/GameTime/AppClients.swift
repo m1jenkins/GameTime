@@ -94,12 +94,57 @@ final class DisabledPushNotificationsClient: PushNotificationsClient {
 enum AccountDeletionResult: Equatable, Sendable {
     case deleted
     case deletedWithLocalCleanupWarning
+    case pendingProvider
+    case held
+}
+
+enum AccountDeletionProgress: String, Codable, Equatable, Sendable {
+    case pendingProvider = "pending_provider"
+    case pendingAccountClose = "pending_account_close"
+    case held
+    case completed
+}
+
+struct AccountDeletionStatus: Codable, Equatable, Sendable {
+    struct Holds: Codable, Equatable, Sendable {
+        let review: Bool
+        let appeal: Bool
+    }
+
+    struct RetainedRecord: Codable, Equatable, Sendable, Identifiable {
+        let category: String
+        let until: String?
+        let completedAt: String?
+        var id: String { category }
+    }
+
+    struct ReviewNotice: Codable, Equatable, Sendable, Identifiable {
+        let challengeID: UUID
+        let noticeRevision: Int
+        let reviewBy: String
+        var id: String { "\(challengeID.uuidString):\(noticeRevision)" }
+    }
+
+    struct Rights: Codable, Equatable, Sendable {
+        let reviewNotices: [ReviewNotice]
+        let appealAvailable: Bool
+        let holdsReviewDue: Bool
+    }
+
+    let state: AccountDeletionProgress
+    let acceptedAt: String?
+    let accountClosedAt: String?
+    let receiptExpiresAt: String?
+    let holds: Holds?
+    let rights: Rights?
+    let retained: [RetainedRecord]
 }
 
 enum AccountDeletionError: LocalizedError, Equatable, Sendable {
     case authenticationRequired
     case authorizationCodeUnavailable
     case accountChanged
+    case receiptExpired
     case invalidResponse
     case rejected
     case unavailable
@@ -112,6 +157,8 @@ enum AccountDeletionError: LocalizedError, Equatable, Sendable {
             "Apple didn’t return the confirmation needed to delete this account. Try again."
         case .accountChanged:
             "You signed in with a different Apple account. Try again with the account you want to delete."
+        case .receiptExpired:
+            "This account-deletion receipt is no longer available. Contact support if you need help."
         case .invalidResponse, .rejected:
             "GameTime couldn’t finish deleting your account. Try again or contact support."
         case .unavailable:
@@ -124,7 +171,28 @@ enum AccountDeletionError: LocalizedError, Equatable, Sendable {
 protocol AccountDeletionClient: AnyObject {
     func deleteAccount(
         ownerID: UUID,
+        requestID: UUID,
+        receiptSecret: String,
         appleAuthorizationCode: String
+    ) async throws -> AccountDeletionStatus
+    func resumeAccountDeletion(
+        requestID: UUID,
+        receiptSecret: String,
+        appleAuthorizationCode: String?
+    ) async throws -> AccountDeletionStatus
+    func accountDeletionStatus(
+        receiptSecret: String
+    ) async throws -> AccountDeletionStatus
+    func fileAccountDeletionReview(
+        requestID: UUID,
+        receiptSecret: String,
+        challengeID: UUID,
+        noticeRevision: Int,
+        reason: String
+    ) async throws
+    func fileAccountDeletionAppeal(
+        requestID: UUID,
+        receiptSecret: String
     ) async throws
 }
 
@@ -132,9 +200,46 @@ protocol AccountDeletionClient: AnyObject {
 final class DisabledAccountDeletionClient: AccountDeletionClient {
     func deleteAccount(
         ownerID: UUID,
+        requestID: UUID,
+        receiptSecret: String,
         appleAuthorizationCode: String
+    ) async throws -> AccountDeletionStatus {
+        _ = (ownerID, requestID, receiptSecret, appleAuthorizationCode)
+        throw AccountDeletionError.unavailable
+    }
+
+    func resumeAccountDeletion(
+        requestID: UUID,
+        receiptSecret: String,
+        appleAuthorizationCode: String?
+    ) async throws -> AccountDeletionStatus {
+        _ = (requestID, receiptSecret, appleAuthorizationCode)
+        throw AccountDeletionError.unavailable
+    }
+
+    func accountDeletionStatus(
+        receiptSecret: String
+    ) async throws -> AccountDeletionStatus {
+        _ = receiptSecret
+        throw AccountDeletionError.unavailable
+    }
+
+    func fileAccountDeletionReview(
+        requestID: UUID,
+        receiptSecret: String,
+        challengeID: UUID,
+        noticeRevision: Int,
+        reason: String
     ) async throws {
-        _ = (ownerID, appleAuthorizationCode)
+        _ = (requestID, receiptSecret, challengeID, noticeRevision, reason)
+        throw AccountDeletionError.unavailable
+    }
+
+    func fileAccountDeletionAppeal(
+        requestID: UUID,
+        receiptSecret: String
+    ) async throws {
+        _ = (requestID, receiptSecret)
         throw AccountDeletionError.unavailable
     }
 }
@@ -170,6 +275,7 @@ struct AppServices {
     let personalStepSnapshotCache: any PersonalStepSnapshotCaching
     let personalHealthSnapshotUploader: any PersonalHealthSnapshotUploading
     let accountDeletion: any AccountDeletionClient
+    let accountDeletionReceipts: any AccountDeletionReceiptStoring
     let localStateCleanup: any AccountLocalStateCleaning
     let duels: any DuelClient
     let pendingDuels: any PendingDuelRequestStore
@@ -209,6 +315,8 @@ struct AppServices {
                 DisabledPersonalHealthSnapshotUploader(),
         accountDeletion: any AccountDeletionClient =
             DisabledAccountDeletionClient(),
+        accountDeletionReceipts: any AccountDeletionReceiptStoring =
+            EphemeralAccountDeletionReceiptStore(),
         localStateCleanup: any AccountLocalStateCleaning =
             NoOpAccountLocalStateCleaner(),
         duels: any DuelClient = DisabledDuelClient(),
@@ -236,6 +344,7 @@ struct AppServices {
         self.personalStepSnapshotCache = personalStepSnapshotCache
         self.personalHealthSnapshotUploader = personalHealthSnapshotUploader
         self.accountDeletion = accountDeletion
+        self.accountDeletionReceipts = accountDeletionReceipts
         self.localStateCleanup = localStateCleanup
         self.duels = duels
         self.pendingDuels = pendingDuels

@@ -86,6 +86,9 @@ final class AppModel {
     private(set) var lastSubmittedHandle: String?
     private(set) var isMutating = false
     private(set) var accountDeletionNotice: String?
+    private(set) var accountDeletionReceipt: AccountDeletionReceipt?
+    private(set) var accountDeletionStatus: AccountDeletionStatus?
+    private(set) var accountDeletionStatusError: String?
     private(set) var onboardingNamePrefill = ""
     private(set) var onboardingError: OnboardingPresentationError?
     private(set) var pendingChallenge: PendingChallengeSubmission?
@@ -123,6 +126,7 @@ final class AppModel {
             enabled: configuration.performanceCommitmentRuntimeEnabled,
             auth: services.auth, client: services.performanceCommitments,
             pendingStore: services.pendingPerformanceCommitments)
+        accountDeletionReceipt = try? services.accountDeletionReceipts.loadLatest()
     }
 
     deinit {
@@ -153,6 +157,7 @@ final class AppModel {
             }
         }
         await resolveAuthentication(userID: initialUserID)
+        await refreshAccountDeletionStatus()
 
         let liveUserID = await services.auth.currentUserID()
         if liveUserID != userID || (phase == .launching && presentedError == nil) {
@@ -895,6 +900,7 @@ final class AppModel {
         guard let ownerID = userID else {
             throw AccountDeletionError.authenticationRequired
         }
+        let generation = authGeneration
         guard let authorizationCode = identity.authorizationCode,
             !authorizationCode.trimmingCharacters(
                 in: .whitespacesAndNewlines
@@ -910,17 +916,251 @@ final class AppModel {
             isPerformingExplicitAuthMutation = false
         }
 
+        let receipt = try deletionReceipt(for: ownerID)
         let reauthenticatedUserID = try await services.auth.signInWithApple(
             identity
         )
-        guard reauthenticatedUserID == ownerID else {
+        guard reauthenticatedUserID == ownerID,
+            await isCurrentAuthenticatedActor(ownerID, generation: generation)
+        else {
             throw AccountDeletionError.accountChanged
         }
 
-        try await services.accountDeletion.deleteAccount(
+        let status: AccountDeletionStatus
+        do {
+            status = try await services.accountDeletion.deleteAccount(
+                ownerID: ownerID,
+                requestID: receipt.requestID,
+                receiptSecret: receipt.secret,
+                appleAuthorizationCode: authorizationCode
+            )
+        } catch {
+            // A lost response can happen after the server has accepted the
+            // immutable request. Recover that exact state before telling the
+            // person to begin again.
+            guard let recovered = try? await services.accountDeletion
+                .accountDeletionStatus(receiptSecret: receipt.secret)
+            else { throw error }
+            status = recovered
+        }
+        return await finishAcceptedAccountDeletion(
             ownerID: ownerID,
-            appleAuthorizationCode: authorizationCode
+            receipt: receipt,
+            status: status,
+            generation: generation
         )
+    }
+
+    func refreshAccountDeletionStatus() async {
+        guard let receipt = accountDeletionReceipt else { return }
+        let visibleOwnerID = userID
+        accountDeletionStatusError = nil
+        do {
+            let status = try await services.accountDeletion
+                .accountDeletionStatus(receiptSecret: receipt.secret)
+            guard receipt == accountDeletionReceipt,
+                visibleOwnerID == userID,
+                userID == nil || userID == receipt.ownerID
+            else { return }
+            accountDeletionStatus = status
+        } catch {
+            guard receipt == accountDeletionReceipt,
+                visibleOwnerID == userID
+            else { return }
+            if case AccountDeletionError.receiptExpired = error {
+                try? services.accountDeletionReceipts.remove(for: receipt.ownerID)
+                accountDeletionReceipt = nil
+                accountDeletionStatus = nil
+                accountDeletionStatusError = AccountDeletionError.receiptExpired
+                    .localizedDescription
+            } else {
+                // Keep the opaque receipt and the last known status. A network
+                // interruption is recoverable; authorization-shaped failures
+                // must never erase the only post-sign-out recovery path.
+                accountDeletionStatusError = error.localizedDescription
+            }
+        }
+    }
+
+    func resumeAccountDeletion(with identity: AppleIdentity?) async throws
+        -> AccountDeletionResult
+    {
+        guard let receipt = accountDeletionReceipt else {
+            throw AccountDeletionError.authenticationRequired
+        }
+        if let userID, userID != receipt.ownerID {
+            throw AccountDeletionError.accountChanged
+        }
+        let generation = authGeneration
+        let status = try await services.accountDeletion.resumeAccountDeletion(
+            requestID: receipt.requestID,
+            receiptSecret: receipt.secret,
+            appleAuthorizationCode: identity?.authorizationCode
+        )
+        return await finishAcceptedAccountDeletion(
+            ownerID: receipt.ownerID,
+            receipt: receipt,
+            status: status,
+            generation: generation
+        )
+    }
+
+    func fileAccountDeletionReview(
+        notice: AccountDeletionStatus.ReviewNotice,
+        reason: String
+    ) async throws {
+        guard let receipt = accountDeletionReceipt else {
+            throw AccountDeletionError.authenticationRequired
+        }
+        let request = try pendingRightsRequest(
+            for: receipt,
+            operation: .review,
+            challengeID: notice.challengeID,
+            noticeRevision: notice.noticeRevision,
+            reason: reason
+        )
+        try await services.accountDeletion.fileAccountDeletionReview(
+            requestID: request.id,
+            receiptSecret: receipt.secret,
+            challengeID: notice.challengeID,
+            noticeRevision: notice.noticeRevision,
+            reason: reason
+        )
+        try clearPendingRightsRequest(for: receipt)
+        await refreshAccountDeletionStatus()
+    }
+
+    func fileAccountDeletionAppeal() async throws {
+        guard let receipt = accountDeletionReceipt else {
+            throw AccountDeletionError.authenticationRequired
+        }
+        let request = try pendingRightsRequest(
+            for: receipt,
+            operation: .appeal,
+            challengeID: nil,
+            noticeRevision: nil,
+            reason: nil
+        )
+        try await services.accountDeletion.fileAccountDeletionAppeal(
+            requestID: request.id,
+            receiptSecret: receipt.secret
+        )
+        try clearPendingRightsRequest(for: receipt)
+        await refreshAccountDeletionStatus()
+    }
+
+    var hasPendingAccountDeletionRightsRequest: Bool {
+        accountDeletionReceipt?.pendingRightsRequest != nil
+    }
+
+    func retryPendingAccountDeletionRightsRequest() async throws {
+        guard let receipt = accountDeletionReceipt,
+            let request = receipt.pendingRightsRequest
+        else { return }
+        switch request.operation {
+        case .review:
+            guard let challengeID = request.challengeID,
+                let noticeRevision = request.noticeRevision,
+                let reason = request.reason
+            else { throw AccountDeletionError.invalidResponse }
+            try await services.accountDeletion.fileAccountDeletionReview(
+                requestID: request.id,
+                receiptSecret: receipt.secret,
+                challengeID: challengeID,
+                noticeRevision: noticeRevision,
+                reason: reason
+            )
+        case .appeal:
+            try await services.accountDeletion.fileAccountDeletionAppeal(
+                requestID: request.id,
+                receiptSecret: receipt.secret
+            )
+        }
+        try clearPendingRightsRequest(for: receipt)
+        await refreshAccountDeletionStatus()
+    }
+
+    private func pendingRightsRequest(
+        for receipt: AccountDeletionReceipt,
+        operation: AccountDeletionRightsOperation,
+        challengeID: UUID?,
+        noticeRevision: Int?,
+        reason: String?
+    ) throws -> AccountDeletionRightsRequest {
+        let requested = AccountDeletionRightsRequest(
+            id: UUID(),
+            operation: operation,
+            challengeID: challengeID,
+            noticeRevision: noticeRevision,
+            reason: reason
+        )
+        if let pending = receipt.pendingRightsRequest {
+            guard pending.operation == operation,
+                pending.challengeID == challengeID,
+                pending.noticeRevision == noticeRevision,
+                pending.reason == reason
+            else { throw AccountDeletionError.unavailable }
+            return pending
+        }
+        var savedReceipt = receipt
+        savedReceipt.pendingRightsRequest = requested
+        try services.accountDeletionReceipts.save(savedReceipt)
+        accountDeletionReceipt = savedReceipt
+        return requested
+    }
+
+    private func clearPendingRightsRequest(
+        for receipt: AccountDeletionReceipt
+    ) throws {
+        var savedReceipt = receipt
+        savedReceipt.pendingRightsRequest = nil
+        try services.accountDeletionReceipts.save(savedReceipt)
+        if accountDeletionReceipt?.ownerID == receipt.ownerID {
+            accountDeletionReceipt = savedReceipt
+        }
+    }
+
+    private func deletionReceipt(for ownerID: UUID) throws -> AccountDeletionReceipt {
+        if let receipt = try services.accountDeletionReceipts.load(for: ownerID) {
+            accountDeletionReceipt = receipt
+            return receipt
+        }
+        if let accountDeletionReceipt, accountDeletionReceipt.ownerID == ownerID {
+            return accountDeletionReceipt
+        }
+        let receipt = AccountDeletionReceipt(
+            ownerID: ownerID,
+            secret: UUID().uuidString.replacingOccurrences(of: "-", with: "")
+        )
+        try services.accountDeletionReceipts.save(receipt)
+        accountDeletionReceipt = receipt
+        return receipt
+    }
+
+    private func finishAcceptedAccountDeletion(
+        ownerID: UUID,
+        receipt: AccountDeletionReceipt,
+        status: AccountDeletionStatus,
+        generation: UUID
+    ) async -> AccountDeletionResult {
+        let result = deletionResult(for: status)
+        // The accepted request is already durable. If its response arrives
+        // after another account becomes current, preserve its receipt but do
+        // not clear, sign out, or overwrite that other account's local state.
+        let signedOutRecovery = userID == nil && accountDeletionReceipt == receipt
+        let isCurrentOwner = await isCurrentAuthenticatedActor(
+            ownerID,
+            generation: generation
+        )
+        guard isCurrentOwner || signedOutRecovery else { return result }
+        accountDeletionReceipt = receipt
+        accountDeletionStatus = status
+        accountDeletionStatusError = nil
+
+        // Acceptance already cleared the ordinary account. A signed-out
+        // receipt resume may finish provider/account work but must not try to
+        // clear a different person's current device state.
+        guard isCurrentOwner else { return result }
 
         duels.setActor(nil)
         performanceCommitments.setActor(nil)
@@ -933,8 +1173,13 @@ final class AppModel {
             cleanupWarning = true
         }
 
+        let canUnregisterPush = await isCurrentAuthenticatedActor(
+            ownerID,
+            generation: generation
+        )
         if let pushRegistration,
-            registeredPushActorID == ownerID
+            registeredPushActorID == ownerID,
+            canUnregisterPush
         {
             do {
                 try await services.pushNotifications.unregister(
@@ -945,23 +1190,38 @@ final class AppModel {
             }
         }
 
-        do {
-            try await services.auth.signOut()
-        } catch {
-            cleanupWarning = true
+        if await isCurrentAuthenticatedActor(ownerID, generation: generation) {
+            do {
+                try await services.auth.signOut()
+            } catch {
+                cleanupWarning = true
+            }
         }
 
-        let result: AccountDeletionResult = cleanupWarning
-            ? .deletedWithLocalCleanupWarning
-            : .deleted
+        let completedResult: AccountDeletionResult = result == .deleted && cleanupWarning
+            ? .deletedWithLocalCleanupWarning : result
         accountDeletionNotice = switch result {
         case .deleted:
-            "Your GameTime account was deleted."
+            "We closed your account. You can check the saved account-deletion receipt here."
         case .deletedWithLocalCleanupWarning:
-            "Your GameTime account was deleted. Some saved data on this phone could not be cleared."
+            "We closed your account, but some saved data on this phone could not be cleared. You can check the saved account-deletion receipt here."
+        case .pendingProvider:
+            "We stopped access and saved your account-deletion receipt. We still need to finish account closure."
+        case .held:
+            "We closed ordinary access and saved your account-deletion receipt. A review or appeal is still open."
         }
-        clearUserState()
-        return result
+        if isCurrentActor(ownerID, generation: generation) {
+            clearUserState()
+        }
+        return completedResult
+    }
+
+    private func deletionResult(for status: AccountDeletionStatus) -> AccountDeletionResult {
+        switch status.state {
+        case .completed: .deleted
+        case .held: .held
+        case .pendingProvider, .pendingAccountClose: .pendingProvider
+        }
     }
 
     var incomingFriendships: [FriendshipCard] {
@@ -999,6 +1259,10 @@ final class AppModel {
     private func resolveAuthentication(userID: UUID?) async {
         guard let userID else {
             clearUserState()
+            accountDeletionReceipt = try? services.accountDeletionReceipts
+                .loadLatest()
+            accountDeletionStatus = nil
+            accountDeletionStatusError = nil
             return
         }
         if self.userID == userID, phase == .signedIn {
@@ -1009,6 +1273,10 @@ final class AppModel {
         authGeneration = generation
         refreshGeneration = UUID()
         self.userID = userID
+        accountDeletionReceipt = try? services.accountDeletionReceipts
+            .load(for: userID)
+        accountDeletionStatus = nil
+        accountDeletionStatusError = nil
         duels.setActor(userID)
         performanceCommitments.setActor(userID)
         weekly.setActor(userID)
