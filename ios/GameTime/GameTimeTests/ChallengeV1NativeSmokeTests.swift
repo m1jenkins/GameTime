@@ -7,9 +7,10 @@ import XCTest
     struct Config: Decodable {
         struct Actor: Decodable { let id:UUID;let email:String;let username:String }
         let url:URL;let key:String;let controlToken:String;let password:String;let actors:[Actor]
+        let nativePhase: String?
     }
     var config:Config!
-    func testTwoAndSixPersonProductionNativeJourney() async throws {
+    private func makeSession() throws -> (SupabaseClient, ChallengeV1Store, SupabaseChallengeV1Client, URL) {
         let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let file=root.appendingPathComponent("tmp/beta-native-smoke.json")
         guard FileManager.default.fileExists(atPath:file.path) else { throw XCTSkip("Run scripts/beta-native-smoke.py with the owned Simulator.") }
@@ -19,10 +20,20 @@ import XCTest
         let sdk=SupabaseClient(supabaseURL:config.url,supabaseKey:config.key,options:.init(auth:.init(storage:ChallengeMemoryAuthStorage(),autoRefreshToken:false,emitLocalSessionAsInitialSession:true)))
         let directory=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)
-        defer { if FileManager.default.fileExists(atPath:directory.path) { try? FileManager.default.removeItem(at:directory) } }
         let queue=ChallengeV1RequestStore(directory:directory)
         let client=SupabaseChallengeV1Client(sdk:sdk,url:config.url,key:config.key)
         let store=ChallengeV1Store(auth:SupabaseAuthClient(client:sdk),client:client,requests:queue)
+        return (sdk, store, client, directory)
+    }
+    func testProductionNativeJourneys() async throws {
+        let (sdk, store, client, directory) = try makeSession()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        if config.nativePhase == "recovery" {
+            try await communityPrivacy(sdk, store, client)
+            try await entry(sdk, store, client)
+            return
+        }
+        let queue = store.requests
         for people in [2,6] {
             try await control(["action":"clock","now":"2026-10-01T12:00:00Z"])
             try await login(0,sdk,store)
@@ -152,6 +163,10 @@ import XCTest
         XCTAssertEqual(late.status,"cancelled_request","Late original request cannot commit after abandonment")
         XCTAssertEqual(store.challenges.filter({$0.status=="final"}).count,2)
         try await matrix(sdk, store, client)
+        if config.nativePhase != "matrix" {
+            try await communityPrivacy(sdk, store, client)
+            try await entry(sdk, store, client)
+        }
     }
     func matrix(_ sdk: SupabaseClient, _ store: ChallengeV1Store, _ client: SupabaseChallengeV1Client) async throws {
         var completed = Set<String>()
@@ -188,6 +203,26 @@ import XCTest
             XCTAssertNotNil(row.final, policy.id)
             let own = row.final?.result.own ?? row.final?.result.participants?[config.actors[0].id.uuidString.lowercased()]
             XCTAssertEqual(own?.status, !policy.hasTarget ? "winner" : policy.metric == .timed ? "met" : "missed", policy.id)
+            // Empty/unknown fictional activity must not become a zero or a loss.
+            let missingID = try await createPolicy(policy, sdk, store, client)
+            try await control(["action": "clock", "now": "2026-10-03T12:00:00Z"])
+            try await control(["action": "process", "id": missingID.uuidString])
+            try await control(["action": "capture", "id": missingID.uuidString, "actor": config.actors[0].id.uuidString, "value": NSNull()])
+            if policy.mode != .personal {
+                try await control(["action": "capture", "id": missingID.uuidString, "actor": config.actors[1].id.uuidString, "value": 200])
+            }
+            try await login(0, sdk, store)
+            let unknown = try await client.detail(missingID, actor: config.actors[0].id)
+            XCTAssertNil(unknown.own(config.actors[0].id)?.fact?.value, policy.id)
+            try await control(["action": "clock", "now": "2026-10-10T12:00:00Z"])
+            try await control(["action": "process", "id": missingID.uuidString])
+            try await control(["action": "clock", "now": "2026-10-12T12:00:00Z"])
+            try await control(["action": "process", "id": missingID.uuidString])
+            let missingFinal = try await client.detail(missingID, actor: config.actors[0].id)
+            let missingOwn = missingFinal.final?.result.own ?? missingFinal.final?.result.participants?[config.actors[0].id.uuidString.lowercased()]
+            XCTAssertTrue(missingFinal.isClosed, policy.id)
+            XCTAssertNotEqual(missingOwn?.status, "missed", policy.id)
+            XCTAssertEqual(missingOwn?.returnedCents, 100, policy.id)
             let exitID = try await createPolicy(policy, sdk, store, client)
             try await control(["action": "clock", "now": "2026-10-03T12:00:00Z"])
             try await control(["action": "process", "id": exitID.uuidString])
@@ -202,7 +237,81 @@ import XCTest
             completed.insert(policy.id)
         }
         XCTAssertEqual(completed.count, 13, "Every exact policy traversed the production native HTTP client")
-        try await entry(sdk, store, client)
+    }
+    func communityPrivacy(_ sdk: SupabaseClient, _ store: ChallengeV1Store, _ client: SupabaseChallengeV1Client) async throws {
+        let policy = try XCTUnwrap(ChallengeV1Policy(rawValue: "community_steps_goal_v1"))
+        let id = try await createPolicy(policy, sdk, store, client)
+        for i in 2...5 {
+            try await login(i, sdk, store)
+            let cohort = try XCTUnwrap(store.communities.first { $0.id == id })
+            await store.submit(op: "join_community", fields: ["id": .string(id.uuidString.lowercased()), "digest": .string(cohort.digest), "consent": .bool(true)])
+            XCTAssertNil(store.pending, store.error ?? "Community join failed")
+            let row = try await client.detail(id, actor: config.actors[i].id)
+            XCTAssertEqual(row.members.count, 1)
+            XCTAssertNil(row.creatorId)
+            XCTAssertNil(row.counts?.joined, "Fresh joins cannot reveal a live count")
+            if i == 3 { XCTAssertEqual(row.counts?.state, "threshold") }
+            if i == 4 {
+                try await control(["action": "community_snapshot", "id": id.uuidString])
+                try await control(["action": "clock", "now": "2026-10-01T12:14:59Z"])
+                let early = try await client.detail(id, actor: config.actors[i].id)
+                XCTAssertNil(early.counts?.joined, "899 seconds must remain hidden")
+            }
+        }
+        try await control(["action": "clock", "now": "2026-10-01T12:15:00Z"])
+        try await login(0, sdk, store)
+        var row = try await client.detail(id, actor: config.actors[0].id)
+        XCTAssertEqual(row.counts?.disclosedJoined(at: row.serverTime), 5, "Six current members still see the mature snapshot of five")
+        await store.submit(op: "report_scoped", fields: ["id": .string(id.uuidString.lowercased()), "subject": .null, "reason": .string("unsafe_behavior")])
+        XCTAssertNil(store.pending)
+        try await login(6, sdk, store)
+        // The participant client's endpoint allowlist intentionally excludes
+        // operator reports/actions. Use the authenticated operator SDK path;
+        // assert actual server denials, not a participant-side unavailable error.
+        func operatorRead(_ name: String, _ fields: [String: ChallengeJSON] = [:]) async throws -> ChallengeJSON {
+            XCTAssertEqual(sdk.auth.currentSession?.user.id, config.actors[6].id)
+            let response = try await sdk.rpc(name, params: ChallengeJSON.object(fields)).execute()
+            return try JSONDecoder().decode(ChallengeJSON.self, from: response.data)
+        }
+        func reports() async throws -> ChallengeJSON {
+            try await operatorRead("challenge_operator_reports_v1", ["p_id": .string(id.uuidString.lowercased())])
+        }
+        do { _ = try await reports(); XCTFail("An unassigned operator cannot read reports") }
+        catch { XCTAssertEqual((error as? PostgrestError)?.code, "42501") }
+        try await control(["action": "community_moderator", "id": id.uuidString])
+        let scoped = try await reports()
+        if case .array(let reports) = scoped { XCTAssertEqual(reports.count, 1) }
+        else { XCTFail("Expected the scoped report") }
+        do {
+            _ = try await operatorRead("challenge_support_reports_v1")
+            XCTFail("A community grant cannot read global support reports")
+        } catch { XCTAssertEqual((error as? PostgrestError)?.code, "42501") }
+        _ = try await operatorRead("challenge_operator_action_v1", [
+            "p_request_id": .string(UUID().uuidString.lowercased()),
+            "p_payload": .object(["op": .string("remove"), "id": .string(id.uuidString.lowercased()),
+                                  "actor_id": .string(config.actors[5].id.uuidString.lowercased()), "reason": .string("unsafe_behavior")])
+        ])
+        try await control(["action": "community_moderator", "id": id.uuidString, "revoke": true])
+        do { _ = try await reports(); XCTFail("Revoked moderation cannot read reports") }
+        catch { XCTAssertEqual((error as? PostgrestError)?.code, "42501") }
+        try await login(5, sdk, store)
+        let removed = try await client.detail(id, actor: config.actors[5].id)
+        XCTAssertEqual(removed.own(config.actors[5].id)?.exited, true)
+        XCTAssertEqual(store.access?.suspended, false, "Scoped removal must not suspend the account")
+        try await login(4, sdk, store)
+        row = try await client.detail(id, actor: config.actors[4].id)
+        await store.submit(op: "leave", challenge: row)
+        XCTAssertNil(store.pending)
+        try await login(0, sdk, store)
+        row = try await client.detail(id, actor: config.actors[0].id)
+        XCTAssertEqual(row.counts?.state, "threshold")
+        XCTAssertNil(row.counts?.joined); XCTAssertNil(row.counts?.asOf)
+        // Finish only this fixture, retaining each own safe-exit record.
+        for i in 0...3 {
+            try await login(i, sdk, store)
+            row = try await client.detail(id, actor: config.actors[i].id)
+            if !row.isClosed { await store.submit(op: "leave", challenge: row); XCTAssertNil(store.pending) }
+        }
     }
     func createPolicy(_ policy: ChallengeV1Policy, _ sdk: SupabaseClient, _ store: ChallengeV1Store, _ client: SupabaseChallengeV1Client) async throws -> UUID {
         try await control(["action": "clock", "now": "2026-10-01T12:00:00Z"])
@@ -217,11 +326,12 @@ import XCTest
             XCTAssertNil(store.pending, store.error ?? policy.id)
             id = try XCTUnwrap(store.lastReceipt?.id)
         } else if policy.mode == .community {
-            try await control(["action": "community"])
+            let publication = try await control(["action": "community"])
+            let publishedID = try XCTUnwrap(publication["id"] as? String)
             for i in 0...1 {
                 try await login(i, sdk, store)
                 let catalog = try await client.read("challenge_community_catalog_v1", actor: config.actors[i].id, as: [ChallengeV1Community].self)
-                let cohort = try XCTUnwrap(catalog.first)
+                let cohort = try XCTUnwrap(catalog.first { $0.id.uuidString.lowercased() == publishedID })
                 await store.submit(op: "join_community", fields: ["id": .string(cohort.id.uuidString.lowercased()), "digest": .string(cohort.digest), "consent": .bool(true)])
                 XCTAssertNil(store.pending, store.error ?? policy.id)
             }
@@ -266,8 +376,18 @@ import XCTest
         try await login(0, sdk, store)
         await store.submit(op: "create", fields: ["config": .object(["start_date": .string("2026-10-03"), "days": .integer(1), "timezone": .string("UTC"), "amount_cents": .integer(100)])])
         let id = try XCTUnwrap(store.lastReceipt?.id)
+        try await control(["action": "lose", "rpc": "challenge_command_v1"])
         await store.submit(op: "issue_link", fields: ["id": .string(id.uuidString.lowercased())])
-        let link = try XCTUnwrap(store.lastReceipt)
+        let pendingIssue = try XCTUnwrap(store.pending)
+        let recreated = ChallengeV1Store(auth: SupabaseAuthClient(client: sdk), client: client, requests: store.requests)
+        recreated.setActor(config.actors[0].id); await recreated.refresh()
+        XCTAssertEqual(recreated.pending, pendingIssue)
+        await recreated.retry()
+        XCTAssertNil(recreated.pending, recreated.error ?? "Exact issuance recovery failed")
+        let link = try XCTUnwrap(recreated.lastReceipt)
+        await store.refresh()
+        XCTAssertEqual(store.issuedLinks.first { $0.id == link.id }?.requestId, pendingIssue.requestId)
+        XCTAssertEqual(store.issuedLinks.first { $0.id == link.id }?.challengeId, id)
         let token = try XCTUnwrap(link.token)
         try await control(["action": "unallow_actor", "actor": config.actors[6].id.uuidString])
         try await login(6, sdk, store)
@@ -285,8 +405,13 @@ import XCTest
         let row = try await client.detail(id, actor: config.actors[0].id)
         await store.submit(op: "reject", challenge: row, fields: ["actor_id": .string(config.actors[6].id.uuidString.lowercased())])
         XCTAssertNil(store.pending, store.error ?? "Rejection failed")
+        try await control(["action": "lose", "rpc": "challenge_command_v1"])
         await store.submit(op: "revoke_link", fields: ["id": .string(try XCTUnwrap(link.id).uuidString.lowercased())])
+        XCTAssertNotNil(store.pending)
+        XCTAssertTrue(store.issuedLinks.contains { $0.id == link.id })
+        await store.retry()
         XCTAssertNil(store.pending, store.error ?? "Revocation failed")
+        XCTAssertFalse(store.issuedLinks.contains { $0.id == link.id })
         try await login(6, sdk, store)
         own = try await client.detail(id, actor: config.actors[6].id)
         XCTAssertTrue(try XCTUnwrap(own.own(config.actors[6].id)).exited)
@@ -337,7 +462,18 @@ import XCTest
         await store.submit(op: "issue_link", fields: ["id": .string(id.uuidString.lowercased())])
         let token = try XCTUnwrap(store.lastReceipt?.token)
         try await login(6, sdk, store)
-        await store.submit(op: "redeem_link", fields: ["token": .string(token)])
+        let intentDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: intentDirectory) }
+        let intent = ChallengeInvitationIntent(directory: intentDirectory)
+        intent.receive(try XCTUnwrap(URL(string: "gametime-beta://challenge-invite/" + token)))
+        let panel = ChallengeEntryPanel(store: store, invitation: intent)
+        try await control(["action": "lose", "rpc": "challenge_command_v1"])
+        await panel.useInvitation()
+        XCTAssertNotNil(store.pending); XCTAssertFalse(intent.link.isEmpty)
+        XCTAssertEqual(ChallengeInvitationIntent(directory: intentDirectory).link, intent.link)
+        await store.retry()
+        await panel.useInvitation()
+        XCTAssertTrue(intent.link.isEmpty, "Only the confirmed unchanged invitation is acknowledged")
         XCTAssertNil(store.pending, store.error ?? "Second invitation failed")
         for i in [0, 6] {
             try await login(i, sdk, store)
@@ -397,13 +533,15 @@ import XCTest
         await store.refresh()
         XCTAssertNil(store.error)
     }
-    func control(_ value:[String:Any]) async throws {
+    @discardableResult
+    func control(_ value:[String:Any]) async throws -> [String: Any] {
         var request=URLRequest(url:config.url.appendingPathComponent("__beta/control"))
         request.httpMethod="POST";request.httpBody=try JSONSerialization.data(withJSONObject:value)
         request.setValue(config.controlToken,forHTTPHeaderField:"X-Beta-Control")
         request.setValue("application/json",forHTTPHeaderField:"Content-Type")
-        let (_,response)=try await URLSession.shared.data(for:request)
+        let (data,response)=try await URLSession.shared.data(for:request)
         XCTAssertEqual((response as? HTTPURLResponse)?.statusCode,200)
+        return try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
     }
 }
 #endif

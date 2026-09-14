@@ -199,17 +199,20 @@ struct ChallengeEntryPanel: View {
                 .disabled(!age || store.busy || store.pending != nil).accessibilityIdentifier("beta.age.submit")
         }
         TextField("Invitation link", text: $invitation.link).textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-        Button("Use invitation") { Task {
-            if let token = ChallengeInvitation.token(from: invitation.link) {
-                await store.submit(op: "redeem_link", fields: ["token": .string(token)])
-                if store.pending == nil { invitation.clear() }
-            }
-        }}.disabled(ChallengeInvitation.token(from: invitation.link) == nil || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
+        Button("Use invitation") { Task { await useInvitation() } }
+            .disabled(ChallengeInvitation.token(from: invitation.link) == nil || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
         Text("An invitation grants beta access and requests a place in the lobby. The creator still chooses the roster. You agree separately. It does not add a friend.").font(.body).fixedSize(horizontal: false, vertical: true)
         if let error = store.entryError { Text(error).font(.body).fixedSize(horizontal: false, vertical: true) }
         ForEach(store.communities) { row in
             NavigationLink("Community steps") { ChallengeCommunityJoin(store: store, community: row) }
         }
+    }
+    func useInvitation() async {
+        let submittedLink = invitation.link
+        guard let token = ChallengeInvitation.token(from: submittedLink), let actor = store.actor else { return }
+        let receipt = await store.submit(op: "redeem_link", fields: ["token": .string(token)])
+        guard store.actor == actor, receipt?.id != nil, receipt?.status == "pending_request" else { return }
+        invitation.clear(ifMatching: submittedLink)
     }
 }
 
@@ -240,18 +243,15 @@ struct ChallengeCommunityJoin: View {
 struct ChallengeLinkIssuer: View {
     @Bindable var store: ChallengeV1Store
     let row: ChallengeV1
-    @State private var issued: ChallengeV1Receipt?
     var body: some View {
         Button("Create invitation link") { Task {
             await store.submit(op: "issue_link", fields: ["id": .string(row.id.uuidString.lowercased())])
-            if store.pending == nil { issued = store.lastReceipt }
         }}.disabled(!store.fresh || store.busy || store.pending != nil)
-        if let issued, let token = issued.token, let id = issued.id {
-            Text("gametime-beta://challenge-invite/\(token)").textSelection(.enabled).privacySensitive()
+        ForEach(store.issuedLinks.filter { $0.actorId == store.actor && $0.challengeId == row.id && row.creatorId == store.actor }) { issued in
+            Text("gametime-beta://challenge-invite/\(issued.token)").textSelection(.enabled).privacySensitive()
             Text("Up to 20 different accounts, for at most 30 days while the lobby is open.").font(.body).fixedSize(horizontal: false, vertical: true)
             Button("Revoke invitation link") { Task {
-                await store.submit(op: "revoke_link", fields: ["id": .string(id.uuidString.lowercased())])
-                if store.pending == nil { self.issued = nil }
+                await store.submit(op: "revoke_link", fields: ["id": .string(issued.id.uuidString.lowercased())])
             }}.disabled(store.busy || store.pending != nil)
         }
     }

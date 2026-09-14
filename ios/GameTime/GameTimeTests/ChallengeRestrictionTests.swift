@@ -111,13 +111,13 @@ import XCTest
     private func mounted(detail: Bool, revision: Int) async throws {
         let fixture = RestrictionFixture(); defer { fixture.clean() }
         await fixture.start()
-        let view = detail ? AnyView(NavigationStack { ChallengeV1Detail(store: fixture.store, id: fixture.shared.id) }) :
+        let view = detail ? AnyView(NavigationStack { ChallengeV1Detail(store: fixture.store, id: fixture.shared.id) }.environment(\.dynamicTypeSize, .accessibility1)) :
             AnyView(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}))
         let controller = UIHostingController(rootView: view)
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
         let previous = scene.windows.first(where: \.isKeyWindow)
         let window = UIWindow(windowScene: scene)
-        window.frame = CGRect(x: 0, y: 0, width: 430, height: 3000)
+        window.frame = CGRect(x: 0, y: 0, width: 430, height: 932)
         window.rootViewController = controller; window.makeKeyAndVisible()
         controller.view.frame = window.bounds
         defer { window.isHidden = true; previous?.makeKeyAndVisible() }
@@ -125,10 +125,10 @@ import XCTest
         XCTAssertNotNil(controller.view.window)
         XCTAssertEqual(fixture.client.detailCalls, detail ? 1 : 0)
         let name = "restriction-\(detail ? "detail" : "home")-revision-\(revision)"
-        let before = try capture(window, controller: controller, name: name + "-before")
+        let before = try await capture(window, controller: controller, name: name + "-before")
         if detail {
             XCTAssertTrue(before.contains("sharedfriend"), "Counterpart must actually be visible before restriction")
-            XCTAssertTrue(before.contains("321 steps"), "Counterpart activity must actually be rendered")
+            XCTAssertTrue(before.contains("321 of 2,000 steps"), "Counterpart activity and agreed goal must actually be rendered")
         } else {
             XCTAssertFalse(before.contains("you left this challenge"))
             XCTAssertTrue(before.contains("507"), "Unrelated activity is the rendered Home control")
@@ -136,37 +136,25 @@ import XCTest
         fixture.restrict(revision: revision, failing: [.active])
         await fixture.store.refresh()
         try await Task.sleep(for: .milliseconds(300))
-        let after = try capture(window, controller: controller, name: name + "-after")
+        let after = try await capture(window, controller: controller, name: name + "-after")
         XCTAssertEqual(fixture.client.detailCalls, detail ? 1 : 0, "No forced detail fetch may repair the mounted view")
         if detail {
             XCTAssertFalse(after.contains("sharedfriend"))
-            XCTAssertFalse(after.contains("321 steps"))
-            XCTAssertTrue(after.contains("100 steps"), "Own activity remains visible")
+            XCTAssertFalse(after.contains("321 of 2,000 steps"))
+            XCTAssertTrue(after.contains("100 of 1,000 steps"), "Own activity and agreed goal remain visible")
         } else {
             XCTAssertEqual(after.components(separatedBy: "you left this challenge").count - 1, 2, "Both the retained Active card and current History card must render the restriction")
             XCTAssertTrue(after.contains("507"), "Unrelated card stays mounted with its original activity")
         }
         XCTAssertEqual(fixture.store.challenges.first { $0.id == fixture.shared.id }, fixture.client.rows[.history]?.first)
+        XCTAssertEqual(fixture.store.sections[.active]?.rows.first { $0.id == fixture.shared.id }, fixture.client.rows[.history]?.first,
+                       "The retained Active copy must match the same restricted History projection")
     }
 
-    private func capture(_ window: UIWindow, controller: UIViewController, name: String) throws -> String {
-        controller.view.setNeedsLayout(); controller.view.layoutIfNeeded()
-        let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
-        let image = UIGraphicsImageRenderer(size: window.bounds.size, format: format).image { controller.view.layer.render(in: $0.cgContext) }
-        let cg = try XCTUnwrap(image.cgImage)
-        var lines: [String] = []
-        for y in stride(from: 0, to: cg.height, by: 650) {
-            let tile = try XCTUnwrap(cg.cropping(to: CGRect(x: 0, y: y, width: cg.width, height: min(650, cg.height - y))))
-            let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
-            request.recognitionLanguages = ["en-US"]; request.minimumTextHeight = 0.005
-            try VNImageRequestHandler(cgImage: tile).perform([request])
-            lines += (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
-        }
-        let attachment = XCTAttachment(image: image); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
-        let text = lines.joined(separator: " ").lowercased()
-        let transcription = XCTAttachment(string: text); transcription.name = name + "-recognized-text"; transcription.lifetime = .keepAlways; add(transcription)
-        return text
+    private func capture(_ window: UIWindow, controller: UIViewController, name: String) async throws -> String {
+        try await captureMountedSignal(window, controller: controller, name: name, test: self)
     }
+
 }
 
 @MainActor private final class RestrictionFixture {

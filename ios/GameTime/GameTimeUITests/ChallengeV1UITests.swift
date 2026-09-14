@@ -301,7 +301,7 @@ final class ChallengeV1UITests:XCTestCase {
             _ = try await betaControl(config, ["action": "process", "id": id])
             for i in 0..<count { _ = try await betaControl(config, ["action": "capture", "id": id, "actor": actors[i]["id"]!, "value": 12000]) }
             login(0); open("active")
-            XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "12,000 steps")).firstMatch.waitForExistence(timeout: 10))
+            XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "12,000 steps of 10,000 steps")).firstMatch.waitForExistence(timeout: 10))
             capture("active-\(count)-people")
             logout()
             _ = try await betaControl(config, ["action": "clock", "now": "2026-10-11T12:00:00Z"])
