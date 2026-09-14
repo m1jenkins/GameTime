@@ -141,7 +141,10 @@ import XCTest
         if detail {
             XCTAssertFalse(after.contains("sharedfriend"))
             XCTAssertFalse(after.contains("321 of 2,000 steps"))
-            XCTAssertTrue(after.contains("100 of 1,000 steps"), "Own activity and agreed goal remain visible")
+            // Saved viewport images show "of"; Vision sometimes reads its f as r.
+            // Keep the exact own value, goal and unit, plus every privacy check.
+            XCTAssertNotNil(after.range(of: #"\b100\s+o[fr]\s+1,000 steps\b"#, options: .regularExpression),
+                            "Own activity and agreed goal remain visible")
         } else {
             XCTAssertEqual(after.components(separatedBy: "you left this challenge").count - 1, 2, "Both the retained Active card and current History card must render the restriction")
             XCTAssertTrue(after.contains("507"), "Unrelated card stays mounted with its original activity")
