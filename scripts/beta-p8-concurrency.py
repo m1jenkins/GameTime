@@ -198,8 +198,13 @@ def main():
         reader = Session('read_first', 2); reader.send(read)
         check(isinstance(json.loads(reader.receive()), list), 'Privacy1 read-first transaction obtains authorized data')
         revoker = Session('revoke_second', role='service_role'); revoker.send(revoke(2, 'review'))
-        check(observe(revoker, reader), 'Privacy1 read-first holds grant until commit')
-        reader.commit(); revoker.receive(); revoker.commit()
+        waiting = observe(revoker, reader)
+        check(waiting, 'Privacy1 read-first holds grant until commit')
+        if not waiting:
+            revoker.receive(); revoker.commit()
+        reader.commit()
+        if waiting:
+            revoker.receive(); revoker.commit()
 
         # A table lock is a disposable-only deterministic barrier inside the real
         # RPC, after its guard/audit and before the case SELECT completes. It changes
@@ -210,11 +215,19 @@ def main():
         reader = Session('case_data_wait', 2); reader.send(read)
         assert observe(reader, barrier)
         revoker = Session('revoke_during_data', role='service_role'); revoker.send(revoke(2, 'review'))
-        check(observe(revoker, reader), 'Privacy1 revocation cannot overtake authorized context read')
+        waiting = observe(revoker, reader)
+        check(waiting, 'Privacy1 revocation cannot overtake authorized context read')
+        if not waiting:
+            # On the baseline, let the real revoke COMMIT while the reader is
+            # still held. This proves the missing transaction synchronization,
+            # not unauthorized initial access: the reader was authorized first.
+            revoker.receive(); revoker.commit()
         barrier.commit()
         result = reader.receive()
         check(not isinstance(result, dict) and json.loads(result)[0]['context']['fact']['value'] == 200, 'Privacy1 authorized in-flight context completes successfully')
-        reader.commit(); revoker.receive(); revoker.commit()
+        reader.commit()
+        if waiting:
+            revoker.receive(); revoker.commit()
 
         call(None, f"select public.challenge_grant_support_v1('{actors[4]}','2026-10-12T12:00Z');", 'service_role')
 
