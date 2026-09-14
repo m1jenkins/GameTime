@@ -21,7 +21,8 @@ for continuing design requirements. The complete migration, including its local
 documentation and screenshots, is preserved at `823ee0a` on
 `codex/signal-native-migration`. Those supporting files remain local working-copy
 changes: automatic approval review rejected their inclusion in the public push.
-The separately recorded native recovery branch has not been integrated.
+The later combined S2/P8/P11A candidate landed on local main at
+`a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`. See the current-work record below.
 
 ## Current work
 
@@ -35,7 +36,8 @@ The separately recorded native recovery branch has not been integrated.
 | P6 | Private 250-member community, moderation and quotas completed locally | [P6 report](../outputs/reports/2026-09-12-p6-completion.md) |
 | P7 | Preparation only; physical sessions and four accepted sources pending | [P7 checkpoint](../outputs/reports/2026-09-12-p7-preparation.md) |
 | P10 | Device-independent hosted/support/retention preparation included; actual hosting unperformed | [P10 report](../outputs/reports/2026-09-12-p10-completion.md) |
-| P11A — local recovery | Combined S2/P8/P11A candidate remains unlanded; community verification gap closed with a test-only correction and focused review. Hosted schedules, credentials and external alerts remain disabled | [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [September 14 follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md) |
+| P11A — local recovery | Combined S2/P8/P11A candidate landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`; community verification gap closed with a test-only correction and focused review. Hosted schedules, credentials and external alerts remain disabled | [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [September 14 follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md) |
+| P11A — operator CLI | Separate local branch completes scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery; not merged by this task | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
 | Local design preview | Fictional friend/personal journeys with configurable owned resources | [Preview guide](BETA_LOCAL_PREVIEW.md) |
 | P8/P9 | Real ingestion, accepted adapters, authenticated transport/links and integrated journeys remain; reuse existing closed contracts and screens | [Remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) |
 | P11–13 | Operating code/deletion, hosted capacity/recovery, physical/human/release acceptance, then authorized private Beta remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
@@ -44,11 +46,12 @@ The separately recorded native recovery branch has not been integrated.
 
 The owner has no Apple Watch yet and explicitly selected simulator-only work.
 Do not request physical Watch actions or start P7 device sessions now. The
-bounded P11A local recovery slice is implemented on the unlanded task branch;
-its report records the combined S2/P8 source, worker/snapshot interfaces and
-the local validation limits. The [community follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
-records fresh clean/populated SQL results and recommends separate approval for
-local landing of the exact reviewed tip. No main merge has occurred.
+bounded P11A local recovery slice and S2/P8 corrections landed on local main at
+`a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`, reverified September 14. The
+[community follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
+retains its original pre-landing status and validation limits. The subsequent
+[operator CLI slice](../outputs/reports/2026-09-14-p11a-operator.md) is delivered on
+its own local branch and needs separate exact-commit landing approval.
 P7 source acceptance remains deferred until
 hardware is available; simulator success cannot accept a source or select
 timed-distance tolerance. All four sources still gate distribution. The next
@@ -56,7 +59,7 @@ dependency is approved real-source P8/P9 work and, separately, an authorized
 hosted target for operation. Do not recreate P9A/P10/P4/P5/P6 or the cancelled
 candidate-gate recovery.
 
-The unlanded combined candidate includes S2's Signal adaptations of the older
+The landed combined candidate includes S2's Signal adaptations of the older
 overnight issued-link, redemption and detail-response fixes, plus P8's verified
 reviewer/revocation synchronization and friend-create/suspension correction.
 Their original branches and reports remain preserved; do not import the overnight

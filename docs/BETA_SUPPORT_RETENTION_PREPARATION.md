@@ -45,12 +45,19 @@ in reports. Inspect server time and saved state first. Reads and actions enter
 immutable audit. Actual response coverage, external intake delivery, operator
 training and unassigned-queue monitoring are unverified.
 
-The existing `beta-operator.py` is a **local historical fixture CLI**. It supports
-challenge grant/case/report/resolve/remove/close operations; its old `suspend`
-subcommand no longer has authority after P6. It has no global-support/appeal or
-grant-revocation commands. Reuse the current RPC contracts for a later reviewed
-operator interface; do not widen the CLI's fixed loopback target or pretend a
-local password/actor-number login authenticates a hosted Apple operator.
+September 14 current implementation: the [local operator CLI](BETA_OPERATIONS_LOCAL.md)
+now includes scoped review/moderation, grant revocation, separately granted global
+support, suspension and independent appeal decisions. Administrator and human
+credential files/commands are separate. Human mutations persist a credential-free,
+account/target-bound request before HTTP and recover by exact replay. The obsolete
+challenge-scoped `suspend` command is rejected; suspension uses only the separate
+support RPC. Grant/revoke APIs have no durable request receipt, so ambiguous
+administrator responses require inspection before reissue. See the
+[operator report](../outputs/reports/2026-09-14-p11a-operator.md) for actual local
+checks and branch status. The prior combined local recovery candidate landed at
+`a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`; dated reports retain their original limits.
+This remains fictional loopback operation, not hosted Apple authentication,
+real operator assignment, monitored support or retention-policy acceptance.
 
 ## Retention decision worksheet
 

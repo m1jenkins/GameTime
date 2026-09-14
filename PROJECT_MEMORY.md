@@ -18,9 +18,10 @@ earlier unlocated completion claim. [The migration contract](docs/design/SIGNAL_
 and adopted study remain design authority. Dated cobalt records are historical.
 
 The owner has no Apple Watch yet and wants simulator-only development, without
-physical Watch actions. Defer P7 device sessions; next reconcile the existing
-native recovery fixes and complete authenticated local simulator journeys using
-fictional activity, then independent P11A operating work. Physical source acceptance
+physical Watch actions. Defer P7 device sessions. The combined S2/P8/P11A local recovery candidate landed
+on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`. The subsequent
+local operator CLI slice is on a separate reviewable branch; see the
+[working baseline](docs/WORKING_BASELINE.md) for source status and checks. Physical source acceptance
 remains a later launch requirement. Do not claim that simulation accepts a source.
 The complete original migration and supporting records are preserved locally at
 `823ee0a`; only native source/tests/configuration were authorized by automatic
@@ -36,8 +37,8 @@ implements operation/deletion before hosted verification. P12/P13 finish candida
 human and private Beta acceptance. Public simulated launch is a recommendation;
 funded launch remains separate. No adopted product scope changed.
 
-Unlanded native recovery fixes and two remaining server concerns are recorded in
-the working baseline for reuse/scoped verification. Normal signed-in challenges
+The landed native recovery and server corrections are recorded in the
+working baseline; preserve their dated reports and original validation limits. Normal signed-in challenges
 remain unavailable and all 18 readiness entries remain false, including money and
 optional analytics that should stay off for simulation. No physical, hosted or
 release validation is established by the native presentation work.

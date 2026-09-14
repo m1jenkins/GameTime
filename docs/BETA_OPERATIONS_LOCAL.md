@@ -1,60 +1,69 @@
-# Beta local operations — historical b7 tool, current permission notes
+# Local Beta operator CLI
 
-P10 hosted preparation lives in [BETA_HOSTED_PREPARATION.md](BETA_HOSTED_PREPARATION.md).
-The commands below retain their historical resource binding; they do not select
-a current authorized target. Verify ownership before using a retained preview.
+`scripts/beta-operator.py` is a fictional, local-only interface to the existing
+RPC contracts. It connects only to literal `127.0.0.1`; there is no hostname,
+HTTPS target or hosted authentication mode. Allocate and inspect owned resources
+before admitting fictional actors. Do not use a retained stack for verification.
+The [support worksheet](BETA_SUPPORT_RETENTION_PREPARATION.md) remains authority
+for scope, independence, staffing and policy dependencies.
 
-This runbook targets only project `gametime-finish-b7`, API 58321, DB 58322.
-Run commands from the isolated branch worktree. The CLI refuses any other project
-or URL. These commands are **not hosted instructions**. All activity is fictional;
-no real-source, ingestion, analytics, payment or distribution gate can be enabled.
+## Credentials and roles
 
-## Monitoring and recovery
+Pass `--owned-project <gametime-project-name> --credentials-file <private-file>`.
+The credential file must be an owned regular file with mode 0600. Its fields are:
 
-```sh
-scripts/beta-operator.py --owned-project gametime-finish-b7 status
-scripts/beta-operator.py --owned-project gametime-finish-b7 run-once --run-id "$(uuidgen)" --limit 20
-```
+| File | Required fields |
+| --- | --- |
+| Administrator | `project_id`, `api_port` (integer), `role: "administrator"`, `api_key` (that owned local service key) |
+| Human | `project_id`, `api_port` (integer), `role: "human"`, `api_key` (that local public key), `actor_id` (UUID), `email` |
 
-The status includes source/processing/admission switches, due count, missing
-notice count after the operational +72-hour deadline, overdue reviews and recent
-SQLSTATE-only failures. No raw records or request bodies enter these summaries.
-A batch examines at most 50 challenges belonging to currently allowlisted
-fictional creators. With processing paused, the P4 claim path creates no new
-leases; explicit safe participant/operator actions remain available. An outage
-never silently shortens the actual notice's 48-hour review window. A changed
-allocation produces another notice and full window. Unanswered reviews exclude
-the affected result conservatively; insufficient eligible participants void the
-challenge and return simulated entries.
+Human passwords are prompted without echo. Fictional test automation may add a
+`password` field to its private human file. Keep that file separate from reports
+and journals. Each human invocation signs in through the local Auth server,
+checks the returned account against `actor_id`, and signs out only its own
+session. A local password account does not implement hosted Apple operator auth.
 
-Keep the UUID and limit for a run if its response is interrupted. Retry exactly
-those arguments to retrieve the saved response. Changing the limit under that UUID
-is rejected. The CLI does not loop or create a new request automatically. A failed
-item reports SQLSTATE, leaves its transaction changes rolled back, and can be
-retried in a later bounded pass after diagnosis. Preserve old run receipts.
+Administrator commands additionally require `--administrator`; human commands
+reject it. The CLI rejects a credential file with the wrong role. Administrator
+files cannot contain human identity/password fields. Server RPC grants remain
+the security boundary; a human session cannot grant itself authority.
 
-## Assigned operators
+This replaces the old implicit `/tmp/gametime-finish-b7-stack` lookup and
+`--local-actor`/`--email` selection. Existing status, worker and fictional
+publication operations remain available using an explicit administrator file.
+No retained preview resource or credential file is read automatically.
 
-A service owner grants one capability for one challenge, expiring within seven
-days. A participant cannot review/moderate their own challenge. A suspended or
-expired operator cannot read cases. Use fictional actor 7 as the independent
-operator while the preview controller is active; `--email` instead prompts for a
-**local** account password without logging. CLI logout ends only that login's
-session, preserving simultaneous participant/native sessions.
+## Commands and authority
 
-```sh
-scripts/beta-operator.py --owned-project gametime-finish-b7 grant \
-  --actor "$OPERATOR_UUID" --challenge "$CHALLENGE_UUID" \
-  --capability review --expires 2026-10-25T12:00:00Z
-scripts/beta-operator.py --owned-project gametime-finish-b7 --local-actor 7 \
-  cases --challenge "$CHALLENGE_UUID"
-scripts/beta-operator.py --owned-project gametime-finish-b7 --local-actor 7 \
-  resolve --challenge "$CHALLENGE_UUID" --review "$REVIEW_UUID" \
-  --decision upheld --request-id "$REQUEST_UUID"
-```
+| Command | Arguments / authority |
+| --- | --- |
+| `grant`, `revoke` | Administrator; `--actor`, `--challenge`, `--capability review\|moderate`; grant also needs `--expires` |
+| `grant-support`, `revoke-support` | Administrator; `--actor`; grant also needs `--expires` |
+| `cases`, `reports` | Human; `--challenge`; independent reviewer/moderator grant for that exact challenge |
+| `resolve` | Human reviewer; `--challenge`, `--review`, `--decision upheld\|exclude` |
+| `remove` | Human moderator; `--challenge`, `--subject`, `--reason` |
+| `close-community` | Human moderator; `--challenge` |
+| `support-reports` | Human with separate global support grant; optional paired `--before` and `--before-id` |
+| `suspend` | Human global support; `--subject`, `--reason`; no challenge argument or moderator fallback |
+| `support-appeals` | Human global support; pending queue |
+| `resolve-appeal` | Human global support; `--appeal`, `--decision upheld\|reinstate`; decider differs from appellant and original suspender |
+| `appeal`, `own-appeals` | Human account filing or reading its own suspension appeal |
+| `status`, `run-once`, `publish-fixture` | Existing local administrator operations; see command `--help` |
 
-The sample grant date above assumes the historical fictional clock; for an
-authorized local session, choose an expiry within seven days of its server time.
+Every human mutation also requires `--request-id <UUID>` and the global option
+`--journal-dir <private-directory>`. Reasons are `username`, `unwanted_contact`,
+`unsafe_behavior`. Grant expiry is checked against server time and cannot exceed
+seven days; equality and revocation deny fresh access. Grants do not bypass
+independence, active-session or account checks. Removal is challenge-scoped;
+reinstatement permits future admission and never restores ended membership or
+consent. Missing activity alone never establishes a loss.
+
+Reports are bounded to 100 rows by the server. For the next global-report page,
+pass both the last row's `created_at` as `--before` and its `id` as `--before-id`.
+The CLI rejects half a cursor before sign-in. Cases and appeals use the existing
+bounded RPC queues; this slice adds no queue allocator or monitoring service.
+
+## Result review
 
 Choose `upheld` only when the normalized result matches the agreed rule. `exclude`
 removes the disputed result, returns its simulated entry, and may void a leaderboard
@@ -65,26 +74,63 @@ other participants' histories, raw Health samples, source IDs and routes. Case a
 report reads and operator actions are audited. No freeform sensitive review text
 is collected. Deadline equality closes resolution; actual time is returned by status.
 
-For safety, grant `moderate` with the same scope/expiry. Commands `reports`,
-`remove`, and `close-community` have `--help`. Removal affects the named challenge.
-After P6, the old CLI `suspend` command is rejected: global suspension requires
-a separate support grant and `challenge_support_suspend_v1`. This CLI has no
-global-support, appeal or grant-revocation commands. Use the [current RPC operating
-contract](BETA_SUPPORT_RETENTION_PREPARATION.md) when preparing that interface.
-Authorized suspension hides shared data and safely ends unfinished participation.
-Own final history remains available. Blocking and voluntary leaving remain
-participant actions. Community closure returns all simulated entries and
-preserves the agreement and audit history. These actions do not delete accounts,
-Health records, historical agreements or legacy rows.
+## Exact human recovery
 
-Publication is available only as `publish-fixture --fictional`, with explicit
-config JSON, target, minimum, capacity and request UUID. It stores
-`unapproved_fixture_only`. Community settings have not been accepted for a pilot;
-real publication and discovery must stay disabled.
+Choose a request UUID once and retain the original command. For example:
+
+```sh
+python3 scripts/beta-operator.py \
+  --owned-project gametime-your-owned-task \
+  --credentials-file /private/human.json \
+  --journal-dir /private/operator-requests \
+  resolve --challenge <challenge-uuid> --review <review-uuid> \
+  --decision upheld --request-id <request-uuid>
+```
+
+Before sign-in or dispatch, the CLI atomically saves and syncs the exact JSON
+request, RPC, project/port and account UUID. The journal directory is mode 0700;
+records are mode 0600 and contain no credentials or response/case data. Request
+files remain after success. Keep journals in restricted local storage; identifiers
+and decisions are still operational data, not public logs or a retention policy.
+
+After a lost response, interrupted process, or sign-in failure, repeat the exact
+command with the same journal and original account. The CLI compares all saved
+fields and sends the same request bytes. It refuses changed decisions, scopes,
+accounts or targets under that UUID. It does not automatically create a new
+request or replay as another operator. The server returns the original receipt
+without a second action/audit entry, including supported retries after grant
+revocation. A saved receipt never authorizes a fresh action. A corrupt or missing
+journal requires reconciliation; do not delete it just to bypass a conflict.
+
+Grant/revoke RPCs have **no request UUID or durable response-recovery contract**.
+They remain separate administrator calls without automatic retry. After an
+ambiguous administrator response, inspect the exact grant and immutable audit
+in that owned database before deciding whether to reissue. Reissuing may add an
+audit event; this CLI does not claim exactly-once administration. No direct grant,
+result or audit edits are part of the human procedure. Existing worker and fixture
+publication commands retain their server invocation/request identities.
+
+CLI failures print only a bounded code or a fixed recovery instruction, not raw
+server errors, headers, passwords or tokens. Do not put secrets in command-line
+arguments. Case/report output is for its authorized operator and should not be
+forwarded to external logs. No hosted service, staffing, deletion policy, external
+message, device acceptance or readiness gate is completed by this local tool.
+
+## Focused verification
+
+`python3 scripts/tests/beta-operator.test.py` checks local recovery-file invariants.
+`scripts/beta-operator-smoke.py` invokes the actual CLI against local Auth and
+PostgREST, inspecting task ownership and loopback publishes before creating
+fictional actors. It accepts a private `--connection-file`, a new `--work-dir`
+and a new `--evidence-dir`; it never starts, resets or stops a Docker stack.
+A loopback forwarding proxy drops selected committed responses, preserving
+request-body hashes without storing credentials. Setup, exact commands, results,
+failures and resource disposition for this slice are in the
+[September 14 operator report](../outputs/reports/2026-09-14-p11a-operator.md).
 
 ## Historical executed drills and pending acceptance
 
-`scripts/beta-operator-smoke.py` passed 11 authenticated local CLI checks, including
+The historical b7 version of `scripts/beta-operator-smoke.py` passed 11 authenticated local CLI checks, including
 unauthorized rejection, scoped context, exact recovery across separate logins,
 worker recovery, session isolation, report/suspension privacy and safe closure.
 SQL 497 passed 19 assertions, including processing pause, delayed notice and
@@ -95,5 +141,5 @@ These are fictional local evidence, not physical or hosted acceptance.
 Before hosted use: obtain explicit authorization, accepted source policies,
 monitored support and named operators; provision new-product hosted client wiring,
 least-privilege credentials and an approved scheduler/alert destination; repeat
-these drills there. Never run this CLI against another stack or copy local fixture
+these drills there. Never run this CLI against an unowned stack or copy local fixture
 credentials into a hosted environment. See the finish-line handoff for gates.

@@ -12,6 +12,14 @@ signed-in challenge journeys remain absent. All 18 [readiness entries](release/b
 remain false. Nothing here provisions, deploys, changes credentials, registers a
 scheduler, publishes, deletes records or sends a message.
 
+September 14 current local status: the combined S2/P8/P11A recovery candidate
+landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`. The subsequent
+[operator CLI slice](../outputs/reports/2026-09-14-p11a-operator.md) completes the
+minimum local human interface on its own branch. Its [guide](BETA_OPERATIONS_LOCAL.md)
+records role separation, exact human recovery and administrator-retry limits.
+The P10 inventory and dated reports below retain their original scope; neither
+local landing nor CLI verification accepts a hosted target or operating policy.
+
 ## Configuration and identities
 
 [hosted-settings.draft.json](release/beta/hosted-settings.draft.json) is a review
@@ -180,8 +188,9 @@ future monitoring should use supported APIs. This repository has no new log poll
 
 ## Pause, rollback and recovery runbook
 
-These steps are prepared for a later authorized exact environment. Today the
-local-only CLI remains bound to its historical preview; do not point it at hosting.
+These steps are prepared for a later authorized exact environment. The
+[local-only CLI](BETA_OPERATIONS_LOCAL.md) now requires explicit owned-project
+credentials and a numeric loopback port; it never accepts a hosted target.
 
 1. Record affected candidate/project, incident time, gate state and last durable
    run/claim receipts in restricted storage. Check approved operator identity and
@@ -197,7 +206,8 @@ local-only CLI remains bound to its historical preview; do not point it at hosti
    into incident notes.
 4. Diagnose with redacted status/SQLSTATE and claim state. Keep all receipts. A
    transient timeout resumes through exact retry/lease recovery; a dead letter
-   needs a reviewed item-specific recovery operation, currently absent. No direct
+   uses the implemented P11A audited item-specific local recovery operation;
+   hosted execution remains unauthorized. No direct
    `UPDATE` of finals, consent, review dates, claim attempts or audit history.
 5. Roll application code back only to a schema-compatible known candidate with
    admission/processing still paused. Applied migrations stay forward-only.
