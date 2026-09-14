@@ -1,4 +1,16 @@
-# Default interface — September 11, 2026
+# Default native interface — Signal, September 13, 2026
+
+Normal sign-in opens Signal **Home / Challenges / You** in every configuration.
+System typography, semantic light/dark colors, open content and native controls
+also apply to launch, onboarding, account and retained Personal routes. Cobalt
+rendering and bundled font registrations are removed. See the
+[P9A contract](../../docs/design/SIGNAL_UI_MIGRATION.md) and
+[native report](../../outputs/reports/2026-09-13-signal-native-migration.md)
+for branch/source identity, simulator checks and unperformed acceptance.
+
+## Historical activation — September 11, 2026
+
+The dated activation record below is preserved; Signal supersedes its appearance.
 
 Normal sign-in now opens Cobalt **Home / Challenges / You** in every build
 configuration. **Existing challenges** opens the retained Personal journey;

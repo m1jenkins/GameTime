@@ -5,13 +5,20 @@ The [working baseline](docs/WORKING_BASELINE.md) and
 [consolidation map](docs/WORKTREE_CONSOLIDATION_STATUS.md) give the current status
 and the recovery locations for older work.
 
-Cobalt and P4/P5/P6 are implemented locally; P10's independent preparation is
-included. P7 physical sessions, real ingestion/adapters and hosted/human/release
+P4/P5/P6 are implemented locally; P10's independent preparation is included.
+**Signal is the official native UI/UX.** The local P9A migration replaces the
+default shell, shared presentation and retained Personal styling, and removes
+cobalt rendering and bundled fonts. See the [migration contract](docs/design/SIGNAL_UI_MIGRATION.md)
+and [native implementation and verification report](outputs/reports/2026-09-13-signal-native-migration.md)
+for the task branch, tested source and acceptance limits. P7 physical sessions,
+real ingestion/adapters/transport, operating code and hosted/human/release
 acceptance remain. Normal signed-in challenge transport is still closed.
 Use the [fictional local preview](docs/BETA_LOCAL_PREVIEW.md) to review the newer
 friend and personal journeys, then the
 [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [prompt pack](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for further work.
+Their September 13 revision separates working local Beta, private TestFlight and
+proposed public simulated launch, without restarting completed prompts.
 
 ## Historical implementation notes
 

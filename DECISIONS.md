@@ -4870,3 +4870,28 @@ it does not implement source semantics, ingestion, community disclosure, scale
 work or later waves, publish a cohort, accept a candidate, authorize landing or
 open any of the 18 external gates. Physical/policy decisions remain in the
 existing source/release tasks, with timed tolerance still unselected.
+
+
+### D136. Signal is the official UI/UX; retire the cobalt look
+
+**Explicit owner direction, September 13, 2026:** adopt the existing Signal
+visual language as GameTime's official UI/UX and fully deprecate crisp cobalt.
+This supersedes the September 11 cobalt selection for future presentation work.
+The Signal browser study supplies the chosen visual reference; no new design
+exploration is required. Product rules and historical agreements retain their
+existing authority.
+
+Inspected `main` at `b25834c` still selects `CobaltProductShell` and cobalt theme
+components. Signal is committed as browser artifacts; an earlier planning report
+of native completion remains unverified. Adoption is not implementation evidence.
+[The migration contract](docs/design/SIGNAL_UI_MIGRATION.md) requires P9A to reuse
+verified native work or implement missing presentation, wire Signal as the normal
+default across all reachable routes, and remove obsolete cobalt styling and build
+inputs. P9A can proceed independently of physical source acceptance and hosting.
+
+Preserve retained Personal access until its separate replacement acceptance,
+historical consent, data visibility, safe exits and nonredeemable simulation.
+Keep dated cobalt evidence as history. Native checks must establish the actual
+migration; browser verification and a class rename do not. This decision does
+not enable transport, accept Health sources, alter product policies or establish
+physical, hosted, human or release readiness.

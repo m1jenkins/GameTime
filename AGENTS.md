@@ -15,6 +15,8 @@ unverified assumptions as distinct records. Existing agreements stay intact.
   [PLAN.md](PLAN.md) —
   adopted products, recommended defaults, implementation order, and open gates.
 - [DECISIONS.md](DECISIONS.md) — why the product is shaped the way it is.
+- [Signal migration](docs/design/SIGNAL_UI_MIGRATION.md) — official UI/UX;
+  native implementation, verification and cobalt retirement status.
 - [docs/COPY.md](docs/COPY.md) — **required before writing or changing any
   user-facing string.**
 

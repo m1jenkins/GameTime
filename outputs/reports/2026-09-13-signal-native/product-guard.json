@@ -1,0 +1,27 @@
+{
+  "project": {
+    "targets": [
+      "GameTime",
+      "GameTimeTests",
+      "GameTimeUITests"
+    ],
+    "schemes": [
+      "GameTime-Staging.xcscheme",
+      "GameTime.xcscheme",
+      "GameTimeBetaLocal.xcscheme"
+    ],
+    "source_files": 148
+  },
+  "product": {
+    "app": "/private/tmp/gametime-signal-derived/Build/Products/Debug-iphonesimulator/GameTime.app",
+    "mach_o_files": [
+      "GameTime",
+      "GameTime.debug.dylib",
+      "PlugIns/GameTimeTests.xctest/GameTimeTests",
+      "PlugIns/GameTimeTests.xctest.dSYM/Contents/Resources/DWARF/GameTimeTests",
+      "__preview.dylib"
+    ],
+    "healthkit_linked": true,
+    "watch_payloads_or_links": false
+  }
+}

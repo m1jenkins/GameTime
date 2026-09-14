@@ -1,0 +1,804 @@
+{
+  "base": "b25834c8ea2aff950cc84b0ea24a1790b43422b1",
+  "branch": "codex/signal-native-migration",
+  "scope": "76-case iOS 26.5 suite and 13-case iOS 18.6 suite before final receipt-label reflow",
+  "files": [
+    {
+      "path": ".agents/skills/macos-spm-app-packaging/assets/templates/bootstrap/Package.swift",
+      "sha256": "24cdd73b17cf98a2f315e60a7f883ddec8c94572f0d1643f46f4465ffccaf4a6"
+    },
+    {
+      "path": ".agents/skills/macos-spm-app-packaging/assets/templates/bootstrap/Sources/MyApp/main.swift",
+      "sha256": "a57a65208578a3b24353bca044062eca6d635f25af3aa136bc4ee129cba2e721"
+    },
+    {
+      "path": ".agents/teamwork_preview_challenger_m2_1/test_m2_verification.swift",
+      "sha256": "9d694212ce880b55c768199f7d95e1ecdaf345a7d57f14c96368af1587789a11"
+    },
+    {
+      "path": "ios/GameTime/Configuration/AppInfo.plist",
+      "sha256": "8a9d5a78c0b72a28ffb7b66c37122e16b44c55980491bd769058056e3b3ad709"
+    },
+    {
+      "path": "ios/GameTime/Configuration/Debug.xcconfig",
+      "sha256": "f789802b0b1162cc273045afbeb480fb200f800a6b95339ad946bad71b8768d2"
+    },
+    {
+      "path": "ios/GameTime/Configuration/DebugAppInfo.plist",
+      "sha256": "59ab5c345083975c5bfd648ebd64eb1170c14c21897f42751d79c68f91c95988"
+    },
+    {
+      "path": "ios/GameTime/Configuration/PublicClient.xcconfig",
+      "sha256": "303cb51e501721f753cfc583aeba7ac807afb578473dc5c3d90d077fcb3f6932"
+    },
+    {
+      "path": "ios/GameTime/Configuration/Release.xcconfig",
+      "sha256": "4a3dab430ce2fa35875abfd2edc627961618d55d7bcd2c4335e3b5154dc08500"
+    },
+    {
+      "path": "ios/GameTime/Configuration/Staging.xcconfig",
+      "sha256": "30a7eea816e44d5b64e8c5363b537b595c487528362e1241404f5cabfcfbfa0a"
+    },
+    {
+      "path": "ios/GameTime/Configuration/StagingAppInfo.plist",
+      "sha256": "9d483932a1e26e37e01f9d96cec308e75e595e3b681f9448f603c2af62824841"
+    },
+    {
+      "path": "ios/GameTime/GameTime.xcodeproj/project.pbxproj",
+      "sha256": "58faca7fc08260fadf08a0c6db81194367511fd3c4cfd41573943d88c7416129"
+    },
+    {
+      "path": "ios/GameTime/GameTime.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
+      "sha256": "452c14b9d0588669721098a59f6c579f2998fb3f6097810e1f906d56141eaac0"
+    },
+    {
+      "path": "ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes/GameTime-Staging.xcscheme",
+      "sha256": "1742b5bcb472b33f9a40273a567c9cedb121e7891f90a440cadaffcf3db51ed7"
+    },
+    {
+      "path": "ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes/GameTime.xcscheme",
+      "sha256": "2b806a9ecd77e5bb6e4965ce0416ec5859932221e577243c4d4e5f111a3d0e74"
+    },
+    {
+      "path": "ios/GameTime/GameTime.xcodeproj/xcshareddata/xcschemes/GameTimeBetaLocal.xcscheme",
+      "sha256": "41fd091f78e69f22979df1d933bf6e7e7ce0d2947ac76db53d12bbe21a8d69bb"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ActivitySyncCoordinator.swift",
+      "sha256": "53dd3d5a810efdd7d8241b0f38074605a6bde911e4c1d0d3cddc33651c3187a4"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppClients.swift",
+      "sha256": "6c103184d365e9e97e97df3d4368758a5de573d11ed6b925d6267a3cd45be5ba"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppConfiguration.swift",
+      "sha256": "e0970c1ab1f1b7b431845626282d7bd4ad4eba522e459bdd2248b6cce64050ae"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppModel.swift",
+      "sha256": "42046e8489bc2962715ea43c8908860e67f2f11e49b139145133d4407df8cc9e"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppRouter.swift",
+      "sha256": "80a643493f07ef9d2678d703df14c475461d86005a8e4b33e28b22a7942161ea"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppShellView.swift",
+      "sha256": "1a095e94d7505a068a570f32f3a39faf6500566ff0fa51fdc811b2d74483d26b"
+    },
+    {
+      "path": "ios/GameTime/GameTime/AppleSignIn.swift",
+      "sha256": "ce6765c01ed756aca0e156d4b3f04bb3d145bce937960cefa18cd16b280cf486"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeInvitation.swift",
+      "sha256": "3fa23a813d0261e729bfcf8af748081e1b57518f88adb2baf2a854634ebc05be"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengePresentation.swift",
+      "sha256": "f738782551a5ccadb4e504a753d0e3c4e5c566b46c9863d0b0feb0bca9576c15"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeV1Client.swift",
+      "sha256": "3b3da4c37225473573c01dca330a50ed9f582b851051d5694d29aebac4304fb4"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeV1EntryViews.swift",
+      "sha256": "f52e9db747ebd875e3c9fa33c1e579f3c69eb8109c2c89ea610f128d091b8020"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeV1Models.swift",
+      "sha256": "41a8835330c83cc340b09d10cb5281ddd6f24dbf644db1c6ac257a729f818a4f"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeV1Policy.swift",
+      "sha256": "d4adac800150b60918bab8e761960b2233630127fd8cfc6cf96d21b140fe0edf"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeV1Sections.swift",
+      "sha256": "4529c3df4859231961ba518719240c7b549ec3adf0b80bd0f197f6c4f011c13c"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeV1Store.swift",
+      "sha256": "e8ee1eb451f110762154246f59e5782c370b4291c297dacbea5c74fb592401c6"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeV1Views.swift",
+      "sha256": "54206a46c205859cfbec105dc31d32496da1d0c628c86cdbf867a8118bde1601"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeVisualComponents.swift",
+      "sha256": "06e6fd4ceb4faaea5fd0413856968d0a7b4df8d711618f74edf21dfaa932ed71"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengesView.swift",
+      "sha256": "5ee654393340071b952a27ffaddd77be1a81fa00a5508552ddca41cb9f6e5950"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DemoMode.swift",
+      "sha256": "c547c88824f66a7629932334aef33641dd06b709f376d30fba83dd1061b2b1a8"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DomainModels.swift",
+      "sha256": "3cd0c5d205d05fbbc17af525b17eaf1fa9b8a15c22352249dd3860de0db218fd"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DuelClient.swift",
+      "sha256": "10f20ace23f89724e927950211049bea9aec22199df7dfc3f2b73d2f262f6ac5"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DuelInvitationLink.swift",
+      "sha256": "8d96cd46056f50070d19fda6143cbd8e8100ef09b40e703b90c0e23afa1b143a"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DuelInvitationView.swift",
+      "sha256": "ee383f643df7d2b06e338a44a6ae5f2bc772daaeb8f022ea68b05cdf247df77a"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DuelLifecycleModels.swift",
+      "sha256": "6e0517b016d69bee275d3d58dbbdfd90c9806cdb95c8867aade1ba02b780d9fe"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DuelLifecycleViews.swift",
+      "sha256": "9ce5749becd3f7c104283d0b015bab432901f5b786c94f6547b03237f769a299"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DuelModels.swift",
+      "sha256": "4dcc15d88fcd627b20da22919c0b7dce934f8b5e21b492b691e4ddbb3aae69d1"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DuelStore.swift",
+      "sha256": "642f2ace5019679f3511f6de3cd09fee635eb29d197cec709d8585d3031ac17a"
+    },
+    {
+      "path": "ios/GameTime/GameTime/DuelViews.swift",
+      "sha256": "41fb2f6da0514ddd3c00d0c76e63b72f3e0503a9281a694263464248537862ec"
+    },
+    {
+      "path": "ios/GameTime/GameTime/FeatureComponents.swift",
+      "sha256": "6070254d26d892de70f4ce003fc70eb6232005356905ed8db571c6367266d7c2"
+    },
+    {
+      "path": "ios/GameTime/GameTime/FixtureClients.swift",
+      "sha256": "f039c35053f1c7d42a754295fd8db64a519f095dd436b0fd7be3a19f8bf662dd"
+    },
+    {
+      "path": "ios/GameTime/GameTime/FixtureDuelClient.swift",
+      "sha256": "75d304f69060ba7b4a5987c25e7068898a9068840fc9686c361dc154a9fead58"
+    },
+    {
+      "path": "ios/GameTime/GameTime/FixturePerformanceCommitmentClient.swift",
+      "sha256": "18b985f3521fdc1687470e21d7016b6318e227a748ca1a2f34bbb090223f03d2"
+    },
+    {
+      "path": "ios/GameTime/GameTime/GameTime.entitlements",
+      "sha256": "eb3de02d0aa39db6f6d26346d49afec4c9f5255f7d76aec8c02432b4f5a10a62"
+    },
+    {
+      "path": "ios/GameTime/GameTime/GameTimeApp.swift",
+      "sha256": "179e5c366f0aa8ceaf885c043d43e67b77ee78a84b88ed853c70adee71875880"
+    },
+    {
+      "path": "ios/GameTime/GameTime/GameTimeStaging.entitlements",
+      "sha256": "9a32e8209b1e309436b11f33af65509304060bc565533cbccc886e30ae662b67"
+    },
+    {
+      "path": "ios/GameTime/GameTime/HealthKitActivityClient.swift",
+      "sha256": "29c79eda672f58031b76423671e5e6c264f17c2533ed72c1fc3f3026a8933b68"
+    },
+    {
+      "path": "ios/GameTime/GameTime/LaunchingView.swift",
+      "sha256": "e4eb2f309de121b921bfe98b07f27922feceaabcd65fc1d1de1476400734fffb"
+    },
+    {
+      "path": "ios/GameTime/GameTime/LocalStepProgress.swift",
+      "sha256": "05aa60e7ea148347a72b3c677e4dc350e9d436e9d1d49a644ad2ccf99ed17514"
+    },
+    {
+      "path": "ios/GameTime/GameTime/MatchdayMetricIcon.swift",
+      "sha256": "160d335bb03da2412716dee9af632bde93490ea160fbe02ae7f9836afeedf9d8"
+    },
+    {
+      "path": "ios/GameTime/GameTime/MetricPrototypeModels.swift",
+      "sha256": "faa92e024239a2c65791466bcca50e6fa160f8f81b7f8ce3ef0d7b65dbbd2b95"
+    },
+    {
+      "path": "ios/GameTime/GameTime/MetricPrototypeStore.swift",
+      "sha256": "e8606fbdaf2c5cff6b28ad2819c105eb855601fc09bcb88887b0bd71eae85b86"
+    },
+    {
+      "path": "ios/GameTime/GameTime/MetricPrototypeView.swift",
+      "sha256": "1ae81562ff3ffe0dca2646e7f77b0abf643af8a5eaf88e13b7dd13e4e9a1765e"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingChallengeStore.swift",
+      "sha256": "a8f3f878d63251550121848a7ed4a3af2e321fbb3a333ce8c3ed525401945771"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingDuelRequestStore.swift",
+      "sha256": "acd214f0a373bfb80d105843c6fa31fd0f4c5d37a81c896d76535041e59a9ff1"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingMetricUploadStore.swift",
+      "sha256": "efe41368bb89222b8c24600e8b63ff55584718e4d2991ec60c958d34aa90bfae"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingPerformanceCommitmentRequestStore.swift",
+      "sha256": "a02ac211b95da756f1a1e2edc49e0105d7481db24ef3bc1fd89ddd29552844c6"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingPersonalCancellationStore.swift",
+      "sha256": "44ecc790d181d29aa3c65f6ea4d898baece7102740d12e8d22414dc9b9b5970d"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingPersonalChallengeStore.swift",
+      "sha256": "1b7f1c56a735b641a730fc35961851a66521ac686dd723ada9838cb474c650ff"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PendingWeeklyRequestStore.swift",
+      "sha256": "5776d7115524787deb8e1a638170aff0f9070714a2884e20bfbc06bc899719d1"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PerformanceCommitmentClient.swift",
+      "sha256": "94ad5ea7b0f235b1618be014d273854d5794c0eb3397949f9edee58a0d1163b1"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PerformanceCommitmentLifecycleModels.swift",
+      "sha256": "bea0f347648ae2368b03d0e998e6a808141b31f342510a93f230ef3b02dbd86f"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PerformanceCommitmentLifecycleViews.swift",
+      "sha256": "17fd52a0823bf03dcc23f086fbb5be9b9b322cf2013d8a6b22c606ed4a907a5f"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PerformanceCommitmentModels.swift",
+      "sha256": "3813a6c07f4c29c803e7939b079ea8ba491a728ddcfab996339dabe1883ac2ad"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PerformanceCommitmentStore.swift",
+      "sha256": "0b532b05534ea7ab6da30b24b3fb8621662c24161100e8e1bfd69112e67457d0"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PerformanceCommitmentViews.swift",
+      "sha256": "4a572fd01724b4564ba3846f07f28c7bd9e45f9489f40e5a529414134c88dbea"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalAccountabilityClient.swift",
+      "sha256": "4ca3e95ff669956c08ef9974ee19b4f59f7a6010ca68e8b00b5e64f851eb9bab"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalAccountabilityComponents.swift",
+      "sha256": "a168dbf131ee9cef1ca1989144b7c1830380a2ef81142e2f0daf52c902906ea5"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalAccountabilityModels.swift",
+      "sha256": "58bd88b271ef1310ef494ddfdc6f192c114c6bdf650cb56f1b1c56030569b7ac"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalAccountabilityStore.swift",
+      "sha256": "5d30ff6184e86026b3e9277baa460d2b868cfe8d1afc0a89ab284e679f6f360c"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalActivityClients.swift",
+      "sha256": "87f9c0c4cc46fac296d26fb59b98f0a902901df0d6f535bfa6f421f55b1aa664"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalChallengeDetailView.swift",
+      "sha256": "bc933ceae143a94fd16b305962cda68794fb4fb5253b2019135c3d1ee8be5079"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalChallengeFlow.swift",
+      "sha256": "749ff06779d8722238a634a04f6f0e34b0169ae0c11c8897e30ca232b7eed3fa"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalChallengeReceiptPresentation.swift",
+      "sha256": "75198590355f4869a8ad1e0b217018605306af38f81ef71cf6828a830eeb22c9"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalHealthBackgroundDelivery.swift",
+      "sha256": "a52bc3088743ef2c7e131882b3fdcf4d22a991f01846a05418cf8a5bf0ec44ef"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalHealthSnapshotUploader.swift",
+      "sha256": "e37f22c3b634e333babd13e3552c4843531fdc3451ae5dc5aa03b409a584d638"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalHealthStepReader.swift",
+      "sha256": "ba8885510697755c120058a8439915d53aad9f9493c924d9bba858fe74f7e2b9"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalPaceComponents.swift",
+      "sha256": "e0ca5ddc3c789fa8ea398b59bc9c857961c4932960aa496ce7067cdf56ac3777"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalPaymentClient.swift",
+      "sha256": "859ed9278138e0772e87c7bd5f5c3e10d562e73609b87e7e8385af7770725183"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalPaymentStatusCard.swift",
+      "sha256": "dbe06aa43c38fac35631a2d3e8e3344a26d8de605b566eff85702b7bb2a0b89c"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalResultPresentation.swift",
+      "sha256": "cea863259ebae7dff2c3b21309051b946414e09bc3e706e851abb8e57af4dce8"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalStepProgressStore.swift",
+      "sha256": "7f3a88ce9be5fd88257bad724815f0a4ed3954725d382d06caccd69b36fc45f3"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalStepSnapshot.swift",
+      "sha256": "e011d39f36034f6822661ba119882e4f73ef60426bd498d28a8a19f1b8c9c228"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalStepSnapshotCache.swift",
+      "sha256": "878bd717314082cee7fcc19e261c8a5dd92ec110ba01b946dd5e263f7b3e4f16"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PersonalSyncCoverage.swift",
+      "sha256": "0cc0b5e7ecccde3bbd47a69cdae37b24da6991e08b5f5bf80b06346e50798a5c"
+    },
+    {
+      "path": "ios/GameTime/GameTime/PushNotifications.swift",
+      "sha256": "2dd92a1c96b7ee6ce1a5f37fe1bbab56b1b8629aeeaba46df7d85878692be7e7"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SignalChallengeViews.swift",
+      "sha256": "9673002a5fa871e0fceb7424cee34b5fe623967b57964eb83c6246a993e701d5"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SignalTheme.swift",
+      "sha256": "6f7be3760a380371e3bd49be734dfb6e400fd73ba7426b0097a3a19dbcd4c37d"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SourceInvestigationView.swift",
+      "sha256": "fed418801d4410af51cc65fe5837e1fb69ec89faf34541b8da15e57b8c899be9"
+    },
+    {
+      "path": "ios/GameTime/GameTime/StagingAcceptanceDiagnostics.swift",
+      "sha256": "8f3faeb26628aa87f0f9ed4f903fce04b92cb6c7404d75f8e5ac4b557e4370cb"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabaseClients.swift",
+      "sha256": "861848c02b2701e2b4d24cb233959674508bedf744ca462aa56413bb9bf38768"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabaseDuelClient.swift",
+      "sha256": "dcf34b820ad53ac683b6641862ee383764e590a13ac21ab34a41b565dbb304ac"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabaseMetricUploadClient.swift",
+      "sha256": "b673bab8f46e2b57c9a4dcd80bf3465f763fb2e83bc619e75e37867becb49ffa"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabasePerformanceCommitmentClient.swift",
+      "sha256": "3f4c4ad3e166e59df991236bafeccd991ec67a4554267a980e4d6d469afca4b1"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabasePersonalAccountabilityClient.swift",
+      "sha256": "6fd28399b5d970677f5fe503e02533cf3d2222e4803c7e46f5e2a77dbf3c1e5b"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabasePersonalPaymentClient.swift",
+      "sha256": "d02710a81ddb446c05a4c03a5c7446d637fbb112d2043b5230063eac23cfd4ed"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SupabaseWeeklyClient.swift",
+      "sha256": "9d64cdb7bde545aa0b17486251d2dba1847998ceefb6091e4a87519044c80cd2"
+    },
+    {
+      "path": "ios/GameTime/GameTime/TodayView.swift",
+      "sha256": "9872a60780b1a8130486275fbce4afac4c6e261722b782082450c604fce4d7ef"
+    },
+    {
+      "path": "ios/GameTime/GameTime/WeeklyClient.swift",
+      "sha256": "8ef9cfb91b9a47e0c68cee43dfadfd84c6c028de6df3c3e2ad66db8db986a5c9"
+    },
+    {
+      "path": "ios/GameTime/GameTime/WeeklyHealthSourceProbe.swift",
+      "sha256": "45a6d1c863838ef03f657e80a93e48fe65dc179d2d87d84f1694f982e8934047"
+    },
+    {
+      "path": "ios/GameTime/GameTime/WeeklyModels.swift",
+      "sha256": "ff61cc0cd699d83a6947fa46a1fc2602505e457502fb272a716a41f8c6c482e4"
+    },
+    {
+      "path": "ios/GameTime/GameTime/WeeklyStore.swift",
+      "sha256": "e80b748c2937664a2a8b05ad593fa426614412e64ce08a70d07cd0de32d123a3"
+    },
+    {
+      "path": "ios/GameTime/GameTime/WeeklyViews.swift",
+      "sha256": "2c0333b90b18b8a163168970f550837ef0c06f5ff60918bb89132682e5fd8bdb"
+    },
+    {
+      "path": "ios/GameTime/GameTime/YouView.swift",
+      "sha256": "5768ccadc3ce54d042b6d8a775b52ac2dd4a545905504865370347380924cd62"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ActivitySyncCoordinatorTests.swift",
+      "sha256": "f0e1f617c4e69564eb4757d614c9afaf8a53d6fac2cf8091d63380fb725af7a6"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/AppModelAndRoutingTests.swift",
+      "sha256": "3b782dc2eb266c56a03c5a4f38edfba0d525c69c19c2c59a58f23b904f7ee880"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengeDepartureResponseTests.swift",
+      "sha256": "23041513777848aeb60518d6ac0a0946b583e1300957fde9494ab18b22baf5ae"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengeOverlappingResponseTests.swift",
+      "sha256": "99534ae653625a636cea5f4d56bd6e6a29927a654a3549be4038be1a253833b7"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengePolicyTests.swift",
+      "sha256": "e3ba208d1c960993baa79222cdb0f0b75ea24b385de34adc82f04ffef24487cb"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengePresentationTests.swift",
+      "sha256": "97617a97abffe5d81d8656060440e32062696b4c8f47d573b999a0b12d0712df"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengeRestrictionTests.swift",
+      "sha256": "f3b1738cb2ff94c1182b93a708c40666d34c9cc5bc5e6000a8fc1487b891ca10"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengeSectionTests.swift",
+      "sha256": "e57e664077c722da5d1a9ce1f67abef6936f00be61f13f77afd962c7f999277c"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengeV1NativeSmokeTests.swift",
+      "sha256": "449b877cf915867725145382b799676fc4d9244a99c9acd24144c1a80eff1224"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengeV1NativeTests.swift",
+      "sha256": "d8bafb4cf2217a325cce7cb9f6ec59e1bf8a8065bede047102c91b4cfb1c5e31"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/DomainAndConfigurationTests.swift",
+      "sha256": "7dbd06c3ba145dac1d8ec375d5ae32fc997fe4f036020ba454821abc592ad5b1"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/DuelLifecycleTests.swift",
+      "sha256": "b033406ad67ca8627bd89eb3c82bbf274a386f0bef8c864fbff80b35789b2454"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/DuelNativeLocalSmokeTests.swift",
+      "sha256": "126494e71b427f4859ab8b769df2a3f9251060e367f9a363077c97b5cf767275"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/DuelRematchLinkTests.swift",
+      "sha256": "5ad67646a1afa25bf9d01c653e6e046eddf21086103b0977f6c067a0716da59d"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/DuelTests.swift",
+      "sha256": "2e1272ab004b25da6ea8d49c6820e921edf9d8f4874c0fcc4133515168ff417a"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/HealthKitActivityClientTests.swift",
+      "sha256": "71de372ee49771630b33387c830d8de87f7b655af057895eaa30a57c7b2302ac"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/MetricPrototypeTests.swift",
+      "sha256": "b321018d955c643a57ed81fd5d9d39bf40de04cd508efc0bf4ec4717b5b37c71"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PendingChallengeStoreTests.swift",
+      "sha256": "5b35ee58e5266191e87847205496a8481e35632f71a3d35a7a393b761f00cf6f"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PendingMetricUploadStoreTests.swift",
+      "sha256": "14ea7d555513f5bb659afbbd2c5ae33c3874bff25b22168a56ab99b31e33c416"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PerformanceCommitmentClientTests.swift",
+      "sha256": "d259082c38bc556c09bc14c95549513c7e0e8ed86edf1f21c0ace871bec13f31"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PerformanceCommitmentIntegrationTests.swift",
+      "sha256": "71b9bfe6c37ec84eb05a5b32c0e68fcd4aa9690cbd7de0e272d1968e4aa74ff5"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PerformanceCommitmentModelTests.swift",
+      "sha256": "517b4a739dec114cf8fdc7afd5af1245a19b381299cacc583524097496006557"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PerformanceCommitmentNativeSmokeTests.swift",
+      "sha256": "1a3254b2c52b30002cf0a1a88a7328a5b47c45964cffaf0ec962738ac4cda3f5"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PerformanceCommitmentStoreTests.swift",
+      "sha256": "6bcf7a30331baa946736fd5d0235bc67c5e0b1d0517be3acf0f73955ec13e67a"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PersonalAccountabilityTests.swift",
+      "sha256": "7ed58b6ed541f67eb76bef75d1f5b72dab6609bd468d338585586292802259e9"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PersonalChallengeReceiptPresentationTests.swift",
+      "sha256": "294502f036e2b265a58ab5626ef0fdef89a82d8e4274a2925e7fa4863a0b1383"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PersonalPaymentStatusStoreTests.swift",
+      "sha256": "67f0afcac576a5d7fe98dbcd2743d11974effa66ce5cbcdac3c1a22e6269d57d"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PersonalResultPresentationTests.swift",
+      "sha256": "9022f052fa419a45dffda86ad95c20aaa0c312e2d8b14d067c7e7bd4a8fc4525"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/PersonalStepProgressV2Tests.swift",
+      "sha256": "ce2fa9e9a5187f56853d7809ba928c808d22fe6fc1289507b2b2ebe19f6a886c"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/SignalRenderedTests.swift",
+      "sha256": "6151e19d6ccc5b956317eb6f96a4fc5d4abdb50c2e227781b7d8a0a0230b24bb"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/SignalThemeAdversarialTests.swift",
+      "sha256": "6cacdb90da654f20188083dbcb8860ef33b4c32ff5eb4885a0d9861c2010646f"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/SourceInvestigationTests.swift",
+      "sha256": "8bc0d7896759a143cecba19451297f50ab52709a1d72b66a540f7bd1ad73f2de"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/SupabaseMetricUploadClientTests.swift",
+      "sha256": "a6dce0c878ffb1fc0722c0c8e69ab38b228aadf53ea5df877c002bb21f50f771"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/SupabasePersonalPaymentClientTests.swift",
+      "sha256": "fb869b9c7c1d0a2a720be0d58ae0f151a4d260b8e2f720b705589c241b0d9990"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/WeeklyHealthSourceProbeTests.swift",
+      "sha256": "653b7bd31694b05c65510934c7d10d169687b36a05021d9acc77d039ceae4248"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/WeeklyNativeSmokeTests.swift",
+      "sha256": "7e97f53b93ceaeb0b1276291d5d9b2714ea46f240b2c1dfa92ff15feb2e54686"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/WeeklyNativeTests.swift",
+      "sha256": "3eae2919db3a22393c6c7990ecf247794cb2517095c45fd2eb0fe01d08535490"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/WeeklyRenderedTests.swift",
+      "sha256": "3b5a7f2411d34c64143374910c5a882ef7e30d014ad9280b1480f50b8abf388c"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/WeeklySocialRefreshAuthRaceTests.swift",
+      "sha256": "376cc6ba45e82812faee69fac684a1a34221efd3f8ce7d93318d18196267de01"
+    },
+    {
+      "path": "ios/GameTime/GameTimeUITests/ChallengeV1UITests.swift",
+      "sha256": "56ec1ae322763a92f341722c44ff4431d2e86d3f6569cd7f4b2ced40aa88c9aa"
+    },
+    {
+      "path": "ios/GameTime/GameTimeUITests/DuelUITests.swift",
+      "sha256": "47abb89f1ecdef369513d4bf7e11ba6c13fdf52a00c829621b0230198d7626f2"
+    },
+    {
+      "path": "ios/GameTime/GameTimeUITests/GameTimeUITests.swift",
+      "sha256": "d24264e1e880faffa9e2a44984af1fdfd94773bf724c48d2cb88e0143c000ce1"
+    },
+    {
+      "path": "ios/GameTime/GameTimeUITests/PerformanceCommitmentUITests.swift",
+      "sha256": "ee1a2519e8f83e434eda39bb11371b570104895af650d7dd404fef7ce63fad35"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatch/GameTimeWatchApp.swift",
+      "sha256": "0f9c95a7eea7685a57f6acaed6318fb6eb284b7350a1947759f3f74838047014"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatch/WatchConnectionModel.swift",
+      "sha256": "9ce5bac5f37c2b6e4f5941f3bf62f54ea602ec7dcd2e3ee828b9bf54dafdd85e"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatch/WatchConnectionView.swift",
+      "sha256": "bf50561039b8c9854ba7a587a181b238dbed249f6c75e26ccbcbc0094ba13b43"
+    },
+    {
+      "path": "ios/GameTime/GameTimeWatchShared/GameTimeWatchContext.swift",
+      "sha256": "461e0583c8656ebd7801bc7c78adeaa0f44cee137f797e360ce46f7edf402ad1"
+    },
+    {
+      "path": "ios/GameTime/HistoricalWatch/GameTimeWatch.xcscheme",
+      "sha256": "0cdc1569d8b9ced957402f06015fe2ab75a300773e425194b3048654597ebacb"
+    },
+    {
+      "path": "ios/GameTime/HistoricalWatch/GameTimeWatchContextTests.swift",
+      "sha256": "9c6d0a5a6b92be149eb31ce0950f85adc95cf07006419e958e952b0213d325b9"
+    },
+    {
+      "path": "ios/GameTime/HistoricalWatch/PhoneWatchConnectivityCoordinator.swift",
+      "sha256": "1567d5f7b9eec4e1d1b8d149629730b9cf3b108cc526f495e87ef590a9716172"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance.xcodeproj/project.pbxproj",
+      "sha256": "d6ef5374548641d97c395c3f32a432a36df1e0c9a9cac2ac88e6b6b2a9ebd425"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance.xcodeproj/xcshareddata/xcschemes/GameTimeConformance.xcscheme",
+      "sha256": "7dba257c4f7be3f77ef9b31a0072ec0ed04202bb17f35f4fea477e1712e22872"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/AppAttestClient.swift",
+      "sha256": "686721641861fea09347c6c737ec34697304a2347c729313d6d40a514f596d4a"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/AssertionCounterDecoder.swift",
+      "sha256": "a11489c8857909fbb71ab6750ca3a963cd1d4adf9476dd9e468ee84240660815"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/ConformanceHTTP.swift",
+      "sha256": "d4776b4853a5ec16a9862e673993b87cda8460e4d7fbf7cbe62ccf0b20043af6"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/ConformanceModels.swift",
+      "sha256": "f2f9888ea3aaf9c42e8b0e322a2017239a116731ba0b67168b544939fb116078"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/ConformanceRunner.swift",
+      "sha256": "d86578376e33d42dd2561ed909fe987ceabe084e30f6bfb4da33fc59a980ebd0"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/ConformanceViewModel.swift",
+      "sha256": "1249f66417b853dc4c411b723fc7380bc4efa30fcc79a29ccdbca8a015565b14"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/ContentView.swift",
+      "sha256": "32ee99ab9535f3f8d0aca18db1b134e83689a96fcc82f1536e9a0c8d54032e15"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/GameTimeConformance.entitlements",
+      "sha256": "982966c654b14e92b7d145d93c119c6debc84ba7449f36cdcb8ffb8d8cade0ed"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformance/GameTimeConformanceApp.swift",
+      "sha256": "a4762751ab0e48558e8a1c52cc222553b73c8dd4476a071858c87c7bdafaa855"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformanceTests/AssertionCounterDecoderTests.swift",
+      "sha256": "2c9acd2b89891a5340669d17cb017ecb1a2e4402b487ecdf9d7a2c81bb494493"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformanceTests/ConformanceRequestTests.swift",
+      "sha256": "351719fc1bd267d1a86c54e4737592d20f7f63f30ef3070bdd56b298d9343289"
+    },
+    {
+      "path": "ios/GameTimeConformance/GameTimeConformanceTests/ConformanceRunnerTests.swift",
+      "sha256": "0e80a45337df6a6e0f3a7c4e16d57c051c8c1b95d61c42859e304dadab3f0cb3"
+    },
+    {
+      "path": "ios/GameTimeCore/Package.swift",
+      "sha256": "24edb991b9f20a23e8f0ec6b6cd06370f0cecbd180eb7fe308c204d601f0e7bb"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/ChallengeHealthAdapters.swift",
+      "sha256": "ba4b091729e1add0227bfbe3b9deb3275358987914e20bf22a441941d1192dc7"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/ChallengeHealthContracts.swift",
+      "sha256": "9c157d5f4b6b83ad73b0ec3f4a5f8be31f93edb3794266954bd198be8a0afe7c"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/ChallengeHealthReadSession.swift",
+      "sha256": "bbc663dce2a2d15eedd21e4b2af9f20cd625f92a11cedba34f7f2abda007d633"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/ChallengeHealthRevisions.swift",
+      "sha256": "d8a0f37a6a8af2e6b73a95090d9f25fcf7ccf343046b38d44acc01a770592136"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/CheckInQueue.swift",
+      "sha256": "fa883a08c192730600298238673b74f3cf44b39ad0a00d16b7df5bb0bd800cd9"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/GameTimeCore.swift",
+      "sha256": "149fb9df0952392a5f3bcf8fd4dd0d372f12dcb16ef7f5c83cd6d62cac14bcb5"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/GeofenceCheckIn.swift",
+      "sha256": "011688f961b27f91307ff4cb4c8fcd4d8946dec1ae515b12034b12aa5c359c86"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/HealthSample.swift",
+      "sha256": "e8688f61e2186b4acbdbfdd416ea857ac8ecafba01eedc1e68b6d98410b6b03b"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/HourlyBucketer.swift",
+      "sha256": "527a75d2892f6492f6bfeb63e916981f24ce45ff0ba13af6aa38b6f6040365b6"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/IngestQueue.swift",
+      "sha256": "a3e8954176c0040b6a290e6b83bfee2c12e83cc65ce00efdd6d220dcfc71fa7c"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/MetricIngestPayload.swift",
+      "sha256": "3f5716e778bfd0124018e8c5991097907f62ea158a7b0fb99dde572977d19e2e"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/MetricUploadQueue.swift",
+      "sha256": "6d79a3e70fa1bcb1e50dc7398d0cc22f4e305a2bfc3e646bb4a8e555a0de6e9d"
+    },
+    {
+      "path": "ios/GameTimeCore/Sources/GameTimeCore/WeeklySourceFeasibility.swift",
+      "sha256": "0b5763e05f96410408298b12fc492c885235cb39acb8dd3769746652f75287c8"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/ChallengeHealthAdapterTests.swift",
+      "sha256": "d240d11805c18de1575c90712fa5d0c2df3ec692d3c28df1b1ccfeba80fcbfd8"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/ChallengeHealthRevisionTests.swift",
+      "sha256": "1b6a65d3b02d96ce6353a86819e93dd17d6b09725ff4c60ea5b6a519a35e028f"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/ChallengeHealthSessionTests.swift",
+      "sha256": "6659127ac9779d0a15949a9752381ff19fab4f65907870bbe76b0eb84efc1a7e"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/CheckInQueueTests.swift",
+      "sha256": "de1bd93b2cc91b7b9f16628208866b4047c8b874d5bdcf6eafdf52b5239ce110"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/Fixtures/FakeChallengeHealthStore.swift",
+      "sha256": "6c587d00b251d0ec0b4c9feba57d781577ea31b99588665c43ac82d12a12e154"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/GeofenceCheckInTests.swift",
+      "sha256": "f9675ac7f651e9a8006bd8282769c9a5be3bc6e2c01f4fa1ac6938a1a3dde3d6"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/HarnessTests.swift",
+      "sha256": "61cd6e4957f416c673502f9873a5ba85b7af9607c63431d8f3b28abcce520a77"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/HourlyBucketerTests.swift",
+      "sha256": "e927baae4aa730e4e009644d1cdf8171b3c5f2aef1ec9db6fb3109bd123520f1"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/IngestQueueTests.swift",
+      "sha256": "eb6355b3524bfcd60dfb646b866aea4983d69186e8a26c3533a9aec5376aa28a"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/MetricIngestPayloadTests.swift",
+      "sha256": "cdf31ea809b34f00b8e329aefda0556bf0b0e38df81e43007586e8e661bc6e81"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/MetricUploadQueueTests.swift",
+      "sha256": "fdd4783a4b7b9942b445d196fa1ed3b26d0dac21656f46f3d73ea93c74503f3c"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/ProvenanceTests.swift",
+      "sha256": "9cce46b5a4c67130e7e9321c43c366b1758c1be56a18b96b5619cb5c040b2276"
+    },
+    {
+      "path": "ios/GameTimeCore/Tests/GameTimeCoreTests/WeeklySourceFeasibilityTests.swift",
+      "sha256": "0d176986916ab2a97c2a393e12cf05e5e9515cdf571edbbd51361a77c333f51d"
+    }
+  ],
+  "includes": "Repository native app, shared sources, tests and build metadata; historical Watch files remain inert as the product guard verifies."
+}

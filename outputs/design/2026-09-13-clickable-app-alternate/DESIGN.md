@@ -191,6 +191,8 @@ components:
 
 # Design System: GameTime — Signal
 
+> **Adopted visual direction, September 13, 2026.** Signal is now the official UI/UX. [The native migration contract](../../../docs/design/SIGNAL_UI_MIGRATION.md) supersedes the original proposal-only identity restriction below. Browser implementation, fictional content and native verification limits remain unchanged.
+
 ## Overview
 
 **Creative North Star: "The cool performance instrument"**

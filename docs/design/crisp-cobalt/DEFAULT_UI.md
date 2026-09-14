@@ -1,5 +1,7 @@
 # Default Cobalt interface — September 11, 2026
 
+> **Historical activation record.** The owner superseded cobalt with Signal on September 13, 2026. [Native migration and retirement](../SIGNAL_UI_MIGRATION.md) now have a local implementation and verification record; the dated evidence below is preserved.
+
 The owner requested adoption of `codex/crisp-cobalt-ui` and installation on
 Mason’s iPhone. The normal signed-in root now opens Cobalt Home, Challenges and
 You in Debug, Staging and Release, without a preview launch argument.

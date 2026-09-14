@@ -4,10 +4,16 @@ Start from `main` in `/Users/user/Documents/GitHub/GameTime` and read the
 [working baseline](docs/WORKING_BASELINE.md),
 [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [one-task prompts](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
-Cobalt/P4/P5/P6 are implemented locally and P10's independent preparation is
-included. P7 is prepared, with physical sessions pending; P8/P9 and
-hosted/human/release acceptance remain. Do not restart completed prompts or
-resume old temporary checkouts from their historical instructions.
+P4/P5/P6 and P10's independent preparation are included. Signal is now the
+official native UI/UX. [P9A's local implementation](outputs/reports/2026-09-13-signal-native-migration.md)
+replaces cobalt independently of physical source work; its tested source and
+remaining acceptance limits are recorded under the [migration contract](docs/design/SIGNAL_UI_MIGRATION.md).
+Connect Signal to accepted real contracts in P9. The September 13
+remaining plan keeps P7 source acceptance, completes P8/P9 by accepted metric,
+makes P11 operating/deletion implementation explicit, then separates private
+TestFlight from proposed public simulated launch. All four sources and all 13
+policies remain required; funded launch remains Phase 6. Do not restart completed
+prompts or resume old checkouts from historical instructions.
 
 ## Historical roadmap
 

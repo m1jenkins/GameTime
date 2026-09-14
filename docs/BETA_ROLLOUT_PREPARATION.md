@@ -10,6 +10,11 @@ and human/hosted acceptance still block distribution. All amounts stay visibly
 nonredeemable simulation; all 18 external gates remain false.
 
 Use the [working baseline](WORKING_BASELINE.md) for current source and status.
+The September 13 [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
+[prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) own current execution:
+P10 preparation is complete; P11A implements missing operation/deletion locally,
+P11B performs authorized hosted verification, and P12/P13 qualify the candidate
+and private Beta. Public simulated launch is a later recommendation.
 Cobalt is the normal signed-in shell, with its challenge client still unavailable;
 functional challenge previews and the private investigation remain explicit local
 Debug paths. P4/P5/P6 are implemented locally, including community capacity and

@@ -12,10 +12,25 @@ This is an implementation plan, not evidence that the product exists. It does
 not authorize hosted mutations, TestFlight distribution, recruitment, data
 deletion, notification delivery, payment-provider activity, or live money.
 
+For current implementation status and the September 13 execution reevaluation,
+use [WORKING_BASELINE.md](WORKING_BASELINE.md), the
+[remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
+[prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md). They reuse completed
+design/backend work and distinguish local Beta, private TestFlight and a proposed
+public simulated launch. This document retains D134/D135's product contract;
+sequential metric implementation does not reduce the all-mode distribution gate.
+
 D135 and [the remaining-work contract](BETA_REMAINING_WORK_CONTRACT.md) add six
 explicit owner decisions. Their Watch architecture, hardware sequencing,
 community disclosure and workload targets govern remaining work. They do not
 claim those source/server behaviors have been implemented.
+
+Signal is the official UI/UX as of the September 13 owner clarification. The
+[Signal migration contract](design/SIGNAL_UI_MIGRATION.md) governs native default
+wiring and cobalt visual retirement (P9A). Its [local native implementation](../outputs/reports/2026-09-13-signal-native-migration.md)
+uses Signal across new and retained routes; the report records verification and
+remaining device/human limits. D134/D135 product rules and historical access are
+preserved. Real source/transport integration remains P8/P9 work.
 
 ## Product contract
 

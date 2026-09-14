@@ -1,0 +1,45 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "B5424EF1-239E-4B59-9A94-7E018C3D86EB",
+        "deviceName" : "GameTimeCobaltCompact-20260911",
+        "modelName" : "iPhone 13 mini",
+        "osBuildNumber" : "22G86",
+        "osVersion" : "18.6",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 0,
+      "passedTests" : 13,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "GameTime · Built with macOS 26.5",
+  "expectedFailures" : 0,
+  "failedTests" : 0,
+  "finishTime" : 1789337825.441,
+  "passedTests" : 13,
+  "result" : "Passed",
+  "runtimeWarnings" : [
+
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1789337558.333,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+
+  ],
+  "title" : "Test - GameTime",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 13
+}

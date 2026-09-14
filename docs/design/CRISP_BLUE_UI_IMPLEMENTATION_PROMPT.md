@@ -1,5 +1,7 @@
 # Implement GameTime's crisp cobalt design across the iPhone app
 
+> **Superseded September 13, 2026.** Signal is the official UI/UX and cobalt is deprecated. Do not execute this historical prompt. Use [Signal native migration and cobalt retirement](SIGNAL_UI_MIGRATION.md).
+
 You are the SwiftUI implementation owner for GameTime. Turn the approved v2 home-screen concept into a coherent, fully functioning native UI across every app-owned iPhone screen and reachable state. Implement the work, run the app, exercise its flows, and iterate on rendered results. Do not stop after a plan, a token change, a component gallery, or the Home screen.
 
 ## Visual authority and project context

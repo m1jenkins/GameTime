@@ -1,5 +1,7 @@
 # Crisp cobalt implementation
 
+> **Historical implementation record.** Cobalt is deprecated as of September 13, 2026. Future presentation work follows [Signal adoption and migration](../SIGNAL_UI_MIGRATION.md).
+
 Started September 11, 2026 from accepted local main
 `a18f00fa19ac95f946c4686ba3b6a068064d797b` in an isolated clone at
 `/private/tmp/gametime-crisp-cobalt-20260911`, branch `codex/crisp-cobalt-ui`.

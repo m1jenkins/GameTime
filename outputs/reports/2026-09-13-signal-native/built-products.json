@@ -1,0 +1,23 @@
+[
+  {
+    "configuration": "Debug",
+    "app": "/private/tmp/gametime-signal-derived/Build/Products/Debug-iphonesimulator/GameTime.app",
+    "binarySHA256": "e2d1823b2cdd72a2c26f7cc1183ba31fcda13e9d39dc335ba5fbc688ab73a3c8",
+    "bundledFonts": [],
+    "buildLog": "Recorded in final receipt test result"
+  },
+  {
+    "configuration": "Staging",
+    "app": "/private/tmp/gametime-signal-staging/Build/Products/Staging-iphonesimulator/GameTime.app",
+    "binarySHA256": "2fcc80dde937cdd43a767048cf8f8a16a31dd168302ab609bd8113951fb2b19c",
+    "bundledFonts": [],
+    "buildLog": "/private/tmp/gametime-signal-staging-final-r2.log"
+  },
+  {
+    "configuration": "Release",
+    "app": "/private/tmp/gametime-signal-release/Build/Products/Release-iphonesimulator/GameTime.app",
+    "binarySHA256": "8e9ead554d96d928027896dfecfafb3cf625d712774241df6a43f11dc005431b",
+    "bundledFonts": [],
+    "buildLog": "/private/tmp/gametime-signal-release-final-r2.log"
+  }
+]

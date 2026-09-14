@@ -1,22 +1,50 @@
 # GameTime project memory
 
-## Current working baseline — September 12, 2026 local consolidation
+## Current working baseline — September 13, 2026
 
 Use `/Users/user/Documents/GitHub/GameTime` on `main` for development.
 [WORKING_BASELINE.md](docs/WORKING_BASELINE.md) owns current source identity,
-status, verification and next work. The owner authorized consolidating the local
-work and retiring redundant checkouts. The current history includes Cobalt,
+status, verification and next work. The current history includes Cobalt,
 completed P4/P5/P6, P7 preparation and P10 preparation through `01f1dd15`, followed
-by the reusable preview tooling and consolidated entry documents.
+by preview tooling, consolidated guidance and browser designs at `b25834c`.
+The owner selected **Signal as the official UI/UX** on September 13. P9A's native
+source, tests and configuration are published on GitHub `main` at `b351a47`:
+ordinary launch, shared components and retained Personal routes use Signal;
+superseded cobalt rendering and font inputs are removed. The
+[native report](outputs/reports/2026-09-13-signal-native-migration.md) records
+tested source, checks and limits. This work was implemented after a bounded
+search found no applicable native Signal candidate; it does not validate the
+earlier unlocated completion claim. [The migration contract](docs/design/SIGNAL_UI_MIGRATION.md)
+and adopted study remain design authority. Dated cobalt records are historical.
+
+The owner has no Apple Watch yet and wants simulator-only development, without
+physical Watch actions. Defer P7 device sessions; next reconcile the existing
+native recovery fixes and complete authenticated local simulator journeys using
+fictional activity, then independent P11A operating work. Physical source acceptance
+remains a later launch requirement. Do not claim that simulation accepts a source.
+The complete original migration and supporting records are preserved locally at
+`823ee0a`; only native source/tests/configuration were authorized by automatic
+approval review for the public push. Local documentation/evidence changes remain
+in the working copy and must be preserved.
 
 P4/P5/P6 are completed locally. P10's device-independent preparation is included.
-P7 physical sessions and all four source acceptances remain pending; P8/P9 still
-need those source policies. Normal signed-in challenges remain unavailable, and
-all 18 readiness gates remain false. Design review can use the fictional
-[local preview](docs/BETA_LOCAL_PREVIEW.md).
+P7 physical sessions and all four source acceptances remain pending. The revised
+[remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
+[prompt pack](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) recommend P8/P9
+complete one accepted metric end to end, then all 13 policies; P11 explicitly
+implements operation/deletion before hosted verification. P12/P13 finish candidate,
+human and private Beta acceptance. Public simulated launch is a recommendation;
+funded launch remains separate. No adopted product scope changed.
 
-The earlier dirty application/copy/assets and competing Beta1 implementation are
-preserved in named archive branches and a verified external backup. They were
+Unlanded native recovery fixes and two remaining server concerns are recorded in
+the working baseline for reuse/scoped verification. Normal signed-in challenges
+remain unavailable and all 18 readiness entries remain false, including money and
+optional analytics that should stay off for simulation. No physical, hosted or
+release validation is established by the native presentation work.
+
+The owner previously authorized local consolidation and retirement of redundant
+checkouts. The earlier dirty application/copy/assets and competing Beta1
+implementation are preserved in named archive branches and a verified external backup. They were
 not imported wholesale. [The consolidation map](docs/WORKTREE_CONSOLIDATION_STATUS.md)
 records recovery locations and the disposition of earlier checkouts. Historical
 paths and next-task instructions below do not select today's working folder.

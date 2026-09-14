@@ -1,5 +1,7 @@
 # GameTime — Signal
 
+> **Adopted September 13, 2026.** The owner selected Signal as GameTime’s official UI/UX and deprecated cobalt. [Native migration and retirement](../../../docs/design/SIGNAL_UI_MIGRATION.md) have a separate local implementation and verification record. The study-scope and proposed-UI descriptions below record its original delivery; visual adoption does not turn browser fixtures, sample policy values or browser verification into native implementation or product acceptance.
+
 A second, independent visual study, September 13, 2026. Open [the clickable prototype](index.html). The original [Fieldwork Glass study](../2026-09-13-clickable-app/index.html) is preserved beside it.
 
 Signal translates the brief’s numerical confidence and athletic activity storytelling into a precise daily instrument. Large totals, honest daily charts and compact ranked rows replace Fieldwork’s warm paper, club boards, condensed headings and printed imagery. The interface carries no trading language, account balance, stock-style chart, badge economy or exercise pressure.

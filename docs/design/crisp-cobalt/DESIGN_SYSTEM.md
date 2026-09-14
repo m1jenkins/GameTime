@@ -1,5 +1,7 @@
 # Crisp cobalt design system
 
+> **Historical design, deprecated September 13, 2026.** Signal is the official native UI/UX. Use [the migration contract](../SIGNAL_UI_MIGRATION.md) for current work; the system below describes the superseded cobalt UI.
+
 The approved [Home concept](approved-home.png) sets the visual direction. The
 native UI uses current challenge projections; the concept's names and totals
 exist only in `CobaltRenderedTests`.
