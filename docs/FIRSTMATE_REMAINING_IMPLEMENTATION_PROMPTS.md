@@ -17,8 +17,11 @@ required before distribution.
 The owner has no Apple Watch yet and selected simulator-only work. Do not start
 the physical P7 prompt or request Watch actions now. The bounded P11A local
 recovery slice is implemented on an unlanded task branch; its [report](../outputs/reports/2026-09-14-p11a-local-recovery.md)
-records the combined source, interfaces and validation limits. It remains local
-implementation evidence, not real P7/P8/P9 or hosted acceptance. The next
+records the combined source, interfaces and validation limits.
+The [September 14 community follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
+closes the verification gap and recommends separate local landing approval for
+its exact reviewed tip; it does not authorize another implementation slice.
+This remains local implementation evidence, not real P7/P8/P9 or hosted acceptance. The next
 dependency is an accepted real-source contract and a separately authorized
 hosted target. The physical-source and real-integration prompts below retain
 their future acceptance contracts until those dependencies are available.

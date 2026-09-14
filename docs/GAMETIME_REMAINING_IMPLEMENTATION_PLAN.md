@@ -10,6 +10,9 @@ September 13 owner clarification: there is no physical Watch yet; current work
 is simulator-only, with no owner-operated Watch sessions. Signal native source
 is published on `main` at `b351a47`. The bounded P11A local recovery slice is
 implemented on an unlanded task branch; see the [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md).
+The [September 14 verification follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
+closes the community test gap and records the focused local landing recommendation;
+main remains unchanged and landing requires separate approval.
 It does not complete real P8/P9 or hosted operation. Defer physical P7, while
 preserving its later source/distribution requirements.
 
@@ -30,14 +33,12 @@ another design, infrastructure or general audit workstream.
 | P11A | Local-only durable invocation/retry identity, scoped worker dispatch, bounded item recovery, delayed snapshot dispatch and sanitized status projection are implemented on the unlanded task branch. No hosted schedule, credential, alert recipient, operator-tooling expansion, deletion or retention-policy work was added. [Report](../outputs/reports/2026-09-14-p11a-local-recovery.md) |
 | P11–P13 | Operated backend, integrated candidate, physical/human acceptance and authorized distribution remain. Public App Store submission is a later milestone. |
 
-An unlanded native branch also exists: `codex/overnight-integration-20260913`,
-final code `a3e7733`, report tip `264bbd0` (`docs/OVERNIGHT_INTEGRATION_20260913.md`
-on that branch). It fixes issued-link recovery, invitation redemption and
-stale detail responses; its report records 66 focused passes. Review/reuse these
-changes in P9. They are not in inspected `main` or tests rerun here.
-The report also carries **Privacy1**, a source-confirmed reviewer-read/revocation
-race with no runtime proof/fix, and **S1**, an unverified create/suspension concern.
-P8 owns bounded reproduction and any required SQL correction before external use.
+The unlanded combined candidate already contains S2's Signal adaptations of the
+older overnight issued-link/redemption/detail fixes and P8's verified Privacy1/S1
+corrections. Their original branches and dated reports remain evidence. Do not
+reimport the overnight implementation or restart those corrections; use the
+follow-up's exact candidate and distinguish its local checks from source-backed
+or external acceptance.
 
 ## Product requirements stay intact
 
