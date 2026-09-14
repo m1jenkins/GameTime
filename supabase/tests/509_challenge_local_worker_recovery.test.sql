@@ -22,15 +22,21 @@ insert into beta_ids values('other',pg_temp.beta_group(3,2));
 select pg_temp.clock_beta('2026-10-20T12:00Z');
 
 select throws_ok($$select public.challenge_prepare_worker_invocation_v1(pg_temp.br(90000),'{}',1)$$,'22023','challenge_invalid_scope','scope version and kind are required');
+-- Fresh-session regression: prepare and dispatch are separate service calls.
+-- Clear the transaction-local write flag before dispatch so this nonempty
+-- path cannot inherit fixture authorization. The scoped claim helper must set
+-- its own guard before updating the durable claim.
+select is(set_config('app.challenge_write_v1','off',true),'off','fresh-session dispatch starts without fixture write authorization');
 select public.challenge_prepare_worker_invocation_v1(pg_temp.br(90001),jsonb_build_object(
  'version','challenge_worker_scope_v1','kind','challenge_ids','ids',jsonb_build_array((select id from beta_ids where name='scoped'))),1);
 select is(public.challenge_prepare_worker_invocation_v1(pg_temp.br(90001),jsonb_build_object(
  'kind','challenge_ids','version','challenge_worker_scope_v1','ids',jsonb_build_array((select id from beta_ids where name='scoped'))),1)->>'status','prepared','exact scope retry is accepted');
 select throws_ok($$select public.challenge_prepare_worker_invocation_v1(pg_temp.br(90001),jsonb_build_object('version','challenge_worker_scope_v1','kind','challenge_ids','ids',jsonb_build_array((select id from beta_ids where name='scoped'))),2)$$,'22023','challenge_request_conflict','scope limit cannot change under one invocation ID');
+select is(set_config('app.challenge_write_v1','off',true),'off','fresh-session dispatch write flag is cleared after prepare');
 create temp table scoped_dispatch(value jsonb);
 insert into scoped_dispatch select public.challenge_dispatch_worker_invocation_v1(pg_temp.br(90001));
-select is((select value->>'status' from scoped_dispatch),'dispatched','scoped invocation dispatches');
-select is(jsonb_array_length((select value->'claims' from scoped_dispatch)),1,'limit bounds scoped claims');
+select is((select value->>'status' from scoped_dispatch),'dispatched','fresh-session scoped dispatch claims a due item');
+select is(jsonb_array_length((select value->'claims' from scoped_dispatch)),1,'fresh-session scoped dispatch returns one claim');
 select is(public.challenge_dispatch_worker_invocation_v1(pg_temp.br(90001)),(select value from scoped_dispatch),'response-loss retry returns the exact invocation receipt');
 create temp table scoped_completion(value jsonb);
 insert into scoped_completion select public.challenge_complete_claim_v1(
