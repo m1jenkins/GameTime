@@ -168,6 +168,7 @@ begin
  ids:=app.challenge_worker_scope_ids_v1(p_scope);
  if p_limit is null or p_limit not between 1 and 50 then raise exception 'challenge_invalid_batch' using errcode='22023'; end if;
  wall:=clock_timestamp();
+ perform set_config('app.challenge_write_v1','on',true);
  if (select processing from app.challenge_runtime_v1 where singleton) then
   for item in
    with work as materialized (
