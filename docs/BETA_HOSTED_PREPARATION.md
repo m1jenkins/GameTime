@@ -112,23 +112,25 @@ this local report or a successful `psql` invocation.
 
 ## Scheduler and monitoring plan
 
-Reuse `scripts/challenge_worker.py:run_once`: a claim RPC commits quickly; each
-completion has its own transaction and claim token. Proposed cadence is one pass
-per 60 seconds, limit 20, five completion lanes, five-second RPC timeout, no
-overlapping trigger executions. These are unapproved operating defaults; the
-existing server allows 1–50 claims, 60-second leases, five attempts and exponential
-failure backoff (`min(300, 2^attempts)` seconds). A failed/abandoned fifth attempt
-becomes dead work. P11 must measure backlog/connection headroom on the chosen host;
-P2's failures and long-soak history remain unchanged.
+Reuse `scripts/challenge_worker.py:run_once`: the local P11A path persists an
+invocation scope and limit before dispatch, then each completion has its own
+transaction and claim token. Proposed cadence is one pass per 60 seconds, limit
+20, five completion lanes, five-second RPC timeout, no overlapping trigger
+executions. These remain unapproved operating defaults; the existing server
+allows 1–50 claims, 60-second leases, five attempts and exponential failure
+backoff (`min(300, 2^attempts)` seconds). A failed/abandoned fifth attempt
+becomes dead work. P11 must measure backlog/connection headroom on the chosen
+host; P2's failures and long-soak history remain unchanged.
 
-Persist the run UUID and limit before dispatch. After response loss, retry that
-exact pair to recover the saved claims; retry completion with its same token. An
-expired/replaced token is stale and must never overwrite a later completion.
-A later fresh pass reclaims abandoned leases, not the old UUID. Durable receipts
-must survive process restart. There is no hosted runner, scheduler invocation
-authentication, durable dispatch journal or dead-letter requeue API yet. These are
-explicit integration deliverables before enabling a schedule; do not emulate them
-with unreviewed direct updates or an automatic infinite loop.
+Persist the invocation UUID, exact scope digest and limit before dispatch. After
+response loss, retry that exact invocation to recover the saved claims; retry
+completion with its same token. An expired/replaced token is stale and must never
+overwrite a later completion. A later fresh invocation reclaims abandoned leases,
+not the old UUID. Durable receipts survive process restart, and one selected dead
+item can be recovered only through the audited privileged recovery RPC. There is
+no hosted runner, scheduler registration or credential here. These are explicit
+integration deliverables before enabling a schedule; do not emulate them with
+unreviewed direct updates or an automatic infinite loop.
 
 Add a separately authorized snapshot job for the one selected cohort:
 `challenge_capture_community_snapshot_v1(p_id)`, proposed every 900 seconds.
@@ -165,10 +167,12 @@ can hide backlog. It is not a complete historical incident ledger.
 | RPC latency/error rate, connection headroom, authorization denial/429 spikes | Aggregate metrics only; endpoint family and SQLSTATE/status, no payload, actor, token or link. P11 sets operational limits from real measurements. |
 | Grant expiry/coverage lapse, unassigned review or support queue | Route to the staffed operator owner; no silent auto-renewal. Sanitized queue/coverage monitoring still needs implementation and delivery proof. |
 
-Current status includes restricted `failed_work` challenge IDs and timestamps.
-Do not forward the entire JSON to external alerts or generic logs. Redact to
-approved counts/status codes and keep detailed audit in its scoped store; tokens,
-Health facts, request bodies, usernames, raw errors and link paths are excluded.
+The existing restricted status keeps `failed_work` challenge IDs and timestamps
+for authorized item selection. P11A adds a separate
+`challenge_local_worker_status_v1` projection containing only bounded state,
+counts, timestamps and SQLSTATE codes. Do not forward the restricted JSON to
+external alerts or generic logs. Tokens, Health facts, request bodies, usernames,
+raw errors and link paths are excluded.
 Select log retention and alert recipients in the retention worksheet. No telemetry
 or alert destination was configured. The September 12 changelog check found the
 [September 23 `logs.all` removal](https://supabase.com/changelog/48235-migration-of-supabase-management-api-logs-all-analytics-endpoint-to-logs-endpoint);

@@ -15,14 +15,13 @@ one accepted metric at a time. All four sources and all 13 policies remain
 required before distribution.
 
 The owner has no Apple Watch yet and selected simulator-only work. Do not start
-the physical P7 prompt or request Watch actions now. The next bounded task is to
-reconcile applicable native fixes from `codex/overnight-integration-20260913`,
-preserving Signal, and complete the missing authenticated local simulator journeys
-with fictional activity across all 13 policies. Reuse existing controllers and an
-owned disposable stack; do not fabricate accepted source rules. This is local
-integration evidence, not real P7/P8/P9 acceptance. P11A is independent follow-on
-work. The physical-source and real-integration prompts below retain their future
-acceptance contracts until their actual dependencies are available.
+the physical P7 prompt or request Watch actions now. The bounded P11A local
+recovery slice is implemented on an unlanded task branch; its [report](../outputs/reports/2026-09-14-p11a-local-recovery.md)
+records the combined source, interfaces and validation limits. It remains local
+implementation evidence, not real P7/P8/P9 or hosted acceptance. The next
+dependency is an accepted real-source contract and a separately authorized
+hosted target. The physical-source and real-integration prompts below retain
+their future acceptance contracts until those dependencies are available.
 
 ## Common instructions — prepend to the selected task
 
@@ -205,6 +204,12 @@ Resolve three groups of owner inputs as the dependent work becomes concrete:
   dates/timezone and simulated amount. Planning capacity is not publication approval.
 
 ## Prompt 11A — finish the operating code locally
+
+The captain's completed local slice is limited to worker/scheduler recovery:
+durable invocation identity, scoped dispatch, bounded retries, individual
+dead-letter recovery, delayed community snapshots and sanitized local status.
+Operator-tooling expansion, account deletion and retention-policy-dependent work
+remain deferred and are not implied by the report below.
 
 ```text
 Turn P10's prepared operation into the minimum working local implementation, using

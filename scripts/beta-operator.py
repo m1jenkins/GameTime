@@ -66,7 +66,7 @@ def main():
     try:
         c=args.command
         if c=='run-once':
-            print(json.dumps(run_once(lambda name,body: request('/rest/v1/rpc/'+name,body,headers,timeout=5),args.run_id,args.limit),indent=2))
+            print(json.dumps(run_once(lambda name,body: request('/rest/v1/rpc/'+name,body,headers,timeout=5),args.run_id,args.limit,scope={"version":"challenge_worker_scope_v1","kind":"due"}),indent=2))
             return
         if c=='status':name='challenge_operations_status_v1';body={}
         elif c=='grant':name='challenge_grant_operator_v1';body={'p_actor':str(args.actor),'p_id':str(args.challenge),'p_capability':args.capability,'p_expires':args.expires}

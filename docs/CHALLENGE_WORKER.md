@@ -35,12 +35,16 @@ at transaction commit through the existing deferred trigger.
 
 ## Worker protocol
 
-Call `challenge_claim_batch_v1(run_id, limit)` as one transaction, commit its
-response, then call `challenge_complete_claim_v1(id, claim_token)` in a separate
-transaction for each returned claim. `scripts/challenge_worker.py` implements
-this protocol for the existing local operator CLI. Each RPC is a separate HTTP
-request; five bounded lanes isolate individual request failures. The operator
-uses a five-second network timeout and a default limit of 20.
+For new local work, call `challenge_prepare_worker_invocation_v1(invocation_id,
+scope, limit)` and commit it before `challenge_dispatch_worker_invocation_v1`.
+The dispatch response contains the claims; call
+`challenge_complete_claim_v1(id, claim_token)` in a separate transaction for
+each returned claim. `scripts/challenge_worker.py` implements this protocol for
+the existing local operator CLI. Each RPC is a separate HTTP request; three
+bounded transport attempts and five completion lanes isolate individual request
+failures. The operator uses a five-second network timeout and a default limit of
+20. The accepted scope is either the exact `{version,kind:due}` object or an
+explicit, server-validated list of at most 50 existing challenge IDs.
 
 Claims are limited to 1–50 coordination rows with `FOR UPDATE SKIP LOCKED`.
 P5 discovery filters terminal history through a partial live-lobby index, checks
@@ -67,13 +71,30 @@ failed request does not stop completion attempts for other leased items. Use a
 new run ID to recover abandoned leases; replaying the old run ID deliberately
 does not create fresh tokens.
 
-Processing pause returns no new claims. A claim completed after a pause is
-released without lifecycle changes. Cancelled/terminal challenges and existing
+Processing pause returns no new claims and writes a paused heartbeat. A claim
+completed after a pause is released without lifecycle changes. Cancelled/terminal challenges and existing
 finals are excluded from discovery. Direct safe ticks of cancelled drafts do
 not keep incrementing their revision. Notices still grant 48 hours from actual
 publication; reviews grant 72 hours from filing.
 
-`challenge_operations_status_v1` reports overdue notices/reviews, active and
+The local invocation records its exact scope, limit and request identity before
+dispatch. Replaying the same invocation returns the saved claim response;
+changing its scope or limit is rejected. Transport retries are bounded at three
+attempts, and a failed item is isolated from the other claims. A dead item can
+be selected through the privileged `challenge_recover_failed_item_v1` boundary
+for one exact, audited retry; earlier attempts, errors, totals and receipts
+remain preserved. Recovery does not reset other items or rewrite a result,
+review or consent.
+
+`challenge_operations_status_v1` remains the restricted diagnostic projection
+with its existing failed-item detail for privileged selection. The separate
+`challenge_local_worker_status_v1` projection is sanitized: it reports only
+bounded state, counts, timestamps and SQLSTATE codes. It distinguishes a
+healthy empty pass, backlog, pause, disablement and failure. Snapshot
+invocations use the existing server-time capture RPC and retain its
+at-most-once 15-minute capture and at-least-15-minute disclosure rules.
+
+The restricted projection reports overdue notices/reviews, active and
 abandoned leases, scheduled retries, dead-letter counts and at most 50 failed
 work summaries. It exposes IDs, attempts, timing and SQLSTATE only to service
 callers. Historical batch failure counts remain included. Dead letters require

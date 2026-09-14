@@ -35,6 +35,7 @@ The separately recorded native recovery branch has not been integrated.
 | P6 | Private 250-member community, moderation and quotas completed locally | [P6 report](../outputs/reports/2026-09-12-p6-completion.md) |
 | P7 | Preparation only; physical sessions and four accepted sources pending | [P7 checkpoint](../outputs/reports/2026-09-12-p7-preparation.md) |
 | P10 | Device-independent hosted/support/retention preparation included; actual hosting unperformed | [P10 report](../outputs/reports/2026-09-12-p10-completion.md) |
+| P11A — local recovery | Bounded local worker/snapshot invocation and recovery code is implemented on the unlanded task branch; hosted schedules, credentials and external alerts remain disabled | [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md) |
 | Local design preview | Fictional friend/personal journeys with configurable owned resources | [Preview guide](BETA_LOCAL_PREVIEW.md) |
 | P8/P9 | Real ingestion, accepted adapters, authenticated transport/links and integrated journeys remain; reuse existing closed contracts and screens | [Remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) |
 | P11–13 | Operating code/deletion, hosted capacity/recovery, physical/human/release acceptance, then authorized private Beta remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
@@ -42,14 +43,15 @@ The separately recorded native recovery branch has not been integrated.
 ## Next work
 
 The owner has no Apple Watch yet and explicitly selected simulator-only work.
-Do not request physical Watch actions or start P7 device sessions now. Use the
-published Signal implementation to reconcile the native recovery fixes below
-and run the missing authenticated loopback simulator journeys with fictional
-activity. This is a bounded local integration task, not completion of real P8/P9.
-P11A's independent local operating code can follow. P7 source acceptance remains
-deferred until hardware is available; simulator success cannot accept a source
-or select timed-distance tolerance. All four sources still gate distribution.
-Do not recreate P9A/P10/P4/P5/P6 or the cancelled candidate-gate recovery.
+Do not request physical Watch actions or start P7 device sessions now. The
+bounded P11A local recovery slice is implemented on the unlanded task branch;
+its report records the combined S2/P8 source, worker/snapshot interfaces and
+the local validation limits. P7 source acceptance remains deferred until
+hardware is available; simulator success cannot accept a source or select
+timed-distance tolerance. All four sources still gate distribution. The next
+dependency is approved real-source P8/P9 work and, separately, an authorized
+hosted target for operation. Do not recreate P9A/P10/P4/P5/P6 or the cancelled
+candidate-gate recovery.
 
 Native fixes exist outside `main` on `codex/overnight-integration-20260913`
 (code `a3e7733`, report `264bbd0`). The branch report records issued-link,

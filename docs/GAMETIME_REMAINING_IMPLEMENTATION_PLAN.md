@@ -8,10 +8,10 @@ below records presentation work; product terms and release gates are unchanged.
 
 September 13 owner clarification: there is no physical Watch yet; current work
 is simulator-only, with no owner-operated Watch sessions. Signal native source
-is published on `main` at `b351a47`. Next reconcile the existing native recovery
-fixes and run the missing authenticated loopback simulator journeys with fictional
-activity. P11A local operating work can follow. Defer physical P7, while preserving
-its later source/distribution requirements. This does not complete real P8/P9.
+is published on `main` at `b351a47`. The bounded P11A local recovery slice is
+implemented on an unlanded task branch; see the [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md).
+It does not complete real P8/P9 or hosted operation. Defer physical P7, while
+preserving its later source/distribution requirements.
 
 The shortest path is to finish real activity → agreed challenge → corrected
 result, operate it on one approved backend, and test it with people. Preserve
@@ -27,6 +27,7 @@ another design, infrastructure or general audit workstream.
 | P7 | [Preparation](../outputs/reports/2026-09-12-p7-preparation.md) is complete; physical observations, four source policies and timed-distance tolerance remain unaccepted. |
 | P8/P9 | Reusable contracts, adapters, stores and fictional journeys exist. Real consent/ingestion are explicitly disabled; ordinary sign-in uses `UnavailableChallengeV1Client`, and working challenge transport is loopback-only. Implement the real path, rather than merely changing flags. |
 | P10 | [Device-independent preparation](../outputs/reports/2026-09-12-p10-completion.md) is complete. Approved settings, functioning hosted scheduler/alerts, retention/deletion and operating acceptance are still missing. |
+| P11A | Local-only durable invocation/retry identity, scoped worker dispatch, bounded item recovery, delayed snapshot dispatch and sanitized status projection are implemented on the unlanded task branch. No hosted schedule, credential, alert recipient, operator-tooling expansion, deletion or retention-policy work was added. [Report](../outputs/reports/2026-09-14-p11a-local-recovery.md) |
 | P11–P13 | Operated backend, integrated candidate, physical/human acceptance and authorized distribution remain. Public App Store submission is a later milestone. |
 
 An unlanded native branch also exists: `codex/overnight-integration-20260913`,
@@ -67,10 +68,10 @@ P8 owns bounded reproduction and any required SQL correction before external use
 | Private TestFlight, then public launch | After acceptance/authorization, run a small supervised simulated pilot, fix observed problems, then prepare the App Store release. | Actual Beta results, working support and separate submission/release authorization. |
 
 P7 remains the next source-dependent task, deferred while the owner lacks a Watch.
-Use published Signal for the next simulator-only native recovery/integration task,
-then complete approved local operating code and resolve P10's owner inputs.
-Do not fabricate source policies to fill time. Each prompt is
-separately scoped; this plan does not dispatch later work.
+The P11A local slice is complete but unlanded and does not resolve P10's hosted
+inputs. Next work depends on accepted real-source contracts and an explicitly
+authorized hosted target. Do not fabricate source policies to fill time. Each
+prompt is separately scoped; this plan does not dispatch later work.
 
 ### P8/P9: finish the product connection
 
