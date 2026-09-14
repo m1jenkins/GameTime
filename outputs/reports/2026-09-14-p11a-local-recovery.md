@@ -106,10 +106,20 @@ All final-source evidence is private under
   read-first case is not interpreted as proof of initially ungranted access.
 - Existing focused SQL suites were also rerun against the owned final DB:
   `497` produced 19/19 and `504` produced 40/40. The retained `506` suite
-  still has its original 49/49 pass. A repeat against the already-used task DB
-  produced one fixture-history mismatch (48 passes; expected two support audit
-  rows, observed four); it is retained as a disconfirming environment result,
-  not counted as a pass or silently normalized.
+  still has its original isolated 49/49 pass. A repeat against the already-used
+  task DB produced one fixture-history mismatch (48 passes; expected two global
+  reports, observed four). A direct private inventory before that transaction
+  found two retained reports—one scoped and one unscoped—and no support grants;
+  the test then added its two reports. The extra report scopes and the support
+  authorization boundary were therefore preserved and verified, while the
+  empty-database cardinality assumption was invalid for that populated fixture.
+  The failed populated receipt is retained as a disconfirming environment
+  result, not counted as a pass or silently normalized. A newly owned clean-DB
+  reconstruction was attempted but not adopted as acceptance because a
+  schema-only copy lacks database bootstrap defaults (including the historical
+  scheduler extension, private HMAC seed and runtime/pgtap setup); its logs are
+  retained separately. The original clean 49/49 result remains the correctly
+  isolated community contract result.
 - Actual owned local HTTP runner proof covered an empty pass with a committed
   heartbeat, deliberate post-commit response loss, exact replay after process
   restart, duplicate prepare, invalid scope, scope/limit conflict and bounded
