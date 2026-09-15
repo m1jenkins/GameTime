@@ -298,6 +298,12 @@ def main() -> None:
               "concurrent lifecycle finalization returns a defined lifecycle state")
         check((review.returncode == 0 and not final_exists) or (review.returncode != 0 and final_exists and "challenge_deletion_review_unavailable" in review_error),
               "review/finalization race preserves either the filed review hold or the already-final result")
+        saved_review_is_not_advertised = value(
+            "select jsonb_array_length(app.challenge_account_deletion_state_v1("
+            + quoted(actors[0]) + "::uuid)->'rights'->'review_notices')"
+        ) == "0"
+        check((review.returncode != 0 and final_exists) or (review.returncode == 0 and saved_review_is_not_advertised),
+              "a saved review is no longer advertised as a second available receipt right")
 
         # Finally, race an ordinary finalization against deletion itself. The
         # winner may choose the normal score or the safe void, but neither can
@@ -332,6 +338,103 @@ def main() -> None:
         check(value("select count(*) from app.challenge_members_v1 where challenge_id=" + quoted(final_challenge)
                     + "::uuid and actor_id=" + quoted(actors[3]) + "::uuid and exited_at is null") == "0",
               "the finalized race leaves the deleted actor non-participating")
+
+        # A response can arrive late while the signed-out receipt is asking for
+        # progress. Race those two durable stages under the actual database
+        # gate: both must serialize, and advancement must never substitute for
+        # the explicit provider completion.
+        completion_receipt = "local_completion_" + uuid.uuid4().hex
+        completion_request = str(uuid.uuid4())
+        completion_subject = "fictional-apple-race-completion"
+        sql(deletion_call(6, completion_request, completion_receipt, completion_subject))
+        sql(
+            "select public.challenge_account_deletion_provider_complete_v1("
+            + quoted(actors[6]) + "::uuid," + quoted(completion_request) + "::uuid,"
+            + quoted(completion_receipt) + "," + quoted(completion_subject) + ")"
+        )
+        completion_gate = Held("select app.challenge_gate_v1(true)", "deletion-race-completion-gate")
+        complete_name = "drc-" + uuid.uuid4().hex
+        advance_name = "dra-" + uuid.uuid4().hex
+        complete = contender(
+            "begin; select public.challenge_complete_account_deletion_v1("
+            + quoted(actors[6]) + "::uuid," + quoted(completion_request) + "::uuid,"
+            + quoted(completion_receipt) + "); commit;",
+            complete_name,
+        )
+        advance = contender(
+            "begin; select public.challenge_advance_account_deletion_v1("
+            + quoted(completion_receipt) + "); commit;",
+            advance_name,
+        )
+        try:
+            check(blocked([complete_name, advance_name]),
+                  "real receipt completion and status advancement wait behind the same deletion gate")
+        finally:
+            completion_gate.release()
+        complete_output, complete_error = complete.communicate(timeout=30)
+        advance_output, advance_error = advance.communicate(timeout=30)
+        check(complete.returncode == 0 and complete_output.strip() and not complete_error
+              and advance.returncode == 0 and advance_output.strip() and not advance_error,
+              "late receipt progress and provider-confirmed completion both return a defined durable state")
+        check(value("select app.challenge_account_deletion_state_v1(" + quoted(actors[6])
+                    + "::uuid)->>'state'") == "completed",
+              "the status/completion race ends completed only after the explicit fictional provider step")
+
+        # A still-available appeal must win, or remain independently filed,
+        # when a due case cleanup is racing it. The database sessions prove the
+        # cleanup cannot silently erase a newly requested right.
+        rights_receipt = "local_rights_" + uuid.uuid4().hex
+        rights_request = str(uuid.uuid4())
+        rights_subject = "fictional-apple-race-rights"
+        sql(deletion_call(7, rights_request, rights_receipt, rights_subject))
+        sql(
+            "select public.challenge_account_deletion_provider_complete_v1("
+            + quoted(actors[7]) + "::uuid," + quoted(rights_request) + "::uuid,"
+            + quoted(rights_receipt) + "," + quoted(rights_subject) + ");"
+            "select public.challenge_complete_account_deletion_v1("
+            + quoted(actors[7]) + "::uuid," + quoted(rights_request) + "::uuid,"
+            + quoted(rights_receipt) + ");"
+            "select set_config('app.challenge_write_v1','on',true);"
+            "insert into app.challenge_suspensions_v1(actor_id,suspended,operator_id,reason,recorded_at) values("
+            + quoted(actors[7]) + "::uuid,true," + quoted(actors[8])
+            + "::uuid,'unsafe_behavior',clock_timestamp())"
+        )
+        sql(
+            "update app.challenge_account_deletions_v1 set accepted_at=clock_timestamp()-interval '31 days',"
+            "required_steps_finished_at=clock_timestamp()-interval '31 days',"
+            "provider_cleanup_completed_at=clock_timestamp()-interval '31 days',"
+            "account_closed_at=clock_timestamp()-interval '31 days',"
+            "identity_cleanup_after=clock_timestamp()-interval '24 days',"
+            "identity_cleaned_at=clock_timestamp()-interval '31 days' where actor_id="
+            + quoted(actors[7]) + "::uuid"
+        )
+        rights_gate = Held("select app.challenge_gate_v1(true)", "deletion-race-rights-gate")
+        appeal_name = "dra-" + uuid.uuid4().hex
+        cleanup_name = "dcl-" + uuid.uuid4().hex
+        appeal = contender(
+            "begin; select public.challenge_account_deletion_file_appeal_v1("
+            + quoted(rights_receipt) + "," + quoted(uuid.uuid4()) + "::uuid); commit;",
+            appeal_name,
+        )
+        cleanup = contender(
+            "begin; select public.challenge_cleanup_account_deletion_case_content_v1("
+            + quoted(actors[7]) + "::uuid); commit;",
+            cleanup_name,
+        )
+        try:
+            check(blocked([appeal_name, cleanup_name]),
+                  "receipt appeal and due case cleanup concurrently wait behind the deletion gate")
+        finally:
+            rights_gate.release()
+        appeal_output, appeal_error = appeal.communicate(timeout=30)
+        cleanup_output, cleanup_error = cleanup.communicate(timeout=30)
+        check(appeal.returncode == 0 and appeal_output.strip() and not appeal_error
+              and ((cleanup.returncode == 0 and cleanup_output.strip() and not cleanup_error)
+                   or (cleanup.returncode != 0 and "challenge_deletion_case_hold_active" in cleanup_error)),
+              "appeal/cleanup race preserves the independently filed appeal or accurately reports its hold")
+        check(value("select (app.challenge_account_deletion_state_v1(" + quoted(actors[7])
+                    + "::uuid)->'holds'->>'appeal')::boolean") == "t",
+              "the race leaves the filed appeal as a retained restricted right")
 
         args.report.write_text(json.dumps({
             "evidence": "real concurrent PostgreSQL sessions on one task-owned loopback DB; all actors/providers are fictional",

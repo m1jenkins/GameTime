@@ -927,8 +927,7 @@ struct AccountDeletionReceiptView: View {
     }
 
     private func receiptDate(_ value: String) -> String {
-        guard let date = ISO8601DateFormatter().date(from: value) else { return value }
-        return date.formatted(date: .abbreviated, time: .omitted)
+        AccountDeletionReceiptDate.display(value)
     }
 
     private func resumeWithApple(_ result: Result<AppleIdentity, Error>) {
@@ -993,6 +992,19 @@ struct AccountDeletionReceiptView: View {
         } catch {
             message = error.localizedDescription
         }
+    }
+}
+
+enum AccountDeletionReceiptDate {
+    static func display(_ value: String) -> String {
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let standard = ISO8601DateFormatter()
+        standard.formatOptions = [.withInternetDateTime]
+        guard let date = fractional.date(from: value) ?? standard.date(from: value) else {
+            return "Date unavailable"
+        }
+        return date.formatted(date: .abbreviated, time: .omitted)
     }
 }
 

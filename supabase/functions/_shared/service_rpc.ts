@@ -1,5 +1,15 @@
 import type { PostgrestConfig } from "./database.ts";
 
+export class ServiceRpcError extends Error {
+  constructor(
+    override readonly name: string,
+    readonly status: number,
+    readonly code?: string,
+  ) {
+    super(`${name} failed with status ${status}`);
+  }
+}
+
 export async function serviceRpc(
   config: PostgrestConfig,
   name: string,
@@ -26,7 +36,20 @@ export async function serviceRpc(
   }
   const body = await response.text();
   if (!response.ok) {
-    throw new Error(`${name} failed with status ${response.status}`);
+    let code: string | undefined;
+    try {
+      const parsed: unknown = JSON.parse(body);
+      if (
+        parsed !== null && typeof parsed === "object" && !Array.isArray(parsed) &&
+        typeof (parsed as Record<string, unknown>)["code"] === "string"
+      ) {
+        code = (parsed as Record<string, unknown>)["code"] as string;
+      }
+    } catch {
+      // The status remains useful to the private caller. The response body is
+      // deliberately never copied into an error because it may contain input.
+    }
+    throw new ServiceRpcError(name, response.status, code);
   }
   return body === "" ? null : JSON.parse(body);
 }

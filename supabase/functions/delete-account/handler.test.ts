@@ -3,6 +3,7 @@ import { createAccessTokenVerifier } from "../_shared/jwt.ts";
 import { mintAccessToken, TEST_JWT_SECRET } from "../_test/tokens.ts";
 import {
   type AccountDeletionDatabase,
+  AccountDeletionRightsRejected,
   type AccountDeletionStatus,
   createDeleteAccountHandler,
   type DeleteAccountDeps,
@@ -14,6 +15,12 @@ const SESSION = "22222222-2222-4222-8222-222222222222";
 const REQUEST = "33333333-3333-4333-8333-333333333333";
 const RECEIPT = "receipt_secret_for_local_deletion_test_123";
 const pending: AccountDeletionStatus = { state: "pending_provider" };
+const pendingReceiptStatus: AccountDeletionStatus = {
+  state: "pending_provider",
+  retained: [],
+  holds: { review: false, appeal: false },
+  rights: { review_notices: [], appeal_available: false, holds_review_due: false },
+};
 const closing: AccountDeletionStatus = { state: "pending_account_close" };
 const complete: AccountDeletionStatus = { state: "completed" };
 const expired: AccountDeletionStatus = { state: "expired" };
@@ -68,6 +75,8 @@ function deps(
     readonly providerFailure?: boolean;
     readonly providerBindingFailure?: boolean;
     readonly completed?: AccountDeletionStatus;
+    readonly advanced?: AccountDeletionStatus;
+    readonly reviewRejected?: boolean;
   } = {},
 ): DeleteAccountDeps {
   const database: AccountDeletionDatabase = {
@@ -111,10 +120,11 @@ function deps(
     },
     advance(receipt) {
       calls.push(`advance:${receipt}`);
-      return Promise.resolve(options.recovered ?? complete);
+      return Promise.resolve(options.advanced ?? options.recovered ?? complete);
     },
     fileReview(receipt, requestId, challengeId, noticeRevision, reason) {
       calls.push(`review:${receipt}:${requestId}:${challengeId}:${noticeRevision}:${reason}`);
+      if (options.reviewRejected) return Promise.reject(new AccountDeletionRightsRejected());
       return Promise.resolve({ saved: true });
     },
     fileAppeal(receipt, requestId) {
@@ -210,6 +220,22 @@ Deno.test("resume after a provider response loss completes the saved request wit
   assertEquals(calls.at(-1), `complete:${USER}:${REQUEST}:${RECEIPT}`);
 });
 
+Deno.test("resume provider failure returns the saved full pending receipt instead of an undecodable shell", async () => {
+  const calls: string[] = [];
+  const response = await createDeleteAccountHandler(
+    deps(calls, {
+      providerFailure: true,
+      recovered: pending,
+      advanced: pendingReceiptStatus,
+    }),
+  )(
+    await request(deletionBody("resume"), null),
+  );
+  assertEquals(response.status, 202);
+  assertEquals(await response.json(), { deleted: false, deletion: pendingReceiptStatus });
+  assertEquals(calls.at(-1), `advance:${RECEIPT}`);
+});
+
 Deno.test("resume after provider commit loss advances final close without another Apple exchange", async () => {
   const calls: string[] = [];
   const response = await createDeleteAccountHandler(deps(calls, { recovered: closing }))(
@@ -274,4 +300,24 @@ Deno.test("a receipt can file a saved review after ordinary Auth access ends", a
     `advance:${RECEIPT}`,
     `review:${RECEIPT}:${REQUEST}:${challengeId}:1:wrong_total`,
   ]);
+});
+
+Deno.test("a definitively unavailable receipt review is a 422 rather than an ambiguous provider failure", async () => {
+  const calls: string[] = [];
+  const challengeId = "44444444-4444-4444-8444-444444444444";
+  const response = await createDeleteAccountHandler(deps(calls, { reviewRejected: true }))(
+    await request({
+      operation: "review",
+      deletionReceipt: RECEIPT,
+      deletionRequestId: REQUEST,
+      challengeId,
+      noticeRevision: 1,
+      reason: "wrong_total",
+    }, null),
+  );
+  assertEquals(response.status, 422);
+  assertEquals(await response.json(), {
+    error: "rejected",
+    message: "this review is no longer available",
+  });
 });

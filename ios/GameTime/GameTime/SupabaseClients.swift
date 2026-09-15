@@ -278,6 +278,10 @@ final class SupabaseAccountDeletionClient: AccountDeletionClient {
         authorization: String?
     ) async throws -> AccountDeletionStatus {
         let data = try await sendData(body, authorization: authorization)
+        return try Self.decodeStatusResponse(data)
+    }
+
+    static func decodeStatusResponse(_ data: Data) throws -> AccountDeletionStatus {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         guard let response = try? decoder.decode(ResponseBody.self, from: data) else {

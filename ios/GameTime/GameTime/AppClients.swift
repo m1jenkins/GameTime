@@ -123,6 +123,14 @@ struct AccountDeletionStatus: Codable, Equatable, Sendable {
         let noticeRevision: Int
         let reviewBy: String
         var id: String { "\(challengeID.uuidString):\(noticeRevision)" }
+
+        // SupabaseAccountDeletionClient intentionally uses convertFromSnakeCase.
+        // That strategy produces challengeId, not the Swift acronym spelling.
+        enum CodingKeys: String, CodingKey {
+            case challengeID = "challengeId"
+            case noticeRevision
+            case reviewBy
+        }
     }
 
     struct Rights: Codable, Equatable, Sendable {

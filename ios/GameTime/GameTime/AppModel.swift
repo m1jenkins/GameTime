@@ -1019,15 +1019,20 @@ final class AppModel {
             noticeRevision: notice.noticeRevision,
             reason: reason
         )
-        try await services.accountDeletion.fileAccountDeletionReview(
-            requestID: request.id,
-            receiptSecret: receipt.secret,
-            challengeID: notice.challengeID,
-            noticeRevision: notice.noticeRevision,
-            reason: reason
-        )
-        try clearPendingRightsRequest(for: receipt)
-        await refreshAccountDeletionStatus()
+        do {
+            try await services.accountDeletion.fileAccountDeletionReview(
+                requestID: request.id,
+                receiptSecret: receipt.secret,
+                challengeID: notice.challengeID,
+                noticeRevision: notice.noticeRevision,
+                reason: reason
+            )
+            try clearPendingRightsRequest(for: receipt)
+            await refreshAccountDeletionStatus()
+        } catch {
+            try await reconcileDefinitiveRightsRejection(error, for: receipt)
+            throw error
+        }
     }
 
     func fileAccountDeletionAppeal() async throws {
@@ -1041,12 +1046,17 @@ final class AppModel {
             noticeRevision: nil,
             reason: nil
         )
-        try await services.accountDeletion.fileAccountDeletionAppeal(
-            requestID: request.id,
-            receiptSecret: receipt.secret
-        )
-        try clearPendingRightsRequest(for: receipt)
-        await refreshAccountDeletionStatus()
+        do {
+            try await services.accountDeletion.fileAccountDeletionAppeal(
+                requestID: request.id,
+                receiptSecret: receipt.secret
+            )
+            try clearPendingRightsRequest(for: receipt)
+            await refreshAccountDeletionStatus()
+        } catch {
+            try await reconcileDefinitiveRightsRejection(error, for: receipt)
+            throw error
+        }
     }
 
     var hasPendingAccountDeletionRightsRequest: Bool {
@@ -1057,27 +1067,32 @@ final class AppModel {
         guard let receipt = accountDeletionReceipt,
             let request = receipt.pendingRightsRequest
         else { return }
-        switch request.operation {
-        case .review:
-            guard let challengeID = request.challengeID,
-                let noticeRevision = request.noticeRevision,
-                let reason = request.reason
-            else { throw AccountDeletionError.invalidResponse }
-            try await services.accountDeletion.fileAccountDeletionReview(
-                requestID: request.id,
-                receiptSecret: receipt.secret,
-                challengeID: challengeID,
-                noticeRevision: noticeRevision,
-                reason: reason
-            )
-        case .appeal:
-            try await services.accountDeletion.fileAccountDeletionAppeal(
-                requestID: request.id,
-                receiptSecret: receipt.secret
-            )
+        do {
+            switch request.operation {
+            case .review:
+                guard let challengeID = request.challengeID,
+                    let noticeRevision = request.noticeRevision,
+                    let reason = request.reason
+                else { throw AccountDeletionError.invalidResponse }
+                try await services.accountDeletion.fileAccountDeletionReview(
+                    requestID: request.id,
+                    receiptSecret: receipt.secret,
+                    challengeID: challengeID,
+                    noticeRevision: noticeRevision,
+                    reason: reason
+                )
+            case .appeal:
+                try await services.accountDeletion.fileAccountDeletionAppeal(
+                    requestID: request.id,
+                    receiptSecret: receipt.secret
+                )
+            }
+            try clearPendingRightsRequest(for: receipt)
+            await refreshAccountDeletionStatus()
+        } catch {
+            try await reconcileDefinitiveRightsRejection(error, for: receipt)
+            throw error
         }
-        try clearPendingRightsRequest(for: receipt)
-        await refreshAccountDeletionStatus()
     }
 
     private func pendingRightsRequest(
@@ -1118,6 +1133,19 @@ final class AppModel {
         if accountDeletionReceipt?.ownerID == receipt.ownerID {
             accountDeletionReceipt = savedReceipt
         }
+    }
+
+    private func reconcileDefinitiveRightsRejection(
+        _ error: Error,
+        for receipt: AccountDeletionReceipt
+    ) async throws {
+        // A non-2xx rejection is a durable answer: retaining its fresh UUID
+        // would block another still-open review or appeal. Transport, decode,
+        // and server failures remain exact retries because their outcome is
+        // genuinely ambiguous.
+        guard error as? AccountDeletionError == .rejected else { return }
+        try clearPendingRightsRequest(for: receipt)
+        await refreshAccountDeletionStatus()
     }
 
     private func deletionReceipt(for ownerID: UUID) throws -> AccountDeletionReceipt {

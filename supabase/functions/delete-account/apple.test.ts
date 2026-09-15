@@ -13,15 +13,15 @@ Deno.test("Apple exchange returns only a bound subject and keeps the revocation 
   const calls: Array<{ readonly url: string; readonly body: string }> = [];
   const apple = createAppleTokenRevoker(
     { clientId: "local.client", clientSecret: "local-secret" },
-    async (input, init) => {
+    (input, init) => {
       calls.push({ url: String(input), body: String(init?.body) });
       if (String(input).endsWith("/auth/token")) {
-        return Response.json({
+        return Promise.resolve(Response.json({
           id_token: identityToken("fictional-apple-subject"),
           refresh_token: "private-local-refresh-token",
-        });
+        }));
       }
-      return new Response(null, { status: 200 });
+      return Promise.resolve(new Response(null, { status: 200 }));
     },
   );
 
@@ -36,7 +36,7 @@ Deno.test("Apple exchange returns only a bound subject and keeps the revocation 
 Deno.test("Apple exchange rejects a token without a usable subject", async () => {
   const apple = createAppleTokenRevoker(
     { clientId: "local.client", clientSecret: "local-secret" },
-    async () => Response.json({ id_token: identityToken(""), refresh_token: "token" }),
+    () => Promise.resolve(Response.json({ id_token: identityToken(""), refresh_token: "token" })),
   );
   await assertRejects(
     () => apple.exchangeAuthorizationCode("fictional-code"),

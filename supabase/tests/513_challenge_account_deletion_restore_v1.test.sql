@@ -2,7 +2,7 @@
 -- whole test rolls back. It exercises the narrow deletion replay, not a backup
 -- product or any provider/hosted restore claim.
 begin;
-select plan(17);
+select plan(21);
 
 create temp table restore_fixture(
   name text primary key,
@@ -25,18 +25,25 @@ select 'pending', actor_id, session_id, jsonb_build_object(
   'actor_id', actor_id, 'request_id', extensions.gen_random_uuid(),
   'accepted_at', accepted_at, 'required_steps_finished_at', accepted_at,
   'provider_cleanup_completed_at', null, 'account_closed_at', null,
+  'stripe_customer_id', 'cus_restorepending',
   'identity_cleanup_after', accepted_at + interval '7 days',
   'identity_cleaned_at', accepted_at, 'case_content_cleaned_at', null,
   'pseudonymous_retention_completed_at', null,
   'appeal_hold_released_at', accepted_at, 'holds_reviewed_at', accepted_at,
   'case_state', jsonb_build_object('review_hold', false, 'appeal_hold', false),
-  'receipt_hash', repeat('a', 64), 'apple_subject_hash', repeat('b', 64)
+  'receipt_hash', encode(extensions.digest(pg_catalog.convert_to(
+    'local_restore_pending_receipt_012345678901234567890123456789', 'UTF8'
+  ), 'sha256'), 'hex'),
+  'apple_subject_hash', encode(extensions.digest(pg_catalog.convert_to(
+    'fictional-restore-pending-apple', 'UTF8'
+  ), 'sha256'), 'hex')
 ) from pending
 union all
 select 'closed', actor_id, session_id, jsonb_build_object(
   'actor_id', actor_id, 'request_id', extensions.gen_random_uuid(),
   'accepted_at', accepted_at, 'required_steps_finished_at', accepted_at,
   'provider_cleanup_completed_at', accepted_at, 'account_closed_at', accepted_at,
+  'stripe_customer_id', null,
   'identity_cleanup_after', accepted_at + interval '7 days',
   'identity_cleaned_at', accepted_at, 'case_content_cleaned_at', null,
   'pseudonymous_retention_completed_at', null,
@@ -99,6 +106,38 @@ select lives_ok(
   )$$,
   'pending restore replay is idempotent after interruption'
 );
+select is(
+  (select public.challenge_account_deletion_provider_recovery_v1(
+    'local_restore_pending_receipt_012345678901234567890123456789',
+    'fictional-restore-pending-apple'
+  )->>'stripe_customer_id'),
+  'cus_restorepending',
+  'pending restore preserves the exact fictional provider binding needed for later local recovery'
+);
+select lives_ok(
+  $$select public.challenge_account_deletion_provider_complete_v1(
+    (select actor_id from restore_fixture where name = 'pending'),
+    ((select evidence from restore_fixture where name = 'pending')->>'request_id')::uuid,
+    'local_restore_pending_receipt_012345678901234567890123456789',
+    'fictional-restore-pending-apple'
+  )$$,
+  'only an explicit matching provider completion clears the restored pending binding'
+);
+select lives_ok(
+  $$select public.challenge_complete_account_deletion_v1(
+    (select actor_id from restore_fixture where name = 'pending'),
+    ((select evidence from restore_fixture where name = 'pending')->>'request_id')::uuid,
+    'local_restore_pending_receipt_012345678901234567890123456789'
+  )$$,
+  'the restored request completes only after the explicit fictional provider step'
+);
+select is(
+  (select app.challenge_account_deletion_state_v1(
+    (select actor_id from restore_fixture where name = 'pending')
+  )->>'state'),
+  'completed',
+  'provider recovery never falsely reports a pending restored receipt as completed'
+);
 select lives_ok(
   $$select public.challenge_replay_account_deletion_restore_v1(
     (select evidence from restore_fixture where name = 'closed')
@@ -157,6 +196,7 @@ select actor_id, session_id, challenge_id, jsonb_build_object(
     'actor_id', actor_id, 'request_id', extensions.gen_random_uuid(),
     'accepted_at', accepted_at, 'required_steps_finished_at', accepted_at,
     'provider_cleanup_completed_at', accepted_at, 'account_closed_at', accepted_at,
+    'stripe_customer_id', null,
     'identity_cleanup_after', accepted_at + interval '7 days',
     'identity_cleaned_at', accepted_at + interval '7 days',
     'case_content_cleaned_at', accepted_at + interval '31 days',
@@ -248,6 +288,7 @@ select 'missing-hold', actor_id, session_id, jsonb_build_object(
   'actor_id', actor_id, 'request_id', extensions.gen_random_uuid(),
   'accepted_at', accepted_at, 'required_steps_finished_at', accepted_at,
   'provider_cleanup_completed_at', accepted_at, 'account_closed_at', null,
+  'stripe_customer_id', null,
   'identity_cleanup_after', accepted_at + interval '7 days',
   'identity_cleaned_at', null, 'case_content_cleaned_at', null,
   'pseudonymous_retention_completed_at', null,

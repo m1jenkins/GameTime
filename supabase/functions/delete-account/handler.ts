@@ -29,6 +29,9 @@ export interface AccountDeletionStatus {
 
 export type DeletionReviewReason = "wrong_total" | "missing_activity" | "wrong_result";
 
+/** A known unavailable right is final; network and provider errors are not. */
+export class AccountDeletionRightsRejected extends Error {}
+
 export interface AccountDeletionDatabase {
   providerIdentity(ownerId: string): Promise<AccountDeletionProviderIdentity>;
   assertLiveSession(ownerId: string, sessionId: string): Promise<void>;
@@ -252,15 +255,22 @@ export function createDeleteAccountHandler(
         // signed-out challenge read route. The RPC preserves the original
         // 48-hour notice and 72-hour reviewer windows.
         await deps.database.advance(saved.receiptSecret);
-        return jsonResponse(200, {
-          saved: await deps.database.fileReview(
-            saved.receiptSecret,
-            saved.requestId,
-            saved.challengeId,
-            saved.noticeRevision,
-            saved.reason,
-          ),
-        });
+        try {
+          return jsonResponse(200, {
+            saved: await deps.database.fileReview(
+              saved.receiptSecret,
+              saved.requestId,
+              saved.challengeId,
+              saved.noticeRevision,
+              saved.reason,
+            ),
+          });
+        } catch (error) {
+          if (error instanceof AccountDeletionRightsRejected) {
+            throw new HttpFailure("rejected", "this review is no longer available");
+          }
+          throw error;
+        }
       }
       if (operation === "appeal") {
         if (!hasOnly(body, ["operation", "deletionReceipt", "deletionRequestId"])) {
@@ -269,9 +279,16 @@ export function createDeleteAccountHandler(
         const receiptSecret = requireReceiptSecret(body);
         const requestId = requireUUID(body, "deletionRequestId");
         await deps.database.advance(receiptSecret);
-        return jsonResponse(200, {
-          saved: await deps.database.fileAppeal(receiptSecret, requestId),
-        });
+        try {
+          return jsonResponse(200, {
+            saved: await deps.database.fileAppeal(receiptSecret, requestId),
+          });
+        } catch (error) {
+          if (error instanceof AccountDeletionRightsRejected) {
+            throw new HttpFailure("rejected", "this appeal is no longer available");
+          }
+          throw error;
+        }
       }
       if (operation === "resume") {
         if (
@@ -347,7 +364,7 @@ export function createDeleteAccountHandler(
           // The exact receipt was already recovered above. A provider failure
           // is therefore safe to report as pending, while an expired or bad
           // receipt never becomes a fake pending request.
-          return jsonResponse(202, { deleted: false, deletion: { state: "pending_provider" } });
+          return statusResponse(await deps.database.advance(saved.receiptSecret));
         }
       }
       if (

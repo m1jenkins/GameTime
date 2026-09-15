@@ -100,6 +100,85 @@ final class AccountDeletionTests: XCTestCase {
             XCTAssertNil(model.userID, "\(state) must end ordinary access")
         }
     }
+
+    func testServerReviewNoticeAndPendingProviderReceiptDecodeThroughTheNativeClient() throws {
+        let challengeID = UUID()
+        let data = try JSONSerialization.data(
+            withJSONObject: [
+                "deleted": false,
+                "deletion": [
+                    "state": "pending_provider",
+                    "accepted_at": "2026-09-15T18:00:00.125Z",
+                    "account_closed_at": NSNull(),
+                    "receipt_expires_at": NSNull(),
+                    "holds": ["review": true, "appeal": false],
+                    "rights": [
+                        "review_notices": [[
+                            "challenge_id": challengeID.uuidString.lowercased(),
+                            "notice_revision": 3,
+                            "review_by": "2026-09-16T18:00:00.125Z",
+                        ]],
+                        "appeal_available": false,
+                        "holds_review_due": true,
+                    ],
+                    "retained": [[
+                        "category": "deletion status receipt",
+                        "until": "2026-12-15T18:00:00.125Z",
+                        "completed_at": NSNull(),
+                    ]],
+                ],
+            ]
+        )
+
+        let status = try SupabaseAccountDeletionClient.decodeStatusResponse(data)
+        XCTAssertEqual(status.state, .pendingProvider)
+        XCTAssertEqual(status.rights?.reviewNotices, [
+            .init(challengeID: challengeID, noticeRevision: 3, reviewBy: "2026-09-16T18:00:00.125Z"),
+        ])
+        XCTAssertEqual(status.retained.first?.until, "2026-12-15T18:00:00.125Z")
+    }
+
+    func testRejectedReviewClearsOnlyThatPendingRequestAndAllowsAnAppeal() async throws {
+        let owner = UUID()
+        let challengeID = UUID()
+        let auth = DeletionSwitchingAuth(actor: owner)
+        let deletion = RightsRejectionClient(challengeID: challengeID)
+        let services = FixtureServicesFactory.make(
+            arguments: ["GameTimeTests"],
+            authClient: auth,
+            accountDeletionClient: deletion,
+            accountDeletionReceiptStore: EphemeralAccountDeletionReceiptStore(),
+            accountLocalStateCleaner: RecordingDeletionCleaner(),
+            profileClient: DeletionProfileClient()
+        )
+        let model = AppModel(configuration: .fixture, services: services)
+        await model.start()
+        _ = try await model.deleteAccount(with: AppleIdentity(
+            idToken: "fictional", rawNonce: "fictional",
+            firstSignInDisplayName: nil, authorizationCode: "fictional-code"
+        ))
+
+        let notice = try XCTUnwrap(deletion.status.rights?.reviewNotices.first)
+        do {
+            try await model.fileAccountDeletionReview(notice: notice, reason: "wrong_total")
+            XCTFail("Expected the stale review right to be rejected")
+        } catch {
+            XCTAssertEqual(error as? AccountDeletionError, .rejected)
+        }
+        XCTAssertFalse(model.hasPendingAccountDeletionRightsRequest)
+
+        try await model.fileAccountDeletionAppeal()
+        XCTAssertFalse(model.hasPendingAccountDeletionRightsRequest)
+        XCTAssertEqual(deletion.reviewCalls, 1)
+        XCTAssertEqual(deletion.appealCalls, 1)
+    }
+
+    func testReceiptDatesUseFractionalPostgresTimestampsWithoutShowingRawValues() {
+        let date = AccountDeletionReceiptDate.display("2026-09-16T18:00:00.125Z")
+        XCTAssertNotEqual(date, "2026-09-16T18:00:00.125Z")
+        XCTAssertFalse(date.contains("T"))
+        XCTAssertNotEqual(date, "Date unavailable")
+    }
 }
 
 @MainActor
@@ -207,5 +286,56 @@ private final class SequencedDeletionClient: AccountDeletionClient {
     }
     func fileAccountDeletionAppeal(requestID: UUID, receiptSecret: String) async throws {
         _ = (requestID, receiptSecret)
+    }
+}
+
+@MainActor
+private final class RightsRejectionClient: AccountDeletionClient {
+    private(set) var reviewCalls = 0
+    private(set) var appealCalls = 0
+    let status: AccountDeletionStatus
+
+    init(challengeID: UUID) {
+        status = AccountDeletionStatus(
+            state: .completed,
+            acceptedAt: "2026-09-15T18:00:00.125Z",
+            accountClosedAt: "2026-09-15T18:01:00.125Z",
+            receiptExpiresAt: "2026-12-15T18:01:00.125Z",
+            holds: .init(review: false, appeal: false),
+            rights: .init(
+                reviewNotices: [
+                    .init(
+                        challengeID: challengeID,
+                        noticeRevision: 1,
+                        reviewBy: "2026-09-16T18:00:00.125Z"
+                    ),
+                ],
+                appealAvailable: true,
+                holdsReviewDue: false
+            ),
+            retained: []
+        )
+    }
+
+    func deleteAccount(ownerID: UUID, requestID: UUID, receiptSecret: String, appleAuthorizationCode: String) async throws -> AccountDeletionStatus {
+        _ = (ownerID, requestID, receiptSecret, appleAuthorizationCode)
+        return status
+    }
+    func resumeAccountDeletion(requestID: UUID, receiptSecret: String, appleAuthorizationCode: String?) async throws -> AccountDeletionStatus {
+        _ = (requestID, receiptSecret, appleAuthorizationCode)
+        return status
+    }
+    func accountDeletionStatus(receiptSecret: String) async throws -> AccountDeletionStatus {
+        _ = receiptSecret
+        return status
+    }
+    func fileAccountDeletionReview(requestID: UUID, receiptSecret: String, challengeID: UUID, noticeRevision: Int, reason: String) async throws {
+        _ = (requestID, receiptSecret, challengeID, noticeRevision, reason)
+        reviewCalls += 1
+        throw AccountDeletionError.rejected
+    }
+    func fileAccountDeletionAppeal(requestID: UUID, receiptSecret: String) async throws {
+        _ = (requestID, receiptSecret)
+        appealCalls += 1
     }
 }

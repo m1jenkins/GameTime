@@ -196,6 +196,42 @@ import XCTest
         XCTAssertEqual(restored, revoked)
     }
 
+    func testRemovingAnAccountAlsoRemovesIssuedLinksWithoutAQueuedRequest() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("issued-link-account-cleanup-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = ChallengeV1RequestStore(directory: directory)
+        let owner = UUID()
+        let other = UUID()
+        let ownerRequest = ChallengeV1Request(
+            actor: owner,
+            payload: .object(["op": .string("issue_link"), "id": .string(UUID().uuidString)])
+        )
+        let otherRequest = ChallengeV1Request(
+            actor: other,
+            payload: .object(["op": .string("issue_link"), "id": .string(UUID().uuidString)])
+        )
+        let ownerReceipt = ChallengeV1Receipt(
+            id: UUID(), token: String(repeating: "a", count: 64),
+            expiresAt: ChallengeInstant(date: Date().addingTimeInterval(86_400))
+        )
+        let otherReceipt = ChallengeV1Receipt(
+            id: UUID(), token: String(repeating: "b", count: 64),
+            expiresAt: ChallengeInstant(date: Date().addingTimeInterval(86_400))
+        )
+        _ = try await store.recordIssuedLinkReceipt(ownerReceipt, for: ownerRequest)
+        _ = try await store.recordIssuedLinkReceipt(otherReceipt, for: otherRequest)
+        let ownerPending = try await store.load(owner)
+        XCTAssertNil(ownerPending, "This covers the no-pending-request cleanup path")
+
+        try await store.removeAll(for: owner)
+
+        let ownerLinks = try await store.loadIssuedLinks(owner)
+        let otherLinks = try await store.loadIssuedLinks(other)
+        XCTAssertEqual(ownerLinks, [])
+        XCTAssertEqual(otherLinks.count, 1)
+    }
+
     func testUnreadableLinkJournalPreservesExactPendingIssuance() async throws {
         let fixture = InvitationRecoveryFixture()
         await fixture.start()

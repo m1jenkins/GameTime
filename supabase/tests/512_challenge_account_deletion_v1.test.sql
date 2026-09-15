@@ -1,12 +1,49 @@
 -- Local-only account-deletion regression coverage. Every actor, Apple subject,
 -- receipt, and result below is fictional and the transaction always rolls back.
 begin;
-select plan(27);
+select plan(32);
 \ir fixtures/challenge-fixture.inc
 
 select pg_temp.login_beta(1);
 insert into beta_ids values ('deletion_pair', pg_temp.beta_group(1, 2));
 reset role;
+
+-- A fictional unconsented draft can already have a derived local-history row
+-- when deletion reconciles it. That row must be removed before the draft
+-- lobby, whose FK is intentionally restrictive, and must not affect agreed
+-- history below.
+select pg_temp.login_beta(10);
+create temp table draft_deletion_fixture as
+select pg_temp.ba(10) as actor_id,
+  pg_temp.beta_create() as challenge_id,
+  'local_draft_deletion_receipt_012345678901234567890123456789'::text as receipt,
+  'd1000000-0000-4000-8000-000000000010'::uuid as request_id,
+  'fictional-apple-draft-10'::text as apple_subject;
+reset role;
+insert into app.challenge_history_v1(actor_id, challenge_id, sort_at, starts_at)
+select actor_id, challenge_id, clock_timestamp(), clock_timestamp()
+from draft_deletion_fixture;
+select ok(
+  exists (select 1 from app.challenge_history_v1 history
+    where history.challenge_id = (select challenge_id from draft_deletion_fixture)),
+  'the fictional unconsented draft has the restrictive derived-history dependency'
+);
+select lives_ok(
+  $$select public.challenge_begin_account_deletion_v1(
+    (select actor_id from draft_deletion_fixture),
+    (select request_id from draft_deletion_fixture),
+    (select receipt from draft_deletion_fixture),
+    (select apple_subject from draft_deletion_fixture)
+  )$$,
+  'accepted deletion removes an unconsented draft without rolling back on local history'
+);
+select ok(
+  not exists (select 1 from app.challenge_lobbies_v1 lobby
+    where lobby.id = (select challenge_id from draft_deletion_fixture))
+  and not exists (select 1 from app.challenge_history_v1 history
+    where history.challenge_id = (select challenge_id from draft_deletion_fixture)),
+  'draft cleanup removes only its derived history and unconsented lobby'
+);
 
 -- A separate closed fictional result lets the retention boundary exercise the
 -- post-final path. It is inserted only in this rollback-only service fixture;
@@ -182,6 +219,12 @@ select lives_ok(
   )$$,
   'the restricted receipt can preserve an appeal after ordinary Auth is closed'
 );
+select set_config('app.challenge_write_v1', 'on', true);
+insert into app.challenge_requests_v1(actor_id, request_id, payload, response, recorded_at)
+select actor_id, 'd1000000-0000-4000-8000-000000000004'::uuid,
+  '{"op":"fictional_deletion_status"}'::jsonb,
+  '{"saved":true}'::jsonb, clock_timestamp()
+from deletion_fixture;
 select ok(
   (select app.challenge_account_deletion_state_v1((select actor_id from deletion_fixture))
     ->'holds'->>'appeal')::boolean,
@@ -224,6 +267,18 @@ select ok(
    where actor_id = (select actor_id from deletion_fixture)),
   'the thirty-day action is recorded separately from account closure'
 );
+select ok(
+  not exists (
+    select 1 from app.challenge_deletion_rights_requests_v1 rights
+    join app.challenge_account_deletions_v1 deletion
+      on deletion.receipt_hash = rights.receipt_hash
+    where deletion.actor_id = (select actor_id from deletion_fixture)
+  ) and exists (
+    select 1 from app.challenge_requests_v1 request
+    where request.actor_id = (select actor_id from deletion_fixture)
+  ),
+  'thirty-day cleanup removes detailed appeal material while the 180-day request minimum remains'
+);
 select lives_ok(
   $$select public.challenge_advance_account_deletion_v1(
     (select receipt from deletion_fixture)
@@ -235,6 +290,12 @@ select ok(
    from app.challenge_account_deletions_v1
    where actor_id = (select actor_id from deletion_fixture)),
   'the 180-day action retains its tombstone but records completion'
+);
+select is(
+  (select count(*) from app.challenge_requests_v1
+   where actor_id = (select actor_id from deletion_fixture)),
+  0::bigint,
+  '180-day cleanup removes the remaining pseudonymous actor request record'
 );
 select ok(
   (select app.challenge_account_deletion_state_v1((select actor_id from deletion_fixture))

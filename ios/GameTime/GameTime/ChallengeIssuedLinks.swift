@@ -68,7 +68,7 @@ extension ChallengeV1RequestStore {
         } catch { throw ChallengeV1Error.storage }
     }
 
-    private func issuedLinksPath(_ actor: UUID) -> URL {
+    func issuedLinksPath(_ actor: UUID) -> URL {
         directory.appendingPathComponent(actor.uuidString.lowercased() + "-issued-links.json")
     }
 }

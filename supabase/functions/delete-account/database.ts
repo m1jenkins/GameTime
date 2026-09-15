@@ -1,4 +1,4 @@
-import { oneServiceRow, serviceRpc } from "../_shared/service_rpc.ts";
+import { oneServiceRow, serviceRpc, ServiceRpcError } from "../_shared/service_rpc.ts";
 import type {
   AccountDeletionDatabase,
   AccountDeletionProviderIdentity,
@@ -6,6 +6,17 @@ import type {
   AccountDeletionStatus,
   DeletionReviewReason,
 } from "./handler.ts";
+import { AccountDeletionRightsRejected } from "./handler.ts";
+
+function rethrowDefinitiveRightsFailure(error: unknown): never {
+  if (
+    error instanceof ServiceRpcError &&
+    ["22023", "23505", "55000"].includes(error.code ?? "")
+  ) {
+    throw new AccountDeletionRightsRejected();
+  }
+  throw error;
+}
 
 interface PostgrestConfig {
   readonly url: string;
@@ -162,25 +173,33 @@ export function postgrestAccountDeletionDatabase(
       noticeRevision,
       reason: DeletionReviewReason,
     ) {
-      return oneServiceRow(
-        await serviceRpc(config, "challenge_account_deletion_file_review_v1", {
-          p_receipt_secret: receiptSecret,
-          p_request_id: requestId,
-          p_challenge_id: challengeId,
-          p_notice_revision: noticeRevision,
-          p_reason: reason,
-        }),
-        "challenge_account_deletion_file_review_v1",
-      );
+      try {
+        return oneServiceRow(
+          await serviceRpc(config, "challenge_account_deletion_file_review_v1", {
+            p_receipt_secret: receiptSecret,
+            p_request_id: requestId,
+            p_challenge_id: challengeId,
+            p_notice_revision: noticeRevision,
+            p_reason: reason,
+          }),
+          "challenge_account_deletion_file_review_v1",
+        );
+      } catch (error) {
+        rethrowDefinitiveRightsFailure(error);
+      }
     },
     async fileAppeal(receiptSecret, requestId) {
-      return oneServiceRow(
-        await serviceRpc(config, "challenge_account_deletion_file_appeal_v1", {
-          p_receipt_secret: receiptSecret,
-          p_request_id: requestId,
-        }),
-        "challenge_account_deletion_file_appeal_v1",
-      );
+      try {
+        return oneServiceRow(
+          await serviceRpc(config, "challenge_account_deletion_file_appeal_v1", {
+            p_receipt_secret: receiptSecret,
+            p_request_id: requestId,
+          }),
+          "challenge_account_deletion_file_appeal_v1",
+        );
+      } catch (error) {
+        rethrowDefinitiveRightsFailure(error);
+      }
     },
   };
 }

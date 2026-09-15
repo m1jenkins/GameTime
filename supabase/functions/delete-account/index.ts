@@ -15,9 +15,8 @@ const stripe: StripeCustomerDeleter = (() => {
     !Deno.env.get("STRIPE_SECRET_KEY")?.trim() || !Deno.env.get("STRIPE_PUBLISHABLE_KEY")?.trim()
   ) {
     return {
-      deleteTestCustomer: async () => {
-        throw new Error("the local payment substitute is not configured");
-      },
+      deleteTestCustomer: () =>
+        Promise.reject(new Error("the local payment substitute is not configured")),
     };
   }
   const stripeConfig = stripeSandboxConfig();
