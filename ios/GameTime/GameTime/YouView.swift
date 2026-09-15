@@ -372,8 +372,14 @@ struct TrustAndPrivacyView: View {
 
 private enum AccountSupportSheet: Identifiable {
     case deleteAccount
+    case deletionReceipt
 
-    var id: String { "delete-account" }
+    var id: String {
+        switch self {
+        case .deleteAccount: "delete-account"
+        case .deletionReceipt: "deletion-receipt"
+        }
+    }
 }
 
 struct AccountSupportView: View {
@@ -413,6 +419,8 @@ struct AccountSupportView: View {
             switch sheet {
             case .deleteAccount:
                 DeleteAccountView()
+            case .deletionReceipt:
+                AccountDeletionReceiptView()
             }
         }
     }
@@ -494,6 +502,14 @@ struct AccountSupportView: View {
                     .buttonStyle(SignalSecondaryButtonStyle())
                     .disabled(model.isMutating || demoMode.isActive)
                     .accessibilityIdentifier("account-support.delete")
+
+                    if model.accountDeletionReceipt != nil {
+                        Button("Check account deletion") {
+                            presentedSheet = .deletionReceipt
+                        }
+                        .buttonStyle(SignalSecondaryButtonStyle())
+                        .accessibilityIdentifier("account-support.deletion-receipt")
+                    }
                 }
             }
         }
@@ -657,7 +673,7 @@ struct DeleteAccountView: View {
             .foregroundStyle(SignalTheme.textSecondary)
             Text("Apple asks you to confirm before we start. You can check the saved account-deletion receipt after signing out.")
                 .foregroundStyle(SignalTheme.textSecondary)
-            NativeAppleReauthenticationButton { result in
+            AccountDeletionAppleConfirmation { result in
                 handleReauthentication(result)
             }
         }
@@ -723,6 +739,35 @@ struct DeleteAccountView: View {
     }
 }
 
+private struct AccountDeletionAppleConfirmation: View {
+    let completion: (Result<AppleIdentity, Error>) -> Void
+
+    var body: some View {
+        #if DEBUG
+        if let code = ChallengeLocalAccountDeletionLaunch.confirmationCode {
+            Button("Confirm local test account") {
+                completion(
+                    .success(
+                        AppleIdentity(
+                            idToken: "local-account-deletion-confirmation",
+                            rawNonce: "local-account-deletion-confirmation",
+                            firstSignInDisplayName: nil,
+                            authorizationCode: code
+                        )
+                    )
+                )
+            }
+            .buttonStyle(SignalSecondaryButtonStyle())
+            .accessibilityIdentifier("account-deletion.local-confirm")
+        } else {
+            NativeAppleReauthenticationButton(completion: completion)
+        }
+        #else
+        NativeAppleReauthenticationButton(completion: completion)
+        #endif
+    }
+}
+
 struct AccountDeletionReceiptView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
@@ -775,7 +820,7 @@ struct AccountDeletionReceiptView: View {
                 .font(.title3.weight(.semibold))
             Text("Confirm with Apple again so we can finish account closure. Your saved receipt keeps this as the same request.")
                 .foregroundStyle(SignalTheme.textSecondary)
-            NativeAppleReauthenticationButton { result in
+            AccountDeletionAppleConfirmation { result in
                 resumeWithApple(result)
             }
             .disabled(isWorking)

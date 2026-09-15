@@ -10,6 +10,42 @@ import XCTest
         let nativePhase: String?
     }
     var config:Config!
+    func testOwnedLocalAccountDeletionFixtureLogin() async throws {
+        struct LocalDeletionConfig: Decodable {
+            let url: URL
+            let key: String
+            let email: String
+            let password: String
+        }
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+        let file = root.appendingPathComponent("tmp/account-deletion-native-local.json")
+        guard FileManager.default.fileExists(atPath: file.path) else {
+            throw XCTSkip("Owned local deletion fixture required")
+        }
+        let local = try JSONDecoder().decode(
+            LocalDeletionConfig.self,
+            from: Data(contentsOf: file)
+        )
+        XCTAssertTrue(SupabaseWeeklyClient.isExplicitLoopback(local.url))
+        let sdk = SupabaseClient(
+            supabaseURL: local.url,
+            supabaseKey: local.key,
+            options: .init(
+                auth: .init(
+                    storage: ChallengeMemoryAuthStorage(),
+                    autoRefreshToken: false,
+                    emitLocalSessionAsInitialSession: true
+                )
+            )
+        )
+        let session = try await sdk.auth.signIn(
+            email: local.email,
+            password: local.password
+        )
+        XCTAssertFalse(session.accessToken.isEmpty)
+    }
     private func makeSession() throws -> (SupabaseClient, ChallengeV1Store, SupabaseChallengeV1Client, URL) {
         let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let file=root.appendingPathComponent("tmp/beta-native-smoke.json")

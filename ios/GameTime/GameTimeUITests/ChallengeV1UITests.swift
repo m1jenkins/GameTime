@@ -1,6 +1,62 @@
 import XCTest
 
 final class ChallengeV1UITests:XCTestCase {
+    @MainActor func testOwnedLocalAccountDeletionJourney() throws {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+        let file = root.appendingPathComponent(
+            "tmp/account-deletion-native-local.json"
+        )
+        guard FileManager.default.fileExists(atPath: file.path) else {
+            throw XCTSkip("Owned local deletion fixture required")
+        }
+        let config = try XCTUnwrap(
+            JSONSerialization.jsonObject(
+                with: Data(contentsOf: file)
+            ) as? [String: String]
+        )
+        let app = XCUIApplication()
+        app.launchArguments = ["--beta-challenges-local", "--account-deletion-local"]
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_URL"] = config["url"]
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_KEY"] = config["key"]
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_EMAIL"] = config["email"]
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_PASSWORD"] = config["password"]
+        app.launchEnvironment["GAMETIME_ACCOUNT_DELETION_LOCAL_CODE"] = config["appleCode"]
+        app.launch()
+
+        let signIn = app.buttons["beta.login.submit"]
+        XCTAssertTrue(signIn.waitForExistence(timeout: 10))
+        XCTAssertTrue(signIn.isEnabled)
+        signIn.tap()
+        let you = app.buttons["beta.tab.you"]
+        XCTAssertTrue(you.waitForExistence(timeout: 15))
+        you.tap()
+        let support = app.buttons["local-account-deletion.support"]
+        XCTAssertTrue(support.waitForExistence(timeout: 10))
+        support.tap()
+        let delete = app.buttons["account-support.delete"]
+        XCTAssertTrue(delete.waitForExistence(timeout: 10))
+        delete.tap()
+        let confirmation = app.alerts["Delete your account?"]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 5))
+        confirmation.buttons["Continue"].tap()
+        let localConfirmation = app.buttons["account-deletion.local-confirm"]
+        XCTAssertTrue(localConfirmation.waitForExistence(timeout: 10))
+        localConfirmation.tap()
+        let complete = app.staticTexts["Account closure is complete"]
+        if !complete.waitForExistence(timeout: 5) {
+            let receipt = app.buttons["account-support.deletion-receipt"]
+            XCTAssertTrue(receipt.waitForExistence(timeout: 15))
+            receipt.tap()
+        }
+        XCTAssertTrue(complete.waitForExistence(timeout: 15))
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Owned local account deletion receipt"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
     @MainActor func testAuthenticatedLocalShellHistoryAndAccountExit() throws {
         let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let file=root.appendingPathComponent("tmp/beta-native-smoke.json")

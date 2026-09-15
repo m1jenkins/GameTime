@@ -69,6 +69,37 @@ final class AccountDeletionTests: XCTestCase {
         XCTAssertEqual(model.userID, replacementOwner)
         XCTAssertTrue(cleaner.cleanedOwners.isEmpty)
     }
+
+    func testNativeDeletionKeepsTheReceiptForPendingHeldAndCompletedStates() async throws {
+        let owner = UUID()
+        for state in [
+            AccountDeletionProgress.pendingProvider,
+            .held,
+            .completed,
+        ] {
+            let auth = DeletionSwitchingAuth(actor: owner)
+            let deletion = SequencedDeletionClient(state: state)
+            let services = FixtureServicesFactory.make(
+                arguments: ["GameTimeTests"],
+                authClient: auth,
+                accountDeletionClient: deletion,
+                accountDeletionReceiptStore: EphemeralAccountDeletionReceiptStore(),
+                accountLocalStateCleaner: RecordingDeletionCleaner(),
+                profileClient: DeletionProfileClient()
+            )
+            let model = AppModel(configuration: .fixture, services: services)
+            await model.start()
+
+            _ = try await model.deleteAccount(with: AppleIdentity(
+                idToken: "fictional", rawNonce: "fictional",
+                firstSignInDisplayName: nil, authorizationCode: "fictional-code"
+            ))
+
+            XCTAssertEqual(model.accountDeletionStatus?.state, state)
+            XCTAssertEqual(model.accountDeletionReceipt?.ownerID, owner)
+            XCTAssertNil(model.userID, "\(state) must end ordinary access")
+        }
+    }
 }
 
 @MainActor
@@ -143,4 +174,38 @@ private final class HeldDeletionClient: AccountDeletionClient {
         while !wasCalled { await Task.yield() }
     }
     func complete() { continuation?.resume(); continuation = nil }
+}
+
+@MainActor
+private final class SequencedDeletionClient: AccountDeletionClient {
+    private let status: AccountDeletionStatus
+
+    init(state: AccountDeletionProgress) {
+        status = AccountDeletionStatus(
+            state: state, acceptedAt: "2026-09-14T12:00:00Z",
+            accountClosedAt: state == .pendingProvider ? nil : "2026-09-14T12:01:00Z",
+            receiptExpiresAt: nil, holds: state == .held
+                ? .init(review: true, appeal: false) : nil,
+            rights: nil, retained: []
+        )
+    }
+
+    func deleteAccount(ownerID: UUID, requestID: UUID, receiptSecret: String, appleAuthorizationCode: String) async throws -> AccountDeletionStatus {
+        _ = (ownerID, requestID, receiptSecret, appleAuthorizationCode)
+        return status
+    }
+    func resumeAccountDeletion(requestID: UUID, receiptSecret: String, appleAuthorizationCode: String?) async throws -> AccountDeletionStatus {
+        _ = (requestID, receiptSecret, appleAuthorizationCode)
+        return status
+    }
+    func accountDeletionStatus(receiptSecret: String) async throws -> AccountDeletionStatus {
+        _ = receiptSecret
+        return status
+    }
+    func fileAccountDeletionReview(requestID: UUID, receiptSecret: String, challengeID: UUID, noticeRevision: Int, reason: String) async throws {
+        _ = (requestID, receiptSecret, challengeID, noticeRevision, reason)
+    }
+    func fileAccountDeletionAppeal(requestID: UUID, receiptSecret: String) async throws {
+        _ = (requestID, receiptSecret)
+    }
 }

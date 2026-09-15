@@ -100,6 +100,11 @@ hosting, provider operation, or backup erasure.
   operator audit until **one hundred eighty days** after finality or case
   closure, whichever is later. Historical records keep their separate governing
   rules, and pseudonymous records can still be linkable.
+- The approved local flow applies the existing shared profile/Auth deletion
+  transaction at durable acceptance, after it has saved only the minimum
+  provider-retry binding. A provider-pending receipt is therefore not account
+  closure, but it cannot retain ordinary profile, contact, session, or Auth
+  access through the seven-day maximum.
 - Deletion does not waive a review or appeal. The existing full 48-hour notice
   and 72-hour filing/resolution windows remain unchanged. The assigned
   independent reviewer releases a review hold; the independent appeal decider

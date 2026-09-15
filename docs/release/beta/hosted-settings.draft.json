@@ -6,7 +6,7 @@
   "scoped_account_deletion_approval": {
     "owner_provenance": "September 14, 2026 owner approval for local challenge_*_v1 account deletion only",
     "hosted_setting_approval": false,
-    "scope": "Remove identifying/access and unnecessary Beta draft/invitation material within 7 days of server acceptance; retain necessary facts/cases 30 days after result and case closure; retain minimum pseudonymous agreements/consent/results/operator audit 180 days after finality or case closure, whichever is later; retain status receipt 90 days after all required work/cases finish.",
+    "scope": "Remove identifying profile/contact/access and unnecessary Beta draft/invitation material within 7 days of server acceptance; retain necessary facts/cases 30 days after result and case closure; retain minimum pseudonymous agreements/consent/results/operator audit 180 days after finality or case closure, whichever is later; retain status receipt 90 days after all required work/cases finish.",
     "rights_and_limits": "Existing 48-hour notice and 72-hour review windows remain; independent decisions release restricted records; unresolved holds are reviewed every 30 days without cancellation; no historical-rule change, legal clearance, provider/backup erasure claim, hosted operation, deployment, or readiness approval."
   },
   "adopted": {

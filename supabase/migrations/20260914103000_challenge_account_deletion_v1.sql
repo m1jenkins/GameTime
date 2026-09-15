@@ -442,9 +442,9 @@ begin
   -- The accepted tombstone is consulted by every product authorization and the
   -- strict Edge session check, so a stale JWT cannot retain ordinary access.
   -- Do not mutate auth.sessions directly: that schema is Auth-owned. The
-  -- existing D81 close removes the Auth user (and therefore its sessions) only
-  -- after verified provider cleanup, while the native client clears its local
-  -- session as part of this same accepted deletion flow.
+  -- The forward identity-cleanup migration invokes D81 during this accepted
+  -- flow, while the native client clears its local session and keeps only the
+  -- saved deletion receipt route.
 
   -- Bearer links issued by this actor stop working now. Their hash/receipt
   -- material is removed by the narrowly scoped seven-day cleanup below.
@@ -839,10 +839,11 @@ begin
 end
 $$;
 
--- This is a single-account cleanup, not a project-wide retention worker. It
--- removes only short-lived identifying/access/draft/link material after seven
--- days. Pseudonymous agreements, consents, normalized facts, outcomes, cases,
--- and audit stay untouched for their separately reported 30/180-day windows.
+-- This is a single-account cleanup, not a project-wide retention worker. The
+-- forward identity-cleanup migration completes the local profile/Auth removal
+-- during acceptance; pseudonymous agreements, consents, normalized facts,
+-- outcomes, cases, and audit stay untouched for their separately reported
+-- 30/180-day windows.
 create or replace function app.challenge_guard_v1()
 returns trigger
 language plpgsql
@@ -1225,6 +1226,7 @@ security definer
 set search_path = ''
 as $$
 declare deletion app.challenge_account_deletions_v1;
+declare status jsonb;
 begin
   perform app.duel_require_service_v1();
   select * into deletion from app.challenge_account_deletions_v1
@@ -1232,6 +1234,10 @@ begin
   if deletion.actor_id is null then
     raise exception 'challenge_deletion_unknown' using errcode = '42501';
   end if;
+  -- The snapshot can only be activated when its still-open case state matches
+  -- the authoritative deletion record. A timestamp alone cannot prove that a
+  -- review or appeal created after the snapshot is represented there.
+  status := app.challenge_account_deletion_state_v1(p_actor_id);
   return jsonb_build_object(
     'actor_id', deletion.actor_id,
     'request_id', deletion.request_id,
@@ -1245,6 +1251,10 @@ begin
     'pseudonymous_retention_completed_at', deletion.pseudonymous_retention_completed_at,
     'appeal_hold_released_at', deletion.appeal_hold_released_at,
     'holds_reviewed_at', deletion.holds_reviewed_at,
+    'case_state', jsonb_build_object(
+      'review_hold', (status->'holds'->>'review')::boolean,
+      'appeal_hold', (status->'holds'->>'appeal')::boolean
+    ),
     'receipt_hash', encode(deletion.receipt_hash, 'hex'),
     'apple_subject_hash', encode(deletion.apple_subject_hash, 'hex')
   );
@@ -1275,6 +1285,10 @@ declare
   pseudonymous_done timestamptz;
   appeal_released timestamptz;
   holds_reviewed timestamptz;
+  authoritative_case_state jsonb;
+  snapshot_status jsonb;
+  authoritative_review_hold boolean;
+  authoritative_appeal_hold boolean;
   receipt_hash bytea;
   apple_hash bytea;
   existing app.challenge_account_deletions_v1;
@@ -1289,7 +1303,7 @@ begin
        'identity_cleanup_after', 'identity_cleaned_at', 'receipt_hash',
        'apple_subject_hash', 'case_content_cleaned_at',
        'pseudonymous_retention_completed_at', 'appeal_hold_released_at',
-       'holds_reviewed_at'
+       'holds_reviewed_at', 'case_state'
      ] <> '{}'::jsonb then
     raise exception 'challenge_deletion_restore_evidence_invalid' using errcode = '22023';
   end if;
@@ -1306,6 +1320,9 @@ begin
     pseudonymous_done := (p_evidence->>'pseudonymous_retention_completed_at')::timestamptz;
     appeal_released := (p_evidence->>'appeal_hold_released_at')::timestamptz;
     holds_reviewed := (p_evidence->>'holds_reviewed_at')::timestamptz;
+    authoritative_case_state := p_evidence->'case_state';
+    authoritative_review_hold := (authoritative_case_state->>'review_hold')::boolean;
+    authoritative_appeal_hold := (authoritative_case_state->>'appeal_hold')::boolean;
     receipt_hash := decode(p_evidence->>'receipt_hash', 'hex');
     apple_hash := decode(p_evidence->>'apple_subject_hash', 'hex');
   exception when others then
@@ -1320,7 +1337,11 @@ begin
      or cleanup_after <> accepted + interval '7 days'
      or (cleanup_done is not null and (cleanup_done < accepted or cleanup_done > cleanup_after))
      or (case_cleaned is not null and account_closed is null)
-     or (pseudonymous_done is not null and case_cleaned is null) then
+     or (pseudonymous_done is not null and case_cleaned is null)
+     or jsonb_typeof(authoritative_case_state) <> 'object'
+     or authoritative_case_state - array['review_hold', 'appeal_hold'] <> '{}'::jsonb
+     or jsonb_typeof(authoritative_case_state->'review_hold') <> 'boolean'
+     or jsonb_typeof(authoritative_case_state->'appeal_hold') <> 'boolean' then
     raise exception 'challenge_deletion_restore_evidence_invalid' using errcode = '22023';
   end if;
   perform app.challenge_gate_v1(true);
@@ -1347,13 +1368,15 @@ begin
     ) values (
       actor, request, receipt_hash, apple_hash,
       accepted, required_finished, provider_done, null,
-      cleanup_after, null, case_cleaned, pseudonymous_done,
+      cleanup_after, null, null, null,
       appeal_released, holds_reviewed
     );
   end if;
 
-  -- Tombstone first; a failed replay therefore leaves the old snapshot fenced
-  -- and an exact retry can finish the same one record.
+  -- The outer restore environment remains isolated until this RPC commits: an
+  -- exception rolls this insert back with the rest of the transaction. Once it
+  -- commits, the tombstone fences ordinary access and an exact retry can finish
+  -- the same one record.
   perform set_config('app.challenge_restore_replay_v1', 'on', true);
   perform public.challenge_cleanup_account_deletion_v1(actor);
   update app.challenge_account_deletions_v1
@@ -1361,6 +1384,14 @@ begin
       identity_replayed_at = n
   where actor_id = actor;
   delete from auth.sessions where user_id = actor;
+
+  snapshot_status := app.challenge_account_deletion_state_v1(actor);
+  if (snapshot_status->'holds'->>'review')::boolean is distinct from authoritative_review_hold
+     or (snapshot_status->'holds'->>'appeal')::boolean is distinct from authoritative_appeal_hold then
+    raise exception 'challenge_deletion_restore_case_dependency_missing'
+      using errcode = 'restrict_violation',
+      detail = 'The older snapshot does not match the authoritative open review or appeal state.';
+  end if;
 
   if account_closed is not null then
     select profile.deleted_at into profile_deleted_at
@@ -1386,6 +1417,44 @@ begin
     where profile.id = actor and profile.deleted_at is not null
   ) then
     raise exception 'challenge_deletion_restore_evidence_conflict' using errcode = '22023';
+  end if;
+
+  -- Completion timestamps are never copied into an older snapshot. Reapply
+  -- each due, bounded purge and let that operation record its actual replay
+  -- time. If old data or a now-missing dependency makes a purge impossible,
+  -- leave the restore transaction uncommitted and require the operator to
+  -- reconcile it while the snapshot remains isolated.
+  if case_cleaned is not null then
+    begin
+      perform public.challenge_cleanup_account_deletion_case_content_v1(actor);
+    exception when sqlstate '55000' then
+      raise exception 'challenge_deletion_restore_purge_dependency_missing'
+        using errcode = 'restrict_violation';
+    end;
+    if not exists (
+      select 1 from app.challenge_account_deletions_v1 deletion
+      where deletion.actor_id = actor
+        and deletion.case_content_cleaned_at is not null
+    ) then
+      raise exception 'challenge_deletion_restore_purge_dependency_missing'
+        using errcode = 'restrict_violation';
+    end if;
+  end if;
+  if pseudonymous_done is not null then
+    begin
+      perform public.challenge_expire_account_deletion_retention_v1(actor);
+    exception when sqlstate '55000' then
+      raise exception 'challenge_deletion_restore_purge_dependency_missing'
+        using errcode = 'restrict_violation';
+    end;
+    if not exists (
+      select 1 from app.challenge_account_deletions_v1 deletion
+      where deletion.actor_id = actor
+        and deletion.pseudonymous_retention_completed_at is not null
+    ) then
+      raise exception 'challenge_deletion_restore_purge_dependency_missing'
+        using errcode = 'restrict_violation';
+    end if;
   end if;
   return jsonb_build_object(
     'restored', true,

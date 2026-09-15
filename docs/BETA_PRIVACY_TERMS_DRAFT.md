@@ -37,7 +37,8 @@ No publication, legal acceptance or hosted data handling is claimed here.
   The owner approved a limited local account-deletion flow for this Beta. When
   GameTime accepts a deletion, normal access to both this Beta and the shared
   historical Personal account ends right away. We remove identifying/access
-  data and unnecessary Beta drafts or invitation material within seven days;
+  profile, contact, and access data and unnecessary Beta drafts or invitation
+  material within seven days;
   keep necessary challenge facts and case content until thirty days after the
   related result and case close; and keep the minimum pseudonymous agreements,
   consent, results and operator records for 180 days after finality or case

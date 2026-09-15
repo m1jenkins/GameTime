@@ -1,7 +1,7 @@
 -- Local-only account-deletion regression coverage. Every actor, Apple subject,
 -- receipt, and result below is fictional and the transaction always rolls back.
 begin;
-select plan(21);
+select plan(27);
 \ir fixtures/challenge-fixture.inc
 
 select pg_temp.login_beta(1);
@@ -52,12 +52,61 @@ select ok(
   (select identity_cleaned_at is not null
    from app.challenge_account_deletions_v1
    where actor_id = (select actor_id from deletion_fixture)),
-  'identifying Beta drafts, links, and access records are cleaned at acceptance, before the seven-day maximum'
+  'the truthful identity-cleanup marker is written only after local deletion at acceptance'
+);
+select is(
+  (select count(*) from auth.users where id = (select actor_id from deletion_fixture)),
+  0::bigint,
+  'a pending provider receipt does not retain the fictional Auth identifier'
+);
+select is(
+  (select count(*) from auth.sessions where user_id = (select actor_id from deletion_fixture)),
+  0::bigint,
+  'a pending provider receipt revokes every ordinary session at acceptance'
+);
+select ok(
+  exists (
+    select 1 from public.profiles
+    where id = (select actor_id from deletion_fixture) and deleted_at is not null
+  ),
+  'a pending provider receipt applies the historical profile tombstone at acceptance'
 );
 select is(
   (select app.challenge_account_deletion_state_v1((select actor_id from deletion_fixture))->>'state'),
   'pending_provider',
   'a durable accepted request remains accurately pending while provider cleanup is unresolved'
+);
+with elapsed as (
+  select clock_timestamp() - interval '8 days' as accepted_at
+)
+update app.challenge_account_deletions_v1 deletion
+set accepted_at = elapsed.accepted_at,
+    required_steps_finished_at = elapsed.accepted_at,
+    identity_cleanup_after = elapsed.accepted_at + interval '7 days',
+    identity_cleaned_at = elapsed.accepted_at
+from elapsed
+where deletion.actor_id = (select actor_id from deletion_fixture);
+select lives_ok(
+  $$select public.challenge_advance_account_deletion_v1(
+    (select receipt from deletion_fixture)
+  )$$,
+  'an interrupted pending-provider receipt remains recoverable after the seven-day maximum'
+);
+select ok(
+  (select app.challenge_account_deletion_state_v1((select actor_id from deletion_fixture))->>'state') = 'pending_provider'
+  and not exists (select 1 from auth.users where id = (select actor_id from deletion_fixture))
+  and exists (
+    select 1 from public.profiles
+    where id = (select actor_id from deletion_fixture) and deleted_at is not null
+  ),
+  'after seven days a pending provider receipt still denies identifiers and does not claim completion'
+);
+select lives_ok(
+  $$select public.challenge_account_deletion_provider_recovery_v1(
+    (select receipt from deletion_fixture),
+    (select apple_subject from deletion_fixture)
+  )$$,
+  'the persisted receipt and matching fictional Apple subject recover pending provider work after local identity deletion'
 );
 select throws_ok(
   $$select public.challenge_begin_account_deletion_v1(
@@ -95,7 +144,7 @@ select lives_ok(
     (select request_id from deletion_fixture),
     (select receipt from deletion_fixture)
   )$$,
-  'provider completion invokes the existing historical deletion transaction once'
+  'provider completion records closure without replaying the accepted historical deletion'
 );
 select is(
   (select app.challenge_account_deletion_state_v1((select actor_id from deletion_fixture))->>'state'),
