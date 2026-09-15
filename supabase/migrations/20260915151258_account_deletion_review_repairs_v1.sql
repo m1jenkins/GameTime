@@ -44,16 +44,111 @@ begin
   delete from app.challenge_links_v1 where issuer = p_actor_id;
   get diagnostics removed_links = row_count;
 
-  -- Unconsented drafts have neither frozen terms nor a result. Remove their
-  -- derived history rows first; agreed lobbies and every historical row stay.
+  -- Unconsented drafts have neither frozen terms nor a result. Remove only
+  -- their local worker, invitation, and projection dependencies before the
+  -- restrictive lobby FK. Agreed lobbies and every historical row stay.
+  perform set_config('app.challenge_deletion_cleanup_v1', 'on', true);
+  perform set_config('app.challenge_write_v1', 'on', true);
+  delete from app.challenge_redemptions_v1 redemption
+  using app.challenge_links_v1 link, app.challenge_lobbies_v1 lobby
+  where redemption.link_id = link.id
+    and link.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_links_v1 link
+  using app.challenge_lobbies_v1 lobby
+  where link.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_resolutions_v1 resolution
+  using app.challenge_reviews_v1 review, app.challenge_lobbies_v1 lobby
+  where resolution.review_id = review.id
+    and review.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_reviews_v1 review
+  using app.challenge_lobbies_v1 lobby
+  where review.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_notices_v1 notice
+  using app.challenge_lobbies_v1 lobby
+  where notice.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_worker_recoveries_v1 recovery
+  using app.challenge_lobbies_v1 lobby
+  where recovery.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_snapshot_invocations_v1 invocation
+  using app.challenge_lobbies_v1 lobby
+  where invocation.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_work_claims_v1 claim
+  using app.challenge_lobbies_v1 lobby
+  where claim.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_report_scopes_v1 scope
+  using app.challenge_lobbies_v1 lobby
+  where scope.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_community_snapshots_v1 snapshot
+  using app.challenge_lobbies_v1 lobby
+  where snapshot.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_community_publications_v1 publication
+  using app.challenge_lobbies_v1 lobby
+  where publication.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_community_capacity_v1 capacity
+  using app.challenge_lobbies_v1 lobby
+  where capacity.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_operator_grants_v1 grant_row
+  using app.challenge_lobbies_v1 lobby
+  where grant_row.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_exits_v1 exit_row
+  using app.challenge_lobbies_v1 lobby
+  where exit_row.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_facts_v1 fact
+  using app.challenge_lobbies_v1 lobby
+  where fact.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_finals_v1 final_row
+  using app.challenge_lobbies_v1 lobby
+  where final_row.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
   delete from app.challenge_history_v1 history
   using app.challenge_lobbies_v1 lobby
   where history.challenge_id = lobby.id
     and lobby.creator_id = p_actor_id
     and lobby.agreement_version = 0;
+  delete from app.challenge_slots_v1 slot
+  using app.challenge_lobbies_v1 lobby
+  where slot.challenge_id = lobby.id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
   delete from app.challenge_members_v1 member
   using app.challenge_lobbies_v1 lobby
   where lobby.id = member.challenge_id
+    and lobby.creator_id = p_actor_id
+    and lobby.agreement_version = 0;
+  delete from app.challenge_agreements_v1 agreement
+  using app.challenge_lobbies_v1 lobby
+  where agreement.challenge_id = lobby.id
     and lobby.creator_id = p_actor_id
     and lobby.agreement_version = 0;
   delete from app.challenge_lobbies_v1
@@ -112,6 +207,50 @@ begin
         'removed_drafts', removed_drafts
       )
     );
+end
+$$;
+
+-- Worker state is normally immutable. The only narrow deletion exception is
+-- a task-owned claim/recovery/snapshot for an unconsented draft that is being
+-- removed inside the already-authorized account cleanup transaction. Nothing
+-- here permits a worker to erase agreed work or a caller to bypass its guard.
+create or replace function app.challenge_worker_state_guard_v1()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user <> pg_catalog.pg_get_userbyid(
+    (select relowner from pg_catalog.pg_class where oid = tg_relid)
+  ) or coalesce(current_setting('app.challenge_write_v1', true), '') <> 'on' then
+    raise exception 'challenge_rpc_required' using errcode = '42501';
+  end if;
+  if tg_op = 'INSERT' then
+    return new;
+  end if;
+  if tg_op = 'UPDATE' and tg_table_name in (
+    'challenge_worker_invocations_v1', 'challenge_snapshot_invocations_v1',
+    'challenge_work_claims_v1'
+  ) then
+    return new;
+  end if;
+  if tg_op = 'DELETE'
+     and tg_table_name in (
+       'challenge_worker_recoveries_v1', 'challenge_snapshot_invocations_v1',
+       'challenge_work_claims_v1'
+     )
+     and coalesce(current_setting('app.challenge_deletion_cleanup_v1', true), '') = 'on'
+     and exists (
+       select 1
+       from app.challenge_lobbies_v1 lobby
+       join app.challenge_account_deletions_v1 deletion
+         on deletion.actor_id = lobby.creator_id
+       where lobby.id = (to_jsonb(old)->>'challenge_id')::uuid
+         and lobby.agreement_version = 0
+     ) then
+    return old;
+  end if;
+  raise exception 'challenge_immutable' using errcode = '23001';
 end
 $$;
 
@@ -469,12 +608,7 @@ begin
         perform public.challenge_cleanup_account_deletion_case_content_v1(
           deletion.actor_id
         );
-      end if;
-      select * into deletion
-      from app.challenge_account_deletions_v1
-      where actor_id = deletion.actor_id;
-      if deletion.case_content_cleaned_at is not null
-         and deletion.pseudonymous_retention_completed_at is null
+      elsif deletion.pseudonymous_retention_completed_at is null
          and n >= finished_at + interval '180 days' then
         perform public.challenge_expire_account_deletion_retention_v1(
           deletion.actor_id

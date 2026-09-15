@@ -62,7 +62,8 @@ def main() -> None:
     def auth(actor: str, session: str, source: str) -> str:
         claims = json.dumps({"sub": actor, "session_id": session}, separators=(",", ":"))
         return (
-            "begin; select set_config('request.jwt.claims'," + quoted(claims)
+            "begin; select set_config('request.jwt.claim.sub'," + quoted(actor)
+            + ",true); select set_config('request.jwt.claims'," + quoted(claims)
             + ",true); set local role authenticated; " + source + "; commit;"
         )
 
@@ -388,7 +389,7 @@ def main() -> None:
         rights_subject = "fictional-apple-race-rights"
         sql(deletion_call(7, rights_request, rights_receipt, rights_subject))
         sql(
-            "select public.challenge_account_deletion_provider_complete_v1("
+            "begin; select public.challenge_account_deletion_provider_complete_v1("
             + quoted(actors[7]) + "::uuid," + quoted(rights_request) + "::uuid,"
             + quoted(rights_receipt) + "," + quoted(rights_subject) + ");"
             "select public.challenge_complete_account_deletion_v1("
@@ -397,15 +398,14 @@ def main() -> None:
             "select set_config('app.challenge_write_v1','on',true);"
             "insert into app.challenge_suspensions_v1(actor_id,suspended,operator_id,reason,recorded_at) values("
             + quoted(actors[7]) + "::uuid,true," + quoted(actors[8])
-            + "::uuid,'unsafe_behavior',clock_timestamp())"
+            + "::uuid,'unsafe_behavior',clock_timestamp()); commit;"
         )
         sql(
-            "update app.challenge_account_deletions_v1 set accepted_at=clock_timestamp()-interval '31 days',"
-            "required_steps_finished_at=clock_timestamp()-interval '31 days',"
-            "provider_cleanup_completed_at=clock_timestamp()-interval '31 days',"
-            "account_closed_at=clock_timestamp()-interval '31 days',"
-            "identity_cleanup_after=clock_timestamp()-interval '24 days',"
-            "identity_cleaned_at=clock_timestamp()-interval '31 days' where actor_id="
+            "with elapsed as (select clock_timestamp()-interval '31 days' as value) "
+            "update app.challenge_account_deletions_v1 deletion set accepted_at=elapsed.value,"
+            "required_steps_finished_at=elapsed.value,provider_cleanup_completed_at=elapsed.value,"
+            "account_closed_at=elapsed.value,identity_cleanup_after=elapsed.value+interval '7 days',"
+            "identity_cleaned_at=elapsed.value from elapsed where deletion.actor_id="
             + quoted(actors[7]) + "::uuid"
         )
         rights_gate = Held("select app.challenge_gate_v1(true)", "deletion-race-rights-gate")

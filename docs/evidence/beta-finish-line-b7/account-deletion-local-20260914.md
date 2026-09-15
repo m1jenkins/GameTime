@@ -61,3 +61,28 @@ stack. Its confirmation code maps to a fictional Apple subject, its Apple
 revocation operation is a no-op, and its Stripe adapter throws if called. It
 therefore verifies request ordering and local recovery behavior, not any real
 Apple/Stripe/provider acknowledgement or physical backup deletion.
+
+## September 15 repair validation
+
+Follow-up review found and repaired only local account-deletion defects: an
+unconsented draft's restrictive worker/history dependencies, a receipt
+advancement that could collapse the 30- and 180-day stages into one call,
+provider binding preservation during restore, stale review receipt decoding,
+definitive rights-request retry cleanup, issued-link journal cleanup, and
+receipt timestamp display. The repair migration keeps agreed lobbies,
+agreements, consents, results, and historical Personal rules intact.
+
+On new task-owned loopback PostgreSQL containers, the final migration applied
+once from a fresh source replay and the focused deletion TAP suite passed
+32/32. An upgrade replay passed the restore suite 21/21 and the real-session
+race script passed 23/23: admission/deletion, review/finalization, immutable
+final retries, saved-review advertising, stale-session denial, provider
+completion/status, and appeal/due-cleanup serialization. The focused native
+suite passed 7/7. Edge formatting, lint, strict typecheck, and 14 Deno tests
+also passed. Logs and the preserved failed first attempts are under
+`/tmp/fm-gametime-account-deletion-20260914`.
+
+The direct PostgreSQL containers used a minimal local Auth-table substitute
+only because Docker's shared default subnet pool could not create a Supabase
+CLI network. They were loopback-bound and fictional; no provider, hosted, or
+human/physical check is implied by this repair evidence.
