@@ -8,32 +8,19 @@ rendering and bundled font registrations are removed. See the
 [native report](../../outputs/reports/2026-09-13-signal-native-migration.md)
 for branch/source identity, simulator checks and unperformed acceptance.
 
-## Historical activation — September 11, 2026
+## Product and retained routes
 
-The dated activation record below is preserved; Signal supersedes its appearance.
+`GameTime.xcodeproj` builds the iPhone product and its tests. Ordinary Signal uses
+the shared app session and the configured challenge client; the checked-in opt-in
+remains off. **Existing challenges** opens retained Personal. Account, privacy,
+support, deletion and sign-out remain reachable from You. See the
+[current baseline](../../docs/WORKING_BASELINE.md) and
+[ordinary connection guide](../../docs/BETA_LOCAL_PREVIEW.md#ordinary-app-connection-and-its-local-substitute).
 
-Normal sign-in now opens Cobalt **Home / Challenges / You** in every build
-configuration. **Existing challenges** opens the retained Personal journey;
-You keeps the real account, privacy, support and sign-out routes. New challenge
-service admission remains closed and is explained on screen. No launch flag
-is needed on an installed phone. The explicit fixture/demo and Debug local
-preview routes remain available for their existing regression scenarios.
-
-See [activation verification](../../docs/design/crisp-cobalt/DEFAULT_UI.md).
-The following sections describe the retained Personal implementation.
-
-# GameTime product app
-
-> **Product direction — September 4, 2026.** This README describes the
-> current Personal app. Friend duels and personal performance commitments are
-> adopted future work in [BUSINESS_MODEL.md](../../docs/BUSINESS_MODEL.md) and
-> [PLAN.md](../../PLAN.md). The shell still blocks legacy social routes; new
-> products require separate models, consent and routes. No live money is enabled.
-
-`GameTime.xcodeproj` is the production-shaped Personal iOS target. New and
-migrated open challenges use automatic Apple Health snapshot v2. It is
-independent from `../GameTimeConformance`, which remains the focused legacy and
-generic M6.5 App Attest engineering harness rather than a Personal-v2 gate.
+The historical/generic `../GameTimeConformance` harness is separate from Personal
+snapshot v2 and Beta acceptance. The sections below document retained Personal
+and local fixture behavior; they do not select future product scope or authorize
+device, hosted or release work.
 
 ## Targets and configurations
 
@@ -42,8 +29,8 @@ generic M6.5 App Attest engineering harness rather than a Personal-v2 gate.
 - `GameTimeTests`: Personal terms, automatic Health snapshots, cache/upload,
   recovery, state, routing, DTO, validation, configuration, retained-legacy,
   and client-boundary tests.
-- `GameTimeUITests`: signed-out/onboarding roots, the three-tab Personal
-  Daybreak journey, daily and cumulative creation, every test commitment,
+- `GameTimeUITests`: signed-out/onboarding roots, the Signal shell and retained three-tab Personal
+  journey, daily and cumulative creation, every test commitment,
   recovery and fixture states, Dynamic Type, labels, and Reduce Motion.
 - `Debug`: live clients by default; pass `--fixture-mode` for deterministic
   local and UI-test data.
@@ -185,7 +172,7 @@ signed physical-device Health or hosted acceptance.
 Debug/Staging: launch with `--fixture-mode --duels`, then open **You → Friend
 duels**. Add `--fixture-duel-incoming`, `--fixture-duel-lost-response`,
 `--fixture-duel-gate-off` or `--fixture-duel-offline` to exercise those cases.
-The default Personal launch remains unchanged. Real duel RPC clients require
+These are retained opt-in routes; ordinary launch uses Signal. Real duel RPC clients require
 `--duels` and a disposable loopback backend with separately admitted local
 actors and a curated event. Hosted configurations and Release stay closed.
 See [native acceptance](../../docs/DUEL_NATIVE_V1_ACCEPTANCE.md) for the request
@@ -215,4 +202,4 @@ See [rematch/link acceptance](../../docs/DUEL_REMATCH_LINK_V1_ACCEPTANCE.md) for
 SQL/RPC boundaries, durable recovery, native URL/account tests, simulator
 journeys and the authenticated local smoke. `--fixture-duel-final` enables the
 rematch journey; `--fixture-duel-link` supplies a fictional incoming link for
-URL-handler tests. Neither fixture changes the normal Personal launch.
+URL-handler tests. Neither fixture changes ordinary Signal launch.

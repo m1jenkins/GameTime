@@ -1,8 +1,12 @@
 # Game Time — first visual direction
 
+> Historical design record. Signal supersedes this exploration. Retired exports
+> and prompts are linked to the last published version in Git history; old
+> render commands below describe that version, not the current checkout.
+
 Four imagegen page concepts: Today, duel detail, goal progress, and connections.
 
-The follow-up adds [weekly steps and activity-minute concepts](weekly-challenges.md), with two additional images and [their exact prompts](weekly-prompts.md). All six are available in the comparison gallery.
+The follow-up adds [weekly steps and activity-minute concepts](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-06-game-time-concepts/weekly-challenges.md), with two additional images and [their exact prompts](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-06-game-time-concepts/weekly-prompts.md). All six are available in the comparison gallery.
 
 ## Direction
 
@@ -54,11 +58,11 @@ These are first-pass raster concepts. In the next design iteration, replace “4
 
 ## Files
 
-- [Review all four concepts](index.html)
-- [Today](01-today.png)
-- [Duel](02-duel.png)
-- [Goal progress](03-goal.png)
-- [Connections](04-connections.png)
-- [Exact generation prompts](prompts.md)
+- [Review all four concepts](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-06-game-time-concepts/index.html)
+- [Today](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-06-game-time-concepts/01-today.png)
+- [Duel](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-06-game-time-concepts/02-duel.png)
+- [Goal progress](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-06-game-time-concepts/03-goal.png)
+- [Connections](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-06-game-time-concepts/04-connections.png)
+- [Exact generation prompts](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-06-game-time-concepts/prompts.md)
 
 Generation mode: built-in imagegen, one call per page. The generated images are saved unchanged from the imagegen output.

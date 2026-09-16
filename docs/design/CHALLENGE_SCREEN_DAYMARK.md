@@ -1,5 +1,9 @@
 # GameTime Daymark mock-up set
 
+> Historical design record. Signal supersedes this exploration. Retired exports
+> and prompts are linked to the last published version in Git history; old
+> render commands below describe that version, not the current checkout.
+
 > **Scope — September 4, 2026.** These are visual references for the
 > Personal steps implementation, not the future product roadmap. Their
 > solo-only/no-opponent constraints do not override the adopted friend-duel and
@@ -25,9 +29,9 @@ daily-split design explorations.
 
 | Screen | Image | Main user job |
 | --- | --- | --- |
-| Active Today | `challenge-mockups/gametime-daymark-today-v1.png` | Understand the remaining daily steps and the exact cutoff. |
-| Review before start | `challenge-mockups/gametime-daymark-review-v1.png` | Confirm a seven-day plan and its protected test-payment terms. |
-| Finished week | `challenge-mockups/gametime-daymark-result-v1.png` | Understand a completed result and its Apple Health source. |
+| Active Today | [gametime-daymark-today-v1.png](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/challenge-mockups/gametime-daymark-today-v1.png) | Understand the remaining daily steps and the exact cutoff. |
+| Review before start | [gametime-daymark-review-v1.png](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/challenge-mockups/gametime-daymark-review-v1.png) | Confirm a seven-day plan and its protected test-payment terms. |
+| Finished week | [gametime-daymark-result-v1.png](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/challenge-mockups/gametime-daymark-result-v1.png) | Understand a completed result and its Apple Health source. |
 
 ## System decisions
 

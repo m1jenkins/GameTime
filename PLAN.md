@@ -4,16 +4,14 @@ Start from `main` in `/Users/user/Documents/GitHub/GameTime` and read the
 [working baseline](docs/WORKING_BASELINE.md),
 [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [one-task prompts](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
-P4/P5/P6 and P10's independent preparation are included. Signal is now the
-official native UI/UX. [P9A's local implementation](outputs/reports/2026-09-13-signal-native-migration.md)
-replaces cobalt independently of physical source work; its tested source and
-remaining acceptance limits are recorded under the [migration contract](docs/design/SIGNAL_UI_MIGRATION.md).
-Connect Signal to accepted real contracts in P9. The September 13
-remaining plan keeps P7 source acceptance, completes P8/P9 by accepted metric,
-makes P11 operating/deletion implementation explicit, then separates private
-TestFlight from proposed public simulated launch. All four sources and all 13
-policies remain required; funded launch remains Phase 6. Do not restart completed
-prompts or resume old checkouts from historical instructions.
+Published main at `1dacc66` includes P4–P6, P7/P10 preparation, Signal/P9A,
+S2/P8 privacy/recovery corrections, P11A local worker/operator/deletion work and
+the bounded P9 shared-session connection. Signal is the ordinary native UI;
+[its contract](docs/design/SIGNAL_UI_MIGRATION.md) preserves retained Personal
+access. Current cleanup does not dispatch P7–P13. Real sources, ingestion/adapters,
+approved hosted identities/operation and physical/human/release acceptance remain.
+All four sources and all 13 policies are required; funded launch remains Phase 6.
+Do not restart completed prompts or follow obsolete checkout instructions.
 
 ## Historical roadmap
 
@@ -95,9 +93,11 @@ provider object, charge, transfer, external settlement, or prize of value.
 
 ## Current audited Beta 1 target
 
-The new plan is intentionally broader than the existing weekly implementation:
+The table retains the September 6 planning comparison with historical products.
+The new local `challenge_*_v1` implementation and Signal shell are now landed;
+[the working baseline](docs/WORKING_BASELINE.md) owns current completion status.
 
-| Area | Owner-approved target | Current implementation boundary |
+| Area | Owner-approved target | Historical implementation at planning |
 | --- | --- | --- |
 | Friend challenges | Creator plus up to five friends; four goal and four leaderboard policies; 1–30 full calendar days | `weekly_*_v1` is frozen at 2–5 participants, seven dates and steps goals only |
 | Personal commitments | Goal-only across steps, Exercise Time, cumulative distance and timed running; 1–30 full calendar days | Historical `performance_commitment_*` is a separate fixed-5K/28–90-day local contract |

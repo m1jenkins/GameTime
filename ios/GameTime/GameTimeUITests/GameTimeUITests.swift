@@ -20,8 +20,10 @@ final class GameTimeUITests: XCTestCase {
         }
     }
 
+    // The shared deletion flow landed in ece3f1e; retained Personal uses the
+    // same warning about Beta closure, retention and the saved receipt.
     private let deletionWarning =
-        "Your name, username, and profile will be replaced with an anonymous placeholder. Your sign-in and setup saved on this phone will be removed, and your Stripe test customer and saved payment method will be deleted. Your step data will no longer be readable and will be removed on the schedule in the Privacy Policy. A small anonymous record that a challenge existed and how it was scored will remain. This can’t be undone."
+        "Deleting your GameTime account ends normal access to this Beta and your existing Personal account. We’ll stop new participation and sharing right away. We’ll remove account details and unneeded Beta drafts within seven days, while keeping what we need to finish results, reviews, and appeals. You can check a saved account-deletion receipt after signing out. This can’t be undone."
 
     override func setUp() {
         continueAfterFailure = false
@@ -45,7 +47,7 @@ final class GameTimeUITests: XCTestCase {
         app.buttons["signal.existing.done"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["beta.home.heading"].waitForExistence(timeout: 4))
 
-        app.buttons["beta.tab.you"].tap()
+        app.tabBars.buttons["You"].waitAndTap()
         let support = app.buttons["account-support.open"]
         scrollUntilHittable(support, in: app)
         support.tap()

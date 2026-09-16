@@ -48,3 +48,9 @@ xcuserdata/
 
 # ---- Historical generated design concepts -------------------------------
 docs/design/challenge-page-concepts/
+
+# Generated code maps; regenerate from the current source when needed.
+/.ua/fingerprints.json
+/.ua/intermediate/
+/.ua/knowledge-graph.json
+/.ua/meta.json

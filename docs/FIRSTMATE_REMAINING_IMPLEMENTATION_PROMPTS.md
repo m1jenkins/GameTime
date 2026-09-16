@@ -1,6 +1,6 @@
 # GameTime remaining prompts
 
-Reevaluated September 13, 2026. Use the [working baseline](WORKING_BASELINE.md)
+Reconciled September 15, 2026; completed slices are published through `1dacc66`. Use the [working baseline](WORKING_BASELINE.md)
 and [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md).
 P0/0A/3 and P4/P5/P6 are implemented locally; P2's measurements are historical.
 P7 is prepared, with physical acceptance pending. P10's independent preparation

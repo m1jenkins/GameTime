@@ -1,28 +1,17 @@
 # GameTime remaining implementation plan
 
-Reevaluated September 13, 2026 against clean local `main` at `b25834c`.
-Use the [working baseline](WORKING_BASELINE.md) for source identity and the
-[prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for scoped tasks.
-The original reevaluation changed planning. The subsequent P9A native status
-below records presentation work; product terms and release gates are unchanged.
+Reconciled September 15, 2026 against published `main` at `1dacc66`.
+Use the [working baseline](WORKING_BASELINE.md) for exact source and completed
+slices, and the [prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for
+scoped future tasks. P4–P6, Signal/P9A, P7/P10 preparation, local S2/P8/P11A
+repairs, operator/deletion implementation and the bounded P9 shared-session
+connection are landed. Their dated reports retain actual checks and limits.
 
-September 13 owner clarification: there is no physical Watch yet; current work
-is simulator-only, with no owner-operated Watch sessions. Signal native source
-is published on `main` at `b351a47`. The combined S2/P8/P11A candidate
-landed on local main at
-`a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`, reverified September 14.
-The [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md) and
-[verification follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
-retain their dated pre-landing statements and original limits. The local operator
-interface also landed on local main at
-`6fea1c28d98ef0ee86a3f9aec72e47b8088c5ec1`, with owner approval on September 14.
-Its [operator report](../outputs/reports/2026-09-14-p11a-operator.md) retains the
-actual CLI/Auth HTTP checks and historical pre-landing status. The owner now
-requests a fresh review of this plan from the consolidated baseline; phone-only
-testing can be planned around the available iPhone 17, with device actions still
-separately scoped.
-It does not complete real P8/P9 or hosted operation. Defer physical P7, while
-preserving its later source/distribution requirements.
+The current cleanup prepares the baseline; it does not dispatch P7–P13.
+Physical source acceptance, real ingestion/adapters and source-backed journeys,
+approved hosting/identities/operation and candidate/human/release acceptance
+remain. The owner has an iPhone 17 and previously reported no Watch. Physical
+P7 remains deferred; its all-source distribution requirements stay intact.
 
 The shortest path is to finish real activity → agreed challenge → corrected
 result, operate it on one approved backend, and test it with people. Preserve
@@ -34,7 +23,7 @@ another design, infrastructure or general audit workstream.
 | Area | Verified status / remaining work |
 | --- | --- |
 | P0/0A/3, P4–P6 | Local foundation, iPhone-only runtime, closed Health contracts, scoped locks, bounded queries and private community are implemented. Their reports remain evidence; do not repeat these prompts. |
-| Signal / P9A | Local native migration implemented on `codex/signal-native-migration` from `b25834c`; ordinary and retained routes use Signal, with cobalt rendering and fonts removed. [Native verification](../outputs/reports/2026-09-13-signal-native-migration.md) records tested source, route coverage and limits. Use this implementation for P9 under the [migration contract](design/SIGNAL_UI_MIGRATION.md). |
+| Signal / P9A | Native migration landed in published main from the `b25834c` baseline; ordinary and retained routes use Signal, with cobalt rendering and fonts removed. [Native verification](../outputs/reports/2026-09-13-signal-native-migration.md) records tested source, route coverage and limits. Use this implementation for P9 under the [migration contract](design/SIGNAL_UI_MIGRATION.md). |
 | P7 | [Preparation](../outputs/reports/2026-09-12-p7-preparation.md) is complete; physical observations, four source policies and timed-distance tolerance remain unaccepted. |
 | P8/P9 | Configured ordinary Signal now shares the app authentication session and existing challenge client; checked-in opt-in remains off. [Bounded P9 connection](../outputs/reports/2026-09-15-p9-authenticated-app.md) records local substitute checks. Real consent/ingestion, accepted adapters, approved HTTPS/Apple identities/links and source-backed journeys remain. |
 | P10 | [Device-independent preparation](../outputs/reports/2026-09-12-p10-completion.md) is complete. Approved settings, functioning hosted scheduler/alerts, retention/deletion and operating acceptance are still missing. |
@@ -95,8 +84,7 @@ history. Also exercise community join, withdrawal, block/report, account switch,
 expired session, relaunch and lost-response recovery. Verify two- and six-person
 journeys and all 13 policies using existing coverage.
 
-Use the official Signal UI completed in P9A; native migration is required even if
-the earlier reported candidate cannot be located. Match charts to
+Use the official Signal UI completed in P9A; do not restart the migration. Match charts to
 available authorized data; absent daily values are unknown, not invented points.
 Do not upload extra Health history or widen friend visibility to reproduce a
 browser chart. Fix broken actions, unreadable terms and misleading states;
@@ -106,7 +94,9 @@ defer optional visual flourishes.
 
 [P10's hosted plan](BETA_HOSTED_PREPARATION.md) and
 [support/retention preparation](BETA_SUPPORT_RETENTION_PREPARATION.md) describe
-the gaps. Close them with the smallest workable implementation:
+the operating contract. The local worker, scoped operator CLI and account-deletion
+slices below are implemented; preserve their tests and complete only remaining
+hosted wiring, policy decisions and operating acceptance:
 
 - One scheduled claim/complete worker with durable retry identity, bounded
   retries and item-specific dead-letter recovery; one delayed community snapshot

@@ -11,7 +11,8 @@ execution and its verification are recorded separately here.
 **P9A is implemented and locally verified.** Native source, tests and configuration
 are published on `main` at `b351a47`, based on `b25834c`. The complete migration
 and supporting evidence are preserved locally at `823ee0a` on
-`codex/signal-native-migration`; those documentation/evidence files remain local.
+`codex/signal-native-migration`; supporting documentation/evidence was later committed through `885e8ad` and is
+included in published main at `1dacc66`.
 Ordinary launch and reachable new/retained routes now use native Signal;
 superseded cobalt rendering, decorative components and bundled fonts are removed.
 See the [native migration report](../../outputs/reports/2026-09-13-signal-native-migration.md)

@@ -1,63 +1,43 @@
 # GameTime project memory
 
-## Current working baseline — September 14, 2026
+## Current working baseline — September 15, 2026
 
-Use `/Users/user/Documents/GitHub/GameTime` on `main` for development.
-[WORKING_BASELINE.md](docs/WORKING_BASELINE.md) owns current source identity,
-status, verification and next work. The current history includes Cobalt,
-completed P4/P5/P6, P7 preparation and P10 preparation through `01f1dd15`, followed
-by preview tooling, consolidated guidance and browser designs at `b25834c`.
-The owner selected **Signal as the official UI/UX** on September 13. P9A's native
-source, tests and configuration are published on GitHub `main` at `b351a47`:
-ordinary launch, shared components and retained Personal routes use Signal;
-superseded cobalt rendering and font inputs are removed. The
-[native report](outputs/reports/2026-09-13-signal-native-migration.md) records
-tested source, checks and limits. This work was implemented after a bounded
-search found no applicable native Signal candidate; it does not validate the
-earlier unlocated completion claim. [The migration contract](docs/design/SIGNAL_UI_MIGRATION.md)
-and adopted study remain design authority. Dated cobalt records are historical.
+Use `/Users/user/Documents/GitHub/GameTime` on `main` as the authoritative
+project, with isolated task branches when needed. [WORKING_BASELINE.md](docs/WORKING_BASELINE.md)
+owns exact source, completed work, evidence and next dependencies. Published
+main at `1dacc6644f2100567d85fbaa2970bb7285bbaa35` includes P4/P5/P6, P7/P10
+preparation, Signal/P9A, S2/P8 privacy/recovery corrections, P11A local
+worker/operator/deletion work and P9's bounded shared-session connection.
 
-The owner has an iPhone 17 available and previously reported no Apple Watch.
-P7 physical source sessions remain deferred. The combined S2/P8/P11A local
-recovery candidate landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`;
-the operator CLI slice subsequently landed at
-`6fea1c28d98ef0ee86a3f9aec72e47b8088c5ec1` with the owner's approval. See the
-[working baseline](docs/WORKING_BASELINE.md) for source status and recorded checks.
-The owner's next request is a fresh review of the implementation plan and the
-path to private Beta. No new implementation or external action is authorized by
-that review. Physical source acceptance
-remains a later launch requirement. Do not claim that simulation accepts a source.
-The complete original migration and supporting records are preserved locally at
-`823ee0a`; only native source/tests/configuration were authorized by automatic
-approval review for the original public push. The subsequent `885e8ad`
-consolidation committed the supporting documentation/evidence; preserve those
-tracked records and their original limits. The September 14 local landings
-did not push or open any readiness gate.
+The owner selected **Signal as the official UI/UX** on September 13.
+[The migration contract](docs/design/SIGNAL_UI_MIGRATION.md) and adopted study
+remain design authority. Ordinary and retained native routes use Signal;
+obsolete cobalt rendering and fonts are retired. The native report retains its
+actual checks and limits; later publication includes its supporting evidence.
+Dated cobalt records below describe historical decisions.
 
-P4/P5/P6 are completed locally. P10's device-independent preparation is included.
-P7 physical sessions and all four source acceptances remain pending. The revised
-[remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
-[prompt pack](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) recommend P8/P9
-complete one accepted metric end to end, then all 13 policies; P11 explicitly
-implements operation/deletion before hosted verification. P12/P13 finish candidate,
-human and private Beta acceptance. Public simulated launch is a recommendation;
-funded launch remains separate. No adopted product scope changed.
+The September 15 request prepares a clean starting point before final testing:
+consistent Signal, streamlined files/navigation and safe main consolidation.
+Firstmate owns publication and guarded branch/worktree cleanup. Preserve unique
+or uncommitted work; do not merge cancelled verification candidates just to
+remove their branches. [The consolidation record](docs/WORKTREE_CONSOLIDATION_STATUS.md)
+and linked cleanup report distinguish landed candidates and retained exceptions.
 
-The landed native recovery and server corrections are recorded in the
-working baseline; preserve their dated reports and original validation limits. Normal signed-in challenges
-now support an explicitly configured shared-session client; checked-in configuration
-remains off and all 18 readiness entries remain false, including money and
-optional analytics that should stay off for simulation. No physical, hosted or
-release validation is established by the native presentation work.
+P7–P13 real-source, hosted and release work is not started by this cleanup.
+The owner has an iPhone 17 and previously reported no Watch; actual source
+sessions still need exact-device opt-in and participation. All four sources,
+timed-distance tolerance, real ingestion/adapters, hosted operation and
+physical/human/release acceptance remain gated. Simulation does not accept a
+source. Checked-in challenge transport remains off and all 18 readiness entries
+remain false. Preserve historical Personal/Solo/charity agreements and access
+until replacement acceptance. D134/D135 and the [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md)
+own product requirements; no adopted scope changed.
 
-The owner previously authorized local consolidation and retirement of redundant
-checkouts. The earlier dirty application/copy/assets and competing Beta1
-implementation are preserved in named archive branches and a verified external backup. They were
-not imported wholesale. [The consolidation map](docs/WORKTREE_CONSOLIDATION_STATUS.md)
-records recovery locations and the disposition of earlier checkouts. Historical
-paths and next-task instructions below do not select today's working folder.
-Local consolidation does not authorize push, deployment, physical Health access,
-distribution or money.
+## Historical completion records
+
+The dated entries below preserve what was true at completion. Their branches,
+paths, publication state and next-task instructions are superseded by the
+working baseline above. Original checks and limitations remain intact.
 
 ## P10 device-independent preparation — September 12, 2026 UTC
 
@@ -72,11 +52,6 @@ needed or performed. P7–P9 and hosted acceptance remain pending, all 18 readin
 entries remain false, and normal signed-in challenges remain unavailable.
 The P10 completion report preserves its original branch and resource identities.
 No hosted operation or external readiness was established.
-
-## Historical completion records
-
-The dated records below preserve what was true at each task's completion. Their
-branch locations and next-task statements are superseded by the baseline above.
 
 ## Prompt 6 local completion — September 12, 2026 UTC
 

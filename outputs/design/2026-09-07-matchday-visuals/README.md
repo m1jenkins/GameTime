@@ -1,5 +1,9 @@
 # GameTime — Matchday iconography and visuals
 
+> Historical design record. Signal supersedes this exploration. Retired exports
+> and prompts are linked to the last published version in Git history; old
+> render commands below describe that version, not the current checkout.
+
 September 7, 2026. Original design concepts. No app code changed.
 
 ## Recommendation
@@ -14,14 +18,14 @@ Continue the accepted Matchday composition. Develop its paired lanes into a cons
 
 ## Deliverables
 
-- [Review](review.html): theme and icon-size controls, previous/refined Home comparison, state examples, references.
-- [Metric artwork](01-metric-artwork.png): four metric illustrations on one raster concept sheet.
+- [Review](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday-visuals/review.html): theme and icon-size controls, previous/refined Home comparison, state examples, references.
+- [Metric artwork](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday-visuals/01-metric-artwork.png): four metric illustrations on one raster concept sheet.
 - [Refined Home](02-home-refined.png): imagegen edit of the accepted Matchday layout.
-- [Vector icon sheet](03-icon-sheet.svg).
-- [Icons](icons/): 12 individual editable SVGs.
-- [Stamps](stamps/): 3 individual editable SVG concepts.
-- [Exact prompts](prompts.md).
-- [Mobbin records](mobbin-sources.json): 11 returned screens; names correspond to actual results.
+- [Vector icon sheet](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday-visuals/03-icon-sheet.svg).
+- [Icons](https://github.com/m1jenkins/GameTime/tree/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday-visuals/icons/): 12 individual editable SVGs.
+- [Stamps](https://github.com/m1jenkins/GameTime/tree/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday-visuals/stamps/): 3 individual editable SVG concepts.
+- [Exact prompts](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday-visuals/prompts.md).
+- [Mobbin records](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday-visuals/mobbin-sources.json): 11 returned screens; names correspond to actual results.
 
 Built-in imagegen created the artwork and edited the Home mockup. Selected outputs were copied into this workspace, preserving originals. SVGs were authored directly for deterministic, scalable icon output. All generation prompts and input roles are recorded.
 

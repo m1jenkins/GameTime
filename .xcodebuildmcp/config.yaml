@@ -5,7 +5,7 @@ enabledWorkflows:
   - project-discovery
   - utilities
 sessionDefaults:
-  projectPath: "./ios/GameTimeConformance/GameTimeConformance.xcodeproj"
-  scheme: "GameTimeConformance"
+  projectPath: "./ios/GameTime/GameTime.xcodeproj"
+  scheme: "GameTime"
   configuration: "Debug"
   platform: "iOS"

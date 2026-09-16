@@ -1,5 +1,9 @@
 # GameTime challenge screen: zero-beige reset
 
+> Historical design record. Signal supersedes this exploration. Retired exports
+> and prompts are linked to the last published version in Git history; old
+> render commands below describe that version, not the current checkout.
+
 > **Scope — September 4, 2026.** These are visual references for the
 > Personal steps implementation, not the future product roadmap. Their
 > solo-only/no-opponent constraints do not override the adopted friend-duel and
@@ -68,7 +72,7 @@ Unsupported and intentionally absent:
 
 Best for: users who want the fastest read and the strongest finance-app confidence.
 
-![Signal Sheet](challenge-mockups/gametime-challenge-signal-sheet-v2.png)
+![Signal Sheet](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/challenge-mockups/gametime-challenge-signal-sheet-v2.png)
 
 ### Composition
 
@@ -100,7 +104,7 @@ This is the most analytical option. It is less emotionally athletic, and the cha
 
 Best for: the most energetic, differentiated daily challenge experience.
 
-![Training Splits](challenge-mockups/gametime-challenge-training-splits-v2.png)
+![Training Splits](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/challenge-mockups/gametime-challenge-training-splits-v2.png)
 
 ### Composition
 
@@ -131,7 +135,7 @@ This is the boldest option and the current recommendation. The saturated current
 
 Best for: a premium, focused, lower-stimulation performance view.
 
-![Night Course](challenge-mockups/gametime-challenge-night-course-v2.png)
+![Night Course](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/challenge-mockups/gametime-challenge-night-course-v2.png)
 
 ### Composition
 
@@ -228,4 +232,4 @@ Do not merge all three visual systems into one screen. Their value is their stru
 
 ## Artifact note
 
-These raster screens are design references, not shipping assets. Their complete generation prompts are in [CHALLENGE_SCREEN_IMAGE_PROMPTS.md](CHALLENGE_SCREEN_IMAGE_PROMPTS.md).
+These raster screens are design references, not shipping assets. Their complete generation prompts are in [CHALLENGE_SCREEN_IMAGE_PROMPTS.md](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/CHALLENGE_SCREEN_IMAGE_PROMPTS.md).

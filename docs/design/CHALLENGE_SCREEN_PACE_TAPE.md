@@ -1,5 +1,9 @@
 # GameTime Pace Tape mock-up set
 
+> Historical design record. Signal supersedes this exploration. Retired exports
+> and prompts are linked to the last published version in Git history; old
+> render commands below describe that version, not the current checkout.
+
 > **Scope — September 4, 2026.** These are visual references for the
 > Personal steps implementation, not the future product roadmap. Their
 > solo-only/no-opponent constraints do not override the adopted friend-duel and
@@ -24,9 +28,9 @@ action—without using their brands, market mechanics, or visual signatures.
 
 | Screen | Image | Main user job |
 | --- | --- | --- |
-| Active Today | `challenge-mockups/gametime-pace-tape-today-v1.png` | Understand the verified total, remaining steps, cutoff, and weekly context. |
-| Review before start | `challenge-mockups/gametime-pace-tape-review-v1.png` | Review a seven-day commitment and protected test-payment terms in one place. |
-| Finished week | `challenge-mockups/gametime-pace-tape-result-v1.png` | Read a durable result, source timestamp, and quiet $0 outcome. |
+| Active Today | [gametime-pace-tape-today-v1.png](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/challenge-mockups/gametime-pace-tape-today-v1.png) | Understand the verified total, remaining steps, cutoff, and weekly context. |
+| Review before start | [gametime-pace-tape-review-v1.png](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/challenge-mockups/gametime-pace-tape-review-v1.png) | Review a seven-day commitment and protected test-payment terms in one place. |
+| Finished week | [gametime-pace-tape-result-v1.png](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/challenge-mockups/gametime-pace-tape-result-v1.png) | Read a durable result, source timestamp, and quiet $0 outcome. |
 
 ## System decisions
 

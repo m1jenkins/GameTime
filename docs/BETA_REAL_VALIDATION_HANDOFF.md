@@ -7,7 +7,7 @@ uses the shared authenticated app session when explicitly configured. Default
 transport and all readiness gates remain closed; physical/source and approved
 hosted/Apple/invitation acceptance are still separate.
 
-## Current continuation — September 12, 2026 UTC
+## Historical continuation — September 12, 2026 UTC
 
 Use [WORKING_BASELINE.md](WORKING_BASELINE.md) and the
 [remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).

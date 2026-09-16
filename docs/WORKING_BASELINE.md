@@ -1,43 +1,33 @@
 # GameTime working baseline
 
-Develop in `/Users/user/Documents/GitHub/GameTime` on `main`.
-Read `git status --short --branch` and `git log -1` before starting work.
-This is the current local development line; GitHub publication is a separate step.
+Develop from `main` in `/Users/user/Documents/GitHub/GameTime`; use isolated task
+branches when needed. Read `git status --short --branch` and `git log -1` first.
 
-September 14: the owner approved and completed the local fast-forward of the
-operator slice to `6fea1c28d98ef0ee86a3f9aec72e47b8088c5ec1`. This includes the
-previously landed S2/P8/P11A recovery candidate at `a3d2c3f`. The following
-documentation-only update records the landing for a fresh Beta plan review.
-No push or readiness change accompanied this landing. The dated test reports
-remain the verification record; those suites were not rerun for the fast-forward.
+## Verified baseline — September 15, 2026
 
-The history contains Cobalt, completed P4/P5/P6, P7 preparation and P10 through
-`01f1dd159839769fe31ce33804e757876eb4b573`, followed by the consolidated preview
-launcher, entry documents and September 13 browser design studies at `b25834c`.
-Existing commits are preserved without squashing. The
-[consolidation map](WORKTREE_CONSOLIDATION_STATUS.md) records the
-archive branches, backup and disposition of old checkouts.
+Local `main`, `origin/main` and GitHub `main` match
+`1dacc6644f2100567d85fbaa2970bb7285bbaa35`. All completed slices below are in that
+published ancestry, including P9's shared-session connection and the local
+deletion/operator/privacy fixes. Later cleanup delivery and the read-only
+branch/worktree disposition are recorded in the
+[clean-baseline report](../data/gametime-clean-baseline-20260915/report.md).
+Firstmate owns its final fast-forward, push and guarded resource cleanup; that
+report does not claim those actions have already happened.
 
-September 13: **Signal is the official native UI/UX.** Native source, tests and
-configuration are published on GitHub `main` at `b351a4775a938056ca229301caa513c3e1d85022`.
-They replace the ordinary shell and shared presentation, preserve retained
-Personal access, and remove superseded rendering and fonts. See the
-[P9A report](../outputs/reports/2026-09-13-signal-native-migration.md) for source
-identity, actual checks and limits, and the [contract](design/SIGNAL_UI_MIGRATION.md)
-for continuing design requirements. The complete migration, including its local
-documentation and screenshots, is preserved at `823ee0a` on
-`codex/signal-native-migration`. Automatic approval review excluded those supporting
-files from the original native-only push; the later `885e8ad` consolidation
-committed them, and they are tracked in the current baseline.
-The later combined S2/P8/P11A candidate landed on local main at
-`a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`. See the current-work record below.
+**Signal is the ordinary native UI.** Shared components, launch/onboarding,
+new challenge routes and retained Personal use its semantic colors and system
+typography. [The migration contract](design/SIGNAL_UI_MIGRATION.md) and
+[original native report](../outputs/reports/2026-09-13-signal-native-migration.md)
+record adoption, checks and limits. Supporting migration evidence first excluded
+from the native-only push was subsequently committed through `885e8ad` and is
+included in this published baseline.
 
 ## Current work
 
 | Work | Status | Evidence |
 | --- | --- | --- |
-| Foundation / Prompts 0, 0A, 3 | Implemented locally; iPhone-only runtime and closed Health contracts; historical cobalt presentation superseded by P9A | [Historical UI](design/crisp-cobalt/DEFAULT_UI.md), [Health contracts](BETA_HEALTH_CONTRACTS.md) |
-| P9A — Signal | Native source published on `main` at `b351a47`; tested source and acceptance limits recorded separately from real integration/release | [Native report](../outputs/reports/2026-09-13-signal-native-migration.md), [contract](design/SIGNAL_UI_MIGRATION.md) |
+| Foundation / Prompts 0, 0A, 3 | Implemented locally; iPhone-only runtime and closed Health contracts; historical cobalt presentation superseded by P9A | [Health contracts](BETA_HEALTH_CONTRACTS.md) |
+| P9A — Signal | Native migration included in published main; original source publication at `b351a47`; tested source and acceptance limits recorded separately from real integration/release | [Native report](../outputs/reports/2026-09-13-signal-native-migration.md), [contract](design/SIGNAL_UI_MIGRATION.md) |
 | P2 | Historical load baseline preserved, including failures | [Capacity report](load/capacity-report.md) |
 | P4 | Scoped locks and durable worker claims completed locally | [P4 report](../outputs/reports/2026-09-11-p4-completion.md) |
 | P5 | Bounded history and measured query improvements completed locally | [P5 report](../outputs/reports/2026-09-11-p5-completion.md) |
@@ -52,52 +42,39 @@ The later combined S2/P8/P11A candidate landed on local main at
 | P11A — account deletion | Landed through `c6f88cd`, including review repairs; local evidence and substitute limits preserved | [Deletion record](evidence/beta-finish-line-b7/account-deletion-local-20260914.md) |
 | P11–13 | Hosted capacity/recovery, physical/human/release acceptance, then authorized private Beta remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
 
-## Next work
+## Remaining work and authority
 
-The owner requested a fresh implementation-plan review of the path to private
-Beta from the consolidated local main. Identify remaining implementation,
-owner decisions and physical/hosted/human acceptance in dependency order.
-The owner has an iPhone 17 available and previously reported no Apple Watch;
-phone availability alone does not authorize device or Health actions. The
-bounded P11A local recovery slice and S2/P8 corrections landed on local main at
-`a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`, reverified September 14. The
-[community follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
-retains its original pre-landing status and validation limits. The subsequent
-[operator CLI slice](../outputs/reports/2026-09-14-p11a-operator.md) also landed,
-at `6fea1c28d98ef0ee86a3f9aec72e47b8088c5ec1`. Its dated pre-landing report is
-preserved; there is no remaining merge dependency for these completed slices.
-P7 source acceptance remains deferred until
-hardware is available; simulator success cannot accept a source or select
-timed-distance tolerance. All four sources still gate distribution. The next
-dependency is approved real-source P8/P9 work and, separately, an authorized
-hosted target for operation. Do not recreate P9A/P10/P4/P5/P6 or the cancelled
-candidate-gate recovery.
+The current task prepares a clean baseline. It does **not** dispatch P7–P13.
+Use the [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
+[bounded prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for their
+preserved requirements and dependency order:
 
-The landed combined candidate includes S2's Signal adaptations of the older
-overnight issued-link, redemption and detail-response fixes, plus P8's verified
-reviewer/revocation synchronization and friend-create/suspension correction.
-Their original branches and reports remain preserved; do not import the overnight
-implementation a second time. The follow-up changed only community tests and
-documentation; prior native, P8 race and upgrade results were not rerun there.
+- P7: actual iPhone/paired Watch observations, all four accepted sources and
+  measured timed-distance tolerance. An iPhone 17 is available; the owner
+  previously reported no Watch. Device/Health actions need their scoped opt-in.
+- P8/P9: accepted real-source ingestion, adapters and all 13 integrated policies;
+  approved HTTPS/Apple identity and invitations. The local shared-session
+  connection is complete; source-backed and hosted journeys are not.
+- P10/P11: approved hosted identity/settings, scheduled operation, credentials,
+  alerts, retention/deletion and recovery/capacity acceptance. Local worker,
+  scoped operator CLI and deletion implementation are complete; administrator
+  grant response reconciliation remains manual.
+- P12/P13: integrated candidate, physical/accessibility/human acceptance,
+  replacement acceptance before legacy shell retirement, then authorized private
+  Beta. Public submission and funded operation remain separate.
 
-Normal signed-in Signal now obtains its challenge client from shared app services.
-The explicit `GAMETIME_CHALLENGE_V1_ENABLED` setting remains off in checked-in
-configuration; an approved HTTPS target or explicit non-Release loopback can use
-the existing authenticated client. See the [P9 report](../outputs/reports/2026-09-15-p9-authenticated-app.md)
-for focused local checks and their limits. All 18 readiness entries remain false.
-Consolidation does not enable real activity scoring, community publication,
-hosting, money or distribution. Preserve existing Personal agreements and access
-until replacement acceptance. P9A's native checks are recorded in its report;
-they do not validate the earlier unlocated candidate or establish source,
-hosted, physical or human acceptance.
+`GAMETIME_CHALLENGE_V1_ENABLED` stays off in checked-in configuration. All 18
+readiness entries remain false, including money and optional analytics that
+should remain off for simulation. No source, hosted, human or release gate is
+closed by cleanup. Preserve Personal/Solo/charity functionality, exact consent
+and data. Do not restart P4/P5/P6/P9A, P10 preparation, landed S2/P8/P11A repairs,
+or cancelled candidate-gate recovery.
 
-## Evidence and archived work
+## Evidence and recovery
 
-The P4/P5/P6/P7/P10 reports retain their performed checks, failures and original
-source identities. Their old paths and next-task instructions are historical.
-The cleanup's actual checks are recorded in the consolidation map; they do not
-replace physical, hosted or release acceptance.
-
-The old dirty copy, earlier Beta1 code and old branch tips are preserved separately.
-Do not apply their whole patches to this source. Use a short-lived branch from
-current `main` for future work, and use a worktree only when isolation is needed.
+Dated reports retain their actual source identities, test counts, failures and
+unperformed checks. Old paths and next-task statements are historical, not
+current resource ownership. The [September 12 consolidation record](WORKTREE_CONSOLIDATION_STATUS.md)
+retains recovery locations for the original dirty copy and competing Beta1 work.
+Unique branches, stashes and uncommitted work are retention exceptions; do not
+import their whole patches or merge cancelled branches merely to delete them.

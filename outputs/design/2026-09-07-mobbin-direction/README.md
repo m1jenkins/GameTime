@@ -1,18 +1,22 @@
 # GameTime UI direction — September 7, 2026
 
+> Historical design record. Signal supersedes this exploration. Retired exports
+> and prompts are linked to the last published version in Git history; old
+> render commands below describe that version, not the current checkout.
+
 Recommendation: **Athletic Clubhouse**. Bright adaptive surfaces, bold performance numbers, compact friend rows, and GameTime’s existing orange give friend challenges and personal goals a coherent home. A more forceful dark Scoreboard is included as an alternative.
 
 This is a design exploration, not implementation or an adopted product decision. No app code, historical agreement, hosted state, payment behavior, or rollout gate changed.
 
 ## Deliverables
 
-- [Home](01-clubhouse-home.png)
-- [Friend leaderboard detail](02-clubhouse-friends.png)
-- [Personal goal detail](03-clubhouse-goal.png)
-- [Scoreboard alternative](04-scoreboard-home.png)
-- [Exact generation prompts](prompts.md)
-- [Targeted revision prompts](revision-prompts.md)
-- Review page: `.lavish/gametime-ui-direction.html` at the repository root.
+- [Home](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-mobbin-direction/01-clubhouse-home.png)
+- [Friend leaderboard detail](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-mobbin-direction/02-clubhouse-friends.png)
+- [Personal goal detail](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-mobbin-direction/03-clubhouse-goal.png)
+- [Scoreboard alternative](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-mobbin-direction/04-scoreboard-home.png)
+- [Exact generation prompts](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-mobbin-direction/prompts.md)
+- [Targeted revision prompts](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-mobbin-direction/revision-prompts.md)
+- Review page: [gametime-ui-direction.html](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/.lavish/gametime-ui-direction.html) at the repository root.
 
 All four images are 853 × 1844 raster concepts, generated with the built-in imagegen tool. They have been visually inspected. Home copy was revised to count people including the current user. Scoreboard chart dates and the Challenges icon were corrected. Original tool outputs remain in the Codex generated-images directory; final deliverables are saved here and copied beside the review page.
 
@@ -27,7 +31,7 @@ The mockups cover Home and two active detail screens. They do not depict the com
 - [Strava leaderboard](https://mobbin.com/screens/0208fae7-8d33-4d85-8270-f8d371facc83): aligned rank/name/distance columns. Transfer its readable hierarchy into a private friend roster, not its public activity conditions.
 - [Runna Today](https://mobbin.com/screens/be9b0bcc-6c28-4abf-bde0-6b046df1207d): clear activity names, supporting totals, and a prominent action. Transfer the hierarchy, without inventing a GameTime training plan or workout recorder.
 - [Gentler Streak Activities](https://mobbin.com/screens/81ddb60b-a773-448c-b64a-92cef5221268): progress chart above labeled summary values. Transfer a focused progress story; do not infer training readiness.
-- Twelve screenshots across seven apps were examined. The three above are the selected references. Source metadata is preserved in `mobbin-sources.json`.
+- Twelve screenshots across seven apps were examined. The three above are the selected references. Source metadata is preserved in [mobbin-sources.json](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-mobbin-direction/mobbin-sources.json).
 
 These are design interpretations of observed static screens, not usability-study results or inspected competitor interaction recordings.
 

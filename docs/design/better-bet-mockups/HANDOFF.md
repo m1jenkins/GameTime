@@ -1,5 +1,9 @@
 # Better Bet mockups — LLM handoff
 
+> Historical design record. Signal supersedes this exploration. Retired exports
+> and prompts are linked to the last published version in Git history; old
+> render commands below describe that version, not the current checkout.
+
 > **Historical design reference — September 4, 2026.** Better Bet is an old
 > concept name, not the current GameTime identity. These assets and embedded
 > prompts remain visual exploration only. Use the adopted model in
@@ -66,14 +70,14 @@ Canonical demo data: Day 4 of 7 (Thursday), today 7,350/10,000, week 42,350,
 | File | What it is |
 | --- | --- |
 | `README.md` | Direction write-ups, palettes, rationale, render notes |
-| `gen.py` / `gen2.py` | Generators for v1 directions / A2 — edit these, don't hand-edit HTML |
+| [gen.py](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/better-bet-mockups/gen.py) / `gen2.py` | Generators for v1 directions / A2 — edit these, don't hand-edit HTML |
 | `a-position-*.html/png` | Direction A (dark money) — PNGs are first-pass (edge labels clip) |
 | `b-traininglog-*.html/png` | Direction B (light athletic) — week PNG crops Sunday row |
 | `c-nightsplits-*.html/png` | Direction C (dark splits) — final renders |
 | `a2-glass-*.html` | A2 Liquid Glass core screens (Today / Week ahead / Week behind) — final sources |
-| `a3-commit.html`, `a3-result-won.html`, `a3-result-lost.html`, `a3-you.html` | A3 full-set pages: place-bet modal, win/lose results, profile — final sources |
+| [a3-commit.html](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/better-bet-mockups/a3-commit.html), [a3-result-won.html](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/better-bet-mockups/a3-result-won.html), [a3-result-lost.html](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/better-bet-mockups/a3-result-lost.html), [a3-you.html](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/better-bet-mockups/a3-you.html) | A3 full-set pages: place-bet modal, win/lose results, profile — final sources |
 | `gen3.py` (in `tmp/bet_mockups/`) | Generator for the A3 set — canonical source for structural edits |
-| `sheet.html` | Contact sheet of all v1 screens |
+| [sheet.html](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/better-bet-mockups/sheet.html) | Contact sheet of all v1 screens |
 
 ## Re-render command
 
@@ -86,7 +90,7 @@ for f in *.html; do
 done
 ```
 
-Note: `gen.py` and `gen2.py` write their HTML output next to themselves — run them from this directory (or copy them back to a build dir) before re-rendering.
+Note: [gen.py](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/better-bet-mockups/gen.py) and `gen2.py` write their HTML output next to themselves — run them from this directory (or copy them back to a build dir) before re-rendering.
 
 ## Open threads
 

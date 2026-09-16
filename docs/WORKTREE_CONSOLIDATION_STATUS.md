@@ -1,26 +1,16 @@
-# GameTime: current status and consolidation
+# GameTime checkout consolidation
 
-**Develop in `/Users/user/Documents/GitHub/GameTime` on local `main`.**
-The completed local history now includes Cobalt, P4/P5/P6, P7 preparation,
-P10 through `01f1dd15`, and the preview tooling in `e7b4bd55`.
-The existing commit history is preserved. GitHub publication has not been performed.
+Use [WORKING_BASELINE.md](WORKING_BASELINE.md) for current source and status.
+The [September 15 cleanup report](../data/gametime-clean-baseline-20260915/report.md)
+records the current read-only branch, remote and pool inventory, exact retention
+exceptions and candidates for Firstmate's guarded cleanup. No resource removal
+is claimed by that inventory.
 
-## Product status
+## Historical consolidation — September 12, 2026
 
-| Work | Where it stands |
-| --- | --- |
-| Cobalt and P4/P5/P6 | Implemented and locally verified; included in main. |
-| Local preview | Fictional friend/personal journeys; configurable resources now committed with smoke-test compatibility. |
-| P7 | Signed Debug preparation exists; physical sessions and all four source acceptances remain pending. |
-| P10 | Device-independent hosted/support/retention preparation is included. Actual hosted operation remains pending. |
-| P8/P9 | Real ingestion, adapters and integrated journeys remain dependent on source acceptance. |
-| P11–13 | Hosted capacity/recovery, physical/human and release acceptance remain. |
-
-Normal signed-in challenge transport remains closed, and all 18 readiness entries
-remain false. Cobalt is the implemented default; the owner's design review remains
-open. Use [the local preview](BETA_LOCAL_PREVIEW.md),
-[working baseline](WORKING_BASELINE.md), and
-[remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md).
+The actions and checks below belong to the earlier consolidation. Cobalt was
+then the default; Signal has superseded it. Earlier statements about local-only
+publication or active runtime paths do not describe current main or ownership.
 
 ## Cleanup completed
 

@@ -1,5 +1,9 @@
 # GameTime — Matchday refinement
 
+> Historical design record. Signal supersedes this exploration. Retired exports
+> and prompts are linked to the last published version in Git history; old
+> render commands below describe that version, not the current checkout.
+
 September 7, 2026. Design exploration only.
 
 ## Recommendation
@@ -12,17 +16,17 @@ An optional clarification asked what felt off. No answer had arrived before gene
 
 ## Saved mockups
 
-- [Home](01-matchday-home.png)
-- [Friend leaderboard](02-matchday-challenge.png)
-- [Personal goal](03-matchday-goal.png)
-- [Generation prompts](prompts.md)
-- [Typography revision prompts](revision-prompts.md)
-- [All Mobbin screen metadata](mobbin-sources.json)
-- [Portable review](review.html)
+- [Home](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday/01-matchday-home.png)
+- [Friend leaderboard](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday/02-matchday-challenge.png)
+- [Personal goal](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday/03-matchday-goal.png)
+- [Generation prompts](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday/prompts.md)
+- [Typography revision prompts](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday/revision-prompts.md)
+- [All Mobbin screen metadata](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday/mobbin-sources.json)
+- [Portable review](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/outputs/design/2026-09-07-matchday/review.html)
 
 Built-in imagegen was used. Final images were copied from the Codex generated-images directory without deleting originals. The final Home and goal images incorporate targeted typography revisions. All images are 853 × 1844 raster concepts.
 
-The live review source is `.lavish/gametime-matchday-refinement.html`; assets are copied beside it. Previous concepts remain intact.
+The live review source is [gametime-matchday-refinement.html](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/.lavish/gametime-matchday-refinement.html); assets are copied beside it. Previous concepts remain intact.
 
 ## Selected references and recognition
 

@@ -1,7 +1,9 @@
 # GameTime simplification — September 11, 2026
 
 The active plan and prompt pack are now 330 lines combined, down from 1,311.
-The previous versions are preserved byte-for-byte in docs/archive. Root README,
+The previous versions were preserved byte-for-byte in docs/archive at the time
+of this report. Those superseded snapshots were retired in the September 15
+cleanup and remain in [published Git history](https://github.com/m1jenkins/GameTime/tree/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/archive). Root README,
 PLAN and PROJECT_MEMORY now point to the current execution plan.
 
 ## Source and continuation

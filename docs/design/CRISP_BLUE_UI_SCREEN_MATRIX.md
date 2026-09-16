@@ -1,6 +1,10 @@
 # Crisp cobalt UI — screen and state coverage
 
-Prepared September 11, 2026. This is an implementation starting inventory, not a completion report. Use with [the implementation prompt](CRISP_BLUE_UI_IMPLEMENTATION_PROMPT.md).
+> Historical design record. Signal supersedes this exploration. Retired exports
+> and prompts are linked to the last published version in Git history; old
+> render commands below describe that version, not the current checkout.
+
+Prepared September 11, 2026. This is an implementation starting inventory, not a completion report. Use with [the implementation prompt](https://github.com/m1jenkins/GameTime/blob/1dacc6644f2100567d85fbaa2970bb7285bbaa35/docs/design/CRISP_BLUE_UI_IMPLEMENTATION_PROMPT.md).
 
 The primary inventory was inspected in the clean Beta checkout at `/Users/user/.treehouse/gametime-beta-7b9cca/2/gametime-beta`, commit `9c84459`. The original workspace remains on the older shell at `577bc32` with unrelated dirty work. Recheck the current canonical implementation and all routing before assigning work. Source filenames below are under `ios/GameTime/GameTime/` unless stated otherwise.
 
