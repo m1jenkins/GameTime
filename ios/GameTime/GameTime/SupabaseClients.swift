@@ -130,8 +130,15 @@ enum LiveServicesFactory {
             pendingPerformanceCommitments: pendingPerformanceCommitments,
             weekly: SupabaseWeeklyClient(client: client, enabled: configuration.weeklyRuntimeEnabled,
                 localURL: configuration.supabaseURL, publishableKey: configuration.supabasePublishableKey),
-            pendingWeekly: pendingWeekly, metricPrototypes: metricPrototypes
+            pendingWeekly: pendingWeekly, metricPrototypes: metricPrototypes,
+            challengesV1: makeChallenges(configuration: configuration, client: client)
         )
+    }
+
+    static func makeChallenges(configuration: AppConfiguration, client: SupabaseClient) -> any ChallengeV1Client {
+        guard configuration.challengeV1RuntimeEnabled else { return UnavailableChallengeV1Client() }
+        return SupabaseChallengeV1Client(sdk: client, url: configuration.supabaseURL,
+            key: configuration.supabasePublishableKey, permitsHTTPS: true)
     }
 }
 

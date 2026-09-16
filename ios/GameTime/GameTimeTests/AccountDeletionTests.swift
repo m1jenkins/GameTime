@@ -89,6 +89,7 @@ final class AccountDeletionTests: XCTestCase {
             )
             let model = AppModel(configuration: .fixture, services: services)
             await model.start()
+            model.challengeInvitation.link = "gametime-beta://challenge-invite/" + String(repeating: "a", count: 64)
 
             _ = try await model.deleteAccount(with: AppleIdentity(
                 idToken: "fictional", rawNonce: "fictional",
@@ -98,6 +99,8 @@ final class AccountDeletionTests: XCTestCase {
             XCTAssertEqual(model.accountDeletionStatus?.state, state)
             XCTAssertEqual(model.accountDeletionReceipt?.ownerID, owner)
             XCTAssertNil(model.userID, "\(state) must end ordinary access")
+            XCTAssertNil(model.challengesV1.actor)
+            XCTAssertTrue(model.challengeInvitation.link.isEmpty)
         }
     }
 

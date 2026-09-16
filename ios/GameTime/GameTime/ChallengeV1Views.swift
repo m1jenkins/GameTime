@@ -15,6 +15,52 @@ enum ChallengeLocalLaunch {
     }
 }
 
+/// Controlled sign-in substitute for the ordinary AppModel/Signal path. It uses
+/// the same service selection as live Apple auth, but only task-owned loopback
+/// accounts and disabled Health/provider services. Never compiled into Release.
+@MainActor enum ChallengeAuthenticatedAppLaunch {
+    static var enabled: Bool { ProcessInfo.processInfo.arguments.contains("--authenticated-app-local") }
+    static let identity = AppleIdentity(idToken: "local-substitute", rawNonce: "local-substitute", firstSignInDisplayName: nil)
+
+    static func configuration() throws -> AppConfiguration {
+        let env = ProcessInfo.processInfo.environment
+        guard enabled, let text = env["GAMETIME_BETA_LOCAL_URL"], let url = URL(string: text),
+              SupabaseWeeklyClient.isExplicitLoopback(url) else { throw ChallengeV1Error.unavailable }
+        return try AppConfiguration.validated(environmentValue: "debug", urlValue: text,
+            keyValue: env["GAMETIME_BETA_LOCAL_KEY"], mutationValue: "NO",
+            challengeV1Value: "YES")
+    }
+
+    static func services(configuration: AppConfiguration) -> AppServices {
+        let sdk = SupabaseClient(supabaseURL: configuration.supabaseURL,
+            supabaseKey: configuration.supabasePublishableKey,
+            options: .init(auth: .init(storage: ChallengeMemoryAuthStorage(), autoRefreshToken: false,
+                emitLocalSessionAsInitialSession: true)))
+        return FixtureServicesFactory.make(arguments: ["--fixture-mode"],
+            authClient: ChallengeAppSignInSubstitute(sdk: sdk),
+            personalHealthSteps: DisabledPersonalHealthStepReader(),
+            profileClient: SupabaseProfileClient(client: sdk),
+            challengesV1: LiveServicesFactory.makeChallenges(configuration: configuration, client: sdk))
+    }
+}
+
+@MainActor private final class ChallengeAppSignInSubstitute: AuthClient {
+    let sdk: SupabaseClient
+    let auth: SupabaseAuthClient
+    init(sdk: SupabaseClient) { self.sdk = sdk; auth = SupabaseAuthClient(client: sdk) }
+    func currentUserID() async -> UUID? { await auth.currentUserID() }
+    func authStateChanges() async -> AsyncStream<AuthSnapshot> { await auth.authStateChanges() }
+    func signOut() async throws { try await auth.signOut() }
+    func signInWithApple(_ identity: AppleIdentity) async throws -> UUID {
+        let env = ProcessInfo.processInfo.environment
+        guard ChallengeAuthenticatedAppLaunch.enabled, identity == ChallengeAuthenticatedAppLaunch.identity,
+              let email = env["GAMETIME_BETA_LOCAL_EMAIL"], let password = env["GAMETIME_BETA_LOCAL_PASSWORD"] else {
+            throw ChallengeV1Error.unavailable
+        }
+        return try await sdk.auth.signIn(email: email, password: password).user.id
+    }
+}
+
 /// A narrow, DEBUG-only route for exercising account deletion against an
 /// owned loopback fixture. It is unavailable unless both flags are present.
 enum ChallengeLocalAccountDeletionLaunch {
@@ -317,6 +363,10 @@ struct ChallengeV1Shell: View {
                                 Text("Your next challenge starts here").font(.headline)
                                 Text("Friend challenges and new personal goals aren’t open yet. You can still view and manage your existing challenges.")
                             }.accessibilityIdentifier("signal.service.closed")
+                        } else if store.actor == nil {
+                            Text(ChallengeV1Error.accountChanged.localizedDescription)
+                            Button("Sign out") { Task { await logout() } }
+                                .accessibilityIdentifier("beta.session.signout")
                         } else if store.homeState == .loading {
                             ProgressView("Loading your challenges…").accessibilityIdentifier("beta.home.loading")
                         } else if store.homeState == .unavailable {

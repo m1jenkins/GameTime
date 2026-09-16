@@ -7,5 +7,5 @@ GAMETIME_PERSONAL_SETTLEMENT_MODE = test_only
 
 // Optional and gitignored. Developers may point Debug at a local or isolated
 // project without changing the installable Staging or Release products. It may
-// contain only SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY.
+// contain SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY and GAMETIME_CHALLENGE_V1_ENABLED.
 #include? "LocalOverrides.xcconfig"

@@ -1,9 +1,10 @@
-# Local Cobalt preview
+# Local Signal preview
 
 Run from `/Users/user/Documents/GitHub/GameTime` on `main`. This opens the newer
 friend/personal ChallengeV1 shell with fictional local accounts. It does not use
-Demo Mode or connect real Health data. Normal signed-in challenge transport stays
-closed. Amounts are nonredeemable simulation.
+Demo Mode or connect real Health data. Ordinary signed-in transport is now
+configurable through the shared app session; checked-in configuration remains
+off. Amounts are nonredeemable simulation.
 
 ## Choose owned resources
 
@@ -90,3 +91,46 @@ Press **Ctrl-C** in its `serve` terminal. The launcher closes fixture gates,
 revokes only its preview sessions and removes its credential manifest. Historical
 and fictional database records remain. It does not stop other stacks or erase a
 Simulator. Starting another preview creates a fresh fictional cohort.
+
+## Ordinary app connection and its local substitute
+
+`GAMETIME_CHALLENGE_V1_ENABLED` defaults to `NO` in `PublicClient.xcconfig` and
+is read from each app configuration's Info.plist. For an explicitly approved
+Beta target, `YES` selects `SupabaseChallengeV1Client` using the **same** SDK,
+`SUPABASE_URL`, publishable key and session as Apple sign-in and profiles.
+No second account or challenge-specific credential is needed. Select the actual
+target through the existing hosted-settings worksheet; the historical hosted
+project in `PublicClient.xcconfig` is not selected for Beta by this change.
+
+Transport accepts an HTTPS origin without credentials, path, query or fragment
+(standard HTTPS port only). Debug/Staging may also use explicit loopback with a
+port; Release rejects that development transport. Missing/invalid opt-in remains
+unavailable. This switch does not change backend admission, source readiness,
+community publication, fixture, processing, ingestion or money gates. Server
+pauses retain readable history, recovery, review and exits. Expired sessions use
+the shared refresh helper; replaced/revoked sessions clear challenge content.
+
+Opaque invitation intent belongs to AppModel above authentication and survives
+sign-in cancellation/failure, ordinary sign-out, account changes and relaunch.
+Redemption remains deliberate and actor-bound. The existing custom preview link
+and pasted invitation input are retained; approved HTTPS domains, AASA,
+entitlements and real Apple identity verification are still separate work.
+
+The existing native controller now accepts `--native-only --native-phase app`
+for the shared-session AppModel journey and focused regressions, or
+`--touch-only app` for the visible ordinary Signal root. Pass unique
+`--derived-data` and `--evidence-dir` paths along with the owned resource
+variables above. In the **new disposable stack only**, enable email login for
+fictional password sign-in (`auth.email.enable_signup = true`); repository and
+hosted Auth settings stay Apple-only. Never apply this substitute setting to a
+hosted target. The controller confirms fictional emails through its local admin
+API; no messages or providers are used.
+
+The visible check launches with Debug-only `--authenticated-app-local`, reusing
+`GAMETIME_BETA_LOCAL_URL`, `KEY`, `EMAIL` and `PASSWORD`. It mounts ordinary
+RootView/AppModel/Signal and uses the production challenge-service selector;
+only sign-in, Health and historical supporting services are substituted. It
+requires loopback and a publishable key, disables Health reads/background
+registration and contacts real local Auth/PostgREST. It does not use
+`ChallengeLocalLaunchView`. Do not combine the two launch flags. The substitute
+is absent from Staging/Release and proves no Apple/provider/hosted acceptance.

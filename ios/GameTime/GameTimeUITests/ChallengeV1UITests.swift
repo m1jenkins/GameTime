@@ -1,6 +1,74 @@
 import XCTest
 
 final class ChallengeV1UITests:XCTestCase {
+    @MainActor func testOrdinarySignalAppJourney() async throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+        let file = root.appendingPathComponent("tmp/beta-native-smoke.json")
+        guard FileManager.default.fileExists(atPath: file.path) else { throw XCTSkip("Owned local Beta controller required") }
+        let config = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: file)) as? [String: Any])
+        let actors = try XCTUnwrap(config["actors"] as? [[String: String]])
+        let app = XCUIApplication()
+        app.launchArguments = ["--authenticated-app-local"]
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_URL"] = config["url"] as? String
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_KEY"] = config["key"] as? String
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_EMAIL"] = actors[0]["email"]
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_PASSWORD"] = config["password"] as? String
+        app.launch()
+        let signIn = app.buttons["auth.local-substitute"]
+        XCTAssertTrue(signIn.waitForExistence(timeout: 10))
+        // A real URL delivery while signed out must survive the ordinary root.
+        let opaqueLink = "gametime-beta://challenge-invite/" + String(repeating: "d", count: 64)
+        app.open(try XCTUnwrap(URL(string: opaqueLink)))
+        signIn.tap()
+        XCTAssertTrue(app.buttons["beta.tab.home"].waitForExistence(timeout: 15))
+        XCTAssertFalse(app.otherElements["signal.service.closed"].exists)
+        XCTAssertTrue(app.buttons["signal.existing-challenges"].exists)
+        app.buttons["signal.existing-challenges"].tap()
+        XCTAssertTrue(app.buttons["signal.existing.done"].waitForExistence(timeout: 10))
+        app.buttons["signal.existing.done"].tap()
+        app.buttons["beta.tab.challenges"].tap()
+        XCTAssertEqual(app.textFields["Invitation link"].value as? String, opaqueLink)
+        let age = app.switches["beta.age.toggle"]
+        XCTAssertTrue(age.waitForExistence(timeout: 10))
+        age.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
+        app.buttons["beta.age.submit"].tap()
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: age)], timeout: 10), .completed)
+        app.buttons["beta.create.open"].tap()
+        func bring(_ element: XCUIElement) {
+            for _ in 0..<12 { if element.exists && element.isHittable { return }; app.swipeUp() }
+        }
+        let create = app.buttons["beta.create.submit"]
+        bring(create)
+        XCTAssertTrue(create.waitForExistence(timeout: 10)); XCTAssertTrue(create.isEnabled)
+        create.tap()
+        XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 10))
+        let latest = try await betaControl(config, ["action": "latest", "actor": actors[0]["id"]!])
+        let id = try XCTUnwrap(latest["id"] as? String)
+        let lobby = app.buttons["beta.row.lobby_open.friend_steps_goal_v1." + id.uppercased()]
+        bring(lobby); XCTAssertTrue(lobby.waitForExistence(timeout: 10)); lobby.tap()
+        let cancel = app.buttons["Cancel challenge"]
+        bring(cancel); XCTAssertTrue(cancel.waitForExistence(timeout: 10)); cancel.tap()
+        let confirmCancel = app.sheets.buttons["Cancel challenge"]
+        XCTAssertTrue(confirmCancel.waitForExistence(timeout: 5)); confirmCancel.tap()
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let history = app.buttons["beta.row.cancelled.friend_steps_goal_v1." + id.uppercased()]
+        bring(history); XCTAssertTrue(history.waitForExistence(timeout: 10)); history.tap()
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Ordinary Signal shared-session history"
+        attachment.lifetime = .keepAlways; add(attachment)
+        app.buttons["beta.tab.you"].tap()
+        app.buttons["account-support.open"].tap()
+        let signOut = app.buttons["account-support.sign-out"]
+        bring(signOut); XCTAssertTrue(signOut.waitForExistence(timeout: 10)); signOut.tap()
+        XCTAssertTrue(signIn.waitForExistence(timeout: 10))
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(signIn.waitForExistence(timeout: 10)); signIn.tap()
+        XCTAssertTrue(app.buttons["beta.tab.challenges"].waitForExistence(timeout: 15)); app.buttons["beta.tab.challenges"].tap()
+        XCTAssertEqual(app.textFields["Invitation link"].value as? String, opaqueLink, "Cold relaunch retains an unredeemed invitation")
+    }
+
     @MainActor func testOwnedLocalAccountDeletionJourney() throws {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent()

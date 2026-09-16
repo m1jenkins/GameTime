@@ -156,11 +156,10 @@ struct SignalChallengeUnavailableView: View {
 struct SignalProductShell: View {
     @Environment(AppModel.self) private var model
     @Environment(AppRouter.self) private var router
-    @State private var invitation = ChallengeInvitationIntent()
     @State private var showingExistingChallenges = false
 
     var body: some View {
-        ChallengeV1Shell(store: model.challengesV1, invitation: invitation,
+        ChallengeV1Shell(store: model.challengesV1, invitation: model.challengeInvitation,
             logout: { await model.signOut() },
             accountContent: AnyView(AppAccountNavigationView()),
             existingChallenges: AnyView(Button {
@@ -170,7 +169,7 @@ struct SignalProductShell: View {
                 Label("Existing challenges", systemImage: "clock.arrow.circlepath")
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             }.accessibilityIdentifier("signal.existing-challenges")),
-            serviceAvailable: false)
+            serviceAvailable: model.configuration.challengeV1RuntimeEnabled)
             .tint(SignalTheme.accent)
             .task(id: model.userID) {
                 model.challengesV1.setActor(model.userID)

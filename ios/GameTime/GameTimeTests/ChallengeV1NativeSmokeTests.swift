@@ -61,6 +61,126 @@ import XCTest
         let store=ChallengeV1Store(auth:SupabaseAuthClient(client:sdk),client:client,requests:queue)
         return (sdk, store, client, directory)
     }
+    func testOrdinaryAppSharedSessionJourney() async throws {
+        let (sdk, _, _, directory) = try makeSession()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let configuration = try AppConfiguration.validated(environmentValue: "debug", urlValue: config.url.absoluteString,
+            keyValue: config.key, mutationValue: "NO", challengeV1Value: "YES")
+        let auth = AppChallengeSmokeAuth(sdk: sdk, password: config.password)
+        let client = LiveServicesFactory.makeChallenges(configuration: configuration, client: sdk)
+        let services = FixtureServicesFactory.make(arguments: ["--fixture-mode"], authClient: auth,
+            personalHealthSteps: DisabledPersonalHealthStepReader(), profileClient: SupabaseProfileClient(client: sdk), challengesV1: client)
+        let intentDirectory = directory.appendingPathComponent("intent")
+        let model = AppModel(configuration: configuration, services: services,
+            challengeDirectory: directory.appendingPathComponent("requests"),
+            challengeInvitation: ChallengeInvitationIntent(directory: intentDirectory))
+        let store = model.challengesV1
+        XCTAssertTrue(store.client === client, "Ordinary AppModel consumes the configured shared service")
+        await model.start()
+        XCTAssertEqual(model.phase, .signedOut)
+        let unopened = "gametime-beta://challenge-invite/" + String(repeating: "a", count: 64)
+        model.challengeInvitation.receive(try XCTUnwrap(URL(string: unopened)))
+        for interruption in ["cancel", "fail"] {
+            await model.signInWithApple(.init(idToken: interruption, rawNonce: "fixture", firstSignInDisplayName: nil))
+            XCTAssertEqual(model.phase, .signedOut)
+            XCTAssertEqual(model.challengeInvitation.link, unopened)
+            XCTAssertEqual(ChallengeInvitationIntent(directory: intentDirectory).link, unopened)
+        }
+        func signIn(_ index: Int) async throws {
+            if model.userID != nil { await model.signOut() }
+            XCTAssertTrue(store.challenges.isEmpty, "Ordinary sign-out clears challenge projections")
+            await model.signInWithApple(.init(idToken: config.actors[index].email, rawNonce: "fixture", firstSignInDisplayName: nil))
+            XCTAssertEqual(model.phase, .signedIn, model.presentedError ?? "App sign-in failed")
+            XCTAssertEqual(model.userID, config.actors[index].id)
+            XCTAssertEqual(store.actor, model.userID, "AppModel binds challenges before mounting Signal")
+            await store.refresh()
+            XCTAssertNil(store.error)
+            XCTAssertEqual(store.actor, config.actors[index].id, "Queued prior Auth events cannot clear the new actor")
+            _ = try XCTUnwrap(store.access)
+        }
+        try await signIn(0)
+        XCTAssertFalse(try XCTUnwrap(store.access).ageConfirmed)
+        await store.submit(op: "confirm_age", fields: ["confirmed": .bool(true)])
+        XCTAssertTrue(try XCTUnwrap(store.access).ageConfirmed)
+        let fields: [String: ChallengeJSON] = ["policy": .string("friend_steps_goal_v1"), "config": .object([
+            "start_date": .string("2026-10-03"), "days": .integer(1), "timezone": .string("UTC"), "amount_cents": .integer(100)])]
+        try await control(["action": "clock", "now": "2026-10-01T12:00:00Z", "admission": false])
+        await store.submit(op: "create", fields: fields)
+        XCTAssertEqual(store.error, ChallengeV1Error.server("challenge_admission_paused").localizedDescription)
+        let pausedRequest = try XCTUnwrap(store.pending, "Existing recovery keeps the exact paused action")
+        try await control(["action": "clock", "now": "2026-10-01T12:00:00Z"])
+        await store.retry()
+        XCTAssertNil(store.pending)
+        XCTAssertEqual(pausedRequest.actorId, config.actors[0].id)
+        let id = try XCTUnwrap(store.lastReceipt?.id, store.error ?? "Create failed")
+        await store.submit(op: "issue_link", fields: ["id": .string(id.uuidString.lowercased())])
+        let link = "gametime-beta://challenge-invite/" + (try XCTUnwrap(store.lastReceipt?.token))
+        await model.signOut()
+        model.challengeInvitation.receive(try XCTUnwrap(URL(string: link)))
+        try await signIn(6)
+        XCTAssertEqual(model.challengeInvitation.link, link)
+        await store.submit(op: "confirm_age", fields: ["confirmed": .bool(true)])
+        let panel = ChallengeEntryPanel(store: store, invitation: model.challengeInvitation)
+        try await control(["action": "lose", "rpc": "challenge_command_v1"])
+        await panel.useInvitation()
+        let pending = try XCTUnwrap(store.pending)
+        XCTAssertEqual(model.challengeInvitation.link, link)
+        try await signIn(0)
+        XCTAssertNil(store.pending, "A different account never inherits redemption")
+        try await signIn(6)
+        XCTAssertEqual(store.pending, pending)
+        await store.retry()
+        XCTAssertNil(store.pending, store.error ?? "Exact retry failed")
+        await panel.useInvitation()
+        XCTAssertTrue(model.challengeInvitation.link.isEmpty)
+        for index in [0, 6] {
+            try await signIn(index)
+            let row = try await client.detail(id, actor: config.actors[index].id)
+            await store.submit(op: "target", challenge: row, fields: ["target": .integer(100)])
+            XCTAssertNil(store.pending, store.error ?? "Target failed")
+        }
+        try await signIn(0)
+        var row = try await client.detail(id, actor: config.actors[0].id)
+        await store.submit(op: "select", challenge: row, fields: ["actor_id": .string(config.actors[6].id.uuidString.lowercased()), "selected": .bool(true)])
+        row = try await client.detail(id, actor: config.actors[0].id)
+        await store.submit(op: "freeze", challenge: row)
+        for index in [0, 6] {
+            try await signIn(index)
+            row = try await client.detail(id, actor: config.actors[index].id)
+            await store.submit(op: "consent", challenge: row, fields: ["digest": .string(try XCTUnwrap(row.agreement?.digest)), "consent": .bool(true)])
+            XCTAssertNil(store.pending, store.error ?? "Consent failed")
+        }
+        row = try await client.detail(id, actor: config.actors[6].id)
+        XCTAssertEqual(row.status, "scheduled")
+        await store.loadDetail(id)
+        XCTAssertTrue(store.challenges.contains { $0.id == id && $0.status == "scheduled" })
+        try await control(["action": "clock", "now": "2026-10-01T12:00:00Z", "admission": false])
+        await store.submit(op: "leave", challenge: row)
+        XCTAssertNil(store.pending, store.error ?? "Paused admission must preserve safe exit")
+        await store.refresh()
+        XCTAssertTrue(store.sections[.history]?.rows.contains { $0.id == id } == true)
+
+        // Force expiry only in the stored client metadata. The renewal itself
+        // goes to real local Auth; no JWT signing or authorization is substituted.
+        var expired = try XCTUnwrap(sdk.auth.currentSession)
+        expired.expiresAt = 0
+        let storage = ChallengeMemoryAuthStorage()
+        let storageKey = "p9-expired-session"
+        try storage.store(key: storageKey, value: JSONEncoder().encode(expired))
+        let renewedSDK = SupabaseClient(supabaseURL: config.url, supabaseKey: config.key,
+            options: .init(auth: .init(storage: storage, storageKey: storageKey, autoRefreshToken: false,
+                emitLocalSessionAsInitialSession: true)))
+        let renewed = LiveServicesFactory.makeChallenges(configuration: configuration, client: renewedSDK)
+        _ = try await renewed.list(actor: config.actors[6].id)
+        XCTAssertGreaterThan(try XCTUnwrap(renewedSDK.auth.currentSession).expiresAt, Date().timeIntervalSince1970)
+        try await control(["action": "revoke_actor_sessions", "actor": config.actors[6].id.uuidString])
+        await store.refresh()
+        XCTAssertNil(store.actor, "Revoked session clears ordinary app content")
+        XCTAssertTrue(store.challenges.isEmpty)
+        await model.signOut()
+        XCTAssertEqual(model.phase, .signedOut)
+    }
+
     func testProductionNativeJourneys() async throws {
         let (sdk, store, client, directory) = try makeSession()
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -578,6 +698,20 @@ import XCTest
         let (data,response)=try await URLSession.shared.data(for:request)
         XCTAssertEqual((response as? HTTPURLResponse)?.statusCode,200)
         return try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    }
+}
+@MainActor private final class AppChallengeSmokeAuth: GameTime.AuthClient {
+    let sdk: SupabaseClient
+    let auth: SupabaseAuthClient
+    let password: String
+    init(sdk: SupabaseClient, password: String) { self.sdk = sdk; self.password = password; auth = SupabaseAuthClient(client: sdk) }
+    func currentUserID() async -> UUID? { await auth.currentUserID() }
+    func authStateChanges() async -> AsyncStream<AuthSnapshot> { await auth.authStateChanges() }
+    func signOut() async throws { try await auth.signOut() }
+    func signInWithApple(_ identity: AppleIdentity) async throws -> UUID {
+        if identity.idToken == "cancel" { throw CancellationError() }
+        if identity.idToken == "fail" { throw ChallengeV1Error.unavailable }
+        return try await sdk.auth.signIn(email: identity.idToken, password: password).user.id
     }
 }
 #endif

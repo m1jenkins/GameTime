@@ -861,6 +861,28 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertEqual(contests.createCallCount, 1)
     }
 
+    func testDelayedAuthSnapshotsCannotReplaceTheNewChallengeActor() async throws {
+        let first = UUID(), second = UUID()
+        let auth = SwitchingAuthClient(initialUserID: first)
+        let services = FixtureServicesFactory.make(arguments: ["GameTimeTests"],
+            authClient: auth, profileClient: AnyActorProfileClient())
+        let model = AppModel(configuration: .fixture, services: services)
+        await model.start()
+        auth.setCurrentUserWithoutPublishing(second)
+        await model.signInWithApple(.init(idToken: "fictional", rawNonce: "fictional", firstSignInDisplayName: nil))
+        XCTAssertEqual(model.challengesV1.actor, second)
+        auth.publishSnapshot(nil)
+        auth.publishSnapshot(first)
+        try await Task.sleep(for: .milliseconds(30))
+        XCTAssertEqual(model.userID, second)
+        XCTAssertEqual(model.phase, .signedIn)
+        XCTAssertEqual(model.challengesV1.actor, second)
+        auth.switchUser(to: nil)
+        try await Task.sleep(for: .milliseconds(30))
+        XCTAssertNil(model.userID, "A current sign-out must still clear shared state")
+        XCTAssertNil(model.challengesV1.actor)
+    }
+
     func testAccountSwitchCannotAttachAStalePendingChallenge() async throws {
         let firstOwnerID = UUID(
             uuidString: "11111111-1111-1111-1111-111111111111"
@@ -1210,6 +1232,10 @@ private final class SwitchingAuthClient: AuthClient {
 
     func switchUser(to userID: UUID?) {
         self.userID = userID
+        publishSnapshot(userID)
+    }
+
+    func publishSnapshot(_ userID: UUID?) {
         let snapshot = AuthSnapshot(userID: userID)
         for continuation in continuations.values {
             continuation.yield(snapshot)

@@ -26,12 +26,26 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
     private let enabled: Bool
     private let binding: @MainActor () -> WeeklyClientSession?
     private let rpc: @MainActor (String, Data) async throws -> Data
-    convenience init(sdk: SupabaseClient, url: URL, key: String) {
+    private let prepareSession: @MainActor (UUID) async throws -> Void
+
+    nonisolated static func isHTTPSOrigin(_ url: URL) -> Bool {
+        url.scheme == "https" && url.host?.isEmpty == false
+            && url.user == nil && url.password == nil && url.query == nil && url.fragment == nil
+            && (url.path.isEmpty || url.path == "/") && (url.port == nil || url.port == 443)
+    }
+
+    convenience init(sdk: SupabaseClient, url: URL, key: String, permitsHTTPS: Bool = false) {
         let config = URLSessionConfiguration.ephemeral
         config.urlCache = nil
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
         let transport = URLSession(configuration: config, delegate: ChallengeNoRedirect(), delegateQueue: nil)
-        self.init(url: url, enabled: key.hasPrefix("sb_publishable_"), binding: {
+        self.init(url: url, enabled: key.hasPrefix("sb_publishable_"), permitsHTTPS: permitsHTTPS, prepareSession: { actor in
+            guard let stored = sdk.auth.currentSession, stored.user.id == actor,
+                  let sessionID = Self.sessionID(stored.accessToken) else { throw ChallengeV1Error.accountChanged }
+            guard let renewed = try await sdk.validSession(), renewed.user.id == actor,
+                  Self.sessionID(renewed.accessToken) == sessionID,
+                  sdk.auth.currentSession?.accessToken == renewed.accessToken else { throw ChallengeV1Error.accountChanged }
+        }, binding: {
             guard let s = sdk.auth.currentSession, s.expiresAt > Date().timeIntervalSince1970 else { return nil }
             return WeeklyClientSession(actorID: s.user.id, identity: s.accessToken)
         }, rpc: { name, body in
@@ -52,14 +66,16 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
             return data
         })
     }
-    init(url: URL, enabled: Bool = true, binding: @escaping @MainActor () -> WeeklyClientSession?,
+    init(url: URL, enabled: Bool = true, permitsHTTPS: Bool = false,
+         prepareSession: @escaping @MainActor (UUID) async throws -> Void = { _ in },
+         binding: @escaping @MainActor () -> WeeklyClientSession?,
          rpc: @escaping @MainActor (String, Data) async throws -> Data) {
         #if DEBUG || STAGING
-        self.enabled = enabled && SupabaseWeeklyClient.isExplicitLoopback(url)
+        self.enabled = enabled && (SupabaseWeeklyClient.isExplicitLoopback(url) || permitsHTTPS && Self.isHTTPSOrigin(url))
         #else
-        self.enabled = false
+        self.enabled = enabled && permitsHTTPS && Self.isHTTPSOrigin(url)
         #endif
-        self.binding = binding; self.rpc = rpc
+        self.binding = binding; self.rpc = rpc; self.prepareSession = prepareSession
     }
     func page(_ section: ChallengeV1Section, cursor: ChallengeJSON?, actor: UUID) async throws -> ChallengeV1Page {
         let body = try ChallengeJSON.data(.object(["p_section": .string(section.rawValue), "p_cursor": cursor ?? .null, "p_limit": .integer(10)]))
@@ -90,6 +106,8 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
     }
     private func send(_ name: String, _ body: Data, _ actor: UUID) async throws -> Data {
         guard enabled else { throw ChallengeV1Error.unavailable }
+        do { try await prepareSession(actor) }
+        catch { throw (error as? ChallengeV1Error) ?? .unavailable }
         guard let before = binding(), before.actorID == actor else { throw ChallengeV1Error.accountChanged }
         do {
             let data = try await rpc(name, body)
@@ -110,6 +128,18 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
     private func decode<T: Decodable>(_ data: Data) throws -> T {
         let decoder = JSONDecoder(); decoder.keyDecodingStrategy = .convertFromSnakeCase
         do { return try decoder.decode(T.self, from: data) } catch { throw ChallengeV1Error.invalidResponse }
+    }
+    /// Session identity is a local race fence only; the backend verifies the JWT.
+    /// Refresh can replace a token, but must not silently substitute another login.
+    private static func sessionID(_ token: String) -> UUID? {
+        let parts = token.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3 else { return nil }
+        var encoded = String(parts[1]).replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+        encoded += String(repeating: "=", count: (4 - encoded.count % 4) % 4)
+        guard let data = Data(base64Encoded: encoded),
+              let claims = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let value = claims["session_id"] as? String else { return nil }
+        return UUID(uuidString: value)
     }
     private struct ServerError: Decodable { let message: String }
 }
@@ -152,7 +182,7 @@ actor ChallengeV1RequestStore {
     private func path(_ actor: UUID) -> URL { directory.appendingPathComponent(actor.uuidString.lowercased()+".json") }
 }
 
-/// No transport or fabricated data. Installing the new UI does not admit hosted challenges.
+/// Missing/unapproved configuration selects no transport and no fabricated data.
 @MainActor final class UnavailableChallengeV1Client: ChallengeV1Client {
     func list(actor: UUID) async throws -> [ChallengeV1] { throw ChallengeV1Error.unavailable }
     func detail(_ id: UUID, actor: UUID) async throws -> ChallengeV1 { throw ChallengeV1Error.unavailable }

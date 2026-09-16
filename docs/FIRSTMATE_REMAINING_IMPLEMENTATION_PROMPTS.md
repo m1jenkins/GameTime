@@ -21,8 +21,10 @@ with owner approval on September 14. The [recovery report](../outputs/reports/20
 [community follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)
 and [operator report](../outputs/reports/2026-09-14-p11a-operator.md) retain their
 dated pre-landing statements and actual verification limits. Do not rerun these
-completed implementation slices. The next requested task is a fresh Beta plan
-review; the prompts below remain scope contracts, not dispatch instructions.
+completed implementation slices. Account deletion and review repairs are landed
+through `c6f88cd`; the [bounded P9 shared-session connection](../outputs/reports/2026-09-15-p9-authenticated-app.md)
+is locally implemented with default-off transport. Preserve both slices. The
+prompts below remain scope contracts, not dispatch instructions.
 This remains local implementation evidence, not real P7/P8/P9 or hosted acceptance. The next
 dependency is an accepted real-source contract and a separately authorized
 hosted target. The physical-source and real-integration prompts below retain

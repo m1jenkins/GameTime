@@ -18,3 +18,8 @@ SUPABASE_PUBLISHABLE_KEY = sb_publishable_lJS21udjGgBWmlGnvsFCDA_Hu8yWhYy
 GAMETIME_PRIVACY_POLICY_URL = UNCONFIGURED
 GAMETIME_BETA_TERMS_URL = UNCONFIGURED
 GAMETIME_SUPPORT_EMAIL = UNCONFIGURED
+
+// Ordinary challenge transport is opt-in for an explicitly selected Beta target.
+// This does not enable server admission, real activity, or fixture policies.
+// Do not select the historical hosted project above as a Beta target by default.
+GAMETIME_CHALLENGE_V1_ENABLED = NO

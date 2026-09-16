@@ -65,6 +65,7 @@ enum ActivitySyncViewState: Equatable, Sendable {
 final class AppModel {
     let configuration: AppConfiguration
     let challengesV1: ChallengeV1Store
+    let challengeInvitation: ChallengeInvitationIntent
     let duels: DuelStore
     let metricPrototypes: MetricPrototypeStore?
     let weekly: WeeklyStore
@@ -109,12 +110,14 @@ final class AppModel {
     @ObservationIgnored private var pushRegistration: PushDeviceRegistration?
     @ObservationIgnored private var registeredPushActorID: UUID?
 
-    init(configuration: AppConfiguration, services: AppServices) {
+    init(configuration: AppConfiguration, services: AppServices, challengeDirectory: URL? = nil,
+         challengeInvitation: ChallengeInvitationIntent = ChallengeInvitationIntent()) {
         self.configuration = configuration
         self.services = services
-        let challengeDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        self.challengeInvitation = challengeInvitation
+        let challengeDirectory = challengeDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("GameTime/ProductChallengeV1Pending")
-        challengesV1 = ChallengeV1Store(auth: services.auth, client: UnavailableChallengeV1Client(),
+        challengesV1 = ChallengeV1Store(auth: services.auth, client: services.challengesV1,
             requests: ChallengeV1RequestStore(directory: challengeDirectory))
         duels = DuelStore(enabled: configuration.duelRuntimeEnabled,
             auth: services.auth, client: services.duels,
@@ -153,7 +156,14 @@ final class AppModel {
                     try? await Task.sleep(for: .milliseconds(10))
                     guard !Task.isCancelled else { return }
                 }
-                await self.resolveAuthentication(userID: snapshot.userID)
+                // Auth events can queue behind an explicit sign-out/sign-in.
+                // Never replay an older actor into the new shared app session.
+                let generation = self.authGeneration
+                let currentUserID = await self.services.auth.currentUserID()
+                guard !self.isPerformingExplicitAuthMutation,
+                      self.authGeneration == generation,
+                      currentUserID == snapshot.userID else { continue }
+                await self.resolveAuthentication(userID: currentUserID)
             }
         }
         await resolveAuthentication(userID: initialUserID)
@@ -1190,6 +1200,11 @@ final class AppModel {
         // clear a different person's current device state.
         guard isCurrentOwner else { return result }
 
+        challengesV1.setActor(nil)
+        // The existing cleaner removes the persisted invitation. End its
+        // in-memory visibility immediately, even if disk cleanup needs recovery.
+        challengeInvitation.link = ""
+        challengeInvitation.message = nil
         duels.setActor(nil)
         performanceCommitments.setActor(nil)
         weekly.setActor(nil)
@@ -1305,6 +1320,7 @@ final class AppModel {
             .load(for: userID)
         accountDeletionStatus = nil
         accountDeletionStatusError = nil
+        challengesV1.setActor(userID)
         duels.setActor(userID)
         performanceCommitments.setActor(userID)
         weekly.setActor(userID)

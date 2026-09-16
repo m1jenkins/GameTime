@@ -45,7 +45,8 @@ funded launch remains separate. No adopted product scope changed.
 
 The landed native recovery and server corrections are recorded in the
 working baseline; preserve their dated reports and original validation limits. Normal signed-in challenges
-remain unavailable and all 18 readiness entries remain false, including money and
+now support an explicitly configured shared-session client; checked-in configuration
+remains off and all 18 readiness entries remain false, including money and
 optional analytics that should stay off for simulation. No physical, hosted or
 release validation is established by the native presentation work.
 

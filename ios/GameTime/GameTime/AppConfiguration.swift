@@ -31,6 +31,19 @@ struct AppConfiguration: Equatable, Sendable {
     let duelRequested: Bool
     let performanceCommitmentRequested: Bool
     let weeklyRequested: Bool
+    let challengeV1Requested: Bool
+
+    /// Selects transport only. The server still owns admission and source gates.
+    var challengeV1RuntimeEnabled: Bool {
+        guard challengeV1Requested, supabasePublishableKey.hasPrefix("sb_publishable_"),
+              supabasePublishableKey.count > "sb_publishable_".count else { return false }
+        if SupabaseChallengeV1Client.isHTTPSOrigin(supabaseURL) { return true }
+        #if DEBUG || STAGING
+        return environment != .release && SupabaseWeeklyClient.isExplicitLoopback(supabaseURL)
+        #else
+        return false
+        #endif
+    }
 
     var weeklyRuntimeEnabled: Bool {
         #if DEBUG || STAGING
@@ -73,7 +86,8 @@ struct AppConfiguration: Equatable, Sendable {
         legacySocialRuntimeEnabled: Bool = false,
         duelRequested: Bool = false,
         performanceCommitmentRequested: Bool = false,
-        weeklyRequested: Bool = false
+        weeklyRequested: Bool = false,
+        challengeV1Requested: Bool = false
     ) {
         self.environment = environment
         self.supabaseURL = supabaseURL
@@ -88,6 +102,7 @@ struct AppConfiguration: Equatable, Sendable {
         self.duelRequested = duelRequested
         self.performanceCommitmentRequested = performanceCommitmentRequested
         self.weeklyRequested = weeklyRequested
+        self.challengeV1Requested = challengeV1Requested
     }
 
     /// The `mailto:` a Contact button opens, or nil when no inbox is set.
@@ -196,7 +211,8 @@ struct AppConfiguration: Equatable, Sendable {
             supportEmailValue: supportEmailValue,
             duelRequested: ProcessInfo.processInfo.arguments.contains("--duels"),
             performanceCommitmentRequested: ProcessInfo.processInfo.arguments.contains("--commitments"),
-            weeklyRequested: ProcessInfo.processInfo.arguments.contains("--weekly")
+            weeklyRequested: ProcessInfo.processInfo.arguments.contains("--weekly"),
+            challengeV1Value: bundle.object(forInfoDictionaryKey: "GAMETIME_CHALLENGE_V1_ENABLED") as? String
         )
     }
 
@@ -212,7 +228,8 @@ struct AppConfiguration: Equatable, Sendable {
         supportEmailValue: String? = nil,
         duelRequested: Bool = false,
         performanceCommitmentRequested: Bool = false,
-        weeklyRequested: Bool = false
+        weeklyRequested: Bool = false,
+        challengeV1Value: String? = nil
     ) throws -> AppConfiguration {
         guard let environment = AppEnvironment(
             rawValue: environmentValue?.lowercased() ?? ""
@@ -321,7 +338,8 @@ struct AppConfiguration: Equatable, Sendable {
             supportEmail: supportInbox(supportEmailValue),
             duelRequested: duelRequested,
             performanceCommitmentRequested: performanceCommitmentRequested,
-            weeklyRequested: weeklyRequested
+            weeklyRequested: weeklyRequested,
+            challengeV1Requested: ["yes", "true", "1"].contains(challengeV1Value?.lowercased() ?? "")
         )
     }
 

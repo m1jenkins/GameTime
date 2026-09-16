@@ -121,10 +121,20 @@ struct GameTimeApp: App {
                 }
                 services = FixtureServicesFactory.make()
             } else {
+                #if DEBUG
+                if ChallengeAuthenticatedAppLaunch.enabled {
+                    configuration = try ChallengeAuthenticatedAppLaunch.configuration()
+                    services = ChallengeAuthenticatedAppLaunch.services(configuration: configuration)
+                } else {
+                    configuration = try .load()
+                    services = try LiveServicesFactory.make(configuration: configuration)
+                }
+                #else
                 configuration = try .load()
                 services = try LiveServicesFactory.make(
                     configuration: configuration
                 )
+                #endif
             }
             #else
             configuration = try .load()
@@ -264,6 +274,9 @@ struct GameTimeApp: App {
     }
 
     private func configureProductServices() async {
+                #if DEBUG
+                guard !ChallengeAuthenticatedAppLaunch.enabled else { return }
+                #endif
                 appDelegate.pushCoordinator = pushCoordinator
                 if let livePersonalStore {
                     livePersonalStore.setBackgroundDeliveryRegistration(
@@ -429,6 +442,7 @@ struct RootView: View {
             openDuelInvitation()
         }
         .onOpenURL { url in
+            model.challengeInvitation.receive(url)
             #if DEBUG || STAGING
             model.duels.receiveInvitation(url)
             openDuelInvitation()
@@ -585,8 +599,19 @@ private struct SignedOutView: View {
                 }
 
                 VStack(spacing: 10) {
-                    NativeAppleSignInButton()
+                    #if DEBUG
+                    if ChallengeAuthenticatedAppLaunch.enabled {
+                        Button("Sign in with local test account") {
+                            Task { await model.signInWithApple(ChallengeAuthenticatedAppLaunch.identity) }
+                        }
                         .disabled(model.isMutating)
+                        .accessibilityIdentifier("auth.local-substitute")
+                    } else {
+                        NativeAppleSignInButton().disabled(model.isMutating)
+                    }
+                    #else
+                    NativeAppleSignInButton().disabled(model.isMutating)
+                    #endif
 
                     if model.isMutating {
                         SignalAsyncStatus(message: "Signing in…")

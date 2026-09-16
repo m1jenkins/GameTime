@@ -1,5 +1,12 @@
 # GameTime real-activity handoff
 
+September 15 update: [WORKING_BASELINE.md](WORKING_BASELINE.md) supersedes the
+dated continuation below. Signal is the ordinary shell, account deletion is
+landed through `c6f88cd`, and the [bounded P9 connection](../outputs/reports/2026-09-15-p9-authenticated-app.md)
+uses the shared authenticated app session when explicitly configured. Default
+transport and all readiness gates remain closed; physical/source and approved
+hosted/Apple/invitation acceptance are still separate.
+
 ## Current continuation — September 12, 2026 UTC
 
 Use [WORKING_BASELINE.md](WORKING_BASELINE.md) and the

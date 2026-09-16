@@ -47,8 +47,10 @@ The later combined S2/P8/P11A candidate landed on local main at
 | P11A — local recovery | Combined S2/P8/P11A candidate landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`; community verification gap closed with a test-only correction and focused review. Hosted schedules, credentials and external alerts remain disabled | [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [September 14 follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md) |
 | P11A — operator CLI | Landed on local main at `6fea1c2`: scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery. Reported verification: 131 CLI/HTTP checks, 8 unit tests and 86 SQL assertions passed; administrator grant response reconciliation remains manual | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
 | Local design preview | Fictional friend/personal journeys with configurable owned resources | [Preview guide](BETA_LOCAL_PREVIEW.md) |
-| P8/P9 | Real ingestion, accepted adapters, authenticated transport/links and integrated journeys remain; reuse existing closed contracts and screens | [Remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) |
-| P11–13 | Operating code/deletion, hosted capacity/recovery, physical/human/release acceptance, then authorized private Beta remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
+| P9 — shared app session | Bounded local implementation connects configured ordinary Signal to the existing authenticated client; default configuration remains off. Actual HTTPS/Apple identity and real-source journeys remain | [Connection and local checks](BETA_LOCAL_PREVIEW.md#ordinary-app-connection-and-its-local-substitute), [P9 report](../outputs/reports/2026-09-15-p9-authenticated-app.md) |
+| P8/P9 remainder | Accepted real-source contracts, ingestion, adapters, HTTPS invitations and integrated source-backed journeys remain | [Remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) |
+| P11A — account deletion | Landed through `c6f88cd`, including review repairs; local evidence and substitute limits preserved | [Deletion record](evidence/beta-finish-line-b7/account-deletion-local-20260914.md) |
+| P11–13 | Hosted capacity/recovery, physical/human/release acceptance, then authorized private Beta remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
 
 ## Next work
 
@@ -78,8 +80,11 @@ Their original branches and reports remain preserved; do not import the overnigh
 implementation a second time. The follow-up changed only community tests and
 documentation; prior native, P8 race and upgrade results were not rerun there.
 
-Normal signed-in Signal still uses `UnavailableChallengeV1Client`; development
-transport remains loopback-only. All 18 readiness entries remain false.
+Normal signed-in Signal now obtains its challenge client from shared app services.
+The explicit `GAMETIME_CHALLENGE_V1_ENABLED` setting remains off in checked-in
+configuration; an approved HTTPS target or explicit non-Release loopback can use
+the existing authenticated client. See the [P9 report](../outputs/reports/2026-09-15-p9-authenticated-app.md)
+for focused local checks and their limits. All 18 readiness entries remain false.
 Consolidation does not enable real activity scoring, community publication,
 hosting, money or distribution. Preserve existing Personal agreements and access
 until replacement acceptance. P9A's native checks are recorded in its report;

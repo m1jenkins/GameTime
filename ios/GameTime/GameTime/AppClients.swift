@@ -288,6 +288,7 @@ struct AppServices {
     let duels: any DuelClient
     let pendingDuels: any PendingDuelRequestStore
     let metricPrototypes: MetricPrototypeStore?
+    let challengesV1: any ChallengeV1Client
     let weekly: any WeeklyClient
     let pendingWeekly: any PendingWeeklyRequestStore
     let performanceCommitments: any PerformanceCommitmentClient
@@ -333,8 +334,10 @@ struct AppServices {
         pendingPerformanceCommitments: any PendingPerformanceCommitmentRequestStore = EphemeralPendingPerformanceCommitmentRequestStore(),
         weekly: any WeeklyClient = DisabledWeeklyClient(),
         pendingWeekly: any PendingWeeklyRequestStore = EphemeralPendingWeeklyRequestStore(),
-        metricPrototypes: MetricPrototypeStore? = nil
+        metricPrototypes: MetricPrototypeStore? = nil,
+        challengesV1: any ChallengeV1Client = UnavailableChallengeV1Client()
     ) {
+        self.challengesV1 = challengesV1
         self.auth = auth
         self.profiles = profiles
         self.friendships = friendships

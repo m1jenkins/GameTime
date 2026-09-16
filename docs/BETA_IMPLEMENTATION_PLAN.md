@@ -30,7 +30,10 @@ Signal is the official UI/UX as of the September 13 owner clarification. The
 wiring and cobalt visual retirement (P9A). Its [local native implementation](../outputs/reports/2026-09-13-signal-native-migration.md)
 uses Signal across new and retained routes; the report records verification and
 remaining device/human limits. D134/D135 product rules and historical access are
-preserved. Real source/transport integration remains P8/P9 work.
+preserved. The [bounded P9 connection](../outputs/reports/2026-09-15-p9-authenticated-app.md)
+now reuses the ordinary app's authenticated session, with checked-in transport
+still off. Approved hosting/identities, real sources and source-backed journeys
+remain P8/P9 work.
 
 ## Product contract
 

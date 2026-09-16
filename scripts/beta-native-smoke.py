@@ -195,6 +195,14 @@ class Smoke:
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*_):
         pass
+    def do_GET(self):
+        # Ordinary AppModel loads its own profile using the same SDK/session.
+        if not self.path.startswith('/rest/v1/profiles?'):
+            self.reply(403, b'{}'); return
+        headers = {k:v for k,v in self.headers.items() if k.lower() not in ('host','content-length','connection')}
+        status, data = local_http('GET', self.path, headers)
+        self.server.smoke.trace.append({'profile_status': status})
+        self.reply(status, data)
     def do_POST(self):
         smoke=self.server.smoke
         body=self.rfile.read(int(self.headers.get('Content-Length','0')))
@@ -230,10 +238,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status); self.send_header('Content-Type','application/json'); self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--simulator',required=True);parser.add_argument('--native-only',action='store_true');parser.add_argument('--touch-only',choices=['2','6','entry']);parser.add_argument('--accessibility',choices=['light','dark','large','compact','control','form-reference','tab-reference','scroll-reference'])
+    parser=argparse.ArgumentParser();parser.add_argument('--simulator',required=True);parser.add_argument('--native-only',action='store_true');parser.add_argument('--touch-only',choices=['2','6','entry','app']);parser.add_argument('--accessibility',choices=['light','dark','large','compact','control','form-reference','tab-reference','scroll-reference'])
     parser.add_argument('--derived-data',type=Path,default=Path(f'/tmp/{OWNED_PROJECT}-derived'))
     parser.add_argument('--evidence-dir',type=Path,default=Path(f'/tmp/{OWNED_PROJECT}-evidence'))
-    parser.add_argument('--native-phase', choices=['all', 'matrix', 'recovery'], default='all',
+    parser.add_argument('--native-phase', choices=['all', 'matrix', 'recovery', 'app'], default='all',
                         help='Scope native HTTP checks; all includes both matrix and recovery/privacy')
     args=parser.parse_args();assert args.derived_data.is_absolute() and args.evidence_dir.is_absolute(),'Use absolute task-owned build/evidence paths'
     args.evidence_dir.mkdir(parents=True,exist_ok=True)
@@ -262,8 +270,16 @@ def main():
                 '2': ['testTwoPersonTouchJourney'],
                 '6': ['testSixPersonTouchJourney'],
                 'entry': ['testAuthenticatedLocalShellHistoryAndAccountExit', 'testMetricChoicesAndPersonalConsentAfterEditing'],
+                'app': ['testOrdinarySignalAppJourney'],
             }[args.touch_only]
             command += ['-only-testing:GameTimeUITests/ChallengeV1UITests/' + test for test in tests]
+        elif args.native_phase == 'app':
+            command = [x for x in command if not x.startswith('-only-testing:')]
+            command += ['-only-testing:GameTimeTests/ChallengeV1NativeSmokeTests/testOrdinaryAppSharedSessionJourney',
+                        '-only-testing:GameTimeTests/ChallengeAppConfigurationTests',
+                        '-only-testing:GameTimeTests/ChallengeV1NativeTests',
+                        '-only-testing:GameTimeTests/ChallengeInvitationRecoveryTests',
+                        '-only-testing:GameTimeTests/AccountDeletionTests']
         elif not args.native_only:command.append('-only-testing:GameTimeUITests/ChallengeV1UITests')
         result_path = args.evidence_dir / ('native-' + str(uuid.uuid4()) + '.xcresult')
         command += ['-resultBundlePath', str(result_path), '-collect-test-diagnostics', 'never']

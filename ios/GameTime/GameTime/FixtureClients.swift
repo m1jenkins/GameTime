@@ -32,7 +32,8 @@ enum FixtureServicesFactory {
             EphemeralAccountDeletionReceiptStore(),
         accountLocalStateCleaner: any AccountLocalStateCleaning =
             NoOpAccountLocalStateCleaner(),
-        profileClient: (any ProfileClient)? = nil
+        profileClient: (any ProfileClient)? = nil,
+        challengesV1: any ChallengeV1Client = UnavailableChallengeV1Client()
     ) -> AppServices {
         let scenario = FixtureScenario(arguments: arguments)
         let store = FixtureStore(scenario: scenario)
@@ -137,7 +138,8 @@ enum FixtureServicesFactory {
             duels: FixtureDuelClient(backend: duelBackend, currentActor: { store.userID }),
             performanceCommitments: FixturePerformanceCommitmentClient(currentActor: { store.userID }, arguments: arguments),
             weekly: weeklyClient ?? DisabledWeeklyClient(),
-            pendingWeekly: pendingWeeklyRequestStore ?? EphemeralPendingWeeklyRequestStore()
+            pendingWeekly: pendingWeeklyRequestStore ?? EphemeralPendingWeeklyRequestStore(),
+            challengesV1: challengesV1
         )
     }
 }
