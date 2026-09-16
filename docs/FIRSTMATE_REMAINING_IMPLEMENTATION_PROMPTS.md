@@ -158,10 +158,13 @@ migration acceptance and tested source; finish any missing required presentation
 under docs/design/SIGNAL_UI_MIGRATION.md. Use the native recovery fixes already
 landed on main through S2 and the Privacy1/S1 corrections through P8; their
 September 13 reports preserve actual checks and limits. Do not reimplement or
-remerge the overnight fixes. The retained overnight branch holds distinct
-historical failure/correction evidence, as recorded in
-docs/HISTORICAL_BRANCH_DISPOSITION_20260915.md. Preserve Signal and those evidence
-boundaries while completing the remaining real-source integration.
+remerge the overnight fixes. Distinct overnight historical failure/correction
+evidence remains recoverable from the verified external bundle after the
+captain-authorized branch deletion, as recorded in
+docs/HISTORICAL_BRANCH_DISPOSITION_20260915.md. That record also preserves the
+unresolved static-only profile-retry follow-up and its bundled regression material.
+Preserve Signal and those evidence boundaries while completing the remaining
+real-source integration.
 
 Complete one accepted steps journey through activity, correction, review and final
 history before expanding the same path to the other three accepted metrics. Reuse

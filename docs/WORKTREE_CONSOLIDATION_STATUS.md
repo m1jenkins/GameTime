@@ -4,9 +4,11 @@ Use [WORKING_BASELINE.md](WORKING_BASELINE.md) for current source and status.
 The [September 15 cleanup report](../outputs/reports/2026-09-15-clean-baseline.md)
 records the earlier read-only branch, remote and pool inventory. The
 [September 15 historical-branch disposition](HISTORICAL_BRANCH_DISPOSITION_20260915.md)
-records four subsequently executed deletions and five retained local refs with
-pinned hashes and specific reasons. The historical inventory itself does not
-claim those later actions.
+records all nine pinned historical ref tips and the September 16 executed
+backup-and-delete disposition. The five formerly retained local refs were deleted;
+useful old work remains recoverable from the independently verified external
+bundle documented there. The historical inventory itself does not claim those
+later actions.
 
 ## Historical consolidation — September 12, 2026
 

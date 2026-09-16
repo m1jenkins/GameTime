@@ -1,5 +1,55 @@
 # Historical branch disposition — September 15, 2026
 
+## Superseding executed disposition — September 16, 2026
+
+The captain explicitly selected “Preserve a verified recovery bundle outside the
+project, then delete these local and matching remote branches.” This supersedes
+live-ref retention below; it does not make the useful old work irrelevant.
+Firstmate deleted the five formerly retained local refs at
+**2026-09-16T05:13:25Z**, at the exact tips in the dated table below. The other
+two local refs and both matching remote branches had already been deleted.
+At completion, only `main` existed locally and remotely, at unchanged
+`ce9016f65dc4148b251a50cdcbb3fea3c9019a86`; the stash was unchanged.
+This describes the pruning checkpoint, before subsequent task branches.
+
+Useful controller corrections, profile-retry regressions and distinct historical
+records remain recoverable from the external bundle:
+
+- Location: `/Users/user/firstmate-workspace/data/gametime-clean-baseline-20260915/unmerged-history.bundle`
+- SHA256: `8b1158ba234f9318551b36c3272adfc7916e2fcfe21084e74458cd28a1aa5d42`
+- Size: **177953048 bytes**.
+
+Firstmate independently restored all nine exact ref tips and their trees into a
+temporary mirror; `git fsck --full` passed at **2026-09-16T05:12:50Z**.
+The temporary restore was removed. Private `bundle-verification.json` and
+`executed-pruning.json` live under
+`/Users/user/firstmate-workspace/data/gametime-historical-prune-20260916/`.
+The static-only profile-retry follow-up below remains unresolved; its old work
+is now available from the bundle, without reopening or merging an old branch.
+
+### Safe recovery in a separate scratch directory
+
+Never restore over `main` or into the active checkout. To inspect the full
+preserved refs, clone the bundle with `--mirror` into a new scratch directory:
+
+```sh
+recovery_dir=$(mktemp -d /tmp/gametime-history-recovery.XXXXXX)
+git clone --mirror /Users/user/firstmate-workspace/data/gametime-clean-baseline-20260915/unmerged-history.bundle "$recovery_dir/history.git"
+git -C "$recovery_dir/history.git" show-ref
+git -C "$recovery_dir/history.git" fsck --full
+```
+
+The mirror exposes both `refs/heads/*` and the preserved `refs/remotes/origin/*`
+(including the distinct remote Daybreak tip). Inspect a pinned commit with
+`git -C "$recovery_dir/history.git" show <commit>`; recovery does not authorize
+importing old work into the current product.
+
+## Dated September 15 findings (superseded retention disposition)
+
+The following findings and immutable hashes preserve the earlier audit and its
+then-current retention instructions. The September 16 execution above supersedes
+those live-ref instructions and the earlier precautionary-only bundle status.
+
 Firstmate completed the four deletions below at **2026-09-16 04:40:37 UTC**
 (September 15 in America/Chicago), after an audit of committed history and
 exact-hash preflight checks. Main remained

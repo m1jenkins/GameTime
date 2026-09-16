@@ -125,3 +125,15 @@ for full refs/hashes, current equivalents and the required retained carriers.
 This is a later execution receipt; the original read-only tables above retain
 their historical meaning. No additional historical branch is approved for deletion
 by that receipt.
+
+## Later action — September 16, 2026
+
+At 2026-09-16T05:13:25Z, Firstmate deleted the five formerly retained local
+refs under the captain's explicit backup-and-delete choice. Two other local
+refs and both matching remotes were already deleted; only main remained locally
+and remotely at that checkpoint, and the stash was unchanged. All nine exact tips
+were independently restored from the external bundle and `git fsck --full`
+passed. The [superseding disposition](../../../docs/HISTORICAL_BRANCH_DISPOSITION_20260915.md) records the recovery location,
+checksum and scratch-mirror recipe. Useful old work remains recoverable; the
+static-only profile-retry follow-up remains unresolved. These later actions
+supersede live-ref retention, without rewriting the historical tables or manifests.
