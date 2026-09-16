@@ -1,7 +1,7 @@
 # GameTime checkout consolidation
 
 Use [WORKING_BASELINE.md](WORKING_BASELINE.md) for current source and status.
-The [September 15 cleanup report](../data/gametime-clean-baseline-20260915/report.md)
+The [September 15 cleanup report](../outputs/reports/2026-09-15-clean-baseline.md)
 records the current read-only branch, remote and pool inventory, exact retention
 exceptions and candidates for Firstmate's guarded cleanup. No resource removal
 is claimed by that inventory.

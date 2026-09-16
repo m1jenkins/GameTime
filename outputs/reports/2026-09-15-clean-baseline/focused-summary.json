@@ -1,0 +1,65 @@
+{
+  "devicesAndConfigurations": [
+    {
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "10F34302-A5E8-43D6-BB55-C4111B96E8F3",
+        "deviceName": "GameTimeCleanBaseline-20260915",
+        "modelName": "iPhone 17 Pro",
+        "osBuildNumber": "23F77",
+        "osVersion": "26.5",
+        "platform": "iOS Simulator"
+      },
+      "expectedFailures": 0,
+      "failedTests": 2,
+      "passedTests": 45,
+      "skippedTests": 0,
+      "testPlanConfiguration": {
+        "configurationId": "1",
+        "configurationName": "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription": "GameTime \u00b7 Built with macOS 27.0",
+  "expectedFailures": 0,
+  "failedTests": 2,
+  "finishTime": 1789529706.603,
+  "passedTests": 45,
+  "result": "Failed",
+  "runtimeWarnings": [
+    {
+      "issueType": "Runtime Warning",
+      "message": "Invalid frame dimension (negative or non-finite)."
+    }
+  ],
+  "skippedTests": 0,
+  "startTime": 1789529500.071,
+  "statistics": [],
+  "testFailures": [
+    {
+      "failureText": "XCTAssertTrue failed",
+      "targetName": "GameTimeUITests",
+      "testIdentifier": 45,
+      "testIdentifierString": "GameTimeUITests/testSettingsKeepPrivacyHelpDocumentsAndAccountActionsReachable()",
+      "testIdentifierURL": "test://com.apple.xcode/GameTime/GameTimeUITests/GameTimeUITests/testSettingsKeepPrivacyHelpDocumentsAndAccountActionsReachable",
+      "testName": "testSettingsKeepPrivacyHelpDocumentsAndAccountActionsReachable()"
+    },
+    {
+      "failureText": "Failed to tap \"beta.tab.you\" Button: No matches found for Elements matching predicate '\"beta.tab.you\" IN identifiers' from input {(\n    Button, label: 'Home', Selected,\n    Button, label: 'Challenges',\n    Button, label: 'You',\n    Button, identifier: 'beta.home.create', label: 'New challenge',\n    Button, identifier: 'signal.existing-challenges', label: 'Existing challenges'\n)}",
+      "targetName": "GameTimeUITests",
+      "testIdentifier": 46,
+      "testIdentifierString": "GameTimeUITests/testSignalProductShellPreservesAccountAndExistingChallenges()",
+      "testIdentifierURL": "test://com.apple.xcode/GameTime/GameTimeUITests/GameTimeUITests/testSignalProductShellPreservesAccountAndExistingChallenges",
+      "testName": "testSignalProductShellPreservesAccountAndExistingChallenges()"
+    }
+  ],
+  "title": "Test - GameTime",
+  "topInsights": [
+    {
+      "category": "Longest Test Runs",
+      "impact": "71% of duration",
+      "text": "2 longest test runs with outlier durations exceeding 25.60s (three standard deviations)"
+    }
+  ],
+  "totalTestCount": 47
+}

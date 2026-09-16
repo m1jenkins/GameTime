@@ -1,0 +1,26 @@
+{
+  "project": {
+    "targets": [
+      "GameTime",
+      "GameTimeTests",
+      "GameTimeUITests"
+    ],
+    "schemes": [
+      "GameTime-Staging.xcscheme",
+      "GameTime.xcscheme",
+      "GameTimeBetaLocal.xcscheme"
+    ],
+    "source_files": 153
+  },
+  "product": {
+    "app": "tmp/clean-baseline/DerivedData/Build/Products/Debug-iphonesimulator/GameTime.app",
+    "mach_o_files": [
+      "GameTime",
+      "GameTime.debug.dylib",
+      "PlugIns/GameTimeTests.xctest/GameTimeTests",
+      "__preview.dylib"
+    ],
+    "healthkit_linked": true,
+    "watch_payloads_or_links": false
+  }
+}

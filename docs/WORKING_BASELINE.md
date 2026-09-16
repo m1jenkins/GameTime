@@ -10,7 +10,7 @@ Local `main`, `origin/main` and GitHub `main` match
 published ancestry, including P9's shared-session connection and the local
 deletion/operator/privacy fixes. Later cleanup delivery and the read-only
 branch/worktree disposition are recorded in the
-[clean-baseline report](../data/gametime-clean-baseline-20260915/report.md).
+[clean-baseline report](../outputs/reports/2026-09-15-clean-baseline.md).
 Firstmate owns its final fast-forward, push and guarded resource cleanup; that
 report does not claim those actions have already happened.
 
