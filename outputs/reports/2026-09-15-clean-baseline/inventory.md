@@ -102,3 +102,14 @@ local ref or a main ancestor; the clone holds no unique referenced commit.
 This proves referenced-history coverage, not a license to discard reflogs or
 unknown filesystem material. The older clone's final removal remains Firstmate's
 guarded action after its own last-minute status/ownership check.
+
+## Supervisor follow-up — after this inventory
+
+Firstmate reports local `codex/consolidate-main`/`codex/crisp-cobalt-ui` and remote
+`claude/app-language-review-oxo9mf`/`codex/weekly-local-roadmap` deleted, followed
+by fetch/prune. The P9 copy was retired with 44 MB of validation preserved in its
+private task data. Duplicate ownership records were reconciled with stopped old
+agents and backed-up records; current cleanup pool2 remains active. Older scout
+copies were being returned. Seven unique local branches and two corresponding
+remotes remain pending the owner's retention/recovery-bundle decision. The
+initial tables above preserve the read-only evidence used to choose those actions.

@@ -2,8 +2,8 @@
 
 The cleanup is implemented on `fm/gametime-clean-baseline-20260915`, based on
 published main `1dacc6644f2100567d85fbaa2970bb7285bbaa35`. Final implementation
-commit: **`fab88d1a9b1a5bc6a559e76a9d3674cb8025300d`**. Its following documentation
-commit contains this report and screenshots; resolve the delivered tip with
+commit: **`fab88d1a9b1a5bc6a559e76a9d3674cb8025300d`**. Following documentation
+commits contain this report, screenshots and supervisor cleanup updates; resolve the delivered tip with
 `git rev-parse fm/gametime-clean-baseline-20260915`. No app behavior, historical
 consent, source policy, readiness flag, migration or stored data changed.
 Firstmate owns the final fast-forward, push and guarded resource retirement;
@@ -146,6 +146,18 @@ copies. Keep unique archive/Beta1/accessibility/overnight/Signal/Daybreak histor
 and the stash. The P9 worktree has ignored evidence to preserve. Reconcile **S2/P9
 sharing current pool1**, **old scout/validation sharing older pool2**, and stale
 **P8 ownership of this now-active cleanup pool2** before any resource removal.
+
+Firstmate subsequently reported guarded cleanup: deleted local
+`codex/consolidate-main` and `codex/crisp-cobalt-ui`, deleted remote
+`claude/app-language-review-oxo9mf` and `codex/weekly-local-roadmap`, and pruned
+remote-tracking refs. The landed P9 copy was retired after preserving 44 MB of
+validation in Firstmate's private `gametime-p9-authenticated-app-20260915/retained-validation`
+data. Stale duplicate ownership was reconciled with stopped old agents and
+backed-up private records; this active cleanup copy was preserved. Old scout
+copies were being returned at that update. Seven unique local branches and two
+corresponding remotes remain pending the owner's retention/bundle decision.
+These are supervisor-reported actions, not worker-executed cleanup; do not claim
+that every branch or all older resources have been removed.
 
 P7–P13 remain undispatched by this task. All four physical sources and measured
 timed tolerance, real-source ingestion/adapters and integrated 13-policy journeys,
