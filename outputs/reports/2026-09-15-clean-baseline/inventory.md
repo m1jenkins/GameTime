@@ -113,3 +113,15 @@ agents and backed-up records; current cleanup pool2 remains active. Older scout
 copies were being returned. Seven unique local branches and two corresponding
 remotes remain pending the owner's retention/recovery-bundle decision. The
 initial tables above preserve the read-only evidence used to choose those actions.
+
+## Executed historical-ref disposition — September 15, 2026
+
+After the relevance audit, Firstmate deleted local `codex/beta1-policy-foundation`
+and `codex/signal-native-migration`, plus remote `codex/ios-accessibility-audit`
+and `daybreak-ledger-tokens`, using exact-hash guards. Local archive-beta1,
+archive-original, accessibility, overnight and Daybreak refs remain unchanged.
+See the [dated disposition](../../../docs/HISTORICAL_BRANCH_DISPOSITION_20260915.md)
+for full refs/hashes, current equivalents and the required retained carriers.
+This is a later execution receipt; the original read-only tables above retain
+their historical meaning. No additional historical branch is approved for deletion
+by that receipt.

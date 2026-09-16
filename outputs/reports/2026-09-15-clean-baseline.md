@@ -168,3 +168,14 @@ messages, real Health reads or hosted mutations occurred.
 
 No unresolved test failure blocks this cleanup delivery. Warning investigation
 and physical/human/hosted/release acceptance remain outside the completed scope.
+
+## Historical-branch pruning follow-up — September 15, 2026
+
+Firstmate subsequently deleted two local and two remote refs after the bounded
+relevance audit and exact-hash checks. Five local historical refs remain for
+specific reusable corrections or evidence, with no whole-branch import implied.
+The [executed disposition](../../docs/HISTORICAL_BRANCH_DISPOSITION_20260915.md)
+records all nine immutable tips, actual deletions, retained carriers and the
+static-only profile retry finding. This supersedes the earlier precautionary
+blanket retention guidance for these refs; dated inventory and validation results
+remain unchanged. P7–P13 requirements and existing source/release decisions remain.

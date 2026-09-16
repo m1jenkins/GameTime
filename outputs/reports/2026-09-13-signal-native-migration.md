@@ -167,3 +167,14 @@ was installed, no hosted state or money moved, and no readiness gate was enabled
 P9 should reuse this Signal implementation when connecting accepted real
 contracts. P12/P13 qualify that integrated candidate; historical Personal product
 retirement still requires its separately recorded replacement acceptance.
+
+## Pruning follow-up — September 15, 2026
+
+The local `codex/signal-native-migration` ref was deleted after committed-object
+comparison established that its native source/tests/configuration are incorporated
+in published main and its supporting evidence is preserved there. The publication
+notes above describe their original dates; they no longer imply that the local
+branch exists or that supporting records are only uncommitted. See the
+[executed branch disposition](../../docs/HISTORICAL_BRANCH_DISPOSITION_20260915.md).
+The original verification results, limitations, screenshots and hashed manifests
+retain their historical identities; no native tests were rerun for pruning.

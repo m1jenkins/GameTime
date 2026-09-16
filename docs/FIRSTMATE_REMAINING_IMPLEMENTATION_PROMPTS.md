@@ -155,11 +155,13 @@ integration; do not claim transport, source or release acceptance from UI work.
 ```text
 Connect the official Signal UI from P9A to accepted P8 contracts. Verify its
 migration acceptance and tested source; finish any missing required presentation
-under docs/design/SIGNAL_UI_MIGRATION.md. Review
-and carry forward the applicable existing native fixes on
-codex/overnight-integration-20260913 (code a3e7733, report 264bbd0) through the
-established delivery path. Do not implement the same fixes twice or blindly merge
-the entire branch. Preserve the Signal presentation while integrating applicable fixes.
+under docs/design/SIGNAL_UI_MIGRATION.md. Use the native recovery fixes already
+landed on main through S2 and the Privacy1/S1 corrections through P8; their
+September 13 reports preserve actual checks and limits. Do not reimplement or
+remerge the overnight fixes. The retained overnight branch holds distinct
+historical failure/correction evidence, as recorded in
+docs/HISTORICAL_BRANCH_DISPOSITION_20260915.md. Preserve Signal and those evidence
+boundaries while completing the remaining real-source integration.
 
 Complete one accepted steps journey through activity, correction, review and final
 history before expanding the same path to the other three accepted metrics. Reuse

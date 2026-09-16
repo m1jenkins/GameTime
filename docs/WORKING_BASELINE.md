@@ -76,5 +76,9 @@ Dated reports retain their actual source identities, test counts, failures and
 unperformed checks. Old paths and next-task statements are historical, not
 current resource ownership. The [September 12 consolidation record](WORKTREE_CONSOLIDATION_STATUS.md)
 retains recovery locations for the original dirty copy and competing Beta1 work.
-Unique branches, stashes and uncommitted work are retention exceptions; do not
-import their whole patches or merge cancelled branches merely to delete them.
+The [September 15 branch disposition](HISTORICAL_BRANCH_DISPOSITION_20260915.md)
+records four proven redundant refs pruned by Firstmate and five retained local
+refs, including useful profile-retry/controller corrections and distinct evidence.
+It also records the static-only profile retry finding for bounded review before
+final testing. Preserve the retained carriers, stashes and uncommitted work;
+do not import whole patches or merge cancelled branches merely to delete them.
