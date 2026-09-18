@@ -43,7 +43,9 @@ debugger or screen capture was used.
 
 Session B has begun. The owner selected Apple Exercise Time and reported visible
 records with clear Watch origin in the on-device source/device details. This is
-an origin observation only; manual/import eligibility, overlap, conversion to
+an origin observation only. The inspected records showed **Not supplied** for
+the hand-entry field, so that field does not exclude manual entry.
+Manual/import eligibility, overlap, conversion to
 the agreed integer-second unit, corrections and complete-history behavior remain
 unsettled. Running investigations have not been performed.
 
