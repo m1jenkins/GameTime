@@ -9,8 +9,9 @@ The owner now has a paired Apple Watch and opted in to a private investigation
 on an iPhone 17. The current Debug iPhone app was built, package and signature
 checked, installed and launched in `--health-source-investigation` mode. The
 owner confirmed the investigation screen. Partial Session A observations are
-recorded; isolated phone-only and Watch-only walks remain unperformed. No
-physical source is accepted or enabled. Continue from the
+recorded. After a Watch-only walk, Watch-origin steps appeared in the iPhone
+investigation with clear source/device origin. The phone-only walk remains
+unperformed. No physical source is accepted or enabled. Continue from the
 [device-session record](../outputs/reports/2026-09-18-p7-device-session.md)
 and [private session guide](BETA_PHYSICAL_SESSIONS.md).
 

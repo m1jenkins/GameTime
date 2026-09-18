@@ -32,9 +32,12 @@ markers on some records. It also warned that
 read access and complete activity history cannot be confirmed. These are
 categorical findings; they do not establish which overlapping records represent
 the same activity or a trustworthy miss. The owner confirmed that **Clear
-session** removed the earlier displayed records. Separate phone-only and
-Watch-only walks remain unperformed, as does the post-walk Watch sync check.
-Session clearing is not a Health deletion.
+session** removed the earlier displayed records. The owner then performed a
+Watch-only walk and reported Watch-origin steps visible in the iPhone
+investigation after reading again. The on-device source/device details made
+Watch origin clear. This establishes visibility for that check, not complete
+Watch history. The separate phone-only walk remains unperformed. Session
+clearing is not a Health deletion.
 
 Sessions B–D, all four source policies, whole-run distance tolerance,
 source-backed integration and human/release gates remain pending. No source is
