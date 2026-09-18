@@ -25,14 +25,16 @@ Health observer. This is a code finding, separate from physical source behavior.
 
 ## Physical observations and acceptance
 
-Session A is in progress. In a combined-carry read, the owner reported visible
-iPhone-origin records and clear source/device origin for the displayed records.
-Watch-origin visibility remains unconfirmed. The app reported overlapping
-records and missing hand-entry markers on some records. It also warned that
+Session A is in progress. In a combined-carry read, the owner reported both
+iPhone- and Watch-origin records with clear source/device origin for the
+displayed records. The app reported overlapping records and missing hand-entry
+markers on some records. It also warned that
 read access and complete activity history cannot be confirmed. These are
 categorical findings; they do not establish which overlapping records represent
-the same activity or a trustworthy miss. Separate phone-only and Watch-only
-checks, normal Watch sync and session clearing are pending.
+the same activity or a trustworthy miss. The owner confirmed that **Clear
+session** removed the earlier displayed records. Separate phone-only and
+Watch-only walks remain unperformed, as does the post-walk Watch sync check.
+Session clearing is not a Health deletion.
 
 Sessions B–D, all four source policies, whole-run distance tolerance,
 source-backed integration and human/release gates remain pending. No source is

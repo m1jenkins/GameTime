@@ -1,4 +1,8 @@
-# Private source investigation — physical execution pending
+# Private source investigation — physical execution in progress
+
+The September 18 [P7 device session](../outputs/reports/2026-09-18-p7-device-session.md)
+has started. The procedure and software evidence below were written before
+that session; use the current record for performed physical observations.
 
 Build `GameTime` / Debug from the separately authorized isolated candidate. In the Xcode Run scheme add
 `--health-source-investigation`. This mode returns before constructing product

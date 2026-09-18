@@ -1,4 +1,4 @@
-# Private physical sessions — prepared, not performed
+# Private physical sessions — Session A in progress
 
 [D135](BETA_REMAINING_WORK_CONTRACT.md) requires a paired physical Apple Watch
 for launch, not for pre-hardware implementation. Beta has no GameTime Watch app
@@ -9,8 +9,10 @@ launch a GameTime watchOS app for these sessions.
 Continuation from D134 and [source investigation](BETA_SOURCE_INVESTIGATION.md).
 Owner task: **gametime-beta-source-acceptance-b7**; decision key
 **physical-source-actions**. Do not create another source-acceptance task.
-Every observation below is currently **unperformed**. No iPhone or Watch has
-been selected or opted in for c8. All four real sources and real ingestion remain
+The owner opted in on September 18 and the Debug investigation is running on
+the selected iPhone with a paired Watch. See the [current P7 session record](../outputs/reports/2026-09-18-p7-device-session.md)
+for performed Session A observations and remaining checks. This guide retains
+the full session procedure. All four real sources and real ingestion remain
 disabled; timed-distance tolerance is unselected.
 
 ## First action, before installation

@@ -30,6 +30,8 @@ identities/settings and operating checks, then integrated candidate,
 physical/accessibility/human and release acceptance. All 18
 [readiness entries](docs/release/beta/readiness.json) remain false. The baseline
 cleanup does not start those tasks or authorize distribution, hosting or money.
+The owner [started a private P7 device session](outputs/reports/2026-09-18-p7-device-session.md)
+on September 18; its partial observations do not accept any source.
 
 ## Start here
 

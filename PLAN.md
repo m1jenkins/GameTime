@@ -8,7 +8,9 @@ Published main at `1dacc66` includes P4–P6, P7/P10 preparation, Signal/P9A,
 S2/P8 privacy/recovery corrections, P11A local worker/operator/deletion work and
 the bounded P9 shared-session connection. Signal is the ordinary native UI;
 [its contract](docs/design/SIGNAL_UI_MIGRATION.md) preserves retained Personal
-access. Current cleanup does not dispatch P7–P13. Real sources, ingestion/adapters,
+access. The September 15 cleanup did not dispatch P7–P13; the owner [started P7
+on a physical iPhone and paired Watch](outputs/reports/2026-09-18-p7-device-session.md)
+on September 18. Real sources, ingestion/adapters,
 approved hosted identities/operation and physical/human/release acceptance remain.
 All four sources and all 13 policies are required; funded launch remains Phase 6.
 Do not restart completed prompts or follow obsolete checkout instructions.

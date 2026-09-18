@@ -7,11 +7,11 @@ scoped future tasks. P4–P6, Signal/P9A, P7/P10 preparation, local S2/P8/P11A
 repairs, operator/deletion implementation and the bounded P9 shared-session
 connection are landed. Their dated reports retain actual checks and limits.
 
-The current cleanup prepares the baseline; it does not dispatch P7–P13.
+The September 15 cleanup prepared the baseline. The owner subsequently obtained
+a paired Watch and [started P7 on a physical iPhone](../outputs/reports/2026-09-18-p7-device-session.md).
 Physical source acceptance, real ingestion/adapters and source-backed journeys,
 approved hosting/identities/operation and candidate/human/release acceptance
-remain. The owner has an iPhone 17 and previously reported no Watch. Physical
-P7 remains deferred; its all-source distribution requirements stay intact.
+remain. P7's all-source distribution requirements stay intact.
 
 The shortest path is to finish real activity → agreed challenge → corrected
 result, operate it on one approved backend, and test it with people. Preserve
@@ -24,7 +24,7 @@ another design, infrastructure or general audit workstream.
 | --- | --- |
 | P0/0A/3, P4–P6 | Local foundation, iPhone-only runtime, closed Health contracts, scoped locks, bounded queries and private community are implemented. Their reports remain evidence; do not repeat these prompts. |
 | Signal / P9A | Native migration landed in published main from the `b25834c` baseline; ordinary and retained routes use Signal, with cobalt rendering and fonts removed. [Native verification](../outputs/reports/2026-09-13-signal-native-migration.md) records tested source, route coverage and limits. Use this implementation for P9 under the [migration contract](design/SIGNAL_UI_MIGRATION.md). |
-| P7 | [Preparation](../outputs/reports/2026-09-12-p7-preparation.md) is complete; physical observations, four source policies and timed-distance tolerance remain unaccepted. |
+| P7 | [Preparation](../outputs/reports/2026-09-12-p7-preparation.md) is complete; the [physical session](../outputs/reports/2026-09-18-p7-device-session.md) has started. Four source policies and timed-distance tolerance remain unaccepted. |
 | P8/P9 | Configured ordinary Signal now shares the app authentication session and existing challenge client; checked-in opt-in remains off. [Bounded P9 connection](../outputs/reports/2026-09-15-p9-authenticated-app.md) records local substitute checks. Real consent/ingestion, accepted adapters, approved HTTPS/Apple identities/links and source-backed journeys remain. |
 | P10 | [Device-independent preparation](../outputs/reports/2026-09-12-p10-completion.md) is complete. Approved settings, functioning hosted scheduler/alerts, retention/deletion and operating acceptance are still missing. |
 | P11A | Local worker/recovery/snapshot/status code landed at `a3d2c3f`; scoped human operator tooling landed at `6fea1c2`. Administrator grant response reconciliation remains manual. Account deletion and review repairs are landed through `c6f88cd` ([local record](evidence/beta-finish-line-b7/account-deletion-local-20260914.md)). Hosted schedules, credentials, alerts and actual retention/deletion operation remain outstanding. [Recovery report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [operator report](../outputs/reports/2026-09-14-p11a-operator.md) |
@@ -65,7 +65,7 @@ or external acceptance.
 | P12 + P13 — qualify one candidate | Integrate chosen native UI and real Apple sign-in/HTTPS links. Run the release matrix once, plus device/accessibility/comprehension and operating checks. Fix defects and complete gated legacy shell retirement. | Integrated source-backed candidate; authorization for actual hosting and device checks. |
 | Private TestFlight, then public launch | After acceptance/authorization, run a small supervised simulated pilot, fix observed problems, then prepare the App Store release. | Actual Beta results, working support and separate submission/release authorization. |
 
-P7 remains the next source-dependent task, deferred while the owner lacks a Watch.
+P7 remains the active source-dependent task, with the first physical session in progress.
 The P11A local recovery and operator CLI slices are both landed; neither resolves P10's hosted
 inputs. Next work depends on accepted real-source contracts and an explicitly
 authorized hosted target. Do not fabricate source policies to fill time. Each
