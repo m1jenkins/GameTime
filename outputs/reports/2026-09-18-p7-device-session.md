@@ -41,7 +41,13 @@ history, accepted reconciliation or a trustworthy miss. The iPhone app was
 relaunched with the investigation argument for the phone-only read; no console,
 debugger or screen capture was used.
 
-Sessions B–D, all four source policies, whole-run distance tolerance,
+Session B has begun. The owner selected Apple Exercise Time and reported visible
+records with clear Watch origin in the on-device source/device details. This is
+an origin observation only; manual/import eligibility, overlap, conversion to
+the agreed integer-second unit, corrections and complete-history behavior remain
+unsettled. Running investigations have not been performed.
+
+The rest of Sessions B–D, all four source policies, whole-run distance tolerance,
 source-backed integration and human/release gates remain pending. No source is
 accepted or enabled by installation or a successful read. An empty read cannot
 establish a miss.

@@ -11,7 +11,9 @@ checked, installed and launched in `--health-source-investigation` mode. The
 owner confirmed the investigation screen. Session A showed separately visible
 iPhone- and Watch-origin steps, flagged overlapping records, and passed the
 private session clearing check. Reconciliation and completeness remain
-unresolved. No physical source is accepted or enabled. Continue from the
+unresolved. An initial Apple Exercise Time read showed clear Watch origin;
+Exercise eligibility and result rules remain open. No physical source is
+accepted or enabled. Continue from the
 [device-session record](../outputs/reports/2026-09-18-p7-device-session.md)
 and [private session guide](BETA_PHYSICAL_SESSIONS.md).
 
