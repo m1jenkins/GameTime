@@ -25,12 +25,19 @@ Health observer. This is a code finding, separate from physical source behavior.
 
 ## Physical observations and acceptance
 
-Session A has been handed to the owner for phone-only, Watch-only and combined
-steps checks. No categorical source findings have been received yet. Sessions
-B–D, all four source policies, whole-run distance tolerance, source-backed
-integration and human/release gates remain pending. No source is accepted or
-enabled by installation or a successful read. An empty read cannot establish a
-miss.
+Session A is in progress. In a combined-carry read, the owner reported visible
+iPhone-origin records and clear source/device origin for the displayed records.
+Watch-origin visibility remains unconfirmed. The app reported overlapping
+records and missing hand-entry markers on some records. It also warned that
+read access and complete activity history cannot be confirmed. These are
+categorical findings; they do not establish which overlapping records represent
+the same activity or a trustworthy miss. Separate phone-only and Watch-only
+checks, normal Watch sync and session clearing are pending.
+
+Sessions B–D, all four source policies, whole-run distance tolerance,
+source-backed integration and human/release gates remain pending. No source is
+accepted or enabled by installation or a successful read. An empty read cannot
+establish a miss.
 
 The ordinary app icon may launch without the investigation argument after the
 current process ends; relaunch with that argument before resuming a private
