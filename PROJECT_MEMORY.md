@@ -26,8 +26,8 @@ and linked cleanup report distinguish landed candidates and retained exceptions.
 The September 15 cleanup did not start P7–P13. On September 18 the owner
 obtained a paired Apple Watch, opted in and [started the private P7 device
 session](outputs/reports/2026-09-18-p7-device-session.md) on an iPhone 17.
-Initial categorical steps observations are recorded; isolated walks and the
-remaining sessions are pending. All four sources,
+Session A's categorical steps observations are recorded; overlap and
+completeness rules and the remaining sessions are pending. All four sources,
 timed-distance tolerance, real ingestion/adapters, hosted operation and
 physical/human/release acceptance remain gated. Simulation does not accept a
 source. Checked-in challenge transport remains off and all 18 readiness entries

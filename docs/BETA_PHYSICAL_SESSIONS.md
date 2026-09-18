@@ -1,4 +1,4 @@
-# Private physical sessions — Session A in progress
+# Private physical sessions — Session A observed, source policy pending
 
 [D135](BETA_REMAINING_WORK_CONTRACT.md) requires a paired physical Apple Watch
 for launch, not for pre-hardware implementation. Beta has no GameTime Watch app

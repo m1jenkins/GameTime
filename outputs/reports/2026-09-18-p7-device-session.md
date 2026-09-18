@@ -25,19 +25,21 @@ Health observer. This is a code finding, separate from physical source behavior.
 
 ## Physical observations and acceptance
 
-Session A is in progress. In a combined-carry read, the owner reported both
-iPhone- and Watch-origin records with clear source/device origin for the
-displayed records. The app reported overlapping records and missing hand-entry
-markers on some records. It also warned that
-read access and complete activity history cannot be confirmed. These are
-categorical findings; they do not establish which overlapping records represent
-the same activity or a trustworthy miss. The owner confirmed that **Clear
-session** removed the earlier displayed records. The owner then performed a
-Watch-only walk and reported Watch-origin steps visible in the iPhone
-investigation after reading again. The on-device source/device details made
-Watch origin clear. This establishes visibility for that check, not complete
-Watch history. The separate phone-only walk remains unperformed. Session
-clearing is not a Health deletion.
+Session A's categorical observations are recorded:
+
+| Check | Owner observation |
+| --- | --- |
+| Phone-only walk | Steps visible, with clear iPhone origin. |
+| Watch-only walk | Steps visible in the iPhone investigation, with clear Watch origin. |
+| Carrying both | Both origins visible; the app flagged overlapping records. Which records represent the same activity remains unresolved. |
+| Source distinction | Clear for the displayed records. Some records lacked a hand-entry marker. |
+| Clear session | Passed: earlier displayed records disappeared. This is not a Health deletion. |
+
+The app also warned that read access and complete activity history cannot be
+confirmed. The reads establish visibility for these checks, not complete
+history, accepted reconciliation or a trustworthy miss. The iPhone app was
+relaunched with the investigation argument for the phone-only read; no console,
+debugger or screen capture was used.
 
 Sessions B–D, all four source policies, whole-run distance tolerance,
 source-backed integration and human/release gates remain pending. No source is
