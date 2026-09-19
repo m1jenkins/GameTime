@@ -1094,7 +1094,12 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(containing("How it counts", in: app).exists)
 
         let cancel = app.buttons["personal.cancel"]
-        for _ in 0..<8 where !cancel.isHittable { app.swipeDown() }
+        for _ in 0..<8 {
+            if cancel.isHittable,
+                cancel.frame.midY > app.navigationBars["Your challenge"].frame.maxY + 16
+            { break }
+            app.swipeDown()
+        }
         XCTAssertTrue(
             cancel.waitForExistence(timeout: 3),
             "Internal test-only active challenges should expose cleanup cancellation."
@@ -1138,7 +1143,12 @@ final class GameTimeUITests: XCTestCase {
         _ = waitForPaymentStatus("Test method saved.", in: app)
 
         let cancel = app.buttons["personal.cancel"]
-        for _ in 0..<8 where !cancel.isHittable { app.swipeDown() }
+        for _ in 0..<8 {
+            if cancel.isHittable,
+                cancel.frame.midY > app.navigationBars["Your challenge"].frame.maxY + 16
+            { break }
+            app.swipeDown()
+        }
         XCTAssertTrue(cancel.waitForExistence(timeout: 4))
         XCTAssertTrue(cancel.isHittable)
         cancel.tap()
