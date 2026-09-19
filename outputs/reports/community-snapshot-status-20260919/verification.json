@@ -1,0 +1,21 @@
+{
+  "base_commit": "9f116ac4954594a8d64467f78a6dca55d3cc2ce4",
+  "branch": "codex/community-snapshot-freshness",
+  "supabase_cli": "2.109.1",
+  "sql_files": [
+    "508_challenge_community_progress.test.sql",
+    "509_challenge_local_worker_recovery.test.sql",
+    "515_challenge_community_snapshot_status.test.sql"
+  ],
+  "sql_assertions_passed": 99,
+  "http_checks_passed": 39,
+  "security_advisor_errors": 0,
+  "baseline_506_failure_reproduced_without_new_migration": true,
+  "owned_stacks_removed": true,
+  "sha256": {
+    "supabase/migrations/20260919070719_challenge_community_snapshot_status_v1.sql": "c6e8a3d32fed10d807e5afaaf957212b518f1e48b03d8fb787659cce01c2f8e2",
+    "supabase/tests/515_challenge_community_snapshot_status.test.sql": "99e1438b94a5916b15a0273de31106c360aa881495222e4fdefc11403a6f16d5",
+    "supabase/tests/fixtures/community-status-digest.inc": "6a85954554131ae051729f3e233d474fe3be57ebf44bc65545176a9a9198bed7",
+    "scripts/community-snapshot-status-verify.py": "90a747b0422779f614c5194c13474e5602c0d2ab878f90525ad8e2d6ae8db9a4"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "server_time": "2026-09-19T07:22:49.356554+00:00",
+  "capture_status": "recorded",
+  "last_attempt_at": "2026-09-19T07:22:49.093088+00:00",
+  "last_capture_at": "2026-10-01T12:00:00+00:00",
+  "snapshot_age_clock": "fixture",
+  "snapshot_clock_now": "2026-10-01T14:00:00+00:00",
+  "capture_age_seconds": 7200,
+  "last_attempt_status": "checked",
+  "capture_authorization": "enabled",
+  "last_attempt_error_code": null,
+  "last_successful_invocation_at": "2026-09-19T07:22:49.093088+00:00",
+  "pending_invocation_prepared_at": null
+}
