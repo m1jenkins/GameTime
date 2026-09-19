@@ -162,7 +162,7 @@ class Smoke:
         elif action=='latest':
             actor=str(uuid.UUID(body['actor']))
             assert actor in [a['id'] for a in self.actors]
-            cid=sql(f"select id from app.challenge_lobbies_v1 where creator_id='{actor}' and status='lobby_open' order by created_at desc,id limit 1;")
+            cid=sql(f"select id from app.challenge_lobbies_v1 where creator_id='{actor}' order by created_at desc,id desc limit 1;")
             return {'id':cid}
         elif action=='snapshot':
             return {'trace':self.trace}
