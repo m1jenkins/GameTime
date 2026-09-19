@@ -1,0 +1,520 @@
+{
+  "source_head": "ac0d20589c8f6da41a90bfb8dd94c09690fff809",
+  "owner": "gametime-snapshot-status-f52f16791678",
+  "images": [
+    "public.ecr.aws/supabase/postgres:17.6.1.143",
+    "public.ecr.aws/supabase/gotrue:v2.192.0",
+    "public.ecr.aws/supabase/postgrest:v14.14"
+  ],
+  "migrations_applied": 85,
+  "migration_inputs": [
+    {
+      "path": "supabase/migrations/20260724120000_extensions_and_conventions.sql",
+      "sha256": "e3ad440e38651466931f59e91a1a03fac3a1a40a102e210854fc7b91b1c7495b"
+    },
+    {
+      "path": "supabase/migrations/20260724203000_identity_social_graph.sql",
+      "sha256": "d10abf636c14f914166b67a62f794ba48543e86890d01f4e8f21a32c70244efd"
+    },
+    {
+      "path": "supabase/migrations/20260724230000_contests_and_participants.sql",
+      "sha256": "6c51b0a1ac1979515b11e15dd49711ad16204cddca096005198a62c127a3c2a9"
+    },
+    {
+      "path": "supabase/migrations/20260725140000_metric_snapshots_and_attested_ingest.sql",
+      "sha256": "bb17886708d201a7ec70f2273b3552b1e9285bd15bbf0713a4a4aaaf7dbb7d55"
+    },
+    {
+      "path": "supabase/migrations/20260725190000_integrity_quarantine.sql",
+      "sha256": "92432dd9ac28632e17ed0ccea03ecc70947c6a7394f320626dde7933520d9338"
+    },
+    {
+      "path": "supabase/migrations/20260725210000_source_reputation.sql",
+      "sha256": "d54ee5537295015f144207e63dbd58106048396a333f5ba99b3de7ef5b8645f8"
+    },
+    {
+      "path": "supabase/migrations/20260725230000_timezone_change_consent.sql",
+      "sha256": "bcf06e92bff6b29d9b9cf5ca0970b7637a81de954294cd13f91ca8c3d0f95697"
+    },
+    {
+      "path": "supabase/migrations/20260726010000_geofence_checkins.sql",
+      "sha256": "6c0d40d23ee797f5558104b8fd6df7159c22fdd28b80e9a260968a66b953ef1f"
+    },
+    {
+      "path": "supabase/migrations/20260726020000_review_durability_and_privileges.sql",
+      "sha256": "658a0f63c6d07fb85f9b02c5e1b3220d1b15c572e21afb865fa61a254f073414"
+    },
+    {
+      "path": "supabase/migrations/20260726030000_app_attest_conformance.sql",
+      "sha256": "8024715baf868bcdcc66ff7e52ea44a4b49ef877cecb8e558becb3c9a132c917"
+    },
+    {
+      "path": "supabase/migrations/20260726040000_notification_outbox_and_scheduler.sql",
+      "sha256": "b09dee969c9f709c0302a8d00522cf7b005d440421321cbceea0ff5ce712ec62"
+    },
+    {
+      "path": "supabase/migrations/20260726050000_app_attest_receipt_verification.sql",
+      "sha256": "f376777b09e644234406337686edcdda4ed1cb5a335cce885780b35cd203350f"
+    },
+    {
+      "path": "supabase/migrations/20260726055000_account_deletion_notification_event.sql",
+      "sha256": "935568bbb16c75c0a1c05be1b1204575daf5c5a607f10ab67ac129f39be62895"
+    },
+    {
+      "path": "supabase/migrations/20260726060000_account_deletion_foundation.sql",
+      "sha256": "8a41c0db7fc1600dae5d6cc6975b3c12fde30d7bf43196695904bb0b882686cd"
+    },
+    {
+      "path": "supabase/migrations/20260726070000_raw_evidence_retention.sql",
+      "sha256": "c504e254faf27db340e180399949a30af4137f086035c53815a3b8444e3a67ca"
+    },
+    {
+      "path": "supabase/migrations/20260726230529_fix_raw_evidence_generated_column_guard.sql",
+      "sha256": "10689650a3e679b2b839f29a11b84d5f47c00ebd951aee65ff7ecca55871b917"
+    },
+    {
+      "path": "supabase/migrations/20260727004703_d77_evidence_access.sql",
+      "sha256": "6310470577269087eb61f3d722c90ef1446b768980fd1e825f7fd379d36c1e44"
+    },
+    {
+      "path": "supabase/migrations/20260727030649_m8_1_live_social_loop.sql",
+      "sha256": "9f40e602fa2856da61779408900c14b0aaa088ab0db19f8dbe744a689a081a1d"
+    },
+    {
+      "path": "supabase/migrations/20260728231601_m8_3c_standings_results_obligations.sql",
+      "sha256": "11d12f2da995c349b42844e267c5de7fced6d4e1942181a3f6a2f79143955249"
+    },
+    {
+      "path": "supabase/migrations/20260730175310_m7_trusted_integrity_assessments.sql",
+      "sha256": "cb4b90ba09fff65da57fc1986efc8f16298ecd2c84a2e758c9f6a8b8525cf992"
+    },
+    {
+      "path": "supabase/migrations/20260730190723_m7_d76_quarantine_review_deadlines.sql",
+      "sha256": "cc90cebfb42a62f47279701e085e3315d96196f0e7a15a9d9cde128356a46ac4"
+    },
+    {
+      "path": "supabase/migrations/20260730195656_lead_loss_push_and_reactions.sql",
+      "sha256": "2067b0d8084dd65f67b7b3574830515ddbc22a17b62916c7bab72b11f0f7f7a8"
+    },
+    {
+      "path": "supabase/migrations/20260802165309_personal_v1_foundation_and_privacy.sql",
+      "sha256": "38e37bd0bf7dac29af60888002f6e5c897a1f63d338cfbe6bf76bfd3dd590140"
+    },
+    {
+      "path": "supabase/migrations/20260802165312_personal_v1_backend.sql",
+      "sha256": "c89c12e4642552700d512823536288b016721eaa80a903d07de0f7c9fa4536b8"
+    },
+    {
+      "path": "supabase/migrations/20260803001438_solo_contract_domain.sql",
+      "sha256": "5a8aee2de3bbd5b9efac9d8603333d0de93253ec32b881708749406c6bfc4668"
+    },
+    {
+      "path": "supabase/migrations/20260803001455_solo_contract_rpc_boundary.sql",
+      "sha256": "92db05c8e0be8d7e7de05e971bc093cdb2e2c8948195f1ced1b7d1116ac665cb"
+    },
+    {
+      "path": "supabase/migrations/20260803014252_solo_fake_authorization_adapter.sql",
+      "sha256": "58015fa1ba6b9d9fbd64382a53a858bd2692ac7366c55bc03bd7aaa8088f232c"
+    },
+    {
+      "path": "supabase/migrations/20260803192500_personal_custom_start_time.sql",
+      "sha256": "55e3c10a1eeb79cc4dacd56a074234e5669f1cf509912d4a5ee99c7ef31f3a79"
+    },
+    {
+      "path": "supabase/migrations/20260805131357_personal_stripe_sandbox_foundation.sql",
+      "sha256": "00eda845de114c08bd1e89577405c5e5fd56f304d2773919ff568b1605931cea"
+    },
+    {
+      "path": "supabase/migrations/20260806143539_production_attestation_provenance.sql",
+      "sha256": "e6b69f0e187ffbeac14e8a10aef02536998135fd61ceab3b617db5c3debad27d"
+    },
+    {
+      "path": "supabase/migrations/20260806144639_production_attestation_settlement_guards.sql",
+      "sha256": "7c8c862a3ea8cdd0dad3451a03223c4be909b9454699fdc33e66f6ee3d5e6255"
+    },
+    {
+      "path": "supabase/migrations/20260806145058_production_diagnostic_provenance_audit.sql",
+      "sha256": "0dcee03581b4b332f57213b34bb22107aadaf7e7636c9b13a53b516f3f508339"
+    },
+    {
+      "path": "supabase/migrations/20260806145502_production_diagnostic_clearance_guard.sql",
+      "sha256": "a34c354b58d6de6401462a46632a3e5c5ede65e0fdb5bc0b3944ffd12220478d"
+    },
+    {
+      "path": "supabase/migrations/20260806173723_personal_result_worker.sql",
+      "sha256": "b67ee1a6d2efec98d8638094f289d8604d4985afc4952bdfd10ccd8043bcd27f"
+    },
+    {
+      "path": "supabase/migrations/20260807151320_personal_stripe_sandbox_beta_controls.sql",
+      "sha256": "aa1911106fccdb7160014ffc9454a4337ce5eedcdd38f23e7bf70e2d40951461"
+    },
+    {
+      "path": "supabase/migrations/20260812154757_personal_health_snapshot_v2.sql",
+      "sha256": "858df76619395409e046b1c423871581cea0771f205c3ea5bfbb9c6100646844"
+    },
+    {
+      "path": "supabase/migrations/20260812183638_allow_test_only_active_challenge_cancellation.sql",
+      "sha256": "5de037d57658b01e80627144737f8288b4b1ec23901cfac760ddd569de89d6a9"
+    },
+    {
+      "path": "supabase/migrations/20260812193907_personal_start_now.sql",
+      "sha256": "9f2652cc198025fc480b46829bffb4c3383dc6f198205b2c2e44d4fc773fecf1"
+    },
+    {
+      "path": "supabase/migrations/20260812194559_account_deletion_provider_lookup.sql",
+      "sha256": "547409332065a1ade4970d7d1e356b8c564f1472c31a42e8c91de4177c644a45"
+    },
+    {
+      "path": "supabase/migrations/20260813202709_allow_stripe_sandbox_active_challenge_cancellation.sql",
+      "sha256": "78f1ab1b4209254e373e5cbdf027dbb7e7325309845f96e91b6383699dbee0a1"
+    },
+    {
+      "path": "supabase/migrations/20260904225326_duel_agreement_v1.sql",
+      "sha256": "b95f8ce4d9dc96bd8a6728fce98a9182ad246f4409fcee64712e60c6f8004683"
+    },
+    {
+      "path": "supabase/migrations/20260905041315_duel_proof_review_v1.sql",
+      "sha256": "a76afe602844a67b511e6bbe28a5658328e286bdafc6e89566bd51ccf0ce59c8"
+    },
+    {
+      "path": "supabase/migrations/20260905053951_duel_lifecycle_v1.sql",
+      "sha256": "0ddc3db08d6803bb35b94793968cd32f27b5ee832a4fcaf5ef061f2ab5b5753b"
+    },
+    {
+      "path": "supabase/migrations/20260905141000_duel_native_lifecycle_projection_v1.sql",
+      "sha256": "1acce1a14e243758d0531687f6484fa52f285cddfc0fc28cfafec13110b23fe5"
+    },
+    {
+      "path": "supabase/migrations/20260905150210_duel_rematch_links_v1.sql",
+      "sha256": "385e6b7e6893a1dea0d56a20598a91613d0211abf95e42ebd0bfa6b54c58fdc2"
+    },
+    {
+      "path": "supabase/migrations/20260905180726_performance_commitment_agreement_v1.sql",
+      "sha256": "c086735a09c7132b37e9f20fd7a8941e3332b595d8d96f0af141874fca1947aa"
+    },
+    {
+      "path": "supabase/migrations/20260905194725_performance_attempts_v1.sql",
+      "sha256": "57b2bc8cad40fa8a4c962ba279d1c8e16f1d8db7b7d04e8bc73fa50316a46acf"
+    },
+    {
+      "path": "supabase/migrations/20260905204838_performance_progress_v1.sql",
+      "sha256": "9e44e31db325d9ee272962aa25a35a97836afade546d571d8bd1e83caaac70b5"
+    },
+    {
+      "path": "supabase/migrations/20260905214826_checkpoint_proof_and_session_boundaries.sql",
+      "sha256": "be7adc660749e965c590854bdf4781eaeaa58b5bb468eaaab55ab5e73aa6e563"
+    },
+    {
+      "path": "supabase/migrations/20260905230148_performance_following_v1.sql",
+      "sha256": "478490bf6d15e28b7174cb469fae23042346c78170a73d3cfbadaab9b8351de1"
+    },
+    {
+      "path": "supabase/migrations/20260906000818_performance_lifecycle_v1.sql",
+      "sha256": "67754b41bb92117d24ccd493f451945ce7833539a251e049a77aed5454374dfb"
+    },
+    {
+      "path": "supabase/migrations/20260906053958_weekly_local_v1.sql",
+      "sha256": "6d312021b4179e1bc63cb701e39dafaaeada5fcf5d99c4447eb4af3db439d77c"
+    },
+    {
+      "path": "supabase/migrations/20260906062952_weekly_display_sharing_v1.sql",
+      "sha256": "dcea6dc7dfc06d2defac77994774c7a82c04e4789709d317fed5c2ec11ddf9cb"
+    },
+    {
+      "path": "supabase/migrations/20260906065002_weekly_sharing_expiry_v1.sql",
+      "sha256": "f57bf631a14e1cb765d65dc7eeac491014b80c78943ef2551c3b1684ffd7df8c"
+    },
+    {
+      "path": "supabase/migrations/20260906070927_weekly_progress_absence_v1.sql",
+      "sha256": "fdff6ac77434051190109e5780836a2343a133c0c7c05b683507f549bba0fd65"
+    },
+    {
+      "path": "supabase/migrations/20260908042918_challenge_steps_contract_v1.sql",
+      "sha256": "8b7a7474ff27d3f2ab43e0952839491d835bfcb8f16c1cf11f3ec8c4c0a895fb"
+    },
+    {
+      "path": "supabase/migrations/20260908043438_challenge_steps_lifecycle_v1.sql",
+      "sha256": "14195f5d7345211070db6363f68082d4f94a13958682dd01f44f08a7356b7462"
+    },
+    {
+      "path": "supabase/migrations/20260908044558_challenge_request_recovery_v1.sql",
+      "sha256": "586197ad7a377fca998595105cde9b43acb4d8ead4b5b72e6bae7c3a4ec460ab"
+    },
+    {
+      "path": "supabase/migrations/20260908050105_challenge_policy_matrix_v1.sql",
+      "sha256": "d4e5cb12f3037ae875d5e56dff4872df673fea48900e4e6ad7498107786d3b5c"
+    },
+    {
+      "path": "supabase/migrations/20260908050701_challenge_community_entry_v1.sql",
+      "sha256": "35b599e17e88eadd78efb9c8b157e832b4ce3626f4f309aa5656317bc1d0c385"
+    },
+    {
+      "path": "supabase/migrations/20260908050901_challenge_access_links_safety_v1.sql",
+      "sha256": "9fefdca3f28b93d70373c2a5615d17a0f0a9301fae445da306ce1ebd130605d7"
+    },
+    {
+      "path": "supabase/migrations/20260908051945_challenge_contract_hardening_v1.sql",
+      "sha256": "c7da69b55c919dd3409721917434d5a557218e0d75712c2b6103ed330260ddfe"
+    },
+    {
+      "path": "supabase/migrations/20260908052202_challenge_native_commands_v1.sql",
+      "sha256": "12d0108666bc83510c8983cd844cdf82cf95cfd8e8959dfe60d07ac2a8123c08"
+    },
+    {
+      "path": "supabase/migrations/20260908053125_challenge_projection_details_v1.sql",
+      "sha256": "70915592d2fcbf40fe339b9ad9268c4f4dda57144d1369d6f271798e96265778"
+    },
+    {
+      "path": "supabase/migrations/20260908053941_challenge_entrant_rejection_v1.sql",
+      "sha256": "1fad5a9600290080082b15cda4a17f27dbf278ad11f87cf2837a836d57217637"
+    },
+    {
+      "path": "supabase/migrations/20260908054225_challenge_home_sections_v1.sql",
+      "sha256": "3e56fd14e2c808eeb1012c4e757f9fb0057977e6e171daf51b13e6d05b244b6b"
+    },
+    {
+      "path": "supabase/migrations/20260908062409_challenge_operations_v1.sql",
+      "sha256": "1d3aa95f29625fd4d419f9e8bc038527a62794832e5d6fb203ca153426dbfd07"
+    },
+    {
+      "path": "supabase/migrations/20260908071000_challenge_review_context_v1.sql",
+      "sha256": "a965bbf5d27b662f68555e0f69d5ea4cc9208e85366a8c7b8063fcb1f6ca4feb"
+    },
+    {
+      "path": "supabase/migrations/20260908075000_challenge_reopened_projection_v1.sql",
+      "sha256": "a560b92bdc4ad1b704945dd9db0b6a375d3e3f7f07e676abf7a4c17154926c35"
+    },
+    {
+      "path": "supabase/migrations/20260908115825_challenge_reopened_draft_lifecycle_v1.sql",
+      "sha256": "5c30b242549d883c41a7d6e2b0c35873991470c97a83c1885456e8f00dabf85d"
+    },
+    {
+      "path": "supabase/migrations/20260908120135_challenge_participation_privacy_v1.sql",
+      "sha256": "62e28bd3c533e25da3435f8b28f2de52df3b54695408033c5c45724d78e6c147"
+    },
+    {
+      "path": "supabase/migrations/20260909123228_challenge_session_lock_expiry_v1.sql",
+      "sha256": "658f609957063dc249181a8b2cb112a9085165d37c461a5faac91af269f2eb93"
+    },
+    {
+      "path": "supabase/migrations/20260911143019_challenge_scoped_locks_bounded_claims_v1.sql",
+      "sha256": "4d9dd8c13830f18d9d9a0edbf1d7fedaaa0d4bebe92ed3bbdf61df9cc15498b6"
+    },
+    {
+      "path": "supabase/migrations/20260911224043_challenge_durable_claims_and_read_locks_v1.sql",
+      "sha256": "04d7ff0371650922ef2a0a3cb14914403cda0ae1020835a0ed0e289c75163075"
+    },
+    {
+      "path": "supabase/migrations/20260911235041_challenge_bounded_queries_v1.sql",
+      "sha256": "84292bcd3117da70d3fdaf65bc7655f3b1a7dff5c328d9ef10b9a67866af0c21"
+    },
+    {
+      "path": "supabase/migrations/20260912013929_challenge_private_community_v1.sql",
+      "sha256": "9d936d5965265400749a4c54031d114242047fc2184ed9a35ae0dba976700c6a"
+    },
+    {
+      "path": "supabase/migrations/20260914031018_challenge_reviewer_and_create_serialization_v1.sql",
+      "sha256": "00f8160206c2ab93df4b5f33eab29f8f5fad94b7e54729356e890c6247161a81"
+    },
+    {
+      "path": "supabase/migrations/20260914041524_challenge_local_worker_recovery_v1.sql",
+      "sha256": "9feae01582004ae01f498993bfa12a8befaf7684fd7e32b4d3de39496b618f88"
+    },
+    {
+      "path": "supabase/migrations/20260914103000_challenge_account_deletion_v1.sql",
+      "sha256": "49b0b740940ae257a58d0dcba9b942b2470a0486c19a4a3b37285a65198af384"
+    },
+    {
+      "path": "supabase/migrations/20260914114500_challenge_account_deletion_identity_cleanup_v1.sql",
+      "sha256": "1a5d22a655384f8ff47716314d823873efbf98b75df0272c01609860a1887077"
+    },
+    {
+      "path": "supabase/migrations/20260915151258_account_deletion_review_repairs_v1.sql",
+      "sha256": "00d17a6c41920f681599fa7c6141c352bf366c364e81f6add4837bef76d756f0"
+    },
+    {
+      "path": "supabase/migrations/20260919023548_challenge_admin_request_v2.sql",
+      "sha256": "984312a676541b1c58c1090793aa356a9a4112ab431bc6b6994155d3e0917f31"
+    },
+    {
+      "path": "supabase/migrations/20260919023551_challenge_local_review_status_v1.sql",
+      "sha256": "29bb3d2ce3954a0070a15b74aae0348e2794e127be4edec2560ee8aa938938ec"
+    },
+    {
+      "path": "supabase/migrations/20260919045754_challenge_suspended_account_access_v1.sql",
+      "sha256": "744128029aa9f43b1b82833f5d7fd4bac95ba1fbbd5fe0d06b834c8a0c0f017a"
+    },
+    {
+      "path": "supabase/migrations/20260919071721_challenge_community_snapshot_status_v1.sql",
+      "sha256": "179df02a7222e16efd33ca01618314faca5832d461863d1a7dfa5ac7704be486"
+    }
+  ],
+  "sql_assertions": {
+    "494_challenge_safety": 22,
+    "506_challenge_private_community": 67,
+    "507_challenge_community_guards": 18,
+    "508_challenge_community_progress": 9,
+    "509_challenge_local_worker_recovery": 43,
+    "518_challenge_community_snapshot_status": 59
+  },
+  "checks": [
+    "owned database initialized",
+    "database bound only to numeric loopback",
+    "explicit-loopback security advisor passed",
+    "historical cron disabled from first database start",
+    "no cron execution",
+    "494_challenge_safety pgTAP passed",
+    "506_challenge_private_community pgTAP passed",
+    "507_challenge_community_guards pgTAP passed",
+    "508_challenge_community_progress pgTAP passed",
+    "509_challenge_local_worker_recovery pgTAP passed",
+    "518_challenge_community_snapshot_status pgTAP passed",
+    "HTTP bound only to numeric loopback",
+    "HTTP exact privacy allowlist",
+    "HTTP read leaves all app/public/auth rows unchanged",
+    "HTTP missing capture and attempt",
+    "HTTP unauthorized calls denied without row changes",
+    "HTTP unknown cohort unavailable",
+    "HTTP exact privacy allowlist",
+    "HTTP read leaves all app/public/auth rows unchanged",
+    "HTTP first actual capture",
+    "four-member capture retains null count",
+    "HTTP exact privacy allowlist",
+    "HTTP read leaves all app/public/auth rows unchanged",
+    "HTTP delayed replay leaves stale capture and attempt unchanged",
+    "HTTP exact privacy allowlist",
+    "HTTP read leaves all app/public/auth rows unchanged",
+    "HTTP throttle success does not refresh capture",
+    "HTTP capture authorization independent of processing and admission",
+    "HTTP exact privacy allowlist",
+    "HTTP read leaves all app/public/auth rows unchanged",
+    "HTTP failure preserves capture and successful invocation",
+    "HTTP exact privacy allowlist",
+    "HTTP read leaves all app/public/auth rows unchanged",
+    "HTTP discovery disabled",
+    "HTTP exact privacy allowlist",
+    "HTTP read leaves all app/public/auth rows unchanged",
+    "HTTP disabled dispatch has bounded failure",
+    "HTTP exact privacy allowlist",
+    "HTTP read leaves all app/public/auth rows unchanged",
+    "HTTP backward fixture clock cannot produce fresh zero",
+    "HTTP exact privacy allowlist",
+    "HTTP read leaves all app/public/auth rows unchanged",
+    "HTTP disabled fixtures preserve capture and explicitly switch reference clock",
+    "HTTP exact privacy allowlist",
+    "HTTP read leaves all app/public/auth rows unchanged",
+    "HTTP missing runtime retains capture without age",
+    "HTTP GET read-only transaction works",
+    "GET and SQL READ ONLY leave all rows unchanged"
+  ],
+  "security_advisor_exit": 0,
+  "test_inputs": {
+    "scripts/community-snapshot-status-verify.py": "b1f708796e82e6e391c940cd48c1e40f1cd3be7444dbe51a819525941c81ea9a",
+    "supabase/tests/000_harness.test.sql": "164e703050596e3f1bec0a3f1d8c5621619fcf6231eb11ba38aa4e579169194c",
+    "supabase/tests/010_identity.test.sql": "07f2c547d8743582c9a23ea8f8abfce40bc721137da8ba76417928941ac8fda8",
+    "supabase/tests/020_friendships.test.sql": "e8138002247a48b90961cec8036c9eeee1392e9f205a7a6c3a57589cec944a6d",
+    "supabase/tests/030_groups.test.sql": "a4b3fd2b33532872c51558f83a3e9bd0335df6a71780faf35033d9bc210e8ca8",
+    "supabase/tests/040_blocks.test.sql": "1988612b1c3b360467ade714575bb911b5016fdcb69f233c10c64782bc7ef745",
+    "supabase/tests/050_charities.test.sql": "14705974083cb0e44c6d6d443a7cc9a11415e8e9dd9504bf6c3024d87ccabe66",
+    "supabase/tests/060_contests.test.sql": "ec9a0b2770b44de15963f65104c793312bdb8dafb8c8d5ddc4cf32537cc6d5c7",
+    "supabase/tests/070_invitations.test.sql": "a10d688132e91675fb9f17a6362da1cfdb88e7a001e85595189b4e5f5504f8f8",
+    "supabase/tests/080_participant_lifecycle.test.sql": "0c2f1bb76c311488a3fe4dcdb9ba000ca335522519e70d8683668cd4d39c4884",
+    "supabase/tests/090_device_attestations.test.sql": "4ffe2d858fef54fe62df758573865c21cca6b5290aec70bd0397a6bdd6216fdd",
+    "supabase/tests/100_metric_snapshots.test.sql": "37a32393cb3d42d13e2450e9add01ea51f4b6fbeb3fab22032fb6f807d495d74",
+    "supabase/tests/110_attested_ingest.test.sql": "11fbb533769d5fee8de4ad9272f158433175b3d30bbada7f02c1a66743cbaa90",
+    "supabase/tests/120_integrity_quarantine.test.sql": "c0f9e6571dfbd11cc6deb423c5c210f59fd487f0db761e8b281cd2de9f952aa4",
+    "supabase/tests/130_source_reputation.test.sql": "72f3d58d0cdd34d659cb897e921f98bfd7d2298e047a55153cd8e2ebdd8d6b13",
+    "supabase/tests/140_timezone_change_consent.test.sql": "fe040cb56e4a8323b410d02c24c5e159167eebcf668e880e0d771a4029bd6e94",
+    "supabase/tests/150_geofence_checkins.test.sql": "079909bdffe052c7d657775a6b896e74dcca1e0d28f1a7f8912748edfe89a8b2",
+    "supabase/tests/160_notification_outbox_scheduler.test.sql": "c11f9d58524bf1cfcf53f91cf1c748e0878a397ff9440dc27deb8e568461f27a",
+    "supabase/tests/170_account_deletion.test.sql": "4b466d4a1113b769b8eb675c965115297891c8e5aeeb0095fb8ed0647cc72e27",
+    "supabase/tests/171_account_deletion_provider_lookup.test.sql": "dc195a59816bcc3825910f474e6bf38c261470c46a621d9bd40ba6e72287bbad",
+    "supabase/tests/180_d77_evidence_access.test.sql": "6c71035bdc80f2e3a7821bfdd7e8c723ad070c1136cf8648d905f48b7e9d0496",
+    "supabase/tests/190_m8_1_live_social_loop.test.sql": "f419ad938932e0753aac4c22881b3a3b5308cb109cf855480081a6527103831c",
+    "supabase/tests/210_m8_3c_standings_results_obligations.test.sql": "e3df34dc3b3fc21b40c1c46530e8a4976af10fa8f40df391671a26f9079bd78f",
+    "supabase/tests/220_account_deletion_concurrency.test.sql": "2855766ce52b563d61e87f452d355f5ea24f6009ae2bfca3d48e5aa089a8f5ef",
+    "supabase/tests/230_m7_trusted_integrity_assessments.test.sql": "40b042d2cfec4fd4b0143bfe9d2af75407f82af98c2489ec5f42af05eca4a824",
+    "supabase/tests/240_m7_integrity_assessment_concurrency.test.sql": "bbff4f31a61bd9c5bfe9119b8e1bdff4c65c2dabb9f133ec791a417c6f472e73",
+    "supabase/tests/250_m7_d76_quarantine_deadlines.test.sql": "1e9942623f45933b8fbf3c714a9fb70ff1f42bc7f2a3fdebb052b579194d8efc",
+    "supabase/tests/260_m7_d76_concurrency.test.sql": "e433a184637f7bdcc80367f46f79cad5f366659e2dbab8f6747cfa0c4c733b92",
+    "supabase/tests/270_lead_loss_push_reactions.test.sql": "71680c76238a04dd873719ff37a7f61648e4f3c22dd47c8c902a67620a2fde31",
+    "supabase/tests/280_personal_v1_foundation_privacy.test.sql": "8f0f778dc2192fd964d5dd096ad77d9725eaa2757278205293d2efe5ab90c56f",
+    "supabase/tests/290_personal_v1_lifecycle_scoring.test.sql": "de83c8f73e29717fa82ea9a74e218861db7121b95cfca550c5f728f922548dbe",
+    "supabase/tests/300_personal_v1_acceptance_matrix.test.sql": "8b227dd4b2f57e7ecd39937a4fc18bbc6e84ed3decafa1b8239b9c9a46a01acc",
+    "supabase/tests/310_personal_v1_creation_concurrency.test.sql": "83a271954295e65293badbb550cb51902ddb0847712f49f3b6dbe084f5a9b33b",
+    "supabase/tests/320_personal_v1_evidence_retention_isolation.test.sql": "a22d6b9eaf2a1c5edd56462e0789d19b548d0277590b907fd107f53ca4483f8f",
+    "supabase/tests/330_solo_contract_domain.test.sql": "6bde28fc7e5cd0bd06e3d30888759f114cd9aa0f71cd2bc4a38318f84dd883b9",
+    "supabase/tests/340_solo_contract_lifecycle_appeals.test.sql": "a0423eb255ef61a499f67197bd17407ccdc80bfe6df1e6a4304074b87f15a7ed",
+    "supabase/tests/350_solo_contract_concurrency.test.sql": "bd2df0cacbed84b21cb5452a35c6b58f087f9e4cb4cdc1b2c5b59da70f458542",
+    "supabase/tests/360_solo_fake_authorization_domain.test.sql": "13694baa24f183d8d6f8c0aad68265906a93bf4dfaf6e1e6922a49153639bc4a",
+    "supabase/tests/370_solo_fake_authorization_lifecycle.test.sql": "f012ecb9dcdf213b5892acb1b5cb5544353b53928e6cad2304756c6ae07db75b",
+    "supabase/tests/380_solo_fake_authorization_concurrency.test.sql": "b6b029b49018577792f04e73f4f8eea88cbd188de5a299a634cc64d50557ff66",
+    "supabase/tests/390_personal_custom_start_time.test.sql": "5225fe827248cc080b0ad3bcd8290c7207a04092279536f7e123a25ba7ec9a29",
+    "supabase/tests/400_personal_stripe_sandbox_domain.test.sql": "5433060c3869583fe3237b65e58b821a2f4fd9c0edce45f062846f6f722b54e2",
+    "supabase/tests/410_personal_stripe_sandbox_lifecycle.test.sql": "13416a292ac60dbd45046a7a520b3be40b40d86ff80ad930b0d982b9e5de2e0a",
+    "supabase/tests/411_personal_stripe_sandbox_beta_controls.test.sql": "526a410aa4f4d87f2b050bfcbd7d2366990f1c7bfafb230f6176c1d774ae0b07",
+    "supabase/tests/412_personal_stripe_sandbox_beta_controls_concurrency.test.sql": "62464f794a40efb942513c0a10ee7d47804fabb74c784da41cdbc72f90cacca4",
+    "supabase/tests/420_production_attestation_provenance.test.sql": "0e4e58a98827766e930e00746cdfc8ea3986834992f8d4c81e2f38cdb173de27",
+    "supabase/tests/430_personal_result_worker.test.sql": "ad8f29795cac3df38b694266b5aca0063fabf69334aa7a5761792f730943160a",
+    "supabase/tests/431_personal_result_worker_concurrency.test.sql": "1af0d2051d8b7b65e6a064123494bc24a8f0e86b65bf8ba98c00d9c568db3dee",
+    "supabase/tests/440_personal_health_snapshot_v2.test.sql": "d2f8cea128577d7a9011009927c1395782850ce05d1a2d7aaf4f3fe754ce4fc6",
+    "supabase/tests/441_personal_health_snapshot_v2_concurrency.test.sql": "b6991c530ad0ebe7672045ea249b7b77651b31028a628a5ec8a4bd871db5f785",
+    "supabase/tests/450_personal_sandbox_active_cancellation.test.sql": "15d4b55eb6330a753f16c1176cf9570364a6882bc8ebd1f84d7a80f8867c2e41",
+    "supabase/tests/460_duel_agreement.test.sql": "e8c6c8b085c63a3a48331bf44e6b892f1195512cc53e8fae467bf4b18d5a527d",
+    "supabase/tests/461_duel_agreement_concurrency.test.sql": "39dca282dfb3ca44d4ef0f272a8eb9aa67a97a8499f03fc616f51a98fe9ce3e8",
+    "supabase/tests/462_duel_proof.test.sql": "aef02e5696c2dde648885c56508643eaf001ef62b8b2196fe32ffaa7bd9ee04c",
+    "supabase/tests/463_duel_proof_concurrency.test.sql": "3b04a1c19d0bc946e3c7063add8f9d093172202b1ee18bcd9ac8448ecfa44080",
+    "supabase/tests/464_duel_lifecycle.test.sql": "0eed89795837fc33d8ce1ab8a4c0464b6161932f89fe1fd65e2fa78b4982d8cf",
+    "supabase/tests/465_duel_lifecycle_concurrency.test.sql": "71608f3277593d1d8e5d0efcbe7aba04b8d764a42b549e47b737a02eb9ca06be",
+    "supabase/tests/466_duel_native_projection.test.sql": "b4dc9d8b06f80ff7d5a8241a01899da437206dfb02c6969f87a97f6ca2209f9d",
+    "supabase/tests/467_duel_rematch_links.test.sql": "59551ff6fcedb51a30aa9da7410f6790c76b4aba85c78ecca646a4153543899d",
+    "supabase/tests/468_duel_rematch_links_concurrency.test.sql": "82210dde56863a6cc9140a1b7b2221249580d2e1a295e3c0c5732be6dc697bb8",
+    "supabase/tests/469_performance_commitment_agreement.test.sql": "df597055caa5815a46311114597c5d410ea49690a0cea67ec69a29b932fd6a59",
+    "supabase/tests/470_performance_commitment_concurrency.test.sql": "191f782e2680efbad77a3ed88f07c57c82ed61020f0d70043662e8b48965135b",
+    "supabase/tests/471_performance_attempts.test.sql": "26018f960957ead953b92258d4231a8f439deb45c4732282db965c00a21e30d7",
+    "supabase/tests/472_performance_attempts_concurrency.test.sql": "a8b19a653cfb4595d156d207f5797a302e1f88d181c6d671d2cc8b8695bf581d",
+    "supabase/tests/473_performance_progress.test.sql": "92cb13e84b5eba313f67a16e275697cc96c5c8115fe08bbd724def43c9c3817d",
+    "supabase/tests/474_performance_progress_concurrency.test.sql": "286d10b7847aa2b9ff575204adacc799e419bc58ff04da5af9854756705f8646",
+    "supabase/tests/475_performance_following.test.sql": "86592276c8184c4ea6fcfe518c6a5c1f4b5414cec3754153515af7ba23861154",
+    "supabase/tests/476_performance_following_concurrency.test.sql": "d1fd9de512fb752682f49f6e0843864e077865e3c013a6f831aee9adfefdfad6",
+    "supabase/tests/477_performance_lifecycle.test.sql": "e12bda6c2f0d3d10529b70e5ab70958dac42dd50dad7423f64ed464eac598b8f",
+    "supabase/tests/478_performance_lifecycle_concurrency.test.sql": "27e3e21d1ad03eb9b633282a37316e00a1185c2ec13099f3387a1fc98177cc2b",
+    "supabase/tests/480_weekly_backend.test.sql": "c2b6e844e8b7de8074af72586f35012191b37e5bd4c2a2d647e516c9c6cf9c92",
+    "supabase/tests/481_weekly_concurrency.test.sql": "3204537000b5a2a48ac40f99ccb7ec768df247407da3cd7795bba918d67b7f45",
+    "supabase/tests/482_weekly_sharing.test.sql": "4dcda18e693bf45d3ff07bd21ce812b82267695f7dc156671b03f0f59aef9529",
+    "supabase/tests/490_challenge_steps.test.sql": "268a8511decfbe994a090afd35f6e90902123c42e7c312c5cf216efbf0d1df4a",
+    "supabase/tests/491_challenge_boundaries.test.sql": "2d218c262823c80d529b1db3237ff0720cbb31d6f8f604ee66f519187434bcf2",
+    "supabase/tests/492_challenge_matrix.test.sql": "8304fc53e04804290bd11393a8fe5248eda933701fb7163107e60d308d5337b9",
+    "supabase/tests/493_challenge_entry.test.sql": "8814fb9dc52670273d5d62df9f57c72e6e4894e14d66577cc455b458a9d3b9f3",
+    "supabase/tests/494_challenge_safety.test.sql": "4c4360e96ae34893a088336f29f275c4c96b1a44e7b33461c67ef181f80ca25d",
+    "supabase/tests/495_challenge_policy_recovery.test.sql": "1c1f88d862480bad82c0bf3c4f44df274cdc3e0639df5b395cf344f9f684e60f",
+    "supabase/tests/496_challenge_sections.test.sql": "7ddd97906c66bcfdbca4b5acad0c733ea839b36aaba44e2612c9459ec613573d",
+    "supabase/tests/497_challenge_operations.test.sql": "37ec136f84b0e52510e7c32f6d2013fa5aef1950f8563c7dd46a937b9eefea6f",
+    "supabase/tests/498_challenge_admission_context.test.sql": "55bfd8979e92be9d593e5f44500eb3c75f7aa82710c2f057557e392e7a4cee97",
+    "supabase/tests/499_challenge_reconsent_projection.test.sql": "3a7bde4e8d9575c856272f8e83a3a277d9c8befc3ee7d3258b42b54229246b44",
+    "supabase/tests/500_challenge_reopened_draft_lifecycle.test.sql": "a0a933f0239677ff73ba0830ea6a616ce6b94994e674ee424046cbd70cec9e9d",
+    "supabase/tests/501_challenge_participation_privacy.test.sql": "d766e7defd9fd9d9b9835a70068227387520ae839783f457f6a3c7bae0596bcd",
+    "supabase/tests/502_challenge_session_lock_expiry.test.sql": "793b92b0fdd3e6087f01be7488829808592e41308a6b18dfa0a667b6fb22cc0c",
+    "supabase/tests/503_challenge_scoped_locks_claims.test.sql": "069be2805bc219cc861e204214b0626795920fa4fd34fda6a5ba45dd52fde287",
+    "supabase/tests/504_challenge_durable_claims.test.sql": "b58e5bae4ef6f1fb44c25cc1cd5c4b15d6f2fba4d6deae0803285bb66aa69d7b",
+    "supabase/tests/505_challenge_bounded_queries.test.sql": "5708805ba423cf26bd19afe8e0eda2cc99b7c76ce2febcf34e8e3d361f5b2369",
+    "supabase/tests/506_challenge_private_community.test.sql": "c38092c0280520e51b23491947d78f0d543d96947941579277d73e990b3040d2",
+    "supabase/tests/507_challenge_community_guards.test.sql": "8e90a9d7917eeba55f4af1aaabbc39a810b74038c8cd5a54e2ce40cbb0869a76",
+    "supabase/tests/508_challenge_community_progress.test.sql": "4756d5502dd37562a57fc38b1c7be2efbc5e308b99557b1d46bcf9526929b59c",
+    "supabase/tests/509_challenge_local_worker_recovery.test.sql": "08830549184b88dc42fc811eb30ab21a7dc15959e21e518043ca5025a0bbbfab",
+    "supabase/tests/512_challenge_account_deletion_v1.test.sql": "76510c2463d3852348606e4c73ced2345bafb39f3472dd200a53e67b764b01f0",
+    "supabase/tests/513_challenge_account_deletion_restore_v1.test.sql": "ed0466111faf5fb5ee10df5adf12d651e0489f7e57dc7261f8803d18ccc019ae",
+    "supabase/tests/514_challenge_account_deletion_preservation_v1.test.sql": "ce90cec0a921f90b6c0671ac37affdf4542733031a54f160c9fd5fd2d6b725f5",
+    "supabase/tests/515_challenge_local_review_status.test.sql": "e713293a5fa0269b276e55b609c327719de51379b72718b5ff6e32e7d8e7300a",
+    "supabase/tests/516_challenge_admin_requests_v2.test.sql": "5a3bc23656ff9327f40a75179be6995f46412dd9542293d6d5cac635be9c700b",
+    "supabase/tests/517_challenge_suspended_account_access.test.sql": "c928e0dc2273cc5cda1bf3f4837138c2e22f32e796fb5c4a0c085bd2bddef0bb",
+    "supabase/tests/518_challenge_community_snapshot_status.test.sql": "3218b56b5b658e103e912ee5b79046d9c419bb5da3d5ea62c1e169e8cd69555a",
+    "supabase/tests/fixtures/challenge-fixture.inc": "f3f8c9a4984fda3fe7937bd17a1fc18f9cd714bdda24695edc7b77ff85b33e1e",
+    "supabase/tests/fixtures/challenge-matrix-fixture.inc": "440b128570a46454447a63bfa1826759d3c0a230f1d583da4457fc62c93c5f46",
+    "supabase/tests/fixtures/challenge-review-monitor-fixture.inc": "9ae04e82c029d74c45eb639c93975fdb1e91aff886128350c602e4bbb1166bd7",
+    "supabase/tests/fixtures/challenge-worker-fixture.inc": "5a99f71e1f5bf31a908ca4eac40404552f14cba5400a910507ee92d1b8c6fbee",
+    "supabase/tests/fixtures/weekly-fixture.inc": "5034d54bfc41137f0cf1700136064d0155e18dbb3d92c552d13763f348452440"
+  },
+  "baseline_limits": [],
+  "scope": "Local SQL and signed-JWT PostgREST checks; no hosted, gateway, real Auth sign-in, scheduler, alerts or P7 acceptance."
+}

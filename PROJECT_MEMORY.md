@@ -1,6 +1,6 @@
 # GameTime project memory
 
-## Current working baseline — September 18, 2026
+## Current working baseline — September 19, 2026
 
 Use `/Users/user/Documents/GitHub/GameTime` on `main` as the authoritative
 project, with isolated task branches when needed. [WORKING_BASELINE.md](docs/WORKING_BASELINE.md)
@@ -8,6 +8,13 @@ owns exact source, completed work, evidence and next dependencies. The September
 15 published baseline at `1dacc6644f2100567d85fbaa2970bb7285bbaa35` includes P4/P5/P6, P7/P10
 preparation, Signal/P9A, S2/P8 privacy/recovery corrections, P11A local
 worker/operator/deletion work and P9's bounded shared-session connection.
+
+The September 19 [isolated candidate](outputs/reports/2026-09-19-integrated-candidate.md)
+integrates delivered invitation, operator recovery, suspended-account repair
+and service monitoring work from main `9f116ac`, preserving its profile-retry
+and actor-switch fixes. Combined local verification is recorded there; main
+remains unchanged. This does not accept sources, hosted operation or release.
+The complete release matrix remains P12 work.
 
 The owner selected **Signal as the official UI/UX** on September 13.
 [The migration contract](docs/design/SIGNAL_UI_MIGRATION.md) and adopted study

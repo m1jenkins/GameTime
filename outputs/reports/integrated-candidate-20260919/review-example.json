@@ -1,0 +1,13 @@
+{
+  "appeals_without_eligible_operator_count": 0,
+  "earliest_review_resolve_by": "2026-10-16T12:00:00+00:00",
+  "evaluated_at": "2026-10-13T12:00:00+00:00",
+  "monitoring_state": "available",
+  "next_appeal_grant_expires_at": "2026-10-14T12:00:00+00:00",
+  "next_review_grant_expires_at": "2026-10-14T12:00:00+00:00",
+  "oldest_pending_appeal_at": "2026-10-13T12:00:00+00:00",
+  "outstanding_review_count": 3,
+  "pending_appeal_count": 2,
+  "reviews_without_eligible_operator_count": 1,
+  "server_time": "2026-09-19T07:47:43.326044+00:00"
+}

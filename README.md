@@ -14,6 +14,13 @@ work. This is a local implementation baseline, **not Beta readiness**.
 
 ## Current status
 
+The September 19 [isolated integration candidate](outputs/reports/2026-09-19-integrated-candidate.md)
+combines configured HTTPS invitations, administrator response recovery,
+review/appeal and snapshot monitoring, and repaired suspended-account access.
+It preserves main's profile-retry and actor-switch fixes. Main is unchanged at
+`9f116ac`; focused combined checks passed, while the full release matrix remains
+P12 work. This candidate is not merged, deployed or released.
+
 Published `main` was verified at `1dacc6644f2100567d85fbaa2970bb7285bbaa35` on
 September 15, 2026. It includes P4–P6, Signal/P9A, P7 and P10 preparation,
 S2/P8 privacy and recovery corrections, local P11A worker/operator/deletion
@@ -26,7 +33,7 @@ establish real Apple identity, accepted Health sources or hosted operation.
 
 P7–P13 still require four accepted physical sources and timed-run tolerance,
 real ingestion/adapters and all 13 source-backed policies, approved hosted
-identities/settings and operating checks, then integrated candidate,
+identities/settings and operating checks, then source-backed candidate qualification,
 physical/accessibility/human and release acceptance. All 18
 [readiness entries](docs/release/beta/readiness.json) remain false. The baseline
 cleanup does not start those tasks or authorize distribution, hosting or money.

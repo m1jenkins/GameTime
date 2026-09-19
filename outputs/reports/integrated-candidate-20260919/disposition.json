@@ -1,0 +1,169 @@
+{
+  "combined": {
+    "owner": "gametime-p11a-operator-integration-04f7c5b02e",
+    "ports": [
+      58495,
+      58496,
+      58497,
+      58498
+    ],
+    "removed": [
+      "gametime-p11a-operator-integration-04f7c5b02e-auth",
+      "gametime-p11a-operator-integration-04f7c5b02e-db",
+      "gametime-p11a-operator-integration-04f7c5b02e-network"
+    ],
+    "precleanup_error": "RuntimeError",
+    "ports_closed": [
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "upgrade": {
+    "owner": "gametime-review-monitor-integration-6e06e23be3",
+    "ports": [
+      58610,
+      58611,
+      58612,
+      58613
+    ],
+    "removed": [
+      "gametime-review-monitor-integration-6e06e23be3-db",
+      "gametime-review-monitor-integration-6e06e23be3-network"
+    ],
+    "precleanup_error": "RuntimeError",
+    "ports_closed": [
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "combined-run2": {
+    "owner": "gametime-p11a-operator-integration-72df77b795",
+    "ports": [
+      58869,
+      58870,
+      58871,
+      58872
+    ],
+    "removed": [
+      "gametime-p11a-operator-integration-72df77b795-rest",
+      "gametime-p11a-operator-integration-72df77b795-auth",
+      "gametime-p11a-operator-integration-72df77b795-db",
+      "gametime-p11a-operator-integration-72df77b795-network"
+    ],
+    "cron_launch": "off",
+    "cron_runs": 0,
+    "sessions": 0,
+    "runtime_closed": true,
+    "ports_closed": [
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "upgrade-run2": {
+    "owner": "gametime-review-monitor-integration-a8e6e27762",
+    "ports": [
+      59396,
+      59397,
+      59398,
+      59399
+    ],
+    "removed": [
+      "gametime-review-monitor-integration-a8e6e27762-rest",
+      "gametime-review-monitor-integration-a8e6e27762-auth",
+      "gametime-review-monitor-integration-a8e6e27762-db",
+      "gametime-review-monitor-integration-a8e6e27762-network"
+    ],
+    "cron_launch": "off",
+    "cron_runs": 0,
+    "sessions": 0,
+    "runtime_closed": true,
+    "ports_closed": [
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "concurrency-run2": {
+    "owner": "gametime-p11a-operator-integration-dd36d654d6",
+    "ports": [
+      60641,
+      60642,
+      60643,
+      60644
+    ],
+    "removed": [
+      "gametime-p11a-operator-integration-dd36d654d6-auth",
+      "gametime-p11a-operator-integration-dd36d654d6-db",
+      "gametime-p11a-operator-integration-dd36d654d6-network"
+    ],
+    "cron_launch": "off",
+    "cron_runs": 0,
+    "sessions": 0,
+    "runtime_closed": true,
+    "ports_closed": [
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "concurrency-run3": {
+    "owner": "gametime-p11a-operator-integration-9073ea796f",
+    "ports": [
+      60905,
+      60906,
+      60907,
+      60908
+    ],
+    "removed": [
+      "gametime-p11a-operator-integration-9073ea796f-auth",
+      "gametime-p11a-operator-integration-9073ea796f-db",
+      "gametime-p11a-operator-integration-9073ea796f-network"
+    ],
+    "cron_launch": "off",
+    "cron_runs": 0,
+    "sessions": 0,
+    "runtime_closed": true,
+    "ports_closed": [
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "snapshot_runs": [
+    {
+      "owner": "gametime-snapshot-status-a443c69be2a3",
+      "result": "all owned containers (including anonymous volumes) and network removed by runner"
+    },
+    {
+      "owner": "gametime-snapshot-status-f52f16791678",
+      "result": "all owned containers (including anonymous volumes) and network removed by runner"
+    }
+  ],
+  "simulator": {
+    "id": "4957DF75-29CC-4D21-8C00-8E372C413C76",
+    "deleted": true
+  },
+  "final_ownership_check": {
+    "owners_checked": [
+      "gametime-p11a-operator-integration-04f7c5b02e",
+      "gametime-review-monitor-integration-6e06e23be3",
+      "gametime-p11a-operator-integration-72df77b795",
+      "gametime-review-monitor-integration-a8e6e27762",
+      "gametime-p11a-operator-integration-dd36d654d6",
+      "gametime-p11a-operator-integration-9073ea796f",
+      "gametime-snapshot-status-a443c69be2a3",
+      "gametime-snapshot-status-f52f16791678"
+    ],
+    "labeled_containers_networks_volumes_remaining": 0,
+    "task_simulator_present": false
+  }
+}

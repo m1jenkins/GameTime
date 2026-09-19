@@ -1,5 +1,11 @@
 # Local Beta operator CLI
 
+The September 19 [isolated integration candidate](../outputs/reports/2026-09-19-integrated-candidate.md)
+combines v2 administrator recovery, suspended-account repair and service
+review/appeal/snapshot monitoring. Its complete local operator checks pass;
+main is unchanged and hosted operation remains unaccepted. Historical v1
+administrator calls still require manual reconciliation.
+
 `scripts/beta-operator.py` is a fictional, local-only interface to the existing
 RPC contracts. It connects only to literal `127.0.0.1`; there is no hostname,
 HTTPS target or hosted authentication mode. Allocate and inspect owned resources

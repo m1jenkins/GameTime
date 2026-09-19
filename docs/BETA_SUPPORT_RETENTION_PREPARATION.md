@@ -62,7 +62,7 @@ Dated reports retain their original pre-landing status and verification limits.
 This remains fictional loopback operation, not hosted Apple authentication,
 real operator assignment, monitored support or retention-policy acceptance.
 
-September 18 review-branch addition: new administrator grants/revokes use the
+September 19 isolated integration candidate (original September 18 delivery): new administrator grants/revokes use the
 explicit `challenge_admin_request_v2` / `challenge_admin_receipt_v2` contract and
 a credential-free version-2 journal before dispatch. Exact replay returns the
 original receipt without repeating the mutation or audit; receipts do not assert
@@ -70,6 +70,15 @@ current authority. Historical v1 calls still require manual reconciliation and
 are never backfilled. See [recovery instructions](BETA_OPERATIONS_LOCAL.md#exact-administrator-recovery-for-new-requests)
 and the [actual checks and limits](../outputs/reports/2026-09-18-admin-grant-recovery.md).
 This adds no named administrator identity, external operation or retention policy.
+
+The [combined integration checks](../outputs/reports/2026-09-19-integrated-candidate.md)
+now pass the complete operator matrix, including suspended appeal recovery,
+independent decisions, administrator response loss and session expiry/revocation.
+The suspended-account repair restores permitted own reads and safe actions while
+preserving deletion fences, admission denials and operator independence. Service
+review/appeal and snapshot projections are integrated; no staffed support,
+external alerts or hosted operating acceptance follows from these local results.
+Main remains unchanged. Earlier failure reports retain their original outcomes.
 
 ## Retention decision worksheet
 

@@ -15,6 +15,12 @@ approved hosted identities/operation and physical/human/release acceptance remai
 All four sources and all 13 policies are required; funded launch remains Phase 6.
 Do not restart completed prompts or follow obsolete checkout instructions.
 
+The September 19 [isolated integration candidate](outputs/reports/2026-09-19-integrated-candidate.md)
+combines delivered HTTPS intake, durable administrator recovery, suspended
+account access repair and review/appeal/snapshot monitoring. Focused combined
+checks passed; main remains `9f116ac`. Preserve its verified work for subsequent
+source-backed integration. The full release matrix remains reserved for P12.
+
 ## Historical roadmap
 
 The September 6/9 roadmap and implementation-status statements below are

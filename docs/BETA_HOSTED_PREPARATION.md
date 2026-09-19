@@ -6,9 +6,13 @@ using its existing handoff, rollout, privacy and operator material. It creates
 no duplicate decision/task. The current source and performed checks are in the
 [P10 handoff](../outputs/reports/2026-09-12-p10-completion.md).
 
-P10's device-independent preparation is complete; hosted operating acceptance is
-not. P7 has no physical findings. P8/P9's accepted real facts, adapters and ordinary
-signed-in challenge journeys remain absent. All 18 [readiness entries](release/beta/readiness.json)
+Current September 19 status: the [isolated integration candidate](../outputs/reports/2026-09-19-integrated-candidate.md)
+adds configured HTTPS invitations, durable administrator recovery, repaired
+suspended-account access and service-only review/appeal/snapshot monitoring.
+Focused local verification passed; main remains unchanged. P7 has partial
+private observations but no accepted source. The ordinary shared-session
+connection is implemented; real facts, adapters, approved domain/Apple delivery
+and hosted operating acceptance remain pending. All 18 [readiness entries](release/beta/readiness.json)
 remain false. Nothing here provisions, deploys, changes credentials, registers a
 scheduler, publishes, deletes records or sends a message.
 
@@ -23,6 +27,9 @@ local landing nor CLI verification accepts a hosted target or operating policy.
 
 ## Configuration and identities
 
+The dated P10 source inventory is historical; current implementation is in the
+[working baseline](WORKING_BASELINE.md). Proposed hosted requirements remain open.
+
 [hosted-settings.draft.json](release/beta/hosted-settings.draft.json) is a review
 worksheet, **not executable configuration**. Every unselected owner value is null.
 Its proposed settings do not grant approval. Never substitute fixture values or
@@ -30,10 +37,10 @@ copy `supabase/config.toml` as a hosted deployment manifest.
 
 | Area | Current implementation | Prepared hosted requirement / dependency |
 | --- | --- | --- |
-| Candidate and project | Cobalt/P4/P5/P6/P7 preparation; local Supabase 17 | Owner names immutable candidate, separate project/organization, region, budget and permitted actions. P8/P9 and source acceptance block source-backed operation. No existing project was inspected or selected. |
-| Public native client | `PublicClient.xcconfig` names historical project `jrkzdttophnmkxjoyioo`; normal Cobalt uses `UnavailableChallengeV1Client` | Existing URL is not the selected new Beta target. Bind reviewed HTTPS origin and publishable key to exact build configuration. Preserve historical Personal access until replacement acceptance. |
+| Candidate and project | Signal/P4/P5/P6/P7 preparation and the isolated September 19 integration candidate; local Supabase 17 | Owner names immutable candidate, separate project/organization, region, budget and permitted actions. P8/P9 and source acceptance block source-backed operation. No existing project was inspected or selected. |
+| Public native client | `PublicClient.xcconfig` names historical project `jrkzdttophnmkxjoyioo`; ordinary Signal supports the shared-session client when explicitly configured; the checked-in challenge flag remains off | Existing URL is not the selected new Beta target. Bind reviewed HTTPS origin and publishable key to exact build configuration. Preserve historical Personal access until replacement acceptance. |
 | Apple identity | Project declares team `87Z29RTC26`, Release `com.mjenkins.gametime`, Debug/Staging `.staging` | These are observed source identities, not P10 owner approval. Confirm exact team/bundle and Apple native client ID allowlist. Do not reuse conformance/debug IDs as release audiences. |
-| Sign-in | D134 already adopts Apple; `AppleSignIn.swift`, `AuthClient`, `SupabaseClients.swift` implement nonce/ID-token exchange | Keep native system sign-in and nonce verification; connect the reviewed authenticated challenge client in P9. Preview email/password actors are local fixtures. Email/SMS/anonymous signup and manual linking remain off. |
+| Sign-in | D134 already adopts Apple; `AppleSignIn.swift`, `AuthClient`, `SupabaseClients.swift` implement nonce/ID-token exchange | Keep native system sign-in and nonce verification; qualify the existing shared-session connection on the approved Apple/hosted identity in P9. Preview email/password actors are local fixtures. Email/SMS/anonymous signup and manual linking remain off. |
 | Sessions | Refresh rotation; live `auth.sessions` actor/session/expiry checks at protected RPCs | JWT expiry 3,600s and refresh reuse 10s are proposed carryovers, not an approved hosted session policy. Continue checking current session/account after waits. User-editable metadata never grants support, Beta or source authority. |
 | Auth redirects | Local `site_url`/redirects are loopback placeholders | Approve exact site/redirect URLs. Native ID-token sign-in is distinct from web OAuth; only if web OAuth is actually selected, configure Services ID and the exact project `/auth/v1/callback`, with an owner for its signing-secret renewal. Avoid wildcard redirects. |
 | Invitation links | [Local HTTPS slice](BETA_INVITATION_LINKS_LOCAL.md): configured exact-origin parser/formatter and durable native intake; fixture links retained. Checked-in origin remains unconfigured. | Approve HTTPS host, exact application identifier, `/challenge-invite/<64-hex-token>`, [association template](release/beta/apple-app-site-association.json.template), entitlement and provisioned binary. No active associated-domain entitlement or published host exists. Actual OS delivery, Apple sign-in and hosted redemption remain unaccepted. |
@@ -83,8 +90,8 @@ private helper/relation access, RLS and closed runtime values. Its
 [executed inventory](../outputs/reports/p10-20260912/access-audit.json) enumerates
 all 46 public challenge RPC signatures and the other public functions. Result:
 **29 authenticated, 17 service-only, zero anonymous; 43 private helpers and 36
-private relations; zero local-boundary violations.** This is current local
-separation, not proof of a least-privilege hosted worker or gateway.
+private relations; zero local-boundary violations.** This is the September 12 local
+inventory, not proof of a least-privilege hosted worker or gateway.
 
 | Principal | Permitted current interface | Additional boundary |
 | --- | --- | --- |

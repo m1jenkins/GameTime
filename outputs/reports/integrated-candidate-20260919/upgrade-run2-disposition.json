@@ -1,0 +1,25 @@
+{
+  "owner": "gametime-review-monitor-integration-a8e6e27762",
+  "ports": [
+    59396,
+    59397,
+    59398,
+    59399
+  ],
+  "removed": [
+    "gametime-review-monitor-integration-a8e6e27762-rest",
+    "gametime-review-monitor-integration-a8e6e27762-auth",
+    "gametime-review-monitor-integration-a8e6e27762-db",
+    "gametime-review-monitor-integration-a8e6e27762-network"
+  ],
+  "cron_launch": "off",
+  "cron_runs": 0,
+  "sessions": 0,
+  "runtime_closed": true,
+  "ports_closed": [
+    true,
+    true,
+    true,
+    true
+  ]
+}
