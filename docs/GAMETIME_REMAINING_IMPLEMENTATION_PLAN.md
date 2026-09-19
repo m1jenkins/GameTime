@@ -1,9 +1,9 @@
 # GameTime remaining implementation plan
 
-Updated September 19 for the [isolated integration candidate](../outputs/reports/2026-09-19-integrated-candidate.md)
-from main `9f116ac`. It includes the delivered invitation, administrator recovery,
-suspended-account repair and service monitoring slices, with focused combined
-verification. Main remains unchanged; P12 owns the full release matrix.
+Updated September 19 for the [main consolidation](../outputs/reports/2026-09-19-main-consolidation.md).
+It includes the delivered invitation, administrator recovery, suspended-account
+repair and service monitoring slices. Local weekly acceptance passed; the
+consolidation record lists CI status at merge. P12 owns the full release matrix.
 The September 15 published baseline was `1dacc66`.
 Use the [working baseline](WORKING_BASELINE.md) for exact source and completed
 slices, and the [prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for
@@ -31,7 +31,7 @@ another design, infrastructure or general audit workstream.
 | P7 | [Preparation](../outputs/reports/2026-09-12-p7-preparation.md) is complete; the [physical session](../outputs/reports/2026-09-18-p7-device-session.md) has started. Four source policies and timed-distance tolerance remain unaccepted. |
 | P8/P9 | Configured ordinary Signal now shares the app authentication session and existing challenge client; checked-in opt-in remains off. [Bounded P9 connection](../outputs/reports/2026-09-15-p9-authenticated-app.md) records local substitute checks. Configured HTTPS invitation intake/formatting is integrated locally. Real consent/ingestion, accepted adapters, approved domain/Apple/OS delivery and source-backed journeys remain. |
 | P10 | [Device-independent preparation](../outputs/reports/2026-09-12-p10-completion.md) is complete. Approved settings, functioning hosted scheduler/alerts, retention/deletion and operating acceptance are still missing. |
-| P11A | Local worker/recovery/snapshot/status code landed at `a3d2c3f`; scoped human operator tooling landed at `6fea1c2`. The isolated candidate adds durable v2 administrator response recovery, repaired suspended-account access and review/appeal/snapshot monitoring; historical v1 reconciliation remains manual. Account deletion and review repairs are landed through `c6f88cd` ([local record](evidence/beta-finish-line-b7/account-deletion-local-20260914.md)). Hosted schedules, credentials, alerts and actual retention/deletion operation remain outstanding. [Recovery report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [operator report](../outputs/reports/2026-09-14-p11a-operator.md) |
+| P11A | Local worker/recovery/snapshot/status code landed at `a3d2c3f`; scoped human operator tooling landed at `6fea1c2`. Main also includes durable v2 administrator response recovery, repaired suspended-account access and review/appeal/snapshot monitoring; historical v1 reconciliation remains manual. Account deletion and review repairs are landed through `c6f88cd` ([local record](evidence/beta-finish-line-b7/account-deletion-local-20260914.md)). Hosted schedules, credentials, alerts and actual retention/deletion operation remain outstanding. [Recovery report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [operator report](../outputs/reports/2026-09-14-p11a-operator.md) |
 | P11–P13 | Operated backend, source-backed candidate qualification, physical/human acceptance and authorized distribution remain. Public App Store submission is a later milestone. |
 
 The landed combined candidate contains S2's Signal adaptations of the

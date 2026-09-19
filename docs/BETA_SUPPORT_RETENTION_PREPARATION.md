@@ -62,7 +62,7 @@ Dated reports retain their original pre-landing status and verification limits.
 This remains fictional loopback operation, not hosted Apple authentication,
 real operator assignment, monitored support or retention-policy acceptance.
 
-September 19 isolated integration candidate (original September 18 delivery): new administrator grants/revokes use the
+September 19 main consolidation (original September 18 delivery): new administrator grants/revokes use the
 explicit `challenge_admin_request_v2` / `challenge_admin_receipt_v2` contract and
 a credential-free version-2 journal before dispatch. Exact replay returns the
 original receipt without repeating the mutation or audit; receipts do not assert

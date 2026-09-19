@@ -6,11 +6,11 @@ using its existing handoff, rollout, privacy and operator material. It creates
 no duplicate decision/task. The current source and performed checks are in the
 [P10 handoff](../outputs/reports/2026-09-12-p10-completion.md).
 
-Current September 19 status: the [isolated integration candidate](../outputs/reports/2026-09-19-integrated-candidate.md)
-adds configured HTTPS invitations, durable administrator recovery, repaired
+Current September 19 status: [main consolidation](../outputs/reports/2026-09-19-main-consolidation.md)
+includes configured HTTPS invitations, durable administrator recovery, repaired
 suspended-account access and service-only review/appeal/snapshot monitoring.
-Focused local verification passed; main remains unchanged. P7 has partial
-private observations but no accepted source. The ordinary shared-session
+Local weekly acceptance passed; the consolidation record lists CI status at
+merge. P7 has partial private observations but no accepted source. The ordinary shared-session
 connection is implemented; real facts, adapters, approved domain/Apple delivery
 and hosted operating acceptance remain pending. All 18 [readiness entries](release/beta/readiness.json)
 remain false. Nothing here provisions, deploys, changes credentials, registers a

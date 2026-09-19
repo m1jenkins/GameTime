@@ -4,7 +4,7 @@ The September 18 [P7 device session](../outputs/reports/2026-09-18-p7-device-ses
 has started. The procedure and software evidence below were written before
 that session; use the current record for performed physical observations.
 
-Build `GameTime` / Debug from the separately authorized isolated candidate. In the Xcode Run scheme add
+Build `GameTime` / Debug from current main. In the Xcode Run scheme add
 `--health-source-investigation`. This mode returns before constructing product
 services and skips auth, upload and product background reads. D135 removes
 the dedicated Watch runtime from all active configurations; no Watch app or

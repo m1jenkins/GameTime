@@ -3,14 +3,14 @@
 Develop from `main` in `/Users/user/Documents/GitHub/GameTime`; use isolated task
 branches when needed. Read `git status --short --branch` and `git log -1` first.
 
-## September 19 isolated integration candidate
+## September 19 main consolidation
 
-Main remains at `9f116ac4954594a8d64467f78a6dca55d3cc2ce4`, including profile
-retry (`70584f1`) and actor-switch isolation (`9f116ac`). The isolated branch
-`codex/integrated-candidate-20260919` in
-`/private/tmp/gametime-integrated-20260919` integrates the delivered HTTPS
-invitations, administrator recovery, review/appeal monitoring, suspended-account
-repair and community snapshot monitoring. It is not merged into main.
+The [consolidation record](../outputs/reports/2026-09-19-main-consolidation.md)
+identifies the published main merge, checks and retired branches. Main includes
+profile retry (`70584f1`), actor-switch isolation (`9f116ac`), delivered HTTPS
+invitations, administrator recovery, review/appeal and community snapshot
+monitoring, suspended-account repair, iOS 18 compatibility and the fictional
+Personal lifecycle preview.
 
 The [integration record](../outputs/reports/2026-09-19-integrated-candidate.md)
 records exact input commits, conflict resolutions, tested source and resource
@@ -21,7 +21,9 @@ race checks, 12 suspended-session lock-wait cases and 14 deletion handler units.
 snapshot runner passed 218 SQL assertions and 48 checks (including setup/SQL
 summaries and HTTP checks). These are focused local results, not P12 acceptance.
 The repaired suspended-account suites pass; their original failures remain in
-the untouched dated reports. The full release matrix remains reserved for P12.
+the untouched dated reports. The later full portable weekly gate passed on the
+consolidated source; the consolidation record lists CI status at merge. The full
+release matrix remains reserved for P12.
 
 ## September 18 P7 device session
 
@@ -70,19 +72,19 @@ included in this published baseline.
 | P7 | Session A observations recorded; steps policy and all four accepted sources pending | [Current session](../outputs/reports/2026-09-18-p7-device-session.md), [preparation](../outputs/reports/2026-09-12-p7-preparation.md) |
 | P10 | Device-independent hosted/support/retention preparation included; actual hosting unperformed | [P10 report](../outputs/reports/2026-09-12-p10-completion.md) |
 | P11A — local recovery | Combined S2/P8/P11A candidate landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`; community verification gap closed with a test-only correction and focused review. Hosted schedules, credentials and external alerts remain disabled | [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [September 14 follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md) |
-| P11A — operator CLI | Landed on local main at `6fea1c2`: scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery. Original reported verification: 131 CLI/HTTP checks, 8 unit tests and 86 SQL assertions. The isolated integration candidate includes new administrator receipts and repaired suspended access; historical v1 recovery remains manual | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [administrator recovery report](../outputs/reports/2026-09-18-admin-grant-recovery.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
+| P11A — operator CLI | Landed on local main at `6fea1c2`: scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery. Original reported verification: 131 CLI/HTTP checks, 8 unit tests and 86 SQL assertions. Main now includes new administrator receipts and repaired suspended access; historical v1 recovery remains manual | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [administrator recovery report](../outputs/reports/2026-09-18-admin-grant-recovery.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
 | Local design preview | Fictional friend/personal journeys with configurable owned resources | [Preview guide](BETA_LOCAL_PREVIEW.md) |
 | P9 — shared app session | Bounded local implementation connects configured ordinary Signal to the existing authenticated client; default configuration remains off. Actual HTTPS/Apple identity and real-source journeys remain | [Connection and local checks](BETA_LOCAL_PREVIEW.md#ordinary-app-connection-and-its-local-substitute), [P9 report](../outputs/reports/2026-09-15-p9-authenticated-app.md) |
-| P9 — HTTPS invitation slice | The isolated candidate integrates exact configured-origin intake/formatting and preserves durable deliberate redemption. Domain, Apple identity, OS association and hosted/device acceptance remain open | [Local contract and inactive templates](BETA_INVITATION_LINKS_LOCAL.md), [checks and actor-switch composition](../outputs/reports/2026-09-18-https-invitations.md) |
+| P9 — HTTPS invitation slice | Main includes exact configured-origin intake/formatting and preserves durable deliberate redemption. Domain, Apple identity, OS association and hosted/device acceptance remain open | [Local contract and inactive templates](BETA_INVITATION_LINKS_LOCAL.md), [checks and actor-switch composition](../outputs/reports/2026-09-18-https-invitations.md) |
 | P8/P9 remainder | Accepted real-source contracts, ingestion, adapters, approved domain/Apple/OS invitation delivery and source-backed journeys remain | [Remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) |
-| P11A — service monitoring | Review/appeal and selected-cohort snapshot projections are integrated and locally verified in the isolated candidate; no scheduler, alert destination, staffing or freshness threshold is accepted | [Integration record](../outputs/reports/2026-09-19-integrated-candidate.md), [snapshot contract](COMMUNITY_SNAPSHOT_STATUS_LOCAL.md) |
+| P11A — service monitoring | Review/appeal and selected-cohort snapshot projections are in main and locally verified; no scheduler, alert destination, staffing or freshness threshold is accepted | [Integration record](../outputs/reports/2026-09-19-integrated-candidate.md), [snapshot contract](COMMUNITY_SNAPSHOT_STATUS_LOCAL.md) |
 | P11A — account deletion | Landed through `c6f88cd`, including review repairs; local evidence and substitute limits preserved | [Deletion record](evidence/beta-finish-line-b7/account-deletion-local-20260914.md) |
 | P11–13 | Hosted capacity/recovery, physical/human/release acceptance, then authorized private Beta remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
 
 ## Remaining work and authority
 
-The current task prepares one local integration candidate. It does not qualify
-the P12 release matrix or dispatch hosted, physical, human or release work.
+The consolidated main source does not qualify the P12 release matrix or dispatch
+hosted, physical, human or release work.
 Use the [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [bounded prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for their
 preserved requirements and dependency order:
@@ -97,7 +99,7 @@ preserved requirements and dependency order:
   alerts, retention/deletion and recovery/capacity acceptance. Local worker,
   scoped operator CLI and deletion implementation are complete; administrator
   response recovery for new grants/revokes, suspended-account repair and service
-  monitoring are included in the isolated candidate. Historical v1
+  monitoring are included in main. Historical v1
   reconciliation remains manual.
 - P12/P13: source-backed integration and the full release matrix, physical/accessibility/human acceptance,
   replacement acceptance before legacy shell retirement, then authorized private

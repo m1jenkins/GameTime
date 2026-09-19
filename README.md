@@ -14,12 +14,13 @@ work. This is a local implementation baseline, **not Beta readiness**.
 
 ## Current status
 
-The September 19 [isolated integration candidate](outputs/reports/2026-09-19-integrated-candidate.md)
-combines configured HTTPS invitations, administrator response recovery,
-review/appeal and snapshot monitoring, and repaired suspended-account access.
-It preserves main's profile-retry and actor-switch fixes. Main is unchanged at
-`9f116ac`; focused combined checks passed, while the full release matrix remains
-P12 work. This candidate is not merged, deployed or released.
+The September 19 [main consolidation](outputs/reports/2026-09-19-main-consolidation.md)
+includes configured HTTPS invitations, administrator response recovery,
+review/appeal and snapshot monitoring, repaired suspended-account access,
+iOS 18 compatibility, and the fictional Personal lifecycle preview. It preserves
+the profile-retry and actor-switch fixes. Local weekly acceptance passed; the
+consolidation record lists CI status at merge. The full release matrix remains
+P12 work. Nothing was deployed or released.
 
 Published `main` was verified at `1dacc6644f2100567d85fbaa2970bb7285bbaa35` on
 September 15, 2026. It includes P4–P6, Signal/P9A, P7 and P10 preparation,

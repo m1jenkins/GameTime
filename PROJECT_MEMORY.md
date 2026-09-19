@@ -9,12 +9,14 @@ owns exact source, completed work, evidence and next dependencies. The September
 preparation, Signal/P9A, S2/P8 privacy/recovery corrections, P11A local
 worker/operator/deletion work and P9's bounded shared-session connection.
 
-The September 19 [isolated candidate](outputs/reports/2026-09-19-integrated-candidate.md)
-integrates delivered invitation, operator recovery, suspended-account repair
-and service monitoring work from main `9f116ac`, preserving its profile-retry
-and actor-switch fixes. Combined local verification is recorded there; main
-remains unchanged. This does not accept sources, hosted operation or release.
-The complete release matrix remains P12 work.
+The September 19 [main consolidation](outputs/reports/2026-09-19-main-consolidation.md)
+includes delivered invitation, operator recovery, suspended-account repair,
+service monitoring, iOS 18 compatibility and the fictional Personal lifecycle
+preview. It preserves the profile-retry and actor-switch fixes. The original
+[integration record](outputs/reports/2026-09-19-integrated-candidate.md) keeps its
+dated checks; the consolidation records the later full local gate and CI status
+at merge. This does not accept sources, hosted operation or release. The complete release
+matrix remains P12 work.
 
 The owner selected **Signal as the official UI/UX** on September 13.
 [The migration contract](docs/design/SIGNAL_UI_MIGRATION.md) and adopted study
