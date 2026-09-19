@@ -5,7 +5,8 @@ Each credential file names one owned project and a numeric loopback API port.
 Administrator files contain role=administrator and api_key (local service key).
 Human files contain role=human, api_key (public key), actor_id and email; password
 is prompted, or supplied in this private file for fictional automation only.
-Human mutations require a private journal directory and an explicit request UUID.
+Human mutations and administrator grants/revokes require a private journal
+directory and an explicit request UUID.
 Repeat the same command to recover after response loss, even after a new sign-in.
 """
 import argparse
@@ -23,6 +24,7 @@ from challenge_worker import run_once
 
 ADMIN = {'status', 'run-once', 'grant', 'revoke', 'grant-support',
          'revoke-support', 'publish-fixture'}
+ADMIN_REQUESTS = {'grant', 'revoke', 'grant-support', 'revoke-support'}
 REASONS = ['username', 'unwanted_contact', 'unsafe_behavior']
 
 
@@ -81,6 +83,7 @@ def parser_for_cli():
     run.add_argument('--limit', type=int, default=20, choices=range(1, 51))
     for name in ['grant', 'revoke', 'grant-support', 'revoke-support']:
         p = sub.add_parser(name)
+        p.add_argument('--request-id', required=True, type=uuid.UUID)
         p.add_argument('--actor', required=True, type=uuid.UUID)
         if name in ['grant', 'revoke']:
             p.add_argument('--challenge', required=True, type=uuid.UUID)
@@ -123,13 +126,15 @@ def operation(args):
     c = args.command
     if c == 'status':
         return 'challenge_operations_status_v1', {}
-    if c in ['grant', 'revoke', 'grant-support', 'revoke-support']:
-        body = {'p_actor': str(args.actor)}
+    if c in ADMIN_REQUESTS:
+        payload = {'version': 'challenge_admin_request_v2',
+                   'operation': c.replace('-', '_') if 'support' in c else c + '_operator',
+                   'actor_id': str(args.actor)}
         if c in ['grant', 'revoke']:
-            body.update(p_id=str(args.challenge), p_capability=args.capability)
+            payload.update(challenge_id=str(args.challenge), capability=args.capability)
         if c in ['grant', 'grant-support']:
-            body['p_expires'] = args.expires
-        return 'challenge_' + c.replace('-', '_') + ('_v1' if 'support' in c else '_operator_v1'), body
+            payload['expires_at'] = args.expires
+        return 'challenge_admin_request_v2', {'p_request_id': str(args.request_id), 'p_payload': payload}
     if c in ['cases', 'reports']:
         return 'challenge_operator_' + c + '_v1', {'p_id': str(args.challenge)}
     if c == 'support-reports':
@@ -158,7 +163,7 @@ def operation(args):
     return 'challenge_operator_action_v1', dict(body, p_payload=payload)
 
 
-def journal_request(directory, project, port, actor, name, body):
+def journal_request(directory, project, port, actor, name, body, *, authority='human'):
     """Persist only locally constructed, credential-free mutation fields.
 
     Publish atomically with no replacement; concurrent invocations agree on the
@@ -172,6 +177,9 @@ def journal_request(directory, project, port, actor, name, body):
     path = directory / (str(uuid.UUID(body['p_request_id'])) + '.json')
     record = {'version': 1, 'project': project, 'port': port, 'actor_id': actor,
               'rpc': name, 'body': wire(body)}
+    if authority == 'administrator':
+        record = {'version': 2, 'project': project, 'port': port,
+                  'authority': 'administrator', 'rpc': name, 'body': wire(body)}
     # The request filename is actor-independent so switching accounts fails
     # closed in this journal instead of silently creating a second action.
     fd, temporary = tempfile.mkstemp(prefix='.pending-', dir=directory)
@@ -221,11 +229,12 @@ def main():
         headers['Authorization'] = 'Bearer ' + key
     name, body = operation(args) if args.command != 'run-once' else (None, None)
     encoded = wire(body)
-    if not service and 'p_request_id' in body:
+    if args.command in ADMIN_REQUESTS or not service and 'p_request_id' in body:
         if not args.journal_dir:
             raise LocalError('Provide --journal-dir to save this request before sending it.')
         encoded = journal_request(args.journal_dir, args.owned_project, port,
-                                  str(uuid.UUID(config['actor_id'])), name, body)
+                                  None if service else str(uuid.UUID(config['actor_id'])), name, body,
+                                  authority='administrator' if service else 'human')
     session = None
     try:
         if not service:
@@ -255,5 +264,5 @@ if __name__ == '__main__':
         print(str(error), file=sys.stderr)
         sys.exit(1)
     except (OSError, ValueError, KeyError, TypeError, EOFError, http.client.HTTPException):
-        print('Local operation could not be confirmed. Check the private configuration and connection; repeat the exact saved command for human mutations. Administrator grants have no receipt: inspect grant state before reissuing.', file=sys.stderr)
+        print('Local operation could not be confirmed. Check the private configuration and connection; repeat the exact saved command for requests with a journal. Historical administrator calls without a receipt need grant and audit inspection before reissue.', file=sys.stderr)
         sys.exit(1)
