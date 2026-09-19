@@ -87,9 +87,10 @@ Focused pgTAP covers gates, clocks, first/missing/stale captures, replay,
 throttling, failure, unavailable runtime, privacy, grants and actual role calls.
 HTTP verifies signed roles, the same operational cases, GET/SQL read-only calls,
 and hashes of every app/public/auth table before and after status reads. The
-existing progress and worker suites also run. Broader 506/507 suspension/session
-failures, if reproduced without the new function, are recorded separately and
-are not counted as passing suites.
+existing progress and worker suites also run. The integrated runner also requires safety (494) and both suspension/community
+suites (506/507) to pass with complete TAP plans. The snapshot suite is now 518
+to keep review-monitor suite 515 distinct. Historical failure records remain
+unchanged; failures are not accepted by this candidate.
 
 Raw receipts remain private: they contain fictional fixture rows. Only the
 sanitized example and verification summary belong in the review report. See the

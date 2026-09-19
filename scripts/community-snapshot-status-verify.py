@@ -51,7 +51,7 @@ def main():
         db_port = sock.getsockname()[1]
     if port == db_port:
         raise RuntimeError('Port allocation collision; retry the verification')
-    env = dict(os.environ, POSTGRES_PASSWORD=password, PGPASSWORD=password, GOTRUE_JWT_SECRET=secret,
+    env = dict(os.environ, DO_NOT_TRACK='1', POSTGRES_PASSWORD=password, PGPASSWORD=password, GOTRUE_JWT_SECRET=secret,
                GOTRUE_DB_DRIVER='postgres', GOTRUE_DB_DATABASE_URL=f'postgres://supabase_auth_admin:{password}@{db}:5432/postgres',
                GOTRUE_SITE_URL='http://127.0.0.1', API_EXTERNAL_URL='http://127.0.0.1',
                PGRST_DB_URI=f'postgres://authenticator:{password}@{db}:5432/postgres',
@@ -126,7 +126,7 @@ def main():
         command(['docker', 'run', '-d', '--name', db, '--label', 'owner=' + owner,
                  '--network', owner, '-p', f'127.0.0.1:{db_port}:5432', '-e', 'POSTGRES_PASSWORD', DB_IMAGE,
                  'postgres', '-D', '/etc/postgresql', '-c', 'cron.launch_active_jobs=off',
-                 '-c', 'cron.database_name=postgres'], label='db-start.log')
+                 '-c', 'cron.database_name=postgres', '-c', 'listen_addresses=*'], label='db-start.log')
         ready = False
         for _ in range(60):
             probe = command(['docker', 'exec', '-e', 'PGPASSWORD', db, 'psql', '-h', '127.0.0.1', '-XAt', '-U', 'postgres', '-d', 'postgres',
@@ -149,30 +149,22 @@ def main():
         for migration in migrations:
             sql('begin;\n' + migration.read_text() + '\ncommit;', label=migration.name + '.log')
             manifest.append({'path': str(migration.relative_to(ROOT)), 'sha256': hashlib.sha256(migration.read_bytes()).hexdigest()})
-        advisor = command(['supabase', 'db', 'advisors', '--db-url', f'postgresql://postgres:{password}@127.0.0.1:{db_port}/postgres', '--type', 'security', '--fail-on', 'none'], label='security-advisor.log', check=False)
+        advisor = command(['supabase', 'db', 'advisors', '--db-url', f'postgresql://postgres:{password}@127.0.0.1:{db_port}/postgres?sslmode=disable', '--type', 'security', '--level', 'warn', '--fail-on', 'error'], label='security-advisor.log', check=False)
+        check(advisor.returncode == 0, 'explicit-loopback security advisor passed')
         check(sql("show cron.launch_active_jobs") == 'off', 'historical cron disabled from first database start')
         check(sql('select count(*) from cron.job_run_details') == '0', 'no cron execution')
         sql('create extension if not exists pgtap with schema extensions; create extension if not exists dblink with schema extensions;')
         command(['docker', 'cp', str(ROOT / 'supabase/tests'), db + ':/tmp/tests'])
         tap_counts = {}
-        for name in ['515_challenge_community_snapshot_status', '508_challenge_community_progress', '509_challenge_local_worker_recovery']:
+        for name in ['494_challenge_safety', '506_challenge_private_community', '507_challenge_community_guards',
+                     '508_challenge_community_progress', '509_challenge_local_worker_recovery',
+                     '518_challenge_community_snapshot_status']:
             result = command(['docker', 'exec', db, 'psql', '-XqAt', '-v', 'ON_ERROR_STOP=1', '-U', 'postgres', '-d', 'postgres', '-f', '/tmp/tests/' + name + '.test.sql'], label=name + '.tap')
             assertions = re.findall(r'^(?:not )?ok (\d+)\b', result.stdout, re.M)
             plan = re.findall(r'^1\.\.(\d+)$', result.stdout, re.M)
-            check(bool(plan) and list(map(int, assertions)) == list(range(1, int(plan[-1]) + 1))
-                  and not re.search(r'^not ok|# (?:SKIP|TODO)', result.stdout, re.M), name + ' pgTAP passed')
+            check(len(plan) == 1 and list(map(int, assertions)) == list(range(1, int(plan[-1]) + 1))
+                  and not re.search(r'^not ok|#\s*(?:SKIP|TODO)|ERROR:', result.stdout + result.stderr, re.M | re.I), name + ' pgTAP passed')
             tap_counts[name] = int(plan[-1])
-        # Broader suites have pre-existing post-suspension session expectations.
-        # Compare any failure without the new function; do not call that a pass.
-        baseline_limits = []
-        for name in ['506_challenge_private_community', '507_challenge_community_guards']:
-            argv = ['docker', 'exec', '-i', db, 'psql', '-XqAt', '-v', 'ON_ERROR_STOP=1', '-U', 'postgres', '-d', 'postgres']
-            legacy = command(argv + ['-f', '/tmp/tests/' + name + '.test.sql'], label=name + '-candidate.tap', check=False)
-            if legacy.returncode:
-                baseline = command(argv, source="begin; drop function public.challenge_community_snapshot_status_v1(uuid);\n\\i /tmp/tests/" + name + ".test.sql\n", label=name + '-baseline.tap', check=False)
-                check(baseline.returncode != 0 and 'ERROR:  challenge_session_required' in legacy.stderr and 'ERROR:  challenge_session_required' in baseline.stderr
-                      and re.findall(r'^ok \d+.*$', legacy.stdout, re.M) == re.findall(r'^ok \d+.*$', baseline.stdout, re.M), name + ' existing session failure reproduced without new function')
-                baseline_limits.append(name + ': challenge_session_required after ' + str(len(re.findall(r'^ok \d+', legacy.stdout, re.M))) + ' passed assertions; also fails without new function')
         # Supported SQL fixtures commit only in this new disposable database.
         fixture = (ROOT / 'supabase/tests/fixtures/challenge-fixture.inc').read_text()
         sql('begin;\n' + fixture + """
@@ -274,7 +266,7 @@ def main():
                    'sql_assertions': tap_counts, 'checks': checks,
                    'security_advisor_exit': advisor.returncode,
                    'test_inputs': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__), *sorted((ROOT / 'supabase/tests').glob('*.test.sql')), *sorted((ROOT / 'supabase/tests/fixtures').glob('*.inc'))]},
-                   'baseline_limits': baseline_limits,
+                   'baseline_limits': [],
                    'scope': 'Local SQL and signed-JWT PostgREST checks; no hosted, gateway, real Auth sign-in, scheduler, alerts or P7 acceptance.'}
         (args.evidence_dir / 'verification.json').write_text(json.dumps(summary, indent=2) + '\n')
     finally:
