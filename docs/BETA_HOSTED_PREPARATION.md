@@ -172,7 +172,7 @@ can hide backlog. It is not a complete historical incident ledger.
 | --- | --- |
 | Any `dead_letter_count`, `notice_overdue_count`, `review_overdue_count` | Escalate to named primary/backup; inspect restricted status; preserve actual notice/filing windows. No automatic result rewrite. |
 | `oldest_due` more than 300 seconds behind server time, rising due/retry/abandoned count | Check scheduler heartbeat, database connections/locks and SQLSTATE. Distinguish pause from outage. Bound retries; diagnose repeated failures. |
-| No successful snapshot capture for 1,800 seconds when publication is enabled | Investigate job/gates; retain delayed/null display. Never include member counts in alerts. Capture-age monitoring needs a sanitized operator endpoint; client counts cannot serve as its health check. |
+| No successful snapshot capture for 1,800 seconds when publication is enabled | Investigate job/gates; retain delayed/null display. Never include member counts in alerts. The service-only [local snapshot status](COMMUNITY_SNAPSHOT_STATUS_LOCAL.md) now reports actual capture age separately from invocation success; hosted monitoring and this threshold remain unapproved. Client counts cannot serve as its health check. |
 | RPC latency/error rate, connection headroom, authorization denial/429 spikes | Aggregate metrics only; endpoint family and SQLSTATE/status, no payload, actor, token or link. P11 sets operational limits from real measurements. |
 | Grant expiry/coverage lapse, unassigned review or support queue | Route to the staffed operator owner; no silent auto-renewal. The local `challenge_local_review_status_v1` projection reports authorization gaps and relevant expirations; staffed coverage and delivery proof remain unverified. |
 
