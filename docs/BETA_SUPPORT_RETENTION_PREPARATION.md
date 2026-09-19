@@ -42,8 +42,10 @@ For every mutation, persist one request UUID and exact body under the correct
 operator identity before sending; on ambiguous response, retry those exact bytes.
 Do not retry as another operator, create a new request reflexively or store tokens
 in reports. Inspect server time and saved state first. Reads and actions enter
-immutable audit. Actual response coverage, external intake delivery, operator
-training and unassigned-queue monitoring are unverified.
+immutable audit. Actual response coverage, external intake delivery and operator
+training remain unverified. The [local aggregate projection](../outputs/reports/2026-09-19-review-appeal-monitoring.md)
+now identifies pending cases without current independent authorization; a grant
+and live session do not prove staffed support or a response commitment.
 
 September 14 current implementation: the [local operator CLI](BETA_OPERATIONS_LOCAL.md)
 now includes scoped review/moderation, grant revocation, separately granted global

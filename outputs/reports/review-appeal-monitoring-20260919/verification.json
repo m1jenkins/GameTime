@@ -1,0 +1,56 @@
+{
+  "base_commit": "70584f16959885b4610cd635d3e8b81e70f85f4f",
+  "sql": [
+    {
+      "test": "515_challenge_local_review_status.test.sql",
+      "passed": 70,
+      "log_sha256": "bb4b21f8e30e428c7870abe9de8c7b7ee9ca1e7231962be259e0edcbe2493db9"
+    },
+    {
+      "test": "497_challenge_operations.test.sql",
+      "passed": 19,
+      "log_sha256": "e76438183238db227c742c66a527d6bbc8b90604fb05ed89b2e9002fd7e6c827"
+    },
+    {
+      "test": "review-monitor-upgrade-after.sql",
+      "passed": 426,
+      "log_sha256": "46dcc26da6d77116e771020385207f20712c15a418a3c7a3c210342291b18fc2"
+    },
+    {
+      "test": "509_challenge_local_worker_recovery.test.sql",
+      "passed": 43,
+      "log_sha256": "ece632ccef571731e47ae927a122e703b4d5bbcaba89b591b3963bd3358f55e0"
+    },
+    {
+      "test": "512_challenge_account_deletion_v1.test.sql",
+      "passed": 32,
+      "log_sha256": "1a63ad2edfaaec0aeceff15e48a56d00d3f342d956abd854a862736b8d6bfd84"
+    },
+    {
+      "test": "513_challenge_account_deletion_restore_v1.test.sql",
+      "passed": 21,
+      "log_sha256": "bd335fe2dd4ee93a29bad87ff6a2348cff9a8783b69a3e8b2cf8e12dbc46d0c2"
+    },
+    {
+      "test": "514_challenge_account_deletion_preservation_v1.test.sql",
+      "passed": 19,
+      "log_sha256": "a1f2c4f31eebb407a65b56b2b765c6976dc32cf1cec10248ced0bdb547d0c30a"
+    },
+    {
+      "test": "440_personal_health_snapshot_v2.test.sql",
+      "passed": 37,
+      "log_sha256": "78b7215979b1a1124afeb54a5504e0801c39c3a249281d07ea0b5d24de78664e"
+    }
+  ],
+  "sql_assertions": 667,
+  "http_checks": 18,
+  "baseline_failure": {
+    "test": "506_challenge_private_community.test.sql",
+    "same_on_main_and_candidate": true,
+    "completed_assertions_before_abort": 50,
+    "sqlstate_reason": "challenge_session_required at challenge_access_status_v1 for a suspended actor"
+  },
+  "security_advisor": "No issues found; explicit loopback URL with sslmode=disable",
+  "migration_execution": "Exact SQL files through psql ON_ERROR_STOP; no Supabase migration-history rows were fabricated",
+  "migration_sha256": "29bb3d2ce3954a0070a15b74aae0348e2794e127be4edec2560ee8aa938938ec"
+}
