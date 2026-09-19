@@ -442,11 +442,7 @@ struct RootView: View {
             openDuelInvitation()
         }
         .onOpenURL { url in
-            model.challengeInvitation.receive(url)
-            #if DEBUG || STAGING
-            model.duels.receiveInvitation(url)
-            openDuelInvitation()
-            #endif
+            receiveURL(url)
         }
         .onChange(of: model.phase) { _, phase in
             if phase != .signedIn {
@@ -509,6 +505,16 @@ struct RootView: View {
                     ?? ""
             )
         }
+    }
+
+    /// SwiftUI delivers custom URLs and universal links here, including when
+    /// launch/sign-in is unfinished. Save the opaque intent; never redeem it.
+    func receiveURL(_ url: URL) {
+        model.challengeInvitation.receive(url)
+        #if DEBUG || STAGING
+        model.duels.receiveInvitation(url)
+        openDuelInvitation()
+        #endif
     }
 
     private func openDuelInvitation() {

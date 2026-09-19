@@ -28,7 +28,7 @@ extension ChallengeV1RequestStore {
             guard saved.version == 1, saved.actorId == actor,
                   Set(saved.links.map(\.id)).count == saved.links.count,
                   Set(saved.links.map(\.requestId)).count == saved.links.count,
-                  saved.links.allSatisfy({ $0.actorId == actor && ChallengeInvitation.token(from: "gametime-beta://challenge-invite/" + $0.token) == $0.token })
+                  saved.links.allSatisfy({ $0.actorId == actor && ChallengeInvitation.isValidToken($0.token) })
             else { throw ChallengeV1Error.storage }
             return saved.links
         } catch { throw ChallengeV1Error.storage }
@@ -44,7 +44,7 @@ extension ChallengeV1RequestStore {
         else { throw ChallengeV1Error.invalidResponse }
         if op == "issue_link" {
             guard let id = receipt.id, let token = receipt.token, let expiry = receipt.expiresAt,
-                  ChallengeInvitation.token(from: "gametime-beta://challenge-invite/" + token) == token
+                  ChallengeInvitation.isValidToken(token)
             else { throw ChallengeV1Error.invalidResponse }
             let link = ChallengeIssuedLink(actorId: request.actorId, challengeId: target, requestId: request.requestId,
                 id: id, token: token, expiresAt: expiry)

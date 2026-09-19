@@ -115,6 +115,38 @@ import XCTest
         XCTAssertEqual(fixture.client.requests.count, 1, "Reopening cannot create a replacement link")
     }
 
+    func testRecoveredIssuerUsesConfiguredHTTPSFormatter() async throws {
+        let fixture = InvitationRecoveryFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.directory) }
+        await fixture.start()
+        fixture.client.loseFirstResponse = true
+        await fixture.store.submit(op: "issue_link", fields: ["id": .string(fixture.id.uuidString.lowercased())])
+        await fixture.store.retry()
+        let mounted = try mount(fixture, links: ChallengeInvitation(httpsOrigin: "https://invites.example.invalid"))
+        defer { mounted.close() }
+        let text = try await capture(mounted, name: "https-recovered-issuer")
+        XCTAssertTrue(text.contains("https://invites.example.invalid"))
+        XCTAssertTrue(text.contains("revoke invitation link"))
+        XCTAssertFalse(text.contains("gametime-beta"))
+        XCTAssertEqual(fixture.client.requests.count, 2)
+        XCTAssertEqual(fixture.client.requests.first, fixture.client.requests.last)
+    }
+
+    func testMissingOriginStillAllowsRevocationOfSavedIssuedLinks() async throws {
+        let fixture = InvitationRecoveryFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.directory) }
+        await fixture.start()
+        await fixture.store.submit(op: "issue_link", fields: ["id": .string(fixture.id.uuidString.lowercased())])
+        let mounted = try mount(fixture, links: ChallengeInvitation())
+        defer { mounted.close() }
+        let text = try await capture(mounted, name: "unconfigured-issuer")
+        XCTAssertTrue(text.contains("try again later"))
+        XCTAssertTrue(text.contains("revoke invitation link"))
+        XCTAssertFalse(text.contains("gametime-beta"))
+        XCTAssertFalse(text.contains("https://"))
+        XCTAssertEqual(fixture.client.requests.count, 1)
+    }
+
     func testExactRevokeRetryKeepsControlUntilConfirmed() async throws {
         let fixture = InvitationRecoveryFixture()
         await fixture.start()
@@ -261,11 +293,12 @@ import XCTest
         } catch { XCTAssertEqual(error as? ChallengeV1Error, .storage) }
     }
 
-    private func mount(_ fixture: InvitationRecoveryFixture, store: ChallengeV1Store? = nil) throws -> InvitationRecoveryMount {
+    private func mount(_ fixture: InvitationRecoveryFixture, store: ChallengeV1Store? = nil, links: ChallengeInvitation = .localFixture) throws -> InvitationRecoveryMount {
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
         let previous = scene.windows.first(where: \.isKeyWindow)
         let controller = UIHostingController(rootView: VStack(spacing: 20) {
             ChallengeLinkIssuer(store: store ?? fixture.store, row: fixture.row)
+                .environment(\.challengeInvitationLinks, links)
         }.padding(20))
         let window = UIWindow(windowScene: scene)
         window.frame = CGRect(x: 0, y: 0, width: 430, height: 900)
