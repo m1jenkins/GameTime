@@ -3,6 +3,21 @@
 Develop from `main` in `/Users/user/Documents/GitHub/GameTime`; use isolated task
 branches when needed. Read `git status --short --branch` and `git log -1` first.
 
+## September 18 P7 device session
+
+The owner now has a paired Apple Watch and opted in to a private investigation
+on an iPhone 17. The current Debug iPhone app was built, package and signature
+checked, installed and launched in `--health-source-investigation` mode. The
+owner confirmed the investigation screen. Session A showed separately visible
+iPhone- and Watch-origin steps, flagged overlapping records, and passed the
+private session clearing check. Reconciliation and completeness remain
+unresolved. An initial Apple Exercise Time read showed clear Watch origin;
+its hand-entry field was not supplied, and Exercise eligibility and result
+rules remain open. The running investigation is explicitly unperformed. No physical source is
+accepted or enabled. Continue from the
+[device-session record](../outputs/reports/2026-09-18-p7-device-session.md)
+and [private session guide](BETA_PHYSICAL_SESSIONS.md).
+
 ## Verified baseline — September 15, 2026
 
 Local `main`, `origin/main` and GitHub `main` match
@@ -32,7 +47,7 @@ included in this published baseline.
 | P4 | Scoped locks and durable worker claims completed locally | [P4 report](../outputs/reports/2026-09-11-p4-completion.md) |
 | P5 | Bounded history and measured query improvements completed locally | [P5 report](../outputs/reports/2026-09-11-p5-completion.md) |
 | P6 | Private 250-member community, moderation and quotas completed locally | [P6 report](../outputs/reports/2026-09-12-p6-completion.md) |
-| P7 | Preparation only; physical sessions and four accepted sources pending | [P7 checkpoint](../outputs/reports/2026-09-12-p7-preparation.md) |
+| P7 | Session A observations recorded; steps policy and all four accepted sources pending | [Current session](../outputs/reports/2026-09-18-p7-device-session.md), [preparation](../outputs/reports/2026-09-12-p7-preparation.md) |
 | P10 | Device-independent hosted/support/retention preparation included; actual hosting unperformed | [P10 report](../outputs/reports/2026-09-12-p10-completion.md) |
 | P11A — local recovery | Combined S2/P8/P11A candidate landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`; community verification gap closed with a test-only correction and focused review. Hosted schedules, credentials and external alerts remain disabled | [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [September 14 follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md) |
 | P11A — operator CLI | Landed on local main at `6fea1c2`: scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery. Reported verification: 131 CLI/HTTP checks, 8 unit tests and 86 SQL assertions passed; administrator grant response reconciliation remains manual | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
@@ -50,8 +65,8 @@ Use the [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 preserved requirements and dependency order:
 
 - P7: actual iPhone/paired Watch observations, all four accepted sources and
-  measured timed-distance tolerance. An iPhone 17 is available; the owner
-  previously reported no Watch. Device/Health actions need their scoped opt-in.
+  measured timed-distance tolerance. The first private device session is under
+  way; its observations and source decisions remain pending.
 - P8/P9: accepted real-source ingestion, adapters and all 13 integrated policies;
   approved HTTPS/Apple identity and invitations. The local shared-session
   connection is complete; source-backed and hosted journeys are not.

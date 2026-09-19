@@ -1,5 +1,10 @@
 # GameTime real-activity handoff
 
+September 18 update: the owner [started a private P7 device session](../outputs/reports/2026-09-18-p7-device-session.md).
+The dated preparation and next-action statements below are historical; use the
+current session record and [physical guide](BETA_PHYSICAL_SESSIONS.md) for
+performed observations and remaining checks.
+
 September 15 update: [WORKING_BASELINE.md](WORKING_BASELINE.md) supersedes the
 dated continuation below. Signal is the ordinary shell, account deletion is
 landed through `c6f88cd`, and the [bounded P9 connection](../outputs/reports/2026-09-15-p9-authenticated-app.md)

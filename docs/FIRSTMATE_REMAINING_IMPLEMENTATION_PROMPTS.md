@@ -14,8 +14,8 @@ P8/P9 may proceed
 one accepted metric at a time. All four sources and all 13 policies remain
 required before distribution.
 
-The owner has an iPhone 17 available and previously reported no Apple Watch.
-P7 physical source acceptance remains deferred. The combined S2/P8/P11A recovery
+The owner has an iPhone 17 paired with an Apple Watch. P7's [physical session](../outputs/reports/2026-09-18-p7-device-session.md)
+has started; source acceptance remains pending. The combined S2/P8/P11A recovery
 candidate landed locally at `a3d2c3f`; the operator CLI followed at `6fea1c2`,
 with owner approval on September 14. The [recovery report](../outputs/reports/2026-09-14-p11a-local-recovery.md),
 [community follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)

@@ -1,11 +1,11 @@
 # GameTime project memory
 
-## Current working baseline — September 15, 2026
+## Current working baseline — September 18, 2026
 
 Use `/Users/user/Documents/GitHub/GameTime` on `main` as the authoritative
 project, with isolated task branches when needed. [WORKING_BASELINE.md](docs/WORKING_BASELINE.md)
-owns exact source, completed work, evidence and next dependencies. Published
-main at `1dacc6644f2100567d85fbaa2970bb7285bbaa35` includes P4/P5/P6, P7/P10
+owns exact source, completed work, evidence and next dependencies. The September
+15 published baseline at `1dacc6644f2100567d85fbaa2970bb7285bbaa35` includes P4/P5/P6, P7/P10
 preparation, Signal/P9A, S2/P8 privacy/recovery corrections, P11A local
 worker/operator/deletion work and P9's bounded shared-session connection.
 
@@ -23,9 +23,11 @@ or uncommitted work; do not merge cancelled verification candidates just to
 remove their branches. [The consolidation record](docs/WORKTREE_CONSOLIDATION_STATUS.md)
 and linked cleanup report distinguish landed candidates and retained exceptions.
 
-P7–P13 real-source, hosted and release work is not started by this cleanup.
-The owner has an iPhone 17 and previously reported no Watch; actual source
-sessions still need exact-device opt-in and participation. All four sources,
+The September 15 cleanup did not start P7–P13. On September 18 the owner
+obtained a paired Apple Watch, opted in and [started the private P7 device
+session](outputs/reports/2026-09-18-p7-device-session.md) on an iPhone 17.
+Session A's categorical steps observations are recorded; overlap and
+completeness rules and the remaining sessions are pending. All four sources,
 timed-distance tolerance, real ingestion/adapters, hosted operation and
 physical/human/release acceptance remain gated. Simulation does not accept a
 source. Checked-in challenge transport remains off and all 18 readiness entries
