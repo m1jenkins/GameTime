@@ -42,8 +42,10 @@ For every mutation, persist one request UUID and exact body under the correct
 operator identity before sending; on ambiguous response, retry those exact bytes.
 Do not retry as another operator, create a new request reflexively or store tokens
 in reports. Inspect server time and saved state first. Reads and actions enter
-immutable audit. Actual response coverage, external intake delivery, operator
-training and unassigned-queue monitoring are unverified.
+immutable audit. Actual response coverage, external intake delivery and operator
+training remain unverified. The [local aggregate projection](../outputs/reports/2026-09-19-review-appeal-monitoring.md)
+now identifies pending cases without current independent authorization; a grant
+and live session do not prove staffed support or a response commitment.
 
 September 14 current implementation: the [local operator CLI](BETA_OPERATIONS_LOCAL.md)
 now includes scoped review/moderation, grant revocation, separately granted global
@@ -51,14 +53,32 @@ support, suspension and independent appeal decisions. Administrator and human
 credential files/commands are separate. Human mutations persist a credential-free,
 account/target-bound request before HTTP and recover by exact replay. The obsolete
 challenge-scoped `suspend` command is rejected; suspension uses only the separate
-support RPC. Grant/revoke APIs have no durable request receipt, so ambiguous
-administrator responses require inspection before reissue. See the
+support RPC. At that baseline, grant/revoke APIs had no durable request receipt,
+so ambiguous administrator responses required inspection before reissue. See the
 [operator report](../outputs/reports/2026-09-14-p11a-operator.md) for actual local
 checks. The combined local recovery candidate landed at `a3d2c3f`; the operator
 slice also landed on local main at `6fea1c2`, with owner approval on September 14.
 Dated reports retain their original pre-landing status and verification limits.
 This remains fictional loopback operation, not hosted Apple authentication,
 real operator assignment, monitored support or retention-policy acceptance.
+
+September 19 isolated integration candidate (original September 18 delivery): new administrator grants/revokes use the
+explicit `challenge_admin_request_v2` / `challenge_admin_receipt_v2` contract and
+a credential-free version-2 journal before dispatch. Exact replay returns the
+original receipt without repeating the mutation or audit; receipts do not assert
+current authority. Historical v1 calls still require manual reconciliation and
+are never backfilled. See [recovery instructions](BETA_OPERATIONS_LOCAL.md#exact-administrator-recovery-for-new-requests)
+and the [actual checks and limits](../outputs/reports/2026-09-18-admin-grant-recovery.md).
+This adds no named administrator identity, external operation or retention policy.
+
+The [combined integration checks](../outputs/reports/2026-09-19-integrated-candidate.md)
+now pass the complete operator matrix, including suspended appeal recovery,
+independent decisions, administrator response loss and session expiry/revocation.
+The suspended-account repair restores permitted own reads and safe actions while
+preserving deletion fences, admission denials and operator independence. Service
+review/appeal and snapshot projections are integrated; no staffed support,
+external alerts or hosted operating acceptance follows from these local results.
+Main remains unchanged. Earlier failure reports retain their original outcomes.
 
 ## Retention decision worksheet
 

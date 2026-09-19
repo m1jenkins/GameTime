@@ -75,9 +75,46 @@ scripts/beta-preview.py --owned-project "$GAMETIME_BETA_PREVIEW_PROJECT" open --
    it becomes scheduled. Account switching never submits consent.
 4. Try a friend leaderboard, where no goal field is required, and a personal goal.
    Navigate Home, Challenges and You. All four activity options are fictional.
-5. Use `latest --actor 1` to obtain a new challenge ID. The launcher's `clock`,
-   `progress` and `process` commands advance only fictional scenarios; inspect
-   their `--help` and the selected agreement dates before using them.
+5. Use `latest --actor 1` to obtain the account's most recently created challenge
+   ID, including a scheduled personal goal. The launcher's `clock`, `progress`
+   and `process` commands advance only fictional scenarios; inspect their
+   `--help` and the selected agreement dates before using them.
+
+## Fast one-day lifecycle walkthrough
+
+Use a fresh preview with no other open challenge for its seven fictional
+accounts. In the app, sign in as account 1 and confirm age. Create a **Personal
+goal → Steps** with **October 3, 2026**, **1 day**, **UTC**, **10,000 steps**, and
+**$1 simulated**. Read the full agreement, turn on its consent toggle, and tap
+**Start my personal goal**. This schedules the full October 3 UTC calendar day,
+from `2026-10-03T00:00Z` through (but not including) `2026-10-04T00:00Z`.
+The preview starts at October 1 noon UTC, so the start date is two local
+calendar days after creation. The CLI never submits agreement consent.
+
+In a second terminal with the same preview environment variables:
+
+```sh
+challenge_id=$(scripts/beta-preview.py --owned-project "$GAMETIME_BETA_PREVIEW_PROJECT" latest --actor 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
+scripts/beta-preview.py --owned-project "$GAMETIME_BETA_PREVIEW_PROJECT" lifecycle --challenge "$challenge_id" --actor 1
+```
+
+The command checks the saved one-day window and consent before changing the
+fictional clock. It reuses `clock`, `progress`, and `process` to move from
+scheduled to active, save 10,001 steps, enter syncing, and save a downward
+correction to 9,999 within the end +48-hour correction window. It deliberately
+processes the provisional notice eight hours after its operational due time;
+the account then files a review through its authenticated local command 47
+hours after that *actual* notice. Processing at the 48-hour notice deadline
+must leave the result open while the review is unresolved. The existing
+fictional independent operator control upholds it within 72 hours of filing,
+then processing records the final nonredeemable simulated result. The CLI
+checks each revision, deadline, review and final result and prints a short
+timeline. It does not shorten the product day, scheduling lead, correction,
+notice, review or resolution rules. A new challenge is required for each run;
+saved records are append-only.
+
+The [September 19 local run](../outputs/reports/2026-09-19-preview-one-day-lifecycle.md)
+records the actual headless backend verification and its limits.
 
 The prior Cobalt review recorded these journeys interactively. Consult its
 screens and the [current baseline](WORKING_BASELINE.md) for the limits of that

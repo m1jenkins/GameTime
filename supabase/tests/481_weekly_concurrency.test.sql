@@ -45,6 +45,14 @@ declare actor uuid; day date; begin
 end; $$;
 
 create function pg_temp.friend_id(a integer) returns uuid language sql security definer set search_path='' as $f$select id from app.weekly_agreements where creator_id=pg_temp.actor(a)$f$;
+-- The fixed September agreement is historical. Keep this concurrency check at
+-- its fictional time so the public wall clock cannot make it expire with age.
+create function pg_temp.share(r uuid,c uuid,f uuid,e boolean) returns uuid
+language sql security definer set search_path='' as $$select app.weekly_set_sharing_at_v1(r,c,f,e,'2026-09-01T00:00:00Z')$$;
+create function pg_temp.follow(r uuid,c uuid,o uuid,f uuid,d text) returns uuid
+language sql security definer set search_path='' as $$select app.weekly_respond_follow_at_v1(r,c,o,f,d,'2026-09-01T00:00:00Z')$$;
+create function pg_temp.shared() returns jsonb
+language sql security definer set search_path='' as $$select app.weekly_shared_progress_at_v1('2026-09-01T00:00:00Z')$$;
 create function pg_temp.call(actor integer,command text) returns text language plpgsql as $fn$
 declare result text; begin
  if actor>0 then perform pg_temp.login(actor); end if;
@@ -68,8 +76,8 @@ select extensions.dblink_exec('weekly_setup',$setup$do $d$ begin
  perform app.weekly_curate_at_v1(pg_temp.req(202),'2026-09-07','America/Chicago',70000,30,'2026-08-31T10:00:00Z');
  perform pg_temp.login(20); perform pg_temp.accept(pg_temp.req(300),pg_temp.req(200)); perform set_config('role','none',true);
  perform pg_temp.login(36); perform public.set_weekly_pilot_consent_v1(pg_temp.req(301),true); perform set_config('role','none',true);
- perform pg_temp.login(7); perform public.set_weekly_sharing_v1(pg_temp.req(501),pg_temp.friend_id(7),pg_temp.actor(37),true); perform set_config('role','none',true);
- perform pg_temp.login(37); perform public.respond_weekly_follow_v1(pg_temp.req(502),pg_temp.friend_id(7),pg_temp.actor(7),pg_temp.req(501),'accept'); perform set_config('role','none',true);
+ perform pg_temp.login(7); perform pg_temp.share(pg_temp.req(501),pg_temp.friend_id(7),pg_temp.actor(37),true); perform set_config('role','none',true);
+ perform pg_temp.login(37); perform pg_temp.follow(pg_temp.req(502),pg_temp.friend_id(7),pg_temp.actor(7),pg_temp.req(501),'accept'); perform set_config('role','none',true);
 end; $d$;$setup$);
 create function pg_temp.race(first_sql text,second_sql text,p_delay numeric default 0)
 returns table(first_result text,second_result text,blocked boolean) language plpgsql as $$
@@ -139,8 +147,8 @@ insert into outcomes select 'revoke_event',* from pg_temp.race(
  $$select pg_temp.call(36,'select public.record_weekly_pilot_event_v1(pg_temp.req(414),null,''rule_preview'',''exposure'')')$$);
 select is((select second_result from outcomes where name='revoke_event'),'42501','consent revocation wins over optional measurement append');
 insert into outcomes select 'share_revoke_read',r.* from ids cross join lateral pg_temp.race(
- format('select pg_temp.call(7,%L)',format('select public.set_weekly_sharing_v1(pg_temp.req(503),%L,pg_temp.actor(37),false)',id)),
- $$select pg_temp.call(37,'select public.list_shared_weekly_progress_v1()')$$) r where ids.name='friend7';
+ format('select pg_temp.call(7,%L)',format('select pg_temp.share(pg_temp.req(503),%L,pg_temp.actor(37),false)',id)),
+ $$select pg_temp.call(37,'select pg_temp.shared()')$$) r where ids.name='friend7';
 select is((select second_result from outcomes where name='share_revoke_read'),'[]','sharing revocation linearizes before waiting recipient refresh');
 select ok(blocked,name||' demonstrated actual independent-session blocking') from outcomes order by name;
 -- Scoped test-only cleanup; immutable production paths remain unchanged.

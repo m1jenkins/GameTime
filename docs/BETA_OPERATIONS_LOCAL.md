@@ -1,5 +1,11 @@
 # Local Beta operator CLI
 
+The September 19 [isolated integration candidate](../outputs/reports/2026-09-19-integrated-candidate.md)
+combines v2 administrator recovery, suspended-account repair and service
+review/appeal/snapshot monitoring. Its complete local operator checks pass;
+main is unchanged and hosted operation remains unaccepted. Historical v1
+administrator calls still require manual reconciliation.
+
 `scripts/beta-operator.py` is a fictional, local-only interface to the existing
 RPC contracts. It connects only to literal `127.0.0.1`; there is no hostname,
 HTTPS target or hosted authentication mode. Allocate and inspect owned resources
@@ -37,8 +43,8 @@ No retained preview resource or credential file is read automatically.
 
 | Command | Arguments / authority |
 | --- | --- |
-| `grant`, `revoke` | Administrator; `--actor`, `--challenge`, `--capability review\|moderate`; grant also needs `--expires` |
-| `grant-support`, `revoke-support` | Administrator; `--actor`; grant also needs `--expires` |
+| `grant`, `revoke` | Administrator; `--actor`, `--challenge`, `--capability review\|moderate`, `--request-id`; grant also needs `--expires` |
+| `grant-support`, `revoke-support` | Administrator; `--actor`, `--request-id`; grant also needs `--expires` |
 | `cases`, `reports` | Human; `--challenge`; independent reviewer/moderator grant for that exact challenge |
 | `resolve` | Human reviewer; `--challenge`, `--review`, `--decision upheld\|exclude` |
 | `remove` | Human moderator; `--challenge`, `--subject`, `--reason` |
@@ -50,8 +56,8 @@ No retained preview resource or credential file is read automatically.
 | `appeal`, `own-appeals` | Human account filing or reading its own suspension appeal |
 | `status`, `run-once`, `publish-fixture` | Existing local administrator operations; see command `--help` |
 
-Every human mutation also requires `--request-id <UUID>` and the global option
-`--journal-dir <private-directory>`. Reasons are `username`, `unwanted_contact`,
+Every human mutation and administrator grant/revoke requires `--request-id <UUID>`
+and the global option `--journal-dir <private-directory>`. Reasons are `username`, `unwanted_contact`,
 `unsafe_behavior`. Grant expiry is checked against server time and cannot exceed
 seven days; equality and revocation deny fresh access. Grants do not bypass
 independence, active-session or account checks. Removal is challenge-scoped;
@@ -102,13 +108,71 @@ without a second action/audit entry, including supported retries after grant
 revocation. A saved receipt never authorizes a fresh action. A corrupt or missing
 journal requires reconciliation; do not delete it just to bypass a conflict.
 
-Grant/revoke RPCs have **no request UUID or durable response-recovery contract**.
-They remain separate administrator calls without automatic retry. After an
-ambiguous administrator response, inspect the exact grant and immutable audit
-in that owned database before deciding whether to reissue. Reissuing may add an
-audit event; this CLI does not claim exactly-once administration. No direct grant,
-result or audit edits are part of the human procedure. Existing worker and fixture
-publication commands retain their server invocation/request identities.
+## Exact administrator recovery for new requests
+
+Choose a UUID before the first dispatch and keep the same command and journal:
+
+```sh
+python3 scripts/beta-operator.py \
+  --owned-project gametime-your-owned-task \
+  --credentials-file /private/administrator.json --administrator \
+  --journal-dir /private/operator-requests \
+  grant --actor <account-uuid> --challenge <challenge-uuid> \
+  --capability review --expires <original-expiry-with-timezone> \
+  --request-id <request-uuid>
+```
+
+All four grant/revoke commands use `challenge_admin_request_v2(uuid,jsonb)`.
+The payload has `version: "challenge_admin_request_v2"`, `operation`
+(`grant_operator`, `revoke_operator`, `grant_support`, `revoke_support`) and
+`actor_id`; scoped operations also require `challenge_id` and `capability`,
+and grants require `expires_at`. Every value is a string; extra or missing fields
+are rejected. The request UUID is shared across all four operations in that
+database. The server compares the entire JSON payload, including the original
+expiry string. JSON object key ordering is immaterial; changed values conflict.
+
+Before HTTP, the CLI syncs a mode-0600 version-2 record containing the exact
+project, loopback port, administrator authority, RPC and canonical request bytes
+(including UUID). It contains no key, password, token or response. Human version-1
+journals remain compatible. Reusing a journal UUID with a different environment,
+authority, operation, account, scope or payload fails locally before dispatch.
+Keep the directory at mode 0700 and retain completed records.
+
+After response loss or process interruption, rerun the **exact original command**
+with that journal and an administrator credential file for the same environment.
+Do not update the expiry, switch the scope or choose a fresh UUID to recover.
+The server stores a `challenge_admin_receipt_v2` response containing `request_id`,
+the original `request` and `recorded_at` atomically with the v1 mutation and its
+single audit action. Concurrent duplicates return the same receipt. A committed
+UUID with a different payload fails with `22023` and adds no audit action.
+An unsuccessful transaction saves neither receipt nor mutation/audit action.
+There is no background or automatic retry.
+
+A receipt records a past action, **not current access**. Replaying an old grant
+after revocation or expiry never restores access; replaying an old revoke after a
+new grant never revokes the new grant. Recovery remains service-only and does not
+repeat current grant validation. Fresh requests still use the existing scope,
+independence, active-account and seven-day expiry rules. Revoking an absent grant
+retains the existing audited no-op behavior. Administrator credentials represent
+service authority, not a named human administrator; grant audit identities remain
+the subject account under the existing v1 convention.
+
+## Historical administrator calls and missing journals
+
+The four original `challenge_grant_operator_v1`, `challenge_revoke_operator_v1`,
+`challenge_grant_support_v1` and `challenge_revoke_support_v1` RPCs keep their
+signatures, permissions and behavior. They have **no request UUID or durable
+response-recovery contract**. Existing historical audits are not backfilled into
+receipts. After an ambiguous v1 response, inspect the exact grant and immutable
+audit in that owned database before deciding whether to issue a new action.
+Reissuing may change current authority and adds an audit event. Attaching a new
+UUID afterward cannot recover a historical response.
+
+For a missing or corrupt journal, retain the remaining files and reconcile the
+original environment, UUID, server request/receipt (if any), grant and audit before
+dispatch. Do not delete a conflicting journal or guess an earlier UUID/payload.
+No direct grant, receipt, result or audit edits are part of recovery. Existing
+worker and fixture publication commands retain their request identities.
 
 CLI failures print only a bounded code or a fixed recovery instruction, not raw
 server errors, headers, passwords or tokens. Do not put secrets in command-line
@@ -119,14 +183,21 @@ message, device acceptance or readiness gate is completed by this local tool.
 ## Focused verification
 
 `python3 scripts/tests/beta-operator.test.py` checks local recovery-file invariants.
-`scripts/beta-operator-smoke.py` invokes the actual CLI against local Auth and
+`scripts/beta-operator-smoke.py --administration-only` runs the focused grant/revoke
+matrix; omitting the flag retains the full historical human/operator matrix.
+The runner invokes the actual CLI against local Auth and
 PostgREST, inspecting task ownership and loopback publishes before creating
 fictional actors. It accepts a private `--connection-file`, a new `--work-dir`
 and a new `--evidence-dir`; it never starts, resets or stops a Docker stack.
 A loopback forwarding proxy drops selected committed responses, preserving
-request-body hashes without storing credentials. Setup, exact commands, results,
-failures and resource disposition for this slice are in the
-[September 14 operator report](../outputs/reports/2026-09-14-p11a-operator.md).
+request-body hashes without storing credentials. The v2 matrix adds administrator
+receipt recovery, opposite-action replay, parallel duplicates/conflicts and
+service-only denials. SQL `516_challenge_admin_requests_v2.test.sql` checks the
+strict interface and private immutable receipt store. Setup, actual results,
+upgrade checks and resource disposition are in the
+[administrator recovery report](../outputs/reports/2026-09-18-admin-grant-recovery.md).
+The [September 14 operator report](../outputs/reports/2026-09-14-p11a-operator.md)
+preserves the original v1 limitation and its historical results.
 
 ## Historical executed drills and pending acceptance
 

@@ -74,6 +74,7 @@ for entry in manifest:
 PY
 
 started=0
+owned_network="supabase_network_${project_name}"
 cleanup() {
   result=$?
   trap - EXIT
@@ -83,10 +84,38 @@ cleanup() {
       if (( result == 0 )); then result=1; fi
     fi
   fi
+  if (( ! keep_stack )) && docker network inspect "$owned_network" >/dev/null 2>&1; then
+    network_owner="$(docker network inspect "$owned_network" --format '{{index .Labels "com.supabase.cli.project"}}')"
+    if [[ "$network_owner" != "$project_name" ]] || ! docker network rm "$owned_network" >"$verification_root/network-stop.log" 2>&1; then
+      echo "Disposable network cleanup failed; inspect $verification_root/network-stop.log" >&2
+      if (( result == 0 )); then result=1; fi
+    fi
+  fi
   echo "Verification inputs and logs: $verification_root"
   exit "$result"
 }
 trap cleanup EXIT
+python3 - "$project_name" <<'PY'
+import ipaddress, json, subprocess, sys
+project = sys.argv[1]
+network = f'supabase_network_{project}'
+ids = subprocess.check_output(['docker', 'network', 'ls', '-q'], text=True).split()
+details = json.loads(subprocess.check_output(['docker', 'network', 'inspect', *ids], text=True)) if ids else []
+used = [ipaddress.ip_network(config['Subnet']) for item in details
+        for config in item['IPAM'].get('Config') or [] if config.get('Subnet')]
+for candidate in ipaddress.ip_network('10.254.0.0/16').subnets(new_prefix=24):
+    if any(candidate.overlaps(existing) for existing in used):
+        continue
+    created = subprocess.run(['docker', 'network', 'create', '--subnet', str(candidate),
+                              '--label', f'com.docker.compose.project={project}',
+                              '--label', f'com.supabase.cli.project={project}', network],
+                             capture_output=True, text=True)
+    if created.returncode == 0:
+        print(f'Disposable Docker network: {network} ({candidate})')
+        break
+else:
+    raise SystemExit('Could not reserve an unused Docker subnet for this disposable project.')
+PY
 echo "Disposable project: $project_name; database port: $((port_base + 2))"
 echo "Verification inputs and logs: $verification_root"
 started=1

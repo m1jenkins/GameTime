@@ -7,6 +7,7 @@ ownership/publishes before admitting actors. Only fictional supported fixture
 operations prepare challenges; human decisions always execute CLI subprocesses.
 """
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import http.client
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -14,12 +15,15 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import select
 import secrets
 import socket
 import subprocess
 import sys
 import threading
+import time
 import uuid
+from contextlib import contextmanager
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('operator_cli', ROOT/'scripts/beta-operator.py')
@@ -32,6 +36,8 @@ def main():
     parser.add_argument('--connection-file', required=True, type=Path)
     parser.add_argument('--work-dir', required=True, type=Path)
     parser.add_argument('--evidence-dir', required=True, type=Path)
+    parser.add_argument('--administration-only', action='store_true',
+                        help='Run only administrator recovery and authority checks')
     args = parser.parse_args()
     os.umask(0o077)
     args.work_dir.mkdir(mode=0o700, parents=True, exist_ok=False)
@@ -110,9 +116,65 @@ def main():
             raise AssertionError('Fixture or audit SQL failed; inspect private sql-failure.txt')
         return result.stdout.strip()
 
+    @contextmanager
+    def hold_admin_request_lock(rid):
+        """Hold this request's actual server mutex until both callers queue."""
+        holder = subprocess.Popen(
+            ['docker', 'exec', '-i', db, 'psql', '-XAtq', '-v', 'ON_ERROR_STOP=1',
+             '-U', 'postgres', '-d', 'postgres'],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, bufsize=1)
+        try:
+            holder.stdin.write("begin; select 'admin-lock-held' from pg_catalog.pg_advisory_xact_lock("
+                               "pg_catalog.hashtextextended('challenge_admin_request_v2:"+rid+"',0));\n")
+            holder.stdin.flush()
+            deadline = time.monotonic()+10
+            output = b''
+            while time.monotonic() < deadline:
+                ready, _, _ = select.select([holder.stdout.fileno()], [], [], max(0, deadline-time.monotonic()))
+                if ready:
+                    output += os.read(holder.stdout.fileno(), 4096)
+                    if b'admin-lock-held' in output:
+                        break
+                if holder.poll() is not None:
+                    raise AssertionError('Owned administrator lock holder exited before readiness')
+            else:
+                raise AssertionError('Owned administrator lock holder did not become ready')
+            yield
+        finally:
+            if holder.poll() is None:
+                try:
+                    holder.stdin.write('rollback;\n\\q\n')
+                    holder.stdin.flush()
+                    holder.wait(timeout=5)
+                except (OSError, subprocess.TimeoutExpired):
+                    holder.terminate()
+                    try:
+                        holder.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        holder.kill(); holder.wait(timeout=5)
+            holder.stdin.close()
+            holder.stdout.close()
+            holder.stderr.close()
+
+    def wait_for_admin_waiters(rid):
+        deadline = time.monotonic()+10
+        query = f"""with key as (select pg_catalog.hashtextextended('challenge_admin_request_v2:{rid}',0) value)
+            select count(*) from pg_catalog.pg_locks held cross join key
+            where held.locktype='advisory' and not held.granted and held.objsubid=1
+              and held.classid::bigint=((key.value >> 32) & 4294967295::bigint)
+              and held.objid::bigint=(key.value & 4294967295::bigint);"""
+        while time.monotonic() < deadline:
+            if int(sql(query)) == 2:
+                check(True, 'Both administrator requests waited on the same owned server lock')
+                return
+            time.sleep(0.05)
+        raise AssertionError('Two administrator requests did not overlap on the owned server lock')
+
     def rpc(name, body, headers, expected=200):
         status, raw = local_http(config['api_port'], 'POST', '/rest/v1/rpc/'+name, headers, json.dumps(body))
-        assert status == expected, (name, status, expected)
+        allowed = expected if isinstance(expected, (tuple, list, set)) else (expected,)
+        assert status in allowed, (name, status, expected)
         return json.loads(raw) if raw else None
 
     def write_private(path, value):
@@ -128,13 +190,16 @@ def main():
     owned_fixtures = False
 
     def cli(*command, actor=None, error=None, credentials=None, administrator=None):
+        command = list(command)
+        if command[0] in {'grant', 'revoke', 'grant-support', 'revoke-support'} and '--request-id' not in command:
+            command += ['--request-id', str(uuid.uuid4())]
         path = credentials or (args.work_dir/f'human-{actor}.json' if actor is not None else admin_path)
         argv = [sys.executable, str(ROOT/'scripts/beta-operator.py'), '--owned-project', owner,
                 '--credentials-file', str(path), '--journal-dir', str(journal)]
         if (actor is None) if administrator is None else administrator:
             argv += ['--administrator']
         audit_before = sql('select count(*) from app.challenge_operator_audit_v1;') if error and error != 'could not be confirmed' else None
-        result = subprocess.run(argv+list(command), capture_output=True, text=True, timeout=45)
+        result = subprocess.run(argv+command, capture_output=True, text=True, timeout=45)
         outputs.extend([result.stdout, result.stderr])
         if error:
             check(result.returncode != 0 and error in result.stderr, 'CLI denial: '+command[0]+' / '+error)
@@ -179,6 +244,201 @@ def main():
         check((journal/(rid+'.json')).stat().st_mode & 0o777 == 0o600, 'Private recovery file: '+command[0])
         return rid, command
 
+    def admin_payload(operation, actor, cid=None, capability=None, expiry=None):
+        payload = {'version': 'challenge_admin_request_v2', 'operation': operation,
+                   'actor_id': actors[actor]['id']}
+        if cid is not None:
+            payload.update(challenge_id=cid, capability=capability)
+        if expiry is not None:
+            payload['expires_at'] = expiry
+        return payload
+
+    def admin_recovery(command, payload, after_commit=None):
+        rid = str(uuid.uuid4())
+        command = [*command, '--request-id', rid]
+        audit_before = int(sql('select count(*) from app.challenge_operator_audit_v1;'))
+        loss.update(request=rid, committed=False)
+        cli(*command, error='could not be confirmed')
+        check(loss['committed'], 'Committed administrator response deliberately lost: '+command[0])
+        saved = sql(f"select response::text from app.challenge_admin_requests_v2 where request_id='{rid}';")
+        check(bool(saved) and int(sql('select count(*) from app.challenge_operator_audit_v1;')) == audit_before+1,
+              'Administrator request and one audit action committed: '+command[0])
+        expected = json.loads(saved)
+        check(expected['version'] == 'challenge_admin_receipt_v2' and expected['request_id'] == rid
+              and expected['request'] == payload and bool(expected['recorded_at']),
+              'Durable administrator receipt binds exact operation and scope: '+command[0])
+        if after_commit:
+            after_commit()
+        audit_before_retry = sql('select count(*) from app.challenge_operator_audit_v1;')
+        receipt = cli(*command)
+        check(receipt == expected, 'Administrator retry returns original receipt: '+command[0])
+        check(sql('select count(*) from app.challenge_operator_audit_v1;') == audit_before_retry,
+              'Administrator retry adds no audit action: '+command[0])
+        rows = [r for r in trace if r['request_id'] == rid]
+        check(len(rows) == 2 and rows[0]['body_sha256'] == rows[1]['body_sha256'],
+              'Administrator retry sends identical HTTP bytes: '+command[0])
+        saved_file = journal/(rid+'.json')
+        record = json.loads(saved_file.read_text())
+        check(saved_file.stat().st_mode & 0o777 == 0o600 and record['version'] == 2
+              and record['authority'] == 'administrator' and record['project'] == owner
+              and record['port'] == config['api_port'] and record['rpc'] == 'challenge_admin_request_v2'
+              and json.loads(record['body']) == {'p_request_id': rid, 'p_payload': payload},
+              'Private administrator journal binds exact RPC and request: '+command[0])
+        return rid, command, receipt
+
+    def administrator_checks(cid):
+        if args.administration_only:
+            clock('2026-10-06T12:00:00Z')
+            cli('grant', '--actor', actors[0]['id'], '--challenge', cid,
+                '--capability', 'review', '--expires', '2026-10-10T12:00:00Z', error='22023')
+            cli('cases', '--challenge', cid, actor=6, error='42501')
+            grant(6, cid, 'review', '2026-10-06T12:01:00Z')
+            check(cli('cases', '--challenge', cid, actor=6) == [],
+                  'Independent reviewer can read only the assigned empty case queue')
+            cli('cases', '--challenge', str(uuid.uuid4()), actor=6, error='42501')
+            clock('2026-10-06T12:01:00Z')
+            cli('cases', '--challenge', cid, actor=6, error='42501')
+        # Administrator commands use their own durable receipt, including when
+        # a later authorized action has changed the grant since the first call.
+        expiry = '2026-10-10T12:00:00Z'
+        reviewer = actors[6]['id']
+        moderator = actors[5]['id']
+        grant_review = ['grant', '--actor', reviewer, '--challenge', cid,
+                        '--capability', 'review', '--expires', expiry]
+        grant_id, grant_command, _ = admin_recovery(
+            grant_review, admin_payload('grant_operator', 6, cid, 'review', expiry),
+            lambda: cli('revoke', '--actor', reviewer, '--challenge', cid, '--capability', 'review'))
+        check(sql(f"select expires_at<=app.challenge_now_v1() from app.challenge_operator_grants_v1 where actor_id='{reviewer}' and challenge_id='{cid}' and capability='review';") == 't',
+              'Old scoped grant replay cannot restore authority after revoke')
+        audit_before = sql('select count(*) from app.challenge_operator_audit_v1;')
+        for changed in [admin_payload('grant_operator', 6, cid, 'moderate', expiry),
+                        admin_payload('grant_operator', 5, cid, 'review', expiry),
+                        admin_payload('grant_operator', 6, cid, 'review', '2026-10-09T12:00:00Z')]:
+            conflict = rpc('challenge_admin_request_v2', {'p_request_id': grant_id, 'p_payload': changed}, admin_headers, expected=400)
+            check(conflict['code'] == '22023' and sql('select count(*) from app.challenge_operator_audit_v1;') == audit_before,
+                  'Server rejects changed administrator scope, actor or expiry under committed request identity')
+        changed_command = [*grant_command]
+        changed_command[changed_command.index('review')] = 'moderate'
+        cli(*changed_command, error='Saved request differs')
+        grant(6, cid, 'review', expiry)
+        revoke_review = ['revoke', '--actor', reviewer, '--challenge', cid, '--capability', 'review']
+        admin_recovery(revoke_review, admin_payload('revoke_operator', 6, cid, 'review'),
+                       lambda: grant(6, cid, 'review', expiry))
+        check(sql(f"select expires_at>app.challenge_now_v1() from app.challenge_operator_grants_v1 where actor_id='{reviewer}' and challenge_id='{cid}' and capability='review';") == 't',
+              'Old reviewer revoke replay cannot remove a newer grant')
+        grant(5, cid, 'moderate', expiry)
+        grant_moderate = ['grant', '--actor', moderator, '--challenge', cid,
+                          '--capability', 'moderate', '--expires', expiry]
+        admin_recovery(grant_moderate, admin_payload('grant_operator', 5, cid, 'moderate', expiry),
+                       lambda: cli('revoke', '--actor', moderator, '--challenge', cid, '--capability', 'moderate'))
+        check(sql(f"select expires_at<=app.challenge_now_v1() from app.challenge_operator_grants_v1 where actor_id='{moderator}' and challenge_id='{cid}' and capability='moderate';") == 't',
+              'Old moderator grant replay cannot restore authority after revoke')
+        grant(5, cid, 'moderate', expiry)
+        revoke_moderate = ['revoke', '--actor', moderator, '--challenge', cid, '--capability', 'moderate']
+        admin_recovery(revoke_moderate, admin_payload('revoke_operator', 5, cid, 'moderate'),
+                       lambda: grant(5, cid, 'moderate', expiry))
+        check(sql(f"select expires_at>app.challenge_now_v1() from app.challenge_operator_grants_v1 where actor_id='{moderator}' and challenge_id='{cid}' and capability='moderate';") == 't',
+              'Old scoped revoke replay cannot remove a newer grant')
+        support_grant = ['grant-support', '--actor', reviewer, '--expires', expiry]
+        admin_recovery(support_grant, admin_payload('grant_support', 6, expiry=expiry),
+                       lambda: cli('revoke-support', '--actor', reviewer))
+        check(sql(f"select expires_at<=app.challenge_now_v1() from app.challenge_support_grants_v1 where actor_id='{reviewer}';") == 't',
+              'Old support grant replay cannot restore authority after revoke')
+        grant(4)
+        support_revoke = ['revoke-support', '--actor', actors[4]['id']]
+        admin_recovery(support_revoke, admin_payload('revoke_support', 4), lambda: grant(4))
+        check(sql(f"select expires_at>app.challenge_now_v1() from app.challenge_support_grants_v1 where actor_id='{actors[4]['id']}';") == 't',
+              'Old support revoke replay cannot remove a newer grant')
+        # Two separate CLI processes must agree on one journal and one receipt.
+        duplicate_id = str(uuid.uuid4())
+        duplicate_command = ['grant-support', '--actor', moderator, '--expires', expiry,
+                             '--request-id', duplicate_id]
+        audit_before = int(sql('select count(*) from app.challenge_operator_audit_v1;'))
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            with hold_admin_request_lock(duplicate_id):
+                duplicate_futures = [pool.submit(cli, *duplicate_command) for _ in range(2)]
+                wait_for_admin_waiters(duplicate_id)
+            duplicate_receipts = [future.result(timeout=45) for future in duplicate_futures]
+        check(duplicate_receipts[0] == duplicate_receipts[1]
+              and sql(f"select count(*) from app.challenge_admin_requests_v2 where request_id='{duplicate_id}';") == '1'
+              and int(sql('select count(*) from app.challenge_operator_audit_v1;')) == audit_before+1,
+              'Parallel administrator CLI duplicates commit one receipt and audit action')
+        duplicate_rows = [r for r in trace if r['request_id'] == duplicate_id]
+        check(len(duplicate_rows) == 2 and duplicate_rows[0]['body_sha256'] == duplicate_rows[1]['body_sha256'],
+              'Parallel administrator CLI processes dispatch identical bytes')
+        # Competing service calls with one UUID may choose either winner, but
+        # only its exact payload can be saved or replayed.
+        conflict_id = str(uuid.uuid4())
+        conflicting = [admin_payload('revoke_support', 5), admin_payload('revoke_support', 6)]
+        def competing_call(payload):
+            body = {'p_request_id': conflict_id, 'p_payload': payload}
+            status, raw = local_http(config['api_port'], 'POST', '/rest/v1/rpc/challenge_admin_request_v2',
+                                     admin_headers, json.dumps(body))
+            return status, json.loads(raw)
+        audit_before = int(sql('select count(*) from app.challenge_operator_audit_v1;'))
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            with hold_admin_request_lock(conflict_id):
+                competing_futures = [pool.submit(competing_call, payload) for payload in conflicting]
+                wait_for_admin_waiters(conflict_id)
+            competing_results = [future.result(timeout=45) for future in competing_futures]
+        winner = next((value for status, value in competing_results if status == 200), None)
+        loser = next((value for status, value in competing_results if status == 400), None)
+        check(winner is not None and loser is not None and loser['code'] == '22023'
+              and winner['request'] in conflicting
+              and sql(f"select count(*) from app.challenge_admin_requests_v2 where request_id='{conflict_id}';") == '1'
+              and int(sql('select count(*) from app.challenge_operator_audit_v1;')) == audit_before+1,
+              'Parallel conflicting administrator HTTP bodies preserve one winner')
+        audit_before = sql('select count(*) from app.challenge_operator_audit_v1;')
+        check(rpc('challenge_admin_request_v2', {'p_request_id': conflict_id,
+              'p_payload': winner['request']}, admin_headers) == winner
+              and sql('select count(*) from app.challenge_operator_audit_v1;') == audit_before,
+              'Winning administrator body replays without a new audit action')
+        # Both CLI and actual HTTP separate administration from human authority.
+        cli('grant-support', '--actor', a, '--expires', '2026-10-10T12:00:00Z', actor=6, error='Use --administrator')
+        cli('support-reports', error='Use --administrator')
+        cli('grant-support', '--actor', a, '--expires', '2026-10-10T12:00:00Z', actor=6, administrator=True, error='Credential role does not match')
+        for name, body in [
+            ('challenge_admin_request_v2', {'p_request_id': str(uuid.uuid4()),
+                                            'p_payload': admin_payload('grant_support', 6, expiry=expiry)}),
+            ('challenge_grant_operator_v1', {'p_actor': actors[6]['id'], 'p_id': cid, 'p_capability': 'review', 'p_expires': '2026-10-10T12:00:00Z'}),
+            ('challenge_revoke_operator_v1', {'p_actor': actors[6]['id'], 'p_id': cid, 'p_capability': 'review'}),
+            ('challenge_grant_support_v1', {'p_actor': actors[6]['id'], 'p_expires': '2026-10-10T12:00:00Z'}),
+            ('challenge_revoke_support_v1', {'p_actor': actors[6]['id']})]:
+            result = rpc(name, body, auth[6], expected=403)
+            check(result['code'] == '42501', 'Actual human HTTP cannot administer: '+name)
+        anonymous_headers = {'apikey': config['anon'], 'Content-Type': 'application/json'}
+        for name, body in [
+            ('challenge_admin_request_v2', {'p_request_id': str(uuid.uuid4()),
+                                            'p_payload': admin_payload('grant_support', 6, expiry=expiry)}),
+            ('challenge_grant_operator_v1', {'p_actor': reviewer, 'p_id': cid, 'p_capability': 'review', 'p_expires': expiry}),
+            ('challenge_revoke_operator_v1', {'p_actor': reviewer, 'p_id': cid, 'p_capability': 'review'}),
+            ('challenge_grant_support_v1', {'p_actor': reviewer, 'p_expires': expiry}),
+            ('challenge_revoke_support_v1', {'p_actor': reviewer})]:
+            status, raw = local_http(config['api_port'], 'POST', '/rest/v1/rpc/'+name,
+                                     anonymous_headers, json.dumps(body))
+            check(status in (401, 403) and json.loads(raw)['code'] == '42501',
+                  'Actual anonymous HTTP cannot administer: '+name)
+        # Retained v1 signatures still work for a service caller and remain
+        # visibly non-durable: each call is an independently audited action.
+        audit_before = int(sql('select count(*) from app.challenge_operator_audit_v1;'))
+        for name, body in [
+            ('challenge_grant_operator_v1', {'p_actor': reviewer, 'p_id': cid, 'p_capability': 'review', 'p_expires': expiry}),
+            ('challenge_revoke_operator_v1', {'p_actor': reviewer, 'p_id': cid, 'p_capability': 'review'}),
+            ('challenge_grant_support_v1', {'p_actor': reviewer, 'p_expires': expiry}),
+            ('challenge_revoke_support_v1', {'p_actor': reviewer})]:
+            check(rpc(name, body, admin_headers, expected=(200, 204)) is None,
+                  'Historical service RPC remains callable: '+name)
+        check(int(sql('select count(*) from app.challenge_operator_audit_v1;')) == audit_before+4,
+              'Historical service calls retain their independent audit behavior')
+
+    def scan_credentials():
+        artifacts = '\n'.join(outputs) + '\n'.join(p.read_text() for p in journal.glob('*.json')) + json.dumps(trace)
+        check(not any(secret in artifacts for secret in secrets_seen),
+              'CLI output, HTTP trace and recovery records contain no test credentials or tokens')
+        check(not any(key in p.read_text() for p in journal.glob('*.json')
+                      for key in ['password', 'api_key', 'access_token', 'refresh_token', 'Authorization', 'Bearer ']),
+              'Recovery records exclude credential fields')
+
     try:
         # Inspect/probe before any fictional account exists in this run.
         probes = []
@@ -220,6 +480,15 @@ def main():
             mutate(i, None, 'confirm_age', confirmed=True)
         settings = {'start_date': '2026-10-03', 'days': 1, 'timezone': 'UTC', 'amount_cents': 100}
         cid = mutate(0, None, 'create', config=settings)['id']
+        if args.administration_only:
+            administrator_checks(cid)
+            actor_ids = ','.join("'"+actor['id']+"'" for actor in actors)
+            check(sql(f"select count(*) from auth.sessions where user_id in ({actor_ids});") == str(len(auth)),
+                  'Administrator CLI checks leave only the seven harness sessions')
+            scan_credentials()
+            check(cli('status')['server_time'] is not None, 'Existing local status command remains usable')
+            print('Completed '+str(len(checks))+' administrator checks; own proxy and fixture runtime will close.', flush=True)
+            return
         mutate(0, cid, 'target', target=100)
         mutate(0, cid, 'invite', username=actors[1]['username'])
         mutate(1, cid, 'target', target=100)
@@ -307,6 +576,17 @@ def main():
         cli('support-reports', actor=4, error='42501')
         cli('suspend', '--subject', b, '--reason', 'username', '--request-id', str(uuid.uuid4()), actor=4, error='42501')
         grant(4)
+        status = rpc('challenge_access_status_v1', {}, auth[0])
+        check(status['suspended'] is True, 'Suspended live HTTP session can read access status')
+        own = rpc('challenge_detail_v1', {'p_id': live}, auth[0])
+        check(own['social_hidden'] and [m['actor_id'] for m in own['members']] == [a], 'Suspended HTTP detail retains only own member')
+        check(own['agreement']['terms'] is None, 'Suspended HTTP detail hides friend roster terms')
+        history = rpc('challenge_section_v1', {'p_section': 'history'}, auth[0])
+        check(any(row['id'] == live for row in history['rows']), 'Suspended HTTP session can page own history')
+        denied = rpc('challenge_command_v1', {'p_request_id': str(uuid.uuid4()), 'p_payload': {'op': 'create', 'config': dict(settings, start_date='2026-10-09')}}, auth[0], expected=403)
+        check(denied['message'] == 'challenge_admission_paused', 'Suspended HTTP session cannot start a new friend challenge')
+        denied = rpc('challenge_command_v1', {'p_request_id': str(uuid.uuid4()), 'p_payload': {'op': 'personal_commit'}}, auth[0], expected=403)
+        check(denied['message'] == 'challenge_admission_paused', 'Suspended HTTP session cannot start a personal commitment')
         appeal_id, _ = recovery(['appeal'], 0)
         check(any(r['id'] == appeal_id for r in cli('own-appeals', actor=0)), 'Appellant reads own filed appeal')
         check(any(r['id'] == appeal_id for r in cli('support-appeals', actor=4)), 'Support reads pending appeal')
@@ -331,28 +611,45 @@ def main():
         settings['start_date'] = '2026-10-09'
         settings_path = args.work_dir/'community.json'; write_private(settings_path, settings)
         community = cli('publish-fixture', '--operator', actors[6]['id'], '--config-file', str(settings_path), '--target', '100', '--minimum', '2', '--capacity', '6', '--request-id', str(uuid.uuid4()), '--fictional')
+        sql('select public.challenge_discovery_fixture_v1(true);')
+        check(any(row['id'] == community for row in rpc('challenge_community_catalog_v1', {}, auth[0])), 'Active HTTP actor can discover the published community')
+        check(rpc('challenge_community_catalog_v1', {}, auth[1]) == [], 'Suspended HTTP actor cannot discover the same community')
+        digest = sql(f"select digest from app.challenge_agreements_v1 where challenge_id='{community}';")
+        denied = rpc('challenge_join_community_v1', {'p_request_id': str(uuid.uuid4()), 'p_payload': {'op': 'join_community', 'id': community, 'digest': digest, 'consent': True}}, auth[1], expected=403)
+        check(denied['message'] == 'challenge_admission_paused', 'Suspended HTTP actor cannot join with a valid known community digest')
+        sql('select public.challenge_discovery_fixture_v1(false);')
         grant(6, community)
         cli('close-community', '--challenge', community, '--request-id', str(uuid.uuid4()), actor=5, error='42501')
         recovery(['close-community', '--challenge', community], 6)
-        # Both CLI and actual HTTP separate administration from human authority.
-        cli('grant-support', '--actor', a, '--expires', '2026-10-10T12:00:00Z', actor=6, error='Use --administrator')
-        cli('support-reports', error='Use --administrator')
-        cli('grant-support', '--actor', a, '--expires', '2026-10-10T12:00:00Z', actor=6, administrator=True, error='Credential role does not match')
-        for name, body in [
-            ('challenge_grant_operator_v1', {'p_actor': actors[6]['id'], 'p_id': cid, 'p_capability': 'review', 'p_expires': '2026-10-10T12:00:00Z'}),
-            ('challenge_revoke_operator_v1', {'p_actor': actors[6]['id'], 'p_id': cid, 'p_capability': 'review'}),
-            ('challenge_grant_support_v1', {'p_actor': actors[6]['id'], 'p_expires': '2026-10-10T12:00:00Z'}),
-            ('challenge_revoke_support_v1', {'p_actor': actors[6]['id']})]:
-            result = rpc(name, body, auth[6], expected=403)
-            check(result['code'] == '42501', 'Actual human HTTP cannot administer: '+name)
+        administrator_checks(cid)
+        # Live grants do not override suspension for fresh privileged actions.
+        grant(5, cid, 'review')
+        grant(5, cid, 'moderate')
+        grant(5)
+        cli('suspend', '--subject', actors[5]['id'], '--reason', 'unsafe_behavior', '--request-id', str(uuid.uuid4()), actor=4)
+        cli('cases', '--challenge', cid, actor=5, error='42501')
+        cli('reports', '--challenge', cid, actor=5, error='42501')
+        cli('support-reports', actor=5, error='42501')
+        cli('support-appeals', actor=5, error='42501')
+        cli('suspend', '--subject', actors[2]['id'], '--reason', 'username', '--request-id', str(uuid.uuid4()), actor=5, error='42501')
         check(sql(f"select count(*)>0 from app.challenge_operator_audit_v1 where operator_id in ('{actors[4]['id']}','{actors[5]['id']}','{actors[6]['id']}') and payload->>'op' in ('read_global_reports','read_reports','read_cases');") == 't', 'Allowed reads write operator audit')
         # The original independently held session still works after CLI logouts.
         check(rpc('challenge_own_appeals_v1', {}, auth[0])[0]['decision'] == 'reinstate', 'CLI local logout preserves another live session')
         actor_ids = ','.join("'"+a['id']+"'" for a in actors)
         check(sql(f"select count(*) from auth.sessions where user_id in ({actor_ids});") == str(len(auth)), 'Every CLI sign-in session ended; only seven harness sessions remain')
-        artifacts = '\n'.join(outputs) + '\n'.join(p.read_text() for p in journal.glob('*.json')) + json.dumps(trace)
-        check(not any(secret in artifacts for secret in secrets_seen), 'CLI output, HTTP trace and recovery records contain no test credentials or tokens')
-        check(not any(key in p.read_text() for p in journal.glob('*.json') for key in ['password', 'api_key', 'access_token', 'refresh_token', 'Authorization', 'Bearer ']), 'Recovery records exclude credential fields')
+        # The HTTP token is still signed and unexpired; server-side session
+        # expiry/revocation must immediately deny even permitted own reads.
+        suspended = actors[1]['id']
+        sql(f"update auth.sessions set not_after=clock_timestamp() where user_id='{suspended}';")
+        denied = rpc('challenge_access_status_v1', {}, auth[1], expected=403)
+        check(denied['message'] == 'challenge_session_required', 'Expired session rejects a suspended actor with a still-valid JWT')
+        sql(f"update auth.sessions set not_after=null where user_id='{suspended}';")
+        check(rpc('challenge_access_status_v1', {}, auth[1])['suspended'], 'Restored live session retains permitted suspended access')
+        logout_status, _ = local_http(config['api_port'], 'POST', '/auth/v1/logout?scope=local', auth[1], '{}')
+        check(logout_status == 204, 'Actual Auth logout revokes the suspended harness session')
+        denied = rpc('challenge_own_appeals_v1', {}, auth[1], expected=403)
+        check(denied['message'] == 'challenge_session_required', 'Revoked session rejects a stale JWT on own appeal history')
+        scan_credentials()
         check(cli('status')['server_time'] is not None, 'Existing local status command remains usable')
     finally:
         if owned_fixtures:

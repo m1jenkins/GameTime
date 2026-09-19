@@ -167,7 +167,9 @@ select throws_ok('select public.read_commitment_follow_support_v1(pg_temp.id(''c
 select pg_temp.login(5);
 insert into saved values('support',public.read_commitment_follow_support_v1(pg_temp.id('case')));
 select is((select value->>'note' from saved where name='support'),'PRIVATE report: please help','assigned operator sees only submitted report');
-select ok(not((select value::text from saved where name='support') ~ 'target_seconds|5:59|owner_id|follower_id|terms|proof'),'support assignment exposes no commitment or proof');
+select ok((select value ?& array['case_id','category','note','recorded_at','resolution','resolved_at']
+  and value - array['case_id','category','note','recorded_at','resolution','resolved_at'] = '{}'::jsonb
+  from saved where name='support'),'support assignment exposes only the six report fields');
 select throws_ok('select public.get_commitment_progress_v1(pg_temp.id(''main''))','42501',null,'support assignment confers no progress access');
 insert into saved values('resolution',public.resolve_commitment_follow_support_v1(pg_temp.req(31),pg_temp.id('case'),'guidance_recorded'));
 select is(public.resolve_commitment_follow_support_v1(pg_temp.req(31),pg_temp.id('case'),'guidance_recorded'),(select value from saved where name='resolution'),'support exact resolution recovery');

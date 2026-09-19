@@ -1,0 +1,9 @@
+[
+  {
+    "label": "upgrade-after.tap",
+    "exit": 0,
+    "assertions": 431,
+    "passed": true,
+    "log_sha256": "c559d0efc46af289ba23402b12c0bd71399b9172497b6f54e5deb889b4c6806b"
+  }
+]
