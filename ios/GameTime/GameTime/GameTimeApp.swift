@@ -420,6 +420,10 @@ struct RootView: View {
                     }
                 }
             }
+            // SwiftUI can coalesce a fast account switch into signedIn ->
+            // signedIn. View-local drafts and presentations still belong to
+            // the previous actor and must get a new identity.
+            .id(model.userID)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .environment(\.demoMode, demoMode)
@@ -460,10 +464,11 @@ struct RootView: View {
                 }
             }
         }
-        .onChange(of: model.userID) { _, userID in
+        .onChange(of: model.userID) { _, _ in
+            router.reset()
             Task {
                 await personalStore.activate(
-                    ownerID: model.phase == .signedIn ? userID : nil
+                    ownerID: model.phase == .signedIn ? model.userID : nil
                 )
             }
         }

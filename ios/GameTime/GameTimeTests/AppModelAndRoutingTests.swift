@@ -1,4 +1,6 @@
 import XCTest
+import SwiftUI
+import UIKit
 
 @testable import GameTime
 
@@ -371,6 +373,71 @@ final class AppModelAndRoutingTests: XCTestCase {
         }
     }
 
+    func testOldOnboardingCompletionCannotClearReplacementMutation() async throws {
+        let first = UUID(), second = UUID()
+        let auth = SwitchingAuthClient(initialUserID: first)
+        let profiles = HeldActorProfileClient()
+        let model = AppModel(configuration: .fixture, services: FixtureServicesFactory.make(
+            arguments: ["GameTimeTests"], authClient: auth, profileClient: profiles))
+        await model.start()
+        let old = Task { await model.completeOnboarding(handle: "first_runner", displayName: "First") }
+        try await waitForActorState { profiles.held[first] != nil }
+        auth.switchUser(to: second)
+        try await waitForActorState { model.userID == second && model.phase == .onboarding }
+        XCTAssertFalse(model.isMutating, "The old account must not keep the new account disabled")
+        let replacement = Task { await model.completeOnboarding(handle: "second_runner", displayName: "Second") }
+        try await waitForActorState { profiles.held[second] != nil }
+        profiles.finish(first)
+        await old.value
+        XCTAssertTrue(model.isMutating, "Old completion cannot stop the new account's operation")
+        XCTAssertNil(model.profile)
+        profiles.finish(second)
+        await replacement.value
+        XCTAssertEqual(model.profile?.id, second)
+        XCTAssertFalse(model.isMutating)
+    }
+
+    func testActorCheckRejectsIdentityReadSuspendedAcrossAccountSwitch() async throws {
+        let first = UUID(), second = UUID()
+        let auth = SwitchingAuthClient(initialUserID: first)
+        let model = AppModel(configuration: .fixture, services: FixtureServicesFactory.make(
+            arguments: ["GameTimeTests"], authClient: auth, profileClient: OnboardingProfileClient()))
+        await model.start()
+        auth.holdNextIdentityRead = true
+        let old = Task { await model.completeOnboarding(handle: "first_runner", displayName: "First") }
+        try await waitForActorState { auth.heldIdentityRead != nil }
+        auth.setCurrentUserWithoutPublishing(second)
+        await model.signInWithApple(.init(idToken: "fictional", rawNonce: "fictional", firstSignInDisplayName: nil))
+        XCTAssertEqual(model.userID, second)
+        auth.heldIdentityRead?.resume(); auth.heldIdentityRead = nil
+        await old.value
+        XCTAssertEqual(model.phase, .onboarding)
+        XCTAssertNil(model.profile, "The generation must be checked after the final await")
+        XCTAssertNil(model.onboardingError)
+    }
+
+    func testAppleNamePrefillDoesNotCrossAnExternalAccountSwitch() async throws {
+        let first = UUID(), second = UUID()
+        let auth = SwitchingAuthClient(initialUserID: nil)
+        let model = AppModel(configuration: .fixture, services: FixtureServicesFactory.make(
+            arguments: ["GameTimeTests"], authClient: auth, profileClient: OnboardingProfileClient()))
+        await model.start()
+        auth.setCurrentUserWithoutPublishing(first)
+        await model.signInWithApple(.init(idToken: "fictional", rawNonce: "fictional", firstSignInDisplayName: "First Person"))
+        XCTAssertEqual(model.onboardingNamePrefill, "First Person")
+        await model.retryLaunch()
+        XCTAssertEqual(model.onboardingNamePrefill, "First Person", "The same account keeps its prefill through a launch retry")
+        auth.switchUser(to: second)
+        try await waitForActorState { model.userID == second && model.phase == .onboarding }
+        XCTAssertTrue(model.onboardingNamePrefill.isEmpty)
+    }
+
+    private func waitForActorState(_ ready: () -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(2)
+        while !ready(), Date() < deadline { try await Task.sleep(for: .milliseconds(1)) }
+        XCTAssertTrue(ready(), "Expected actor transition did not complete")
+    }
+
     func testSignOutClearsEveryLoadedUserValue() async {
         let model = AppModel(
             configuration: .fixture,
@@ -406,6 +473,54 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertNil(model.pendingChallenge)
         XCTAssertFalse(model.hasPendingChallengeRecoveryIssue)
         XCTAssertNil(model.presentedError)
+    }
+
+    func testMountedSignalAccountSwitchResetsRetainedNavigation() async throws {
+        let first = UUID(), second = UUID()
+        let auth = SwitchingAuthClient(initialUserID: first)
+        let services = FixtureServicesFactory.make(arguments: ["GameTimeTests"],
+            authClient: auth, profileClient: AnyActorProfileClient())
+        let model = AppModel(configuration: .personalFixture, services: services)
+        let personal = PersonalAccountabilityStore(configuration: .personalFixture, auth: auth,
+            client: services.personalAccountability, pendingStore: services.pendingPersonalChallenges,
+            diagnosticClient: services.trustedActivityDiagnostic, activitySync: services.personalActivitySync)
+        let router = AppRouter()
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive })
+        let previous = scene.windows.first(where: \.isKeyWindow)
+        let root = RootView(model: model, personalStore: personal, router: router,
+            demoMode: .unavailable, pushCoordinator: PushNotificationCoordinator())
+            .environment(model).environment(personal).environment(router)
+        let controller = UIHostingController(rootView: root)
+        let window = UIWindow(windowScene: scene)
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true; window.rootViewController = nil
+            previous?.makeKeyAndVisible()
+        }
+        try await waitForActorState { model.phase == .signedIn && personal.ownerID == first }
+        try await Task.sleep(for: .milliseconds(100))
+        router.todayPath = [.personalChallenge(UUID())]
+        router.challengesPath = [.personalChallenge(UUID())]
+        router.youPath = [.trustAndPrivacy]
+        controller.view.layoutIfNeeded()
+        try await Task.sleep(for: .milliseconds(100))
+        XCTAssertFalse(router.todayPath.isEmpty)
+        XCTAssertFalse(router.challengesPath.isEmpty)
+        XCTAssertFalse(router.youPath.isEmpty)
+        // Immediate fictional replies let SwiftUI coalesce launching -> signedIn.
+        // The actor change still has to reset each retained navigation stack.
+        auth.setCurrentUserWithoutPublishing(second)
+        await model.signInWithApple(.init(idToken: "fictional", rawNonce: "fictional", firstSignInDisplayName: nil))
+        try await waitForActorState { personal.ownerID == second }
+        XCTAssertEqual(model.challengesV1.actor, second)
+        XCTAssertTrue(router.todayPath.isEmpty)
+        XCTAssertTrue(router.challengesPath.isEmpty)
+        XCTAssertTrue(router.youPath.isEmpty)
+        await model.signOut()
+        try await waitForActorState { personal.ownerID == nil }
+        XCTAssertNil(model.challengesV1.actor)
     }
 
     func testRouterResetClearsEveryIndependentStackAndSheet() {
@@ -1237,8 +1352,16 @@ private final class SwitchingAuthClient: AuthClient {
         userID = initialUserID
     }
 
+    var holdNextIdentityRead = false
+    var heldIdentityRead: CheckedContinuation<Void, Never>?
+
     func currentUserID() async -> UUID? {
-        userID
+        let snapshot = userID
+        if holdNextIdentityRead {
+            holdNextIdentityRead = false
+            await withCheckedContinuation { heldIdentityRead = $0 }
+        }
+        return snapshot
     }
 
     func authStateChanges() async -> AsyncStream<AuthSnapshot> {
@@ -1477,4 +1600,15 @@ private final class RecordingContestsClient: ContestsClient {
         _ = (contestID, userID)
         declineInvitationCallCount += 1
     }
+}
+
+@MainActor
+private final class HeldActorProfileClient: ProfileClient {
+    var held: [UUID: CheckedContinuation<Void, Never>] = [:]
+    func currentProfile(userID: UUID) async throws -> UserProfile? { nil }
+    func createProfile(userID: UUID, handle: String, displayName: String, timezone: String) async throws -> UserProfile {
+        await withCheckedContinuation { held[userID] = $0 }
+        return UserProfile(id: userID, handle: handle, displayName: displayName, timezone: timezone)
+    }
+    func finish(_ actor: UUID) { held.removeValue(forKey: actor)?.resume() }
 }

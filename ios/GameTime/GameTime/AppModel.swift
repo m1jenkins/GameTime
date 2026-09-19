@@ -194,8 +194,10 @@ final class AppModel {
         do {
             let signedInUserID = try await services.auth.signInWithApple(identity)
             accountDeletionNotice = nil
-            onboardingNamePrefill = identity.firstSignInDisplayName ?? ""
-            await resolveAuthentication(userID: signedInUserID)
+            await resolveAuthentication(
+                userID: signedInUserID,
+                namePrefill: identity.firstSignInDisplayName
+            )
         } catch is CancellationError {
             return
         } catch {
@@ -233,7 +235,11 @@ final class AppModel {
 
         onboardingError = nil
         isMutating = true
-        defer { isMutating = false }
+        defer {
+            if isCurrentActor(userID, generation: generation) {
+                isMutating = false
+            }
+        }
         do {
             let createdProfile = try await services.profiles.createProfile(
                 userID: userID,
@@ -1243,6 +1249,10 @@ final class AppModel {
 
         let completedResult: AccountDeletionResult = result == .deleted && cleanupWarning
             ? .deletedWithLocalCleanupWarning : result
+        let currentUserID = await services.auth.currentUserID()
+        guard isCurrentActor(ownerID, generation: generation),
+            currentUserID == nil || currentUserID == ownerID
+        else { return completedResult }
         accountDeletionNotice = switch result {
         case .deleted:
             "We closed your account. You can check the saved account-deletion receipt here."
@@ -1299,7 +1309,10 @@ final class AppModel {
         }
     }
 
-    private func resolveAuthentication(userID: UUID?) async {
+    private func resolveAuthentication(
+        userID: UUID?,
+        namePrefill: String? = nil
+    ) async {
         guard let userID else {
             clearUserState()
             accountDeletionReceipt = try? services.accountDeletionReceipts
@@ -1312,10 +1325,14 @@ final class AppModel {
             return
         }
 
+        let resolvedNamePrefill = namePrefill
+            ?? (self.userID == userID ? onboardingNamePrefill : "")
         let generation = UUID()
         authGeneration = generation
         refreshGeneration = UUID()
+        if !isPerformingExplicitAuthMutation { isMutating = false }
         self.userID = userID
+        accountDeletionNotice = nil
         accountDeletionReceipt = try? services.accountDeletionReceipts
             .load(for: userID)
         accountDeletionStatus = nil
@@ -1336,6 +1353,7 @@ final class AppModel {
         reactingStandingsSnapshotID = nil
         exactHandleResult = nil
         lastSubmittedHandle = nil
+        onboardingNamePrefill = resolvedNamePrefill
         onboardingError = nil
         pendingChallenge = nil
         hasPendingChallengeRecoveryIssue = false
@@ -1530,7 +1548,9 @@ final class AppModel {
         guard isCurrentActor(userID, generation: generation) else {
             return false
         }
-        return await services.auth.currentUserID() == userID
+        let currentUserID = await services.auth.currentUserID()
+        return isCurrentActor(userID, generation: generation)
+            && currentUserID == userID
     }
 
     private func clearUserState() {
@@ -1541,6 +1561,7 @@ final class AppModel {
         metricPrototypes?.setActor(nil)
         authGeneration = UUID()
         refreshGeneration = UUID()
+        if !isPerformingExplicitAuthMutation { isMutating = false }
         userID = nil
         profile = nil
         friendshipCards = []

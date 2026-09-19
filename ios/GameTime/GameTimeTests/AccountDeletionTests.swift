@@ -70,6 +70,57 @@ final class AccountDeletionTests: XCTestCase {
         XCTAssertTrue(cleaner.cleanedOwners.isEmpty)
     }
 
+    func testAccountSwitchDuringDeletionCleanupCannotPublishOldNotice() async throws {
+        let first = UUID(), second = UUID()
+        let auth = DeletionSwitchingAuth(actor: first)
+        let cleaner = HeldDeletionCleaner()
+        let model = AppModel(configuration: .fixture, services: FixtureServicesFactory.make(
+            arguments: ["GameTimeTests"], authClient: auth,
+            accountDeletionClient: SequencedDeletionClient(state: .completed),
+            accountDeletionReceiptStore: EphemeralAccountDeletionReceiptStore(),
+            accountLocalStateCleaner: cleaner, profileClient: DeletionProfileClient()))
+        await model.start()
+        let deletion = Task { try await model.deleteAccount(with: AppleIdentity(
+            idToken: "fictional", rawNonce: "fictional", firstSignInDisplayName: nil,
+            authorizationCode: "fictional-code")) }
+        let deadline = Date().addingTimeInterval(2)
+        while cleaner.held == nil, Date() < deadline { try await Task.sleep(for: .milliseconds(1)) }
+        XCTAssertNotNil(cleaner.held)
+        auth.setActor(second)
+        cleaner.held?.resume(); cleaner.held = nil
+        _ = try await deletion.value
+        let switchDeadline = Date().addingTimeInterval(2)
+        while model.userID != second, Date() < switchDeadline { try await Task.sleep(for: .milliseconds(1)) }
+        XCTAssertEqual(model.userID, second)
+        XCTAssertNil(model.accountDeletionNotice)
+        XCTAssertNil(model.accountDeletionReceipt)
+        XCTAssertNil(model.accountDeletionStatus)
+        XCTAssertEqual(cleaner.owners, [first])
+    }
+
+    func testDelayedAccountCleanupCannotEraseANewerInvitation() async throws {
+        let pending = HeldDeletionPendingStore()
+        let fixture = FixtureServicesFactory.make(arguments: ["GameTimeTests"])
+        let cleaner = AccountLocalStateCleaner(pendingChallenges: pending,
+            activitySync: fixture.activitySync, pendingPersonalChallenges: fixture.pendingPersonalChallenges,
+            pendingPersonalCancellations: fixture.pendingPersonalCancellations,
+            personalActivitySync: fixture.personalActivitySync,
+            personalStepSnapshotCache: fixture.personalStepSnapshotCache,
+            appAttestedBodySigner: UnavailableAppAttestedBodySigner())
+        // This is the test host's invitation file; the cleaner owns this location.
+        let invitation = ChallengeInvitationIntent()
+        let old = URL(string: "gametime-beta://challenge-invite/" + String(repeating: "a", count: 64))!
+        let newer = URL(string: "gametime-beta://challenge-invite/" + String(repeating: "b", count: 64))!
+        invitation.receive(old)
+        defer { invitation.clear() }
+        let cleanup = Task { try await cleaner.clear(for: UUID()) }
+        await pending.waitUntilRemoving()
+        invitation.receive(newer)
+        await pending.finish()
+        try await cleanup.value
+        XCTAssertEqual(ChallengeInvitationIntent().link, newer.absoluteString)
+    }
+
     func testNativeDeletionKeepsTheReceiptForPendingHeldAndCompletedStates() async throws {
         let owner = UUID()
         for state in [
@@ -341,4 +392,31 @@ private final class RightsRejectionClient: AccountDeletionClient {
         _ = (requestID, receiptSecret)
         appealCalls += 1
     }
+}
+
+@MainActor
+private final class HeldDeletionCleaner: AccountLocalStateCleaning {
+    var held: CheckedContinuation<Void, Never>?
+    var owners: [UUID] = []
+    func clear(for ownerID: UUID) async throws {
+        owners.append(ownerID)
+        await withCheckedContinuation { held = $0 }
+    }
+}
+
+private actor HeldDeletionPendingStore: PendingChallengeStore {
+    private var held: CheckedContinuation<Void, Never>?
+    private var started: CheckedContinuation<Void, Never>?
+    func load(for ownerID: UUID) -> PendingChallengeSubmission? { nil }
+    func save(_ submission: PendingChallengeSubmission) {}
+    func remove(for ownerID: UUID) async {
+        await withCheckedContinuation {
+            held = $0
+            started?.resume(); started = nil
+        }
+    }
+    func waitUntilRemoving() async {
+        if held == nil { await withCheckedContinuation { started = $0 } }
+    }
+    func finish() { held?.resume(); held = nil }
 }

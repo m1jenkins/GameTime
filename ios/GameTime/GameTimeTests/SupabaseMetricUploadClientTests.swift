@@ -1280,6 +1280,34 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
     XCTAssertEqual(sendTransport.requests.count, 1)
   }
 
+  func testLateRefusalAfterSignOutOrAccountSwitchPreservesBothAccountsKeys() async throws {
+    for replacement in [nil, ownerB] as [UUID?] {
+      let session = MetricTransportSessionFake(ownerID: ownerA)
+      let appAttest = MetricTransportAppAttestFake()
+      let stateStore = MetricTransportStateStoreFake()
+      stateStore.seedRegistered(ownerID: ownerA, keyID: appAttest.generatedKeyID)
+      stateStore.seedRegistered(ownerID: ownerB, keyID: Data("replacement-key".utf8).base64EncodedString())
+      let before = stateStore.states
+      let transport = MetricTransportHTTPFake(outcomes: [.response(.init(
+        statusCode: 403,
+        body: try jsonData(["error": "forbidden", "message": "the assertion could not be verified"])))])
+      transport.onSend = { session.ownerID = replacement }
+      let client = try makeClient(session: session, appAttest: appAttest,
+        stateStore: stateStore, transport: transport)
+      do {
+        _ = try await client.send(ownerID: ownerA,
+          upload: signedUpload(keyID: appAttest.generatedKeyID, assertion: appAttest.assertion))
+        XCTFail("A previous account's refusal cannot be applied after the session changes")
+      } catch {
+        XCTAssertEqual(error as? MetricUploadClientError,
+          replacement == nil ? .authenticationRequired : .accountChanged)
+      }
+      XCTAssertEqual(stateStore.states, before, "A late refusal cannot invalidate either account's saved key")
+      XCTAssertEqual(transport.requests.count, 1)
+      XCTAssertTrue(appAttest.assertionHashes.isEmpty)
+    }
+  }
+
   func testRotatedLocalKeyStillSendsTheOriginalSavedProof()
     async throws
   {

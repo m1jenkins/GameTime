@@ -6,6 +6,62 @@ import XCTest
 @testable import GameTime
 
 @MainActor final class ChallengeInvitationRecoveryTests: XCTestCase {
+    func testPendingInvitationsStayWithTheirAccountsAcrossSwitchAndSignOut() async throws {
+        let fixture = InvitationRecoveryFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.directory) }
+        await fixture.start()
+        fixture.client.holdResponse = true
+        let first = Task { await fixture.store.submit(op: "redeem_link", fields: [
+            "token": .string(String(repeating: "a", count: 64))]) }
+        try await waitForHeldInvitation(fixture.client)
+        let firstResponse = fixture.client.held; fixture.client.held = nil
+        let firstRequest = try XCTUnwrap(fixture.store.pending)
+
+        let secondActor = UUID()
+        fixture.auth.actor = secondActor; fixture.store.setActor(secondActor)
+        XCTAssertNil(fixture.store.pending)
+        XCTAssertNil(fixture.store.lastReceipt)
+        XCTAssertTrue(fixture.store.issuedLinks.isEmpty)
+        let second = Task { await fixture.store.submit(op: "redeem_link", fields: [
+            "token": .string(String(repeating: "b", count: 64))]) }
+        try await waitForHeldInvitation(fixture.client)
+        let secondRequest = try XCTUnwrap(fixture.store.pending)
+        firstResponse?.resume(returning: .init(id: UUID(), status: "pending_request"))
+        let staleReceipt = await first.value
+        XCTAssertNil(staleReceipt)
+        XCTAssertEqual(fixture.store.pending, secondRequest)
+        XCTAssertTrue(fixture.store.busy)
+        XCTAssertNil(fixture.store.lastReceipt)
+        let savedFirst = try await fixture.store.requests.load(fixture.actor)
+        XCTAssertEqual(savedFirst, firstRequest, "The old account keeps its exact recovery request")
+
+        fixture.auth.actor = nil; fixture.store.setActor(nil)
+        fixture.client.finishHeld()
+        let signedOutReceipt = await second.value
+        XCTAssertNil(signedOutReceipt)
+        XCTAssertNil(fixture.store.pending)
+        XCTAssertNil(fixture.store.lastReceipt)
+        XCTAssertTrue(fixture.store.challenges.isEmpty)
+        XCTAssertTrue(fixture.store.issuedLinks.isEmpty)
+        XCTAssertFalse(fixture.store.busy)
+        let savedSecond = try await fixture.store.requests.load(secondActor)
+        XCTAssertEqual(savedSecond, secondRequest)
+
+        fixture.auth.actor = fixture.actor; fixture.store.setActor(fixture.actor)
+        await fixture.store.refresh()
+        XCTAssertEqual(fixture.store.pending, firstRequest)
+        fixture.auth.actor = secondActor; fixture.store.setActor(secondActor)
+        await fixture.store.refresh()
+        XCTAssertEqual(fixture.store.pending, secondRequest)
+        XCTAssertEqual(fixture.client.requests, [firstRequest, secondRequest], "Switching never automatically redeems a link")
+    }
+
+    private func waitForHeldInvitation(_ client: InvitationRecoveryClient) async throws {
+        let deadline = Date().addingTimeInterval(2)
+        while client.held == nil, Date() < deadline { try await Task.sleep(for: .milliseconds(1)) }
+        XCTAssertNotNil(client.held)
+    }
+
     func testOlderRedemptionCannotClearNewlyReceivedInvitation() async throws {
         try await redemptionOverlap(editOnly: false, accountChange: false)
     }
@@ -327,7 +383,7 @@ import XCTest
     var requests: [ChallengeV1Request] = []
     var receipt = ChallengeV1Receipt(id: UUID(), token: String(repeating: "a", count: 64),
         expiresAt: ChallengeInstant(date: Date(timeIntervalSince1970: 1790985600)))
-    func list(actor: UUID) async throws -> [ChallengeV1] { [try XCTUnwrap(row)] }
+    func list(actor: UUID) async throws -> [ChallengeV1] { row.map { $0.creatorId == actor ? [$0] : [] } ?? [] }
     func detail(_ id: UUID, actor: UUID) async throws -> ChallengeV1 { try XCTUnwrap(row) }
     func submit(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt {
         requests.append(request)

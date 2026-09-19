@@ -406,6 +406,11 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
     func clear(for ownerID: UUID) async throws {
         var failures: [String] = []
 
+        // This locator is shared across sign-in, unlike the owner-scoped
+        // stores below. Clear it before yielding so delayed account cleanup
+        // cannot erase an invitation received by a replacement session.
+        do { try ChallengeInvitationIntent.clearPersisted() }
+        catch { failures.append("invitation") }
         do { try metricPrototypes?.deleteLocalAccount(ownerID) }
         catch { failures.append("metric practice records") }
         do { try await pendingWeekly.remove(for: ownerID, matching: nil) }
@@ -430,8 +435,6 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
                 directory: root.appendingPathComponent("GameTime/ChallengeV1Pending")
             ).removeAll(for: ownerID)
         } catch { failures.append("challenge action") }
-        do { try ChallengeInvitationIntent.clearPersisted() }
-        catch { failures.append("invitation") }
         do { try await pendingPersonalChallenges.remove(for: ownerID) }
         catch { failures.append("personal challenge retry") }
         do { try await pendingPersonalCancellations.remove(for: ownerID) }
