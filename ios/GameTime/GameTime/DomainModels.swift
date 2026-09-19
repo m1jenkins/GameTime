@@ -754,9 +754,7 @@ enum AppMutationError: LocalizedError, Equatable, Sendable {
         if message.contains("request uuid already used") {
             return .duplicateRequestChanged
         }
-        if message.contains("profiles_handle_key")
-            || message.contains("duplicate key")
-        {
+        if message.contains("profiles_handle_key") {
             return .handleUnavailable
         }
         if message.contains("permission")

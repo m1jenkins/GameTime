@@ -586,12 +586,29 @@ final class SupabaseProfileClient: ProfileClient {
         // The account-deletion RLS boundary makes the actor active in an
         // AFTER INSERT trigger. Keep RETURNING out of this statement so its
         // SELECT policy is evaluated only after that binding has committed.
-        try await client
-            .from("profiles")
-            .insert(payload)
-            .execute()
+        do {
+            try await client
+                .from("profiles")
+                .insert(payload)
+                .execute()
+        } catch let error as PostgrestError
+            where error.code == "23505"
+                && error.message.contains("\"profiles_pkey\"")
+        {
+            // A committed INSERT can lose its response. Recover only the
+            // requested actor's existing profile, never a username match.
+            // Other constraints and failed reads must remain errors.
+            guard let profile = try await currentProfile(userID: userID),
+                profile.id == userID
+            else {
+                throw error
+            }
+            return profile
+        }
 
-        guard let profile = try await currentProfile(userID: userID) else {
+        guard let profile = try await currentProfile(userID: userID),
+            profile.id == userID
+        else {
             throw AppMutationError.server(
                 "Profile creation completed without a readable profile."
             )

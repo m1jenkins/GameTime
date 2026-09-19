@@ -336,6 +336,41 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertNil(model.onboardingError)
     }
 
+    func testRecoveredProfileCannotAttachAfterSignOutOrActorSwitch() async {
+        for replacement in [nil, UUID()] as [UUID?] {
+            let ownerID = UUID()
+            let auth = SwitchingAuthClient(initialUserID: ownerID)
+            let started = expectation(description: "Profile recovery started")
+            let profiles = SuspendedProfileRecoveryClient(started: started)
+            let services = FixtureServicesFactory.make(
+                arguments: ["GameTimeTests", "--fixture-mode"],
+                authClient: auth, profileClient: profiles
+            )
+            let model = AppModel(configuration: .fixture, services: services)
+            await model.start()
+            XCTAssertEqual(model.phase, .onboarding)
+
+            let submission = Task { @MainActor in
+                await model.completeOnboarding(handle: "runner_1", displayName: "Saved Runner")
+            }
+            await fulfillment(of: [started], timeout: 2)
+            await model.signOut()
+            if let replacement {
+                auth.setCurrentUserWithoutPublishing(replacement)
+                await model.signInWithApple(.init(
+                    idToken: "fictional", rawNonce: "fictional", firstSignInDisplayName: nil
+                ))
+            }
+            profiles.finishRecovery()
+            await submission.value
+
+            XCTAssertEqual(model.userID, replacement)
+            XCTAssertEqual(model.phase, replacement == nil ? .signedOut : .onboarding)
+            XCTAssertNil(model.profile)
+            XCTAssertNil(model.onboardingError)
+        }
+    }
+
     func testSignOutClearsEveryLoadedUserValue() async {
         let model = AppModel(
             configuration: .fixture,
@@ -1276,6 +1311,29 @@ private final class AnyActorProfileClient: ProfileClient {
 private struct DuplicateHandleTestError: Error, CustomStringConvertible {
     var description: String {
         "duplicate key violates constraint profiles_handle_key"
+    }
+}
+
+@MainActor
+private final class SuspendedProfileRecoveryClient: ProfileClient {
+    private let started: XCTestExpectation
+    private var continuation: CheckedContinuation<Void, Never>?
+
+    init(started: XCTestExpectation) { self.started = started }
+
+    func currentProfile(userID: UUID) async throws -> UserProfile? { nil }
+
+    func createProfile(userID: UUID, handle: String, displayName: String, timezone: String) async throws -> UserProfile {
+        await withCheckedContinuation { continuation in
+            self.continuation = continuation
+            started.fulfill()
+        }
+        return UserProfile(id: userID, handle: handle, displayName: displayName, timezone: timezone)
+    }
+
+    func finishRecovery() {
+        continuation?.resume()
+        continuation = nil
     }
 }
 

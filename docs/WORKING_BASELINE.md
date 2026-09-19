@@ -96,7 +96,8 @@ records all nine exact historical ref tips and the September 16 executed pruning
 The captain's explicit backup-and-delete choice supersedes live-ref retention;
 useful profile-retry/controller corrections and distinct evidence remain in the
 verified external bundle, with its location, checksum and safe recovery recipe
-in that disposition. The static-only profile retry finding remains unresolved
-for bounded review before final testing. Preserve the bundle, stashes and
+in that disposition. The profile retry finding now has a bounded client correction
+and [focused simulator verification](../outputs/reports/2026-09-18-profile-creation-retry.md);
+real database and hosted retry acceptance were not performed. Preserve the bundle, stashes and
 uncommitted work; do not import whole patches or merge cancelled branches merely
 to delete them.
