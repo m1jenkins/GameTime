@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """HTTP authorization for the aggregate review monitor on a newly owned stack.
 
-Uses the committed review-monitor-upgrade-before.sql fictional seed. The private
+Uses the committed review-monitor-upgrade-before.inc fictional seed. The private
 connection JSON names owner, db/auth/rest ports and the fresh local JWT secret.
 Never accepts a host or hosted credential; inspect owner labels and loopback
 bindings before reading or creating fictional Auth actors. Prints labels only.

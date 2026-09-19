@@ -118,11 +118,11 @@ the existing test harness extension statements, then:
 ```sh
 # Populated upgrade: begin with main's schema, before the new migration.
 psql "$MONITOR_DB_URL" -X -v ON_ERROR_STOP=1 -c 'set search_path=public,extensions' \
-  -f supabase/tests/fixtures/review-monitor-upgrade-before.sql
+  -f supabase/tests/fixtures/review-monitor-upgrade-before.inc
 psql "$MONITOR_DB_URL" -X -1 -v ON_ERROR_STOP=1 \
   -f supabase/migrations/20260919023551_challenge_local_review_status_v1.sql
 psql "$MONITOR_DB_URL" -X -v ON_ERROR_STOP=1 -c 'set search_path=public,extensions' \
-  -f supabase/tests/fixtures/review-monitor-upgrade-after.sql
+  -f supabase/tests/fixtures/review-monitor-upgrade-after.inc
 python3 scripts/beta-review-monitor-smoke.py \
   --connection-file "$MONITOR_PRIVATE_CONNECTION" --sample-output "$MONITOR_SAMPLE"
 

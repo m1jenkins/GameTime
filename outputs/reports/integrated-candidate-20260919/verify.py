@@ -112,7 +112,7 @@ try:
  lab.start()
  if kind=='upgrade':
   lab.migrate(baseline)
-  before=expand(ROOT/'supabase/tests/fixtures/review-monitor-upgrade-before.sql')
+  before=expand(ROOT/'supabase/tests/fixtures/review-monitor-upgrade-before.inc')
   addition="""select public.challenge_publish_community_fixture_v1(pg_temp.br(99001),pg_temp.ba(40),'{"start_date":"2026-10-15","days":1,"timezone":"UTC","amount_cents":100}',100,2,250,true);
 select public.challenge_discovery_fixture_v1(true);
 select public.challenge_prepare_community_snapshot_invocation_v1(pg_temp.br(99002),(select challenge_id from app.challenge_community_publications_v1));
@@ -121,7 +121,7 @@ select public.challenge_dispatch_community_snapshot_invocation_v1(pg_temp.br(990
   before=before.replace('create schema review_monitor_upgrade;',addition+'create schema review_monitor_upgrade;')
   (lab.dir/'upgrade-before.sql').write_text(before);lab.sql(before,'upgrade-before.log')
   lab.migrate(forward)
-  after=expand(ROOT/'supabase/tests/fixtures/review-monitor-upgrade-after.sql')
+  after=expand(ROOT/'supabase/tests/fixtures/review-monitor-upgrade-after.inc')
   after=after.replace("where p.oid is null or (old.definition", "where old.oid<>'app.challenge_session_v1()'::regprocedure and (p.oid is null or (old.definition")
   after=after.replace("p.proacl,p.proconfig)),'all prior", "p.proacl,p.proconfig))),'all prior")
   extra="""select ok(not exists(select 1 from review_monitor_upgrade.functions old left join pg_proc p on p.oid=old.oid where p.oid is null or (old.proacl,old.proconfig) is distinct from (p.proacl,p.proconfig)),'all prior function privileges and search paths unchanged');
