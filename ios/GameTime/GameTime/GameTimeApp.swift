@@ -462,11 +462,15 @@ struct RootView: View {
                 }
             }
         }
-        .onChange(of: model.userID) { _, _ in
-            router.reset()
+        .onChange(of: model.userID) { previousUserID, userID in
+            // The first fixture sign-in may have an explicit test route already
+            // selected. Later actor changes must discard the previous route.
+            if previousUserID != nil && previousUserID != userID {
+                router.reset()
+            }
             Task {
                 await personalStore.activate(
-                    ownerID: model.phase == .signedIn ? model.userID : nil
+                    ownerID: model.phase == .signedIn ? userID : nil
                 )
             }
         }

@@ -1,61 +1,71 @@
 begin;
 select no_plan();
 \ir fixtures/weekly-fixture.inc
+-- Exercise the historical agreement with its explicit fictional clock. The
+-- public endpoints correctly use wall time and this September week has ended.
+create function pg_temp.share(r uuid,c uuid,f uuid,e boolean) returns uuid
+language sql security definer set search_path='' as $$select app.weekly_set_sharing_at_v1(r,c,f,e,'2026-09-01T00:00:00Z')$$;
+create function pg_temp.follow(r uuid,c uuid,o uuid,f uuid,d text) returns uuid
+language sql security definer set search_path='' as $$select app.weekly_respond_follow_at_v1(r,c,o,f,d,'2026-09-01T00:00:00Z')$$;
+create function pg_temp.shared() returns jsonb
+language sql security definer set search_path='' as $$select app.weekly_shared_progress_at_v1('2026-09-01T00:00:00Z')$$;
+create function pg_temp.offers() returns jsonb
+language sql security definer set search_path='' as $$select app.weekly_follow_requests_at_v1('2026-09-01T00:00:00Z')$$;
 insert into weekly_test_ids values('group',pg_temp.make_friend(1,2));
 select pg_temp.login(3);
-select is(public.list_shared_weekly_progress_v1(),'[]'::jsonb,'friendship alone never shares progress');
+select is(pg_temp.shared(),'[]'::jsonb,'friendship alone never shares progress');
 select pg_temp.login(1);
-select public.set_weekly_sharing_v1(pg_temp.req(901),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),true);
-select is(public.set_weekly_sharing_v1(pg_temp.req(901),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),true),pg_temp.req(901),'exact sharing consent retry');
-select throws_ok($$select public.set_weekly_sharing_v1(pg_temp.req(901),(select id from weekly_test_ids where name='group'),pg_temp.actor(4),true)$$,'22023','weekly_request_conflict','changed sharing recipient cannot reuse consent');
+select pg_temp.share(pg_temp.req(901),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),true);
+select is(pg_temp.share(pg_temp.req(901),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),true),pg_temp.req(901),'exact sharing consent retry');
+select throws_ok($$select pg_temp.share(pg_temp.req(901),(select id from weekly_test_ids where name='group'),pg_temp.actor(4),true)$$,'22023','weekly_request_conflict','changed sharing recipient cannot reuse consent');
 select pg_temp.login(3);
-select is(public.list_shared_weekly_progress_v1(),'[]'::jsonb,'owner offer alone does not make recipient follow');
-select is(jsonb_array_length(public.list_weekly_follow_requests_v1()),1,'recipient sees explicit pending offer');
-select public.respond_weekly_follow_v1(pg_temp.req(951),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(901),'accept');
-select is(jsonb_array_length(public.list_shared_weekly_progress_v1()),1,'accepted selected friend receives display projection');
-select is(public.list_shared_weekly_progress_v1()->0->'observed_steps','null'::jsonb,'missing observation is null rather than zero');
-select ok(not ((public.list_shared_weekly_progress_v1()->0)?|array['qualification','result','allocation','amount','roster','notices','cases']),'shared display contains no qualification financial or roster fields');
+select is(pg_temp.shared(),'[]'::jsonb,'owner offer alone does not make recipient follow');
+select is(jsonb_array_length(pg_temp.offers()),1,'recipient sees explicit pending offer');
+select pg_temp.follow(pg_temp.req(951),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(901),'accept');
+select is(jsonb_array_length(pg_temp.shared()),1,'accepted selected friend receives display projection');
+select is(pg_temp.shared()->0->'observed_steps','null'::jsonb,'missing observation is null rather than zero');
+select ok(not ((pg_temp.shared()->0)?|array['qualification','result','allocation','amount','roster','notices','cases']),'shared display contains no qualification financial or roster fields');
 select throws_ok($$select public.get_weekly_v1((select id from weekly_test_ids where name='group'))$$,'42501','weekly_unavailable','sharing does not grant participant agreement access');
 select throws_ok($$select public.list_weekly_sharing_v1((select id from weekly_test_ids where name='group'))$$,'42501','weekly_sharing_unavailable','recipient cannot enumerate other viewers');
 reset role;
 select is((select count(*) from app.weekly_participants where actor_id=pg_temp.actor(3)),0::bigint,'sharing never enrolls recipient');
 select public.set_weekly_runtime_v1(false,false,false,'{}');
 select pg_temp.login(1);
-select public.set_weekly_sharing_v1(pg_temp.req(902),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),false);
+select pg_temp.share(pg_temp.req(902),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),false);
 select pg_temp.login(3);
-select is(public.list_shared_weekly_progress_v1(),'[]'::jsonb,'revocation works gate off');
+select is(pg_temp.shared(),'[]'::jsonb,'revocation works gate off');
 select pg_temp.login(1);
-select public.set_weekly_sharing_v1(pg_temp.req(903),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),true);
+select pg_temp.share(pg_temp.req(903),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),true);
 select pg_temp.login(3);
-select public.respond_weekly_follow_v1(pg_temp.req(953),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(903),'accept');
+select pg_temp.follow(pg_temp.req(953),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(903),'accept');
 insert into public.blocks(blocker_id,blocked_id) values(pg_temp.actor(3),pg_temp.actor(1));
-select is(public.list_shared_weekly_progress_v1(),'[]'::jsonb,'block suppresses shared display immediately at read');
+select is(pg_temp.shared(),'[]'::jsonb,'block suppresses shared display immediately at read');
 select pg_temp.login(1);
 select is(public.list_weekly_sharing_v1((select id from weekly_test_ids where name='group')),'[]'::jsonb,'blocked recipient identity hidden from owner sharing list');
-select public.set_weekly_sharing_v1(pg_temp.req(904),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),false);
+select pg_temp.share(pg_temp.req(904),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),false);
 select pg_temp.login(3);
 delete from public.blocks where blocker_id=pg_temp.actor(3) and blocked_id=pg_temp.actor(1);
 reset role;
 insert into public.friendships(user_a,user_b,requested_by,status) values(pg_temp.actor(1),pg_temp.actor(3),pg_temp.actor(1),'accepted');
 select pg_temp.login(3);
-select is(public.list_shared_weekly_progress_v1(),'[]'::jsonb,'unblock and new friendship do not revive grant');
+select is(pg_temp.shared(),'[]'::jsonb,'unblock and new friendship do not revive grant');
 select pg_temp.login(1);
-select public.set_weekly_sharing_v1(pg_temp.req(906),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),true);
+select pg_temp.share(pg_temp.req(906),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),true);
 select pg_temp.login(3);
-select throws_ok($$select public.respond_weekly_follow_v1(pg_temp.req(956),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(903),'accept')$$,'42501','weekly_follow_unavailable','old offer cannot consent to renewed owner grant');
-select public.respond_weekly_follow_v1(pg_temp.req(957),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(906),'accept');
-select public.respond_weekly_follow_v1(pg_temp.req(958),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(906),'unfollow');
-select is(public.list_shared_weekly_progress_v1(),'[]'::jsonb,'recipient can safely unfollow gate off');
+select throws_ok($$select pg_temp.follow(pg_temp.req(956),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(903),'accept')$$,'42501','weekly_follow_unavailable','old offer cannot consent to renewed owner grant');
+select pg_temp.follow(pg_temp.req(957),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(906),'accept');
+select pg_temp.follow(pg_temp.req(958),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(906),'unfollow');
+select is(pg_temp.shared(),'[]'::jsonb,'recipient can safely unfollow gate off');
 select pg_temp.login(1);
-select throws_ok($$select public.set_weekly_sharing_v1(pg_temp.req(907),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),true)$$,'55000','weekly_follow_declined','decline or unfollow prevents repeated invitation for same agreement');
+select throws_ok($$select pg_temp.share(pg_temp.req(907),(select id from weekly_test_ids where name='group'),pg_temp.actor(3),true)$$,'55000','weekly_follow_declined','decline or unfollow prevents repeated invitation for same agreement');
 
-select public.set_weekly_sharing_v1(pg_temp.req(905),(select id from weekly_test_ids where name='group'),pg_temp.actor(4),true);
+select pg_temp.share(pg_temp.req(905),(select id from weekly_test_ids where name='group'),pg_temp.actor(4),true);
 select pg_temp.login(4);
-select public.respond_weekly_follow_v1(pg_temp.req(959),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(905),'accept');
+select pg_temp.follow(pg_temp.req(959),(select id from weekly_test_ids where name='group'),pg_temp.actor(1),pg_temp.req(905),'accept');
 reset role;
 select public.delete_account(pg_temp.actor(1));
 select pg_temp.login(4);
-select is(public.list_shared_weekly_progress_v1(),'[]'::jsonb,'deletion revokes display grant');
+select is(pg_temp.shared(),'[]'::jsonb,'deletion revokes display grant');
 reset role;
 select ok(not exists(select 1 from app.weekly_sharing where owner_id=pg_temp.actor(1) and enabled),'deletion retains disabled consent history only');
 select ok(not has_table_privilege('authenticated','app.weekly_sharing','select'),'no sharing base table enumeration');
