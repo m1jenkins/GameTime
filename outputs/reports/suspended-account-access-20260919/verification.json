@@ -1,0 +1,204 @@
+{
+  "base_main": "9f116ac4954594a8d64467f78a6dca55d3cc2ce4",
+  "branch": "codex/suspended-account-access",
+  "baseline_sql_failures": [
+    {
+      "suite": "494_challenge_safety.test.sql",
+      "exit": 3,
+      "passed": 13,
+      "failed": [],
+      "plan": [],
+      "complete_tap": false,
+      "log": "494_challenge_safety.test-1789793838177945000.log",
+      "log_sha256": "6240d9d18d3997fa7e78f41a36cd7f2346657035140a2beeba0024bd0fd6764e",
+      "error": "challenge_session_required"
+    },
+    {
+      "suite": "506_challenge_private_community.test.sql",
+      "exit": 3,
+      "passed": 50,
+      "failed": [],
+      "plan": [],
+      "complete_tap": false,
+      "log": "506_challenge_private_community.test-1789793838177945000.log",
+      "log_sha256": "912082b4fe2b53f890ea990138cf07d902330933d1cad7127a29e79270f324d4",
+      "error": "challenge_session_required"
+    },
+    {
+      "suite": "507_challenge_community_guards.test.sql",
+      "exit": 3,
+      "passed": 13,
+      "failed": [],
+      "plan": [],
+      "complete_tap": false,
+      "log": "507_challenge_community_guards.test-1789793838177945000.log",
+      "log_sha256": "176922a0168e9d1628e4eee0dda3252f19057b5b679c97ce4dacad717ee60000",
+      "error": "challenge_session_required"
+    }
+  ],
+  "baseline_default_http_checks_before_failure": 79,
+  "final_sql": [
+    {
+      "suite": "493_challenge_entry.test.sql",
+      "exit": 0,
+      "passed": 42,
+      "failed": [],
+      "plan": [
+        "42"
+      ],
+      "complete_tap": true,
+      "log": "493_challenge_entry.test-1789794331942690000.log",
+      "log_sha256": "787bd3c9d8c1b3c56db32197ee3aa30fe8838d04d4c6a7066af7433e55fad852"
+    },
+    {
+      "suite": "494_challenge_safety.test.sql",
+      "exit": 0,
+      "passed": 22,
+      "failed": [],
+      "plan": [
+        "22"
+      ],
+      "complete_tap": true,
+      "log": "494_challenge_safety.test-1789794105770243000.log",
+      "log_sha256": "6f1ac1d0392ce26e6e8c8f4f89312427b321a18eb73d2a57a5f275952b929f8e"
+    },
+    {
+      "suite": "497_challenge_operations.test.sql",
+      "exit": 0,
+      "passed": 19,
+      "failed": [],
+      "plan": [
+        "19"
+      ],
+      "complete_tap": true,
+      "log": "497_challenge_operations.test-1789794331942690000.log",
+      "log_sha256": "9fe7f346e53a1605df42944ee6f0f7cadfba09f0cf9ea3b52e827627b4027347"
+    },
+    {
+      "suite": "501_challenge_participation_privacy.test.sql",
+      "exit": 0,
+      "passed": 14,
+      "failed": [],
+      "plan": [
+        "14"
+      ],
+      "complete_tap": true,
+      "log": "501_challenge_participation_privacy.test-1789794331942690000.log",
+      "log_sha256": "d0220d396633706cb7d7cd2d184477c39a0b329fe1139bf59c6e2aab773e8126"
+    },
+    {
+      "suite": "502_challenge_session_lock_expiry.test.sql",
+      "exit": 0,
+      "passed": 13,
+      "failed": [],
+      "plan": [
+        "13"
+      ],
+      "complete_tap": true,
+      "log": "502_challenge_session_lock_expiry.test-1789794331942690000.log",
+      "log_sha256": "90bf49713b943e7331de5c9bf1bc4e0e380a94373ed06797a0907fd87ac99de9"
+    },
+    {
+      "suite": "506_challenge_private_community.test.sql",
+      "exit": 0,
+      "passed": 67,
+      "failed": [],
+      "plan": [
+        "67"
+      ],
+      "complete_tap": true,
+      "log": "506_challenge_private_community.test-1789794105770243000.log",
+      "log_sha256": "d50ee546c8f8ff4504465751932e1840ce8bf02d0da351148e26e3e1c1ed9607"
+    },
+    {
+      "suite": "507_challenge_community_guards.test.sql",
+      "exit": 0,
+      "passed": 18,
+      "failed": [],
+      "plan": [
+        "18"
+      ],
+      "complete_tap": true,
+      "log": "507_challenge_community_guards.test-1789794105770243000.log",
+      "log_sha256": "e42ca8b99f001ee8a11b8296225b9541d18429d93d269ebbb30dc612732e4e8a"
+    },
+    {
+      "suite": "512_challenge_account_deletion_v1.test.sql",
+      "exit": 0,
+      "passed": 32,
+      "failed": [],
+      "plan": [
+        "32"
+      ],
+      "complete_tap": true,
+      "log": "512_challenge_account_deletion_v1.test-1789794105770243000.log",
+      "log_sha256": "06ebc12387e60c84cf5915fd5dd7b1764e551a3f0bc6236633289960163129cb"
+    },
+    {
+      "suite": "513_challenge_account_deletion_restore_v1.test.sql",
+      "exit": 0,
+      "passed": 21,
+      "failed": [],
+      "plan": [
+        "21"
+      ],
+      "complete_tap": true,
+      "log": "513_challenge_account_deletion_restore_v1.test-1789794105770243000.log",
+      "log_sha256": "46531edd42dae6fc7acc941bc04b37ee9c4b74a768c960881399bffb6d1c5b7e"
+    },
+    {
+      "suite": "514_challenge_account_deletion_preservation_v1.test.sql",
+      "exit": 0,
+      "passed": 19,
+      "failed": [],
+      "plan": [
+        "19"
+      ],
+      "complete_tap": true,
+      "log": "514_challenge_account_deletion_preservation_v1.test-1789794105770243000.log",
+      "log_sha256": "e14c50c72a2b393f7c22373e1bddcf4891d6d146e311f16c324ad85dc8091747"
+    },
+    {
+      "suite": "517_challenge_suspended_account_access.test.sql",
+      "exit": 0,
+      "passed": 71,
+      "failed": [],
+      "plan": [
+        "71"
+      ],
+      "complete_tap": true,
+      "log": "517_challenge_suspended_account_access.test-1789794475871451000.log",
+      "log_sha256": "ea91007f26d2e363e243bade98feb7436e3dbd737d3dd49f85b7e15c49eef270"
+    }
+  ],
+  "final_sql_assertions": 338,
+  "full_default_http": {
+    "checks": 154,
+    "exit": 0,
+    "original_assertions_preserved": true,
+    "log_sha256": "be4e1d0e86c1675c3ac448ce7b4cadfbd6b6ce71e657183df4281ac524d20cd5"
+  },
+  "session_lock_checks": {
+    "passed": 12,
+    "failed": 0,
+    "log_sha256": "17c2bcd9ac9f3722890c87c1af0f939d4ef09524bbc41f65bcc2727386c9de54"
+  },
+  "populated_upgrade": {
+    "passed": 5,
+    "tables_unchanged": 207,
+    "rows_unchanged": 329,
+    "only_changed_function": "app.challenge_session_v1()",
+    "function_acls_and_config_unchanged": true,
+    "log_sha256": "aac700f70bf9584b3bd101b498ce1ba30d9b056837d5fdb208bb476edf048694"
+  },
+  "operator_unit_tests": 8,
+  "security_advisors": {
+    "exit": 0,
+    "issues": []
+  },
+  "tested_source_sha256": {
+    "scripts/beta-operator-smoke.py": "fb820c2142acf8bb91360a60fb0365f141cb1e790e73b8997b8d9b524887a68f",
+    "supabase/migrations/20260919045754_challenge_suspended_account_access_v1.sql": "744128029aa9f43b1b82833f5d7fd4bac95ba1fbbd5fe0d06b834c8a0c0f017a",
+    "supabase/tests/517_challenge_suspended_account_access.test.sql": "c928e0dc2273cc5cda1bf3f4837138c2e22f32e796fb5c4a0c085bd2bddef0bb"
+  }
+}
