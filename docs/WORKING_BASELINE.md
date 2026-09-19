@@ -13,7 +13,7 @@ iPhone- and Watch-origin steps, flagged overlapping records, and passed the
 private session clearing check. Reconciliation and completeness remain
 unresolved. An initial Apple Exercise Time read showed clear Watch origin;
 its hand-entry field was not supplied, and Exercise eligibility and result
-rules remain open. No physical source is
+rules remain open. The running investigation is explicitly unperformed. No physical source is
 accepted or enabled. Continue from the
 [device-session record](../outputs/reports/2026-09-18-p7-device-session.md)
 and [private session guide](BETA_PHYSICAL_SESSIONS.md).

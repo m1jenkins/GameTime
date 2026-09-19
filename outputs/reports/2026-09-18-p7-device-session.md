@@ -47,7 +47,9 @@ an origin observation only. The inspected records showed **Not supplied** for
 the hand-entry field, so that field does not exclude manual entry.
 Manual/import eligibility, overlap, conversion to
 the agreed integer-second unit, corrections and complete-history behavior remain
-unsettled. Running investigations have not been performed.
+unsettled. The owner reported the whole-running-workout investigation as
+**unperformed**. Cumulative running, timed running, pause behavior, workout
+boundaries and distance accuracy therefore have no physical observation.
 
 The rest of Sessions B–D, all four source policies, whole-run distance tolerance,
 source-backed integration and human/release gates remain pending. No source is
