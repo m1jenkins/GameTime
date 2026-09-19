@@ -174,7 +174,7 @@ can hide backlog. It is not a complete historical incident ledger.
 | `oldest_due` more than 300 seconds behind server time, rising due/retry/abandoned count | Check scheduler heartbeat, database connections/locks and SQLSTATE. Distinguish pause from outage. Bound retries; diagnose repeated failures. |
 | No successful snapshot capture for 1,800 seconds when publication is enabled | Investigate job/gates; retain delayed/null display. Never include member counts in alerts. Capture-age monitoring needs a sanitized operator endpoint; client counts cannot serve as its health check. |
 | RPC latency/error rate, connection headroom, authorization denial/429 spikes | Aggregate metrics only; endpoint family and SQLSTATE/status, no payload, actor, token or link. P11 sets operational limits from real measurements. |
-| Grant expiry/coverage lapse, unassigned review or support queue | Route to the staffed operator owner; no silent auto-renewal. Sanitized queue/coverage monitoring still needs implementation and delivery proof. |
+| Grant expiry/coverage lapse, unassigned review or support queue | Route to the staffed operator owner; no silent auto-renewal. The local `challenge_local_review_status_v1` projection reports authorization gaps and relevant expirations; staffed coverage and delivery proof remain unverified. |
 
 The existing restricted status keeps `failed_work` challenge IDs and timestamps
 for authorized item selection. P11A adds a separate
@@ -182,6 +182,15 @@ for authorized item selection. P11A adds a separate
 counts, timestamps and SQLSTATE codes. Do not forward the restricted JSON to
 external alerts or generic logs. Tokens, Health facts, request bodies, usernames,
 raw errors and link paths are excluded.
+
+The local `challenge_local_review_status_v1()` service projection adds aggregate
+outstanding-review and pending-appeal authorization gaps, existing resolution /
+filing times and relevant grant expirations. It counts saved cases independently
+of the worker allowlist and preserves explicit paused/disabled/unavailable states.
+It supplements the existing worker and overdue monitors; it does not establish
+staffed support, define an appeal response deadline or activate a poller. See the
+[local projection contract and tests](../outputs/reports/2026-09-19-review-appeal-monitoring.md).
+
 Select log retention and alert recipients in the retention worksheet. No telemetry
 or alert destination was configured. The September 12 changelog check found the
 [September 23 `logs.all` removal](https://supabase.com/changelog/48235-migration-of-supabase-management-api-logs-all-analytics-endpoint-to-logs-endpoint);

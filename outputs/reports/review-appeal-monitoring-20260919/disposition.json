@@ -1,0 +1,35 @@
+[
+  {
+    "owner": "gametime-review-monitor-86b5087001",
+    "before_disposal": {
+      "sessions": 0,
+      "active_jobs": 0,
+      "executed_jobs": 0,
+      "cron_execution": "off",
+      "runtime_closed": true
+    },
+    "disposed": true
+  },
+  {
+    "owner": "gametime-review-monitor-f5b4050019",
+    "before_disposal": {
+      "sessions": 0,
+      "active_jobs": 0,
+      "executed_jobs": 0,
+      "cron_execution": "off",
+      "runtime_closed": true
+    },
+    "disposed": true
+  },
+  {
+    "owner": "gametime-review-monitor-d21fa98c5e",
+    "before_disposal": {
+      "sessions": 0,
+      "active_jobs": 0,
+      "executed_jobs": 0,
+      "cron_execution": "off",
+      "runtime_closed": true
+    },
+    "disposed": true
+  }
+]
