@@ -28,7 +28,9 @@ struct GameTimeApp: App {
         let notificationCoordinator = PushNotificationCoordinator()
         _pushCoordinator = State(initialValue: notificationCoordinator)
 
+        #if DEBUG || STAGING
         let arguments = ProcessInfo.processInfo.arguments
+        #endif
         #if DEBUG
         if SourceInvestigationLaunch.enabled || ChallengeLocalLaunch.enabled {
             _liveModel = State(initialValue: nil)
@@ -41,10 +43,10 @@ struct GameTimeApp: App {
             return
         }
         #endif
+        #if DEBUG || STAGING
         let fixtureLaunch = arguments.contains("--fixture-mode")
         let interactiveDemoLaunch = arguments.contains("--demo-interactive")
             || arguments.contains("--fixture-demo-interactive")
-        #if DEBUG || STAGING
         let usesFixtureModel = fixtureLaunch
         let usesPaymentStatusFixture = arguments.contains(where: {
             $0.hasPrefix("--fixture-payment-status=")
@@ -62,10 +64,10 @@ struct GameTimeApp: App {
             || arguments.contains("--fixture-open-review-challenge")
             || arguments.contains("--fixture-expired-review")
             || usesPaymentStatusFixture
-        #else
-        let usesFixtureModel = false
-        #endif
         isFixtureTestLaunch = usesFixtureModel && !interactiveDemoLaunch
+        #else
+        isFixtureTestLaunch = false
+        #endif
 
         let initialRouter = AppRouter()
         #if DEBUG || STAGING
