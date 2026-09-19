@@ -451,7 +451,7 @@ def main() -> None:
                 process.kill()
                 process.communicate(timeout=5)
         try:
-            sql("select public.challenge_runtime_v1(false,false,false,array[]::uuid[],clock_timestamp())", check=False)
+            sql("select public.challenge_runtime_v1(false,false,false,array[]::uuid[],null)", check=False)
             sql("delete from auth.sessions where user_id = any(array[" + ",".join(quoted(actor) + "::uuid" for actor in actors) + "])", check=False)
         except Exception:
             pass
