@@ -1,0 +1,7 @@
+// Inactive preparation only. No active configuration includes this file.
+// Select one exact owned hostname only after identity/domain approval.
+GAMETIME_INVITATION_HOST = REQUIRES_APPROVED_INVITATION_HOST
+GAMETIME_INVITATION_HTTPS_ORIGIN = https:/$()/$(GAMETIME_INVITATION_HOST)
+
+// The associated-domains fragment uses this same host. This file must never
+// enable GAMETIME_CHALLENGE_V1_ENABLED or select a backend/Apple identity.

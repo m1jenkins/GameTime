@@ -205,7 +205,7 @@ final class ChallengeMemoryAuthStorage: AuthLocalStorage, @unchecked Sendable {
 
 struct ChallengeLocalLaunchView: View {
     @State private var session = ChallengeLocalSession()
-    @State private var invitation = ChallengeInvitationIntent()
+    @State private var invitation = ChallengeInvitationIntent(links: .localFixture)
     @State private var email = ProcessInfo.processInfo.environment["GAMETIME_BETA_LOCAL_EMAIL"] ?? ""
     @State private var password = ProcessInfo.processInfo.environment["GAMETIME_BETA_LOCAL_PASSWORD"] ?? ""
     var body: some View {
@@ -477,6 +477,7 @@ struct ChallengeV1Shell: View {
             else { Task { await store.show() } }
         }
         .task(id: store.actor) { await store.watchVisibility() }
+        .environment(\.challengeInvitationLinks, invitation.links)
     }
     private var featuredID: UUID? {
         store.sections[.active]?.rows.first {

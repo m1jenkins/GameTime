@@ -23,12 +23,13 @@ final class ChallengePolicyTests: XCTestCase {
         }
     }
     func testInvitationParserRejectsAmbiguousAndHostedLocators() {
+        let links = ChallengeInvitation()
         let token = String(repeating: "a", count: 64)
-        XCTAssertEqual(ChallengeInvitation.token(from: "gametime-beta://challenge-invite/" + token), token)
+        XCTAssertEqual(links.token(from: "gametime-beta://challenge-invite/" + token), token)
         for prefix in ["https://example.com/", "gametime-beta://user@challenge-invite/", "gametime-beta://challenge-invite:12/", "gametime-beta://other/"] {
-            XCTAssertNil(ChallengeInvitation.token(from: prefix + token))
+            XCTAssertNil(links.token(from: prefix + token))
         }
-        XCTAssertNil(ChallengeInvitation.token(from: "gametime-beta://challenge-invite/" + token + "?redirect=1"))
+        XCTAssertNil(links.token(from: "gametime-beta://challenge-invite/" + token + "?redirect=1"))
     }
     #if DEBUG
     @MainActor func testInvitationSurvivesRelaunchWithoutFetchingDetails() throws {
