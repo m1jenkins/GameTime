@@ -50,7 +50,7 @@ included in this published baseline.
 | P7 | Session A observations recorded; steps policy and all four accepted sources pending | [Current session](../outputs/reports/2026-09-18-p7-device-session.md), [preparation](../outputs/reports/2026-09-12-p7-preparation.md) |
 | P10 | Device-independent hosted/support/retention preparation included; actual hosting unperformed | [P10 report](../outputs/reports/2026-09-12-p10-completion.md) |
 | P11A — local recovery | Combined S2/P8/P11A candidate landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`; community verification gap closed with a test-only correction and focused review. Hosted schedules, credentials and external alerts remain disabled | [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [September 14 follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md) |
-| P11A — operator CLI | Landed on local main at `6fea1c2`: scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery. Reported verification: 131 CLI/HTTP checks, 8 unit tests and 86 SQL assertions passed; administrator grant response reconciliation remains manual | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
+| P11A — operator CLI | Landed on local main at `6fea1c2`: scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery. Original reported verification: 131 CLI/HTTP checks, 8 unit tests and 86 SQL assertions. New administrator request receipts are a separate review-branch change; historical v1 recovery remains manual | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [administrator recovery report](../outputs/reports/2026-09-18-admin-grant-recovery.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
 | Local design preview | Fictional friend/personal journeys with configurable owned resources | [Preview guide](BETA_LOCAL_PREVIEW.md) |
 | P9 — shared app session | Bounded local implementation connects configured ordinary Signal to the existing authenticated client; default configuration remains off. Actual HTTPS/Apple identity and real-source journeys remain | [Connection and local checks](BETA_LOCAL_PREVIEW.md#ordinary-app-connection-and-its-local-substitute), [P9 report](../outputs/reports/2026-09-15-p9-authenticated-app.md) |
 | P8/P9 remainder | Accepted real-source contracts, ingestion, adapters, HTTPS invitations and integrated source-backed journeys remain | [Remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) |
@@ -73,7 +73,8 @@ preserved requirements and dependency order:
 - P10/P11: approved hosted identity/settings, scheduled operation, credentials,
   alerts, retention/deletion and recovery/capacity acceptance. Local worker,
   scoped operator CLI and deletion implementation are complete; administrator
-  grant response reconciliation remains manual.
+  response recovery for new grants/revokes is on the separate administrator
+  recovery review branch; historical v1 reconciliation remains manual.
 - P12/P13: integrated candidate, physical/accessibility/human acceptance,
   replacement acceptance before legacy shell retirement, then authorized private
   Beta. Public submission and funded operation remain separate.

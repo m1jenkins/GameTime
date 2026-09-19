@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 import uuid
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT/'scripts'))
@@ -100,6 +101,77 @@ class RecoveryTests(unittest.TestCase):
             args = parser.parse_args(['--owned-project', 'gametime-test', '--credentials-file', 'unused', 'support-reports', *extra])
             with self.assertRaises(cli.LocalError):
                 cli.operation(args)
+
+    def admin_args(self, command='grant', extra=None):
+        result = ['--owned-project', 'gametime-test', '--credentials-file', 'unused',
+                  '--administrator', command, '--actor', self.actor,
+                  '--request-id', self.body['p_request_id']]
+        if command in ['grant', 'revoke']:
+            result += ['--challenge', str(uuid.uuid4()), '--capability', 'review']
+        if command in ['grant', 'grant-support']:
+            result += ['--expires', '2026-10-10T12:00:00Z']
+        return result + (extra or [])
+
+    def test_administrator_requests_are_explicitly_versioned_and_journaled(self):
+        for command in ['grant', 'revoke', 'grant-support', 'revoke-support']:
+            with self.subTest(command=command):
+                args = cli.parser_for_cli().parse_args(self.admin_args(command))
+                rpc, body = cli.operation(args)
+                self.assertEqual(rpc, 'challenge_admin_request_v2')
+                self.assertEqual(body['p_payload']['version'], 'challenge_admin_request_v2')
+                self.assertEqual(body['p_payload']['actor_id'], self.actor)
+                self.assertEqual(body['p_request_id'], self.body['p_request_id'])
+                directory = self.directory/command
+                encoded = cli.journal_request(directory, 'gametime-test', 64421, None, rpc, body,
+                                              authority='administrator')
+                saved = json.loads((directory/(body['p_request_id']+'.json')).read_text())
+                self.assertEqual(saved, {'version': 2, 'project': 'gametime-test', 'port': 64421,
+                                        'authority': 'administrator', 'rpc': rpc, 'body': encoded})
+                for change in [dict(project='gametime-other'), dict(port=64422),
+                               dict(body=dict(body, p_payload=dict(body['p_payload'], actor_id=str(uuid.uuid4())))),
+                               dict(name='challenge_grant_operator_v1')]:
+                    values = dict(directory=directory, project='gametime-test', port=64421,
+                                  actor=None, name=rpc, body=body, authority='administrator')
+                    values.update(change)
+                    with self.assertRaises(cli.LocalError):
+                        cli.journal_request(**values)
+                with self.assertRaises(cli.LocalError):
+                    cli.journal_request(directory, 'gametime-test', 64421, self.actor, rpc, body)
+
+    def test_administrator_requires_uuid_and_journal_before_dispatch(self):
+        for command in ['grant', 'revoke', 'grant-support', 'revoke-support']:
+            argv = self.admin_args(command)
+            pos = argv.index('--request-id')
+            with self.subTest(command=command), patch('sys.stderr'), self.assertRaises(SystemExit):
+                cli.parser_for_cli().parse_args(argv[:pos]+argv[pos+2:])
+            config = {'project_id': 'gametime-test', 'api_port': 64421,
+                      'role': 'administrator', 'api_key': 'fictional-secret'}
+            with patch.object(sys, 'argv', ['beta-operator.py', *argv]), \
+                 patch.object(cli, 'private_json', return_value=config), \
+                 patch.object(cli, 'request') as dispatch:
+                with self.assertRaisesRegex(cli.LocalError, 'Provide --journal-dir'):
+                    cli.main()
+                dispatch.assert_not_called()
+
+    def test_administrator_journal_exists_before_http_and_excludes_credentials(self):
+        config = {'project_id': 'gametime-test', 'api_port': 64421,
+                  'role': 'administrator', 'api_key': 'fictional-service-secret'}
+        credentials = Path(self.temp.name)/'admin.json'
+        credentials.write_text(json.dumps(config)); credentials.chmod(0o600)
+        argv = self.admin_args('grant-support')
+        argv[argv.index('unused')] = str(credentials)
+        argv = ['--journal-dir', str(self.directory), *argv]
+        def dispatch(port, path, body, headers):
+            saved = json.loads(next(self.directory.glob('*.json')).read_text())
+            self.assertEqual(saved['body'], body)
+            self.assertEqual(saved['port'], port)
+            self.assertEqual('/rest/v1/rpc/'+saved['rpc'], path)
+            self.assertNotIn(config['api_key'], json.dumps(saved))
+            raise OSError('simulated lost response')
+        with patch.object(sys, 'argv', ['beta-operator.py', *argv]), patch.object(cli, 'request', side_effect=dispatch):
+            with self.assertRaises(OSError):
+                cli.main()
+        self.assertEqual(len(list(self.directory.glob('*.json'))), 1)
 
 
 if __name__ == '__main__':
