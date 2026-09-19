@@ -1,0 +1,1481 @@
+{
+  "source_commit": "f88657a5cc6d7c116a215dfbf0ac32b0becaa008",
+  "deletion": {
+    "evidence": "real concurrent PostgreSQL sessions on one task-owned loopback DB; all actors/providers are fictional",
+    "checks": [
+      "fictional review challenge reached its normal notice stage",
+      "fictional finalization challenge reached its normal notice stage",
+      "real admission and deletion sessions wait behind the same owned actor/gate scopes",
+      "the raced admission either commits before acceptance or is denied by the accepted tombstone",
+      "the competing durable deletion acceptance committed exactly once",
+      "accepted deletion leaves no active membership from the admission race",
+      "the raced actor's stale ordinary session is denied after acceptance",
+      "receipt review and lifecycle finalization concurrently wait behind the deletion gate",
+      "concurrent lifecycle finalization returns a defined lifecycle state",
+      "review/finalization race preserves either the filed review hold or the already-final result",
+      "a saved review is no longer advertised as a second available receipt right",
+      "deletion and due finalization concurrently wait behind the exclusive gate",
+      "the concurrent deletion request completes once",
+      "the concurrent finalization request completes once",
+      "deletion/finalization race leaves exactly one immutable final",
+      "post-race lifecycle retries cannot rewrite the final",
+      "the finalized race leaves the deleted actor non-participating",
+      "real receipt completion and status advancement wait behind the same deletion gate",
+      "late receipt progress and provider-confirmed completion both return a defined durable state",
+      "the status/completion race ends completed only after the explicit fictional provider step",
+      "receipt appeal and due case cleanup concurrently wait behind the deletion gate",
+      "appeal/cleanup race preserves the independently filed appeal or accurately reports its hold",
+      "the race leaves the filed appeal as a retained restricted right"
+    ],
+    "limits": [
+      "No hosted credentials, real Apple revocation, Stripe call, Health access, device hardware, deployment, or user data.",
+      "Community is exercised only through the existing explicit fixture-only configuration."
+    ],
+    "cleanup": "runtime disabled and only newly minted fictional Auth sessions revoked"
+  },
+  "suspended_session": {
+    "evidence": "Actual PostgreSQL RPCs and concurrent row locks; fictional SQL-role actor; no HTTP or physical-device acceptance",
+    "owned_project": "gametime-p11a-operator-integration-9073ea796f",
+    "port": 60906,
+    "records": [
+      {
+        "endpoint": "detail",
+        "mode": "live",
+        "expected": "same authorized response",
+        "exit_code": 0,
+        "passed": true,
+        "actual_lock_wait": false,
+        "session_row_unchanged": null,
+        "expiry_observed_before_release": null
+      },
+      {
+        "endpoint": "detail",
+        "mode": "already_expired",
+        "expected": "42501",
+        "exit_code": 3,
+        "passed": true,
+        "actual_lock_wait": false,
+        "session_row_unchanged": null,
+        "expiry_observed_before_release": null
+      },
+      {
+        "endpoint": "detail",
+        "mode": "wait_expired",
+        "expected": "42501",
+        "exit_code": 3,
+        "passed": true,
+        "actual_lock_wait": true,
+        "session_row_unchanged": true,
+        "expiry_observed_before_release": true
+      },
+      {
+        "endpoint": "detail",
+        "mode": "wait_live",
+        "expected": "same authorized response",
+        "exit_code": 0,
+        "passed": true,
+        "actual_lock_wait": true,
+        "session_row_unchanged": true,
+        "expiry_observed_before_release": null
+      },
+      {
+        "endpoint": "detail",
+        "mode": "deletion_wins",
+        "expected": "42501",
+        "exit_code": 3,
+        "passed": true,
+        "actual_lock_wait": true,
+        "session_row_unchanged": null,
+        "expiry_observed_before_release": null
+      },
+      {
+        "endpoint": "detail",
+        "mode": "missing",
+        "expected": "42501",
+        "exit_code": 3,
+        "passed": true,
+        "actual_lock_wait": false,
+        "session_row_unchanged": null,
+        "expiry_observed_before_release": null
+      },
+      {
+        "endpoint": "exact_recovery",
+        "mode": "live",
+        "expected": "same authorized response",
+        "exit_code": 0,
+        "passed": true,
+        "actual_lock_wait": false,
+        "session_row_unchanged": null,
+        "expiry_observed_before_release": null
+      },
+      {
+        "endpoint": "exact_recovery",
+        "mode": "already_expired",
+        "expected": "42501",
+        "exit_code": 3,
+        "passed": true,
+        "actual_lock_wait": false,
+        "session_row_unchanged": null,
+        "expiry_observed_before_release": null
+      },
+      {
+        "endpoint": "exact_recovery",
+        "mode": "wait_expired",
+        "expected": "42501",
+        "exit_code": 3,
+        "passed": true,
+        "actual_lock_wait": true,
+        "session_row_unchanged": true,
+        "expiry_observed_before_release": true
+      },
+      {
+        "endpoint": "exact_recovery",
+        "mode": "wait_live",
+        "expected": "same authorized response",
+        "exit_code": 0,
+        "passed": true,
+        "actual_lock_wait": true,
+        "session_row_unchanged": true,
+        "expiry_observed_before_release": null
+      },
+      {
+        "endpoint": "exact_recovery",
+        "mode": "deletion_wins",
+        "expected": "42501",
+        "exit_code": 3,
+        "passed": true,
+        "actual_lock_wait": true,
+        "session_row_unchanged": null,
+        "expiry_observed_before_release": null
+      },
+      {
+        "endpoint": "exact_recovery",
+        "mode": "missing",
+        "expected": "42501",
+        "exit_code": 3,
+        "passed": true,
+        "actual_lock_wait": false,
+        "session_row_unchanged": null,
+        "expiry_observed_before_release": null
+      }
+    ],
+    "command_exits": [
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 3
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": "psql held-session transaction",
+        "exit_code": 0
+      },
+      {
+        "command": "psql waiting detail wait_expired",
+        "exit_code": 3
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": "psql held-session transaction",
+        "exit_code": 0
+      },
+      {
+        "command": "psql waiting detail wait_live",
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": "psql held-session transaction",
+        "exit_code": 0
+      },
+      {
+        "command": "psql waiting detail deletion_wins",
+        "exit_code": 3
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 3
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 3
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": "psql held-session transaction",
+        "exit_code": 0
+      },
+      {
+        "command": "psql waiting exact_recovery wait_expired",
+        "exit_code": 3
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": "psql held-session transaction",
+        "exit_code": 0
+      },
+      {
+        "command": "psql waiting exact_recovery wait_live",
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": "psql held-session transaction",
+        "exit_code": 0
+      },
+      {
+        "command": "psql waiting exact_recovery deletion_wins",
+        "exit_code": 3
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 3
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "psql",
+          "owned loopback database",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=sqlstate"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "passed": 12,
+    "failed": 0,
+    "cleanup": "All challenge gates disabled, only newly minted actor sessions revoked; fictional history retained"
+  },
+  "deletion_checks": 23,
+  "session_checks": 12,
+  "advisor": {
+    "exit": 0
+  }
+}

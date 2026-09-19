@@ -2,6 +2,52 @@ import XCTest
 @testable import GameTime
 
 @MainActor final class ChallengeAppConfigurationTests: XCTestCase {
+    func testInvitationOriginIsIndependentOfBackendAndTransport() throws {
+        for environment in ["debug", "staging", "release"] {
+            let config = try AppConfiguration.validated(environmentValue: environment,
+                urlValue: "https://backend.example.invalid", keyValue: "sb_publishable_fictional",
+                mutationValue: "NO", invitationHTTPSOriginValue: "https://INVITES.EXAMPLE.INVALID/")
+            XCTAssertFalse(config.challengeV1RuntimeEnabled)
+            XCTAssertEqual(config.challengeInvitationLinks.httpsOrigin?.absoluteString, "https://invites.example.invalid")
+            let token = String(repeating: "b", count: 64)
+            XCTAssertEqual(config.challengeInvitationLinks.url(for: token)?.absoluteString,
+                           "https://invites.example.invalid/challenge-invite/" + token)
+            XCTAssertNil(config.challengeInvitationLinks.token(from: "https://backend.example.invalid/challenge-invite/" + token))
+        }
+    }
+
+    func testMissingOrMalformedInvitationConfigurationStaysClosedInEveryEnvironment() throws {
+        let origins: [String?] = [nil, "", "UNCONFIGURED", "$(GAMETIME_INVITATION_HTTPS_ORIGIN)",
+            "http://invites.example.invalid", "https://user:pass@invites.example.invalid",
+            "https://invites.example.invalid:443", "https://invites.example.invalid:",
+            "https://invites.example.invalid/path", "https://invites.example.invalid?",
+            "https://invites.example.invalid#", "https://invites.example.invalid.",
+            "https://*.example.invalid", "https://-invites.example.invalid", "https://invites..invalid",
+            "https://invites%2eexample.invalid", "https://invіtes.example.invalid", "https://localhost",
+            "https://127.0.0.1", "https://[::1]", " https://invites.example.invalid", "https://invites.example.invalid\n"]
+        for environment in ["debug", "staging", "release"] {
+            for origin in origins {
+                let config = try AppConfiguration.validated(environmentValue: environment,
+                    urlValue: "https://backend.example.invalid", keyValue: "sb_publishable_fictional",
+                    mutationValue: "NO", invitationHTTPSOriginValue: origin)
+                XCTAssertNil(config.challengeInvitationLinks.httpsOrigin, origin ?? "missing")
+                XCTAssertFalse(config.challengeInvitationLinks.canFormat)
+                XCTAssertNil(config.challengeInvitationLinks.url(for: String(repeating: "a", count: 64)))
+                XCTAssertFalse(config.challengeV1RuntimeEnabled)
+            }
+        }
+    }
+
+    #if DEBUG || STAGING
+    func testAppModelUsesConfiguredInvitationOriginByDefault() throws {
+        let configuration = AppConfiguration(environment: .debug, supabaseURL: URL(string: "https://backend.example.invalid")!,
+            supabasePublishableKey: "sb_publishable_fictional", contestMutationsEnabled: false,
+            invitationHTTPSOrigin: "https://invites.example.invalid")
+        let model = AppModel(configuration: configuration, services: FixtureServicesFactory.make(arguments: ["--fixture-mode"]))
+        XCTAssertEqual(model.challengeInvitation.links, configuration.challengeInvitationLinks)
+    }
+    #endif
+
     func testOrdinaryChallengeTransportRequiresExplicitConfiguration() throws {
         for environment in ["debug", "staging", "release"] {
             for value in [nil, "NO", "UNCONFIGURED", "$(GAMETIME_CHALLENGE_V1_ENABLED)"] {

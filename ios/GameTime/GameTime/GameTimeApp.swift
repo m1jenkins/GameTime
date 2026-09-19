@@ -28,7 +28,9 @@ struct GameTimeApp: App {
         let notificationCoordinator = PushNotificationCoordinator()
         _pushCoordinator = State(initialValue: notificationCoordinator)
 
+        #if DEBUG || STAGING
         let arguments = ProcessInfo.processInfo.arguments
+        #endif
         #if DEBUG
         if SourceInvestigationLaunch.enabled || ChallengeLocalLaunch.enabled {
             _liveModel = State(initialValue: nil)
@@ -41,10 +43,10 @@ struct GameTimeApp: App {
             return
         }
         #endif
+        #if DEBUG || STAGING
         let fixtureLaunch = arguments.contains("--fixture-mode")
         let interactiveDemoLaunch = arguments.contains("--demo-interactive")
             || arguments.contains("--fixture-demo-interactive")
-        #if DEBUG || STAGING
         let usesFixtureModel = fixtureLaunch
         let usesPaymentStatusFixture = arguments.contains(where: {
             $0.hasPrefix("--fixture-payment-status=")
@@ -62,10 +64,10 @@ struct GameTimeApp: App {
             || arguments.contains("--fixture-open-review-challenge")
             || arguments.contains("--fixture-expired-review")
             || usesPaymentStatusFixture
-        #else
-        let usesFixtureModel = false
-        #endif
         isFixtureTestLaunch = usesFixtureModel && !interactiveDemoLaunch
+        #else
+        isFixtureTestLaunch = false
+        #endif
 
         let initialRouter = AppRouter()
         #if DEBUG || STAGING
@@ -446,11 +448,7 @@ struct RootView: View {
             openDuelInvitation()
         }
         .onOpenURL { url in
-            model.challengeInvitation.receive(url)
-            #if DEBUG || STAGING
-            model.duels.receiveInvitation(url)
-            openDuelInvitation()
-            #endif
+            receiveURL(url)
         }
         .onChange(of: model.phase) { _, phase in
             if phase != .signedIn {
@@ -514,6 +512,16 @@ struct RootView: View {
                     ?? ""
             )
         }
+    }
+
+    /// SwiftUI delivers custom URLs and universal links here, including when
+    /// launch/sign-in is unfinished. Save the opaque intent; never redeem it.
+    func receiveURL(_ url: URL) {
+        model.challengeInvitation.receive(url)
+        #if DEBUG || STAGING
+        model.duels.receiveInvitation(url)
+        openDuelInvitation()
+        #endif
     }
 
     private func openDuelInvitation() {

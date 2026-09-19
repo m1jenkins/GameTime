@@ -1,0 +1,33 @@
+{
+  "result": "passed",
+  "tests": 159,
+  "failures": 0,
+  "skips": 0,
+  "suites": {
+    "AccountDeletionTests": 8,
+    "AppModelAndRoutingTests": 38,
+    "ChallengeAppConfigurationTests": 7,
+    "ChallengeInvitationRecoveryTests": 15,
+    "ChallengeInvitationRoutingTests": 5,
+    "ChallengeInvitationTests": 6,
+    "ChallengePolicyTests": 4,
+    "ChallengeSectionTests": 9,
+    "DomainAndConfigurationTests": 20,
+    "PendingChallengeStoreTests": 5,
+    "PendingMetricUploadStoreTests": 3,
+    "PersonalAccountabilityStoreTests": 2,
+    "SupabaseMetricUploadClientTests": 28,
+    "SupabaseProfileClientTests": 9
+  },
+  "os": "iOS 27.0",
+  "device": "GameTimeIntegration-20260919 / iPhone 17 Pro",
+  "simulator": "4957DF75-29CC-4D21-8C00-8E372C413C76",
+  "simulator_disposition": "deleted after test runner had shut it down",
+  "configuration": "Debug; CODE_SIGNING_ALLOWED=NO",
+  "arguments": [
+    "--fixture-mode",
+    "--fixture-product-shell"
+  ],
+  "result_bundle": "/private/tmp/gametime-integration-lab-20260919/native.xcresult",
+  "log_sha256": "94a142cf3eca0fb0f6dd821a36f3a5863a46c4fc14fabadb3c682e9669be145a"
+}

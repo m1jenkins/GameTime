@@ -1,0 +1,25 @@
+{
+  "owner": "gametime-p11a-operator-integration-72df77b795",
+  "ports": [
+    58869,
+    58870,
+    58871,
+    58872
+  ],
+  "removed": [
+    "gametime-p11a-operator-integration-72df77b795-rest",
+    "gametime-p11a-operator-integration-72df77b795-auth",
+    "gametime-p11a-operator-integration-72df77b795-db",
+    "gametime-p11a-operator-integration-72df77b795-network"
+  ],
+  "cron_launch": "off",
+  "cron_runs": 0,
+  "sessions": 0,
+  "runtime_closed": true,
+  "ports_closed": [
+    true,
+    true,
+    true,
+    true
+  ]
+}

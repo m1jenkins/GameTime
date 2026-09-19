@@ -32,6 +32,8 @@ struct AppConfiguration: Equatable, Sendable {
     let performanceCommitmentRequested: Bool
     let weeklyRequested: Bool
     let challengeV1Requested: Bool
+    /// Independent of transport/admission. An origin alone never enables either.
+    let challengeInvitationLinks: ChallengeInvitation
 
     /// Selects transport only. The server still owns admission and source gates.
     var challengeV1RuntimeEnabled: Bool {
@@ -87,7 +89,8 @@ struct AppConfiguration: Equatable, Sendable {
         duelRequested: Bool = false,
         performanceCommitmentRequested: Bool = false,
         weeklyRequested: Bool = false,
-        challengeV1Requested: Bool = false
+        challengeV1Requested: Bool = false,
+        invitationHTTPSOrigin: String? = nil
     ) {
         self.environment = environment
         self.supabaseURL = supabaseURL
@@ -103,6 +106,7 @@ struct AppConfiguration: Equatable, Sendable {
         self.performanceCommitmentRequested = performanceCommitmentRequested
         self.weeklyRequested = weeklyRequested
         self.challengeV1Requested = challengeV1Requested
+        self.challengeInvitationLinks = ChallengeInvitation(httpsOrigin: invitationHTTPSOrigin)
     }
 
     /// The `mailto:` a Contact button opens, or nil when no inbox is set.
@@ -212,7 +216,8 @@ struct AppConfiguration: Equatable, Sendable {
             duelRequested: ProcessInfo.processInfo.arguments.contains("--duels"),
             performanceCommitmentRequested: ProcessInfo.processInfo.arguments.contains("--commitments"),
             weeklyRequested: ProcessInfo.processInfo.arguments.contains("--weekly"),
-            challengeV1Value: bundle.object(forInfoDictionaryKey: "GAMETIME_CHALLENGE_V1_ENABLED") as? String
+            challengeV1Value: bundle.object(forInfoDictionaryKey: "GAMETIME_CHALLENGE_V1_ENABLED") as? String,
+            invitationHTTPSOriginValue: bundle.object(forInfoDictionaryKey: "GAMETIME_INVITATION_HTTPS_ORIGIN") as? String
         )
     }
 
@@ -229,7 +234,8 @@ struct AppConfiguration: Equatable, Sendable {
         duelRequested: Bool = false,
         performanceCommitmentRequested: Bool = false,
         weeklyRequested: Bool = false,
-        challengeV1Value: String? = nil
+        challengeV1Value: String? = nil,
+        invitationHTTPSOriginValue: String? = nil
     ) throws -> AppConfiguration {
         guard let environment = AppEnvironment(
             rawValue: environmentValue?.lowercased() ?? ""
@@ -339,7 +345,8 @@ struct AppConfiguration: Equatable, Sendable {
             duelRequested: duelRequested,
             performanceCommitmentRequested: performanceCommitmentRequested,
             weeklyRequested: weeklyRequested,
-            challengeV1Requested: ["yes", "true", "1"].contains(challengeV1Value?.lowercased() ?? "")
+            challengeV1Requested: ["yes", "true", "1"].contains(challengeV1Value?.lowercased() ?? ""),
+            invitationHTTPSOrigin: invitationHTTPSOriginValue
         )
     }
 

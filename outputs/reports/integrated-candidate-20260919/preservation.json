@@ -1,0 +1,24 @@
+{
+  "main": "9f116ac4954594a8d64467f78a6dca55d3cc2ce4",
+  "main_clean": true,
+  "all_deliveries_and_corrections_are_ancestors": true,
+  "historical_migrations_unchanged": 81,
+  "all_active_entitlement_files_unchanged": [
+    "ios/GameTime/GameTime/GameTime.entitlements",
+    "ios/GameTime/GameTime/GameTimeStaging.entitlements",
+    "ios/GameTimeConformance/GameTimeConformance/GameTimeConformance.entitlements"
+  ],
+  "readiness_bytes_unchanged": true,
+  "closed_gates": 18,
+  "challenge_flag": "NO",
+  "invitation_origin": "UNCONFIGURED",
+  "associated_domain_templates_inactive": true,
+  "five_dated_delivery_reports_unchanged": {
+    "a2cd509": "2026-09-18-https-invitations.md",
+    "3f62ff8": "2026-09-19-review-appeal-monitoring.md",
+    "c547471": "2026-09-18-admin-grant-recovery.md",
+    "8c4f438": "2026-09-19-suspended-account-access.md",
+    "d44fe7b": "2026-09-19-community-snapshot-status.md"
+  },
+  "native_build_inputs_unchanged": true
+}

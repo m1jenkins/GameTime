@@ -23,3 +23,7 @@ GAMETIME_SUPPORT_EMAIL = UNCONFIGURED
 // This does not enable server admission, real activity, or fixture policies.
 // Do not select the historical hosted project above as a Beta target by default.
 GAMETIME_CHALLENGE_V1_ENABLED = NO
+
+// HTTPS invitation intake/generation is independent of backend transport.
+// No domain is selected. See docs/BETA_INVITATION_LINKS_LOCAL.md for templates.
+GAMETIME_INVITATION_HTTPS_ORIGIN = UNCONFIGURED

@@ -1,0 +1,121 @@
+[
+  {
+    "label": "440_personal_health_snapshot_v2.test.sql.tap",
+    "exit": 0,
+    "assertions": 37,
+    "passed": true,
+    "log_sha256": "06be2087157ec420ade121cd7d319ffc41b600483e78c5da33756ebe4d1306e9"
+  },
+  {
+    "label": "493_challenge_entry.test.sql.tap",
+    "exit": 0,
+    "assertions": 42,
+    "passed": true,
+    "log_sha256": "e19256739bacaebd3a1366bc19416bcc28e267446e8622718e33a7b6d627fd1b"
+  },
+  {
+    "label": "494_challenge_safety.test.sql.tap",
+    "exit": 0,
+    "assertions": 22,
+    "passed": true,
+    "log_sha256": "d7b0ad00ad8f60c96fe0f1d45de0d5307a92d962f12443930520df60ee9edcc2"
+  },
+  {
+    "label": "497_challenge_operations.test.sql.tap",
+    "exit": 0,
+    "assertions": 19,
+    "passed": true,
+    "log_sha256": "8b8112abc07f9c3b59ade27b9d8cb4640907100e5b0d75dbd4b9cbdbb77298e1"
+  },
+  {
+    "label": "501_challenge_participation_privacy.test.sql.tap",
+    "exit": 0,
+    "assertions": 14,
+    "passed": true,
+    "log_sha256": "dbbfc97cd06ce3ba3cea428af2b2a268da307dc50eb0180909efe2b9657fe3cc"
+  },
+  {
+    "label": "502_challenge_session_lock_expiry.test.sql.tap",
+    "exit": 0,
+    "assertions": 13,
+    "passed": true,
+    "log_sha256": "440c4f02d813859d1b7d0a7636217a5e6ff9ec344c6ae5078a7a46f0e7c48e6e"
+  },
+  {
+    "label": "506_challenge_private_community.test.sql.tap",
+    "exit": 0,
+    "assertions": 67,
+    "passed": true,
+    "log_sha256": "28d02640beb7afc5d926bc3ad54532e0de3db53cf2ca2fdc5c23b0865b895a14"
+  },
+  {
+    "label": "507_challenge_community_guards.test.sql.tap",
+    "exit": 0,
+    "assertions": 18,
+    "passed": true,
+    "log_sha256": "8c7d2795ec9252420604aca14b9ea0d3c19433754c04175660399cdcb05c6703"
+  },
+  {
+    "label": "508_challenge_community_progress.test.sql.tap",
+    "exit": 0,
+    "assertions": 9,
+    "passed": true,
+    "log_sha256": "f98584346a558308d56bb7385cb052d6e82f8e314946a1e3a1fddbf6dda10546"
+  },
+  {
+    "label": "509_challenge_local_worker_recovery.test.sql.tap",
+    "exit": 0,
+    "assertions": 43,
+    "passed": true,
+    "log_sha256": "d65ba28dc7869fdd9e8caf7d045fad153cd53f26d8f352d0daf828ef11682e0c"
+  },
+  {
+    "label": "512_challenge_account_deletion_v1.test.sql.tap",
+    "exit": 0,
+    "assertions": 32,
+    "passed": true,
+    "log_sha256": "ba66c250419f828c4cf6f4a16dce516133a4213b1035689876105a5525beebf0"
+  },
+  {
+    "label": "513_challenge_account_deletion_restore_v1.test.sql.tap",
+    "exit": 0,
+    "assertions": 21,
+    "passed": true,
+    "log_sha256": "4ba2b9542f68a0b15f96507a3366b61905fd2d5b1342ecb4c4068ed6db59234b"
+  },
+  {
+    "label": "514_challenge_account_deletion_preservation_v1.test.sql.tap",
+    "exit": 0,
+    "assertions": 19,
+    "passed": true,
+    "log_sha256": "d187aa7a8c4f345fed6a4ade2093f2319ba93286029f0aaa5f753ef52587da27"
+  },
+  {
+    "label": "515_challenge_local_review_status.test.sql.tap",
+    "exit": 0,
+    "assertions": 70,
+    "passed": true,
+    "log_sha256": "7a7d724e74ae9955c80603b3f50f0aaf722d410e233ac810c6b4575a748f84a9"
+  },
+  {
+    "label": "516_challenge_admin_requests_v2.test.sql.tap",
+    "exit": 0,
+    "assertions": 58,
+    "passed": true,
+    "log_sha256": "a4b43f872beae348c9e3a4c29f755319b3c1c3e97038ca9b2d9fd8ad98e12c04"
+  },
+  {
+    "label": "517_challenge_suspended_account_access.test.sql.tap",
+    "exit": 0,
+    "assertions": 71,
+    "passed": true,
+    "log_sha256": "690b8236af8a93fc1b89f9fafab0c507f6b512d11753479405be31d5691ffa85"
+  },
+  {
+    "label": "518_challenge_community_snapshot_status.test.sql.tap",
+    "exit": 0,
+    "assertions": 59,
+    "passed": true,
+    "log_sha256": "b2406d676319974b30ee2819fae404942fc113d0abe57f368ad9223896216d9c"
+  }
+]

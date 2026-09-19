@@ -1,0 +1,165 @@
+begin;
+select no_plan();
+\ir fixtures/challenge-review-monitor-fixture.inc
+create function pg_temp.rs() returns jsonb language sql as $$select public.challenge_local_review_status_v1()$$;
+create function pg_temp.review_grant(actor integer,scope text,expires timestamptz default '2026-10-14T12:00Z') returns void language sql as $$
+ select public.challenge_grant_operator_v1(pg_temp.ba(actor),(select id from beta_ids where name=scope),'review',expires)
+$$;
+
+select is(pg_temp.rs()->>'outstanding_review_count','3','counts cases across scopes, including multiple reviews on one challenge');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','3','unassigned reviews visible');
+select is(pg_temp.rs()->>'pending_appeal_count','2','all undecided suspension appeals visible');
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','2','unassigned appeals visible');
+select is((pg_temp.rs()->>'earliest_review_resolve_by')::timestamptz,'2026-10-16T12:00Z'::timestamptz,'existing actual filing plus 72-hour deadline');
+select is((pg_temp.rs()->>'oldest_pending_appeal_at')::timestamptz,'2026-10-13T12:00Z'::timestamptz,'appeal filing time without invented response deadline');
+select is(pg_temp.rs()->>'next_review_grant_expires_at',null::text,'no eligible review grant has no expiry');
+select is(pg_temp.rs()->>'next_appeal_grant_expires_at',null::text,'no eligible appeal grant has no expiry');
+select is(pg_temp.rs()->>'monitoring_state','available','available is a projection state, not a staffing assertion');
+
+select public.challenge_grant_operator_v1(pg_temp.ba(40),(select id from beta_ids where name='review_a'),'moderate','2026-10-14T12:00Z');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','3','moderation capability cannot decide a result review');
+select pg_temp.review_grant(40,'review_b');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','2','review scope cannot cover a different challenge');
+select pg_temp.review_grant(40,'review_a');
+select pg_temp.review_grant(39,'review_a','2026-10-15T12:00Z');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','0','independent active scoped reviewers are eligible');
+select is((pg_temp.rs()->>'next_review_grant_expires_at')::timestamptz,'2026-10-14T12:00Z'::timestamptz,'earliest applicable expiry even with overlapping grants');
+select public.challenge_revoke_operator_v1(pg_temp.ba(40),(select id from beta_ids where name='review_a'),'review');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','0','another independent grant keeps review authorization available');
+select public.challenge_revoke_operator_v1(pg_temp.ba(39),(select id from beta_ids where name='review_a'),'review');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','2','revocation immediately removes current authority');
+-- Defend against retained/directly imported participant grants, not just grant API validation.
+insert into app.challenge_operator_grants_v1 values(pg_temp.ba(1),(select id from beta_ids where name='review_a'),'review','2026-10-15T12:00Z');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','2','participant cannot review own or fellow participant cases');
+update app.challenge_members_v1 set exited_at=app.challenge_now_v1(),selected=false where actor_id=pg_temp.ba(1);
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','2','exited or unselected participant is still not independent');
+select pg_temp.review_grant(40,'review_a');
+insert into app.challenge_suspensions_v1 values(pg_temp.ba(40),true,pg_temp.ba(30),'unsafe_behavior',app.challenge_now_v1());
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','3','suspended operator cannot supply review authorization');
+update app.challenge_suspensions_v1 set suspended=false where actor_id=pg_temp.ba(40);
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','0','available independent account can supply authorization again');
+
+savepoint session_check;
+delete from auth.sessions where user_id=pg_temp.ba(40);
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','3','grant alone without a current session is insufficient');
+rollback to session_check;
+savepoint session_expiry;
+update auth.sessions set not_after=clock_timestamp() where user_id=pg_temp.ba(40);
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','3','elapsed session uses actual clock, not fictional domain clock');
+rollback to session_expiry;
+savepoint deleted_operator;
+select public.challenge_begin_account_deletion_v1(pg_temp.ba(40),pg_temp.br(95140),'review_monitor_deletion_receipt_012345678901234567890123456789','fictional-review-operator');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','3','accepted deletion / unavailable Auth account cannot cover cases');
+rollback to deleted_operator;
+
+select pg_temp.clock_beta('2026-10-14T11:59:59.999999Z');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','0','review grants eligible one microsecond before expiry');
+select pg_temp.clock_beta('2026-10-14T12:00Z');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','3','strict review grant expiry equality');
+select is(pg_temp.rs()->>'next_review_grant_expires_at',null::text,'expired grants excluded from next relevant expiry');
+select pg_temp.clock_beta('2026-10-13T12:00Z');
+
+select public.challenge_grant_support_v1(pg_temp.ba(30),'2026-10-14T12:00Z');
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','2','original suspender is not an independent decider');
+insert into app.challenge_support_grants_v1 values(pg_temp.ba(10),'2026-10-14T12:00Z');
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','2','appellant grant does not make their appeal decidable');
+select public.challenge_grant_support_v1(pg_temp.ba(31),'2026-10-14T12:00Z');
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','0','separate available independent support covers both appeals');
+select is((pg_temp.rs()->>'next_appeal_grant_expires_at')::timestamptz,'2026-10-14T12:00Z'::timestamptz,'next independent support expiry');
+select public.challenge_revoke_support_v1(pg_temp.ba(31));
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','2','support revocation removes authority');
+select public.challenge_grant_support_v1(pg_temp.ba(31),'2026-10-14T12:00Z');
+savepoint suspended_support;
+insert into app.challenge_suspensions_v1 values(pg_temp.ba(31),true,pg_temp.ba(30),'unsafe_behavior',app.challenge_now_v1());
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','2','suspended independent support cannot decide');
+rollback to suspended_support;
+savepoint expired_support_session;
+delete from auth.sessions where user_id=pg_temp.ba(31);
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','2','support must have a live session');
+rollback to expired_support_session;
+select pg_temp.clock_beta('2026-10-14T11:59:59.999999Z');
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','0','support available before expiry');
+select pg_temp.clock_beta('2026-10-14T12:00Z');
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','2','strict support grant expiry equality');
+select pg_temp.clock_beta('2026-10-13T12:00Z');
+savepoint unmatched_suspension;
+update app.challenge_suspensions_v1 set recorded_at=recorded_at+interval '1 second' where actor_id=pg_temp.ba(10);
+select is(pg_temp.rs()->>'pending_appeal_count','2','unmatched undecided appeal stays visible');
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','1','superseded suspension cannot be decided as current');
+rollback to unmatched_suspension;
+savepoint inactive_suspension;
+update app.challenge_suspensions_v1 set suspended=false where actor_id=pg_temp.ba(10);
+select is(pg_temp.rs()->>'appeals_without_eligible_operator_count','1','inactive suspension has no eligible fresh appeal decision');
+rollback to inactive_suspension;
+select pg_temp.login_beta(30);
+select throws_ok($$select public.challenge_resolve_appeal_v1(pg_temp.br(95200),pg_temp.br(95010),'reinstate')$$,'42501','challenge_independent_support_required','actual original-suspender action is denied');
+select pg_temp.login_beta(31);
+select lives_ok($$select public.challenge_resolve_appeal_v1(pg_temp.br(95201),pg_temp.br(95010),'reinstate')$$,'independent decider can reinstate');
+select lives_ok($$select public.challenge_resolve_appeal_v1(pg_temp.br(95202),pg_temp.br(95011),'upheld')$$,'independent decider can uphold');
+reset role;
+select is(pg_temp.rs()->>'pending_appeal_count','0','both decided appeals leave the pending set');
+select is(pg_temp.rs()->>'oldest_pending_appeal_at',null::text,'resolved appeals leave no timestamp');
+select is(pg_temp.rs()->>'next_appeal_grant_expires_at',null::text,'unneeded grants do not create an expiry signal');
+
+select pg_temp.login_beta(40);
+select lives_ok($$select public.challenge_operator_action_v1(pg_temp.br(95203),jsonb_build_object('op','resolve','id',(select id from beta_ids where name='review_b'),'review_id',pg_temp.br(95003),'decision','upheld'))$$,'eligible reviewer can actually decide');
+reset role;
+select is(pg_temp.rs()->>'outstanding_review_count','2','resolved review leaves outstanding set');
+select pg_temp.review_grant(40,'review_a','2026-10-18T12:00Z');
+select pg_temp.clock_beta('2026-10-16T12:00Z');
+select is(pg_temp.rs()->>'outstanding_review_count','2','overdue unresolved cases remain visible until finality');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count','2','at resolution cutoff even unexpired grants cannot decide');
+select is(public.challenge_operations_status_v1()->>'review_overdue_count','1','existing overdue monitor remains challenge-scoped and intact');
+select pg_temp.login_beta(40);
+select throws_ok($$select public.challenge_operator_action_v1(pg_temp.br(95204),jsonb_build_object('op','resolve','id',(select id from beta_ids where name='review_a'),'review_id',pg_temp.br(95001),'decision','upheld'))$$,'22023','challenge_invalid_resolution','actual resolution cutoff matches projection');
+reset role;
+
+select pg_temp.clock_beta('2026-10-16T12:00Z',false,false);
+select is(pg_temp.rs()->>'monitoring_state','paused','processing pause cannot appear healthy');
+select is(pg_temp.rs()->>'outstanding_review_count','2','paused cases remain counted');
+select public.challenge_runtime_v1(false,true,true,'{}','2026-10-16T12:00Z');
+select is(public.challenge_local_worker_status_v1()->>'due_count','0','existing worker scope can hide work');
+select is(pg_temp.rs()->>'outstanding_review_count','2','empty worker allowlist cannot hide saved reviews');
+select public.challenge_runtime_v1(false,false,false,'{}',null);
+select is(pg_temp.rs()->>'monitoring_state','disabled','fixtures disabled cannot look healthy-empty');
+select is(pg_temp.rs()->>'outstanding_review_count','2','disabled fixtures do not hide cases');
+savepoint missing_runtime;
+-- Test a missing runtime row without relaxing product write guards permanently.
+alter table app.challenge_runtime_v1 disable trigger user;
+delete from app.challenge_runtime_v1;
+select is(pg_temp.rs()->>'monitoring_state','unavailable','missing runtime fails closed');
+select is(pg_temp.rs()->>'reviews_without_eligible_operator_count',null::text,'unknown eligibility is not zero');
+rollback to missing_runtime;
+select pg_temp.clock_beta('2026-10-16T12:00Z');
+select public.challenge_process_v1((select id from beta_ids where name='review_a'));
+select pg_temp.clock_beta('2026-10-18T12:00Z');
+select public.challenge_process_v1((select id from beta_ids where name='review_a'));
+select is(pg_temp.rs()->>'outstanding_review_count','0','finalized timeout cases do not remain outstanding forever');
+select is(pg_temp.rs()->>'earliest_review_resolve_by',null::text,'closed cases leave no review deadline');
+
+select is((select array_agg(k order by k) from jsonb_object_keys(pg_temp.rs()) k),
+ array['appeals_without_eligible_operator_count','earliest_review_resolve_by','evaluated_at','monitoring_state','next_appeal_grant_expires_at','next_review_grant_expires_at','oldest_pending_appeal_at','outstanding_review_count','pending_appeal_count','reviews_without_eligible_operator_count','server_time'],
+ 'exact aggregate-only allowlist excludes identifiers, Health, tokens, case text and community totals');
+select ok(not has_function_privilege('anon','public.challenge_local_review_status_v1()','execute'),'anonymous grant denied');
+select ok(not has_function_privilege('authenticated','public.challenge_local_review_status_v1()','execute'),'authenticated grant denied including operators');
+select ok(has_function_privilege('service_role','public.challenge_local_review_status_v1()','execute'),'service grant explicit');
+select ok(not exists(select 1 from pg_proc p cross join lateral aclexplode(p.proacl) acl where p.oid='public.challenge_local_review_status_v1()'::regprocedure and acl.grantee=0),'no PUBLIC execute inheritance');
+set local role anon;
+select throws_ok($$select public.challenge_local_review_status_v1()$$,'42501','permission denied for function challenge_local_review_status_v1','actual anonymous read denied');
+reset role;
+select pg_temp.login_beta(40);
+select throws_ok($$select public.challenge_local_review_status_v1()$$,'42501','permission denied for function challenge_local_review_status_v1','actual independent reviewer read denied');
+reset role;
+set local role service_role;
+select lives_ok($$select public.challenge_local_review_status_v1()$$,'actual service read succeeds');
+select throws_ok($$select * from app.challenge_reviews_v1$$,'42501','permission denied for table challenge_reviews_v1','service RPC does not grant raw case reads');
+reset role;
+savepoint accidentally_widened_acl;
+grant execute on function public.challenge_local_review_status_v1() to authenticated;
+select pg_temp.login_beta(40);
+select throws_ok($$select public.challenge_local_review_status_v1()$$,'42501','duel_service_required','internal guard independently rejects a widened execute grant');
+reset role;
+rollback to accidentally_widened_acl;
+select ok(not has_function_privilege('authenticated','public.challenge_local_review_status_v1()','execute'),'service-only ACL restored after counterfactual grant');
+select * from finish();
+rollback;

@@ -1,0 +1,14 @@
+{
+  "capture_state": "enabled",
+  "snapshot_state": "recorded",
+  "last_capture_at": "2026-10-01T12:00:00+00:00",
+  "reference_clock": "fixture",
+  "observed_wall_at": "2026-09-19T07:48:08.016765+00:00",
+  "last_attempt_state": "checked",
+  "capture_age_seconds": 7200,
+  "last_attempt_wall_at": "2026-09-19T07:48:07.689104+00:00",
+  "last_prepared_wall_at": "2026-09-19T07:48:07.68587+00:00",
+  "snapshot_reference_at": "2026-10-01T14:00:00+00:00",
+  "last_attempt_error_code": null,
+  "last_successful_invocation_wall_at": "2026-09-19T07:48:07.689104+00:00"
+}

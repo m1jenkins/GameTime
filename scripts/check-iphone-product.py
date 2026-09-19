@@ -142,6 +142,9 @@ def check_app(app):
         # executable, Debug dylib and every embedded Mach-O framework/extension.
         data = path.read_bytes()
         require(not any(token in data for token in [b"WatchConnectivity", b"WCSession", b"PhoneWatchConnectivityCoordinator", b"GameTimeWatchContext"]), "Watch runtime symbols in " + str(path.relative_to(app)))
+        if info.get("GAMETIME_ENV") == "release" and path.name == info.get("CFBundleExecutable"):
+            require(not any(token in data for token in [b"--fixture-", b"--demo-interactive"]),
+                    "Fixture launch marker in Release executable")
         healthkit |= "HealthKit.framework/HealthKit" in links
         binaries.append(str(path.relative_to(app)))
     require(binaries, "No Mach-O product binaries found")

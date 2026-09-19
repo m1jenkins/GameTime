@@ -111,10 +111,10 @@ final class AppModel {
     @ObservationIgnored private var registeredPushActorID: UUID?
 
     init(configuration: AppConfiguration, services: AppServices, challengeDirectory: URL? = nil,
-         challengeInvitation: ChallengeInvitationIntent = ChallengeInvitationIntent()) {
+         challengeInvitation: ChallengeInvitationIntent? = nil) {
         self.configuration = configuration
         self.services = services
-        self.challengeInvitation = challengeInvitation
+        self.challengeInvitation = challengeInvitation ?? ChallengeInvitationIntent(links: configuration.challengeInvitationLinks)
         let challengeDirectory = challengeDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("GameTime/ProductChallengeV1Pending")
         challengesV1 = ChallengeV1Store(auth: services.auth, client: services.challengesV1,

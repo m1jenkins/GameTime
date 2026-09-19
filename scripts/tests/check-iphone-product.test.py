@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location('iphone_product', ROOT / 'scripts/check-iphone-product.py')
@@ -120,6 +121,25 @@ class IPhoneProductTests(unittest.TestCase):
         (app / 'Info.plist').write_bytes(plistlib.dumps({'CFBundleSupportedPlatforms': ['iPhoneSimulator'], 'NSHealthShareUsageDescription': 'Fixture'}))
         with self.assertRaisesRegex(ValueError, 'Watch payload'):
             checker.check_app(app)
+
+    def test_release_executable_rejects_fixture_launch_markers(self):
+        app = self.root / 'Release.app'
+        app.mkdir()
+        (app / 'Info.plist').write_bytes(plistlib.dumps({
+            'CFBundleSupportedPlatforms': ['iPhoneOS'],
+            'CFBundleExecutable': 'GameTime',
+            'GAMETIME_ENV': 'release',
+            'NSHealthShareUsageDescription': 'Health access',
+        }))
+        executable = app / 'GameTime'
+        with mock.patch.object(checker.subprocess, 'check_output', return_value='HealthKit.framework/HealthKit'):
+            for marker in (b'--fixture-mode', b'--fixture-demo-interactive', b'--demo-interactive'):
+                with self.subTest(marker=marker):
+                    executable.write_bytes(bytes.fromhex('cffaedfe') + marker)
+                    with self.assertRaisesRegex(ValueError, 'Fixture launch marker'):
+                        checker.check_app(app)
+            executable.write_bytes(bytes.fromhex('cffaedfe') + b'ordinary-release-entry')
+            self.assertTrue(checker.check_app(app)['healthkit_linked'])
 
 
 if __name__ == '__main__':
