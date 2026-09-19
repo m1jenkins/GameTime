@@ -35,14 +35,17 @@ and linked cleanup report distinguish landed candidates and retained exceptions.
 The September 15 cleanup did not start P7–P13. On September 18 the owner
 obtained a paired Apple Watch, opted in and [started the private P7 device
 session](outputs/reports/2026-09-18-p7-device-session.md) on an iPhone 17.
-Session A's categorical steps observations are recorded; overlap and
-completeness rules and the remaining sessions are pending. All four sources,
-timed-distance tolerance, real ingestion/adapters, hosted operation and
-physical/human/release acceptance remain gated. Simulation does not accept a
-source. Checked-in challenge transport remains off and all 18 readiness entries
-remain false. Preserve historical Personal/Solo/charity agreements and access
-until replacement acceptance. D134/D135 and the [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md)
-own product requirements; no adopted scope changed.
+On September 19 the owner [signed off the P7 test effort and directed P8
+preparation](DECISIONS.md#d137-owner-signs-off-p7-testing-and-directs-p8-preparation).
+The session record preserves performed observations separately from unresolved
+source rules; see the [P8 handoff](docs/P8_REAL_SOURCE_PREPARATION.md). The four
+versioned source policies, timed-distance tolerance, real ingestion/adapters,
+hosted operation and physical/human/release acceptance remain gated. Simulation
+does not accept a source. Checked-in challenge transport remains off and all 18
+readiness entries remain false. Preserve historical Personal/Solo/charity
+agreements and access until replacement acceptance. D134/D135 and the
+[remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) still own
+product requirements; no adopted scope changed.
 
 ## Historical completion records
 

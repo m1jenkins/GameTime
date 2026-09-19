@@ -35,8 +35,15 @@ iPhone- and Watch-origin steps, flagged overlapping records, and passed the
 private session clearing check. Reconciliation and completeness remain
 unresolved. An initial Apple Exercise Time read showed clear Watch origin;
 its hand-entry field was not supplied, and Exercise eligibility and result
-rules remain open. The running investigation is explicitly unperformed. No physical source is
-accepted or enabled. Continue from the
+rules remain open. A September 19 continuation observed two Watch-origin running
+workouts, including a paused run whose start-to-finish elapsed time exceeded its
+reported workout duration. The owner reports one privately measured run as
+accurate and a whole record as inspectable in the boundary-window check;
+quantified repeated accuracy, the boundary warning, manual/import eligibility
+and the distance tolerance remain open. No physical source is accepted or
+enabled. On September 19 the owner declared P7 testing passed and requested
+[P8 preparation](P8_REAL_SOURCE_PREPARATION.md); that sign-off does not rewrite
+the performed-observation record. Continue from the
 [device-session record](../outputs/reports/2026-09-18-p7-device-session.md)
 and [private session guide](BETA_PHYSICAL_SESSIONS.md).
 
@@ -69,7 +76,7 @@ included in this published baseline.
 | P4 | Scoped locks and durable worker claims completed locally | [P4 report](../outputs/reports/2026-09-11-p4-completion.md) |
 | P5 | Bounded history and measured query improvements completed locally | [P5 report](../outputs/reports/2026-09-11-p5-completion.md) |
 | P6 | Private 250-member community, moderation and quotas completed locally | [P6 report](../outputs/reports/2026-09-12-p6-completion.md) |
-| P7 | Session A observations recorded; steps policy and all four accepted sources pending | [Current session](../outputs/reports/2026-09-18-p7-device-session.md), [preparation](../outputs/reports/2026-09-12-p7-preparation.md) |
+| P7 | Owner signed off testing September 19; four versioned source policies and timed tolerance remain unspecified/unaccepted | [Current session](../outputs/reports/2026-09-18-p7-device-session.md), [P8 handoff](P8_REAL_SOURCE_PREPARATION.md) |
 | P10 | Device-independent hosted/support/retention preparation included; actual hosting unperformed | [P10 report](../outputs/reports/2026-09-12-p10-completion.md) |
 | P11A — local recovery | Combined S2/P8/P11A candidate landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`; community verification gap closed with a test-only correction and focused review. Hosted schedules, credentials and external alerts remain disabled | [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [September 14 follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md) |
 | P11A — operator CLI | Landed on local main at `6fea1c2`: scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery. Original reported verification: 131 CLI/HTTP checks, 8 unit tests and 86 SQL assertions. Main now includes new administrator receipts and repaired suspended access; historical v1 recovery remains manual | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [administrator recovery report](../outputs/reports/2026-09-18-admin-grant-recovery.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
@@ -89,9 +96,9 @@ Use the [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [bounded prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for their
 preserved requirements and dependency order:
 
-- P7: actual iPhone/paired Watch observations, all four accepted sources and
-  measured timed-distance tolerance. The first private device session is under
-  way; its observations and source decisions remain pending.
+- P7: the owner has closed the current iPhone/paired Watch test effort as passed.
+  Its recorded observations remain partial; four explicit source policies and a
+  measured timed-distance tolerance are still needed for real scoring.
 - P8/P9: accepted real-source ingestion, adapters and all 13 integrated policies;
   approved HTTPS/Apple identity and invitations. The local shared-session
   connection is complete; source-backed and hosted journeys are not.

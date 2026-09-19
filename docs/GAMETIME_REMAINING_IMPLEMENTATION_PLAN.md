@@ -13,7 +13,10 @@ connection are landed. Their dated reports retain actual checks and limits.
 
 The September 15 cleanup prepared the baseline. The owner subsequently obtained
 a paired Watch and [started P7 on a physical iPhone](../outputs/reports/2026-09-18-p7-device-session.md).
-Physical source acceptance, real ingestion/adapters and source-backed journeys,
+The owner has since signed off the P7 test effort and requested
+[P8 preparation](P8_REAL_SOURCE_PREPARATION.md). The recorded physical checks
+do not yet specify four accepted source policies or timed-distance tolerance.
+Real ingestion/adapters and source-backed journeys,
 approved hosting/identities/operation and candidate/human/release acceptance
 remain. P7's all-source distribution requirements stay intact.
 
@@ -28,7 +31,7 @@ another design, infrastructure or general audit workstream.
 | --- | --- |
 | P0/0A/3, P4–P6 | Local foundation, iPhone-only runtime, closed Health contracts, scoped locks, bounded queries and private community are implemented. Their reports remain evidence; do not repeat these prompts. |
 | Signal / P9A | Native migration landed in published main from the `b25834c` baseline; ordinary and retained routes use Signal, with cobalt rendering and fonts removed. [Native verification](../outputs/reports/2026-09-13-signal-native-migration.md) records tested source, route coverage and limits. Use this implementation for P9 under the [migration contract](design/SIGNAL_UI_MIGRATION.md). |
-| P7 | [Preparation](../outputs/reports/2026-09-12-p7-preparation.md) is complete; the [physical session](../outputs/reports/2026-09-18-p7-device-session.md) has started. Four source policies and timed-distance tolerance remain unaccepted. |
+| P7 | Owner signed off the test effort; the [physical session](../outputs/reports/2026-09-18-p7-device-session.md) retains exact observations and gaps. Four source policies and timed-distance tolerance remain unaccepted. |
 | P8/P9 | Configured ordinary Signal now shares the app authentication session and existing challenge client; checked-in opt-in remains off. [Bounded P9 connection](../outputs/reports/2026-09-15-p9-authenticated-app.md) records local substitute checks. Configured HTTPS invitation intake/formatting is integrated locally. Real consent/ingestion, accepted adapters, approved domain/Apple/OS delivery and source-backed journeys remain. |
 | P10 | [Device-independent preparation](../outputs/reports/2026-09-12-p10-completion.md) is complete. Approved settings, functioning hosted scheduler/alerts, retention/deletion and operating acceptance are still missing. |
 | P11A | Local worker/recovery/snapshot/status code landed at `a3d2c3f`; scoped human operator tooling landed at `6fea1c2`. Main also includes durable v2 administrator response recovery, repaired suspended-account access and review/appeal/snapshot monitoring; historical v1 reconciliation remains manual. Account deletion and review repairs are landed through `c6f88cd` ([local record](evidence/beta-finish-line-b7/account-deletion-local-20260914.md)). Hosted schedules, credentials, alerts and actual retention/deletion operation remain outstanding. [Recovery report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [operator report](../outputs/reports/2026-09-14-p11a-operator.md) |
@@ -63,13 +66,16 @@ or external acceptance.
 | Step | Work and completion condition | Dependency |
 | --- | --- | --- |
 | P9A — adopt Signal natively | Local implementation and verification recorded in the native report; preserve its source and continue with P9 integration. | Independent of P7 and hosting; current stores, closed clients and explicit local fixtures. |
-| P7 — settle source rules | Resume [private sessions](BETA_PHYSICAL_SESSIONS.md). Record eligibility, overlap, corrections, late sync, missing-data behavior and whole-run tolerance. Accept each source or state why it remains unavailable. | Exact iPhone/paired Watch opt-in and actual owner participation. |
+| P7 — settle source rules | The owner closed the current test effort. Preserve the [performed observations](../outputs/reports/2026-09-18-p7-device-session.md); specify only defensible metric rules, and keep unresolved sources unavailable rather than calling unperformed checks observed. | Explicit versioned source-policy decisions, including whole-run tolerance before timed running. |
 | P8 → P9 — complete a real journey | Start with accepted steps: versioned minimal ingestion and real admission/worker rules, then existing native screens through progress, correction, review and final result. Apply the proven path to Exercise, cumulative running and timed runs; finish community and all 13 policies. | Each metric's accepted P7 policy. Work may alternate P8/P9 by metric; all four are required for distribution. |
 | P10 follow-through → P11 — operate one backend | Use the existing worksheet to select settings. Implement missing scheduler/recovery, scoped operator access, alerts, account deletion and approved retention. Test locally, then deploy/exercise only the authorized target. | Independent local operating code can accompany P7; hosting needs approved settings/actions, and real activity operation needs P8/P9. |
 | P12 + P13 — qualify one candidate | Integrate chosen native UI and real Apple sign-in/HTTPS links. Run the release matrix once, plus device/accessibility/comprehension and operating checks. Fix defects and complete gated legacy shell retirement. | Integrated source-backed candidate; authorization for actual hosting and device checks. |
 | Private TestFlight, then public launch | After acceptance/authorization, run a small supervised simulated pilot, fix observed problems, then prepare the App Store release. | Actual Beta results, working support and separate submission/release authorization. |
 
-P7 remains the active source-dependent task, with the first physical session in progress.
+P8 preparation is now directed by the owner; [its handoff](P8_REAL_SOURCE_PREPARATION.md)
+maps policy-neutral work and the still-required source decisions. P7's test effort
+is owner-closed, but the recorded observations do not themselves provide the
+versioned policies required for real-source scoring.
 The P11A local recovery and operator CLI slices are both landed; neither resolves P10's hosted
 inputs. Next work depends on accepted real-source contracts and an explicitly
 authorized hosted target. Do not fabricate source policies to fill time. Each

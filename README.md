@@ -39,7 +39,9 @@ physical/accessibility/human and release acceptance. All 18
 [readiness entries](docs/release/beta/readiness.json) remain false. The baseline
 cleanup does not start those tasks or authorize distribution, hosting or money.
 The owner [started a private P7 device session](outputs/reports/2026-09-18-p7-device-session.md)
-on September 18; its partial observations do not accept any source.
+on September 18 and signed off the test effort on September 19. Its partial
+observations do not specify accepted source policies. [P8 preparation](docs/P8_REAL_SOURCE_PREPARATION.md)
+is documented without enabling real ingestion or scoring.
 
 ## Start here
 
@@ -52,6 +54,7 @@ on September 18; its partial observations do not accept any source.
 | User-facing language | [Copy contract](docs/COPY.md), required before changing any app string |
 | iPhone, Watch-origin data, community and capacity boundaries | [Remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md) |
 | Source and release gates | [Physical sessions](docs/BETA_PHYSICAL_SESSIONS.md), [acceptance](docs/BETA_REAL_VALIDATION_ACCEPTANCE.md), [handoff](docs/BETA_REAL_VALIDATION_HANDOFF.md) |
+| P8 real-source preparation | [P8 handoff](docs/P8_REAL_SOURCE_PREPARATION.md) |
 | Local challenge walkthrough | [Preview and ordinary-session guide](docs/BETA_LOCAL_PREVIEW.md) |
 | Local worker, operator and recovery commands | [Operations guide](docs/BETA_OPERATIONS_LOCAL.md) |
 | Checkout recovery and cleanup disposition | [Consolidation record](docs/WORKTREE_CONSOLIDATION_STATUS.md) |

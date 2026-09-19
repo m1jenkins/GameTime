@@ -10,7 +10,10 @@ the bounded P9 shared-session connection. Signal is the ordinary native UI;
 [its contract](docs/design/SIGNAL_UI_MIGRATION.md) preserves retained Personal
 access. The September 15 cleanup did not dispatch P7–P13; the owner [started P7
 on a physical iPhone and paired Watch](outputs/reports/2026-09-18-p7-device-session.md)
-on September 18. Real sources, ingestion/adapters,
+on September 18. On September 19 the owner [signed off the P7 test effort and
+requested P8 preparation](DECISIONS.md#d137-owner-signs-off-p7-testing-and-directs-p8-preparation);
+the [P8 handoff](docs/P8_REAL_SOURCE_PREPARATION.md) preserves the unselected
+source rules. Real sources, ingestion/adapters,
 approved hosted identities/operation and physical/human/release acceptance remain.
 All four sources and all 13 policies are required; funded launch remains Phase 6.
 Do not restart completed prompts or follow obsolete checkout instructions.
@@ -19,8 +22,9 @@ The September 19 [main consolidation](outputs/reports/2026-09-19-main-consolidat
 includes delivered HTTPS intake, durable administrator recovery, suspended
 account access repair, review/appeal/snapshot monitoring, iOS 18 compatibility
 and the fictional Personal lifecycle preview. Local weekly acceptance passed;
-the consolidation record lists CI status at merge. Continue with source-backed
-integration; the full release matrix remains reserved for P12.
+the consolidation record lists CI status at merge. Continue with P8 preparation
+and versioned source-policy decisions before source-backed integration; the full
+release matrix remains reserved for P12.
 
 ## Historical roadmap
 

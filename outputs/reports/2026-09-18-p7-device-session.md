@@ -45,11 +45,54 @@ Session B has begun. The owner selected Apple Exercise Time and reported visible
 records with clear Watch origin in the on-device source/device details. This is
 an origin observation only. The inspected records showed **Not supplied** for
 the hand-entry field, so that field does not exclude manual entry.
-Manual/import eligibility, overlap, conversion to
-the agreed integer-second unit, corrections and complete-history behavior remain
-unsettled. The owner reported the whole-running-workout investigation as
-**unperformed**. Cumulative running, timed running, pause behavior, workout
-boundaries and distance accuracy therefore have no physical observation.
+Manual/import eligibility, overlap, conversion to the agreed integer-second
+unit, corrections and complete-history behavior remain unsettled.
+
+On September 19, the installed Debug investigation was reopened with its
+isolated launch argument on the same connected iPhone, without debugger,
+console bridge or screen capture by the investigator. The owner then reported
+two comfortable running workouts from the paired Watch; the second included
+ordinary pauses. The displayed running-workout records identified the device
+as Watch, but their hand-entry fields were **Not supplied**, and no imported
+comparison was performed. The unpaused workout's reported duration was close
+to its start-to-finish elapsed time. For the paused workout, the reported
+duration was shorter than the start-to-finish elapsed time, consistent with
+pauses remaining in the elapsed interval. The owner initially said both
+distances seemed accurate, then clarified that a run was checked against a
+privately measured route and was accurate. This is a qualitative measured-route
+observation; no quantitative error series or sufficient repetitions support a
+distance tolerance yet. In response to the containing/boundary-cutting window
+check, the owner reported that the whole workout record remained inspectable.
+The owner later reported not seeing a boundary warning. Whether the selected
+window actually cut across the record and the read-status section was inspected
+remains unverified; the warning is not counted as a pass or a failure. No
+values, exact activity times, route, source identifier or image are retained
+in this report.
+
+The owner also added a manual step test entry in Apple Health and reported that
+it was not visible in the activity investigation. The UI's default **Until**
+is fixed when the investigation opens, so a later entry can fall outside it.
+After that limitation was explained, the owner adjusted the selected time and
+still did not see the entry. Changing the picker clears the private session;
+a completed fresh read with other device-origin steps visible in the same
+window has not yet been confirmed. The investigation does not intentionally
+filter manual step records. This remains an inconclusive visibility observation,
+not evidence that manual steps are reliably excluded or that Health history is
+complete.
+
+The owner reports that Watch-only running workouts later sync to the iPhone
+and become visible in the investigation, describing this as a successful
+late-arrival check. A pre-sync read while the Watch could not sync and a
+reread of the same absolute window after reconnection were not specified.
+Record later visibility for running workouts, not complete Session C late-sync
+acceptance or proof that an initially empty read establishes a missed goal.
+
+Session B still needs Exercise manual/import lineage, a confirmed
+boundary-crossing status check, and repeated independently measured whole runs.
+Session C's manual-step distinction remains open after the initial invisible
+entry.
+Running-source eligibility, correction and completeness are unresolved for
+both cumulative and timed policies; no whole-run distance band is selected.
 
 The rest of Sessions B–D, all four source policies, whole-run distance tolerance,
 source-backed integration and human/release gates remain pending. No source is
@@ -60,3 +103,14 @@ The ordinary app icon may launch without the investigation argument after the
 current process ends; relaunch with that argument before resuming a private
 session. Raw records, source identifiers, exact activity times, screenshots,
 logs and accuracy measurements must remain on-device. This report contains none.
+
+## Owner disposition — September 19
+
+The owner considers all P7 tests a pass, says the app works as intended, and
+directs preparation for P8. This is the owner's sign-off on the test effort,
+not a retroactive observation of every row above. In particular, the exact
+manual/import eligibility, overlapping-source reconciliation, edit/deletion,
+permission/offline/time-boundary and trustworthy-miss cases are not established
+by the recorded observations; the whole-run distance tolerance is unselected.
+Keep these distinctions in the P8 handoff. No real-source adapter, ingestion,
+scoring gate, hosted operation or distribution was enabled by this sign-off.

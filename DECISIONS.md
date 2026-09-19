@@ -4895,3 +4895,22 @@ Keep dated cobalt evidence as history. Native checks must establish the actual
 migration; browser verification and a class rename do not. This decision does
 not enable transport, accept Health sources, alter product policies or establish
 physical, hosted, human or release readiness.
+
+
+### D137. Owner signs off P7 testing and directs P8 preparation
+
+**Explicit owner direction, September 19, 2026:** the owner considers all P7
+tests a pass, says the app works as intended, and asks to prepare P8. This
+closes the owner's current physical-test effort and authorizes a P8 preparation
+handoff. The [dated P7 session](outputs/reports/2026-09-18-p7-device-session.md)
+remains the record of what was actually observed; unperformed or inconclusive
+checks are not rewritten as physical results.
+
+This decision does not itself specify the four versioned source policies,
+manual/import exclusion, overlap reconciliation, correction/completeness rules
+or the measured whole-run distance tolerance required by D134. P8 may prepare
+contracts, boundaries and tests against the existing default-off implementation.
+Actual real-source admission and scoring still require explicit policy terms;
+the fictional fixtures cannot become the real path by a flag change. The
+all-mode distribution, historical-agreement, no-missing-data-loss, hosted,
+human and release gates remain unchanged.

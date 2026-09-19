@@ -1,5 +1,11 @@
 # GameTime real-activity handoff
 
+September 19 update: the owner considers P7 testing passed and directed
+[P8 preparation](P8_REAL_SOURCE_PREPARATION.md). The
+[P7 session](../outputs/reports/2026-09-18-p7-device-session.md) remains the
+performed-observation record; source-policy and tolerance gaps are not turned
+into physical results by that sign-off. The P8 handoff owns next-work scope.
+
 September 18 update: the owner [started a private P7 device session](../outputs/reports/2026-09-18-p7-device-session.md).
 The dated preparation and next-action statements below are historical; use the
 current session record and [physical guide](BETA_PHYSICAL_SESSIONS.md) for

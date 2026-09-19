@@ -3,7 +3,9 @@
 Reconciled September 15, 2026; completed slices are published through `1dacc66`. Use the [working baseline](WORKING_BASELINE.md)
 and [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md).
 P0/0A/3 and P4/P5/P6 are implemented locally; P2's measurements are historical.
-P7 is prepared, with physical acceptance pending. P10's independent preparation
+P7 preparation is complete. The owner signed off its test effort September 19
+and directed [P8 preparation](P8_REAL_SOURCE_PREPARATION.md); the physical
+observations still leave source-policy terms open. P10's independent preparation
 is complete. Keep those records; do not rerun completed prompts.
 
 Signal is the official native UI/UX. P9A's [local implementation and verification](../outputs/reports/2026-09-13-signal-native-migration.md)
@@ -15,7 +17,7 @@ one accepted metric at a time. All four sources and all 13 policies remain
 required before distribution.
 
 The owner has an iPhone 17 paired with an Apple Watch. P7's [physical session](../outputs/reports/2026-09-18-p7-device-session.md)
-has started; source acceptance remains pending. The combined S2/P8/P11A recovery
+records what was performed; versioned source acceptance remains pending. The combined S2/P8/P11A recovery
 candidate landed locally at `a3d2c3f`; the operator CLI followed at `6fea1c2`,
 with owner approval on September 14. The [recovery report](../outputs/reports/2026-09-14-p11a-local-recovery.md),
 [community follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md)

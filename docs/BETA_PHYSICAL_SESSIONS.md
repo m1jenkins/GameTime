@@ -1,4 +1,11 @@
-# Private physical sessions — Session A observed, Session B begun
+# Private physical sessions — performed observations and remaining matrix
+
+September 19: the owner considers P7 testing a pass and has directed
+[P8 preparation](P8_REAL_SOURCE_PREPARATION.md). The
+[session record](../outputs/reports/2026-09-18-p7-device-session.md) remains the
+authority for what was actually observed. This guide preserves the unperformed
+cases if the source rules need further validation; owner sign-off does not
+convert those cases into observations.
 
 [D135](BETA_REMAINING_WORK_CONTRACT.md) requires a paired physical Apple Watch
 for launch, not for pre-hardware implementation. Beta has no GameTime Watch app
