@@ -1,0 +1,27 @@
+{
+  "owner": "gametime-p11a-operator-suspension-20260919",
+  "owned_containers_removed": [
+    "710e80007f432d7448fcbf03c67bb5ccd4e37287d7a3724adc58590a7194c3a1",
+    "8627f69ab3876164f122f63d0d79532f2042fc1dca122479507455ac58d0c554",
+    "ade9ef4be78f8880e83af8705083c9736915d36f4fb3368c0340d2caca78df05"
+  ],
+  "volume_removed": "gametime-p11a-operator-suspension-20260919-data",
+  "network_removed": "gametime-p11a-operator-suspension-20260919-network",
+  "closed_ports": [
+    65431,
+    65432,
+    65433,
+    65434
+  ],
+  "preexisting_containers_unchanged": 207,
+  "preexisting_metadata_changed": [
+    "/gametime-account-deletion-20260914-native-fixture-65515",
+    "/gametime-account-deletion-20260914-http-2275-db"
+  ],
+  "preexisting_disappeared": [],
+  "runtime_closed": true,
+  "sessions": 0,
+  "cron_launch": "off",
+  "cron_runs": 0,
+  "generated_credentials_removed": true
+}
