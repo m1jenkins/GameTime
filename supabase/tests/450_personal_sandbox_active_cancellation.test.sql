@@ -128,6 +128,7 @@ select pg_temp.make_stripe_challenge(
 
 reset role;
 
+with capture_time as materialized (select clock_timestamp() as recorded_at)
 insert into app.personal_health_snapshots_v2 (
   challenge_id,
   user_id,
@@ -142,12 +143,12 @@ select
   active.challenge_id,
   'fc111111-1111-1111-1111-111111111111',
   app.personal_terms_fingerprint_v2(active.challenge_id),
-  clock_timestamp(),
-  clock_timestamp(),
+  capture_time.recorded_at,
+  capture_time.recorded_at,
   app.personal_zero_daily_progress_v2(active.challenge_id),
   0,
-  clock_timestamp()
-from t_active active;
+  capture_time.recorded_at
+from t_active active cross join capture_time;
 
 create temporary table t_active_frozen as
 select
