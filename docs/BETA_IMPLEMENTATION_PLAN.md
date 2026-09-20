@@ -1,8 +1,9 @@
 # GameTime Beta 1 implementation plan
 
-Owner-approved planning target, September 6, with D135 amendments September 9, 2026. This document owns the
+Owner-approved planning target, September 6, with D135 amendments September 9
+and D140's Beta scope correction September 20, 2026. This document owns the
 future Beta 1 product contract. D134 in [DECISIONS.md](../DECISIONS.md) records
-the choices made during the plan audit. The older
+the original choices; D140 removes the all-13 distribution condition. The older
 [weekly specification](WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md) and its
 acceptance records remain authoritative descriptions of the frozen local
 `weekly_*_v1` implementation; they do not implement or constrain this new
@@ -17,8 +18,9 @@ use [WORKING_BASELINE.md](WORKING_BASELINE.md), the
 [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md). They reuse completed
 design/backend work and distinguish local Beta, private TestFlight and a proposed
-public simulated launch. This document retains D134/D135's product contract;
-sequential metric implementation does not reduce the all-mode distribution gate.
+public simulated launch. This document retains D134/D135's product rules and
+D140's working nine-goal Beta scope. The four friend leaderboards remain a later
+target, with their historical/local policy and test records intact.
 
 D135 and [the remaining-work contract](BETA_REMAINING_WORK_CONTRACT.md) add six
 explicit owner decisions. Their Watch architecture, hardware sequencing,
@@ -38,14 +40,21 @@ hosting/identities and source-backed native journeys remain P9 work.
 
 ## Product contract
 
-Beta 1 includes three products:
+Beta 1 includes three goal products. The table also preserves the deferred
+friend leaderboard design:
 
 | Product | Competition | Metrics | Participants | Window and target |
 | --- | --- | --- | --- | --- |
 | Friend goal | Each person qualifies independently | Steps, Apple Exercise Time, cumulative running distance, timed running | Creator plus one to five friends; 2–6 total | Each participant proposes their own target before the creator freezes the roster and terms |
-| Friend leaderboard | Best eligible result wins | Steps, Apple Exercise Time, cumulative running distance, timed running | Creator plus one to five friends; 2–6 total | No qualifying target or target suggestion; highest cumulative result or fastest eligible timed run wins |
+| Friend leaderboard (deferred beyond Beta 1) | Best eligible result wins | Steps, Apple Exercise Time, cumulative running distance, timed running | Creator plus one to five friends; 2–6 total | No qualifying target or target suggestion; highest cumulative result or fastest eligible timed run wins |
 | Personal performance commitment | The owner qualifies against their own target | Steps, Apple Exercise Time, cumulative running distance, timed running | One | Owner-selected target |
 | Community goal | Each entrant qualifies independently against one common value | Steps only | One private operator-published cohort; outcome minimum and publication capacity remain configurable/unapproved | One common target; user-hosted communities are a separately versioned future feature |
+
+The working Beta 1 release set is nine goals: four friend, four personal and
+community steps. This is the current scope after D140, not a claim of physical
+or hosted acceptance. The four friend leaderboard policies remain specified for
+later delivery and unavailable for new real challenges in Beta 1. Existing
+leaderboard records retain their original terms and safe lifecycle handling.
 
 Friend and personal policies use scheduled full-day windows lasting 1–30 local
 calendar days. The window starts and ends at midnight in its frozen creator or
@@ -292,10 +301,11 @@ keep routes on-device, and upload only minimum scoring facts through the
 attested boundary. A client cannot author `complete`, `verified`, qualifying, or
 final flags. Revisions can decrease and deletions must remain representable.
 
-Beta 1 is an all-mode distribution milestone: all four source policies must pass
-the physical iPhone/Watch matrix before TestFlight distribution. A source that
-cannot support trustworthy miss handling remains disabled and blocks that
-milestone rather than silently changing semantics.
+All four goal-metric source policies must pass the physical iPhone/Watch matrix
+before TestFlight distribution of the working nine-goal Beta set. A source that
+cannot support trustworthy miss handling remains disabled and blocks the working
+Beta milestone until the owner makes a separate scope decision. The four
+friend leaderboards do not block this Beta milestone; they remain unavailable for new real challenges.
 
 ## Identity, safety, and product shell
 
@@ -369,12 +379,14 @@ photo operations in Beta 1.
 
 ## Verification and rollout
 
-Verify the contract as a 13-policy matrix: eight friend policies, four personal
-goal policies, and one community steps-goal policy.
+Qualify the nine enabled goal policies for Beta: four friend goals, four personal
+goals and one community steps goal. Keep the existing 13-policy fictional and
+historical regression evidence, and verify the four deferred friend leaderboard
+modes cannot be created as new real challenges.
 
 - Test friend rosters of every size 2–6, with two- and six-person end-to-end
-  native/HTTP journeys; participant-proposed targets; leaderboard target
-  rejection; ties; withdrawals; deletion; blocking; operator removal;
+  native/HTTP goal journeys; participant-proposed targets; withdrawals;
+  deletion; blocking; operator removal;
   unresolved data; all/some/no goal qualifiers; amount conservation; exact
   retries; and concurrent lobby, consent, admission, and link actions.
 - Test personal goals for all four metrics, strict timed equality, safe exit,
@@ -390,8 +402,9 @@ goal policies, and one community steps-goal policy.
   2- and 30-day creation lead bounds, 1- and 30-date duration bounds, late and
   downward Health corrections, and scheduler recovery without shortened review.
 - Validate formulas, absent history, metric-specific readiness lookbacks, units,
-  rounding, strict timed comparisons, editable proposals, target-free
-  leaderboards, and tie allocation.
+  rounding, strict timed comparisons and editable proposals. Preserve
+  leaderboard target rejection, ties and allocation as later-mode regression
+  checks without treating them as real-source Beta acceptance.
 - Run the physical source matrix for manual/imported records, overlapping
   devices, deletions, late Watch sync, permission changes, pauses, source loss,
   and timed-distance accuracy.

@@ -159,9 +159,10 @@ checks and preserves receipts outside disposable databases.
 
 ## Unchanged external boundaries
 
-Nine supported goals plus four unavailable leaderboard states do not satisfy
-the four-metric/all-13 release requirement. All 18 external readiness entries,
-checked-in transport and default server gates remain closed. Local community
+Nine supported goals plus four unavailable leaderboard states are the local P9
+result. D140 makes the nine goals the working Beta scope and defers friend
+leaderboards; four goal-metric source acceptance remains open. All 18 external
+readiness entries, checked-in transport and default server gates remain closed. Local community
 settings are fixtures, not publication choices. Hosting identities, community
 launch settings, operating approval, replacement retirement and full P12/P13
 acceptance remain separate. No deployment, distribution, recruitment, money,

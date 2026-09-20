@@ -20,7 +20,8 @@ records the original real-source implementation. D139 and the [P9 contract](docs
 exact delivery and separately versioned Apple Exercise credit. Strict Exercise
 v1 stays unavailable. Approved hosted identities/operation and physical/human/release
 acceptance remain.
-All four sources and all 13 policies are required; funded launch remains Phase 6.
+All four goal-metric sources remain required for the working nine-goal Beta scope;
+the four friend leaderboards are deferred under D140. Funded launch remains Phase 6.
 Do not restart completed prompts or follow obsolete checkout instructions.
 
 The September 19 [main consolidation](outputs/reports/2026-09-19-main-consolidation.md)
@@ -29,7 +30,8 @@ account access repair, review/appeal/snapshot monitoring, iOS 18 compatibility
 and the fictional Personal lifecycle preview. Local weekly acceptance passed;
 the consolidation record lists CI status at merge. The [P9 local report](outputs/reports/2026-09-20-p9-signal-real-activity.md) records
 the continuation and focused checks. Nine real goal policies and four explicit
-unavailable leaderboard states do not meet the unchanged all-13 release gate.
+unavailable leaderboard states match D140's working Beta scope. Source-backed,
+hosted, physical and human release acceptance remain open.
 The owner-selected Cron + Edge runtime now has a
 [bounded local scheduling connection](outputs/reports/2026-09-20-p11-local-scheduling.md).
 The [bounded hosted installation](outputs/reports/2026-09-20-p11b-hosted-installation.md)
@@ -127,7 +129,7 @@ The new local `challenge_*_v1` implementation and Signal shell are now landed;
 
 | Area | Owner-approved target | Historical implementation at planning |
 | --- | --- | --- |
-| Friend challenges | Creator plus up to five friends; four goal and four leaderboard policies; 1–30 full calendar days | `weekly_*_v1` is frozen at 2–5 participants, seven dates and steps goals only |
+| Friend challenges | Creator plus up to five friends; four goal policies in the working Beta scope and four deferred leaderboard policies; 1–30 full calendar days | `weekly_*_v1` is frozen at 2–5 participants, seven dates and steps goals only |
 | Personal commitments | Goal-only across steps, Exercise Time, cumulative distance and timed running; 1–30 full calendar days | Historical `performance_commitment_*` is a separate fixed-5K/28–90-day local contract |
 | Community | One private operator cohort; current own progress, exact anonymous aggregates only under D135’s five-person/15-minute rule | Fictional weekly community backend/native path exists; launch settings remain unselected |
 | Identity and growth | Exact username lookup; reusable links close at 20 accounts or 30 days; immediate beta access after 21+ confirmation | Named-recipient duel links exist; general lobby redemption does not |
@@ -136,7 +138,8 @@ The new local `challenge_*_v1` implementation and Signal shell are now landed;
 Implementation must preserve every historical agreement and build a new
 `challenge_*_v1` aggregate rather than widening those contracts. Source work may
 proceed in dependency order, but TestFlight distribution waits for all four
-source policies and the complete 13-policy product matrix. See the dedicated
+goal-metric source policies and acceptance of the enabled nine-goal product set.
+The four friend leaderboards remain a later target under D140. See the dedicated
 plan for the full rules, interfaces, tests, rollout gates and evidence-dependent
 decisions.
 

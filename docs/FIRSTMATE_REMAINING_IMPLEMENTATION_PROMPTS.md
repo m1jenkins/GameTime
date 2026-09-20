@@ -6,7 +6,8 @@ passed with all jobs/gates/fixtures off. Read the [working baseline](WORKING_BAS
 and [next-chat planning prompt](P11B_NEXT_PLANNING_PROMPT.md) before choosing work.
 D138/D139 settle the local source rules and separately versioned Exercise credit.
 P7 is closed; the prompts below preserve scope contracts and are not current dispatch.
-The nine-goal/four-unavailable integration does not satisfy the all-13 release gate.
+Under D140, the nine goals are the working Beta scope and the four friend
+leaderboards remain unavailable; source-backed and external acceptance is open.
 
 Reconciled September 15, 2026; completed slices are published through `1dacc66`. Use the [working baseline](WORKING_BASELINE.md)
 and [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md).
@@ -21,8 +22,8 @@ now correspond to native source published on `main` at `b351a47`; preserve this 
 The earlier unlocated completion report remains unverified. The P9A prompt below
 preserves its acceptance contract and is not a request to restart the migration.
 P8/P9 may proceed
-one accepted metric at a time. All four sources and all 13 policies remain
-required before distribution.
+one accepted metric at a time. All four goal-metric sources and the enabled
+nine-goal set require acceptance before distribution; D140 defers leaderboards.
 
 The owner has an iPhone 17 paired with an Apple Watch. P7's [physical session](../outputs/reports/2026-09-18-p7-device-session.md)
 records what was performed; versioned source acceptance remains pending. The combined S2/P8/P11A recovery
@@ -93,7 +94,7 @@ approved whole-workout distance band.
 Accept a source only when its result rules are defensible. Empty reads cannot
 establish denial, readiness, zero or a miss. If a source cannot support the current
 contract, report the specific limitation and decision needed; do not extend the
-investigation indefinitely or quietly reduce the all-mode release requirement.
+investigation indefinitely or quietly reduce the four-goal-metric source requirement.
 Hand accepted metric policies to P8/P9 while other physical cases remain open.
 Do not start ingestion, scoring or hosting in this task.
 ```
@@ -154,8 +155,8 @@ unknown. Do not widen Health uploads or friend visibility for charts. Read
 COPY.md before app strings. Preserve product rules, retries, privacy and exits.
 
 Build and run affected rendering/journey checks on final source. Record route
-coverage, normal signed-out/signed-in screenshots, all 13 policies, two/six-person
-layouts, compact/large text, light/dark and solid/reduced-motion states. Report
+coverage, normal signed-out/signed-in screenshots, nine goal policies and four
+unavailable leaderboard states, two/six-person layouts, compact/large text, light/dark and solid/reduced-motion states. Report
 unperformed physical/human checks separately. Hand Signal to P9 for real-contract
 integration; do not claim transport, source or release acceptance from UI work.
 ```
@@ -201,8 +202,9 @@ project by default. Keep incomplete external configuration closed and report it.
 
 Verify friend invitation, own targets, roster freeze/reconsent, start, progress,
 correction, review, result and safe exit; personal creation/results; community
-preview/join/leave, delayed counts, reports and appeals. Cover all 13 policies and
-two/six-person journeys using existing tests. Preserve historical Personal access
+preview/join/leave, delayed counts, reports and appeals. Cover the nine enabled
+goals, four unavailable leaderboard states and two/six-person journeys using
+existing tests. Preserve historical Personal access
 until replacement acceptance. Distinguish fictional HTTP tests from device/hosted
 proof. Render only authorized real data; omit unavailable chart detail rather than
 inventing points or widening Health uploads. Reuse working screens and defer optional
@@ -283,7 +285,8 @@ blockers. Hosting success does not authorize TestFlight, recruitment or money.
 
 ```text
 Review the integrated native/source/hosted candidate once and fix concrete defects.
-Verify all 13 policies, two/six-person journeys, consent/review/exits, community
+Verify the nine enabled goal policies, unavailable leaderboard boundaries,
+two/six-person journeys, consent/review/exits, community
 privacy, expired sessions, revocation/deletion, exact recovery and support routes.
 Run the full relevant SQL/native/historical/controller matrix, minimum/current iOS,
 supported sanitizers and Release packaging. Reuse existing controllers and record

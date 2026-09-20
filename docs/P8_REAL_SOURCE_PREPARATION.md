@@ -107,6 +107,6 @@ This preparation is complete when the owner disposition, code seams, missing
 policy inputs, first safe slice and verification path are explicit. P8 itself
 is complete only after versioned accepted policies, real minimum-fact ingestion,
 source-backed results and the required local tests are implemented. P9 app
-integration, hosted operation, all-mode distribution, human/physical release
-checks and real money remain separate gates under the
+integration, hosted operation, qualification of D140's nine-goal Beta set,
+human/physical release checks and real money remain separate gates under the
 [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md).

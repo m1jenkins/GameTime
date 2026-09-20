@@ -131,7 +131,8 @@ Categorical reply:
 Firstmate records performed actions, categorical findings, limitations and
 pass/fail/unperformed for each source. Separate a successful read from policy
 acceptance and from owner approval. Empty or invisible history never proves a miss.
-A failed or unresolved source remains disabled and blocks all-mode distribution.
+A failed or unresolved goal-metric source remains disabled and blocks distribution
+of the working nine-goal Beta set until the owner makes a separate scope decision.
 
 For each accepted source, the next implementation slice is its **new versioned
 real-source terms**, adapter and exact seven-state readiness mapping, applicable

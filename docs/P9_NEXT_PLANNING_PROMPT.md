@@ -1,6 +1,11 @@
 # Prompt for the next planning chat
 
-Copy the prompt below. It asks for planning and answers, not implementation or deployment.
+Historical P9 handoff. Use [the current P11B planning prompt](P11B_NEXT_PLANNING_PROMPT.md)
+for new work. D140 supersedes the all-13 Beta release gate mentioned below; the
+working Beta scope is nine goals with four friend leaderboards deferred. The
+prompt below remains unchanged as a record of the P9 handoff.
+
+The original prompt asked for planning and answers, not implementation or deployment.
 
 ```text
 Plan the next bounded GameTime task and write the implementation prompt I should

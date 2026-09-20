@@ -49,12 +49,13 @@ Established state:
   evidence. Do not repeat them or reinstall merely to regain context. Active
   scheduling, app connectivity and broader operating acceptance remain separate.
 
-Preserve D134-D139, Signal, historical Personal access, exact recovery, source
+Preserve D134-D140, Signal, historical Personal access, exact recovery, source
 policies, Exercise credit v2 and inclusive 100-102% whole-run distance. Do not
 restart P7. Missing data cannot establish a loss or complete ranking. Nine
-available goals and four unavailable leaderboards do not satisfy the unchanged
-four-metric/all-13 release requirement. Keep that unresolved constraint visible
-without automatically expanding this next task into solving it.
+available goals form the working Beta scope; the four friend leaderboards are
+deferred under D140. Four goal-metric source acceptance and the other release
+gates remain open. Keep those dependencies visible without automatically
+expanding this next task into solving them.
 
 First identify the smallest useful remaining slice in the existing dependency
 order. Distinguish missing implementation from configuration, owner decisions

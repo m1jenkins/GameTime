@@ -4990,3 +4990,23 @@ Hosting identities, community publication settings, operating approval, replacem
 retirement and P12/P13 remain separate. All 18 external readiness entries and
 checked-in transport/server gates stay closed. No deployment, distribution,
 recruitment, money, physical Health upload, historical cleanup or P7 restart is authorized.
+
+
+### D140. Beta distribution does not require friend leaderboards
+
+**Owner clarification, September 20, 2026:** Beta does not have to include all
+13 challenge policies. This supersedes D134's and D139's all-mode distribution
+condition, not their recorded product design or completed test evidence. The
+current working Beta 1 scope is the nine goal policies already available locally:
+four friend goals, four personal commitments and one community steps goal. The
+four friend leaderboard policies remain a later product target. Do not make
+their availability a TestFlight or simulated-beta release gate.
+
+New real friend leaderboards remain unavailable for creation until their source
+and result rules can support a complete ranking. Preserve the unavailable state
+and the review, exit, history and unresolved/void handling of existing records.
+Release checks cover every enabled goal policy and confirm deferred modes cannot
+be entered. The four metric-specific goal source policies, missing-data safety,
+hosted operation, physical/human acceptance and separate distribution approval
+remain required. This scope clarification does not authorize implementation,
+hosted action, TestFlight, recruitment or money.

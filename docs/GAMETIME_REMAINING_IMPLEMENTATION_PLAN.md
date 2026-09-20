@@ -26,7 +26,8 @@ D139 introduces Exercise credit v2 with disclosed causal uncertainty. Strict v1
 remains unavailable; complete leaderboards and confirmed misses remain unresolved.
 Local P9 native journeys and shared recovery are implemented. Approved
 hosting/identities/operation and candidate/human/release acceptance remain.
-The four-metric/all-13 distribution requirements stay intact.
+All four goal-metric source requirements stay intact. D140 removes the all-13
+distribution condition and defers the four friend leaderboards.
 
 The shortest path is to finish real activity → agreed challenge → corrected
 result, operate it on one approved backend, and test it with people. Preserve
@@ -54,11 +55,12 @@ or external acceptance.
 
 ## Product requirements stay intact
 
-- Preserve all 13 policies: eight friend policies for 2–6 people, four personal
-  goals and one private community steps goal. All four sources must pass before
-  TestFlight under D134/D135. Steps-first implementation is not a steps-only
-  release. If a source cannot support its result rules, present a concrete scope
-  decision instead of inventing completeness.
+- Qualify the working nine-goal Beta set: four friend goals for 2–6 people,
+  four personal goals and one private community steps goal. The four friend
+  leaderboards remain specified but unavailable for new real challenges under
+  D140. All four goal-metric sources must pass before TestFlight; steps-first
+  implementation is not a steps-only release. If a source cannot support its
+  result rules, present a concrete scope decision instead of inventing completeness.
 - The iPhone reads eligible Watch-origin activity; there is no GameTime Watch
   app. Empty/missing data never proves zero or a missed goal. Keep consent,
   admission limits, correction/review time, exact retries, privacy and safe exits.
@@ -75,7 +77,7 @@ or external acceptance.
 | --- | --- | --- |
 | P9A — adopt Signal natively | Local implementation and verification recorded in the native report; preserve its source and continue with P9 integration. | Independent of P7 and hosting; current stores, closed clients and explicit local fixtures. |
 | P7 — preserve owner sign-off | The owner closed measured testing; D138 supplies source and tolerance rules. Preserve the [performed observations](../outputs/reports/2026-09-18-p7-device-session.md) and keep unenforceable capabilities unavailable. | No repeated measured run is requested. The Exercise causal-origin limit remains explicit. |
-| P8 → P9 — complete a real journey | Local implementation and synthetic ordinary-app checks are recorded in the [P9 report](../outputs/reports/2026-09-20-p9-signal-real-activity.md). Preserve nine goal policies, four unavailable leaderboard states and exact shared delivery. | All four usable sources and all 13 policies remain required for distribution; local source/ingestion checks do not meet that gate. |
+| P8 → P9 — complete a real journey | Local implementation and synthetic ordinary-app checks are recorded in the [P9 report](../outputs/reports/2026-09-20-p9-signal-real-activity.md). Preserve nine goal policies, four unavailable leaderboard states and exact shared delivery. | All four goal-metric sources and the enabled nine-goal set require source-backed acceptance for distribution; local source/ingestion checks do not meet that gate. |
 | P10 follow-through → P11 — operate one backend | Use the existing worksheet to select settings. Implement missing scheduler/recovery, scoped operator access, alerts, account deletion and approved retention. Test locally, then deploy/exercise only the authorized target. | Independent local operating code can accompany P7; hosting needs approved settings/actions, and real activity operation needs P8/P9. |
 | P12 + P13 — qualify one candidate | Integrate chosen native UI and real Apple sign-in/HTTPS links. Run the release matrix once, plus device/accessibility/comprehension and operating checks. Fix defects and complete gated legacy shell retirement. | Integrated source-backed candidate; authorization for actual hosting and device checks. |
 | Private TestFlight, then public launch | After acceptance/authorization, run a small supervised simulated pilot, fix observed problems, then prepare the App Store release. | Actual Beta results, working support and separate submission/release authorization. |
@@ -102,7 +104,8 @@ The journey is Apple sign-in → 21+ confirmation → create/open invitation →
 propose/freeze/consent → activity update → correction → review → final simulated
 history. Also exercise community join, withdrawal, block/report, account switch,
 expired session, relaunch and lost-response recovery. Verify two- and six-person
-journeys and all 13 policies using existing coverage.
+journeys and the nine enabled goal policies using existing coverage. Confirm the
+four friend leaderboard modes remain unavailable for new real challenges.
 
 Use the official Signal UI completed in P9A; do not restart the migration. Match charts to
 available authorized data; absent daily values are unknown, not invented points.
@@ -151,7 +154,7 @@ from participant data.
 | Milestone | Evidence needed |
 | --- | --- |
 | Working local Beta | Identified native candidate; P8/P9 contracts and functioning journeys; focused checks on final code. This does not establish physical, hosted or distribution acceptance. |
-| Ready for private TestFlight | Four accepted sources; 13 usable policies; approved community settings; real Apple sign-in/HTTPS links; hosted capacity/recovery; account deletion/support/privacy/terms; physical accessibility and human consent/result/exit comprehension; accepted replacement and actual signed binary; exact distribution/recruitment approval. |
+| Ready for private TestFlight | Four accepted goal-metric sources; nine usable goal policies and four unavailable friend leaderboard states; approved community settings; real Apple sign-in/HTTPS links; hosted capacity/recovery; account deletion/support/privacy/terms; physical accessibility and human consent/result/exit comprehension; accepted replacement and actual signed binary; exact distribution/recruitment approval. |
 | Public simulated launch — recommendation | Beta demonstrates credible updates/results, usable exits/reviews and manageable support. Fix blockers, select regions and initial enrollment limit, prepare truthful metadata/screenshots/privacy declarations and review access, and obtain App Review plus owner release authorization. |
 | Funded launch — separate future work | Provider, funds flow, jurisdiction/platform clearance, source integrity under stakes and payment/reconciliation controls under PLAN.md Phase 6. Beta/design passes do not satisfy these requirements. |
 
@@ -165,7 +168,7 @@ submission tasks, not another feature phase.
 Official guidance was checked September 13; recheck at actual submission.
 
 The existing 20–30-adult/two-round pilot is a proposal, not a recruited cohort or
-a launch gate by headcount. Use D134's 2–6-person rules and all-mode availability,
+a launch gate by headcount. Use D134's 2–6-person rules and D140's nine-goal Beta scope,
 not the older weekly 2–5 contract. Predeclare the actual cohort and checks.
 Observe a full activity/correction/review/result cycle; report missingness,
 comprehension, voluntary return, support burden and pressure. Manual feedback is

@@ -77,7 +77,8 @@ Class names alone do not prove a visual migration; renaming cobalt is insufficie
 5. **Verify and record:** build the affected native app; run focused rendering
    and journey regressions on the final source. Capture ordinary signed-out and
    signed-in routes, compact/large text, light/dark and solid/reduced-motion states.
-   Check all 13 policies, two/six-person layouts, long rules, unknown/missing data,
+   Check the nine goal policies and four unavailable leaderboard states,
+   two/six-person layouts, long rules, unknown/missing data,
    account transitions and retained Personal access. Record source identity,
    route coverage, actual results and any unperformed device/human checks.
 

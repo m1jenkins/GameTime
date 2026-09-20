@@ -93,8 +93,9 @@ The non-executable [settings worksheet](release/beta/hosted-settings.draft.json)
 records the runtime selection separately from unapproved hosted settings.
 D138/D139 already settle source rules, Exercise credit v2 and inclusive 100–102%
 whole-run distance. Older worksheet placeholders do not reopen those decisions.
-Nine locally available goal policies and four unavailable leaderboards do not
-satisfy the unchanged four-metric/all-13 release requirement. Scheduling cannot
+Nine locally available goal policies form D140's working Beta scope; four friend
+leaderboards remain unavailable for new real challenges. Four goal-metric source
+acceptance and other release gates remain open. Scheduling cannot
 establish complete rankings or confirmed misses from incomplete observations.
 
 P11B still needs the exact candidate/project/organization/region and budget;
@@ -358,7 +359,7 @@ quotas and reinstatement. A local report save is not a monitored support service
 | Exact host, budget, identity, credentials, support, retention and publication settings | Existing release-readiness-b7 decision; fill/approve worksheet. No device participation needed to make these decisions later; no decisions fabricated while owner is away. |
 | Four accepted source policies and timed band | P7 physical opt-in and actual observations; no Simulator substitute. |
 | Real admission, minimum facts/integrity, nonfixture worker/publication boundary | P8 and subsequent reviewed integration; do not repurpose fixture gates. |
-| HTTPS/native Apple/link integration and actual source journeys | P9 plus approved identities. All 13 policies, two/six-person isolation and historical Personal preservation. |
+| HTTPS/native Apple/link integration and actual source journeys | P9 plus approved identities. Nine enabled goal policies, four unavailable leaderboard states, two/six-person isolation and historical Personal preservation. |
 | Hosted scheduler credential isolation, dispatch journal, alert redaction/delivery, safe pause and recovery | Approved target/actions plus source-backed integration; repeat current local drills there. |
 | Legacy job/API/Edge allowlist and backup/retention workflow | Review before any deployment; preserve existing agreements and old receipt meanings. |
 | Hosted capacity/recovery, immutable release candidate, physical/human accessibility/comprehension | P11–P13 under their separate approvals. TestFlight/recruitment still require explicit authorization. |

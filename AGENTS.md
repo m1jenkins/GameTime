@@ -58,8 +58,9 @@ the same commit as the copy. Do not change historical consent strings.
 ## Product boundaries
 
 Future product authority is PROJECT_MEMORY.md, docs/BUSINESS_MODEL.md,
-docs/BETA_IMPLEMENTATION_PLAN.md, PLAN.md and D123/D134/D135. Beta and design
-documents describing solo-only behavior govern the
+docs/BETA_IMPLEMENTATION_PLAN.md, PLAN.md and D123/D134/D135/D140. D140 removes
+the all-13-policy Beta distribution gate while preserving deferred leaderboard
+rules. Beta and design documents describing solo-only behavior govern the
 existing Personal implementation or their dated exploration, not future scope.
 Preserve Personal, Solo and legacy charity agreements and their test-only or
 sandbox restrictions. D134 plans to remove legacy Personal creation, navigation,

@@ -17,8 +17,10 @@ private schemas unexposed and no community selected. The bounded checks passed.
 D138/D139 source rules remain adopted. P9 supplies nine available goals and
 four unavailable leaderboards; strict Exercise v1 is preserved and Exercise
 credit v2 is separately versioned. Incomplete history cannot establish misses
-or full rankings. All 18 external gates and checked-in transport remain closed;
-the four-metric/all-13 release requirement remains unmet. Active operation,
+or full rankings. D140 removes the all-13 Beta distribution gate: the working
+Beta scope is nine goals, with four friend leaderboards deferred. All 18 external
+gates and checked-in transport remain closed; the four goal-metric source gate
+and other release acceptance remain unmet. Active operation,
 remaining identity/operating decisions, named operators and broader acceptance
 remain separate. Use the [next planning prompt](docs/P11B_NEXT_PLANNING_PROMPT.md)
 without repeating completed local or installation checks.

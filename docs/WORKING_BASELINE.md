@@ -46,8 +46,9 @@ above adds only its approved closed hosted configuration and checks. Active
 operation, named operators and remaining operating settings are separate.
 External alerts, hosted capacity/recovery, physical/human
 acceptance and release qualification remain unperformed. All 18 readiness
-entries stay false; nine goal policies and four unavailable leaderboards leave
-the four-metric/all-13 release constraint unchanged. The older P9 next-planning
+entries stay false; D140 makes the nine goals the working Beta scope and defers
+the four unavailable leaderboards. Four goal-metric source acceptance and other
+release gates remain open. The older P9 next-planning
 prompt below is dated context, not a request to repeat this completed slice.
 
 ## September 20 P9 local continuation
@@ -64,7 +65,9 @@ synthetic native, Edge, SQL and populated-upgrade checks and their limits.
 New agreements can use nine goal policies: four friend, four Personal and
 community steps. Four real leaderboards show **Leaderboard — Not available yet**.
 Positive activity can prove success; incomplete history never establishes a
-miss or complete ranking. The four-metric/all-13 release gate is unchanged.
+miss or complete ranking. Under D140, these nine goals form the working Beta
+scope; the four friend leaderboards no longer gate distribution. Four goal-metric
+source acceptance and the other release gates remain open.
 All external readiness entries and checked-in gates stay closed.
 
 The sections below preserve the earlier source states and evidence. P7 remains
@@ -189,7 +192,7 @@ preserved requirements and dependency order:
   the P9 branch. Exercise credit v2 accepts disclosed unknown causal origin;
   strict v1, complete leaderboards and confirmed misses remain unavailable.
   Approved HTTPS/Apple identity and invitations, operated source-backed journeys
-  and all-13 release acceptance are not established by synthetic local checks.
+  and nine-goal release acceptance are not established by synthetic local checks.
 - P10/P11: approved hosted identity/settings, scheduled operation, credentials,
   alerts, retention/deletion and recovery/capacity acceptance. Local worker,
   scoped operator CLI and deletion implementation are complete; administrator
