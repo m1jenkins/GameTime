@@ -6,6 +6,93 @@ using its existing handoff, rollout, privacy and operator material. It creates
 no duplicate decision/task. The current source and performed checks are in the
 [P10 handoff](../outputs/reports/2026-09-12-p10-completion.md).
 
+## September 20 local Cron and Edge continuation
+
+The owner selected **Supabase Cron + Edge** for a bounded local P11 continuation
+from reviewed P9 `fa97cb26b5e13e6ebf86e9acebd02f255c3b50e8`. The restricted machine
+boundary described as unfinished in the dated P10 inventory below is now
+implemented locally. The [P11 report](../outputs/reports/2026-09-20-p11-local-scheduling.md)
+owns exact source, performed checks, failures and remaining limits. This does
+not select a hosted project, credentials, operating policy or deployment.
+
+| Fixed interface | Authentication and permitted work |
+| --- | --- |
+| `challenge-worker` | Worker secret; exact `{invocation_id}` only. Executes a server-prepared due-work invocation, then separate fenced completion RPCs. |
+| `challenge-snapshot` | Worker secret; exact `{invocation_id}` only. Executes a prepared snapshot for the community selected in private configuration. |
+| `challenge-monitor` | Distinct monitor secret; exact `{}` only. Reads allowlisted worker, review/appeal and selected-community operational projections. |
+
+The Edge handlers check dedicated secrets before any database access. Ordinary
+user/public credentials and the other dispatch role cannot authorize a route.
+`GAMETIME_CHALLENGE_WORKER_SECRET` and `GAMETIME_CHALLENGE_MONITOR_SECRET` must
+be different, 32–256 characters, and supplied only to the server. Their Vault
+references belong in private `app.challenge_schedule_config_v1`. No secret is
+installed by the migration. Its URL is a reviewed origin plus `/functions/v1`;
+the bridge appends fixed endpoint names. Requests cannot choose a URL, cohort,
+scope, RPC, runtime setting, publication, grant, deletion or recovery operation.
+The internal service key still carries broad service authority; these dispatch
+secrets restrict the external interface, not that key's underlying privilege.
+The human operator CLI and its loopback restrictions are unchanged.
+
+Private configuration starts disabled, without destination, secrets or selected
+community. Missing values report `unconfigured` and queue nothing. The three
+`challenge-*-v1` jobs are registered inactive with supported `cron.alter_job`
+in the same migration transaction. **Local implementation defaults**, still
+unapproved for hosting: worker every 60 seconds, batch 20, five completion lanes,
+five-second RPC timeout; snapshot every 900 seconds; monitor every 60 seconds.
+Worker requests have a 50-second total budget inside a 60-second database lease.
+PostgREST must hoist the function's statement timeout before its RPC; local
+verification checks the installed PostgREST version and actual blocking calls.
+Cron sets its timeout before calling the private bridge. Lock waits are also
+bounded. No product admission, fixture, source or release-readiness default opens.
+
+Cron persists the invocation and exact parameters before enqueueing `pg_net`.
+HTTP begins only after that transaction commits. The saved invocation and item
+receipts, rather than unlogged request IDs or responses, govern recovery. An
+overlapping tick cannot prepare another unfinished pass. A competing Edge run
+receives `busy`; a restarted process resumes the same saved claims after the run
+lease expires. Separate completion transactions hold shared run locks, which
+allow five lanes while fencing takeover and finish. Expired item claims require
+a fresh invocation; old claim tokens cannot overwrite a later result. Existing
+three-attempt RPC retries, five-attempt item limits, backoff and separately
+privileged item recovery remain. Transport loss retries the saved invocation on
+a later tick; it never fabricates a completion or resets an item's retry budget.
+Changing the privately selected community fences a pending old-cohort snapshot
+and frees the slot for the new selection; returning to an earlier selection
+resumes its retained prepared invocation without applying it to another cohort.
+
+The official [pg_net transaction and durability contract](https://supabase.com/docs/guides/database/extensions/pg_net),
+[Cron activation controls](https://supabase.com/docs/guides/cron/quickstart) and
+[PostgREST function timeout settings](https://postgrest.org/en/latest/references/transactions.html#hoisted-function-settings)
+were checked for this implementation. The public Supabase changelog's new-object
+exposure change is handled with explicit grants/revocations and private schemas.
+
+Monitoring stays read-only and distinguishes unconfigured, disabled, paused,
+unavailable, empty and failed work. It checks all three actual Cron jobs'
+activation as well as configuration and processing gates. Snapshot `checked`
+means the invocation succeeded; capture time and invocation time remain separate.
+No member/participant counts, identifiers, claim tokens, Health facts, payloads,
+invitation paths or raw errors enter machine responses. External alert delivery,
+staffing, thresholds, retention, capacity and detection of a whole-project outage
+still need P11B operating acceptance. The local sink is a test artifact only.
+
+The non-executable [settings worksheet](release/beta/hosted-settings.draft.json)
+records the runtime selection separately from unapproved hosted settings.
+D138/D139 already settle source rules, Exercise credit v2 and inclusive 100–102%
+whole-run distance. Older worksheet placeholders do not reopen those decisions.
+Nine locally available goal policies and four unavailable leaderboards do not
+satisfy the unchanged four-metric/all-13 release requirement. Scheduling cannot
+establish complete rankings or confirmed misses from incomplete observations.
+
+P11B still needs the exact candidate/project/organization/region and budget;
+credential custody and rotation; named primary/backup operators, independent
+reviewers, support and alert destinations; approved operating limits and actions;
+backup/RPO/RTO, retention and provider-log treatment; and community target,
+amount, dates, timezone, capacity and outcome minimum. Apple/domain/client
+identities remain necessary when connecting the app. Scoped local account
+deletion approval does not approve broader hosted retention or backups.
+
+## Dated preparation inventory
+
 Current September 19 status: [main consolidation](../outputs/reports/2026-09-19-main-consolidation.md)
 includes configured HTTPS invitations, durable administrator recovery, repaired
 suspended-account access and service-only review/appeal/snapshot monitoring.

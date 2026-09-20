@@ -1,9 +1,29 @@
 # GameTime working baseline
 
-Read `git status --short --branch` and `git log -1` first. The current local P9
-continuation is `codex/p9-signal-real-activity`, directly from P8 `8a9d1f0`;
-local `main` advanced separately to `cb3a0ec`, containing P8 but not P9. Use this branch or a verified
-descendant for continuation, not an older main checkout. No push or merge is implied.
+Read `git status --short --branch` and `git log -1` first. The current local
+continuation is `codex/p11-local-scheduling`, from reviewed P9 `fa97cb26`, which
+contains P8 `8a9d1f0`. Local `main` at `cb3a0ec` contains P8 but not P9 or this
+continuation. Use the reviewed task branch or a verified descendant. No push or
+merge is implied.
+
+## September 20 local P11 scheduling boundary
+
+The owner selected Supabase Cron + Edge. Three fixed machine interfaces now
+connect durable worker invocations, selected-community snapshots and sanitized
+read-only monitoring. Dedicated worker and monitor credentials have separate
+authority; new Cron jobs and private configuration start off. The
+[local report](../outputs/reports/2026-09-20-p11-local-scheduling.md) owns exact
+source, performed checks, failures, resource cleanup and remaining limits. The
+[hosting worksheet](BETA_HOSTED_PREPARATION.md#september-20-local-cron-and-edge-continuation)
+records local defaults separately from unapproved hosted settings.
+
+This completes only the bounded local scheduling connection. P11B needs an exact
+approved project/candidate, settings, cost, credential custody, operators and
+permitted actions. External alerts, hosted capacity/recovery, physical/human
+acceptance and release qualification remain unperformed. All 18 readiness
+entries stay false; nine goal policies and four unavailable leaderboards leave
+the four-metric/all-13 release constraint unchanged. The older P9 next-planning
+prompt below is dated context, not a request to repeat this completed slice.
 
 ## September 20 P9 local continuation
 

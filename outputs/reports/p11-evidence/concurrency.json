@@ -1,0 +1,11 @@
+{
+  "checks": {
+    "concurrent_completion_one_exact_receipt": true,
+    "concurrent_edge_one_run_exact_dispatch_receipt": true,
+    "five_shared_locks_fence_finish": true,
+    "postgrest_lock_timeout_four_seconds": true,
+    "simultaneous_ticks_one_invocation": true,
+    "takeover_blocks_stale_completion": true
+  },
+  "postgrest_lock_elapsed_seconds": 4.03
+}

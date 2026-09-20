@@ -1,0 +1,114 @@
+{
+  "credential_and_operation_denials": 27,
+  "cron_responses": {
+    "monitor": {
+      "body": {
+        "observed_at": "2026-09-20T08:09:00.093193+00:00",
+        "reviews": {
+          "appeals_without_eligible_operator_count": 0,
+          "monitoring_state": "available",
+          "outstanding_review_count": 0,
+          "pending_appeal_count": 0,
+          "reviews_without_eligible_operator_count": 0
+        },
+        "snapshot": {
+          "capture_state": "enabled",
+          "last_attempt_state": "none",
+          "snapshot_state": "missing"
+        },
+        "state": "available",
+        "worker": {
+          "abandoned_count": 0,
+          "admission_paused": true,
+          "dead_letter_count": 0,
+          "due_count": 1,
+          "failed_count": 0,
+          "processing_paused": false,
+          "processing_state": "available",
+          "recent_failure_count": 0,
+          "retry_count": 0
+        }
+      },
+      "http_status": 200
+    },
+    "snapshot": {
+      "body": {
+        "capture_age_seconds": 0,
+        "last_capture_at": "2026-09-20T08:09:00.147608+00:00",
+        "last_successful_invocation_wall_at": "2026-09-20T08:09:00.147095+00:00",
+        "server_time": "2026-09-20T08:09:00.151727+00:00",
+        "status": "checked"
+      },
+      "http_status": 200
+    },
+    "worker": {
+      "body": {
+        "completed_count": 1,
+        "failed_count": 0,
+        "pending_count": 0,
+        "server_time": "2026-09-20T08:09:00.158667+00:00",
+        "status": "completed"
+      },
+      "http_status": 200
+    }
+  },
+  "kind": "p11-local-scheduling-acceptance-v1",
+  "monitor_read_only": true,
+  "operating_assertions": {
+    "legacy_gates_closed": true,
+    "no_legacy_facts": true,
+    "only_new_jobs_ran": true,
+    "prepared_before_http_completion": true,
+    "real_notice": true,
+    "selected_capture": true,
+    "unselected_private": true
+  },
+  "paused_monitor": {
+    "observed_at": "2026-09-20T08:09:00.332192+00:00",
+    "reviews": {
+      "appeals_without_eligible_operator_count": 0,
+      "monitoring_state": "paused",
+      "outstanding_review_count": 0,
+      "pending_appeal_count": 0,
+      "reviews_without_eligible_operator_count": 0
+    },
+    "snapshot": {
+      "capture_age_seconds": 0,
+      "capture_state": "paused",
+      "last_attempt_state": "checked",
+      "last_attempt_wall_at": "2026-09-20T08:09:00.147095+00:00",
+      "last_capture_at": "2026-09-20T08:09:00.147608+00:00",
+      "last_prepared_wall_at": "2026-09-20T08:09:00.087959+00:00",
+      "last_successful_invocation_wall_at": "2026-09-20T08:09:00.147095+00:00",
+      "snapshot_state": "recorded"
+    },
+    "state": "paused",
+    "worker": {
+      "abandoned_count": 0,
+      "admission_paused": true,
+      "dead_letter_count": 0,
+      "due_count": 0,
+      "failed_count": 0,
+      "heartbeat_age_seconds": 0,
+      "heartbeat_status": "healthy_backlog",
+      "last_heartbeat_at": "2026-09-20T08:09:00.147908+00:00",
+      "processing_paused": true,
+      "processing_state": "paused",
+      "recent_failure_count": 0,
+      "retry_count": 0
+    }
+  },
+  "process_restart_exact_replay": true,
+  "production_source_hashes": {
+    "supabase/functions/_shared/challenge_machine.ts": "d7fd2507da70eee59e366229af936dd25577d2eed891b39c20e7874c54024166",
+    "supabase/functions/challenge-monitor/database.ts": "78ba3c547a3daf55c73841c8886de9df06f1d2b902c1d69571dfd50cded01c06",
+    "supabase/functions/challenge-monitor/handler.ts": "98af5a88224c46784ae6337663330a9bf33b6bf833a98af9dae96e5de15697ff",
+    "supabase/functions/challenge-snapshot/database.ts": "98c22677b95ee8902eea47c656895658d4696046d4c430a2c07734a55e8bc827",
+    "supabase/functions/challenge-snapshot/handler.ts": "4f10f46db36d05affd8238fdc104f1610a2b251ce07951fe2a6ae935d733b9c2",
+    "supabase/functions/challenge-worker/database.ts": "507800dd831d86d8f3acd308f14848e9b3710eaaed6d428004f2e42c675262ed",
+    "supabase/functions/challenge-worker/handler.ts": "784529e85feacc6896fefd2486cbe41f9e7b10484e8d7c3049a05f0641d63592"
+  },
+  "result": "passed",
+  "snapshot_test_schedule_override": "one bounded minute; restored to */15 * * * *",
+  "unavailable_transport_reported": true
+}

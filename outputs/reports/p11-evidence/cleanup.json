@@ -1,0 +1,20 @@
+{
+  "checked_before_removal": {
+    "historical_agreement_digest_preserved": true,
+    "jobs_inactive": true,
+    "legacy_and_real_runtime_off": true,
+    "migration_hash_matches_source": true,
+    "private_configuration_off": true
+  },
+  "kind": "p11-local-cleanup-v1",
+  "minimal_edge_stage_removed": true,
+  "other_project_resources_modified": false,
+  "owner": "gametime-p8-real-health-74148a6f4955",
+  "private_manifests_removed": true,
+  "remaining_owned_resources": {
+    "containers": 0,
+    "images": 0,
+    "networks": 0
+  },
+  "temporary_runtime_image_removed": true
+}

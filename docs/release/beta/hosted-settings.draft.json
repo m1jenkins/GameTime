@@ -17,7 +17,18 @@
     "disclosure_minimum_snapshot_age_seconds": 900,
     "watch_app": false,
     "paired_watch_required_for_launch": true,
-    "raw_health_uploads": false
+    "raw_health_uploads": false,
+    "scheduler_runtime": "supabase_cron_edge"
+  },
+  "local_scheduler_implementation": {
+    "record": "docs/BETA_HOSTED_PREPARATION.md#september-20-local-cron-and-edge-continuation",
+    "hosted_settings_approved": false,
+    "jobs_registered_inactive": true,
+    "private_configuration_default_off": true,
+    "separate_worker_and_monitor_credentials": true,
+    "external_alert_delivery_accepted": false,
+    "source_rules_already_selected": ["D138", "D139"],
+    "source_rule_placeholders_reopen_owner_decisions": false
   },
   "owner_inputs": {
     "approved_candidate_commit": null,
