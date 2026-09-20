@@ -1,0 +1,21 @@
+{
+  "title": "Test - GameTime",
+  "result": "Failed",
+  "totalTestCount": 4,
+  "passedTests": 3,
+  "failedTests": 1,
+  "skippedTests": 0,
+  "startTime": 1789884932.969,
+  "finishTime": 1789885306.029,
+  "testFailures": [
+    {
+      "failureText": "XCTAssertEqual failed: (\"Optional(500)\") is not equal to (\"Optional(200)\")",
+      "targetName": "GameTimeTests",
+      "testIdentifier": 4,
+      "testIdentifierString": "ChallengeHealthOrdinaryAppTests/testZCommunityReadinessDisclosureAndOutcomeMinimum()",
+      "testIdentifierURL": "test://com.apple.xcode/GameTime/GameTimeTests/ChallengeHealthOrdinaryAppTests/testZCommunityReadinessDisclosureAndOutcomeMinimum",
+      "testName": "testZCommunityReadinessDisclosureAndOutcomeMinimum()"
+    }
+  ],
+  "xcresult": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/result-bundles/test_sim_2026-09-20T06-15-24-820Z_pid30447_d5a23533.xcresult"
+}

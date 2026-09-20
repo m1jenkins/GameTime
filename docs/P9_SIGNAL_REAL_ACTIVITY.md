@@ -142,7 +142,12 @@ The current native tests read `/private/tmp/gametime-p9/native.json`; use that
 path for this harness or deliberately change the test-only locator. The controller
 creates fictional Auth actors, verifies synthetic assertions through actual Edge
 handlers and PostgREST, and changes only its owned source clock. Run the ordinary
-AppModel tests before the June UI journey, serially. `--authenticated-app-local
+AppModel tests before the June UI journey, serially. The full four-metric matrix
+respects actor-wide server quotas and can exceed the MCP five-minute reply limit;
+the underlying Xcode result bundle remains authoritative. A failed community
+run can leave its single published fixture open. For a fresh publication, rebuild
+only this manifest-owned disposable stack instead of bypassing the one-community
+rule or deleting product history. `--authenticated-app-local
 --p9-synthetic-health` is explicitly local-only and instantiates no physical
 Health reader or Apple signer. Full product periods are advanced with the source
 clock, not shortened. SIGTERM restores the prior clock, closes local ingestion
