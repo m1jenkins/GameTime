@@ -32,8 +32,9 @@ uses Signal across new and retained routes; the report records verification and
 remaining device/human limits. D134/D135 product rules and historical access are
 preserved. The [bounded P9 connection](../outputs/reports/2026-09-15-p9-authenticated-app.md)
 now reuses the ordinary app's authenticated session, with checked-in transport
-still off. Approved hosting/identities, real sources and source-backed journeys
-remain P8/P9 work.
+still off. D138 supplies source and timed-distance rules. The [P8 contract](P8_REAL_HEALTH_CONTRACT.md)
+records local implementation and the Exercise causal-origin limit. Approved
+hosting/identities and source-backed native journeys remain P9 work.
 
 ## Product contract
 
@@ -419,9 +420,11 @@ profile photos, or public deployment are included.
 - StepBet and WayBetter support only the general return-plus-possible-share
   concept; they do not select GameTime's target, duration, capacity, amount, or
   concurrency policy.
-- The timed-run distance tolerance and community target/capacity/timezone/amount
-  require owner approval from recorded device and human evidence. Their server
-  policies stay disabled until then.
+- D138 selects inclusive 100–102% whole-workout timed distance and closes the
+  owner's measured P7 effort. Community target/capacity/timezone/amount still
+  require owner approval from recorded human evidence. Checked-in source and
+  external transport gates remain closed; local implementation does not approve
+  hosted operation or distribution.
 - Hosted mutation, TestFlight distribution, participant recruitment, legacy
   Personal-data deletion, and any destructive cleanup remain explicit rollout
   actions—not consequences of completing local code.

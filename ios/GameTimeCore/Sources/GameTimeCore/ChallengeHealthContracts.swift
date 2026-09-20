@@ -66,6 +66,42 @@ public struct ChallengeHealthSourcePolicy: Equatable, Sendable, Encodable {
     public var acceptsRealSources: Bool { false }
 }
 
+/// A separately versioned identity for a real-source adapter. This is a frozen
+/// agreement input, not an authorization or a transport capability. V1 has
+/// its own Watch-origin source-revision tuple rules and fails closed outside
+/// those rules. It does not assert that a particular currently paired Watch
+/// supplied a sample.
+public struct ChallengeHealthRealSourcePolicy: Equatable, Sendable, Encodable {
+    public let identifier: String
+    public let version: Int
+    public let metric: ChallengeHealthMetric
+
+    private init(identifier: String, version: Int, metric: ChallengeHealthMetric) {
+        self.identifier = identifier
+        self.version = version
+        self.metric = metric
+    }
+
+    public static let appleWatchAutomaticStepsV1 = Self(
+        identifier: "apple_watch_steps_v1",
+        version: 1,
+        metric: .steps
+    )
+    /// The reader can normalize Apple Exercise Time, but public HealthKit
+    /// cannot prove the workout/activity lineage that generated it.
+    public static let appleWatchExerciseV1 = Self(
+        identifier: "apple_watch_exercise_v1",
+        version: 1,
+        metric: .exerciseSeconds
+    )
+    public static let appleWorkoutOutdoorDistanceV1 = Self(
+        identifier: "apple_workout_outdoor_distance_v1", version: 1, metric: .runningMillimeters
+    )
+    public static let appleWorkoutOutdoorTimedV1 = Self(
+        identifier: "apple_workout_outdoor_timed_v1", version: 1, metric: .timedRunElapsedSeconds
+    )
+}
+
 public struct ChallengeHealthBinding: Equatable, Sendable, Encodable {
     public let actorID: UUID
     public let challengeID: UUID
@@ -74,6 +110,10 @@ public struct ChallengeHealthBinding: Equatable, Sendable, Encodable {
     public let metric: ChallengeHealthMetric
     public let challengeWindow: ChallengeHealthWindow
     public let sourcePolicy: ChallengeHealthSourcePolicy
+    /// nil keeps the historical synthetic/unaccepted contract exactly closed.
+    public let realSourcePolicy: ChallengeHealthRealSourcePolicy?
+    /// Frozen `config.distance_mm` for real timed V1; nil preserves history.
+    public let selectedDistanceMillimeters: Int64?
 
     public init(actorID: UUID, challengeID: UUID, agreementVersion: Int,
                 termsDigest: String, metric: ChallengeHealthMetric,
@@ -88,12 +128,40 @@ public struct ChallengeHealthBinding: Equatable, Sendable, Encodable {
         self.metric = metric
         self.challengeWindow = challengeWindow
         self.sourcePolicy = .unaccepted
+        self.realSourcePolicy = nil
+        self.selectedDistanceMillimeters = nil
+    }
+
+    public init(actorID: UUID, challengeID: UUID, agreementVersion: Int,
+                termsDigest: String, metric: ChallengeHealthMetric,
+                challengeWindow: ChallengeHealthWindow,
+                realSourcePolicy: ChallengeHealthRealSourcePolicy,
+                selectedDistanceMillimeters: Int64? = nil) throws {
+        guard realSourcePolicy.metric == metric else {
+            throw ChallengeHealthContractError.invalidAgreement
+        }
+        guard agreementVersion > 0, termsDigest.utf8.count == 64,
+              termsDigest.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) })
+        else { throw ChallengeHealthContractError.invalidAgreement }
+        self.actorID = actorID
+        self.challengeID = challengeID
+        self.agreementVersion = agreementVersion
+        self.termsDigest = termsDigest
+        self.metric = metric
+        self.challengeWindow = challengeWindow
+        self.sourcePolicy = .unaccepted
+        self.realSourcePolicy = realSourcePolicy
+        guard selectedDistanceMillimeters == nil || (1...1_000_000_000).contains(selectedDistanceMillimeters!),
+              realSourcePolicy != .appleWorkoutOutdoorTimedV1 || selectedDistanceMillimeters != nil else {
+            throw ChallengeHealthContractError.invalidAgreement
+        }
+        self.selectedDistanceMillimeters = selectedDistanceMillimeters
     }
 }
 
 /// Raw history is local only. This request intentionally has no serialization.
 public struct ChallengeHealthReadRequest: Equatable, Sendable {
-    public enum Purpose: Sendable { case readinessHistory, challengeActivity }
+    public enum Purpose: Equatable, Sendable { case readinessHistory, challengeActivity }
     public let binding: ChallengeHealthBinding
     public let deviceRequestID: UUID
     public let queryWindow: ChallengeHealthWindow

@@ -428,6 +428,10 @@ verify_jwt = false
 enabled = true
 verify_jwt = false
 
+[functions.ingest-challenge-health]
+# JWT, live session, exact App Attest bytes, and default-off DB gates are checked by the new boundary.
+verify_jwt = false
+
 [functions.ingest-checkin]
 enabled = true
 verify_jwt = false

@@ -60,10 +60,12 @@ enum ChallengeHealthFixtures {
     static func record(_ id: Int = 10, metric: WeeklySourceMetric = .steps,
                        start: Double = 10, end: Double = 70, value: Double = 100,
                        manual: Bool? = false, source: String? = "synthetic.source",
+                       productType: String? = nil,
                        sync: String? = nil, syncVersion: Int? = nil,
                        activeDuration: Double? = nil) -> WeeklySourceRecord {
         WeeklySourceRecord(id: Self.id(id), metric: metric, start: date(start), end: date(end), value: value,
             sourceBundleIdentifier: source, sourceVersion: "fixture-version",
+            sourceProductType: productType, sourceOperatingSystemVersion: "fixture-os",
             deviceManufacturer: "synthetic-manufacturer", deviceModel: "synthetic-device-private",
             wasUserEntered: manual, syncIdentifier: sync, syncVersion: syncVersion,
             reportedWorkoutDurationSeconds: activeDuration)

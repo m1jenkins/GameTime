@@ -4914,3 +4914,43 @@ Actual real-source admission and scoring still require explicit policy terms;
 the fictional fixtures cannot become the real path by a flag change. The
 all-mode distribution, historical-agreement, no-missing-data-loss, hosted,
 human and release gates remain unchanged.
+
+### D138. Owner selects P8 source rules and whole-run distance tolerance
+
+**Explicit owner direction, September 19, 2026:** implement and locally verify
+P8 in order: steps, Apple Exercise Time, cumulative running distance, then timed
+running. This supersedes D137's unspecified policy inputs, not its historical
+observation record. Accept Apple's automatic Watch-origin steps and Exercise
+Time and outdoor running recorded by Apple's built-in Workout app. Exclude
+iPhone-only contributions, manual entries, imports and third-party recordings.
+Allow multiple Watches when their activity can be reconciled without double
+counting; no fixed-Watch requirement is adopted.
+
+A whole running workout must start at or after the frozen start and finish at
+or before the frozen end. Exclude crossing workouts rather than split, extract
+segments or scale performance. For timed running, the recorded distance must
+be **100–102% of the selected distance, inclusive**: 5.00–5.10 km for 5 km. Use
+the whole workout's start-to-finish elapsed time, including pauses, rounded up
+to whole seconds. Qualification remains strictly `elapsed < target`. Normalize
+activity totals downward to whole steps, seconds and millimetres; preserve
+normalized ties and the existing thirteen allocation policies.
+
+The owner reports successful measured runs and considers physical validation
+finished. Do not restart P7 or request additional measured runs. This sign-off
+and selected tolerance are owner decisions; they do not create numerical
+accuracy measurements or change the dated P7 observations.
+
+Implementation must keep provenance uncertainty, ambiguous overlaps, unexplained
+disappearances, partial reads and missing activity unresolved. A query's success
+or an authentic app cannot establish complete Health history or a confirmed
+miss. Supported source APIs must enforce the policy; a concrete platform limit
+keeps the affected capability unavailable while independent work continues.
+Record implementation and software verification separately in the
+[P8 handoff](docs/P8_REAL_SOURCE_PREPARATION.md).
+
+This authorizes local code and software verification using an owned disposable
+database and synthetic inputs through the new ingestion/processing path.
+Checked-in transport and external readiness remain closed. No hosted mutation,
+distribution, recruitment, money or physical Health upload is authorized.
+Signal, historical agreements/consent and completed recovery work remain intact;
+broader P9 integration and P12/P13 acceptance remain separate.
