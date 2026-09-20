@@ -6,6 +6,12 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+The September 20 [activation receipt](../outputs/reports/2026-09-20-p11-hosted-activation.md)
+records scheduled operation on an empty backend: worker, monitor and processing
+remain enabled after bounded acceptance. This supersedes their inactive state
+in the installation record below; other gates remain closed, no community is
+selected, and full operational acceptance and a usable beta remain unestablished.
+
 ## September 20 bounded P11B hosted installation
 
 The [installation receipt](../outputs/reports/2026-09-20-p11b-hosted-installation.md)
