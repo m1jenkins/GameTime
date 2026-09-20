@@ -13,7 +13,7 @@ records the owner's authorized Staging connection to `gametime-p11b`, deployment
 of the existing App Attest and signed Health endpoints, and the new project-local
 account guard. Staging now targets the selected backend with ordinary Signal
 transport enabled; Debug/Release and historical credentials/data are preserved.
-The app is installed on Mason's iPhone. Account setup, enrollment, real readiness
+The app is installed and launched normally on Mason's iPhone. Account setup, enrollment, real readiness
 and deliberate goal consent are still pending phone interaction. Real admission
 and ingestion remain closed until enrollment. This is a private device milestone,
 not wider Beta readiness; use the receipt's exact performed/pending checks.

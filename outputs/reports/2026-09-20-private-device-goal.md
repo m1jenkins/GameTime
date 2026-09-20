@@ -56,7 +56,10 @@ code signature were checked. The installed executable SHA-256 is
 `6ce6afffe06f0f5bf7e46c7f214153fb574c786b2be1eed1e11c2d2f3323274e`. `scripts/check-iphone-product.py` passed with no
 Watch app or WatchConnectivity payload. The app was installed over the existing
 Staging app on Mason's iPhone (iOS 27.2). Launch initially failed because the
-phone was locked; unlock and ordinary launch are pending owner action.
+phone was locked. After the owner unlocked it, a fresh Staging build from local
+main `1752009` passed, was installed in place, and launched successfully with no
+arguments (process 4694). The rebuilt installed executable SHA-256 is
+`e562ffa3c086f4715174d699987b673baf5337aa157e9ddf2d0a48a3befb38a8`.
 
 ## Focused checks performed
 
@@ -92,7 +95,7 @@ After one saved agreement, relaunch and refresh must retain that same goal.
 The last hosted setup readback had zero Auth users, profiles, 21+ confirmations,
 registered devices and challenges. No real Health record or consent has been
 created on the owner's behalf. The phone was installed in place; its container
-was never removed. The only launch attempt used no fixture/investigation flags.
+was never removed. Neither launch attempt used fixture/investigation flags.
 
 Resume on the phone: open GameTime Staging, use Apple sign-in, complete the
 name/username form, then save the 21+ confirmation in Challenges. Verify that
