@@ -99,6 +99,8 @@ Develop from `main` in `/Users/user/Documents/GitHub/GameTime`. Read
 [WORKING_BASELINE.md](docs/WORKING_BASELINE.md) for current status; earlier
 Firstmate and temporary checkout paths are historical. Avoid new full clones;
 use short-lived branches and retire task worktrees after preserving their work.
+Commit completed authorized work and merge it into `main`; push only when
+separately authorized. Planning does not authorize implementation or hosted actions.
 
 D134/D135 and [the Beta plan](docs/BETA_IMPLEMENTATION_PLAN.md) govern the new
 `challenge_*_v1` domain. Follow [continuation acceptance](docs/BETA_REAL_VALIDATION_ACCEPTANCE.md)

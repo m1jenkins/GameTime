@@ -2,21 +2,26 @@
 
 ## Current working baseline — September 20, 2026
 
-Continue from `codex/p11-local-scheduling`, which descends from reviewed P9
-`fa97cb26` and P8 `8a9d1f0`. Local `main` at `cb3a0ec` lacks P9/P11. The
-[working baseline](docs/WORKING_BASELINE.md) and
-[P11 local report](outputs/reports/2026-09-20-p11-local-scheduling.md) own exact
-source and evidence. The owner selected Supabase Cron + Edge; its fixed machine
-boundary is implemented locally with inactive jobs and default-off private
-configuration. This does not approve hosted settings, credentials or actions.
+Continue from local `main`, containing reviewed P11 `8e45132` and P8/P9 through
+merge `9652bc9`. The owner directs completed authorized work to be committed and
+merged into `main`; push requires separate authorization. The
+[working baseline](docs/WORKING_BASELINE.md), [P11 local report](outputs/reports/2026-09-20-p11-local-scheduling.md)
+and [P11B installation receipt](outputs/reports/2026-09-20-p11b-hosted-installation.md)
+own source and evidence. The approved bounded installation created `gametime-p11b`
+(`lyushhqoednheqwzsmxh`) in Better Bet, `us-west-1`, Free, quoted $0/month with a
+$20 ceiling. The owner is commissioning owner and credential custodian; reuse
+Vault and Edge secrets. All 93 migrations and only the three challenge machine
+functions are installed. All jobs/gates/fixtures remain off, Auth is closed,
+private schemas unexposed and no community selected. The bounded checks passed.
 
 D138/D139 source rules remain adopted. P9 supplies nine available goals and
 four unavailable leaderboards; strict Exercise v1 is preserved and Exercise
 credit v2 is separately versioned. Incomplete history cannot establish misses
 or full rankings. All 18 external gates and checked-in transport remain closed;
-the four-metric/all-13 release requirement remains unmet. P11B needs the exact
-target/candidate, budget, settings, credential custody, named operators and
-action approval. Physical/human/release acceptance remains separate.
+the four-metric/all-13 release requirement remains unmet. Active operation,
+remaining identity/operating decisions, named operators and broader acceptance
+remain separate. Use the [next planning prompt](docs/P11B_NEXT_PLANNING_PROMPT.md)
+without repeating completed local or installation checks.
 
 ## September 19 baseline record
 

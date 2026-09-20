@@ -1,10 +1,9 @@
 # GameTime remaining prompts
 
-**Current continuation — September 20:** P8 and the local P9 real-activity work
-are on `codex/p9-signal-real-activity`. Final inspection found `main` at
-`cb3a0ec`, containing P8 but not P9. Read the
-[P9 contract](P9_SIGNAL_REAL_ACTIVITY.md), [local report](../outputs/reports/2026-09-20-p9-signal-real-activity.md),
-and [next-chat planning prompt](P9_NEXT_PLANNING_PROMPT.md) before choosing work.
+**Current continuation — September 20:** local `main` contains P8/P9 and reviewed
+P11 `8e45132` through merge `9652bc9`. The [bounded P11B installation](../outputs/reports/2026-09-20-p11b-hosted-installation.md)
+passed with all jobs/gates/fixtures off. Read the [working baseline](WORKING_BASELINE.md)
+and [next-chat planning prompt](P11B_NEXT_PLANNING_PROMPT.md) before choosing work.
 D138/D139 settle the local source rules and separately versioned Exercise credit.
 P7 is closed; the prompts below preserve scope contracts and are not current dispatch.
 The nine-goal/four-unavailable integration does not satisfy the all-13 release gate.

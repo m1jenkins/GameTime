@@ -1,10 +1,28 @@
 # GameTime working baseline
 
-Read `git status --short --branch` and `git log -1` first. The current local
-continuation is `codex/p11-local-scheduling`, from reviewed P9 `fa97cb26`, which
-contains P8 `8a9d1f0`. Local `main` at `cb3a0ec` contains P8 but not P9 or this
-continuation. Use the reviewed task branch or a verified descendant. No push or
-merge is implied.
+Read `git status --short --branch` and `git log -1` first. Continue from local
+`main`, which contains reviewed P11 source `8e45132` and its P8/P9 ancestors
+through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b`.
+The owner directed completed authorized work to be committed and merged into
+`main`; push remains separately authorized. This consolidation was not pushed.
+
+## September 20 bounded P11B hosted installation
+
+The [installation receipt](../outputs/reports/2026-09-20-p11b-hosted-installation.md)
+records the approved installation of all 93 migrations and only the three
+challenge machine functions in `gametime-p11b` (`lyushhqoednheqwzsmxh`), Better Bet,
+`us-west-1`, Free plan, quoted $0/month within the owner's $20 ceiling. The owner
+is commissioning owner and credential custodian; distinct secrets are in Vault
+and Edge secret storage. All eight jobs, product gates and fixtures remain off;
+Auth is closed, private schemas unexposed and no community selected. The single
+readback, one authenticated closed-status monitor request and three unauthenticated
+denials passed. Canonical migrations are unchanged. No broader acceptance ran.
+
+Use the [next planning prompt](P11B_NEXT_PLANNING_PROMPT.md). Existing local P11
+verification and this bounded installation are established evidence. Active
+operation, app identities/connectivity, remaining operating decisions and release
+acceptance remain separate. Older unfilled hosting worksheets do not reopen the
+selected project, region, cost ceiling or owner custody.
 
 ## September 20 local P11 scheduling boundary
 
@@ -17,9 +35,10 @@ source, performed checks, failures, resource cleanup and remaining limits. The
 [hosting worksheet](BETA_HOSTED_PREPARATION.md#september-20-local-cron-and-edge-continuation)
 records local defaults separately from unapproved hosted settings.
 
-This completes only the bounded local scheduling connection. P11B needs an exact
-approved project/candidate, settings, cost, credential custody, operators and
-permitted actions. External alerts, hosted capacity/recovery, physical/human
+The local report completes the bounded scheduling connection; the installation
+above adds only its approved closed hosted configuration and checks. Active
+operation, named operators and remaining operating settings are separate.
+External alerts, hosted capacity/recovery, physical/human
 acceptance and release qualification remain unperformed. All 18 readiness
 entries stay false; nine goal policies and four unavailable leaderboards leave
 the four-metric/all-13 release constraint unchanged. The older P9 next-planning
@@ -45,7 +64,7 @@ All external readiness entries and checked-in gates stay closed.
 The sections below preserve the earlier source states and evidence. P7 remains
 owner-closed. Hosting identities, community publication settings, operating
 approval, replacement retirement and P12/P13 remain separate. Start next planning
-with [the bounded handoff](P9_NEXT_PLANNING_PROMPT.md).
+with [the current bounded handoff](P11B_NEXT_PLANNING_PROMPT.md).
 
 ## September 19 main consolidation
 

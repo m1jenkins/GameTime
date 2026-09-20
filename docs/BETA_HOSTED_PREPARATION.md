@@ -6,6 +6,20 @@ using its existing handoff, rollout, privacy and operator material. It creates
 no duplicate decision/task. The current source and performed checks are in the
 [P10 handoff](../outputs/reports/2026-09-12-p10-completion.md).
 
+## September 20 bounded installation — current hosted state
+
+The owner approved and completed the [bounded P11B installation](../outputs/reports/2026-09-20-p11b-hosted-installation.md)
+from `8e45132`: `gametime-p11b` (`lyushhqoednheqwzsmxh`), Better Bet, `us-west-1`,
+Free plan, quoted $0/month with a $20 owner ceiling. The owner is commissioning
+owner and credential custodian. All 93 migrations and only `challenge-worker`,
+`challenge-snapshot` and `challenge-monitor` are installed; distinct credentials
+are in Vault and Edge secrets. The exact bounded readback and HTTP checks passed.
+All eight jobs, product gates and fixtures remain off; Auth is closed, only
+`public` is exposed and no community is selected. No schedule or broader
+acceptance was run. These selected values supersede the dated missing-input
+statements and null worksheet fields below; other operating decisions remain open.
+Use the [current planning handoff](P11B_NEXT_PLANNING_PROMPT.md).
+
 ## September 20 local Cron and Edge continuation
 
 The owner selected **Supabase Cron + Edge** for a bounded local P11 continuation

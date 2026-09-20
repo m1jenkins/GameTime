@@ -1,8 +1,8 @@
 # Build friend duels and personal performance commitments
 
-For this continuation, use `codex/p11-local-scheduling`, based on reviewed P9
-`fa97cb26` and containing P8 `8a9d1f0`, or a verified descendant. Local
-`main` at `cb3a0ec` contains P8 but not P9/P11. Work in `/Users/user/Documents/GitHub/GameTime` and read the
+Continue from local `main`, containing reviewed P11 `8e45132` and P8/P9 through
+merge `9652bc9`. Commit completed authorized work and merge it into `main`;
+push remains separately authorized. Work in `/Users/user/Documents/GitHub/GameTime` and read the
 [working baseline](docs/WORKING_BASELINE.md),
 [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [one-task prompts](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
@@ -32,9 +32,11 @@ the continuation and focused checks. Nine real goal policies and four explicit
 unavailable leaderboard states do not meet the unchanged all-13 release gate.
 The owner-selected Cron + Edge runtime now has a
 [bounded local scheduling connection](outputs/reports/2026-09-20-p11-local-scheduling.md).
-New jobs and private configuration start off; hosted settings remain unapproved.
-The [hosting worksheet](docs/BETA_HOSTED_PREPARATION.md#september-20-local-cron-and-edge-continuation)
-lists the actual P11B inputs and operating dependencies. The older
+The [bounded hosted installation](outputs/reports/2026-09-20-p11b-hosted-installation.md)
+is complete in the selected separate project, with all jobs/gates/fixtures off.
+The [hosting worksheet](docs/BETA_HOSTED_PREPARATION.md)
+retains operating dependencies; the [next planning prompt](docs/P11B_NEXT_PLANNING_PROMPT.md)
+starts from this installed state. The older
 [P9 next-chat planning prompt](docs/P9_NEXT_PLANNING_PROMPT.md) is dated context.
 Do not repeat local scheduling or infer deployment authorization. The full
 release matrix remains reserved for P12.
