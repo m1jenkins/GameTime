@@ -174,6 +174,8 @@ enum ChallengeV1Error: Error, LocalizedError, Equatable {
             case "challenge_real_leaderboard_unavailable": "Leaderboards aren’t available yet. Choose a personal or friend goal instead."
             case "challenge_readiness_required": "Your activity isn’t ready yet. Check Apple Health before agreeing."
             case "challenge_admission_paused": "New challenges are paused. You can still read, leave or request a review."
+            case "challenge_private_trial_account_required": "This private trial is available only to the selected account. Sign in with the account you were invited to use."
+            case "challenge_private_trial_personal_steps_only": "This private trial currently supports personal step goals only. Choose a personal step goal to continue."
             case "challenge_metric_overlap": "You already have a friend challenge for this activity during these dates. Choose different dates."
             case "challenge_unsettled_limit": "Three challenges still need a final result. Wait for one to finish before joining another."
             case "challenge_friend_unavailable": "We couldn’t find an available friend with that username. Check the exact spelling."

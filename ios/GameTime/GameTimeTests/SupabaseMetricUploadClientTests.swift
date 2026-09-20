@@ -19,6 +19,35 @@ final class SupabaseMetricUploadClientTests: XCTestCase {
     uuidString: "d4000000-0000-0000-0000-000000000004"
   )!
 
+  func testBackendNamespaceDoesNotReadTheLegacyAppAttestRecord()
+    throws
+  {
+    let suiteName = "GameTimeTests.MetricAppAttest.Namespace.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+
+    let keyID = Data(repeating: 1, count: 32).base64EncodedString()
+    let legacy = UserDefaultsMetricAppAttestStateStore(defaults: defaults)
+    try legacy.saveGeneratedKey(
+      keyID,
+      environment: .development,
+      ownerID: ownerA
+    )
+    XCTAssertNotNil(
+      defaults.data(
+        forKey: "GameTime.metricAppAttest.v1.\(ownerA.uuidString.lowercased())"
+      )
+    )
+
+    let staging = UserDefaultsMetricAppAttestStateStore(
+      defaults: defaults,
+      namespace: "lyushhqoednheqwzsmxh.supabase.co"
+    )
+    XCTAssertNil(try staging.state(for: ownerA))
+    XCTAssertEqual(try legacy.state(for: ownerA)?.keyID, keyID)
+  }
+
   func testPrepareHashesExactBodyAndPersistsRegisteredKeyByOwner()
     async throws
   {

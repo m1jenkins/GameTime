@@ -78,6 +78,17 @@ import XCTest
             XCTFail("Quota rejection is not a successful receipt")
         } catch { XCTAssertEqual(error as? ChallengeV1Error, .server("challenge_rate_limited")) }
     }
+
+    func testPrivateTrialGuardErrorsTellThePersonWhatToDo() {
+        XCTAssertEqual(
+            ChallengeV1Error.server("challenge_private_trial_account_required").localizedDescription,
+            "This private trial is available only to the selected account. Sign in with the account you were invited to use."
+        )
+        XCTAssertEqual(
+            ChallengeV1Error.server("challenge_private_trial_personal_steps_only").localizedDescription,
+            "This private trial currently supports personal step goals only. Choose a personal step goal to continue."
+        )
+    }
     private func sample(_ actor:UUID,_ name:String)->ChallengeV1 {
         let start=ChallengeInstant(date:Date());let end=ChallengeInstant(date:Date().addingTimeInterval(86400))
         return ChallengeV1(id:UUID(),creatorId:actor,policy:"friend_steps_goal_v1",config:.init(startDate:"2026-10-03",days:1,timezone:"UTC",amountCents:100,startsAt:start,endsAt:end,syncBy:end,correctionsBy:end,noticeDue:end),status:"lobby_open",revision:1,agreementVersion:0,serverTime:start,socialHidden:false,agreement:nil,members:[.init(actorId:actor,username:name,target:100,selected:true,exited:false,consented:false,fact:nil)],notice:nil,reviews:[],final:nil)

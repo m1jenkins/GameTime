@@ -347,7 +347,9 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
       configuration: configuration,
       sessionProvider: SupabaseMetricUploadSessionProvider(client: client),
       appAttest: DeviceMetricAppAttestProvider(),
-      stateStore: UserDefaultsMetricAppAttestStateStore(),
+      stateStore: UserDefaultsMetricAppAttestStateStore(
+        namespace: configuration.appAttestStorageNamespace
+      ),
       transport: URLSessionMetricUploadHTTPTransport(),
       allowsSavedRecovery: allowsSavedRecovery
     )
@@ -1049,9 +1051,11 @@ final class UserDefaultsMetricAppAttestStateStore:
   private static let keyPrefix = "GameTime.metricAppAttest.v1."
 
   private let defaults: UserDefaults
+  private let namespace: String
 
-  init(defaults: UserDefaults = .standard) {
+  init(defaults: UserDefaults = .standard, namespace: String = "legacy") {
     self.defaults = defaults
+    self.namespace = namespace
   }
 
   func state(
@@ -1245,7 +1249,11 @@ final class UserDefaultsMetricAppAttestStateStore:
   }
 
   private func storageKey(_ ownerID: UUID) -> String {
-    Self.keyPrefix + ownerID.uuidString.lowercased()
+    let owner = ownerID.uuidString.lowercased()
+    guard namespace != "legacy" else {
+      return Self.keyPrefix + owner
+    }
+    return Self.keyPrefix + namespace + "." + owner
   }
 }
 

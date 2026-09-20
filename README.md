@@ -36,9 +36,12 @@ S2/P8 privacy and recovery corrections, local P11A worker/operator/deletion
 implementation, and the bounded P9 shared-session app connection.
 
 Ordinary signed-in Signal can use the existing authenticated challenge client
-when explicitly configured. `GAMETIME_CHALLENGE_V1_ENABLED` remains off in
-checked-in configuration. Local fixtures and disposable HTTP checks do not
-establish real Apple identity, accepted Health sources or hosted operation.
+when explicitly configured. The internal Staging build now connects to the
+selected private backend; Debug and Release retain the historical configuration
+with challenge transport off. The [private-device receipt](outputs/reports/2026-09-20-private-device-goal.md)
+distinguishes its installed configuration from pending real account, readiness
+and consent checks. Local fixtures and disposable HTTP checks do not establish
+those device results or wider Beta readiness.
 
 D138 selects source rules and timed-run tolerance; the [P8 contract](docs/P8_REAL_HEALTH_CONTRACT.md)
 records local adapters, signed ingestion and server processing. Exercise remains
@@ -51,7 +54,8 @@ The owner [started a private P7 device session](outputs/reports/2026-09-18-p7-de
 on September 18 and signed off the test effort on September 19. Its partial
 observations remain separate from D138's subsequent decisions and the
 [P8 software checks](outputs/reports/2026-09-19-p8-real-health.md). Checked-in
-real transport remains off; P9 app integration and release are separate.
+Release real transport remains off; the private Staging connection and wider
+release acceptance are separate.
 
 ## Start here
 
