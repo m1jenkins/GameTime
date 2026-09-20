@@ -1,8 +1,19 @@
+// Keep the shared non-backend defaults (support links and inactive invitation
+// settings), then override only the Staging backend below. Debug and Release
+// continue to use the historical public client unchanged.
 #include "PublicClient.xcconfig"
+
+// The installable Staging product exercises the isolated P11B backend.
+SUPABASE_URL = https:/$()/lyushhqoednheqwzsmxh.supabase.co
+SUPABASE_PUBLISHABLE_KEY = sb_publishable_aGUhHPloZc3VEqaU2gP4iw_41VXfG8L
 
 GAMETIME_ENV = staging
 APP_ATTEST_ENVIRONMENT = development
 GAMETIME_CONTEST_MUTATIONS_ENABLED = YES
+// The Staging project is the only installed development build approved to
+// connect ordinary Signal to the selected backend. Server admission remains
+// authoritative for every individual product action.
+GAMETIME_CHALLENGE_V1_ENABLED = YES
 GAMETIME_PERSONAL_SETTLEMENT_MODE = stripe_sandbox
 GAMETIME_STRIPE_RETURN_URL = gametime-staging:/$()/stripe-redirect
 APS_ENVIRONMENT = development

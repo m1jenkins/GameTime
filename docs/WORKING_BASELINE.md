@@ -6,6 +6,18 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 20 private iPhone trial
+
+The [private-device receipt](../outputs/reports/2026-09-20-private-device-goal.md)
+records the owner's authorized Staging connection to `gametime-p11b`, deployment
+of the existing App Attest and signed Health endpoints, and the new project-local
+account guard. Staging now targets the selected backend with ordinary Signal
+transport enabled; Debug/Release and historical credentials/data are preserved.
+The app is installed on Mason's iPhone. Account setup, enrollment, real readiness
+and deliberate goal consent are still pending phone interaction. Real admission
+and ingestion remain closed until enrollment. This is a private device milestone,
+not wider Beta readiness; use the receipt's exact performed/pending checks.
+
 The September 20 [activation receipt](../outputs/reports/2026-09-20-p11-hosted-activation.md)
 records scheduled operation on an empty backend: worker, monitor and processing
 remain enabled after bounded acceptance. This supersedes their inactive state

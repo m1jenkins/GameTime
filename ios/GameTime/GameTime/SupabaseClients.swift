@@ -5,10 +5,26 @@ import Supabase
 @MainActor
 enum LiveServicesFactory {
     static func make(configuration: AppConfiguration) throws -> AppServices {
-        let client = SupabaseClient(
-            supabaseURL: configuration.supabaseURL,
-            supabaseKey: configuration.supabasePublishableKey
-        )
+        let client: SupabaseClient
+        if configuration.environment == .staging {
+            client = SupabaseClient(
+                supabaseURL: configuration.supabaseURL,
+                supabaseKey: configuration.supabasePublishableKey,
+                options: .init(
+                    auth: .init(
+                        storage: KeychainLocalStorage(
+                            service: "GameTime.supabase.\(configuration.backendStorageNamespace)"
+                        ),
+                        storageKey: "gametime.auth.\(configuration.backendStorageNamespace)"
+                    )
+                )
+            )
+        } else {
+            client = SupabaseClient(
+                supabaseURL: configuration.supabaseURL,
+                supabaseKey: configuration.supabasePublishableKey
+            )
+        }
         let healthTransport = ChallengeHealthTransportCoordinator(
             uploadStore: try .applicationSupport(), readinessStore: try .applicationSupport(),
             binding: {

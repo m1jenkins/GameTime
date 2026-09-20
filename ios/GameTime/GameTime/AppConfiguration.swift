@@ -115,6 +115,20 @@ struct AppConfiguration: Equatable, Sendable {
         return URL(string: "mailto:\(supportEmail)")
     }
 
+    /// Stable, non-secret partition for credentials and App Attest state that
+    /// belong to this backend. Changing Staging's selected project must leave
+    /// the prior project's session and signed-retry state untouched, rather
+    /// than letting either be replayed against the new host.
+    var backendStorageNamespace: String {
+        supabaseURL.host?.lowercased() ?? supabaseURL.absoluteString.lowercased()
+    }
+
+    /// The installed Staging build moved to a distinct backend. Existing Debug
+    /// and Release state retains its legacy storage keys.
+    var appAttestStorageNamespace: String {
+        environment == .staging ? backendStorageNamespace : "legacy"
+    }
+
     /// Legacy social mutations remain separately locked in Release. The beta
     /// Release build may create Personal challenges only through the explicit
     /// Stripe sandbox settlement mode.
