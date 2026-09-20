@@ -10,6 +10,12 @@ much writing. Use visuals, large numbers and buttons. Use the `unslop` skill for
 copy. Keep Signal; Mobbin is optional help for a specific interaction, not a
 reason to start another design exploration.
 
+Lavish feedback on the first layout: **“I like this but it's a little plain,
+no liquid glass.”** The revised proposal adds visible glass to navigation and
+action controls while keeping the goal numbers, dates and rules on solid
+backgrounds. The browser example is a visual approximation; native acceptance
+still requires the actual iOS material.
+
 ## Outcome
 
 Make creating and reviewing a personal goal match the approved Signal design:
@@ -151,6 +157,33 @@ facts, plots, totals and rules opaque. Retain approved opaque accent bands where
 the current reference specifies them; Signal itself uses blue. Provide the
 existing solid fallback and accessibility behavior on supported older iOS.
 
+Make the glass visible on the controls, following Signal's material review:
+
+- Back/Close and duration adjustment buttons use circular glass with a clear
+  edge and soft depth. Prefer the system toolbar treatment where available.
+- Activity choices share one glass control group with a distinct selected
+  inset. Keep each choice's label and selected state clear; do not stack blur
+  layers on every item.
+- Continue and the final creation action use Signal's blue-tinted glass capsule,
+  with a visible rim and touch response. Secondary actions use untinted glass.
+- Keep the large input values, dates, activity status, rules, consent and charts
+  opaque. Do not frost the entire screen or put glare across readable content.
+- Use native iOS 26+ `.glass` / `.glassProminent` button styles and system bars;
+  use `glassEffect` and `GlassEffectContainer` only for custom grouped controls.
+  Apply effects after layout modifiers and interactive effects only to controls.
+  Reuse current Signal components rather than adding a second material system.
+- Preserve control geometry, labels and selection in the solid fallback.
+  Reduce Transparency and Increase Contrast remove the optical effects;
+  Reduce Motion removes moving highlights and press scaling as appropriate.
+
+The Lavish example includes Glass/Solid switches to compare the treatments.
+Browser blur, gradients and shadows only illustrate the chosen appearance;
+do not port that CSS technique into SwiftUI as a substitute for native glass.
+Inspect actual material in light and dark on the current iOS runtime. A flat
+blue button with a token named "glass" does not satisfy this requirement.
+Use Apple's [custom-view guidance](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views)
+alongside the adopted Signal material review.
+
 Review starts with goal, source meaning, start/end/time zone, simulated amount,
 possible outcomes and exit/review information. Put every existing rule in an
 accessible full-rules disclosure where appropriate; preserve historical consent
@@ -191,6 +224,8 @@ Render the whole new sequence plus confirmation/detail in these targeted cases:
 - Standard light/dark on the primary iPhone simulator.
 - Compact iPhone, large accessibility text, long values and the keyboard open.
 - Current material appearance and supported iOS 18 solid fallback.
+- Visible native glass on navigation, selection and action controls; opaque
+  goal/rule content. Compare the glass and solid versions of the same state.
 - Reduce Transparency, Increase Contrast and Reduce Motion where affected.
 - Loading, empty activity, denied/unavailable activity, offline/retry, pending
   submission and actual saved confirmation, using controlled fictional states.

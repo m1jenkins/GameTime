@@ -15,6 +15,10 @@ Use `$unslop` at `/Users/user/.codex/skills/unslop/SKILL.md` for new app copy an
 the handoff. Mobbin is available if a specific input or selection interaction
 needs a reference; keep it secondary to Signal and inspect the actual images.
 
+My Lavish feedback on the first proposal: “I like this but it's a little plain,
+no liquid glass.” Keep the simpler flow, and give the controls the Liquid Glass
+depth shown in Signal. A flat blue button is not enough.
+
 ## Context and authority
 
 While creating a personal goal in the ordinary Staging app, I found that it did
@@ -99,6 +103,21 @@ the reference's hierarchy, alignment, open rows, action emphasis and appropriate
 materials. Keep facts/rules/plots opaque, retain approved accent bands, and
 preserve supported older-iOS solid fallbacks. Every step needs accessible Back,
 Close and one clear advancing action. Handle keyboard and large text properly.
+
+Make the glass treatment explicit: circular Back/Close and adjustment buttons;
+one glass group for activity choices with a clear selected inset; a blue-tinted
+glass capsule for Continue/final creation; and untinted secondary actions.
+Keep numbers, date facts, rules, consent and charts on solid backgrounds.
+Do not add blur to the whole screen or layer glass on every content block.
+
+Use the Liquid Glass skill and Apple's current guidance. Prefer system bars and
+iOS 26+ `.buttonStyle(.glass)` / `.buttonStyle(.glassProminent)`; custom controls
+can use `glassEffect` after layout and `GlassEffectContainer` for related effects.
+Reuse the Signal components and keep interactive effects limited to controls.
+Browser CSS is an appearance sketch, not the native implementation. Retain
+matching solid geometry on older iOS, Reduce Transparency and Increase Contrast,
+and respect Reduce Motion. Capture native glass and solid versions of the same
+screen; labels and selected states must remain legible in both.
 
 Keep all detailed agreement information accessible, including source meaning,
 exact dates/time zone, simulated amount/outcomes, exit and review rules.

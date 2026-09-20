@@ -25,6 +25,10 @@ later adopted policy versions when implementation begins.
 The owner's follow-up asks for large numbers, visual choices and buttons with
 much less writing, using `unslop` for copy while retaining Signal. The plan
 includes those requirements and skips choices already made by a direct entry.
+Lavish feedback asks for more visible Liquid Glass on the controls. The revised
+plan specifies native glass for navigation, selection and primary actions,
+with solid content and accessible fallbacks. Its browser approximation does
+not establish native material acceptance.
 
 ## Local execution — September 13, 2026
 
