@@ -39,9 +39,12 @@ Ordinary signed-in Signal can use the existing authenticated challenge client
 when explicitly configured. The internal Staging build now connects to the
 selected private backend; Debug and Release retain the historical configuration
 with challenge transport off. The [private-device receipt](outputs/reports/2026-09-20-private-device-goal.md)
-distinguishes its installed configuration from pending real account, readiness
-and consent checks. Local fixtures and disposable HTTP checks do not establish
-those device results or wider Beta readiness.
+records successful real Apple account setup and device verification, the single
+approved account, the owner's subsequent choice to keep Apple sign-in while
+skipping device proof in this private trial, and one real, consented personal
+Watch steps goal scheduled for September 22. Actual counting and the result/review
+cycle still await their real deadlines. Local fixtures and disposable HTTP
+checks do not establish those later results or wider Beta readiness.
 
 D138 selects source rules and timed-run tolerance; the [P8 contract](docs/P8_REAL_HEALTH_CONTRACT.md)
 records local adapters, signed ingestion and server processing. Exercise remains

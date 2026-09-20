@@ -13,16 +13,29 @@ records the owner's authorized Staging connection to `gametime-p11b`, deployment
 of the existing App Attest and signed Health endpoints, and the new project-local
 account guard. Staging now targets the selected backend with ordinary Signal
 transport enabled; Debug/Release and historical credentials/data are preserved.
-The app is installed and launched normally on Mason's iPhone. Account setup, enrollment, real readiness
-and deliberate goal consent are still pending phone interaction. Real admission
-and ingestion remain closed until enrollment. This is a private device milestone,
+The app is installed and launched normally on Mason's iPhone. Apple account setup,
+21+ confirmation, single-account enrollment and actual device verification passed.
+Additional signup is closed; real admission/ingestion are enabled behind the
+private guard. A genuine newer assertion format exposed a parser defect, now
+fixed and deployed with focused regressions. The owner subsequently chose to keep
+Apple sign-in and skip device verification. The selected Staging build and an
+explicit, enrolled-account-only server setting now support that mode; other
+installations retain their device-proof requirement. Real Watch steps readiness
+and deliberate consent succeeded: one 4,703-total-step personal goal is scheduled
+for September 22–28, with $20 in nonredeemable simulation. Exact request replay
+returns the same receipt without another goal or consent. Counting and the full
+result/review cycle still await real deadlines. This is a private device milestone,
 not wider Beta readiness; use the receipt's exact performed/pending checks.
+The selected backend has 95 applied migrations. The separately merged
+received-score leaderboard migration remains local and was not deployed by this
+device milestone; do not equate the current `main` migration list with hosted state.
 
 The September 20 [activation receipt](../outputs/reports/2026-09-20-p11-hosted-activation.md)
 records scheduled operation on an empty backend: worker, monitor and processing
 remain enabled after bounded acceptance. This supersedes their inactive state
-in the installation record below; other gates remain closed, no community is
-selected, and full operational acceptance and a usable beta remain unestablished.
+in the installation record below. The later private-device receipt above records
+the owner's account gates; no community is selected, and full operational
+acceptance and wider beta readiness remain unestablished.
 
 ## September 20 received-score leaderboards
 

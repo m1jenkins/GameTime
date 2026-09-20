@@ -14,6 +14,8 @@ GAMETIME_CONTEST_MUTATIONS_ENABLED = YES
 // connect ordinary Signal to the selected backend. Server admission remains
 // authoritative for every individual product action.
 GAMETIME_CHALLENGE_V1_ENABLED = YES
+// Owner-only simulated trial: retain Apple sign-in without device proof.
+GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE = YES
 GAMETIME_PERSONAL_SETTLEMENT_MODE = stripe_sandbox
 GAMETIME_STRIPE_RETURN_URL = gametime-staging:/$()/stripe-redirect
 APS_ENVIRONMENT = development

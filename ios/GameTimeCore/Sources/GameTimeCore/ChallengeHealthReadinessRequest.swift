@@ -4,7 +4,7 @@ public enum ChallengeHealthReadinessRequestError: Error, Equatable, Sendable {
     case invalidRequest, wrongAccount, requestConflict, invalidSignature, invalidReceipt, corruptJournal
 }
 
-/// The minimal, attested readiness receipt request. It deliberately excludes
+/// The minimal readiness receipt request. It deliberately excludes
 /// values, totals, history boundaries, source metadata, and any client-authored
 /// readiness/completeness assertion.
 public struct ChallengeHealthReadinessRequest: Equatable, Sendable {
@@ -185,6 +185,8 @@ public struct ChallengeHealthReadinessRequest: Equatable, Sendable {
     }
 }
 
+/// Historical name retained because journal records use this Codable shape.
+/// A private-account request has no device assertion and is explicitly marked.
 public struct ChallengeHealthSignedReadinessRequest: Equatable, Codable, Sendable {
     public let exactBody: Data
     public let keyID: String
@@ -193,6 +195,14 @@ public struct ChallengeHealthSignedReadinessRequest: Equatable, Codable, Sendabl
 
     public init(request: ChallengeHealthReadinessRequest, keyID: String, assertion: Data,
                 environment: String) throws {
+        if environment == "private_account" {
+            guard keyID.isEmpty, assertion.isEmpty else {
+                throw ChallengeHealthReadinessRequestError.invalidSignature
+            }
+            exactBody = request.exactBytes; self.keyID = keyID; self.assertion = assertion
+            self.environment = environment
+            return
+        }
         guard Data(base64Encoded: keyID)?.count == 32,
               !assertion.isEmpty, assertion.count <= 6144,
               ["development", "production"].contains(environment) else {
@@ -201,9 +211,17 @@ public struct ChallengeHealthSignedReadinessRequest: Equatable, Codable, Sendabl
         exactBody = request.exactBytes; self.keyID = keyID; self.assertion = assertion
         self.environment = environment
     }
+
+    public init(privateAccountRequest request: ChallengeHealthReadinessRequest) throws {
+        try self.init(request: request, keyID: "", assertion: Data(), environment: "private_account")
+    }
+
+    public var isPrivateAccount: Bool {
+        environment == "private_account" && keyID.isEmpty && assertion.isEmpty
+    }
 }
 
-/// One actor's exact signed readiness attempts. The iPhone owns protected file
+/// One actor's exact readiness attempts. The iPhone owns protected file
 /// persistence; this pure journal never carries a session token or Health data.
 public struct ChallengeHealthReadinessJournal: Codable, Sendable {
     public let actorID: UUID

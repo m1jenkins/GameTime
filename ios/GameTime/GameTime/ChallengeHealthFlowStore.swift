@@ -176,7 +176,7 @@ final class ChallengeHealthFlowStore {
         catch {
             guard actor == binding.actorID, epoch == generation, operationVersions[id] == operation, !suspended else { return }
             states[id, default: State()].readiness = .temporarilyUnavailable
-            states[id]?.message = "We couldn’t finish checking your activity. Unlock your phone and try Refresh."
+            states[id]?.message = readinessFailureMessage(error)
         }
     }
 
@@ -404,6 +404,23 @@ final class ChallengeHealthFlowStore {
     private func restoreConnection(_ actor: UUID) throws {
         let saved = try dependencies.cache.connected(actor: actor)
         if connected != saved { connected = saved; updateOpportunities() }
+    }
+    private func readinessFailureMessage(_ error: Error) -> String {
+        guard let error = error as? ChallengeHealthReadinessClientError else {
+            return "We couldn’t finish checking your activity right now. Check your connection and try Refresh."
+        }
+        switch error {
+        case .storage:
+            return "We couldn’t save this activity check on your phone. Unlock your phone and try Refresh."
+        case .accountChanged:
+            return "Your sign-in changed. Open your challenge and try Refresh."
+        case .refused:
+            return "We couldn’t confirm your activity setup. Refresh your challenge and try again."
+        case .unavailable:
+            return "We couldn’t finish checking your activity right now. Check your connection and try Refresh."
+        case .busy:
+            return "We’re already checking your activity. Open your challenge in a moment."
+        }
     }
     private func requireActive(_ actor: UUID, _ epoch: UUID) async throws {
         let access = try await challenges.client.read("challenge_access_status_v1", fields: [:], actor: actor, as: ChallengeV1Access.self)

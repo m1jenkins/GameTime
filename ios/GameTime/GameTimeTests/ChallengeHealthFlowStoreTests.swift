@@ -45,7 +45,11 @@ import XCTest
                 let text = try await capture(ChallengeV1Create(store: h.store, initialPolicy: policy)
                     .environment(\.challengeHealthFlow, h.flow).environment(\.colorScheme, scheme)
                     .environment(\.dynamicTypeSize, .accessibility3), name: "d141-leaderboard-\(metric.rawValue)-\(scheme)")
-                XCTAssertTrue(text.contains("saved by the deadline"))
+                // Each captured scroll page repeats the fixed title/banner.
+                // Remove that chrome before checking a sentence split by pages.
+                let bodyText = text.replacingOccurrences(
+                    of: "friend challenge simulated stakes — no real money moves. ", with: "")
+                XCTAssertTrue(bodyText.contains("saved by the deadline"))
                 XCTAssertTrue(text.contains("create lobby")); XCTAssertFalse(text.contains("suggestion"))
             }
             let text = try await capture(NavigationStack {
@@ -58,6 +62,19 @@ import XCTest
             XCTAssertTrue(text.contains("indirectly derived credit may count"))
             XCTAssertTrue(text.contains("activity found")); XCTAssertTrue(text.contains("refresh activity check"))
         }
+    }
+    func testPrivatePersonalStepsCreateHidesUnsupportedChallengeChoices() async throws {
+        let h = try FlowHarness(); defer { h.remove() }
+        let text = try await capture(
+            ChallengeV1Create(store: h.store, personalStepsOnly: true),
+            name: "private-personal-steps-create"
+        )
+        XCTAssertTrue(text.contains("your goal"))
+        XCTAssertTrue(text.contains("total steps"))
+        XCTAssertFalse(text.contains("choose your challenge"))
+        XCTAssertFalse(text.contains("with friends"))
+        XCTAssertFalse(text.contains("activity minutes"))
+        XCTAssertFalse(text.contains("running distance"))
     }
     private func capture<V: View>(_ view: V, name: String) async throws -> String {
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
@@ -174,6 +191,31 @@ import XCTest
         await h.flow.checkReadiness(strict, connect: true)
         XCTAssertEqual(h.flow.state(for: strict).readiness, .unsupported)
         XCTAssertEqual(h.signed, 1)
+    }
+
+    func testReadinessDeliveryFailureUsesSpecificRecoveryMessageAndKeepsSavedRequest() async throws {
+        XCTAssertEqual(
+            ChallengeHealthCopy.explanation(.temporarilyUnavailable, timed: false),
+            "Check your connection and try Refresh. Missing activity doesn’t count against you."
+        )
+
+        let cases: [(ChallengeHealthReadinessClientError, String)] = [
+            (.refused, "We couldn’t confirm your activity setup. Refresh your challenge and try again."),
+            (.storage, "We couldn’t save this activity check on your phone. Unlock your phone and try Refresh."),
+            (.unavailable, "We couldn’t finish checking your activity right now. Check your connection and try Refresh."),
+        ]
+
+        for (failure, message) in cases {
+            let h = try FlowHarness(); defer { h.remove() }
+            let binding = try h.binding()
+            h.readinessFailure = failure
+
+            await h.flow.checkReadiness(binding, connect: true)
+
+            XCTAssertEqual(h.flow.state(for: binding).readiness, .temporarilyUnavailable)
+            XCTAssertEqual(h.flow.state(for: binding).message, message)
+            XCTAssertEqual(try h.coordinator.readinessStore.load(actor: h.actor).pending.count, 1)
+        }
     }
 
     func testPlanningAndReadinessUseSeparateReadersAndWindows() async throws {
@@ -305,6 +347,7 @@ import XCTest
     var heldRead: CheckedContinuation<Void, Never>?, heldSign: CheckedContinuation<Void, Never>?
     var readers: [FlowReader] = [], requests: [ChallengeHealthReadRequest] = [], uploads: [ChallengeHealthUploadRequest] = []
     var signed = 0, readinessSent = 0, loseReadinessResponse = false, loseUploadResponse = false
+    var readinessFailure: ChallengeHealthReadinessClientError?
     var sessionIdentity: String? = "initial-session"
     init(actor: UUID = UUID(), directory: URL? = nil) throws {
         self.actor = actor; self.directory = directory ?? FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -326,6 +369,7 @@ import XCTest
         let readiness = ChallengeHealthReadinessClient(enabled: true, environment: .development, coordinator: coordinator, binding: session, sign: sign) { [unowned self] signed, _ in
             let wire = try ChallengeHealthReadinessRequest(restoring: signed.exactBody); self.readinessSent += 1
             if self.loseReadinessResponse { self.loseReadinessResponse = false; throw URLError(.networkConnectionLost) }
+            if let failure = self.readinessFailure { throw failure }
             return try JSONSerialization.data(withJSONObject: ["version": "challenge_real_health_readiness_receipt_v1", "request_id": wire.requestID.uuidString.lowercased(), "accepted_at": "2027-01-15T08:00:00+00:00"])
         }
         let store = ChallengeV1Store(auth: auth, client: client, requests: .init(directory: self.directory.appendingPathComponent("commands")))

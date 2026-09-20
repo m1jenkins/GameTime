@@ -24,7 +24,16 @@ final class ChallengeHealthTransportCoordinator {
     let keyID: String
     let assertion: Data
     let body: Data
+    let requiresDeviceVerification: Bool
     let deliver: @MainActor () async throws -> Void
+
+    init(kind: Kind, id: UUID, keyID: String, assertion: Data, body: Data,
+         requiresDeviceVerification: Bool = true,
+         deliver: @escaping @MainActor () async throws -> Void) {
+      self.kind = kind; self.id = id; self.keyID = keyID; self.assertion = assertion
+      self.body = body; self.requiresDeviceVerification = requiresDeviceVerification
+      self.deliver = deliver
+    }
   }
 
   let uploadStore: ChallengeHealthUploadFileStore
@@ -102,19 +111,32 @@ final class ChallengeHealthTransportCoordinator {
     recoveredCounters[keyID] = counter
   }
 
-  /// Reload every journal after acquiring the lease. Validate the entire set
-  /// before delivery, then recover in counter order per key. Gaps are permitted.
+  /// Reload journals under the lease. Included signed requests recover in
+  /// counter order per key; independent account-only requests need no counter.
   @discardableResult
-  func recover(actor: UUID) async throws -> [Pending] {
+  func recover(actor: UUID, includingDeviceVerifiedRequests: Bool = true) async throws -> [Pending] {
     try check(actor: actor)
     if loaders[.upload] == nil, !(try uploadStore.load(actor: actor).pending).isEmpty { throw Failure.missingWriter }
     if loaders[.readiness] == nil, !(try readinessStore.load(actor: actor).pending).isEmpty { throw Failure.missingWriter }
     var ordered: [(Pending, UInt32)] = []
+    var privateAccount: [Pending] = []
     for kind in Kind.allCases {
       guard let load = loaders[kind] else { continue }
       let records = try await load(actor)
       try check(actor: actor)
       for record in records {
+        // Account-only requests consume no device counter. An older signed
+        // request for a source outside this private trial must remain saved,
+        // without blocking the independent account-only delivery path.
+        if record.requiresDeviceVerification && !includingDeviceVerifiedRequests { continue }
+        if !record.requiresDeviceVerification {
+          guard record.kind == kind, [Kind.upload, .readiness].contains(record.kind),
+                record.keyID.isEmpty, record.assertion.isEmpty else {
+            throw Failure.malformedAssertion
+          }
+          privateAccount.append(record)
+          continue
+        }
         guard record.kind == kind, !record.keyID.isEmpty,
               let counter = try? AssertionCounterDecoder.decode(from: record.assertion), counter > 0 else {
           throw Failure.malformedAssertion
@@ -138,6 +160,14 @@ final class ChallengeHealthTransportCoordinator {
       try await record.deliver()
       try check(actor: actor)
       recoveredCounters[record.keyID] = max(counter, recoveredCounters[record.keyID] ?? 0)
+      recovered.append(record)
+    }
+    // Included signed records finish recovery first. Private-account records are
+    // deliberately unsigned, so they have no counter to decode or advance.
+    for record in privateAccount {
+      try check(actor: actor)
+      try await record.deliver()
+      try check(actor: actor)
       recovered.append(record)
     }
     return recovered

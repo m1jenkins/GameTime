@@ -309,6 +309,11 @@ export interface AssertionOptions {
     readonly validationCategory?: number;
     readonly bundleVersion?: string;
   };
+  /** Physical-device shape: flags 0xc0 and the strict two-field Apple map. */
+  readonly credentialFlagAssertionExtensions?: {
+    readonly validationCategory?: number;
+    readonly bundleVersion?: string;
+  };
 }
 
 export interface BuiltAssertion {
@@ -330,7 +335,19 @@ export async function buildAssertion(
     rpIdHash: await sha256(utf8(appId)),
     signCount: options.signCount ?? 1,
   });
-  const authenticatorData = options.assertionExtensions === undefined
+  const authenticatorData = options.credentialFlagAssertionExtensions !== undefined
+    ? concatenate(
+      new Uint8Array([
+        ...legacyAuthenticatorData.slice(0, 32),
+        0xc0,
+        ...legacyAuthenticatorData.slice(33),
+      ]),
+      encodeAttestationExtensions(
+        options.credentialFlagAssertionExtensions.validationCategory,
+        options.credentialFlagAssertionExtensions.bundleVersion,
+      ),
+    )
+    : options.assertionExtensions === undefined
     ? legacyAuthenticatorData
     : concatenate(
       legacyAuthenticatorData,

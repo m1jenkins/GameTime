@@ -52,8 +52,8 @@ export interface RealHealthIngestArgs {
   payload: RealHealthPayload;
   sessionID: string;
   tokenExpiresAt: string;
-  keyID: Bytes;
-  signCount: number;
+  keyID: Bytes | null;
+  signCount: number | null;
   payloadDigest: Bytes;
   recoveryOnly: boolean;
 }
@@ -230,47 +230,50 @@ export function createIngestChallengeHealthHandler(deps: RealHealthIngestDeps) {
       }
       const key = request.headers.get(KEY_ID_HEADER),
         signed = request.headers.get(ASSERTION_HEADER);
-      if (!key || !signed) {
+      if ((key === null) !== (signed === null)) {
         throw new HttpFailure(
           "unauthorized",
           "We couldn’t confirm this update. Try updating again.",
         );
       }
-      const keyID = base64ToBytes(key, KEY_ID_HEADER);
-      if (keyID.length !== 32 || signed.length > 8192) invalid();
-      const publicKey = await deps.publicKeyFor(keyID);
-      if (!publicKey) {
-        throw new HttpFailure(
-          "unauthorized",
-          "We couldn’t confirm this update. Try updating again.",
-        );
-      }
-      let assertion;
-      try {
-        const map = asCborMap(decodeCbor(base64ToBytes(signed, ASSERTION_HEADER)), "assertion");
-        assertion = {
-          signature: asCborBytes(map.signature, "signature"),
-          authenticatorData: asCborBytes(map.authenticatorData, "authenticatorData"),
-        };
-      } catch (error) {
-        if (error instanceof CborError) invalid();
-        throw error;
-      }
-      let signCount: number | undefined;
-      for (const appId of [deps.appId, ...(deps.additionalAppIds ?? [])]) {
-        try {
-          signCount =
-            (await verifyAssertion({ ...assertion, clientData: raw, publicKey, appId })).signCount;
-          break;
-        } catch (error) {
-          if (!(error instanceof AttestationError)) throw error;
+      let keyID: Bytes | null = null;
+      let signCount: number | null = null;
+      if (key !== null && signed !== null) {
+        keyID = base64ToBytes(key, KEY_ID_HEADER);
+        if (keyID.length !== 32 || signed.length > 8192) invalid();
+        const publicKey = await deps.publicKeyFor(keyID);
+        if (!publicKey) {
+          throw new HttpFailure(
+            "unauthorized",
+            "We couldn’t confirm this update. Try updating again.",
+          );
         }
-      }
-      if (signCount === undefined) {
-        throw new HttpFailure(
-          "unauthorized",
-          "We couldn’t confirm this update. Try updating again.",
-        );
+        let assertion;
+        try {
+          const map = asCborMap(decodeCbor(base64ToBytes(signed, ASSERTION_HEADER)), "assertion");
+          assertion = {
+            signature: asCborBytes(map.signature, "signature"),
+            authenticatorData: asCborBytes(map.authenticatorData, "authenticatorData"),
+          };
+        } catch (error) {
+          if (error instanceof CborError) invalid();
+          throw error;
+        }
+        for (const appId of [deps.appId, ...(deps.additionalAppIds ?? [])]) {
+          try {
+            signCount = (await verifyAssertion({ ...assertion, clientData: raw, publicKey, appId }))
+              .signCount;
+            break;
+          } catch (error) {
+            if (!(error instanceof AttestationError)) throw error;
+          }
+        }
+        if (signCount === null) {
+          throw new HttpFailure(
+            "unauthorized",
+            "We couldn’t confirm this update. Try updating again.",
+          );
+        }
       }
       // The authoritative DB switch is checked AFTER exact committed recovery.
       // The Edge switch follows the same rule via the RPC's recovery-only input.

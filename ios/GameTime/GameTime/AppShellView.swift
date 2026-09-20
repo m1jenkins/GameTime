@@ -169,7 +169,8 @@ struct SignalProductShell: View {
                 Label("Existing challenges", systemImage: "clock.arrow.circlepath")
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             }.accessibilityIdentifier("signal.existing-challenges")),
-            serviceAvailable: model.configuration.challengeV1RuntimeEnabled)
+            serviceAvailable: model.configuration.challengeV1RuntimeEnabled,
+            personalStepsOnly: model.configuration.privateHealthAccountMode)
             .tint(SignalTheme.accent)
             .environment(\.challengeHealthFlow, model.challengeHealth)
             .task(id: model.userID) {

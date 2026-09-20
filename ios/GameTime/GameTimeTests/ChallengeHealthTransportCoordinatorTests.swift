@@ -67,6 +67,52 @@ struct ChallengeHealthTransportCoordinatorTests {
         }
     }
 
+    @Test func privateAccountRecoveryNeedsNoCounterAndFollowsSignedRecords() async throws {
+        let coordinator = coordinator(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        let actor = UUID()
+        var delivered: [String] = []
+        coordinator.register(.upload) { _ in
+            [.init(kind: .upload, id: UUID(), keyID: "", assertion: Data(), body: Data([1]),
+                   requiresDeviceVerification: false) {
+                delivered.append("private")
+            }]
+        }
+        coordinator.register(.metrics) { _ in
+            [.init(kind: .metrics, id: UUID(), keyID: "key", assertion: p9TestAssertion(counter: 9), body: Data([2])) {
+                delivered.append("signed")
+            }]
+        }
+        try await coordinator.begin(actor: actor)
+        defer { coordinator.release(actor: actor) }
+        let recovered = try await coordinator.recover(actor: actor)
+        #expect(delivered == ["signed", "private"])
+        #expect(recovered.map(\.requiresDeviceVerification) == [true, false])
+        try coordinator.validateNewSignature(keyID: "key", assertion: p9TestAssertion(counter: 10))
+    }
+
+    @Test func privateAccountRecoveryCanDeferRejectedSignedRecords() async throws {
+        let coordinator = coordinator(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        let actor = UUID()
+        var privateDeliveries = 0, signedAttempts = 0
+        coordinator.register(.readiness) { _ in
+            [.init(kind: .readiness, id: UUID(), keyID: "key", assertion: p9TestAssertion(counter: 9), body: Data([2])) {
+                signedAttempts += 1
+                throw ChallengeHealthTransportCoordinator.Failure.pendingDelivery
+            }, .init(kind: .readiness, id: UUID(), keyID: "", assertion: Data(), body: Data([1]), requiresDeviceVerification: false) {
+                privateDeliveries += 1
+            }]
+        }
+        try await coordinator.begin(actor: actor)
+        defer { coordinator.release(actor: actor) }
+        let recovered = try await coordinator.recover(actor: actor, includingDeviceVerifiedRequests: false)
+        #expect(privateDeliveries == 1 && signedAttempts == 0)
+        #expect(recovered.count == 1 && recovered[0].requiresDeviceVerification == false)
+        await #expect(throws: ChallengeHealthTransportCoordinator.Failure.pendingDelivery) {
+            try await coordinator.recover(actor: actor)
+        }
+        #expect(signedAttempts == 1)
+    }
+
     @Test func failureStopsLaterCountersAndActorChangeStopsAcknowledgement() async throws {
         let actor = UUID()
         var session: WeeklyClientSession? = .init(actorID: actor, identity: "first")

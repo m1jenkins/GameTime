@@ -71,23 +71,27 @@ final class ChallengeHealthReadinessClient {
   private let sign: @MainActor (UUID, Data) async throws -> MetricSignedMaterial
   private let send: @MainActor (ChallengeHealthSignedReadinessRequest, WeeklyClientSession) async throws -> Data
   private let environment: AppAttestEnvironment
+  private let privateAccountMode: Bool
   private var generation = UUID()
   private var busy = false
 
   init(enabled: Bool = false, environment: AppAttestEnvironment,
+       privateAccountMode: Bool = false,
        coordinator: ChallengeHealthTransportCoordinator,
        binding: @escaping @MainActor () -> WeeklyClientSession?,
        prepareSession: @escaping @MainActor (UUID) async throws -> Void = { _ in },
        sign: @escaping @MainActor (UUID, Data) async throws -> MetricSignedMaterial,
        send: @escaping @MainActor (ChallengeHealthSignedReadinessRequest, WeeklyClientSession) async throws -> Data) {
     permitsNewRequests = enabled; self.environment = environment; self.store = coordinator.readinessStore; self.coordinator = coordinator
+    self.privateAccountMode = privateAccountMode
     self.binding = binding; self.prepareSession = prepareSession; self.sign = sign; self.send = send
     coordinator.register(.readiness) { [weak self] actor in
       guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
       return try self.store.load(actor: actor).pending.map { signed in
         let request = try ChallengeHealthReadinessRequest(restoring: signed.exactBody)
         return ChallengeHealthTransportCoordinator.Pending(kind: .readiness, id: request.requestID,
-          keyID: signed.keyID, assertion: signed.assertion, body: signed.exactBody) { [weak self] in
+          keyID: signed.keyID, assertion: signed.assertion, body: signed.exactBody,
+          requiresDeviceVerification: !signed.isPrivateAccount) { [weak self] in
             guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
             let epoch = self.generation
             guard let session = self.binding(), session.actorID == actor else { throw ChallengeHealthReadinessClientError.accountChanged }
@@ -102,6 +106,7 @@ final class ChallengeHealthReadinessClient {
                    signer: any AppAttestedBodySigning, environment: AppAttestEnvironment,
                    coordinator: ChallengeHealthTransportCoordinator,
                    enabled: Bool = false,
+                   privateAccountMode: Bool = false,
                    permitsHTTPS: Bool = false) throws {
     var allowed = permitsHTTPS && SupabaseChallengeV1Client.isHTTPSOrigin(origin)
     #if DEBUG || STAGING
@@ -112,7 +117,7 @@ final class ChallengeHealthReadinessClient {
     configuration.urlCache = nil; configuration.httpCookieStorage = nil
     configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
     let transport = URLSession(configuration: configuration, delegate: ChallengeHealthReadinessNoRedirect(), delegateQueue: nil)
-    self.init(enabled: enabled, environment: environment, coordinator: coordinator, binding: {
+    self.init(enabled: enabled, environment: environment, privateAccountMode: privateAccountMode, coordinator: coordinator, binding: {
       guard let session = sdk.auth.currentSession, session.expiresAt > Date().timeIntervalSince1970 else { return nil }
       return WeeklyClientSession(actorID: session.user.id, identity: session.accessToken)
     }, prepareSession: { actor in
@@ -129,11 +134,15 @@ final class ChallengeHealthReadinessClient {
       request.setValue("application/json", forHTTPHeaderField: "Content-Type")
       request.setValue(publishableKey, forHTTPHeaderField: "apikey")
       request.setValue("Bearer \(session.identity)", forHTTPHeaderField: "Authorization")
-      request.setValue(signed.keyID, forHTTPHeaderField: "x-gametime-key-id")
-      request.setValue(signed.assertion.base64EncodedString(), forHTTPHeaderField: "x-gametime-assertion")
+      if !signed.isPrivateAccount {
+        request.setValue(signed.keyID, forHTTPHeaderField: "x-gametime-key-id")
+        request.setValue(signed.assertion.base64EncodedString(), forHTTPHeaderField: "x-gametime-assertion")
+      }
       let (data, response) = try await transport.data(for: request)
       guard let http = response as? HTTPURLResponse, data.count <= 1024 else { throw ChallengeHealthReadinessClientError.unavailable }
-      if http.statusCode == 401 { throw ChallengeHealthReadinessClientError.accountChanged }
+      // A fresh local session has already been checked above. This endpoint
+      // also uses 401 when it cannot accept the signed request, so treating
+      // every response as a sign-in change sends a person down the wrong path.
       guard http.statusCode == 200 else { throw ChallengeHealthReadinessClientError.refused }
       return data
     })
@@ -159,21 +168,28 @@ final class ChallengeHealthReadinessClient {
     })
     if let saved = matchingSaved {
       guard saved.exactBody == request.exactBytes else { throw ChallengeHealthReadinessRequestError.requestConflict }
+      guard !privateAccountMode || saved.isPrivateAccount else { throw ChallengeHealthReadinessClientError.refused }
     }
-    try await coordinator.recover(actor: request.actorID)
+    try await coordinator.recover(actor: request.actorID, includingDeviceVerifiedRequests: !privateAccountMode)
     try check(epoch, session)
     journal = try store.load(actor: request.actorID)
     if matchingSaved != nil { return }
     guard permitsNewRequests else { throw ChallengeHealthReadinessClientError.unavailable }
     try validate()
-    let material = try await sign(request.actorID, request.exactBytes)
+    let signed: ChallengeHealthSignedReadinessRequest
+    if privateAccountMode {
+      signed = try ChallengeHealthSignedReadinessRequest(privateAccountRequest: request)
+    } else {
+      let material = try await sign(request.actorID, request.exactBytes)
+      try validate()
+      try check(epoch, session)
+      try coordinator.validateNewSignature(keyID: material.keyID, assertion: material.assertion)
+      guard material.environment == environment else { throw ChallengeHealthReadinessRequestError.invalidSignature }
+      signed = try ChallengeHealthSignedReadinessRequest(request: request, keyID: material.keyID,
+        assertion: material.assertion, environment: material.environment.rawValue)
+    }
     try validate()
     try check(epoch, session)
-    try coordinator.validateNewSignature(keyID: material.keyID, assertion: material.assertion)
-    guard material.environment == environment else { throw ChallengeHealthReadinessRequestError.invalidSignature }
-    let signed = try ChallengeHealthSignedReadinessRequest(request: request, keyID: material.keyID,
-                                                            assertion: material.assertion,
-                                                            environment: material.environment.rawValue)
     try journal.enqueue(signed); try store.save(journal)
     try await transmit(signed, request: request, journal: &journal, epoch: epoch, session: session)
   }
@@ -187,7 +203,7 @@ final class ChallengeHealthReadinessClient {
     try await prepareSession(actor)
     guard generation == epoch, let session = binding(), session.actorID == actor else { throw ChallengeHealthReadinessClientError.accountChanged }
     try check(epoch, session)
-    try await coordinator.recover(actor: actor)
+    try await coordinator.recover(actor: actor, includingDeviceVerifiedRequests: !privateAccountMode)
     try check(epoch, session)
   }
 
@@ -196,7 +212,9 @@ final class ChallengeHealthReadinessClient {
                         journal: inout ChallengeHealthReadinessJournal,
                         epoch: UUID, session: WeeklyClientSession) async throws {
     try check(epoch, session)
-    guard signed.environment == environment.rawValue else { throw ChallengeHealthReadinessRequestError.invalidSignature }
+    guard signed.isPrivateAccount ? privateAccountMode : signed.environment == environment.rawValue else {
+      throw ChallengeHealthReadinessRequestError.invalidSignature
+    }
     let receipt = try await send(signed, session)
     try check(epoch, session)
     try journal.acknowledge(request, receipt: receipt); try store.save(journal)
