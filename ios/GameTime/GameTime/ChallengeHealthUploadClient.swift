@@ -65,8 +65,8 @@ private final class ChallengeHealthNoRedirect: NSObject, URLSessionTaskDelegate 
                   completionHandler: @escaping (URLRequest?) -> Void) { completionHandler(nil) }
 }
 
-/// Standalone P8 transport. P9 is responsible for connecting this to the app's
-/// Health permission/user flow; no checked-in feature flag instantiates it.
+/// Minimal P8 wire transport, connected by P9 through the shared delivery lease.
+/// Checked-in gates refuse new facts while preserving exact response recovery.
 @MainActor
 final class ChallengeHealthUploadClient {
   private let permitsNewUploads: Bool
@@ -88,6 +88,20 @@ final class ChallengeHealthUploadClient {
        send: @escaping @MainActor (ChallengeHealthSignedUpload, WeeklyClientSession) async throws -> Data) {
     self.permitsNewUploads = enabled; self.environment = environment; self.store = coordinator.uploadStore; self.coordinator = coordinator
     self.binding = binding; self.prepareSession = prepareSession; self.sign = sign; self.send = send
+    coordinator.register(.upload) { [weak self] actor in
+      guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
+      return try self.store.load(actor: actor).pending.map { signed in
+        let request = try ChallengeHealthUploadRequest(restoring: signed.exactBody)
+        return ChallengeHealthTransportCoordinator.Pending(kind: .upload, id: request.requestID,
+          keyID: signed.keyID, assertion: signed.assertion, body: signed.exactBody) { [weak self] in
+            guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
+            let epoch = self.generation
+            guard let session = self.binding(), session.actorID == actor else { throw ChallengeHealthUploadClientError.accountChanged }
+            var journal = try self.store.load(actor: actor)
+            try await self.transmit(signed, request: request, journal: &journal, epoch: epoch, session: session)
+          }
+      }
+    }
   }
 
   convenience init(sdk: SupabaseClient, origin: URL, publishableKey: String,
@@ -137,9 +151,9 @@ final class ChallengeHealthUploadClient {
 
   func clear(actor: UUID) throws { invalidate(); try store.clear(actor: actor) }
 
-  func submit(_ request: ChallengeHealthUploadRequest) async throws {
+  func submit(_ request: ChallengeHealthUploadRequest, confirmedServerRevision: Int? = nil, validate: @MainActor () throws -> Void = {}) async throws {
     guard !busy else { throw ChallengeHealthUploadClientError.busy }
-    guard coordinator.acquire(actor: request.actorID) else { throw ChallengeHealthUploadClientError.busy }
+    try await coordinator.begin(actor: request.actorID)
     busy = true; defer { busy = false }
     defer { coordinator.release(actor: request.actorID) }
     let epoch = generation
@@ -155,20 +169,17 @@ final class ChallengeHealthUploadClient {
     if let saved = matchingSaved {
       guard saved.exactBody == request.exactBytes else { throw ChallengeHealthUploadError.requestConflict }
     }
-    // App Attest counters are monotonic. A durable assertion must be retried
-    // before this client obtains another one, even for a different challenge.
-    if !journal.pending.isEmpty {
-      try await drain(&journal, epoch: epoch, session: session)
-    }
-    if matchingSaved != nil {
-      return
-    }
-    guard !(try coordinator.peerHasPending(actor: request.actorID, for: .upload)) else {
-      throw ChallengeHealthUploadClientError.busy
-    }
-    guard permitsNewUploads else { throw ChallengeHealthUploadClientError.unavailable }
-    let material = try await sign(request.actorID, request.exactBytes)
+    try await coordinator.recover(actor: request.actorID)
     try check(epoch, session)
+    journal = try store.load(actor: request.actorID)
+    if matchingSaved != nil { return }
+    if let confirmedServerRevision { try journal.reconcileServerHead(for: request, revision: confirmedServerRevision) }
+    guard permitsNewUploads else { throw ChallengeHealthUploadClientError.unavailable }
+    try validate()
+    let material = try await sign(request.actorID, request.exactBytes)
+    try validate()
+    try check(epoch, session)
+    try coordinator.validateNewSignature(keyID: material.keyID, assertion: material.assertion)
     guard material.environment == environment else { throw ChallengeHealthUploadError.invalidSignature }
     let upload = try ChallengeHealthSignedUpload(request: request, keyID: material.keyID,
                                                 assertion: material.assertion, environment: material.environment.rawValue)
@@ -179,23 +190,15 @@ final class ChallengeHealthUploadClient {
 
   func retry(actor: UUID) async throws {
     guard !busy else { throw ChallengeHealthUploadClientError.busy }
-    guard coordinator.acquire(actor: actor) else { throw ChallengeHealthUploadClientError.busy }
+    try await coordinator.begin(actor: actor)
     busy = true; defer { busy = false }
     defer { coordinator.release(actor: actor) }
     let epoch = generation
     try await prepareSession(actor)
     guard generation == epoch, let session = binding(), session.actorID == actor else { throw ChallengeHealthUploadClientError.accountChanged }
     try check(epoch, session)
-    var journal = try store.load(actor: actor)
-    try await drain(&journal, epoch: epoch, session: session)
-  }
-
-  private func drain(_ journal: inout ChallengeHealthUploadJournal, epoch: UUID,
-                     session: WeeklyClientSession) async throws {
-    for upload in journal.pending {
-      let request = try ChallengeHealthUploadRequest(restoring: upload.exactBody)
-      try await transmit(upload, request: request, journal: &journal, epoch: epoch, session: session)
-    }
+    try await coordinator.recover(actor: actor)
+    try check(epoch, session)
   }
 
   private func transmit(_ upload: ChallengeHealthSignedUpload, request: ChallengeHealthUploadRequest,
@@ -211,6 +214,7 @@ final class ChallengeHealthUploadClient {
 
   private func check(_ epoch: UUID, _ session: WeeklyClientSession) throws {
     try Task.checkCancellation()
+    try coordinator.check(actor: session.actorID)
     guard epoch == generation, binding() == session else { throw ChallengeHealthUploadClientError.accountChanged }
   }
 

@@ -10,9 +10,20 @@ import Foundation
 /// versioned device-family interpretation, not a record of physical testing.
 public struct ChallengeHealthAppleWatchStepsAdapter: ChallengeHealthAdapter {
     public let metric = ChallengeHealthMetric.steps
-
     public init() {}
+    public func evaluate(_ snapshot: ChallengeHealthSnapshot,
+                         replacing previous: ChallengeHealthSnapshot? = nil) -> ChallengeHealthEvaluation {
+        ChallengeHealthWatchQuantityAdapter(policy: .appleWatchAutomaticStepsV1, scale: 1)
+            .evaluate(snapshot, replacing: previous)
+    }
+}
 
+/// Shared reconciliation mechanics; callers freeze the source/metric and scale.
+/// Strict Exercise v1 does not use this accepted quantity seam.
+struct ChallengeHealthWatchQuantityAdapter: ChallengeHealthAdapter {
+    let policy: ChallengeHealthRealSourcePolicy
+    let scale: Double
+    var metric: ChallengeHealthMetric { policy.metric }
     public func evaluate(_ snapshot: ChallengeHealthSnapshot,
                          replacing previous: ChallengeHealthSnapshot? = nil) -> ChallengeHealthEvaluation {
         var issues: Set<ChallengeHealthIssue> = []
@@ -48,7 +59,7 @@ public struct ChallengeHealthAppleWatchStepsAdapter: ChallengeHealthAdapter {
             issues.insert(.metricMismatch)
             return result()
         }
-        guard snapshot.request.binding.realSourcePolicy == .appleWatchAutomaticStepsV1 else {
+        guard snapshot.request.binding.realSourcePolicy == policy else {
             issues.insert(.realSourcePolicyMismatch)
             return result()
         }
@@ -91,7 +102,7 @@ public struct ChallengeHealthAppleWatchStepsAdapter: ChallengeHealthAdapter {
         func capture(_ input: ChallengeHealthSnapshot) -> WeeklySourceCapture {
             WeeklySourceCapture(
                 accountID: input.request.binding.actorID,
-                metric: .steps,
+                metric: metric.rawMetric,
                 window: input.request.queryWindow.interval,
                 observedAt: input.observedAt,
                 state: input.evidence == .truncated ? .truncated : .successfulQuery,
@@ -141,7 +152,7 @@ public struct ChallengeHealthAppleWatchStepsAdapter: ChallengeHealthAdapter {
                 issues.insert(.realSourceProvenanceUnavailable)
                 continue
             }
-            if !Self.isAppleHealthSystemSource(source) || Self.isIPhoneProductType(productType) {
+            if !Self.isAppleHealthSystemSource(source) || (Self.isIPhoneProductType(productType) || (policy == .appleWatchExerciseCreditV2 && Self.isIdentifiableUnsupportedProduct(productType))) {
                 issues.insert(.sourceExplicitlyRejected)
                 continue
             }
@@ -208,7 +219,7 @@ public struct ChallengeHealthAppleWatchStepsAdapter: ChallengeHealthAdapter {
                 return result()
             }
         }
-        let floored = total.rounded(.down)
+        let floored = (total * scale).rounded(.down)
         let activityValue = Int64(exactly: floored)
         guard floored > 0, let activityValue,
               let activity = try? ChallengeHealthValue(metric: metric, integerValue: activityValue) else {
@@ -237,6 +248,10 @@ public struct ChallengeHealthAppleWatchStepsAdapter: ChallengeHealthAdapter {
     private static func isAppleHealthSystemSource(_ bundleIdentifier: String?) -> Bool {
         bundleIdentifier == "com.apple.health"
             || bundleIdentifier?.hasPrefix("com.apple.health.") == true
+    }
+
+    private static func isIdentifiableUnsupportedProduct(_ value: String) -> Bool {
+        ["iPad", "iPod", "Mac", "AppleTV", "AudioAccessory", "RealityDevice", "Vision"].contains { value.hasPrefix($0) }
     }
 
     private static func isIPhoneProductType(_ productType: String) -> Bool {

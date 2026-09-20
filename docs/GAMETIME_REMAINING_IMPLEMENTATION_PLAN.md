@@ -1,6 +1,11 @@
 # GameTime remaining implementation plan
 
-Updated September 19 for the [main consolidation](../outputs/reports/2026-09-19-main-consolidation.md).
+Updated September 20 for [P9 local Signal integration](P9_SIGNAL_REAL_ACTIVITY.md).
+Use `codex/p9-signal-real-activity` or a verified descendant containing P8/P9;
+`main` at final inspection is `cb3a0ec`, containing P8 but not P9. See the [local report](../outputs/reports/2026-09-20-p9-signal-real-activity.md)
+and [next planning prompt](P9_NEXT_PLANNING_PROMPT.md). This does not dispatch later work.
+
+September 19 context: the [main consolidation](../outputs/reports/2026-09-19-main-consolidation.md).
 It includes the delivered invitation, administrator recovery, suspended-account
 repair and service monitoring slices. Local weekly acceptance passed; the
 consolidation record lists CI status at merge. P12 owns the full release matrix.
@@ -16,10 +21,11 @@ a paired Watch and [started P7 on a physical iPhone](../outputs/reports/2026-09-
 The owner has since signed off measured P7 testing and selected source rules
 and timed-distance tolerance in D138. The [P8 contract](P8_REAL_HEALTH_CONTRACT.md)
 records local real adapters, signed ingestion and safe server derivation.
-Exercise remains unavailable under its causal-origin requirement; complete
-leaderboards and confirmed misses remain unresolved. P9 native journeys,
-approved hosting/identities/operation and candidate/human/release acceptance
-remain. P7's all-source distribution requirements stay intact.
+D139 introduces Exercise credit v2 with disclosed causal uncertainty. Strict v1
+remains unavailable; complete leaderboards and confirmed misses remain unresolved.
+Local P9 native journeys and shared recovery are implemented. Approved
+hosting/identities/operation and candidate/human/release acceptance remain.
+The four-metric/all-13 distribution requirements stay intact.
 
 The shortest path is to finish real activity → agreed challenge → corrected
 result, operate it on one approved backend, and test it with people. Preserve
@@ -33,7 +39,7 @@ another design, infrastructure or general audit workstream.
 | P0/0A/3, P4–P6 | Local foundation, iPhone-only runtime, closed Health contracts, scoped locks, bounded queries and private community are implemented. Their reports remain evidence; do not repeat these prompts. |
 | Signal / P9A | Native migration landed in published main from the `b25834c` baseline; ordinary and retained routes use Signal, with cobalt rendering and fonts removed. [Native verification](../outputs/reports/2026-09-13-signal-native-migration.md) records tested source, route coverage and limits. Use this implementation for P9 under the [migration contract](design/SIGNAL_UI_MIGRATION.md). |
 | P7 | Owner signed off the test effort; the [physical session](../outputs/reports/2026-09-18-p7-device-session.md) retains exact observations and gaps. D138 supplies source and timed-distance rules; no additional measured run is requested. |
-| P8/P9 | Configured ordinary Signal now shares the app authentication session and existing challenge client; checked-in opt-in remains off. [Bounded P9 connection](../outputs/reports/2026-09-15-p9-authenticated-app.md) records local substitute checks. Configured HTTPS invitation intake/formatting is integrated locally. Local real consent/ingestion/adapters are described in the [P8 contract](P8_REAL_HEALTH_CONTRACT.md). Exercise remains unavailable. P9 wiring and key-wide recovery, approved domain/Apple/OS delivery and source-backed native journeys remain. |
+| P8/P9 | Configured ordinary Signal now shares the app authentication session and existing challenge client; checked-in opt-in remains off. [Bounded P9 connection](../outputs/reports/2026-09-15-p9-authenticated-app.md) records local substitute checks. Configured HTTPS invitation intake/formatting is integrated locally. Local real consent/ingestion/adapters are described in the [P8 contract](P8_REAL_HEALTH_CONTRACT.md). P9 wiring, key-wide recovery and synthetic ordinary-app journeys are implemented on the P9 branch. Strict Exercise v1 stays unavailable; new Exercise credit v2 is separately versioned. Approved domain/Apple/OS delivery, operated journeys and release acceptance remain. |
 | P10 | [Device-independent preparation](../outputs/reports/2026-09-12-p10-completion.md) is complete. Approved settings, functioning hosted scheduler/alerts, retention/deletion and operating acceptance are still missing. |
 | P11A | Local worker/recovery/snapshot/status code landed at `a3d2c3f`; scoped human operator tooling landed at `6fea1c2`. Main also includes durable v2 administrator response recovery, repaired suspended-account access and review/appeal/snapshot monitoring; historical v1 reconciliation remains manual. Account deletion and review repairs are landed through `c6f88cd` ([local record](evidence/beta-finish-line-b7/account-deletion-local-20260914.md)). Hosted schedules, credentials, alerts and actual retention/deletion operation remain outstanding. [Recovery report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [operator report](../outputs/reports/2026-09-14-p11a-operator.md) |
 | P11–P13 | Operated backend, source-backed candidate qualification, physical/human acceptance and authorized distribution remain. Public App Store submission is a later milestone. |
@@ -68,7 +74,7 @@ or external acceptance.
 | --- | --- | --- |
 | P9A — adopt Signal natively | Local implementation and verification recorded in the native report; preserve its source and continue with P9 integration. | Independent of P7 and hosting; current stores, closed clients and explicit local fixtures. |
 | P7 — preserve owner sign-off | The owner closed measured testing; D138 supplies source and tolerance rules. Preserve the [performed observations](../outputs/reports/2026-09-18-p7-device-session.md) and keep unenforceable capabilities unavailable. | No repeated measured run is requested. The Exercise causal-origin limit remains explicit. |
-| P8 → P9 — complete a real journey | Wire the separately versioned contracts into native screens through readiness, consent, progress, correction, review and final result. Use the [P8 software record](../outputs/reports/2026-09-19-p8-real-health.md), preserve unavailable results, and coordinate exact delivery across writers. | All four usable sources and all 13 policies remain required for distribution; local source/ingestion checks do not meet that gate. |
+| P8 → P9 — complete a real journey | Local implementation and synthetic ordinary-app checks are recorded in the [P9 report](../outputs/reports/2026-09-20-p9-signal-real-activity.md). Preserve nine goal policies, four unavailable leaderboard states and exact shared delivery. | All four usable sources and all 13 policies remain required for distribution; local source/ingestion checks do not meet that gate. |
 | P10 follow-through → P11 — operate one backend | Use the existing worksheet to select settings. Implement missing scheduler/recovery, scoped operator access, alerts, account deletion and approved retention. Test locally, then deploy/exercise only the authorized target. | Independent local operating code can accompany P7; hosting needs approved settings/actions, and real activity operation needs P8/P9. |
 | P12 + P13 — qualify one candidate | Integrate chosen native UI and real Apple sign-in/HTTPS links. Run the release matrix once, plus device/accessibility/comprehension and operating checks. Fix defects and complete gated legacy shell retirement. | Integrated source-backed candidate; authorization for actual hosting and device checks. |
 | Private TestFlight, then public launch | After acceptance/authorization, run a small supervised simulated pilot, fix observed problems, then prepare the App Store release. | Actual Beta results, working support and separate submission/release authorization. |

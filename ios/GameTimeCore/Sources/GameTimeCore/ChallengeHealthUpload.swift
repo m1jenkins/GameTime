@@ -59,11 +59,11 @@ public struct ChallengeHealthUploadRequest: Equatable, Sendable {
         guard wire.contractVersion == 1, wire.agreementVersion > 0, wire.agreementVersion <= 2_147_483_647,
               wire.termsDigest.utf8.count == 64,
               wire.termsDigest.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }),
-              policies[wire.metric] == wire.sourcePolicyVersion,
+              (policies[wire.metric] == wire.sourcePolicyVersion || (wire.metric == "exercise" && wire.sourcePolicyVersion == "apple_watch_exercise_credit_v2")),
               wire.revision > 0, wire.revision <= 2_147_483_647,
               wire.previousRevision == (wire.revision == 1 ? nil : wire.revision - 1),
               ["value", "deleted", "unresolved"].contains(wire.state),
-              wire.metric != "exercise" || wire.state != "value",
+              wire.sourcePolicyVersion != "apple_watch_exercise_v1" || wire.state != "value",
               wire.metric == "timed" ? (wire.distanceMillimeters.map({ $0 > 0 && $0 <= 1_000_000_000 }) ?? false) : wire.distanceMillimeters == nil,
               wire.state == "value" ? (wire.value.map({ $0 > 0 && $0 <= 1_000_000_000 }) ?? false) : wire.value == nil,
               let start = Self.date(wire.windowStartsAt), let end = Self.date(wire.windowEndsAt),
@@ -190,6 +190,17 @@ public struct ChallengeHealthUploadJournal: Codable, Sendable {
     public func encoded() throws -> Data {
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
         return try encoder.encode(self)
+    }
+
+    /// The transport calls this only with a freshly authorized server head,
+    /// after all exact requests have been recovered under the shared lease.
+    public mutating func reconcileServerHead(for request: ChallengeHealthUploadRequest, revision: Int) throws {
+        guard request.actorID == actorID, revision > 0, revision == request.previousRevision,
+              !pending.contains(where: { (try? ChallengeHealthUploadRequest(restoring: $0.exactBody).scope) == request.scope }),
+              revision >= (heads[request.scope] ?? 0), heads.count < 4096 || heads[request.scope] != nil else {
+            throw ChallengeHealthUploadError.revisionConflict
+        }
+        heads[request.scope] = revision
     }
 
     public mutating func enqueue(_ upload: ChallengeHealthSignedUpload) throws {

@@ -1,0 +1,44 @@
+{
+  "steps": {
+    "metric": "steps",
+    "retained_active_fixture": false,
+    "checks": 14,
+    "synthetic_only": true,
+    "physical_data_used": false
+  },
+  "exercise": {
+    "metric": "exercise",
+    "retained_active_fixture": false,
+    "checks": 14,
+    "synthetic_only": true,
+    "physical_data_used": false
+  },
+  "distance": {
+    "metric": "distance",
+    "retained_active_fixture": false,
+    "checks": 14,
+    "synthetic_only": true,
+    "physical_data_used": false
+  },
+  "timed": {
+    "metric": "timed",
+    "retained_active_fixture": false,
+    "checks": 15,
+    "synthetic_only": true,
+    "physical_data_used": false
+  },
+  "race_seed": {
+    "metric": "steps",
+    "retained_active_fixture": true,
+    "checks": 9,
+    "synthetic_only": true,
+    "physical_data_used": false
+  },
+  "races": {
+    "exact_recovery": true,
+    "expiry_checked_after_session_wait": true,
+    "one_cas_commit": true,
+    "one_new_fact": true,
+    "revocation_checked_after_session_wait": true
+  }
+}

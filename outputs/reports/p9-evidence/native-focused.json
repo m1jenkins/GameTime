@@ -1,0 +1,21 @@
+{
+  "title": "Test - GameTime",
+  "result": "Failed",
+  "totalTestCount": 245,
+  "passedTests": 244,
+  "failedTests": 1,
+  "skippedTests": 0,
+  "startTime": 1789884607.112,
+  "finishTime": 1789884764.821,
+  "testFailures": [
+    {
+      "failureText": "XCTUnwrap failed: expected non-nil value of type \"ChallengeV1Community\"",
+      "targetName": "GameTimeTests",
+      "testIdentifier": 102,
+      "testIdentifierString": "ChallengeHealthOrdinaryAppTests/testZCommunityReadinessDisclosureAndOutcomeMinimum()",
+      "testIdentifierURL": "test://com.apple.xcode/GameTime/GameTimeTests/ChallengeHealthOrdinaryAppTests/testZCommunityReadinessDisclosureAndOutcomeMinimum",
+      "testName": "testZCommunityReadinessDisclosureAndOutcomeMinimum()"
+    }
+  ],
+  "xcresult": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/result-bundles/test_sim_2026-09-20T06-09-55-074Z_pid30447_46e8ef43.xcresult"
+}

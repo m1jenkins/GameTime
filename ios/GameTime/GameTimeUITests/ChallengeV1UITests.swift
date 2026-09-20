@@ -307,7 +307,7 @@ final class ChallengeV1UITests:XCTestCase {
         }
         app.buttons["beta.create.open"].tap()
         choose("beta.create.competition", "Leaderboard")
-        for metric in ["Steps", "Exercise time", "Running distance", "Timed run"] {
+        for metric in ["Steps", "Activity minutes", "Running distance", "Timed run"] {
             choose("beta.create.metric", metric)
             XCTAssertFalse(app.textFields["beta.create.target"].exists)
             capture("leaderboard-create-" + metric)

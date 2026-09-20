@@ -1,6 +1,8 @@
 # Build friend duels and personal performance commitments
 
-Start from `main` in `/Users/user/Documents/GitHub/GameTime` and read the
+For this continuation, use `codex/p9-signal-real-activity`, based on P8
+`8a9d1f0`, or a verified descendant containing both. Final inspection found
+`main` at `cb3a0ec`, containing P8 but not P9. Work in `/Users/user/Documents/GitHub/GameTime` and read the
 [working baseline](docs/WORKING_BASELINE.md),
 [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [one-task prompts](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
@@ -14,8 +16,9 @@ on September 18. On September 19 the owner [signed off the P7 test effort and
 requested P8 preparation](DECISIONS.md#d137-owner-signs-off-p7-testing-and-directs-p8-preparation);
 [D138](DECISIONS.md#d138-owner-selects-p8-source-rules-and-whole-run-distance-tolerance)
 now supplies the source and timed-distance decisions. The [P8 contract](docs/P8_REAL_HEALTH_CONTRACT.md)
-records the local real-source implementation and Exercise causal-origin limit.
-P9 app wiring, approved hosted identities/operation and physical/human/release
+records the original real-source implementation. D139 and the [P9 contract](docs/P9_SIGNAL_REAL_ACTIVITY.md) add ordinary Signal orchestration, shared
+exact delivery and separately versioned Apple Exercise credit. Strict Exercise
+v1 stays unavailable. Approved hosted identities/operation and physical/human/release
 acceptance remain.
 All four sources and all 13 policies are required; funded launch remains Phase 6.
 Do not restart completed prompts or follow obsolete checkout instructions.
@@ -24,10 +27,11 @@ The September 19 [main consolidation](outputs/reports/2026-09-19-main-consolidat
 includes delivered HTTPS intake, durable administrator recovery, suspended
 account access repair, review/appeal/snapshot monitoring, iOS 18 compatibility
 and the fictional Personal lifecycle preview. Local weekly acceptance passed;
-the consolidation record lists CI status at merge. Continue from the
-[P8 software record](outputs/reports/2026-09-19-p8-real-health.md) into the separately
-scoped P9 integration, preserving unavailable capabilities and its required
-App Attest coordination with retained writers. The full release matrix remains reserved for P12.
+the consolidation record lists CI status at merge. The [P9 local report](outputs/reports/2026-09-20-p9-signal-real-activity.md) records
+the continuation and focused checks. Nine real goal policies and four explicit
+unavailable leaderboard states do not meet the unchanged all-13 release gate.
+Use the [next-chat planning prompt](docs/P9_NEXT_PLANNING_PROMPT.md) to plan the next
+bounded task and resolve its actual owner decisions. The full release matrix remains reserved for P12.
 
 ## Historical roadmap
 

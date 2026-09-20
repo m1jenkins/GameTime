@@ -243,7 +243,9 @@ def prepare(args):
     env = dict(os.environ, DO_NOT_TRACK="1", POSTGRES_PASSWORD=manifest["db_password"],
                GOTRUE_JWT_SECRET=manifest["jwt_secret"], GOTRUE_DB_DRIVER="postgres",
                GOTRUE_DB_DATABASE_URL="postgres://supabase_auth_admin:" + manifest["db_password"] + "@" + manifest["db"] + ":5432/postgres",
-               GOTRUE_SITE_URL="http://127.0.0.1", API_EXTERNAL_URL="http://127.0.0.1:" + str(manifest["auth_port"]) + "/auth/v1",
+               GOTRUE_SITE_URL="http://127.0.0.1", GOTRUE_API_PORT="9999",
+               GOTRUE_JWT_AUD="authenticated", GOTRUE_JWT_DEFAULT_GROUP_NAME="authenticated",
+               GOTRUE_JWT_ISSUER="http://127.0.0.1:" + str(manifest["auth_port"]) + "/auth/v1", API_EXTERNAL_URL="http://127.0.0.1:" + str(manifest["auth_port"]) + "/auth/v1",
                PGRST_DB_URI="postgres://authenticator:" + manifest["db_password"] + "@" + manifest["db"] + ":5432/postgres",
                PGRST_JWT_SECRET=manifest["jwt_secret"], PGRST_DB_SCHEMAS="public", PGRST_DB_ANON_ROLE="anon")
     created = []
@@ -327,7 +329,7 @@ def prepare(args):
             raise RuntimeError("historical agreement digest was not populated")
         command(["docker", "run", "-d", "--name", manifest["auth"], "--label", "owner=" + owner,
                  "--network", owner, "-p", "127.0.0.1:" + str(manifest["auth_port"]) + ":9999",
-                 "-e", "GOTRUE_JWT_SECRET", "-e", "GOTRUE_DB_DRIVER", "-e", "GOTRUE_DB_DATABASE_URL", "-e", "GOTRUE_SITE_URL", "-e", "API_EXTERNAL_URL", "-e", "GOTRUE_DISABLE_SIGNUP=true", "-e", "GOTRUE_EXTERNAL_EMAIL_ENABLED=false", AUTH_IMAGE], env=env,
+                 "-e", "GOTRUE_JWT_SECRET", "-e", "GOTRUE_DB_DRIVER", "-e", "GOTRUE_DB_DATABASE_URL", "-e", "GOTRUE_SITE_URL", "-e", "GOTRUE_API_PORT", "-e", "GOTRUE_JWT_AUD", "-e", "GOTRUE_JWT_DEFAULT_GROUP_NAME", "-e", "GOTRUE_JWT_ISSUER", "-e", "API_EXTERNAL_URL", "-e", "GOTRUE_DISABLE_SIGNUP=true", "-e", "GOTRUE_EXTERNAL_EMAIL_ENABLED=true", AUTH_IMAGE], env=env,
                 label="auth-start.log", manifest=manifest)
         created.append(("container", manifest["auth"]))
         command(["docker", "run", "-d", "--name", manifest["rest"], "--label", "owner=" + owner,

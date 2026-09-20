@@ -171,9 +171,11 @@ struct SignalProductShell: View {
             }.accessibilityIdentifier("signal.existing-challenges")),
             serviceAvailable: model.configuration.challengeV1RuntimeEnabled)
             .tint(SignalTheme.accent)
+            .environment(\.challengeHealthFlow, model.challengeHealth)
             .task(id: model.userID) {
                 model.challengesV1.setActor(model.userID)
                 await model.challengesV1.refresh()
+                await model.challengeHealth?.refresh()
             }
             .onDisappear { model.challengesV1.hide() }
             .fullScreenCover(isPresented: $showingExistingChallenges) {

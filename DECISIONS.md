@@ -4954,3 +4954,39 @@ Checked-in transport and external readiness remain closed. No hosted mutation,
 distribution, recruitment, money or physical Health upload is authorized.
 Signal, historical agreements/consent and completed recovery work remain intact;
 broader P9 integration and P12/P13 acceptance remain separate.
+
+
+### D139. Signal real activity and versioned Apple Exercise credit
+
+**Explicit owner direction, September 19–20, 2026:** implement the bounded P9
+plan from P8 `8a9d1f0` on a short-lived local branch. Reuse Signal, authentication,
+invitations, lifecycle, reviews, community privacy and retained Personal.
+Coordinate exact signed recovery for every writer sharing the app key before
+connecting ordinary-app Health uploads. Automatic foreground/Health-change and
+hourly background opportunities accompany manual Refresh; delivery is not guaranteed.
+
+For new agreements, introduce `apple_watch_exercise_credit_v2`, counting eligible
+Watch-origin Apple Exercise samples after reconciliation, normalized once with
+`floor(total minutes × 60)`. Keep D138’s Apple-system/Watch metadata interpretation
+and reconciled Watch switching. Exclude explicit manual and identifiable
+unsupported records. **Accept unknown causal origin as a disclosed policy choice**;
+other provenance uncertainty, conflicting identities, unexplained overlap,
+disappearance and incomplete reads remain unresolved. Activity minutes are Apple
+Exercise credit, not every minute of movement. Indirectly derived credit may count.
+Preserve strict unavailable `apple_watch_exercise_v1`, all old registry rows,
+agreement digests, consent, receipts and exact pending bytes.
+
+Retain P8’s result rule: positive observations can prove success, incomplete
+history cannot prove a miss or complete ranking. New real leaderboards show
+**Leaderboard — Not available yet**, with no creation or target suggestion. Existing
+records retain review, exit, history and unresolved/void processing. Nine goal
+policies plus four unavailable modes do **not** satisfy the unchanged four-metric,
+all-13-policy release requirement. No loss is inferred from missing activity.
+
+Local community values remain test fixtures. The [P9 contract](docs/P9_SIGNAL_REAL_ACTIVITY.md)
+and [local report](outputs/reports/2026-09-20-p9-signal-real-activity.md) distinguish
+implementation and synthetic checks from operating or release acceptance.
+Hosting identities, community publication settings, operating approval, replacement
+retirement and P12/P13 remain separate. All 18 external readiness entries and
+checked-in transport/server gates stay closed. No deployment, distribution,
+recruitment, money, physical Health upload, historical cleanup or P7 restart is authorized.

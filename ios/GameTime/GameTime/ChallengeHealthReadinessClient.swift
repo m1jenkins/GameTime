@@ -59,8 +59,8 @@ private final class ChallengeHealthReadinessNoRedirect: NSObject, URLSessionTask
                   completionHandler: @escaping (URLRequest?) -> Void) { completionHandler(nil) }
 }
 
-/// A standalone receipt transport. It is default-off and no app feature
-/// instantiates it. Exact signed bytes survive a response loss for recovery.
+/// Default-off receipt transport used by the Health flow. Exact signed bytes
+/// survive response loss and stay recoverable when new signing is disabled.
 @MainActor
 final class ChallengeHealthReadinessClient {
   private let permitsNewRequests: Bool
@@ -82,6 +82,20 @@ final class ChallengeHealthReadinessClient {
        send: @escaping @MainActor (ChallengeHealthSignedReadinessRequest, WeeklyClientSession) async throws -> Data) {
     permitsNewRequests = enabled; self.environment = environment; self.store = coordinator.readinessStore; self.coordinator = coordinator
     self.binding = binding; self.prepareSession = prepareSession; self.sign = sign; self.send = send
+    coordinator.register(.readiness) { [weak self] actor in
+      guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
+      return try self.store.load(actor: actor).pending.map { signed in
+        let request = try ChallengeHealthReadinessRequest(restoring: signed.exactBody)
+        return ChallengeHealthTransportCoordinator.Pending(kind: .readiness, id: request.requestID,
+          keyID: signed.keyID, assertion: signed.assertion, body: signed.exactBody) { [weak self] in
+            guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
+            let epoch = self.generation
+            guard let session = self.binding(), session.actorID == actor else { throw ChallengeHealthReadinessClientError.accountChanged }
+            var journal = try self.store.load(actor: actor)
+            try await self.transmit(signed, request: request, journal: &journal, epoch: epoch, session: session)
+          }
+      }
+    }
   }
 
   convenience init(sdk: SupabaseClient, origin: URL, publishableKey: String,
@@ -128,9 +142,9 @@ final class ChallengeHealthReadinessClient {
   func invalidate() { generation = UUID() }
   func clear(actor: UUID) throws { invalidate(); try store.clear(actor: actor) }
 
-  func submit(_ request: ChallengeHealthReadinessRequest) async throws {
+  func submit(_ request: ChallengeHealthReadinessRequest, validate: @MainActor () throws -> Void = {}) async throws {
     guard !busy else { throw ChallengeHealthReadinessClientError.busy }
-    guard coordinator.acquire(actor: request.actorID) else { throw ChallengeHealthReadinessClientError.busy }
+    try await coordinator.begin(actor: request.actorID)
     busy = true; defer { busy = false }
     defer { coordinator.release(actor: request.actorID) }
     let epoch = generation
@@ -146,20 +160,16 @@ final class ChallengeHealthReadinessClient {
     if let saved = matchingSaved {
       guard saved.exactBody == request.exactBytes else { throw ChallengeHealthReadinessRequestError.requestConflict }
     }
-    // Do not advance this client's App Attest counter while a durable signed
-    // request still needs recovery, including one for another source choice.
-    if !journal.pending.isEmpty {
-      try await drain(&journal, epoch: epoch, session: session)
-    }
-    if matchingSaved != nil {
-      return
-    }
-    guard !(try coordinator.peerHasPending(actor: request.actorID, for: .readiness)) else {
-      throw ChallengeHealthReadinessClientError.busy
-    }
-    guard permitsNewRequests else { throw ChallengeHealthReadinessClientError.unavailable }
-    let material = try await sign(request.actorID, request.exactBytes)
+    try await coordinator.recover(actor: request.actorID)
     try check(epoch, session)
+    journal = try store.load(actor: request.actorID)
+    if matchingSaved != nil { return }
+    guard permitsNewRequests else { throw ChallengeHealthReadinessClientError.unavailable }
+    try validate()
+    let material = try await sign(request.actorID, request.exactBytes)
+    try validate()
+    try check(epoch, session)
+    try coordinator.validateNewSignature(keyID: material.keyID, assertion: material.assertion)
     guard material.environment == environment else { throw ChallengeHealthReadinessRequestError.invalidSignature }
     let signed = try ChallengeHealthSignedReadinessRequest(request: request, keyID: material.keyID,
                                                             assertion: material.assertion,
@@ -170,23 +180,15 @@ final class ChallengeHealthReadinessClient {
 
   func retry(actor: UUID) async throws {
     guard !busy else { throw ChallengeHealthReadinessClientError.busy }
-    guard coordinator.acquire(actor: actor) else { throw ChallengeHealthReadinessClientError.busy }
+    try await coordinator.begin(actor: actor)
     busy = true; defer { busy = false }
     defer { coordinator.release(actor: actor) }
     let epoch = generation
     try await prepareSession(actor)
     guard generation == epoch, let session = binding(), session.actorID == actor else { throw ChallengeHealthReadinessClientError.accountChanged }
     try check(epoch, session)
-    var journal = try store.load(actor: actor)
-    try await drain(&journal, epoch: epoch, session: session)
-  }
-
-  private func drain(_ journal: inout ChallengeHealthReadinessJournal, epoch: UUID,
-                     session: WeeklyClientSession) async throws {
-    for signed in journal.pending {
-      let request = try ChallengeHealthReadinessRequest(restoring: signed.exactBody)
-      try await transmit(signed, request: request, journal: &journal, epoch: epoch, session: session)
-    }
+    try await coordinator.recover(actor: actor)
+    try check(epoch, session)
   }
 
   private func transmit(_ signed: ChallengeHealthSignedReadinessRequest,
@@ -202,6 +204,7 @@ final class ChallengeHealthReadinessClient {
 
   private func check(_ epoch: UUID, _ session: WeeklyClientSession) throws {
     try Task.checkCancellation()
+    try coordinator.check(actor: session.actorID)
     guard generation == epoch, binding() == session else { throw ChallengeHealthReadinessClientError.accountChanged }
   }
 

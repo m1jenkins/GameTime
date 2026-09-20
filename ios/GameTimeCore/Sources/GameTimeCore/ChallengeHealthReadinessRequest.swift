@@ -94,6 +94,9 @@ public struct ChallengeHealthReadinessRequest: Equatable, Sendable {
         case (.steps, .appleWatchAutomaticStepsV1):
             return ReadinessPolicy(sourcePolicyVersion: "apple_watch_steps_v1", historyDays: 30,
                                    includesDistance: false)
+        case (.exerciseSeconds, .appleWatchExerciseCreditV2):
+            return ReadinessPolicy(sourcePolicyVersion: "apple_watch_exercise_credit_v2", historyDays: 30,
+                                   includesDistance: false)
         case (.runningMillimeters, .appleWorkoutOutdoorDistanceV1):
             return ReadinessPolicy(sourcePolicyVersion: "apple_workout_outdoor_distance_v1", historyDays: 30,
                                    includesDistance: false)
@@ -109,7 +112,7 @@ public struct ChallengeHealthReadinessRequest: Equatable, Sendable {
     private static func wirePolicy(sourcePolicyVersion: String,
                                    distanceMillimeters: Int64?) -> ReadinessPolicy? {
         switch sourcePolicyVersion {
-        case "apple_watch_steps_v1":
+        case "apple_watch_steps_v1", "apple_watch_exercise_credit_v2":
             return distanceMillimeters == nil
                 ? ReadinessPolicy(sourcePolicyVersion: sourcePolicyVersion, historyDays: 30, includesDistance: false)
                 : nil
@@ -259,7 +262,7 @@ public struct ChallengeHealthReadinessJournal: Codable, Sendable {
               response["version"] as? String == "challenge_real_health_readiness_receipt_v1",
               (response["request_id"] as? String).flatMap(UUID.init(uuidString:)) == request.requestID,
               let acceptedAt = response["accepted_at"] as? String,
-              acceptedAt.hasSuffix("Z"),
+              (acceptedAt.hasSuffix("Z") || acceptedAt.hasSuffix("+00:00")),
               formatter.date(from: acceptedAt) != nil || fractionalFormatter.date(from: acceptedAt) != nil else {
             throw ChallengeHealthReadinessRequestError.invalidReceipt
         }

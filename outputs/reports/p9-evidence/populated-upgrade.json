@@ -1,0 +1,37 @@
+{
+  "owner": "gametime-p8-real-health-e84c779ebaff",
+  "state": "forward_applied",
+  "baseline_agreement_digest": "90dd71856352462a39cf36f713b6681988170a10740b52ec60e118ab7b830a6a",
+  "forward_migrations": [
+    {
+      "path": "supabase/migrations/20260920010824_challenge_real_health_ingest_v1.sql",
+      "sha256": "054ecf8ffbeae36df92d1d631c7a14ff3e8eb52c116b6d07033dc2b17b95032f"
+    },
+    {
+      "path": "supabase/migrations/20260920015606_challenge_real_health_metrics_v1.sql",
+      "sha256": "3816db03757426223ffd8f55719d0f05aa9219ac1a54505686bdccb279ea4596"
+    },
+    {
+      "path": "supabase/migrations/20260920020431_challenge_real_health_metric_contracts_v1.sql",
+      "sha256": "48c7310f5765a9597798e0130660b5a131d2765064b3bf17db20e2672ecbf833"
+    },
+    {
+      "path": "supabase/migrations/20260920022108_challenge_real_health_privacy_v1.sql",
+      "sha256": "fbfad85e6c4fa48d54bfc58c1809007e297c8c7485e941c01a2e13c7711a0f81"
+    },
+    {
+      "path": "supabase/migrations/20260920023500_challenge_real_health_worker_v1.sql",
+      "sha256": "9402d92d3f89b20e56d4492ce9995d9bf92929d6fa52dd5c8ebda9e0df2f01db"
+    },
+    {
+      "path": "supabase/migrations/20260920042634_challenge_signal_health_binding_v1.sql",
+      "sha256": "5e81016f4311af1c8b5455ff5b02e0bf9db3d603636b6b0a7ef458ef8341d7cb"
+    },
+    {
+      "path": "supabase/migrations/20260920050238_challenge_exercise_credit_v2.sql",
+      "sha256": "2a5ac823d7e87773d2b8be722475fd882dc1a4d468fb0e5ac137e56e5eda153b"
+    }
+  ],
+  "baseline_source": "848ef6ee02d95b57bdad4b36d3c7600a4ba3f192",
+  "implementation_source": "cbfaf255612bf55e87fde7c4262902825f271d6d"
+}

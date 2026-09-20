@@ -24,7 +24,7 @@ struct ChallengeHealthUploadClientTests {
       readinessStore: ChallengeHealthReadinessFileStore(directory: uploadStore.directory.appendingPathComponent("readiness")))
   }
   func material() -> MetricSignedMaterial {
-    MetricSignedMaterial(keyID: Data(repeating: 1, count: 32).base64EncodedString(), assertion: Data([1]), environment: .development)
+    MetricSignedMaterial(keyID: Data(repeating: 1, count: 32).base64EncodedString(), assertion: nextP9TestAssertion(), environment: .development)
   }
   func receipt(_ request: ChallengeHealthUploadRequest) throws -> Data {
     try JSONSerialization.data(withJSONObject: ["version": "challenge_real_health_receipt_v1", "request_id": request.requestID.uuidString.lowercased(),

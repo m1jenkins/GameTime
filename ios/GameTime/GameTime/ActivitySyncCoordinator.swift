@@ -124,17 +124,38 @@ final class ActivitySyncCoordinator: ActivitySyncing {
   private let uploads: any MetricUploadClient
   private let pendingUploads: any PendingMetricUploadStore
   private let diagnostics: any ActivitySyncDiagnostics
+  private let transport: ChallengeHealthTransportCoordinator?
 
   init(
     activity: any ActivityClient,
     uploads: any MetricUploadClient,
     pendingUploads: any PendingMetricUploadStore,
-    diagnostics: any ActivitySyncDiagnostics = NoOpActivitySyncDiagnostics()
+    diagnostics: any ActivitySyncDiagnostics = NoOpActivitySyncDiagnostics(),
+    transport: ChallengeHealthTransportCoordinator? = nil
   ) {
     self.activity = activity
     self.uploads = uploads
     self.pendingUploads = pendingUploads
     self.diagnostics = diagnostics
+    self.transport = transport
+    transport?.register(.metrics) { [weak self] actor in
+      guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
+      return try await self.pendingUploads.pending(for: actor).compactMap { upload in
+        guard upload.keyID != nil || upload.assertion != nil else { return nil }
+        guard let key = upload.keyID, let assertion = upload.assertion else {
+          throw ActivitySyncError.conflictingSignedMaterial
+        }
+        return ChallengeHealthTransportCoordinator.Pending(kind: .metrics, id: upload.clientBatchId,
+          keyID: key, assertion: assertion, body: upload.body) { [weak self] in
+            guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
+            switch try await self.deliver(upload, ownerID: actor) {
+            case .accepted: break
+            case .retainedForRetry: throw ChallengeHealthTransportCoordinator.Failure.pendingDelivery
+            case .savedRequestUnavailable: throw MetricUploadClientError.savedSignatureNeedsRefresh
+            }
+          }
+      }
+    }
   }
 
   func requestAuthorization() async throws
@@ -405,6 +426,25 @@ final class ActivitySyncCoordinator: ActivitySyncing {
   ) async throws -> ActivitySyncOutcome {
     var acceptedReplay = false
     var confirmedStepTotal = 0.0
+    if let transport {
+      try await transport.begin(actor: ownerID)
+    }
+    defer { transport?.release(actor: ownerID) }
+    if let transport {
+      let before = try await pendingUploads.pending(for: ownerID)
+      do {
+        let recovered = try await transport.recover(actor: ownerID)
+        let ids = Set(recovered.filter { $0.kind == .metrics }.map(\.id))
+        for upload in before where ids.contains(upload.clientBatchId) && upload.contestId == contestID {
+          confirmedStepTotal += try stepTotal(in: upload, contestID: contestID)
+          acceptedReplay = true
+        }
+      } catch ChallengeHealthTransportCoordinator.Failure.pendingDelivery {
+        return .queuedForRetry(stepTotal: try retainedStepTotal(in: before, contestID: contestID))
+      } catch MetricUploadClientError.savedSignatureNeedsRefresh {
+        return .savedRequestUnavailable
+      }
+    }
 
     while let queued = try await pendingUploads.pending(
       for: ownerID
@@ -449,6 +489,7 @@ final class ActivitySyncCoordinator: ActivitySyncing {
     _ queued: PendingMetricUpload,
     ownerID: UUID
   ) async throws -> PendingDeliveryOutcome {
+    try transport?.check(actor: ownerID)
     var upload = queued
     let hadSavedSignedMaterial =
       queued.keyID != nil && queued.assertion != nil
@@ -479,6 +520,8 @@ final class ActivitySyncCoordinator: ActivitySyncing {
         }
       }
 
+      try transport?.check(actor: ownerID)
+      try transport?.validateNewSignature(keyID: material.keyID, assertion: material.assertion)
       let signingResult =
         try await pendingUploads
         .attachSignedMaterial(
@@ -506,6 +549,7 @@ final class ActivitySyncCoordinator: ActivitySyncing {
       else {
         throw ActivitySyncError.queuedRequestUnavailable
       }
+      try transport?.check(actor: ownerID)
       upload = restored
     } else if upload.keyID == nil || upload.assertion == nil {
       throw ActivitySyncError.conflictingSignedMaterial
@@ -520,6 +564,7 @@ final class ActivitySyncCoordinator: ActivitySyncing {
       diagnostics.record(.uploadAttemptStarted)
 
       do {
+        try transport?.check(actor: ownerID)
         receipt = try await uploads.send(
           ownerID: ownerID,
           upload: upload
@@ -570,6 +615,7 @@ final class ActivitySyncCoordinator: ActivitySyncing {
         }
       }
     }
+    try transport?.check(actor: ownerID)
     guard let receipt else {
       throw MetricUploadClientError.invalidServerResponse
     }

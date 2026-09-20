@@ -1,0 +1,12 @@
+{
+  "title": "Test - GameTime",
+  "result": "Passed",
+  "totalTestCount": 18,
+  "passedTests": 18,
+  "failedTests": 0,
+  "skippedTests": 0,
+  "startTime": 1789884123.732,
+  "finishTime": 1789884145.184,
+  "testFailures": [],
+  "xcresult": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/result-bundles/test_sim_2026-09-20T06-01-50-835Z_pid30447_8b971fdf.xcresult"
+}

@@ -322,3 +322,18 @@ Accessibility identifiers are test hooks, not copy. Personal v2 must not retain
 the removed `personal.sync`, `personal.sync.pending`,
 `personal.diagnostic.run`, or `personal.eligibility-hold` hooks. The one
 permission action should use a Health-connect identifier consistently.
+
+## Versioned Activity minutes
+
+New `apple_watch_exercise_credit_v2` screens say **Activity minutes**, followed
+by the Apple Exercise credit explanation. They must say the value does not
+represent every minute of movement and indirectly derived credit may count.
+We exclude identifiable manual and unsupported records; do not promise that
+all credit caused by manual/imported/third-party activity can be excluded.
+Strict v1 screens explain their unavailable source. Never rewrite consent.
+
+| Domain term | On-screen language |
+| --- | --- |
+| Exercise credit v2 | Activity minutes — Apple Exercise credit recorded by Apple Watch |
+| Unknown causal origin | Apple Health doesn’t tell us which activity caused every credit, so indirectly derived credit may count. |
+| Real leaderboard unavailable | Leaderboard — Not available yet. Explain that we cannot confirm everyone’s complete activity history for a fair ranking. Offer a goal instead. |

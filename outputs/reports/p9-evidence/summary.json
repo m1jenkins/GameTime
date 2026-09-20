@@ -1,0 +1,19 @@
+{
+  "implementation": "cbfaf255612bf55e87fde7c4262902825f271d6d",
+  "final_acceptance_source": "b0ce67e64ae1a47dd222d5e56e8ea0ef4c63dfae",
+  "p8": "8a9d1f007ab235d580d83bae47077a26f13090a7",
+  "native_unique_checks": 246,
+  "native_strategy": "244 of 245 passed in aggregate; the failed community case passed on a fresh owned stack; matrix and extended steps reruns passed. Counts are not additive. Final unlock follow-up: all 17 affected flow/retained observer checks passed, including one additional native notification regression.",
+  "core": 182,
+  "edge": 96,
+  "sql": 1245,
+  "sql_suites": 33,
+  "ui": 5,
+  "external_gates_all_false": true,
+  "historical_p7_p8_reports_changed": false,
+  "existing_migrations_changed": false,
+  "main_at_start": "848ef6ee02d95b57bdad4b36d3c7600a4ba3f192",
+  "main_at_final_inspection": "cb3a0ec6a758683eb1bc026859833c5b96b4ccf6",
+  "main_contains_p8": true,
+  "main_contains_p9": false
+}

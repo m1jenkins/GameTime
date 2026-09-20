@@ -236,10 +236,14 @@ final class ActivitySyncCoordinatorTests: XCTestCase {
     async throws
   {
     let directory = try makeTemporaryDirectory()
+    func transport() -> ChallengeHealthTransportCoordinator {
+      .init(uploadStore: .init(directory: directory.appendingPathComponent("p8-upload")),
+            readinessStore: .init(directory: directory.appendingPathComponent("p8-readiness")))
+    }
     let firstStore = FilePendingMetricUploadStore(
       directoryURL: directory
     )
-    let assertion = Data([0xa3, 0x01, 0xde, 0xad, 0xbe, 0xef])
+    let assertion = p9TestAssertion(counter: 7)
     let firstUploads = MetricUploadClientFake(
       signedMaterial: MetricSignedMaterial(
         keyID: "verbatim/key+id==",
@@ -262,7 +266,7 @@ final class ActivitySyncCoordinatorTests: XCTestCase {
     let firstCoordinator = ActivitySyncCoordinator(
       activity: firstActivity,
       uploads: firstUploads,
-      pendingUploads: firstStore
+      pendingUploads: firstStore, transport: transport()
     )
 
     let firstOutcome = try await firstCoordinator.sync(
@@ -293,7 +297,7 @@ final class ActivitySyncCoordinatorTests: XCTestCase {
     let relaunchedCoordinator = ActivitySyncCoordinator(
       activity: relaunchedActivity,
       uploads: replayUploads,
-      pendingUploads: relaunchedStore
+      pendingUploads: relaunchedStore, transport: transport()
     )
 
     let replayOutcome = try await relaunchedCoordinator.sync(

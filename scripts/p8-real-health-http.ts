@@ -4,10 +4,7 @@
  * are confined to this disposable DB and restored in finally.
  */
 import { assert, assertEquals } from "@std/assert";
-import {
-  buildAssertion,
-  makeDevice,
-} from "../supabase/functions/_test/appattest_fixtures.ts";
+import { buildAssertion, makeDevice } from "../supabase/functions/_test/appattest_fixtures.ts";
 import { mintAccessToken } from "../supabase/functions/_test/tokens.ts";
 import { toHex, utf8 } from "../supabase/functions/_shared/bytes.ts";
 import { deviceKeyLookup } from "../supabase/functions/_shared/database.ts";
@@ -20,20 +17,18 @@ import { createIngestChallengeHealthHandler } from "../supabase/functions/ingest
 
 const metric = Deno.args[1] ?? "steps";
 assert(
-  ["steps", "distance", "timed"].includes(metric),
+  ["steps", "exercise", "distance", "timed"].includes(metric),
   "only available real metric software checks",
 );
 const source = metric === "steps"
   ? "apple_watch_steps_v1"
+  : metric === "exercise"
+  ? "apple_watch_exercise_credit_v2"
   : metric === "distance"
   ? "apple_workout_outdoor_distance_v1"
   : "apple_workout_outdoor_timed_v1";
 const selectedDistance = metric === "timed" ? { distance_mm: 5_000_000 } : {};
-const target = metric === "timed"
-  ? 300
-  : metric === "distance"
-  ? 1_000_000
-  : 100;
+const target = metric === "timed" ? 300 : metric === "distance" ? 1_000_000 : 100;
 const initialValue = metric === "distance" ? 2_000_000 : 200;
 const correctedValue = metric === "distance" ? 1_500_000 : 150;
 const retainActive = Deno.args[2] === "--retain-active";
@@ -189,9 +184,7 @@ async function rpc(
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${
-        index === null ? serviceKey : await token(index)
-      }`,
+      authorization: `Bearer ${index === null ? serviceKey : await token(index)}`,
     },
     body: JSON.stringify(payload),
   });
@@ -256,9 +249,7 @@ async function upload(
   assertEquals(
     response.status,
     status,
-    `signed ingestion HTTP status (${result.error ?? "receipt"}: ${
-      result.message ?? "saved"
-    })`,
+    `signed ingestion HTTP status (${result.error ?? "receipt"}: ${result.message ?? "saved"})`,
   );
   return result;
 }
@@ -266,17 +257,13 @@ async function upload(
 try {
   for (let i = 0; i < 2; i++) {
     await sql(`insert into auth.users(id) values(${literal(ids[i]!)});
-      insert into public.profiles(id,handle,display_name,timezone) values(${
-      literal(ids[i]!)
-    },${literal(handles[i]!)},'Synthetic P8','UTC');
-      insert into auth.sessions(id,user_id) values(${literal(sessions[i]!)},${
-      literal(ids[i]!)
-    });
+      insert into public.profiles(id,handle,display_name,timezone) values(${literal(ids[i]!)},${
+      literal(handles[i]!)
+    },'Synthetic P8','UTC');
+      insert into auth.sessions(id,user_id) values(${literal(sessions[i]!)},${literal(ids[i]!)});
       insert into public.device_attestations(key_id,user_id,public_key,environment) values(decode('${
       toHex(devices[i]!.keyId)
-    }','hex'),${literal(ids[i]!)},decode('${
-      toHex(devices[i]!.publicKey)
-    }','hex'),'development');
+    }','hex'),${literal(ids[i]!)},decode('${toHex(devices[i]!.publicKey)}','hex'),'development');
       insert into app.device_attestation_receipts(key_id,initial_receipt,current_receipt,current_receipt_verified_at) values(decode('${
       toHex(devices[i]!.keyId)
     }','hex'),'\\x01','\\x01',clock_timestamp());`);
@@ -385,9 +372,7 @@ try {
   await upload(1, await signed(1, payload(1, 1)));
   check(
     await sql(
-      `select count(*) from app.challenge_facts_v1 where challenge_id=${
-        literal(cid)
-      }`,
+      `select count(*) from app.challenge_facts_v1 where challenge_id=${literal(cid)}`,
     ) ===
       "0",
     "real facts never enter fictional storage",
@@ -472,9 +457,7 @@ try {
     await rpc("challenge_process_v1", { p_id: cid });
     check(
       await sql(
-        `select count(*) from app.challenge_finals_v1 where challenge_id=${
-          literal(cid)
-        }`,
+        `select count(*) from app.challenge_finals_v1 where challenge_id=${literal(cid)}`,
       ) ===
         "1",
       "real processing reaches final simulated history after review",

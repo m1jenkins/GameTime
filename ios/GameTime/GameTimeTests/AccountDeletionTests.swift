@@ -1,9 +1,47 @@
 import XCTest
+import GameTimeCore
 
 @testable import GameTime
 
 @MainActor
 final class AccountDeletionTests: XCTestCase {
+    func testAcceptedDeletionClearsNewHealthStateAndSignerOnlyForItsOwner() async throws {
+        let owner = UUID(), other = UUID()
+        let cache = try ChallengeHealthComparisonCache.applicationSupport()
+        let uploads = try ChallengeHealthUploadFileStore.applicationSupport()
+        let readiness = try ChallengeHealthReadinessFileStore.applicationSupport()
+        let diagnostic = try TrustedActivityDiagnosticFileStore.applicationSupport()
+        defer {
+            for actor in [owner, other] {
+                try? cache.clear(actor: actor); try? uploads.clear(actor: actor)
+                try? readiness.clear(actor: actor); try? diagnostic.clear(actor: actor)
+            }
+        }
+        for actor in [owner, other] {
+            try cache.connect(actor: actor, source: "apple_watch_steps_v1")
+            try cache.enqueue(actor: actor, ids: [UUID()])
+            try uploads.save(.init(actorID: actor)); try readiness.save(.init(actorID: actor))
+            let id = UUID()
+            let bytes = try JSONSerialization.data(withJSONObject: ["clientDiagnosticId": id.uuidString.lowercased(), "trustedDeviceSampleCount": 1])
+            try diagnostic.save(.init(version: 1, actorID: actor, requestID: id, body: bytes,
+                keyID: "owned-test-key", assertion: nextP9TestAssertion(), environment: .development, hourCount: 1, sampleCount: 1))
+        }
+        let fixture = FixtureServicesFactory.make(arguments: ["GameTimeTests"]), signer = DeletionHealthSigner()
+        let cleaner = AccountLocalStateCleaner(pendingChallenges: fixture.pendingChallenges,
+            activitySync: fixture.activitySync, pendingPersonalChallenges: fixture.pendingPersonalChallenges,
+            pendingPersonalCancellations: fixture.pendingPersonalCancellations, personalActivitySync: fixture.personalActivitySync,
+            personalStepSnapshotCache: fixture.personalStepSnapshotCache, appAttestedBodySigner: signer)
+        try await cleaner.clear(for: owner)
+        XCTAssertTrue(try cache.pending(actor: owner).isEmpty)
+        XCTAssertTrue(try cache.connected(actor: owner).isEmpty)
+        XCTAssertNil(try diagnostic.load(actor: owner)); XCTAssertEqual(signer.cleared, [owner])
+        for directory in [uploads.directory, readiness.directory] {
+            XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent(owner.uuidString.lowercased() + ".json").path))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: directory.appendingPathComponent(other.uuidString.lowercased() + ".json").path))
+        }
+        XCTAssertEqual(try cache.pending(actor: other).count, 1)
+        XCTAssertNotNil(try diagnostic.load(actor: other))
+    }
     func testReceiptJournalKeepsBothAccountsAndExactSavedRight() throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("account-deletion-receipt-" + UUID().uuidString)
@@ -419,4 +457,11 @@ private actor HeldDeletionPendingStore: PendingChallengeStore {
         if held == nil { await withCheckedContinuation { started = $0 } }
     }
     func finish() { held?.resume(); held = nil }
+}
+
+@MainActor private final class DeletionHealthSigner: AppAttestedBodySigning {
+    var cleared: [UUID] = []
+    func sign(ownerID: UUID, body: Data) async throws -> MetricSignedMaterial { throw URLError(.unsupportedURL) }
+    func invalidateRejectedKey(ownerID: UUID, keyID: String) throws {}
+    func clearLocalState(for ownerID: UUID) throws { cleared.append(ownerID) }
 }

@@ -1,11 +1,12 @@
 import Foundation
+import GameTimeCore
 
 struct ChallengeV1Policy: Equatable, Hashable, Identifiable, Sendable {
     enum Mode: String, CaseIterable, Sendable { case friend, personal, community
         var title: String { switch self { case .friend: "With friends"; case .personal: "Personal goal"; case .community: "Community" } }
     }
     enum Metric: String, CaseIterable, Sendable { case steps, exercise, distance, timed
-        var title: String { switch self { case .steps: "Steps"; case .exercise: "Exercise time"; case .distance: "Running distance"; case .timed: "Timed run" } }
+        var title: String { switch self { case .steps: "Steps"; case .exercise: "Activity minutes"; case .distance: "Running distance"; case .timed: "Timed run" } }
         var symbol: String { switch self { case .steps: "shoeprints.fill"; case .exercise: "clock"; case .distance: "figure.run"; case .timed: "stopwatch" } }
         var targetPrompt: String { switch self { case .steps: "Total steps"; case .exercise: "Total minutes:seconds"; case .distance: "Total kilometres"; case .timed: "Time to beat, minutes:seconds" } }
         var inputHelp: String {
@@ -86,10 +87,12 @@ enum ChallengeV1Suggestion {
         let value: Int64
         if policy.metric == .timed {
             guard let best = best90DayElapsedSeconds, (1...1_000_000_000).contains(best) else { return nil }
-            value = Int64(best) * 98 / 100
+            guard let suggested = ChallengeHealthSuggestions.personalTimedRunSeconds(bestComparableSeconds: Int64(best)) else { return nil }
+            value = suggested
         } else {
             guard let total = eligible28DayTotal, (1...1_000_000_000).contains(total) else { return nil }
-            value = (Int64(total) * Int64(days) * 110 + 2799) / 2800
+            guard let suggested = ChallengeHealthSuggestions.personalSteps(totalOverTwentyEightDays: Int64(total), requestedCalendarDays: days) else { return nil }
+            value = suggested
         }
         return (1...1_000_000_000).contains(value) ? Int(value) : nil
     }

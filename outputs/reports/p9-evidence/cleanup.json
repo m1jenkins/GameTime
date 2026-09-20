@@ -1,0 +1,14 @@
+{
+  "owner": "gametime-p8-real-health-5e493d88c375",
+  "resources": [
+    "gametime-p8-real-health-5e493d88c375-db",
+    "gametime-p8-real-health-5e493d88c375-auth",
+    "gametime-p8-real-health-5e493d88c375-rest",
+    "gametime-p8-real-health-5e493d88c375",
+    "gametime-p8-real-health-5e493d88c375-fresh-db"
+  ],
+  "gates_closed_before_cleanup": true,
+  "owned_resources_removed": true,
+  "owned_simulator_removed": "441394F3-899F-4681-97A2-A9BA7BEC20AC",
+  "additional_owned_simulator_removed": "D400F1A0-0B66-495C-BE8F-4C6B938750E4"
+}

@@ -2461,6 +2461,10 @@ final class PersonalActivitySyncCoordinatorTests: XCTestCase {
     func testSavedCoverageReplaysAfterCutoffWithoutReportingFailure()
         async throws
     {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let transport = ChallengeHealthTransportCoordinator(uploadStore: .init(directory: directory.appendingPathComponent("upload")),
+            readinessStore: .init(directory: directory.appendingPathComponent("readiness")))
         let pendingStore = EphemeralPendingPersonalCoverageStore()
         let saved = savedCoverageSubmission()
         try await pendingStore.save(saved)
@@ -2477,7 +2481,7 @@ final class PersonalActivitySyncCoordinatorTests: XCTestCase {
             activity: activity,
             metrics: metrics,
             coverage: coverage,
-            pendingCoverage: pendingStore
+            pendingCoverage: pendingStore, transport: transport
         )
         let expiredChallenge = makeChallenge(
             status: .awaitingEvidence,
@@ -2781,7 +2785,7 @@ final class PersonalActivitySyncCoordinatorTests: XCTestCase {
                 #"{"challengeId":"22222222-2222-2222-2222-222222222222","clientCoverageId":"33333333-3333-3333-3333-333333333333","coveredIntervalStarts":["2026-08-03T01:00:00.000Z"],"observedAt":"2026-08-03T02:00:00.000Z"}"#.utf8
             ),
             keyID: "saved-key",
-            assertion: Data([0x01, 0x02, 0x03, 0x04]),
+            assertion: p9TestAssertion(counter: 9),
             attestEnvironment: environment,
             createdAt: asOf.addingTimeInterval(-300),
             attemptCount: 0,
