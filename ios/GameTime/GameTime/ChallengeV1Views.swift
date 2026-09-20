@@ -353,6 +353,7 @@ struct ChallengeV1Shell: View {
     var accountContent: AnyView? = nil
     var existingChallenges: AnyView? = nil
     var serviceAvailable = true
+    var personalStepsOnly = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.challengeHealthFlow) private var health
     @State private var create = false
@@ -413,7 +414,7 @@ struct ChallengeV1Shell: View {
                 List {
                     Section {
                         Button("Create a challenge") { create = true }.accessibilityIdentifier("beta.create.open")
-                        Text("Choose a friend goal, a best-result challenge or a personal goal.").font(.footnote)
+                        Text(personalStepsOnly ? "Set your own personal step goal." : "Choose a friend goal, a best-result challenge or a personal goal.").font(.footnote)
                         if serviceAvailable {
                             ChallengeEntryPanel(store: store, invitation: invitation)
                         } else {
@@ -478,7 +479,7 @@ struct ChallengeV1Shell: View {
         }
         .background(SignalTheme.canvas.ignoresSafeArea())
         .sheet(isPresented: $create) {
-            if serviceAvailable { ChallengeV1Create(store: store) }
+            if serviceAvailable { ChallengeV1Create(store: store, personalStepsOnly: personalStepsOnly) }
             else { SignalChallengeUnavailableView() }
         }
         .onChange(of: store.actor) { create = false }

@@ -77,23 +77,27 @@ final class ChallengeHealthUploadClient {
   private let sign: @MainActor (UUID, Data) async throws -> MetricSignedMaterial
   private let send: @MainActor (ChallengeHealthSignedUpload, WeeklyClientSession) async throws -> Data
   private let environment: AppAttestEnvironment
+  private let privateAccountMode: Bool
   private var generation = UUID()
   private var busy = false
 
   init(enabled: Bool = false, environment: AppAttestEnvironment,
+       privateAccountMode: Bool = false,
        coordinator: ChallengeHealthTransportCoordinator,
        binding: @escaping @MainActor () -> WeeklyClientSession?,
        prepareSession: @escaping @MainActor (UUID) async throws -> Void = { _ in },
        sign: @escaping @MainActor (UUID, Data) async throws -> MetricSignedMaterial,
        send: @escaping @MainActor (ChallengeHealthSignedUpload, WeeklyClientSession) async throws -> Data) {
     self.permitsNewUploads = enabled; self.environment = environment; self.store = coordinator.uploadStore; self.coordinator = coordinator
+    self.privateAccountMode = privateAccountMode
     self.binding = binding; self.prepareSession = prepareSession; self.sign = sign; self.send = send
     coordinator.register(.upload) { [weak self] actor in
       guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
       return try self.store.load(actor: actor).pending.map { signed in
         let request = try ChallengeHealthUploadRequest(restoring: signed.exactBody)
         return ChallengeHealthTransportCoordinator.Pending(kind: .upload, id: request.requestID,
-          keyID: signed.keyID, assertion: signed.assertion, body: signed.exactBody) { [weak self] in
+          keyID: signed.keyID, assertion: signed.assertion, body: signed.exactBody,
+          requiresDeviceVerification: !signed.isPrivateAccount) { [weak self] in
             guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
             let epoch = self.generation
             guard let session = self.binding(), session.actorID == actor else { throw ChallengeHealthUploadClientError.accountChanged }
@@ -108,6 +112,7 @@ final class ChallengeHealthUploadClient {
                    signer: any AppAttestedBodySigning, environment: AppAttestEnvironment,
                    coordinator: ChallengeHealthTransportCoordinator,
                    enabled: Bool = false,
+                   privateAccountMode: Bool = false,
                    permitsHTTPS: Bool = false) throws {
     var allowed = permitsHTTPS && SupabaseChallengeV1Client.isHTTPSOrigin(origin)
     #if DEBUG || STAGING
@@ -118,7 +123,7 @@ final class ChallengeHealthUploadClient {
     config.urlCache = nil; config.httpCookieStorage = nil
     config.requestCachePolicy = .reloadIgnoringLocalCacheData
     let transport = URLSession(configuration: config, delegate: ChallengeHealthNoRedirect(), delegateQueue: nil)
-    self.init(enabled: enabled, environment: environment, coordinator: coordinator, binding: {
+    self.init(enabled: enabled, environment: environment, privateAccountMode: privateAccountMode, coordinator: coordinator, binding: {
       guard let s = sdk.auth.currentSession, s.expiresAt > Date().timeIntervalSince1970 else { return nil }
       return WeeklyClientSession(actorID: s.user.id, identity: s.accessToken)
     }, prepareSession: { actor in
@@ -135,11 +140,12 @@ final class ChallengeHealthUploadClient {
       request.setValue("application/json", forHTTPHeaderField: "Content-Type")
       request.setValue(publishableKey, forHTTPHeaderField: "apikey")
       request.setValue("Bearer \(session.identity)", forHTTPHeaderField: "Authorization")
-      request.setValue(upload.keyID, forHTTPHeaderField: "x-gametime-key-id")
-      request.setValue(upload.assertion.base64EncodedString(), forHTTPHeaderField: "x-gametime-assertion")
+      if !upload.isPrivateAccount {
+        request.setValue(upload.keyID, forHTTPHeaderField: "x-gametime-key-id")
+        request.setValue(upload.assertion.base64EncodedString(), forHTTPHeaderField: "x-gametime-assertion")
+      }
       let (data, response) = try await transport.data(for: request)
       guard let http = response as? HTTPURLResponse, data.count <= 4096 else { throw ChallengeHealthUploadClientError.unavailable }
-      if http.statusCode == 401 { throw ChallengeHealthUploadClientError.accountChanged }
       guard http.statusCode == 200 else { throw ChallengeHealthUploadClientError.refused }
       return data
     })
@@ -168,21 +174,29 @@ final class ChallengeHealthUploadClient {
     })
     if let saved = matchingSaved {
       guard saved.exactBody == request.exactBytes else { throw ChallengeHealthUploadError.requestConflict }
+      guard !privateAccountMode || saved.isPrivateAccount else { throw ChallengeHealthUploadClientError.refused }
     }
-    try await coordinator.recover(actor: request.actorID)
+    try await coordinator.recover(actor: request.actorID, includingDeviceVerifiedRequests: !privateAccountMode)
     try check(epoch, session)
     journal = try store.load(actor: request.actorID)
     if matchingSaved != nil { return }
     if let confirmedServerRevision { try journal.reconcileServerHead(for: request, revision: confirmedServerRevision) }
     guard permitsNewUploads else { throw ChallengeHealthUploadClientError.unavailable }
     try validate()
-    let material = try await sign(request.actorID, request.exactBytes)
+    let upload: ChallengeHealthSignedUpload
+    if privateAccountMode {
+      upload = try ChallengeHealthSignedUpload(privateAccountRequest: request)
+    } else {
+      let material = try await sign(request.actorID, request.exactBytes)
+      try validate()
+      try check(epoch, session)
+      try coordinator.validateNewSignature(keyID: material.keyID, assertion: material.assertion)
+      guard material.environment == environment else { throw ChallengeHealthUploadError.invalidSignature }
+      upload = try ChallengeHealthSignedUpload(request: request, keyID: material.keyID,
+        assertion: material.assertion, environment: material.environment.rawValue)
+    }
     try validate()
     try check(epoch, session)
-    try coordinator.validateNewSignature(keyID: material.keyID, assertion: material.assertion)
-    guard material.environment == environment else { throw ChallengeHealthUploadError.invalidSignature }
-    let upload = try ChallengeHealthSignedUpload(request: request, keyID: material.keyID,
-                                                assertion: material.assertion, environment: material.environment.rawValue)
     try journal.enqueue(upload)
     try store.save(journal) // durable before the first network attempt
     try await transmit(upload, request: request, journal: &journal, epoch: epoch, session: session)
@@ -197,7 +211,7 @@ final class ChallengeHealthUploadClient {
     try await prepareSession(actor)
     guard generation == epoch, let session = binding(), session.actorID == actor else { throw ChallengeHealthUploadClientError.accountChanged }
     try check(epoch, session)
-    try await coordinator.recover(actor: actor)
+    try await coordinator.recover(actor: actor, includingDeviceVerifiedRequests: !privateAccountMode)
     try check(epoch, session)
   }
 
@@ -205,7 +219,9 @@ final class ChallengeHealthUploadClient {
                         journal: inout ChallengeHealthUploadJournal, epoch: UUID,
                         session: WeeklyClientSession) async throws {
     try check(epoch, session)
-    guard upload.environment == environment.rawValue else { throw ChallengeHealthUploadError.invalidSignature }
+    guard upload.isPrivateAccount ? privateAccountMode : upload.environment == environment.rawValue else {
+      throw ChallengeHealthUploadError.invalidSignature
+    }
     let receipt = try await send(upload, session)
     try check(epoch, session)
     try journal.acknowledge(request, receipt: receipt)

@@ -35,11 +35,11 @@
  * checks the official chain, key binding, suffix, and extension nonce as
  * separate components without weakening the documented nonce construction.
  *
- * Assertions accept both the original 37-byte form and the current form Apple
- * documents: that same prefix followed by the exact validation-category and
- * bundle-version extensions map. The map goes through the same strict parser
- * as attestation extensions; it is not an excuse to ignore arbitrary signed
- * trailing bytes.
+ * Assertions accept the original 37-byte form and Apple's documented extension
+ * map. A verified physical-device assertion also supplies flags 0xc0 followed
+ * immediately by the attestation-style extension map, with no credential block.
+ * That form is accepted only in assertion context and with the exact two-field
+ * schema. Every form verifies the original signed bytes; no suffix is ignored.
  */
 
 import * as x509 from "@peculiar/x509";
@@ -312,7 +312,7 @@ function decodeAuthenticatorDataSuffix(bytes: Bytes): ReturnType<typeof decodeCb
   try {
     return decodeCborSequence(bytes);
   } catch (cause) {
-    if (cause instanceof CborError) {
+    if (cause instanceof CborError || cause instanceof TypeError) {
       throw new AttestationError(`authenticator-data suffix is invalid CBOR: ${cause.message}`);
     }
     throw cause;
@@ -401,6 +401,17 @@ function parseAssertionSuffix(bytes: Bytes): ParsedAppleExtensions {
   return parseAssertionExtensions(sequence[0]);
 }
 
+function parseCredentialFlagAssertionSuffix(bytes: Bytes): ParsedAppleExtensions {
+  const sequence = decodeAuthenticatorDataSuffix(bytes);
+  if (sequence.length !== 1) {
+    throw new AttestationError(
+      `assertion authenticator-data suffix contains ${sequence.length} CBOR values; ` +
+        "exactly one extensions map is allowed",
+    );
+  }
+  return parseAttestationExtensions(sequence[0]);
+}
+
 /**
  * Parses WebAuthn-shaped authenticator data.
  *
@@ -410,12 +421,17 @@ function parseAssertionSuffix(bytes: Bytes): ParsedAppleExtensions {
  * an extensions map.
  *
  * An assertion carries none of the credential half. Its legacy form is exactly
- * 37 bytes; Apple's current form may append exactly one validation-category and
- * bundle-version extensions map. Anything else is refused rather than ignored:
+ * 37 bytes; Apple's current forms may append exactly one validation-category and
+ * bundle-version extensions map. A physical-device assertion with flags 0xc0
+ * uses the attestation-style map after byte 37, without credential bytes, and
+ * is recognized only in assertion context. Anything else is refused rather than ignored:
  * trailing bytes in a signed structure are a place for two implementations to
  * disagree about what was signed.
  */
-export function parseAuthenticatorData(bytes: Bytes): AuthenticatorData {
+export function parseAuthenticatorData(
+  bytes: Bytes,
+  context: "attestation" | "assertion" = "attestation",
+): AuthenticatorData {
   if (bytes.length < 37) {
     throw new AttestationError(
       `authenticator data is ${bytes.length} bytes; at least 37 are required`,
@@ -426,6 +442,21 @@ export function parseAuthenticatorData(bytes: Bytes): AuthenticatorData {
   const rpIdHash = bytes.slice(0, 32);
   const flags = bytes[32]!;
   const signCount = view.getUint32(33, false);
+
+  // A physical-device assertion may set both flag bits while carrying only
+  // Apple's two-field extension map. Interpret that shape only in the assertion
+  // verifier; an attestation still requires its credential block.
+  if (context === "assertion" && flags === 0xc0) {
+    return {
+      rpIdHash,
+      flags,
+      signCount,
+      ...parseCredentialFlagAssertionSuffix(bytes.slice(37)),
+    };
+  }
+  if (context === "assertion" && (flags & FLAG_ATTESTED_CREDENTIAL_DATA) !== 0) {
+    throw new AttestationError("an assertion's authenticator data must not carry credential data");
+  }
 
   if ((flags & FLAG_ATTESTED_CREDENTIAL_DATA) === 0) {
     if (bytes.length === 37) {
@@ -1072,7 +1103,7 @@ export async function verifyAssertion(
     throw new AttestationError("the stored public key is not an uncompressed point");
   }
 
-  const authData = parseAuthenticatorData(request.authenticatorData);
+  const authData = parseAuthenticatorData(request.authenticatorData, "assertion");
 
   if (authData.aaguid !== undefined) {
     throw new AttestationError(

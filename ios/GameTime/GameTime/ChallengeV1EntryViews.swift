@@ -104,9 +104,15 @@ struct ChallengeV1Create: View {
     @State private var consent = false
     @State private var previewError: String?
     @State private var reading = false
-    init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil) {
+    private let personalStepsOnly: Bool
+    init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil, personalStepsOnly: Bool = false) {
         self.store = store
-        if let initialPolicy {
+        self.personalStepsOnly = personalStepsOnly
+        if personalStepsOnly {
+            _mode = State(initialValue: .personal)
+            _metric = State(initialValue: .steps)
+            _competition = State(initialValue: .goal)
+        } else if let initialPolicy {
             _mode = State(initialValue: initialPolicy.mode)
             _metric = State(initialValue: initialPolicy.metric)
             _competition = State(initialValue: initialPolicy.competition)
@@ -138,7 +144,9 @@ struct ChallengeV1Create: View {
     private var canSubmit: Bool { !unavailable && !store.busy && store.pending == nil && !reading && store.access?.ageConfirmed == true && (metric != .timed || ChallengeV1Policy.Metric.distance.parse(distance) != nil) }
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             ChallengeForm {
+                if !personalStepsOnly {
                 ChallengeFormSection("Choose your challenge") {
                     Picker("Who", selection: $mode) {
                         Text("With friends").tag(ChallengeV1Policy.Mode.friend)
@@ -153,6 +161,7 @@ struct ChallengeV1Create: View {
                         }.accessibilityIdentifier("beta.create.competition")
                         Text(policy.hasTarget ? "Each friend chooses a goal before you lock in the roster and ask everyone to agree." : health != nil ? "We can’t confirm a complete activity history for a fair ranking. You can choose a goal instead." : "Choose the roster, then everyone agrees. The best result wins; equal best results share the win.")
                     } else { Text("Choose your own goal and review the agreement. Only you can see your activity and result.") }
+                }
                 }
                 if unavailable {
                     ContentUnavailableView(policy.hasTarget ? "Activity not available yet" : "Leaderboard — Not available yet",
@@ -185,8 +194,16 @@ struct ChallengeV1Create: View {
                         }
                         Text("Choose your own goal. A suggestion will appear only when eligible activity is available on this phone.").font(.body).fixedSize(horizontal: false, vertical: true)
                     }
-                    Button("Review my agreement") { Task { await readPreview() } }.disabled(!canSubmit || metric.parse(target) == nil).accessibilityIdentifier("beta.personal.preview")
+                    Button("Review my agreement") { Task {
+                        if await readPreview() {
+                            await Task.yield()
+                            withAnimation { proxy.scrollTo("beta.personal.agreement", anchor: .top) }
+                        }
+                    } }.disabled(reading).accessibilityIdentifier("beta.personal.preview")
                     if reading { ProgressView("Loading your agreement…") }
+                    if let previewError {
+                        Text(previewError).foregroundStyle(SignalTheme.textSecondary).accessibilityIdentifier("beta.personal.preview.error")
+                    }
                     if let preview, let window = decodeWindow(preview.terms?["config"]) {
                         ChallengeFormSection("Your complete agreement") {
                             if let goal = metric.parse(target) { SignalTargetBand(value: goal, metric: metric) }
@@ -200,7 +217,7 @@ struct ChallengeV1Create: View {
                                 await store.submit(op: "personal_commit", fields: sourceFields.merging(["policy": .string(policy.id), "config": config, "target": .integer(value), "digest": .string(preview.digest), "consent": .bool(true)], uniquingKeysWith: { _, value in value }))
                                 if store.pending == nil && store.lastReceipt?.status == "scheduled" { dismiss() }
                             }}.disabled(!canSubmit || !consent || !readinessAcknowledged).accessibilityIdentifier("beta.personal.commit")
-                        }
+                        }.id("beta.personal.agreement")
                     }
                 } else {
                     Button("Create lobby") { Task {
@@ -211,7 +228,7 @@ struct ChallengeV1Create: View {
                 }
                 if store.access?.ageConfirmed != true { Text("Confirm that you are 21 or older in Challenges before continuing.") }
                 if store.busy { ProgressView("Saving your action…") }
-                if let error = previewError ?? store.error { Text(error) }
+                if let error = store.error { Text(error) }
             }.safeAreaInset(edge: .top, spacing: 0) { SignalSimulationBanner() }
                 .navigationTitle(mode == .personal ? "Personal goal" : "Friend challenge")
                 .navigationBarTitleDisplayMode(.inline)
@@ -220,22 +237,40 @@ struct ChallengeV1Create: View {
                     let now = await health?.planningDate() ?? store.access?.serverTime?.date
                     if let now { start = Calendar.current.date(byAdding: .day, value: 2, to: now)! }
                 }
-                .onChange(of: draft) { preview = nil; consent = false; health?.invalidateDraft(draftID) }
+                .onChange(of: draft) { preview = nil; consent = false; previewError = nil; health?.invalidateDraft(draftID) }
                 .onDisappear { health?.cancel(draftID) }
                 .onChange(of: store.actor) { dismiss() }
+            }
         }
     }
-    private func readPreview() async {
-        guard let actor = store.actor, let value = metric.parse(target) else { return }
+    private func readPreview() async -> Bool {
+        guard let actor = store.actor else {
+            previewError = "Sign in again before reviewing your agreement."
+            return false
+        }
+        guard let value = metric.parse(target) else {
+            previewError = target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? "Enter your goal before reviewing your agreement."
+                : metric.inputHelp
+            return false
+        }
         let before = draft; reading = true; previewError = nil
         defer { reading = false }
         do {
             var fields: [String: ChallengeJSON] = ["p_policy": .string(policy.id), "p_config": config, "p_target": .integer(value)]
             if health != nil, let selectedSource { fields["p_source_policy_version"] = .string(selectedSource.identifier) }
             let result = try await store.client.read("challenge_personal_preview_v1", fields: fields, actor: actor, as: ChallengeV1.Agreement.self)
-            guard actor == store.actor && draft == before else { return }
+            guard actor == store.actor && draft == before else { return false }
+            guard decodeWindow(result.terms?["config"]) != nil else {
+                previewError = "We couldn’t show your agreement. Try again."
+                return false
+            }
             preview = result; consent = false
-        } catch { previewError = (error as? ChallengeV1Error ?? .unavailable).localizedDescription }
+            return true
+        } catch {
+            previewError = (error as? ChallengeV1Error ?? .unavailable).localizedDescription
+            return false
+        }
     }
 }
 

@@ -2,6 +2,20 @@ import XCTest
 @testable import GameTime
 
 @MainActor final class ChallengeAppConfigurationTests: XCTestCase {
+    func testPrivateAccountModeRequiresSelectedStagingBackendAndExplicitFlag() throws {
+        for environment in ["debug", "staging", "release"] {
+            for host in ["lyushhqoednheqwzsmxh.supabase.co", "historical.example.invalid"] {
+                for enabled in ["YES", "NO"] {
+                    let config = try AppConfiguration.validated(environmentValue: environment,
+                        urlValue: "https://\(host)", keyValue: "sb_publishable_fictional", mutationValue: "NO",
+                        challengeV1Value: "YES", privateHealthAccountModeValue: enabled)
+                    XCTAssertEqual(config.privateHealthAccountMode,
+                        environment == "staging" && host == "lyushhqoednheqwzsmxh.supabase.co" && enabled == "YES")
+                }
+            }
+        }
+    }
+
     func testInvitationOriginIsIndependentOfBackendAndTransport() throws {
         for environment in ["debug", "staging", "release"] {
             let config = try AppConfiguration.validated(environmentValue: environment,

@@ -146,6 +146,8 @@ public struct ChallengeHealthUploadRequest: Equatable, Sendable {
     }
 }
 
+/// Historical name retained because journal records use this Codable shape.
+/// A private-account upload has no device assertion and is explicitly marked.
 public struct ChallengeHealthSignedUpload: Equatable, Codable, Sendable {
     public let exactBody: Data
     public let keyID: String
@@ -153,10 +155,24 @@ public struct ChallengeHealthSignedUpload: Equatable, Codable, Sendable {
     public let environment: String
 
     public init(request: ChallengeHealthUploadRequest, keyID: String, assertion: Data, environment: String) throws {
+        if environment == "private_account" {
+            guard keyID.isEmpty, assertion.isEmpty else { throw ChallengeHealthUploadError.invalidSignature }
+            self.exactBody = request.exactBytes; self.keyID = keyID
+            self.assertion = assertion; self.environment = environment
+            return
+        }
         guard Data(base64Encoded: keyID)?.count == 32, !assertion.isEmpty, assertion.count <= 6144,
               ["development", "production"].contains(environment) else { throw ChallengeHealthUploadError.invalidSignature }
         self.exactBody = request.exactBytes; self.keyID = keyID
         self.assertion = assertion; self.environment = environment
+    }
+
+    public init(privateAccountRequest request: ChallengeHealthUploadRequest) throws {
+        try self.init(request: request, keyID: "", assertion: Data(), environment: "private_account")
+    }
+
+    public var isPrivateAccount: Bool {
+        environment == "private_account" && keyID.isEmpty && assertion.isEmpty
     }
 }
 

@@ -63,7 +63,7 @@ async function call(
         ...fields,
         p_session_id: args.sessionID,
         p_token_expires_at: args.tokenExpiresAt,
-        p_device_key_id: `\\x${toHex(args.keyID)}`,
+        p_device_key_id: args.keyID === null ? null : `\\x${toHex(args.keyID)}`,
         p_assertion_counter: args.signCount,
         p_payload_digest: `\\x${toHex(args.payloadDigest)}`,
         p_recovery_only: args.recoveryOnly,

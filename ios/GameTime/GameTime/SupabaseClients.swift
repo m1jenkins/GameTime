@@ -119,11 +119,13 @@ enum LiveServicesFactory {
         let healthUploads = try ChallengeHealthUploadClient(sdk: client, origin: configuration.supabaseURL,
             publishableKey: configuration.supabasePublishableKey, signer: appAttestedBodySigner,
             environment: configuration.expectedAppAttestEnvironment ?? .development, coordinator: healthTransport,
-            enabled: configuration.challengeV1RuntimeEnabled && configuration.attestedUploadEnabled, permitsHTTPS: true)
+            enabled: configuration.challengeV1RuntimeEnabled && (configuration.attestedUploadEnabled || configuration.privateHealthAccountMode),
+            privateAccountMode: configuration.privateHealthAccountMode, permitsHTTPS: true)
         let healthReadiness = try ChallengeHealthReadinessClient(sdk: client, origin: configuration.supabaseURL,
             publishableKey: configuration.supabasePublishableKey, signer: appAttestedBodySigner,
             environment: configuration.expectedAppAttestEnvironment ?? .development, coordinator: healthTransport,
-            enabled: configuration.challengeV1RuntimeEnabled && configuration.attestedUploadEnabled, permitsHTTPS: true)
+            enabled: configuration.challengeV1RuntimeEnabled && (configuration.attestedUploadEnabled || configuration.privateHealthAccountMode),
+            privateAccountMode: configuration.privateHealthAccountMode, permitsHTTPS: true)
         let pendingChallenges = try FilePendingChallengeStore.applicationSupport()
         let pendingPersonalChallenges = try FilePendingPersonalChallengeStore
             .applicationSupport()

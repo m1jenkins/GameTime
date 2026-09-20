@@ -37,6 +37,8 @@ const b64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
 async function run(body: Record<string, unknown> = base, options: {
   claims?: Record<string, unknown>;
   unsigned?: boolean;
+  missingAssertionHeader?: boolean;
+  missingKeyHeader?: boolean;
   tampered?: boolean;
   wrongApp?: boolean;
   enabled?: boolean;
@@ -73,8 +75,10 @@ async function run(body: Record<string, unknown> = base, options: {
       method: "POST",
       headers: {
         authorization: `Bearer ${token}`,
-        ...(options.unsigned ? {} : {
+        ...(options.unsigned || options.missingKeyHeader ? {} : {
           "x-gametime-key-id": b64(device.keyId),
+        }),
+        ...(options.unsigned || options.missingAssertionHeader ? {} : {
           "x-gametime-assertion": b64(signed.assertionObject),
         }),
       },
@@ -92,6 +96,25 @@ const readiness = {
   observed_at: "2026-09-19T12:00:00Z",
   request_id: "55555555-5555-5555-5555-555555555555",
 };
+
+Deno.test("private-account requests forward null proof and retain exact digest and session", async () => {
+  const result = await run(readiness, { unsigned: true });
+  assertEquals(result.status, 200);
+  assertEquals(result.readinessCalls.length, 1);
+  const call = result.readinessCalls[0]!;
+  assertEquals(call.keyID, null);
+  assertEquals(call.signCount, null);
+  assertEquals(call.sessionID, session);
+  assertEquals(toHex(call.payloadDigest), toHex(await sha256(utf8(result.exact))));
+});
+
+for (const option of [{ missingAssertionHeader: true }, { missingKeyHeader: true }]) {
+  Deno.test(`partial device proof cannot enter private-account path ${JSON.stringify(option)}`, async () => {
+    const result = await run(readiness, option);
+    assertEquals(result.status, 401);
+    assertEquals(result.readinessCalls.length, 0);
+  });
+}
 
 Deno.test("P8 attested readiness binds the actor, source policy and exact bytes without history", async () => {
   const result = await run(readiness, { whitespace: true, enabled: false });
@@ -257,7 +280,6 @@ for (const state of ["deleted", "unresolved"]) {
 }
 for (
   const [label, options] of Object.entries({
-    "missing assertion": { unsigned: true },
     "altered bytes": { tampered: true },
     "different app": { wrongApp: true },
     "missing key": { missingKey: true },

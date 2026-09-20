@@ -30,7 +30,7 @@ enum ChallengeHealthCopy {
         case .checking: "We’re checking the activity on this phone. You can leave and refresh when you return."
         case .ready: "We found matching activity. This doesn’t mean your entire activity history is available."
         case .noEligibleDataYet: !readiness ? "We haven’t found matching activity for this challenge. Let your Watch sync, then try Refresh. Missing activity doesn’t count against you." : timed ? "We couldn’t find a comparable outdoor run in the last 90 days. Check your Apple Health settings and refresh after your Watch has synced." : "We couldn’t find matching activity in the last 30 days. Check your Apple Health settings and refresh after your Watch has synced."
-        case .temporarilyUnavailable: "Unlock your phone, check your connection and try Refresh. Missing activity doesn’t count against you."
+        case .temporarilyUnavailable: "Check your connection and try Refresh. Missing activity doesn’t count against you."
         case .staleOrIncomplete: "Some activity changed or couldn’t be read. Try Refresh after your Watch has synced. We won’t treat missing activity as zero."
         }
     }

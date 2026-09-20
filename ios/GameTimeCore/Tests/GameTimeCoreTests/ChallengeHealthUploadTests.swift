@@ -60,6 +60,21 @@ struct ChallengeHealthUploadTests {
         #expect(restored.pending.count == 1)
     }
 
+    @Test("private-account upload keeps exact bytes through journal recovery")
+    func privateAccountRecovery() throws {
+        let first = try request(value: 1000)
+        let privateUpload = try ChallengeHealthSignedUpload(privateAccountRequest: first)
+        #expect(privateUpload.isPrivateAccount)
+        #expect(privateUpload.keyID.isEmpty && privateUpload.assertion.isEmpty)
+        var journal = ChallengeHealthUploadJournal(actorID: actor)
+        try journal.enqueue(privateUpload)
+        var restored = try ChallengeHealthUploadJournal(restoring: journal.encoded(), actorID: actor)
+        #expect(restored.pending == [privateUpload])
+        #expect(restored.pending[0].exactBody == first.exactBytes)
+        try restored.acknowledge(first, receipt: receipt(first))
+        #expect(restored.pending.isEmpty)
+    }
+
     @Test("timed wire binds the selected distance and preserves it across relaunch")
     func timedDistance() throws {
         let window = try ChallengeHealthWindow(startMicroseconds: 1_800_000_000_000000,

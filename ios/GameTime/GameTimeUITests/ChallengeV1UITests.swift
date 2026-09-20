@@ -317,9 +317,13 @@ final class ChallengeV1UITests:XCTestCase {
         XCTAssertFalse(app.buttons["beta.create.competition"].exists)
         let target = app.textFields["beta.create.target"]
         bring(target); target.tap(); target.typeText("0\n")
-        let preview = app.buttons["beta.personal.preview"]; bring(preview); XCTAssertFalse(preview.isEnabled)
+        let preview = app.buttons["beta.personal.preview"]; bring(preview); XCTAssertTrue(preview.isEnabled); preview.tap()
+        XCTAssertTrue(app.staticTexts["beta.personal.preview.error"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["beta.personal.preview.error"].label, "Enter a whole number of steps from 1 to 1,000,000,000.")
         target.tap(); target.typeText(XCUIKeyboardKey.delete.rawValue + "15000\n")
         bring(preview); XCTAssertTrue(preview.isEnabled); preview.tap()
+        let agreement = app.staticTexts["Your complete agreement"]
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: agreement)], timeout: 10), .completed)
         let consent = app.switches["beta.personal.consent"]
         bring(consent); XCTAssertEqual(consent.value as? String, "0")
         consent.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()

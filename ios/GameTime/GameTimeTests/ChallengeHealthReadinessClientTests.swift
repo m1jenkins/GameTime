@@ -149,6 +149,37 @@ struct ChallengeHealthReadinessClientTests {
     #expect(try store.load(actor: actor).pending.isEmpty)
   }
 
+  @Test("private account readiness preserves older signed requests and retries independently without signing")
+  func privateAccountRecovery() async throws {
+    let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }
+    let prior = try timedRequest(), next = try request()
+    let session = WeeklyClientSession(actorID: actor, identity: "fictional-session")
+    var oldSigned: ChallengeHealthSignedReadinessRequest?
+    let original = ChallengeHealthReadinessClient(enabled: true, environment: .development, coordinator: coordinator(store),
+      binding: { session }, sign: { _, _ in material() }, send: { signed, _ in
+        oldSigned = signed; throw ChallengeHealthReadinessClientError.unavailable
+      })
+    await #expect(throws: ChallengeHealthReadinessClientError.unavailable) { try await original.submit(prior) }
+    var privateAttempt: ChallengeHealthSignedReadinessRequest?
+    let privateClient = ChallengeHealthReadinessClient(enabled: true, environment: .development,
+      privateAccountMode: true, coordinator: coordinator(store), binding: { session },
+      sign: { _, _ in Issue.record("private readiness must not request device verification"); return material() },
+      send: { saved, _ in
+        #expect(saved != oldSigned)
+        #expect(saved.isPrivateAccount && saved.keyID.isEmpty && saved.assertion.isEmpty)
+        privateAttempt = saved; throw ChallengeHealthReadinessClientError.unavailable
+      })
+    await #expect(throws: ChallengeHealthReadinessClientError.refused) { try await privateClient.submit(prior) }
+    await #expect(throws: ChallengeHealthReadinessClientError.unavailable) { try await privateClient.submit(next) }
+    #expect(try store.load(actor: actor).pending.count == 2)
+    let retry = ChallengeHealthReadinessClient(environment: .development, privateAccountMode: true,
+      coordinator: coordinator(store), binding: { session },
+      sign: { _, _ in Issue.record("recovery must not sign"); return material() },
+      send: { saved, _ in #expect(saved == privateAttempt); return try receipt(next) })
+    try await retry.retry(actor: actor)
+    #expect(try store.load(actor: actor).pending == [oldSigned!])
+  }
+
   @Test("a new readiness request drains an earlier durable assertion before signing")
   func newReadinessDrainsEarlierPendingRequestAfterRelaunch() async throws {
     let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }

@@ -98,6 +98,38 @@ Deno.test("P8 readiness database adapter forwards only minimal readiness fields"
   }
 });
 
+Deno.test("private-account adapter sends a paired null proof with the exact digest", async () => {
+  const ready: RealHealthReadinessArgs = {
+    ...args,
+    keyID: null,
+    signCount: null,
+    payload: {
+      contract_version: 1,
+      actor_id: args.payload.actor_id,
+      source_policy_version: args.payload.source_policy_version,
+      observed_at: args.payload.observed_at,
+      request_id: args.payload.request_id,
+    },
+  };
+  const response = {
+    version: "challenge_real_health_readiness_receipt_v1",
+    request_id: ready.payload.request_id,
+    accepted_at: receipt.accepted_at,
+  };
+  const mock = stub(globalThis, "fetch", (_input, init) => {
+    const body = JSON.parse(init?.body as string);
+    assertEquals(body.p_device_key_id, null);
+    assertEquals(body.p_assertion_counter, null);
+    assertEquals(body.p_payload_digest, "\\x" + "02".repeat(32));
+    return Promise.resolve(Response.json(response));
+  });
+  try {
+    assertEquals(await realHealthReadinessDatabase(config)(ready), response);
+  } finally {
+    mock.restore();
+  }
+});
+
 for (
   const change of [
     { actor_id: args.payload.actor_id },

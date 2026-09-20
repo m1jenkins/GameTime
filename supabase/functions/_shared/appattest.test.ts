@@ -928,6 +928,129 @@ Deno.test("verifies a signed assertion with Apple extensions and refuses tamperi
   );
 });
 
+Deno.test("accepts only the physical-device 0xc0 assertion map without credential data", async () => {
+  const payload = utf8('{"request_id":"synthetic-readiness"}');
+  const built = await buildAssertion(device, payload, {
+    signCount: 7,
+    credentialFlagAssertionExtensions: { validationCategory: 4, bundleVersion: "1" },
+  });
+  assertEquals(built.authenticatorData[32], 0xc0);
+  const verified = await verifyAssertion({
+    signature: built.signature,
+    authenticatorData: built.authenticatorData,
+    clientData: payload,
+    publicKey: device.publicKey,
+    appId: APP_ID,
+  });
+  assertEquals(verified.signCount, 7);
+  assertEquals(verified.validationCategory, 4);
+  assertEquals(verified.bundleVersion, "1");
+
+  const malformed = new Uint8Array([...built.authenticatorData, 0x00]);
+  await assertRejects(
+    () =>
+      verifyAssertion({
+        signature: built.signature,
+        authenticatorData: malformed,
+        clientData: payload,
+        publicKey: device.publicKey,
+        appId: APP_ID,
+      }),
+    AttestationError,
+    "CBOR",
+  );
+  await assertRejects(
+    () =>
+      verifyAssertion({
+        signature: built.signature,
+        authenticatorData: built.authenticatorData,
+        clientData: utf8('{"request_id":"tampered"}'),
+        publicKey: device.publicKey,
+        appId: APP_ID,
+      }),
+    AttestationError,
+    "does not verify",
+  );
+  await assertRejects(
+    () =>
+      verifyAssertion({
+        signature: built.signature,
+        authenticatorData: built.authenticatorData,
+        clientData: payload,
+        publicKey: device.publicKey,
+        appId: "ZZZZZ99999.someone.elses.app",
+      }),
+    AttestationError,
+    "different app id",
+  );
+  const other = await makeDevice();
+  await assertRejects(
+    () =>
+      verifyAssertion({
+        signature: built.signature,
+        authenticatorData: built.authenticatorData,
+        clientData: payload,
+        publicKey: other.publicKey,
+        appId: APP_ID,
+      }),
+    AttestationError,
+    "does not verify",
+  );
+});
+
+Deno.test("0xc0 assertion parser rejects a credential block and malformed or extra maps", async () => {
+  const prefix = buildAuthenticatorData({ rpIdHash: await sha256(utf8(APP_ID)), signCount: 1 });
+  const marked = new Uint8Array([...prefix.slice(0, 32), 0xc0, ...prefix.slice(33)]);
+  const valid = encodeAttestationExtensions(4, "1");
+  const parse = (suffix: Bytes) =>
+    parseAuthenticatorData(
+      new Uint8Array([...marked, ...suffix]),
+      "assertion",
+    );
+  assertThrows(() => parse(new Uint8Array([...valid, ...valid])), AttestationError, "exactly one");
+  assertThrows(
+    () => parse(encodeCbor({ apple_bundle_version_01: "1" })),
+    AttestationError,
+    "must contain exactly",
+  );
+  assertThrows(() =>
+    parse(encodeCbor({
+      apple_bundle_version_01: "1",
+      apple_validation_category_01: new Uint8Array([4, 0, 0, 0]),
+      extra: true,
+    })), AttestationError);
+  assertThrows(() =>
+    parse(
+      new Uint8Array([
+        ...AAGUID_PRODUCTION,
+        0,
+        32,
+        ...device.keyId,
+        ...valid,
+      ]),
+    ), AttestationError);
+  const attestationShaped = buildAuthenticatorData({
+    rpIdHash: await sha256(utf8(APP_ID)),
+    signCount: 0,
+    aaguid: AAGUID_PRODUCTION,
+    credentialId: device.keyId,
+    credentialPublicKey: device.publicKey,
+  });
+  const signed = await buildAssertion(device, utf8("synthetic"));
+  await assertRejects(
+    () =>
+      verifyAssertion({
+        signature: signed.signature,
+        authenticatorData: attestationShaped,
+        clientData: utf8("synthetic"),
+        publicKey: device.publicKey,
+        appId: APP_ID,
+      }),
+    AttestationError,
+    "must not carry credential data",
+  );
+});
+
 Deno.test("refuses an assertion over a payload that was altered in flight", async () => {
   // The whole point of signing the body: change one byte of what the server
   // will act on and the signature stops matching.

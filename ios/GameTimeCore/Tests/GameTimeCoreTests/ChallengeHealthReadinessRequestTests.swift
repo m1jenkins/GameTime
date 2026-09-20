@@ -127,6 +127,30 @@ struct ChallengeHealthReadinessRequestTests {
         #expect(journal.pending.isEmpty)
     }
 
+    @Test("private-account readiness keeps the exact request and receipt recovery")
+    func privateAccountJournalRecovery() throws {
+        let (snapshot, evaluation) = try accepted()
+        let request = try ChallengeHealthReadinessRequest(
+            binding: try binding(), snapshot: snapshot, evaluation: evaluation, requestID: F.id(4)
+        )
+        let privateRequest = try ChallengeHealthSignedReadinessRequest(privateAccountRequest: request)
+        #expect(privateRequest.isPrivateAccount)
+        #expect(privateRequest.keyID.isEmpty && privateRequest.assertion.isEmpty)
+        var journal = ChallengeHealthReadinessJournal(actorID: request.actorID)
+        try journal.enqueue(privateRequest)
+        let restored = try ChallengeHealthReadinessJournal(restoring: journal.encoded(), actorID: request.actorID)
+        #expect(restored.pending == [privateRequest])
+        #expect(restored.pending[0].exactBody == request.exactBytes)
+        let receipt = try JSONSerialization.data(withJSONObject: [
+            "version": "challenge_real_health_readiness_receipt_v1",
+            "request_id": request.requestID.uuidString.lowercased(),
+            "accepted_at": "2026-09-20T00:00:00Z"
+        ])
+        journal = restored
+        try journal.acknowledge(request, receipt: receipt)
+        #expect(journal.pending.isEmpty)
+    }
+
     @Test("cumulative outdoor-running readiness keeps the five-field receipt shape")
     func cumulativeRunningCanonicalBody() throws {
         let binding = try workoutBinding(metric: .runningMillimeters,

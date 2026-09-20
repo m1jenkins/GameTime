@@ -47,6 +47,27 @@ struct ChallengeHealthUploadClientTests {
     #expect(try store.load(actor: actor).pending.isEmpty)
   }
 
+  @Test("private account activity survives response loss without requesting a device signature")
+  func privateAccountRecovery() async throws {
+    let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }
+    let request = try request(), session = WeeklyClientSession(actorID: actor, identity: "fictional-session")
+    var saved: ChallengeHealthSignedUpload?
+    let first = ChallengeHealthUploadClient(enabled: true, environment: .development, privateAccountMode: true,
+      coordinator: coordinator(store), binding: { session },
+      sign: { _, _ in Issue.record("private activity must not request device verification"); return material() },
+      send: { upload, _ in
+        #expect(upload.isPrivateAccount && upload.keyID.isEmpty && upload.assertion.isEmpty)
+        saved = upload; throw ChallengeHealthUploadClientError.unavailable
+      })
+    await #expect(throws: ChallengeHealthUploadClientError.unavailable) { try await first.submit(request) }
+    let retry = ChallengeHealthUploadClient(environment: .development, privateAccountMode: true,
+      coordinator: coordinator(store), binding: { session },
+      sign: { _, _ in Issue.record("recovery must not sign"); return material() },
+      send: { upload, _ in #expect(upload == saved); return try receipt(request) })
+    try await retry.retry(actor: actor)
+    #expect(try store.load(actor: actor).pending.isEmpty)
+  }
+
   @Test("a new upload drains an earlier durable assertion before signing")
   func newUploadDrainsEarlierPendingRequestAfterRelaunch() async throws {
     let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }
