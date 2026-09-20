@@ -1,0 +1,72 @@
+[
+  {
+    "observed_at": "2026-09-20T08:09:02.274754+00:00",
+    "reviews": {
+      "appeals_without_eligible_operator_count": 0,
+      "monitoring_state": "paused",
+      "outstanding_review_count": 0,
+      "pending_appeal_count": 0,
+      "reviews_without_eligible_operator_count": 0
+    },
+    "snapshot": {
+      "capture_age_seconds": 2,
+      "capture_state": "disabled",
+      "last_attempt_state": "checked",
+      "last_attempt_wall_at": "2026-09-20T08:09:00.147095+00:00",
+      "last_capture_at": "2026-09-20T08:09:00.147608+00:00",
+      "last_prepared_wall_at": "2026-09-20T08:09:00.087959+00:00",
+      "last_successful_invocation_wall_at": "2026-09-20T08:09:00.147095+00:00",
+      "snapshot_state": "recorded"
+    },
+    "state": "disabled",
+    "worker": {
+      "abandoned_count": 0,
+      "admission_paused": true,
+      "dead_letter_count": 0,
+      "due_count": 0,
+      "failed_count": 0,
+      "heartbeat_age_seconds": 2,
+      "heartbeat_status": "healthy_backlog",
+      "last_heartbeat_at": "2026-09-20T08:09:00.147908+00:00",
+      "processing_paused": true,
+      "processing_state": "disabled",
+      "recent_failure_count": 0,
+      "retry_count": 0
+    }
+  },
+  {
+    "observed_at": "2026-09-20T08:09:02.367785+00:00",
+    "reviews": {
+      "appeals_without_eligible_operator_count": 0,
+      "monitoring_state": "paused",
+      "outstanding_review_count": 0,
+      "pending_appeal_count": 0,
+      "reviews_without_eligible_operator_count": 0
+    },
+    "snapshot": {
+      "capture_age_seconds": 2,
+      "capture_state": "disabled",
+      "last_attempt_state": "checked",
+      "last_attempt_wall_at": "2026-09-20T08:09:00.147095+00:00",
+      "last_capture_at": "2026-09-20T08:09:00.147608+00:00",
+      "last_prepared_wall_at": "2026-09-20T08:09:00.087959+00:00",
+      "last_successful_invocation_wall_at": "2026-09-20T08:09:00.147095+00:00",
+      "snapshot_state": "recorded"
+    },
+    "state": "disabled",
+    "worker": {
+      "abandoned_count": 0,
+      "admission_paused": true,
+      "dead_letter_count": 0,
+      "due_count": 0,
+      "failed_count": 0,
+      "heartbeat_age_seconds": 2,
+      "heartbeat_status": "healthy_backlog",
+      "last_heartbeat_at": "2026-09-20T08:09:00.147908+00:00",
+      "processing_paused": true,
+      "processing_state": "disabled",
+      "recent_failure_count": 0,
+      "retry_count": 0
+    }
+  }
+]

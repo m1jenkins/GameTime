@@ -1,8 +1,8 @@
 # Build friend duels and personal performance commitments
 
-For this continuation, use `codex/p9-signal-real-activity`, based on P8
-`8a9d1f0`, or a verified descendant containing both. Final inspection found
-`main` at `cb3a0ec`, containing P8 but not P9. Work in `/Users/user/Documents/GitHub/GameTime` and read the
+For this continuation, use `codex/p11-local-scheduling`, based on reviewed P9
+`fa97cb26` and containing P8 `8a9d1f0`, or a verified descendant. Local
+`main` at `cb3a0ec` contains P8 but not P9/P11. Work in `/Users/user/Documents/GitHub/GameTime` and read the
 [working baseline](docs/WORKING_BASELINE.md),
 [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [one-task prompts](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
@@ -30,8 +30,14 @@ and the fictional Personal lifecycle preview. Local weekly acceptance passed;
 the consolidation record lists CI status at merge. The [P9 local report](outputs/reports/2026-09-20-p9-signal-real-activity.md) records
 the continuation and focused checks. Nine real goal policies and four explicit
 unavailable leaderboard states do not meet the unchanged all-13 release gate.
-Use the [next-chat planning prompt](docs/P9_NEXT_PLANNING_PROMPT.md) to plan the next
-bounded task and resolve its actual owner decisions. The full release matrix remains reserved for P12.
+The owner-selected Cron + Edge runtime now has a
+[bounded local scheduling connection](outputs/reports/2026-09-20-p11-local-scheduling.md).
+New jobs and private configuration start off; hosted settings remain unapproved.
+The [hosting worksheet](docs/BETA_HOSTED_PREPARATION.md#september-20-local-cron-and-edge-continuation)
+lists the actual P11B inputs and operating dependencies. The older
+[P9 next-chat planning prompt](docs/P9_NEXT_PLANNING_PROMPT.md) is dated context.
+Do not repeat local scheduling or infer deployment authorization. The full
+release matrix remains reserved for P12.
 
 ## Historical roadmap
 

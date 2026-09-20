@@ -1,0 +1,21 @@
+{
+  "cron_during_historical_migrations": "off",
+  "fresh_and_populated_migration": {
+    "path": "supabase/migrations/20260920071900_challenge_machine_scheduling_v1.sql",
+    "sha256": "b4f88fa3ef0979a90c57fa3a1dfddda776b225f3f198d311b4acce04a430d122"
+  },
+  "historical_agreement_digest": "23334fd1372ea787a999b29c6898da9ee487c12593864f8a5b81beb9550f15cb",
+  "historical_cron_runs_during_migrations": 0,
+  "kind": "p11-local-sql-verification-v1",
+  "operating_fixture_sha256": "593551fb5e963f96157324489c174fd7c0def4e928002b70176035b65aca804f",
+  "suites": {
+    "509_challenge_local_worker_recovery": 43,
+    "515_challenge_local_review_status": 70,
+    "518_challenge_community_snapshot_status": 59,
+    "521_challenge_real_health_privacy": 20,
+    "522_challenge_real_health_worker": 44,
+    "524_challenge_machine_scheduling": 67,
+    "525_challenge_machine_real_processing": 22
+  },
+  "total_assertions": 325
+}

@@ -1,6 +1,24 @@
 # GameTime project memory
 
-## Current working baseline — September 19, 2026
+## Current working baseline — September 20, 2026
+
+Continue from `codex/p11-local-scheduling`, which descends from reviewed P9
+`fa97cb26` and P8 `8a9d1f0`. Local `main` at `cb3a0ec` lacks P9/P11. The
+[working baseline](docs/WORKING_BASELINE.md) and
+[P11 local report](outputs/reports/2026-09-20-p11-local-scheduling.md) own exact
+source and evidence. The owner selected Supabase Cron + Edge; its fixed machine
+boundary is implemented locally with inactive jobs and default-off private
+configuration. This does not approve hosted settings, credentials or actions.
+
+D138/D139 source rules remain adopted. P9 supplies nine available goals and
+four unavailable leaderboards; strict Exercise v1 is preserved and Exercise
+credit v2 is separately versioned. Incomplete history cannot establish misses
+or full rankings. All 18 external gates and checked-in transport remain closed;
+the four-metric/all-13 release requirement remains unmet. P11B needs the exact
+target/candidate, budget, settings, credential custody, named operators and
+action approval. Physical/human/release acceptance remains separate.
+
+## September 19 baseline record
 
 Use `/Users/user/Documents/GitHub/GameTime` on `main` as the authoritative
 project, with isolated task branches when needed. [WORKING_BASELINE.md](docs/WORKING_BASELINE.md)

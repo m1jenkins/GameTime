@@ -1,0 +1,37 @@
+{
+  "kind": "p11-focused-source-checks-v1",
+  "commands": [
+    {
+      "command": "deno test --cached-only --allow-env --config supabase/functions/deno.json supabase/functions/_shared/challenge_machine.test.ts supabase/functions/challenge-worker/ supabase/functions/challenge-snapshot/ supabase/functions/challenge-monitor/",
+      "exit_code": 0,
+      "result": "Check supabase/functions/_shared/challenge_machine.test.ts\nCheck supabase/functions/challenge-monitor/handler.test.ts\nCheck supabase/functions/challenge-snapshot/handler.test.ts\nCheck supabase/functions/challenge-worker/database.test.ts\nCheck supabase/functions/challenge-worker/handler.test.ts\nrunning 2 tests from ./supabase/functions/_shared/challenge_machine.test.ts\nmachine body accepts only the exact invocation or empty monitor object ... ok (5ms)\nmachine RPC retries exact bytes with service credential only in adapter ... ok (1ms)\nrunning 2 tests from ./supabase/functions/challenge-monitor/handler.test.ts\nmonitor is read-only, rejects caller scope, and strips identities and people counts ... ok (4ms)\nmonitor preserves an explicitly unconfigured worker state ... ok (175µs)\nrunning 1 test from ./supabase/functions/challenge-snapshot/handler.test.ts\nsnapshot uses only prepared invocation identity and worker credential ... ok (4ms)\nrunning 2 tests from ./supabase/functions/challenge-worker/database.test.ts\nworker adapter replays exact dispatch and completion after lost responses ... ok (3ms)\nworker adapter stops after three timeouts and honors the global deadline ... ok (32ms)\nrunning 5 tests from ./supabase/functions/challenge-worker/handler.test.ts\nworker authenticates and rejects caller selected operations before database access ... ok (4ms)\nworker completes fixed saved claims in five lanes and fences each completion ... ok (12ms)\nworker returns saved summary without completing claims again ... ok (614µs)\nworker masks errors and rejects unexpected claim shapes ... ok (359µs)\none completion transport failure does not abandon later claims ... ok (265µs)\n\nok | 12 passed | 0 failed (151ms)"
+    },
+    {
+      "command": "deno check --cached-only --config supabase/functions/deno.json supabase/functions/_shared/challenge_machine.ts supabase/functions/challenge-worker/*.ts supabase/functions/challenge-snapshot/*.ts supabase/functions/challenge-monitor/*.ts",
+      "exit_code": 1,
+      "result": "error: unexpected argument '--cached-only' found\n\n  tip: a similar argument exists: '--doc-only'\n\nUsage: deno check --doc-only [file]..."
+    },
+    {
+      "command": "deno lint --config supabase/functions/deno.json supabase/functions/_shared/challenge_machine.ts supabase/functions/_shared/challenge_machine.test.ts supabase/functions/challenge-worker/ supabase/functions/challenge-snapshot/ supabase/functions/challenge-monitor/",
+      "exit_code": 0,
+      "result": "Checked 15 files"
+    },
+    {
+      "command": "deno fmt --check --config supabase/functions/deno.json supabase/functions/_shared/challenge_machine.ts supabase/functions/_shared/challenge_machine.test.ts supabase/functions/challenge-worker/ supabase/functions/challenge-snapshot/ supabase/functions/challenge-monitor/",
+      "exit_code": 0,
+      "result": "Checked 15 files"
+    }
+  ],
+  "corrected_type_check": {
+    "command": "deno check --deny-import --config supabase/functions/deno.json supabase/functions/_shared/challenge_machine.ts supabase/functions/challenge-worker/*.ts supabase/functions/challenge-snapshot/*.ts supabase/functions/challenge-monitor/*.ts",
+    "exit_code": 0,
+    "result": "Check supabase/functions/_shared/challenge_machine.ts\nCheck supabase/functions/challenge-worker/database.test.ts\nCheck supabase/functions/challenge-worker/database.ts\nCheck supabase/functions/challenge-worker/handler.test.ts\nCheck supabase/functions/challenge-worker/handler.ts\nCheck supabase/functions/challenge-worker/index.ts\nCheck supabase/functions/challenge-snapshot/database.ts\nCheck supabase/functions/challenge-snapshot/handler.test.ts\nCheck supabase/functions/challenge-snapshot/handler.ts\nCheck supabase/functions/challenge-snapshot/index.ts\nCheck supabase/functions/challenge-monitor/database.ts\nCheck supabase/functions/challenge-monitor/handler.test.ts\nCheck supabase/functions/challenge-monitor/handler.ts\nCheck supabase/functions/challenge-monitor/index.ts"
+  },
+  "existing_worker_units": {
+    "command": "python3 scripts/tests/challenge-worker.test.py",
+    "passed": 4,
+    "failed": 0
+  },
+  "python_syntax": "passed",
+  "diff_whitespace": "passed"
+}

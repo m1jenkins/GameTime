@@ -1,0 +1,6 @@
+{
+  "target": "owned loopback database",
+  "type": "security",
+  "result": "No issues found",
+  "exit_code": 0
+}
