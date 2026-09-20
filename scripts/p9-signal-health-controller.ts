@@ -86,7 +86,16 @@ async function pace(request: Request, path: string) {
     ? 52
     : 0;
   if (!limit) return;
-  const key = path + (request.headers.get("authorization") ?? "");
+  // Server quotas belong to the actor across sign-ins. Test actor switching
+  // creates new JWTs but must not reset this local pacing budget.
+  const authorization = request.headers.get("authorization") ?? "";
+  let actor = authorization;
+  try {
+    const encoded = authorization.replace(/^Bearer /i, "").split(".")[1]!;
+    actor = JSON.parse(atob(encoded.replaceAll("-", "+").replaceAll("_", "/"))).sub;
+    assert(actors.some((candidate) => candidate.id === actor));
+  } catch { /* Invalid sessions are still refused by the actual endpoint. */ }
+  const key = path + actor;
   const recent = (paceTimes.get(key) ?? []).filter((time) => time > Date.now() - 30500);
   if (recent.length >= limit) {
     await new Promise((resolve) =>

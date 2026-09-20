@@ -250,7 +250,7 @@ import XCTest
         let id = try XCTUnwrap((published["id"] as? String).flatMap(UUID.init(uuidString:)))
         for person in 0..<6 {
             try await login(person, model: model)
-            let preview = try XCTUnwrap(store.communities.first { $0.id == id })
+            let preview = try XCTUnwrap(store.communities.first { $0.id == id }, store.entryError ?? "Expected published community")
             let binding = try ChallengeHealthBindingMapper.binding(actor: config.actors[person].id, id: id, version: 1,
                 digest: preview.digest, policy: ChallengeV1Policy(rawValue: "community_steps_goal_v1")!,
                 window: XCTUnwrap(decodeWindow(preview.terms["config"])), source: "apple_watch_steps_v1")
