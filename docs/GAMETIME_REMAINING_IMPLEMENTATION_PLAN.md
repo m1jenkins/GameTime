@@ -2,7 +2,7 @@
 
 Updated September 20 for [P9 local Signal integration](P9_SIGNAL_REAL_ACTIVITY.md).
 Use `codex/p9-signal-real-activity` or a verified descendant containing P8/P9;
-`main` at `848ef6e` lacks them. See the [local report](../outputs/reports/2026-09-20-p9-signal-real-activity.md)
+`main` at final inspection is `cb3a0ec`, containing P8 but not P9. See the [local report](../outputs/reports/2026-09-20-p9-signal-real-activity.md)
 and [next planning prompt](P9_NEXT_PLANNING_PROMPT.md). This does not dispatch later work.
 
 September 19 context: the [main consolidation](../outputs/reports/2026-09-19-main-consolidation.md).

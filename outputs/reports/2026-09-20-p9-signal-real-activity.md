@@ -8,7 +8,9 @@ Implemented on `codex/p9-signal-real-activity` from clean P8
 Final application follow-up `b0ce67e64ae1a47dd222d5e56e8ea0ef4c63dfae` enables unlock/network opportunities before
 protected connection state is available, with a native notification regression.
 The subsequent report commit changes documentation and review artifacts only.
-Main remains `848ef6ee02d95b57bdad4b36d3c7600a4ba3f192`; nothing was pushed or merged.
+Main began at `848ef6ee02d95b57bdad4b36d3c7600a4ba3f192`. Final inspection
+found it separately fast-forwarded to `cb3a0ec6a758683eb1bc026859833c5b96b4ccf6`
+(the P8 merge), containing P8 but not P9. This task did not push, merge or move main.
 
 The [P9 contract](../../docs/P9_SIGNAL_REAL_ACTIVITY.md) records implemented rules;
 D139 records the owner’s separate Exercise credit decision. The

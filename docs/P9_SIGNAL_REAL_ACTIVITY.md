@@ -2,7 +2,8 @@
 
 D139 records the owner’s selected scope. The implementation branch is
 `codex/p9-signal-real-activity`, directly from P8
-`8a9d1f007ab235d580d83bae47077a26f13090a7`. Main at `848ef6e` lacks P8/P9.
+`8a9d1f007ab235d580d83bae47077a26f13090a7`. Main began at `848ef6e` and advanced separately to `cb3a0ec` during this task;
+it now contains P8 but not P9.
 The [implementation report](../outputs/reports/2026-09-20-p9-signal-real-activity.md)
 records exact source, commands, results, failures and unperformed acceptance.
 This is local software work using synthetic readers and owned loopback resources.

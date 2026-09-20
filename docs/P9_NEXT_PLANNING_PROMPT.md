@@ -14,8 +14,8 @@ It contains the implementation cbfaf255612bf55e87fde7c4262902825f271d6d,
 acceptance follow-ups c19bb28 and b336f4c, and the locked-launch recovery fix.
 It descends directly from P8 8a9d1f007ab235d580d83bae47077a26f13090a7.
 Later report-only commits may follow.
-Use that reviewed branch or a verified descendant containing both. Main at the
-P9 handoff was 848ef6e and did not include them. Do not discard local changes,
+Use that reviewed branch or a verified descendant containing both. Main began at 848ef6e; final inspection found it at cb3a0ec, containing P8
+but not P9. Do not discard local changes,
 blindly start from main, merge, push, or create another clone.
 
 Read AGENTS.md, PROJECT_MEMORY.md, README.md, docs/WORKING_BASELINE.md, PLAN.md,

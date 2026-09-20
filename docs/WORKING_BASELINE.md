@@ -2,7 +2,7 @@
 
 Read `git status --short --branch` and `git log -1` first. The current local P9
 continuation is `codex/p9-signal-real-activity`, directly from P8 `8a9d1f0`;
-local `main` remains `848ef6e` and lacks both. Use this branch or a verified
+local `main` advanced separately to `cb3a0ec`, containing P8 but not P9. Use this branch or a verified
 descendant for continuation, not an older main checkout. No push or merge is implied.
 
 ## September 20 P9 local continuation

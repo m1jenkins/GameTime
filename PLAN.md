@@ -1,8 +1,8 @@
 # Build friend duels and personal performance commitments
 
 For this continuation, use `codex/p9-signal-real-activity`, based on P8
-`8a9d1f0`, or a verified descendant containing both. `main` at `848ef6e` does
-not contain P8/P9. Work in `/Users/user/Documents/GitHub/GameTime` and read the
+`8a9d1f0`, or a verified descendant containing both. Final inspection found
+`main` at `cb3a0ec`, containing P8 but not P9. Work in `/Users/user/Documents/GitHub/GameTime` and read the
 [working baseline](docs/WORKING_BASELINE.md),
 [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [one-task prompts](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).

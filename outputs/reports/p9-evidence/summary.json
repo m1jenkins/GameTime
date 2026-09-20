@@ -11,5 +11,9 @@
   "ui": 5,
   "external_gates_all_false": true,
   "historical_p7_p8_reports_changed": false,
-  "existing_migrations_changed": false
+  "existing_migrations_changed": false,
+  "main_at_start": "848ef6ee02d95b57bdad4b36d3c7600a4ba3f192",
+  "main_at_final_inspection": "cb3a0ec6a758683eb1bc026859833c5b96b4ccf6",
+  "main_contains_p8": true,
+  "main_contains_p9": false
 }
