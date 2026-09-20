@@ -481,6 +481,20 @@ enabled = true
 # code or invoking any service-only deletion operation.
 verify_jwt = false
 
+# Fixed machine interfaces authenticate dedicated, distinct dispatch secrets in
+# code before database access. Registration does not configure or activate Cron.
+[functions.challenge-worker]
+enabled = true
+verify_jwt = false
+
+[functions.challenge-snapshot]
+enabled = true
+verify_jwt = false
+
+[functions.challenge-monitor]
+enabled = true
+verify_jwt = false
+
 # pg-delta is the schema diff engine for db diff / db pull / db remote commit.
 # Disabled: migrations here are hand-written (DECISIONS.md D13), so nothing in
 # this repo diffs a schema. Leaving it on makes every `db reset` try to cache a
