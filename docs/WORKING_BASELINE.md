@@ -1,7 +1,31 @@
 # GameTime working baseline
 
-Develop from `main` in `/Users/user/Documents/GitHub/GameTime`; use isolated task
-branches when needed. Read `git status --short --branch` and `git log -1` first.
+Read `git status --short --branch` and `git log -1` first. The current local P9
+continuation is `codex/p9-signal-real-activity`, directly from P8 `8a9d1f0`;
+local `main` remains `848ef6e` and lacks both. Use this branch or a verified
+descendant for continuation, not an older main checkout. No push or merge is implied.
+
+## September 20 P9 local continuation
+
+[D139](../DECISIONS.md#d139-signal-real-activity-and-versioned-apple-exercise-credit)
+selects a new Exercise credit policy while preserving strict v1 and historical
+consent. The [P9 contract](P9_SIGNAL_REAL_ACTIVITY.md) describes shared delivery
+across all five signed writers, separate Health ownership, per-binding protected
+comparison state, automatic opportunities plus Refresh, and ordinary Signal
+readiness/consent/progress/correction/review/history. The
+[local report](../outputs/reports/2026-09-20-p9-signal-real-activity.md) records
+synthetic native, Edge, SQL and populated-upgrade checks and their limits.
+
+New agreements can use nine goal policies: four friend, four Personal and
+community steps. Four real leaderboards show **Leaderboard — Not available yet**.
+Positive activity can prove success; incomplete history never establishes a
+miss or complete ranking. The four-metric/all-13 release gate is unchanged.
+All external readiness entries and checked-in gates stay closed.
+
+The sections below preserve the earlier source states and evidence. P7 remains
+owner-closed. Hosting identities, community publication settings, operating
+approval, replacement retirement and P12/P13 remain separate. Start next planning
+with [the bounded handoff](P9_NEXT_PLANNING_PROMPT.md).
 
 ## September 19 main consolidation
 
@@ -101,7 +125,7 @@ included in this published baseline.
 | Local design preview | Fictional friend/personal journeys with configurable owned resources | [Preview guide](BETA_LOCAL_PREVIEW.md) |
 | P9 — shared app session | Bounded local implementation connects configured ordinary Signal to the existing authenticated client; default configuration remains off. Actual HTTPS/Apple identity and real-source journeys remain | [Connection and local checks](BETA_LOCAL_PREVIEW.md#ordinary-app-connection-and-its-local-substitute), [P9 report](../outputs/reports/2026-09-15-p9-authenticated-app.md) |
 | P9 — HTTPS invitation slice | Main includes exact configured-origin intake/formatting and preserves durable deliberate redemption. Domain, Apple identity, OS association and hosted/device acceptance remain open | [Local contract and inactive templates](BETA_INVITATION_LINKS_LOCAL.md), [checks and actor-switch composition](../outputs/reports/2026-09-18-https-invitations.md) |
-| P8 / P9 remainder | Local real contracts/adapters and signed ingestion are recorded; Exercise remains unavailable. P9 app wiring, key-wide delivery coordination and approved domain/Apple/OS delivery remain | [P8 contract](P8_REAL_HEALTH_CONTRACT.md), [software record](../outputs/reports/2026-09-19-p8-real-health.md) |
+| P8 / P9 real activity | Local Signal integration and key-wide recovery implemented on the P9 branch; Exercise credit v2 is separate from unavailable strict v1. Nine goals plus four unavailable leaderboard states; hosted identity/operation and full release acceptance remain | [P9 contract](P9_SIGNAL_REAL_ACTIVITY.md), [local report](../outputs/reports/2026-09-20-p9-signal-real-activity.md) |
 | P11A — service monitoring | Review/appeal and selected-cohort snapshot projections are in main and locally verified; no scheduler, alert destination, staffing or freshness threshold is accepted | [Integration record](../outputs/reports/2026-09-19-integrated-candidate.md), [snapshot contract](COMMUNITY_SNAPSHOT_STATUS_LOCAL.md) |
 | P11A — account deletion | Landed through `c6f88cd`, including review repairs; local evidence and substitute limits preserved | [Deletion record](evidence/beta-finish-line-b7/account-deletion-local-20260914.md) |
 | P11–13 | Hosted capacity/recovery, physical/human/release acceptance, then authorized private Beta remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
@@ -116,10 +140,11 @@ preserved requirements and dependency order:
 
 - P7: the owner has closed measured testing and D138 supplies explicit source
   and timed-distance rules. Preserve the dated observations; do not restart P7.
-- P8/P9: integrate the local real contracts into Signal with key-wide delivery
-  coordination. Exercise causal origin and complete-history results remain
-  unavailable. Approved HTTPS/Apple identity and invitations, all-mode native
-  journeys and hosted operation are not established by local software checks.
+- P8/P9: local Signal integration and shared exact delivery are implemented on
+  the P9 branch. Exercise credit v2 accepts disclosed unknown causal origin;
+  strict v1, complete leaderboards and confirmed misses remain unavailable.
+  Approved HTTPS/Apple identity and invitations, operated source-backed journeys
+  and all-13 release acceptance are not established by synthetic local checks.
 - P10/P11: approved hosted identity/settings, scheduled operation, credentials,
   alerts, retention/deletion and recovery/capacity acceptance. Local worker,
   scoped operator CLI and deletion implementation are complete; administrator

@@ -4,12 +4,12 @@ import Foundation
 enum ChallengePresentation {
     static func value(_ member: ChallengeV1.Member, actor: UUID?) -> Int? {
         guard !member.exited || member.actorId == actor,
-              member.fact?.state == "complete" else { return nil }
+              ["complete", "value"].contains(member.fact?.state ?? "") else { return nil }
         return member.fact?.value
     }
 
     static func rank(_ member: ChallengeV1.Member, in row: ChallengeV1, actor: UUID?) -> Int? {
-        guard !row.format.hasTarget, !member.exited,
+        guard row.sourcePolicyVersion == nil, !row.format.hasTarget, !member.exited,
               let value = value(member, actor: actor) else { return nil }
         return 1 + row.members.filter { other in
             guard !other.exited, let otherValue = self.value(other, actor: actor) else { return false }

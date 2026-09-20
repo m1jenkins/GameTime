@@ -332,6 +332,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
   private let expectedEnvironment: AppAttestEnvironment
   private let now: () -> Date
   private var ownersBeingPrepared: Set<UUID> = []
+  private let permitsNewSignatures: Bool
 
   var expectedAttestationEnvironment: AppAttestEnvironment? {
     expectedEnvironment
@@ -339,14 +340,16 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
 
   convenience init(
     client: SupabaseClient,
-    configuration: AppConfiguration
+    configuration: AppConfiguration,
+    allowsSavedRecovery: Bool = false
   ) throws {
     try self.init(
       configuration: configuration,
       sessionProvider: SupabaseMetricUploadSessionProvider(client: client),
       appAttest: DeviceMetricAppAttestProvider(),
       stateStore: UserDefaultsMetricAppAttestStateStore(),
-      transport: URLSessionMetricUploadHTTPTransport()
+      transport: URLSessionMetricUploadHTTPTransport(),
+      allowsSavedRecovery: allowsSavedRecovery
     )
   }
 
@@ -356,14 +359,16 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     appAttest: any MetricAppAttestProviding,
     stateStore: any MetricAppAttestStateStoring,
     transport: any MetricUploadHTTPTransport,
-    now: @escaping () -> Date = Date.init
+    now: @escaping () -> Date = Date.init,
+    allowsSavedRecovery: Bool = false
   ) throws {
     guard
-      configuration.attestedUploadEnabled,
-      let expectedEnvironment = configuration.expectedAppAttestEnvironment
+      configuration.attestedUploadEnabled || allowsSavedRecovery,
+      let expectedEnvironment = configuration.expectedAppAttestEnvironment ?? (allowsSavedRecovery ? .development : nil)
     else {
       throw MetricUploadClientError.stagingOnly
     }
+    permitsNewSignatures = configuration.attestedUploadEnabled
     self.sessionProvider = sessionProvider
     self.appAttest = appAttest
     self.stateStore = stateStore
@@ -386,6 +391,7 @@ final class SupabaseMetricUploadClient: MetricUploadClient,
     ownerID: UUID,
     body: Data
   ) async throws -> MetricSignedMaterial {
+    guard permitsNewSignatures else { throw MetricUploadClientError.stagingOnly }
     guard !body.isEmpty, body.count <= 64 * 1024 else {
       throw MetricUploadClientError.invalidMetricBody
     }

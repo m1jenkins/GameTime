@@ -1,5 +1,13 @@
 # GameTime remaining prompts
 
+**Current continuation — September 20:** P8 and the local P9 real-activity work
+are on `codex/p9-signal-real-activity`, not `main` at `848ef6e`. Read the
+[P9 contract](P9_SIGNAL_REAL_ACTIVITY.md), [local report](../outputs/reports/2026-09-20-p9-signal-real-activity.md),
+and [next-chat planning prompt](P9_NEXT_PLANNING_PROMPT.md) before choosing work.
+D138/D139 settle the local source rules and separately versioned Exercise credit.
+P7 is closed; the prompts below preserve scope contracts and are not current dispatch.
+The nine-goal/four-unavailable integration does not satisfy the all-13 release gate.
+
 Reconciled September 15, 2026; completed slices are published through `1dacc66`. Use the [working baseline](WORKING_BASELINE.md)
 and [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md).
 P0/0A/3 and P4/P5/P6 are implemented locally; P2's measurements are historical.

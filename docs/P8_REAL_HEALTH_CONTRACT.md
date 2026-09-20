@@ -7,6 +7,15 @@ Local implementation is on `codex/p8-real-sources` from
 The [software verification record](../outputs/reports/2026-09-19-p8-real-health.md)
 separates performed checks from platform and P9 integration limits.
 
+## P9 continuation
+
+The sections below describe the original P8 implementation and strict Exercise
+v1. The [P9 contract](P9_SIGNAL_REAL_ACTIVITY.md) now connects these readers to
+ordinary Signal, extends exact recovery across all five writers and introduces
+`apple_watch_exercise_credit_v2` for new agreements under D139. Historical v1
+remains unavailable and unchanged. P8's next-task statements below are historical
+dependency context; the dated P7/P8 reports are preserved.
+
 ## Source attribution and its limits
 
 Use HealthKit's OS-owned `sourceRevision.source.bundleIdentifier` together with

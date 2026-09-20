@@ -110,7 +110,7 @@ struct ChallengeHealthReadinessClientTests {
 
   func material() -> MetricSignedMaterial {
     MetricSignedMaterial(keyID: Data(repeating: 1, count: 32).base64EncodedString(),
-                         assertion: Data([1]), environment: .development)
+                         assertion: nextP9TestAssertion(), environment: .development)
   }
 
   func receipt(_ request: ChallengeHealthReadinessRequest) throws -> Data {
@@ -224,7 +224,7 @@ struct ChallengeHealthReadinessClientTests {
     let readiness = ChallengeHealthReadinessClient(enabled: true, environment: .development,
       coordinator: relaunchedCoordinator, binding: { session }, sign: { _, _ in signCount += 1; return material() },
       send: { _, _ in Issue.record("peer pending must block before send"); return Data() })
-    await #expect(throws: ChallengeHealthReadinessClientError.busy) { try await readiness.submit(request()) }
+    await #expect(throws: ChallengeHealthTransportCoordinator.Failure.missingWriter) { try await readiness.submit(request()) }
     #expect(signCount == 0)
   }
 
@@ -248,7 +248,7 @@ struct ChallengeHealthReadinessClientTests {
       }, send: { _, _ in Issue.record("the held lease must block this sender"); return Data() })
     let first = Task { try await upload.submit(uploadRequest) }
     await gate.waitForSuspend()
-    await #expect(throws: ChallengeHealthReadinessClientError.busy) { try await readiness.submit(readinessRequest) }
+    await #expect(throws: ChallengeHealthTransportCoordinator.Failure.busy) { try await readiness.submit(readinessRequest) }
     gate.resume()
     try await first.value
   }

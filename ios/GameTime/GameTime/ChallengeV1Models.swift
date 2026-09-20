@@ -50,13 +50,14 @@ struct ChallengeV1: Codable, Equatable, Identifiable, Sendable {
             return "Participant totals stay hidden until at least five people have joined and a delayed update is available."
         }
     }
+    var sourcePolicyVersion: String? = nil
     var counts: Counts? = nil
     let id: UUID; let creatorId: UUID?; let policy: String; let config: Window
     let status: String; let revision: Int; let agreementVersion: Int
     let serverTime: ChallengeInstant; let socialHidden: Bool; let agreement: Agreement?
     let members: [Member]; let notice: Notice?; let reviews: [Review]; let final: Final?
     var rankedMembers: [Member] {
-        guard !format.hasTarget else { return members }
+        guard !format.hasTarget, sourcePolicyVersion == nil else { return members }
         return members.sorted { a, b in
             let av = a.fact?.state == "complete" ? a.fact?.value : nil
             let bv = b.fact?.state == "complete" ? b.fact?.value : nil
@@ -154,6 +155,7 @@ enum ChallengeV1Error: Error, LocalizedError, Equatable {
             case "challenge_age_required": "Confirm that you are 21 or older before continuing."
             case "challenge_link_unavailable": "This invitation is unavailable. Ask the creator for a new link."
             case "challenge_stale": "The challenge changed. Refresh, then review the latest rules."
+            case "challenge_real_leaderboard_unavailable": "Leaderboards aren’t available yet. Choose a personal or friend goal instead."
             case "challenge_readiness_required": "Your activity isn’t ready yet. Check Apple Health before agreeing."
             case "challenge_admission_paused": "New challenges are paused. You can still read, leave or request a review."
             case "challenge_metric_overlap": "You already have a friend challenge for this activity during these dates. Choose different dates."

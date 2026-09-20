@@ -94,6 +94,11 @@ public struct ChallengeHealthRealSourcePolicy: Equatable, Sendable, Encodable {
         version: 1,
         metric: .exerciseSeconds
     )
+    /// V2 accepts unknown causal lineage as disclosed in new agreements. All
+    /// other Watch provenance and reconciliation requirements remain enforced.
+    public static let appleWatchExerciseCreditV2 = Self(
+        identifier: "apple_watch_exercise_credit_v2", version: 2, metric: .exerciseSeconds
+    )
     public static let appleWorkoutOutdoorDistanceV1 = Self(
         identifier: "apple_workout_outdoor_distance_v1", version: 1, metric: .runningMillimeters
     )
@@ -161,7 +166,7 @@ public struct ChallengeHealthBinding: Equatable, Sendable, Encodable {
 
 /// Raw history is local only. This request intentionally has no serialization.
 public struct ChallengeHealthReadRequest: Equatable, Sendable {
-    public enum Purpose: Equatable, Sendable { case readinessHistory, challengeActivity }
+    public enum Purpose: Equatable, Sendable { case readinessHistory, suggestionHistory, challengeActivity }
     public let binding: ChallengeHealthBinding
     public let deviceRequestID: UUID
     public let queryWindow: ChallengeHealthWindow
@@ -171,7 +176,7 @@ public struct ChallengeHealthReadRequest: Equatable, Sendable {
                 queryWindow: ChallengeHealthWindow, purpose: Purpose) throws {
         guard queryWindow.timeZoneIdentifier == binding.challengeWindow.timeZoneIdentifier,
               queryWindow.calendar == binding.challengeWindow.calendar,
-              purpose == .readinessHistory
+              purpose != .challengeActivity
                 ? queryWindow.endMicroseconds <= binding.challengeWindow.startMicroseconds
                 : queryWindow == binding.challengeWindow
         else { throw ChallengeHealthContractError.invalidWindow }

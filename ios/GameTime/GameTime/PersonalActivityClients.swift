@@ -14,12 +14,17 @@ final class SupabaseTrustedActivityDiagnosticClient:
     private let signer: any AppAttestedBodySigning
     private let session: URLSession
     private let now: () -> Date
+    private let transport: ChallengeHealthTransportCoordinator
+    private let journal: TrustedActivityDiagnosticFileStore
+    private var recoveredResult: TrustedActivityDiagnostic?
 
     init(
         client: SupabaseClient,
         configuration: AppConfiguration,
         activity: any ActivityClient,
         signer: any AppAttestedBodySigning,
+        transport: ChallengeHealthTransportCoordinator,
+        journal: TrustedActivityDiagnosticFileStore,
         session: URLSession = .shared,
         now: @escaping () -> Date = Date.init
     ) throws {
@@ -34,6 +39,17 @@ final class SupabaseTrustedActivityDiagnosticClient:
         self.signer = signer
         self.session = session
         self.now = now
+        self.transport = transport
+        self.journal = journal
+        transport.register(.diagnostic) { [weak self] actor in
+            guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
+            guard let saved = try self.journal.load(actor: actor) else { return [] }
+            return [ChallengeHealthTransportCoordinator.Pending(kind: .diagnostic, id: saved.requestID,
+                keyID: saved.keyID, assertion: saved.assertion, body: saved.body) { [weak self] in
+                    guard let self else { throw ChallengeHealthTransportCoordinator.Failure.missingWriter }
+                    self.recoveredResult = try await self.transmit(saved)
+                }]
+        }
     }
 
     func requestAuthorization() async throws -> ActivityAuthorizationOutcome {
@@ -55,6 +71,11 @@ final class SupabaseTrustedActivityDiagnosticClient:
         ownerID: UUID,
         timezone: String
     ) async throws -> TrustedActivityDiagnostic {
+        try await transport.begin(actor: ownerID)
+        defer { transport.release(actor: ownerID) }
+        recoveredResult = nil
+        try await transport.recover(actor: ownerID)
+        if let result = recoveredResult { recoveredResult = nil; return result }
         // App Attest needs a provisioned physical device and the deployed
         // attested endpoints. Refuse clearly rather than failing deep in the
         // signing call.
@@ -86,7 +107,27 @@ final class SupabaseTrustedActivityDiagnosticClient:
             healthKitReadEndedAt: read.readEndedAt,
             trustedDeviceSampleCount: read.trustedSampleCount
         )
+        try transport.check(actor: ownerID)
         let signed = try await signer.sign(ownerID: ownerID, body: body)
+        try transport.check(actor: ownerID)
+        guard signed.environment == configuration.expectedAppAttestEnvironment else {
+            throw PersonalAccountabilityClientError.invalidResponse
+        }
+        let saved = PendingTrustedActivityDiagnostic(version: 1, actorID: ownerID,
+            requestID: clientDiagnosticID, body: body, keyID: signed.keyID,
+            assertion: signed.assertion, environment: signed.environment,
+            hourCount: read.trustedBuckets.count, sampleCount: read.trustedSampleCount)
+        try transport.validateNewSignature(keyID: saved.keyID, assertion: saved.assertion)
+        try journal.save(saved)
+        return try await transmit(saved)
+    }
+
+    private func transmit(_ saved: PendingTrustedActivityDiagnostic) async throws -> TrustedActivityDiagnostic {
+        let ownerID = saved.actorID
+        try transport.check(actor: ownerID)
+        guard saved.environment == (configuration.expectedAppAttestEnvironment ?? .development) else {
+            throw PersonalCoverageError.savedEvidenceFromDifferentEnvironment
+        }
         guard let liveSession = try await client.validSession() else {
             throw MetricUploadClientError.authenticationRequired
         }
@@ -94,9 +135,10 @@ final class SupabaseTrustedActivityDiagnosticClient:
             throw PersonalAccountabilityClientError.accountChanged
         }
 
+        try transport.check(actor: ownerID)
         var request = URLRequest(url: try endpointURL())
         request.httpMethod = "POST"
-        request.httpBody = body
+        request.httpBody = saved.body
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue(
@@ -108,11 +150,11 @@ final class SupabaseTrustedActivityDiagnosticClient:
             forHTTPHeaderField: "Authorization"
         )
         request.setValue(
-            signed.keyID,
+            saved.keyID,
             forHTTPHeaderField: "x-gametime-key-id"
         )
         request.setValue(
-            signed.assertion.base64EncodedString(),
+            saved.assertion.base64EncodedString(),
             forHTTPHeaderField: "x-gametime-assertion"
         )
 
@@ -124,6 +166,7 @@ final class SupabaseTrustedActivityDiagnosticClient:
         } catch {
             throw PersonalAccountabilityClientError.unavailable
         }
+        try transport.check(actor: ownerID)
         guard
             client.auth.currentSession?.user.id == ownerID,
             let http = response as? HTTPURLResponse
@@ -151,12 +194,13 @@ final class SupabaseTrustedActivityDiagnosticClient:
             data,
             statusCode: http.statusCode
         )
+        try journal.clear(actor: ownerID)
         return TrustedActivityDiagnostic(
             id: responseBody.diagnosticID,
             status: .trusted,
             performedAt: responseBody.performedAt,
-            trustedQueriedHourCount: read.trustedBuckets.count,
-            positiveTrustedSampleCount: read.trustedSampleCount,
+            trustedQueriedHourCount: saved.hourCount,
+            positiveTrustedSampleCount: saved.sampleCount,
             clearsEligibilityHold: responseBody.clearedHold
         )
     }

@@ -19,6 +19,11 @@ export const REAL_HEALTH_POLICIES: Readonly<Record<string, string>> = {
   distance: "apple_workout_outdoor_distance_v1",
   timed: "apple_workout_outdoor_timed_v1",
 };
+export const EXERCISE_CREDIT_V2 = "apple_watch_exercise_credit_v2";
+function matchesSource(metric: string, source: unknown): boolean {
+  return REAL_HEALTH_POLICIES[metric] === source ||
+    (metric === "exercise" && source === EXERCISE_CREDIT_V2);
+}
 export const MAX_BODY_BYTES = 4096;
 export const KEY_ID_HEADER = "x-gametime-key-id";
 export const ASSERTION_HEADER = "x-gametime-assertion";
@@ -131,7 +136,7 @@ export function readRealHealthPayload(raw: Bytes): RealHealthPayload {
     typeof body.terms_digest !== "string" ||
     !/^[a-f0-9]{64}$/.test(body.terms_digest) || typeof body.metric !== "string" ||
     !Object.hasOwn(REAL_HEALTH_POLICIES, body.metric) ||
-    body.source_policy_version !== REAL_HEALTH_POLICIES[body.metric]
+    !matchesSource(body.metric, body.source_policy_version)
   ) invalid();
   if (
     !Number.isSafeInteger(body.revision) || (body.revision as number) < 1 ||
@@ -147,8 +152,8 @@ export function readRealHealthPayload(raw: Bytes): RealHealthPayload {
       (body.value as number) > 1_000_000_000
     ) invalid();
     // Apple's quantity API does not identify the activity that caused an
-    // Exercise credit. This policy cannot accept a positive real value.
-    if (body.metric === "exercise") invalid();
+    // Exercise credit. Strict v1 cannot accept a positive real value.
+    if (body.source_policy_version === "apple_watch_exercise_v1") invalid();
   } else if ((body.state !== "deleted" && body.state !== "unresolved") || body.value !== null) {
     invalid();
   }
@@ -167,7 +172,9 @@ export function readRealHealthReadiness(raw: Bytes): RealHealthReadinessPayload 
         ? "actor_id,contract_version,distance_mm,observed_at,request_id,source_policy_version"
         : "actor_id,contract_version,observed_at,request_id,source_policy_version") ||
     body.contract_version !== 1 ||
-    !Object.values(REAL_HEALTH_POLICIES).includes(body.source_policy_version as string) ||
+    ![...Object.values(REAL_HEALTH_POLICIES), EXERCISE_CREDIT_V2].includes(
+      body.source_policy_version as string,
+    ) ||
     body.source_policy_version === "apple_watch_exercise_v1"
   ) invalid();
   if (

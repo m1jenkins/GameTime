@@ -36,11 +36,20 @@ enum ChallengeLocalLaunch {
             supabaseKey: configuration.supabasePublishableKey,
             options: .init(auth: .init(storage: ChallengeMemoryAuthStorage(), autoRefreshToken: false,
                 emitLocalSessionAsInitialSession: true)))
+        var health: ChallengeHealthFlowDependencies?
+        if ProcessInfo.processInfo.arguments.contains("--p9-synthetic-health"),
+           let token = ProcessInfo.processInfo.environment["GAMETIME_P9_CONTROL"],
+           let local = try? ChallengeHealthSyntheticLocal(origin: configuration.supabaseURL, control: token),
+           let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+            health = try? local.dependencies(sdk: sdk, key: configuration.supabasePublishableKey,
+                directory: root.appendingPathComponent("GameTime/P9Synthetic"))
+        }
         return FixtureServicesFactory.make(arguments: ["--fixture-mode"],
             authClient: ChallengeAppSignInSubstitute(sdk: sdk),
             personalHealthSteps: DisabledPersonalHealthStepReader(),
             profileClient: SupabaseProfileClient(client: sdk),
-            challengesV1: LiveServicesFactory.makeChallenges(configuration: configuration, client: sdk))
+            challengesV1: LiveServicesFactory.makeChallenges(configuration: configuration, client: sdk),
+            challengeHealthDependencies: health)
     }
 }
 
@@ -345,6 +354,7 @@ struct ChallengeV1Shell: View {
     var existingChallenges: AnyView? = nil
     var serviceAvailable = true
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.challengeHealthFlow) private var health
     @State private var create = false
     @State private var selection = 0
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -355,7 +365,7 @@ struct ChallengeV1Shell: View {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
-                        SignalHomeHeader(create: { create = true }, refresh: { Task { await store.refresh() } })
+                        SignalHomeHeader(create: { create = true }, refresh: { Task { await store.refresh(); await health?.refresh() } })
                         if let existingChallenges { existingChallenges }
                         if serviceAvailable { recovery }
                         if !serviceAvailable {
@@ -395,7 +405,7 @@ struct ChallengeV1Shell: View {
                             }
                         }
                     }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 12).modifier(SignalGlassGroup())
-                }.background(SignalTheme.canvas).modifier(ChallengeScrollLegibility()).refreshable { await store.refresh() }
+                }.background(SignalTheme.canvas).modifier(ChallengeScrollLegibility()).refreshable { await store.refresh(); await health?.refresh() }
                     .toolbar(.hidden, for: .navigationBar)
                     .navigationBarTitleDisplayMode(.inline)
             }.tabItem { Label("Home", systemImage: "house").accessibilityIdentifier("beta.tab.home") }.tag(0)
@@ -426,7 +436,7 @@ struct ChallengeV1Shell: View {
                         }
                     }
                     }
-                }.listStyle(.plain).scrollContentBackground(.hidden).background(SignalTheme.canvas).navigationTitle("Challenges").refreshable { await store.refresh() }
+                }.listStyle(.plain).scrollContentBackground(.hidden).background(SignalTheme.canvas).navigationTitle("Challenges").refreshable { await store.refresh(); await health?.refresh() }
             }.tabItem { Label("Challenges", systemImage: "flag").accessibilityIdentifier("beta.tab.challenges") }.tag(1)
             Group {
                 if let accountContent { accountContent }
@@ -472,9 +482,10 @@ struct ChallengeV1Shell: View {
             else { SignalChallengeUnavailableView() }
         }
         .onChange(of: store.actor) { create = false }
+        .onChange(of: store.access?.suspended) { health?.restrict(store.access?.suspended == true) }
         .onChange(of: scenePhase) { _, value in
-            if value != .active { store.hide() }
-            else { Task { await store.show() } }
+            if value != .active { store.hide(); health?.cancelAll() }
+            else { Task { await store.show(); await health?.refresh() } }
         }
         .task(id: store.actor) { await store.watchVisibility() }
         .environment(\.challengeInvitationLinks, invitation.links)
@@ -557,6 +568,7 @@ func challengeMoney(_ cents: Int) -> String { (Double(cents)/100).formatted(.cur
 
 struct ChallengeV1Detail: View {
     @Bindable var store: ChallengeV1Store
+    @Environment(\.challengeHealthFlow) private var health
     let id: UUID
     @State private var target = ""
     @State private var username = ""
@@ -617,6 +629,13 @@ struct ChallengeV1Detail: View {
                             Text("Other participants cannot see your activity or results.").font(.subheadline)
                         }.padding(.vertical, 12)
                     }
+                    if row.sourcePolicyVersion != nil, !row.format.hasTarget {
+                        Text("Leaderboard — Not available yet").font(.headline)
+                        Text("We can’t confirm a complete activity history for a fair ranking. You can still review your records or leave this challenge safely.")
+                    }
+                    if let health, let actor = store.actor, let binding = try? ChallengeHealthBindingMapper.agreement(row, actor: actor), !row.isClosed, row.own(actor)?.exited == false {
+                        ChallengeHealthStatusView(flow: health, binding: binding, readiness: row.status == "consent_pending")
+                    }
                     people(row)
                     rules(row)
                     if row.status == "lobby_open" { lobby(row) }
@@ -625,7 +644,7 @@ struct ChallengeV1Detail: View {
                         Button("Agree to this challenge") { Task {
                             await store.submit(op:"consent",challenge:row,fields:["digest":.string(row.agreement?.digest ?? ""),"consent":.bool(true)])
                             consent=false
-                        }}.disabled(!consent || !canAct).accessibilityIdentifier("beta.consent")
+                        }}.disabled(!consent || !canAct || !healthReady).accessibilityIdentifier("beta.consent")
                     }
                     if row.format.mode == .friend && row.creatorId == store.actor && ["consent_pending","scheduled"].contains(row.status) {
                         Button("Reopen lobby and ask everyone again") { Task { await store.submit(op:"reopen",challenge:row) } }.disabled(!canAct)
@@ -640,11 +659,12 @@ struct ChallengeV1Detail: View {
             }.padding(SignalTheme.contentInset).modifier(SignalGlassGroup())
         }.background(SignalTheme.canvas).navigationTitle("Challenge").navigationBarTitleDisplayMode(.inline)
             .toolbar(.visible, for: .navigationBar)
-            .task(id: id) { await store.loadDetail(id) }
+            .task(id: id) { await refreshActivity() }
+            .onDisappear { health?.cancel(id) }
             .modifier(ChallengeScrollLegibility())
             .buttonStyle(ChallengeActionStyle())
-            .refreshable { await store.loadDetail(id) }
-            .toolbar { Button("Refresh",systemImage:"arrow.clockwise") { Task { await store.loadDetail(id) } } }
+            .refreshable { await refreshActivity() }
+            .toolbar { Button("Refresh",systemImage:"arrow.clockwise") { Task { await refreshActivity() } } }
             .onChange(of:row?.revision) { consent=false }
             .onChange(of:store.actor) { communityReportSaved=false }
             .onChange(of:store.actor) { consent=false;target="";username="";exitAction=nil }
@@ -653,6 +673,12 @@ struct ChallengeV1Detail: View {
                     if let row,let action=exitAction { Task { await store.submit(op:action,challenge:row) } };exitAction=nil
                 }
             } message: { Text("Your simulated entry is returned. A shared challenge continues only if its agreed minimum remains. No real money moves.") }
+    }
+    private func refreshActivity() async { await store.loadDetail(id); if row?.sourcePolicyVersion != nil { await health?.refresh(id) } }
+    private var healthReady: Bool {
+        guard let row, row.sourcePolicyVersion != nil else { return true }
+        guard let actor = store.actor, let binding = try? ChallengeHealthBindingMapper.agreement(row, actor: actor) else { return false }
+        return health?.canConsent(binding) == true
     }
     private var canAct: Bool { row.map { store.isFresh($0) } == true && !store.busy && store.pending == nil }
     @ViewBuilder private func people(_ row:ChallengeV1)->some View {
@@ -669,7 +695,7 @@ struct ChallengeV1Detail: View {
                     Text(resultText(finalStatus)).font(.subheadline.bold())
                 }
                 if let fact=person.fact, !departedCounterpart {
-                    Text("Fictional activity · Updated \(fact.recordedAt.text(zone:row.config.timezone))").font(.caption)
+                    Text("\(row.sourcePolicyVersion == nil ? "Fictional activity" : fact.state == "value" ? "Observed activity" : "Activity not confirmed") · Updated \(fact.recordedAt.text(zone:row.config.timezone))").font(.caption)
                 }
                 if person.actorId != store.actor { ChallengePersonSafety(store: store, person: person) }
                 if row.status=="lobby_open",row.creatorId==store.actor,person.actorId != store.actor,!person.exited {
@@ -686,13 +712,20 @@ struct ChallengeV1Detail: View {
     }
     private func rules(_ row:ChallengeV1)->some View {
         DisclosureGroup("Complete challenge rules") {
-            ChallengeAgreementText(policy:row.format,window:row.config,minimum:row.agreement?.terms?["minimum"]?.integer ?? (row.format.mode == .personal ? 1 : 2))
+            ChallengeAgreementText(policy:row.format,window:row.config,minimum:row.agreement?.terms?["minimum"]?.integer ?? (row.format.mode == .personal ? 1 : 2), sourcePolicy: row.sourcePolicyVersion)
         }
     }
     @ViewBuilder private func lobby(_ row:ChallengeV1)->some View {
         if row.format.hasTarget && row.own(store.actor)?.exited == false {
             TextField(row.format.metric.targetPrompt,text:$target).keyboardType(.numbersAndPunctuation).textFieldStyle(.roundedBorder).accessibilityLabel(row.format.metric.targetPrompt).accessibilityIdentifier("beta.target.input")
             if !target.isEmpty && row.format.metric.parse(target) == nil { Text(row.format.metric.inputHelp).font(.subheadline) }
+            if let health, let actor = store.actor, let source = row.sourcePolicyVersion,
+               let planning = try? ChallengeHealthBindingMapper.planning(actor: actor, id: row.id, policy: row.format,
+                    window: row.config, source: source, draft: target + "|" + String(row.revision)) {
+                ChallengeHealthSuggestionView(flow: health, binding: planning, policy: row.format, days: row.config.days) {
+                    target = row.format.metric.inputValue($0)
+                }
+            }
             Button("Propose my goal") { Task { if let value=row.format.metric.parse(target) { await store.submit(op:"target",challenge:row,fields:["target":.integer(value)]) } } }.disabled(!canAct || row.format.metric.parse(target)==nil).accessibilityIdentifier("beta.target.submit")
         }
         if row.creatorId==store.actor {

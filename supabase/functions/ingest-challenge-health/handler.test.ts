@@ -293,3 +293,44 @@ Deno.test("P8 refuses a different actor", async () => {
   assertEquals(result.status, 403);
   assertEquals(result.calls.length, 0);
 });
+
+Deno.test("P9 v2 accepts normalized Exercise credit and readiness without changing the envelope", async () => {
+  const source_policy_version = "apple_watch_exercise_credit_v2";
+  const positive = await run({ ...base, metric: "exercise", source_policy_version, value: 601 });
+  assertEquals(positive.status, 200);
+  assertEquals(positive.calls[0]?.payload.value, 601);
+  assertEquals((await run({ ...readiness, source_policy_version })).status, 200);
+  for (const state of ["deleted", "unresolved"]) {
+    assertEquals(
+      (await run({ ...base, metric: "exercise", source_policy_version, state, value: null }))
+        .status,
+      200,
+    );
+  }
+});
+Deno.test("P9 v2 refuses source substitution, history fields and unnormalized values", async () => {
+  for (
+    const change of [{ metric: "steps" }, { history: [1, 2] }, { value: 1.5 }, { value: 0 }, {
+      distance_mm: 5000000,
+    }]
+  ) {
+    const result = await run({
+      ...base,
+      metric: "exercise",
+      source_policy_version: "apple_watch_exercise_credit_v2",
+      ...change,
+    });
+    assertEquals(result.status, 400);
+    assertEquals(result.calls.length, 0);
+  }
+});
+Deno.test("P9 v2 closed gate retains exact recovery semantics", async () => {
+  const result = await run({
+    ...base,
+    metric: "exercise",
+    source_policy_version: "apple_watch_exercise_credit_v2",
+  }, { enabled: false, whitespace: true });
+  assertEquals(result.status, 200);
+  assertEquals(result.calls[0]?.recoveryOnly, true);
+  assertEquals(toHex(result.calls[0]!.payloadDigest), toHex(await sha256(utf8(result.exact))));
+});

@@ -1,7 +1,9 @@
 import SwiftUI
+import GameTimeCore
 
 extension EnvironmentValues {
     @Entry var challengeInvitationLinks = ChallengeInvitation()
+    @Entry var challengeHealthFlow: ChallengeHealthFlowStore? = nil
 }
 
 struct ChallengeForm<Content: View>: View {
@@ -49,11 +51,20 @@ struct ChallengeIntegerControl: View {
 
 struct ChallengeAgreementText: View {
     let policy: ChallengeV1Policy; let window: ChallengeV1.Window; let minimum: Int
+    var sourcePolicy: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(policy.scoring)
-            Text("Source: fictional activity for this local preview. No Apple Health activity is scored.")
-            if let distance = window.distanceMm { Text("Whole run distance: \(ChallengeV1Policy.Metric.distance.display(distance)). Only fictional matching runs are available until the distance rules pass physical testing.") }
+            if let sourcePolicy {
+                Text(ChallengeHealthCopy.source(sourcePolicy))
+                Text("An observed result can confirm that you met your goal. Missing or incomplete activity cannot confirm a missed goal or a ranking.")
+                if let distance = window.distanceMm {
+                    Text("Whole outdoor run: \(ChallengeV1Policy.Metric.distance.display(distance)) to \(ChallengeV1Policy.Metric.distance.display(distance * 102 / 100)), including both distances. The whole run must fit inside these dates. Time from start to finish includes pauses.")
+                }
+            } else {
+                Text("Source: fictional activity for this local preview. No Apple Health activity is scored.")
+                if let distance = window.distanceMm { Text("Whole run distance: \(ChallengeV1Policy.Metric.distance.display(distance)). Only fictional matching runs are available until the distance rules pass physical testing.") }
+            }
             SignalDateSpan(window: window)
             Text("Initial updates through \(window.syncBy.text(zone: window.timezone)). Corrections through \(window.correctionsBy.text(zone: window.timezone)).")
             Text("\(challengeMoney(window.amountCents)) simulated per person. Nothing can be paid out or redeemed. No real money moves.")
@@ -78,6 +89,8 @@ struct ChallengeAgreementText: View {
 struct ChallengeV1Create: View {
     @Bindable var store: ChallengeV1Store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.challengeHealthFlow) private var health
+    @State private var draftID = UUID()
     @State private var mode = ChallengeV1Policy.Mode.friend
     @State private var metric = ChallengeV1Policy.Metric.steps
     @State private var competition = ChallengeV1Policy.Competition.goal
@@ -91,6 +104,14 @@ struct ChallengeV1Create: View {
     @State private var consent = false
     @State private var previewError: String?
     @State private var reading = false
+    init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil) {
+        self.store = store
+        if let initialPolicy {
+            _mode = State(initialValue: initialPolicy.mode)
+            _metric = State(initialValue: initialPolicy.metric)
+            _competition = State(initialValue: initialPolicy.competition)
+        }
+    }
     private var policy: ChallengeV1Policy { ChallengeV1Policy(rawValue: "\(mode.rawValue)_\(metric.rawValue)_\(mode == .personal ? "goal" : competition.rawValue)_v1")! }
     private var config: ChallengeJSON {
         let fmt = DateFormatter(); fmt.timeZone = TimeZone(identifier: zone); fmt.dateFormat = "yyyy-MM-dd"
@@ -99,7 +120,22 @@ struct ChallengeV1Create: View {
         return .object(fields)
     }
     private var draft: String { "\(policy.id)|\(start)|\(days)|\(dollars)|\(zone)|\(distance)|\(target)" }
-    private var canSubmit: Bool { !store.busy && store.pending == nil && !reading && store.access?.ageConfirmed == true && (metric != .timed || ChallengeV1Policy.Metric.distance.parse(distance) != nil) }
+    private var selectedSource: ChallengeHealthRealSourcePolicy? { ChallengeHealthBindingMapper.selectedSource(metric) }
+    private var unavailable: Bool { health != nil && (!policy.hasTarget || selectedSource == nil) }
+    private var sourceFields: [String: ChallengeJSON] { health != nil ? selectedSource.map { ["source_policy_version": .string($0.identifier)] } ?? [:] : [:] }
+    private var planningBinding: ChallengeHealthBinding? {
+        guard let actor = store.actor, let selectedSource else { return nil }
+        return try? ChallengeHealthBindingMapper.planningDraft(actor: actor, id: draftID, policy: policy,
+            config: config, source: selectedSource.identifier, draft: draft)
+    }
+    private var healthBinding: ChallengeHealthBinding? {
+        guard let actor = store.actor, let preview, let window = decodeWindow(preview.terms?["config"]),
+              let source = selectedSource else { return nil }
+        return try? ChallengeHealthBindingMapper.binding(actor: actor, id: draftID, version: 1, digest: preview.digest,
+            policy: policy, window: window, source: source.identifier)
+    }
+    private var readinessAcknowledged: Bool { health == nil || healthBinding.map { health?.canConsent($0) == true } == true }
+    private var canSubmit: Bool { !unavailable && !store.busy && store.pending == nil && !reading && store.access?.ageConfirmed == true && (metric != .timed || ChallengeV1Policy.Metric.distance.parse(distance) != nil) }
     var body: some View {
         NavigationStack {
             ChallengeForm {
@@ -115,9 +151,13 @@ struct ChallengeV1Create: View {
                         Picker("Format", selection: $competition) {
                             ForEach(ChallengeV1Policy.Competition.allCases, id: \.self) { Text($0 == .goal ? "Goal" : "Leaderboard").tag($0) }
                         }.accessibilityIdentifier("beta.create.competition")
-                        Text(policy.hasTarget ? "Each friend chooses a goal before you lock in the roster and ask everyone to agree." : "Choose the roster, then everyone agrees. The best result wins; equal best results share the win.")
+                        Text(policy.hasTarget ? "Each friend chooses a goal before you lock in the roster and ask everyone to agree." : health != nil ? "We can’t confirm a complete activity history for a fair ranking. You can choose a goal instead." : "Choose the roster, then everyone agrees. The best result wins; equal best results share the win.")
                     } else { Text("Choose your own goal and review the agreement. Only you can see your activity and result.") }
                 }
+                if unavailable {
+                    ContentUnavailableView(policy.hasTarget ? "Activity not available yet" : "Leaderboard — Not available yet",
+                        systemImage: "clock", description: Text(policy.hasTarget ? "We can’t use this activity for a new goal yet. Choose another activity." : "We can’t confirm everyone’s complete activity history for a fair ranking. Choose a goal to continue."))
+                } else {
                 ChallengeFormSection("Dates and amount") {
                     DatePicker(selection: $start, displayedComponents: .date) { Text("Starts").font(.body) }
                     ChallengeIntegerControl(value: $days, range: 1...30, id: "days", title: "Duration", display: "\(days) days")
@@ -138,6 +178,11 @@ struct ChallengeV1Create: View {
                         Text(metric.targetPrompt).font(.headline)
                         TextField(metric.targetPrompt, text: $target).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("beta.create.target")
                         if !target.isEmpty && metric.parse(target) == nil { Text(metric.inputHelp).font(.subheadline) }
+                        if let health, let planningBinding {
+                            ChallengeHealthSuggestionView(flow: health, binding: planningBinding, policy: policy, days: days) {
+                                target = metric.inputValue($0)
+                            }
+                        }
                         Text("Choose your own goal. A suggestion will appear only when eligible activity is available on this phone.").font(.body).fixedSize(horizontal: false, vertical: true)
                     }
                     Button("Review my agreement") { Task { await readPreview() } }.disabled(!canSubmit || metric.parse(target) == nil).accessibilityIdentifier("beta.personal.preview")
@@ -145,20 +190,24 @@ struct ChallengeV1Create: View {
                     if let preview, let window = decodeWindow(preview.terms?["config"]) {
                         ChallengeFormSection("Your complete agreement") {
                             if let goal = metric.parse(target) { SignalTargetBand(value: goal, metric: metric) }
-                            ChallengeAgreementText(policy: policy, window: window, minimum: 1)
+                            ChallengeAgreementText(policy: policy, window: window, minimum: 1, sourcePolicy: health != nil ? selectedSource?.identifier : nil)
+                            if let health, let binding = healthBinding {
+                                ChallengeHealthStatusView(flow: health, binding: binding, readiness: true)
+                            }
                             Toggle("I have read the complete rules and agree", isOn: $consent).accessibilityIdentifier("beta.personal.consent")
                             Button("Start my personal goal") { Task {
                                 guard let value = metric.parse(target) else { return }
-                                await store.submit(op: "personal_commit", fields: ["policy": .string(policy.id), "config": config, "target": .integer(value), "digest": .string(preview.digest), "consent": .bool(true)])
+                                await store.submit(op: "personal_commit", fields: sourceFields.merging(["policy": .string(policy.id), "config": config, "target": .integer(value), "digest": .string(preview.digest), "consent": .bool(true)], uniquingKeysWith: { _, value in value }))
                                 if store.pending == nil && store.lastReceipt?.status == "scheduled" { dismiss() }
-                            }}.disabled(!canSubmit || !consent).accessibilityIdentifier("beta.personal.commit")
+                            }}.disabled(!canSubmit || !consent || !readinessAcknowledged).accessibilityIdentifier("beta.personal.commit")
                         }
                     }
                 } else {
                     Button("Create lobby") { Task {
-                        await store.submit(op: "create", fields: ["policy": .string(policy.id), "config": config])
+                        await store.submit(op: "create", fields: sourceFields.merging(["policy": .string(policy.id), "config": config], uniquingKeysWith: { _, value in value }))
                         if store.pending == nil && store.lastReceipt?.status == "lobby_open" { dismiss() }
                     }}.disabled(!canSubmit).accessibilityIdentifier("beta.create.submit")
+                }
                 }
                 if store.access?.ageConfirmed != true { Text("Confirm that you are 21 or older in Challenges before continuing.") }
                 if store.busy { ProgressView("Saving your action…") }
@@ -168,9 +217,11 @@ struct ChallengeV1Create: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { Button("Close", systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly) }
                 .task {
-                    if let now = store.access?.serverTime { start = Calendar.current.date(byAdding: .day, value: 2, to: now.date)! }
+                    let now = await health?.planningDate() ?? store.access?.serverTime?.date
+                    if let now { start = Calendar.current.date(byAdding: .day, value: 2, to: now)! }
                 }
-                .onChange(of: draft) { preview = nil; consent = false }
+                .onChange(of: draft) { preview = nil; consent = false; health?.invalidateDraft(draftID) }
+                .onDisappear { health?.cancel(draftID) }
                 .onChange(of: store.actor) { dismiss() }
         }
     }
@@ -179,7 +230,9 @@ struct ChallengeV1Create: View {
         let before = draft; reading = true; previewError = nil
         defer { reading = false }
         do {
-            let result = try await store.client.read("challenge_personal_preview_v1", fields: ["p_policy": .string(policy.id), "p_config": config, "p_target": .integer(value)], actor: actor, as: ChallengeV1.Agreement.self)
+            var fields: [String: ChallengeJSON] = ["p_policy": .string(policy.id), "p_config": config, "p_target": .integer(value)]
+            if health != nil, let selectedSource { fields["p_source_policy_version"] = .string(selectedSource.identifier) }
+            let result = try await store.client.read("challenge_personal_preview_v1", fields: fields, actor: actor, as: ChallengeV1.Agreement.self)
             guard actor == store.actor && draft == before else { return }
             preview = result; consent = false
         } catch { previewError = (error as? ChallengeV1Error ?? .unavailable).localizedDescription }
@@ -223,21 +276,29 @@ struct ChallengeEntryPanel: View {
 
 struct ChallengeCommunityJoin: View {
     @Bindable var store: ChallengeV1Store
+    @Environment(\.challengeHealthFlow) private var health
     let community: ChallengeV1Community
     @State private var consent = false
+    private var binding: ChallengeHealthBinding? {
+        guard let actor = store.actor, let window = decodeWindow(community.terms["config"]),
+              let source = community.terms["source_policy_version"]?.string else { return nil }
+        return try? ChallengeHealthBindingMapper.binding(actor: actor, id: community.id, version: 1, digest: community.digest,
+            policy: ChallengeV1Policy(rawValue: "community_steps_goal_v1")!, window: window, source: source)
+    }
     var body: some View {
         ChallengeForm {
             Text("Only your progress and result appear here.")
             Text((community.counts ?? .init(joined: nil)).text(at: community.serverTime))
             if let target = community.terms["common_target"]?.integer { Text("Everyone’s goal: \(target.formatted()) steps").font(.headline) }
             if let window = decodeWindow(community.terms["config"]) {
-                ChallengeAgreementText(policy: ChallengeV1Policy(rawValue: "community_steps_goal_v1")!, window: window, minimum: community.terms["minimum"]?.integer ?? 2)
+                ChallengeAgreementText(policy: ChallengeV1Policy(rawValue: "community_steps_goal_v1")!, window: window, minimum: community.terms["minimum"]?.integer ?? 2, sourcePolicy: community.terms["source_policy_version"]?.string)
             }
             Toggle("I have read the complete rules and agree", isOn: $consent)
+            if let health, let binding { ChallengeHealthStatusView(flow: health, binding: binding, readiness: true) }
             Button("Join community challenge") { Task {
                 await store.submit(op: "join_community", fields: ["id": .string(community.id.uuidString.lowercased()), "digest": .string(community.digest), "consent": .bool(true)])
                 consent = false
-            }}.disabled(!consent || !store.entryFresh || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
+            }}.disabled(!consent || (community.terms["source_policy_version"] != nil && binding.map { health?.canConsent($0) == true } != true) || !store.entryFresh || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
             if let error = store.error { Text(error) }
             if store.challenges.contains(where: { $0.id == community.id }) { Text("You have joined. Find your own progress in Home.") }
         }.navigationTitle("Community steps")

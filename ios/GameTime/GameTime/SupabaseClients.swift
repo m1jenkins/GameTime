@@ -1,4 +1,5 @@
 import Foundation
+import GameTimeCore
 import Supabase
 
 @MainActor
@@ -8,10 +9,27 @@ enum LiveServicesFactory {
             supabaseURL: configuration.supabaseURL,
             supabaseKey: configuration.supabasePublishableKey
         )
+        let healthTransport = ChallengeHealthTransportCoordinator(
+            uploadStore: try .applicationSupport(), readinessStore: try .applicationSupport(),
+            binding: {
+                guard let session = client.auth.currentSession, session.expiresAt > Date().timeIntervalSince1970 else { return nil }
+                return WeeklyClientSession(actorID: session.user.id, identity: session.accessToken)
+            }, prepareSession: { actor in
+                guard let before = client.auth.currentSession, before.user.id == actor,
+                      let sessionID = ChallengeHealthTransportCoordinator.sessionID(before.accessToken),
+                      let after = try await client.validSession(), after.user.id == actor,
+                      ChallengeHealthTransportCoordinator.sessionID(after.accessToken) == sessionID else {
+                    throw ChallengeHealthTransportCoordinator.Failure.accountChanged
+                }
+            })
+        let diagnosticJournal = try TrustedActivityDiagnosticFileStore.applicationSupport()
         let activitySync: any ActivitySyncing
         let personalActivitySync: any PersonalActivitySyncing
         let trustedActivityDiagnostic: any TrustedActivityDiagnosticClient
         let appAttestedBodySigner: any AppAttestedBodySigning
+        var recoveryWriters: [AnyObject] = []
+        var cleanupMetrics: (any ActivitySyncing)?
+        var cleanupCoverage: (any PersonalActivitySyncing)?
         if configuration.activitySyncEnabled,
             !configuration.attestedUploadEnabled
         {
@@ -22,13 +40,25 @@ enum LiveServicesFactory {
             personalActivitySync = LocalOnlyPersonalActivitySyncCoordinator(
                 activity: health
             )
-            appAttestedBodySigner = UnavailableAppAttestedBodySigner()
+            // Closed signing gates still register every saved writer before
+            // P8 recovery. These owners never receive new Health sync calls.
+            let savedUploads = try SupabaseMetricUploadClient(client: client, configuration: configuration, allowsSavedRecovery: true)
+            let savedMetrics = ActivitySyncCoordinator(activity: health, uploads: savedUploads,
+                pendingUploads: try FilePendingMetricUploadStore.applicationSupport(), transport: healthTransport)
+            let savedCoverage = PersonalActivitySyncCoordinator(activity: health, metrics: savedMetrics,
+                coverage: try SupabasePersonalCoverageClient(client: client, configuration: configuration,
+                    signer: savedUploads, allowsSavedRecovery: true),
+                pendingCoverage: try FilePendingPersonalCoverageStore.applicationSupport(), transport: healthTransport)
+            recoveryWriters = [savedMetrics, savedCoverage]
+            cleanupMetrics = savedMetrics; cleanupCoverage = savedCoverage
+            appAttestedBodySigner = savedUploads
             trustedActivityDiagnostic =
                 try SupabaseTrustedActivityDiagnosticClient(
                     client: client,
                     configuration: configuration,
                     activity: health,
-                    signer: appAttestedBodySigner
+                    signer: appAttestedBodySigner,
+                    transport: healthTransport, journal: diagnosticJournal
                 )
         } else if configuration.activitySyncEnabled {
             let health = HealthKitActivityClient()
@@ -40,7 +70,8 @@ enum LiveServicesFactory {
                 activity: health,
                 uploads: uploads,
                 pendingUploads: try FilePendingMetricUploadStore
-                    .applicationSupport()
+                    .applicationSupport(),
+                transport: healthTransport
             )
             appAttestedBodySigner = uploads
             activitySync = coordinator
@@ -53,13 +84,15 @@ enum LiveServicesFactory {
                     signer: uploads
                 ),
                 pendingCoverage: try FilePendingPersonalCoverageStore
-                    .applicationSupport()
+                    .applicationSupport(),
+                transport: healthTransport
             )
             trustedActivityDiagnostic = try SupabaseTrustedActivityDiagnosticClient(
                 client: client,
                 configuration: configuration,
                 activity: health,
-                signer: uploads
+                signer: uploads,
+                transport: healthTransport, journal: diagnosticJournal
             )
         } else {
             activitySync = DisabledActivitySyncCoordinator()
@@ -67,6 +100,14 @@ enum LiveServicesFactory {
             appAttestedBodySigner = UnavailableAppAttestedBodySigner()
             trustedActivityDiagnostic = DisabledTrustedActivityDiagnosticClient()
         }
+        let healthUploads = try ChallengeHealthUploadClient(sdk: client, origin: configuration.supabaseURL,
+            publishableKey: configuration.supabasePublishableKey, signer: appAttestedBodySigner,
+            environment: configuration.expectedAppAttestEnvironment ?? .development, coordinator: healthTransport,
+            enabled: configuration.challengeV1RuntimeEnabled && configuration.attestedUploadEnabled, permitsHTTPS: true)
+        let healthReadiness = try ChallengeHealthReadinessClient(sdk: client, origin: configuration.supabaseURL,
+            publishableKey: configuration.supabasePublishableKey, signer: appAttestedBodySigner,
+            environment: configuration.expectedAppAttestEnvironment ?? .development, coordinator: healthTransport,
+            enabled: configuration.challengeV1RuntimeEnabled && configuration.attestedUploadEnabled, permitsHTTPS: true)
         let pendingChallenges = try FilePendingChallengeStore.applicationSupport()
         let pendingPersonalChallenges = try FilePendingPersonalChallengeStore
             .applicationSupport()
@@ -112,10 +153,10 @@ enum LiveServicesFactory {
             accountDeletionReceipts: accountDeletionReceipts,
             localStateCleanup: AccountLocalStateCleaner(
                 pendingChallenges: pendingChallenges,
-                activitySync: activitySync,
+                activitySync: cleanupMetrics ?? activitySync,
                 pendingPersonalChallenges: pendingPersonalChallenges,
                 pendingPersonalCancellations: pendingPersonalCancellations,
-                personalActivitySync: personalActivitySync,
+                personalActivitySync: cleanupCoverage ?? personalActivitySync,
                 personalStepSnapshotCache: personalStepSnapshotCache,
                 appAttestedBodySigner: appAttestedBodySigner,
                 pendingDuels: pendingDuels,
@@ -131,7 +172,23 @@ enum LiveServicesFactory {
             weekly: SupabaseWeeklyClient(client: client, enabled: configuration.weeklyRuntimeEnabled,
                 localURL: configuration.supabaseURL, publishableKey: configuration.supabasePublishableKey),
             pendingWeekly: pendingWeekly, metricPrototypes: metricPrototypes,
-            challengesV1: makeChallenges(configuration: configuration, client: client)
+            challengesV1: makeChallenges(configuration: configuration, client: client),
+            challengeHealthRecoveryWriters: recoveryWriters,
+            challengeHealthDependencies: ChallengeHealthFlowDependencies(coordinator: healthTransport, uploads: healthUploads,
+                readiness: healthReadiness, cache: try .applicationSupport(), permission: HealthKitChallengeHealthPermissionService(),
+                reader: { binding, _ in
+                    switch binding.metric {
+                    case .steps: ChallengeHealthAppleWatchStepsReader()
+                    case .exerciseSeconds: ChallengeHealthAppleWatchExerciseReader()
+                    case .runningMillimeters, .timedRunElapsedSeconds: ChallengeHealthAppleWorkoutReader()
+                    }
+                }, adapter: ChallengeHealthBindingMapper.adapter, actorSession: {
+                    guard let session = client.auth.currentSession, session.expiresAt > Date().timeIntervalSince1970,
+                          let identity = ChallengeHealthTransportCoordinator.sessionID(session.accessToken) else { return nil }
+                    return WeeklyClientSession(actorID: session.user.id, identity: identity.uuidString)
+                }),
+            challengeHealthTransport: healthTransport, challengeHealthUploads: healthUploads,
+            challengeHealthReadiness: healthReadiness
         )
     }
 
@@ -445,6 +502,14 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
         catch { failures.append("personal activity upload") }
         do { try await personalStepSnapshotCache.removeAll(ownerID: ownerID) }
         catch { failures.append("Health snapshot") }
+        do { try ChallengeHealthComparisonCache.applicationSupport().clear(actor: ownerID) }
+        catch { failures.append("activity history on this phone") }
+        do { try ChallengeHealthUploadFileStore.applicationSupport().clear(actor: ownerID) }
+        catch { failures.append("challenge activity") }
+        do { try ChallengeHealthReadinessFileStore.applicationSupport().clear(actor: ownerID) }
+        catch { failures.append("activity connection") }
+        do { try TrustedActivityDiagnosticFileStore.applicationSupport().clear(actor: ownerID) }
+        catch { failures.append("activity check") }
         do { try appAttestedBodySigner.clearLocalState(for: ownerID) }
         catch { failures.append("device verification") }
 

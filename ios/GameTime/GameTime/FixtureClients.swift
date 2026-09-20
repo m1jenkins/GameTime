@@ -33,7 +33,8 @@ enum FixtureServicesFactory {
         accountLocalStateCleaner: any AccountLocalStateCleaning =
             NoOpAccountLocalStateCleaner(),
         profileClient: (any ProfileClient)? = nil,
-        challengesV1: any ChallengeV1Client = UnavailableChallengeV1Client()
+        challengesV1: any ChallengeV1Client = UnavailableChallengeV1Client(),
+        challengeHealthDependencies: ChallengeHealthFlowDependencies? = nil
     ) -> AppServices {
         let scenario = FixtureScenario(arguments: arguments)
         let store = FixtureStore(scenario: scenario)
@@ -139,7 +140,11 @@ enum FixtureServicesFactory {
             performanceCommitments: FixturePerformanceCommitmentClient(currentActor: { store.userID }, arguments: arguments),
             weekly: weeklyClient ?? DisabledWeeklyClient(),
             pendingWeekly: pendingWeeklyRequestStore ?? EphemeralPendingWeeklyRequestStore(),
-            challengesV1: challengesV1
+            challengesV1: challengesV1,
+            challengeHealthDependencies: challengeHealthDependencies,
+            challengeHealthTransport: challengeHealthDependencies?.coordinator,
+            challengeHealthUploads: challengeHealthDependencies?.uploads,
+            challengeHealthReadiness: challengeHealthDependencies?.readiness
         )
     }
 }

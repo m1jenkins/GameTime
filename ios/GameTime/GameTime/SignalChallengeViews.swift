@@ -78,7 +78,7 @@ struct SignalParticipantRow: View {
     }
     private var identity: some View {
         HStack(spacing: 10) {
-            if !row.format.hasTarget {
+            if !row.format.hasTarget && row.sourcePolicyVersion == nil {
                 Text(ChallengePresentation.rank(person, in: row, actor: actor).map(String.init) ?? "—")
                     .font(.body.bold().monospacedDigit()).frame(minWidth: 18)
                     .accessibilityLabel(ChallengePresentation.rank(person, in: row, actor: actor).map { "Rank \($0)" } ?? "Not ranked")
@@ -114,7 +114,7 @@ struct SignalFeaturedChallenge: View {
             if row.format.metric == .timed, let distance = row.config.distanceMm {
                 Text("Whole run: \(ChallengeV1Policy.Metric.distance.display(distance))").font(.subheadline)
             }
-            if row.format.competition == .leaderboard && !row.socialHidden {
+            if row.format.competition == .leaderboard && !row.socialHidden && row.sourcePolicyVersion == nil {
                 VStack(spacing: 0) {
                     ForEach(row.rankedMembers) { member in
                         SignalParticipantRow(row: row, person: member, actor: actor)

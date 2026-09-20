@@ -289,6 +289,11 @@ struct AppServices {
     let pendingDuels: any PendingDuelRequestStore
     let metricPrototypes: MetricPrototypeStore?
     let challengesV1: any ChallengeV1Client
+    let challengeHealthRecoveryWriters: [AnyObject]
+    let challengeHealthDependencies: ChallengeHealthFlowDependencies?
+    let challengeHealthTransport: ChallengeHealthTransportCoordinator?
+    let challengeHealthUploads: ChallengeHealthUploadClient?
+    let challengeHealthReadiness: ChallengeHealthReadinessClient?
     let weekly: any WeeklyClient
     let pendingWeekly: any PendingWeeklyRequestStore
     let performanceCommitments: any PerformanceCommitmentClient
@@ -335,9 +340,19 @@ struct AppServices {
         weekly: any WeeklyClient = DisabledWeeklyClient(),
         pendingWeekly: any PendingWeeklyRequestStore = EphemeralPendingWeeklyRequestStore(),
         metricPrototypes: MetricPrototypeStore? = nil,
-        challengesV1: any ChallengeV1Client = UnavailableChallengeV1Client()
+        challengesV1: any ChallengeV1Client = UnavailableChallengeV1Client(),
+        challengeHealthRecoveryWriters: [AnyObject] = [],
+        challengeHealthDependencies: ChallengeHealthFlowDependencies? = nil,
+        challengeHealthTransport: ChallengeHealthTransportCoordinator? = nil,
+        challengeHealthUploads: ChallengeHealthUploadClient? = nil,
+        challengeHealthReadiness: ChallengeHealthReadinessClient? = nil
     ) {
         self.challengesV1 = challengesV1
+        self.challengeHealthRecoveryWriters = challengeHealthRecoveryWriters
+        self.challengeHealthDependencies = challengeHealthDependencies
+        self.challengeHealthTransport = challengeHealthTransport
+        self.challengeHealthUploads = challengeHealthUploads
+        self.challengeHealthReadiness = challengeHealthReadiness
         self.auth = auth
         self.profiles = profiles
         self.friendships = friendships

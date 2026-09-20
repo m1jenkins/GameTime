@@ -101,6 +101,7 @@ final class AppModel {
     private(set) var isActivityMutating = false
     var presentedError: String?
 
+    let challengeHealth: ChallengeHealthFlowStore?
     private let services: AppServices
     @ObservationIgnored private var authObservationTask: Task<Void, Never>?
     @ObservationIgnored private var hasStarted = false
@@ -119,6 +120,9 @@ final class AppModel {
             .appendingPathComponent("GameTime/ProductChallengeV1Pending")
         challengesV1 = ChallengeV1Store(auth: services.auth, client: services.challengesV1,
             requests: ChallengeV1RequestStore(directory: challengeDirectory))
+        if let dependencies = services.challengeHealthDependencies {
+            challengeHealth = ChallengeHealthFlowStore(auth: services.auth, challenges: challengesV1, dependencies: dependencies)
+        } else { challengeHealth = nil }
         duels = DuelStore(enabled: configuration.duelRuntimeEnabled,
             auth: services.auth, client: services.duels,
             friendships: services.friendships, pendingStore: services.pendingDuels)
@@ -164,6 +168,9 @@ final class AppModel {
                       self.authGeneration == generation,
                       currentUserID == snapshot.userID else { continue }
                 await self.resolveAuthentication(userID: currentUserID)
+                if let currentUserID, self.userID == currentUserID {
+                    await self.challengeHealth?.authenticationRecovered(actor: currentUserID)
+                }
             }
         }
         await resolveAuthentication(userID: initialUserID)
@@ -1206,6 +1213,7 @@ final class AppModel {
         // clear a different person's current device state.
         guard isCurrentOwner else { return result }
 
+        challengeHealth?.setActor(nil)
         challengesV1.setActor(nil)
         // The existing cleaner removes the persisted invitation. End its
         // in-memory visibility immediately, even if disk cleanup needs recovery.
@@ -1337,6 +1345,10 @@ final class AppModel {
             .load(for: userID)
         accountDeletionStatus = nil
         accountDeletionStatusError = nil
+        services.challengeHealthTransport?.invalidate()
+        services.challengeHealthUploads?.invalidate()
+        services.challengeHealthReadiness?.invalidate()
+        challengeHealth?.setActor(userID)
         challengesV1.setActor(userID)
         duels.setActor(userID)
         performanceCommitments.setActor(userID)
@@ -1554,6 +1566,10 @@ final class AppModel {
     }
 
     private func clearUserState() {
+        services.challengeHealthTransport?.invalidate()
+        services.challengeHealthUploads?.invalidate()
+        services.challengeHealthReadiness?.invalidate()
+        challengeHealth?.setActor(nil)
         challengesV1.setActor(nil)
         duels.setActor(nil)
         performanceCommitments.setActor(nil)
