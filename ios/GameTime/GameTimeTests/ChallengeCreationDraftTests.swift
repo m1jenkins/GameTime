@@ -1,0 +1,220 @@
+import XCTest
+import SwiftUI
+@testable import GameTime
+
+@MainActor final class ChallengeCreationDraftTests: XCTestCase {
+    func testDefaultsDirectEntryAndExplicitDependentResets() {
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
+        XCTAssertEqual(draft.step, .activity); XCTAssertEqual(draft.progress, 1); XCTAssertEqual(draft.stepCount, 4)
+        XCTAssertEqual(draft.days, "7"); XCTAssertEqual(draft.dollars, "20"); XCTAssertEqual(draft.target, "")
+        draft.target = "12345"; draft.days = "13"; draft.dollars = "37"
+        draft.step = .dates; draft.back()
+        XCTAssertEqual(draft.target, "12345"); XCTAssertEqual(draft.days, "13")
+        draft.metric = .timed
+        XCTAssertEqual(draft.target, ""); XCTAssertEqual(draft.distance, "")
+        XCTAssertEqual(draft.days, "13"); XCTAssertEqual(draft.dollars, "37")
+        draft.distance = "5"; draft.target = "25:01"; draft.metric = .distance
+        XCTAssertEqual(draft.distance, ""); XCTAssertEqual(draft.target, "")
+        let restricted = ChallengeCreationDraft(personalStepsOnly: true)
+        XCTAssertEqual(restricted.policy.id, "personal_steps_goal_v1"); XCTAssertEqual(restricted.stepCount, 4)
+        XCTAssertEqual(ChallengeCreationDraft().stepCount, 5)
+    }
+    func testCanonicalInputsAndInvalidValuesRemainEditable() {
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
+        for (metric, input, value) in [(ChallengeV1Policy.Metric.steps,"1000000000",1000000000),(.exercise,"150:01",9001),(.distance,"12.345678",12345678),(.timed,"25:01",1501)] {
+            draft.metric = metric; draft.target = input; draft.distance = "5.000001"
+            XCTAssertTrue(draft.validate(.activity)); XCTAssertEqual(metric.parse(draft.target), value)
+        }
+        draft.target = "25:60"; XCTAssertFalse(draft.validate(.activity)); XCTAssertEqual(draft.target, "25:60")
+        for invalid in ["0","501","1.5","-1","99999999999999999999999"] {
+            draft.dollars = invalid; XCTAssertFalse(draft.validate(.amount)); XCTAssertEqual(draft.dollars, invalid)
+        }
+        draft.dollars = "500"; XCTAssertTrue(draft.validate(.amount)); XCTAssertEqual(draft.config["amount_cents"]?.integer, 50000)
+        draft.days = "31"; XCTAssertFalse(draft.validate(.dates)); XCTAssertEqual(draft.days,"31")
+    }
+    func testWindowUsesFullLocalDaysAcrossDSTAndZoneIDsStayExact() throws {
+        let date = try ChallengeInstant("2026-10-30T12:00:00Z").date
+        let draft = ChallengeCreationDraft(now: date, zone: "America/Los_Angeles")
+        draft.days = "1"
+        let window = try XCTUnwrap(draft.window)
+        XCTAssertEqual(window.startDate,"2026-11-01"); XCTAssertEqual(window.timezone,"America/Los_Angeles")
+        XCTAssertEqual(window.endsAt.microseconds-window.startsAt.microseconds,25*3600*1000000)
+        XCTAssertTrue(SignalTimeZone.name(window.timezone).contains("Los Angeles"))
+    }
+    func testStalePreviewAndFailureCannotRestoreEditedOrClosedDraft() async throws {
+        let h = Harness(); defer { h.remove() }
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
+        draft.target = "10000"
+        let first = Task { await draft.readPreview(store: h.store) }
+        while h.client.continuation == nil { await Task.yield() }
+        draft.target = "12000"
+        h.client.continuation?.resume(returning: try h.agreement(draft)); h.client.continuation = nil
+        let firstResult = await first.value; XCTAssertFalse(firstResult); XCTAssertNil(draft.preview); XCTAssertFalse(draft.consent)
+        let second = Task { await draft.readPreview(store: h.store) }
+        while h.client.continuation == nil { await Task.yield() }
+        draft.close(); h.client.continuation?.resume(throwing: ChallengeV1Error.unavailable); h.client.continuation = nil
+        let secondResult = await second.value; XCTAssertFalse(secondResult); XCTAssertNil(draft.error)
+    }
+    func testInitializeOnceAndDateBoundsPreserveCalendarDayAcrossZoneChange() async throws {
+        let h = Harness(); defer { h.remove() }
+        await h.store.refresh()
+        let draft = ChallengeCreationDraft(zone: "America/Los_Angeles")
+        await draft.initialize(store: h.store, health: nil)
+        XCTAssertEqual(draft.startDate, "2026-10-03")
+        draft.start = draft.calendar.date(byAdding: .day, value: 3, to: draft.start)!
+        await draft.initialize(store: h.store, health: nil)
+        XCTAssertEqual(draft.startDate, "2026-10-06")
+        draft.zone = "Pacific/Auckland"
+        XCTAssertEqual(draft.startDate, "2026-10-06")
+        XCTAssertTrue(draft.validate(.dates))
+        draft.start = draft.allowedDates.lowerBound.addingTimeInterval(-86400)
+        XCTAssertFalse(draft.validate(.dates))
+    }
+    func testPendingRecoveryUsesExactRequestAndReceiptPolicy() async throws {
+        let h = Harness(); defer { h.remove() }
+        let draft = ChallengeCreationDraft()
+        let payload: [String: ChallengeJSON] = ["policy": .string("personal_steps_goal_v1"), "config": draft.config, "target": .integer(12345)]
+        _ = await h.store.submit(op: "personal_commit", fields: payload)
+        let pending = try XCTUnwrap(h.store.pending)
+        h.client.submitResult = .init(id: UUID(), status: "scheduled")
+        await draft.submit(store: h.store)
+        XCTAssertNil(h.store.pending); XCTAssertEqual(draft.receipt, h.client.submitResult)
+        XCTAssertEqual(draft.savedPolicy?.mode, .personal)
+        XCTAssertEqual(h.client.requests.count, 2)
+        XCTAssertEqual(try h.client.requests[0].body, try h.client.requests[1].body)
+        XCTAssertEqual(h.client.requests[1].requestId, pending.requestId)
+        await draft.submit(store: h.store)
+        XCTAssertEqual(h.client.requests.count, 2, "A second tap cannot submit a saved draft")
+    }
+    func testBackWhilePreviewLoadsCannotJumpToReview() async throws {
+        let h = Harness(); defer { h.remove() }
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
+        draft.target = "12345"; draft.step = .amount
+        let work = Task { await draft.advance(store: h.store) }
+        while h.client.continuation == nil { await Task.yield() }
+        draft.back()
+        h.client.continuation?.resume(returning: try h.agreement(draft)); h.client.continuation = nil
+        await work.value
+        XCTAssertEqual(draft.step, .dates); XCTAssertEqual(draft.target, "12345")
+        XCTAssertNil(draft.preview); XCTAssertFalse(draft.reading)
+    }
+    func testPreviewLoadingAndFailureRetainInput() async throws {
+        let h = Harness(); defer { h.remove() }
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
+        await draft.initialize(store: h.store, health: nil)
+        draft.target = "12345"; draft.step = .amount
+        let work = Task { await draft.advance(store: h.store) }
+        while h.client.continuation == nil { await Task.yield() }
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let previous = scene.windows.first(where: \.isKeyWindow)
+        let host = UIHostingController(rootView: ChallengeV1Create(store: h.store, draft: draft).frame(width: 375, height: 812))
+        let window = UIWindow(windowScene: scene); window.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        window.rootViewController = host; window.makeKeyAndVisible()
+        defer { window.isHidden = true; previous?.makeKeyAndVisible() }
+        try await Task.sleep(for: .milliseconds(250))
+        let loading = try await captureMountedSignal(window, controller: host, name: "creation-preview-loading", test: self)
+        XCTAssertTrue(loading.contains("loading your agreement"))
+        h.client.continuation?.resume(throwing: ChallengeV1Error.unavailable); h.client.continuation = nil
+        await work.value
+        XCTAssertFalse(draft.reading); XCTAssertEqual(draft.target, "12345"); XCTAssertEqual(draft.step, .amount)
+        XCTAssertNil(draft.preview); XCTAssertFalse(draft.consent)
+        let failure = try await captureMountedSignal(window, controller: host, name: "creation-preview-failure", test: self)
+        XCTAssertTrue(failure.contains("try again"))
+    }
+    func testCreationVisualMatrix() async throws {
+        let h = Harness(); defer { h.remove() }
+        await h.store.refresh()
+        for (name, scheme, size, solid) in [("glass-light", ColorScheme.light, DynamicTypeSize.large, false),
+                                           ("glass-dark", .dark, .large, false),
+                                           ("solid-light", .light, .large, true),
+                                           ("solid-large-dark", .dark, .accessibility3, true)] {
+            for step in [ChallengeCreationDraft.Step.type, .activity, .dates, .amount, .review] {
+                let draft = ChallengeCreationDraft()
+                await draft.initialize(store: h.store, health: nil)
+                draft.mode = .personal; draft.target = "12345"; draft.step = step
+                let view = ChallengeV1Create(store: h.store, draft: draft)
+                    .environment(\.colorScheme, scheme).environment(\.dynamicTypeSize, size)
+                let text = try await capture(view, name: "creation-\(name)-\(step)", contrast: solid ? .high : .normal)
+                XCTAssertTrue(text.contains(step == .review ? "full goal rules" : "continue") || step == .amount && text.contains("review"), "Missing action in \(name) \(step): \(text)")
+                if step == .review { XCTAssertTrue(text.contains("complete rules and agree")) }
+            }
+        }
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
+        await draft.initialize(store: h.store, health: nil)
+        draft.target = "0"; _ = draft.validate(.activity)
+        let errorText = try await capture(ChallengeV1Create(store: h.store, draft: draft), name: "creation-validation-error")
+        XCTAssertTrue(errorText.contains("whole number of steps"))
+        _ = await h.store.submit(op: "personal_commit", fields: ["policy": .string("personal_steps_goal_v1")])
+        let pendingText = try await capture(ChallengeV1Create(store: h.store, draft: draft), name: "creation-pending")
+        XCTAssertTrue(pendingText.contains("retry saved action")); XCTAssertTrue(pendingText.contains("stop waiting"))
+    }
+    private func capture<V: View>(_ view: V, name: String, contrast: UIAccessibilityContrast = .normal) async throws -> String {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let previous = scene.windows.first(where: \.isKeyWindow), host = UIHostingController(rootView: view.frame(width: 375, height: 812))
+        let window = UIWindow(windowScene: scene); window.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        host.traitOverrides.accessibilityContrast = contrast
+        window.rootViewController = host; window.makeKeyAndVisible(); host.view.frame = window.bounds
+        defer { window.isHidden = true; previous?.makeKeyAndVisible() }
+        try await Task.sleep(for: .milliseconds(250))
+        return try await captureMountedSignal(window, controller: host, name: name, test: self)
+    }
+    func testAccountSwitchRejectsPreviewAndEditsDiscardConsent() async throws {
+        let h = Harness(); defer { h.remove() }
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
+        draft.target = "10000"
+        let pending = Task { await draft.readPreview(store: h.store) }
+        while h.client.continuation == nil { await Task.yield() }
+        h.store.setActor(UUID())
+        h.client.continuation?.resume(returning: try h.agreement(draft)); h.client.continuation = nil
+        let pendingResult = await pending.value; XCTAssertFalse(pendingResult); XCTAssertNil(draft.preview)
+        let fresh = Task { await draft.readPreview(store: h.store) }
+        while h.client.continuation == nil { await Task.yield() }
+        h.client.continuation?.resume(returning: try h.agreement(draft)); h.client.continuation = nil
+        let freshResult = await fresh.value; XCTAssertTrue(freshResult); draft.consent = true
+        draft.dollars = "21"
+        XCTAssertNil(draft.preview); XCTAssertFalse(draft.consent)
+    }
+}
+@MainActor private final class Harness {
+    let actor = UUID(), client = PreviewClient()
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    lazy var store: ChallengeV1Store = {
+        let result = ChallengeV1Store(auth: PreviewAuth(actor), client: client, requests: .init(directory: directory))
+        result.setActor(actor); return result
+    }()
+    func remove() { try? FileManager.default.removeItem(at: directory) }
+    func agreement(_ draft: ChallengeCreationDraft) throws -> ChallengeV1.Agreement {
+        let encoder = JSONEncoder(); encoder.keyEncodingStrategy = .convertToSnakeCase
+        let json = try JSONDecoder().decode(ChallengeJSON.self, from: encoder.encode(XCTUnwrap(draft.window)))
+        return .init(digest: String(repeating:"a", count:64), terms:.object(["config":json]))
+    }
+}
+@MainActor private final class PreviewClient: ChallengeV1Client {
+    var submitResult: ChallengeV1Receipt?
+    var requests: [ChallengeV1Request] = []
+    var continuation: CheckedContinuation<ChallengeV1.Agreement, Error>?
+    func list(actor: UUID) async throws -> [ChallengeV1] { [] }
+    func detail(_ id: UUID, actor: UUID) async throws -> ChallengeV1 { throw ChallengeV1Error.unavailable }
+    func submit(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt {
+        requests.append(request)
+        guard let submitResult else { throw ChallengeV1Error.unavailable }
+        return submitResult
+    }
+    func abandon(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt { throw ChallengeV1Error.unavailable }
+    func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON], actor: UUID, as type: T.Type) async throws -> T {
+        if name == "challenge_access_status_v1" {
+            return try JSONDecoder().decode(type, from: Data(#"{"serverTime":"2026-10-01T12:00:00Z","ageConfirmed":true,"betaAccess":true,"suspended":false}"#.utf8))
+        }
+        if name == "challenge_community_catalog_v1" { return try JSONDecoder().decode(type, from: Data("[]".utf8)) }
+        let agreement = try await withCheckedThrowingContinuation { continuation = $0 }
+        return try JSONDecoder().decode(type, from: JSONEncoder().encode(agreement))
+    }
+}
+@MainActor private final class PreviewAuth: AuthClient {
+    let actor: UUID
+    init(_ actor: UUID) { self.actor = actor }
+    func currentUserID() async -> UUID? { actor }
+    func authStateChanges() async -> AsyncStream<AuthSnapshot> { AsyncStream { $0.finish() } }
+    func signInWithApple(_ identity: AppleIdentity) async throws -> UUID { actor }
+    func signOut() async throws {}
+}

@@ -52,16 +52,21 @@ final class ChallengeHealthSignalUITests: XCTestCase {
             XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: age)], timeout: 10), .completed)
         }
         app.buttons["beta.create.open"].tap()
-        choose("beta.create.competition", "Leaderboard")
-        for metric in ["Steps", "Activity minutes", "Running distance", "Timed run"] {
-            choose("beta.create.metric", metric)
-            XCTAssertTrue(app.staticTexts["Leaderboard — Not available yet"].waitForExistence(timeout: 5))
-            XCTAssertFalse(app.buttons["beta.create.submit"].exists)
+        app.buttons["beta.create.type.leaderboard"].tap()
+        app.buttons["beta.create.continue"].tap()
+        for metric in ["steps", "exercise", "distance", "timed"] {
+            app.buttons["beta.create.metric." + metric].tap()
+            XCTAssertFalse(app.staticTexts["Leaderboard — Not available yet"].exists)
             XCTAssertFalse(app.textFields["beta.create.target"].exists)
-            capture("unavailable-" + metric)
+            XCTAssertTrue(app.buttons["beta.create.continue"].exists)
+            capture("received-leaderboard-" + metric)
         }
-        choose("beta.create.mode", "Personal goal"); choose("beta.create.metric", "Steps")
-        let target = app.textFields["beta.create.target"]; bring(target); target.tap(); target.typeText("10000\n")
+        app.buttons["beta.create.back"].tap()
+        app.buttons["beta.create.type.personal"].tap(); app.buttons["beta.create.continue"].tap()
+        app.buttons["beta.create.metric.steps"].tap()
+        let target = app.textFields["beta.create.target"]; bring(target); target.tap(); target.typeText("10000")
+        app.buttons["beta.create.input.done"].tap()
+        for _ in 0..<2 { let next = app.buttons["beta.create.continue"]; bring(next); next.tap() }
         let preview = app.buttons["beta.personal.preview"]; bring(preview); XCTAssertTrue(preview.isEnabled); preview.tap()
         let consent = app.switches["beta.personal.consent"], commit = app.buttons["beta.personal.commit"]
         bring(consent); XCTAssertEqual(consent.value as? String, "0")
@@ -72,7 +77,10 @@ final class ChallengeHealthSignalUITests: XCTestCase {
         capture("matching-readiness")
         bring(commit)
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: commit)], timeout: 10), .completed)
-        commit.tap(); XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 15))
+        commit.tap(); XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 15))
+        capture("saved-confirmation")
+        app.buttons["beta.create.close"].tap()
+        XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 15))
         let latest = try await control(["action": "latest", "actor": 7])
         let id = try XCTUnwrap(latest["id"] as? String), config = try XCTUnwrap(latest["config"] as? [String: Any])
         XCTAssertEqual(config["start_date"] as? String, "2027-06-03", "Planning uses the source clock")

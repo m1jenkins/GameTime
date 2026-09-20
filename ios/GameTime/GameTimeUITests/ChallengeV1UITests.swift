@@ -38,10 +38,12 @@ final class ChallengeV1UITests:XCTestCase {
         func bring(_ element: XCUIElement) {
             for _ in 0..<12 { if element.exists && element.isHittable { return }; app.swipeUp() }
         }
+        advanceFriendCreation(app)
         let create = app.buttons["beta.create.submit"]
         bring(create)
         XCTAssertTrue(create.waitForExistence(timeout: 10)); XCTAssertTrue(create.isEnabled)
         create.tap()
+        closeSavedCreation(app)
         XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 10))
         let latest = try await betaControl(config, ["action": "latest", "actor": actors[0]["id"]!])
         let id = try XCTUnwrap(latest["id"] as? String)
@@ -199,23 +201,29 @@ final class ChallengeV1UITests:XCTestCase {
         let create = app.buttons["beta.create.open"]
         for _ in 0..<8 where !create.isHittable { app.swipeDown() }
         XCTAssertTrue(create.waitForExistence(timeout: 10)); create.tap()
-        XCTAssertTrue(app.staticTexts["Choose your challenge"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Who’s it for?"].waitForExistence(timeout: 5))
         let formCapture = XCTAttachment(screenshot: app.screenshot()); formCapture.name = "Beta creation " + mode; formCapture.lifetime = .keepAlways; add(formCapture)
         do {
             try app.performAccessibilityAudit()
         } catch { XCTFail("Unfiltered accessibility audit failed: \(error)") }
-        for (controlID, before, after) in [("days", "7 days", "8 days"), ("amount", "$20.00 simulated each", "$21.00 simulated each")] {
-            let increment = app.buttons["beta.stepper." + controlID + "-Increment"]
-            for _ in 0..<12 where !increment.isHittable { app.swipeUp() }
-            XCTAssertTrue(increment.isHittable); increment.tap()
-            XCTAssertTrue(app.staticTexts[after].exists)
-            app.buttons["beta.stepper." + controlID + "-Decrement"].tap()
-            XCTAssertTrue(app.staticTexts[before].exists)
-        }
+        for _ in 0..<2 { tapContinue(app) }
+        let increment = app.buttons["beta.stepper.days-Increment"]
+        XCTAssertTrue(increment.isHittable); increment.tap()
+        XCTAssertEqual(app.textFields["beta.create.days"].value as? String, "8")
+        app.buttons["beta.stepper.days-Decrement"].tap()
+        XCTAssertEqual(app.textFields["beta.create.days"].value as? String, "7")
+        tapContinue(app)
+        let amount = app.textFields["beta.create.amount"]
+        amount.tap(); amount.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "21")
+        app.buttons["beta.create.input.done"].tap(); XCTAssertEqual(amount.value as? String, "21")
+        amount.tap(); amount.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "20")
+        app.buttons["beta.create.input.done"].tap(); XCTAssertEqual(amount.value as? String, "20")
+        tapContinue(app)
         let save = app.buttons["beta.create.submit"]
         for _ in 0..<12 where !save.isHittable { app.swipeUp() }
         XCTAssertTrue(save.isHittable); XCTAssertTrue(save.isEnabled); save.tap()
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: save)], timeout: 10), .completed)
+        closeSavedCreation(app)
         XCTAssertTrue(create.waitForExistence(timeout: 10))
         chooseTab("home")
         let card = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "beta.row.lobby_open.friend_steps_goal_v1.")).firstMatch
@@ -306,36 +314,38 @@ final class ChallengeV1UITests:XCTestCase {
             XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: age)], timeout: 10), .completed)
         }
         app.buttons["beta.create.open"].tap()
-        choose("beta.create.competition", "Leaderboard")
-        for metric in ["Steps", "Activity minutes", "Running distance", "Timed run"] {
-            choose("beta.create.metric", metric)
+        app.buttons["beta.create.type.leaderboard"].tap(); tapContinue(app)
+        for metric in ["steps", "exercise", "distance", "timed"] {
+            app.buttons["beta.create.metric." + metric].tap()
             XCTAssertFalse(app.textFields["beta.create.target"].exists)
             capture("leaderboard-create-" + metric)
         }
-        choose("beta.create.mode", "Personal goal")
-        choose("beta.create.metric", "Steps")
-        XCTAssertFalse(app.buttons["beta.create.competition"].exists)
+        app.buttons["beta.create.back"].tap(); app.buttons["beta.create.type.personal"].tap(); tapContinue(app)
+        app.buttons["beta.create.metric.steps"].tap()
+        XCTAssertFalse(app.buttons["beta.create.type.leaderboard"].exists)
         let target = app.textFields["beta.create.target"]
-        bring(target); target.tap(); target.typeText("0\n")
-        let preview = app.buttons["beta.personal.preview"]; bring(preview); XCTAssertTrue(preview.isEnabled); preview.tap()
+        bring(target); target.tap(); target.typeText("0"); app.buttons["beta.create.input.done"].tap()
+        tapContinue(app)
         XCTAssertTrue(app.staticTexts["beta.personal.preview.error"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["beta.personal.preview.error"].label, "Enter a whole number of steps from 1 to 1,000,000,000.")
-        target.tap(); target.typeText(XCUIKeyboardKey.delete.rawValue + "15000\n")
-        bring(preview); XCTAssertTrue(preview.isEnabled); preview.tap()
-        let agreement = app.staticTexts["Your complete agreement"]
-        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: agreement)], timeout: 10), .completed)
+        target.tap(); target.typeText(XCUIKeyboardKey.delete.rawValue + "15000"); app.buttons["beta.create.input.done"].tap()
+        tapContinue(app); tapContinue(app)
+        let preview = app.buttons["beta.personal.preview"]; bring(preview); preview.tap()
+        let agreement = app.staticTexts["Review your goal."]
+        XCTAssertTrue(agreement.waitForExistence(timeout: 10))
         let consent = app.switches["beta.personal.consent"]
         bring(consent); XCTAssertEqual(consent.value as? String, "0")
         consent.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
         capture("personal-complete-agreement")
-        let increment = app.buttons["beta.stepper.amount-Increment"]
-        for _ in 0..<15 where !increment.isHittable { app.swipeDown() }
-        increment.tap()
+        app.buttons["beta.create.back"].tap()
+        let amount = app.textFields["beta.create.amount"]
+        amount.tap(); amount.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "21"); app.buttons["beta.create.input.done"].tap()
         XCTAssertFalse(consent.exists, "Editing the amount discards the previous consent")
         bring(preview); preview.tap(); bring(consent)
         XCTAssertEqual(consent.value as? String, "0", "The revised agreement requires another explicit choice")
         consent.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
         let commit = app.buttons["beta.personal.commit"]; bring(commit); XCTAssertTrue(commit.isEnabled); commit.tap()
+        closeSavedCreation(app)
         XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 15))
         capture("personal-scheduled")
         app.buttons["beta.tab.you"].tap(); capture("you")
@@ -399,7 +409,9 @@ final class ChallengeV1UITests:XCTestCase {
             _ = try await betaControl(config, ["action": "clock", "now": "2026-10-01T12:00:00Z"])
             login(0); tap(app.buttons["beta.create.open"])
             capture("creation-\(count)-people")
+            advanceFriendCreation(app)
             tap(app.buttons["beta.create.submit"])
+            closeSavedCreation(app)
             XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 10))
             open("lobby_open"); target("10000")
             let latest = try await betaControl(config, ["action": "latest", "actor": actors[0]["id"]!])
@@ -455,6 +467,18 @@ final class ChallengeV1UITests:XCTestCase {
             capture("final-\(count)-people")
             logout()
         }
+    }
+    @MainActor private func tapContinue(_ app: XCUIApplication) {
+        let button = app.buttons["beta.create.continue"]
+        for _ in 0..<15 where !button.isHittable { app.swipeUp() }
+        XCTAssertTrue(button.waitForExistence(timeout: 10)); button.tap()
+    }
+    @MainActor private func advanceFriendCreation(_ app: XCUIApplication) {
+        for _ in 0..<4 { tapContinue(app) }
+    }
+    @MainActor private func closeSavedCreation(_ app: XCUIApplication) {
+        XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 15))
+        app.buttons["beta.create.close"].tap()
     }
     @MainActor private func betaControl(_ config: [String: Any], _ body: [String: Any]) async throws -> [String: Any] {
         var request = URLRequest(url: URL(string: (config["url"] as! String) + "/__beta/control")!)

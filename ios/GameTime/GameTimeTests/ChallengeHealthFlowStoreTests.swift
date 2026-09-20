@@ -49,8 +49,8 @@ import XCTest
                 // Remove that chrome before checking a sentence split by pages.
                 let bodyText = text.replacingOccurrences(
                     of: "friend challenge simulated stakes — no real money moves. ", with: "")
-                XCTAssertTrue(bodyText.contains("saved by the deadline"))
-                XCTAssertTrue(text.contains("create lobby")); XCTAssertFalse(text.contains("suggestion"))
+                XCTAssertTrue(bodyText.contains("saved by gametime"))
+                XCTAssertTrue(text.contains("continue")); XCTAssertFalse(text.contains("suggestion"))
             }
             let text = try await capture(NavigationStack {
                 ScrollView { VStack(alignment: .leading, spacing: 20) {
@@ -70,7 +70,7 @@ import XCTest
             name: "private-personal-steps-create"
         )
         XCTAssertTrue(text.contains("your goal"))
-        XCTAssertTrue(text.contains("total steps"))
+        XCTAssertTrue(text.contains("steps total"))
         XCTAssertFalse(text.contains("choose your challenge"))
         XCTAssertFalse(text.contains("with friends"))
         XCTAssertFalse(text.contains("activity minutes"))
@@ -162,28 +162,43 @@ import XCTest
     func testAllSevenReadinessStatesAndPermissionIsNotReadiness() async throws {
         let h = try FlowHarness(); defer { h.remove() }
         let binding = try h.binding()
+        func captureStatus(_ name: String) async throws {
+            let text = try await capture(NavigationStack {
+                ScrollView { ChallengeHealthStatusView(flow: h.flow, binding: binding, readiness: true)
+                    .buttonStyle(SignalSecondaryButtonStyle()).padding(SignalTheme.contentInset) }
+                    .background(SignalTheme.canvas).navigationTitle("Your activity")
+            }, name: "creation-health-" + name)
+            XCTAssertTrue(text.contains(ChallengeHealthCopy.title(h.flow.state(for: binding).readiness).lowercased()))
+        }
         XCTAssertEqual(h.flow.state(for: binding).readiness, .notConnected)
+        try await captureStatus("notConnected")
         h.permission.supported = false
         await h.flow.checkReadiness(binding, connect: true)
         XCTAssertEqual(h.flow.state(for: binding).readiness, .unsupported)
+        try await captureStatus("unsupported")
         h.permission.supported = true
         h.mode = .empty
         await h.flow.checkReadiness(binding, connect: true)
         XCTAssertEqual(h.flow.state(for: binding).readiness, .noEligibleDataYet)
+        try await captureStatus("noEligibleDataYet")
         XCTAssertFalse(h.flow.canConsent(binding)); XCTAssertEqual(h.signed, 0)
         h.mode = .failure
         await h.flow.checkReadiness(binding)
         XCTAssertEqual(h.flow.state(for: binding).readiness, .temporarilyUnavailable)
+        try await captureStatus("temporarilyUnavailable")
         h.mode = .truncated
         await h.flow.checkReadiness(binding)
         XCTAssertEqual(h.flow.state(for: binding).readiness, .staleOrIncomplete)
+        try await captureStatus("staleOrIncomplete")
         h.mode = .value; h.holdRead = true
         let checking = Task { await h.flow.checkReadiness(binding) }
         while h.heldRead == nil { await Task.yield() }
         XCTAssertEqual(h.flow.state(for: binding).readiness, .checking)
+        try await captureStatus("checking")
         h.heldRead?.resume(); h.heldRead = nil
         await checking.value
         XCTAssertEqual(h.flow.state(for: binding).readiness, .ready)
+        try await captureStatus("ready")
         XCTAssertTrue(h.flow.canConsent(binding)); XCTAssertEqual(h.signed, 1)
         h.now = h.now.addingTimeInterval(301)
         XCTAssertFalse(h.flow.canConsent(binding))

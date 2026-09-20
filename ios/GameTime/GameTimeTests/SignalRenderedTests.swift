@@ -113,7 +113,7 @@ import XCTest
                     ChallengeAgreementText(policy: policy, window: row.config, minimum: policy.mode == .personal ? 1 : 2)
                 }.navigationTitle("Your agreement")
             }, name: "agreement-" + policy.id, width: 375, scrolls: true,
-                required: ["Starts", "Ends, not included", "America/Chicago", "No real money moves", "48 hours", "72 hours"])
+                required: ["Starts", "Ends, not included", "Central Time", "Chicago", "No real money moves", "48 hours", "72 hours"])
         }
     }
 
@@ -137,7 +137,7 @@ import XCTest
     private func capture<V: View>(_ view: V, name: String, width: CGFloat = 430, height: CGFloat = 932,
                                  scrolls: Bool = false, contrast: UIAccessibilityContrast = .normal,
                                  required: [String] = [], forbidden: [String] = []) async throws {
-        let host = UIHostingController(rootView: view)
+        let host = UIHostingController(rootView: view.frame(width: width, height: height))
         host.traitOverrides.accessibilityContrast = contrast
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
         let previous = scene.windows.first(where: \.isKeyWindow)
@@ -188,7 +188,7 @@ import XCTest
     private func scrollView(in view: UIView) -> UIScrollView? {
         guard !view.isHidden, view.alpha > 0 else { return nil }
         if let scroll = view as? UIScrollView, scroll.isScrollEnabled,
-           scroll.contentSize.height > scroll.bounds.height { return scroll }
+           scroll.contentSize.height + scroll.adjustedContentInset.top + scroll.adjustedContentInset.bottom > scroll.bounds.height + 1 { return scroll }
         return view.subviews.lazy.compactMap { self.scrollView(in: $0) }.first
     }
 

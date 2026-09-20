@@ -10,7 +10,7 @@ import XCTest
     func scrollView(in view: UIView) -> UIScrollView? {
         guard !view.isHidden, view.alpha > 0 else { return nil }
         if let scroll = view as? UIScrollView, scroll.isScrollEnabled,
-           scroll.contentSize.height > scroll.bounds.height { return scroll }
+           scroll.contentSize.height + scroll.adjustedContentInset.top + scroll.adjustedContentInset.bottom > scroll.bounds.height + 1 { return scroll }
         return view.subviews.lazy.compactMap { scrollView(in: $0) }.first
     }
     controller.view.setNeedsLayout(); controller.view.layoutIfNeeded()

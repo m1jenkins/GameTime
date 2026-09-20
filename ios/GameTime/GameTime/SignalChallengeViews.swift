@@ -287,12 +287,38 @@ struct SignalMetricValue: View {
 struct SignalDateSpan: View {
     let window: ChallengeV1.Window
     var body: some View {
-        VStack(spacing: 0) {
-            SignalFactRow(label: "Starts", value: window.startsAt.text(zone: window.timezone))
-            SignalFactRow(label: "Ends, not included", value: window.endsAt.text(zone: window.timezone))
-            SignalFactRow(label: "Time zone", value: window.timezone)
-            SignalFactRow(label: "Duration", value: "\(window.days) full calendar days")
-        }
+        VStack(alignment: .leading, spacing: 16) {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .top, spacing: 20) {
+                    boundary("Starts", date: window.startsAt)
+                    Image(systemName: "arrow.right").padding(.top, 24).accessibilityHidden(true)
+                    boundary("Ends, not included", date: window.endsAt)
+                }
+                VStack(alignment: .leading, spacing: 16) {
+                    boundary("Starts", date: window.startsAt)
+                    boundary("Ends, not included", date: window.endsAt)
+                }
+            }
+            Text("\(window.days) full days · \(SignalTimeZone.name(window.timezone))")
+                .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }.padding(.vertical, 8)
+    }
+    private func boundary(_ title: String, date: ChallengeInstant) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.caption).foregroundStyle(SignalTheme.textSecondary)
+            Text(dateLabel(date, template: "MMM d yyyy"))
+                .font(.headline)
+            Text(dateLabel(date, template: "h:mm a z")).font(.caption).foregroundStyle(SignalTheme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .ignore)
+            .accessibilityLabel(title + ", " + date.text(zone: window.timezone))
+    }
+    private func dateLabel(_ instant: ChallengeInstant, template: String) -> String {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: window.timezone)
+        formatter.setLocalizedDateFormatFromTemplate(template)
+        return formatter.string(from: instant.date)
     }
 }
 
