@@ -89,3 +89,25 @@ soak/load, physical-device/Health, hosted and distribution campaigns were
 intentionally not run. Local software checks do not accept those gates. No
 concrete local implementation blocker remains; using this feature on hosting
 requires separate authorization and retains the current private-trial limit.
+
+## Final integration check
+
+Merged the independently committed `7bca11c` into this branch as `dbf5fc8` without
+conflicts. No uncommitted work from the other checkout was imported. The combined
+source preserves Staging's independent connection and the private-trial account /
+personal-steps-only guard; this task changes none of its hosted settings.
+
+Rebuilt only the task-owned disposable resources and applied all **ten** forward
+migrations in timestamp order, including the private-device migration: **95 total
+migrations**. Final SQL results: **87 leaderboard + 93 P9 + 12 private-trial = 192
+assertions passed**. Both baseline fixture passes and the populated historical
+agreement/consent check passed. This new run retained its own baseline digest
+`9c058fc8d202c71b0bfe26f2a40d0f356e8bba3e31c360a2c5546623537da040`. The leaderboard migration SHA256 is
+`a46330cc5a4304bb8776b9242f57f01e8572a6f2ba8a5280646173b2fa9f3fb1`.
+
+The combined source then passed **all 21 focused native tests**, zero failures or
+skips, on iOS 26.5. Result bundle:
+`/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/result-bundles/test_sim_2026-09-20T16-40-18-008Z_pid34736_004117c8.xcresult`.
+The final product guard passed again. Only this record changes after those
+checks. Task-owned database resources are cleaned up before local-main landing;
+private local receipts stay in `/private/tmp/gametime-d141-checks`.
