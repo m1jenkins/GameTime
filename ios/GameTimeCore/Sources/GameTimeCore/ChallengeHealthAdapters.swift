@@ -10,6 +10,10 @@ public enum ChallengeHealthIssue: String, Hashable, Sendable {
     case reconciliationUnresolved, boundaryUnresolved, timedQualificationUnresolved
     case incompleteEvidence, historyLimited, freshnessUnresolved, historyRequired
     case lostVisibility, deletionObserved
+    case realSourcePolicyMismatch, realSourceProvenanceUnavailable, sourceExplicitlyRejected
+    /// HealthKit has no public causal link from an Exercise Time quantity to
+    /// the workout/activity that produced it, so this policy is unavailable.
+    case exerciseCausalLineageUnavailable
 }
 
 public struct ChallengeHealthEvaluation: Equatable, Sendable {
@@ -20,9 +24,62 @@ public struct ChallengeHealthEvaluation: Equatable, Sendable {
     public let issues: Set<ChallengeHealthIssue>
     public let diagnosticConcerns: Set<WeeklySourceConcern>
     public let syntheticOnly: Bool
-    public var permitsRealConsent: Bool { false }
-    public var permitsRealIngestion: Bool { false }
-    public var supportsConfirmedMiss: Bool { false }
+    /// This is an evaluated source-policy observation only. It does not wire a
+    /// transport, bypass later consent, or claim that a miss is confirmed.
+    public let acceptsRealSourceObservation: Bool
+    public let permitsRealConsent: Bool
+    public let permitsRealIngestion: Bool
+    public let supportsConfirmedMiss: Bool
+
+    init(readiness: ChallengeHealthReadiness, activity: ChallengeHealthValue?,
+         evidence: ChallengeHealthEvidence, issues: Set<ChallengeHealthIssue>,
+         diagnosticConcerns: Set<WeeklySourceConcern>, syntheticOnly: Bool,
+         acceptsRealSourceObservation: Bool = false,
+         permitsRealConsent: Bool = false, permitsRealIngestion: Bool = false,
+         supportsConfirmedMiss: Bool = false) {
+        self.readiness = readiness; self.activity = activity; self.evidence = evidence
+        self.issues = issues; self.diagnosticConcerns = diagnosticConcerns
+        self.syntheticOnly = syntheticOnly
+        self.acceptsRealSourceObservation = acceptsRealSourceObservation
+        self.permitsRealConsent = permitsRealConsent
+        self.permitsRealIngestion = permitsRealIngestion
+        self.supportsConfirmedMiss = supportsConfirmedMiss
+    }
+}
+
+/// A normalized observation or an explicit uncertainty. Neither case carries
+/// raw records or source metadata. An unresolved refresh must replace a prior
+/// uploaded value with unresolved; retaining the old positive value would hide
+/// loss of visibility. Consent and frozen binding are checked separately.
+public enum ChallengeHealthRealReplacementDecision: Equatable, Sendable {
+    case uploadable(ChallengeHealthReplacement)
+    case unresolved(ChallengeHealthUnresolvedReason)
+
+    public var normalizedReplacement: ChallengeHealthReplacement {
+        switch self {
+        case .uploadable(let replacement): replacement
+        case .unresolved(let reason): .unresolved(reason)
+        }
+    }
+}
+
+public extension ChallengeHealthEvaluation {
+    var realReplacementDecision: ChallengeHealthRealReplacementDecision {
+        guard !syntheticOnly, acceptsRealSourceObservation, permitsRealIngestion else {
+            if issues.contains(.lostVisibility) { return .unresolved(.lostVisibility) }
+            if issues.contains(.historyLimited) { return .unresolved(.limitedHistory) }
+            if issues.contains(.normalizationUnresolved) || issues.contains(.boundaryUnresolved)
+                || issues.contains(.reconciliationUnresolved) {
+                return .unresolved(.normalizationUnresolved)
+            }
+            return .unresolved(.requeryRequired)
+        }
+        if activity == nil, issues.contains(.deletionObserved) {
+            return .uploadable(.deleted)
+        }
+        guard let activity else { return .unresolved(.requeryRequired) }
+        return .uploadable(.value(activity))
+    }
 }
 
 public protocol ChallengeHealthAdapter: Sendable {

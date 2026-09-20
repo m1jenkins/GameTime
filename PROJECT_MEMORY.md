@@ -37,9 +37,13 @@ obtained a paired Apple Watch, opted in and [started the private P7 device
 session](outputs/reports/2026-09-18-p7-device-session.md) on an iPhone 17.
 On September 19 the owner [signed off the P7 test effort and directed P8
 preparation](DECISIONS.md#d137-owner-signs-off-p7-testing-and-directs-p8-preparation).
-The session record preserves performed observations separately from unresolved
-source rules; see the [P8 handoff](docs/P8_REAL_SOURCE_PREPARATION.md). The four
-versioned source policies, timed-distance tolerance, real ingestion/adapters,
+The session record preserves performed observations.
+[D138](DECISIONS.md#d138-owner-selects-p8-source-rules-and-whole-run-distance-tolerance)
+now selects Apple Watch/Workout origin, outdoor whole workouts, reconciled Watch
+switching and inclusive 100–102% timed distance. The [P8 contract](docs/P8_REAL_HEALTH_CONTRACT.md)
+records local adapters/ingestion and the concrete Exercise causal-origin limit;
+Exercise admission remains unavailable. Positive observations cannot establish
+complete leaderboards or misses. P9 wiring and delivery coordination with retained writers,
 hosted operation and physical/human/release acceptance remain gated. Simulation
 does not accept a source. Checked-in challenge transport remains off and all 18
 readiness entries remain false. Preserve historical Personal/Solo/charity

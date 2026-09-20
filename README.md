@@ -32,16 +32,18 @@ when explicitly configured. `GAMETIME_CHALLENGE_V1_ENABLED` remains off in
 checked-in configuration. Local fixtures and disposable HTTP checks do not
 establish real Apple identity, accepted Health sources or hosted operation.
 
-P7–P13 still require four accepted physical sources and timed-run tolerance,
-real ingestion/adapters and all 13 source-backed policies, approved hosted
-identities/settings and operating checks, then source-backed candidate qualification,
-physical/accessibility/human and release acceptance. All 18
+D138 selects source rules and timed-run tolerance; the [P8 contract](docs/P8_REAL_HEALTH_CONTRACT.md)
+records local adapters, signed ingestion and server processing. Exercise remains
+unavailable because causal activity cannot be established. All-mode app integration,
+four usable sources, approved hosted identities/settings and operating checks,
+candidate qualification, accessibility, human and release acceptance remain required. All 18
 [readiness entries](docs/release/beta/readiness.json) remain false. The baseline
 cleanup does not start those tasks or authorize distribution, hosting or money.
 The owner [started a private P7 device session](outputs/reports/2026-09-18-p7-device-session.md)
 on September 18 and signed off the test effort on September 19. Its partial
-observations do not specify accepted source policies. [P8 preparation](docs/P8_REAL_SOURCE_PREPARATION.md)
-is documented without enabling real ingestion or scoring.
+observations remain separate from D138's subsequent decisions and the
+[P8 software checks](outputs/reports/2026-09-19-p8-real-health.md). Checked-in
+real transport remains off; P9 app integration and release are separate.
 
 ## Start here
 
@@ -54,7 +56,7 @@ is documented without enabling real ingestion or scoring.
 | User-facing language | [Copy contract](docs/COPY.md), required before changing any app string |
 | iPhone, Watch-origin data, community and capacity boundaries | [Remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md) |
 | Source and release gates | [Physical sessions](docs/BETA_PHYSICAL_SESSIONS.md), [acceptance](docs/BETA_REAL_VALIDATION_ACCEPTANCE.md), [handoff](docs/BETA_REAL_VALIDATION_HANDOFF.md) |
-| P8 real-source preparation | [P8 handoff](docs/P8_REAL_SOURCE_PREPARATION.md) |
+| P8 real-source implementation and limits | [Contract](docs/P8_REAL_HEALTH_CONTRACT.md), [handoff](docs/P8_REAL_SOURCE_PREPARATION.md), [software checks](outputs/reports/2026-09-19-p8-real-health.md) |
 | Local challenge walkthrough | [Preview and ordinary-session guide](docs/BETA_LOCAL_PREVIEW.md) |
 | Local worker, operator and recovery commands | [Operations guide](docs/BETA_OPERATIONS_LOCAL.md) |
 | Checkout recovery and cleanup disposition | [Consolidation record](docs/WORKTREE_CONSOLIDATION_STATUS.md) |

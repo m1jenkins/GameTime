@@ -1,5 +1,23 @@
 # P8 preparation — real activity facts and processing
 
+## Current implementation authority — September 19, 2026
+
+[D138](../DECISIONS.md#d138-owner-selects-p8-source-rules-and-whole-run-distance-tolerance)
+supersedes the open product questions in this preparation: Apple automatic
+Watch steps/Exercise, Apple Workout outdoor runs, reconciled multiple Watches,
+whole workouts entirely inside the frozen window, and inclusive 100–102% timed
+distance with whole elapsed seconds rounded up. The owner signed off measured
+physical testing; do not restart P7. Historical observations below remain
+unchanged. The local P8 implementation and
+[software checks](../outputs/reports/2026-09-19-p8-real-health.md) use separately
+versioned real contracts. Exercise remains unavailable because causal origin
+cannot be established; complete leaderboards and confirmed misses remain
+unresolved. No checked-in transport, hosting or release gate has been opened. The
+[real Health contract](P8_REAL_HEALTH_CONTRACT.md) separates selected rules,
+supported API interpretations and concrete platform limits.
+
+## Historical preparation
+
 Prepared September 19, 2026 from the consolidated `main` checkout. [D137](../DECISIONS.md)
 records the owner's P7 test sign-off and direction to prepare P8. The
 [P7 session record](../outputs/reports/2026-09-18-p7-device-session.md) still

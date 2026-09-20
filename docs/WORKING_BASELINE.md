@@ -25,6 +25,24 @@ the untouched dated reports. The later full portable weekly gate passed on the
 consolidated source; the consolidation record lists CI status at merge. The full
 release matrix remains reserved for P12.
 
+## September 19 P8 local continuation
+
+[D138](../DECISIONS.md#d138-owner-selects-p8-source-rules-and-whole-run-distance-tolerance)
+selects source rules and the inclusive 100–102% whole-run distance rule. The
+[real Health contract](P8_REAL_HEALTH_CONTRACT.md) describes separately versioned
+steps, distance and timed adapters, private signed ingestion, source-aware
+server processing and durable local retries. Exercise remains unavailable
+because public quantity APIs cannot establish the causal activity needed to
+exclude manual/imported/third-party-derived credit. Positive activity can prove
+a met goal; incomplete history still cannot prove a miss or complete leaderboard.
+
+The [local software record](../outputs/reports/2026-09-19-p8-real-health.md)
+identifies the task branch, checks and remaining limits. P9 must wire the new
+contracts into Signal and coordinate signing through committed recovery across
+retained writers sharing an App Attest key with the coordinated P8 pair. Checked-in clients and all 18 external
+readiness entries remain off. The owner has closed measured P7 testing; the
+dated observation record below is historical, not a request to repeat it.
+
 ## September 18 P7 device session
 
 The owner now has a paired Apple Watch and opted in to a private investigation
@@ -76,14 +94,14 @@ included in this published baseline.
 | P4 | Scoped locks and durable worker claims completed locally | [P4 report](../outputs/reports/2026-09-11-p4-completion.md) |
 | P5 | Bounded history and measured query improvements completed locally | [P5 report](../outputs/reports/2026-09-11-p5-completion.md) |
 | P6 | Private 250-member community, moderation and quotas completed locally | [P6 report](../outputs/reports/2026-09-12-p6-completion.md) |
-| P7 | Owner signed off testing September 19; four versioned source policies and timed tolerance remain unspecified/unaccepted | [Current session](../outputs/reports/2026-09-18-p7-device-session.md), [P8 handoff](P8_REAL_SOURCE_PREPARATION.md) |
+| P7 | Owner signed off measured testing; D138 supplies the source and timed-distance rules without rewriting historical observations | [Current session](../outputs/reports/2026-09-18-p7-device-session.md), [P8 handoff](P8_REAL_SOURCE_PREPARATION.md) |
 | P10 | Device-independent hosted/support/retention preparation included; actual hosting unperformed | [P10 report](../outputs/reports/2026-09-12-p10-completion.md) |
 | P11A — local recovery | Combined S2/P8/P11A candidate landed on local main at `a3d2c3f9cafb0c97191b90ce9794dfd36474b3aa`; community verification gap closed with a test-only correction and focused review. Hosted schedules, credentials and external alerts remain disabled | [P11A report](../outputs/reports/2026-09-14-p11a-local-recovery.md), [September 14 follow-up](../outputs/reports/2026-09-14-p11a-community-verification.md) |
 | P11A — operator CLI | Landed on local main at `6fea1c2`: scoped review/moderation, revocation, global support, suspension and independent appeals with durable human recovery. Original reported verification: 131 CLI/HTTP checks, 8 unit tests and 86 SQL assertions. Main now includes new administrator receipts and repaired suspended access; historical v1 recovery remains manual | [Operator report](../outputs/reports/2026-09-14-p11a-operator.md), [administrator recovery report](../outputs/reports/2026-09-18-admin-grant-recovery.md), [local guide](BETA_OPERATIONS_LOCAL.md) |
 | Local design preview | Fictional friend/personal journeys with configurable owned resources | [Preview guide](BETA_LOCAL_PREVIEW.md) |
 | P9 — shared app session | Bounded local implementation connects configured ordinary Signal to the existing authenticated client; default configuration remains off. Actual HTTPS/Apple identity and real-source journeys remain | [Connection and local checks](BETA_LOCAL_PREVIEW.md#ordinary-app-connection-and-its-local-substitute), [P9 report](../outputs/reports/2026-09-15-p9-authenticated-app.md) |
 | P9 — HTTPS invitation slice | Main includes exact configured-origin intake/formatting and preserves durable deliberate redemption. Domain, Apple identity, OS association and hosted/device acceptance remain open | [Local contract and inactive templates](BETA_INVITATION_LINKS_LOCAL.md), [checks and actor-switch composition](../outputs/reports/2026-09-18-https-invitations.md) |
-| P8/P9 remainder | Accepted real-source contracts, ingestion, adapters, approved domain/Apple/OS invitation delivery and source-backed journeys remain | [Remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) |
+| P8 / P9 remainder | Local real contracts/adapters and signed ingestion are recorded; Exercise remains unavailable. P9 app wiring, key-wide delivery coordination and approved domain/Apple/OS delivery remain | [P8 contract](P8_REAL_HEALTH_CONTRACT.md), [software record](../outputs/reports/2026-09-19-p8-real-health.md) |
 | P11A — service monitoring | Review/appeal and selected-cohort snapshot projections are in main and locally verified; no scheduler, alert destination, staffing or freshness threshold is accepted | [Integration record](../outputs/reports/2026-09-19-integrated-candidate.md), [snapshot contract](COMMUNITY_SNAPSHOT_STATUS_LOCAL.md) |
 | P11A — account deletion | Landed through `c6f88cd`, including review repairs; local evidence and substitute limits preserved | [Deletion record](evidence/beta-finish-line-b7/account-deletion-local-20260914.md) |
 | P11–13 | Hosted capacity/recovery, physical/human/release acceptance, then authorized private Beta remain | [Remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) |
@@ -96,12 +114,12 @@ Use the [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
 [bounded prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for their
 preserved requirements and dependency order:
 
-- P7: the owner has closed the current iPhone/paired Watch test effort as passed.
-  Its recorded observations remain partial; four explicit source policies and a
-  measured timed-distance tolerance are still needed for real scoring.
-- P8/P9: accepted real-source ingestion, adapters and all 13 integrated policies;
-  approved HTTPS/Apple identity and invitations. The local shared-session
-  connection is complete; source-backed and hosted journeys are not.
+- P7: the owner has closed measured testing and D138 supplies explicit source
+  and timed-distance rules. Preserve the dated observations; do not restart P7.
+- P8/P9: integrate the local real contracts into Signal with key-wide delivery
+  coordination. Exercise causal origin and complete-history results remain
+  unavailable. Approved HTTPS/Apple identity and invitations, all-mode native
+  journeys and hosted operation are not established by local software checks.
 - P10/P11: approved hosted identity/settings, scheduled operation, credentials,
   alerts, retention/deletion and recovery/capacity acceptance. Local worker,
   scoped operator CLI and deletion implementation are complete; administrator

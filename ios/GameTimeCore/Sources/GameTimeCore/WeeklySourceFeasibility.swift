@@ -16,6 +16,11 @@ public struct WeeklySourceRecord: Equatable, Sendable {
     public let value: Double
     public let sourceBundleIdentifier: String?
     public let sourceVersion: String?
+    /// HealthKit's source revision product type, when the platform provides it.
+    /// It remains local diagnostic input and is never source acceptance by itself.
+    public let sourceProductType: String?
+    /// HealthKit's source revision operating-system version, when available.
+    public let sourceOperatingSystemVersion: String?
     public let deviceManufacturer: String?
     public let deviceModel: String?
     /// nil is missing metadata, never equivalent to an explicit false.
@@ -24,14 +29,21 @@ public struct WeeklySourceRecord: Equatable, Sendable {
     public let syncVersion: Int?
     /// Workout duration may omit pauses. Never substitutes for end - start.
     public let reportedWorkoutDurationSeconds: Double?
+    /// Local-only workout semantics for the real running policies.
+    public let workoutActivityType: String?
+    /// `false` means HealthKit explicitly marked the workout outdoor; nil is
+    /// not treated as outdoor.
+    public let wasIndoorWorkout: Bool?
 
     public init(
         id: UUID, metric: WeeklySourceMetric, start: Date, end: Date,
         value: Double, sourceBundleIdentifier: String? = nil,
-        sourceVersion: String? = nil, deviceManufacturer: String? = nil,
+        sourceVersion: String? = nil, sourceProductType: String? = nil,
+        sourceOperatingSystemVersion: String? = nil, deviceManufacturer: String? = nil,
         deviceModel: String? = nil, wasUserEntered: Bool? = nil,
         syncIdentifier: String? = nil, syncVersion: Int? = nil,
-        reportedWorkoutDurationSeconds: Double? = nil
+        reportedWorkoutDurationSeconds: Double? = nil,
+        workoutActivityType: String? = nil, wasIndoorWorkout: Bool? = nil
     ) {
         self.id = id
         self.metric = metric
@@ -40,12 +52,16 @@ public struct WeeklySourceRecord: Equatable, Sendable {
         self.value = value
         self.sourceBundleIdentifier = sourceBundleIdentifier
         self.sourceVersion = sourceVersion
+        self.sourceProductType = sourceProductType
+        self.sourceOperatingSystemVersion = sourceOperatingSystemVersion
         self.deviceManufacturer = deviceManufacturer
         self.deviceModel = deviceModel
         self.wasUserEntered = wasUserEntered
         self.syncIdentifier = syncIdentifier
         self.syncVersion = syncVersion
         self.reportedWorkoutDurationSeconds = reportedWorkoutDurationSeconds
+        self.workoutActivityType = workoutActivityType
+        self.wasIndoorWorkout = wasIndoorWorkout
     }
 }
 
