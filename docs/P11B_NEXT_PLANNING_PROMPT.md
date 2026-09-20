@@ -49,11 +49,13 @@ Established state:
   evidence. Do not repeat them or reinstall merely to regain context. Active
   scheduling, app connectivity and broader operating acceptance remain separate.
 
-Preserve D134-D140, Signal, historical Personal access, exact recovery, source
+Preserve D134-D141, Signal, historical Personal access, exact recovery, source
 policies, Exercise credit v2 and inclusive 100-102% whole-run distance. Do not
-restart P7. Missing data cannot establish a loss or complete ranking. Nine
+restart P7. Missing data cannot establish a missed goal or complete history; D141 ranks
+only saved activity under new leaderboard terms. Nine
 available goals form the working Beta scope; the four friend leaderboards are
-deferred under D140. Four goal-metric source acceptance and the other release
+outside the required release set under D140. D141 adds optional local v2
+leaderboards using activity saved by the correction deadline; preserve old agreements. Four goal-metric source acceptance and the other release
 gates remain open. Keep those dependencies visible without automatically
 expanding this next task into solving them.
 

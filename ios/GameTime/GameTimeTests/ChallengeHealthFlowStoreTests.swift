@@ -35,7 +35,7 @@ import XCTest
         XCTAssertEqual(h.signed, 1); XCTAssertEqual(h.readinessSent, 2)
         XCTAssertEqual(h.requests.count, 1, "Recovery never reads Health or creates another fact")
     }
-    func testChangedHealthScreensAtLargeTextInLightAndDark() async throws {
+    func testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark() async throws {
         let h = try FlowHarness(); defer { h.remove() }
         let binding = try h.binding()
         await h.flow.checkReadiness(binding, connect: true)
@@ -44,9 +44,9 @@ import XCTest
                 let policy = ChallengeV1Policy(rawValue: "friend_\(metric.rawValue)_leaderboard_v1")!
                 let text = try await capture(ChallengeV1Create(store: h.store, initialPolicy: policy)
                     .environment(\.challengeHealthFlow, h.flow).environment(\.colorScheme, scheme)
-                    .environment(\.dynamicTypeSize, .accessibility3), name: "p9-unavailable-\(metric.rawValue)-\(scheme)")
-                XCTAssertTrue(text.contains("not available yet"))
-                XCTAssertFalse(text.contains("create lobby")); XCTAssertFalse(text.contains("suggestion"))
+                    .environment(\.dynamicTypeSize, .accessibility3), name: "d141-leaderboard-\(metric.rawValue)-\(scheme)")
+                XCTAssertTrue(text.contains("saved by the deadline"))
+                XCTAssertTrue(text.contains("create lobby")); XCTAssertFalse(text.contains("suggestion"))
             }
             let text = try await capture(NavigationStack {
                 ScrollView { VStack(alignment: .leading, spacing: 20) {
@@ -67,6 +67,80 @@ import XCTest
         defer { window.isHidden = true; previous?.makeKeyAndVisible() }
         try await Task.sleep(for: .milliseconds(250))
         return try await captureMountedSignal(window, controller: host, name: name, test: self)
+    }
+    func testReceivedLeaderboardsUseAllFourAdaptersAndKeepMissingScoresUnknown() async throws {
+        for metric in ChallengeV1Policy.Metric.allCases {
+            let h = try FlowHarness(); defer { h.remove() }
+            let policy = ChallengeV1Policy(rawValue: "friend_\(metric.rawValue)_leaderboard_v2")!
+            let id = try h.addActivity(policy: policy.id)
+            let source = try XCTUnwrap(ChallengeHealthBindingMapper.selectedSource(metric))
+            try h.cache.connect(actor: h.actor, source: source.identifier)
+            await h.flow.refresh(id)
+            let row = try XCTUnwrap(h.client.rows[id])
+            XCTAssertEqual(h.uploads.count, 1)
+            XCTAssertEqual(row.own(h.actor)?.fact?.state, "value")
+            XCTAssertNotNil(row.savedScore(try XCTUnwrap(row.own(h.actor))))
+            XCTAssertFalse(h.flow.states[id]?.pendingDelivery ?? true)
+            XCTAssertNotNil(h.flow.states[id]?.lastServerUpdate)
+            h.mode = .empty
+            await h.flow.refresh(id)
+            XCTAssertEqual(h.client.rows[id]?.own(h.actor)?.fact?.state, "unresolved")
+            XCTAssertNil(h.client.rows[id]?.own(h.actor)?.fact?.value)
+        }
+    }
+    func testReceivedLeaderboardFirstScoreAtCutoffAndExactRecoveryAfterCutoff() async throws {
+        let h = try FlowHarness(); defer { h.remove() }
+        let id = try h.addActivity(policy: "friend_steps_leaderboard_v2")
+        try h.cache.connect(actor: h.actor, source: "apple_watch_steps_v1")
+        let row = try XCTUnwrap(h.client.rows[id])
+        h.now = row.config.correctionsBy.date; h.client.now = h.now
+        h.loseUploadResponse = true
+        await h.flow.refresh(id)
+        XCTAssertEqual(h.uploads.count, 1, "First score is allowed at the correction cutoff")
+        XCTAssertTrue(h.flow.states[id]?.pendingDelivery ?? false)
+        XCTAssertNotNil(h.flow.states[id]?.message, "Lost acknowledgement must offer recovery/review")
+        XCTAssertNil(h.flow.states[id]?.lastServerUpdate, "Do not claim success before confirmation")
+        let request = try XCTUnwrap(h.uploads.first)
+        h.now = h.now.addingTimeInterval(1); h.client.now = h.now
+        await h.flow.refresh(id)
+        XCTAssertEqual(h.uploads.count, 2)
+        XCTAssertEqual(h.uploads.last?.exactBytes, request.exactBytes)
+        XCTAssertEqual(h.requests.count, 1, "After cutoff, recover exact bytes without reading new activity")
+        XCTAssertTrue(try h.coordinator.uploadStore.load(actor: h.actor).pending.isEmpty)
+        XCTAssertNotNil(h.flow.states[id]?.lastServerUpdate)
+        XCTAssertFalse(h.flow.states[id]?.pendingDelivery ?? true)
+        XCTAssertNil(h.flow.states[id]?.message)
+    }
+    func testOldLeaderboardCannotReadOrUpload() async throws {
+        let h = try FlowHarness(); defer { h.remove() }
+        let id = try h.addActivity(policy: "friend_steps_leaderboard_v1")
+        try h.cache.connect(actor: h.actor, source: "apple_watch_steps_v1")
+        await h.flow.refresh(id)
+        XCTAssertTrue(h.uploads.isEmpty); XCTAssertTrue(h.requests.isEmpty)
+        XCTAssertThrowsError(try ChallengeHealthBindingMapper.activity(XCTUnwrap(h.client.rows[id]), actor: h.actor))
+    }
+    func testReceivedLeaderboardSavedScoreDeadlineAndRefreshRender() async throws {
+        let h = try FlowHarness(); defer { h.remove() }
+        let id = try h.addActivity(policy: "friend_steps_leaderboard_v2")
+        try h.cache.connect(actor: h.actor, source: "apple_watch_steps_v1")
+        await h.flow.refresh(id)
+        let text = try await capture(NavigationStack { ChallengeV1Detail(store: h.store, id: id) }, name: "d141-saved-score")
+        XCTAssertTrue(text.contains("your saved score"))
+        XCTAssertTrue(text.contains("last saved update"))
+        XCTAssertTrue(text.contains("save activity by"))
+        XCTAssertTrue(text.contains("refresh"))
+        XCTAssertFalse(text.contains("leaderboard — not available yet"))
+    }
+    func testPrivateTimedLeaderboardHasNoGoalTimeCopy() async throws {
+        let h = try FlowHarness(); defer { h.remove() }
+        let id = try h.addActivity(policy: "friend_timed_leaderboard_v2", socialHidden: true)
+        try h.cache.connect(actor: h.actor, source: "apple_workout_outdoor_timed_v1")
+        await h.flow.refresh(id)
+        let row = try XCTUnwrap(h.client.rows[id])
+        let text = try await capture(SignalFeaturedChallenge(row: row, actor: h.actor), name: "d141-private-timed")
+        XCTAssertTrue(text.contains("fastest eligible saved run"))
+        XCTAssertFalse(text.contains("under your agreed time"))
+        XCTAssertNil(ChallengePresentation.rank(try XCTUnwrap(row.own(h.actor)), in: row, actor: h.actor))
     }
     func testAllSevenReadinessStatesAndPermissionIsNotReadiness() async throws {
         let h = try FlowHarness(); defer { h.remove() }
@@ -230,7 +304,7 @@ import XCTest
     var mode: Mode = .value, holdRead = false, holdSign = false
     var heldRead: CheckedContinuation<Void, Never>?, heldSign: CheckedContinuation<Void, Never>?
     var readers: [FlowReader] = [], requests: [ChallengeHealthReadRequest] = [], uploads: [ChallengeHealthUploadRequest] = []
-    var signed = 0, readinessSent = 0, loseReadinessResponse = false
+    var signed = 0, readinessSent = 0, loseReadinessResponse = false, loseUploadResponse = false
     var sessionIdentity: String? = "initial-session"
     init(actor: UUID = UUID(), directory: URL? = nil) throws {
         self.actor = actor; self.directory = directory ?? FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -246,6 +320,7 @@ import XCTest
         let uploads = ChallengeHealthUploadClient(enabled: true, environment: .development, coordinator: coordinator, binding: session, sign: sign) { [unowned self] signed, _ in
             let wire = try ChallengeHealthUploadRequest(restoring: signed.exactBody); self.uploads.append(wire)
             try self.client.apply(wire)
+            if self.loseUploadResponse { self.loseUploadResponse = false; throw URLError(.networkConnectionLost) }
             return try JSONSerialization.data(withJSONObject: ["version": "challenge_real_health_receipt_v1", "request_id": wire.requestID.uuidString.lowercased(), "challenge_id": wire.challengeID.uuidString.lowercased(), "revision": wire.revision, "accepted_at": "2027-01-15T08:00:00+00:00"])
         }
         let readiness = ChallengeHealthReadinessClient(enabled: true, environment: .development, coordinator: coordinator, binding: session, sign: sign) { [unowned self] signed, _ in
@@ -266,14 +341,16 @@ import XCTest
         try .init(actorID: actor, challengeID: id, agreementVersion: 1, termsDigest: String(repeating: "a", count: 64), metric: source.metric,
             challengeWindow: .init(startMicroseconds: ChallengeHealthFlowStore.microseconds(now), endMicroseconds: ChallengeHealthFlowStore.microseconds(now.addingTimeInterval(86400)), timeZoneIdentifier: "UTC", calendar: .gregorian), realSourcePolicy: source, selectedDistanceMillimeters: distance)
     }
-    func addActivity() throws -> UUID {
+    func addActivity(policy: String = "personal_steps_goal_v1", socialHidden: Bool = false) throws -> UUID {
+        let format = ChallengeV1Policy(rawValue: policy)!
+        let source = ChallengeHealthBindingMapper.selectedSource(format.metric)!.identifier
         let id = UUID(), start = ChallengeInstant(date: now.addingTimeInterval(-3600)), end = ChallengeInstant(date: now.addingTimeInterval(82800))
-        let window = ChallengeV1.Window(startDate: "2027-01-15", days: 1, timezone: "UTC", amountCents: 100, startsAt: start, endsAt: end, syncBy: .init(date: end.date.addingTimeInterval(86400)), correctionsBy: .init(date: end.date.addingTimeInterval(172800)), noticeDue: .init(date: end.date.addingTimeInterval(172800)))
+        let window = ChallengeV1.Window(startDate: "2027-01-15", days: 1, timezone: "UTC", amountCents: 100, distanceMm: format.metric == .timed ? 5_000_000 : nil, startsAt: start, endsAt: end, syncBy: .init(date: end.date.addingTimeInterval(86400)), correctionsBy: .init(date: end.date.addingTimeInterval(172800)), noticeDue: .init(date: end.date.addingTimeInterval(172800)))
         let encoder = JSONEncoder(); encoder.keyEncodingStrategy = .convertToSnakeCase
         let config = try JSONDecoder().decode(ChallengeJSON.self, from: encoder.encode(window))
-        client.rows[id] = ChallengeV1(sourcePolicyVersion: "apple_watch_steps_v1", id: id, creatorId: actor, policy: "personal_steps_goal_v1", config: window, status: "active", revision: 1, agreementVersion: 1, serverTime: .init(date: now), socialHidden: false,
-            agreement: .init(digest: String(repeating: "a", count: 64), terms: .object(["source_policy_version": .string("apple_watch_steps_v1"), "policy": .string("personal_steps_goal_v1"), "config": config])),
-            members: [.init(actorId: actor, username: "local", target: 10000, selected: true, exited: false, consented: true, fact: nil)], notice: nil, reviews: [], final: nil)
+        client.rows[id] = ChallengeV1(sourcePolicyVersion: source, id: id, creatorId: actor, policy: policy, config: window, status: "active", revision: 1, agreementVersion: 1, serverTime: .init(date: now), socialHidden: socialHidden,
+            agreement: .init(digest: String(repeating: "a", count: 64), terms: .object(["source_policy_version": .string(source), "policy": .string(policy), "config": config, "score_rule": format.usesReceivedScores ? .string("received_by_correction_cutoff_v2") : .null])),
+            members: [.init(actorId: actor, username: "local", target: format.hasTarget ? 10000 : nil, selected: true, exited: false, consented: true, fact: nil)], notice: nil, reviews: [], final: nil)
         return id
     }
     func remove() { flow.cancelAll(); try? FileManager.default.removeItem(at: directory) }
@@ -287,8 +364,12 @@ import XCTest
         if Task.isCancelled { return .unavailable(.cancelled) }
         if h.mode == .failure { return .unavailable(.protectedDataUnavailable) }
         let start = request.queryWindow.interval.start.addingTimeInterval(1)
-        let metric: WeeklySourceMetric = request.binding.metric == .timedRunElapsedSeconds ? .runningDistanceMillimeters : .steps
-        let record = WeeklySourceRecord(id: request.binding.challengeID, metric: metric, start: start, end: start.addingTimeInterval(60), value: Double(request.binding.selectedDistanceMillimeters ?? 10001), sourceBundleIdentifier: "com.apple.health", sourceProductType: "Watch7,1", wasUserEntered: false, workoutActivityType: metric == .steps ? nil : "running", wasIndoorWorkout: metric == .steps ? nil : false)
+        let metric: WeeklySourceMetric = switch request.binding.metric {
+        case .steps: .steps
+        case .exerciseSeconds: .appleExerciseMinutes
+        case .runningMillimeters, .timedRunElapsedSeconds: .runningDistanceMillimeters
+        }
+        let record = WeeklySourceRecord(id: request.binding.challengeID, metric: metric, start: start, end: start.addingTimeInterval(60), value: Double(request.binding.selectedDistanceMillimeters ?? 10001), sourceBundleIdentifier: "com.apple.health", sourceProductType: "Watch7,1", wasUserEntered: false, workoutActivityType: metric == .runningDistanceMillimeters ? "running" : nil, wasIndoorWorkout: metric == .runningDistanceMillimeters ? false : nil)
         return .snapshot(.init(request: request, records: h.mode == .empty ? [] : [record], observedAt: h.now, sourceFreshness: h.now, evidence: h.mode == .truncated ? .truncated : .boundedSnapshot))
     }
 }
@@ -307,6 +388,7 @@ import XCTest
 @MainActor private final class FlowClient: ChallengeV1Client {
     var rows: [UUID: ChallengeV1] = [:], suspended = false
     var now = Date()
+    var appliedRequests: Set<UUID> = []
     func list(actor: UUID) async throws -> [ChallengeV1] { Array(rows.values) }
     func detail(_ id: UUID, actor: UUID) async throws -> ChallengeV1 {
         var body = try JSONSerialization.jsonObject(with: JSONEncoder().encode(XCTUnwrap(rows[id]))) as! [String: Any]
@@ -320,6 +402,7 @@ import XCTest
         return try JSONDecoder().decode(T.self, from: data)
     }
     func apply(_ wire: ChallengeHealthUploadRequest) throws {
+        guard appliedRequests.insert(wire.requestID).inserted else { return }
         var body = try JSONSerialization.jsonObject(with: JSONEncoder().encode(XCTUnwrap(rows[wire.challengeID]))) as! [String: Any]
         var members = body["members"] as! [[String: Any]]
         let envelope = try JSONSerialization.jsonObject(with: wire.exactBytes) as! [String: Any]

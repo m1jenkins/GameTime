@@ -14,6 +14,14 @@ work. This is a local implementation baseline, **not Beta readiness**.
 
 ## Current status
 
+D141 adds optional [received-score friend leaderboards v2](docs/RECEIVED_LEADERBOARD_V2.md)
+from D140 `110c470`: rank eligible activity GameTime saved by the correction
+cutoff, with unranked entry returns and a two-score minimum. Signal shows the
+saved score, last update, deadline and Refresh. Historical agreements and strict
+Exercise v1 stay unchanged; new Activity minutes use Exercise credit v2.
+D140's nine-goal Beta requirement and all external gates remain unchanged.
+
+
 The September 19 [main consolidation](outputs/reports/2026-09-19-main-consolidation.md)
 includes configured HTTPS invitations, administrator response recovery,
 review/appeal and snapshot monitoring, repaired suspended-account access,

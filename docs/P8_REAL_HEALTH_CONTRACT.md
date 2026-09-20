@@ -1,5 +1,12 @@
 # P8 real Health contract
 
+**D141 continuation, September 20:** [received-score leaderboard v2](RECEIVED_LEADERBOARD_V2.md)
+now ranks eligible server-saved activity through the correction cutoff for NEW
+agreements. It does not require complete history; missing scores return their
+entries and fewer than two valid scores voids. Strict Exercise v1 stays unavailable.
+The original P8/P9 behavior and verification below remain historical records for
+old agreements. D140 still excludes leaderboards from required Beta release scope.
+
 D138 records the owner's selected policies. This document describes their
 engineering interpretation; physical observations stay in the dated P7 session.
 Local implementation is on `codex/p8-real-sources` from

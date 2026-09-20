@@ -276,7 +276,9 @@ final class ChallengeHealthFlowStore {
             try await check(actor, epoch)
             try validate(id, operation, epoch)
             states[id, default: State()].lastServerUpdate = row.own(actor)?.fact?.recordedAt.date
-            guard !row.isClosed, row.format.competition != .leaderboard, row.serverTime <= row.config.correctionsBy else {
+            states[id]?.pendingDelivery = false
+            states[id]?.message = nil
+            guard !row.isClosed, (row.format.hasTarget || row.format.usesReceivedScores), row.serverTime <= row.config.correctionsBy else {
                 if cacheAvailable {
                     try dependencies.cache.acknowledge(actor: actor, id: id); try dependencies.cache.retire(actor: actor, id: id)
                 }
@@ -313,7 +315,7 @@ final class ChallengeHealthFlowStore {
             guard try ChallengeHealthBindingMapper.activity(latest, actor: actor).binding == binding,
                   latest.serverTime <= latest.config.correctionsBy else { return }
             let previous = latest.own(actor)?.fact?.revision
-            guard previous != nil || latest.serverTime <= latest.config.syncBy else { return }
+            guard latest.format.usesReceivedScores || previous != nil || latest.serverTime <= latest.config.syncBy else { return }
             let through = min(binding.challengeWindow.endMicroseconds, Self.microseconds(observedAt))
             guard through >= binding.challengeWindow.startMicroseconds else { return }
             let request = try ChallengeHealthUploadRequest(binding: binding, requestID: UUID(), revision: (previous ?? 0) + 1,
@@ -335,7 +337,7 @@ final class ChallengeHealthFlowStore {
             guard self.actor == actor, generation == epoch, operationVersions[id] == operation, !suspended else { return }
             states[id, default: State()].localValue = nil
             states[id]?.readiness = .temporarilyUnavailable
-            states[id]?.message = "We couldn’t finish this update. Refresh to try again."
+            states[id]?.message = "We haven’t confirmed this update. Refresh to recover it. If your saved score is still wrong when results arrive, ask us to review it before the review deadline."
         }
     }
 

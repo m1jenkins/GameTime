@@ -629,12 +629,24 @@ struct ChallengeV1Detail: View {
                             Text("Other participants cannot see your activity or results.").font(.subheadline)
                         }.padding(.vertical, 12)
                     }
-                    if row.sourcePolicyVersion != nil, !row.format.hasTarget {
+                    if row.sourcePolicyVersion != nil, !row.format.hasTarget, !row.format.usesReceivedScores {
                         Text("Leaderboard — Not available yet").font(.headline)
                         Text("We can’t confirm a complete activity history for a fair ranking. You can still review your records or leave this challenge safely.")
                     }
                     if let health, let actor = store.actor, let binding = try? ChallengeHealthBindingMapper.agreement(row, actor: actor), !row.isClosed, row.own(actor)?.exited == false {
-                        ChallengeHealthStatusView(flow: health, binding: binding, readiness: row.status == "consent_pending")
+                        ChallengeHealthStatusView(flow: health, binding: binding, readiness: row.status == "consent_pending", receivedScores: row.format.usesReceivedScores)
+                    }
+                    if row.format.usesReceivedScores {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Your saved score").font(.headline)
+                            Text(row.own(store.actor).flatMap { row.savedScore($0) }.map { row.format.metric.display($0) } ?? "Unranked — no valid saved score")
+                                .accessibilityIdentifier("beta.leaderboard.saved-score")
+                            if let fact = row.own(store.actor)?.fact {
+                                Text("Last saved update \(fact.recordedAt.text(zone: row.config.timezone))").font(.caption)
+                            } else { Text("No update saved yet").font(.caption) }
+                            Text("Save activity by \(row.config.correctionsBy.text(zone: row.config.timezone)). Missing or late activity doesn’t count.")
+                            Button("Refresh") { Task { await refreshActivity() } }.accessibilityIdentifier("beta.leaderboard.refresh")
+                        }.fixedSize(horizontal: false, vertical: true)
                     }
                     people(row)
                     rules(row)
@@ -737,7 +749,7 @@ struct ChallengeV1Detail: View {
         }
     }
     private func resultText(_ status: String) -> String {
-        switch status { case "met": "Goal met"; case "missed": "Goal missed"; case "winner": "Winning result"; case "placed": "Result recorded"; default: "Your entry returns" }
+        switch status { case "met": "Goal met"; case "missed": "Goal missed"; case "winner": "Winning result"; case "placed": "Result recorded"; case "unranked": "Unranked — your simulated entry returns"; default: "Your entry returns" }
     }
     private func allocation(_ result:ChallengeV1.Allocation,row:ChallengeV1,confirmed:Bool)->some View {
         let own=store.actor.flatMap { result.participants?[$0.uuidString.lowercased()] } ?? result.own

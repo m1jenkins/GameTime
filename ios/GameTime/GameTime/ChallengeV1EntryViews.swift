@@ -56,8 +56,13 @@ struct ChallengeAgreementText: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(policy.scoring)
             if let sourcePolicy {
-                Text(ChallengeHealthCopy.source(sourcePolicy))
-                Text("An observed result can confirm that you met your goal. Missing or incomplete activity cannot confirm a missed goal or a ranking.")
+                Text(ChallengeHealthCopy.source(sourcePolicy, leaderboard: policy.usesReceivedScores))
+                if policy.usesReceivedScores {
+                    Text("We rank what GameTime saves, without checking that your entire Apple Health history is available. Refresh to send activity and check your saved score. An update counts only after GameTime confirms it.")
+                    Text("If we can’t save an update, use Refresh to recover it. If your result is still wrong, ask us to review it before the review deadline.")
+                } else {
+                    Text("An observed result can confirm that you met your goal. Missing or incomplete activity cannot confirm a missed goal or a ranking.")
+                }
                 if let distance = window.distanceMm {
                     Text("Whole outdoor run: \(ChallengeV1Policy.Metric.distance.display(distance)) to \(ChallengeV1Policy.Metric.distance.display(distance * 102 / 100)), including both distances. The whole run must fit inside these dates. Time from start to finish includes pauses.")
                 }
@@ -66,7 +71,11 @@ struct ChallengeAgreementText: View {
                 if let distance = window.distanceMm { Text("Whole run distance: \(ChallengeV1Policy.Metric.distance.display(distance)). Only fictional matching runs are available until the distance rules pass physical testing.") }
             }
             SignalDateSpan(window: window)
-            Text("Initial updates through \(window.syncBy.text(zone: window.timezone)). Corrections through \(window.correctionsBy.text(zone: window.timezone)).")
+            if policy.usesReceivedScores {
+                Text("Save activity by \(window.correctionsBy.text(zone: window.timezone)). First updates and corrections count through this deadline, including the exact deadline.")
+            } else {
+                Text("Initial updates through \(window.syncBy.text(zone: window.timezone)). Corrections through \(window.correctionsBy.text(zone: window.timezone)).")
+            }
             Text("\(challengeMoney(window.amountCents)) simulated per person. Nothing can be paid out or redeemed. No real money moves.")
             Text(policy.missing)
             Text(policy.allocation)
@@ -112,7 +121,10 @@ struct ChallengeV1Create: View {
             _competition = State(initialValue: initialPolicy.competition)
         }
     }
-    private var policy: ChallengeV1Policy { ChallengeV1Policy(rawValue: "\(mode.rawValue)_\(metric.rawValue)_\(mode == .personal ? "goal" : competition.rawValue)_v1")! }
+    private var policy: ChallengeV1Policy {
+        let version = health != nil && mode == .friend && competition == .leaderboard ? "v2" : "v1"
+        return ChallengeV1Policy(rawValue: "\(mode.rawValue)_\(metric.rawValue)_\(mode == .personal ? "goal" : competition.rawValue)_\(version)")!
+    }
     private var config: ChallengeJSON {
         let fmt = DateFormatter(); fmt.timeZone = TimeZone(identifier: zone); fmt.dateFormat = "yyyy-MM-dd"
         var fields: [String: ChallengeJSON] = ["start_date": .string(fmt.string(from: start)), "days": .integer(days), "timezone": .string(zone), "amount_cents": .integer(dollars * 100)]
@@ -121,7 +133,7 @@ struct ChallengeV1Create: View {
     }
     private var draft: String { "\(policy.id)|\(start)|\(days)|\(dollars)|\(zone)|\(distance)|\(target)" }
     private var selectedSource: ChallengeHealthRealSourcePolicy? { ChallengeHealthBindingMapper.selectedSource(metric) }
-    private var unavailable: Bool { health != nil && (!policy.hasTarget || selectedSource == nil) }
+    private var unavailable: Bool { health != nil && ((!policy.hasTarget && !policy.usesReceivedScores) || selectedSource == nil) }
     private var sourceFields: [String: ChallengeJSON] { health != nil ? selectedSource.map { ["source_policy_version": .string($0.identifier)] } ?? [:] : [:] }
     private var planningBinding: ChallengeHealthBinding? {
         guard let actor = store.actor, let selectedSource else { return nil }
@@ -151,7 +163,7 @@ struct ChallengeV1Create: View {
                         Picker("Format", selection: $competition) {
                             ForEach(ChallengeV1Policy.Competition.allCases, id: \.self) { Text($0 == .goal ? "Goal" : "Leaderboard").tag($0) }
                         }.accessibilityIdentifier("beta.create.competition")
-                        Text(policy.hasTarget ? "Each friend chooses a goal before you lock in the roster and ask everyone to agree." : health != nil ? "We can’t confirm a complete activity history for a fair ranking. You can choose a goal instead." : "Choose the roster, then everyone agrees. The best result wins; equal best results share the win.")
+                        Text(policy.hasTarget ? "Each friend chooses a goal before you lock in the roster and ask everyone to agree." : health != nil ? "Choose the roster, then everyone agrees. We rank eligible activity saved by the deadline. Missing or late activity doesn’t count." : "Choose the roster, then everyone agrees. The best result wins; equal best results share the win.")
                     } else { Text("Choose your own goal and review the agreement. Only you can see your activity and result.") }
                 }
                 if unavailable {

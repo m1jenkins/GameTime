@@ -14,11 +14,13 @@ Vault and Edge secrets. All 93 migrations and only the three challenge machine
 functions are installed. All jobs/gates/fixtures remain off, Auth is closed,
 private schemas unexposed and no community selected. The bounded checks passed.
 
-D138/D139 source rules remain adopted. P9 supplies nine available goals and
-four unavailable leaderboards; strict Exercise v1 is preserved and Exercise
-credit v2 is separately versioned. Incomplete history cannot establish misses
-or full rankings. D140 removes the all-13 Beta distribution gate: the working
-Beta scope is nine goals, with four friend leaderboards deferred. All 18 external
+D138/D139 source rules remain adopted. D141 adds [new received-score friend
+leaderboards](docs/RECEIVED_LEADERBOARD_V2.md): rank eligible activity saved through
+the correction deadline, without requiring complete history. Missing scores are
+unranked with entries returned; fewer than two valid scores voids and returns all.
+Old agreements and strict Exercise v1 stay unchanged; new Activity minutes use
+Exercise credit v2. D140 keeps the working Beta scope at nine goals: these four
+leaderboards are optional local capability, not a distribution requirement. All 18 external
 gates and checked-in transport remain closed; the four goal-metric source gate
 and other release acceptance remain unmet. Active operation,
 remaining identity/operating decisions, named operators and broader acceptance

@@ -2,13 +2,15 @@ import SwiftUI
 import GameTimeCore
 
 enum ChallengeHealthCopy {
-    static func source(_ identifier: String) -> String {
+    static func source(_ identifier: String, leaderboard: Bool = false) -> String {
         switch identifier {
         case "apple_watch_steps_v1": "We count eligible steps recorded by Apple Watch in Apple Health. Entries marked as manual and records from unsupported apps or devices don’t count."
         case "apple_watch_exercise_v1": "This agreement’s activity source isn’t available. We can’t check how its Exercise credit was earned. Missing activity won’t count against you."
         case "apple_watch_exercise_credit_v2": "Activity minutes use Apple Exercise credit recorded by Apple Watch. They don’t represent every minute you move. We exclude entries marked as manual and identifiable unsupported apps or devices. Apple Health doesn’t tell us which activity caused every credit, so indirectly derived credit may count."
         case "apple_workout_outdoor_distance_v1": "We count eligible outdoor runs recorded by Apple’s Workout app on Apple Watch. A whole run must fit inside your challenge dates; a run crossing either boundary doesn’t count."
-        case "apple_workout_outdoor_timed_v1": "We use whole outdoor runs recorded by Apple’s Workout app on Apple Watch. Time from start to finish includes pauses. You must finish strictly under your goal time."
+        case "apple_workout_outdoor_timed_v1": leaderboard
+            ? "We use whole outdoor runs recorded by Apple’s Workout app on Apple Watch. Time from start to finish includes pauses. Your fastest eligible saved run counts."
+            : "We use whole outdoor runs recorded by Apple’s Workout app on Apple Watch. Time from start to finish includes pauses. You must finish strictly under your goal time."
         default: "This activity source isn’t available. Refresh your challenge to check its rules."
         }
     }
@@ -40,11 +42,16 @@ struct ChallengeHealthStatusView: View {
     @Bindable var flow: ChallengeHealthFlowStore
     let binding: ChallengeHealthBinding
     var readiness = false
+    var receivedScores = false
     private var state: ChallengeHealthFlowStore.State { flow.state(for: binding) }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(ChallengeHealthCopy.title(state.readiness)).font(.headline).accessibilityIdentifier("beta.health.state")
-            Text(ChallengeHealthCopy.explanation(state.readiness, timed: binding.metric == .timedRunElapsedSeconds, readiness: readiness)).font(.subheadline)
+            if receivedScores && !readiness {
+                Text("Only your score saved by GameTime counts. Missing or late activity doesn’t count. Refresh to send an update and check what we saved.").font(.subheadline)
+            } else {
+                Text(ChallengeHealthCopy.explanation(state.readiness, timed: binding.metric == .timedRunElapsedSeconds, readiness: readiness)).font(.subheadline)
+            }
             if readiness {
                 Button(state.readiness == .notConnected ? "Connect Apple Health" : "Refresh activity check") {
                     Task { await flow.checkReadiness(binding, connect: state.readiness == .notConnected) }

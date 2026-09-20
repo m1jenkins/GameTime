@@ -12,6 +12,17 @@ remain enabled after bounded acceptance. This supersedes their inactive state
 in the installation record below; other gates remain closed, no community is
 selected, and full operational acceptance and a usable beta remain unestablished.
 
+## September 20 received-score leaderboards
+
+D141 adds four optional local `friend_*_leaderboard_v2` policies from D140
+`110c470`, using existing adapters, ingestion, allocation and Signal. See the
+[contract](RECEIVED_LEADERBOARD_V2.md) and [focused checks](../outputs/reports/2026-09-20-received-leaderboard-v2.md).
+Saved partial scores rank through the correction cutoff; missing scores are
+unranked with entries returned, and fewer than two valid scores voids. Old
+agreements, strict Exercise v1 and Personal's promise remain unchanged. D140's
+nine-goal release scope remains; this is not a hosted or release acceptance.
+The sections below retain the earlier completion states and evidence.
+
 ## September 20 bounded P11B hosted installation
 
 The [installation receipt](../outputs/reports/2026-09-20-p11b-hosted-installation.md)

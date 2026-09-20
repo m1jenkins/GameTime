@@ -1,7 +1,8 @@
 # GameTime Beta 1 implementation plan
 
 Owner-approved planning target, September 6, with D135 amendments September 9
-and D140's Beta scope correction September 20, 2026. This document owns the
+and D140's Beta scope correction plus D141's optional received-score leaderboard
+contract September 20, 2026. This document owns the
 future Beta 1 product contract. D134 in [DECISIONS.md](../DECISIONS.md) records
 the original choices; D140 removes the all-13 distribution condition. The older
 [weekly specification](WEEKLY_CHALLENGES_IMPLEMENTATION_PLAN.md) and its
@@ -19,8 +20,8 @@ use [WORKING_BASELINE.md](WORKING_BASELINE.md), the
 [prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md). They reuse completed
 design/backend work and distinguish local Beta, private TestFlight and a proposed
 public simulated launch. This document retains D134/D135's product rules and
-D140's working nine-goal Beta scope. The four friend leaderboards remain a later
-target, with their historical/local policy and test records intact.
+D140's working nine-goal Beta scope. D141 adds optional local received-score
+leaderboards, with historical policy and test records intact.
 
 D135 and [the remaining-work contract](BETA_REMAINING_WORK_CONTRACT.md) add six
 explicit owner decisions. Their Watch architecture, hardware sequencing,
@@ -53,7 +54,8 @@ friend leaderboard design:
 The working Beta 1 release set is nine goals: four friend, four personal and
 community steps. This is the current scope after D140, not a claim of physical
 or hosted acceptance. The four friend leaderboard policies remain specified for
-later delivery and unavailable for new real challenges in Beta 1. Existing
+optional local delivery under D141, without becoming a Beta release gate. New
+v2 creation ranks eligible activity saved by the correction deadline; existing
 leaderboard records retain their original terms and safe lifecycle handling.
 
 Friend and personal policies use scheduled full-day windows lasting 1–30 local
@@ -240,9 +242,20 @@ normalized result. Timed-running leaderboards rank the fastest eligible whole
 workout. Equal normalized results are co-winners and split the active simulated
 pool evenly; integer remainders remain unallocated.
 
-Any unresolved participant voids a leaderboard because the unknown value could
-change the winner. If any exclusion leaves fewer than two resolvable
-participants, void and return all entries.
+For NEW `friend_*_leaderboard_v2` agreements, D141 ranks eligible activity
+successfully saved through the existing correction cutoff, inclusive, without
+requiring complete Apple Health history. Partial saved totals rank at those totals;
+a missing workout cannot improve a saved time. Missing or late activity does not
+count. No valid saved score means unranked and return of that simulated entry.
+Fewer than two valid remaining scores voids and returns all entries. First scores
+and corrections can be saved through end +48 hours for v2 only.
+
+Show the server-saved score, last update, deadline and Refresh; a local read is
+not upload confirmation. Confirmed GameTime failures use exact recovery or review.
+Consent, source rules (including Exercise credit v2), review, exits, privacy and
+nonredeemable simulation remain. [The v2 contract](RECEIVED_LEADERBOARD_V2.md) owns
+implementation detail. Historical leaderboard v1 still voids when any remaining
+participant is unresolved; no old agreement is reinterpreted.
 
 ### Safe exits and account changes
 
@@ -305,7 +318,8 @@ All four goal-metric source policies must pass the physical iPhone/Watch matrix
 before TestFlight distribution of the working nine-goal Beta set. A source that
 cannot support trustworthy miss handling remains disabled and blocks the working
 Beta milestone until the owner makes a separate scope decision. The four
-friend leaderboards do not block this Beta milestone; they remain unavailable for new real challenges.
+friend leaderboards do not block this Beta milestone; new v2 agreements follow
+D141 while historical v1 creation remains blocked.
 
 ## Identity, safety, and product shell
 

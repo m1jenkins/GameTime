@@ -56,11 +56,27 @@ struct ChallengeV1: Codable, Equatable, Identifiable, Sendable {
     let status: String; let revision: Int; let agreementVersion: Int
     let serverTime: ChallengeInstant; let socialHidden: Bool; let agreement: Agreement?
     let members: [Member]; let notice: Notice?; let reviews: [Review]; let final: Final?
+    var showsRanking: Bool { !format.hasTarget && (sourcePolicyVersion == nil || format.usesReceivedScores) }
+    func savedScore(_ member: Member) -> Int? {
+        guard let fact = member.fact,
+              fact.state == (sourcePolicyVersion == nil ? "complete" : "value"),
+              !format.usesReceivedScores || fact.recordedAt <= config.correctionsBy else { return nil }
+        return fact.value
+    }
+    func rankableScore(_ member: Member) -> Int? {
+        guard !member.exited, member.selected, member.consented else { return nil }
+        if format.usesReceivedScores {
+            let result = final?.result ?? notice?.result
+            let status = result?.participants?[member.actorId.uuidString.lowercased()]?.status ?? (socialHidden ? result?.own?.status : nil)
+            if let status, ["excluded", "unranked", "void"].contains(status) { return nil }
+        }
+        return savedScore(member)
+    }
     var rankedMembers: [Member] {
-        guard !format.hasTarget, sourcePolicyVersion == nil else { return members }
+        guard showsRanking else { return members }
         return members.sorted { a, b in
-            let av = a.fact?.state == "complete" ? a.fact?.value : nil
-            let bv = b.fact?.state == "complete" ? b.fact?.value : nil
+            let av = rankableScore(a)
+            let bv = rankableScore(b)
             if av != bv {
                 if let av, let bv { return format.metric == .timed ? av < bv : av > bv }
                 return av != nil
@@ -75,7 +91,7 @@ struct ChallengeV1: Codable, Equatable, Identifiable, Sendable {
     var statusText: String {
         switch status {
         case "published_open": "Joining is open"
-        case "lobby_open": "Choose your goals"
+        case "lobby_open": format.usesReceivedScores ? "Choose your roster" : "Choose your goals"
         case "consent_pending": "Review and agree"
         case "scheduled": "Starts soon"
         case "active": "In progress"

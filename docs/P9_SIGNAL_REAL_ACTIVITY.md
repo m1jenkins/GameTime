@@ -1,5 +1,12 @@
 # P9 Signal real activity — local implementation contract
 
+**D141 continuation, September 20:** [received-score leaderboard v2](RECEIVED_LEADERBOARD_V2.md)
+now ranks eligible server-saved activity through the correction cutoff for NEW
+agreements. It does not require complete history; missing scores return their
+entries and fewer than two valid scores voids. Strict Exercise v1 stays unavailable.
+The original P8/P9 behavior and verification below remain historical records for
+old agreements. D140 still excludes leaderboards from required Beta release scope.
+
 D139 records the owner’s selected scope. The implementation branch is
 `codex/p9-signal-real-activity`, directly from P8
 `8a9d1f007ab235d580d83bae47077a26f13090a7`. Main began at `848ef6e` and advanced separately to `cb3a0ec` during this task;

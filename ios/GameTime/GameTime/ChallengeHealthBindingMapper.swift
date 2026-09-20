@@ -85,12 +85,13 @@ enum ChallengeHealthBindingMapper {
         guard let source = row.sourcePolicyVersion, let agreement = row.agreement,
               let terms = agreement.terms, terms["source_policy_version"]?.string == source,
               terms["policy"]?.string == row.policy,
+              !row.format.usesReceivedScores || terms["score_rule"]?.string == "received_by_correction_cutoff_v2",
               decodeWindow(terms["config"]) == row.config else { throw ChallengeV1Error.invalidResponse }
         return try binding(actor: actor, id: row.id, version: row.agreementVersion, digest: agreement.digest,
             policy: row.format, window: row.config, source: source)
     }
     static func activity(_ fresh: ChallengeV1, actor: UUID) throws -> Activity {
-        guard fresh.format.hasTarget, !fresh.isClosed, let own = fresh.own(actor),
+        guard (fresh.format.hasTarget || fresh.format.usesReceivedScores), !fresh.isClosed, let own = fresh.own(actor),
               own.selected, own.consented, !own.exited,
               ["scheduled", "active", "syncing"].contains(fresh.status) else { throw ChallengeV1Error.unavailable }
         return try Activity(binding: agreement(fresh, actor: actor), row: fresh)

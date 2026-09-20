@@ -5010,3 +5010,43 @@ be entered. The four metric-specific goal source policies, missing-data safety,
 hosted operation, physical/human acceptance and separate distribution approval
 remain required. This scope clarification does not authorize implementation,
 hosted action, TestFlight, recruitment or money.
+
+
+### D141. New friend leaderboards rank activity saved by the deadline
+
+**Explicit owner direction, September 20, 2026:** implement a bounded local
+received-score rule for NEW versioned friend leaderboard agreements. Rank
+eligible activity GameTime successfully saves through the existing correction
+cutoff, inclusive. Do not require proof of complete Apple Health history.
+Partial saved totals rank at those totals; a missing run cannot improve a saved
+time. Missing or late activity does not count. No valid saved score means
+unranked and return of that person's simulated entry, never an inferred zero.
+Fewer than two valid participants voids the challenge and returns every entry.
+Equal normalized scores retain co-winner allocation and nonredeemable simulation.
+
+`friend_{steps,exercise,distance,timed}_leaderboard_v2` freezes
+`received_by_correction_cutoff_v2` in new agreement terms. First saves and
+corrections use end +48 hours; older contracts retain their original end +24
+initial / end +48 correction rules. Reuse the four existing source adapters,
+minimal signed ingestion, evaluator and Signal screens. Exercise uses the
+separately versioned `apple_watch_exercise_credit_v2`; strict Exercise v1 remains
+unavailable. No source truth or history completeness is inferred from an upload.
+
+Show the server-saved score, last saved update, exact deadline and Refresh.
+Pending local activity is not a successful upload. Confirmed upload/server
+failures use exact recovery or the existing participant review path; do not
+silently assign participant fault. Preserve consent/readiness, corrections,
+review timing, exits, privacy, historical agreements and Personal's missing-data
+promise. New creation is allowed only for the new real policy; old leaderboard
+creation remains blocked and old results keep their unresolved/void meaning.
+
+D140's nine-goal Beta scope remains intact: leaderboards are optional local
+product work, not a Beta distribution requirement. This decision supersedes only
+the completeness/creation condition for new v2 leaderboards in D134/D139/D140.
+It does not rewrite their historical entries or dated reports. It authorizes
+focused local implementation/checks and a commit/merge into local main, not
+push, deployment, hosted gates, physical Health upload, distribution or recruitment.
+
+The [local contract](docs/RECEIVED_LEADERBOARD_V2.md) and
+[focused check record](outputs/reports/2026-09-20-received-leaderboard-v2.md)
+separate delivered behavior from unperformed operating/release acceptance.

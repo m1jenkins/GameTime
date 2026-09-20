@@ -48,13 +48,16 @@ struct ChallengeV1Policy: Equatable, Hashable, Identifiable, Sendable {
         var title: String { self == .goal ? "Meet your goal" : "Best result wins" }
     }
     let mode: Mode; let metric: Metric; let competition: Competition
-    var id: String { "\(mode.rawValue)_\(metric.rawValue)_\(competition.rawValue)_v1" }
+    let version: String
+    var usesReceivedScores: Bool { version == "v2" }
+    var id: String { "\(mode.rawValue)_\(metric.rawValue)_\(competition.rawValue)_\(version)" }
     init?(rawValue: String) {
         let parts = rawValue.split(separator: "_")
-        guard parts.count == 4, parts[3] == "v1", let mode = Mode(rawValue: String(parts[0])),
+        guard parts.count == 4, let mode = Mode(rawValue: String(parts[0])),
               let metric = Metric(rawValue: String(parts[1])), let competition = Competition(rawValue: String(parts[2])),
-              (mode == .friend || (mode == .personal && competition == .goal) || (mode == .community && metric == .steps && competition == .goal)) else { return nil }
-        self.mode = mode; self.metric = metric; self.competition = competition
+              (mode == .friend || (mode == .personal && competition == .goal) || (mode == .community && metric == .steps && competition == .goal)),
+              parts[3] == "v1" || (parts[3] == "v2" && mode == .friend && competition == .leaderboard) else { return nil }
+        self.mode = mode; self.metric = metric; self.competition = competition; self.version = String(parts[3])
     }
     static let all: [Self] = Mode.allCases.flatMap { mode in Metric.allCases.flatMap { metric in
         Competition.allCases.compactMap { Self(rawValue: "\(mode.rawValue)_\(metric.rawValue)_\($0.rawValue)_v1") }
@@ -62,12 +65,18 @@ struct ChallengeV1Policy: Equatable, Hashable, Identifiable, Sendable {
     var hasTarget: Bool { competition == .goal }
     var title: String { mode == .personal ? "Your \(metric.title.lowercased()) goal" : mode == .community ? "Community steps" : "\(metric.title) \(hasTarget ? "together" : "challenge")" }
     var scoring: String {
+        if usesReceivedScores {
+            return metric == .timed
+                ? "Your fastest eligible whole run saved by GameTime by the deadline wins. A missing run cannot improve your saved time. Equal times share the win."
+                : "The highest eligible total saved by GameTime by the deadline wins. A partial saved total ranks at that total. Equal totals share the win."
+        }
         if competition == .leaderboard {
             return metric == .timed ? "Your fastest eligible whole run wins. Equal times share the win. There is no target time." : "The highest eligible total wins. Equal totals share the win. There is no qualifying target."
         }
         return metric == .timed ? "Finish an eligible whole run strictly under your agreed time. A time equal to your goal does not meet it. Pauses count toward elapsed time." : "Reach at least your agreed total during the challenge to meet your goal."
     }
     var missing: String {
+        if usesReceivedScores { return "Missing or late activity doesn’t count. With no valid saved score, you’re unranked and your simulated entry returns. If fewer than two people have valid scores, the challenge doesn’t count and all entries return." }
         if competition == .leaderboard { return "If any remaining result is missing or unclear, the challenge doesn’t count and all simulated entries return." }
         if mode == .personal { return "A missing or unclear result never proves a missed goal. Your simulated entry returns if the result cannot be confirmed." }
         return "A missing or unclear result never proves a missed goal. We return that person’s simulated entry and score the remaining results only if the agreed minimum remains."

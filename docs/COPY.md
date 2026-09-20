@@ -336,4 +336,14 @@ Strict v1 screens explain their unavailable source. Never rewrite consent.
 | --- | --- |
 | Exercise credit v2 | Activity minutes — Apple Exercise credit recorded by Apple Watch |
 | Unknown causal origin | Apple Health doesn’t tell us which activity caused every credit, so indirectly derived credit may count. |
-| Real leaderboard unavailable | Leaderboard — Not available yet. Explain that we cannot confirm everyone’s complete activity history for a fair ranking. Offer a goal instead. |
+| Historical real leaderboard v1 unavailable | Leaderboard — Not available yet. Explain that this agreement cannot rank incomplete history; keep review and safe exit available. |
+| Received-score leaderboard v2 | We rank eligible activity saved by GameTime through the deadline. Missing or late activity doesn’t count. |
+| Server-confirmed score | Your saved score · Last saved update · Save activity by [deadline] · Refresh |
+| No valid saved score | Unranked — your simulated entry returns. Fewer than two valid scores means the challenge doesn’t count and all entries return. |
+| Pending/failed upload | We haven’t confirmed this update. Refresh to recover it. If your saved score is still wrong when results arrive, ask us to review it before the review deadline. |
+
+For new v2 leaderboards, disclose that a partial saved total still ranks at that
+total and a missing run cannot improve a saved time. Do not promise complete
+Apple Health history or label a phone-only value as saved. Use factual deadlines
+and recovery actions, never pressure to exercise or increase a simulated entry.
+Historical consent and Personal’s missing-data promise stay unchanged.

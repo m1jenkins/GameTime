@@ -34,11 +34,47 @@ final class ChallengePresentationTests: XCTestCase {
         let corrected = member(actor, 30, target: 100)
         XCTAssertEqual(ChallengePresentation.progress(corrected, in: challenge("personal_steps_goal_v1", [corrected]), actor: actor), 0.3)
     }
+    func testReceivedScoreRanksSavedPartialValuesWithUnknownAndLateUnranked() throws {
+        for metric in ChallengeV1Policy.Metric.allCases {
+            let policy = "friend_\(metric.rawValue)_leaderboard_v2"
+            let template = challenge(policy, [])
+            let at = template.config.correctionsBy
+            let values: [Int?] = [100, 40, nil, 9999]
+            let members = values.enumerated().map { index, value in
+                ChallengeV1.Member(actorId: UUID(), username: "Person", target: nil, selected: true, exited: false, consented: true,
+                    fact: .init(value: value, state: value == nil ? "unresolved" : "value",
+                        recordedAt: index == 3 ? .init(date: at.date.addingTimeInterval(1)) : at, revision: 1))
+            }
+            var row = challenge(policy, members)
+            row.sourcePolicyVersion = ChallengeHealthBindingMapper.selectedSource(metric)?.identifier
+            let expected = metric == .timed ? [2, 1, nil, nil] : [1, 2, nil, nil]
+            XCTAssertEqual(members.map { ChallengePresentation.rank($0, in: row, actor: nil) }, expected)
+            XCTAssertNil(row.savedScore(members[2])); XCTAssertNil(row.savedScore(members[3]))
+            XCTAssertTrue(row.format.missing.contains("unranked"))
+            XCTAssertNil(ChallengeV1Suggestion.value(policy: row.format, days: 7, eligible28DayTotal: 100, best90DayElapsedSeconds: 100))
+        }
+        XCTAssertNil(ChallengeV1Policy(rawValue: "personal_steps_leaderboard_v2"))
+        XCTAssertNil(ChallengeV1Policy(rawValue: "friend_steps_goal_v2"))
+        XCTAssertFalse(ChallengeV1Policy(rawValue: "friend_steps_leaderboard_v1")!.usesReceivedScores)
+    }
+    func testVoidResultKeepsServerSavedScoreVisibleWithoutRankingIt() throws {
+        let actor = UUID()
+        let template = challenge("friend_steps_leaderboard_v2", [])
+        let own = ChallengeV1.Member(actorId: actor, username: "You", target: nil, selected: true, exited: false, consented: true,
+            fact: .init(value: 40, state: "value", recordedAt: template.config.correctionsBy, revision: 1))
+        let final = ChallengeV1.Final(recordedAt: template.config.correctionsBy,
+            result: .init(outcome: "void", participants: [actor.uuidString.lowercased(): .init(status: "void", returnedCents: 2000)],
+                own: nil, entryCents: 2000, unallocatedCents: 0, simulation: "nonredeemable"))
+        var row = challenge("friend_steps_leaderboard_v2", [own], final: final)
+        row.sourcePolicyVersion = "apple_watch_steps_v1"
+        XCTAssertEqual(row.savedScore(own), 40, "A void does not erase the score the server saved")
+        XCTAssertNil(ChallengePresentation.rank(own, in: row, actor: actor))
+    }
     private func member(_ actor: UUID, _ value: Int?, state: String = "complete", exited: Bool = false, target: Int? = nil) -> ChallengeV1.Member {
         .init(actorId: actor, username: "Fictional person", target: target, selected: true, exited: exited, consented: true,
               fact: .init(value: value, state: state, recordedAt: .init(date: Date()), revision: 1))
     }
-    private func challenge(_ policy: String, _ members: [ChallengeV1.Member]) -> ChallengeV1 {
+    private func challenge(_ policy: String, _ members: [ChallengeV1.Member], final: ChallengeV1.Final? = nil) -> ChallengeV1 {
         let start = ChallengeInstant(date: Date(timeIntervalSince1970: 1788757200))
         let end = ChallengeInstant(date: start.date.addingTimeInterval(7 * 86400))
         return .init(id: UUID(), creatorId: members.first?.id, policy: policy,
@@ -46,6 +82,6 @@ final class ChallengePresentationTests: XCTestCase {
                                    distanceMm: policy.contains("timed") ? 1_000_000 : nil,
                                    startsAt: start, endsAt: end, syncBy: end, correctionsBy: end, noticeDue: end),
                      status: "active", revision: 1, agreementVersion: 1, serverTime: start, socialHidden: false,
-                     agreement: nil, members: members, notice: nil, reviews: [], final: nil)
+                     agreement: nil, members: members, notice: nil, reviews: [], final: final)
     }
 }

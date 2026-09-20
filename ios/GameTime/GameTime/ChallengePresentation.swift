@@ -9,10 +9,10 @@ enum ChallengePresentation {
     }
 
     static func rank(_ member: ChallengeV1.Member, in row: ChallengeV1, actor: UUID?) -> Int? {
-        guard row.sourcePolicyVersion == nil, !row.format.hasTarget, !member.exited,
-              let value = value(member, actor: actor) else { return nil }
+        guard row.showsRanking, !row.socialHidden,
+              let value = row.rankableScore(member) else { return nil }
         return 1 + row.members.filter { other in
-            guard !other.exited, let otherValue = self.value(other, actor: actor) else { return false }
+            guard let otherValue = row.rankableScore(other) else { return false }
             return row.format.metric == .timed ? otherValue < value : otherValue > value
         }.count
     }

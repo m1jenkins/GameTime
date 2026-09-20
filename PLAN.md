@@ -21,7 +21,8 @@ exact delivery and separately versioned Apple Exercise credit. Strict Exercise
 v1 stays unavailable. Approved hosted identities/operation and physical/human/release
 acceptance remain.
 All four goal-metric sources remain required for the working nine-goal Beta scope;
-the four friend leaderboards are deferred under D140. Funded launch remains Phase 6.
+D141 adds optional local [received-score leaderboards](docs/RECEIVED_LEADERBOARD_V2.md),
+which remain outside the required release set under D140. Funded launch remains Phase 6.
 Do not restart completed prompts or follow obsolete checkout instructions.
 
 The September 19 [main consolidation](outputs/reports/2026-09-19-main-consolidation.md)
@@ -29,8 +30,9 @@ includes delivered HTTPS intake, durable administrator recovery, suspended
 account access repair, review/appeal/snapshot monitoring, iOS 18 compatibility
 and the fictional Personal lifecycle preview. Local weekly acceptance passed;
 the consolidation record lists CI status at merge. The [P9 local report](outputs/reports/2026-09-20-p9-signal-real-activity.md) records
-the continuation and focused checks. Nine real goal policies and four explicit
-unavailable leaderboard states match D140's working Beta scope. Source-backed,
+the continuation and focused checks. Nine real goal policies remain D140's required Beta scope. D141 adds new versioned
+leaderboards that rank eligible server-saved activity through the correction
+cutoff; old leaderboards retain their original unavailable/void rules. Source-backed,
 hosted, physical and human release acceptance remain open.
 The owner-selected Cron + Edge runtime now has a
 [bounded local scheduling connection](outputs/reports/2026-09-20-p11-local-scheduling.md).

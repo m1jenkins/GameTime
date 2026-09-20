@@ -55,8 +55,8 @@ struct SignalParticipantRow: View {
     private var foreground: Color { SignalTheme.textPrimary }
     private var secondary: Color { SignalTheme.textSecondary }
     private var score: String {
-        ChallengePresentation.value(person, actor: actor).map { row.format.metric.display($0) }
-            ?? (person.fact == nil ? "No update yet" : "Activity unavailable")
+        (row.format.usesReceivedScores ? row.savedScore(person) : ChallengePresentation.value(person, actor: actor)).map { row.format.metric.display($0) }
+            ?? (row.format.usesReceivedScores ? "Unranked" : person.fact == nil ? "No update yet" : "Activity unavailable")
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -78,7 +78,7 @@ struct SignalParticipantRow: View {
     }
     private var identity: some View {
         HStack(spacing: 10) {
-            if !row.format.hasTarget && row.sourcePolicyVersion == nil {
+            if row.showsRanking {
                 Text(ChallengePresentation.rank(person, in: row, actor: actor).map(String.init) ?? "—")
                     .font(.body.bold().monospacedDigit()).frame(minWidth: 18)
                     .accessibilityLabel(ChallengePresentation.rank(person, in: row, actor: actor).map { "Rank \($0)" } ?? "Not ranked")
@@ -89,7 +89,7 @@ struct SignalParticipantRow: View {
     }
     private var value: some View {
         Group {
-            if !redacted, let value = ChallengePresentation.value(person, actor: actor) {
+            if !redacted, let value = (row.format.usesReceivedScores ? row.savedScore(person) : ChallengePresentation.value(person, actor: actor)) {
                 SignalMetricValue(value: value, metric: row.format.metric, size: 24)
             } else {
                 Text(redacted ? "Activity hidden" : score).font(.body.weight(.semibold))
@@ -114,7 +114,7 @@ struct SignalFeaturedChallenge: View {
             if row.format.metric == .timed, let distance = row.config.distanceMm {
                 Text("Whole run: \(ChallengeV1Policy.Metric.distance.display(distance))").font(.subheadline)
             }
-            if row.format.competition == .leaderboard && !row.socialHidden && row.sourcePolicyVersion == nil {
+            if row.showsRanking && !row.socialHidden {
                 VStack(spacing: 0) {
                     ForEach(row.rankedMembers) { member in
                         SignalParticipantRow(row: row, person: member, actor: actor)
@@ -168,7 +168,9 @@ struct SignalGoalProgress: View {
             }
             if row.format.metric == .timed, let distance = row.config.distanceMm {
                 Text("Whole run: \(ChallengeV1Policy.Metric.distance.display(distance))").font(.subheadline)
-                Text("Finish strictly under your agreed time. Pauses count.").font(.footnote)
+                Text(row.format.usesReceivedScores
+                    ? "Your fastest eligible saved run counts. Pauses count."
+                    : "Finish strictly under your agreed time. Pauses count.").font(.footnote)
             }
         }.foregroundStyle(foreground)
     }
