@@ -6,10 +6,29 @@ This supersedes the September 11 cobalt design selection for future work.
 The adoption below remains the implementation contract. The subsequent local
 execution and its verification are recorded separately here.
 
-## Fidelity follow-through — September 20, 2026
+## Staged creation implementation — September 20, 2026
+
+The authorized implementation now replaces `ChallengeV1Create`'s long form with
+Type, Activity and goal, Dates, Amount and Review. Direct Personal entry skips
+Type; the private Staging configuration retains its Personal steps restriction.
+Large precise inputs, readable time zones, native glass controls, opaque goal
+and date facts, collapsed complete rules and unchanged explicit consent are
+implemented in the ordinary app. Saved confirmation uses the accepted receipt
+and recorded challenge. Shared detail uses the same readable date span.
+
+The [dated implementation report](../../outputs/reports/signal-creation-2026-09-20/REPORT.md)
+records source identity, current-reference/before/after captures, tests, build
+identity and the surrounding-route audit. It preserves the accepted phone fixes,
+D141 policy versions, exact pending recovery and all existing agreements. No
+backend, permission, transport or money gate changed. Broader Challenges-list
+composition, complete invitation/community journeys, human VoiceOver and
+physical-device acceptance remain explicit gaps. The corrected Staging build
+is prepared separately; this task does not install or relaunch it on the phone.
+
+## Fidelity follow-through planning — September 20, 2026
 
 The owner reported that ordinary Staging personal-goal creation did not resemble
-the approved Signal experience. Source inspection confirms a remaining
+the approved Signal experience. At the time of planning, source inspection confirmed a remaining
 interaction/composition gap: `ChallengeV1Create` presents one long form, whereas
 the approved browser reference presents five guided stages. This does not
 invalidate the theme migration or its dated checks below, but those results
@@ -19,9 +38,9 @@ current device screen was not independently captured during this inspection.
 The [fidelity plan](SIGNAL_UI_FIDELITY_PLAN.md) and
 [implementation prompt](../SIGNAL_UI_FIDELITY_IMPLEMENTATION_PROMPT.md) define
 the proposed native follow-through, shared-route audit and rendered acceptance.
-They are planning artifacts; the new staged flow has not been implemented or
-verified by this planning task. Preserve current in-flight device fixes and
-later adopted policy versions when implementation begins.
+They are planning artifacts; the planning task did not implement or verify the
+staged flow. Its instruction to preserve in-flight device fixes and later
+adopted policy versions remains part of the implementation contract.
 The owner's follow-up asks for large numbers, visual choices and buttons with
 much less writing, using `unslop` for copy while retaining Signal. The plan
 includes those requirements and skips choices already made by a direct entry.

@@ -1,0 +1,55 @@
+{
+  "native_source_commit": "9092d50fa2872ef22a5fb13afcc0a6af4d806e15",
+  "baseline": "5b4870f",
+  "branch": "codex/signal-creation",
+  "files": [
+    {
+      "path": "ios/GameTime/GameTime/ChallengeCreationDraft.swift",
+      "sha256": "b2fa2f3bf68789b251387dc7fac54ba9c96b327b18702f0c5ba444ef9108893f"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeCreationViews.swift",
+      "sha256": "ec01cb74e091b33ab2d5b4b4d7a932eda89f2920dd357f421d4079fd1b8ffddc"
+    },
+    {
+      "path": "ios/GameTime/GameTime/ChallengeV1EntryViews.swift",
+      "sha256": "c50c8d1bf6593b3be214ffe3ac3e616ddffefc08b6a0ecceecab7b330d38b76a"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SignalChallengeViews.swift",
+      "sha256": "5f8c91049716d076ab5b88983eb4abf91305744d9a5163a20be0f87d3ce82159"
+    },
+    {
+      "path": "ios/GameTime/GameTime/SignalCreationControls.swift",
+      "sha256": "64eed4999eb7c9b6ecb6e00a1caff6cc16a2ac8fdae089d82ed3b8fb18d56508"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengeCreationDraftTests.swift",
+      "sha256": "4ff9621a99e9d637b0397f8ee37b355fc15d6859088fdd0a8feeb05617e680f1"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengeHealthFlowStoreTests.swift",
+      "sha256": "426ef8fbc1a7435a71cee167bb985542ec96c3d12ed7967d80a79bb3c09be89f"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/ChallengeMountedCapture.swift",
+      "sha256": "7ca06cb47b9c71b8cff6deb2441fad62b292c6a8bcbefebfd97548ebd0ec9684"
+    },
+    {
+      "path": "ios/GameTime/GameTimeTests/SignalRenderedTests.swift",
+      "sha256": "ddfdadc8965c98824e338a05940398f9aca69638bce9ee5a0207bb7fe1f52526"
+    },
+    {
+      "path": "ios/GameTime/GameTimeUITests/ChallengeHealthSignalUITests.swift",
+      "sha256": "f56142466e2b7db43b6461b7524b497e83491005a558ef8fcf597af89ca14062"
+    },
+    {
+      "path": "ios/GameTime/GameTimeUITests/ChallengeV1UITests.swift",
+      "sha256": "3c89ce8c44b0f170ec87b2efedd9654c4708aaad111037c351d174e56d6d4882"
+    },
+    {
+      "path": "ios/GameTime/GameTimeUITests/SignalCreationUITests.swift",
+      "sha256": "20eb59c487fb3d67744d8bdfe90708de3383f6185d7a6fb670d9b271213875da"
+    }
+  ]
+}

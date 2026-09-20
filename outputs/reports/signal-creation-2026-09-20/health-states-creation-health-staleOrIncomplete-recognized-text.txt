@@ -1,0 +1,1 @@
+your activity activity needs another check some activity changed or couldn't be read. try refresh after your watch has synced. we won't treat missing activity as zero. refresh activity check

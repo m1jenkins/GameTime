@@ -1,0 +1,36 @@
+{
+  "native_source_commit": "9092d50fa2872ef22a5fb13afcc0a6af4d806e15",
+  "app_path": "/Users/user/Documents/GitHub/GameTime/build/signal-creation-staging-20260920-926.20.1/GameTime.app",
+  "bundle_id": "com.mjenkins.gametime.staging",
+  "version": "0.8.1",
+  "build": "926.20.1",
+  "minimum_ios": "18.0",
+  "executable_sha256": "3f1a0034b537ca53045c4c570c3081a5a4137dfafd2391e02d8ba44c8cc62eeb",
+  "info_plist_sha256": "5d51479f45a087b02196a29add77f22e504f118343d4a9802807ce4f2fea433a",
+  "signature": "Apple Development; codesign --verify --deep --strict succeeded with normal macOS trust-service access",
+  "build_command": {
+    "tool": "XcodeBuildMCP build_device",
+    "scheme": "GameTime-Staging",
+    "configuration": "Staging",
+    "extraArgs": [
+      "CURRENT_PROJECT_VERSION=926.20.1"
+    ],
+    "destination": "generic iOS; no device installation"
+  },
+  "device_build_log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_device_2026-09-20T19-26-37-602Z_pid65444_dd438bed.log",
+  "simulator_build_logs": [
+    "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_sim_2026-09-20T19-21-03-690Z_pid65444_7d394f3a.log",
+    "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_sim_2026-09-20T19-21-12-201Z_pid65444_0376eb43.log",
+    "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_sim_2026-09-20T19-24-43-253Z_pid65444_dba745b8.log"
+  ],
+  "unchanged_configuration": {
+    "GAMETIME_ENV": "staging",
+    "GAMETIME_CHALLENGE_V1_ENABLED": "YES",
+    "GAMETIME_CONTEST_MUTATIONS_ENABLED": "YES",
+    "GAMETIME_PERSONAL_SETTLEMENT_MODE": "stripe_sandbox",
+    "GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE": "YES"
+  },
+  "product_guards": "192 source inputs; Debug/Staging/Release simulator and Staging device all passed; HealthKit linked; no Watch payload/links",
+  "installed": false,
+  "phone_relaunched": false
+}
