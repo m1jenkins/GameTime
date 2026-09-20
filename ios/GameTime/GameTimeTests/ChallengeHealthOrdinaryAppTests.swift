@@ -329,6 +329,16 @@ import XCTest
         defer { window.isHidden = true; previous?.makeKeyAndVisible() }
         try await Task.sleep(for: .milliseconds(400))
         _ = try await captureMountedSignal(window, controller: host, name: "p9-ordinary-root-progress", test: self)
+        try await control(["action": "input", "actor": 0, "mode": "deleted", "value": 0])
+        await health.refresh(id)
+        row = try await store.client.detail(id, actor: actor)
+        XCTAssertEqual(row.own(actor)?.fact?.state, "deleted")
+        XCTAssertNil(ChallengePresentation.value(try XCTUnwrap(row.own(actor)), actor: actor))
+        try await control(["action": "input", "actor": 0, "mode": "unresolved", "value": 0])
+        await health.refresh(id)
+        row = try await store.client.detail(id, actor: actor)
+        XCTAssertEqual(row.own(actor)?.fact?.state, "unresolved")
+        XCTAssertNil(health.states[id]?.localValue)
         // Corrections use the full product period, including end+48h itself.
         try await control(["action": "clock", "now": "2026-10-06T00:00:00Z"])
         try await control(["action": "input", "actor": 0, "mode": "value", "value": 9999])
