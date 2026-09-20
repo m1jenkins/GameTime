@@ -6,11 +6,11 @@ import Observation
 protocol ChallengeHealthPermissionService: AnyObject {
     var supported: Bool { get }
     func connect(_ metric: ChallengeHealthMetric) async throws
-    func updates(for sources: Set<String>, perform: @escaping @MainActor @Sendable () -> Void)
+    func updates(for sources: Set<String>, active: Bool, perform: @escaping @MainActor @Sendable () -> Void)
 }
 
 extension ChallengeHealthPermissionService {
-    func updates(for sources: Set<String>, perform: @escaping @MainActor @Sendable () -> Void) {}
+    func updates(for sources: Set<String>, active: Bool, perform: @escaping @MainActor @Sendable () -> Void) {}
 }
 
 @MainActor
@@ -72,7 +72,7 @@ final class ChallengeHealthFlowStore {
         cancelAll(); self.actor = actor; suspended = false
         actorSession = dependencies.actorSession?()
         states = [:]; suggestions = [:]; acknowledged = [:]; connected = []; pending = []; operationVersions = [:]; stateBindings = [:]
-        dependencies.permission.updates(for: [], perform: {})
+        dependencies.permission.updates(for: [], active: false, perform: {})
         guard let actor else { return }
         do { connected = try dependencies.cache.connected(actor: actor); pending = try dependencies.cache.pending(actor: actor) }
         catch { /* A fresh retry after unlock must restore state before reading. */ }
@@ -394,11 +394,15 @@ final class ChallengeHealthFlowStore {
             timeZoneIdentifier: binding.challengeWindow.timeZoneIdentifier, calendar: .gregorian), purpose: purpose)
     }
     private func updateOpportunities() {
-        dependencies.permission.updates(for: suspended || actor == nil ? [] : connected) { [weak self] in
+        let active = !suspended && actor != nil
+        dependencies.permission.updates(for: active ? connected : [], active: active) { [weak self] in
             Task { @MainActor [weak self] in await self?.refresh() }
         }
     }
-    private func restoreConnection(_ actor: UUID) throws { connected = try dependencies.cache.connected(actor: actor) }
+    private func restoreConnection(_ actor: UUID) throws {
+        let saved = try dependencies.cache.connected(actor: actor)
+        if connected != saved { connected = saved; updateOpportunities() }
+    }
     private func requireActive(_ actor: UUID, _ epoch: UUID) async throws {
         let access = try await challenges.client.read("challenge_access_status_v1", fields: [:], actor: actor, as: ChallengeV1Access.self)
         try await check(actor, epoch)

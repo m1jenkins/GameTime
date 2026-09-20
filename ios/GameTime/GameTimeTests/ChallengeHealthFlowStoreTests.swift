@@ -5,6 +5,23 @@ import XCTest
 @testable import GameTime
 
 @MainActor final class ChallengeHealthFlowStoreTests: XCTestCase {
+    func testUnlockOpportunityWorksBeforeSavedHealthConnectionsCanBeReadAndStopsOnSignOut() async throws {
+        let permission = HealthKitChallengeHealthPermissionService()
+        var updates = 0
+        permission.updates(for: [], active: true) { updates += 1 }
+        defer { permission.updates(for: [], active: false, perform: {}) }
+        try await Task.sleep(for: .milliseconds(100))
+        let before = updates
+        NotificationCenter.default.post(name: UIApplication.protectedDataDidBecomeAvailableNotification, object: nil)
+        try await Task.sleep(for: .milliseconds(25))
+        XCTAssertGreaterThan(updates, before, "Locked connection state must not suppress unlock recovery")
+        permission.updates(for: [], active: false, perform: {})
+        try await Task.sleep(for: .milliseconds(25))
+        let stopped = updates
+        NotificationCenter.default.post(name: UIApplication.protectedDataDidBecomeAvailableNotification, object: nil)
+        try await Task.sleep(for: .milliseconds(25))
+        XCTAssertEqual(updates, stopped)
+    }
     func testLaunchRecoversSignedReadinessWithoutListedChallengesOrPendingWork() async throws {
         let h = try FlowHarness(); defer { h.remove() }
         let binding = try h.binding(); h.loseReadinessResponse = true
