@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GameTime · Simpler goal creation</title>
+<style>
+:root{--canvas:#e9edf3;--surface:#fbfcfe;--panel:#fff;--soft:#eff3f8;--ink:#141c28;--muted:#5a6879;--line:#d8e0eb;--accent:#2458ed;--selection:#e8efff;--onaccent:#fff;--glass:rgba(249,252,255,.8);color-scheme:light}
+:root[data-theme=dark]{--canvas:#0c1017;--surface:#141a23;--panel:#141a23;--soft:#1d2632;--ink:#f1f5fb;--muted:#a2afc0;--line:#303c4d;--accent:#86a9ff;--selection:#25375c;--onaccent:#0f1c38;--glass:rgba(43,55,73,.84);color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}button,input,select,textarea{font:inherit}button,a,input,select,summary{touch-action:manipulation}button{cursor:pointer}button:disabled{cursor:default;opacity:.42}a{color:var(--accent);text-underline-offset:3px}button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:4px}button{border:0;color:inherit;background:transparent}h1,h2,h3,p{margin:0}h1{font-size:clamp(36px,4.7vw,62px);line-height:1.06;letter-spacing:-.04em;max-width:690px}h2{font-size:30px;line-height:1.16;letter-spacing:-.03em}h3{font-size:19px;line-height:1.3;letter-spacing:-.02em}.muted,.caption{color:var(--muted)}.caption{font-size:13px}.eyebrow{font-size:12px;letter-spacing:.06em;font-weight:650;color:var(--muted);margin-bottom:18px}.wrap{max-width:1180px;margin:auto;padding:0 32px}header{border-bottom:1px solid var(--line);background:var(--surface)}.top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-top:19px;padding-bottom:19px}.brand{display:flex;align-items:center;gap:12px;font-weight:650}.brand svg{width:28px;color:var(--accent)}.nav{display:flex;align-items:center;gap:18px;flex-wrap:wrap;font-size:14px}.nav a{text-decoration:none;color:var(--ink)}.theme{min-width:44px;min-height:44px;border:1px solid var(--line);border-radius:50%;background:var(--soft)}.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:54px;padding-top:60px;padding-bottom:64px;align-items:start}.hero>*{min-width:0}.lead{font-size:19px;line-height:1.55;color:var(--muted);margin:24px 0;max-width:570px}.primary,.secondary{display:inline-flex;justify-content:center;align-items:center;min-height:50px;padding:12px 24px;border-radius:999px;font-weight:600;text-decoration:none}.primary{background:var(--accent);color:var(--onaccent)}.secondary{background:var(--soft);color:var(--ink);border:1px solid var(--line)}.actions{display:flex;flex-wrap:wrap;gap:12px;margin:26px 0}.rules{margin-top:38px;border-top:1px solid var(--line)}.rule{display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px;padding:18px 0;border-bottom:1px solid var(--line)}.rule .n{color:var(--accent);font-size:24px;font-variant-numeric:tabular-nums}.rule p{font-size:15px;color:var(--muted);margin-top:5px}.sample{max-width:390px;width:100%;justify-self:end}.sample-label{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px;font-size:12px;color:var(--muted)}.phone{background:var(--surface);border:1px solid var(--line);border-radius:34px;padding:18px 24px 24px;min-height:656px;display:flex;flex-direction:column;box-shadow:0 18px 45px #10234112}.phone-top{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600;margin:0 0 18px;min-height:44px}.round{width:44px;height:44px;display:inline-grid;place-items:center;background:var(--glass);border:1px solid var(--line);border-radius:50%;font-size:20px}.disclosure{font-size:11px;text-align:center;color:var(--muted);background:var(--soft);padding:7px 4px;margin:0 -24px 22px}.progress{display:flex;gap:5px;margin-bottom:19px}.progress span{height:3px;background:var(--line);flex:1}.progress span.on{background:var(--accent)}.step-meta{font-size:12px;color:var(--muted);margin-bottom:12px}.phone h3{font-size:29px;line-height:1.16;letter-spacing:-.035em;margin-bottom:22px}.phone .page{flex:1;min-width:0}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 30px}.choice{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:11px 8px;font-size:13px;min-height:46px;text-align:center}.choice[aria-pressed=true]{background:var(--selection);color:var(--accent);border-color:var(--accent);font-weight:600}.number{font-size:clamp(50px,5vw,72px);font-weight:500;line-height:1.12;letter-spacing:-.05em;font-variant-numeric:tabular-nums}.number-input{width:100%;min-width:0;border:0;background:transparent;color:var(--ink);padding:0;outline-offset:8px}.unit{font-size:15px;color:var(--muted);margin-top:4px}.edit-hint{font-size:12px;color:var(--muted);margin-top:14px}.bottom{margin-top:30px}.bottom .primary{width:100%}.metric-wrap{padding:8px 0 28px;border-bottom:1px solid var(--line)}.counter{display:flex;gap:20px;align-items:center;justify-content:space-between;margin-bottom:23px}.date-row{padding:17px 0;border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;justify-content:space-between;font-size:14px}.date-row>*{min-width:0}input[type=date],select{max-width:180px;width:auto;min-height:44px;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--ink);font-size:13px}.amount{display:flex;align-items:center;gap:5px;max-width:260px}.amount .number-input{width:100%}.fact{padding:13px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:18px;font-size:14px}.fact span{color:var(--muted)}.fact b{text-align:right;font-weight:550}.status{display:flex;align-items:center;gap:9px;font-size:14px;margin:18px 0}.status i{width:7px;height:7px;border-radius:50%;background:var(--accent)}.phone details{font-size:13px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}summary{cursor:pointer;min-height:48px;padding:12px 0}.phone details p{color:var(--muted);margin-bottom:12px;line-height:1.6}.consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;margin-top:20px;line-height:1.5}.consent input{width:21px;height:21px;flex:none;accent-color:var(--accent);margin:0}.demo-note{font-size:12px;line-height:1.5;color:var(--muted);margin-top:14px}.demo-status{min-height:22px;margin-top:8px;font-size:13px;color:var(--accent)}.section{padding-top:52px;padding-bottom:56px;border-top:1px solid var(--line)}.section-head{max-width:700px;margin-bottom:28px}.section-head p{color:var(--muted);margin-top:12px}.flow{width:100%;height:auto;color:var(--ink);display:block}.flow .box{fill:var(--surface);stroke:var(--line)}.flow text{font-family:inherit;fill:var(--ink)}.flow .num{fill:var(--accent);font-size:27px;font-weight:550}.flow .label{font-size:16px;font-weight:600}.flow path{stroke:var(--muted);fill:none}.build-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 40px}.build-grid>*{min-width:0}.build-item{padding:24px 0;border-top:1px solid var(--line)}.build-item p{color:var(--muted);margin-top:9px}.compare{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:60px;align-items:start}.compare>*{min-width:0}.compare img{width:100%;max-width:310px;border:1px solid var(--line);border-radius:20px;display:block}.detail-list{padding:0;list-style:none;margin:22px 0}.detail-list li{padding:14px 0;border-bottom:1px solid var(--line)}.detail-list strong{display:block}.detail-list span{font-size:15px;color:var(--muted)}.prompt-box{padding:32px;background:var(--surface);border:1px solid var(--line);border-radius:18px}.prompt-box h2{max-width:680px}.prompt-box p{margin-top:14px;color:var(--muted)}.prompt-box details{border-top:1px solid var(--line);margin-top:20px}.prompt-text{width:100%;max-width:100%;min-height:380px;resize:vertical;background:var(--soft);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:18px;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere}pre{font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%;padding:20px;background:var(--soft);border-radius:8px}footer{font-size:12px;color:var(--muted);padding:24px 0 40px;border-top:1px solid var(--line)}figure{margin:0}figcaption{font-size:12px;color:var(--muted);margin-top:12px}.copy-status{min-height:22px;font-size:13px;color:var(--accent);margin-top:10px}button,a,summary{scroll-margin:20px}@media(max-width:800px){.hero{grid-template-columns:minmax(0,1fr);gap:35px;padding-top:36px}.sample{justify-self:center}.compare{grid-template-columns:minmax(0,1fr);gap:25px}.compare figure{max-width:320px}.build-grid{grid-template-columns:minmax(0,1fr)}.wrap{padding-left:20px;padding-right:20px}.nav{gap:12px}.nav a:first-child{display:none}.flow .label{font-size:18px}.prompt-box{padding:22px}.hero h1{max-width:550px}}@media(max-width:400px){.phone{padding-left:20px;padding-right:20px;border-radius:25px}.phone .disclosure{margin-left:-20px;margin-right:-20px}.top{gap:8px}.nav{gap:9px;font-size:12px}.brand{font-size:14px;gap:7px}.phone h3{font-size:26px}.number{font-size:62px}.actions>*{width:100%}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body>
+<header><div class="wrap top"><div class="brand"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M3 23V13M13 23V6M23 23V1" stroke="currentColor" stroke-width="3"/></svg>GameTime / Signal</div><nav class="nav" aria-label="Plan navigation"><a href="#approach">Build plan</a><a href="#handoff">Codex prompt</a><button class="theme" id="theme" aria-label="Switch appearance">◐</button></nav></div></header>
+<main class="wrap">
+<section class="hero" id="proposal"><div><p class="eyebrow">IMPLEMENTATION PLAN · SEPTEMBER 20, 2026</p><h1>Create a goal with four clear steps.</h1><p class="lead">Keep Signal. Replace the long form with visual choices and large, editable numbers. Show help when it is needed.</p><div class="actions"><a href="#handoff" class="primary">Get the Codex prompt</a><a href="#approach" class="secondary">Read the plan</a></div><p class="caption">Direct Personal entry skips “Who?” because you already chose.</p><div class="rules"><div class="rule"><span class="n">01</span><div><h3>Put the chosen value first.</h3><p>Tap the goal or amount to edit it. Keep units and dates beside it.</p></div></div><div class="rule"><span class="n">02</span><div><h3>Keep each decision short.</h3><p>A heading, controls and one clear next button. No paragraphs to work through.</p></div></div><div class="rule"><span class="n">03</span><div><h3>Make review easy to scan.</h3><p>Show the important facts. Keep every rule available in a named disclosure.</p></div></div></div></div>
+<div class="sample"><div class="sample-label"><span>PROPOSED PERSONAL FLOW</span><span>Try the controls ↓</span></div><div class="phone"><div class="phone-top"><button class="round" id="back" aria-label="Previous step">‹</button><span>Personal goal</span><button class="round" id="reset" aria-label="Reset layout preview">↺</button></div><div class="disclosure">Simulated stakes — no real money moves.</div><div class="progress" id="progress" aria-hidden="true"></div><div class="step-meta" id="step-meta"></div><div class="page" id="page"></div><div class="bottom"><button class="primary" id="next">Continue →</button></div></div><p class="demo-note">Layout proposal with fictional values. This does not read activity, create a goal or change the app. The full rules below are a preview excerpt; the app will retain its complete agreement.</p><div class="demo-status" id="demo-status" role="status"></div></div></section>
+<section class="section" id="approach"><div class="section-head"><p class="eyebrow">THE FLOW</p><h2>Choose, adjust, then review.</h2><p>Generic challenge creation adds the type choice first. A direct Personal entry starts here.</p></div><svg class="flow" viewBox="0 0 1080 132" role="img" aria-labelledby="flow-title"><title id="flow-title">Personal creation has four stages: activity and goal, dates, amount, review.</title><g id="flow-goal"><title>First choose activity and goal</title><rect class="box" x="1" y="1" width="240" height="118" rx="12"/><text class="num" x="25" y="44">01</text><text class="label" x="25" y="83">Activity + goal</text></g><path d="M251 60h18m-6-6 6 6-6 6"/><g id="flow-dates"><title>Then select dates</title><rect class="box" x="279" y="1" width="240" height="118" rx="12"/><text class="num" x="303" y="44">02</text><text class="label" x="303" y="83">Dates</text></g><path d="M529 60h18m-6-6 6 6-6 6"/><g id="flow-amount"><title>Then set the simulated amount</title><rect class="box" x="557" y="1" width="240" height="118" rx="12"/><text class="num" x="581" y="44">03</text><text class="label" x="581" y="83">Amount</text></g><path d="M807 60h18m-6-6 6 6-6 6"/><g id="flow-review"><title>Finally review and explicitly agree</title><rect class="box" x="835" y="1" width="244" height="118" rx="12"/><text class="num" x="859" y="44">04</text><text class="label" x="859" y="83">Review</text></g></svg><div class="build-grid"><article class="build-item"><h3>1. Compare the actual screens.</h3><p>Capture native creation, agreement and detail. Compare them with the current Signal reference and name each gap.</p></article><article class="build-item"><h3>2. Build the controls and steps.</h3><p>Use one draft across the flow. Back keeps your choices; changing agreed details requires fresh review.</p></article><article class="build-item"><h3>3. Finish the whole goal journey.</h3><p>Apply the same hierarchy to confirmation, detail and history. Check shared friend creation and the surrounding tabs.</p></article><article class="build-item"><h3>4. Verify the rendered result.</h3><p>Test the actions, inspect every step and compare screenshots. Prepare an identified Staging build without interrupting the current phone session.</p></article></div></section>
+<section class="section compare" id="reference"><div><p class="eyebrow">SAME DESIGN, LESS WORK</p><h2>The reference already points the way.</h2><ul class="detail-list"><li><strong>Keep Signal's visual language.</strong><span>System type, clear blue actions, open rows and native controls.</span></li><li><strong>Replace the long form.</strong><span>Large inputs and choices, with explanations shown only when useful.</span></li><li><strong>Keep the goal rules intact.</strong><span>The existing dates, amounts, source rules, consent and recovery still apply.</span></li><li><strong>Use plain language.</strong><span>The prompt requires unslop for new copy. Mobbin is optional help for a specific control.</span></li></ul><p class="caption">Confirmed today: the current creation code is one scrolling form. The Signal theme is already connected. The exact screen on the owner's phone was not captured in this investigation.</p></div><figure><img src="signal-ui-fidelity-assets/signal-create-reference.png" alt="Approved Signal reference showing large challenge choice rows and a Continue button" loading="lazy"><figcaption>Saved Signal reference, September 13. The implementation task must also inspect the current reference source.</figcaption></figure></section>
+<section class="section" id="acceptance"><div class="section-head"><p class="eyebrow">DONE MEANS</p><h2>You can see the decision and the next action.</h2></div><div class="build-grid"><article class="build-item"><h3>No wall of text during setup.</h3><p>Values and controls lead. Rules remain complete and available without filling every step.</p></article><article class="build-item"><h3>Back, edit and retry all work.</h3><p>No lost draft, stale consent, duplicate goal or false success.</p></article><article class="build-item"><h3>Small screens and large text hold up.</h3><p>Light, dark, keyboard and supported solid fallbacks have actual native screenshots.</p></article><article class="build-item"><h3>The report names what was checked.</h3><p>Matched screens, remaining gaps and device checks stay separate. A theme rename is not visual acceptance.</p></article></div></section>
+<section class="section" id="handoff"><div class="prompt-box"><p class="eyebrow">NEW CODEX CHAT</p><h2>The implementation prompt is ready.</h2><p>It includes the visual requirements, source files, current work to preserve, tests and completion checks.</p><div class="actions"><button class="primary" id="copy">Copy implementation prompt</button><button class="secondary" id="download">Download prompt</button></div><div id="copy-status" class="copy-status" role="status"></div><details><summary>Read the complete prompt</summary><textarea id="prompt" class="prompt-text" aria-label="Complete Codex implementation prompt" readonly># Implement the approved Signal creation experience
+
+Work on GameTime in `/Users/user/Documents/GitHub/GameTime`. Implement the
+Signal creation flow described below. I have already selected
+Signal; do not create a new visual direction. Carry this through local
+implementation, focused verification, documentation, commit and merge into
+local `main`. Do not stop after proposing another plan. Do not push or deploy,
+change hosted settings, or reinstall/relaunch my phone during my current test.
+
+My main complaint: creating a personal goal feels like a spreadsheet with far
+too much writing. Use visuals, large editable numbers and buttons. Keep the
+Signal design. Do not just split the same wall of text over several screens.
+
+Use `$unslop` at `/Users/user/.codex/skills/unslop/SKILL.md` for new app copy and
+the handoff. Mobbin is available if a specific input or selection interaction
+needs a reference; keep it secondary to Signal and inspect the actual images.
+
+## Context and authority
+
+While creating a personal goal in the ordinary Staging app, I found that it did
+not look like the Signal experience we approved. Investigation confirmed that
+Signal is already the normal native theme, but `ChallengeV1Create` still uses
+one long form where the approved reference has a guided five-stage flow.
+The creation screen&#x27;s layout and navigation differ from the reference. Do not assume it is an old
+build, a Cobalt theme switch or a request to change the palette again.
+
+Read `AGENTS.md` and its required files, especially `docs/WORKING_BASELINE.md`,
+the latest `DECISIONS.md`, `docs/COPY.md` and
+`docs/design/SIGNAL_UI_FIDELITY_PLAN.md`. Design authority is:
+
+- `docs/design/SIGNAL_UI_MIGRATION.md`
+- `outputs/design/2026-09-13-clickable-app-alternate/DESIGN.md`
+- The current `index.html`, `signal.js`, CSS and `LIQUID_GLASS_REVIEW.md` in that
+  same directory. Render and inspect the reference; dated screenshots can be
+  older than its later refinements.
+
+Its fictional values, product rules and browser chrome are not production
+requirements. Preserve current adopted rules and exact historical agreements.
+Use the relevant iOS visual-design, SwiftUI and native verification skills.
+
+## Start without disturbing current work
+
+Inspect status, branches and current local `main` first. At handoff,
+`codex/private-goal-consent` at `7bca11c` had uncommitted native/backend fixes for
+goal review and activity readiness. Local `main` separately reached `dbc769c`
+with D141 received-score leaderboard work. These are dated observations, not
+instructions to reset to either commit. Re-read their latest state.
+
+Use a short-lived `codex/` branch from current main. Preserve dirty work and
+coordinate through an isolated worktree if necessary. Do not reset, stash,
+overwrite or commit another task&#x27;s changes. Integrate accepted phone fixes
+before final verification; keep current readiness/recovery behavior and D141&#x27;s
+version distinctions. Do not blindly restore the older blanket leaderboard ban.
+Independent reference/component work can proceed while another task finishes.
+
+## Implement the flow
+
+First capture the current native creation/review/detail with fictional local
+data and compare them with the current Signal reference. Audit Home, Challenges,
+You, shared friend creation, invitations/community entry and retained Existing
+challenges. Record matches, concrete mismatches and unverified routes; prioritize
+the full new Personal journey. Do not claim unrelated routes match without
+looking at them or silently expand into a product/architecture rewrite.
+
+Replace `ChallengeV1Create`&#x27;s long form with five native stages:
+
+1. **Type:** accessible full-width choice buttons. Generic Create includes this
+   stage; direct Personal entry skips this answered question and shows progress
+   for the remaining four stages. Preserve current mode/version availability.
+2. **Activity and goal:** activity buttons and a large editable goal number with
+   its unit/period, optional deliberately selected suggestion, and timed-run
+   distance where needed. Do not invent a target default from the mockup.
+3. **Dates:** large duration, calendar, readable time zone and start/end span using existing
+   full-local-day/server-time semantics.
+4. **Amount:** large editable dollar value with the current default/range and
+   the short simulation disclosure. Avoid amount upsells and precision sliders.
+5. **Review:** visual summary, complete rules behind a named disclosure, activity status,
+   explicit unchecked consent and the clear final creation action.
+
+Ordinary steps should need only a short heading, control labels and at most one
+brief helper sentence. Show explanation on demand or when an error needs it.
+Use a large editable number with native numeric entry and accessible controls;
+keep precise entry for every valid value. Replace the raw `Area/City` field
+with a readable zone selector while preserving valid choices and exact IDs.
+Keep one obvious primary button, usable Back/Close and simple progress. Never
+hide consent-critical facts, source limits or error recovery to hit a text quota.
+Do not make the review another spreadsheet or expand every rule by default.
+
+Use one stable draft owner across child steps. Preserve choices when going
+back, initialize defaults once, and make dependent-field resets explicit.
+Do not run whole-flow cancellation when an individual step disappears.
+Keep actor/session/draft fencing and ignore stale async responses. Changes to
+agreed details must invalidate preview/consent and the readiness context required
+by the current accepted Health implementation. Browsing/permission completion
+never supplies consent. Retain current date/amount defaults and validation.
+
+Reuse `SignalTheme`, existing native controls and semantic typography. Match
+the reference&#x27;s hierarchy, alignment, open rows, action emphasis and appropriate
+materials. Keep facts/rules/plots opaque, retain approved accent bands, and
+preserve supported older-iOS solid fallbacks. Every step needs accessible Back,
+Close and one clear advancing action. Handle keyboard and large text properly.
+
+Keep all detailed agreement information accessible, including source meaning,
+exact dates/time zone, simulated amount/outcomes, exit and review rules.
+Preserve consent wording and server contracts. Errors must retain input and
+give an actionable next step. Use `docs/COPY.md` for every changed string.
+
+After accepted server success, show the recorded goal, scheduled/active status
+and a route to its detail using existing receipt/model data. Correct confirmed
+Signal mismatches in connected Personal confirmation, detail, review/history
+and shared creation components. Never invent activity, a successful save, a
+balance or a missing-data loss to match a mockup. Preserve safe exits, privacy,
+historical Personal/Solo/charity access, and pending exact-request recovery.
+
+Likely native files include `ChallengeV1EntryViews.swift`, `ChallengeV1Views.swift`,
+`SignalChallengeViews.swift`, `SignalTheme.swift`, `ChallengeHealthViews.swift`
+and `AppShellView.swift`. Inspect actual callers and tests before splitting
+views. Reuse stores/clients; avoid a parallel flow or new theme flag. This task
+does not authorize backend/schema changes, new Health permissions, policy or
+consent versions, transport-gate changes, payments or historical data cleanup.
+
+## Verify what a person actually sees and does
+
+Build Debug, Staging and Release simulator products and run
+`scripts/check-iphone-product.py`. Extend/adapt focused `ChallengeV1UITests`,
+`ChallengeHealthSignalUITests` and relevant units. Preserve assertions while
+updating navigation and identifiers. Use existing fictional ordinary-app/Health
+journeys and an owned disposable local stack only when needed.
+
+Verify all four Personal metric inputs; Back/value retention; invalid input;
+review after edits; consent reset; stale preview/account-switch responses;
+activity failure/retry; and duplicate/pending submissions using existing exact
+recovery. Smoke shared friend creation/current policy versions and retained
+access. Do not reset another checkout&#x27;s database or submit my real goal.
+
+Capture and inspect the entire flow and saved detail: standard light/dark,
+compact width, large accessibility text, keyboard open, supported iOS 18 solid
+fallback, and relevant reduced-transparency/contrast/motion states. Include
+loading, unavailable/denied activity, retry and pending/saved states. Check
+accessible selection/progress, focus order, 44-point targets, clipping and safe
+areas. Separate automated evidence from unperformed human VoiceOver checks.
+
+Compare native screenshots beside the matching current Signal reference with
+comparable content. Explain justified native or policy differences. A renamed
+component, changed palette, passing tests or preview screen is not sufficient.
+Reject the result if ordinary creation still reads like a form full of paragraphs:
+the current decision, chosen value and next button must be obvious at a glance.
+Use focused checks; do not run the full historical weekly/release/backend matrix
+unless an actual change or failure requires it.
+
+## Finish and hand off
+
+Produce a dated report with source identity, before/after native screenshots,
+reference comparisons, commands/results, failures, remaining route gaps and
+unperformed physical/human checks. Update the Signal migration record honestly
+without rewriting its historical results. Commit your completed authorized
+work, integrate concurrent accepted fixes, rerun affected checks and merge into
+local main. Retire the temporary worktree after preserving its artifacts.
+
+Prepare an identifiable corrected Staging build for a coordinated in-place phone
+update. Preserve the phone&#x27;s container, account, saved goals and pending requests;
+do not uninstall or interrupt my current session. Report when the build is
+ready, and do not claim it is installed until that action is actually performed.
+
+Finish with what changed, which screens were visually verified, remaining gaps,
+the local main commit and the build status. Call this locally complete only
+when the staged creation and connected Personal journey match the adopted
+design, consequential behavior is preserved and shared routes pass regression
+checks. Keep device/human acceptance and any unreviewed routes explicit.
+</textarea></details><details><summary>Read the detailed implementation plan</summary><pre># Signal UI fidelity follow-through
+
+Prepared September 20, 2026. **Proposed implementation plan; no native UI changes
+or new acceptance results are established by this document.** The owner asked
+for a plan and a prompt after the installed Staging personal-goal flow did not
+look like the agreed Signal design.
+
+The owner&#x27;s follow-up is explicit: creation feels like a spreadsheet with too
+much writing. Use visuals, large numbers and buttons. Use the `unslop` skill for
+copy. Keep Signal; Mobbin is optional help for a specific interaction, not a
+reason to start another design exploration.
+
+## Outcome
+
+Make creating and reviewing a personal goal match the approved Signal design:
+deliberate steps, strong hierarchy, open aligned rows, large editable numbers,
+clear actions and a readable agreement. Apply shared component fixes to friend
+creation and check the surrounding app for visible inconsistencies.
+
+The design direction is already selected. Reuse
+[Signal&#x27;s design specification](../../outputs/design/2026-09-13-clickable-app-alternate/DESIGN.md),
+the current [interactive reference](../../outputs/design/2026-09-13-clickable-app-alternate/index.html),
+its `signal.js` / CSS and material review. Inspect the rendered reference;
+individual saved screenshots can predate later refinements. Browser sample
+rules, dates, scores, names and unavailable features are not product authority.
+
+## What is established and what is not
+
+- Ordinary launch selects `SignalProductShell`. `SignalTheme.swift` implements
+  the adopted semantic palette and system typography. The September 13 migration
+  removed active Cobalt rendering and custom fonts; its dated checks remain valid.
+- `ChallengeV1Create` in `ChallengeV1EntryViews.swift` puts type/activity, dates,
+  amount, goal and agreement in one scrolling form. The approved reference&#x27;s
+  `create()` is a five-stage journey with choice rows, progress and Continue.
+  This is a confirmed interaction/composition gap, not proof of a Cobalt fallback.
+- Today&#x27;s [device receipt](../../outputs/reports/2026-09-20-private-device-goal.md)
+  records a fresh ordinary Staging installation. This investigation did not
+  capture the owner&#x27;s current screen or independently read the installed binary.
+- The inspection checkout was `codex/private-goal-consent` at `7bca11c`, with
+  uncommitted goal/readiness/recovery work. Meanwhile local `main` advanced to
+  `dbc769c`, including D141&#x27;s optional received-score leaderboards. These are
+  different source states. Reinspect them at implementation start; do not use
+  the earlier &quot;all leaderboards unavailable&quot; rule as a blanket new requirement.
+- Broader native/reference differences require a rendered audit. Do not call
+  every screen wrong, or every screen complete, from the creation finding alone.
+
+## Scope and sequence
+
+### 1. Establish a safe, current baseline and capture the gaps
+
+Read `AGENTS.md`, `PROJECT_MEMORY.md`, `README.md`, `docs/WORKING_BASELINE.md`,
+`docs/BUSINESS_MODEL.md`, `docs/BETA_IMPLEMENTATION_PLAN.md`, `PLAN.md`, the latest
+decisions, `docs/COPY.md`, the Signal migration contract and current private-device
+receipt. Read D141 / `docs/RECEIVED_LEADERBOARD_V2.md` when present.
+
+Use a short-lived branch from current local `main`. Preserve all in-flight work;
+do not switch, reset, stash or commit someone else&#x27;s dirty checkout. If the
+phone-fix branch is still active, do independent reference/component work in
+an isolated worktree. Integrate its completed fixes through their owning task
+before final acceptance; do not declare an older-baseline candidate ready.
+
+Capture real native screenshots with fictional local data and inspect the
+current browser reference. Make a route checklist with **matches / differs /
+unverified**, the smallest correction, and an image or source pointer:
+
+- Primary: new Personal create, activity check, agreement, saved confirmation,
+  scheduled/active detail, review and history.
+- Shared regression boundary: friend create, invitations/agreement, community
+  entry, Home, Challenges and You.
+- Secondary audit: sign-in/onboarding, account/Health/support/privacy screens
+  and retained **Existing challenges** access. Record remaining independent
+  redesigns separately rather than silently expanding this task.
+
+**Exit:** concrete before-images and a bounded correction list. No new visual
+exploration or unsupported claim about the owner&#x27;s installed screen.
+
+### 2. Let people choose and adjust, with little reading
+
+Each ordinary step has one short question, one main control and one advancing
+button. Use the existing Signal system for all of them:
+
+- **Choose:** icon-and-label rows or buttons with an obvious selected state.
+  Avoid stacked dropdowns and explanatory paragraphs.
+- **Set a goal:** a large editable number with its unit and period, such as
+  **50,000 · steps total** or **25:00 · time to beat** for a chosen whole run.
+  These are layout examples, not new defaults or recommendations. Tapping the
+  number opens appropriate native entry; accessible adjustment controls can
+  help. Preserve precise entry for every valid value. Reuse a genuine optional
+  activity suggestion only when the current app supplies one.
+- **Choose dates:** a large duration, a compact calendar and a clear start/end
+  span. Show a readable zone label; changing it opens a selector rather than
+  exposing an `Area/City` text field. Preserve the existing valid zone choices
+  and exact persisted identifier.
+- **Set the amount:** a large editable **$20** and the existing short simulation
+  disclosure. Preserve the default/range. Do not add higher-amount suggestions,
+  reward styling or a slider that makes precision difficult.
+- **Review:** show the chosen goal, dates and amount as a short visual summary.
+  Keep the activity status and consent action visible. Put complete rules and
+  explanations behind clearly named disclosures, without hiding the facts
+  needed for consent. Never show all rules as an expanded wall of text by default.
+
+Before review, aim for a heading, labels and at most one short helper sentence
+per decision. This is a writing rule, not a reason to hide an error, necessary
+health-source limit or consent fact. Show help when requested or needed. Keep
+accessibility labels complete even when visible copy is short. Do not merely
+spread the existing paragraphs over five screens.
+
+Run `unslop` on new explanatory/UI copy and this handoff. Remove repeated
+disclosures, vague instructions and technical prose. `docs/COPY.md` and exact
+historical consent still control. Mobbin may help with a particular number-entry
+or choice interaction if Signal leaves it unresolved; inspect actual references
+and retain Signal&#x27;s visual system.
+
+### 3. Keep one draft across the creation stages
+
+Use one draft owner for the full presentation and small native step views:
+
+| Stage | Experience | Behavior retained |
+| --- | --- | --- |
+| 1 — Type | Full-width choice rows; preselect a direct entry&#x27;s type | Existing product availability and version selection; no silent switch from Personal to friends |
+| 2 — Activity and goal | Activity buttons, large goal number/unit and optional suggestion | Existing parsers/units, timed-distance input, deliberate suggestion selection, no leaderboard target |
+| 3 — Dates | Large duration, calendar, readable time zone and start/end span | Current server-time policy: 2–30-day lead, 1–30 full local days; exact frozen boundaries and DST behavior |
+| 4 — Amount | Large amount entry and immediate simulation disclosure | Existing whole-dollar $1–$500 range and $20 default; integer cents, no real funds |
+| 5 — Review | Visual summary, collapsed complete rules, activity status and explicit consent | Existing preview/digest, current readiness policy and exact submission/recovery semantics |
+
+The generic Create action has five stages. Direct Personal entry skips the
+already answered Type stage and shows progress for the remaining four stages.
+Back from the first displayed stage returns to its caller.
+Back and Close are always understandable. A single primary action advances each
+stage; the final action clearly creates the goal. Reuse native pickers and
+accessible selection controls instead of recreating browser widgets or chrome.
+
+Preserve draft values while going backward. Initialize default dates once per
+draft; returning to a step must not overwrite choices. If changing type or
+activity invalidates an input, clear that dependent input explicitly while
+retaining unrelated dates/amount. Keep the current seven-day default unless
+newer accepted source intentionally changes it.
+
+Moving between child steps must not trigger whole-flow `onDisappear` cleanup.
+Keep the draft identity, actor/session fencing, query cancellation and pending
+request ownership in the flow&#x27;s actual lifetime. Ignore late responses from an
+earlier draft or account. Terms edits invalidate the preview, consent and only
+the readiness context required by the current accepted Health implementation.
+Do not reinstate obsolete readiness rules while reorganizing the screen.
+
+### 4. Finish review, confirmation and the connected Personal screens
+
+Use Signal&#x27;s existing tokens, 24-point content alignment, semantic system type,
+tabular metrics, ruled rows and native action/navigation materials. Keep static
+facts, plots, totals and rules opaque. Retain approved opaque accent bands where
+the current reference specifies them; Signal itself uses blue. Provide the
+existing solid fallback and accessibility behavior on supported older iOS.
+
+Review starts with goal, source meaning, start/end/time zone, simulated amount,
+possible outcomes and exit/review information. Put every existing rule in an
+accessible full-rules disclosure where appropriate; preserve historical consent
+verbatim. Read `docs/COPY.md` for every new/changed string. The activity check
+must remain reachable, retain draft input on failure and explain the next step.
+Neither opening review nor completing a permission request grants consent.
+
+Show success only after the server receipt is accepted. Present the recorded
+goal and dates, its scheduled/active state and a clear route to its detail.
+Reuse the existing receipt/detail model; never invent a successful save, a
+balance, daily activity, a missed goal or a result from missing data. Avoid
+money-related celebration and prompts to increase the amount.
+
+Fix hierarchy/spacing/action inconsistencies in the connected Personal detail,
+review and history screens found in stage 1. Carry shared component changes
+through reachable consumers. Preserve existing privacy, safe exits, invitations,
+community disclosure and all retained Personal/Solo/charity agreements.
+
+### 5. Verify behavior and visual fidelity on the integrated source
+
+Build Debug, Staging and Release simulator products using the actual project and
+schemes. Run `scripts/check-iphone-product.py`. Use existing explicit fictional
+fixtures or a unique disposable loopback stack; never reset another task&#x27;s
+database, submit the owner&#x27;s goal or enable hosted features to get screenshots.
+
+Update focused tests in `ChallengeV1UITests`, `ChallengeHealthSignalUITests` and
+the affected native units. Preserve existing assertions while adapting controls.
+Cover stage navigation/value retention, all four Personal metric inputs,
+invalid-input recovery, draft edits requiring fresh review/consent, stale async
+preview rejection, account changes, readiness recovery and duplicate/pending
+submit handling. Reuse the existing ordinary-app and synthetic Health journeys.
+Smoke shared friend creation with current policy versions, existing agreements
+and legacy access. Broaden testing only for actual failures or changed behavior;
+the full weekly/backend/release matrix is not a default UI prerequisite.
+
+Render the whole new sequence plus confirmation/detail in these targeted cases:
+
+- Standard light/dark on the primary iPhone simulator.
+- Compact iPhone, large accessibility text, long values and the keyboard open.
+- Current material appearance and supported iOS 18 solid fallback.
+- Reduce Transparency, Increase Contrast and Reduce Motion where affected.
+- Loading, empty activity, denied/unavailable activity, offline/retry, pending
+  submission and actual saved confirmation, using controlled fictional states.
+
+Inspect reading order, accessible labels/selection/progress, 44-point targets,
+focus after navigation/error, scroll/safe-area clearance and accessible dismissal.
+Record which checks are automated and which need human VoiceOver/device review.
+Do not treat screenshots as proof of human accessibility acceptance.
+
+Compare native screenshots beside the corresponding current Signal reference,
+using comparable content. Explain native-control or product-rule differences.
+A renamed type, matching palette, isolated preview or passing test count does
+not establish fidelity. Keep remaining gaps explicit by route.
+
+### 6. Deliver, record and prepare the real-device follow-up
+
+Record source commit, configurations, actual checks/failures, screenshot paths,
+matched routes and remaining physical/human checks in a dated report. Update
+the migration contract with this narrower fidelity result; preserve dated
+migration evidence. Commit completed authorized changes and merge into local
+`main` after integrating concurrent accepted work. Do not push or deploy.
+
+Prepare the corrected Staging build and identify its source/configuration and
+bundle. Do not overwrite or relaunch the owner&#x27;s phone mid-test. An in-place
+device update and visual walkthrough are a separate coordinated step; preserve
+the app container, session, saved goals and pending requests. Do not uninstall.
+Do not report that the owner has the fix until installation is recorded.
+
+## Completion criteria
+
+The task is locally complete when the ordinary creation route uses the staged
+flow, the connected Personal journey has been visually compared and corrected,
+its consequential behavior still passes focused checks, and shared routes have
+no introduced regression. Unreviewed routes and device/human acceptance remain
+explicit. The repository&#x27;s old &quot;migration complete&quot; statement must not be
+reused as evidence that this work has already happened.
+
+Local presentation work does not change source policies, outcome/allocation
+rules, consent versions, transport gates, hosted configuration, money, release
+scope or historical data. No new backend migration is expected.
+
+The [new-chat implementation prompt](../SIGNAL_UI_FIDELITY_IMPLEMENTATION_PROMPT.md)
+is ready to copy. This plan records recommendations, not owner acceptance of
+an implementation or permission to interrupt the live phone session.
+</pre></details></div></section>
+</main><footer><div class="wrap">Design source: the owner's selected Signal system, using GameTime's existing palette, typography and controls. Planning and browser layout only; no native UI implementation or phone installation was performed here.</div></footer>
+<script>
+const root=document.documentElement;document.querySelector('#theme').onclick=()=>{root.dataset.theme=root.dataset.theme==='dark'?'light':'dark'};
+let step=0,metric='steps',values={steps:'50,000',exercise:'150',distance:'20',timed:'25:00'},days=7,amount='20',start='2026-09-22',consent=false;
+const names={steps:'Steps',exercise:'Activity min',distance:'Run distance',timed:'Timed run'};
+const units={steps:'steps total',exercise:'activity minutes total',distance:'kilometres total',timed:'time to beat · 5 km'};
+const questions=['What’s your goal?','When does it run?','Choose your amount.','Review your goal.'];
+const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function endDate(){let d=new Date(start+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'})}
+function startDate(){return new Date(start+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'})}
+function render(){document.querySelector('#progress').innerHTML=[0,1,2,3].map(i=>'<span class="'+(i<=step?'on':'')+'"></span>').join('');document.querySelector('#step-meta').textContent=`Step ${step+1} of 4`;document.querySelector('#back').disabled=step===0;
+let body='<h3>'+questions[step]+'</h3>';
+if(step===0){body+='<div class="choices">'+Object.entries(names).map(([key,name])=>`<button class="choice" data-metric="${key}" aria-pressed="${key===metric}">${name}</button>`).join('')+'</div><div class="metric-wrap"><input class="number number-input" id="goal" aria-label="Goal value" inputmode="decimal" maxlength="9" value="'+escapeHTML(values[metric])+'"><div class="unit">'+units[metric]+'</div></div><p class="edit-hint">Tap the number to change it.</p>'}
+if(step===1){body+=`<div class="counter"><button class="round" id="minus" aria-label="One fewer day" ${days===1?'disabled':''}>−</button><div><div class="number">${days}</div><div class="unit">days</div></div><button class="round" id="plus" aria-label="One more day" ${days===30?'disabled':''}>+</button></div><label class="date-row"><span>Starts</span><input id="date" type="date" min="2026-09-22" max="2026-10-20" value="${start}"></label><div class="date-row"><span>Ends</span><strong>${endDate()}</strong></div><div class="date-row"><span>Time zone</span><strong>Pacific time</strong></div><p class="edit-hint">Each day starts at midnight.</p>`}
+if(step===2){body+=`<div class="amount"><span class="number">$</span><input class="number number-input" id="amount" aria-label="Simulated dollar amount" inputmode="numeric" maxlength="3" value="${escapeHTML(amount)}"></div><p class="edit-hint">Tap the amount to change it.</p>`}
+if(step===3){body+=`<div class="metric-wrap"><div class="number">${escapeHTML(values[metric])}</div><div class="unit">${units[metric]}</div></div><div class="fact"><span>Dates</span><b>${startDate()} – ${endDate()}<br>Midnight · Pacific time</b></div><div class="fact"><span>Amount</span><b>$${escapeHTML(amount)} simulated</b></div><div class="status"><i></i>Activity found</div><details><summary>Full goal rules</summary><p>Only eligible Apple Watch activity during these dates counts. Other participants cannot see your activity or results.</p><p>Missing or incomplete activity cannot confirm a missed goal. You may leave before the result is final. Your simulated entry returns.</p><p>You have 48 hours after the actual result notice to ask for a review. No real money moves.</p></details><label class="consent"><input type="checkbox" id="consent" ${consent?'checked':''}><span>I have read the complete rules and agree</span></label>`}
+document.querySelector('#page').innerHTML=body;const next=document.querySelector('#next');next.textContent=step===3?'Start my personal goal':'Continue →';next.disabled=step===3&&!consent;
+document.querySelectorAll('[data-metric]').forEach(el=>el.onclick=()=>{metric=el.dataset.metric;consent=false;render()});
+const goal=document.querySelector('#goal');if(goal)goal.oninput=()=>{values[metric]=goal.value;consent=false;next.disabled=!goal.value.trim()};
+const money=document.querySelector('#amount');if(money)money.oninput=()=>{amount=money.value.replace(/\D/g,'');consent=false;next.disabled=+amount<1||+amount>500};
+const date=document.querySelector('#date');if(date)date.onchange=()=>{if(date.value){start=date.value;consent=false;render()}};
+if(document.querySelector('#minus'))document.querySelector('#minus').onclick=()=>{days=Math.max(1,days-1);consent=false;render()};if(document.querySelector('#plus'))document.querySelector('#plus').onclick=()=>{days=Math.min(30,days+1);consent=false;render()};
+const check=document.querySelector('#consent');if(check)check.onchange=()=>{consent=check.checked;next.disabled=!consent};}
+document.querySelector('#next').onclick=()=>{if(step<3){step++;render()}else{document.querySelector('#demo-status').textContent='Preview only. No goal was created.'}};
+document.querySelector('#back').onclick=()=>{if(step>0){step--;render()}};
+document.querySelector('#reset').onclick=()=>{step=0;metric='steps';values={steps:'50,000',exercise:'150',distance:'20',timed:'25:00'};days=7;amount='20';start='2026-09-22';consent=false;document.querySelector('#demo-status').textContent='';render()};render();
+document.querySelector('#copy').onclick=async()=>{const text=document.querySelector('#prompt').value;try{await navigator.clipboard.writeText(text);document.querySelector('#copy-status').textContent='Copied. Paste this into a new Codex chat.'}catch{document.querySelector('#prompt').closest('details').open=true;document.querySelector('#prompt').select();document.querySelector('#copy-status').textContent='Select and copy the prompt below.'}};
+document.querySelector('#download').onclick=()=>{let url=URL.createObjectURL(new Blob([document.querySelector('#prompt').value],{type:'text/markdown'}));let a=document.createElement('a');a.href=url;a.download='SIGNAL_UI_FIDELITY_IMPLEMENTATION_PROMPT.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),500)};
+</script></body></html>

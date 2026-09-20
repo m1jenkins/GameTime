@@ -6,6 +6,26 @@ This supersedes the September 11 cobalt design selection for future work.
 The adoption below remains the implementation contract. The subsequent local
 execution and its verification are recorded separately here.
 
+## Fidelity follow-through — September 20, 2026
+
+The owner reported that ordinary Staging personal-goal creation did not resemble
+the approved Signal experience. Source inspection confirms a remaining
+interaction/composition gap: `ChallengeV1Create` presents one long form, whereas
+the approved browser reference presents five guided stages. This does not
+invalidate the theme migration or its dated checks below, but those results
+do not establish complete fidelity to every approved journey. The owner's
+current device screen was not independently captured during this inspection.
+
+The [fidelity plan](SIGNAL_UI_FIDELITY_PLAN.md) and
+[implementation prompt](../SIGNAL_UI_FIDELITY_IMPLEMENTATION_PROMPT.md) define
+the proposed native follow-through, shared-route audit and rendered acceptance.
+They are planning artifacts; the new staged flow has not been implemented or
+verified by this planning task. Preserve current in-flight device fixes and
+later adopted policy versions when implementation begins.
+The owner's follow-up asks for large numbers, visual choices and buttons with
+much less writing, using `unslop` for copy while retaining Signal. The plan
+includes those requirements and skips choices already made by a direct entry.
+
 ## Local execution — September 13, 2026
 
 **P9A is implemented and locally verified.** Native source, tests and configuration
