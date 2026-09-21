@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>GameTime — Challenges & You</title>
+  <link rel="stylesheet" href="design.css">
+  <style>
+    body.library-review{--ink:#111318;--sub:#606975;--accent:#245bff;background:#e9edf2;color:var(--ink);min-height:100vh}
+    .library-review main{max-width:1320px;padding:44px 36px;margin:auto;display:grid;grid-template-columns:404px 404px minmax(0,1fr);gap:36px;align-items:center}
+    .library-review .phone{height:858px;border:7px solid #20242a;border-radius:47px;box-shadow:0 0 0 1px #5b6573,0 0 0 3px #bec5cf,0 18px 35px -24px #1d2b4755}
+    .library-review .status-bar{height:44px}
+    .library-review .island{display:none}
+    .library-review aside{min-width:0}
+    .library-review .review-kicker{font-size:10px;font-weight:650;letter-spacing:1.1px;text-transform:uppercase;color:var(--sub);margin-bottom:13px}
+    .library-review h1{font-size:35px;font-weight:750;letter-spacing:-1.4px;line-height:1.08;margin:0 0 14px}
+    .library-review .review-intro{font-size:13px;line-height:1.55;color:var(--sub);margin-bottom:22px}
+    .library-review .reuse-notes{list-style:none;counter-reset:reuse;padding:0;margin:0}
+    .library-review .reuse-notes>li{counter-increment:reuse;display:grid;grid-template-columns:21px minmax(0,1fr);gap:10px;padding:13px 0;border-top:1px solid #d4dbe4;font-size:12px;line-height:1.5;color:var(--sub)}
+    .library-review .reuse-notes>li:before{content:counter(reuse,decimal-leading-zero);font-size:10px;font-weight:650;color:var(--accent);padding-top:2px}
+    .library-review .reuse-notes b{display:block;font-size:13px;font-weight:650;letter-spacing:-.15px;color:var(--ink);margin-bottom:3px}
+    .library-review .new-parts{margin-top:12px;padding-top:17px;border-top:1px solid #d4dbe4}
+    .library-review .new-parts h2{font-size:13px;letter-spacing:-.15px;margin-bottom:8px}
+    .library-review .new-parts p{font-size:12px;line-height:1.55;color:var(--sub)}
+    .library-review .token-swatches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:20px;padding-top:17px;border-top:1px solid #d4dbe4}
+    .library-review .token-swatches>div{min-width:0}
+    .library-review .token-swatches i{display:block;width:22px;height:22px;border-radius:6px;background:var(--color);box-shadow:inset 0 0 0 1px #11131812;margin-bottom:6px}
+    .library-review .token-swatches b{display:block;font-size:9px;line-height:1.4;font-weight:600}
+    .library-review .token-swatches span{font-size:8px;line-height:1.5;color:var(--sub)}
+    .library-review .review-note{font-size:10px;line-height:1.5;color:var(--sub);margin-top:15px}
+    @media(max-width:1200px){.library-review main{grid-template-columns:repeat(2,minmax(0,404px));justify-content:center;gap:36px;padding:36px 28px}.library-review aside{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:0 40px}.library-review aside>header{grid-row:1}.library-review .reuse-notes{grid-row:1/4;grid-column:2}.library-review .new-parts{margin-top:0}.library-review .review-note{grid-column:1/-1}}
+    @media(max-width:700px){.library-review main{grid-template-columns:minmax(0,404px);padding:26px 16px;gap:32px}.library-review aside{display:block;padding:8px 5px}.library-review .phone{height:858px}.library-review .new-parts{margin-top:18px}.library-review .token-swatches{max-width:330px}}
+  </style>
+</head>
+<body class="library-review">
+  <main>
+    <div class="phone" data-phone="library-review" data-initial="challenges" aria-label="GameTime Challenges interactive mock"></div>
+    <div class="phone" data-phone="record-review" data-initial="you" aria-label="GameTime You interactive mock"></div>
+    <aside aria-label="Design token reuse and new components">
+      <header><p class="review-kicker">GameTime · Two screens</p><h1>Challenges<br>&amp; You</h1><p class="review-intro">Built from the locked Home and Goal / Rules direction. Same cool palette, type hierarchy and materials.</p></header>
+      <ol class="reuse-notes">
+        <li><div><b>Type carries the record</b><p>Home’s heavy, tight italic numbers recur in progress, year totals and finished results. Units stay secondary.</p></div></li>
+        <li><div><b>The same card family</b><p>24 px metric cards reuse Goal’s cool surface. Invitations use its restrained frost and soft edge.</p></div></li>
+        <li><div><b>One control language</b><p>Blue for create, accept and active states. Quiet secondary buttons, thin symbols and the same three tabs.</p></div></li>
+        <li><div><b>The same private group</b><p>Bounded stacks reuse Home’s faces. Results lead on You; account and Health stay behind Settings.</p></div></li>
+      </ol>
+      <section class="new-parts"><h2>Three small additions</h2><p>Library filter · Card footer with faces and invite actions · Two-stat year summary</p></section>
+      <div class="token-swatches" aria-label="Locked palette">
+        <div><i style="--color:#FAFBFC" aria-hidden="true"></i><b>Background</b><span>#FAFBFC</span></div>
+        <div><i style="--color:#F0F2F5" aria-hidden="true"></i><b>Surface</b><span>#F0F2F5</span></div>
+        <div><i style="--color:#111318" aria-hidden="true"></i><b>Text</b><span>#111318</span></div>
+        <div><i style="--color:#245BFF" aria-hidden="true"></i><b>Accent</b><span>#245BFF</span></div>
+      </div>
+      <p class="review-note">Warning stays #9A6700. No warning is needed for these sample outcomes. Home and Goal / Rules are unchanged.</p>
+      <p class="review-note">Interactive browser mock with fictional data. Scroll either phone or try the filters, cards and controls. Materials approximate the existing design; invitation review sends no response and creation stops at its entry.</p>
+    </aside>
+  </main>
+  <script src="prototype.js"></script>
+</body>
+</html>
