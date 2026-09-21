@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>GameTime — The live challenge</title>
+  <link rel="stylesheet" href="design.css">
+
+</head>
+<body>
+  <header class="studio-header">
+    <a class="studio-brand" href="#screens">GameTime<span>Design study / 21 September 2026</span></a>
+    <nav aria-label="Review sections"><a href="#system">The system</a><a href="#structure">The structure</a><a href="#references">References</a></nav>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div><p class="eyebrow">ONE SYSTEM · THREE SCREENS</p><h1 id="page-title">The challenge<br>is the headline.</h1></div>
+      <div class="intro-description"><p>Your goal. Your people.<br>A record of following through.</p><p class="fine">A light athletic interface, built around the live challenge.<br>Interactive design proposal · fictional people and activity.</p></div>
+    </section>
+    <section id="screens" aria-label="Three interactive iPhone mockups">
+      <div class="studio-controls">
+        <p>Tap the phones. Open a goal, expand its rules, or revisit a result.</p>
+        <div><label class="control-label"><input id="large-text" type="checkbox"> Larger text</label><label class="control-label"><input id="missing-data" type="checkbox"> Missing update</label><button id="reset" class="reset">Reset screens ↺</button></div>
+      </div>
+      <div class="screen-grid">
+        <article class="screen-column" id="home-study">
+          <div class="screen-caption"><span>01 / HOME</span><span>The live challenge</span></div>
+          <div class="phone" data-phone="home" data-initial="home" aria-label="Home prototype"></div>
+          <div class="annotation"><h2>Progress first. People next.</h2><p>The poster becomes a 6.4 km readout. Three faces and their status sit directly below it. A quiet stake line leads to one action: <strong>View goal.</strong></p><p class="annotation-detail">The progress rail is 18 pt thick. Friends stay in roster order; status never turns this into a leaderboard.</p></div>
+        </article>
+        <article class="screen-column" id="goal-study">
+          <div class="screen-caption"><span>02 / GOAL & RULES</span><span>The agreement, understood</span></div>
+          <div class="phone" data-phone="goal" data-initial="goal" aria-label="Goal and rules prototype"></div>
+          <div class="annotation"><h2>Three answers before the details.</h2><p>What counts, what a miss means, and your own stake fit in one summary card. A timeline explains the dates. Full rules and a neutral exit are one tap away.</p><p class="annotation-detail">Missing activity stays unknown. A confirmed result and the simulated consequence remain separate facts.</p></div>
+        </article>
+        <article class="screen-column" id="you-study">
+          <div class="screen-caption"><span>03 / YOU</span><span>A record worth keeping</span></div>
+          <div class="phone" data-phone="you" data-initial="you" aria-label="Personal record prototype"></div>
+          <div class="annotation"><h2>The record carries the weight.</h2><p>A small portrait makes room for dated challenges, shared achievements, and the distance or steps behind them. Settings move to the familiar gear.</p><p class="annotation-detail">Closed challenges stay in the record too. No streak, perfection score, or money-won total.</p></div>
+        </article>
+      </div>
+    </section>
+    <section class="system-section" id="system" aria-labelledby="system-title">
+      <div class="section-intro"><p class="eyebrow">DESIGN SYSTEM / 10 RULES</p><h2 id="system-title">Athletic through<br>precision.</h2><div class="swatches" aria-label="Color palette"><span style="--swatch:#171a18" title="Ink #171A18"></span><span style="--swatch:#c44220" title="Ember #C44220"></span><span style="--swatch:#f3f4f1" title="Mist #F3F4F1"></span><span style="--swatch:#fff" title="White #FFFFFF"></span></div><p class="fine">Design source: your locked light athletic direction. The new composition is a proposal; current Signal implementation remains its own record.</p></div>
+      <ul class="system-list">
+        <li><b>01</b><p><strong>One type family.</strong> SF Pro on iPhone; system sans in the browser. Heavy numerals, semibold headings, regular copy. No condensed display face or serif wordmark.</p></li>
+        <li><b>02</b><p><strong>Scale makes the hierarchy.</strong> 104 pt hero metric, 28 pt screen title, 20 pt section title, 17 pt main copy, 13–15 pt supporting text. Tabular figures keep updates steady.</p></li>
+        <li><b>03</b><p><strong>One accent.</strong> Ember #C44220 marks progress, the primary action, and selection. Ink #171A18, white, and mist #F3F4F1 do the rest. Color always has a text or shape cue.</p></li>
+        <li><b>04</b><p><strong>Open space, selective cards.</strong> A 24 pt gutter and an 8 pt spacing rhythm. Home stays open; only rules and completed moments need containment.</p></li>
+        <li><b>05</b><p><strong>Consistent geometry.</strong> 20 pt cards, 16 pt buttons, circular portraits, 18 pt progress rails. No bursts, sticker badges, or ornamental shapes.</p></li>
+        <li><b>06</b><p><strong>Material has a job.</strong> Opaque metrics and records; a faint translucent tab bar and a light sheet shadow separate navigation. Use solid fallbacks when transparency is reduced.</p></li>
+        <li><b>07</b><p><strong>Social stays small.</strong> Faces, names, and a status line inside an explicitly shared challenge. No public feed, follower count, ranking, or automatic invitation.</p></li>
+        <li><b>08</b><p><strong>One dominant action.</strong> Home has View goal. Secondary choices use native rows or disclosures. All interactive targets are at least 44 pt; text reflows at larger sizes.</p></li>
+        <li><b>09</b><p><strong>Motion confirms an event.</strong> 140 ms press response and a 220 ms sheet transition. Navigation is immediate. Proposed native haptics: soft friend update, success on a confirmed goal, one gentle near-deadline warning only with reminders enabled.</p></li>
+        <li><b>10</b><p><strong>Be clear where it matters.</strong> Keep “simulated” beside amounts. Explain the mode in Settings and at first commitment. No persistent banner, slogans, athlete heroes, streak pressure, shared pots, or financial celebration.</p></li>
+      </ul>
+    </section>
+    <section class="structure-section" id="structure" aria-labelledby="structure-title">
+      <div class="section-heading"><div><p class="eyebrow">INFORMATION ARCHITECTURE</p><h2 id="structure-title">One challenge, from intention to record.</h2></div><p>Each tab has a clear job. Goal details own progress and rules.</p></div>
+      <div class="architecture"><svg viewBox="0 0 1120 160" role="img" aria-labelledby="ia-title ia-description"><title id="ia-title">The private challenge lifecycle</title><desc id="ia-description">Set a goal, make it a private challenge, agree to the rules, track on Home, and revisit the result in You. Challenges contains creation and the complete list.</desc><defs><marker id="flow-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="currentColor"/></marker></defs><g id="ia-links" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".35"><path d="M184 75H227M411 75H454M638 75H681M865 75H908" marker-end="url(#flow-arrow)"/></g><g id="ia-goal"><title>Set a goal in Challenges</title><rect x="0" y="24" width="184" height="104" rx="16"/><text x="20" y="52" class="svg-caption">CHALLENGES</text><text x="20" y="83">Set a goal</text><text x="20" y="107" class="svg-description">Target & dates</text></g><g id="ia-challenge"><title>Add friends deliberately</title><rect x="227" y="24" width="184" height="104" rx="16"/><text x="247" y="52" class="svg-caption">CHALLENGES</text><text x="247" y="83">Make it a challenge</text><text x="247" y="107" class="svg-description">Private invitations</text></g><g id="ia-agree"><title>Explicit agreement</title><rect x="454" y="24" width="184" height="104" rx="16"/><text x="474" y="52" class="svg-caption">GOAL DETAILS</text><text x="474" y="83">Commit</text><text x="474" y="107" class="svg-description">Clear rules & consent</text></g><g id="ia-track"><title>Home holds the active challenge</title><rect class="active-node" x="681" y="24" width="184" height="104" rx="16"/><text x="701" y="52" class="svg-caption">HOME</text><text x="701" y="83">Track together</text><text x="701" y="107" class="svg-description">Progress & friends</text></g><g id="ia-record"><title>You holds the personal record</title><rect x="908" y="24" width="212" height="104" rx="16"/><text x="928" y="52" class="svg-caption">YOU</text><text x="928" y="83">See follow-through</text><text x="928" y="107" class="svg-description">Dated results & review</text></g></svg></div>
+      <div class="ia-notes"><p><strong>Home</strong>The current challenge and its next action. Any result needing review takes priority; otherwise the nearest ending active goal leads.</p><p><strong>Challenges</strong>Active, upcoming, invitations, and finished. Creation lives here. No public leaderboard in the default path.</p><p><strong>You</strong>Your private record. Settings holds Health, sharing, reminders, simulation information, support, and account controls.</p></div>
+    </section>
+    <section class="references-section" id="references" aria-labelledby="reference-title">
+      <div class="section-heading"><div><p class="eyebrow">STUDIED, THEN TRANSLATED</p><h2 id="reference-title">Borrow the structure.</h2></div><p>All nine requested screens were visually inspected.<br>The reference colors and logos stay with their apps.</p></div>
+      <div class="reference-grid">
+        <p><strong>Nike Run Club</strong>Give the metric the largest type, with its unit and supporting facts close by.<span><a href="https://mobbin.com/screens/a978394b-ea9a-4279-8ffe-fcd69803e80b" target="_blank" rel="noopener">Widget ↗</a> · <a href="https://mobbin.com/screens/6e2e87d5-4f3e-4b51-88b1-f75ae7ba2164" target="_blank" rel="noopener">Progress ↗</a> · <a href="https://mobbin.com/screens/fdd8734e-60a2-4e86-a070-6744a05e4a7d" target="_blank" rel="noopener">Run result ↗</a></span></p>
+        <p><strong>Strava</strong>Make each challenge a named object with progress and a clear end date.<span><a href="https://mobbin.com/screens/4bbb2340-4829-4ed7-88fe-23c55a533a41" target="_blank" rel="noopener">Group challenges ↗</a></span></p>
+        <p><strong>Runbuds</strong>Keep the runners beside the goal statistics. The people belong to the challenge.<span><a href="https://mobbin.com/screens/f4349f17-72fe-4f67-ba92-a323e23128c8" target="_blank" rel="noopener">Challenge detail ↗</a></span></p>
+        <p><strong>Finch</strong>Use parallel rows for a shared week. The optional detail grid shows saved run days, never a required daily streak.<span><a href="https://mobbin.com/screens/68e896ce-0902-402c-a381-19ec8133ea9c" target="_blank" rel="noopener">Goal buddy ↗</a></span></p>
+        <p><strong>Ladder + Future</strong>Use small face rings and a bounded friend group. Avoid the applause overlay, hero photo, and leaderboard.<span><a href="https://mobbin.com/screens/bac00ac0-a683-470b-8110-f067120870ff" target="_blank" rel="noopener">Teammate rings ↗</a> · <a href="https://mobbin.com/screens/4e336fac-48a9-4d27-ae90-2b4cd96e875c" target="_blank" rel="noopener">Friends ↗</a></span></p>
+        <p><strong>Fidelity</strong>Keep the amount, state, and details aligned and calm. No profit chart, balance, or reward framing.<span><a href="https://mobbin.com/screens/0dd015e1-3253-461b-bbd5-6625be377fb5" target="_blank" rel="noopener">Account detail ↗</a></span></p>
+      </div>
+    </section>
+    <aside class="proposal-note"><strong>Proposal boundaries</strong><p>This brief introduces personal consequences only and requests portrait avatars. Existing friend-goal policies include simulated allocation, and profile photos are deferred in the current app. These mockups deliberately follow the new brief; adopting them requires a new agreement version and separate photo/privacy work. Dates, people, results, pace labels, and the shared-day grid are illustrative. The browser does not read Health, send invitations, move money, or provide native haptics.</p></aside>
+  </main>
+  <footer class="studio-footer"><span>GameTime · One coherent system</span><span>Designed with emil-design-eng · Local design study</span></footer>
+<script src="prototype.js"></script></body>
+</html>
