@@ -1,0 +1,86 @@
+{
+  "checks": [
+    {
+      "screen": "goal",
+      "width": 390,
+      "body": 390,
+      "contentWidth": 390,
+      "contentClient": 390,
+      "contentHeight": 639,
+      "scrollHeight": 639,
+      "smallButtons": 0
+    },
+    {
+      "screen": "challenge",
+      "width": 390,
+      "body": 390,
+      "contentWidth": 390,
+      "contentClient": 390,
+      "contentHeight": 612,
+      "scrollHeight": 612,
+      "smallButtons": 0
+    },
+    {
+      "screen": "invite",
+      "width": 390,
+      "body": 390,
+      "contentWidth": 390,
+      "contentClient": 390,
+      "contentHeight": 639,
+      "scrollHeight": 639,
+      "smallButtons": 0
+    },
+    {
+      "screen": "confirm",
+      "width": 390,
+      "body": 390,
+      "contentWidth": 390,
+      "contentClient": 390,
+      "contentHeight": 591,
+      "scrollHeight": 591,
+      "smallButtons": 0
+    },
+    {
+      "screen": "goal",
+      "width": 320,
+      "body": 320,
+      "contentWidth": 320,
+      "contentClient": 320,
+      "contentHeight": 505,
+      "scrollHeight": 586,
+      "smallButtons": 0
+    },
+    {
+      "screen": "challenge",
+      "width": 320,
+      "body": 320,
+      "contentWidth": 320,
+      "contentClient": 320,
+      "contentHeight": 478,
+      "scrollHeight": 608,
+      "smallButtons": 0
+    },
+    {
+      "screen": "invite",
+      "width": 320,
+      "body": 320,
+      "contentWidth": 320,
+      "contentClient": 320,
+      "contentHeight": 505,
+      "scrollHeight": 614,
+      "smallButtons": 0
+    },
+    {
+      "screen": "confirm",
+      "width": 320,
+      "body": 320,
+      "contentWidth": 320,
+      "contentClient": 320,
+      "contentHeight": 457,
+      "scrollHeight": 543,
+      "smallButtons": 0
+    }
+  ],
+  "walkthrough": "Passed: target/date validation, edited target/name/dates/stake carried to confirmation, No stake default, zero-selection disabled, selected counts, search empty/results, modal Escape/focus return, nested Contacts focus return, 6-digit target, Steps choice, responsive board",
+  "consoleErrors": []
+}
