@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-appearance="light" data-material="glass" data-contrast="normal" data-motion="full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Signal, an alternate GameTime design study. A local clickable prototype with fictional activity and simulated stakes.">
+  <title>GameTime — Signal</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="signal.css?v=3">
+  <script src="signal.js?v=3" defer></script>
+</head>
+<body>
+<!--
+THESIS: Signal makes an agreed athletic week exact and legible through open charts and aligned activity rows.
+OWN-WORLD: Cool white, ink, silver and electric blue; generous numeric scale, crisp dividers, translucent interaction chrome.
+STORY: Check progress, inspect the week, review a friend's invitation, deliberately agree, and retain an easy exit.
+FIRST VIEWPORT: Today above a 64px weekly total, a full-width daily plot and floating glass day callout; friend and personal progress sit below in separate rows. Add lives in the toolbar.
+FORM: The user's pinned performance-instrument direction overrides assignment 5; seed 798c9301 ran without challengers. Static code-led browser study; no native conformance claim.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+<div class="studio">
+  <aside class="studio-rail" aria-label="Design study controls">
+    <a class="studio-brand" href="?screen=home">GameTime<span class="signal-mark" aria-hidden="true"><i></i><i></i><i></i></span></a>
+    <div class="study-intro"><h1>Signal</h1><p>A little less noise.<br>A clearer view of your week.</p></div>
+    <nav id="screen-list" aria-label="Explore screens"></nav>
+    <div class="studio-settings">
+      <label>Appearance<select id="appearance"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+      <label>Controls<select id="material"><option value="glass">Liquid Glass study</option><option value="solid">Solid</option></select></label>
+      <details class="access-tools"><summary>Accessibility options</summary><label>Contrast<select id="contrast"><option value="normal">Standard</option><option value="more">Increased</option></select></label><label>Motion<select id="motion"><option value="full">Standard</option><option value="reduced">Reduced</option></select></label></details>
+      <a class="reference-link" href="../2026-09-13-clickable-app/index.html">Open Fieldwork study <span aria-hidden="true">↗</span></a>
+    </div>
+  </aside>
+  <div class="stage">
+    <details class="mobile-tools"><summary>Signal · Fictional preview</summary><label>Explore a screen<select id="screen-picker" aria-label="Explore a screen"></select></label><div class="mobile-switches"><button data-setting="appearance">Switch light / dark</button><button data-setting="material">Switch glass / solid</button><button data-setting="contrast">Switch contrast</button><button data-setting="motion">Reduce motion</button></div></details>
+    <section class="phone" aria-label="GameTime clickable prototype">
+      <div class="status-bar" aria-hidden="true"><span>9:41</span><span class="status-icons"><svg viewBox="0 0 45 13"><path d="M1 10V8h2v2m3 0V5h2v5m3 0V2h2v8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 4q5-5 10 0m-8 2q3-3 6 0m-4 2q1-1 2 0" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="32" y="2" width="10" height="8" rx="2" fill="none" stroke="currentColor"/><path d="M43 4v4" stroke="currentColor"/><rect x="34" y="4" width="6" height="4" rx="1" fill="currentColor"/></svg></span></div>
+      <div class="environment">Simulated stakes — no real money moves.</div>
+      <div id="app" class="app"></div>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </section>
+    <p class="stage-caption">Fictional people & activity · Browser design proposal</p>
+  </div>
+  <aside class="study-notes" aria-label="About this screen"><div class="notes-line"></div><h2 id="notes-title">Every day,<br>in focus.</h2><p id="notes-body">Drag across the chart. A floating glass lens reveals the exact total and update status for each day.</p><div class="notes-key"><span class="accent-chip"></span><span>One performance accent.<br>Solid data. Glass controls.</span></div><p class="notes-foot">A proposal for comparison.<br>Not native Liquid Glass validation.</p><a href="README.md">Read the design notes</a></aside>
+</div>
+<div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>

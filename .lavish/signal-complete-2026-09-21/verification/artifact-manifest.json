@@ -1,0 +1,17 @@
+{
+  "baseline": "4b7cf469501992bd7bc4f3500a80f3b8373eec06",
+  "date": "2026-09-21",
+  "status": "browser proposal; native approval pending",
+  "sha256": {
+    "account.js": "f9045f90cf1fc169c90454d46909e4c3f03a265131fbf236f4a6265dd09da3ec",
+    "complete.css": "614989cd0b55e6fc8da2ef6656c40959265c0d2e9a1d1069a20f3cf74e0b862b",
+    "creation.js": "505972af5a194c8287129ab9ccb4e8ba201e3ed1275fa17f4f5b89a9afbe74a7",
+    "experiments.js": "283e1703e97274efafb19f096a2e627e65bdb910b6524e13d36ba8a7231c0c16",
+    "goals.js": "36bc088ba535d01633ec6170ff8118c2a8c6d2d39a225f53edd8195eac88edd3",
+    "index.html": "b08248fb3ef741cf010777ce3d6dd7339e9c08cdc9f9db999481f6694d3f2eff",
+    "legacy.js": "60691409b33953ef87b882beac88142f496fbf31ef68bc905158e5d2dc6676a6",
+    "prototype.js": "a1e4b6a940f8153b118965f54c5c6376566f24cfd060cde20c11cfb0974c8dae",
+    "showcase.css": "22c4f277e9b5b5d89f264d1ff97b82e4e5542dee9c5c9f0f969c28fa9bcebb88",
+    "social.js": "240a008f18e881fc9a71bde2690fd1a516079f7c5e44ad3cce58e49397e9a9e9"
+  }
+}
