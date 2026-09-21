@@ -6,6 +6,21 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 20 challenge-creation recovery
+
+The connected iPhone had been overwritten by the ordinary Debug product,
+`0.8.1 (1)`. Debug and Staging intentionally share
+`com.mjenkins.gametime.staging`, but Debug uses the closed public challenge
+configuration. The signed challenge-enabled Staging product
+`0.8.1 (926.21.1)` was verified, installed in place and launched; the existing
+container, Apple account and saved challenges were preserved. Hosted private
+trial admission, ingestion and processing remain enabled for the single enrolled
+account. See the [recovery receipt](../outputs/reports/2026-09-20-challenge-creation-recovery.md).
+
+Do not run the `GameTime` Debug scheme on Mason's iPhone while the private trial
+is active: it replaces this Staging bundle and closes new challenge transport.
+Use `GameTime-Staging` with the `Staging` configuration for physical-device work.
+
 ## September 21 native Signal follow-through
 
 The [native report](../outputs/reports/signal-native-2026-09-21/REPORT.md) records
