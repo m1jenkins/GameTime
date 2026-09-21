@@ -1,0 +1,175 @@
+{
+  "skill": "/Users/user/.codex/skills/unslop/SKILL.md",
+  "reviewed_file": "REPORT.md",
+  "sha256": "fb603889e28f9dfd2159b41d906c4f4db00d304c37cf272a6cfeb15ad39d6489",
+  "change": "Moved the repeated statistics limitation into the data discussion so the report ends on the concrete physical and human acceptance gates. No technical constraint changed.",
+  "results": {
+    "validate_preservation": {
+      "passed": true,
+      "total_constraints": 34,
+      "preserved": 34,
+      "missing_count": 0,
+      "missing": [],
+      "warnings": []
+    },
+    "diff_check": {
+      "original_word_count": 1917,
+      "transformed_word_count": 1917,
+      "similarity_ratio": 0.972,
+      "change_percentage": 5.5,
+      "words_added": 53,
+      "words_removed": 53,
+      "words_changed": 0,
+      "excessive_change": false,
+      "flags": []
+    },
+    "banned_phrase_scan": {
+      "total_violations": 0,
+      "by_severity": {
+        "hard": 0,
+        "soft": 0
+      },
+      "by_category": {},
+      "violations": []
+    },
+    "structure_scan": {
+      "flags": [
+        {
+          "metric": "sentence_burstiness",
+          "value": 0.529,
+          "threshold": "< 0.55 over at least 8 prose sentences",
+          "severity": "soft",
+          "detail": "Sentence lengths are unusually uniform for running prose.",
+          "suggestion": "Vary sentence length and cadence; if this is formal reference prose, review before treating it as blocking."
+        }
+      ],
+      "flagged": {
+        "sentence_burstiness": true
+      },
+      "metrics": {
+        "sentence_burstiness": 0.529,
+        "summary_sandwich": 0.0,
+        "paragraph_cv": 0.719,
+        "sentence_mean_len": 15.2,
+        "triad_density": 0.0,
+        "em_dash_per_1k": 0.723,
+        "bold_colon_listicle_count": 0,
+        "one_line_staccato_share": 0.0,
+        "connective_paragraph_openers": 0,
+        "every_template_openers": 0,
+        "signpost_density": 0.0,
+        "opener_unique_ratio": 0.794,
+        "top_opener_share": 0.088,
+        "max_consecutive_opener": 1,
+        "participial_closer_share": 0.0,
+        "conclusion_coda": false
+      },
+      "genre": "prose",
+      "prose_sentences": 91,
+      "prose_paragraphs": 21
+    },
+    "silhouette_scan": {
+      "genre": "prose",
+      "prose_paragraphs": 21,
+      "flags": [
+        {
+          "metric": "silhouette_penalty",
+          "value": 8.755,
+          "threshold": ">= 1.0",
+          "severity": "soft",
+          "detail": "The document's idea arrangement matches a templated AI silhouette (preview-then-fulfill, rotating scaffold openers, recap loop).",
+          "suggestion": "Rearrange around the actual argument instead of a symmetric outline; cut previews and the closing recap."
+        },
+        {
+          "metric": "callback_content",
+          "value": 1.667,
+          "threshold": "human fence 0.3 (weight 1.5)",
+          "severity": "soft",
+          "detail": "callback_content at 1.667 clears the human upper fence 0.3.",
+          "suggestion": "The ending loops back to opening vocabulary; end on a concrete final point."
+        }
+      ],
+      "flagged": {
+        "silhouette_penalty": true,
+        "callback_content": true
+      },
+      "metrics": {
+        "scaffold_opener_share": 0.0,
+        "role_entropy_bits": -0.0,
+        "heading_preview": 0.0,
+        "preview_fulfillment": 0.105,
+        "callback_content": 1.667
+      },
+      "contributions": {
+        "scaffold_opener_share": 0.0,
+        "role_entropy_bits": 0.0,
+        "heading_preview": 0.0,
+        "preview_fulfillment": 0.42,
+        "callback_content": 8.335
+      },
+      "penalty": 8.755
+    },
+    "readability_metrics": {
+      "flesch_kincaid_grade": 14.7,
+      "flesch_reading_ease": 20.4,
+      "sentence_count": 82,
+      "word_count": 1409,
+      "avg_sentence_length": 17.2,
+      "sentence_length_variance": 86.1,
+      "min_sentence_length": 5,
+      "max_sentence_length": 43,
+      "consecutive_similar_length": 2,
+      "word_repetition_score": 39.2,
+      "top_repeated_words": [
+        [
+          "goal",
+          11
+        ],
+        [
+          "activity",
+          10
+        ],
+        [
+          "personal",
+          9
+        ],
+        [
+          "now",
+          9
+        ],
+        [
+          "review",
+          9
+        ],
+        [
+          "use",
+          8
+        ],
+        [
+          "remain",
+          8
+        ],
+        [
+          "settings",
+          7
+        ],
+        [
+          "retained",
+          7
+        ],
+        [
+          "native",
+          6
+        ]
+      ],
+      "paragraph_count": 27,
+      "avg_paragraph_length": 52.2,
+      "flags": [
+        "High reading level (14.7 grade)",
+        "High word repetition (39.2%)",
+        "Staccato cadence: 3 consecutive tiny sentences (anti-slop AI tell)"
+      ]
+    }
+  },
+  "manual_review": "Zero phrase violations; all 34 detected constraints preserved. Remaining soft structure/readability flags were reviewed as formal verification prose with required version numbers, exact error text, test names and repeated product distinctions. No further confirmed prose defect. Shipping copy was separately checked against docs/COPY.md; exact consent was preserved."
+}

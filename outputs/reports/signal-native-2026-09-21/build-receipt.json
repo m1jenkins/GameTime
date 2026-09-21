@@ -1,0 +1,37 @@
+{
+  "native_source_commit": "4ff837ddf858ae467497ea467b14f3090d3410d9",
+  "app_path": "/Users/user/Documents/GitHub/GameTime/build/signal-native-staging-20260921-926.21.1/GameTime.app",
+  "bundle_id": "com.mjenkins.gametime.staging",
+  "version": "0.8.1",
+  "build": "926.21.1",
+  "minimum_ios": "18.0",
+  "executable_sha256": "992b06f39ea02c5be47bb9134d7680ebe0de1e91dae0f54c43f316cfaeae29af",
+  "info_plist_sha256": "033243c7fd9a93f01de1b6ea6848e4936c7633a4657524cf468bf428bb4d45ae",
+  "signature": "Apple Development: MASON PHILLIP JENKINS (KH9NF9PX85); team 87Z29RTC26; codesign --verify --deep --strict succeeded with normal macOS trust-service access",
+  "signature_note": "Initial sandboxed verification could not access trust services (CSSMERR_TP_NOT_TRUSTED); normal macOS verification passed.",
+  "build_command": {
+    "tool": "XcodeBuildMCP build_device",
+    "scheme": "GameTime-Staging",
+    "configuration": "Staging",
+    "extraArgs": [
+      "CURRENT_PROJECT_VERSION=926.21.1"
+    ],
+    "destination": "generic iOS; no device installation"
+  },
+  "device_build_log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_device_2026-09-21T05-08-33-068Z_pid87774_ee4ff4fb.log",
+  "simulator_build_logs": {
+    "Debug": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_sim_2026-09-21T05-05-01-861Z_pid87774_fcb8558e.log",
+    "Staging": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_sim_2026-09-21T05-05-14-986Z_pid87774_2b89c223.log",
+    "Release": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_sim_2026-09-21T05-06-42-103Z_pid87774_741c442c.log"
+  },
+  "unchanged_configuration": {
+    "GAMETIME_ENV": "staging",
+    "GAMETIME_CHALLENGE_V1_ENABLED": "YES",
+    "GAMETIME_CONTEST_MUTATIONS_ENABLED": "YES",
+    "GAMETIME_PERSONAL_SETTLEMENT_MODE": "stripe_sandbox",
+    "GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE": "YES"
+  },
+  "product_guards": "196 source inputs; Debug/Staging/Release simulator and Staging device all passed; HealthKit linked; no Watch payload/links",
+  "installed": false,
+  "phone_relaunched": false
+}

@@ -1,0 +1,2160 @@
+[
+  {
+    "name": "creation-health-staleOrIncomplete-page-0.png",
+    "run": "initial",
+    "exported": "119A6791-65CE-4540-8E43-B0543C921D16.png"
+  },
+  {
+    "name": "creation-health-temporarilyUnavailable-page-0.png",
+    "run": "initial",
+    "exported": "08DC2E92-8413-4F2B-A400-8BA09E5492A1.png"
+  },
+  {
+    "name": "creation-health-noEligibleDataYet-page-0.png",
+    "run": "initial",
+    "exported": "D7DCCA84-2153-448D-8AF0-536883F1B7F6.png"
+  },
+  {
+    "name": "creation-health-notConnected-page-0.png",
+    "run": "initial",
+    "exported": "1C467D1A-E903-4B1B-84CE-03EE225971FC.png"
+  },
+  {
+    "name": "after-friend-goal-lobby.png",
+    "run": "journeys",
+    "exported": "D8E05042-9D83-4360-AD19-6C2BE285659A.png"
+  },
+  {
+    "name": "after-friend-goal-saved.png",
+    "run": "journeys",
+    "exported": "4B61D7BB-AF35-491E-BD0A-4F1BE4647A9A.png"
+  },
+  {
+    "name": "after-retained-access.png",
+    "run": "journeys",
+    "exported": "6E250B83-1633-4B64-9006-9F732E9D09D6.png"
+  },
+  {
+    "name": "after-friend-lobby.png",
+    "run": "journeys",
+    "exported": "DE2B3E17-3081-4697-BA4A-B6853D2C42EF.png"
+  },
+  {
+    "name": "after-friend-review.png",
+    "run": "journeys",
+    "exported": "92ED0B50-AEF2-4AD2-97D2-4CD6A5FB02FA.png"
+  },
+  {
+    "name": "after-friend-leaderboard-timed.png",
+    "run": "journeys",
+    "exported": "35D0D918-A888-432E-AF05-E5E8EEDDBC75.png"
+  },
+  {
+    "name": "after-friend-leaderboard-distance.png",
+    "run": "journeys",
+    "exported": "ECC93D4B-933B-4D7D-9C81-9CD646B632AB.png"
+  },
+  {
+    "name": "after-friend-leaderboard-exercise.png",
+    "run": "journeys",
+    "exported": "2807DA1C-F7DA-4B80-9BB6-CAE191BBF731.png"
+  },
+  {
+    "name": "after-friend-leaderboard-steps.png",
+    "run": "journeys",
+    "exported": "46E5A9E3-FD3C-4A33-9247-94727096D298.png"
+  },
+  {
+    "name": "after-profile-support.png",
+    "run": "journeys",
+    "exported": "5BEFA5C4-8837-459C-882F-E3607DE74F0E.png"
+  },
+  {
+    "name": "after-profile-privacy.png",
+    "run": "journeys",
+    "exported": "38EDDC81-074C-4ABE-94D9-5F11D6311FC6.png"
+  },
+  {
+    "name": "after-profile-settings.png",
+    "run": "journeys",
+    "exported": "27A06EAD-83A7-48E1-B1BF-2878F9EB20FA.png"
+  },
+  {
+    "name": "after-profile-goal-detail.png",
+    "run": "journeys",
+    "exported": "151721F4-7F54-4E9A-A84E-BB730DBB4F18.png"
+  },
+  {
+    "name": "after-restored-profile.png",
+    "run": "journeys",
+    "exported": "CF8D7371-013C-478E-8F2A-F30DD33FA6E7.png"
+  },
+  {
+    "name": "after-restored-challenges.png",
+    "run": "journeys",
+    "exported": "0EC777C5-1514-444D-9C5D-30446F59694C.png"
+  },
+  {
+    "name": "after-restored-home.png",
+    "run": "journeys",
+    "exported": "2B8B7B9A-FCD3-4ED5-AF73-21E3856D0B3F.png"
+  },
+  {
+    "name": "after-detail-lower.png",
+    "run": "journeys",
+    "exported": "0FCA5BE4-216F-44FD-8FBD-C205A6DC438F.png"
+  },
+  {
+    "name": "after-detail.png",
+    "run": "journeys",
+    "exported": "C436883D-493B-4E2A-BC8B-3E2F52A86F77.png"
+  },
+  {
+    "name": "after-saved.png",
+    "run": "journeys",
+    "exported": "88E3A5A7-A86F-4086-B241-61A56E7DAE9A.png"
+  },
+  {
+    "name": "after-review-consent.png",
+    "run": "journeys",
+    "exported": "1D6BA05B-C06F-4044-8B8C-84F698A30E6A.png"
+  },
+  {
+    "name": "after-review-top.png",
+    "run": "journeys",
+    "exported": "455F7607-B590-4E8C-9601-5E18FCD05971.png"
+  },
+  {
+    "name": "after-amount-editor.png",
+    "run": "journeys",
+    "exported": "165B6568-1315-4ABF-8920-54C22FCC4810.png"
+  },
+  {
+    "name": "after-dates-editor.png",
+    "run": "journeys",
+    "exported": "D6FB894E-5342-4CF7-B1AB-2F39841603B1.png"
+  },
+  {
+    "name": "after-keyboard.png",
+    "run": "journeys",
+    "exported": "13F270E5-7AE8-4B23-83F9-4C6E79700F43.png"
+  },
+  {
+    "name": "after-activity-steps.png",
+    "run": "journeys",
+    "exported": "F1422693-6D89-4368-B4B0-5774170CCA04.png"
+  },
+  {
+    "name": "after-activity-timed.png",
+    "run": "journeys",
+    "exported": "75F37F74-2914-4A8D-8191-A35AB0695DDB.png"
+  },
+  {
+    "name": "after-activity-distance.png",
+    "run": "journeys",
+    "exported": "F9494EE3-0887-43C8-904F-9299B05DD227.png"
+  },
+  {
+    "name": "after-activity-exercise.png",
+    "run": "journeys",
+    "exported": "73AA7C4B-570D-4901-BB5B-22A661AD45D6.png"
+  },
+  {
+    "name": "after-type.png",
+    "run": "journeys",
+    "exported": "26874DDE-099E-4DB8-B17C-CC8F7FA3CB13.png"
+  },
+  {
+    "name": "profile-empty-page-1.png",
+    "run": "profile",
+    "exported": "E2BF71CB-9636-4C57-B2E3-28AE26688782.png"
+  },
+  {
+    "name": "saved-account-support.png",
+    "run": "latest",
+    "exported": "27C8DDE8-2017-4EB2-AB59-F2C1282E50B7.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "saved-account-privacy.png",
+    "run": "latest",
+    "exported": "67AF5942-BB8F-404D-ACA4-63E4C08A82FF.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "saved-account-settings.png",
+    "run": "latest",
+    "exported": "4772C349-8CAB-41AC-B008-D42D7070DFA4.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "saved-account-activity.png",
+    "run": "latest",
+    "exported": "5F6D2482-E95A-47D0-A9B5-DA8A0B0B63EB.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "saved-account-profile.png",
+    "run": "latest",
+    "exported": "D3BDBE78-ACAC-485B-9AF6-24ECAC07AD82.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "saved-account-challenges.png",
+    "run": "latest",
+    "exported": "4C2A360E-0BC9-4779-A33F-E1B3B5D17578.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "saved-account-home.png",
+    "run": "latest",
+    "exported": "7AEEEFB0-9FDD-46E8-91DD-7F27B7815E84.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-pending-page-1.png",
+    "run": "final",
+    "exported": "B69A17BC-F2E3-43F6-967D-D1A7A27A736A.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-pending-page-0.png",
+    "run": "final",
+    "exported": "A46BBB50-8FF3-41F9-AEA5-A92D2919DE49.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-validation-error-page-1.png",
+    "run": "final",
+    "exported": "458A2034-33D7-4443-B1C9-928D2D87F435.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-validation-error-page-0.png",
+    "run": "final",
+    "exported": "329C1530-479A-4EB6-BF8A-E32D56F585A2.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-large-dark-review-page-4.png",
+    "run": "final",
+    "exported": "6129E4D8-ADB5-454E-95F4-2C105A9A0080.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-large-dark-review-page-3.png",
+    "run": "final",
+    "exported": "53DBC032-5B2C-4C4C-9549-BBA011726365.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-large-dark-review-page-2.png",
+    "run": "final",
+    "exported": "1B073506-83FD-4D33-90D9-599E8FA3B60B.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-large-dark-review-page-1.png",
+    "run": "final",
+    "exported": "8F8CB1E9-848B-45B3-BE06-858E1A64CAE0.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-large-dark-review-page-0.png",
+    "run": "final",
+    "exported": "E3FC2D2D-FD4B-4AA5-AD7B-E3D7E039E9E6.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-large-dark-activity-page-2.png",
+    "run": "final",
+    "exported": "B22F6987-C19B-494F-880D-7A5EA6DB2F13.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-large-dark-activity-page-1.png",
+    "run": "final",
+    "exported": "B8E8E529-021F-49D8-A760-47371BC49C7F.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-large-dark-activity-page-0.png",
+    "run": "final",
+    "exported": "11BF208E-4FC0-4B9F-93C2-0FDCD4287BC7.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-large-dark-type-page-1.png",
+    "run": "final",
+    "exported": "33A8AD75-76A1-4082-9BDF-248781879B2F.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-large-dark-type-page-0.png",
+    "run": "final",
+    "exported": "9802D898-6A84-49CF-9384-5C2CF9C3CC14.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-light-review-page-1.png",
+    "run": "final",
+    "exported": "CDF6B972-E21E-49FF-B60F-EA813AC35FD4.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-light-review-page-0.png",
+    "run": "final",
+    "exported": "59B0804E-1353-4C85-BC44-D359CA12F799.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-light-activity-page-0.png",
+    "run": "final",
+    "exported": "DDCBCA84-ACBD-4D26-8CE1-146934618E1E.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-solid-light-type-page-0.png",
+    "run": "final",
+    "exported": "CBC9D619-59AF-4588-91FC-0907F49C0EFF.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-glass-dark-review-page-1.png",
+    "run": "final",
+    "exported": "D63B7E7A-9202-4689-A83E-6290305C013C.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-glass-dark-review-page-0.png",
+    "run": "final",
+    "exported": "44BEF7E2-13FD-4AF1-A762-EA87159D8BC2.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-glass-dark-activity-page-0.png",
+    "run": "final",
+    "exported": "65BCE0E8-97EC-4028-9B64-F8E12C16FBF1.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-glass-dark-type-page-0.png",
+    "run": "final",
+    "exported": "89FAEB18-2176-4B11-BC25-FD9C315E7CFA.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-glass-light-review-page-1.png",
+    "run": "final",
+    "exported": "1163B31E-042A-45AC-AED2-4B0F5B6A7DBC.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-glass-light-review-page-0.png",
+    "run": "final",
+    "exported": "7CD9291E-1EC0-43E6-B6E1-8C5BD0F3D1BA.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-glass-light-activity-page-0.png",
+    "run": "final",
+    "exported": "0E3B1EEC-F8EC-45BA-94AA-36913B2C16B1.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-glass-light-type-page-0.png",
+    "run": "final",
+    "exported": "2CBEA7B3-8FBE-4F48-B496-BFA34FB37F0E.png",
+    "test": "ChallengeCreationDraftTests/testCreationVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-preview-failure-page-1.png",
+    "run": "final",
+    "exported": "5C929B85-A234-4E68-9C4B-93F9FF689E94.png",
+    "test": "ChallengeCreationDraftTests/testPreviewLoadingAndFailureRetainInput()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-preview-failure-page-0.png",
+    "run": "final",
+    "exported": "7254D5D9-FB20-4D01-B92E-6E19338E5E0D.png",
+    "test": "ChallengeCreationDraftTests/testPreviewLoadingAndFailureRetainInput()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-preview-loading-page-1.png",
+    "run": "final",
+    "exported": "6CC57DEC-6436-4592-BC79-5B8980A97330.png",
+    "test": "ChallengeCreationDraftTests/testPreviewLoadingAndFailureRetainInput()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-preview-loading-page-0.png",
+    "run": "final",
+    "exported": "DDE7C4FF-60EF-4438-8244-50A443414F46.png",
+    "test": "ChallengeCreationDraftTests/testPreviewLoadingAndFailureRetainInput()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-health-ready-page-0.png",
+    "run": "final",
+    "exported": "713F8FFC-6D9E-4253-883B-C9D7B714D432.png",
+    "test": "ChallengeHealthFlowStoreTests/testAllSevenReadinessStatesAndPermissionIsNotReadiness()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-health-checking-page-0.png",
+    "run": "final",
+    "exported": "BB86CA40-DABE-4317-B182-58EC963EFFA7.png",
+    "test": "ChallengeHealthFlowStoreTests/testAllSevenReadinessStatesAndPermissionIsNotReadiness()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-health-staleorincomplete-page-0.png",
+    "run": "final",
+    "exported": "5604DA11-FC15-41EB-9D76-30272E523A1C.png",
+    "test": "ChallengeHealthFlowStoreTests/testAllSevenReadinessStatesAndPermissionIsNotReadiness()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-health-temporarilyunavailable-page-0.png",
+    "run": "final",
+    "exported": "4775E5BA-7E9B-44C0-BEA8-5ABFD4189883.png",
+    "test": "ChallengeHealthFlowStoreTests/testAllSevenReadinessStatesAndPermissionIsNotReadiness()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-health-noeligibledatayet-page-0.png",
+    "run": "final",
+    "exported": "FCF95304-3FBF-408D-84E9-C99B298EF847.png",
+    "test": "ChallengeHealthFlowStoreTests/testAllSevenReadinessStatesAndPermissionIsNotReadiness()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-health-unsupported-page-0.png",
+    "run": "final",
+    "exported": "32357683-B841-4532-987B-0948563E17FE.png",
+    "test": "ChallengeHealthFlowStoreTests/testAllSevenReadinessStatesAndPermissionIsNotReadiness()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "creation-health-notconnected-page-0.png",
+    "run": "final",
+    "exported": "CC205C58-30AC-46B9-80F2-C02F4CD76E76.png",
+    "test": "ChallengeHealthFlowStoreTests/testAllSevenReadinessStatesAndPermissionIsNotReadiness()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "private-personal-steps-create-page-0.png",
+    "run": "final",
+    "exported": "A576E0B3-34B0-425E-8F85-4809A32A41B6.png",
+    "test": "ChallengeHealthFlowStoreTests/testPrivatePersonalStepsCreateHidesUnsupportedChallengeChoices()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-private-timed-page-0.png",
+    "run": "final",
+    "exported": "BDEEC8B8-4B90-450C-84E3-DEDEB87F931A.png",
+    "test": "ChallengeHealthFlowStoreTests/testPrivateTimedLeaderboardHasNoGoalTimeCopy()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-health-credit-readiness-dark-page-2.png",
+    "run": "final",
+    "exported": "8A19058F-414A-4AEA-8A4C-E186FBD3CE12.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-health-credit-readiness-dark-page-1.png",
+    "run": "final",
+    "exported": "8A6386E6-BBA0-4BCE-82D5-96EDFACAFB06.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-health-credit-readiness-dark-page-0.png",
+    "run": "final",
+    "exported": "47175FAB-8C46-4AC5-8222-622644FF006B.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-timed-dark-page-2.png",
+    "run": "final",
+    "exported": "E09CD0F3-9FB4-4026-942F-06B82AEE50D7.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-timed-dark-page-1.png",
+    "run": "final",
+    "exported": "A27661FA-F7C1-4FF3-A1F3-BD4903BE3F37.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-timed-dark-page-0.png",
+    "run": "final",
+    "exported": "208D269E-AF87-42BB-A300-34B88D05A026.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-distance-dark-page-2.png",
+    "run": "final",
+    "exported": "778E8048-2E5D-4920-9E80-A2B4E3FACEA6.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-distance-dark-page-1.png",
+    "run": "final",
+    "exported": "CC1BE269-B1B0-453C-8143-7076ED4E4D7A.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-distance-dark-page-0.png",
+    "run": "final",
+    "exported": "BDD0577D-757D-4FD6-AE62-A2FD25115133.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-exercise-dark-page-2.png",
+    "run": "final",
+    "exported": "A05243C5-D46B-4BE9-B1FA-5507AC7E5528.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-exercise-dark-page-1.png",
+    "run": "final",
+    "exported": "E2972DCF-E749-4C18-8580-BB7FE94B54F4.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-exercise-dark-page-0.png",
+    "run": "final",
+    "exported": "5E042764-F264-4044-9D8A-B5AC5440B78D.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-steps-dark-page-2.png",
+    "run": "final",
+    "exported": "A7C4135F-E18B-4794-BF90-4B8AB913B6AE.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-steps-dark-page-1.png",
+    "run": "final",
+    "exported": "F95530D1-2C3D-428D-BC4C-5284B93D66CE.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-steps-dark-page-0.png",
+    "run": "final",
+    "exported": "794334CD-4906-429C-8623-90202406563F.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-health-credit-readiness-light-page-2.png",
+    "run": "final",
+    "exported": "2783CD4A-C3C9-4225-898C-86378AD27DC1.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-health-credit-readiness-light-page-1.png",
+    "run": "final",
+    "exported": "E1C03AE1-1A77-435F-9001-D65885581A47.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-health-credit-readiness-light-page-0.png",
+    "run": "final",
+    "exported": "1576FAAE-ACC6-4110-A535-F1E3CBACB196.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-timed-light-page-2.png",
+    "run": "final",
+    "exported": "686A3472-A885-47D4-BCAE-E71C5E5BA1C9.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-timed-light-page-1.png",
+    "run": "final",
+    "exported": "BAF31884-3C59-4AAC-A3BD-489F20C58BD9.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-timed-light-page-0.png",
+    "run": "final",
+    "exported": "9CCC1C0C-12C3-4B35-B68C-EF9BDF19A0C2.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-distance-light-page-2.png",
+    "run": "final",
+    "exported": "D891B3E6-F14C-4867-BD84-BADA40513C28.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-distance-light-page-1.png",
+    "run": "final",
+    "exported": "439163C5-D0D8-45DD-96EE-80C566742505.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-distance-light-page-0.png",
+    "run": "final",
+    "exported": "A68094D3-80AA-46AA-AFB5-299947E10B50.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-exercise-light-page-2.png",
+    "run": "final",
+    "exported": "3D20BC77-0AC0-4B7D-B94A-1A5A86C57834.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-exercise-light-page-1.png",
+    "run": "final",
+    "exported": "53F85E24-22AC-41EF-86F7-BA6FAED1CC48.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-exercise-light-page-0.png",
+    "run": "final",
+    "exported": "912BA126-8085-4F64-B929-3D36FD43330B.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-steps-light-page-2.png",
+    "run": "final",
+    "exported": "79458EC9-D30D-418D-A386-C0D6FF64F493.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-steps-light-page-1.png",
+    "run": "final",
+    "exported": "2F1FC288-E86C-4BC4-A184-3AA147502958.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-leaderboard-steps-light-page-0.png",
+    "run": "final",
+    "exported": "BE02D668-D804-473F-BF11-5391811DCF88.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-empty-page-0.png",
+    "run": "final",
+    "exported": "39E52879-0C9C-4F08-9893-38DE7E8E1A92.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-unavailable-page-0.png",
+    "run": "final",
+    "exported": "1C30E17E-2BF3-4B1C-A75C-D7D479887860.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-stale-page-1.png",
+    "run": "final",
+    "exported": "E6B1D9B9-73E5-4C33-9DC2-EECD73BF8723.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-stale-page-0.png",
+    "run": "final",
+    "exported": "A29BF880-DDD7-4E5B-B8C5-B18CAE7E4387.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-partial-page-1.png",
+    "run": "final",
+    "exported": "6CE6C8A7-8B64-442C-B63A-548E65E0F2FD.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-partial-page-0.png",
+    "run": "final",
+    "exported": "DD32683C-00A6-4EF1-83F0-00556C99ADBC.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-personal-activity-unavailable-page-1.png",
+    "run": "final",
+    "exported": "B84C7C7C-49A3-49B4-9C77-3BE5FB5EC71E.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-personal-activity-unavailable-page-0.png",
+    "run": "final",
+    "exported": "71732803-8031-4AFE-B194-C71ADB4EFB9F.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-upcoming-goal-page-1.png",
+    "run": "final",
+    "exported": "D4289066-326E-4B07-8B82-1F2B1FE3E912.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-upcoming-goal-page-0.png",
+    "run": "final",
+    "exported": "F0E6D548-D02C-40D4-952A-6B2F896C6C22.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-compact-large-solid-page-5.png",
+    "run": "final",
+    "exported": "DF41B931-D6BA-4DCD-9A7E-441D7570418D.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-compact-large-solid-page-4.png",
+    "run": "final",
+    "exported": "3DABF178-56A6-4A07-906F-751DF00B83E8.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-compact-large-solid-page-3.png",
+    "run": "final",
+    "exported": "F548C559-02CB-4ECA-A011-1DB3227B1579.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-compact-large-solid-page-2.png",
+    "run": "final",
+    "exported": "4D4D197B-680D-4BBB-855A-CC4417B21BC8.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-compact-large-solid-page-1.png",
+    "run": "final",
+    "exported": "8CA0FD34-520B-4955-82E6-29167005FF95.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-compact-large-solid-page-0.png",
+    "run": "final",
+    "exported": "70D81075-F5D7-43BC-977D-3294888ADFAE.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-loaded-dark-page-2.png",
+    "run": "final",
+    "exported": "2003DE91-83C0-4DE7-9337-A54C4D38EE28.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-loaded-dark-page-1.png",
+    "run": "final",
+    "exported": "27254050-8D9F-46D0-BA31-52331AA7A88C.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-loaded-dark-page-0.png",
+    "run": "final",
+    "exported": "2856AC96-855E-488C-B57C-3962D54A8AD4.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-loaded-light-page-2.png",
+    "run": "final",
+    "exported": "7744FF5D-6222-4003-8DC6-09F7AF27D0CB.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-loaded-light-page-1.png",
+    "run": "final",
+    "exported": "0D6F290E-2236-46B8-9F55-2D06D166B4A1.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "profile-loaded-light-page-0.png",
+    "run": "final",
+    "exported": "F6ED71F0-7991-4F73-9C62-FC372B0BAE1A.png",
+    "test": "ChallengeProfileTests/testProfileMountedVisualMatrix()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-community_steps_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "900864D7-72B9-42F8-A93B-E656A8D6DAD2.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-community_steps_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "E6E116AD-6608-47DB-8435-2BB440FE7269.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-community_steps_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "86E6C2F5-45AF-49A0-B1D9-F44542D4AEC6.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_timed_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "716B01A2-8F41-47AB-B31B-5F4FDC9E27ED.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_timed_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "AD8EAFB2-634B-453D-8755-1C7810E39FC5.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_timed_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "84AB95A4-C3B1-4439-A9D7-10EEBF13ADAC.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_distance_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "B0B00B2B-6BF9-433C-87B7-794A036D7BAE.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_distance_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "DD83C16F-445E-4147-8750-A6AF3650E42E.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_distance_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "9E2809BA-C9EA-466D-965D-A53B430163D1.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_exercise_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "C778C447-1897-4FE3-B724-85BE17DAC5B7.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_exercise_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "989E2A41-4D5F-4BA7-9362-F07B225C99A1.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_exercise_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "2D77E8FC-6A6E-4A47-8733-138D459C3D2F.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_steps_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "9AA0B092-2374-4766-BCD3-50134A6C3F8A.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-personal_steps_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "43CE658E-6127-4979-A1E8-E01B38C3D68E.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_timed_leaderboard_v1-page-2.png",
+    "run": "final",
+    "exported": "224378FA-9318-4EFF-A995-27F6DE3308E2.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_timed_leaderboard_v1-page-1.png",
+    "run": "final",
+    "exported": "BAE6A863-4125-4B1C-8B0A-798D179A3B9E.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_timed_leaderboard_v1-page-0.png",
+    "run": "final",
+    "exported": "6B345681-C7DF-4B3F-B84D-B866656AE635.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_timed_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "38BB09AE-745B-4AA0-A017-F0D7DD3B815D.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_timed_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "8E92314C-FC2F-4E4D-B2AE-648AA6811358.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_timed_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "69695812-A053-4A98-8C23-0CAFB580E9B4.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_distance_leaderboard_v1-page-1.png",
+    "run": "final",
+    "exported": "BA7F795A-5DB4-431F-839D-8C3A4C45EC0B.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_distance_leaderboard_v1-page-0.png",
+    "run": "final",
+    "exported": "9C9B9C16-2315-496F-92DD-A3395CCD8AC0.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_distance_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "CE0582DE-D067-4214-903A-F388653994AA.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_distance_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "638288F7-FD83-4415-9478-A3B3583FF777.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_distance_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "CD3AE02C-D9EC-49B2-826A-40960B8906D5.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_exercise_leaderboard_v1-page-1.png",
+    "run": "final",
+    "exported": "486C2D1D-418C-45B8-A816-4FF64B8EE555.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_exercise_leaderboard_v1-page-0.png",
+    "run": "final",
+    "exported": "132AA314-05B2-4A43-BA11-80AA13FD51C4.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_exercise_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "4BAB105B-A206-4013-8F52-1344EF3930B9.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_exercise_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "CF4D2CBB-2E8F-41D0-A0CA-C7606080BF85.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_exercise_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "DE93685E-6F97-47D3-8177-1221FF17BE66.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_steps_leaderboard_v1-page-1.png",
+    "run": "final",
+    "exported": "F793A048-E2DE-4E65-A2E0-9357EBC181AC.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_steps_leaderboard_v1-page-0.png",
+    "run": "final",
+    "exported": "55657D46-1E43-4F58-A321-B7E16AD387DD.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_steps_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "31B5CA17-3A6F-4BFE-99A4-97F6976A026E.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_steps_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "CB3DA3AF-535B-4938-988D-FB63979D3034.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-agreement-friend_steps_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "0D16E451-FFA2-449E-B934-39B461011000.png",
+    "test": "SignalRenderedTests/testAllAgreementsKeepLongRulesAndDatesReadable()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community_steps_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "E29E8D84-0F9B-466D-9FC5-E941BEC01185.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community_steps_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "5DA251D4-F928-42FF-B50C-042448A5457D.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-personal_timed_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "F8C2E94F-0CE3-4A6F-AEBE-5727A8CD7275.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-personal_timed_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "14B6CF7B-C498-4AFE-9DF9-4CB4E490D15B.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-personal_distance_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "38E0AB9C-72C9-4AB8-84A9-94E4C8B0B45E.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-personal_exercise_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "4B7AA7B9-D992-4C0C-BDE1-5041C36F8A24.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-personal_steps_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "D58D05DF-AAB3-471B-8072-DC14D7255B63.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_timed_leaderboard_v1-page-1.png",
+    "run": "final",
+    "exported": "312EE062-F367-426B-8C01-2E7BF79CBF84.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_timed_leaderboard_v1-page-0.png",
+    "run": "final",
+    "exported": "7E07FD24-0485-4825-9A5C-955F2C0F1639.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_timed_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "6C9D7EDD-B022-4DF2-A93C-42E2B5045F9C.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_timed_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "0A6A2BCB-4F31-4575-B67C-323AAB2C71D0.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_timed_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "647956DD-FB22-4FB4-929E-DDF953514E01.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_distance_leaderboard_v1-page-1.png",
+    "run": "final",
+    "exported": "CDAA828D-4968-421C-84E6-DA34572DB65C.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_distance_leaderboard_v1-page-0.png",
+    "run": "final",
+    "exported": "AEA23C6A-F7A5-40FD-AE0E-174F547B8E5B.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_distance_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "152827E1-8D86-4195-9AA3-52239F356241.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_distance_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "94B68137-9E17-4C84-A18B-E92FC148AA42.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_distance_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "07B7A298-AD19-4489-A26F-8600145E8A78.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_exercise_leaderboard_v1-page-1.png",
+    "run": "final",
+    "exported": "AE12086C-9F36-4873-AAAA-C305827D751A.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_exercise_leaderboard_v1-page-0.png",
+    "run": "final",
+    "exported": "72C528E5-5AA4-4D62-9717-4698688658F1.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_exercise_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "E1F795F9-197C-408F-8B3A-BD059CA9294D.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_exercise_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "19F5D5FF-3C69-4C3B-A93C-B1684A563F07.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_exercise_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "8084F858-4966-45C7-B772-DDDE5399BBC4.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_steps_leaderboard_v1-page-1.png",
+    "run": "final",
+    "exported": "08E552C4-6FD6-4D62-A8CD-F20B33BB89EB.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_steps_leaderboard_v1-page-0.png",
+    "run": "final",
+    "exported": "09DAEFC0-9BEF-4657-9272-D4BAC7A73D70.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_steps_goal_v1-page-2.png",
+    "run": "final",
+    "exported": "C2C00D7A-5D91-414E-B8F1-CD5DEDF2BC25.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_steps_goal_v1-page-1.png",
+    "run": "final",
+    "exported": "F7F472AF-461A-4255-AB87-3D352BEB6514.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-friend_steps_goal_v1-page-0.png",
+    "run": "final",
+    "exported": "29E82EC8-5DE0-4677-9420-8442D13BF5C9.png",
+    "test": "SignalRenderedTests/testAllMetricsAndCommunityPrivacyRenderFromValidatedRows()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community-threshold-detail-page-1.png",
+    "run": "final",
+    "exported": "7B0AFFDB-04AF-4340-896A-637A320D089F.png",
+    "test": "SignalRenderedTests/testCommunityDelayedCountsInDetailAndJoin()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community-threshold-detail-page-0.png",
+    "run": "final",
+    "exported": "0A9E7663-BF8E-4C67-B061-431AFA3B6728.png",
+    "test": "SignalRenderedTests/testCommunityDelayedCountsInDetailAndJoin()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community-incomplete-agreement-page-0.png",
+    "run": "final",
+    "exported": "5B964897-8839-4ADE-80A7-618533FFC805.png",
+    "test": "SignalRenderedTests/testCommunityDelayedCountsInDetailAndJoin()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community-already-joined-page-1.png",
+    "run": "final",
+    "exported": "95AEF7A5-31CA-4AAB-997D-117F8B4DB068.png",
+    "test": "SignalRenderedTests/testCommunityDelayedCountsInDetailAndJoin()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community-already-joined-page-0.png",
+    "run": "final",
+    "exported": "0D2B3358-D6F0-472C-8977-F9A48D3F6DCF.png",
+    "test": "SignalRenderedTests/testCommunityDelayedCountsInDetailAndJoin()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community-mature-join-page-1.png",
+    "run": "final",
+    "exported": "DA6E5C68-8A36-40C1-8CEB-6FB6507F7EE5.png",
+    "test": "SignalRenderedTests/testCommunityDelayedCountsInDetailAndJoin()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community-mature-join-page-0.png",
+    "run": "final",
+    "exported": "71EEB0C4-6D44-4C31-A4F3-AE75C6E4A1B2.png",
+    "test": "SignalRenderedTests/testCommunityDelayedCountsInDetailAndJoin()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community-mature-detail-page-1.png",
+    "run": "final",
+    "exported": "8C75533C-E4FD-4F97-955E-BC5DB2A666E0.png",
+    "test": "SignalRenderedTests/testCommunityDelayedCountsInDetailAndJoin()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-community-mature-detail-page-0.png",
+    "run": "final",
+    "exported": "4E8B576E-75D8-4FCA-907F-68F3B353B675.png",
+    "test": "SignalRenderedTests/testCommunityDelayedCountsInDetailAndJoin()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-controls-solid-page-0.png",
+    "run": "final",
+    "exported": "5B3A2E0F-55E1-4E23-B8B8-1037792175E5.png",
+    "test": "SignalRenderedTests/testControlFallbackGeometryAndUnknownValues()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-controls-glass-page-0.png",
+    "run": "final",
+    "exported": "D20917EA-3529-482C-A2AC-6A7A558A8512.png",
+    "test": "SignalRenderedTests/testControlFallbackGeometryAndUnknownValues()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-home-accessibility-page-0.png",
+    "run": "final",
+    "exported": "1D796E49-2B8C-4F77-8FB5-ACFBBBC4D035.png",
+    "test": "SignalRenderedTests/testHomeHierarchyAtCurrentCompactDarkAndAccessibilitySizes()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-home-dark-page-0.png",
+    "run": "final",
+    "exported": "BA2FA741-5DD9-4C53-A7DA-538A27115248.png",
+    "test": "SignalRenderedTests/testHomeHierarchyAtCurrentCompactDarkAndAccessibilitySizes()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-home-compact-page-0.png",
+    "run": "final",
+    "exported": "A8C2A3FE-F1B0-43E7-8A66-D1F93179CA83.png",
+    "test": "SignalRenderedTests/testHomeHierarchyAtCurrentCompactDarkAndAccessibilitySizes()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-home-page-0.png",
+    "run": "final",
+    "exported": "1E3C73BB-2D27-48F1-AEEE-BFF475ACC13B.png",
+    "test": "SignalRenderedTests/testHomeHierarchyAtCurrentCompactDarkAndAccessibilitySizes()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-6-large-dark-solid-page-5.png",
+    "run": "final",
+    "exported": "6A4AF4C0-6808-4C78-908C-BA70B77E53E1.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-6-large-dark-solid-page-4.png",
+    "run": "final",
+    "exported": "F4CF4ACD-119B-4B62-A704-C41233529574.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-6-large-dark-solid-page-3.png",
+    "run": "final",
+    "exported": "22CBABEE-BABB-43CE-88E7-7DCFDA5280BB.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-6-large-dark-solid-page-2.png",
+    "run": "final",
+    "exported": "CE6A5574-971A-4900-83B1-33556090CE09.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-6-large-dark-solid-page-1.png",
+    "run": "final",
+    "exported": "7200D177-E3E6-4242-B428-45AA42560F5E.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-6-large-dark-solid-page-0.png",
+    "run": "final",
+    "exported": "D56DD321-8F21-485B-9D6E-062CBE5AD495.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-6-compact-solid-page-2.png",
+    "run": "final",
+    "exported": "2147109D-1973-40FD-9D1C-6C15BA11778A.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-6-compact-solid-page-1.png",
+    "run": "final",
+    "exported": "F7990850-0019-46F3-9D27-76D2DEEDB474.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-6-compact-solid-page-0.png",
+    "run": "final",
+    "exported": "54B2E474-0241-4A76-87C3-9D29678E9B92.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-2-large-dark-solid-page-2.png",
+    "run": "final",
+    "exported": "66A3ABEB-B6DA-4A86-9D55-FCC9791F9FE3.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-2-large-dark-solid-page-1.png",
+    "run": "final",
+    "exported": "C4660EAE-E120-4B8F-BE50-43ACCCCDCBE9.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-2-large-dark-solid-page-0.png",
+    "run": "final",
+    "exported": "5514D4DA-61F0-4A75-A45F-38F3799B9EBF.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-2-compact-solid-page-1.png",
+    "run": "final",
+    "exported": "B88D84FD-3079-481E-9061-5EA989753F25.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-people-2-compact-solid-page-0.png",
+    "run": "final",
+    "exported": "52C86807-8428-4CD4-AA0F-721DB7A493CA.png",
+    "test": "SignalRenderedTests/testTwoAndSixPeopleReflowWithLongNamesAndSolidControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-home-unavailable-page-0.png",
+    "run": "final",
+    "exported": "8CCCA48A-6019-4465-BD9B-6136F3AAE590.png",
+    "test": "SignalRenderedTests/testUnknownCorrectedTiedRedactedAndRecoveryPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-home-loading-page-0.png",
+    "run": "final",
+    "exported": "7507EB75-DA09-4EE9-A8EA-6AFF33E161E1.png",
+    "test": "SignalRenderedTests/testUnknownCorrectedTiedRedactedAndRecoveryPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-home-stale-recovery-page-0.png",
+    "run": "final",
+    "exported": "311D5381-7216-4FFC-994F-C3D9C191BEB9.png",
+    "test": "SignalRenderedTests/testUnknownCorrectedTiedRedactedAndRecoveryPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-home-empty-page-0.png",
+    "run": "final",
+    "exported": "6F479FF7-C8CE-4A0C-806C-939F1038FFDD.png",
+    "test": "SignalRenderedTests/testUnknownCorrectedTiedRedactedAndRecoveryPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-leaderboard-unknown-tied-departed-page-1.png",
+    "run": "final",
+    "exported": "6009317D-6D2C-4CD3-8443-666387CE0469.png",
+    "test": "SignalRenderedTests/testUnknownCorrectedTiedRedactedAndRecoveryPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-leaderboard-unknown-tied-departed-page-0.png",
+    "run": "final",
+    "exported": "CAFF41DF-C502-4663-A920-B1995EE51F0C.png",
+    "test": "SignalRenderedTests/testUnknownCorrectedTiedRedactedAndRecoveryPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-didnt-count-history.png",
+    "run": "final",
+    "exported": "73B0376A-9D5B-4961-A1EA-943B894856AC.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-final-return.png",
+    "run": "final",
+    "exported": "59408512-4394-46CA-8989-F5617B2CD364.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-actual-notice-review.png",
+    "run": "final",
+    "exported": "1212B455-4F34-4CA6-B0A3-F6EEED925A51.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-9999-correction.png",
+    "run": "final",
+    "exported": "9B7D4BF5-797C-45B5-8940-DB11B1A184F5.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-10001-progress.png",
+    "run": "final",
+    "exported": "E9C6FF4D-1F24-4388-87E3-421B7F991C07.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-saved-confirmation.png",
+    "run": "final",
+    "exported": "9D6CED8A-7D46-4319-BCAB-6137665CBCFB.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-matching-readiness.png",
+    "run": "final",
+    "exported": "AFCC1691-7881-42C4-9212-D375B594CA8B.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-received-leaderboard-timed.png",
+    "run": "final",
+    "exported": "5C95BC56-F8F0-4CC3-89D5-5FD7070096EE.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-received-leaderboard-distance.png",
+    "run": "final",
+    "exported": "82BEEE68-B088-4F8C-8ED2-1CA4B912A466.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-received-leaderboard-exercise.png",
+    "run": "final",
+    "exported": "44C32DAF-5F0F-446C-BD05-285E65B7BB69.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "p9-signal-received-leaderboard-steps.png",
+    "run": "final",
+    "exported": "BAB6A867-6335-4B53-B6F4-98CFBCA70043.png",
+    "test": "ChallengeHealthSignalUITests/testSignalStepsReadinessConsentCorrectionReviewAndHistory()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "compact-review-bottom.png",
+    "run": "final",
+    "exported": "5CD2088C-7EFC-4FEE-8954-7F3F92D385BB.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "compact-review.png",
+    "run": "final",
+    "exported": "F3A8303D-05A1-43F4-8455-DFA9E4F2B141.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "compact-amount-editor.png",
+    "run": "final",
+    "exported": "97790E8F-6414-465C-9F3D-A4EE1961B128.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "compact-dates-editor.png",
+    "run": "final",
+    "exported": "DC98BDF4-D7CB-4F82-9680-F6B7732EC9A6.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "compact-keyboard.png",
+    "run": "final",
+    "exported": "C9983D81-4F96-4D1E-9187-57054EBDCC64.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "compact-activity.png",
+    "run": "final",
+    "exported": "818AF5E3-C061-4AEF-AD25-5CAB23F3AE19.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "compact-type.png",
+    "run": "final",
+    "exported": "01C2D85A-C797-47F4-BEEB-22A495C914E9.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-compact-review-bottom.png",
+    "run": "dark-ax",
+    "exported": "0D0B9E89-1B5E-4653-9128-D4EB77435C00.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-compact-review.png",
+    "run": "dark-ax",
+    "exported": "8B72A6F3-4681-47FE-82C4-5A344B5595B7.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-compact-amount-editor.png",
+    "run": "dark-ax",
+    "exported": "5CC3B149-61E2-4729-B4BE-B326A4AEBB3E.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-compact-dates-editor.png",
+    "run": "dark-ax",
+    "exported": "B982525E-FE1E-47A5-896C-D2AFC556590D.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-compact-keyboard.png",
+    "run": "dark-ax",
+    "exported": "15909502-B52F-48B5-9194-B146FE3DC4CB.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-compact-activity.png",
+    "run": "dark-ax",
+    "exported": "DE13E784-4348-4310-9968-DAA63F1A7006.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-compact-type.png",
+    "run": "dark-ax",
+    "exported": "095B9781-961D-42D4-9542-8C81A28D86DE.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-saved-account-support.png",
+    "run": "dark-ax",
+    "exported": "A306BEAA-4AE0-4C75-9158-FA4BCAD1DB93.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-saved-account-privacy.png",
+    "run": "dark-ax",
+    "exported": "FF9B804E-C407-455A-A1F6-544DD56CBACD.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-saved-account-settings.png",
+    "run": "dark-ax",
+    "exported": "57EDE8A8-8FF6-4630-8805-97E220B141DF.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-saved-account-activity.png",
+    "run": "dark-ax",
+    "exported": "0A5D0318-4376-40DD-9252-FD92A15A9295.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-saved-account-profile.png",
+    "run": "dark-ax",
+    "exported": "FA9E403C-49BE-4606-84F6-6CF9AF30C9DE.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-saved-account-challenges.png",
+    "run": "dark-ax",
+    "exported": "9CB85FB2-0CD7-4920-95FC-CDC9439A353B.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "dark-ax-saved-account-home.png",
+    "run": "dark-ax",
+    "exported": "BF09F284-CF65-43BD-ABD6-62340CA4C602.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "ios18-compact-review-bottom.png",
+    "run": "ios18",
+    "exported": "1AB8AAED-5685-49DB-BFBD-7C43B8D56F74.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-compact-review.png",
+    "run": "ios18",
+    "exported": "C740CAEE-5FC4-46C7-A317-05319A681767.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-compact-amount-editor.png",
+    "run": "ios18",
+    "exported": "93C5C419-A74C-40D7-9735-05996E85B47B.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-compact-dates-editor.png",
+    "run": "ios18",
+    "exported": "9FFD8B73-F558-41A5-9D8A-F2CD6B8983DF.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-compact-keyboard.png",
+    "run": "ios18",
+    "exported": "CA44C613-AE7E-4118-94C9-8C5AFD3CC39F.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-compact-activity.png",
+    "run": "ios18",
+    "exported": "10CC5404-5C6F-4BFE-A26C-F768F1A5BB3B.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-compact-type.png",
+    "run": "ios18",
+    "exported": "92D0A25D-ECED-4920-95D4-E252595BA9AE.png",
+    "test": "SignalCreationUITests/testCompactCreationControls()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-saved-account-support.png",
+    "run": "ios18",
+    "exported": "01111634-336F-4130-A46E-984D7517FDE8.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-saved-account-privacy.png",
+    "run": "ios18",
+    "exported": "1586F1BC-95F0-446D-9898-19C697A4232E.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-saved-account-settings.png",
+    "run": "ios18",
+    "exported": "41CAA396-9EE1-4C36-A2DA-377CCEB6CF62.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-saved-account-activity.png",
+    "run": "ios18",
+    "exported": "9D0A1C88-33CA-4268-8DD7-350908917E51.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-saved-account-profile.png",
+    "run": "ios18",
+    "exported": "10341F93-5018-4398-8DF7-1FB357F8C0F7.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-saved-account-challenges.png",
+    "run": "ios18",
+    "exported": "5B24C484-B180-42AF-9BFF-0B7ABB5A9B76.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "ios18-saved-account-home.png",
+    "run": "ios18",
+    "exported": "8153A81C-7D66-4345-A3C5-0821C4DC0D79.png",
+    "test": "SignalCreationUITests/testSavedAccountPresentation()",
+    "device": "GameTimeCobaltCompact-20260911"
+  },
+  {
+    "name": "d141-saved-score-page-1.png",
+    "run": "refinement",
+    "exported": "98A01271-C65C-4683-BE30-CD18E16080A1.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardSavedScoreDeadlineAndRefreshRender()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "d141-saved-score-page-0.png",
+    "run": "refinement",
+    "exported": "8B103532-690D-4A63-95EA-B79803F17A73.png",
+    "test": "ChallengeHealthFlowStoreTests/testReceivedLeaderboardSavedScoreDeadlineAndRefreshRender()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-browse-history-dark-accessibility-page-1.png",
+    "run": "refinement",
+    "exported": "2AEFB356-E5C0-4D7B-9C6C-2DB9742618A7.png",
+    "test": "SignalRenderedTests/testChallengeFiltersKeepAttentionAndSeparateGoalGroups()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-browse-history-dark-accessibility-page-0.png",
+    "run": "refinement",
+    "exported": "52376864-5582-4189-904B-1BE7944CED21.png",
+    "test": "SignalRenderedTests/testChallengeFiltersKeepAttentionAndSeparateGoalGroups()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-browse-history-light-page-0.png",
+    "run": "refinement",
+    "exported": "556A60E1-1427-4B1E-8077-E7BD8525CC78.png",
+    "test": "SignalRenderedTests/testChallengeFiltersKeepAttentionAndSeparateGoalGroups()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-browse-upcoming-dark-accessibility-page-1.png",
+    "run": "refinement",
+    "exported": "11106A2B-82FC-4664-A897-297B311A4163.png",
+    "test": "SignalRenderedTests/testChallengeFiltersKeepAttentionAndSeparateGoalGroups()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-browse-upcoming-dark-accessibility-page-0.png",
+    "run": "refinement",
+    "exported": "E166A25C-81B4-4F26-BF97-F37B4301A2DE.png",
+    "test": "SignalRenderedTests/testChallengeFiltersKeepAttentionAndSeparateGoalGroups()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-browse-upcoming-light-page-0.png",
+    "run": "refinement",
+    "exported": "FBD25FD8-3FB1-43D5-8382-CD61442DE2F6.png",
+    "test": "SignalRenderedTests/testChallengeFiltersKeepAttentionAndSeparateGoalGroups()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-browse-active-dark-accessibility-page-1.png",
+    "run": "refinement",
+    "exported": "C87897FC-1071-419A-84CE-B952D3869961.png",
+    "test": "SignalRenderedTests/testChallengeFiltersKeepAttentionAndSeparateGoalGroups()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-browse-active-dark-accessibility-page-0.png",
+    "run": "refinement",
+    "exported": "179E691E-B690-454F-A8A6-929A1E5D17F0.png",
+    "test": "SignalRenderedTests/testChallengeFiltersKeepAttentionAndSeparateGoalGroups()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-browse-active-light-page-0.png",
+    "run": "refinement",
+    "exported": "4D4A52C0-64F9-4249-9B9D-547B72E11476.png",
+    "test": "SignalRenderedTests/testChallengeFiltersKeepAttentionAndSeparateGoalGroups()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-final-result-review-decided-page-1.png",
+    "run": "refinement",
+    "exported": "39B2FE45-7C9C-4B7F-8BF3-40E439A67089.png",
+    "test": "SignalRenderedTests/testFinalResultKeepsReviewRecordWithoutObsoleteRefreshPrompt()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-final-result-review-decided-page-0.png",
+    "run": "refinement",
+    "exported": "8CC30D95-39E7-4DB0-801B-BCF2DB1FC131.png",
+    "test": "SignalRenderedTests/testFinalResultKeepsReviewRecordWithoutObsoleteRefreshPrompt()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-final-result-review-timed-out-page-1.png",
+    "run": "refinement",
+    "exported": "71B5D053-32B1-43D0-B5F3-6F1AD3914EA7.png",
+    "test": "SignalRenderedTests/testFinalResultKeepsReviewRecordWithoutObsoleteRefreshPrompt()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "signal-final-result-review-timed-out-page-0.png",
+    "run": "refinement",
+    "exported": "C7E823F0-B9E4-442F-9B04-BF090507B548.png",
+    "test": "SignalRenderedTests/testFinalResultKeepsReviewRecordWithoutObsoleteRefreshPrompt()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "invitation-unavailable-link-controls.png",
+    "run": "invitations",
+    "exported": "EEADF701-D4C3-476D-926B-A18EF12AEA96.png",
+    "test": "SignalCreationUITests/testSavedLobbyInvitationJourney()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "invitation-saved-lobby.png",
+    "run": "invitations",
+    "exported": "90B38C1A-2D06-4E86-801F-E6E133135F7C.png",
+    "test": "SignalCreationUITests/testSavedLobbyInvitationJourney()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "invitation-invalid-entry.png",
+    "run": "invitations",
+    "exported": "ECD90F9C-3F67-4630-A966-A90650F9A3FC.png",
+    "test": "SignalCreationUITests/testSavedLobbyInvitationJourney()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-ax-signal-retained-locked-agreement-and-exit.png",
+    "run": "retained-ax",
+    "exported": "8639FB44-723E-45C1-83C7-0E163DB82D21.png",
+    "test": "GameTimeUITests/testPersonalDetailContainsLockedTermsAndNoCompetitiveLanguage()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-ax-signal-retained-goal-and-activity.png",
+    "run": "retained-ax",
+    "exported": "96B0E697-6FBE-48E5-B093-1442B96619CF.png",
+    "test": "GameTimeUITests/testPersonalDetailContainsLockedTermsAndNoCompetitiveLanguage()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-compact-review-bottom.png",
+    "run": "reduced",
+    "exported": "CDAD24F5-6555-4FC4-A8AA-6BC7E5B95D2C.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-compact-review.png",
+    "run": "reduced",
+    "exported": "AD6EC904-F30F-4A71-ADC9-3D5F2F31486F.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-compact-amount-editor.png",
+    "run": "reduced",
+    "exported": "676E9398-3049-4A24-BF0C-ED427DED5F79.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-compact-dates-editor.png",
+    "run": "reduced",
+    "exported": "6D9BA22A-DCEC-401B-8F22-23657810EF93.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-compact-keyboard.png",
+    "run": "reduced",
+    "exported": "3D23D8A5-9451-4D8F-9D04-B16DD64CFC51.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-compact-activity.png",
+    "run": "reduced",
+    "exported": "CF44A91C-BA05-473A-A77C-581BE7FA9562.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-compact-type.png",
+    "run": "reduced",
+    "exported": "E15E84C1-0C62-41A6-BF05-49CEC4EB8BD1.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-large-signal-retained-locked-agreement-and-exit.png",
+    "run": "retained-large",
+    "exported": "C6D8F1C1-3AF8-431D-B2AB-0254246F9DD3.png",
+    "test": "GameTimeUITests/testPersonalDetailContainsLockedTermsAndNoCompetitiveLanguage()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-large-signal-retained-goal-and-activity.png",
+    "run": "retained-large",
+    "exported": "4B8DC5DF-FAF8-4304-AC0C-DE4BF0684337.png",
+    "test": "GameTimeUITests/testPersonalDetailContainsLockedTermsAndNoCompetitiveLanguage()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-large-compact-review-bottom.png",
+    "run": "retained-large",
+    "exported": "4991CE94-6A9D-42CB-8A7D-D400B48FDC49.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-large-compact-review.png",
+    "run": "retained-large",
+    "exported": "DEDCB915-0026-44E8-9518-153992884888.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-large-compact-amount-editor.png",
+    "run": "retained-large",
+    "exported": "C1C1C7F4-D372-467A-A09C-F2D25CB21AB6.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-large-compact-dates-editor.png",
+    "run": "retained-large",
+    "exported": "835CE933-90A1-4B9E-B702-111571197A26.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-large-compact-keyboard.png",
+    "run": "retained-large",
+    "exported": "3A8925CD-317A-45F7-829F-1500F09BD74E.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-large-compact-activity.png",
+    "run": "retained-large",
+    "exported": "499BAC5C-65E1-4D87-B423-C990B80C28EF.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "retained-large-compact-type.png",
+    "run": "retained-large",
+    "exported": "1057BD01-CDC5-4ACD-8C76-604D8460EA53.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-final-compact-review-bottom.png",
+    "run": "reduced-final",
+    "exported": "29D73B2F-3B61-423D-B18D-080AA07E37CE.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-final-compact-review.png",
+    "run": "reduced-final",
+    "exported": "194EB787-51E1-4863-A051-855C2628F145.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-final-compact-amount-editor.png",
+    "run": "reduced-final",
+    "exported": "9109A1E1-99C9-4FA6-A9B0-86F2F0E2CCFA.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-final-compact-dates-editor.png",
+    "run": "reduced-final",
+    "exported": "562249B8-D413-40A4-891C-B0C381F65BD1.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-final-compact-keyboard.png",
+    "run": "reduced-final",
+    "exported": "FB2110AE-6FA9-4CDA-A91C-3C390FCDA0DF.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-final-compact-activity.png",
+    "run": "reduced-final",
+    "exported": "BD0A6012-29A9-4660-9680-1E6762F04A5F.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  },
+  {
+    "name": "reduced-final-compact-type.png",
+    "run": "reduced-final",
+    "exported": "F2BF967B-4E79-44AE-8177-1761D8522470.png",
+    "test": "SignalCreationUITests/testReducedTransparencyAndMotionCreation()",
+    "device": "GameTimeCleanBaseline-20260915"
+  }
+]

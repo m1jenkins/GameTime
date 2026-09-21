@@ -1,0 +1,191 @@
+{
+  "date": "2026-09-21",
+  "base_main": "d7a9f7d",
+  "native_source_commit": "4ff837ddf858ae467497ea467b14f3090d3410d9",
+  "workspace": "/Users/user/Documents/GitHub/GameTime",
+  "branch": "codex/signal-native-completion",
+  "local_only": true,
+  "phone_modified": false,
+  "hosted_modified": false,
+  "results_root": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/result-bundles/",
+  "runs": [
+    {
+      "name": "initial-focused",
+      "result_bundle": "test_sim_2026-09-21T04-11-30-966Z_pid87774_561e2900.xcresult",
+      "passed": 43,
+      "failed": 3,
+      "skipped": 0
+    },
+    {
+      "name": "profile-and-targeted-render",
+      "result_bundle": "test_sim_2026-09-21T04-15-58-500Z_pid87774_a74ddbb2.xcresult",
+      "passed": 13,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "name": "targeted-home-community",
+      "result_bundle": "test_sim_2026-09-21T04-17-25-335Z_pid87774_b2b9cc26.xcresult",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "name": "ordinary-save-relaunch-shared",
+      "result_bundle": "test_sim_2026-09-21T04-18-44-654Z_pid87774_aa66ee9a.xcresult",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "retained-onboarding-lifecycle-initial",
+      "result_bundle": "test_sim_2026-09-21T04-21-56-886Z_pid87774_81b080ab.xcresult",
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "name": "saved-profile-system-reduced-settings",
+      "result_bundle": "test_sim_2026-09-21T04-24-58-898Z_pid87774_28842641.xcresult",
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "name": "lifecycle-reused-actor",
+      "result_bundle": "test_sim_2026-09-21T04-30-33-623Z_pid87774_350924e5.xcresult",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "name": "lifecycle-through-final-onboarding",
+      "result_bundle": "test_sim_2026-09-21T04-32-15-465Z_pid87774_25bc0021.xcresult",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0
+    },
+    {
+      "name": "invitation-gate-test-assumption",
+      "result_bundle": "test_sim_2026-09-21T04-50-49-637Z_pid87774_d8394750.xcresult",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "note": "Expected enabled link creation despite missing origin; corrected test to assert existing disabled gate."
+    },
+    {
+      "name": "retained-contrast-and-settings-ax-navigation",
+      "result_bundle": "test_sim_2026-09-21T04-53-30-964Z_pid87774_2b43fab4.xcresult",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "note": "Retained fixture forces normal text; Settings navigation failed under system AX text. Reduced appearance rerun normal passed; actual retained AX rerun follows."
+    },
+    {
+      "name": "settings-restoration-wait-insufficient",
+      "result_bundle": "test_sim_2026-09-21T05-01-27-140Z_pid87774_2512b837.xcresult",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "note": "App journey completed; restoring Settings failed after motion change. Cleanup changed to reopen Settings before restoring transparency."
+    }
+  ],
+  "final_runs": [
+    {
+      "name": "integrated-regression-native-render-lifecycle-keyboard",
+      "result_bundle": "test_sim_2026-09-21T04-34-46-654Z_pid87774_cdbb142e.xcresult",
+      "passed": 65,
+      "failed": 0,
+      "skipped": 0,
+      "note": "Final result review wording received a later focused check."
+    },
+    {
+      "name": "dark-accessibility-extra-large-increased-contrast",
+      "result_bundle": "test_sim_2026-09-21T04-39-51-914Z_pid87774_90a715e3.xcresult",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "ios18-creation-profile-retained",
+      "result_bundle": "test_sim_2026-09-21T04-41-35-452Z_pid87774_905979ba.xcresult",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "result-review-and-one-day-render-refinement",
+      "result_bundle": "test_sim_2026-09-21T04-46-19-984Z_pid87774_4f5de591.xcresult",
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0,
+      "note": "Three rendering regressions passed; invitation first-key focus failed and its test runner hung in teardown. Owned runner terminated; app focus identity and test cleanup corrected before rerun."
+    },
+    {
+      "name": "invitation-entry-and-availability",
+      "result_bundle": "test_sim_2026-09-21T04-52-41-057Z_pid87774_dabc51b7.xcresult",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "system-reduced-transparency-motion-keyboard",
+      "result_bundle": "test_sim_2026-09-21T04-55-36-429Z_pid87774_8c986c57.xcresult",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "retained-explicit-accessibility-xl",
+      "result_bundle": "test_sim_2026-09-21T04-59-07-361Z_pid87774_21b6fbcc.xcresult",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "note": "Retained AX test passed. Reduced appearance app journey completed; Settings restoration navigation failed. Follow-up cleanup recorded separately."
+    },
+    {
+      "name": "reduced-appearance-and-restored-settings",
+      "result_bundle": "test_sim_2026-09-21T05-03-28-855Z_pid87774_4b127083.xcresult",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "cleanup": "Controller exited 0 after restoring prior clock/runtime and revoking fictional sessions. Ownership-checked p8 cleanup removed task containers/network. Owned manifest aliases removed. Original light/large/standard-contrast display restored; final Settings test asserts Reduce Transparency off.",
+  "remaining": [
+    "Physical-device installation and visual acceptance not performed",
+    "Human VoiceOver, comprehension and motor accessibility not performed",
+    "Real Health and full real-deadline lifecycle not performed",
+    "Unattributed onboarding invalid-frame runtime warning persists",
+    "Existing WeeklyModels trailing-closure compiler warning"
+  ],
+  "builds": [
+    {
+      "configuration": "Debug",
+      "target": "simulator",
+      "result": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_sim_2026-09-21T05-05-01-861Z_pid87774_fcb8558e.log"
+    },
+    {
+      "configuration": "Staging",
+      "target": "simulator",
+      "result": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_sim_2026-09-21T05-05-14-986Z_pid87774_2b89c223.log"
+    },
+    {
+      "configuration": "Release",
+      "target": "simulator",
+      "result": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_sim_2026-09-21T05-06-42-103Z_pid87774_741c442c.log"
+    },
+    {
+      "configuration": "Staging",
+      "target": "generic iOS signed device product",
+      "result": "passed",
+      "build": "926.21.1",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/build_device_2026-09-21T05-08-33-068Z_pid87774_ee4ff4fb.log",
+      "installed": false
+    }
+  ],
+  "product_guards": "196 source inputs; Debug/Staging/Release simulator and Staging device all passed; HealthKit linked; no Watch payload/links"
+}
