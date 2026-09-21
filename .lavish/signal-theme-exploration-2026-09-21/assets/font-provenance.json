@@ -1,0 +1,44 @@
+[
+  {
+    "family": "Barlow Condensed",
+    "style": "normal",
+    "weight": "600",
+    "file": "barlow-condensed-600.woff2",
+    "url": "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B4873z3bWuYMBYro.woff2"
+  },
+  {
+    "family": "Barlow Condensed",
+    "style": "normal",
+    "weight": "700",
+    "file": "barlow-condensed-700.woff2",
+    "url": "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B46r2z3bWuYMBYro.woff2"
+  },
+  {
+    "family": "Barlow Condensed",
+    "style": "normal",
+    "weight": "800",
+    "file": "barlow-condensed-800.woff2",
+    "url": "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B47b1z3bWuYMBYro.woff2"
+  },
+  {
+    "family": "DM Sans",
+    "style": "normal",
+    "weight": "400 700",
+    "file": "dm-sans-variable.woff2",
+    "url": "https://fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu0-K6z9mXg.woff2"
+  },
+  {
+    "family": "Fraunces",
+    "style": "italic",
+    "weight": "600",
+    "file": "fraunces-600-italic.woff2",
+    "url": "https://fonts.gstatic.com/s/fraunces/v38/6NVf8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnbB-gzTK0K1ChJdt9vIVYX9G37lvd9sPEKsxx664UJf1iVSs7RrU9kMz3lR24.woff2"
+  },
+  {
+    "family": "Fraunces",
+    "style": "normal",
+    "weight": "600",
+    "file": "fraunces-600-normal.woff2",
+    "url": "https://fonts.gstatic.com/s/fraunces/v38/6NUh8FyLNQOQZAnv9bYEvDiIdE9Ea92uemAk_WBq8U_9v0c2Wa0K7iN7hzFUPJH58nib1603gg7S2nfgRYIcaRyTCf7Tp05GNyXk.woff2"
+  }
+]

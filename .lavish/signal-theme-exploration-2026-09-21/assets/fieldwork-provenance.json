@@ -1,0 +1,20 @@
+{
+  "generator": "Built-in image_gen (not CLI)",
+  "created": "2026-09-13",
+  "source": "outputs/design/2026-09-13-clickable-app/asset-provenance.json",
+  "assets": [
+    {
+      "name": "Club morning",
+      "path": "assets/club-morning-v1.png",
+      "previewPath": "assets/club-morning-v1.webp",
+      "prompt": "Use case: photorealistic-natural. Asset type: small editorial photograph for GameTime's Fieldwork Glass iPhone fitness challenge app, to be cropped into a short wide 3:1 banner or a small square thumbnail. Primary request: a quiet, candid club-morning moment of two adult friends walking side by side outdoors. Scene: pale warm-chalk paved path beside deep green grass. Subject: only their lower bodies from mid-thigh down, natural walking strides, understated unbranded cream and dark forest-green sportswear, socks and realistic unbranded walking/running shoes. No faces. One pair of legs has medium brown skin, one has lighter skin. Composition: landscape 3:2, closely framed at shoe height with both pairs of shoes fully visible in the central middle third, plenty of real pale pavement across the frame; humans occupy about half the image width; clean decisive composition legible at 80px, warm natural side light and believable soft shadows. Style: premium editorial sports-club photography, tactile real fabric and pavement, relaxed everyday movement, no staged victory. Color palette: harmonize with warm chalk #F5F3EC, deep club green #193B32, warm cream #F4F5DE, only a tiny muted citrus #D9EE92 detail. This is an atmospheric illustration of movement, not a user photo or proof of activity. No text, no logos, no watermark, no app UI, no medals, no money, no decorative glass, no glossy advertising finish."
+    },
+    {
+      "name": "Running print",
+      "path": "assets/running-print-v1.png",
+      "previewPath": "assets/running-print-v1.webp",
+      "prompt": "Use case: stylized-concept. Create a NEW companion artwork for GameTime Fieldwork Glass. Input image is STYLE REFERENCE ONLY: reproduce its dark forest green #193B32 photographic halftone screenprint, very small off-register citrus #D9EE92 highlights, warm chalk paper #F5F3EC and fine grain. New subject: a single recreational runner's bent legs, viewed from the side mid-jog, knees and lower legs only cropped just above knees. Rear foot lifted, leading leg naturally bent, plain athletic shoes and crew socks, anatomically believable. Clearly different pose from reference walking stride. Horizontal 3:2 composition, compact dynamic silhouette centered, generous paper space, all shoes inside frame. Photo-derived realistic forms, dry ink speckle, vintage sports club print. Subtle everyday motion, no competition or excessive exertion. No text, logos, lettering, numerals, UI, borders, gradients, extra objects, or faces. One standalone illustration, not a collage.",
+      "styleReference": "assets/stride-print-v1.png"
+    }
+  ]
+}
