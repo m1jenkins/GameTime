@@ -1,0 +1,119 @@
+{
+  "result": "pass",
+  "states": [
+    "goal",
+    "challenge",
+    "invite",
+    "confirm",
+    "steps",
+    "contacts"
+  ],
+  "verified": [
+    "Exact visible copy and form values unchanged",
+    "Exact non-icon element geometry, typography, spacing, borders and colors unchanged",
+    "Exact outer icon boxes and inherited colors unchanged"
+  ],
+  "symbolSource": "Native macOS SF Symbols, 20 pt regular, medium scale, 8\u00d7 alpha masks in unchanged 24-unit SVG boxes",
+  "pixelComparison": {
+    "goal": {
+      "pixelDifferenceOutsideIconBoxes": {
+        "1": 55,
+        "9": 16,
+        "12": 2,
+        "10": 18,
+        "3": 2,
+        "67": 4,
+        "16": 17,
+        "65": 2,
+        "17": 18,
+        "18": 9,
+        "70": 2,
+        "6": 32,
+        "5": 8,
+        "7": 4
+      }
+    },
+    "challenge": {
+      "pixelDifferenceOutsideIconBoxes": {
+        "1": 125,
+        "2": 15,
+        "6": 31,
+        "5": 8,
+        "7": 4,
+        "11": 1
+      }
+    },
+    "invite": {
+      "pixelDifferenceOutsideIconBoxes": {
+        "1": 55,
+        "3": 37,
+        "5": 14,
+        "4": 13,
+        "7": 7,
+        "8": 3,
+        "10": 15,
+        "12": 14,
+        "11": 4,
+        "2": 22,
+        "6": 36,
+        "13": 3,
+        "9": 5
+      }
+    },
+    "confirm": {
+      "pixelDifferenceOutsideIconBoxes": {
+        "2": 8,
+        "1": 46,
+        "6": 32,
+        "5": 8,
+        "7": 4
+      }
+    },
+    "steps": {
+      "pixelDifferenceOutsideIconBoxes": {
+        "1": 56,
+        "9": 16,
+        "3": 2,
+        "12": 2,
+        "10": 18,
+        "67": 4,
+        "16": 13,
+        "65": 2,
+        "17": 16,
+        "18": 11,
+        "70": 2,
+        "6": 32,
+        "5": 8,
+        "7": 4
+      }
+    },
+    "contacts": {
+      "pixelDifferenceOutsideIconBoxes": {
+        "1": 52,
+        "2": 2,
+        "3": 10,
+        "4": 2,
+        "5": 2,
+        "6": 1,
+        "7": 1,
+        "8": 4,
+        "9": 8,
+        "39": 2,
+        "10": 20,
+        "38": 2
+      }
+    }
+  },
+  "pixelComparisonNote": "Raster comparison is recorded separately and is not pixel-identical outside icon boxes. Exact DOM geometry, computed styles, copy and icon box comparisons passed. No stylesheet or markup layout changes were made.",
+  "sourceCheck": "Flow source after the icon helper is byte-identical except the confirmation symbol key changing from check to success.",
+  "mappings": {
+    "Outdoor runs": "figure.run",
+    "Steps": "shoeprints.fill",
+    "Watch": "applewatch",
+    "Review protection": "checkmark.shield",
+    "Stake": "dollarsign",
+    "Contacts": "person.2",
+    "Invitation link": "link",
+    "Success": "checkmark.circle.fill"
+  }
+}
