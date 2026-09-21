@@ -51,3 +51,21 @@
 .phone[data-screen=home] .sync-line{margin-top:14px;font-size:calc(11px * var(--text-scale));color:#71766d}
 .phone[data-screen=home] .unknown .metric-value{font-style:normal;letter-spacing:-.02em}
 @media(max-width:350px){.phone[data-screen=home] .home-head .app-title{font-size:calc(25px * var(--text-scale))}.phone[data-screen=home] .hero-progress{padding-left:17px;padding-right:17px}.phone[data-screen=home] .metric-value{font-size:calc(100px * var(--text-scale))}.phone[data-screen=home] .metric-unit{font-size:calc(20px * var(--text-scale))}.phone[data-screen=home] .metric-heading{flex-wrap:wrap;gap:2px 8px}}
+
+/* Home palette only. Geometry, typography, markup and behavior stay unchanged. */
+.phone[data-screen=home]{--ink:#111318;--sub:#606975;--muted:#727b88;--accent:#245bff;--tint:#ebf0ff;--mist:#f0f2f5;--line:#dce1e8;--paper:#fafbfc;--behind:#9a6700;color:var(--ink);background:var(--paper)}
+.phone[data-screen=home] .status-bar{background:var(--paper)}
+.phone[data-screen=home] .avatar{border-color:#1113180b}
+.phone[data-screen=home] .hero-progress{background:linear-gradient(145deg,#f4f6f8 0%,#f0f2f5 100%);box-shadow:inset 0 0 0 1px #11131808,inset 0 1px 0 #ffffffb3}
+.phone[data-screen=home] .metric-label,.phone[data-screen=home] .metric-goal,.phone[data-screen=home] .metric-unit{color:var(--sub)}
+.phone[data-screen=home] .progress-rail{background:#dce1e8}
+.phone[data-screen=home] .portrait-ring circle:first-child{stroke:#e1e5eb}
+.phone[data-screen=home] .friend[data-sheet=friend-sam] small{color:var(--accent)}
+.phone[data-screen=home] .friend[data-sheet=friend-jordan] small{color:var(--behind)}
+.phone[data-screen=home] .sync-line{color:#6d7582}
+.phone[data-screen=home] .tab-bar{background:#f7f8faee;border-color:#e0e4ea}
+.phone[data-screen=home] .tab-bar button:not([aria-current=page]){color:#707987}
+.phone[data-screen=home] .home-indicator{background:#f7f8fa}
+.phone[data-screen=home] .home-indicator:after{background:var(--ink)}
+.phone[data-screen=home] .unknown .metric-value{color:#77808d}
+@media(prefers-reduced-transparency:reduce){.phone[data-screen=home] .tab-bar{background:#f7f8fa}}

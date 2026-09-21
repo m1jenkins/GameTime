@@ -1,0 +1,36 @@
+{
+  "baseline_commit": "3f49f58",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "device_scale": 2
+  },
+  "exact_match": true,
+  "before_sha256": "74d9540179249ef239eef4d4945889ce8e2accaa7fe8bed3d4b36fddc309267f",
+  "after_sha256": "74d9540179249ef239eef4d4945889ce8e2accaa7fe8bed3d4b36fddc309267f",
+  "compared": [
+    "phone.innerHTML",
+    "all element x/y/width/height",
+    "font",
+    "padding",
+    "margin",
+    "borderWidth",
+    "borderRadius",
+    "letterSpacing"
+  ],
+  "prototype_js_changed": false,
+  "app_css_color_only": true,
+  "palette": {
+    "background": "#FAFBFC",
+    "surface": "#F0F2F5",
+    "text": "#111318",
+    "accent": "#245BFF",
+    "behind_state": "#9A6700"
+  },
+  "contrast": {
+    "accent_on_background": 5.05,
+    "white_cta_label": 5.23,
+    "behind_on_background": 4.7,
+    "text_on_surface": 16.57
+  }
+}

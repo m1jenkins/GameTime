@@ -54,3 +54,13 @@ Sample people, dates, shared activity, statuses and finished records are fiction
 - `node --check prototype.js` and `git diff --check` passed. No native implementation or native test claim is made.
 - Opened the portable Home export: exactly one populated phone, five annotations, zero external script/stylesheet links, embedded portrait atlas and no desktop horizontal overflow. Lavish export reported zero unresolved assets and zero notices.
 - Local review: http://127.0.0.1:4387/session/d4daf4d3bea3868b. Deliverables: `home-refinement.html`, portable `gametime-home-refined.html`, and `captures/home-refined.png`. The original Home and three-screen captures are retained as the first iteration; the main portable design export is refreshed to use the current Home.
+
+## Follow-up: palette only
+
+- Compared the prior and new Home at the same 390 × 844 viewport. The rendered HTML and every element’s bounds, font, tracking, margins, padding, border widths and corner radii matched exactly. The recorded comparison is `captures/home-palette-checks.json`.
+- `prototype.js` is unchanged. The only app CSS additions are Home-scoped color tokens, text/background/border/stroke colors and equivalent shadow colors; no geometry or behavior declarations changed.
+- New palette: background #FAFBFC, surface #F0F2F5 (existing subtle shading ends at this color), text #111318 and accent #245BFF. The Behind label is #9A6700, a separate semantic state color. The other screens retain their existing colors.
+- Contrast: accent on background 5.05:1, white CTA label on accent 5.23:1, Behind on background 4.70:1 and text on surface 16.57:1.
+- Visually inspected `captures/home-cool-palette.png` (780 × 1688) and `captures/home-palette-with-legend.png` (2240 × 1880). The presentation embeds the exact screen capture to preserve its composition.
+- Opened portable `gametime-home-palette.html`: the full image loaded at its original dimensions, exactly four swatches, no external scripts or stylesheets, and no horizontal overflow at 1120 px. Export reported zero unresolved assets and notices. Prior exports remain records of the warm-palette iteration.
+- Local palette review: http://127.0.0.1:4387/session/aa2b8c2bf6f752e3. This is a Home design proposal only; no native color migration or policy adoption occurred.

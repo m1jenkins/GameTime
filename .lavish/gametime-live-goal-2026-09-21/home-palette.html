@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>GameTime — Home palette only</title>
+  <style>
+    *{box-sizing:border-box}body,p{margin:0}body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+    body.palette-review{background:#e9edf2;color:#111318}
+    .palette-review main{max-width:1010px;margin:auto;padding:48px 40px;display:grid;grid-template-columns:390px minmax(0,1fr);gap:80px;align-items:center}
+    .palette-review .palette-home{width:100%;height:auto;display:block}
+    .palette-review aside{min-width:0}
+    .palette-review .legend-kicker{font-size:11px;letter-spacing:1.1px;text-transform:uppercase;font-weight:650;color:#606975;margin-bottom:14px}
+    .palette-review h1{font-size:34px;letter-spacing:-1.2px;line-height:1.1;margin:0 0 15px}
+    .palette-review .legend-intro{font-size:15px;line-height:1.55;color:#606975;margin:0 0 28px;max-width:290px}
+    .palette-review .swatch-legend{display:grid;gap:18px}
+    .palette-review .palette-swatch{display:grid;grid-template-columns:52px minmax(0,1fr);align-items:center;gap:15px}
+    .palette-review .color-chip{width:52px;height:52px;border-radius:10px;background:var(--color);box-shadow:inset 0 0 0 1px #11131812}
+    .palette-review .palette-swatch b{font-size:15px;display:block;line-height:1.45;font-weight:600}
+    .palette-review .palette-swatch span{font-size:13px;line-height:1.5;color:#606975;font-variant-numeric:tabular-nums}
+    .palette-review .state-note{margin-top:29px;padding-top:22px;border-top:1px solid #d3d9e2;font-size:13px;line-height:1.55;color:#606975;max-width:290px}
+    .palette-review .state-note b{color:#9a6700;font-weight:650}
+    @media(max-width:850px){.palette-review main{grid-template-columns:minmax(0,390px);justify-content:center;gap:38px;padding:28px 20px}.palette-review aside{padding:0 8px}.palette-review .swatch-legend{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 16px}.palette-review .palette-swatch{grid-template-columns:44px minmax(0,1fr);gap:10px}.palette-review .color-chip{width:44px;height:44px}}
+  </style>
+</head>
+<body class="palette-review">
+  <main>
+    <img class="palette-home" src="captures/home-cool-palette.png" width="390" height="844" alt="GameTime Home with the identical composition in cool grays, near-black and blue. Jordan’s Behind status is amber.">
+    <aside aria-label="Four-swatch color legend">
+      <p class="legend-kicker">GameTime · Home</p>
+      <h1>New palette.<br>Same composition.</h1>
+      <p class="legend-intro">Only the colors change. The layout, type, copy, controls and spacing stay identical.</p>
+      <div class="swatch-legend">
+        <div class="palette-swatch"><i class="color-chip" style="--color:#fafbfc" aria-hidden="true"></i><div><b>Background</b><span>#FAFBFC</span></div></div>
+        <div class="palette-swatch"><i class="color-chip" style="--color:#f0f2f5" aria-hidden="true"></i><div><b>Surface</b><span>#F0F2F5</span></div></div>
+        <div class="palette-swatch"><i class="color-chip" style="--color:#111318" aria-hidden="true"></i><div><b>Text</b><span>#111318</span></div></div>
+        <div class="palette-swatch"><i class="color-chip" style="--color:#245bff" aria-hidden="true"></i><div><b>Accent</b><span>#245BFF</span></div></div>
+      </div>
+      <p class="state-note"><b>Behind</b> uses amber #9A6700, reserved for that state. Progress, On track, the main action and the active tab share the blue accent.</p>
+    </aside>
+  </main>
+</body>
+</html>
