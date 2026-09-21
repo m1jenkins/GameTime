@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct YouView: View {
+    var settingsOnly = false
+    var challengeContext = false
     @Environment(AppModel.self) private var model
     @Environment(PersonalAccountabilityStore.self) private var personalStore
     @Environment(AppRouter.self) private var router
@@ -10,8 +12,8 @@ struct YouView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                profileCard
-                healthSection
+                if !settingsOnly { profileCard }
+                if challengeContext { challengeActivitySettings } else { healthSection }
                 #if DEBUG || STAGING
                 if model.configuration.weeklyRuntimeEnabled {
                     NavigationLink(value: YouRoute.weekly) {
@@ -37,13 +39,29 @@ struct YouView: View {
                 settingsSection
                 demoSection
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 4)
+            .padding(.horizontal, SignalTheme.contentInset)
+            .padding(.top, 16)
         }
         .signalTabScrollClearance()
         .signalScreenChrome()
-        .navigationTitle("You")
+        .navigationTitle(settingsOnly ? "Settings" : "You")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var challengeActivitySettings: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SignalSectionLabel(text: "Activity & dates")
+            Label("Apple Health", systemImage: "heart")
+                .font(.headline)
+            Text("Connect activity from a goal when you’re ready. GameTime checks the source and dates for that goal.")
+                .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+            if let profile = model.profile {
+                settingRow("Time zone", SignalTimeZone.name(profile.timezone))
+            }
+            Text("Change app access in Apple Health. Existing challenges keep their agreed dates and time zone.")
+                .font(.caption).foregroundStyle(SignalTheme.textSecondary)
+        }
+        .padding(.vertical, 16)
     }
 
     @ViewBuilder
@@ -180,7 +198,7 @@ struct YouView: View {
 
     private var settingsSection: some View {
         Group {
-            SignalSectionLabel(text: "Settings")
+            if !settingsOnly { SignalSectionLabel(text: "Settings") }
             SignalOpenSection {
                 VStack(spacing: 0) {
                     Button {
@@ -275,16 +293,7 @@ struct YouView: View {
     }
 
     private func settingRow(_ label: String, _ value: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label).font(.subheadline.weight(.semibold))
-            Spacer(minLength: 8)
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(SignalTheme.textSecondary)
-                .multilineTextAlignment(.trailing)
-        }
-        .padding(.vertical, 5)
-        .accessibilityElement(children: .combine)
+        SignalFactRow(label: label, value: value)
     }
 
     private func historyMetric(_ value: String, _ label: String) -> some View {
@@ -306,12 +315,27 @@ struct YouView: View {
 }
 
 struct TrustAndPrivacyView: View {
+    var challengeContext = false
     @Environment(PersonalAccountabilityStore.self)
     private var personalStore
 
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
+                if challengeContext {
+                    privacyCard(title: "You choose what you share",
+                        detail: "Your personal goals stay private. Selected friends can see the username, agreed goal, activity and result for your shared challenge.",
+                        icon: "person.crop.circle.badge.checkmark")
+                    privacyCard(title: "Activity for your goal",
+                        detail: "With your permission, we read the Apple Health activity needed for the goal you choose. We send the scoring details needed for that challenge. We don’t share raw Health records or routes with friends.",
+                        icon: "heart.text.square.fill")
+                    privacyCard(title: "Missing activity isn’t a loss",
+                        detail: "Missing data alone never proves a missed goal. Best-result challenges use their agreed scoring rules and deadline. Open any challenge to see its rules or ask for a review.",
+                        icon: "checkmark.shield.fill")
+                    privacyCard(title: "You can leave or get help",
+                        detail: "Open a challenge to leave, report a problem or block an account. Account & support includes your documents, support and account deletion.",
+                        icon: "hand.raised.fill")
+                } else {
                 privacyCard(
                     title: "Only you can see your challenges",
                     detail:
@@ -336,6 +360,7 @@ struct TrustAndPrivacyView: View {
                         "Your goal and progress stay private. Stripe handles test payment details; GameTime keeps only the test payment references and status needed for the sandbox.",
                     icon: "lock.fill"
                 )
+                }
             }
             .padding(.horizontal, 20)
             .padding(.top, 18)
@@ -432,7 +457,7 @@ struct AccountSupportView: View {
                 VStack(spacing: 0) {
                     externalRow(
                         title: "Apple Health help",
-                        detail: "Manage step access and Health permissions",
+                        detail: "Manage activity access and Health permissions",
                         icon: "heart.text.square.fill",
                         destination: URL(string: "https://support.apple.com/en-us/HT204351")
                     )
@@ -530,7 +555,7 @@ struct AccountSupportView: View {
             } else {
                 rowLabel(
                     title: "Beta support",
-                    detail: "Support contact isn’t configured for this build",
+                    detail: "Support isn’t available here yet. Open a challenge to check its rules and review options.",
                     icon: "envelope.badge.shield.half.filled"
                 )
                 .foregroundStyle(SignalTheme.textSecondary)
@@ -553,7 +578,7 @@ struct AccountSupportView: View {
             } else {
                 rowLabel(
                     title: title,
-                    detail: "Help link isn’t configured for this build",
+                    detail: "This link isn’t available yet. Try again later.",
                     icon: icon
                 )
                 .foregroundStyle(SignalTheme.textSecondary)
@@ -571,7 +596,7 @@ struct AccountSupportView: View {
         externalRow(
             title: title,
             detail: destination == nil
-                ? "Link isn’t configured for this build"
+                ? "This link isn’t available yet. Try again later."
                 : detail,
             icon: icon,
             destination: destination

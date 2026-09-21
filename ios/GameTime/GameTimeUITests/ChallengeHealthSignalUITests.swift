@@ -12,6 +12,8 @@ final class ChallengeHealthSignalUITests: XCTestCase {
         let origin = try XCTUnwrap(URL(string: XCTUnwrap(fixture["url"] as? String)))
         XCTAssertEqual(origin.host, "127.0.0.1")
         let actors = try XCTUnwrap(fixture["actors"] as? [[String: String]])
+        let actor = Int(ProcessInfo.processInfo.environment["GAMETIME_SIGNAL_HEALTH_ACTOR"] ?? "7") ?? 7
+        XCTAssertTrue(actors.indices.contains(actor))
         @MainActor func control(_ body: [String: Any]) async throws -> [String: Any] {
             var request = URLRequest(url: origin.appendingPathComponent("p9/control"))
             request.httpMethod = "POST"; request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -26,7 +28,7 @@ final class ChallengeHealthSignalUITests: XCTestCase {
         app.launchArguments = ["--authenticated-app-local", "--p9-synthetic-health"]
         app.launchEnvironment["GAMETIME_BETA_LOCAL_URL"] = origin.absoluteString
         app.launchEnvironment["GAMETIME_BETA_LOCAL_KEY"] = fixture["key"] as? String
-        app.launchEnvironment["GAMETIME_BETA_LOCAL_EMAIL"] = actors[7]["email"]
+        app.launchEnvironment["GAMETIME_BETA_LOCAL_EMAIL"] = actors[actor]["email"]
         app.launchEnvironment["GAMETIME_BETA_LOCAL_PASSWORD"] = fixture["password"] as? String
         app.launchEnvironment["GAMETIME_P9_CONTROL"] = fixture["controlToken"] as? String
         app.launch(); defer { app.terminate() }
@@ -66,7 +68,6 @@ final class ChallengeHealthSignalUITests: XCTestCase {
         app.buttons["beta.create.metric.steps"].tap()
         let target = app.textFields["beta.create.target"]; bring(target); target.tap(); target.typeText("10000")
         app.buttons["beta.create.input.done"].tap()
-        for _ in 0..<2 { let next = app.buttons["beta.create.continue"]; bring(next); next.tap() }
         let preview = app.buttons["beta.personal.preview"]; bring(preview); XCTAssertTrue(preview.isEnabled); preview.tap()
         let consent = app.switches["beta.personal.consent"], commit = app.buttons["beta.personal.commit"]
         bring(consent); XCTAssertEqual(consent.value as? String, "0")
@@ -81,19 +82,20 @@ final class ChallengeHealthSignalUITests: XCTestCase {
         capture("saved-confirmation")
         app.buttons["beta.create.close"].tap()
         XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 15))
-        let latest = try await control(["action": "latest", "actor": 7])
+        let latest = try await control(["action": "latest", "actor": actor])
         let id = try XCTUnwrap(latest["id"] as? String), config = try XCTUnwrap(latest["config"] as? [String: Any])
         XCTAssertEqual(config["start_date"] as? String, "2027-06-03", "Planning uses the source clock")
         let scheduled = app.buttons["beta.row.scheduled.personal_steps_goal_v1." + id.uppercased()]
         bring(scheduled); scheduled.tap()
+        XCTAssertTrue(app.buttons["Refresh"].waitForExistence(timeout: 10), "The whole saved row opens its detail")
         _ = try await control(["action": "clock", "now": "2027-06-03T12:00:00Z"])
         _ = try await control(["action": "tick", "id": id])
-        _ = try await control(["action": "input", "actor": 7, "mode": "value", "value": 10001])
+        _ = try await control(["action": "input", "actor": actor, "mode": "value", "value": 10001])
         app.buttons["Refresh"].tap()
         let progress = app.staticTexts.containing(NSPredicate(format: "label CONTAINS '10,001'")).firstMatch
         XCTAssertTrue(progress.waitForExistence(timeout: 15)); capture("10001-progress")
         _ = try await control(["action": "clock", "now": XCTUnwrap(config["corrections_by"] as? String)])
-        _ = try await control(["action": "input", "actor": 7, "mode": "value", "value": 9999])
+        _ = try await control(["action": "input", "actor": actor, "mode": "value", "value": 9999])
         app.buttons["Refresh"].tap()
         let corrected = app.staticTexts.containing(NSPredicate(format: "label CONTAINS '9,999'")).firstMatch
         XCTAssertTrue(corrected.waitForExistence(timeout: 15)); capture("9999-correction")
@@ -108,10 +110,11 @@ final class ChallengeHealthSignalUITests: XCTestCase {
         let final = app.staticTexts["Result confirmed"].firstMatch
         bring(final); XCTAssertTrue(final.waitForExistence(timeout: 15)); capture("final-return")
         let amount = try XCTUnwrap(config["amount_cents"] as? Int)
-        let expectedReturn = "Recorded simulated return: $" + String(format: "%.2f", Double(amount) / 100)
-        let returned = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", expectedReturn)).firstMatch
-        bring(returned); XCTAssertTrue(returned.exists)
+        let expectedReturn = "$" + String(format: "%.2f", Double(amount) / 100)
+        let returned = app.descendants(matching: .any).matching(identifier: "beta.result.return").firstMatch
+        bring(returned); XCTAssertTrue(returned.label.contains(expectedReturn))
         app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.buttons["Finished"].tap()
         let history = app.buttons["beta.row.void.personal_steps_goal_v1." + id.uppercased()]
         bring(history); XCTAssertTrue(history.exists); capture("didnt-count-history")
     }

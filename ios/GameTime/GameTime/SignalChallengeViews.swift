@@ -179,68 +179,39 @@ struct SignalGoalProgress: View {
 struct SignalChallengeSummary: View {
     let row: ChallengeV1
     let actor: UUID?
-    @Environment(\.dynamicTypeSize) private var typeSize
-    private var rowLayout: AnyLayout {
-        typeSize > .large ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) :
-            AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
-    }
-    private var personal: Bool { row.format.mode == .personal && row.own(actor)?.exited == false }
-    private var title: String {
-        if personal && row.format.metric == .exercise { return "Your exercise goal" }
-        return row.title
-    }
-    private var nextGoal: String {
-        guard let target = row.own(actor)?.target else { return row.title }
-        switch row.format.metric {
-        case .distance: return "Run \(row.format.metric.display(target))"
-        case .steps: return "\(row.format.metric.display(target))"
-        case .exercise: return "Exercise for \(SignalMetricValue.compact(target, metric: .exercise))"
-        case .timed: return row.title
-        }
-    }
+    private var title: String { row.title }
+    private var own: ChallengeV1.Member? { row.own(actor) }
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if personal && row.status == "scheduled" && row.format.metric != .timed {
-                Text("Your next goal").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                rowLayout {
-                    nextTitle
-                    if typeSize <= .large { Spacer(minLength: 0) }
-                    HStack { dates; chevron }
-                }
-            } else {
-                rowLayout {
-                    heading
-                    if typeSize <= .large { Spacer(minLength: 0) }
-                    dates
-                }
-                if !["active", "scheduled"].contains(row.status) || row.own(actor)?.exited == true {
-                    Text(row.own(actor)?.exited == true ? "You left this challenge" : row.statusText)
-                        .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                }
-                if personal && row.status == "active", let own = row.own(actor) {
-                    SignalGoalProgress(row: row, member: own, actor: actor)
-                } else if let own = row.own(actor) {
-                    if let value = ChallengePresentation.value(own, actor: actor) {
-                        Text("Your activity: \(row.format.metric.display(value))").font(.body.monospacedDigit())
-                    }
-                    if row.format.hasTarget, let target = own.target {
-                        Text("Your goal: \(row.format.metric.display(target))").font(.body)
-                    }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(title).font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.footnote.bold()).foregroundStyle(SignalTheme.textSecondary)
+                    .accessibilityHidden(true)
+            }
+            if let own, !own.exited {
+                if ["active", "syncing"].contains(row.status), let value = ChallengePresentation.value(own, actor: actor) {
+                    SignalMetricValue(value: value, metric: row.format.metric, size: 32,
+                                      target: row.format.metric == .timed ? nil : own.target)
+                } else if ["scheduled", "consent_pending", "lobby_open"].contains(row.status), let target = own.target {
+                    Text(row.format.metric == .timed ? "Time to beat: \(row.format.metric.display(target))" : row.format.metric.display(target))
+                        .font(.title2.weight(.medium)).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+                } else if ["active", "syncing"].contains(row.status) {
+                    Text(own.fact == nil ? "No update yet" : "Activity unavailable").font(.subheadline)
                 }
             }
-        }.padding(.vertical, 12).foregroundStyle(SignalTheme.textPrimary)
+            Text(ChallengePresentation.dates(row)).font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+            if row.status != "active" && row.status != "scheduled" || own?.exited == true {
+                Text(own?.exited == true ? "You left this challenge" : row.statusText)
+                    .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+            }
+        }.padding(.vertical, 20).foregroundStyle(SignalTheme.textPrimary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .overlay(alignment: .bottom) { Rectangle().fill(SignalTheme.divider).frame(height: 1) }
+            .contentShape(Rectangle())
             .accessibilityElement(children: .combine)
             .accessibilityValue(row.status == "scheduled" ? "Upcoming" : "")
     }
-    private var nextTitle: some View { Text(nextGoal).font(.title2.bold()).fixedSize(horizontal: false, vertical: true) }
-    private var heading: some View { Text(title).font(.headline).fixedSize(horizontal: false, vertical: true) }
-    private var dates: some View {
-        Text(ChallengePresentation.dates(row)).font(.subheadline)
-            .foregroundStyle(SignalTheme.textSecondary).fixedSize(horizontal: false, vertical: true)
-    }
-    private var chevron: some View { Image(systemName: "chevron.right").font(.footnote.bold()).accessibilityHidden(true) }
 }
 
 struct SignalMetricValue: View {
@@ -285,6 +256,7 @@ struct SignalMetricValue: View {
 /// Dates retain the actual agreed boundaries, including the exclusive end.
 /// The native layout reflows instead of copying fixed browser columns.
 struct SignalDateSpan: View {
+    static func duration(_ days: Int) -> String { days == 1 ? "1 full day" : "\(days) full days" }
     let window: ChallengeV1.Window
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -299,7 +271,7 @@ struct SignalDateSpan: View {
                     boundary("Ends, not included", date: window.endsAt)
                 }
             }
-            Text("\(window.days) full days · \(SignalTimeZone.name(window.timezone))")
+            Text("\(Self.duration(window.days)) · \(SignalTimeZone.name(window.timezone))")
                 .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }.padding(.vertical, 8)

@@ -26,6 +26,7 @@ struct SignalOpenSection<Content: View>: View {
             .foregroundStyle(SignalTheme.textPrimary)
             .overlay(alignment: .bottom) {
                 Rectangle().fill(SignalTheme.divider).frame(height: 1)
+                    .accessibilityHidden(true)
             }
     }
 }
@@ -57,7 +58,12 @@ struct SignalSection<Content: View>: View {
             .foregroundStyle(tone == .inverse ? SignalTheme.onAccent : SignalTheme.textPrimary)
             .background(tone == .inverse ? SignalTheme.accent : tone == .pledge ? SignalTheme.soft : SignalTheme.canvas)
             .overlay(alignment: .bottom) {
-                if tone == .standard { Divider().overlay(SignalTheme.divider) }
+                if tone == .standard {
+                    Rectangle()
+                        .fill(SignalTheme.divider)
+                        .frame(height: 1)
+                        .accessibilityHidden(true)
+                }
             }
     }
 }

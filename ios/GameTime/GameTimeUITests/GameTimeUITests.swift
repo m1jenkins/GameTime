@@ -1066,7 +1066,8 @@ final class GameTimeUITests: XCTestCase {
     }
 
     func testPersonalDetailContainsLockedTermsAndNoCompetitiveLanguage() {
-        let app = launch("--fixture-open-active-challenge")
+        let app = launch("--fixture-open-active-challenge", "-UIPreferredContentSizeCategoryName",
+                         "UICTContentSizeCategoryAccessibilityXL")
         XCTAssertTrue(
             app.navigationBars["Your challenge"]
                 .waitForExistence(timeout: 5)
@@ -1079,6 +1080,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(styledStaticText("Your pace", in: app).exists)
         XCTAssertFalse(app.staticTexts["Steps received"].exists)
         assertEnvironmentDisclosure(in: app, mode: .testOnly)
+        attachScreenshot(of: app, named: "Signal retained goal and activity")
 
         // The terms still exist; they live behind "Challenge details" now.
         let details = app.buttons["personal.details"]
@@ -1098,13 +1100,15 @@ final class GameTimeUITests: XCTestCase {
             if cancel.isHittable,
                 cancel.frame.midY > app.navigationBars["Your challenge"].frame.maxY + 16
             { break }
-            app.swipeDown()
+            app.swipeUp()
         }
         XCTAssertTrue(
             cancel.waitForExistence(timeout: 3),
             "Internal test-only active challenges should expose cleanup cancellation."
         )
         XCTAssertTrue(cancel.isHittable)
+
+        attachScreenshot(of: app, named: "Signal retained locked agreement and exit")
 
         assertNoLegacyPersonalHealthSurfaces(in: app)
         XCTAssertFalse(app.staticTexts["Standings"].exists)
@@ -1147,7 +1151,7 @@ final class GameTimeUITests: XCTestCase {
             if cancel.isHittable,
                 cancel.frame.midY > app.navigationBars["Your challenge"].frame.maxY + 16
             { break }
-            app.swipeDown()
+            app.swipeUp()
         }
         XCTAssertTrue(cancel.waitForExistence(timeout: 4))
         XCTAssertTrue(cancel.isHittable)

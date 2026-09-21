@@ -5,10 +5,10 @@ import SwiftUI
 @MainActor final class ChallengeCreationDraftTests: XCTestCase {
     func testDefaultsDirectEntryAndExplicitDependentResets() {
         let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
-        XCTAssertEqual(draft.step, .activity); XCTAssertEqual(draft.progress, 1); XCTAssertEqual(draft.stepCount, 4)
+        XCTAssertEqual(draft.step, .activity); XCTAssertEqual(draft.progress, 1); XCTAssertEqual(draft.stepCount, 2)
         XCTAssertEqual(draft.days, "7"); XCTAssertEqual(draft.dollars, "20"); XCTAssertEqual(draft.target, "")
         draft.target = "12345"; draft.days = "13"; draft.dollars = "37"
-        draft.step = .dates; draft.back()
+        draft.step = .review; draft.back()
         XCTAssertEqual(draft.target, "12345"); XCTAssertEqual(draft.days, "13")
         draft.metric = .timed
         XCTAssertEqual(draft.target, ""); XCTAssertEqual(draft.distance, "")
@@ -16,8 +16,8 @@ import SwiftUI
         draft.distance = "5"; draft.target = "25:01"; draft.metric = .distance
         XCTAssertEqual(draft.distance, ""); XCTAssertEqual(draft.target, "")
         let restricted = ChallengeCreationDraft(personalStepsOnly: true)
-        XCTAssertEqual(restricted.policy.id, "personal_steps_goal_v1"); XCTAssertEqual(restricted.stepCount, 4)
-        XCTAssertEqual(ChallengeCreationDraft().stepCount, 5)
+        XCTAssertEqual(restricted.policy.id, "personal_steps_goal_v1"); XCTAssertEqual(restricted.stepCount, 2)
+        XCTAssertEqual(ChallengeCreationDraft().stepCount, 3)
     }
     func testCanonicalInputsAndInvalidValuesRemainEditable() {
         let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
@@ -40,6 +40,11 @@ import SwiftUI
         XCTAssertEqual(window.startDate,"2026-11-01"); XCTAssertEqual(window.timezone,"America/Los_Angeles")
         XCTAssertEqual(window.endsAt.microseconds-window.startsAt.microseconds,25*3600*1000000)
         XCTAssertTrue(SignalTimeZone.name(window.timezone).contains("Los Angeles"))
+    }
+    func testTimedDistanceDisclosurePreservesExactUpperBoundary() {
+        XCTAssertEqual(ChallengeTimedDistanceCopy.range(5_000_000), "5 km to 5.1 km")
+        XCTAssertEqual(ChallengeTimedDistanceCopy.range(5_000_001), "5.000001 km to 5.10000102 km")
+        XCTAssertEqual(ChallengeTimedDistanceCopy.range(1), "0.000001 km to 0.00000102 km")
     }
     func testStalePreviewAndFailureCannotRestoreEditedOrClosedDraft() async throws {
         let h = Harness(); defer { h.remove() }
@@ -70,6 +75,34 @@ import SwiftUI
         draft.start = draft.allowedDates.lowerBound.addingTimeInterval(-86400)
         XCTAssertFalse(draft.validate(.dates))
     }
+    func testCombinedGoalDatesReviewAndAmountEditRequireFreshAgreement() async throws {
+        let h = Harness(); defer { h.remove() }
+        await h.store.refresh()
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
+        await draft.initialize(store: h.store, health: nil)
+        draft.target = "12345"; draft.days = "31"
+        await draft.advance(store: h.store)
+        XCTAssertEqual(draft.step, .activity); XCTAssertNotNil(draft.error)
+        XCTAssertNil(h.client.continuation, "Invalid dates cannot request an agreement")
+        draft.days = "7"
+        let first = Task { await draft.advance(store: h.store) }
+        while h.client.continuation == nil { await Task.yield() }
+        h.client.continuation?.resume(returning: try h.agreement(draft)); h.client.continuation = nil
+        await first.value
+        XCTAssertEqual(draft.step, .review); XCTAssertFalse(draft.needsReview)
+        XCTAssertEqual(draft.dollars, "20"); XCTAssertFalse(draft.consent)
+        draft.consent = true; draft.dollars = "21"
+        XCTAssertEqual(draft.step, .review); XCTAssertTrue(draft.needsReview); XCTAssertFalse(draft.consent)
+        let changed = Task { await draft.review(store: h.store) }
+        while h.client.continuation == nil { await Task.yield() }
+        h.client.continuation?.resume(returning: try h.agreement(draft)); h.client.continuation = nil
+        await changed.value
+        XCTAssertFalse(draft.needsReview); XCTAssertFalse(draft.consent)
+        XCTAssertEqual(draft.window?.amountCents, 2100)
+        draft.back()
+        XCTAssertEqual(draft.step, .activity); XCTAssertEqual(draft.target, "12345")
+        XCTAssertEqual(draft.days, "7"); XCTAssertEqual(draft.dollars, "21")
+    }
     func testPendingRecoveryUsesExactRequestAndReceiptPolicy() async throws {
         let h = Harness(); defer { h.remove() }
         let draft = ChallengeCreationDraft()
@@ -89,20 +122,20 @@ import SwiftUI
     func testBackWhilePreviewLoadsCannotJumpToReview() async throws {
         let h = Harness(); defer { h.remove() }
         let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
-        draft.target = "12345"; draft.step = .amount
+        draft.target = "12345"; draft.step = .activity
         let work = Task { await draft.advance(store: h.store) }
         while h.client.continuation == nil { await Task.yield() }
         draft.back()
         h.client.continuation?.resume(returning: try h.agreement(draft)); h.client.continuation = nil
         await work.value
-        XCTAssertEqual(draft.step, .dates); XCTAssertEqual(draft.target, "12345")
+        XCTAssertEqual(draft.step, .activity); XCTAssertEqual(draft.target, "12345")
         XCTAssertNil(draft.preview); XCTAssertFalse(draft.reading)
     }
     func testPreviewLoadingAndFailureRetainInput() async throws {
         let h = Harness(); defer { h.remove() }
         let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
         await draft.initialize(store: h.store, health: nil)
-        draft.target = "12345"; draft.step = .amount
+        draft.target = "12345"; draft.step = .activity
         let work = Task { await draft.advance(store: h.store) }
         while h.client.continuation == nil { await Task.yield() }
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
@@ -116,7 +149,7 @@ import SwiftUI
         XCTAssertTrue(loading.contains("loading your agreement"))
         h.client.continuation?.resume(throwing: ChallengeV1Error.unavailable); h.client.continuation = nil
         await work.value
-        XCTAssertFalse(draft.reading); XCTAssertEqual(draft.target, "12345"); XCTAssertEqual(draft.step, .amount)
+        XCTAssertFalse(draft.reading); XCTAssertEqual(draft.target, "12345"); XCTAssertEqual(draft.step, .activity)
         XCTAssertNil(draft.preview); XCTAssertFalse(draft.consent)
         let failure = try await captureMountedSignal(window, controller: host, name: "creation-preview-failure", test: self)
         XCTAssertTrue(failure.contains("try again"))
@@ -128,14 +161,14 @@ import SwiftUI
                                            ("glass-dark", .dark, .large, false),
                                            ("solid-light", .light, .large, true),
                                            ("solid-large-dark", .dark, .accessibility3, true)] {
-            for step in [ChallengeCreationDraft.Step.type, .activity, .dates, .amount, .review] {
+            for step in [ChallengeCreationDraft.Step.type, .activity, .review] {
                 let draft = ChallengeCreationDraft()
                 await draft.initialize(store: h.store, health: nil)
                 draft.mode = .personal; draft.target = "12345"; draft.step = step
                 let view = ChallengeV1Create(store: h.store, draft: draft)
                     .environment(\.colorScheme, scheme).environment(\.dynamicTypeSize, size)
                 let text = try await capture(view, name: "creation-\(name)-\(step)", contrast: solid ? .high : .normal)
-                XCTAssertTrue(text.contains(step == .review ? "full goal rules" : "continue") || step == .amount && text.contains("review"), "Missing action in \(name) \(step): \(text)")
+                XCTAssertTrue(text.contains(step == .review ? "full goal rules" : step == .activity ? "review" : "continue"), "Missing action in \(name) \(step): \(text)")
                 if step == .review { XCTAssertTrue(text.contains("complete rules and agree")) }
             }
         }

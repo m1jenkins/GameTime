@@ -54,12 +54,14 @@ final class ChallengeV1UITests:XCTestCase {
         let confirmCancel = app.sheets.buttons["Cancel challenge"]
         XCTAssertTrue(confirmCancel.waitForExistence(timeout: 5)); confirmCancel.tap()
         app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.buttons["Finished"].tap()
         let history = app.buttons["beta.row.cancelled.friend_steps_goal_v1." + id.uppercased()]
         bring(history); XCTAssertTrue(history.waitForExistence(timeout: 10)); history.tap()
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "Ordinary Signal shared-session history"
         attachment.lifetime = .keepAlways; add(attachment)
         app.buttons["beta.tab.you"].tap()
+        app.buttons["profile.settings"].tap()
         app.buttons["account-support.open"].tap()
         let signOut = app.buttons["account-support.sign-out"]
         bring(signOut); XCTAssertTrue(signOut.waitForExistence(timeout: 10)); signOut.tap()
@@ -206,19 +208,24 @@ final class ChallengeV1UITests:XCTestCase {
         do {
             try app.performAccessibilityAudit()
         } catch { XCTFail("Unfiltered accessibility audit failed: \(error)") }
-        for _ in 0..<2 { tapContinue(app) }
+        tapContinue(app)
+        app.buttons["beta.create.dates"].tap()
         let increment = app.buttons["beta.stepper.days-Increment"]
         XCTAssertTrue(increment.isHittable); increment.tap()
         XCTAssertEqual(app.textFields["beta.create.days"].value as? String, "8")
         app.buttons["beta.stepper.days-Decrement"].tap()
         XCTAssertEqual(app.textFields["beta.create.days"].value as? String, "7")
+        app.buttons["beta.create.dates.done"].tap()
         tapContinue(app)
+        let editAmount = app.buttons["beta.create.edit-amount"]
+        for _ in 0..<12 where !editAmount.isHittable { app.swipeUp() }
+        editAmount.tap()
         let amount = app.textFields["beta.create.amount"]
         amount.tap(); amount.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "21")
         app.buttons["beta.create.input.done"].tap(); XCTAssertEqual(amount.value as? String, "21")
         amount.tap(); amount.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "20")
         app.buttons["beta.create.input.done"].tap(); XCTAssertEqual(amount.value as? String, "20")
-        tapContinue(app)
+        app.buttons["beta.create.amount.save"].tap()
         let save = app.buttons["beta.create.submit"]
         for _ in 0..<12 where !save.isHittable { app.swipeUp() }
         XCTAssertTrue(save.isHittable); XCTAssertTrue(save.isEnabled); save.tap()
@@ -329,7 +336,6 @@ final class ChallengeV1UITests:XCTestCase {
         XCTAssertTrue(app.staticTexts["beta.personal.preview.error"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["beta.personal.preview.error"].label, "Enter a whole number of steps from 1 to 1,000,000,000.")
         target.tap(); target.typeText(XCUIKeyboardKey.delete.rawValue + "15000"); app.buttons["beta.create.input.done"].tap()
-        tapContinue(app); tapContinue(app)
         let preview = app.buttons["beta.personal.preview"]; bring(preview); preview.tap()
         let agreement = app.staticTexts["Review your goal."]
         XCTAssertTrue(agreement.waitForExistence(timeout: 10))
@@ -337,11 +343,13 @@ final class ChallengeV1UITests:XCTestCase {
         bring(consent); XCTAssertEqual(consent.value as? String, "0")
         consent.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
         capture("personal-complete-agreement")
-        app.buttons["beta.create.back"].tap()
+        let editAmount = app.buttons["beta.create.edit-amount"]
+        for _ in 0..<12 where !editAmount.isHittable { app.swipeDown() }
+        editAmount.tap()
         let amount = app.textFields["beta.create.amount"]
         amount.tap(); amount.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "21"); app.buttons["beta.create.input.done"].tap()
-        XCTAssertFalse(consent.exists, "Editing the amount discards the previous consent")
-        bring(preview); preview.tap(); bring(consent)
+        app.buttons["beta.create.amount.save"].tap()
+        XCTAssertTrue(consent.waitForExistence(timeout: 15)); bring(consent)
         XCTAssertEqual(consent.value as? String, "0", "The revised agreement requires another explicit choice")
         consent.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
         let commit = app.buttons["beta.personal.commit"]; bring(commit); XCTAssertTrue(commit.isEnabled); commit.tap()
@@ -459,6 +467,7 @@ final class ChallengeV1UITests:XCTestCase {
             _ = try await betaControl(config, ["action": "clock", "now": "2026-10-22T12:00:00Z"])
             _ = try await betaControl(config, ["action": "process", "id": id])
             login(0)
+            app.buttons["Finished"].tap()
             let history = app.buttons["beta.row.final.friend_steps_goal_v1." + id.uppercased()]
             bring(history); XCTAssertTrue(history.waitForExistence(timeout: 10))
             tap(history)
@@ -469,12 +478,12 @@ final class ChallengeV1UITests:XCTestCase {
         }
     }
     @MainActor private func tapContinue(_ app: XCUIApplication) {
-        let button = app.buttons["beta.create.continue"]
+        let button = app.buttons["beta.create.continue"].exists ? app.buttons["beta.create.continue"] : app.buttons["beta.personal.preview"]
         for _ in 0..<15 where !button.isHittable { app.swipeUp() }
         XCTAssertTrue(button.waitForExistence(timeout: 10)); button.tap()
     }
     @MainActor private func advanceFriendCreation(_ app: XCUIApplication) {
-        for _ in 0..<4 { tapContinue(app) }
+        for _ in 0..<2 { tapContinue(app) }
     }
     @MainActor private func closeSavedCreation(_ app: XCUIApplication) {
         XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 15))

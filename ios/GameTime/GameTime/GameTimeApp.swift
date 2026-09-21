@@ -606,10 +606,10 @@ private struct SignedOutView: View {
                     .accessibilityLabel(Text(GameTimePublicIdentity.name))
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Commit clearly.\nShow up daily.")
+                    Text("Choose a goal.\nSet your dates.")
                         .modifier(SignalDisplay(size: 36))
                     Text(
-                        "Set one step goal, put a little on the line, and see it through for seven days."
+                        "Follow your activity and see how you’re doing."
                     )
                     .font(.body)
                     .foregroundStyle(SignalTheme.textSecondary)
@@ -657,7 +657,7 @@ private struct SignedOutView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     Label(
-                        "Hit it every day, or hit a weekly total",
+                        "Review the full agreement before you start",
                         systemImage: "checkmark.shield"
                     )
                 }
@@ -718,113 +718,102 @@ private struct OnboardingView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Make GameTime yours")
-                                .font(
-                                    SignalTheme.displayFont(
-                                        size: 32,
-                                        relativeTo: .largeTitle
-                                    )
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Make GameTime yours")
+                            .font(
+                                SignalTheme.displayFont(
+                                    size: 32,
+                                    relativeTo: .largeTitle
                                 )
-                            Text(
-                                "Add your name and choose the username you’ll use in GameTime."
                             )
-                            .font(.subheadline)
+                        Text(
+                            "Add your name and choose the username you’ll use in GameTime."
+                        )
+                        .font(.subheadline)
+                        .foregroundStyle(
+                            SignalTheme.textSecondary
+                        )
+                    }
+
+                    SignalSectionLabel(text: "Your profile")
+
+                    SignalSection {
+                        VStack(alignment: .leading, spacing: 18) {
+                            onboardingField(
+                                title: "Your name",
+                                text: $displayName,
+                                field: .name,
+                                textContentType: .name,
+                                submitLabel: .next
+                            )
+
+                            Divider().overlay(SignalTheme.divider)
+
+                            onboardingField(
+                                title: "Username",
+                                text: $handle,
+                                field: .handle,
+                                textContentType: .username,
+                                submitLabel: .done
+                            )
+
+                            Text(
+                                "Pick carefully — you can’t change your username yet."
+                            )
+                            .font(.caption)
                             .foregroundStyle(
                                 SignalTheme.textSecondary
                             )
                         }
+                    }
 
-                        SignalSectionLabel(text: "Your profile")
-
-                        SignalSection {
-                            VStack(alignment: .leading, spacing: 18) {
-                                onboardingField(
-                                    title: "Your name",
-                                    text: $displayName,
-                                    field: .name,
-                                    textContentType: .name,
-                                    submitLabel: .next
-                                )
-
-                                Divider().overlay(SignalTheme.divider)
-
-                                onboardingField(
-                                    title: "Username",
-                                    text: $handle,
-                                    field: .handle,
-                                    textContentType: .username,
-                                    submitLabel: .done
-                                )
-
-                                Text(
-                                    "Pick carefully — you can’t change your username yet."
-                                )
-                                .font(.caption)
-                                .foregroundStyle(
-                                    SignalTheme.textSecondary
-                                )
-                            }
-                        }
-
-                        if let message = error(for: .general) {
-                            Text(message)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(
-                                    SignalTheme.accent
-                                )
-                                .accessibilityIdentifier(
-                                    "onboarding.general.error"
-                                )
-                        }
-
-                        Button {
-                            submitOnboarding()
-                        } label: {
-                            Text(
-                                model.isMutating
-                                    ? "Saving profile…"
-                                    : "Enter GameTime"
+                    if let message = error(for: .general) {
+                        Text(message)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(
+                                SignalTheme.accent
                             )
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(SignalPrimaryButtonStyle())
-                        .disabled(
-                            model.isMutating
-                                || handle.isEmpty
-                                || displayName.trimmingCharacters(
-                                    in: .whitespacesAndNewlines
-                                ).isEmpty
-                        )
-                        .accessibilityIdentifier("onboarding.submit")
+                            .accessibilityIdentifier(
+                                "onboarding.general.error"
+                            )
+                    }
 
-                        Button("Use a different Apple account") {
-                            focusedField = nil
-                            Task { await model.signOut() }
-                        }
-                        .buttonStyle(SignalSecondaryButtonStyle())
-                        .disabled(model.isMutating)
-                        .accessibilityIdentifier(
-                            "onboarding.use-different-account"
+                    Button {
+                        submitOnboarding()
+                    } label: {
+                        Text(
+                            model.isMutating
+                                ? "Saving profile…"
+                                : "Enter GameTime"
                         )
+                        .frame(maxWidth: .infinity)
                     }
-                    .padding(20)
-                }
-                .scrollDismissesKeyboard(.interactively)
-                .signalScreenChrome()
-                .onChange(of: focusedField) { _, field in
-                    guard let field else { return }
-                    Task { @MainActor in
-                        await Task.yield()
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            proxy.scrollTo(field, anchor: .center)
-                        }
+                    .buttonStyle(SignalPrimaryButtonStyle())
+                    .disabled(
+                        model.isMutating
+                            || handle.isEmpty
+                            || displayName.trimmingCharacters(
+                                in: .whitespacesAndNewlines
+                            ).isEmpty
+                    )
+                    .accessibilityIdentifier("onboarding.submit")
+
+                    Button("Use a different Apple account") {
+                        focusedField = nil
+                        Task { await model.signOut() }
                     }
+                    .buttonStyle(SignalSecondaryButtonStyle())
+                    .disabled(model.isMutating)
+                    .accessibilityIdentifier(
+                        "onboarding.use-different-account"
+                    )
                 }
+                .padding(20)
             }
+            .scrollDismissesKeyboard(.interactively)
+            .signalScreenChrome()
             .navigationTitle("Set your profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

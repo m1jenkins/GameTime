@@ -33,6 +33,7 @@ enum YouRoute: Hashable {
     case performanceCommitments
     case weekly
     #endif
+    case settings
     case trustAndPrivacy
     case accountSupport
 }

@@ -46,7 +46,8 @@ struct ChallengeHealthStatusView: View {
     private var state: ChallengeHealthFlowStore.State { flow.state(for: binding) }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(ChallengeHealthCopy.title(state.readiness)).font(.headline).accessibilityIdentifier("beta.health.state")
+            Label(ChallengeHealthCopy.title(state.readiness), systemImage: state.readiness == .ready ? "checkmark.circle" : "heart.text.clipboard")
+                .font(.headline).accessibilityIdentifier("beta.health.state")
             if receivedScores && !readiness {
                 Text("Only your score saved by GameTime counts. Missing or late activity doesn’t count. Refresh to send an update and check what we saved.").font(.subheadline)
             } else {
@@ -55,7 +56,8 @@ struct ChallengeHealthStatusView: View {
             if readiness {
                 Button(state.readiness == .notConnected ? "Connect Apple Health" : "Refresh activity check") {
                     Task { await flow.checkReadiness(binding, connect: state.readiness == .notConnected) }
-                }.disabled(state.readiness == .checking || state.readiness == .unsupported).accessibilityIdentifier("beta.health.connect")
+                }.buttonStyle(SignalPrimaryButtonStyle())
+                    .disabled(state.readiness == .checking || state.readiness == .unsupported).accessibilityIdentifier("beta.health.connect")
                 if state.readiness == .ready && !flow.canConsent(binding) {
                     Text("Finish sending this activity check before you agree. Try Refresh.").font(.subheadline)
                 }
@@ -72,7 +74,7 @@ struct ChallengeHealthStatusView: View {
                     Text("On this phone: \(metric.display(Int(value)))").font(.subheadline).accessibilityIdentifier("beta.health.local-value")
                 }
                 if let observed = state.observedAt { Text("Checked on this phone \(observed, format: .dateTime.month().day().hour().minute())").font(.caption) }
-                if let updated = state.lastServerUpdate { Text("Last server update \(updated, format: .dateTime.month().day().hour().minute())").font(.caption) }
+                if let updated = state.lastServerUpdate { Text("Last saved update \(updated, format: .dateTime.month().day().hour().minute())").font(.caption) }
             }
             if state.pendingDelivery { Text("Waiting to send this update").font(.subheadline).accessibilityIdentifier("beta.health.pending") }
             if let message = state.message { Text(message).font(.subheadline) }

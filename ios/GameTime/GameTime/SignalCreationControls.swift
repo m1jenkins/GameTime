@@ -78,6 +78,7 @@ struct SignalNumberEntry: View {
     let id: String
     let keyboard: UIKeyboardType
     var prefix = ""
+    var focusChanged: ((Bool) -> Void)? = nil
     @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 64
     @FocusState private var focused: Bool
     var body: some View {
@@ -101,6 +102,8 @@ struct SignalNumberEntry: View {
                 .overlay(alignment: .bottom) { Rectangle().fill(SignalTheme.divider).frame(height: 1) }
             Text(unit).font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
         }.foregroundStyle(SignalTheme.textPrimary)
+            .id(id)
+            .onChange(of: focused) { _, value in focusChanged?(value) }
     }
 }
 enum SignalTimeZone {
@@ -111,6 +114,17 @@ enum SignalTimeZone {
         return city == name || id == "UTC" ? name : "\(name) · \(city)"
     }
 }
+
+enum ChallengeTimedDistanceCopy {
+    /// The real timed source compares raw distance before normalization. Keep
+    /// the 102% boundary exact even when it falls between whole millimetres.
+    static func range(_ millimetres: Int) -> String {
+        let upperKilometres = Decimal(millimetres) * 102 / 100_000_000
+        return ChallengeV1Policy.Metric.distance.display(millimetres)
+            + " to " + NSDecimalNumber(decimal: upperKilometres).stringValue + " km"
+    }
+}
+
 struct SignalTimeZonePicker: View {
     @Binding var selection: String
     @Environment(\.dismiss) private var dismiss
@@ -120,21 +134,52 @@ struct SignalTimeZonePicker: View {
         return search.isEmpty ? all : all.filter { SignalTimeZone.name($0).localizedCaseInsensitiveContains(search) || $0.localizedCaseInsensitiveContains(search) }
     }
     var body: some View {
-        NavigationStack {
-            List(zones, id: \.self) { id in
+        List(zones, id: \.self) { id in
                 Button { selection = id; dismiss() } label: {
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(SignalTimeZone.name(id)).foregroundStyle(SignalTheme.textPrimary)
-                            Text(id).font(.caption).foregroundStyle(SignalTheme.textSecondary)
-                        }
+                        Text(SignalTimeZone.name(id)).foregroundStyle(SignalTheme.textPrimary)
                         Spacer()
                         if selection == id { Image(systemName: "checkmark").accessibilityHidden(true) }
                     }.frame(minHeight: 44)
                 }.accessibilityAddTraits(selection == id ? .isSelected : []).accessibilityIdentifier("beta.create.zone." + id)
             }.searchable(text: $search, prompt: "Search cities or time zones")
                 .listStyle(.plain).signalScreenBackground().navigationTitle("Time zone")
-                .toolbar { Button { dismiss() } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }.accessibilityLabel("Close").modifier(SignalNavigationAction()) }
+                .navigationBarTitleDisplayMode(.inline).tint(SignalTheme.accent)
+    }
+}
+
+/// Edits stay local until the person saves, so dismissing this sheet leaves the agreement intact.
+struct SignalAmountEditor: View {
+    @State private var value: String
+    @State private var error: String?
+    @Environment(\.dismiss) private var dismiss
+    let save: (String) -> Void
+
+    init(value: String, save: @escaping (String) -> Void) {
+        _value = State(initialValue: value)
+        self.save = save
+    }
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    SignalNumberEntry(text: $value, title: "Simulated amount", unit: "USD · $1–$500", id: "beta.create.amount", keyboard: .numberPad, prefix: "$")
+                    Text("No real money moves. Nothing can be paid out or redeemed.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+                    if let error { Text(error).foregroundStyle(SignalTheme.danger).accessibilityIdentifier("beta.create.amount.error") }
+                    Button {
+                        guard ChallengeCreationDraft.integer(value, in: 1...500) != nil else {
+                            error = "Enter a whole-dollar amount from $1 to $500."
+                            return
+                        }
+                        save(value)
+                        dismiss()
+                    } label: { Text("Save amount").font(.headline).frame(maxWidth: .infinity, minHeight: 50) }
+                    .modifier(SignalNativeAction(primary: true)).accessibilityIdentifier("beta.create.amount.save")
+                }.padding(SignalTheme.contentInset)
+            }.background(SignalTheme.canvas).foregroundStyle(SignalTheme.textPrimary)
+                .scrollDismissesKeyboard(.interactively)
+                .navigationTitle("Amount").navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         }.tint(SignalTheme.accent)
     }
 }

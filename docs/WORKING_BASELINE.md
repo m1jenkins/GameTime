@@ -6,6 +6,17 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 21 native Signal follow-through
+
+The [native report](../outputs/reports/signal-native-2026-09-21/REPORT.md) records
+the local response to the installed 0.8.1 (926.20.1) feedback: two-stage direct
+Personal creation, grouped Challenges, saved-goal Home, corrected ordinary-profile
+ownership and consistent secondary routes. The [profile data contract](design/SIGNAL_PROFILE_DATA.md)
+keeps new records separate from retained Personal and distinguishes missing,
+partial and stale data. The signed Staging successor is prepared for a coordinated
+in-place update; it is not installed by this task. Hosted state and product rules
+are unchanged. See the report for source and actual verification.
+
 ## September 20 private iPhone trial
 
 The [private-device receipt](../outputs/reports/2026-09-20-private-device-goal.md)

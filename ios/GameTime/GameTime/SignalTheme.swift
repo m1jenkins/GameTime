@@ -96,7 +96,12 @@ struct SignalSectionModifier: ViewModifier {
             .padding(.vertical, 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(SignalTheme.canvas)
-            .overlay(alignment: .bottom) { Divider().overlay(SignalTheme.divider) }
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(SignalTheme.divider)
+                    .frame(height: 1)
+                    .accessibilityHidden(true)
+            }
     }
 }
 
@@ -319,7 +324,9 @@ struct SignalSimulationBanner: View {
     var body: some View {
         Text("Simulated stakes — no real money moves.")
             .font(.caption).foregroundStyle(SignalTheme.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity).padding(.horizontal, 16).padding(.vertical, 8)
+            .layoutPriority(1)
             .background(SignalTheme.soft).accessibilityIdentifier("beta.environment-disclosure")
     }
 }

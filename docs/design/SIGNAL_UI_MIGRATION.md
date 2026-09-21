@@ -6,6 +6,33 @@ This supersedes the September 11 cobalt design selection for future work.
 The adoption below remains the implementation contract. The subsequent local
 execution and its verification are recorded separately here.
 
+## Native interaction and profile follow-through — September 21, 2026
+
+The owner’s installed-build feedback supersedes the five-stage interaction below.
+Direct Personal creation now has **Goal & dates → Review**. Generic creation adds
+Type only when needed. Dates and duration sit beside exact goal entry; compact
+editors handle dates, zone and the simulated amount. Suggestions require a separate
+choice. Existing defaults, precision, consent and request recovery remain intact.
+
+Home leads with a saved goal. Challenges uses Active / Upcoming / Finished,
+keeps attention above the filters and groups records by product. Detail, shared
+lobbies, community entry, results/review and retained agreements use the same
+open rows, opaque facts and native controls. Settings are secondary to identity
+and saved goals in You.
+
+The ordinary profile now reads `ChallengeV1Store`; retained Personal continues
+to use its own store. The [profile data contract](SIGNAL_PROFILE_DATA.md) defines
+record scope, pagination, freshness, account clearing and finalized competitive
+results. Unsupported lifetime activity and streaks remain unavailable; no new
+Health access or activity aggregation was introduced.
+
+The [dated native report](../../outputs/reports/signal-native-2026-09-21/REPORT.md)
+records the actual final checks, captures, source, prepared Staging product,
+failures and remaining limits. Earlier migration statements below retain their
+dated scope; they are not evidence that the installed feedback was already fixed.
+Physical-device presentation, human VoiceOver/comprehension and release acceptance
+remain separate. This task does not install the prepared build on the phone.
+
 ## Staged creation implementation — September 20, 2026
 
 The authorized implementation now replaces `ChallengeV1Create`'s long form with

@@ -4,7 +4,8 @@ import GameTimeCore
 
 /// One owner for the presented flow. Steps never own network work or agreement consent.
 @MainActor @Observable final class ChallengeCreationDraft {
-    enum Step: Int, CaseIterable { case type, activity, dates, amount, review }
+    enum Step: Int, CaseIterable { case type, activity, review }
+    enum InputSection { case activity, dates, amount }
     let id = UUID()
     let directEntry: Bool
     let personalStepsOnly: Bool
@@ -86,7 +87,7 @@ import GameTimeCore
     var sourceFields: [String: ChallengeJSON] { usesHealth ? source.map { ["source_policy_version": .string($0.identifier)] } ?? [:] : [:] }
     var unavailable: Bool { usesHealth && ((!policy.hasTarget && !policy.usesReceivedScores) || source == nil) }
     var progress: Int { step.rawValue + (directEntry ? 0 : 1) }
-    var stepCount: Int { directEntry ? 4 : 5 }
+    var stepCount: Int { directEntry ? 2 : 3 }
     var firstStep: Step { directEntry ? .activity : .type }
     var window: ChallengeV1.Window? {
         if let preview { return decodeWindow(preview.terms?["config"]) }
@@ -122,23 +123,29 @@ import GameTimeCore
     }
     func close() { alive = false; generation = UUID(); health?.cancel(id) }
     func back() { if reading { changed() }; consent = false; error = nil; step = Step(rawValue: max(firstStep.rawValue, step.rawValue - 1))! }
-    func validate(_ step: Step) -> Bool {
+    func validate(_ section: InputSection) -> Bool {
         error = nil
-        if step == .activity {
+        if section == .activity {
             if metric == .timed && ChallengeV1Policy.Metric.distance.parse(distance) == nil { error = ChallengeV1Policy.Metric.distance.inputHelp }
             else if mode == .personal && metric.parse(target) == nil { error = target.isEmpty ? "Enter your goal to continue." : metric.inputHelp }
-        } else if step == .dates {
+        } else if section == .dates {
             if duration == nil { error = "Choose 1 to 30 full days to continue." }
             else if TimeZone(identifier: zone) == nil { error = "Choose a time zone to continue." }
             else if !allowedDates.contains(calendar.startOfDay(for: start)) { error = "Choose a start date 2 to 30 days from today." }
-        } else if step == .amount, wholeDollars == nil { error = "Enter a whole-dollar amount from $1 to $500." }
+        } else if section == .amount, wholeDollars == nil { error = "Enter a whole-dollar amount from $1 to $500." }
         return error == nil
     }
+    var needsReview: Bool { mode == .personal && preview == nil }
+    func review(store: ChallengeV1Store) async {
+        guard !reading, receipt == nil, store.pending == nil,
+              validate(.activity), validate(.dates), validate(.amount) else { return }
+        if mode == .personal, !(await readPreview(store: store)) { return }
+        step = .review
+    }
     func advance(store: ChallengeV1Store) async {
-        guard !reading, receipt == nil, store.pending == nil, validate(step) else { return }
-        if step == .amount && mode == .personal {
-            if await readPreview(store: store) { step = .review }
-        } else if step != .review { step = Step(rawValue: step.rawValue + 1)! }
+        guard !reading, receipt == nil, store.pending == nil else { return }
+        if step == .type { step = .activity }
+        else { await review(store: store) }
     }
     func readPreview(store: ChallengeV1Store) async -> Bool {
         guard let actor = store.actor, let value = metric.parse(target) else { error = "Enter your goal and sign in again to review it."; return false }
@@ -173,7 +180,8 @@ import GameTimeCore
             guard isCreation else { return }
             accepted = store.pending == nil ? store.lastReceipt : nil
         } else {
-            guard !unavailable, store.access?.ageConfirmed == true else { return }
+            guard !unavailable, store.access?.ageConfirmed == true,
+                  validate(.activity), validate(.dates), validate(.amount) else { return }
             var fields = sourceFields.merging(["policy": .string(policy.id), "config": config], uniquingKeysWith: { _, value in value })
             if mode == .personal {
                 guard consent, let preview, let value = metric.parse(target),

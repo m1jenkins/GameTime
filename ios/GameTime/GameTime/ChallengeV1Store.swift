@@ -11,6 +11,9 @@ import Observation
     private var restrictionFences: [UUID: (epoch: Int, receivedAt: TimeInterval)] = [:]
     private let now: @MainActor () -> TimeInterval
     private let visibilityInterval: Duration
+    var profileSnapshot: ChallengeProfileSnapshot {
+        ChallengeProfileSnapshot(actor: actor, sections: sections, now: now(), aggregateFresh: fresh)
+    }
     var challenges: [ChallengeV1] {
         var unique: [UUID: ChallengeV1] = [:]
         for section in ChallengeV1Section.allCases {

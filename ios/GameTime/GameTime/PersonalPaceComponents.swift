@@ -853,7 +853,7 @@ struct PersonalChallengeDetailsCard: View {
                     divider
                     termRow("Amount", terms.commitmentText)
                     divider
-                    termRow("Time zone", terms.timezone)
+                    termRow("Time zone", SignalTimeZone.name(terms.timezone))
                     divider
                     termRow(
                         "Starts",

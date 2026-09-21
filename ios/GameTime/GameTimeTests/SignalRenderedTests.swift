@@ -8,6 +8,28 @@ import XCTest
 /// Native, model-backed renders. Fixture responses never report mutation success.
 /// These supplement the authenticated touch journeys; they are not VoiceOver proof.
 @MainActor final class SignalRenderedTests: XCTestCase {
+    func testChallengeFiltersKeepAttentionAndSeparateGoalGroups() async throws {
+        let fixture = SignalFixture(); defer { fixture.clean() }
+        fixture.rows = [fixture.row("personal_steps_goal_v1", status: "scheduled"),
+                        fixture.row("personal_distance_goal_v1"),
+                        fixture.row("friend_steps_leaderboard_v1"),
+                        fixture.row("friend_distance_goal_v1", status: "consent_pending")]
+        try await fixture.start()
+        for filter in SignalChallengeFilter.allCases {
+            for large in [false, true] {
+                try await capture(NavigationStack {
+                    ScrollView {
+                        SignalChallengeBrowse(store: fixture.store, filter: .constant(filter)).padding(24)
+                    }.signalScreenBackground().navigationTitle("Challenges")
+                }.environment(\.dynamicTypeSize, large ? .accessibility3 : .large)
+                    .environment(\.colorScheme, large ? .dark : .light),
+                    name: "browse-\(filter.section.rawValue)-\(large ? "dark-accessibility" : "light")",
+                    width: 375, scrolls: true, contrast: large ? .high : .normal,
+                    required: ["Needs your attention", filter == .finished ? "No finished challenges" : "Just for you"])
+            }
+        }
+    }
+
     func testHomeHierarchyAtCurrentCompactDarkAndAccessibilitySizes() async throws {
         let fixture = SignalFixture(); defer { fixture.clean() }
         fixture.rows = [fixture.row("personal_exercise_goal_v1"),
@@ -51,14 +73,46 @@ import XCTest
         try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
                           name: "community-mature-detail", scrolls: true,
                           required: ["5 people joined", "15 minutes ago", "assigned moderator", "Report unsafe behavior"], forbidden: ["Maya", "Jordan"])
-        let community = ChallengeV1Community(id: row.id, terms: .object(["common_target": .integer(50000)]), digest: "fixture", serverTime: row.serverTime, joinedCount: 5, counts: row.counts)
+        let encoder = JSONEncoder(); encoder.keyEncodingStrategy = .convertToSnakeCase
+        let config = try JSONDecoder().decode(ChallengeJSON.self, from: encoder.encode(row.config))
+        let terms: ChallengeJSON = .object(["common_target": .integer(50000), "config": config, "minimum": .integer(2)])
+        let community = ChallengeV1Community(id: UUID(), terms: terms, digest: "fixture", serverTime: row.serverTime, joinedCount: 5, counts: row.counts)
         try await capture(NavigationStack { ChallengeCommunityJoin(store: fixture.store, community: community) },
-                          name: "community-mature-join", scrolls: true, required: ["5 people joined", "Join community challenge"])
+                          name: "community-mature-join", scrolls: true, required: ["5 people joined", "Join community challenge", "Before you join", "Complete challenge rules", "48 hours"])
+        let joined = ChallengeV1Community(id: row.id, terms: terms, digest: "fixture", serverTime: row.serverTime, joinedCount: 5, counts: row.counts)
+        try await capture(NavigationStack { ChallengeCommunityJoin(store: fixture.store, community: joined) },
+                          name: "community-already-joined", scrolls: true, required: ["You have joined", "View my progress"], forbidden: ["Join community challenge"])
+        let incomplete = ChallengeV1Community(id: UUID(), terms: .object(["common_target": .integer(50000)]), digest: "fixture", serverTime: row.serverTime, joinedCount: 5, counts: row.counts)
+        try await capture(NavigationStack { ChallengeCommunityJoin(store: fixture.store, community: incomplete) },
+                          name: "community-incomplete-agreement", scrolls: true, required: ["complete agreement", "Go back and refresh"], forbidden: ["I have read the complete rules and agree", "Join community challenge"])
         row.counts = .init(joined: nil, state: "threshold", asOf: nil)
         fixture.rows = [row]; try await fixture.start()
         try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
                           name: "community-threshold-detail", scrolls: true,
                           required: ["Participant totals stay hidden"], forbidden: ["5 people joined", "Maya", "Jordan"])
+    }
+
+    func testFinalResultKeepsReviewRecordWithoutObsoleteRefreshPrompt() async throws {
+        let fixture = SignalFixture(); defer { fixture.clean() }
+        let base = fixture.row("personal_steps_goal_v1", status: "final")
+        let recordedAt = ChallengeInstant(date: base.config.endsAt.date.addingTimeInterval(72 * 3600))
+        let allocation = ChallengeV1.Allocation(outcome: "void", participants: nil,
+            own: .init(status: "excluded", returnedCents: 2000), entryCents: 2000,
+            unallocatedCents: 0, simulation: "nonredeemable")
+        for decision: String? in [nil, "exclude"] {
+            let row = ChallengeV1(id: base.id, creatorId: base.creatorId, policy: base.policy,
+                config: base.config, status: base.status, revision: 2, agreementVersion: base.agreementVersion,
+                serverTime: recordedAt, socialHidden: base.socialHidden, agreement: base.agreement,
+                members: base.members, notice: nil,
+                reviews: [.init(id: UUID(), reason: "missing_activity", filedAt: base.config.endsAt,
+                                resolveBy: recordedAt, decision: decision)],
+                final: .init(recordedAt: recordedAt, result: allocation))
+            fixture.rows = [row]; try await fixture.start()
+            try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
+                name: "final-result-review-\(decision == nil ? "timed-out" : "decided")", scrolls: true,
+                required: ["Result confirmed", "Your review", "Requested"],
+                forbidden: ["Refresh for the latest result", "Refresh to see your updated result", "We’re checking your result"])
+        }
     }
 
     func testUnknownCorrectedTiedRedactedAndRecoveryPresentation() async throws {

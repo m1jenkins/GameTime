@@ -7,7 +7,6 @@ struct PersonalChallengeDetailView: View {
     @Environment(PersonalStepProgressStore.self) private var stepProgress
     @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingCancelConfirmation = false
     @State private var isSyncNowRequested = false
     @State private var isCancellationRequested = false
@@ -18,11 +17,10 @@ struct PersonalChallengeDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 24) {
                 if let challenge {
                     hero(challenge)
                     if challenge.status.isOpen {
-                        cancellation(challenge)
                         paymentStatus(challenge)
                         pace(challenge)
                     } else {
@@ -31,14 +29,15 @@ struct PersonalChallengeDetailView: View {
                         pace(challenge)
                     }
                     PersonalChallengeDetailsCard(terms: challenge.terms)
+                    if challenge.status.isOpen { cancellation(challenge) }
                 } else {
                     ProgressView("Loading…")
                         .frame(maxWidth: .infinity)
                         .signalSection()
                 }
             }
-            .padding(.horizontal, 18)
-            .padding(.top, 4)
+            .padding(.horizontal, SignalTheme.contentInset)
+            .padding(.top, 16)
         }
         .signalTabScrollClearance()
         .signalScreenChrome()
@@ -90,51 +89,12 @@ struct PersonalChallengeDetailView: View {
         )
 
         return VStack(alignment: .leading, spacing: 15) {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 8) {
-                    PersonalStatusPill(
-                        status: status,
-                        outcome: challenge.outcome?.kind
-                    )
-                    Text(challenge.terms.commitmentText)
-                        .font(
-                            SignalTheme.monoFont(
-                                size: 20,
-                                weight: .bold
-                            )
-                        )
-                        .foregroundStyle(SignalTheme.textPrimary)
-                }
-            } else {
-                HStack {
-                    PersonalStatusPill(
-                        status: status,
-                        outcome: challenge.outcome?.kind
-                    )
-                    Spacer(minLength: 8)
-                    Text(challenge.terms.commitmentText)
-                        .font(
-                            SignalTheme.monoFont(
-                                size: 20,
-                                weight: .bold
-                            )
-                        )
-                        .foregroundStyle(SignalTheme.textPrimary)
-                }
-            }
             Text(challenge.terms.targetText)
-                .font(
-                    SignalTheme.displayFont(
-                        size: dynamicTypeSize.isAccessibilitySize
-                            ? 22
-                            : 28,
-                        relativeTo: dynamicTypeSize.isAccessibilitySize
-                            ? .headline
-                            : .title
-                    )
-                )
+                .font(.largeTitle.weight(.semibold)).monospacedDigit()
                 .foregroundStyle(SignalTheme.textPrimary)
-                .tracking(-0.8)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            PersonalStatusPill(status: status, outcome: challenge.outcome?.kind)
             if let progress {
                 PersonalProgressBar(
                     progress: progress,
@@ -157,6 +117,11 @@ struct PersonalChallengeDetailView: View {
                     pendingTitle: "Syncing…"
                 )
             }
+            SignalFactRow(label: "Amount", value: challenge.terms.commitmentText)
+            SignalFactRow(label: "Starts", value: PersonalTermsDateFormatter.dateTime(
+                challenge.terms.startsAt, timezoneIdentifier: challenge.terms.timezone))
+            SignalFactRow(label: "Ends", value: PersonalTermsDateFormatter.dateTime(
+                challenge.terms.endsAt, timezoneIdentifier: challenge.terms.timezone))
         }
         .signalSection()
     }

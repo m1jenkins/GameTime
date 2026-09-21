@@ -64,7 +64,7 @@ struct ChallengeAgreementText: View {
                     Text("An observed result can confirm that you met your goal. Missing or incomplete activity cannot confirm a missed goal or a ranking.")
                 }
                 if let distance = window.distanceMm {
-                    Text("Whole outdoor run: \(ChallengeV1Policy.Metric.distance.display(distance)) to \(ChallengeV1Policy.Metric.distance.display(distance * 102 / 100)), including both distances. The whole run must fit inside these dates. Time from start to finish includes pauses.")
+                    Text("Whole outdoor run: \(ChallengeTimedDistanceCopy.range(distance)), including both distances. The whole run must fit inside these dates. Time from start to finish includes pauses.")
                 }
             } else {
                 Text("Source: fictional activity for this local preview. No Apple Health activity is scored.")
@@ -96,6 +96,37 @@ struct ChallengeAgreementText: View {
 }
 
 
+struct ChallengeDecisionSummary: View {
+    let policy: ChallengeV1Policy
+    let window: ChallengeV1.Window
+    let minimum: Int
+    let sourcePolicy: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            summary("Activity", text: sourcePolicy.map { ChallengeHealthCopy.source($0, leaderboard: policy.usesReceivedScores) }
+                ?? "Fictional activity for this local preview. No Apple Health activity is scored.")
+            if sourcePolicy != nil, let distance = window.distanceMm {
+                summary("Whole run distance", text: "\(ChallengeTimedDistanceCopy.range(distance)), including both distances. The whole run must fit inside these dates.")
+            }
+            summary("How it ends", text: policy.scoring + " " + policy.missing + " " + policy.allocation)
+            summary("Leaving and review", text: "You may leave before the result is final and recover your simulated entry. The challenge continues only if at least \(minimum) eligible \(minimum == 1 ? "person remains" : "people remain"). You have 48 hours after the result notice to ask for a review.")
+            if policy.usesReceivedScores {
+                SignalFactRow(label: "Save activity by", value: window.correctionsBy.text(zone: window.timezone))
+            }
+        }
+    }
+
+    private func summary(_ title: String, text: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.subheadline.weight(.semibold))
+            Text(text).font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+
 func decodeWindow(_ value: ChallengeJSON?) -> ChallengeV1.Window? {
     guard let value, let data = try? ChallengeJSON.data(value) else { return nil }
     let decoder = JSONDecoder(); decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -107,19 +138,33 @@ struct ChallengeEntryPanel: View {
     @Bindable var invitation: ChallengeInvitationIntent
     @State private var age = false
     var body: some View {
-        if store.access?.ageConfirmed != true {
-            Toggle("I confirm I am 21 or older", isOn: $age).accessibilityIdentifier("beta.age.toggle")
-            Button("Save age confirmation") { Task { await store.submit(op: "confirm_age", fields: ["confirmed": .bool(true)]) } }
-                .disabled(!age || store.busy || store.pending != nil).accessibilityIdentifier("beta.age.submit")
-        }
-        TextField("Invitation link", text: $invitation.link).textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-        Button("Use invitation") { Task { await useInvitation() } }
-            .disabled(invitation.links.token(from: invitation.link) == nil || store.actor == nil || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
-        Text("An invitation grants beta access and requests a place in the lobby. The creator still chooses the roster. You agree separately. It does not add a friend.").font(.body).fixedSize(horizontal: false, vertical: true)
-        if let error = store.entryError { Text(error).font(.body).fixedSize(horizontal: false, vertical: true) }
-        ForEach(store.communities) { row in
-            NavigationLink("Community steps") { ChallengeCommunityJoin(store: store, community: row) }
-        }
+        VStack(alignment: .leading, spacing: 16) {
+            if store.access?.ageConfirmed != true {
+                Toggle("I confirm I am 21 or older", isOn: $age).accessibilityIdentifier("beta.age.toggle")
+                Button("Save age confirmation") { Task { await store.submit(op: "confirm_age", fields: ["confirmed": .bool(true)]) } }
+                    .disabled(!age || store.busy || store.pending != nil).accessibilityIdentifier("beta.age.submit")
+            }
+            TextField("Invitation link", text: $invitation.link)
+                .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+                .textContentType(.URL).keyboardType(.URL)
+                .frame(minHeight: 44)
+            Button("Use invitation") { Task { await useInvitation() } }
+                .buttonStyle(SignalPrimaryButtonStyle())
+                .disabled(invitation.links.token(from: invitation.link) == nil || store.actor == nil || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
+            Text("Request a place, then choose whether to agree.")
+                .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+            DisclosureGroup("How invitations work") {
+                Text("An invitation grants beta access and requests a place in the lobby. The creator still chooses the roster. You agree separately. It does not add a friend.")
+                    .font(.subheadline).padding(.top, 8)
+            }
+            if let error = store.entryError { Text(error).font(.subheadline).foregroundStyle(SignalTheme.danger) }
+            ForEach(store.communities) { row in
+                NavigationLink { ChallengeCommunityJoin(store: store, community: row) } label: {
+                    Label("Community steps", systemImage: "person.3")
+                }
+            }
+        }.fixedSize(horizontal: false, vertical: true)
+            .onChange(of: store.actor) { age = false }
     }
     func useInvitation() async {
         let submittedLink = invitation.link
@@ -136,6 +181,7 @@ struct ChallengeCommunityJoin: View {
     @Environment(\.challengeHealthFlow) private var health
     let community: ChallengeV1Community
     @State private var consent = false
+    private var savedChallenge: ChallengeV1? { store.challenges.first { $0.id == community.id } }
     private var binding: ChallengeHealthBinding? {
         guard let actor = store.actor, let window = decodeWindow(community.terms["config"]),
               let source = community.terms["source_policy_version"]?.string else { return nil }
@@ -144,22 +190,52 @@ struct ChallengeCommunityJoin: View {
     }
     var body: some View {
         ChallengeForm {
-            Text("Only your progress and result appear here.")
-            Text((community.counts ?? .init(joined: nil)).text(at: community.serverTime))
-            if let target = community.terms["common_target"]?.integer { Text("Everyone’s goal: \(target.formatted()) steps").font(.headline) }
-            if let window = decodeWindow(community.terms["config"]) {
-                ChallengeAgreementText(policy: ChallengeV1Policy(rawValue: "community_steps_goal_v1")!, window: window, minimum: community.terms["minimum"]?.integer ?? 2, sourcePolicy: community.terms["source_policy_version"]?.string)
+            if let target = community.terms["common_target"]?.integer {
+                SignalTargetBand(value: target, metric: .steps)
             }
-            Toggle("I have read the complete rules and agree", isOn: $consent)
-            if let health, let binding { ChallengeHealthStatusView(flow: health, binding: binding, readiness: true) }
-            Button("Join community challenge") { Task {
-                await store.submit(op: "join_community", fields: ["id": .string(community.id.uuidString.lowercased()), "digest": .string(community.digest), "consent": .bool(true)])
-                consent = false
-            }}.disabled(!consent || (community.terms["source_policy_version"] != nil && binding.map { health?.canConsent($0) == true } != true) || !store.entryFresh || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
-            if let error = store.error { Text(error) }
-            if store.challenges.contains(where: { $0.id == community.id }) { Text("You have joined. Find your own progress in Home.") }
-        }.navigationTitle("Community steps")
+            if let window = decodeWindow(community.terms["config"]) {
+                SignalDateSpan(window: window)
+                SignalFactRow(label: "Simulated entry", value: challengeMoney(window.amountCents))
+                Text("Nothing can be paid out or redeemed. No real money moves.")
+                    .font(.caption).foregroundStyle(SignalTheme.textSecondary)
+                ChallengeFormSection(savedChallenge == nil ? "Before you join" : "Your agreement") {
+                    ChallengeDecisionSummary(policy: ChallengeV1Policy(rawValue: "community_steps_goal_v1")!,
+                        window: window, minimum: community.terms["minimum"]?.integer ?? 2,
+                        sourcePolicy: community.terms["source_policy_version"]?.string)
+                    DisclosureGroup("Complete challenge rules") {
+                        ChallengeAgreementText(policy: ChallengeV1Policy(rawValue: "community_steps_goal_v1")!, window: window,
+                            minimum: community.terms["minimum"]?.integer ?? 2, sourcePolicy: community.terms["source_policy_version"]?.string)
+                            .padding(.top, 12)
+                    }
+                }
+            }
+            ChallengeFormSection("Just your progress") {
+                Text("Only your progress and result appear here.")
+                Text((community.counts ?? .init(joined: nil)).text(at: community.serverTime))
+                    .foregroundStyle(SignalTheme.textSecondary)
+            }
+            if let savedChallenge {
+                Label(savedChallenge.own(store.actor)?.exited == true ? "You left this challenge." : "You have joined. Find your own progress in Home.", systemImage: "checkmark.circle")
+                NavigationLink { ChallengeV1Detail(store: store, id: community.id) } label: {
+                    Text(savedChallenge.own(store.actor)?.exited == true ? "View saved challenge" : "View my progress")
+                }.buttonStyle(SignalPrimaryButtonStyle())
+            } else if decodeWindow(community.terms["config"]) != nil {
+                if let health, let binding { ChallengeHealthStatusView(flow: health, binding: binding, readiness: true) }
+                Toggle("I have read the complete rules and agree", isOn: $consent)
+                Button("Join community challenge") { Task {
+                    await store.submit(op: "join_community", fields: ["id": .string(community.id.uuidString.lowercased()), "digest": .string(community.digest), "consent": .bool(true)])
+                    consent = false
+                }}.buttonStyle(SignalPrimaryButtonStyle())
+                    .disabled(!consent || (community.terms["source_policy_version"] != nil && binding.map { health?.canConsent($0) == true } != true) || !store.entryFresh || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
+            } else {
+                Text("We couldn’t load the complete agreement. Go back and refresh before joining.")
+                    .font(.subheadline).foregroundStyle(SignalTheme.danger)
+            }
+            if let error = store.error { Text(error).foregroundStyle(SignalTheme.danger) }
+
+        }.navigationTitle("Community steps").navigationBarTitleDisplayMode(.inline)
             .onChange(of: store.actor) { consent = false }
+            .onChange(of: community.digest) { consent = false }
     }
 }
 
@@ -176,10 +252,14 @@ struct ChallengeLinkIssuer: View {
         }
         ForEach(store.issuedLinks.filter { $0.actorId == store.actor && $0.challengeId == row.id && row.creatorId == store.actor }) { issued in
             if let url = links.url(for: issued.token) {
-                Text(url.absoluteString).textSelection(.enabled).privacySensitive()
+                ShareLink("Share invitation", item: url)
+                    .buttonStyle(SignalSecondaryButtonStyle()).privacySensitive()
             }
-            Text("Up to 20 different accounts, for at most 30 days while the lobby is open.").font(.body).fixedSize(horizontal: false, vertical: true)
-            Button("Revoke invitation link") { Task {
+            Text("Expires \(issued.expiresAt.text(zone: row.config.timezone))")
+                .font(.caption).foregroundStyle(SignalTheme.textSecondary)
+            Text("Up to 20 different accounts may request a place while the lobby is open.")
+                .font(.subheadline).fixedSize(horizontal: false, vertical: true)
+            Button("Turn off this link", role: .destructive) { Task {
                 await store.submit(op: "revoke_link", fields: ["id": .string(issued.id.uuidString.lowercased())])
             }}.disabled(store.busy || store.pending != nil)
         }
@@ -196,7 +276,10 @@ struct ChallengePersonSafety: View {
             Button("Report unwanted contact") { report("unwanted_contact") }
             Button("Report unsafe behavior") { report("unsafe_behavior") }
             Button("Block this account", role: .destructive) { block = true }
-        }.disabled(store.busy || store.pending != nil)
+        }.buttonStyle(.plain).font(.subheadline)
+            .foregroundStyle(SignalTheme.textSecondary).frame(minHeight: 44)
+            .accessibilityLabel(person.exited || person.username.isEmpty ? "Report or block former participant" : "Report or block " + person.username)
+            .disabled(store.busy || store.pending != nil)
             .confirmationDialog("Block this account?", isPresented: $block, titleVisibility: .visible) {
                 Button("Block account", role: .destructive) { Task { await store.submit(op: "block", fields: ["subject": .string(person.actorId.uuidString.lowercased())]) } }
             } message: { Text("Shared details are hidden and affected participation ends safely. Previous final results remain in your own history.") }

@@ -113,11 +113,19 @@ private struct PersonalV1UnavailableRouteView: View {
 
 /// Shared account routes keep support, privacy and sign-out available in both shells.
 struct AppAccountNavigationView: View {
+    var challengeStore: ChallengeV1Store? = nil
+    @Environment(AppModel.self) private var model
     @Environment(AppRouter.self) private var router
     var body: some View {
         @Bindable var router = router
         NavigationStack(path: $router.youPath) {
-            YouView()
+            Group {
+                if let challengeStore {
+                    ChallengeProfileView(store: challengeStore, profile: model.profile, accountActor: model.userID)
+                } else {
+                    YouView()
+                }
+            }
                 .navigationDestination(for: YouRoute.self) { route in
                     switch route {
                     #if DEBUG || STAGING
@@ -130,8 +138,10 @@ struct AppAccountNavigationView: View {
                     case .performanceCommitments:
                         PerformanceCommitmentHomeView()
                     #endif
+                    case .settings:
+                        YouView(settingsOnly: true, challengeContext: challengeStore != nil)
                     case .trustAndPrivacy:
-                        TrustAndPrivacyView()
+                        TrustAndPrivacyView(challengeContext: challengeStore != nil)
                     case .accountSupport:
                         AccountSupportView()
                     }
@@ -161,7 +171,7 @@ struct SignalProductShell: View {
     var body: some View {
         ChallengeV1Shell(store: model.challengesV1, invitation: model.challengeInvitation,
             logout: { await model.signOut() },
-            accountContent: AnyView(AppAccountNavigationView()),
+            accountContent: AnyView(AppAccountNavigationView(challengeStore: model.challengesV1)),
             existingChallenges: AnyView(Button {
                 router.selectedTab = .challenges
                 showingExistingChallenges = true

@@ -50,7 +50,7 @@ import XCTest
                 let bodyText = text.replacingOccurrences(
                     of: "friend challenge simulated stakes — no real money moves. ", with: "")
                 XCTAssertTrue(bodyText.contains("saved by gametime"))
-                XCTAssertTrue(text.contains("continue")); XCTAssertFalse(text.contains("suggestion"))
+                XCTAssertTrue(text.contains("review")); XCTAssertFalse(text.contains("suggestion"))
             }
             let text = try await capture(NavigationStack {
                 ScrollView { VStack(alignment: .leading, spacing: 20) {

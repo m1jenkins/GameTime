@@ -6,9 +6,11 @@ struct ChallengeV1Create: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.challengeHealthFlow) private var health
     @State private var draft: ChallengeCreationDraft
-    @State private var zonePicker = false
+    private enum Editor: String, Identifiable { case dates, amount; var id: String { rawValue } }
+    @State private var editor: Editor?
+    @State private var focusedInput: String?
+    @State private var keyboardVisible = false
     @ScaledMetric(relativeTo: .title3) private var choiceSymbolWidth: CGFloat = 28
-    @State private var showSuggestion = false
     @AccessibilityFocusState private var headingFocused: Bool
     init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil, personalStepsOnly: Bool = false) {
         self.init(store: store, draft: ChallengeCreationDraft(initialPolicy: initialPolicy, personalStepsOnly: personalStepsOnly))
@@ -20,9 +22,7 @@ struct ChallengeV1Create: View {
     private var heading: String {
         switch draft.step {
         case .type: "Who’s it for?"
-        case .activity: draft.mode == .personal ? "Choose your goal." : "Choose your activity."
-        case .dates: "Set the dates."
-        case .amount: "Choose your amount."
+        case .activity: draft.mode == .personal ? "Goal & dates" : "Activity & dates"
         case .review: draft.mode == .personal ? "Review your goal." : "Review your challenge."
         }
     }
@@ -54,8 +54,6 @@ struct ChallengeV1Create: View {
                         switch draft.step {
                         case .type: typeStep
                         case .activity: activityStep
-                        case .dates: datesStep
-                        case .amount: amountStep
                         case .review: reviewStep
                         }
                     }.disabled(store.pending != nil || store.busy)
@@ -102,7 +100,27 @@ struct ChallengeV1Create: View {
                 proxy.scrollTo("creation-top", anchor: .top)
                 headingFocused = true
             }
-            .sheet(isPresented: $zonePicker) { SignalTimeZonePicker(selection: $draft.zone) }
+            .onChange(of: focusedInput) { _, field in
+                if keyboardVisible, let field { proxy.scrollTo(field, anchor: .center) }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)) { _ in
+                keyboardVisible = true
+                if let focusedInput { proxy.scrollTo(focusedInput, anchor: .center) }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+                keyboardVisible = false
+            }
+            .sheet(item: $editor) { editor in
+                switch editor {
+                case .dates: datesEditor
+                case .amount:
+                    SignalAmountEditor(value: draft.dollars) { amount in
+                        guard amount != draft.dollars else { return }
+                        draft.dollars = amount
+                        Task { await draft.review(store: store) }
+                    }
+                }
+            }
         }
     }
     private var progress: some View {
@@ -139,81 +157,147 @@ struct ChallengeV1Create: View {
     }
     @ViewBuilder private var activityStep: some View {
         if !draft.personalStepsOnly { SignalActivityChoices(selection: $draft.metric) }
+        datesSummary
         if draft.unavailable {
             Text("Activity not available yet. Choose another activity to continue.").font(.subheadline)
         } else {
             if draft.metric == .timed {
-                SignalNumberEntry(text: $draft.distance, title: "Whole run", unit: "kilometres", id: "beta.create.distance", keyboard: .decimalPad)
+                SignalNumberEntry(text: $draft.distance, title: "Whole run", unit: "kilometres", id: "beta.create.distance", keyboard: .decimalPad,
+                                  focusChanged: { inputFocus($0, id: "beta.create.distance") })
             }
             if draft.mode == .personal {
                 SignalNumberEntry(text: $draft.target, title: draft.metric == .timed ? "Time to beat" : "Your goal", unit: goalUnit,
-                                  id: "beta.create.target", keyboard: draft.metric == .steps ? .numberPad : draft.metric == .distance ? .decimalPad : .numbersAndPunctuation)
+                                  id: "beta.create.target", keyboard: draft.metric == .steps ? .numberPad : draft.metric == .distance ? .decimalPad : .numbersAndPunctuation,
+                                  focusChanged: { inputFocus($0, id: "beta.create.target") })
                 if let health, let binding = draft.planningBinding(actor: store.actor) {
-                    DisclosureGroup("Use a suggestion", isExpanded: $showSuggestion) {
-                        ChallengeHealthSuggestionView(flow: health, binding: binding, policy: draft.policy, days: draft.duration ?? 7) {
-                            draft.target = draft.metric.inputValue($0)
-                        }.buttonStyle(SignalSecondaryButtonStyle()).padding(.top, 12)
-                    }.font(.subheadline)
+                    ChallengeHealthSuggestionView(flow: health, binding: binding, policy: draft.policy, days: draft.duration ?? 7) {
+                        draft.target = draft.metric.inputValue($0)
+                    }.buttonStyle(SignalSecondaryButtonStyle())
                 }
             } else {
                 Text(draft.policy.hasTarget ? "Everyone chooses their goal in the lobby." : draft.policy.scoring).font(.subheadline)
             }
         }
     }
+    private func inputFocus(_ focused: Bool, id: String) {
+        if focused { focusedInput = id }
+        else if focusedInput == id { focusedInput = nil }
+    }
     private var goalUnit: String {
-        switch draft.metric {
-        case .steps: "steps total"
-        case .exercise: "minutes : seconds total"
-        case .distance: "kilometres total"
+        let period = draft.duration.map { $0 == 1 ? "over 1 full day" : "over \($0) full days" } ?? "during your selected dates"
+        return switch draft.metric {
+        case .steps: "steps total · " + period
+        case .exercise: "minutes : seconds total · " + period
+        case .distance: "kilometres total · " + period
         case .timed: "minutes : seconds · finish under this time"
         }
     }
-    private var datesStep: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            SignalNumberEntry(text: $draft.days, title: "Duration", unit: "full days", id: "beta.create.days", keyboard: .numberPad)
-            HStack(spacing: 16) {
-                adjust("Fewer days", symbol: "minus", id: "beta.stepper.days-Decrement", disabled: (draft.duration ?? 1) <= 1) { draft.days = String(max(1, (draft.duration ?? 7) - 1)) }
-                adjust("More days", symbol: "plus", id: "beta.stepper.days-Increment", disabled: (draft.duration ?? 30) >= 30) { draft.days = String(min(30, (draft.duration ?? 7) + 1)) }
-                Spacer()
-            }
-            DatePicker("Starts", selection: $draft.start, in: draft.allowedDates, displayedComponents: .date)
-                .environment(\.timeZone, draft.calendar.timeZone)
-                .font(.headline).accessibilityIdentifier("beta.create.start")
-            Button { zonePicker = true } label: {
-                HStack {
-                    Label(SignalTimeZone.name(draft.zone), systemImage: "globe")
-                        .multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: "chevron.right").accessibilityHidden(true)
+    private var datesSummary: some View {
+        Button { editor = .dates } label: {
+            HStack(alignment: .top, spacing: 16) {
+                Image(systemName: "calendar").font(.title3).padding(.top, 3).accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(draft.duration.map { $0 == 1 ? "1 full day" : "\($0) full days" } ?? "Choose your dates").font(.headline)
+                    Text(dateRange).font(.subheadline)
+                    Text(SignalTimeZone.name(draft.zone)).font(.caption).foregroundStyle(SignalTheme.textSecondary)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                Text("Edit").font(.subheadline.weight(.semibold)).foregroundStyle(SignalTheme.accent)
+            }.foregroundStyle(SignalTheme.textPrimary).multilineTextAlignment(.leading)
+                .padding(.vertical, 16).contentShape(Rectangle())
+                .overlay(alignment: .top) { Rectangle().fill(SignalTheme.divider).frame(height: 1) }
+                .overlay(alignment: .bottom) { Rectangle().fill(SignalTheme.divider).frame(height: 1) }
+        }.buttonStyle(.plain).accessibilityIdentifier("beta.create.dates")
+            .accessibilityHint("Edit the start date, duration and time zone")
+    }
+    private var dateRange: String {
+        let formatter = DateFormatter()
+        formatter.timeZone = draft.calendar.timeZone
+        formatter.setLocalizedDateFormatFromTemplate("MMM d yyyy")
+        guard let duration = draft.duration,
+              let last = draft.calendar.date(byAdding: .day, value: duration - 1, to: draft.start) else { return "Choose 1 to 30 full days" }
+        return formatter.string(from: draft.start) + " – " + formatter.string(from: last)
+    }
+    private var datesEditor: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Duration in full days").font(.headline)
+                        HStack(spacing: 16) {
+                            adjust("Fewer days", symbol: "minus", id: "beta.stepper.days-Decrement", disabled: (draft.duration ?? 1) <= 1) { draft.days = String(max(1, (draft.duration ?? 7) - 1)) }
+                            TextField("Days", text: $draft.days).keyboardType(.numberPad).multilineTextAlignment(.center)
+                                .font(.title2.monospacedDigit()).frame(maxWidth: .infinity, minHeight: 44)
+                                .accessibilityLabel("Duration in full days").accessibilityIdentifier("beta.create.days")
+                            adjust("More days", symbol: "plus", id: "beta.stepper.days-Increment", disabled: (draft.duration ?? 30) >= 30) { draft.days = String(min(30, (draft.duration ?? 7) + 1)) }
+                        }.modifier(SignalGlassGroup())
+                    }
+                    DatePicker("Starts", selection: $draft.start, in: draft.allowedDates, displayedComponents: .date)
+                        .environment(\.timeZone, draft.calendar.timeZone)
+                        .font(.headline).accessibilityIdentifier("beta.create.start")
+                    NavigationLink {
+                        SignalTimeZonePicker(selection: $draft.zone)
+                    } label: {
+                        HStack {
+                            Label(SignalTimeZone.name(draft.zone), systemImage: "globe")
+                                .multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading)
+                            Image(systemName: "chevron.right").accessibilityHidden(true)
+                        }.frame(minHeight: 44)
+                    }.buttonStyle(.plain).accessibilityLabel("Time zone, " + SignalTimeZone.name(draft.zone)).accessibilityIdentifier("beta.create.zone")
+                    if let window = draft.window { SignalDateSpan(window: window) }
+                    Text("Start in 2–30 days; each day runs midnight to midnight.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+                    if let error = draft.error { Text(error).font(.subheadline).foregroundStyle(SignalTheme.danger) }
+                }.padding(SignalTheme.contentInset)
+            }.background(SignalTheme.canvas).foregroundStyle(SignalTheme.textPrimary)
+                .scrollDismissesKeyboard(.interactively)
+                .navigationTitle("Dates").navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") {
+                            if draft.validate(.dates) { editor = nil }
+                        }.accessibilityIdentifier("beta.create.dates.done")
+                    }
                 }
-            }.buttonStyle(SignalSecondaryButtonStyle()).accessibilityLabel("Time zone, " + SignalTimeZone.name(draft.zone)).accessibilityIdentifier("beta.create.zone")
-            if let window = draft.window { SignalDateSpan(window: window) }
-            Text("Start in 2–30 days; each day runs midnight to midnight.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-        }
+        }.tint(SignalTheme.accent)
     }
     private func adjust(_ title: String, symbol: String, id: String, disabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) { Image(systemName: symbol).frame(width: 32, height: 32) }.accessibilityLabel(title)
             .modifier(SignalCircleAction()).disabled(disabled).accessibilityIdentifier(id)
     }
-    private var amountStep: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            SignalNumberEntry(text: $draft.dollars, title: "Simulated amount", unit: "USD · $1–$500", id: "beta.create.amount", keyboard: .numberPad, prefix: "$")
-            Text("Simulated stakes — no real money moves.").font(.subheadline)
-            SignalFactRow(label: "Fee", value: "$0")
-            SignalFactRow(label: "Real money", value: "$0")
-        }
-    }
     @ViewBuilder private var reviewStep: some View {
         if let window = draft.window {
-            if draft.mode == .personal, let value = draft.metric.parse(draft.target) { SignalTargetBand(value: value, metric: draft.metric) }
-            else { Label(draft.metric.title, systemImage: draft.metric.symbol).font(.title2.weight(.semibold)) }
-            if draft.metric == .timed, let distance = window.distanceMm { Text("Whole run: " + ChallengeV1Policy.Metric.distance.display(distance)).font(.headline) }
+            VStack(alignment: .leading, spacing: 12) {
+                if draft.mode == .personal, let value = draft.metric.parse(draft.target) { SignalTargetBand(value: value, metric: draft.metric) }
+                else { Label(draft.metric.title, systemImage: draft.metric.symbol).font(.title2.weight(.semibold)) }
+                Button("Edit goal and dates") { draft.back() }.font(.subheadline.weight(.semibold))
+                    .buttonStyle(.plain).foregroundStyle(SignalTheme.accent).frame(minHeight: 44)
+                    .accessibilityIdentifier("beta.create.edit-goal")
+            }
+            if draft.metric == .timed, let distance = window.distanceMm {
+                if health != nil {
+                    reviewFact("Whole run distance", text: "\(ChallengeTimedDistanceCopy.range(distance)), including both distances. The whole run must fit inside these dates.")
+                } else {
+                    Text("Whole run: " + ChallengeV1Policy.Metric.distance.display(distance)).font(.headline)
+                }
+            }
             SignalDateSpan(window: window)
-            SignalFactRow(label: "Simulated amount", value: challengeMoney(window.amountCents) + " · Fee $0")
-            Text("Simulated stakes — no real money moves. Nothing can be paid out or redeemed.").font(.subheadline)
+            VStack(alignment: .leading, spacing: 12) {
+                Button { editor = .amount } label: {
+                    HStack(alignment: .firstTextBaseline) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Simulated amount").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+                            Text(challengeMoney(window.amountCents)).font(.largeTitle.weight(.medium)).monospacedDigit()
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                        Text("Edit").font(.subheadline.weight(.semibold)).foregroundStyle(SignalTheme.accent)
+                    }.foregroundStyle(SignalTheme.textPrimary).frame(minHeight: 60).contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityIdentifier("beta.create.edit-amount")
+                Text("Fee $0 · No real money moves. Nothing can be paid out or redeemed.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+            }.padding(.vertical, 16)
+                .overlay(alignment: .top) { Rectangle().fill(SignalTheme.divider).frame(height: 1) }
+                .overlay(alignment: .bottom) { Rectangle().fill(SignalTheme.divider).frame(height: 1) }
             if draft.mode == .personal {
-                Text(health == nil ? "Source: fictional activity for this local preview. No Apple Health activity is scored." : ChallengeHealthCopy.source(draft.source?.identifier ?? "")).font(.subheadline)
-                Text("Meet your goal and your simulated entry returns. A confirmed miss leaves it unallocated. Missing or unclear activity never proves a miss.").font(.subheadline)
-                Text("You can leave before the result is final. You have 48 hours after the result notice to ask for a review.").font(.subheadline)
+                reviewFact("Activity counted", text: health == nil ? "Fictional activity for this local preview. No Apple Health activity is scored." : ChallengeHealthCopy.source(draft.source?.identifier ?? ""))
+                reviewFact("Possible results", text: "Meet your goal and your simulated entry returns. A confirmed miss leaves it unallocated. Missing or unclear activity never proves a miss.")
+                reviewFact("Leaving and review", text: "You can leave before the result is final. You have 48 hours after the result notice to ask for a review.")
             } else {
                 Text("Choose your friends next. Everyone reviews the roster and rules before agreeing.").font(.subheadline)
             }
@@ -225,28 +309,39 @@ struct ChallengeV1Create: View {
                 if let health, let binding = draft.healthBinding(actor: store.actor) {
                     ChallengeHealthStatusView(flow: health, binding: binding, readiness: true).buttonStyle(SignalSecondaryButtonStyle())
                 }
+                if draft.needsReview {
+                    Text("Your goal changed. Refresh the review before you agree.").font(.subheadline)
+                }
                 Toggle("I have read the complete rules and agree", isOn: $draft.consent)
+                    .disabled(draft.needsReview || draft.reading)
                     .font(.body).accessibilityIdentifier("beta.personal.consent")
             }
         }
     }
+    private func reviewFact(_ title: String, text: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(.headline)
+            Text(text).font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+        }.fixedSize(horizontal: false, vertical: true)
+    }
+    private var isReviewAction: Bool { draft.step == .activity || draft.step == .review && draft.needsReview }
     private var primaryAction: some View {
         Button {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             Task {
-                if draft.step == .review || store.pending != nil { await draft.submit(store: store) }
+                if store.pending != nil || draft.step == .review && !draft.needsReview { await draft.submit(store: store) }
                 else { await draft.advance(store: store) }
                 if let error = draft.error { SignalAccessibility.announce(error) }
             }
         } label: {
             HStack {
-                Text(store.pending != nil ? "Retry saved action" : draft.step == .review ? (draft.mode == .personal ? "Create personal goal" : "Create lobby") : draft.step == .amount ? "Review" : "Continue")
+                Text(store.pending != nil ? "Retry saved action" : isReviewAction ? (draft.step == .review ? "Refresh review" : "Review") : draft.step == .review ? (draft.mode == .personal ? "Create personal goal" : "Create lobby") : "Continue")
                 if draft.step != .review { Image(systemName: "arrow.right").accessibilityHidden(true) }
             }.font(.headline).frame(maxWidth: .infinity, minHeight: 50)
         }
         .modifier(SignalNativeAction(primary: true))
-        .disabled(blocked || (store.pending == nil && draft.step == .review && (store.access?.ageConfirmed != true || draft.mode == .personal && (!draft.consent || !ready))))
-        .accessibilityIdentifier(store.pending != nil ? "beta.create.retry" : draft.step == .review ? (draft.mode == .personal ? "beta.personal.commit" : "beta.create.submit") : draft.step == .amount && draft.mode == .personal ? "beta.personal.preview" : "beta.create.continue")
+        .disabled(blocked || (store.pending == nil && draft.step == .review && !draft.needsReview && (store.access?.ageConfirmed != true || draft.mode == .personal && (!draft.consent || !ready))))
+        .accessibilityIdentifier(store.pending != nil ? "beta.create.retry" : isReviewAction && draft.mode == .personal ? "beta.personal.preview" : draft.step == .review ? (draft.mode == .personal ? "beta.personal.commit" : "beta.create.submit") : "beta.create.continue")
     }
     private func saved(id: UUID, status: String) -> some View {
         ScrollView {

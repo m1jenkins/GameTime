@@ -7,7 +7,7 @@ struct ChallengesView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 12) {
+            LazyVStack(spacing: 24) {
                 loadState
                 PendingPersonalCancellationRecoveryCard(
                     contactSupport: { router.openAccountSupport() }
@@ -55,8 +55,8 @@ struct ChallengesView: View {
                     .accessibilityIdentifier("personal.create")
                 }
             }
-            .padding(.horizontal, 18)
-            .padding(.top, 4)
+            .padding(.horizontal, SignalTheme.contentInset)
+            .padding(.top, 16)
         }
         .signalTabScrollClearance()
         .signalScreenChrome()
