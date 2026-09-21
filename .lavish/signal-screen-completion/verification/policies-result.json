@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Three unfinished challenges block a fourth without erasing consent",
+    "pass": true
+  },
+  {
+    "name": "Independent exits retain their own receipts",
+    "pass": true
+  },
+  {
+    "name": "Unknown score has no zero or contradictory saved self total",
+    "pass": true
+  },
+  {
+    "name": "Stale result cannot bypass review freshness by navigation",
+    "pass": true
+  },
+  {
+    "name": "Historical cancellation does not rewrite completed result or payment",
+    "pass": true
+  },
+  {
+    "name": "Community active alternate and privacy suppression are coherent",
+    "pass": true
+  },
+  {
+    "name": "Reset clears local consents, joins, drafts, exits and receipts",
+    "pass": true
+  },
+  {
+    "name": "A saved creation cannot be replaced by another draft",
+    "pass": true
+  },
+  {
+    "name": "An open result review occupies an unfinished slot",
+    "pass": true
+  },
+  {
+    "name": "Editing a proposed goal clears both readiness and consent",
+    "pass": true
+  },
+  {
+    "name": "Active community exit retains the active fixture date",
+    "pass": true
+  }
+]

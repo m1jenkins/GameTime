@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Home activity / chart / Back retention",
+    "pass": true
+  },
+  {
+    "name": "Invitation request → roster → proposal → explicit consent → confirmation",
+    "pass": true
+  },
+  {
+    "name": "Review-open → submitted request → saved receipt",
+    "pass": true
+  },
+  {
+    "name": "Safe exit → saved record / return pending",
+    "pass": true
+  },
+  {
+    "name": "Community → rules → consent → confirmation → private progress / suppression",
+    "pass": true
+  },
+  {
+    "name": "Existing → pending result → review → receipt → payment separate",
+    "pass": true
+  },
+  {
+    "name": "Historical setup → exact consent → saved replay → cancellation receipt",
+    "pass": true
+  },
+  {
+    "name": "Staged friend creation defaults → saved lobby",
+    "pass": true
+  },
+  {
+    "name": "Staged Personal validation → readiness → explicit consent → immutable receipt",
+    "pass": true
+  }
+]

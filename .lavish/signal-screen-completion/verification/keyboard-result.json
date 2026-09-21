@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Keyboard range keeps focus and announces exact value",
+    "pass": true
+  },
+  {
+    "name": "Keyboard Back restores originating row and scroll",
+    "pass": true
+  },
+  {
+    "name": "One click after typing advances exact creation value",
+    "pass": true
+  },
+  {
+    "name": "Full rules disclosure opens by keyboard and retains state",
+    "pass": true
+  },
+  {
+    "name": "Brand and Close navigate correctly",
+    "pass": true
+  },
+  {
+    "name": "Back restores reviewer-origin focus",
+    "pass": true
+  },
+  {
+    "name": "Bottom action clears floating navigation",
+    "pass": true
+  }
+]
