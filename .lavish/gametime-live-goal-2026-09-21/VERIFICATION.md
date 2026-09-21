@@ -44,3 +44,13 @@ The Chrome batch `run` wrapper returned `fn is not a function` and was not treat
 Physical iPhone testing, native Dynamic Type/VoiceOver acceptance, native glass fidelity, actual haptics, notification delivery, gesture physics, real Health data, source/scoring acceptance, backend mutations, invitations, and money. Reduced-motion and reduced-transparency fallbacks are present in CSS; hardware and native accessibility behavior are not claimed.
 
 Sample people, dates, shared activity, statuses and finished records are fictional. The new personal-consequence-only stake rule and portrait/grid features require separately versioned implementation; existing agreements remain unchanged.
+
+## Follow-up: Home only
+
+- Captured and visually inspected the refined Home at 390 × 844 CSS px / 2×: `captures/home-refined.png` (780 × 1688). Its body fits without scrolling; the source line ends 22.5 CSS px above the tab bar.
+- Checked 320 × 710 with 22% larger text, both saved and missing activity. No horizontal overflow; the large metric and unit fit without overlap; all buttons remain at least 44 CSS px tall. Unknown activity retains its explanation and never becomes zero or an inferred miss.
+- Opened Sam’s progress from the revised tile, closed with Escape and observed focus return to Sam. View goal still opens the existing goal and rules screen.
+- Verified the non-Home functions (`toolbar`, `goal`, `moment`, `you`, `challenges`, rendering and sheet functions) match the previous commit. Existing CSS is unchanged; appended app selectors are scoped to Home. Only Home and its friend tile markup changed.
+- `node --check prototype.js` and `git diff --check` passed. No native implementation or native test claim is made.
+- Opened the portable Home export: exactly one populated phone, five annotations, zero external script/stylesheet links, embedded portrait atlas and no desktop horizontal overflow. Lavish export reported zero unresolved assets and zero notices.
+- Local review: http://127.0.0.1:4387/session/d4daf4d3bea3868b. Deliverables: `home-refinement.html`, portable `gametime-home-refined.html`, and `captures/home-refined.png`. The original Home and three-screen captures are retained as the first iteration; the main portable design export is refreshed to use the current Home.

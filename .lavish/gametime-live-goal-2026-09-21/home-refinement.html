@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>GameTime — Home refinement</title>
+  <link rel="stylesheet" href="design.css">
+  <style>
+    body.home-review{background:#eeeee9;color:var(--ink)}
+    .home-review main{max-width:1030px;margin:auto;padding:48px 40px;display:grid;grid-template-columns:390px minmax(0,1fr);gap:76px;align-items:center}
+    .home-review .phone{height:844px}
+    .home-review .review-notes{min-width:0}
+    .home-review .review-kicker{font-size:11px;font-weight:650;letter-spacing:1.2px;text-transform:uppercase;color:var(--sub);margin-bottom:16px}
+    .home-review h1{font-size:40px;letter-spacing:-1.9px;line-height:1.08;margin:0 0 15px}
+    .home-review .review-intro{font-size:15px;line-height:1.6;color:var(--sub);margin-bottom:30px;max-width:320px}
+    .home-review ol{list-style:none;padding:0;margin:0;counter-reset:notes}
+    .home-review li{counter-increment:notes;display:grid;grid-template-columns:26px minmax(0,1fr);gap:12px;padding:18px 0;border-top:1px solid #d9dcd3;font-size:14px;line-height:1.5}
+    .home-review li:before{content:counter(notes,decimal-leading-zero);font-size:11px;font-weight:650;color:var(--accent);padding-top:3px}
+    .home-review li b{display:block;font-size:15px;letter-spacing:-.2px;margin-bottom:3px}
+    .home-review li p{color:var(--sub)}
+    .home-review .review-footnote{font-size:11px;line-height:1.5;color:var(--sub);margin-top:23px}
+    @media(max-width:860px){.home-review main{grid-template-columns:minmax(0,390px);justify-content:center;gap:40px;padding:32px 24px}.home-review .review-notes{padding:0 3px}}
+    @media(max-width:420px){.home-review main{padding:20px 14px}.home-review .phone{height:844px;border-width:5px;border-radius:40px}.home-review h1{font-size:34px}}
+  </style>
+</head>
+<body class="home-review">
+  <main>
+    <div class="phone" data-phone="home-refinement" data-initial="home" aria-label="Refined GameTime Home prototype"></div>
+    <aside class="review-notes" aria-label="Five Home refinements">
+      <p class="review-kicker">GameTime · Home only</p>
+      <h1>The challenge leads.</h1>
+      <p class="review-intro">The same light, terracotta direction and information architecture, with more weight where it matters.</p>
+      <ol>
+        <li><div><b>Athletic metric hierarchy</b><p>6.4 uses tighter, heavier, slanted type. The small km unit and 20 km goal stay secondary.</p></div></li>
+        <li><div><b>Distance still to run</b><p>“13.6 km to go” replaces the percentage. The thick progress bar and Sunday finish stay visible.</p></div></li>
+        <li><div><b>Friends you can read at a glance</b><p>Sam, Jordan and Priya keep their places. Thicker rings and stronger status labels show their progress.</p></div></li>
+        <li><div><b>A more deliberate surface</b><p>A warm, lightly shaded metric panel and measured spacing give the number a home.</p></div></li>
+        <li><div><b>Quieter framing</b><p>The challenge title replaces the Home wordmark. “From Apple Health · 1 min ago” keeps the source and freshness easy to understand.</p></div></li>
+      </ol>
+      <p class="review-footnote">Interactive design mock. Fictional activity and people. No money moves. Other screens and tabs retain the existing direction.</p>
+    </aside>
+  </main>
+  <script src="prototype.js"></script>
+</body>
+</html>

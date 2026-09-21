@@ -4,6 +4,8 @@ September 21, 2026. A single design system and information-architecture proposal
 
 Open `index.html` with `lavish-axi`. It contains the three high-fidelity iPhone mockups, short screen annotations, exactly ten design-system principles, a lifecycle/IA map, and the nine requested Mobbin references. Each phone works independently. `phone.html?screen=home`, `?screen=goal`, and `?screen=you` open the same components at full device size. `&large=1` and `&missing=1` expose the review states.
 
+The follow-up Home-only refinement is in `home-refinement.html`, with exactly five annotations, and the portable `gametime-home-refined.html`. Its single-screen capture is `captures/home-refined.png`. The challenge title now leads, a heavier slanted distance sits on a warm neutral panel, the caption shows remaining kilometres, and the same friends have stronger rings and status labels. The Apple Health source line is quieter. Other screen functions, the tabs and the information architecture are unchanged. `index.html` and its portable export use the updated Home; the original `captures/home.png` and `captures/three-screens.png` remain records of the first iteration.
+
 ## Design source
 
 The user's locked direction takes precedence: a light athletic chassis, one system sans family, one deep orange accent, live metrics, private friends, and a dated record. Current Signal docs and COPY.md supply context and language protections. The old Pace (called Face in the brief), Rally, and Fieldwork study is preserved as historical work; it is not extended or repeated here.

@@ -21,3 +21,33 @@
 .phone[data-screen=goal] .inset{padding-bottom:16px}
 .large-text .timeline{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 0}
 .large-text .timeline li:nth-child(even):after{display:none}
+
+/* Home refinement only: the challenge leads; the distance carries the weight. */
+.phone[data-screen=home] .home-head{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:10px;align-items:start;padding-top:23px}
+.phone[data-screen=home] .home-head>div{min-width:0}
+.phone[data-screen=home] .home-head .app-title{font-size:calc(27px * var(--text-scale));font-weight:750;letter-spacing:-1.15px;margin:0 0 9px}
+.phone[data-screen=home] .home-head .profile-shortcut{margin-top:-5px}
+.phone[data-screen=home] .hero-progress{margin-top:24px;padding:21px 20px 20px;border-radius:24px;background:linear-gradient(145deg,#f7f4ee 0%,#f0eee7 100%);box-shadow:inset 0 0 0 1px #2b281008,inset 0 1px 0 #ffffffb3}
+.phone[data-screen=home] .metric-heading{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.phone[data-screen=home] .metric-label,.phone[data-screen=home] .metric-goal{font-size:calc(13px * var(--text-scale));line-height:1.4;color:#65665f}
+.phone[data-screen=home] .metric-label{font-weight:550}
+.phone[data-screen=home] .metric-goal{font-variant-numeric:tabular-nums}
+.phone[data-screen=home] .metric-line{gap:13px;margin:11px 0 20px;align-items:baseline;flex-wrap:nowrap}
+.phone[data-screen=home] .metric-value{font-size:calc(114px * var(--text-scale));font-weight:900;font-style:italic;letter-spacing:-.085em;line-height:.98;padding-right:5px;font-variant-numeric:lining-nums tabular-nums}
+.phone[data-screen=home] .metric-unit{font-size:calc(23px * var(--text-scale));font-weight:550;letter-spacing:-.65px;color:#65665f}
+.phone[data-screen=home] .progress-rail{height:20px;border-radius:10px;background:#dfdfd6}
+.phone[data-screen=home] .rail-caption{margin-top:12px;font-size:calc(12px * var(--text-scale));line-height:1.5;gap:10px;flex-wrap:wrap}
+.phone[data-screen=home] .rail-caption strong{font-weight:650}
+.phone[data-screen=home] .friend-block{margin-top:28px;padding-top:0;border-top:0}
+.phone[data-screen=home] .mini-heading{margin-bottom:19px}
+.phone[data-screen=home] .portrait-ring,.phone[data-screen=home] .portrait-ring>svg{width:72px;height:72px}
+.phone[data-screen=home] .portrait-ring>svg{stroke-width:4}
+.phone[data-screen=home] .portrait-ring>.avatar{width:55px;height:55px}
+.phone[data-screen=home] .portrait-ring circle:first-child{stroke:#e7e8e2}
+.phone[data-screen=home] .friend b{margin-top:10px;font-weight:550}
+.phone[data-screen=home] .friend small{margin-top:4px;font-size:calc(13px * var(--text-scale));font-weight:650;letter-spacing:-.15px;color:var(--ink)}
+.phone[data-screen=home] .friend .is-done{color:var(--accent)}
+.phone[data-screen=home] .home-bottom{padding-top:24px}
+.phone[data-screen=home] .sync-line{margin-top:14px;font-size:calc(11px * var(--text-scale));color:#71766d}
+.phone[data-screen=home] .unknown .metric-value{font-style:normal;letter-spacing:-.02em}
+@media(max-width:350px){.phone[data-screen=home] .home-head .app-title{font-size:calc(25px * var(--text-scale))}.phone[data-screen=home] .hero-progress{padding-left:17px;padding-right:17px}.phone[data-screen=home] .metric-value{font-size:calc(100px * var(--text-scale))}.phone[data-screen=home] .metric-unit{font-size:calc(20px * var(--text-scale))}.phone[data-screen=home] .metric-heading{flex-wrap:wrap;gap:2px 8px}}
