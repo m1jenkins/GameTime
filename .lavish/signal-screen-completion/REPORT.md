@@ -23,7 +23,7 @@ glass; they do not establish native material acceptance.
 | Community | Unavailable and published entries → rules/readiness/consent → joined confirmation → scheduled or active private progress. Reviewer controls compare a delayed eligible aggregate with complete count suppression. |
 | Existing challenges | Focused list, detail, historical setup and confirmation, review, receipt, payment status, historical cancellation and receipt. Exact historical consent, seven-day review and missing-final-data protection remain intact. |
 | Staged creation | Type → Activity and goal → Dates → Amount → Review → saved confirmation → saved goal or open lobby. Direct Personal skips Type. Current defaults: Goals with friends, Steps, blank target/distance, seven days, start +2 days, $20. |
-| You | Navigation context and a clearly bounded support preview; no account redesign. |
+| You | Revised through Lavish feedback: identity header, private win/loss record, Activity / Challenges selector, lifetime activity, retrospective streak, calculation disclosures and saved-record navigation. Support remains a bounded preview. |
 
 The screen picker exposes each screen. Empty receipts explain their prerequisite
 and link back to it. Back restores the originating control and scroll; Close
@@ -116,8 +116,9 @@ there was no populated predecessor for those proposed compositions.
   choices, and keeps personal totals separate from saved challenge scores.
 - Challenges retains aligned open rows while adding attention-first composition,
   grouped lists, a glass status filter and a focused Existing challenges entry.
-- Invitation/agreement retains the opaque goal band and date span. The proposed
-  flow adds explicit request, role, roster, proposal and individual-consent stages.
+- Invitation now uses the opaque blue band for “Choose your own goal”; Sam’s
+  60,000-step target is secondary. The shared date connector aligns with date
+  values. The flow retains separate request, roster, proposal and consent stages.
 - History uses separate result, review and return sections. Historical payment
   presentation remains a separate sandbox card with Refresh/Contact Support.
 - Staged creation preserves native defaults and steps; this browser version uses
@@ -143,3 +144,58 @@ scan flagged repeated sentence openings; these are repeated agreement and
 protection sentences across separate screens, deliberately preserved. Report
 phrase and structure scans passed. Original reference and all eight native
 capture copies match their source files byte-for-byte.
+
+
+## Lavish feedback revision · September 21
+
+All six submitted comments were applied in the existing local session.
+
+| Annotation | Requested change | Revision |
+| --- | --- | --- |
+| 2 | Shorten the Activity minutes caption | “Apple Exercise credit”. The unknown Sunday still has an unavailable readout and accessible value. |
+| 4, 6 | Refine and align the date arrow | One shared solid circular SVG connector, centered on the date values. Compact large text stacks the dates. |
+| 5 | Make an individual target more obvious | The invitation leads with “Choose your own goal.” Sam’s 60,000 steps is a secondary row. Alex has no accepted target before proposing and consenting. |
+| 7 | Remove the leaderboard clause | Community keeps the private steps/result statement and shared goal, without that clause. |
+| 8 | Expand You using fitness profile references | Identity and initials corrected; lifetime activity, a private competitive record and a retrospective streak added with working Activity / Challenges controls. |
+
+The profile draws on [Nike Run Club’s prominent lifetime total](https://mobbin.com/screens/6d298284-0016-475e-b33e-2d67e78515fe)
+and [Strava’s identity, statistics and weekly streak layout](https://mobbin.com/screens/7a77b17b-e42b-44ab-a21d-87b157e6663c),
+inspected through Mobbin. Signal remains the design source: its semantic palette,
+open rows, system typography, solid facts and glass selectors. No external
+reference assets or services are needed to render the prototype.
+
+Additional fictional profile fixtures:
+
+- Personal activity recorded since July 20: 683,420 steps and 142.8 km running.
+  Weekly step values through September 20 are 69,500; 71,400; 73,980; 78,320;
+  unknown; 82,500; 90,120; 165,120; 52,480. Eight weeks have recorded activity.
+  The final week matches Home. Totals sum known values and disclose the missing
+  week; the unknown value remains null.
+- Four consecutive weeks are confirmed from August 24 through September 20.
+  The unknown August 17 week neither proves a break nor supplies continuity.
+  The streak is a private retrospective record, with no reward, countdown,
+  paid-challenge linkage or participation prompt.
+- Fourteen earlier friend competitions, July 20–August 30: eight wins, including
+  two shared wins; four losses; two that did not count. The rate is 8/12 = 67%
+  rounded, and the win/loss ratio is 2:1. Personal, community and individual
+  friend goals are excluded. Open reviews, pending or unknown results cannot
+  become losses. The completed archive is separate from the current journeys.
+- Profile aggregation and competitive records require later implementation and
+  acceptance. This archive illustrates deferred leaderboard rules; it does not
+  claim that competitive leaderboards have launched. Activity history remains
+  distinct from saved GameTime scores and all payment states.
+
+Revision verification: eight focused interaction/copy checks passed, including
+keyboard profile switching, retained selection, focus restoration and Reset.
+The complete 624-layout matrix passed after the shared date change. Both profile
+tabs were additionally checked at compact and standard widths, large and normal
+text, light/dark and glass/solid. Visual captures cover the revised invitation
+and standard/compact profile. No original reference, staged capture, historical
+consent, native implementation or backend file changed.
+
+The profile’s individual-goal row follows the current review state instead of
+always claiming both goals were met. That state check also passed. The shortened
+Home caption follows annotation 2; complete challenge source definitions and
+consent in staged creation remain unchanged. Revised-copy phrase, structure and
+silhouette scans found no violations; readability scoring on concatenated screen
+labels is not treated as a prose reading-grade result.

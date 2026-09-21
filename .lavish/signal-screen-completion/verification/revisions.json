@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Home caption shortened; unavailable Sunday preserved",
+    "pass": true
+  },
+  {
+    "name": "Invitation leads with own target and keeps consent separate",
+    "pass": true
+  },
+  {
+    "name": "Shared date connector renders in all relevant journeys",
+    "pass": true
+  },
+  {
+    "name": "Community privacy preserved with requested clause removed",
+    "pass": true
+  },
+  {
+    "name": "Profile totals and streak preserve unknown activity",
+    "pass": true
+  },
+  {
+    "name": "Profile tabs work by keyboard and retain focus",
+    "pass": true
+  },
+  {
+    "name": "Record excludes noncompetitive and unknown outcomes",
+    "pass": true
+  },
+  {
+    "name": "Profile selection retained across navigation and Reset restores default",
+    "pass": true
+  }
+]
