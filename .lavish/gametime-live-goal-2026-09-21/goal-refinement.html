@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>GameTime — Goal / Rules</title>
+  <link rel="stylesheet" href="design.css">
+  <style>
+    body.goal-review{--ink:#111318;--sub:#606975;--accent:#245bff;background:#e9edf2;color:var(--ink);min-height:100vh}
+    .goal-review main{max-width:1080px;margin:auto;padding:44px 40px;display:grid;grid-template-columns:390px minmax(0,1fr);gap:76px;align-items:center}
+    .goal-review .phone{height:844px}
+    .goal-review aside{min-width:0}
+    .goal-review .review-kicker{font-size:11px;font-weight:650;letter-spacing:1.1px;text-transform:uppercase;color:var(--sub);margin-bottom:12px}
+    .goal-review h1{font-size:38px;letter-spacing:-1.5px;line-height:1.1;margin:0 0 12px}
+    .goal-review .review-intro{font-size:14px;line-height:1.55;color:var(--sub);max-width:340px;margin-bottom:20px}
+    .goal-review .annotations{list-style:none;padding:0;margin:0;counter-reset:notes}
+    .goal-review .annotations>li{counter-increment:notes;display:grid;grid-template-columns:24px minmax(0,1fr);gap:12px;padding:13px 0;border-top:1px solid #d4dbe4;font-size:13px;line-height:1.5}
+    .goal-review .annotations>li:before{content:counter(notes,decimal-leading-zero);font-size:10px;font-weight:650;color:var(--accent);padding-top:3px}
+    .goal-review .annotations b{display:block;font-size:14px;letter-spacing:-.2px;margin-bottom:2px}
+    .goal-review .annotations p{color:var(--sub)}
+    .goal-review .palette-reminder{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:20px;padding-top:17px;border-top:1px solid #d4dbe4}
+    .goal-review .palette-reminder>div{min-width:0}
+    .goal-review .palette-reminder i{display:block;width:22px;height:22px;border-radius:6px;background:var(--color);box-shadow:inset 0 0 0 1px #11131812;margin-bottom:6px}
+    .goal-review .palette-reminder b{display:block;font-size:10px;font-weight:550;line-height:1.4}
+    .goal-review .palette-reminder span{font-size:9px;line-height:1.4;color:var(--sub);font-variant-numeric:tabular-nums}
+    .goal-review .review-note{font-size:10px;line-height:1.5;color:var(--sub);margin-top:18px;max-width:350px}
+    .goal-review .review-note a{color:var(--sub);text-underline-offset:2px}
+    @media(max-width:850px){.goal-review main{grid-template-columns:minmax(0,390px);justify-content:center;gap:36px;padding:28px 20px}.goal-review aside{padding:0 4px}}
+  </style>
+</head>
+<body class="goal-review">
+  <main>
+    <div class="phone" data-phone="goal-review" data-initial="goal" aria-label="GameTime Goal and Rules interactive mock"></div>
+    <aside aria-label="Six visual refinements and the locked palette">
+      <p class="review-kicker">GameTime · Goal / Rules only</p>
+      <h1>The agreement<br>at a glance.</h1>
+      <p class="review-intro">Home’s locked palette. The goal, key terms and next actions fit in one screenful.</p>
+      <ol class="annotations">
+        <li><div><b>Header → one quick read</b><p>Challenge title, one-line target and dates, plus a quiet glass back control.</p></div></li>
+        <li><div><b>Goal → athletic metric</b><p>Heavy 6.4 km, thick progress, remaining distance and an On track chip lead.</p></div></li>
+        <li><div><b>Agreement → three visual cards</b><p>Watch, shield and stake symbols anchor four- or five-word values. Frosted surfaces and soft edges separate each fact.</p></div></li>
+        <li><div><b>Timing → connected nodes</b><p>Four connected nodes make the dates scannable. Blue marks the active week; results can settle from Sep 30.</p></div></li>
+        <li><div><b>Actions → unmistakable controls</b><p>Filled Full rules, tinted Refresh activity and a calm amber Leave challenge button.</p></div></li>
+        <li><div><b>Detail → progressive disclosure</b><p>Full rules opens a sheet of expandable sections, short bullets and individual goal tiles.</p></div></li>
+      </ol>
+      <div class="palette-reminder" aria-label="Home palette reminder">
+        <div><i style="--color:#fafbfc" aria-hidden="true"></i><b>Background</b><span>#FAFBFC</span></div>
+        <div><i style="--color:#f0f2f5" aria-hidden="true"></i><b>Surface</b><span>#F0F2F5</span></div>
+        <div><i style="--color:#111318" aria-hidden="true"></i><b>Text</b><span>#111318</span></div>
+        <div><i style="--color:#245bff" aria-hidden="true"></i><b>Accent</b><span>#245BFF</span></div>
+      </div>
+      <p class="review-note">Warning: #9A6700. Home remains unchanged. This interactive browser mock approximates materials; it does not implement native Liquid Glass. <a href="https://developer.apple.com/design/human-interface-guidelines/materials" target="_blank" rel="noopener">Apple material guidance</a>.</p>
+    </aside>
+  </main>
+  <script src="prototype.js"></script>
+</body>
+</html>
