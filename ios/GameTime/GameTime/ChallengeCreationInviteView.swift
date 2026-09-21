@@ -11,6 +11,9 @@ struct ChallengeCreationInviteView: View {
     @State private var draft: ChallengeCreationInvitationDraft
     @State private var showingConfirmation = false
     @State private var loading = false
+    @State private var showingLinks = false
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .largeTitle) private var headingSize: CGFloat = 30
     @AccessibilityFocusState private var headingFocused: Bool
 
     init(store: ChallengeV1Store, challengeID: UUID, progressLabels: [String] = ["Goal", "Challenge", "Friends"]) {
@@ -57,14 +60,13 @@ struct ChallengeCreationInviteView: View {
         .tint(SignalCreationTheme.accent)
         .modifier(ChallengeScrollLegibility())
         .scrollDismissesKeyboard(.interactively)
-        .navigationTitle(showingConfirmation ? "Challenge saved" : "Invite friends")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { dismiss() } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }
-                    .accessibilityLabel("Close").modifier(SignalNavigationAction())
-                    .accessibilityIdentifier("beta.create.close")
-            }
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            SignalCreationChrome(title: "Create challenge", showsBack: showingConfirmation,
+                                 back: { showingConfirmation = false }, close: { dismiss() })
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if currentRow != nil { footer }
         }
         .task(id: challengeID) { await refresh() }
         .refreshable { await refresh() }
@@ -76,7 +78,7 @@ struct ChallengeCreationInviteView: View {
     }
 
     private var content: some View {
-        VStack(alignment: .leading, spacing: 26) {
+        VStack(alignment: .leading, spacing: 18) {
             if let row = currentRow {
                 if showingConfirmation { confirmation(row) }
                 else { invitation(row) }
@@ -91,58 +93,78 @@ struct ChallengeCreationInviteView: View {
             if loading { ProgressView("Loading your challenge…") }
             if store.busy { ProgressView("Saving your action…") }
         }
-        .padding(SignalCreationTheme.contentInset)
+        .padding(.horizontal, SignalCreationTheme.contentInset)
+        .padding(.top, showingConfirmation ? 6 : 2)
+        .padding(.bottom, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .id("invite-top")
     }
 
     private func invitation(_ row: ChallengeV1) -> some View {
-        VStack(alignment: .leading, spacing: 26) {
+        VStack(alignment: .leading, spacing: 18) {
             SignalCreationProgress(labels: progressLabels, current: progressLabels.count - 1)
+                .padding(.bottom, 1)
             VStack(alignment: .leading, spacing: 10) {
-                Text("Invite friends.").font(.largeTitle.weight(.bold))
+                Text("Invite friends.").font(.system(size: headingSize, weight: .bold)).tracking(-1.1)
                     .accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused)
                     .accessibilityIdentifier("beta.invite.heading")
                 Text("Choose up to 5 friends for the final roster.")
-                    .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                    .font(.system(.subheadline, design: .default)).foregroundStyle(SignalCreationTheme.textSecondary)
             }
             members(row)
             if row.status == "lobby_open" {
-                VStack(alignment: .leading, spacing: 14) {
-                    Label("Add by username", systemImage: "person.2").font(.headline)
-                    HStack(spacing: 12) {
-                        Image(systemName: "magnifyingglass").foregroundStyle(SignalCreationTheme.textSecondary)
-                            .accessibilityHidden(true)
-                        TextField("Exact friend username", text: $draft.username)
-                            .textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .textContentType(.username).submitLabel(.send)
-                            .accessibilityIdentifier("beta.invite.input")
-                            .onSubmit { Task { await invite() } }
+                VStack(alignment: .leading, spacing: 8) {
+                    let layout = typeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                        : AnyLayout(HStackLayout(spacing: 6))
+                    layout {
+                        HStack(spacing: 9) {
+                            Image(systemName: "magnifyingglass").font(.body.weight(.regular))
+                                .foregroundStyle(SignalCreationTheme.textSecondary).accessibilityHidden(true)
+                            TextField("Exact friend username", text: $draft.username)
+                                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                                .textContentType(.username).submitLabel(.send)
+                                .font(.subheadline)
+                                .accessibilityIdentifier("beta.invite.input")
+                                .onSubmit { Task { await invite() } }
+                        }.frame(minHeight: 44)
+                        Button { Task { await invite() } } label: {
+                            Text("Invite").font(.subheadline.weight(.semibold))
+                                .frame(minWidth: 44, minHeight: 44)
+                        }
+                        .buttonStyle(.plain).foregroundStyle(SignalCreationTheme.accent)
+                        .disabled(!canInvite || ExactHandleSubmission.normalized(draft.username) == nil)
+                        .accessibilityLabel("Invite friend")
+                        .accessibilityIdentifier("beta.invite.submit")
                     }
-                    .padding(.horizontal, 16).frame(minHeight: 52)
-                    .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal, 13)
+                    .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 14))
                     .disabled(!canInvite)
                     Text("Use the exact username of an accepted friend.")
                         .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
-                    Button { Task { await invite() } } label: {
-                        Label("Invite friend", systemImage: "arrow.right")
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                    }
-                    .buttonStyle(SignalCreationPrimaryStyle())
-                    .disabled(!canInvite || ExactHandleSubmission.normalized(draft.username) == nil)
-                    .accessibilityIdentifier("beta.invite.submit")
                     if draft.invitationSaved {
                         Label("Invitation saved. Your friend still needs to review and agree.", systemImage: "checkmark.circle.fill")
-                            .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                            .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
                             .accessibilityIdentifier("beta.invite.saved")
                     }
                 }
-                VStack(alignment: .leading, spacing: 14) {
-                    Label("Invitation link", systemImage: "link").font(.headline)
-                    ChallengeLinkIssuer(store: store, row: row)
+                VStack(alignment: .leading, spacing: 0) {
+                    Divider().overlay(SignalCreationTheme.divider)
+                    DisclosureGroup(isExpanded: $showingLinks) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            ChallengeLinkIssuer(store: store, row: row)
+                        }
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.bottom, 12)
+                    } label: {
+                        Label("Invitation link", systemImage: "link")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(SignalCreationTheme.textPrimary)
+                            .frame(minHeight: 48)
+                    }
+                    .accessibilityIdentifier("beta.invite.links")
                 }
-                .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-                .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 20))
             } else {
                 Text("Inviting is closed. Open your lobby to review the current rules and status.")
                     .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
@@ -150,70 +172,64 @@ struct ChallengeCreationInviteView: View {
             Text(row.format.hasTarget
                  ? "Each friend chooses their own goal. You choose the roster, then everyone reviews the rules and agrees."
                  : "You choose the roster, then everyone reviews the rules and agrees.")
-                .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Button {
-                showingConfirmation = true
-            } label: {
-                HStack {
-                    Text("Done inviting")
-                    Image(systemName: "arrow.right").accessibilityHidden(true)
-                }.frame(maxWidth: .infinity, minHeight: 44)
-            }
-            .buttonStyle(SignalCreationPrimaryStyle()).disabled(store.busy || store.pending != nil)
-            .accessibilityIdentifier("beta.invite.done")
         }
     }
 
     private func members(_ row: ChallengeV1) -> some View {
         let people = row.members.filter { $0.actorId != store.actor && !$0.exited }
-        return VStack(alignment: .leading, spacing: 16) {
+        return VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Friends in your lobby").font(.headline)
+                Text("Friends in your lobby").font(.subheadline.weight(.semibold))
                 Spacer(minLength: 12)
                 Text(people.count.formatted()).font(.subheadline.monospacedDigit())
                     .foregroundStyle(SignalCreationTheme.textSecondary)
             }
             if people.isEmpty {
-                HStack(spacing: 16) {
-                    Image(systemName: "person.2").font(.title2.weight(.regular))
-                        .frame(width: 52, height: 52)
+                HStack(spacing: 12) {
+                    Image(systemName: "person.2").font(.system(size: 21, weight: .regular))
+                        .frame(width: 44, height: 44)
                         .background(SignalCreationTheme.soft, in: Circle()).accessibilityHidden(true)
                     Text("Invite a friend to do this with.")
                         .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
-                }.padding(.vertical, 8)
+                }.frame(minHeight: 62)
             } else {
-                VStack(spacing: 0) {
-                    ForEach(people) { person in
-                        HStack(spacing: 14) {
-                            Text(String(person.username.prefix(2)).uppercased())
-                                .font(.subheadline.weight(.semibold))
-                                .frame(width: 44, height: 44)
-                                .background(SignalCreationTheme.soft, in: Circle()).accessibilityHidden(true)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(person.username).font(.headline)
-                                Text(person.selected ? "On your roster" : "Waiting for roster selection")
-                                    .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
-                            }.frame(maxWidth: .infinity, alignment: .leading)
-                            if person.consented {
-                                Image(systemName: "checkmark.circle.fill").foregroundStyle(SignalCreationTheme.textSecondary)
-                                    .accessibilityLabel("Agreed")
+                ScrollView(.horizontal) {
+                    HStack(alignment: .top, spacing: 18) {
+                        ForEach(people) { person in
+                            VStack(spacing: 7) {
+                                Text(String(person.username.prefix(2)).uppercased())
+                                    .font(.body.weight(.semibold))
+                                    .frame(width: 48, height: 48)
+                                    .background(SignalCreationTheme.soft, in: Circle())
+                                    .padding(4)
+                                    .overlay { Circle().stroke(person.selected ? SignalCreationTheme.accent : SignalCreationTheme.divider, lineWidth: person.selected ? 2 : 1) }
+                                    .accessibilityHidden(true)
+                                Text(person.username).font(.caption.weight(.semibold))
+                                    .lineLimit(2).multilineTextAlignment(.center)
+                                Text(person.consented ? "Agreed" : person.selected ? "On your roster" : "Waiting for roster selection")
+                                    .font(.caption2).foregroundStyle(SignalCreationTheme.textSecondary)
+                                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                             }
-                        }.padding(.vertical, 12)
-                        .accessibilityElement(children: .combine)
-                        Divider().overlay(SignalCreationTheme.divider)
+                            .frame(width: typeSize.isAccessibilitySize ? 150 : 88)
+                            .accessibilityElement(children: .combine)
+                        }
                     }
-                }
+                    .padding(.vertical, 2)
+                }.scrollIndicators(.hidden)
             }
         }.accessibilityIdentifier("beta.invite.members")
     }
 
     private func confirmation(_ row: ChallengeV1) -> some View {
-        VStack(alignment: .leading, spacing: 26) {
-            VStack(alignment: .leading, spacing: 14) {
-                Image(systemName: "checkmark.circle.fill").font(.system(size: 36, weight: .regular))
-                    .foregroundStyle(SignalCreationTheme.accent).accessibilityHidden(true)
-                Text("Your challenge is saved.").font(.largeTitle.weight(.bold))
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 12) {
+                Image(systemName: "checkmark.circle.fill").font(.system(size: 25, weight: .regular))
+                    .foregroundStyle(SignalCreationTheme.accent)
+                    .frame(width: 44, height: 44)
+                    .background(SignalCreationTheme.selection, in: Circle()).accessibilityHidden(true)
+                Text("Your challenge is saved.").font(.system(size: headingSize, weight: .bold)).tracking(-1.1)
                     .accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused)
                     .accessibilityIdentifier("beta.create.saved")
                 Text(row.status == "lobby_open"
@@ -221,32 +237,80 @@ struct ChallengeCreationInviteView: View {
                      : row.statusText)
                     .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
             }
-            VStack(alignment: .leading, spacing: 16) {
-                Text(row.title).font(.title2.weight(.semibold))
-                SignalDateSpan(window: row.config)
-                if row.format.hasTarget, let target = row.own(store.actor)?.target {
-                    SignalCreationMetric(value: target, metric: row.format.metric)
+            VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text(row.title).font(.title2.weight(.bold)).tracking(-0.6)
+                    Text(dateRange(row.config)).font(.subheadline)
+                        .foregroundStyle(SignalCreationTheme.textSecondary)
+                    Text(SignalTimeZone.name(row.config.timezone)).font(.caption)
+                        .foregroundStyle(SignalCreationTheme.textSecondary)
                 }
-                Text("\(challengeMoney(row.config.amountCents)) simulated each · Fee $0")
-                    .font(.subheadline)
-                Text("No real money moves. Nothing can be paid out or redeemed.")
-                    .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
+                if row.format.hasTarget, let target = row.own(store.actor)?.target {
+                    VStack(alignment: .leading, spacing: 6) {
+                        SignalCreationMetricReadout(value: target, metric: row.format.metric)
+                        Text("Your goal").font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
+                    }
+                }
+                Divider().overlay(SignalCreationTheme.divider)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("\(challengeMoney(row.config.amountCents)) simulated each · Fee $0")
+                        .font(.caption)
+                    Text("No real money moves. Nothing can be paid out or redeemed.")
+                        .font(.caption)
+                }.foregroundStyle(SignalCreationTheme.textSecondary)
             }
-            .padding(20).frame(maxWidth: .infinity, alignment: .leading)
-            .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 22))
+            .padding(18).frame(maxWidth: .infinity, alignment: .leading)
+            .background(LinearGradient(colors: [SignalCreationTheme.surface, SignalCreationTheme.soft], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: RoundedRectangle(cornerRadius: 24))
+            .overlay { RoundedRectangle(cornerRadius: 24).stroke(SignalCreationTheme.divider.opacity(0.45), lineWidth: 0.75) }
             members(row)
-            NavigationLink {
-                ChallengeV1Detail(store: store, id: challengeID)
-            } label: {
-                HStack {
-                    Text("View lobby")
-                    Image(systemName: "arrow.right").accessibilityHidden(true)
-                }.frame(maxWidth: .infinity, minHeight: 44)
-            }
-            .buttonStyle(SignalCreationPrimaryStyle()).accessibilityIdentifier("beta.create.detail")
-            Button("Back to invitations") { showingConfirmation = false }
-                .buttonStyle(SignalSecondaryButtonStyle()).accessibilityIdentifier("beta.invite.back")
         }
+    }
+
+    private var footer: some View {
+        VStack(spacing: 4) {
+            if showingConfirmation {
+                NavigationLink {
+                    ChallengeV1Detail(store: store, id: challengeID)
+                        .toolbar(.visible, for: .navigationBar)
+                } label: {
+                    HStack(spacing: 12) {
+                        Text("View lobby")
+                        Image(systemName: "arrow.right").accessibilityHidden(true)
+                    }
+                }
+                .buttonStyle(SignalCreationPrimaryStyle()).accessibilityIdentifier("beta.create.detail")
+                Button("Back to invitations") { showingConfirmation = false }
+                    .font(.subheadline.weight(.semibold)).frame(minHeight: 44)
+                    .foregroundStyle(SignalCreationTheme.textSecondary)
+                    .accessibilityIdentifier("beta.invite.back")
+            } else {
+                Button { showingConfirmation = true } label: {
+                    HStack(spacing: 12) {
+                        Text("Done inviting")
+                        Image(systemName: "arrow.right").accessibilityHidden(true)
+                    }
+                }
+                .buttonStyle(SignalCreationPrimaryStyle()).disabled(store.busy || store.pending != nil)
+                .accessibilityIdentifier("beta.invite.done")
+            }
+        }
+        .padding(.horizontal, SignalCreationTheme.contentInset)
+        .padding(.top, 12).padding(.bottom, 6)
+        .background(SignalCreationTheme.canvas)
+    }
+
+    private func dateRange(_ window: ChallengeV1.Window) -> String {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: window.timezone)
+        formatter.setLocalizedDateFormatFromTemplate("MMM d yyyy")
+        // The server's end is exclusive; the final included second is always
+        // on the last goal day, including across daylight-saving changes.
+        let lastDay = window.endsAt.date.addingTimeInterval(-1)
+        let start = formatter.string(from: window.startsAt.date)
+        let end = formatter.string(from: lastDay)
+        let range = window.days == 1 ? start : "\(start)–\(end)"
+        return "\(range) · \(window.days) \(window.days == 1 ? "day" : "days")"
     }
 
     @ViewBuilder private var recovery: some View {

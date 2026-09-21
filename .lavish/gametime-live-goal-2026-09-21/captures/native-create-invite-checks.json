@@ -1,28 +1,47 @@
 {
   "date": "2026-09-21",
-  "kind": "native SwiftUI fixture integration",
+  "kind": "native SwiftUI layout correction; fictional accounts",
   "simulator": "GameTimeCleanBaseline-20260915 / iOS 26.5",
-  "build": "passed",
   "tests": {
-    "passed": 56,
-    "failed": 0,
+    "passed_unique": 57,
+    "failed_remaining": 0,
     "skipped": 0,
-    "suites": [
-      "ChallengeCreationFlowTests",
-      "ChallengeCreationDraftTests",
-      "ChallengeInvitationRecoveryTests",
-      "ChallengeHealthFlowStoreTests",
-      "SignalThemeAdversarialTests"
+    "batches": [
+      {
+        "xcresult": "/private/tmp/gametime-create-parity-layout-20260921.xcresult",
+        "suites": [
+          "ChallengeCreationDraftTests",
+          "ChallengeCreationFlowTests"
+        ],
+        "passed": 22,
+        "failed": 0
+      },
+      {
+        "xcresult": "/private/tmp/gametime-create-parity-acceptance-20260921.xcresult",
+        "suites": [
+          "ChallengeHealthFlowStoreTests",
+          "ChallengeInvitationRecoveryTests",
+          "SignalThemeAdversarialTests"
+        ],
+        "passed": 35,
+        "failed": 0,
+        "note": "These three suites passed on the same final production source. The overall bundle also contains seven earlier creation-test harness failures, all resolved in the 22-test rerun."
+      }
     ]
   },
-  "iphone_product_guard": "passed",
-  "xcresult": "/private/tmp/gametime-native-create-invite-final.xcresult",
+  "iphone_product_guard": {
+    "passed": true,
+    "active_sources": 201
+  },
   "source_sha256": {
     "ios/GameTime/GameTime/ChallengeCreationDraft.swift": "5b7ac20bb8f12472d62bcf6522b7c4d01dbe4155b7030fb68b212e2e583b0fb4",
-    "ios/GameTime/GameTime/ChallengeCreationInviteView.swift": "3478704e91e83e0699767713aa6eef9f52cecb61c16883878421940eb0bc659b",
-    "ios/GameTime/GameTime/ChallengeCreationViews.swift": "dc80b24f30dca903d47a1f28bde8fcc273f316177a820a8b45fd87e749ce05b4",
-    "ios/GameTime/GameTime/SignalCreationControls.swift": "b2b79ac806a7c1d37c8c8fb869800d15e5e9fbcc60ba9f59b9a93a5c67cd7597",
-    "ios/GameTime/GameTime/SignalCreationTheme.swift": "97f1e1d750c361e8bce4b1f30d30df6d7519556d89ef0e48f275f0ace95ac229"
+    "ios/GameTime/GameTime/ChallengeCreationInviteView.swift": "bb06ca945d927b02d22948597a65186d2c98937761981c021282983181be5b0b",
+    "ios/GameTime/GameTime/ChallengeCreationViews.swift": "95f8caf349a3f0cdebb503e6e8e2ff121051883654d9bb328df2e90441c91dae",
+    "ios/GameTime/GameTime/ChallengeV1Views.swift": "d7994d70ba7eff00e4b3a6303c2a91a9b25943dc015cd7434fd22e2840b37542",
+    "ios/GameTime/GameTime/SignalCreationControls.swift": "d8c0550ff2a575b104077317cd1d7f39d0392adde36a2dcc0c03ede01eb1e5e9",
+    "ios/GameTime/GameTime/SignalCreationDates.swift": "3a7ec8f6469e7f3406a237b85b6d985a5e0f0356e20419980a1238419d8a5d89",
+    "ios/GameTime/GameTime/SignalCreationMetricReadout.swift": "e3c32f03bdee6677c47218081f7e9a5c4d7bedca02cacc2631dc1de5ed8a456a",
+    "ios/GameTime/GameTime/SignalCreationTheme.swift": "630ba8cf30f8e862fb9ffb9d9069c904b473e2a460418a860193c5a08bc4eaac"
   },
   "captures": [
     "native-create-challenge-page-0.png",
@@ -31,7 +50,6 @@
     "native-create-confirm-dark-accessibility-page-0.png",
     "native-create-confirm-dark-accessibility-page-1.png",
     "native-create-confirm-dark-accessibility-page-2.png",
-    "native-create-confirm-dark-accessibility-page-3.png",
     "native-create-confirm-dark-accessibility-recognized-text.txt",
     "native-create-confirm-page-0.png",
     "native-create-confirm-page-1.png",
@@ -41,28 +59,47 @@
     "native-create-goal-recognized-text.txt",
     "native-create-pending-page-0.png",
     "native-create-pending-page-1.png",
-    "native-create-pending-page-2.png",
     "native-create-pending-recognized-text.txt",
+    "native-distance-goal-layout-page-0.png",
+    "native-distance-goal-layout-page-1.png",
+    "native-distance-goal-layout-recognized-text.txt",
+    "native-distance-goal-layout-scrolled-recovery.png",
+    "native-distance-goal-layout-visible.png",
     "native-invite-account-changed-page-0.png",
     "native-invite-account-changed-recognized-text.txt",
     "native-invite-friends-page-0.png",
-    "native-invite-friends-page-1.png",
     "native-invite-friends-recognized-text.txt",
     "native-invite-populated-page-0.png",
-    "native-invite-populated-page-1.png",
     "native-invite-populated-recognized-text.txt",
     "native-invite-restored-page-0.png",
-    "native-invite-restored-page-1.png",
     "native-invite-restored-recognized-text.txt",
     "native-invite-stale-page-0.png",
     "native-invite-stale-recognized-text.txt",
     "native-personal-agreement-page-0.png",
     "native-personal-agreement-page-1.png",
-    "native-personal-agreement-recognized-text.txt"
+    "native-personal-agreement-recognized-text.txt",
+    "native-private-personal-steps-page-0.png",
+    "native-private-personal-steps-recognized-text.txt",
+    "native-private-personal-steps-scrolled-recovery.png",
+    "native-private-personal-steps-visible.png"
   ],
+  "installed": {
+    "device": "Mason’s iPhone",
+    "configuration": "Staging",
+    "version": "0.8.1",
+    "build": "926.21.3",
+    "bundle": "com.mjenkins.gametime.staging",
+    "launch_process_id": 25190,
+    "signature_verified": true,
+    "info_plist_difference_from_926_21_2": [
+      "CFBundleVersion"
+    ],
+    "executable_sha256": "f9a502294aabc2d22160b194048de5e017222e8420e6be526f04eabc775565f7",
+    "info_plist_sha256": "ac9ff5b00cdba3e78241995bae8ff191ca35d3cd21fa159ee7d56a9e16ef32d7"
+  },
   "limits": [
-    "In-memory fictional accounts; no hosted actions",
-    "No physical-device installation or Health verification",
-    "Loopback service UI journey tests updated but not run in this task"
+    "Physical install/launch/version verified; screen captures are simulator fixtures, not physical phone captures.",
+    "No hosted action, private-trial expansion, Health read/upload, invitation or agreement submitted.",
+    "Loopback UI journeys compiled but not executed; human VoiceOver and physical keyboard-flow acceptance not performed."
   ]
 }

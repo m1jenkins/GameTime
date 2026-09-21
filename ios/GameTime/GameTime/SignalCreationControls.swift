@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Native button styles supply the optical treatment; solid modes retain shape and size.
 struct SignalNativeAction: ViewModifier {
@@ -125,11 +126,143 @@ struct SignalNumberEntry: View {
     }
 }
 
+/// A goal stays editable in its original units; formatting never rewrites the draft.
+struct SignalCreationGoalEntry: View {
+    @Binding var text: String
+    let metric: ChallengeV1Policy.Metric
+    let duration: Int?
+    let sourceLabel: String?
+    let id: String
+    var focusChanged: ((Bool) -> Void)? = nil
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .largeTitle) private var distanceSize: CGFloat = 108
+    @ScaledMetric(relativeTo: .largeTitle) private var stepsSize: CGFloat = 68
+    @ScaledMetric(relativeTo: .largeTitle) private var timeSize: CGFloat = 76
+    @ScaledMetric(relativeTo: .title2) private var unitSize: CGFloat = 25
+    @ScaledMetric(relativeTo: .caption) private var labelSize: CGFloat = 13
+    @ScaledMetric(relativeTo: .caption) private var footerSize: CGFloat = 12
+    @State private var availableWidth: CGFloat = 280
+    @FocusState private var focused: Bool
+
+    private var title: String {
+        switch metric {
+        case .steps: "Your steps"
+        case .distance: "Your distance"
+        case .exercise: "Your activity minutes"
+        case .timed: "Time to beat"
+        }
+    }
+    private var unit: String {
+        switch metric {
+        case .steps: "steps"
+        case .distance: "km"
+        case .exercise, .timed: "min:sec"
+        }
+    }
+    private var keyboard: UIKeyboardType {
+        switch metric {
+        case .steps: .numberPad
+        case .distance: .decimalPad
+        case .exercise, .timed: .numbersAndPunctuation
+        }
+    }
+    private var period: String {
+        guard let duration else { return "During your selected dates" }
+        return duration == 1 ? "Over 1 day" : "Over \(duration) days"
+    }
+    private var baseSize: CGFloat {
+        min(metric == .distance ? distanceSize : metric == .steps ? stepsSize : timeSize, 140)
+    }
+    private var fieldSpace: CGFloat {
+        guard !typeSize.isAccessibilitySize else { return availableWidth }
+        let width = (unit as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: unitSize, weight: .medium)]).width
+        return max(44, availableWidth - width - 10)
+    }
+    private var numberSize: CGFloat {
+        // Long values shrink to fit before the editable field scrolls. The raw
+        // text and its allowed precision remain owned by the creation draft.
+        max(24, min(baseSize, baseSize * fieldSpace / max(1, textWidth(at: baseSize) + 8)))
+    }
+    private func textWidth(at size: CGFloat) -> CGFloat {
+        let font = UIFont.monospacedDigitSystemFont(ofSize: size, weight: .heavy)
+        let descriptor = font.fontDescriptor.withSymbolicTraits(font.fontDescriptor.symbolicTraits.union(.traitItalic)) ?? font.fontDescriptor
+        return ((text.isEmpty ? "—" : text) as NSString).size(withAttributes: [
+            .font: UIFont(descriptor: descriptor, size: size), .kern: tracking(at: size)
+        ]).width
+    }
+    private func tracking(at size: CGFloat) -> CGFloat { size * (metric == .distance ? -0.085 : -0.065) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 10) {
+                Text(title).font(.system(size: labelSize, weight: .medium))
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 8)
+                if focused {
+                    Button("Done") { focused = false }
+                        .font(.system(size: labelSize, weight: .semibold))
+                        .frame(minWidth: 44, minHeight: 44).buttonStyle(.plain)
+                        .foregroundStyle(SignalCreationTheme.accent)
+                        .accessibilityIdentifier("beta.create.input.done")
+                } else {
+                    Image(systemName: "pencil").font(.system(size: 17, weight: .regular))
+                        .accessibilityHidden(true)
+                }
+            }.foregroundStyle(SignalCreationTheme.textSecondary)
+            Group {
+                if typeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 2) { numberField; unitLabel }
+                } else {
+                    HStack(alignment: .firstTextBaseline, spacing: 10) { numberField; unitLabel }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 4).padding(.bottom, 10)
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = max(44, $0) }
+            let footerLayout = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+            footerLayout {
+                Text(period).frame(maxWidth: .infinity, alignment: .leading)
+                if let sourceLabel { Text(sourceLabel) }
+            }
+            .font(.system(size: footerSize)).foregroundStyle(SignalCreationTheme.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, 12)
+            .overlay(alignment: .top) { Rectangle().fill(SignalCreationTheme.divider).frame(height: 1) }
+        }
+        .padding(.horizontal, 20).padding(.top, 19).padding(.bottom, 16)
+        .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 24))
+        .overlay { RoundedRectangle(cornerRadius: 24).stroke(SignalCreationTheme.divider.opacity(0.35), lineWidth: 0.5) }
+        .id(id)
+        .onChange(of: focused) { _, value in focusChanged?(value) }
+    }
+    private var numberField: some View {
+        TextField("—", text: $text)
+            .keyboardType(keyboard).textFieldStyle(.plain)
+            .font(.system(size: numberSize, weight: .heavy).italic()).monospacedDigit()
+            .tracking(tracking(at: numberSize))
+            .foregroundStyle(SignalCreationTheme.textPrimary)
+            .frame(width: min(fieldSpace, max(44, textWidth(at: numberSize) + 8)))
+            .frame(minHeight: 44)
+            .textInputAutocapitalization(.never).autocorrectionDisabled()
+            .submitLabel(.done).focused($focused).onSubmit { focused = false }
+            .accessibilityLabel(title).accessibilityHint(metric.inputHelp).accessibilityIdentifier(id)
+    }
+    private var unitLabel: some View {
+        Text(unit).font(.system(size: unitSize, weight: .medium)).tracking(-0.6)
+            .foregroundStyle(SignalCreationTheme.textSecondary).fixedSize()
+            .accessibilityHidden(true)
+    }
+}
+
 struct SignalCreationProgress: View {
     let labels: [String]
     let current: Int
     @Environment(\.dynamicTypeSize) private var typeSize
-    @ScaledMetric(relativeTo: .caption) private var circleSize: CGFloat = 21
+    @ScaledMetric(relativeTo: .caption) private var circleSize: CGFloat = 19
+    @ScaledMetric(relativeTo: .caption) private var labelSize: CGFloat = 11
+    @ScaledMetric(relativeTo: .caption2) private var numberSize: CGFloat = 10
     private var selected: Int { min(max(current, 0), max(labels.count - 1, 0)) }
 
     var body: some View {
@@ -141,16 +274,16 @@ struct SignalCreationProgress: View {
                 HStack(spacing: 6) {
                     Group {
                         if index < selected {
-                            Image(systemName: "checkmark").font(.caption2.weight(.semibold))
+                            Image(systemName: "checkmark").font(.system(size: numberSize, weight: .semibold))
                                 .symbolRenderingMode(.monochrome)
                         } else {
-                            Text(String(index + 1)).font(.caption2.weight(.semibold)).monospacedDigit()
+                            Text(String(index + 1)).font(.system(size: numberSize, weight: .semibold)).monospacedDigit()
                         }
                     }
                     .frame(width: circleSize, height: circleSize)
                     .foregroundStyle(index == selected ? SignalCreationTheme.onAccent : index < selected ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary)
                     .background(index == selected ? SignalCreationTheme.accent : index < selected ? SignalCreationTheme.selection : SignalCreationTheme.soft, in: Circle())
-                    Text(labels[index]).font(.caption.weight(index == selected ? .semibold : .medium))
+                    Text(labels[index]).font(.system(size: labelSize, weight: index == selected ? .semibold : .medium))
                         .foregroundStyle(index <= selected ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

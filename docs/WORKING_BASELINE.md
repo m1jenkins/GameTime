@@ -35,8 +35,16 @@ are unchanged. See the report for source and actual verification.
 The subsequent [native create/invite integration](../.lavish/gametime-live-goal-2026-09-21/NATIVE_CREATE_INVITE.md)
 connects the approved metric cards and SF Symbols to creation, then opens real
 invitations after a friend lobby saves. Username/link requests, agreement rules,
-Personal consent and product gates remain intact. This is a simulator-verified
-source update; it does not replace the prepared or installed Staging product.
+Personal consent and product gates remain intact. Its first Staging build,
+926.21.2, was installed but retained too much of the old form layout. The owner's
+phone screenshot triggered a native layout correction: full-screen creation,
+inline units, calendar dates, compact agreement rows and docked actions. Corrected
+Staging **0.8.1 (926.21.3)** is now installed and launched normally on Mason's iPhone.
+The linked report distinguishes the 22 passing creation/layout tests plus 35
+passing regression tests, simulator captures, physical installation, and remaining
+human checks. The private phone/server trial remains Personal Apple Watch steps
+only; no private admission, hosted state, account-verification choice or product
+agreement changed.
 
 ## September 20 private iPhone trial
 

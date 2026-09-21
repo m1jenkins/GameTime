@@ -1,7 +1,9 @@
 #if DEBUG
 import SwiftUI
 import UIKit
+import Vision
 import XCTest
+import GameTimeCore
 @testable import GameTime
 
 /// Exercises the native create-to-invite route with an in-memory service. No
@@ -16,7 +18,8 @@ import XCTest
         draft.target = "20"
         let goal = try await capture(ChallengeV1Create(store: fixture.store, draft: draft), name: "native-create-goal")
         XCTAssertTrue(goal.contains("20"))
-        XCTAssertTrue(goal.contains("kilometres"))
+        XCTAssertTrue(goal.contains("km"))
+        XCTAssertTrue(goal.contains("continue"))
         XCTAssertTrue(fixture.client.requests.isEmpty, "Opening and editing a goal does not save it")
 
         let reviewed = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_distance_goal_v1"), zone: "America/Los_Angeles")
@@ -36,6 +39,72 @@ import XCTest
         XCTAssertTrue(challenge.contains("full challenge rules"))
         XCTAssertTrue(challenge.contains("20"))
         XCTAssertTrue(fixture.client.requests.isEmpty, "Review does not create the lobby or send invitations")
+    }
+
+    func testGoalUnitsStayBesideTheirValuesAndContinueStaysVisibleWhileScrolling() async throws {
+        let fixture = CreationFlowFixture()
+        defer { fixture.clean() }
+        await fixture.start()
+        let health = try fixture.healthFlow()
+        defer { health.setActor(nil) }
+        for (metric, target, name) in [(ChallengeV1Policy.Metric.steps, "800", "native-private-personal-steps"),
+                                       (.distance, "20", "native-distance-goal-layout")] {
+            let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_\(metric.rawValue)_goal_v1"),
+                personalStepsOnly: metric == .steps, zone: "America/Los_Angeles")
+            await draft.initialize(store: fixture.store, health: health)
+            draft.target = target
+            let mounted = try mount(ChallengeV1Create(store: fixture.store, draft: draft)
+                .environment(\.challengeHealthFlow, health)
+                .environment(\.colorScheme, .light).environment(\.dynamicTypeSize, .large))
+            defer { mounted.close() }
+            try await Task.sleep(for: .milliseconds(250))
+            let first = try viewport(mounted, name: name + "-visible")
+            let value = try XCTUnwrap(first.frame(matching: "\\b\(target)\\b"), first.text)
+            let unit = try XCTUnwrap(first.frame(matching: metric == .steps ? "\\bsteps\\b" : "\\bkm\\b", beside: value), first.text)
+            XCTAssertGreaterThanOrEqual(unit.minX, value.maxX - 2, "The unit belongs beside its editable number")
+            XCTAssertTrue(unit.minY < value.maxY && unit.maxY > value.minY,
+                          "The unit and value must share a line, rather than placing the unit in the footer")
+            let originalAction = try XCTUnwrap(first.frame(matching: "\\bcontinue\\b"), first.text)
+            XCTAssertTrue(mounted.window.bounds.contains(originalAction), "The full primary action must be visible without scrolling")
+            let originalButtonBottom = try XCTUnwrap(first.primaryFillBottom(below: originalAction.maxY))
+            XCTAssertLessThan(originalButtonBottom, first.size.height - 1,
+                              "The button's filled lower edge, not only its label, must fit inside the viewport")
+            XCTAssertGreaterThan(originalAction.minY, value.maxY)
+            XCTAssertTrue(first.text.contains("your dates"), first.text)
+            XCTAssertTrue(first.text.contains("find a suggestion on this phone"), first.text)
+            XCTAssertEqual(draft.target, target, "Rendering must preserve the exact editable value")
+            if metric == .steps {
+                XCTAssertFalse(first.text.contains("outdoor runs"))
+                XCTAssertFalse(first.text.contains("activity minutes"))
+                XCTAssertEqual(draft.policy.id, "personal_steps_goal_v1")
+            }
+            _ = try await captureMountedSignal(mounted.window, controller: mounted.host, name: name, test: self)
+
+            // A realistic long recovery message creates scrollable content at
+            // the same viewport size. The primary action must stay docked while
+            // the content moves, rather than merely happen to fit on page one.
+            draft.error = Array(repeating: "We couldn’t refresh your goal. Check your connection and try again.", count: 12).joined(separator: " ")
+            try await Task.sleep(for: .milliseconds(120))
+            mounted.host.view.layoutIfNeeded()
+            let scroll = try XCTUnwrap(verticalScroll(in: mounted.host.view))
+            let bottom = max(-scroll.adjustedContentInset.top,
+                scroll.contentSize.height - scroll.bounds.height + scroll.adjustedContentInset.bottom)
+            XCTAssertGreaterThan(bottom, scroll.contentOffset.y + 1, "The acceptance case must actually scroll")
+            scroll.setContentOffset(CGPoint(x: 0, y: bottom), animated: false)
+            try await Task.sleep(for: .milliseconds(120))
+            let scrolled = try viewport(mounted, name: name + "-scrolled-recovery")
+            let scrolledAction = try XCTUnwrap(scrolled.frame(matching: "\\bcontinue\\b"), scrolled.text)
+            XCTAssertEqual(scrolledAction.midY, originalAction.midY, accuracy: 2,
+                           "Continue must remain fixed while recovery content scrolls")
+            XCTAssertEqual(scrolledAction.midX, originalAction.midX, accuracy: 2)
+            XCTAssertTrue(mounted.window.bounds.contains(scrolledAction))
+            let scrolledButtonBottom = try XCTUnwrap(scrolled.primaryFillBottom(below: scrolledAction.maxY))
+            XCTAssertEqual(scrolledButtonBottom, originalButtonBottom, accuracy: 2)
+            XCTAssertLessThan(scrolledButtonBottom, scrolled.size.height - 1)
+        }
+        XCTAssertEqual(fixture.healthReader.reads, 0, "Displaying the suggestion action never reads Health")
+        XCTAssertEqual(fixture.healthPermission.connections, 0, "Displaying a goal never asks for Health access")
+        XCTAssertTrue(fixture.client.requests.isEmpty, "Visual inspection never creates a goal or sends an invitation")
     }
 
     func testSuccessfulFriendCreationOpensInvitationsWithoutClaimingTheyWereSent() async throws {
@@ -265,14 +334,130 @@ import XCTest
         return try await captureMountedSignal(mounted.window, controller: mounted.host, name: name, test: self)
     }
 
+    private func viewport(_ mounted: CreationFlowMounted, name: String) throws -> CreationFlowViewport {
+        mounted.host.view.setNeedsLayout(); mounted.host.view.layoutIfNeeded()
+        let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
+        let image = UIGraphicsImageRenderer(size: mounted.window.bounds.size, format: format).image { _ in
+            mounted.host.view.drawHierarchy(in: mounted.host.view.bounds, afterScreenUpdates: true)
+        }
+        let attachment = XCTAttachment(image: image); attachment.name = name
+        attachment.lifetime = .keepAlways; add(attachment)
+        let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
+        request.recognitionLanguages = ["en-US"]; request.minimumTextHeight = 0.005
+        request.customWords = ["km", "steps", "Continue"]
+        try VNImageRequestHandler(cgImage: XCTUnwrap(image.cgImage)).perform([request])
+        return .init(observations: request.results ?? [], size: mounted.window.bounds.size, image: image)
+    }
+
+    private func verticalScroll(in view: UIView) -> UIScrollView? {
+        guard !view.isHidden, view.alpha > 0 else { return nil }
+        if let scroll = view as? UIScrollView, scroll.isScrollEnabled,
+           scroll.contentSize.height + scroll.adjustedContentInset.top + scroll.adjustedContentInset.bottom > scroll.bounds.height + 1 { return scroll }
+        return view.subviews.lazy.compactMap { self.verticalScroll(in: $0) }.first
+    }
+
     private func mount<V: View>(_ view: V) throws -> CreationFlowMounted {
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
         let previous = scene.windows.first(where: \.isKeyWindow)
-        let host = UIHostingController(rootView: AnyView(view.frame(width: 390, height: 844)))
+        let host = UIHostingController(rootView: AnyView(view))
+        let container = UIViewController()
         let window = UIWindow(windowScene: scene)
         window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
-        window.rootViewController = host; window.makeKeyAndVisible(); host.view.frame = window.bounds
+        window.rootViewController = container
+        container.addChild(host); container.view.addSubview(host.view)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            host.view.leadingAnchor.constraint(equalTo: container.view.leadingAnchor),
+            host.view.topAnchor.constraint(equalTo: container.view.topAnchor),
+            host.view.widthAnchor.constraint(equalToConstant: 390),
+            host.view.heightAnchor.constraint(equalToConstant: 844)
+        ])
+        host.didMove(toParent: container)
+        window.makeKeyAndVisible(); container.view.layoutIfNeeded()
+        let inheritedInsets = host.view.safeAreaInsets
+        host.additionalSafeAreaInsets = UIEdgeInsets(top: 0, left: 0,
+            bottom: 34 - inheritedInsets.bottom, right: 0)
+        container.view.layoutIfNeeded()
+        XCTAssertEqual(host.view.bounds.size, CGSize(width: 390, height: 844))
+        XCTAssertEqual(host.view.safeAreaInsets.top, container.view.safeAreaInsets.top, accuracy: 1)
+        XCTAssertEqual(host.view.safeAreaInsets.bottom, 34, accuracy: 1)
         return .init(window: window, host: host, previous: previous)
+    }
+}
+
+@MainActor private struct CreationFlowViewport {
+    let observations: [VNRecognizedTextObservation]
+    let size: CGSize
+    let image: UIImage
+    var text: String { observations.compactMap { $0.topCandidates(1).first?.string.lowercased() }.joined(separator: " ") }
+    func frame(matching pattern: String, beside other: CGRect? = nil) -> CGRect? {
+        for observation in observations {
+            guard let text = observation.topCandidates(1).first,
+                  let range = text.string.range(of: pattern, options: [.regularExpression, .caseInsensitive]),
+                  let bounds = try? text.boundingBox(for: range)?.boundingBox else { continue }
+            let result = CGRect(x: bounds.minX * size.width, y: (1 - bounds.maxY) * size.height,
+                                width: bounds.width * size.width, height: bounds.height * size.height)
+            if let other, !(result.minY < other.maxY && result.maxY > other.minY) { continue }
+            return result
+        }
+        if let other { return croppedFrame(matching: pattern, beside: other) }
+        return nil
+    }
+    private func croppedFrame(matching pattern: String, beside value: CGRect) -> CGRect? {
+        // Whole-screen OCR can omit a small unit beside an athletic-size value.
+        // Inspect those actual pixels independently, retaining their position
+        // in the viewport so this still verifies a literal, inline unit.
+        let region = CGRect(x: max(0, value.maxX - 2), y: max(0, value.minY - 8),
+            width: max(0, size.width - value.maxX + 2), height: value.height + 24)
+            .intersection(CGRect(origin: .zero, size: size)).integral
+        guard region.width > 0, region.height > 0,
+              let crop = image.cgImage?.cropping(to: region) else { return nil }
+        let enlargedSize = CGSize(width: region.width * 3, height: region.height * 3)
+        let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
+        let enlarged = UIGraphicsImageRenderer(size: enlargedSize, format: format).image { context in
+            context.cgContext.interpolationQuality = .high
+            UIImage(cgImage: crop).draw(in: CGRect(origin: .zero, size: enlargedSize))
+        }
+        guard let cg = enlarged.cgImage else { return nil }
+        let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
+        request.recognitionLanguages = ["en-US"]; request.minimumTextHeight = 0.005
+        request.customWords = ["km", "steps"]
+        do { try VNImageRequestHandler(cgImage: cg).perform([request]) }
+        catch { return nil }
+        for observation in request.results ?? [] {
+            guard let text = observation.topCandidates(1).first,
+                  let range = text.string.range(of: pattern, options: [.regularExpression, .caseInsensitive]),
+                  let bounds = try? text.boundingBox(for: range)?.boundingBox else { continue }
+            let result = CGRect(x: region.minX + bounds.minX * region.width,
+                y: region.minY + (1 - bounds.maxY) * region.height,
+                width: bounds.width * region.width, height: bounds.height * region.height)
+            guard result.minY < value.maxY, result.maxY > value.minY else { continue }
+            return result
+        }
+        return nil
+    }
+    func primaryFillBottom(below labelBottom: CGFloat) -> CGFloat? {
+        guard let cg = image.cgImage else { return nil }
+        let width = cg.width, height = cg.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        let rendered = pixels.withUnsafeMutableBytes { bytes in
+            guard let context = CGContext(data: bytes.baseAddress, width: width, height: height, bitsPerComponent: 8,
+                bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            context.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
+            return true
+        }
+        guard rendered else { return nil }
+        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+        UIColor(SignalCreationTheme.accent).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        let expected = [red, green, blue].map { Int(($0 * 255).rounded()) }
+        let x = width / 2
+        var bottom: Int?
+        for y in max(0, Int(labelBottom))..<height {
+            let offset = (y * width + x) * 4
+            if (0..<3).allSatisfy({ abs(Int(pixels[offset + $0]) - expected[$0]) < 8 }) { bottom = y }
+        }
+        return bottom.map(CGFloat.init)
     }
 }
 
@@ -286,6 +471,8 @@ import XCTest
 @MainActor private final class CreationFlowFixture {
     let actor = UUID(), id = UUID()
     let client = CreationFlowClient()
+    let healthPermission = CreationFlowPermission()
+    let healthReader = CreationFlowHealthReader()
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent("creation-flow-" + UUID().uuidString)
     lazy var auth = CreationFlowAuth(actor)
     lazy var store = ChallengeV1Store(auth: auth, client: client, requests: .init(directory: directory))
@@ -298,6 +485,33 @@ import XCTest
         await start()
     }
     func clean() { try? FileManager.default.removeItem(at: directory) }
+    func healthFlow() throws -> ChallengeHealthFlowStore {
+        let coordinator = ChallengeHealthTransportCoordinator(
+            uploadStore: .init(directory: directory.appendingPathComponent("uploads")),
+            readinessStore: .init(directory: directory.appendingPathComponent("readiness")))
+        let session: @MainActor () -> WeeklyClientSession? = { [auth] in
+            auth.actor.map { .init(actorID: $0, identity: "fictional-creation-layout") }
+        }
+        let sign: @MainActor (UUID, Data) async throws -> MetricSignedMaterial = { _, _ in
+            XCTFail("A creation layout capture must not sign Health data")
+            throw ChallengeV1Error.unavailable
+        }
+        let uploads = ChallengeHealthUploadClient(environment: .development, coordinator: coordinator, binding: session, sign: sign) { _, _ in
+            XCTFail("A creation layout capture must not upload Health data")
+            throw ChallengeV1Error.unavailable
+        }
+        let readiness = ChallengeHealthReadinessClient(environment: .development, coordinator: coordinator, binding: session, sign: sign) { _, _ in
+            XCTFail("A creation layout capture must not submit readiness")
+            throw ChallengeV1Error.unavailable
+        }
+        let now = try ChallengeInstant("2026-09-21T12:00:00Z").date
+        let dependencies = ChallengeHealthFlowDependencies(coordinator: coordinator, uploads: uploads, readiness: readiness,
+            cache: .init(directory: directory.appendingPathComponent("health-cache")), permission: healthPermission,
+            reader: { [healthReader] _, _ in healthReader }, adapter: ChallengeHealthBindingMapper.adapter, now: { now })
+        let flow = ChallengeHealthFlowStore(auth: auth, challenges: store, dependencies: dependencies)
+        flow.setActor(actor)
+        return flow
+    }
     func agreement(_ draft: ChallengeCreationDraft) throws -> ChallengeV1.Agreement {
         let encoder = JSONEncoder(); encoder.keyEncodingStrategy = .convertToSnakeCase
         let config = try JSONDecoder().decode(ChallengeJSON.self, from: encoder.encode(XCTUnwrap(draft.window)))
@@ -316,6 +530,20 @@ import XCTest
             notice: nil, reviews: [], final: nil)
         try result.validate(actor: actor)
         return result
+    }
+}
+
+@MainActor private final class CreationFlowPermission: ChallengeHealthPermissionService {
+    let supported = true
+    var connections = 0
+    func connect(_ metric: ChallengeHealthMetric) async throws { connections += 1 }
+}
+
+@MainActor private final class CreationFlowHealthReader: ChallengeHealthStore {
+    var reads = 0
+    func read(_ request: ChallengeHealthReadRequest) async -> ChallengeHealthStoreOutcome {
+        reads += 1
+        return .unavailable(.protectedDataUnavailable)
     }
 }
 

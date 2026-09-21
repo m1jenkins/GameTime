@@ -52,7 +52,7 @@ import XCTest
                 let deadline = try XCTUnwrap(text.range(of: "gametime by the deadline wins"), text)
                 XCTAssertLessThanOrEqual(savedBy.upperBound, deadline.lowerBound,
                                          "The saved-result source must precede its deadline: \(text)")
-                XCTAssertTrue(text.contains("review")); XCTAssertFalse(text.contains("suggestion"))
+                XCTAssertTrue(text.contains("continue")); XCTAssertFalse(text.contains("suggestion"))
             }
             let text = try await capture(NavigationStack {
                 ScrollView { VStack(alignment: .leading, spacing: 20) {
@@ -72,7 +72,8 @@ import XCTest
             name: "private-personal-steps-create"
         )
         XCTAssertTrue(text.contains("your goal"))
-        XCTAssertTrue(text.contains("steps total"))
+        XCTAssertTrue(text.contains("steps"))
+        XCTAssertTrue(text.contains("over 7 days"))
         XCTAssertFalse(text.contains("choose your challenge"))
         XCTAssertFalse(text.contains("with friends"))
         XCTAssertFalse(text.contains("activity minutes"))

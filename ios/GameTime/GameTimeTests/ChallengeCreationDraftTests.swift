@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import Vision
 @testable import GameTime
 
 @MainActor final class ChallengeCreationDraftTests: XCTestCase {
@@ -167,18 +168,9 @@ import SwiftUI
                 draft.mode = .personal; draft.target = "12345"; draft.step = step
                 let view = ChallengeV1Create(store: h.store, draft: draft)
                     .environment(\.colorScheme, scheme).environment(\.dynamicTypeSize, size)
-                let text = try await capture(view, name: "creation-\(name)-\(step)", contrast: solid ? .high : .normal)
-                XCTAssertTrue(text.contains(step == .review ? "full goal rules" : step == .activity ? "review" : "continue"), "Missing action in \(name) \(step): \(text)")
-                if step == .review {
-                    // The first consent line can appear on one scroll page and
-                    // the second on the next. Exclude repeated navigation chrome
-                    // before checking the complete, unchanged consent sentence.
-                    let bodyText = text.replacingOccurrences(
-                        of: #"(?:[<‹]\s*)?personal goal(?:\s+x)?\s*"#,
-                        with: "", options: .regularExpression)
-                    XCTAssertTrue(bodyText.contains("i have read the complete rules and agree"),
-                                  "Missing complete consent in \(name): \(bodyText)")
-                }
+                let text = try await capture(view, name: "creation-\(name)-\(step)", contrast: solid ? .high : .normal,
+                                             requireCompleteConsent: step == .review)
+                XCTAssertTrue(text.contains(step == .review ? "full goal rules" : "continue"), "Missing action in \(name) \(step): \(text)")
             }
         }
         let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
@@ -190,15 +182,66 @@ import SwiftUI
         let pendingText = try await capture(ChallengeV1Create(store: h.store, draft: draft), name: "creation-pending")
         XCTAssertTrue(pendingText.contains("retry saved action")); XCTAssertTrue(pendingText.contains("stop waiting"))
     }
-    private func capture<V: View>(_ view: V, name: String, contrast: UIAccessibilityContrast = .normal) async throws -> String {
+    private func capture<V: View>(_ view: V, name: String, contrast: UIAccessibilityContrast = .normal,
+                                 requireCompleteConsent: Bool = false) async throws -> String {
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
-        let previous = scene.windows.first(where: \.isKeyWindow), host = UIHostingController(rootView: view.frame(width: 375, height: 812))
+        let previous = scene.windows.first(where: \.isKeyWindow), host = UIHostingController(rootView: view)
+        let container = UIViewController()
         let window = UIWindow(windowScene: scene); window.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
         host.traitOverrides.accessibilityContrast = contrast
-        window.rootViewController = host; window.makeKeyAndVisible(); host.view.frame = window.bounds
+        window.rootViewController = container
+        container.addChild(host); container.view.addSubview(host.view)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            host.view.leadingAnchor.constraint(equalTo: container.view.leadingAnchor),
+            host.view.topAnchor.constraint(equalTo: container.view.topAnchor),
+            host.view.widthAnchor.constraint(equalToConstant: 375),
+            host.view.heightAnchor.constraint(equalToConstant: 812)
+        ])
+        host.didMove(toParent: container)
+        window.makeKeyAndVisible(); container.view.layoutIfNeeded()
+        let inheritedInsets = host.view.safeAreaInsets
+        host.additionalSafeAreaInsets = UIEdgeInsets(top: 0, left: 0,
+            bottom: 34 - inheritedInsets.bottom, right: 0)
+        container.view.layoutIfNeeded()
         defer { window.isHidden = true; previous?.makeKeyAndVisible() }
         try await Task.sleep(for: .milliseconds(250))
-        return try await captureMountedSignal(window, controller: host, name: name, test: self)
+        XCTAssertEqual(host.view.bounds.size, CGSize(width: 375, height: 812))
+        XCTAssertEqual(host.view.safeAreaInsets.top, container.view.safeAreaInsets.top, accuracy: 1)
+        XCTAssertEqual(host.view.safeAreaInsets.bottom, 34, accuracy: 1)
+        let text = try await captureMountedSignal(window, controller: host, name: name, test: self)
+        if requireCompleteConsent {
+            // Inspect the complete toggle in one real viewport. Concatenating
+            // overlapping scroll captures can repeat a clipped text line and
+            // must not replace verification of the exact consent sentence.
+            if let scroll = verticalScroll(in: host.view) {
+                let bottom = max(-scroll.adjustedContentInset.top,
+                    scroll.contentSize.height - scroll.bounds.height + scroll.adjustedContentInset.bottom)
+                scroll.setContentOffset(CGPoint(x: 0, y: bottom), animated: false)
+            }
+            try await Task.sleep(for: .milliseconds(120))
+            host.view.layoutIfNeeded()
+            let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
+            let image = UIGraphicsImageRenderer(size: host.view.bounds.size, format: format).image { _ in
+                host.view.drawHierarchy(in: host.view.bounds, afterScreenUpdates: true)
+            }
+            let attachment = XCTAttachment(image: image); attachment.name = name + "-complete-consent"
+            attachment.lifetime = .keepAlways; add(attachment)
+            let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
+            request.recognitionLanguages = ["en-US"]; request.minimumTextHeight = 0.005
+            try VNImageRequestHandler(cgImage: XCTUnwrap(image.cgImage)).perform([request])
+            let consentViewport = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string.lowercased() }.joined(separator: " ")
+            let consentWords = consentViewport.replacingOccurrences(of: "•", with: " ").split(whereSeparator: \.isWhitespace).joined(separator: " ")
+            XCTAssertTrue(consentWords.contains("i have read the complete rules and agree"),
+                          "The complete unchanged consent must be readable together in \(name): \(consentViewport)")
+        }
+        return text
+    }
+    private func verticalScroll(in view: UIView) -> UIScrollView? {
+        guard !view.isHidden, view.alpha > 0 else { return nil }
+        if let scroll = view as? UIScrollView, scroll.isScrollEnabled,
+           scroll.contentSize.height + scroll.adjustedContentInset.top + scroll.adjustedContentInset.bottom > scroll.bounds.height + 1 { return scroll }
+        return view.subviews.lazy.compactMap { self.verticalScroll(in: $0) }.first
     }
     func testAccountSwitchRejectsPreviewAndEditsDiscardConsent() async throws {
         let h = Harness(); defer { h.remove() }

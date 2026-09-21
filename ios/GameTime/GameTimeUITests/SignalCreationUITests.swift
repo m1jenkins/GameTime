@@ -149,6 +149,8 @@ final class SignalCreationUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 10))
         capture(app, "after-friend-confirmation")
         let detail = app.buttons["beta.create.detail"]; bring(app, detail); detail.tap()
+        XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: 10),
+                      "Opening the lobby restores its native navigation controls")
         capture(app, "after-friend-lobby")
     }
     @MainActor func testSavedLobbyInvitationJourney() async throws {
@@ -220,6 +222,7 @@ final class SignalCreationUITests: XCTestCase {
         XCTAssertFalse(app.buttons["beta.invite.submit"].isEnabled,
                        "An empty username does not send an invitation")
         capture(app, "invitation-saved-lobby")
+        tap(app, "beta.invite.links")
         let issue = app.buttons["Create invitation link"]
         bring(app, issue)
         // The ordinary app intentionally has no HTTPS invitation origin.
@@ -314,10 +317,16 @@ final class SignalCreationUITests: XCTestCase {
         let app = try launch(actor: 3)
         app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
         app.buttons["beta.create.open"].tap(); capture(app, "compact-type")
-        // System bars expose the visible glass bounds, which can be smaller
-        // than their expanded hit regions. Audit the actual targets.
+        let close = app.buttons["beta.create.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["beta.create.back"].exists,
+                       "The first step has a close action, not a duplicate back action")
+        XCTAssertGreaterThanOrEqual(close.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(close.frame.height, 44)
         try app.performAccessibilityAudit(for: .hitRegion)
         app.buttons["beta.create.type.personal"].tap(); next(app)
+        XCTAssertTrue(app.buttons["beta.create.back"].waitForExistence(timeout: 5),
+                      "Later creation steps can return to the preceding choice")
         enter(app, app.textFields["beta.create.target"], "12345")
         capture(app, "compact-activity")
         let target = app.textFields["beta.create.target"]

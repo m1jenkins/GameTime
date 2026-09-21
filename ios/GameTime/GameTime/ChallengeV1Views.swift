@@ -493,7 +493,7 @@ struct ChallengeV1Shell: View {
         .signalTabChrome()
         }
         .background(SignalTheme.canvas.ignoresSafeArea())
-        .sheet(isPresented: $create, onDismiss: {
+        .fullScreenCover(isPresented: $create, onDismiss: {
             if selection == 1 && filter == .active,
                store.sections[.active]?.rows.isEmpty == true,
                store.sections[.upcoming]?.rows.isEmpty == false {

@@ -11,6 +11,7 @@ struct ChallengeV1Create: View {
     @State private var focusedInput: String?
     @State private var keyboardVisible = false
     @ScaledMetric(relativeTo: .title3) private var choiceSymbolWidth: CGFloat = 28
+    @ScaledMetric(relativeTo: .largeTitle) private var headingSize: CGFloat = 30
     @AccessibilityFocusState private var headingFocused: Bool
     init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil, personalStepsOnly: Bool = false) {
         self.init(store: store, draft: ChallengeCreationDraft(initialPolicy: initialPolicy, personalStepsOnly: personalStepsOnly))
@@ -23,7 +24,7 @@ struct ChallengeV1Create: View {
         switch draft.step {
         case .type: "Who’s it for?"
         case .activity: draft.mode == .personal ? "What’s your goal?" : "Choose your activity."
-        case .review: draft.mode == .personal ? "Review your goal." : "Make it a challenge."
+        case .review: draft.mode == .personal ? "Review your goal." : "Make it a\nchallenge."
         }
     }
     private var ready: Bool { health == nil || draft.healthBinding(actor: store.actor).map { health?.canConsent($0) == true } == true }
@@ -48,9 +49,9 @@ struct ChallengeV1Create: View {
     private var flow: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 20) {
                     progress.id("creation-top")
-                    Text(heading).font(.largeTitle.weight(.bold)).tracking(-0.8)
+                    Text(heading).font(.system(size: headingSize, weight: .bold)).tracking(-1.1)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused)
                         .accessibilityIdentifier("beta.create.heading")
@@ -76,29 +77,24 @@ struct ChallengeV1Create: View {
                     if draft.step == .review && store.access?.ageConfirmed != true {
                         Text("Confirm that you are 21 or older in Challenges before continuing.").font(.subheadline)
                     }
-                    primaryAction
                 }
-                .padding(SignalCreationTheme.contentInset)
+                .padding(.horizontal, SignalCreationTheme.contentInset)
+                .padding(.top, 12).padding(.bottom, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(SignalCreationTheme.canvas)
             .foregroundStyle(SignalCreationTheme.textPrimary)
             .modifier(ChallengeScrollLegibility())
             .scrollDismissesKeyboard(.interactively)
-            .navigationTitle(draft.mode == .personal ? "Personal goal" : "Create a challenge")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        if draft.step == draft.firstStep { dismiss() } else { draft.back() }
-                    } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }
-                    .accessibilityLabel("Back").modifier(SignalNavigationAction()).accessibilityIdentifier("beta.create.back").disabled(store.busy)
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { dismiss() } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }
-                        .accessibilityLabel("Close").modifier(SignalNavigationAction()).accessibilityIdentifier("beta.create.close")
-                }
-
+            .toolbar(.hidden, for: .navigationBar)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                SignalCreationChrome(title: draft.mode == .personal ? "Personal goal" : "Create challenge",
+                                     showsBack: draft.step != draft.firstStep,
+                                     back: { if !store.busy { draft.back() } }, close: { dismiss() })
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                primaryAction.padding(.horizontal, SignalCreationTheme.contentInset)
+                    .padding(.top, 12).padding(.bottom, 6).background(SignalCreationTheme.canvas)
             }
             .onChange(of: draft.step) {
                 proxy.scrollTo("creation-top", anchor: .top)
@@ -168,13 +164,13 @@ struct ChallengeV1Create: View {
                                   focusChanged: { inputFocus($0, id: "beta.create.distance") })
             }
             if draft.mode == .personal {
-                SignalNumberEntry(text: $draft.target, title: draft.metric == .timed ? "Time to beat" : "Your goal", unit: goalUnit,
-                                  id: "beta.create.target", keyboard: draft.metric == .steps ? .numberPad : draft.metric == .distance ? .decimalPad : .numbersAndPunctuation,
-                                  focusChanged: { inputFocus($0, id: "beta.create.target") })
+                SignalCreationGoalEntry(text: $draft.target, metric: draft.metric, duration: draft.duration,
+                                        sourceLabel: health == nil ? nil : "Apple Watch", id: "beta.create.target",
+                                        focusChanged: { inputFocus($0, id: "beta.create.target") })
                 if let health, let binding = draft.planningBinding(actor: store.actor) {
                     ChallengeHealthSuggestionView(flow: health, binding: binding, policy: draft.policy, days: draft.duration ?? 7) {
                         draft.target = draft.metric.inputValue($0)
-                    }.buttonStyle(SignalSecondaryButtonStyle())
+                    }.buttonStyle(SignalCreationTextActionStyle())
                 }
             } else {
                 Text(draft.policy.hasTarget ? "Everyone chooses their goal in the lobby." : draft.policy.scoring).font(.subheadline)
@@ -186,30 +182,8 @@ struct ChallengeV1Create: View {
         if focused { focusedInput = id }
         else if focusedInput == id { focusedInput = nil }
     }
-    private var goalUnit: String {
-        let period = draft.duration.map { $0 == 1 ? "over 1 full day" : "over \($0) full days" } ?? "during your selected dates"
-        return switch draft.metric {
-        case .steps: "steps total · " + period
-        case .exercise: "minutes : seconds total · " + period
-        case .distance: "kilometres total · " + period
-        case .timed: "minutes : seconds · finish under this time"
-        }
-    }
     private var datesSummary: some View {
-        Button { editor = .dates } label: {
-            HStack(alignment: .top, spacing: 16) {
-                Image(systemName: "calendar").font(.title3).padding(.top, 3).accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(draft.duration.map { $0 == 1 ? "1 full day" : "\($0) full days" } ?? "Choose your dates").font(.headline)
-                    Text(dateRange).font(.subheadline)
-                    Text(SignalTimeZone.name(draft.zone)).font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
-                }.frame(maxWidth: .infinity, alignment: .leading)
-                Text("Edit").font(.subheadline.weight(.semibold)).foregroundStyle(SignalCreationTheme.accent)
-            }.foregroundStyle(SignalCreationTheme.textPrimary).multilineTextAlignment(.leading)
-                .padding(20).background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 24))
-                .contentShape(RoundedRectangle(cornerRadius: 24))
-        }.buttonStyle(.plain).accessibilityIdentifier("beta.create.dates")
-            .accessibilityHint("Edit the start date, duration and time zone")
+        SignalCreationDateCard(start: draft.start, duration: draft.duration, calendar: draft.calendar, timeZoneID: draft.zone) { editor = .dates }
     }
     private var dateRange: String {
         let formatter = DateFormatter()
@@ -267,54 +241,54 @@ struct ChallengeV1Create: View {
     }
     @ViewBuilder private var reviewStep: some View {
         if let window = draft.window {
-            VStack(alignment: .leading, spacing: 12) {
-                if draft.mode == .personal, let value = draft.metric.parse(draft.target) { SignalCreationMetric(value: value, metric: draft.metric) }
-                else {
-                    Label(draft.metric.title, systemImage: draft.metric.symbol).font(.title2.weight(.semibold))
-                        .frame(maxWidth: .infinity, alignment: .leading).padding(24)
-                        .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 24))
+            VStack(alignment: .leading, spacing: 8) {
+                if draft.mode == .personal, let value = draft.metric.parse(draft.target) {
+                    Text(draft.metric.display(value)).font(.subheadline.weight(.semibold))
+                } else {
+                    Label(draft.metric.title, systemImage: draft.metric.symbol).font(.subheadline.weight(.semibold))
                 }
-                Button("Edit goal and dates") { draft.back() }.font(.subheadline.weight(.semibold))
+                Text(dateRange + " · " + SignalTimeZone.name(draft.zone))
+                    .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
+                Button("Edit goal and dates") { draft.back() }.font(.caption.weight(.semibold))
                     .buttonStyle(.plain).foregroundStyle(SignalCreationTheme.accent).frame(minHeight: 44)
                     .accessibilityIdentifier("beta.create.edit-goal")
+            }
+            if draft.mode == .friend {
+                Label("Private challenge", systemImage: "lock").font(.subheadline.weight(.semibold))
+                Text("Only people you select can join. Everyone reviews the roster and rules before agreeing.")
+                    .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Your agreement").font(.subheadline.weight(.semibold)).padding(.bottom, 2)
+                reviewFact("Activity counted", text: health == nil ? "Fictional activity for this local preview. No Apple Health activity is scored." : ChallengeHealthCopy.source(draft.source?.identifier ?? ""))
+                reviewFact("Possible results", text: draft.mode == .personal
+                           ? "Meet your goal and your simulated entry returns. A confirmed miss leaves it unallocated. Missing or unclear activity never proves a miss."
+                           : draft.policy.allocation)
+                Button { editor = .amount } label: {
+                    HStack(spacing: 8) {
+                        SignalCreationAgreementRow(symbol: "dollarsign", title: "Simulated amount",
+                                                   detail: challengeMoney(window.amountCents) + " · Fee $0")
+                        Text("Edit").font(.caption.weight(.semibold)).foregroundStyle(SignalCreationTheme.accent).padding(.trailing, 14)
+                    }.background(SignalCreationTheme.soft.opacity(0.65), in: RoundedRectangle(cornerRadius: 16))
+                }.buttonStyle(.plain).accessibilityIdentifier("beta.create.edit-amount")
+                Text("No real money moves. Nothing can be paid out or redeemed.")
+                    .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary).padding(.top, 2)
             }
             if draft.metric == .timed, let distance = window.distanceMm {
                 if health != nil {
                     reviewFact("Whole run distance", text: "\(ChallengeTimedDistanceCopy.range(distance)), including both distances. The whole run must fit inside these dates.")
                 } else {
-                    Text("Whole run: " + ChallengeV1Policy.Metric.distance.display(distance)).font(.headline)
+                    Text("Whole run: " + ChallengeV1Policy.Metric.distance.display(distance)).font(.subheadline)
                 }
-            }
-            SignalDateSpan(window: window)
-            if draft.mode == .friend {
-                SignalCreationFact(symbol: "lock", title: "Private challenge", detail: "Only people you select can join. Everyone reviews the roster and rules before agreeing.")
-            }
-            VStack(alignment: .leading, spacing: 12) {
-                Button { editor = .amount } label: {
-                    HStack(spacing: 16) {
-                        Image(systemName: "dollarsign").font(.title3.weight(.medium)).frame(width: 28).accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Simulated amount").font(.headline)
-                            Text(challengeMoney(window.amountCents) + " · Fee $0").font(.subheadline).monospacedDigit().foregroundStyle(SignalCreationTheme.textSecondary)
-                        }.frame(maxWidth: .infinity, alignment: .leading)
-                        Text("Edit").font(.subheadline.weight(.semibold)).foregroundStyle(SignalCreationTheme.accent)
-                    }.foregroundStyle(SignalCreationTheme.textPrimary).frame(minHeight: 44).contentShape(Rectangle())
-                }.buttonStyle(.plain).accessibilityIdentifier("beta.create.edit-amount")
-                Text("Fee $0 · No real money moves. Nothing can be paid out or redeemed.").font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
-            }.padding(20).background(SignalCreationTheme.soft.opacity(0.65), in: RoundedRectangle(cornerRadius: 20))
-            if draft.mode == .personal {
-                reviewFact("Activity counted", text: health == nil ? "Fictional activity for this local preview. No Apple Health activity is scored." : ChallengeHealthCopy.source(draft.source?.identifier ?? ""))
-                reviewFact("Possible results", text: "Meet your goal and your simulated entry returns. A confirmed miss leaves it unallocated. Missing or unclear activity never proves a miss.")
-                reviewFact("Leaving and review", text: "You can leave before the result is final. You have 48 hours after the result notice to ask for a review.")
-            } else {
-                SignalCreationFact(symbol: "applewatch", title: "Activity counted", detail: health == nil ? "Fictional activity for this local preview. No Apple Health activity is scored." : ChallengeHealthCopy.source(draft.source?.identifier ?? ""))
-                SignalCreationFact(symbol: "checkmark.shield", title: "Possible results", detail: draft.policy.allocation)
-                Text("Choose your friends next. Everyone reviews the roster and rules before agreeing.").font(.subheadline)
             }
             DisclosureGroup(draft.mode == .personal ? "Full goal rules" : "Full challenge rules") {
                 ChallengeAgreementText(policy: draft.policy, window: window, minimum: draft.mode == .personal ? 1 : 2, sourcePolicy: health != nil ? draft.source?.identifier : nil)
                     .padding(.top, 12)
-            }.font(.headline).accessibilityIdentifier("beta.create.rules")
+                if draft.mode == .personal {
+                    Text("You can leave before the result is final. You have 48 hours after the result notice to ask for a review.")
+                        .font(.subheadline).padding(.top, 8)
+                }
+            }.font(.subheadline.weight(.semibold)).accessibilityIdentifier("beta.create.rules")
             if draft.mode == .personal {
                 if let health, let binding = draft.healthBinding(actor: store.actor) {
                     ChallengeHealthStatusView(flow: health, binding: binding, readiness: true).buttonStyle(SignalSecondaryButtonStyle())
@@ -329,7 +303,7 @@ struct ChallengeV1Create: View {
         }
     }
     private func reviewFact(_ title: String, text: String) -> some View {
-        SignalCreationFact(symbol: title == "Activity counted" ? "applewatch" : title == "Whole run distance" ? "figure.run" : "checkmark.shield", title: title, detail: text)
+        SignalCreationAgreementRow(symbol: title == "Activity counted" ? "applewatch" : title == "Whole run distance" ? "figure.run" : "checkmark.shield", title: title, detail: text)
     }
     private var isReviewAction: Bool { draft.step == .activity || draft.step == .review && draft.needsReview }
     private var primaryAction: some View {
@@ -342,7 +316,7 @@ struct ChallengeV1Create: View {
             }
         } label: {
             HStack {
-                Text(store.pending != nil ? "Retry saved action" : isReviewAction ? (draft.step == .review ? "Refresh review" : "Review") : draft.step == .review ? (draft.mode == .personal ? "Create personal goal" : "Create lobby") : "Continue")
+                Text(store.pending != nil ? "Retry saved action" : isReviewAction ? (draft.step == .review ? "Refresh review" : "Continue") : draft.step == .review ? (draft.mode == .personal ? "Create personal goal" : "Create lobby") : "Continue")
                 if draft.step != .review { Image(systemName: "arrow.right").accessibilityHidden(true) }
             }.font(.headline).frame(maxWidth: .infinity, minHeight: 50)
         }
@@ -352,27 +326,55 @@ struct ChallengeV1Create: View {
     }
     private func saved(id: UUID, status: String) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                Label("Saved", systemImage: "checkmark.circle.fill").font(.title2).foregroundStyle(SignalCreationTheme.accent)
-                Text(draft.savedPolicy?.mode == .personal ? "Your goal is saved." : "Your lobby is ready.").font(.largeTitle.weight(.semibold)).accessibilityAddTraits(.isHeader)
+            VStack(alignment: .leading, spacing: 20) {
+                Image(systemName: "checkmark.circle.fill").font(.system(size: 28, weight: .regular))
+                    .foregroundStyle(SignalCreationTheme.accent).accessibilityHidden(true)
+                Text(draft.savedPolicy?.mode == .personal ? "Your goal is saved." : "Your lobby is ready.")
+                    .font(.system(size: headingSize, weight: .bold)).tracking(-1.1).accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("beta.create.saved")
                 if let row = store.challenges.first(where: { $0.id == id }), store.isFresh(row) {
-                    Text(row.title).font(.title2.weight(.semibold))
-                    Text(row.statusText).font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
-                    if let target = row.own(store.actor)?.target {
-                        SignalCreationMetric(value: target, metric: row.format.metric)
-                    }
-                    SignalDateSpan(window: row.config)
-                    SignalCreationFact(symbol: "dollarsign", title: "Simulated entry", detail: challengeMoney(row.config.amountCents) + " · No real money moves.")
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(row.title).font(.title2.weight(.bold)).tracking(-0.6)
+                        Text(row.statusText).font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                        Text(savedDateRange(row.config)).font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                        Text(SignalTimeZone.name(row.config.timezone)).font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
+                        if let target = row.own(store.actor)?.target {
+                            SignalCreationMetricReadout(value: target, metric: row.format.metric)
+                        }
+                        Divider().overlay(SignalCreationTheme.divider)
+                        Text(challengeMoney(row.config.amountCents) + " simulated · Fee $0")
+                            .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
+                        Text("No real money moves. Nothing can be paid out or redeemed.")
+                            .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
+                    }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 24))
                 } else {
                     Text(status == "active" ? "Active" : status == "scheduled" ? "Scheduled" : "Choose your roster").font(.headline)
                     Text("Open the details to load your recorded goal and dates.").font(.subheadline)
                 }
-                NavigationLink { ChallengeV1Detail(store: store, id: id) } label: {
-                    Text(draft.savedPolicy?.mode == .personal ? "View goal" : "View lobby").font(.headline).frame(maxWidth: .infinity, minHeight: 50)
+            }.padding(SignalCreationTheme.contentInset).frame(maxWidth: .infinity, alignment: .leading)
+        }.background(SignalCreationTheme.canvas).foregroundStyle(SignalCreationTheme.textPrimary)
+            .toolbar(.hidden, for: .navigationBar)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                SignalCreationChrome(title: "Saved", showsBack: false, back: {}, close: { dismiss() })
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                NavigationLink {
+                    ChallengeV1Detail(store: store, id: id).toolbar(.visible, for: .navigationBar)
+                } label: {
+                    HStack(spacing: 12) {
+                        Text(draft.savedPolicy?.mode == .personal ? "View goal" : "View lobby")
+                        Image(systemName: "arrow.right").accessibilityHidden(true)
+                    }
                 }.buttonStyle(SignalCreationPrimaryStyle()).accessibilityIdentifier("beta.create.detail")
-            }.padding(SignalCreationTheme.contentInset)
-        }.background(SignalCreationTheme.canvas).navigationTitle("Saved").navigationBarTitleDisplayMode(.inline)
-            .toolbar { Button { dismiss() } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }.accessibilityLabel("Close").modifier(SignalNavigationAction()).accessibilityIdentifier("beta.create.close") }
+                    .padding(.horizontal, SignalCreationTheme.contentInset).padding(.top, 12).padding(.bottom, 6)
+                    .background(SignalCreationTheme.canvas)
+            }
+    }
+    private func savedDateRange(_ window: ChallengeV1.Window) -> String {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: window.timezone)
+        formatter.setLocalizedDateFormatFromTemplate("MMM d yyyy")
+        return formatter.string(from: window.startsAt.date) + " – " + formatter.string(from: window.endsAt.date.addingTimeInterval(-1))
     }
 }
