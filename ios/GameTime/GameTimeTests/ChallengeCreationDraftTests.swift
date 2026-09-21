@@ -169,7 +169,16 @@ import SwiftUI
                     .environment(\.colorScheme, scheme).environment(\.dynamicTypeSize, size)
                 let text = try await capture(view, name: "creation-\(name)-\(step)", contrast: solid ? .high : .normal)
                 XCTAssertTrue(text.contains(step == .review ? "full goal rules" : step == .activity ? "review" : "continue"), "Missing action in \(name) \(step): \(text)")
-                if step == .review { XCTAssertTrue(text.contains("complete rules and agree")) }
+                if step == .review {
+                    // The first consent line can appear on one scroll page and
+                    // the second on the next. Exclude repeated navigation chrome
+                    // before checking the complete, unchanged consent sentence.
+                    let bodyText = text.replacingOccurrences(
+                        of: #"(?:[<‹]\s*)?personal goal(?:\s+x)?\s*"#,
+                        with: "", options: .regularExpression)
+                    XCTAssertTrue(bodyText.contains("i have read the complete rules and agree"),
+                                  "Missing complete consent in \(name): \(bodyText)")
+                }
             }
         }
         let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))

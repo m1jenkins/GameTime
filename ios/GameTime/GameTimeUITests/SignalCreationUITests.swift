@@ -140,7 +140,14 @@ final class SignalCreationUITests: XCTestCase {
         app.buttons["beta.create.metric.steps"].tap()
         next(app)
         let save = app.buttons["beta.create.submit"]; bring(app, save); capture(app, "after-friend-review")
-        save.tap(); XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 20))
+        save.tap()
+        XCTAssertTrue(app.staticTexts["beta.invite.heading"].waitForExistence(timeout: 20))
+        XCTAssertFalse(app.staticTexts["beta.create.saved"].exists,
+                       "Saving the lobby opens invitations before the confirmation screen")
+        capture(app, "after-friend-invite")
+        tap(app, "beta.invite.done")
+        XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 10))
+        capture(app, "after-friend-confirmation")
         let detail = app.buttons["beta.create.detail"]; bring(app, detail); detail.tap()
         capture(app, "after-friend-lobby")
     }
@@ -206,12 +213,13 @@ final class SignalCreationUITests: XCTestCase {
             "beta.row.lobby_open.friend_steps_leaderboard_", lobbyID.uppercased()
         )).firstMatch
         XCTAssertTrue(lobby.waitForExistence(timeout: 20)); bring(app, lobby); lobby.tap()
+        tap(app, "beta.invite.open")
+        XCTAssertTrue(app.staticTexts["beta.invite.heading"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.textFields["beta.invite.input"].waitForExistence(timeout: 10))
         bring(app, app.buttons["beta.invite.submit"])
         XCTAssertFalse(app.buttons["beta.invite.submit"].isEnabled,
                        "An empty username does not send an invitation")
         capture(app, "invitation-saved-lobby")
-        tap(app, "Invite with a link")
         let issue = app.buttons["Create invitation link"]
         bring(app, issue)
         // The ordinary app intentionally has no HTTPS invitation origin.
@@ -219,6 +227,11 @@ final class SignalCreationUITests: XCTestCase {
         XCTAssertFalse(issue.isEnabled)
         XCTAssertTrue(app.staticTexts["Invitation links aren’t available yet. Try again later."].exists)
         capture(app, "invitation-unavailable-link-controls")
+        tap(app, "beta.invite.done")
+        XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 10))
+        capture(app, "invitation-saved-confirmation")
+        tap(app, "beta.invite.back")
+        XCTAssertTrue(app.staticTexts["beta.invite.heading"].waitForExistence(timeout: 10))
         app.terminate()
     }
     @MainActor func testFriendGoalAndRetainedAccess() throws {
@@ -234,6 +247,9 @@ final class SignalCreationUITests: XCTestCase {
         app.buttons["beta.create.type.friend"].tap()
         next(app); next(app)
         let save = app.buttons["beta.create.submit"]; bring(app, save); save.tap()
+        XCTAssertTrue(app.staticTexts["beta.invite.heading"].waitForExistence(timeout: 20))
+        capture(app, "after-friend-goal-invite")
+        tap(app, "beta.invite.done")
         XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 20))
         capture(app, "after-friend-goal-saved")
         let detail = app.buttons["beta.create.detail"]; bring(app, detail); detail.tap()

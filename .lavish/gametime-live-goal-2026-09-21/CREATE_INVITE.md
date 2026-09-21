@@ -1,8 +1,9 @@
 # Create challenge + invite friends
 
-Design-only continuation of the owner's locked September 21 Home, Goal/Rules,
-Challenges and You mocks. No native app, backend, existing agreement, or locked
-reference file was changed.
+Dated design study continuing the owner's locked September 21 Home, Goal/Rules,
+Challenges and You mocks. That design pass changed no native app, backend,
+existing agreement, or locked reference file. The subsequent authorized
+[native integration](NATIVE_CREATE_INVITE.md) is recorded separately.
 
 ## Review and deliverables
 

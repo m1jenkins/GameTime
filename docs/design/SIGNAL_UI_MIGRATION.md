@@ -6,6 +6,18 @@ This supersedes the September 11 cobalt design selection for future work.
 The adoption below remains the implementation contract. The subsequent local
 execution and its verification are recorded separately here.
 
+## Create and invite visual follow-through — September 21, 2026
+
+The owner's subsequent create/invite study is connected to native creation,
+invitation and confirmation routes. This scoped pass adopts its neutral metric
+cards, athletic numbers and SF Symbols. Confirmed friend creation now opens
+invitations directly; Personal still requires its existing reviewed agreement
+and explicit consent. Exact username and durable link invitations reuse existing
+clients. The [native integration record](../../.lavish/gametime-live-goal-2026-09-21/NATIVE_CREATE_INVITE.md)
+separates implemented behavior, design-only assumptions, captures and verification.
+The existing product gates, target ownership, amount rules, allocation and final
+roster consent remain in force.
+
 ## Native interaction and profile follow-through — September 21, 2026
 
 The owner’s installed-build feedback supersedes the five-stage interaction below.

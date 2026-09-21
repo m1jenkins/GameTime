@@ -1,7 +1,6 @@
 #if DEBUG
 import SwiftUI
 import UIKit
-import Vision
 import XCTest
 @testable import GameTime
 
@@ -154,8 +153,13 @@ import XCTest
         XCTAssertEqual(fixture.client.requests, [pending, pending], "Recovery must repeat the exact actor, request ID and body")
         XCTAssertEqual(fixture.store.lastReceipt, fixture.client.receipt)
         let text = try await capture(mounted, name: "recovered-issuer")
-        XCTAssertTrue(text.contains("revoke invitation link"), "The mounted issuer must present the exact recovered link and its revocation control")
-        XCTAssertTrue(text.contains("gametime-beta"))
+        XCTAssertTrue(text.contains("turn off this link"), "The mounted issuer must present the exact recovered link and its revocation control")
+        XCTAssertTrue(text.contains("share invitation"))
+        let issued = try XCTUnwrap(fixture.store.issuedLinks.first)
+        let expectedToken = try XCTUnwrap(fixture.client.receipt.token)
+        XCTAssertEqual(issued.challengeId, fixture.id)
+        XCTAssertEqual(ChallengeInvitation.localFixture.url(for: issued.token)?.absoluteString,
+                       "gametime-beta://challenge-invite/" + expectedToken)
     }
 
     func testRecreatedIssuerRetainsLinkWithoutAnotherIssuance() async throws {
@@ -166,8 +170,12 @@ import XCTest
         let mounted = try mount(fixture)
         defer { mounted.close() }
         let text = try await capture(mounted, name: "recreated-issuer")
-        XCTAssertTrue(text.contains("revoke invitation link"), "Recreating the view must not lose the issuer's only revocation path")
-        XCTAssertTrue(text.contains("gametime-beta"))
+        XCTAssertTrue(text.contains("turn off this link"), "Recreating the view must not lose the issuer's only revocation path")
+        XCTAssertTrue(text.contains("share invitation"))
+        let issued = try XCTUnwrap(fixture.store.issuedLinks.first)
+        let expectedToken = try XCTUnwrap(fixture.client.receipt.token)
+        XCTAssertEqual(ChallengeInvitation.localFixture.url(for: issued.token)?.absoluteString,
+                       "gametime-beta://challenge-invite/" + expectedToken)
         XCTAssertEqual(fixture.client.requests.count, 1, "Reopening cannot create a replacement link")
     }
 
@@ -178,11 +186,16 @@ import XCTest
         fixture.client.loseFirstResponse = true
         await fixture.store.submit(op: "issue_link", fields: ["id": .string(fixture.id.uuidString.lowercased())])
         await fixture.store.retry()
-        let mounted = try mount(fixture, links: ChallengeInvitation(httpsOrigin: "https://invites.example.invalid"))
+        let links = ChallengeInvitation(httpsOrigin: "https://invites.example.invalid")
+        let mounted = try mount(fixture, links: links)
         defer { mounted.close() }
         let text = try await capture(mounted, name: "https-recovered-issuer")
-        XCTAssertTrue(text.contains("https://invites.example.invalid"))
-        XCTAssertTrue(text.contains("revoke invitation link"))
+        XCTAssertTrue(text.contains("share invitation"))
+        XCTAssertTrue(text.contains("turn off this link"))
+        let issued = try XCTUnwrap(fixture.store.issuedLinks.first)
+        let expectedToken = try XCTUnwrap(fixture.client.receipt.token)
+        XCTAssertEqual(links.url(for: issued.token)?.absoluteString,
+                       "https://invites.example.invalid/challenge-invite/" + expectedToken)
         XCTAssertFalse(text.contains("gametime-beta"))
         XCTAssertEqual(fixture.client.requests.count, 2)
         XCTAssertEqual(fixture.client.requests.first, fixture.client.requests.last)
@@ -197,7 +210,8 @@ import XCTest
         defer { mounted.close() }
         let text = try await capture(mounted, name: "unconfigured-issuer")
         XCTAssertTrue(text.contains("try again later"))
-        XCTAssertTrue(text.contains("revoke invitation link"))
+        XCTAssertTrue(text.contains("turn off this link"))
+        XCTAssertFalse(text.contains("share invitation"))
         XCTAssertFalse(text.contains("gametime-beta"))
         XCTAssertFalse(text.contains("https://"))
         XCTAssertEqual(fixture.client.requests.count, 1)
@@ -215,12 +229,14 @@ import XCTest
         let pending = try XCTUnwrap(fixture.store.pending)
         XCTAssertEqual(pending.payload["id"]?.string, linkID.uuidString.lowercased())
         let interrupted = try await capture(mounted, name: "revoke-unconfirmed")
-        XCTAssertTrue(interrupted.contains("revoke invitation link"), "An interrupted revocation must retain its locator")
+        XCTAssertTrue(interrupted.contains("turn off this link"), "An interrupted revocation must retain its locator")
+        XCTAssertTrue(interrupted.contains("share invitation"))
         await fixture.store.retry()
         XCTAssertNil(fixture.store.pending)
         XCTAssertEqual(Array(fixture.client.requests.suffix(2)), [pending, pending])
         let confirmed = try await capture(mounted, name: "revoke-confirmed")
-        XCTAssertFalse(confirmed.contains("revoke invitation link"))
+        XCTAssertFalse(confirmed.contains("turn off this link"))
+        XCTAssertFalse(confirmed.contains("share invitation"))
         let persisted = try await fixture.store.requests.loadIssuedLinks(fixture.actor)
         XCTAssertTrue(persisted.isEmpty)
     }
@@ -234,17 +250,20 @@ import XCTest
         relaunched.setActor(fixture.actor); await relaunched.refresh()
         let mounted = try mount(fixture, store: relaunched)
         let text = try await capture(mounted, name: "relaunched-issuer"); mounted.close()
-        XCTAssertTrue(text.contains("revoke invitation link"))
+        XCTAssertTrue(text.contains("turn off this link"))
+        XCTAssertTrue(text.contains("share invitation"))
         let unrelated = InvitationRecoveryFixture()
         let other = try mount(unrelated, store: relaunched)
         let otherText = try await capture(other, name: "unrelated-issuer"); other.close()
-        XCTAssertFalse(otherText.contains("revoke invitation link"), "An unrelated challenge must never reuse the actor's last receipt")
+        XCTAssertFalse(otherText.contains("turn off this link"), "An unrelated challenge must never reuse the actor's last receipt")
+        XCTAssertFalse(otherText.contains("share invitation"))
         fixture.auth.actor = unrelated.actor
         relaunched.setActor(unrelated.actor)
         let changed = try mount(fixture, store: relaunched)
         defer { changed.close() }
         let changedText = try await capture(changed, name: "other-account-issuer")
-        XCTAssertFalse(changedText.contains("revoke invitation link"), "Account changes clear mounted invitation locators")
+        XCTAssertFalse(changedText.contains("turn off this link"), "Account changes clear mounted invitation locators")
+        XCTAssertFalse(changedText.contains("share invitation"))
         let otherLinks = try await relaunched.requests.loadIssuedLinks(unrelated.actor)
         XCTAssertTrue(otherLinks.isEmpty)
         XCTAssertEqual(fixture.client.requests.count, 1)
@@ -352,10 +371,18 @@ import XCTest
     private func mount(_ fixture: InvitationRecoveryFixture, store: ChallengeV1Store? = nil, links: ChallengeInvitation = .localFixture) throws -> InvitationRecoveryMount {
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
         let previous = scene.windows.first(where: \.isKeyWindow)
-        let controller = UIHostingController(rootView: VStack(spacing: 20) {
-            ChallengeLinkIssuer(store: store ?? fixture.store, row: fixture.row)
-                .environment(\.challengeInvitationLinks, links)
-        }.padding(20))
+        let controller = UIHostingController(rootView: ScrollView {
+            VStack(spacing: 20) {
+                ChallengeLinkIssuer(store: store ?? fixture.store, row: fixture.row)
+                    .environment(\.challengeInvitationLinks, links)
+            }.padding(20)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(SignalTheme.canvas)
+        .foregroundStyle(SignalTheme.textPrimary)
+        .tint(SignalTheme.accent)
+        .environment(\.dynamicTypeSize, .large))
+        controller.overrideUserInterfaceStyle = .light
         let window = UIWindow(windowScene: scene)
         window.frame = CGRect(x: 0, y: 0, width: 430, height: 900)
         window.rootViewController = controller
@@ -366,16 +393,10 @@ import XCTest
 
     private func capture(_ mounted: InvitationRecoveryMount, name: String) async throws -> String {
         try await Task.sleep(for: .milliseconds(300))
-        mounted.controller.view.setNeedsLayout(); mounted.controller.view.layoutIfNeeded()
-        let format = UIGraphicsImageRendererFormat.default(); format.scale = 1; format.opaque = true
-        let image = UIGraphicsImageRenderer(size: mounted.window.bounds.size, format: format).image {
-            mounted.controller.view.layer.render(in: $0.cgContext)
-        }
-        let attachment = XCTAttachment(image: image); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
-        let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate; request.recognitionLanguages = ["en-US"]
-        try VNImageRequestHandler(cgImage: XCTUnwrap(image.cgImage)).perform([request])
-        let text = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ").lowercased()
-        let transcription = XCTAttachment(string: text); transcription.name = name + "-text"; transcription.lifetime = .keepAlways; add(transcription)
+        // Native ShareLink controls require hierarchy rendering. Layer-only
+        // capture drops their composited content and can leave a black image.
+        let text = try await captureMountedSignal(mounted.window, controller: mounted.controller,
+                                                  name: name, test: self)
         XCTAssertTrue(text.contains("create invitation link"), "The actual issuer view must be visible, not a blank host")
         return text
     }

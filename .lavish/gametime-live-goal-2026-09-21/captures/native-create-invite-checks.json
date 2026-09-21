@@ -1,0 +1,68 @@
+{
+  "date": "2026-09-21",
+  "kind": "native SwiftUI fixture integration",
+  "simulator": "GameTimeCleanBaseline-20260915 / iOS 26.5",
+  "build": "passed",
+  "tests": {
+    "passed": 56,
+    "failed": 0,
+    "skipped": 0,
+    "suites": [
+      "ChallengeCreationFlowTests",
+      "ChallengeCreationDraftTests",
+      "ChallengeInvitationRecoveryTests",
+      "ChallengeHealthFlowStoreTests",
+      "SignalThemeAdversarialTests"
+    ]
+  },
+  "iphone_product_guard": "passed",
+  "xcresult": "/private/tmp/gametime-native-create-invite-final.xcresult",
+  "source_sha256": {
+    "ios/GameTime/GameTime/ChallengeCreationDraft.swift": "5b7ac20bb8f12472d62bcf6522b7c4d01dbe4155b7030fb68b212e2e583b0fb4",
+    "ios/GameTime/GameTime/ChallengeCreationInviteView.swift": "3478704e91e83e0699767713aa6eef9f52cecb61c16883878421940eb0bc659b",
+    "ios/GameTime/GameTime/ChallengeCreationViews.swift": "dc80b24f30dca903d47a1f28bde8fcc273f316177a820a8b45fd87e749ce05b4",
+    "ios/GameTime/GameTime/SignalCreationControls.swift": "b2b79ac806a7c1d37c8c8fb869800d15e5e9fbcc60ba9f59b9a93a5c67cd7597",
+    "ios/GameTime/GameTime/SignalCreationTheme.swift": "97f1e1d750c361e8bce4b1f30d30df6d7519556d89ef0e48f275f0ace95ac229"
+  },
+  "captures": [
+    "native-create-challenge-page-0.png",
+    "native-create-challenge-page-1.png",
+    "native-create-challenge-recognized-text.txt",
+    "native-create-confirm-dark-accessibility-page-0.png",
+    "native-create-confirm-dark-accessibility-page-1.png",
+    "native-create-confirm-dark-accessibility-page-2.png",
+    "native-create-confirm-dark-accessibility-page-3.png",
+    "native-create-confirm-dark-accessibility-recognized-text.txt",
+    "native-create-confirm-page-0.png",
+    "native-create-confirm-page-1.png",
+    "native-create-confirm-recognized-text.txt",
+    "native-create-goal-page-0.png",
+    "native-create-goal-page-1.png",
+    "native-create-goal-recognized-text.txt",
+    "native-create-pending-page-0.png",
+    "native-create-pending-page-1.png",
+    "native-create-pending-page-2.png",
+    "native-create-pending-recognized-text.txt",
+    "native-invite-account-changed-page-0.png",
+    "native-invite-account-changed-recognized-text.txt",
+    "native-invite-friends-page-0.png",
+    "native-invite-friends-page-1.png",
+    "native-invite-friends-recognized-text.txt",
+    "native-invite-populated-page-0.png",
+    "native-invite-populated-page-1.png",
+    "native-invite-populated-recognized-text.txt",
+    "native-invite-restored-page-0.png",
+    "native-invite-restored-page-1.png",
+    "native-invite-restored-recognized-text.txt",
+    "native-invite-stale-page-0.png",
+    "native-invite-stale-recognized-text.txt",
+    "native-personal-agreement-page-0.png",
+    "native-personal-agreement-page-1.png",
+    "native-personal-agreement-recognized-text.txt"
+  ],
+  "limits": [
+    "In-memory fictional accounts; no hosted actions",
+    "No physical-device installation or Health verification",
+    "Loopback service UI journey tests updated but not run in this task"
+  ]
+}

@@ -32,6 +32,12 @@ partial and stale data. The signed Staging successor is prepared for a coordinat
 in-place update; it is not installed by this task. Hosted state and product rules
 are unchanged. See the report for source and actual verification.
 
+The subsequent [native create/invite integration](../.lavish/gametime-live-goal-2026-09-21/NATIVE_CREATE_INVITE.md)
+connects the approved metric cards and SF Symbols to creation, then opens real
+invitations after a friend lobby saves. Username/link requests, agreement rules,
+Personal consent and product gates remain intact. This is a simulator-verified
+source update; it does not replace the prepared or installed Staging product.
+
 ## September 20 private iPhone trial
 
 The [private-device receipt](../outputs/reports/2026-09-20-private-device-goal.md)

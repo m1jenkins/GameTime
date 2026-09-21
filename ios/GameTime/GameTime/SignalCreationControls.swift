@@ -48,27 +48,35 @@ struct SignalCircleAction: ViewModifier {
     }
 }
 struct SignalActivityChoices: View {
-    @ScaledMetric(relativeTo: .body) private var symbolWidth: CGFloat = 24
+    @ScaledMetric(relativeTo: .body) private var symbolSize: CGFloat = 21
+    @ScaledMetric(relativeTo: .body) private var symbolWidth: CGFloat = 25
     @Binding var selection: ChallengeV1Policy.Metric
     @Environment(\.dynamicTypeSize) private var textSize
     var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: textSize.isAccessibilitySize ? 1 : 2), spacing: 6) {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: textSize >= .xxxLarge ? 1 : 2), spacing: 10) {
             ForEach(ChallengeV1Policy.Metric.allCases, id: \.self) { metric in
                 Button { selection = metric } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: metric.symbol).frame(width: symbolWidth).accessibilityHidden(true)
-                        Text(metric.title).font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, alignment: .leading)
-                        if selection == metric { Image(systemName: "checkmark").font(.caption.bold()).accessibilityHidden(true) }
-                    }.foregroundStyle(selection == metric ? SignalTheme.accent : SignalTheme.textPrimary)
-                        .padding(12).frame(maxWidth: .infinity, minHeight: 56)
-                        .background(selection == metric ? SignalTheme.selection : .clear, in: RoundedRectangle(cornerRadius: 20))
-                        .overlay { if selection == metric { RoundedRectangle(cornerRadius: 20).stroke(SignalTheme.accent, lineWidth: 1) } }
-                        .contentShape(RoundedRectangle(cornerRadius: 20))
+                    HStack(spacing: 9) {
+                        Image(systemName: metric.symbol)
+                            .font(.system(size: symbolSize, weight: .regular))
+                            .symbolRenderingMode(.monochrome)
+                            .frame(width: symbolWidth).accessibilityHidden(true)
+                        Text(metric.title).font(.subheadline.weight(.semibold))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }.foregroundStyle(selection == metric ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary)
+                        .padding(.horizontal, 13).padding(.vertical, 15)
+                        .frame(maxWidth: .infinity, minHeight: 58)
+                        .background(selection == metric ? SignalCreationTheme.selection : SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 17))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 17)
+                                .stroke(selection == metric ? SignalCreationTheme.accent : SignalCreationTheme.divider.opacity(0.5), lineWidth: selection == metric ? 1.5 : 0.5)
+                        }
+                        .contentShape(RoundedRectangle(cornerRadius: 17))
                 }.buttonStyle(.plain).accessibilityAddTraits(selection == metric ? .isSelected : [])
                     .accessibilityIdentifier("beta.create.metric." + metric.rawValue)
             }
-        }.padding(6).modifier(SignalControlMaterial(interactive: false, cornerRadius: 26))
-            .accessibilityElement(children: .contain).accessibilityLabel("Activity")
+        }.accessibilityElement(children: .contain).accessibilityLabel("Activity")
     }
 }
 struct SignalNumberEntry: View {
@@ -79,31 +87,159 @@ struct SignalNumberEntry: View {
     let keyboard: UIKeyboardType
     var prefix = ""
     var focusChanged: ((Bool) -> Void)? = nil
-    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 64
+    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 84
     @FocusState private var focused: Bool
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(title).font(.headline).foregroundStyle(SignalTheme.textSecondary)
+                Text(title).font(.subheadline.weight(.medium)).foregroundStyle(SignalCreationTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer()
                 if focused {
                     Button("Done") { focused = false }.accessibilityIdentifier("beta.create.input.done").font(.subheadline.weight(.semibold))
-                        .frame(minWidth: 44, minHeight: 44).buttonStyle(.plain).foregroundStyle(SignalTheme.accent)
+                        .frame(minWidth: 44, minHeight: 44).buttonStyle(.plain).foregroundStyle(SignalCreationTheme.accent)
                 }
-            }
+            }.frame(minHeight: 44)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 if !prefix.isEmpty { Text(prefix).accessibilityHidden(true) }
                 TextField("—", text: $text).keyboardType(keyboard).textFieldStyle(.plain)
                     .accessibilityLabel(title).accessibilityHint(unit).accessibilityIdentifier(id)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                     .submitLabel(.done).focused($focused).onSubmit { focused = false }
-            }.font(.system(size: min(size, 100), weight: .medium)).monospacedDigit()
-                .padding(.vertical, 8)
-                .overlay(alignment: .bottom) { Rectangle().fill(SignalTheme.divider).frame(height: 1) }
-            Text(unit).font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-        }.foregroundStyle(SignalTheme.textPrimary)
+            }.font(.system(size: numberSize, weight: .heavy).italic()).monospacedDigit().tracking(-2)
+                .padding(.trailing, 6).padding(.bottom, 8)
+            Text(unit).font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 12)
+                .overlay(alignment: .top) { Rectangle().fill(SignalCreationTheme.divider).frame(height: 1) }
+        }.foregroundStyle(SignalCreationTheme.textPrimary)
+            .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 18)
+            .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 24))
             .id(id)
             .onChange(of: focused) { _, value in focusChanged?(value) }
+    }
+    private var numberSize: CGFloat {
+        let length = max(1, text.count + prefix.count)
+        return min(size, 120) * max(0.5, min(1, 5 / CGFloat(length)))
+    }
+}
+
+struct SignalCreationProgress: View {
+    let labels: [String]
+    let current: Int
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .caption) private var circleSize: CGFloat = 21
+    private var selected: Int { min(max(current, 0), max(labels.count - 1, 0)) }
+
+    var body: some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
+        layout {
+            ForEach(labels.indices, id: \.self) { index in
+                HStack(spacing: 6) {
+                    Group {
+                        if index < selected {
+                            Image(systemName: "checkmark").font(.caption2.weight(.semibold))
+                                .symbolRenderingMode(.monochrome)
+                        } else {
+                            Text(String(index + 1)).font(.caption2.weight(.semibold)).monospacedDigit()
+                        }
+                    }
+                    .frame(width: circleSize, height: circleSize)
+                    .foregroundStyle(index == selected ? SignalCreationTheme.onAccent : index < selected ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary)
+                    .background(index == selected ? SignalCreationTheme.accent : index < selected ? SignalCreationTheme.selection : SignalCreationTheme.soft, in: Circle())
+                    Text(labels[index]).font(.caption.weight(index == selected ? .semibold : .medium))
+                        .foregroundStyle(index <= selected ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if index < labels.count - 1, !typeSize.isAccessibilitySize {
+                    Rectangle().fill(SignalCreationTheme.divider).frame(maxWidth: 25).frame(height: 1)
+                }
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(labels.isEmpty ? "" : "Step \(selected + 1) of \(labels.count), \(labels[selected])")
+    }
+}
+
+struct SignalCreationFact: View {
+    let symbol: String
+    let title: String
+    let detail: String
+    @ScaledMetric(relativeTo: .body) private var symbolSize: CGFloat = 22
+    @ScaledMetric(relativeTo: .body) private var symbolWidth: CGFloat = 36
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: symbol).font(.system(size: symbolSize, weight: .regular))
+                .symbolRenderingMode(.monochrome)
+                .foregroundStyle(SignalCreationTheme.accent)
+                .frame(width: symbolWidth, height: symbolWidth)
+                .background(SignalCreationTheme.selection, in: RoundedRectangle(cornerRadius: 12))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title).font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
+                Text(detail).font(.subheadline.weight(.semibold)).foregroundStyle(SignalCreationTheme.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }.frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(LinearGradient(colors: [SignalCreationTheme.surface, SignalCreationTheme.soft], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    in: RoundedRectangle(cornerRadius: 20))
+        .overlay { RoundedRectangle(cornerRadius: 20).stroke(SignalCreationTheme.divider.opacity(0.65), lineWidth: 0.75) }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+struct SignalCreationMetric: View {
+    let value: Int
+    let metric: ChallengeV1Policy.Metric
+    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 80
+    @Environment(\.dynamicTypeSize) private var typeSize
+    private var number: String {
+        switch metric {
+        case .steps: value.formatted()
+        case .distance: (Decimal(value) / 1_000_000).formatted(.number.precision(.fractionLength(0...6)))
+        case .exercise, .timed: "\(value / 60):\(String(format: "%02d", value % 60))"
+        }
+    }
+    private var unit: String {
+        switch metric {
+        case .steps: "steps"
+        case .distance: "km"
+        case .exercise, .timed: "min:sec"
+        }
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Your goal").font(.subheadline.weight(.medium)).foregroundStyle(SignalCreationTheme.textSecondary)
+            Group {
+                if typeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 4) { numberLabel; unitLabel }
+                } else {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .firstTextBaseline, spacing: 10) { numberLabel.fixedSize(); unitLabel }
+                        VStack(alignment: .leading, spacing: 4) { numberLabel; unitLabel }
+                    }
+                }
+            }
+            .accessibilityElement(children: .ignore).accessibilityLabel(metric.display(value))
+        }
+        .foregroundStyle(SignalCreationTheme.textPrimary)
+        .padding(20).frame(maxWidth: .infinity, alignment: .leading)
+        .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 24))
+    }
+    private var numberLabel: some View {
+        Text(number).font(.system(size: min(size, 120), weight: .heavy).italic())
+            .monospacedDigit().tracking(-2).padding(.trailing, 5)
+            .lineLimit(1).minimumScaleFactor(0.25)
+    }
+    private var unitLabel: some View {
+        Text(unit).font(.title3.weight(.medium)).foregroundStyle(SignalCreationTheme.textSecondary)
+            .fixedSize()
     }
 }
 enum SignalTimeZone {
@@ -164,8 +300,8 @@ struct SignalAmountEditor: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     SignalNumberEntry(text: $value, title: "Simulated amount", unit: "USD · $1–$500", id: "beta.create.amount", keyboard: .numberPad, prefix: "$")
-                    Text("No real money moves. Nothing can be paid out or redeemed.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                    if let error { Text(error).foregroundStyle(SignalTheme.danger).accessibilityIdentifier("beta.create.amount.error") }
+                    Text("No real money moves. Nothing can be paid out or redeemed.").font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                    if let error { Text(error).foregroundStyle(SignalCreationTheme.danger).accessibilityIdentifier("beta.create.amount.error") }
                     Button {
                         guard ChallengeCreationDraft.integer(value, in: 1...500) != nil else {
                             error = "Enter a whole-dollar amount from $1 to $500."
@@ -174,12 +310,12 @@ struct SignalAmountEditor: View {
                         save(value)
                         dismiss()
                     } label: { Text("Save amount").font(.headline).frame(maxWidth: .infinity, minHeight: 50) }
-                    .modifier(SignalNativeAction(primary: true)).accessibilityIdentifier("beta.create.amount.save")
-                }.padding(SignalTheme.contentInset)
-            }.background(SignalTheme.canvas).foregroundStyle(SignalTheme.textPrimary)
+                    .buttonStyle(SignalCreationPrimaryStyle()).accessibilityIdentifier("beta.create.amount.save")
+                }.padding(SignalCreationTheme.contentInset)
+            }.background(SignalCreationTheme.canvas).foregroundStyle(SignalCreationTheme.textPrimary)
                 .scrollDismissesKeyboard(.interactively)
                 .navigationTitle("Amount").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
-        }.tint(SignalTheme.accent)
+        }.tint(SignalCreationTheme.accent)
     }
 }

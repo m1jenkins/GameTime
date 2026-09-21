@@ -45,11 +45,13 @@ import XCTest
                 let text = try await capture(ChallengeV1Create(store: h.store, initialPolicy: policy)
                     .environment(\.challengeHealthFlow, h.flow).environment(\.colorScheme, scheme)
                     .environment(\.dynamicTypeSize, .accessibility3), name: "d141-leaderboard-\(metric.rawValue)-\(scheme)")
-                // Each captured scroll page repeats the fixed title/banner.
-                // Remove that chrome before checking a sentence split by pages.
-                let bodyText = text.replacingOccurrences(
-                    of: "friend challenge simulated stakes — no real money moves. ", with: "")
-                XCTAssertTrue(bodyText.contains("saved by gametime"))
+                // At the largest text size, a viewport boundary can bisect
+                // GameTime. Vision retains that partial word before the next
+                // page's complete line. Check both exact clauses in order.
+                let savedBy = try XCTUnwrap(text.range(of: "saved by"), text)
+                let deadline = try XCTUnwrap(text.range(of: "gametime by the deadline wins"), text)
+                XCTAssertLessThanOrEqual(savedBy.upperBound, deadline.lowerBound,
+                                         "The saved-result source must precede its deadline: \(text)")
                 XCTAssertTrue(text.contains("review")); XCTAssertFalse(text.contains("suggestion"))
             }
             let text = try await capture(NavigationStack {

@@ -912,6 +912,12 @@ struct ChallengeV1Detail: View {
         }
         if row.creatorId == store.actor {
             ChallengeFormSection("Invite your friends") {
+                NavigationLink {
+                    ChallengeCreationInviteView(store: store, challengeID: row.id)
+                } label: {
+                    Label("Choose friends and share an invitation", systemImage: "person.2")
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                }.accessibilityIdentifier("beta.invite.open")
                 TextField("Exact friend username", text: $username)
                     .textInputAutocapitalization(.never).autocorrectionDisabled().textFieldStyle(.roundedBorder)
                     .frame(minHeight: 44)
