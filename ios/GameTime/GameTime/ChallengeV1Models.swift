@@ -200,6 +200,7 @@ enum ChallengeV1Error: Error, LocalizedError, Equatable {
             case "challenge_private_trial_personal_steps_only": "This private trial currently supports Steps and Outdoor runs. Choose one of those to continue."
             case "challenge_metric_overlap": "You already have a friend challenge for this activity during these dates. Choose different dates."
             case "challenge_unsettled_limit": "Three challenges still need a final result. Wait for one to finish before joining another."
+            case "challenge_member_unavailable": "Someone you picked can’t join this challenge. Change who’s in, then try again."
             case "challenge_friend_unavailable": "We couldn’t find an available friend with that username. Check the exact spelling."
             case "challenge_incomplete_roster": "Select two to six people. For a goal challenge, everyone must choose their own goal before continuing."
             case "challenge_consent_mismatch": "The rules changed or agreement is closed. Refresh to see what happens next."

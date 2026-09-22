@@ -308,6 +308,7 @@ a new term, add a row rather than inventing a second name for something here.
 | `friend_incoming_request_exists` | "[username] already sent you a request. Accept it to become friends." |
 | daily friend-request cap | "You've reached today's limit for friend requests. Try again tomorrow." |
 | username lookup rate limit | "Too many searches. Wait a minute and try again." |
+| `challenge_member_unavailable` (another picked person can't join when you lock the roster) | "Someone you picked can't join this challenge. Change who's in, then try again." Never say why or who. |
 | account-mode upload (`verification_mode` without device proof) | "Scores come from the Apple Health activity your iPhone sends. We don't run a separate check on the device. If a score looks wrong, ask us to review it." |
 | Watch-origin source requirement | "You need an Apple Watch that records to Apple Health on this iPhone. Activity recorded only by iPhone doesn't count." |
 | surface, route, view | *(never shown)* |

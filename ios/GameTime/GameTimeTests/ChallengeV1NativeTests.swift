@@ -89,6 +89,16 @@ import XCTest
             "This private trial currently supports Steps and Outdoor runs. Choose one of those to continue."
         )
     }
+    func testLockingTheRosterNeverExplainsAnotherPersonsLimit() {
+        let text = ChallengeV1Error.server("challenge_member_unavailable").localizedDescription
+        XCTAssertEqual(text, "Someone you picked can’t join this challenge. Change who’s in, then try again.")
+        for hint in ["already", "dates", "activity", "final result", "Three", "paused", "21"] {
+            XCTAssertFalse(text.contains(hint), "The sentence must not hint at why: \(hint)")
+        }
+        // The creator's own limits keep their specific sentences.
+        XCTAssertTrue(ChallengeV1Error.server("challenge_metric_overlap").localizedDescription.hasPrefix("You already have"))
+        XCTAssertTrue(ChallengeV1Error.server("challenge_unsettled_limit").localizedDescription.hasPrefix("Three challenges"))
+    }
     private func sample(_ actor:UUID,_ name:String)->ChallengeV1 {
         let start=ChallengeInstant(date:Date());let end=ChallengeInstant(date:Date().addingTimeInterval(86400))
         return ChallengeV1(id:UUID(),creatorId:actor,policy:"friend_steps_goal_v1",config:.init(startDate:"2026-10-03",days:1,timezone:"UTC",amountCents:100,startsAt:start,endsAt:end,syncBy:end,correctionsBy:end,noticeDue:end),status:"lobby_open",revision:1,agreementVersion:0,serverTime:start,socialHidden:false,agreement:nil,members:[.init(actorId:actor,username:name,target:100,selected:true,exited:false,consented:false,fact:nil)],notice:nil,reviews:[],final:nil)
