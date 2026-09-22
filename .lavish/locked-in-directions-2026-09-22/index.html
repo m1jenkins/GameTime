@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>GameTime — Locked in, four ways</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="concepts.js" defer></script>
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand" href="#top" aria-label="GameTime design exploration"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M3 22 11 6h6L9 22zm10 0 8-16h5l-8 16z" fill="currentColor"/></svg>GameTime <span>/ Design explorations</span></a>
+    <span class="proposal">Concepts · not implemented</span>
+  </header>
+  <main id="top">
+    <section class="intro">
+      <div>
+        <p class="eyebrow">AFTER YOU CREATE A CHALLENGE</p>
+        <h1>Locked in.<br><span>With a little more feeling.</span></h1>
+      </div>
+      <div class="intro-note">
+        <p>One clear confirmation. Four different personalities. Same goal, dates and way home.</p>
+        <p class="recommendation"><span>A</span> My pick: the starting line.</p>
+      </div>
+    </section>
+
+    <div class="comparison-tools">
+      <p>Compare the pages. Open one to see it larger.</p>
+      <label class="motion-switch"><input id="gentle-motion" type="checkbox"> Reduce motion</label>
+    </div>
+    <section id="concepts" class="concept-grid" aria-label="Four confirmation page concepts"></section>
+
+    <section class="design-note" aria-label="Design recommendation">
+      <div class="note-marker">A + a touch of C</div>
+      <p><strong>The direction I’d explore first:</strong> the starting line’s athletic composition, with the signal’s softer arrival. It gives this screen an identity while keeping the next action obvious.</p>
+    </section>
+
+    <section class="feedback" aria-labelledby="feedback-title" data-lavish-question="locked-in-directions">
+      <div>
+        <p class="eyebrow">PICK THE PARTS YOU LIKE</p>
+        <h2 id="feedback-title">A direction, or a mix.</h2>
+        <p>Choose any favorites and add a note. This queues design feedback for another mockup pass.</p>
+      </div>
+      <form id="feedback-form">
+        <fieldset>
+          <legend class="sr-only">Concepts to explore</legend>
+          <div class="choice-grid">
+            <label><input type="checkbox" name="concept" value="A"> <b>A</b> Starting line</label>
+            <label><input type="checkbox" name="concept" value="B"> <b>B</b> Challenge pass</label>
+            <label><input type="checkbox" name="concept" value="C"> <b>C</b> The signal</label>
+            <label><input type="checkbox" name="concept" value="D"> <b>D</b> On the calendar</label>
+          </div>
+        </fieldset>
+        <label class="notes-label" for="design-feedback">What would you keep or change?</label>
+        <textarea id="design-feedback" name="note" rows="3" placeholder="For example: A’s graphic, C’s centered layout, and a smaller heading."></textarea>
+        <div class="submit-row"><button class="queue" type="submit">Queue design feedback <span aria-hidden="true">↗</span></button><p id="queue-status" role="status">Selections stay here until you queue them.</p></div>
+      </form>
+    </section>
+
+    <details class="baseline">
+      <summary>The screen today &amp; what these concepts preserve <span aria-hidden="true">+</span></summary>
+      <div class="baseline-content">
+        <figure><img src="assets/current-screen.png" alt="Current saved confirmation: a small blue check, Challenge locked in, September steps and dates, a simulated amount, and two actions, with a large empty middle."><figcaption>Existing local simulator capture · September 22, 2026</figcaption></figure>
+        <div>
+          <h2>Give the empty middle a purpose.</h2>
+          <p>The current page establishes success, but the icon and copy occupy only a small area at the top. These concepts use composition, a single graphic and a brief arrival to make the saved state feel intentional.</p>
+          <ul><li>The same “Challenge locked in.” headline.</li><li>The goal name and saved dates, with the simulated amount secondary.</li><li>“Go to Home” as the primary action, and “View goal” as the secondary.</li><li>An always-available close button. Motion never delays an action.</li></ul>
+          <p>All four use fictional September steps data from the reference. They confirm creation, not an athletic result. The calendar is an illustration of the existing date, not a new reminder or scheduling step.</p>
+          <p class="source-note">Design source: GameTime’s adopted September 22 cool athletic light palette and native system typography. Reference: <code>ChallengeCreationSuccess.swift</code>, <code>SignalCreationTheme.swift</code> and <code>docs/COPY.md</code>. These are proposals; the app and its accepted behavior are unchanged.</p>
+        </div>
+      </div>
+    </details>
+  </main>
+  <footer class="page-footer"><span>GameTime · Creation confirmation</span><span>Local design study / September 22, 2026</span></footer>
+  <dialog id="focus-dialog" aria-labelledby="focus-title">
+    <div class="focus-layout">
+      <div id="focus-phone"></div>
+      <div class="focus-copy"><button id="close-dialog" class="dialog-close" aria-label="Close enlarged concept">×</button><p class="eyebrow" id="focus-code"></p><h2 id="focus-title"></h2><p id="focus-description"></p><p id="focus-motion"></p><button id="focus-replay" class="outline-button">Replay entrance <span aria-hidden="true">↻</span></button><p class="small-note">Interactive visual prototype. Navigation buttons demonstrate the intended destinations.</p></div>
+    </div>
+  </dialog>
+  <div id="preview-toast" role="status"></div>
+</body>
+</html>
