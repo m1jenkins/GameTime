@@ -298,7 +298,7 @@ a new term, add a row rather than inventing a second name for something here.
 | decline | Decline. The request disappears; the sender isn't told. |
 | `blocks` row | Block / Unblock. "Blocked people can't find you or send you requests." |
 | friend or challenge report | Report. "We'll look into it. You can also block them." |
-| `incoming_request_exists` | "[username] already sent you a request. Accept it to become friends." |
+| `friend_incoming_request_exists` | "[username] already sent you a request. Accept it to become friends." |
 | daily friend-request cap | "You've reached today's limit for friend requests. Try again tomorrow." |
 | username lookup rate limit | "Too many searches. Wait a minute and try again." |
 | account-mode upload (`verification_mode` without device proof) | "Scores come from the Apple Health activity your iPhone sends. We don't run a separate check on the device. If a score looks wrong, ask us to review it." |

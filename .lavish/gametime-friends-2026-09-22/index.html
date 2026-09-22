@@ -36,7 +36,7 @@
     <div class="area-head"><span class="num">02</span><h2 id="a2">Add a friend</h2><p>Exact username only: no search-as-you-type, suggestions, or contact import. Your own username sits below the field with Copy and Share. Share hands the system sheet one plain sentence with no link.</p></div>
     <div class="row">
       <div class="cell"><p class="cell-cap"><b>Found</b>Send request</p><div class="phone" data-screen="add"></div><p class="note"><b>Try the sample usernames.</b><code>drew_p</code> is found, <code>samr</code> is already a friend, <code>rileyc</code> already has your request, and <code>limit</code> and <code>busy</code> show the two caps. Anything else isn’t found. Blocked people look exactly like “not found”.</p><a class="open-link" href="phone.html?screen=add">Full size ↗</a></div>
-      <div class="cell"><p class="cell-cap"><b>They asked first</b>incoming_request_exists</p><div class="phone" data-screen="add-incoming"></div><p class="note"><b>The typed error becomes a next step.</b>Accept and Decline appear right there, so you don’t send a crossed request back.</p></div>
+      <div class="cell"><p class="cell-cap"><b>They asked first</b>friend_incoming_request_exists</p><div class="phone" data-screen="add-incoming"></div><p class="note"><b>The typed error becomes a next step.</b>Accept and Decline appear right there, so you don’t send a crossed request back.</p></div>
       <div class="cell"><p class="cell-cap"><b>Share your username</b>Plain text</p><div class="phone" data-screen="share"></div><p class="note"><b>“I’m @alexlee on GameTime. Add me as a friend.”</b>No link: links are closed on the server for this build.</p></div>
     </div>
   </section>
@@ -46,7 +46,7 @@
     <div class="row">
       <div class="cell"><p class="cell-cap"><b>Friend</b>Three actions</p><div class="phone" data-screen="friend-sheet"></div><p class="note"><b>No “challenge them” shortcut here.</b>Inviting stays a deliberate choice made in the create flow.</p></div>
       <div class="cell"><p class="cell-cap"><b>Block</b>Confirm</p><div class="phone" data-screen="block-confirm"></div><p class="note"><b>The server consequence, said plainly.</b>Today, a block exits both people from any unfinished challenge they share. Fewer than two left means it won’t count. Phase 2 keeps that rule.</p></div>
-      <div class="cell"><p class="cell-cap"><b>Report</b>Reason + optional note</p><div class="phone" data-screen="report"></div><p class="note"><b>Four plain reasons.</b>After sending: “We’ll look into it. You can also block them.” The owner reads the queue.</p></div>
+      <div class="cell"><p class="cell-cap"><b>Report</b>One of three reasons</p><div class="phone" data-screen="report"></div><p class="note"><b>Three plain reasons, no free-text box.</b>They match the three reasons the support queue already stores, and the server keeps no free text. After sending: “We’ll look into it. You can also block them.” The owner reads the queue.</p></div>
       <div class="cell"><p class="cell-cap"><b>Blocked people</b>Unblock</p><div class="phone" data-screen="blocked"></div><p class="note"><b>Unblock doesn’t restore the friendship.</b>They can find you and send requests again. You become friends only if you both agree.</p><a class="open-link" href="phone.html?screen=blocked">Full size ↗</a></div>
     </div>
   </section>
@@ -85,7 +85,7 @@
   <footer class="board-foot">
     <div><h3>What these mocks don’t decide</h3><ul>
       <li><b>Re-request after decline.</b> A declined person can send again, up to the daily cap, until the owner picks a rule.</li>
-      <li><b>Report reasons</b> are proposed wording. The server stores a code for each.</li>
+      <li><b>Report reason wording</b> is proposed. Each maps to one of the three existing server reasons.</li>
       <li><b>Profile photos</b> stay deferred. Initials match what native renders.</li>
     </ul></div>
     <div><h3>Copy sources</h3><ul>

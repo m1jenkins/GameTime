@@ -153,7 +153,12 @@ Recorded:
 
 The Phase 0 commits are listed in [WORKING_BASELINE.md](WORKING_BASELINE.md).
 
-### Phase 1 — mocks (can run alongside Phase 2)
+### Phase 1 — mocks: drafted, awaiting approval
+
+The board is at [`.lavish/gametime-friends-2026-09-22/`](../.lavish/gametime-friends-2026-09-22/README.md),
+with 19 interactive screens and captures. Native work waits for the owner's
+approval.
+
 
 - **You › Friends:** accepted, incoming and sent lists, with empty, loading and
   offline states.
@@ -172,7 +177,14 @@ The Phase 0 commits are listed in [WORKING_BASELINE.md](WORKING_BASELINE.md).
 - **Invite mock:** drop contacts and links, matching the native app.
 - **Unchanged:** the locked Goal → Challenge → Friends flow is not reopened.
 
-### Phase 2 — server (local; migrations and pgTAP)
+### Phase 2 — server: implemented locally, one owner decision open
+
+Migrations `20260922210000` and `20260922210100`, pgTAP `529`–`531` and a
+hosted-order upgrade rehearsal. See the
+[receipt](../outputs/reports/2026-09-22-friends-phase-2-server.md). Not
+applied to hosted. Phase 2 closes when the owner decides the re-request rule in
+the engagement review above.
+
 
 - **RPCs:**
   `friend_{request,accept,decline,cancel,remove,block,unblock,report,list,lookup}_v1`,
@@ -183,7 +195,7 @@ The Phase 0 commits are listed in [WORKING_BASELINE.md](WORKING_BASELINE.md).
   - one daily request cap
   - a lookup cap that reuses the invite command's 30-per-minute pattern
     (`20260912013929_challenge_private_community_v1.sql:431–433`)
-  - a typed `incoming_request_exists` error
+  - a typed `friend_incoming_request_exists` error
 - **Write guard:** a project setting plus a row trigger on `friendships` and
   `blocks` that refuses writes unless an RPC set a transaction-local marker
   (the `app.challenge_real_health_command_v1` pattern). Historical tests keep

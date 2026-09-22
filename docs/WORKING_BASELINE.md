@@ -6,6 +6,25 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 22 friends Phase 1 mocks and Phase 2 server
+
+- **Phase 1 mocks, awaiting approval.** The board is in
+  [`.lavish/gametime-friends-2026-09-22/`](../.lavish/gametime-friends-2026-09-22/README.md).
+  It covers Friends under You, Add a friend, safety, Home action rows, the
+  invite picker, the 21+ and Apple Watch onboarding step, and "Challenge
+  saved." for open friend lobbies. All data is fictional.
+- **Phase 2 server, local only.** Migration `20260922210000` adds the friend
+  commands, their journal and the `commands_only` write guard. Migration
+  `20260922210100` adds the per-policy allowlist, account mode and
+  `challenge_availability_v1`. pgTAP `529`–`531` add 147 assertions. The full
+  suite passed with 114 files and 5,205 assertions. A hosted-order rehearsal
+  applied `20260920162025` after `20260922150718`, and an in-flight Personal
+  goal kept its terms and result across the upgrade.
+  - Every new setting defaults to current behavior.
+  - Nothing was applied to `gametime-p11b` or pushed.
+  - The owner still has to decide the re-request rule after a decline.
+  See the [receipt](../outputs/reports/2026-09-22-friends-phase-2-server.md).
+
 ## September 22 fixture admission age fix
 
 Migration `20260922181912` restores the 21+ check on the fixture path of

@@ -164,13 +164,13 @@
 
   const alert = (title, text, confirm, act, k) => `<div class="scrim" data-act="close"></div><div class="sheet alert" role="alertdialog" aria-label="${title}"><h3>${title}</h3><p>${text}</p><div class="alert-actions"><button class="confirm" data-act="${act}" data-k="${k}">${confirm}</button><button class="cancel" data-act="close">Cancel</button></div></div>`;
 
-  const REASONS = ['Their name or username is offensive', 'They keep sending unwanted requests or invitations', 'They’re pretending to be someone else', 'Something else'];
+  // One sentence per server reason code: username, unwanted_contact, unsafe_behavior.
+  const REASONS = ['Their name or username', 'Unwanted requests or invitations', 'Something that feels unsafe'];
   const reportSheet = (k, st) => st.reported
     ? `<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-label="Report sent"><div class="grab"></div><div class="empty" style="padding-top:12px"><div class="glyph-lg" style="background:var(--selection);color:var(--accent)">${ic('check', 30, 2.2)}</div><h2>Thanks for telling us</h2><p>We’ll look into it. You can also block them.</p></div><div style="display:grid;gap:8px;margin-top:16px"><button class="secondary" data-act="ask-block" data-k="${k}">${ic('hand', 19)}Block ${P[k].name.split(' ')[0]}</button><button class="quiet-link" data-act="close">Done</button></div></div>`
     : `<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-label="Report ${P[k].name}"><div class="grab"></div>
-      <h3 style="font-size:22px;font-weight:700;letter-spacing:-.6px">Report ${P[k].name.split(' ')[0]}</h3><p class="lede" style="font-size:14px;margin-top:6px">Tell us what’s wrong. We read every report. ${P[k].name.split(' ')[0]} isn’t told who sent it.</p>
+      <h3 style="font-size:22px;font-weight:700;letter-spacing:-.6px">Report ${P[k].name.split(' ')[0]}</h3><p class="lede" style="font-size:14px;margin-top:6px">Tell us what’s wrong. We read every report. ${P[k].name.split(' ')[0]} isn’t told.</p>
       <div class="list" style="margin-top:16px" role="radiogroup">${REASONS.map((r, i) => `<button class="radio" role="radio" aria-checked="${st.reason === i}" data-act="reason" data-i="${i}"><span class="dotsel"></span>${r}</button>`).join('')}</div>
-      <textarea aria-label="Anything else we should know (optional)" placeholder="Anything else we should know? (optional)" style="margin-top:12px"></textarea>
       <button class="primary" style="margin-top:14px" data-act="send-report" data-k="${k}" ${st.reason == null ? 'disabled' : ''}>Send report</button></div>`;
 
   function sheet(st) {

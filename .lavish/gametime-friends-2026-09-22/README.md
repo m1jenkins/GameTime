@@ -49,8 +49,8 @@ them, because profile photos remain deferred.
   - found: Send request
   - already friends: a note
   - request already sent: points to Cancel
-  - they already asked you: `incoming_request_exists` with inline Accept and
-    Decline
+  - they already asked you: `friend_incoming_request_exists` with inline
+    Accept and Decline
   - daily cap and lookup rate limit: the COPY.md sentences
   - not found: a spelling hint
   Blocked people in either direction get the same "not found" answer.
@@ -62,7 +62,9 @@ them, because profile photos remain deferred.
     challenge with fewer than two people left won't count. That is
     `app.challenge_tick_v1` today, which Phase 2 keeps.
   - Unblock doesn't restore the friendship.
-  Report takes one of four proposed reasons and an optional note, then says
+  Report takes one of three reasons, matching the three the support queue
+  already stores (`username`, `unwanted_contact`, `unsafe_behavior`). It has
+  no free-text box, because the server keeps no free text. Then it says
   "We'll look into it. You can also block them."
 - **Home action rows form one compact group above the hero**, most urgent
   first:
@@ -97,8 +99,13 @@ them, because profile photos remain deferred.
 - Fictional people and dates only (snapshot Tuesday, September 22, 9:41 AM).
   Buttons change local state. The mocks make no network request and store
   nothing. There are no notifications, analytics or payment actions.
-- Report reasons, the Home row order, the three-row limit and the onboarding
-  order are proposals awaiting approval.
+- Report reason wording, the Home row order, the three-row limit and the
+  onboarding order are proposals awaiting approval.
+- The Phase 2 server commands back every state shown here. See
+  `outputs/reports/2026-09-22-friends-phase-2-server.md` for the error codes
+  and the list fields: `since`, `you_asked` and `sent_at`. The "accepted your
+  request" Home row is derived on the phone from `you_asked` and `since`, and
+  dismissing it is remembered there.
 - **The owner still has to decide the re-request rule after a decline.** Until
   then a declined person can be sent the same request again, up to the daily
   cap. No mock implies a cooldown.
