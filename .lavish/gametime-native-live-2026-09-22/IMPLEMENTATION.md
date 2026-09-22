@@ -36,6 +36,17 @@ The design source is the user's locked September 21 mockups, not a new theme.
 
 Additional actual screens: [Full rules](captures/rules.png),
 [creation](captures/create.png), and [Settings](captures/settings.png).
+The [create-only comparison](create-review.html) pairs all three creation stages
+with their locked references: [Goal](captures/create-goal.png),
+[Challenge](captures/create-challenge.png), and [Friends](captures/create-friends.png).
+These three native captures were refreshed from the passing app interaction test
+at 06:32 UTC on September 22. The test verifies the default Goal heading, hidden
+leaderboard choice, all three progress labels, and successful transition to the
+saved lobby's invitation screen. The initial runner launch hit the simulator's
+Busy/preflight condition before any test ran; after boot completed, the focused
+rerun passed with no failures or skips. Its attachment provenance is retained in
+[the capture manifest](captures/create-capture-manifest.json). Home, Goal / Rules,
+Challenges and You have no changes in this scoped follow-up.
 Captures are lossless 1170 × 2532 screenshots of the iPhone 13 simulator
 (390 × 844 points, iOS 26.5). They are SwiftUI views, not web content or images
 displayed inside the app. The explicit DEBUG-only `--fixture-live-design` client

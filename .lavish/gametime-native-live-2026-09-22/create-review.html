@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GameTime — Native creation review</title>
+  <style>
+    :root { --bg:#FAFBFC; --surface:#F0F2F5; --text:#111318; --accent:#245BFF; --muted:#606975; --line:#DCE1E8; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1080px; margin:auto; padding:42px 28px 56px; }
+    a { color:var(--accent); text-underline-offset:3px; }
+    .back { font-size:13px; }
+    .eyebrow { margin:28px 0 8px; font-size:12px; font-weight:650; color:var(--accent); }
+    h1 { margin:0 0 12px; font-size:40px; line-height:1.08; letter-spacing:-1.6px; }
+    p { margin:0; color:var(--muted); }
+    .intro { max-width:700px; }
+    .tabs { display:flex; width:max-content; max-width:100%; gap:4px; padding:4px; margin:26px 0 20px; border:1px solid var(--line); border-radius:16px; background:var(--surface); }
+    button { font:inherit; cursor:pointer; }
+    .tabs button { min-height:44px; padding:10px 22px; border:0; border-radius:12px; background:transparent; color:var(--muted); font-size:14px; font-weight:650; white-space:nowrap; }
+    .tabs button[aria-selected="true"] { color:var(--accent); background:white; box-shadow:0 1px 3px #1113180a; }
+    a:focus-visible,button:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+    [hidden] { display:none !important; }
+    .stage { padding:24px; border:1px solid var(--line); border-radius:24px; background:var(--surface); }
+    .pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:32px; max-width:812px; margin:auto; }
+    figure { min-width:0; margin:0; }
+    figcaption { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 10px; margin:0 0 12px; font-size:12px; font-weight:650; }
+    figcaption span { color:var(--muted); font-weight:400; }
+    .shot { display:block; width:100%; height:auto; aspect-ratio:390/844; background:var(--bg); border-radius:20px; box-shadow:0 0 0 1px #11131810; }
+    .difference { margin:20px 0 0; padding:0 2px; font-size:13px; line-height:1.6; }
+    .difference strong { color:var(--text); font-weight:650; }
+    .notes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin:28px 0; }
+    .note { border-top:1px solid var(--line); padding-top:14px; }
+    h2 { margin:0 0 6px; font-size:14px; font-weight:650; }
+    .note p { font-size:13px; }
+    footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:20px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; }
+    .swatches { display:flex; flex-wrap:wrap; gap:14px; }
+    .swatch { display:flex; align-items:center; gap:6px; color:var(--muted); font-size:11px; }
+    .swatch i { width:15px; height:15px; border-radius:5px; border:1px solid #11131815; }
+    .scope { max-width:620px; margin-top:16px; font-size:12px; }
+    @media(max-width:650px) {
+      main { padding:26px 16px 36px; }
+      h1 { font-size:34px; }
+      .tabs { width:100%; }
+      .tabs button { flex:1; padding:10px 12px; }
+      .stage { padding:18px 14px; }
+      .pair { grid-template-columns:minmax(0,390px); justify-content:center; gap:26px; }
+      .notes { grid-template-columns:minmax(0,1fr); gap:18px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <a class="back" href="index.html">← Main screen review</a>
+  <header>
+    <div class="eyebrow">GAMETIME · NATIVE iOS · SEPTEMBER 22, 2026</div>
+    <h1>Create, in the app.</h1>
+    <p class="intro">Three-step creation flow, compared with the approved references. Native screenshots show the real form and lobby states; differences are called out below each pair.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Creation step">
+    <button id="tab-goal" role="tab" aria-selected="true" aria-controls="panel-goal" tabindex="0">Goal</button>
+    <button id="tab-challenge" role="tab" aria-selected="false" aria-controls="panel-challenge" tabindex="-1">Challenge</button>
+    <button id="tab-friends" role="tab" aria-selected="false" aria-controls="panel-friends" tabindex="-1">Friends</button>
+  </nav>
+
+  <section id="panel-goal" role="tabpanel" aria-labelledby="tab-goal">
+    <div class="stage"><div class="pair">
+      <figure><figcaption>Approved mock <span>Goal</span></figcaption><a href="references/create-goal.png" target="_blank" rel="noopener"><img class="shot" src="references/create-goal.png" width="390" height="844" alt="Approved Goal mock: outdoor runs, 20 km metric and seven-day date rail"></a></figure>
+      <figure><figcaption>Native SwiftUI <span>Goal · actual capture</span></figcaption><a href="captures/create-goal.png" target="_blank" rel="noopener"><img class="shot" src="captures/create-goal.png" width="390" height="844" alt="Native Goal: four activity choices, seven-day date rail, collapsed Advanced and Continue"></a></figure>
+    </div></div>
+    <p class="difference"><strong>Current product difference.</strong> Native creation offers four supported activities. In a friend challenge, each person chooses their own goal in the lobby. The initial screen collects activity and dates, with the actual time zone.</p>
+  </section>
+
+  <section id="panel-challenge" role="tabpanel" aria-labelledby="tab-challenge" hidden>
+    <div class="stage"><div class="pair">
+      <figure><figcaption>Approved mock <span>Challenge</span></figcaption><a href="references/create-challenge.png" target="_blank" rel="noopener"><img class="shot" src="references/create-challenge.png" width="390" height="844" alt="Approved Challenge mock with optional name, compact agreement cards and Continue to invite" loading="lazy"></a></figure>
+      <figure><figcaption>Native SwiftUI <span>Challenge · actual capture</span></figcaption><a href="captures/create-challenge.png" target="_blank" rel="noopener"><img class="shot" src="captures/create-challenge.png" width="390" height="844" alt="Native Challenge review with actual activity, dates, private roster rules and simulated amount" loading="lazy"></a></figure>
+    </div></div>
+    <p class="difference"><strong>The agreement stays exact.</strong> Native cards use the selected policy’s real activity and outcome rules. Those values can be longer than the mock’s short examples, and the full review scrolls. This local capture identifies fictional activity. Challenge names are derived from supported data rather than an unsaved optional name.</p>
+  </section>
+
+  <section id="panel-friends" role="tabpanel" aria-labelledby="tab-friends" hidden>
+    <div class="stage"><div class="pair">
+      <figure><figcaption>Approved mock <span>Friends · selected example</span></figcaption><a href="references/invite-friends.png" target="_blank" rel="noopener"><img class="shot" src="references/invite-friends.png" width="390" height="844" alt="Approved Friends mock with Sam, Jordan and Priya selected, contact search and invitation link" loading="lazy"></a></figure>
+      <figure><figcaption>Native SwiftUI <span>Friends · empty lobby</span></figcaption><a href="captures/create-friends.png" target="_blank" rel="noopener"><img class="shot" src="captures/create-friends.png" width="390" height="844" alt="Native Friends with an empty lobby, exact friend username field, invitation link and Done inviting" loading="lazy"></a></figure>
+    </div></div>
+    <p class="difference"><strong>Different data states.</strong> The native fixture has an empty lobby; the mock has three selected friends. Native invitations use an accepted friend’s exact username or the invitation link. The screenshot does not establish a contacts picker, selected-photo parity or completed friend consent.</p>
+  </section>
+
+  <div class="notes" aria-label="Shared refinements">
+    <div class="note"><h2>Three clear steps</h2><p>Goal → Challenge → Friends, with a numbered current step and completed checkmarks.</p></div>
+    <div class="note"><h2>Labels stay on one line</h2><p>Each step keeps enough width for its name. “Challenge” no longer breaks across lines.</p></div>
+    <div class="note"><h2>Advanced stays secondary</h2><p>Personal and private leaderboard choices sit under Advanced. The initial path leads with activity and dates.</p></div>
+  </div>
+
+  <footer>
+    <a href="IMPLEMENTATION.md">Implementation and verification record</a>
+    <div class="swatches" aria-label="Locked palette">
+      <span class="swatch"><i style="background:#FAFBFC"></i>BG #FAFBFC</span>
+      <span class="swatch"><i style="background:#F0F2F5"></i>Surface #F0F2F5</span>
+      <span class="swatch"><i style="background:#111318"></i>Text #111318</span>
+      <span class="swatch"><i style="background:#245BFF"></i>Accent #245BFF</span>
+    </div>
+  </footer>
+  <p class="scope">Images retain their original proportions; open either image for the full capture. Home, Goal / Rules, Challenges, You and the locked palette are unchanged by this creation fix.</p>
+</main>
+<script>
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(tab, focus = false) {
+    tabs.forEach(item => {
+      const active = item === tab;
+      item.setAttribute('aria-selected', String(active));
+      item.tabIndex = active ? 0 : -1;
+      document.getElementById(item.getAttribute('aria-controls')).hidden = !active;
+    });
+    if (focus) tab.focus();
+  }
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => selectTab(tab));
+    tab.addEventListener('keydown', event => {
+      let next;
+      if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+      if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+      if (event.key === 'Home') next = 0;
+      if (event.key === 'End') next = tabs.length - 1;
+      if (next !== undefined) { event.preventDefault(); selectTab(tabs[next], true); }
+    });
+  });
+</script>
+</body>
+</html>

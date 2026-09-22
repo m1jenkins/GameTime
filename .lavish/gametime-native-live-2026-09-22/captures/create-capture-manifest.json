@@ -1,0 +1,40 @@
+{
+  "test": "LiveDesignUITests/testChallengeCreationEntryKeepsTheApprovedNativeFlow",
+  "result": "passed",
+  "bundle": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/result-bundles/test_sim_2026-09-22T06-31-59-920Z_pid24251_6a98e536.xcresult",
+  "captures": [
+    {
+      "attachments": [
+        {
+          "configurationName": "Test Scheme Action",
+          "deviceId": "F406C4D4-68E9-4B1A-9B92-21ED7565FE05",
+          "deviceName": "GameTimeLiveDesign-iPhone13",
+          "exportedFileName": "0D01E685-64DF-42B1-A7F7-AC5273F6713C.png",
+          "isAssociatedWithFailure": false,
+          "suggestedHumanReadableName": "create-friends_0_E6E3D89D-E4F9-4018-AEDB-BE2CB13CF630.png",
+          "timestamp": 1790058754.992
+        },
+        {
+          "configurationName": "Test Scheme Action",
+          "deviceId": "F406C4D4-68E9-4B1A-9B92-21ED7565FE05",
+          "deviceName": "GameTimeLiveDesign-iPhone13",
+          "exportedFileName": "05768D6A-0437-437E-ADC7-A6A320CA3295.png",
+          "isAssociatedWithFailure": false,
+          "suggestedHumanReadableName": "create-challenge_0_C3F90258-20CF-4000-A8A8-D08A71FE9E89.png",
+          "timestamp": 1790058751.674
+        },
+        {
+          "configurationName": "Test Scheme Action",
+          "deviceId": "F406C4D4-68E9-4B1A-9B92-21ED7565FE05",
+          "deviceName": "GameTimeLiveDesign-iPhone13",
+          "exportedFileName": "4341981A-1EE3-448C-A9F9-FCFC24F5369C.png",
+          "isAssociatedWithFailure": false,
+          "suggestedHumanReadableName": "create-goal_0_DD43F604-0FA9-41C2-B326-3D4C60D1493B.png",
+          "timestamp": 1790058744.429
+        }
+      ],
+      "testIdentifier": "LiveDesignUITests/testChallengeCreationEntryKeepsTheApprovedNativeFlow()",
+      "testIdentifierURL": "test://com.apple.xcode/GameTime/GameTimeUITests/LiveDesignUITests/testChallengeCreationEntryKeepsTheApprovedNativeFlow"
+    }
+  ]
+}
