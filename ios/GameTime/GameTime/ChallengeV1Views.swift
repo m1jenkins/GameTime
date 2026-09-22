@@ -353,11 +353,11 @@ struct ChallengeV1Shell: View {
     var accountContent: AnyView? = nil
     var existingChallenges: AnyView? = nil
     var serviceAvailable = true
-    var personalStepsOnly = false
+    var allowedPolicies: Set<String>? = nil
     var body: some View {
         LiveChallengeShell(store: store, invitation: invitation, logout: logout,
                            accountContent: accountContent, serviceAvailable: serviceAvailable,
-                           personalStepsOnly: personalStepsOnly)
+                           allowedPolicies: allowedPolicies)
     }
 }
 

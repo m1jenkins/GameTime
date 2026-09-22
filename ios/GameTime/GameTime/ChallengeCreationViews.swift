@@ -15,8 +15,8 @@ struct ChallengeV1Create: View {
     @ScaledMetric(relativeTo: .title3) private var choiceSymbolWidth: CGFloat = 28
     @ScaledMetric(relativeTo: .largeTitle) private var headingSize: CGFloat = 30
     @AccessibilityFocusState private var headingFocused: Bool
-    init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil, personalStepsOnly: Bool = false, onGoHome: @escaping () -> Void = {}) {
-        self.init(store: store, draft: ChallengeCreationDraft(initialPolicy: initialPolicy, personalStepsOnly: personalStepsOnly), onGoHome: onGoHome)
+    init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil, allowed: Set<String>? = nil, onGoHome: @escaping () -> Void = {}) {
+        self.init(store: store, draft: ChallengeCreationDraft(initialPolicy: initialPolicy, allowed: allowed), onGoHome: onGoHome)
     }
     init(store: ChallengeV1Store, draft: ChallengeCreationDraft, onGoHome: @escaping () -> Void = {}) {
         self.store = store
@@ -136,9 +136,15 @@ struct ChallengeV1Create: View {
     }
     private var typeStep: some View {
         VStack(spacing: 12) {
-            choice("Personal goal", detail: "Just for you", symbol: "person", selected: draft.mode == .personal, id: "personal") { draft.mode = .personal }
-            choice("Goals with friends", detail: "Each person chooses a goal", symbol: "person.2", selected: draft.mode == .friend && draft.competition == .goal, id: "friend") { draft.mode = .friend; draft.competition = .goal }
-            choice("Friend leaderboard", detail: "Compare saved results", symbol: "chart.bar", selected: draft.mode == .friend && draft.competition == .leaderboard, id: "leaderboard") { draft.mode = .friend; draft.competition = .leaderboard }
+            if draft.permits(.personal, .goal) {
+                choice("Personal goal", detail: "Just for you", symbol: "person", selected: draft.mode == .personal, id: "personal") { draft.mode = .personal }
+            }
+            if draft.permits(.friend, .goal) {
+                choice("Goals with friends", detail: "Each person chooses a goal", symbol: "person.2", selected: draft.mode == .friend && draft.competition == .goal, id: "friend") { draft.mode = .friend; draft.competition = .goal }
+            }
+            if draft.permits(.friend, .leaderboard) {
+                choice("Friend leaderboard", detail: "Compare saved results", symbol: "chart.bar", selected: draft.mode == .friend && draft.competition == .leaderboard, id: "leaderboard") { draft.mode = .friend; draft.competition = .leaderboard }
+            }
         }
     }
     private func choice(_ title: String, detail: String, symbol: String, selected: Bool, id: String, action: @escaping () -> Void) -> some View {
@@ -158,14 +164,11 @@ struct ChallengeV1Create: View {
             .accessibilityIdentifier("beta.create.type." + id)
     }
     @ViewBuilder private var activityStep: some View {
-        // The private trial accepts personal Steps and Outdoor runs. Friend
-        // challenges, Activity minutes, and timed runs stay closed.
-        if draft.personalStepsOnly {
-            SignalActivityChoices(selection: $draft.metric, metrics: [.distance, .steps]) { metric in
-                metric == .distance ? "Outdoor runs" : metric.title
-            }
-        } else {
-            SignalActivityChoices(selection: $draft.metric)
+        // Only the activities the server allows for this kind of challenge.
+        // A personal distance goal is Outdoor runs.
+        SignalActivityChoices(selection: $draft.metric,
+                              metrics: draft.mode == .personal ? draft.metrics.sorted { $0 == .distance && $1 != .distance } : draft.metrics) { metric in
+            draft.mode == .personal && metric == .distance ? "Outdoor runs" : metric.title
         }
         if draft.unavailable {
             Text("Activity not available yet. Choose another activity to continue.").font(.subheadline)
@@ -293,6 +296,9 @@ struct ChallengeV1Create: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Your agreement").font(.subheadline.weight(.semibold)).padding(.bottom, 2)
                 reviewFact("Activity counted", text: health == nil ? "Fictional activity for this local preview. No Apple Health activity is scored." : ChallengeHealthCopy.source(draft.source?.identifier ?? ""))
+                if health != nil, store.availability?.accountMode == true {
+                    reviewFact("How scores are checked", text: ChallengeHealthCopy.accountMode)
+                }
                 reviewFact("Possible results", text: draft.mode == .personal
                            ? "Meet your goal and your simulated entry returns. A confirmed miss leaves it unallocated. Missing or unclear activity never proves a miss."
                            : draft.policy.allocation)

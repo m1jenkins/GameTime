@@ -93,6 +93,9 @@ final class AppModel {
     private(set) var accountDeletionStatusError: String?
     private(set) var onboardingNamePrefill = ""
     private(set) var onboardingError: OnboardingPresentationError?
+    /// The account that confirmed 21+ during onboarding, before any profile
+    /// existed. The shell saves it to the server once challenges can accept it.
+    private(set) var onboardingAgeActor: UUID?
     private(set) var pendingChallenge: PendingChallengeSubmission?
     private(set) var hasPendingChallengeRecoveryIssue = false
     private(set) var activityAuthorizationOutcome:
@@ -217,7 +220,7 @@ final class AppModel {
         }
     }
 
-    func completeOnboarding(handle: String, displayName: String) async {
+    func completeOnboarding(handle: String, displayName: String, ageConfirmed: Bool = false) async {
         guard let userID else {
             onboardingError = OnboardingPresentationError(
                 field: .general,
@@ -270,6 +273,7 @@ final class AppModel {
             profile = createdProfile
             onboardingNamePrefill = ""
             onboardingError = nil
+            if ageConfirmed { onboardingAgeActor = userID }
             if configuration.legacySocialRuntimeEnabled {
                 await restorePendingActivityUploads(
                     for: userID,
@@ -895,6 +899,16 @@ final class AppModel {
                 pendingActivityUploadCount = pendingCount
             }
         }
+    }
+
+    /// Saves an onboarding age confirmation once the challenge service can
+    /// accept it. Nothing is sent for an account that didn't confirm.
+    func saveOnboardingAgeConfirmation() async {
+        guard let actor = onboardingAgeActor, actor == userID, challengesV1.actor == actor,
+              let access = challengesV1.access else { return }
+        if access.ageConfirmed { onboardingAgeActor = nil; return }
+        if await challengesV1.submit(op: "confirm_age", fields: ["confirmed": .bool(true)]) != nil,
+           onboardingAgeActor == actor { onboardingAgeActor = nil }
     }
 
     func signOut() async {
@@ -1579,6 +1593,7 @@ final class AppModel {
         challengeHealth?.setActor(nil)
         challengesV1.setActor(nil)
         friends.setActor(nil)
+        onboardingAgeActor = nil
         duels.setActor(nil)
         performanceCommitments.setActor(nil)
         weekly.setActor(nil)

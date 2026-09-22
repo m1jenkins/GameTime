@@ -2,6 +2,8 @@ import SwiftUI
 import GameTimeCore
 
 enum ChallengeHealthCopy {
+    /// COPY.md: account-mode uploads carry no device proof, and we say so.
+    static let accountMode = "Scores come from the Apple Health activity your iPhone sends. We don’t run a separate check on the device. If a score looks wrong, ask us to review it."
     static func source(_ identifier: String, leaderboard: Bool = false) -> String {
         switch identifier {
         case "apple_watch_steps_v1": "We count eligible steps recorded by Apple Watch in Apple Health. Entries marked as manual and records from unsupported apps or devices don’t count."

@@ -242,6 +242,13 @@ A simulated stake, when there is one, stays a short secondary line. The primary
 action is **Go to Home**. **View goal** is a quiet secondary action. That
 screen does not recap the agreement, timeline, or rules.
 
+An open friend lobby isn't locked in, because nobody has agreed yet. Its screen
+says **Challenge saved.**, lists who was invited with **Nobody has agreed yet**,
+and then gives three factual steps: you invited them, **You pick the roster**,
+and **Everyone agrees before [start date]**. The last step says it locks in when
+everyone on the roster agrees, and that if anyone hasn't by the start, it's
+cancelled and nothing counts. The quiet action is **View challenge**.
+
 When notifications are implemented, each must have a clear user benefit and a
 category the person controls. Ask permission when a person requests a reminder,
 not at launch. Display factual deadlines without fabricated urgency. Muting,
@@ -313,6 +320,9 @@ User-facing strings are Swift literals in the view layer and in the
 `PersonalChallengeDetailView.swift`, `TodayView.swift`, `YouView.swift`,
 `ChallengesView.swift`, `PersonalAccountabilityComponents.swift`,
 `PersonalPaceComponents.swift`, `AppModel.swift`, and `DomainModels.swift`.
+Friends copy lives in `FriendsViews.swift` and `HomeActionRows.swift`. Friend
+error codes map to sentences in `FriendsCopy` (`FriendModels.swift`), which
+shows an unknown code only as `Reference: <code>`.
 `PersonalSyncCoverage.swift`, `SupabaseMetricUploadClient.swift`, and
 `ActivitySyncCoordinator.swift` contain historical/generic error copy only and
 must not feed a Personal-v2 screen.

@@ -136,6 +136,28 @@ struct ChallengeV1Receipt: Codable, Equatable, Sendable {
         self.revoked=revoked
     }
 }
+/// What the server allows this account to create, and how its activity is
+/// verified (challenge_availability_v1). The app no longer infers either from
+/// its build. Older servers without the projection leave this nil.
+struct ChallengeV1Availability: Decodable, Equatable, Sendable {
+    struct Pair: Decodable, Equatable, Sendable { let policy: String; let sourcePolicyVersion: String }
+    let restricted: Bool
+    let admission: Bool
+    let accountAllowed: Bool
+    let verificationMode: String
+    let policies: [Pair]
+    var links: Bool? = nil
+    var community: Bool? = nil
+
+    /// The two pairs the owner-only private trial accepted before this
+    /// projection existed. Used only when the server doesn't report one.
+    static let privateTrialPolicies: Set<String> = ["personal_steps_goal_v1", "personal_distance_goal_v1"]
+
+    /// nil means no per-policy restriction applies.
+    var creatablePolicies: Set<String>? { restricted ? Set(policies.map(\.policy)) : nil }
+    var accountMode: Bool { verificationMode == "private_account" }
+}
+
 struct ChallengeV1Access: Decodable, Equatable, Sendable {
     let serverTime: ChallengeInstant?; let ageConfirmed: Bool; let betaAccess: Bool; let suspended: Bool
     var appealFiled: Bool? = nil

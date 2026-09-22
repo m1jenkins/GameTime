@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Quiet acknowledgement after a challenge is saved. It states the goal once
-/// and returns home; it does not recap the agreement.
+/// and returns home; it does not recap the agreement. An open friend lobby
+/// isn't locked in: nobody has agreed yet, so it says what happens next.
 struct ChallengeCreationSuccess: View {
     @Bindable var store: ChallengeV1Store
     let challengeID: UUID
@@ -19,15 +20,16 @@ struct ChallengeCreationSuccess: View {
     }
 
     private var row: ChallengeV1? { store.challenges.first { $0.id == challengeID } }
+    private var lobby: ChallengeV1? { row.flatMap { ChallengeCreationSuccessCopy.isOpenLobby($0) ? $0 : nil } }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                Image(systemName: "checkmark.circle.fill")
+                Image(systemName: lobby == nil ? "checkmark.circle.fill" : "envelope.circle.fill")
                     .font(.system(size: 28, weight: .regular))
                     .foregroundStyle(SignalCreationTheme.accent)
                     .accessibilityHidden(true)
-                Text(ChallengeCreationSuccessCopy.title)
+                Text(lobby == nil ? ChallengeCreationSuccessCopy.title : ChallengeCreationSuccessCopy.lobbyTitle)
                     .font(.system(size: headingSize, weight: .bold)).tracking(-1.1)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
@@ -46,6 +48,7 @@ struct ChallengeCreationSuccess: View {
                             .accessibilityIdentifier("beta.create.saved.stake")
                     }
                 }
+                if let lobby { lobbyFacts(lobby).padding(.top, 10) }
             }
             .padding(.horizontal, SignalCreationTheme.contentInset)
             .padding(.top, 8)
@@ -73,7 +76,7 @@ struct ChallengeCreationSuccess: View {
                 .buttonStyle(SignalCreationPrimaryStyle())
                 .accessibilityIdentifier("beta.create.home")
                 Button { showingGoal = true } label: {
-                    Text("View goal").font(.subheadline.weight(.medium))
+                    Text(lobby == nil ? "View goal" : "View challenge").font(.subheadline.weight(.medium))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(SignalCreationTheme.textSecondary)
@@ -90,10 +93,82 @@ struct ChallengeCreationSuccess: View {
         }
         .onAppear { headingFocused = true }
     }
+
+    /// Who was invited, then the three factual steps to a locked-in challenge.
+    private func lobbyFacts(_ row: ChallengeV1) -> some View {
+        let invited = row.members.filter { $0.actorId != store.actor && !$0.exited }
+        return VStack(alignment: .leading, spacing: 18) {
+            if !invited.isEmpty {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack {
+                        Text("Invited").font(.subheadline.weight(.semibold))
+                        Spacer(minLength: 8)
+                        Text(invited.contains(where: \.consented) ? "" : "Nobody has agreed yet")
+                            .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                    }
+                    ScrollView(.horizontal) {
+                        HStack(alignment: .top, spacing: 16) {
+                            ForEach(invited) { person in
+                                VStack(spacing: 5) {
+                                    LiveAvatar(username: person.username, actorID: person.actorId, size: 44)
+                                    Text(person.username).font(.caption.weight(.semibold)).lineLimit(2)
+                                        .multilineTextAlignment(.center).minimumScaleFactor(0.8)
+                                    Text(person.consented ? "Agreed" : "Invited").font(.caption2)
+                                        .foregroundStyle(SignalCreationTheme.textSecondary)
+                                }
+                                .frame(width: 72).accessibilityElement(children: .combine)
+                            }
+                        }
+                    }.scrollIndicators(.hidden)
+                }
+                .padding(16).background(SignalCreationTheme.soft.opacity(0.7), in: RoundedRectangle(cornerRadius: 18))
+                .accessibilityIdentifier("beta.create.saved.invited")
+            }
+            VStack(alignment: .leading, spacing: 16) {
+                ForEach(Array(ChallengeCreationSuccessCopy.steps(row, invited: invited.count).enumerated()), id: \.offset) { index, step in
+                    HStack(alignment: .top, spacing: 12) {
+                        Group {
+                            if index == 0 && invited.count > 0 { Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)) }
+                            else { Text("\(index + 1)").font(.system(size: 12, weight: .bold)) }
+                        }
+                        .foregroundStyle(index == 0 && invited.count > 0 ? .white : SignalCreationTheme.textSecondary)
+                        .frame(width: 24, height: 24)
+                        .background(index == 0 && invited.count > 0 ? SignalCreationTheme.accent : SignalCreationTheme.soft, in: Circle())
+                        .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(step.title).font(.subheadline.weight(.semibold))
+                            Text(step.detail).font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+            }
+            .accessibilityIdentifier("beta.create.saved.steps")
+        }
+    }
 }
 
 @MainActor enum ChallengeCreationSuccessCopy {
     static let title = "Challenge locked in."
+    static let lobbyTitle = "Challenge saved."
+
+    static func isOpenLobby(_ row: ChallengeV1) -> Bool { row.format.mode == .friend && row.status == "lobby_open" }
+
+    /// Matches the server: the creator picks the roster, and a lobby still
+    /// waiting for agreement at the start is cancelled with nothing counted.
+    static func steps(_ row: ChallengeV1, invited: Int, locale: Locale = .current) -> [(title: String, detail: String)] {
+        let zone = TimeZone(identifier: row.config.timezone) ?? .current
+        var day = Date.FormatStyle.dateTime.month(.abbreviated).day(); day.timeZone = zone; day.locale = locale
+        let first: (String, String) = invited > 0
+            ? ("You invited \(invited) \(invited == 1 ? "friend" : "friends")",
+               row.format.hasTarget ? "They’ll see it in GameTime and choose their own goal." : "They’ll see it in GameTime and review the rules.")
+            : ("Invite friends", "Open the challenge to invite friends once they’ve accepted your request.")
+        return [first,
+                ("You pick the roster", "Choose who’s in from the friends who accept."),
+                ("Everyone agrees before \(row.config.startsAt.date.formatted(day))",
+                 "It locks in when everyone on the roster agrees. If anyone hasn’t by the start, it’s cancelled and nothing counts.")]
+    }
 
     static func summary(_ row: ChallengeV1, locale: Locale = .current) -> String {
         LiveChallengePresentation.title(row, locale: locale) + " · " + dates(row, locale: locale)

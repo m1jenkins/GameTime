@@ -44,17 +44,27 @@ struct SignalProductShell: View {
         #endif
         return model.configuration.challengeV1RuntimeEnabled
     }
+    /// The server reports what this account may create. A server from before
+    /// that report keeps the private trial's two pairs for its enrolled build.
+    private var allowedPolicies: Set<String>? {
+        if let availability = model.challengesV1.availability { return availability.creatablePolicies }
+        return model.configuration.privateHealthAccountMode ? ChallengeV1Availability.privateTrialPolicies : nil
+    }
     var body: some View {
         LiveChallengeShell(store: model.challengesV1, invitation: model.challengeInvitation,
                            logout: { await model.signOut() }, profile: model.profile, accountActor: model.userID,
                            accountContent: AnyView(LiveSettingsView(store: model.challengesV1)),
                            serviceAvailable: serviceAvailable,
-                           personalStepsOnly: model.configuration.privateHealthAccountMode)
+                           allowedPolicies: allowedPolicies)
             .environment(\.challengeHealthFlow, model.challengeHealth)
+            .environment(serviceAvailable ? model.friends : nil)
             .modifier(LivePersonalRouteBridge())
             .task(id: model.userID) {
                 if model.challengesV1.actor != model.userID { model.challengesV1.setActor(model.userID) }
+                if model.friends.actor != model.userID { model.friends.setActor(model.userID) }
                 await model.challengesV1.refresh()
+                await model.saveOnboardingAgeConfirmation()
+                if serviceAvailable { await model.friends.refresh() }
                 await model.challengeHealth?.refresh()
             }
     }

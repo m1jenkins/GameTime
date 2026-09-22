@@ -178,25 +178,34 @@ struct ChallengeEntryPanel: View {
                         .disabled(!age || store.busy || store.pending != nil).accessibilityIdentifier("beta.age.submit")
                 }.padding(16).modifier(LiveCardModifier(radius: 20, material: true))
             }
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Invitation link").font(.system(size: 13, weight: .semibold))
-                HStack(spacing: 10) {
-                    Image(systemName: "link").foregroundStyle(SignalTheme.accent)
-                    TextField("Paste your invitation", text: $invitation.link)
-                        .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-                        .textContentType(.URL).keyboardType(.URL).font(.system(size: 15))
-                        .accessibilityLabel("Invitation link")
-                }.padding(.horizontal, 16).frame(minHeight: 54)
-                    .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
-                Button("Use invitation") { Task { await useInvitation() } }
-                    .buttonStyle(LivePrimaryButtonStyle(height: 48))
-                    .disabled(invitation.links.token(from: invitation.link) == nil || store.actor == nil || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
-                Text("Request a place, then choose whether to agree.")
-                    .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
-            }
-            LiveRuleModule(symbol: "person.2", title: "How invitations work", subtitle: "You agree separately") {
-                Text("An invitation grants beta access and requests a place in the lobby. The creator still chooses the roster. You agree separately. It does not add a friend.")
-                    .font(.system(size: 14))
+            if !store.linksAvailable {
+                if !invitation.link.isEmpty {
+                    Text("Invitation links aren’t available yet. Ask your friend to add you by username, then they can invite you.")
+                        .font(.system(size: 14)).foregroundStyle(SignalTheme.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("beta.links.closed")
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Invitation link").font(.system(size: 13, weight: .semibold))
+                    HStack(spacing: 10) {
+                        Image(systemName: "link").foregroundStyle(SignalTheme.accent)
+                        TextField("Paste your invitation", text: $invitation.link)
+                            .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+                            .textContentType(.URL).keyboardType(.URL).font(.system(size: 15))
+                            .accessibilityLabel("Invitation link")
+                    }.padding(.horizontal, 16).frame(minHeight: 54)
+                        .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
+                    Button("Use invitation") { Task { await useInvitation() } }
+                        .buttonStyle(LivePrimaryButtonStyle(height: 48))
+                        .disabled(invitation.links.token(from: invitation.link) == nil || store.actor == nil || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
+                    Text("Request a place, then choose whether to agree.")
+                        .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                }
+                LiveRuleModule(symbol: "person.2", title: "How invitations work", subtitle: "You agree separately") {
+                    Text("An invitation grants beta access and requests a place in the lobby. The creator still chooses the roster. You agree separately. It does not add a friend.")
+                        .font(.system(size: 14))
+                }
             }
             if let error = store.entryError {
                 Text(error).font(.system(size: 13)).foregroundStyle(SignalTheme.danger)

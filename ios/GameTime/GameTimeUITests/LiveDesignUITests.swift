@@ -107,7 +107,7 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(create.waitForExistence(timeout: 5))
     }
 
-    func testSavedChallengeLocksInThenReturnsHome() {
+    func testSavedFriendLobbyInvitesPickedFriendsThenReturnsHome() {
         continueAfterFailure = false
         let app = launch("challenges")
         defer { app.terminate() }
@@ -124,10 +124,25 @@ final class LiveDesignUITests: XCTestCase {
             predicate: NSPredicate(format: "enabled == true"), object: invite)], timeout: 10), .completed)
         invite.tap()
         let done = app.buttons["beta.invite.done"]
-        XCTAssertTrue(done.waitForExistence(timeout: 10)); bring(app, done); done.tap()
+        XCTAssertTrue(done.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Choose up to 5. They’ll each review the rules and choose their own goal."].exists)
+        XCTAssertEqual(done.label, "Skip for now")
+        XCTAssertFalse(app.buttons["beta.invite.links"].exists, "Invitation links stay closed")
+        let sam = app.buttons["beta.invite.friend.samr"]
+        let priya = app.buttons["beta.invite.friend.priya_n"]
+        XCTAssertTrue(sam.waitForExistence(timeout: 10))
+        sam.tap(); bring(app, priya); priya.tap()
+        XCTAssertTrue(sam.isSelected)
+        XCTAssertEqual(element(app, "beta.invite.count").label, "2 of 5 chosen")
+        XCTAssertEqual(done.label, "Invite 2 friends")
+        capture(app, name: "create-friends-picked")
+        bring(app, done); done.tap()
         let saved = app.staticTexts["beta.create.saved"]
         XCTAssertTrue(saved.waitForExistence(timeout: 10))
-        XCTAssertEqual(saved.label, "Challenge locked in.")
+        XCTAssertEqual(saved.label, "Challenge saved.")
+        XCTAssertTrue(app.staticTexts["Nobody has agreed yet"].exists)
+        XCTAssertTrue(app.staticTexts["You invited 2 friends"].exists)
+        XCTAssertTrue(app.staticTexts["You pick the roster"].exists)
         XCTAssertTrue(app.staticTexts["beta.create.saved.summary"].exists)
         XCTAssertFalse(app.staticTexts["What counts"].exists)
         XCTAssertFalse(app.staticTexts["Full rules"].exists)
@@ -136,8 +151,8 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertEqual(app.navigationBars.buttons.allElementsBoundByIndex.filter(\.isHittable).count, 0)
         let home = app.buttons["beta.create.home"]
         XCTAssertTrue(home.waitForExistence(timeout: 5))
-        XCTAssertEqual(app.buttons["beta.create.detail"].label, "View goal")
-        capture(app, name: "create-locked-in")
+        XCTAssertEqual(app.buttons["beta.create.detail"].label, "View challenge")
+        capture(app, name: "create-lobby-saved")
         let goal = app.buttons["beta.create.detail"]
         bring(app, goal); goal.tap()
         XCTAssertTrue(app.staticTexts["What counts"].waitForExistence(timeout: 10))
@@ -226,9 +241,27 @@ final class LiveDesignUITests: XCTestCase {
                                "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
         defer { app.terminate() }
+        // Nobody under 21 gives us a name or username.
+        XCTAssertTrue(app.staticTexts["Before you start"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["You need an Apple Watch"].exists)
+        XCTAssertTrue(labeled(app.staticTexts, "Your activity has to come from an Apple Watch that records to Apple Health on this iPhone. Activity recorded only by iPhone doesn’t count.").exists)
+        XCTAssertTrue(app.staticTexts["No real money moves. Nothing can be paid out or redeemed."].exists)
+        XCTAssertFalse(app.textFields["onboarding.name.input"].exists)
+        let proceed = app.buttons["onboarding.age.continue"]
+        XCTAssertFalse(proceed.isEnabled, "Continue waits for the 21+ confirmation")
+        app.buttons["onboarding.age.under21"].tap()
+        let adults = app.alerts["GameTime is for people 21 and older"]
+        XCTAssertTrue(adults.waitForExistence(timeout: 5))
+        XCTAssertTrue(labeled(adults.staticTexts, "You can’t use GameTime yet. We haven’t saved a profile for you. You can sign out, or use a different Apple account.").exists)
+        adults.buttons["Go back"].tap()
+        capture(app, name: "onboarding-age")
+        app.switches["onboarding.age.toggle"].coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
+        XCTAssertTrue(proceed.isEnabled)
+        proceed.tap()
         let name = app.textFields["onboarding.name.input"]
         XCTAssertTrue(name.waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["Your profile"].exists)
+        XCTAssertTrue(app.staticTexts["Pick carefully — you can’t change your username yet. Friends need it to send you a request."].exists)
         let submit = app.buttons["onboarding.submit"]
         XCTAssertFalse(submit.isEnabled, "An empty profile cannot be submitted")
         name.tap(); name.typeText("Alex Native")
@@ -286,6 +319,126 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(delete.isEnabled)
         XCTAssertFalse(confirmation.exists, "Cancel must leave the account intact without starting Apple confirmation")
         XCTAssertTrue(app.staticTexts["@alexlee"].exists)
+    }
+
+    // MARK: D142 friends
+
+    func testFriendsListAnswersRequestsAndStatesEverySafetyConsequence() {
+        continueAfterFailure = false
+        let app = launch("friends")
+        defer { app.terminate() }
+        XCTAssertTrue(app.staticTexts["Requests for you"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["If you decline, the request goes away. We don’t tell them."].exists)
+        XCTAssertTrue(app.staticTexts["Requests you sent"].exists)
+        XCTAssertTrue(app.staticTexts["@rileyc · Sent today"].exists)
+        capture(app, name: "friends-list")
+
+        app.buttons["Accept Taylor Kim’s request"].tap()
+        XCTAssertTrue(app.staticTexts["You and Taylor are now friends."].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Requests for you"].exists)
+
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Sam Rivera")).firstMatch.tap()
+        XCTAssertTrue(app.buttons["friends.remove"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["We don’t send a notice when you remove, block or report someone."].exists)
+        capture(app, name: "friends-sheet")
+        app.buttons["friends.block"].tap()
+        let block = app.alerts["Block Sam?"]
+        XCTAssertTrue(block.waitForExistence(timeout: 5))
+        XCTAssertTrue(labeled(block.staticTexts, "Sam won’t be able to find you or send you requests, and you’ll stop being friends. If you share a challenge that hasn’t finished, you both leave it. If fewer than two people are left, it won’t count.").exists)
+        block.buttons["Cancel"].tap()
+        app.buttons["friends.remove"].tap()
+        let remove = app.alerts["Remove Sam?"]
+        XCTAssertTrue(remove.waitForExistence(timeout: 5))
+        XCTAssertTrue(remove.staticTexts["You’ll stop being friends. Challenges you already share stay as they are."].exists)
+        remove.buttons["Cancel"].tap()
+
+        app.buttons["friends.report"].tap()
+        XCTAssertTrue(app.staticTexts["Tell us what’s wrong. We read every report. Sam isn’t told."].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["friends.report.send"].isEnabled, "A report needs one of the three reasons")
+        app.buttons["Unwanted requests or invitations"].tap()
+        app.buttons["friends.report.send"].tap()
+        XCTAssertTrue(app.staticTexts["Thanks for telling us"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["We’ll look into it. You can also block them."].exists)
+        XCTAssertTrue(app.buttons["Block Sam"].exists)
+        XCTAssertFalse(app.textViews.firstMatch.exists, "Reports take no free text")
+    }
+
+    func testAddAFriendUsesAnExactUsernameAndPlainShareText() {
+        continueAfterFailure = false
+        let app = launch("friends")
+        defer { app.terminate() }
+        let add = app.buttons["friends.add"]
+        XCTAssertTrue(add.waitForExistence(timeout: 10))
+        add.tap()
+        let field = app.textFields["friends.username"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Enter your friend’s exact username. They’ll need to accept before you can invite them to a challenge."].exists)
+        XCTAssertTrue(app.staticTexts["@alexlee"].exists)
+        XCTAssertTrue(app.buttons["Share username"].exists)
+
+        field.typeText("nobody_here\n")
+        XCTAssertTrue(labeled(app.staticTexts, "We couldn’t find @nobody_here. Usernames need to match exactly — check the spelling with your friend.").waitForExistence(timeout: 5))
+
+        clear(field); field.typeText("taylork\n")
+        XCTAssertTrue(app.staticTexts["taylork already sent you a request. Accept it to become friends."].waitForExistence(timeout: 5))
+
+        clear(field); field.typeText("drew_p\n")
+        let send = app.buttons["friends.add.send"]
+        XCTAssertTrue(send.waitForExistence(timeout: 5))
+        send.tap()
+        XCTAssertTrue(app.staticTexts["Request sent. Drew will see it in GameTime and can accept or decline."].waitForExistence(timeout: 5))
+        capture(app, name: "friends-add-sent")
+    }
+
+    func testBlockedPeopleCanBeUnblockedWithoutRestoringFriendship() {
+        continueAfterFailure = false
+        let app = launch("friends")
+        defer { app.terminate() }
+        let blocked = app.buttons["friends.blocked"]
+        XCTAssertTrue(blocked.waitForExistence(timeout: 10))
+        bring(app, blocked); blocked.tap()
+        XCTAssertTrue(app.staticTexts["Blocked people can’t find you or send you requests. They aren’t told."].waitForExistence(timeout: 5))
+        app.buttons["Unblock Casey Wu"].tap()
+        let alert = app.alerts["Unblock Casey?"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        XCTAssertTrue(alert.staticTexts["Casey will be able to find you and send you requests again. You won’t become friends unless you both agree."].exists)
+        alert.buttons["Unblock"].tap()
+        XCTAssertTrue(app.staticTexts["No one is blocked"].waitForExistence(timeout: 5))
+    }
+
+    func testHomeActionRowsAreOrderedAndLeaveOnceHandled() {
+        continueAfterFailure = false
+        let app = launch("home")
+        defer { app.terminate() }
+        XCTAssertTrue(element(app, "home.actions").waitForExistence(timeout: 10))
+        let agree = app.staticTexts["Agree to October runs"]
+        let request = app.staticTexts["Friend request"]
+        let accepted = app.staticTexts["Accepted your request"]
+        XCTAssertTrue(agree.waitForExistence(timeout: 5))
+        XCTAssertTrue(request.exists)
+        XCTAssertTrue(accepted.exists)
+        XCTAssertLessThan(agree.frame.minY, request.frame.minY)
+        XCTAssertLessThan(request.frame.minY, accepted.frame.minY)
+        capture(app, name: "home-action-rows")
+
+        app.buttons["Decline Taylor Kim’s request"].tap()
+        XCTAssertTrue(app.staticTexts["Request declined."].waitForExistence(timeout: 5))
+        XCTAssertFalse(request.exists)
+        app.buttons["Dismiss"].tap()
+        XCTAssertFalse(accepted.waitForExistence(timeout: 2))
+        XCTAssertTrue(agree.exists)
+    }
+
+    /// XCUITest subscripts reject identifiers over 128 characters.
+    private func labeled(_ query: XCUIElementQuery, _ label: String) -> XCUIElement {
+        query.matching(NSPredicate(format: "label == %@", label)).firstMatch
+    }
+
+    private func clear(_ field: XCUIElement) {
+        field.tap()
+        if let text = field.value as? String, !text.isEmpty {
+            field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: text.count))
+        }
     }
 
     private func launch(_ route: String) -> XCUIApplication {

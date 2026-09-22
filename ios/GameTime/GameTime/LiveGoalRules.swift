@@ -9,6 +9,8 @@ struct LiveGoalRules: View {
     let row: ChallengeV1
     let actor: UUID?
     var expandedSections: Set<LiveGoalRuleSection> = [.goals]
+    /// The server reports that this account's activity carries no device check.
+    var accountMode = false
 
     private var minimum: Int {
         row.agreement?.terms?["minimum"]?.integer ?? (row.format.mode == .personal ? 1 : 2)
@@ -40,6 +42,7 @@ struct LiveGoalRules: View {
             LiveRuleModule(symbol: "applewatch", title: "Activity that counts", subtitle: LiveGoalCopy.sourceTitle(row), expanded: expandedSections.contains(.activity)) {
                 if let source = row.sourcePolicyVersion {
                     rule(ChallengeHealthCopy.source(source, leaderboard: row.format.usesReceivedScores))
+                    if accountMode { rule(ChallengeHealthCopy.accountMode) }
                     if row.format.usesReceivedScores {
                         rule("We rank what GameTime saves, without checking that your entire Apple Health history is available. Refresh to send activity and check your saved score. An update counts only after GameTime confirms it.")
                         rule("If we can’t save an update, use Refresh to recover it. If your result is still wrong, ask us to review it before the review deadline.")

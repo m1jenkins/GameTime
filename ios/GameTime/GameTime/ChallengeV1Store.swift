@@ -23,6 +23,10 @@ import Observation
         return unique.values.sorted { $0.id.uuidString < $1.id.uuidString }
     }
     private(set) var access: ChallengeV1Access?
+    private(set) var availability: ChallengeV1Availability?
+    /// Links show only when the server reports them open, or reports that its
+    /// runtime doesn't govern them (null). No report means closed.
+    var linksAvailable: Bool { availability.map { $0.links ?? true } ?? false }
     private(set) var communities: [ChallengeV1Community] = []
     private(set) var entryError: String?
     private(set) var entryFresh = false
@@ -52,7 +56,7 @@ import Observation
     }
     func setActor(_ actor: UUID?) {
         self.actor = actor; visible = true; generation = UUID(); refreshGeneration = UUID()
-        access = nil; communities = []; entryFresh = false; entryError = nil
+        access = nil; availability = nil; communities = []; entryFresh = false; entryError = nil
         sections = [:]; detailRows = [:]; detailReadAt = [:]; pending = nil; error = nil; fresh = false; busy = false; lastReceipt = nil
         issuedLinks = []
         projectionEpoch = 0; restrictionFences = [:]; detailRequests = [:]
@@ -254,6 +258,12 @@ import Observation
             guard ticket == generation, refresh == refreshGeneration else { return }
             guard authenticated == actor else { setActor(nil); return }
             self.access = access
+            // An older server has no projection; keep the last one and go on.
+            if let reported = try? await client.read("challenge_availability_v1", fields: [:], actor: actor, as: ChallengeV1Availability.self) {
+                guard ticket == generation, refresh == refreshGeneration else { return }
+                availability = reported
+            }
+            guard ticket == generation, refresh == refreshGeneration else { return }
             if access.suspended {
                 for section in ChallengeV1Section.allCases { sections[section]?.rows.removeAll { !$0.socialHidden } }
                 detailRows = detailRows.filter { $0.value.socialHidden }; fresh = false

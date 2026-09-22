@@ -13,6 +13,8 @@ import Observation
     private(set) var fresh = false
     private(set) var refreshing = false
     private(set) var loadError: String?
+    /// The last refresh couldn't reach GameTime, as opposed to a refusal.
+    private(set) var offline = false
     private(set) var pending: FriendCommand?
     private(set) var busy = false
     private(set) var actionError: String?
@@ -60,7 +62,7 @@ import Observation
 
     func setActor(_ actor: UUID?) {
         self.actor = actor; visible = true; generation = UUID(); refreshGeneration = UUID()
-        list = nil; savedAt = nil; fresh = false; refreshing = false; loadError = nil
+        list = nil; savedAt = nil; fresh = false; refreshing = false; loadError = nil; offline = false
         pending = nil; busy = false; actionError = nil; actionErrorCode = nil; notice = nil; dismissed = []
     }
     func hide() { visible = false; refreshGeneration = UUID(); refreshing = false; fresh = false }
@@ -89,11 +91,12 @@ import Observation
             let finalActor = await auth.currentUserID()
             guard ticket == generation, token == refreshGeneration else { return }
             guard finalActor == actor else { setActor(nil); return }
-            list = loaded; savedAt = clock(); fresh = true; loadError = nil
+            list = loaded; savedAt = clock(); fresh = true; loadError = nil; offline = false
         } catch {
             guard ticket == generation, token == refreshGeneration else { return }
             if (error as? ChallengeV1Error) == .accountChanged { setActor(nil); return }
             fresh = false; loadError = FriendsCopy.message(for: error)
+            offline = (error as? ChallengeV1Error) == .unavailable
         }
     }
 

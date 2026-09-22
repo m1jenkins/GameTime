@@ -101,7 +101,7 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
         try decode(await send("challenge_stop_command_v1", request.body, request.actorId))
     }
     func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON] = [:], actor: UUID, as type: T.Type) async throws -> T {
-        guard ["challenge_access_status_v1", "challenge_personal_preview_v1", "challenge_community_catalog_v1", "challenge_operator_cases_v1"].contains(name) else { throw ChallengeV1Error.unavailable }
+        guard ["challenge_access_status_v1", "challenge_availability_v1", "challenge_personal_preview_v1", "challenge_community_catalog_v1", "challenge_operator_cases_v1"].contains(name) else { throw ChallengeV1Error.unavailable }
         return try decode(await send(name, ChallengeJSON.data(.object(fields)), actor))
     }
     private func send(_ name: String, _ body: Data, _ actor: UUID) async throws -> Data {

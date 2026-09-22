@@ -107,19 +107,76 @@ struct LiveSignInView: View {
     }
 }
 
+/// D142: nobody under 21 gives us a name or username. The first step states
+/// the Apple Watch requirement and simulated stakes and asks for 21+; only
+/// then does the profile step appear.
 struct LiveOnboardingView: View {
     @Environment(AppModel.self) private var model
     @State private var handle = ""
     @State private var displayName: String
+    @State private var ageConfirmed = false
+    @State private var showingProfile = false
+    @State private var under21 = false
     @FocusState private var focusedField: Field?
     private enum Field: Hashable { case name, handle }
 
     init(namePrefill: String) { _displayName = State(initialValue: namePrefill) }
 
     var body: some View {
+        if showingProfile { profile } else { beforeYouStart }
+    }
+
+    private var beforeYouStart: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                LiveOnboardingSteps(current: 1).padding(.top, 16)
+                Text("Before you start").font(.system(size: 30, weight: .bold)).tracking(-1)
+                    .accessibilityAddTraits(.isHeader).padding(.top, 22)
+                Text("A couple of things to know about GameTime.").font(.system(size: 15))
+                    .foregroundStyle(SignalTheme.textSecondary).padding(.top, 10)
+                VStack(alignment: .leading, spacing: 20) {
+                    LiveOnboardingFact(symbol: "applewatch", title: "You need an Apple Watch",
+                        text: "Your activity has to come from an Apple Watch that records to Apple Health on this iPhone. Activity recorded only by iPhone doesn’t count.")
+                    LiveOnboardingFact(symbol: "info.circle", title: "Stakes are simulated",
+                        text: "No real money moves. Nothing can be paid out or redeemed.")
+                }.padding(.top, 26)
+                Toggle("I confirm I am 21 or older", isOn: $ageConfirmed)
+                    .font(.system(size: 16, weight: .medium)).tint(SignalTheme.accent)
+                    .padding(.horizontal, 16).frame(minHeight: 56)
+                    .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
+                    .padding(.top, 30).accessibilityIdentifier("onboarding.age.toggle")
+                Text("GameTime is only for people 21 and older.").font(.system(size: 12))
+                    .foregroundStyle(SignalTheme.textSecondary).padding(.top, 10).padding(.horizontal, 4)
+            }.padding(.horizontal, 24).padding(.bottom, 24)
+        }
+        .background(SignalTheme.canvas.ignoresSafeArea()).foregroundStyle(SignalTheme.textPrimary)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 4) {
+                Button { showingProfile = true } label: {
+                    HStack(spacing: 10) { Text("Continue"); Image(systemName: "arrow.right").accessibilityHidden(true) }
+                }
+                .buttonStyle(LivePrimaryButtonStyle()).disabled(!ageConfirmed)
+                .accessibilityIdentifier("onboarding.age.continue")
+                Button("I’m under 21") { under21 = true }
+                    .font(.system(size: 14, weight: .medium)).foregroundStyle(SignalTheme.textSecondary)
+                    .frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("onboarding.age.under21")
+            }
+            .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 6).background(SignalTheme.canvas)
+        }
+        .alert("GameTime is for people 21 and older", isPresented: $under21) {
+            Button("Sign out") { Task { await model.signOut() } }
+            Button("Go back", role: .cancel) {}
+        } message: {
+            Text("You can’t use GameTime yet. We haven’t saved a profile for you. You can sign out, or use a different Apple account.")
+        }
+        .tint(SignalTheme.accent)
+    }
+
+    private var profile: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
+                    LiveOnboardingSteps(current: 2).padding(.top, 16).padding(.bottom, -8)
                     HStack {
                         Text("Your profile").font(.system(size: 28, weight: .bold)).tracking(-1)
                         Spacer()
@@ -133,7 +190,7 @@ struct LiveOnboardingView: View {
                         profileField("Your name", text: $displayName, field: .name)
                         profileField("Username", text: $handle, field: .handle)
                     }
-                    Text("Pick carefully — you can’t change your username yet.")
+                    Text("Pick carefully — you can’t change your username yet. Friends need it to send you a request.")
                         .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let message = error(.general) {
@@ -209,7 +266,38 @@ struct LiveOnboardingView: View {
     private func submit() {
         guard !model.isMutating else { return }
         focusedField = nil
-        Task { await model.completeOnboarding(handle: handle, displayName: displayName) }
+        Task { await model.completeOnboarding(handle: handle, displayName: displayName, ageConfirmed: ageConfirmed) }
+    }
+}
+
+private struct LiveOnboardingSteps: View {
+    let current: Int
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(1...2, id: \.self) { step in
+                Capsule().fill(step <= current ? SignalTheme.accent : SignalTheme.divider).frame(width: 22, height: 5)
+            }
+        }
+        .accessibilityElement().accessibilityLabel("Step \(current) of 2")
+    }
+}
+
+private struct LiveOnboardingFact: View {
+    let symbol: String
+    let title: String
+    let text: String
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: symbol).font(.system(size: 18)).foregroundStyle(SignalTheme.textPrimary)
+                .frame(width: 40, height: 40).background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 11))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(.system(size: 16, weight: .semibold))
+                Text(text).font(.system(size: 14)).foregroundStyle(SignalTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
