@@ -170,12 +170,12 @@ struct LiveProgressRail: View {
 /// The UI uses acknowledged values and server result states, never a phone-only
 /// total or an inferred missed goal. Fixture labels are compiled out of Release.
 enum LiveChallengePresentation {
-    @MainActor static func title(_ row: ChallengeV1) -> String {
+    @MainActor static func title(_ row: ChallengeV1, locale: Locale = .current) -> String {
         #if DEBUG
         if LiveDesignFixtures.enabled, let title = LiveDesignFixtures.displayTitle(for: row.id) { return title }
         #endif
         guard row.format.hasTarget else { return row.title }
-        let date = DateFormatter(); date.timeZone = TimeZone(identifier: row.config.timezone); date.dateFormat = "MMMM"
+        let date = DateFormatter(); date.locale = locale; date.timeZone = TimeZone(identifier: row.config.timezone); date.dateFormat = "MMMM"
         let activity = switch row.format.metric { case .distance, .timed: "runs"; case .steps: "steps"; case .exercise: "activity" }
         return date.string(from: row.config.startsAt.date) + " " + activity
     }

@@ -74,8 +74,10 @@ import GameTimeCore
             XCTAssertTrue(first.text.contains("find a suggestion on this phone"), first.text)
             XCTAssertEqual(draft.target, target, "Rendering must preserve the exact editable value")
             if metric == .steps {
-                XCTAssertFalse(first.text.contains("outdoor runs"))
+                XCTAssertTrue(first.text.contains("outdoor runs"))
+                XCTAssertTrue(first.text.contains("steps"))
                 XCTAssertFalse(first.text.contains("activity minutes"))
+                XCTAssertFalse(first.text.contains("running distance"))
                 XCTAssertEqual(draft.policy.id, "personal_steps_goal_v1")
             }
             _ = try await captureMountedSignal(mounted.window, controller: mounted.host, name: name, test: self)
@@ -208,14 +210,65 @@ import GameTimeCore
             let text = try await capture(NavigationStack {
                 ChallengeCreationInviteView(store: fixture.store, challengeID: fixture.id, showingConfirmation: true)
             }, name: name, scheme: scheme, size: size)
-            XCTAssertTrue(text.contains("your challenge is saved"))
-            XCTAssertTrue(text.contains("everyone still needs to review and agree"))
-            XCTAssertTrue(text.contains("sam rivera"))
-            XCTAssertTrue(text.contains("view lobby"))
+            XCTAssertTrue(text.contains("challenge locked in"), text)
+            XCTAssertTrue(text.contains("runs"), text)
+            XCTAssertTrue(text.contains("simulated"), text)
+            XCTAssertTrue(text.contains("go to home"), text)
+            XCTAssertTrue(text.contains("view goal"), text)
+            XCTAssertFalse(text.contains("view lobby"))
+            XCTAssertFalse(text.contains("what counts"))
+            XCTAssertFalse(text.contains("full rules"))
             XCTAssertFalse(text.contains("invitations sent"))
             XCTAssertFalse(text.contains("challenge ready"))
+            XCTAssertFalse(text.contains("agreed"))
         }
         XCTAssertTrue(fixture.client.requests.isEmpty, "Confirmation does not select a roster, freeze rules or grant consent")
+    }
+
+    func testLockedInCopyStatesTheGoalOnce() throws {
+        XCTAssertNil(ChallengeCreationSuccessCopy.stakeLine(cents: 0))
+        XCTAssertEqual(ChallengeCreationSuccessCopy.stakeLine(cents: 2_000), "$20 simulated · fee $0")
+        let fixture = CreationFlowFixture()
+        defer { fixture.clean() }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"),
+            now: try ChallengeInstant("2026-09-22T12:00:00-07:00").date, zone: "America/Los_Angeles")
+        draft.start = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 9, day: 24)))
+        draft.days = "7"
+        let row = try fixture.row(draft, ownTarget: 50_000)
+        let locale = Locale(identifier: "en_US")
+        XCTAssertEqual(ChallengeCreationSuccessCopy.summary(row, locale: locale), "September steps · Sep 24–30")
+        XCTAssertEqual(ChallengeCreationSuccessCopy.stake(row), "$20 simulated · fee $0")
+    }
+
+    func testPersonalLockedInScreenOffersHomeWithoutRestatingTheAgreement() async throws {
+        let fixture = CreationFlowFixture()
+        defer { fixture.clean() }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"),
+            now: try ChallengeInstant("2026-09-22T12:00:00-07:00").date, zone: "America/Los_Angeles")
+        draft.start = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 9, day: 24)))
+        draft.days = "7"
+        fixture.client.row = try fixture.row(draft, ownTarget: 50_000)
+        await fixture.start()
+        let mounted = try mount(ChallengeCreationSuccess(store: fixture.store, challengeID: fixture.id)
+            .environment(\.locale, Locale(identifier: "en_US"))
+            .environment(\.colorScheme, .light))
+        defer { mounted.close() }
+        try await Task.sleep(for: .milliseconds(250))
+        let seen = try viewport(mounted, name: "native-create-locked-in")
+        XCTAssertTrue(seen.text.contains("challenge locked in"), seen.text)
+        XCTAssertTrue(seen.text.contains("september steps"), seen.text)
+        XCTAssertTrue(seen.text.contains("sep 24"), seen.text)
+        XCTAssertTrue(seen.text.contains("go to home"), seen.text)
+        XCTAssertTrue(seen.text.contains("view goal"), seen.text)
+        XCTAssertTrue(seen.text.contains("simulated"), seen.text)
+        XCTAssertFalse(seen.text.contains("what counts"))
+        XCTAssertFalse(seen.text.contains("full rules"))
+        XCTAssertFalse(seen.text.contains("week starts"))
+        XCTAssertTrue(fixture.client.requests.isEmpty, "Showing the saved goal does not submit another action")
     }
 
     func testInvitationAcknowledgmentRequiresItsCompleteLobbyReceipt() async throws {
@@ -398,6 +451,10 @@ import GameTimeCore
             let result = CGRect(x: bounds.minX * size.width, y: (1 - bounds.maxY) * size.height,
                                 width: bounds.width * size.width, height: bounds.height * size.height)
             if let other, !(result.minY < other.maxY && result.maxY > other.minY) { continue }
+            // When Vision reads the value and unit as one line ("800 steps"),
+            // it estimates the unit's box and can overlap the value. Measure
+            // the pixels beside the value instead of trusting that estimate.
+            if let other, result.minX < other.maxX - 2 { continue }
             return result
         }
         if let other { return croppedFrame(matching: pattern, beside: other) }

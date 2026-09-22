@@ -55,6 +55,7 @@ struct SignalCreationChrome: View {
             }
             Text(title).font(.system(size: titleSize, weight: .bold)).tracking(-0.5)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityHidden(title.isEmpty)
             Button(action: close) {
                 Image(systemName: "xmark").font(.system(size: 16, weight: .medium)).frame(width: 44, height: 44)
                     .background(SignalCreationTheme.soft.opacity(0.75), in: Circle())

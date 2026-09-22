@@ -84,9 +84,16 @@ final class SignalCreationUITests: XCTestCase {
         let commit = app.buttons["beta.personal.commit"]; bring(app, commit)
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: commit)], timeout: 15), .completed)
         commit.tap()
-        XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 20)); capture(app, "after-saved")
+        XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 20))
+        XCTAssertEqual(app.staticTexts["beta.create.saved"].label, "Challenge locked in.")
+        XCTAssertTrue(app.buttons["beta.create.home"].exists)
+        XCTAssertEqual(app.buttons["beta.create.detail"].label, "View goal")
+        XCTAssertFalse(app.buttons["What counts"].exists)
+        capture(app, "after-saved")
         let detail = app.buttons["beta.create.detail"]; bring(app, detail); detail.tap()
-        XCTAssertTrue(app.staticTexts["Your steps goal"].waitForExistence(timeout: 10)); capture(app, "after-detail")
+        XCTAssertTrue(app.staticTexts["What counts"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "label == 'Back' OR label == 'Back to Home'")).allElementsBoundByIndex.filter(\.isHittable).count, 1)
+        capture(app, "after-detail")
         app.swipeUp(); capture(app, "after-detail-lower")
 
         // Reload the saved account through the ordinary shell, so profile
@@ -112,9 +119,10 @@ final class SignalCreationUITests: XCTestCase {
         XCTAssertTrue(featured.label.contains("10,000"), featured.label)
         capture(restored, "after-restored-profile")
         featured.tap()
-        XCTAssertTrue(restored.staticTexts["Your steps goal"].waitForExistence(timeout: 10))
+        XCTAssertTrue(restored.staticTexts["What counts"].waitForExistence(timeout: 10))
+        XCTAssertEqual(restored.buttons.matching(NSPredicate(format: "label == 'Back' OR label == 'Back to Home'")).allElementsBoundByIndex.filter(\.isHittable).count, 1)
         capture(restored, "after-profile-goal-detail")
-        restored.navigationBars.buttons.element(boundBy: 0).tap()
+        restored.buttons["Back to Home"].tap()
         tap(restored, "profile.settings")
         XCTAssertTrue(restored.navigationBars["Settings"].waitForExistence(timeout: 10))
         capture(restored, "after-profile-settings")
@@ -149,10 +157,14 @@ final class SignalCreationUITests: XCTestCase {
         capture(app, "after-friend-invite")
         tap(app, "beta.invite.done")
         XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.staticTexts["beta.create.saved"].label, "Challenge locked in.")
+        XCTAssertTrue(app.buttons["beta.create.home"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.buttons["beta.create.detail"].label, "View goal")
         capture(app, "after-friend-confirmation")
         let detail = app.buttons["beta.create.detail"]; bring(app, detail); detail.tap()
-        XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: 10),
-                      "Opening the lobby restores its native navigation controls")
+        XCTAssertTrue(app.staticTexts["What counts"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "label == 'Back' OR label == 'Back to Home'")).allElementsBoundByIndex.filter(\.isHittable).count, 1,
+                       "Opening the goal keeps a single back control")
         capture(app, "after-friend-lobby")
     }
     @MainActor func testSavedLobbyInvitationJourney() async throws {
@@ -234,9 +246,10 @@ final class SignalCreationUITests: XCTestCase {
         capture(app, "invitation-unavailable-link-controls")
         tap(app, "beta.invite.done")
         XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.staticTexts["beta.create.saved"].label, "Challenge locked in.")
+        XCTAssertFalse(app.staticTexts["beta.invite.heading"].exists)
+        XCTAssertTrue(app.buttons["beta.create.home"].exists)
         capture(app, "invitation-saved-confirmation")
-        tap(app, "beta.invite.back")
-        XCTAssertTrue(app.staticTexts["beta.invite.heading"].waitForExistence(timeout: 10))
         app.terminate()
     }
     @MainActor func testFriendGoalAndRetainedAccess() throws {
@@ -255,8 +268,11 @@ final class SignalCreationUITests: XCTestCase {
         capture(app, "after-friend-goal-invite")
         tap(app, "beta.invite.done")
         XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 20))
+        XCTAssertEqual(app.staticTexts["beta.create.saved"].label, "Challenge locked in.")
+        XCTAssertTrue(app.buttons["beta.create.home"].exists)
         capture(app, "after-friend-goal-saved")
         let detail = app.buttons["beta.create.detail"]; bring(app, detail); detail.tap()
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "label == 'Back' OR label == 'Back to Home'")).allElementsBoundByIndex.filter(\.isHittable).count, 1)
         capture(app, "after-friend-goal-lobby")
     }
     @MainActor func testReducedTransparencyAndMotionCreation() throws {

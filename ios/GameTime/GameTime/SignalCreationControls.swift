@@ -52,17 +52,19 @@ struct SignalActivityChoices: View {
     @ScaledMetric(relativeTo: .body) private var symbolSize: CGFloat = 21
     @ScaledMetric(relativeTo: .body) private var symbolWidth: CGFloat = 25
     @Binding var selection: ChallengeV1Policy.Metric
+    var metrics: [ChallengeV1Policy.Metric] = Array(ChallengeV1Policy.Metric.allCases)
+    var title: (ChallengeV1Policy.Metric) -> String = { $0.title }
     @Environment(\.dynamicTypeSize) private var textSize
     var body: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: textSize >= .xxxLarge ? 1 : 2), spacing: 10) {
-            ForEach(ChallengeV1Policy.Metric.allCases, id: \.self) { metric in
+            ForEach(metrics, id: \.self) { metric in
                 Button { selection = metric } label: {
                     HStack(spacing: 9) {
                         Image(systemName: metric.symbol)
                             .font(.system(size: symbolSize, weight: .regular))
                             .symbolRenderingMode(.monochrome)
                             .frame(width: symbolWidth).accessibilityHidden(true)
-                        Text(metric.title).font(.subheadline.weight(.semibold))
+                        Text(title(metric)).font(.subheadline.weight(.semibold))
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }.foregroundStyle(selection == metric ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary)

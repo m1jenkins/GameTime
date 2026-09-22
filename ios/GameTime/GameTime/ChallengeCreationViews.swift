@@ -5,6 +5,7 @@ struct ChallengeV1Create: View {
     @Bindable var store: ChallengeV1Store
     @Environment(\.dismiss) private var dismiss
     @Environment(\.challengeHealthFlow) private var health
+    private let onGoHome: () -> Void
     @State private var draft: ChallengeCreationDraft
     private enum Editor: String, Identifiable { case dates, amount; var id: String { rawValue } }
     @State private var editor: Editor?
@@ -14,11 +15,12 @@ struct ChallengeV1Create: View {
     @ScaledMetric(relativeTo: .title3) private var choiceSymbolWidth: CGFloat = 28
     @ScaledMetric(relativeTo: .largeTitle) private var headingSize: CGFloat = 30
     @AccessibilityFocusState private var headingFocused: Bool
-    init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil, personalStepsOnly: Bool = false) {
-        self.init(store: store, draft: ChallengeCreationDraft(initialPolicy: initialPolicy, personalStepsOnly: personalStepsOnly))
+    init(store: ChallengeV1Store, initialPolicy: ChallengeV1Policy? = nil, personalStepsOnly: Bool = false, onGoHome: @escaping () -> Void = {}) {
+        self.init(store: store, draft: ChallengeCreationDraft(initialPolicy: initialPolicy, personalStepsOnly: personalStepsOnly), onGoHome: onGoHome)
     }
-    init(store: ChallengeV1Store, draft: ChallengeCreationDraft) {
+    init(store: ChallengeV1Store, draft: ChallengeCreationDraft, onGoHome: @escaping () -> Void = {}) {
         self.store = store
+        self.onGoHome = onGoHome
         _draft = State(initialValue: draft)
     }
     private var heading: String {
@@ -34,9 +36,9 @@ struct ChallengeV1Create: View {
         NavigationStack {
             if let receipt = draft.receipt, let id = receipt.id {
                 if draft.savedPolicy?.mode == .friend {
-                    ChallengeCreationInviteView(store: store, challengeID: id, progressLabels: progressLabels)
+                    ChallengeCreationInviteView(store: store, challengeID: id, progressLabels: progressLabels, onGoHome: onGoHome)
                 } else {
-                    saved(id: id, status: receipt.status ?? "scheduled")
+                    ChallengeCreationSuccess(store: store, challengeID: id, onGoHome: onGoHome)
                 }
             } else {
                 flow
@@ -156,7 +158,15 @@ struct ChallengeV1Create: View {
             .accessibilityIdentifier("beta.create.type." + id)
     }
     @ViewBuilder private var activityStep: some View {
-        if !draft.personalStepsOnly { SignalActivityChoices(selection: $draft.metric) }
+        // The private trial accepts personal Steps and Outdoor runs. Friend
+        // challenges, Activity minutes, and timed runs stay closed.
+        if draft.personalStepsOnly {
+            SignalActivityChoices(selection: $draft.metric, metrics: [.distance, .steps]) { metric in
+                metric == .distance ? "Outdoor runs" : metric.title
+            }
+        } else {
+            SignalActivityChoices(selection: $draft.metric)
+        }
         if draft.unavailable {
             Text("Activity not available yet. Choose another activity to continue.").font(.subheadline)
         } else {
@@ -354,58 +364,5 @@ struct ChallengeV1Create: View {
         .buttonStyle(SignalCreationPrimaryStyle())
         .disabled(blocked || (store.pending == nil && draft.step == .review && !draft.needsReview && (store.access?.ageConfirmed != true || draft.mode == .personal && (!draft.consent || !ready))))
         .accessibilityIdentifier(store.pending != nil ? "beta.create.retry" : isReviewAction && draft.mode == .personal ? "beta.personal.preview" : draft.step == .review ? (draft.mode == .personal ? "beta.personal.commit" : "beta.create.submit") : "beta.create.continue")
-    }
-    private func saved(id: UUID, status: String) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Image(systemName: "checkmark.circle.fill").font(.system(size: 28, weight: .regular))
-                    .foregroundStyle(SignalCreationTheme.accent).accessibilityHidden(true)
-                Text(draft.savedPolicy?.mode == .personal ? "Your goal is saved." : "Your lobby is ready.")
-                    .font(.system(size: headingSize, weight: .bold)).tracking(-1.1).accessibilityAddTraits(.isHeader)
-                    .accessibilityIdentifier("beta.create.saved")
-                if let row = store.challenges.first(where: { $0.id == id }), store.isFresh(row) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(row.title).font(.title2.weight(.bold)).tracking(-0.6)
-                        Text(row.statusText).font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
-                        Text(savedDateRange(row.config)).font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
-                        Text(SignalTimeZone.name(row.config.timezone)).font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
-                        if let target = row.own(store.actor)?.target {
-                            SignalCreationMetricReadout(value: target, metric: row.format.metric)
-                        }
-                        Divider().overlay(SignalCreationTheme.divider)
-                        Text(challengeMoney(row.config.amountCents) + " simulated · Fee $0")
-                            .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
-                        Text("No real money moves. Nothing can be paid out or redeemed.")
-                            .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
-                    }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 24))
-                } else {
-                    Text(status == "active" ? "Active" : status == "scheduled" ? "Scheduled" : "Choose your roster").font(.headline)
-                    Text("Open the details to load your recorded goal and dates.").font(.subheadline)
-                }
-            }.padding(SignalCreationTheme.contentInset).frame(maxWidth: .infinity, alignment: .leading)
-        }.background(SignalCreationTheme.canvas).foregroundStyle(SignalCreationTheme.textPrimary)
-            .toolbar(.hidden, for: .navigationBar)
-            .safeAreaInset(edge: .top, spacing: 0) {
-                SignalCreationChrome(title: "Saved", showsBack: false, back: {}, close: { dismiss() })
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                NavigationLink {
-                    ChallengeV1Detail(store: store, id: id).toolbar(.visible, for: .navigationBar)
-                } label: {
-                    HStack(spacing: 12) {
-                        Text(draft.savedPolicy?.mode == .personal ? "View goal" : "View lobby")
-                        Image(systemName: "arrow.right").accessibilityHidden(true)
-                    }
-                }.buttonStyle(SignalCreationPrimaryStyle()).accessibilityIdentifier("beta.create.detail")
-                    .padding(.horizontal, SignalCreationTheme.contentInset).padding(.top, 12).padding(.bottom, 6)
-                    .background(SignalCreationTheme.canvas)
-            }
-    }
-    private func savedDateRange(_ window: ChallengeV1.Window) -> String {
-        let formatter = DateFormatter()
-        formatter.timeZone = TimeZone(identifier: window.timezone)
-        formatter.setLocalizedDateFormatFromTemplate("MMM d yyyy")
-        return formatter.string(from: window.startsAt.date) + " – " + formatter.string(from: window.endsAt.date.addingTimeInterval(-1))
     }
 }

@@ -19,6 +19,8 @@ final class LiveDesignUITests: XCTestCase {
             case "goal":
                 XCTAssertTrue(element(app, "live.goal.hero").waitForExistence(timeout: 10))
                 XCTAssertTrue(app.staticTexts["What counts"].exists)
+                XCTAssertEqual(app.buttons.matching(NSPredicate(format: "label == 'Back' OR label == 'Back to Home'")).allElementsBoundByIndex.filter(\.isHittable).count, 1)
+                XCTAssertEqual(app.navigationBars.buttons.allElementsBoundByIndex.filter(\.isHittable).count, 0)
             case "challenges":
                 XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 10))
                 XCTAssertTrue(app.buttons["live.filter.invited"].exists)
@@ -71,6 +73,10 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertLessThan(progress.frame.height, 40, "Goal, Challenge and Friends stay on one line")
         XCTAssertFalse(app.buttons["beta.create.type.leaderboard"].isHittable)
         XCTAssertFalse(app.textFields["beta.create.target"].exists)
+        for metric in ["steps", "exercise", "distance", "timed"] {
+            XCTAssertTrue(app.buttons["beta.create.metric." + metric].exists)
+        }
+        XCTAssertEqual(app.buttons["beta.create.metric.distance"].label, "Running distance")
         capture(app, name: "create-goal")
         let advanced = app.buttons["beta.create.advanced"]
         XCTAssertTrue(advanced.waitForExistence(timeout: 5))
@@ -99,6 +105,86 @@ final class LiveDesignUITests: XCTestCase {
         capture(app, name: "create-friends")
         app.buttons["beta.create.close"].tap()
         XCTAssertTrue(create.waitForExistence(timeout: 5))
+    }
+
+    func testSavedChallengeLocksInThenReturnsHome() {
+        continueAfterFailure = false
+        let app = launch("challenges")
+        defer { app.terminate() }
+        let create = app.buttons["beta.create.open"]
+        XCTAssertTrue(create.waitForExistence(timeout: 10)); create.tap()
+        let next = app.buttons["beta.create.continue"]
+        XCTAssertTrue(next.waitForExistence(timeout: 10))
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "enabled == true"), object: next)], timeout: 10), .completed)
+        next.tap()
+        let invite = app.buttons["beta.create.submit"]
+        XCTAssertTrue(invite.waitForExistence(timeout: 10)); bring(app, invite)
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "enabled == true"), object: invite)], timeout: 10), .completed)
+        invite.tap()
+        let done = app.buttons["beta.invite.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 10)); bring(app, done); done.tap()
+        let saved = app.staticTexts["beta.create.saved"]
+        XCTAssertTrue(saved.waitForExistence(timeout: 10))
+        XCTAssertEqual(saved.label, "Challenge locked in.")
+        XCTAssertTrue(app.staticTexts["beta.create.saved.summary"].exists)
+        XCTAssertFalse(app.staticTexts["What counts"].exists)
+        XCTAssertFalse(app.staticTexts["Full rules"].exists)
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "label == 'Close'")).allElementsBoundByIndex.filter(\.isHittable).count, 1)
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "label == 'Back' OR label == 'Back to Home'")).count, 0)
+        XCTAssertEqual(app.navigationBars.buttons.allElementsBoundByIndex.filter(\.isHittable).count, 0)
+        let home = app.buttons["beta.create.home"]
+        XCTAssertTrue(home.waitForExistence(timeout: 5))
+        XCTAssertEqual(app.buttons["beta.create.detail"].label, "View goal")
+        capture(app, name: "create-locked-in")
+        let goal = app.buttons["beta.create.detail"]
+        bring(app, goal); goal.tap()
+        XCTAssertTrue(app.staticTexts["What counts"].waitForExistence(timeout: 10))
+        let backs = app.buttons.matching(NSPredicate(format: "label == 'Back' OR label == 'Back to Home'")).allElementsBoundByIndex.filter(\.isHittable)
+        XCTAssertEqual(backs.count, 1)
+        XCTAssertEqual(app.navigationBars.buttons.allElementsBoundByIndex.filter(\.isHittable).count, 0)
+        backs[0].tap()
+        XCTAssertTrue(saved.waitForExistence(timeout: 5))
+        bring(app, home); home.tap()
+        XCTAssertTrue(app.buttons["beta.tab.home"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["beta.tab.home"].isSelected)
+        XCTAssertFalse(saved.exists)
+    }
+
+    func testPersonalGoalCreateOffersOutdoorRunsAndSteps() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["--fixture-live-design", "--live-screen=create-personal",
+                               "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        defer { app.terminate() }
+        let heading = app.staticTexts["beta.create.heading"]
+        XCTAssertTrue(heading.waitForExistence(timeout: 10))
+        XCTAssertEqual(heading.label, "What’s your goal?")
+        XCTAssertTrue(app.staticTexts["Personal goal"].exists)
+        let progress = element(app, "beta.create.progress")
+        XCTAssertTrue(progress.waitForExistence(timeout: 5))
+        XCTAssertEqual(progress.label, "Step 1 of 2, Goal")
+        XCTAssertFalse(app.buttons["beta.create.advanced"].exists)
+        XCTAssertFalse(app.buttons["beta.create.metric.exercise"].exists)
+        XCTAssertFalse(app.buttons["beta.create.metric.timed"].exists)
+        let runs = app.buttons["beta.create.metric.distance"]
+        let steps = app.buttons["beta.create.metric.steps"]
+        XCTAssertTrue(runs.waitForExistence(timeout: 5))
+        XCTAssertEqual(runs.label, "Outdoor runs")
+        XCTAssertTrue(steps.exists)
+        XCTAssertEqual(steps.label, "Steps")
+        XCTAssertTrue(steps.isSelected)
+        XCTAssertTrue(app.staticTexts["Your steps"].exists)
+        XCTAssertTrue(app.textFields["beta.create.target"].exists)
+        capture(app, name: "create-personal-goal")
+        runs.tap()
+        XCTAssertTrue(runs.isSelected)
+        XCTAssertFalse(steps.isSelected)
+        XCTAssertTrue(app.staticTexts["Your distance"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Your steps"].exists)
+        capture(app, name: "create-personal-goal-distance")
     }
 
     func testInviteReviewNeedsSeparateConsentAndDeclineUpdatesTheStore() {

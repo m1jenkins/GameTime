@@ -65,19 +65,28 @@ import XCTest
             XCTAssertTrue(text.contains("activity found")); XCTAssertTrue(text.contains("refresh activity check"))
         }
     }
-    func testPrivatePersonalStepsCreateHidesUnsupportedChallengeChoices() async throws {
+    func testPrivatePersonalCreateOffersOutdoorRunsAndSteps() async throws {
         let h = try FlowHarness(); defer { h.remove() }
-        let text = try await capture(
-            ChallengeV1Create(store: h.store, personalStepsOnly: true),
-            name: "private-personal-steps-create"
-        )
+        let draft = ChallengeCreationDraft(personalStepsOnly: true)
+        let view = ChallengeV1Create(store: h.store, draft: draft)
+        let text = try await capture(view, name: "private-personal-steps-create")
         XCTAssertTrue(text.contains("your goal"))
+        XCTAssertTrue(text.contains("outdoor runs"))
+        XCTAssertTrue(text.contains("your steps"))
         XCTAssertTrue(text.contains("steps"))
         XCTAssertTrue(text.contains("over 7 days"))
         XCTAssertFalse(text.contains("choose your challenge"))
         XCTAssertFalse(text.contains("with friends"))
         XCTAssertFalse(text.contains("activity minutes"))
         XCTAssertFalse(text.contains("running distance"))
+        XCTAssertFalse(text.contains("timed run"))
+        XCTAssertEqual(draft.policy.id, "personal_steps_goal_v1")
+        draft.metric = .distance
+        let distance = try await capture(view, name: "private-personal-outdoor-runs")
+        XCTAssertTrue(distance.contains("your distance"))
+        XCTAssertTrue(distance.contains("km"))
+        XCTAssertFalse(distance.contains("your steps"))
+        XCTAssertEqual(draft.policy.id, "personal_distance_goal_v1")
     }
     private func capture<V: View>(_ view: V, name: String) async throws -> String {
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)

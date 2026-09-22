@@ -53,7 +53,9 @@ final class ChallengeV1UITests:XCTestCase {
         bring(cancel); XCTAssertTrue(cancel.waitForExistence(timeout: 10)); cancel.tap()
         let confirmCancel = app.sheets.buttons["Cancel challenge"]
         XCTAssertTrue(confirmCancel.waitForExistence(timeout: 5)); confirmCancel.tap()
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let back = app.buttons["Back to Home"]
+        for _ in 0..<12 where !back.isHittable { app.swipeDown() }
+        XCTAssertTrue(back.waitForExistence(timeout: 5)); back.tap()
         app.buttons["Finished"].tap()
         let history = app.buttons["beta.row.cancelled.friend_steps_goal_v1." + id.uppercased()]
         bring(history); XCTAssertTrue(history.waitForExistence(timeout: 10)); history.tap()

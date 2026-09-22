@@ -116,7 +116,9 @@ final class ChallengeHealthSignalUITests: XCTestCase {
         let expectedReturn = "$" + String(format: "%.2f", Double(amount) / 100)
         let returned = app.descendants(matching: .any).matching(identifier: "beta.result.return").firstMatch
         bring(returned); XCTAssertTrue(returned.label.contains(expectedReturn))
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        let back = app.buttons["Back to Home"]
+        for _ in 0..<12 where !back.isHittable { app.swipeDown() }
+        XCTAssertTrue(back.waitForExistence(timeout: 5)); back.tap()
         app.buttons["Finished"].tap()
         let history = app.buttons["beta.row.void.personal_steps_goal_v1." + id.uppercased()]
         bring(history); XCTAssertTrue(history.exists); capture("didnt-count-history")

@@ -20,6 +20,11 @@ import Vision
         let restricted = ChallengeCreationDraft(personalStepsOnly: true)
         XCTAssertEqual(restricted.policy.id, "personal_steps_goal_v1"); XCTAssertEqual(restricted.stepCount, 2)
         XCTAssertFalse(restricted.allowsTypeChange)
+        restricted.metric = .distance
+        XCTAssertEqual(restricted.policy.id, "personal_distance_goal_v1")
+        XCTAssertEqual(restricted.mode, .personal)
+        restricted.metric = .steps
+        XCTAssertEqual(restricted.policy.id, "personal_steps_goal_v1")
         XCTAssertFalse(ChallengeCreationDraft(initialPolicy: .init(rawValue: "friend_steps_goal_v1")).allowsTypeChange)
         let standard = ChallengeCreationDraft()
         XCTAssertEqual(standard.step, .activity)

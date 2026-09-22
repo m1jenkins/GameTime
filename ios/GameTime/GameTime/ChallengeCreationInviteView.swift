@@ -7,6 +7,7 @@ struct ChallengeCreationInviteView: View {
     @Bindable var store: ChallengeV1Store
     let challengeID: UUID
     let progressLabels: [String]
+    var onGoHome: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
     @State private var draft: ChallengeCreationInvitationDraft
     @State private var showingConfirmation = false
@@ -16,10 +17,11 @@ struct ChallengeCreationInviteView: View {
     @ScaledMetric(relativeTo: .largeTitle) private var headingSize: CGFloat = 30
     @AccessibilityFocusState private var headingFocused: Bool
 
-    init(store: ChallengeV1Store, challengeID: UUID, progressLabels: [String] = ["Goal", "Challenge", "Friends"]) {
+    init(store: ChallengeV1Store, challengeID: UUID, progressLabels: [String] = ["Goal", "Challenge", "Friends"], onGoHome: @escaping () -> Void = {}) {
         self.store = store
         self.challengeID = challengeID
         self.progressLabels = progressLabels
+        self.onGoHome = onGoHome
         _draft = State(initialValue: ChallengeCreationInvitationDraft(challengeID: challengeID))
     }
 
@@ -48,28 +50,15 @@ struct ChallengeCreationInviteView: View {
     private var canInvite: Bool { draft.canInvite(store: store) }
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView { content }
-            .onChange(of: showingConfirmation) {
-                proxy.scrollTo("invite-top", anchor: .top)
-                headingFocused = true
+        Group {
+            if showingConfirmation {
+                ChallengeCreationSuccess(store: store, challengeID: challengeID, onGoHome: onGoHome)
+            } else {
+                invitations
             }
         }
-        .background(SignalCreationTheme.canvas)
-        .foregroundStyle(SignalCreationTheme.textPrimary)
         .tint(SignalCreationTheme.accent)
-        .modifier(ChallengeScrollLegibility())
-        .scrollDismissesKeyboard(.interactively)
-        .toolbar(.hidden, for: .navigationBar)
-        .safeAreaInset(edge: .top, spacing: 0) {
-            SignalCreationChrome(title: "Create challenge", showsBack: showingConfirmation,
-                                 back: { showingConfirmation = false }, close: { dismiss() })
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if currentRow != nil { footer }
-        }
         .task(id: challengeID) { await refresh() }
-        .refreshable { await refresh() }
         .onChange(of: store.actor) {
             draft.reset(); showingConfirmation = false
             dismiss()
@@ -77,11 +66,27 @@ struct ChallengeCreationInviteView: View {
         .onDisappear { draft.reset() }
     }
 
+    private var invitations: some View {
+        ScrollView { content }
+        .background(SignalCreationTheme.canvas)
+        .foregroundStyle(SignalCreationTheme.textPrimary)
+        .modifier(ChallengeScrollLegibility())
+        .scrollDismissesKeyboard(.interactively)
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            SignalCreationChrome(title: "Create challenge", showsBack: false, back: {}, close: { dismiss() })
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if currentRow != nil { footer }
+        }
+        .refreshable { await refresh() }
+    }
+
     private var content: some View {
         VStack(alignment: .leading, spacing: 18) {
             if let row = currentRow {
-                if showingConfirmation { confirmation(row) }
-                else { invitation(row) }
+                invitation(row)
             } else {
                 ContentUnavailableView("Refresh your challenge", systemImage: "arrow.clockwise",
                     description: Text("We couldn’t load the latest details. Refresh to continue inviting friends."))
@@ -94,7 +99,7 @@ struct ChallengeCreationInviteView: View {
             if store.busy { ProgressView("Saving your action…") }
         }
         .padding(.horizontal, SignalCreationTheme.contentInset)
-        .padding(.top, showingConfirmation ? 6 : 2)
+        .padding(.top, 2)
         .padding(.bottom, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .id("invite-top")
@@ -223,95 +228,18 @@ struct ChallengeCreationInviteView: View {
         }.accessibilityIdentifier("beta.invite.members")
     }
 
-    private func confirmation(_ row: ChallengeV1) -> some View {
-        VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 12) {
-                Image(systemName: "checkmark.circle.fill").font(.system(size: 25, weight: .regular))
-                    .foregroundStyle(SignalCreationTheme.accent)
-                    .frame(width: 44, height: 44)
-                    .background(SignalCreationTheme.selection, in: Circle()).accessibilityHidden(true)
-                Text("Your challenge is saved.").font(.system(size: headingSize, weight: .bold)).tracking(-1.1)
-                    .accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused)
-                    .accessibilityIdentifier("beta.create.saved")
-                Text(row.status == "lobby_open"
-                     ? "Choose your roster in the lobby. Everyone still needs to review and agree."
-                     : row.statusText)
-                    .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
-            }
-            VStack(alignment: .leading, spacing: 12) {
-                VStack(alignment: .leading, spacing: 7) {
-                    Text(row.title).font(.title2.weight(.bold)).tracking(-0.6)
-                    Text(dateRange(row.config)).font(.subheadline)
-                        .foregroundStyle(SignalCreationTheme.textSecondary)
-                    Text(SignalTimeZone.name(row.config.timezone)).font(.caption)
-                        .foregroundStyle(SignalCreationTheme.textSecondary)
-                }
-                if row.format.hasTarget, let target = row.own(store.actor)?.target {
-                    VStack(alignment: .leading, spacing: 6) {
-                        SignalCreationMetricReadout(value: target, metric: row.format.metric)
-                        Text("Your goal").font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
-                    }
-                }
-                Divider().overlay(SignalCreationTheme.divider)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("\(challengeMoney(row.config.amountCents)) simulated each · Fee $0")
-                        .font(.caption)
-                    Text("No real money moves. Nothing can be paid out or redeemed.")
-                        .font(.caption)
-                }.foregroundStyle(SignalCreationTheme.textSecondary)
-            }
-            .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-            .background(LinearGradient(colors: [SignalCreationTheme.surface, SignalCreationTheme.soft], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        in: RoundedRectangle(cornerRadius: 24))
-            .overlay { RoundedRectangle(cornerRadius: 24).stroke(SignalCreationTheme.divider.opacity(0.45), lineWidth: 0.75) }
-            members(row)
-        }
-    }
-
     private var footer: some View {
-        VStack(spacing: 4) {
-            if showingConfirmation {
-                NavigationLink {
-                    ChallengeV1Detail(store: store, id: challengeID)
-                        .toolbar(.visible, for: .navigationBar)
-                } label: {
-                    HStack(spacing: 12) {
-                        Text("View lobby")
-                        Image(systemName: "arrow.right").accessibilityHidden(true)
-                    }
-                }
-                .buttonStyle(SignalCreationPrimaryStyle()).accessibilityIdentifier("beta.create.detail")
-                Button("Back to invitations") { showingConfirmation = false }
-                    .font(.subheadline.weight(.semibold)).frame(minHeight: 44)
-                    .foregroundStyle(SignalCreationTheme.textSecondary)
-                    .accessibilityIdentifier("beta.invite.back")
-            } else {
-                Button { showingConfirmation = true } label: {
-                    HStack(spacing: 12) {
-                        Text("Done inviting")
-                        Image(systemName: "arrow.right").accessibilityHidden(true)
-                    }
-                }
-                .buttonStyle(SignalCreationPrimaryStyle()).disabled(store.busy || store.pending != nil)
-                .accessibilityIdentifier("beta.invite.done")
+        Button { showingConfirmation = true } label: {
+            HStack(spacing: 12) {
+                Text("Done inviting")
+                Image(systemName: "arrow.right").accessibilityHidden(true)
             }
         }
+        .buttonStyle(SignalCreationPrimaryStyle()).disabled(store.busy || store.pending != nil)
+        .accessibilityIdentifier("beta.invite.done")
         .padding(.horizontal, SignalCreationTheme.contentInset)
         .padding(.top, 12).padding(.bottom, 6)
         .background(SignalCreationTheme.canvas)
-    }
-
-    private func dateRange(_ window: ChallengeV1.Window) -> String {
-        let formatter = DateFormatter()
-        formatter.timeZone = TimeZone(identifier: window.timezone)
-        formatter.setLocalizedDateFormatFromTemplate("MMM d yyyy")
-        // The server's end is exclusive; the final included second is always
-        // on the last goal day, including across daylight-saving changes.
-        let lastDay = window.endsAt.date.addingTimeInterval(-1)
-        let start = formatter.string(from: window.startsAt.date)
-        let end = formatter.string(from: lastDay)
-        let range = window.days == 1 ? start : "\(start)–\(end)"
-        return "\(range) · \(window.days) \(window.days == 1 ? "day" : "days")"
     }
 
     @ViewBuilder private var recovery: some View {

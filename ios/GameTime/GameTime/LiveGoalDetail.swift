@@ -68,6 +68,8 @@ struct LiveGoalDetail: View {
         .background(SignalTheme.canvas)
         .foregroundStyle(SignalTheme.textPrimary)
         .toolbar(.hidden, for: .navigationBar)
+        // The page draws one back control. Leaving the system button visible stacks a second one.
+        .navigationBarBackButtonHidden(section == nil)
         .scrollDismissesKeyboard(.interactively)
         .refreshable { await refreshActivity() }
         .task(id: id) {

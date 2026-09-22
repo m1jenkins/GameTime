@@ -11,6 +11,16 @@ struct LiveChallengeShell: View {
     var accountContent: AnyView? = nil
     var serviceAvailable = true
     var personalStepsOnly = false
+    /// Staging’s private trial still opens a personal goal. The live-design
+    /// capture route uses the same personal entry without changing friend create.
+    private var presentsPersonalGoalCreate: Bool {
+        #if DEBUG
+        if LiveDesignFixtures.enabled, ProcessInfo.processInfo.arguments.contains("--live-screen=create-personal") {
+            return true
+        }
+        #endif
+        return personalStepsOnly
+    }
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.challengeHealthFlow) private var health
     @Environment(\.livePersonalRouteCoordinator) private var personalRouteCoordinator
@@ -53,7 +63,12 @@ struct LiveChallengeShell: View {
         .preferredColorScheme(.light)
         .fullScreenCover(isPresented: $create, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {
             if serviceAvailable {
-                ChallengeV1Create(store: store, personalStepsOnly: personalStepsOnly)
+                ChallengeV1Create(store: store, personalStepsOnly: presentsPersonalGoalCreate, onGoHome: {
+                    selection = 0
+                    homePath = []
+                    libraryPath = []
+                    recordPath = []
+                })
             } else {
                 LiveUnavailableSheet(title: "New challenges aren’t open yet", message: "You can refresh your saved challenges or return later.")
             }
@@ -138,7 +153,7 @@ struct LiveChallengeShell: View {
         if args.contains("--live-screen=you") { selection = 2 }
         if args.contains("--live-screen=goal") || args.contains("--live-screen=rules") { homePath = [LiveDesignFixtures.activeID] }
         if args.contains("--live-screen=settings") { selection = 2; settings = true }
-        if args.contains("--live-screen=create") { selection = 1; create = true }
+        if args.contains("--live-screen=create") || args.contains("--live-screen=create-personal") { selection = 1; create = true }
         #endif
     }
 }

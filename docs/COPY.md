@@ -236,6 +236,12 @@ shaming, forced daily streaks or encouragement to exercise injured. Rest is not
 an app failure. A new goal or rematch always requires a fresh deliberate choice.
 No prompt may claim that a missing upload means a loss.
 
+After a challenge is saved, the screen says **Challenge locked in.** The line
+under it is the goal name and dates, such as **September steps · Sep 24–30**.
+A simulated stake, when there is one, stays a short secondary line. The primary
+action is **Go to Home**. **View goal** is a quiet secondary action. That
+screen does not recap the agreement, timeline, or rules.
+
 When notifications are implemented, each must have a clear user benefit and a
 category the person controls. Ask permission when a person requests a reminder,
 not at launch. Display factual deadlines without fabricated urgency. Muting,
@@ -265,7 +271,7 @@ a new term, add a row rather than inventing a second name for something here.
 | `review_deadline` | review by |
 | off-session `PaymentIntent` | one-time charge |
 | failed payment, customer action required | payment needs your attention |
-| metric | distance and time for a running goal; omitted on steps-only Personal screens |
+| metric | On a personal goal: Outdoor runs or Steps. On a challenge with friends: Steps, Activity minutes, Running distance, or Timed run. |
 | duel agreement / policy | challenge rules; what you both agreed to |
 | qualifying attempt | an attempt that counts toward your goal |
 | performance commitment | running goal; your goal |
