@@ -34,7 +34,7 @@ struct LiveChallengeShell: View {
     @State private var filter = "All"
     @State private var initialRouteApplied = false
 
-    var body: some View {
+    private var selectedTab: some View {
         Group {
             switch selection {
             case 0:
@@ -57,6 +57,10 @@ struct LiveChallengeShell: View {
                 }
             }
         }
+    }
+
+    private var presentedShell: some View {
+        selectedTab
         .tint(SignalTheme.accent)
         .safeAreaInset(edge: .bottom, spacing: 0) { tabBar }
         .background(SignalTheme.canvas.ignoresSafeArea())
@@ -96,6 +100,10 @@ struct LiveChallengeShell: View {
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { entry = false } } }
             }.tint(SignalTheme.accent).presentationDragIndicator(.visible)
         }
+    }
+
+    var body: some View {
+        presentedShell
         .onChange(of: store.actor) { _, _ in
             create = false; settings = false; entry = false; selection = 0
             homePath = []; libraryPath = []; recordPath = []; filter = "All"

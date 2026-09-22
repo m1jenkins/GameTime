@@ -254,7 +254,8 @@ import XCTest
         await h.flow.checkReadiness(binding)
         XCTAssertEqual(h.readers.count, 2)
         XCTAssertEqual(h.requests.map(\.purpose), [.suggestionHistory, .readinessHistory])
-        XCTAssertEqual(h.requests.map { $0.queryWindow.interval.duration }, [28 * 86400, 30 * 86400])
+        let expectedHistoryDurations: [TimeInterval] = [28 * 86_400, 30 * 86_400]
+        XCTAssertEqual(h.requests.map { $0.queryWindow.interval.duration }, expectedHistoryDurations)
         XCTAssertTrue(h.flow.canConsent(binding))
         let timed = try h.binding(source: .appleWorkoutOutdoorTimedV1, distance: 5_000_000)
         await h.flow.checkReadiness(timed, connect: true)
