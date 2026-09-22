@@ -222,7 +222,19 @@ above.
     `20260920164443` and `20260922150718`, with an in-flight personal goal
     evaluated across it
 
-### Phase 3 — native (after the mocks are approved)
+### Phase 3 — native: complete locally
+
+Native source, tests, the `TestFlight` build configuration and
+`check-beta-candidate.sh --testflight`, following the approved mocks. See the
+[receipt](../outputs/reports/2026-09-22-friends-phase-3-native.md). Nothing
+was installed, signed, uploaded or applied to hosted.
+
+- **Server fallback:** a server without `challenge_availability_v1` (hosted
+  until Phase 5) keeps the private trial's two pairs for the Staging build.
+- **Links:** they stay hidden unless the server reports them open or
+  ungoverned.
+- **Owner review:** the TestFlight Health usage description is new text.
+
 
 - **`FriendsStore`,** modeled on `ChallengeV1Store`: actor generation checks, a
   per-account journal, and refresh on show. Idempotent request IDs are enough.

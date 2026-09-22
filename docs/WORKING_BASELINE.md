@@ -6,6 +6,29 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 22 friends Phase 3 native
+
+- **Friends in the app.**
+  - Friends under You, Add a friend, safety, Blocked people.
+  - Home action rows.
+  - The invite-step friend picker, and "Challenge saved." for open friend
+    lobbies.
+  - The "Before you start" 21+ and Apple Watch onboarding step.
+  - All follow the approved mocks and are backed by the new `FriendsStore` and
+    the Phase 2 friend RPCs.
+- **Server-reported policies.** Creation follows `challenge_availability_v1`.
+  - A server without it keeps the trial's two pairs for Staging.
+  - Links stay hidden unless the server opens them.
+  - The Earlier challenges row stays hidden after a failed load.
+- **TestFlight build.** A fourth configuration, `TestFlight`: production
+  bundle, P11B, challenges and account mode on, no payment provider, plus its
+  scheme. `scripts/check-beta-candidate.sh --testflight` checks it.
+- **Not done here.** Nothing was installed, signed, uploaded, applied to hosted
+  or pushed. Phase 4 local verification is next.
+
+See the [receipt](../outputs/reports/2026-09-22-friends-phase-3-native.md) for
+checks and open items.
+
 ## September 22 friends Phase 1 mocks and Phase 2 server
 
 - **Phase 1 mocks, approved September 22 with no changes.** The board is in
