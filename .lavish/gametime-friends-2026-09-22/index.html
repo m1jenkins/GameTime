@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>GameTime friends mocks</title>
+<link rel="stylesheet" href="friends.css">
+</head>
+<body>
+<main class="board">
+  <header class="board-head">
+    <div>
+      <p class="kicker">GameTime · Friends TestFlight · Phase 1 mocks · Sep 22, 2026</p>
+      <h1>Friends, requests<br>and the invite picker.</h1>
+    </div>
+    <div>
+      <p>Seven areas from the <a href="../../docs/FRIENDS_TESTFLIGHT_PLAN.md">friends plan</a>, drawn in the locked native system. Home · Challenges · You is unchanged. Friends live under You, and Home shows only the rows you can act on.</p>
+      <p>Every phone works on its own. Buttons change local state only. Nothing is sent, saved, or shown to anyone. <a href="phone.html?screen=friends">Open one full size ↗</a></p>
+      <div class="legend"><span><b>#FAFBFC</b> canvas</span><span><b>#F0F2F5</b> surface</span><span><b>#111318</b> text</span><span><b>#245BFF</b> accent</span><span><b>#9A6700</b> warning</span><span>Initials avatars, as native renders them</span></div>
+    </div>
+  </header>
+
+  <section class="area" aria-labelledby="a1">
+    <div class="area-head"><span class="num">01</span><h2 id="a1">You › Friends</h2><p>One row under your profile opens Friends. It shows no count or badge. Requests for you come first because they need an answer, then friends, then the requests you sent. Blocked people sit at the bottom, where they’re easy to find.</p></div>
+    <div class="row">
+      <div class="cell"><p class="cell-cap"><b>You</b>New Friends row</p><div class="phone" data-screen="you"></div><p class="note"><b>A plain entry point.</b>No friend count shown as status. The record and Finished sections are unchanged below it.</p></div>
+      <div class="cell"><p class="cell-cap"><b>Friends</b>Incoming · friends · sent</p><div class="phone" data-screen="friends"></div><p class="note"><b>Try Accept, Decline, Cancel, or tap a friend.</b>Decline says once, in a footnote, that the sender isn’t told. Nothing else explains it.</p><a class="open-link" href="phone.html?screen=friends">Full size ↗</a></div>
+      <div class="cell"><p class="cell-cap"><b>Empty</b>First visit</p><div class="phone" data-screen="friends-empty"></div><p class="note"><b>One action, one alternative.</b>Add a friend, or share your username. It says plainly that we don’t suggest people or read contacts.</p></div>
+      <div class="cell"><p class="cell-cap"><b>Loading</b>Refresh on show</p><div class="phone" data-screen="friends-loading"></div><p class="note"><b>Shape of the list, no fake names.</b>Add is disabled until the list loads, so a request can’t go out against a stale state.</p></div>
+      <div class="cell"><p class="cell-cap"><b>Offline</b>Last saved list</p><div class="phone" data-screen="friends-offline"></div><p class="note"><b>Readable, not actionable.</b>It shows the last saved time. Every action is disabled until the connection returns, and Try again sits at the end of the list.</p></div>
+    </div>
+  </section>
+
+  <section class="area" aria-labelledby="a2">
+    <div class="area-head"><span class="num">02</span><h2 id="a2">Add a friend</h2><p>Exact username only: no search-as-you-type, suggestions, or contact import. Your own username sits below the field with Copy and Share. Share hands the system sheet one plain sentence with no link.</p></div>
+    <div class="row">
+      <div class="cell"><p class="cell-cap"><b>Found</b>Send request</p><div class="phone" data-screen="add"></div><p class="note"><b>Try the sample usernames.</b><code>drew_p</code> is found, <code>samr</code> is already a friend, <code>rileyc</code> already has your request, and <code>limit</code> and <code>busy</code> show the two caps. Anything else isn’t found. Blocked people look exactly like “not found”.</p><a class="open-link" href="phone.html?screen=add">Full size ↗</a></div>
+      <div class="cell"><p class="cell-cap"><b>They asked first</b>incoming_request_exists</p><div class="phone" data-screen="add-incoming"></div><p class="note"><b>The typed error becomes a next step.</b>Accept and Decline appear right there, so you don’t send a crossed request back.</p></div>
+      <div class="cell"><p class="cell-cap"><b>Share your username</b>Plain text</p><div class="phone" data-screen="share"></div><p class="note"><b>“I’m @alexlee on GameTime. Add me as a friend.”</b>No link: links are closed on the server for this build.</p></div>
+    </div>
+  </section>
+
+  <section class="area" aria-labelledby="a3">
+    <div class="area-head"><span class="num">03</span><h2 id="a3">Safety: remove, block, report, unblock</h2><p>Tap any friend to get three neutral actions. Each confirmation says exactly what changes. The block text states the real consequence inside a shared challenge. Report works for anyone, not only people you’ve shared a challenge with.</p></div>
+    <div class="row">
+      <div class="cell"><p class="cell-cap"><b>Friend</b>Three actions</p><div class="phone" data-screen="friend-sheet"></div><p class="note"><b>No “challenge them” shortcut here.</b>Inviting stays a deliberate choice made in the create flow.</p></div>
+      <div class="cell"><p class="cell-cap"><b>Block</b>Confirm</p><div class="phone" data-screen="block-confirm"></div><p class="note"><b>The server consequence, said plainly.</b>Today, a block exits both people from any unfinished challenge they share. Fewer than two left means it won’t count. Phase 2 keeps that rule.</p></div>
+      <div class="cell"><p class="cell-cap"><b>Report</b>Reason + optional note</p><div class="phone" data-screen="report"></div><p class="note"><b>Four plain reasons.</b>After sending: “We’ll look into it. You can also block them.” The owner reads the queue.</p></div>
+      <div class="cell"><p class="cell-cap"><b>Blocked people</b>Unblock</p><div class="phone" data-screen="blocked"></div><p class="note"><b>Unblock doesn’t restore the friendship.</b>They can find you and send requests again. You become friends only if you both agree.</p><a class="open-link" href="phone.html?screen=blocked">Full size ↗</a></div>
+    </div>
+  </section>
+
+  <section class="area" aria-labelledby="a4">
+    <div class="area-head"><span class="num">04</span><h2 id="a4">Home action rows</h2><p>Four kinds of row, and only when there is something to do: a request for you, a request that was accepted, an invitation, and a roster spot that needs your agreement, with its factual deadline. A row leaves once you handle it. No badge, push, or count.</p></div>
+    <div class="row">
+      <div class="cell"><p class="cell-cap"><b>Home</b>All four rows</p><div class="phone" data-screen="home"></div><p class="note"><b>Above the hero, compact, and gone once handled.</b>Try Accept or ×. The deadline row states the date and time; it never counts down.</p><a class="open-link" href="phone.html?screen=home">Full size ↗</a></div>
+      <div class="cell"><p class="cell-cap"><b>Home, no active challenge</b>One row</p><div class="phone" data-screen="home-quiet"></div><p class="note"><b>The usual empty Home, plus what needs you.</b>With no rows, this is today’s screen exactly.</p></div>
+    </div>
+  </section>
+
+  <section class="area" aria-labelledby="a5">
+    <div class="area-head"><span class="num">05</span><h2 id="a5">Invite step: pick from friends</h2><p>This replaces the exact-username field. Only accepted friends are listed, up to five can be chosen, and you can add a friend without leaving. Contacts and links are gone, matching the native app and the server.</p></div>
+    <div class="row">
+      <div class="cell"><p class="cell-cap"><b>Friends</b>3 of 5 chosen</p><div class="phone" data-screen="invite"></div><p class="note"><b>Check to invite, uncheck to change your mind.</b>Once five are chosen, the rest dim. The footer names the count. Goal → Challenge → Friends is not reopened.</p><a class="open-link" href="phone.html?screen=invite">Full size ↗</a></div>
+      <div class="cell"><p class="cell-cap"><b>No friends yet</b>Inline add</p><div class="phone" data-screen="invite-empty"></div><p class="note"><b>The challenge is already saved.</b>The screen says so, and that a new friend appears here once they accept. Skip for now leads to the saved screen in area 07.</p></div>
+    </div>
+  </section>
+
+  <section class="area" aria-labelledby="a6">
+    <div class="area-head"><span class="num">06</span><h2 id="a6">Onboarding: 21+ and Apple Watch first</h2><p>Age and the Watch requirement come before we ask for a name or username, so nobody under 21 gives us a profile, and nobody without a Watch sets one up by mistake. The profile step keeps today’s rules and wording.</p></div>
+    <div class="row">
+      <div class="cell"><p class="cell-cap"><b>Before you start</b>Step 1 of 2</p><div class="phone" data-screen="onboard-age"></div><p class="note"><b>Toggle to continue; “I’m under 21” explains.</b>The toggle keeps the existing “I confirm I am 21 or older” wording. The Watch line reuses the COPY.md glossary text.</p><a class="open-link" href="phone.html?screen=onboard-age">Full size ↗</a></div>
+      <div class="cell"><p class="cell-cap"><b>Your profile</b>Step 2 of 2</p><div class="phone" data-screen="onboard-profile"></div><p class="note"><b>Existing screen, one added sentence.</b>“Friends need it to send you a request.” The age confirmation saves with the profile.</p></div>
+    </div>
+  </section>
+
+  <section class="area" aria-labelledby="a7">
+    <div class="area-head"><span class="num">07</span><h2 id="a7">After a friend challenge saves</h2><p>A saved friend challenge isn’t locked in yet, so “Challenge locked in.” is wrong here. This screen says what happens next: you pick the roster, everyone agrees before the start, and it’s cancelled if they don’t. Personal goals keep “Challenge locked in.”</p></div>
+    <div class="row">
+      <div class="cell"><p class="cell-cap"><b>Challenge saved</b>Open lobby</p><div class="phone" data-screen="lobby-saved"></div><p class="note"><b>Same shape as the locked-in screen.</b>Go to Home stays primary and View challenge stays quiet. The three steps are facts, not a checklist to chase. If nobody was invited, the first step reads “Invite friends from the challenge before Sep 28”.</p><a class="open-link" href="phone.html?screen=lobby-saved">Full size ↗</a></div>
+    </div>
+  </section>
+
+  <footer class="board-foot">
+    <div><h3>What these mocks don’t decide</h3><ul>
+      <li><b>Re-request after decline.</b> A declined person can send again, up to the daily cap, until the owner picks a rule.</li>
+      <li><b>Report reasons</b> are proposed wording. The server stores a code for each.</li>
+      <li><b>Profile photos</b> stay deferred. Initials match what native renders.</li>
+    </ul></div>
+    <div><h3>Copy sources</h3><ul>
+      <li>COPY.md glossary rows for decline, block, report, both caps, <code>incoming_request_exists</code> and the Watch requirement.</li>
+      <li>Existing native strings are kept: the profile field rules, “I confirm I am 21 or older”, and “Go to Home”.</li>
+      <li>No trusted, evidence, frozen terms, handle, or infrastructure names.</li>
+    </ul></div>
+    <div><h3>Responsible engagement</h3><ul>
+      <li>Every request is typed by hand. No suggestions, contacts, or “people you may know”.</li>
+      <li>Home rows are actionable only and leave once handled. Deadlines are dates, not countdowns.</li>
+      <li>Friends lists show no one else’s challenges. The friend sheet shows only name, username and date.</li>
+    </ul></div>
+  </footer>
+</main>
+<script src="friends.js"></script>
+</body>
+</html>
