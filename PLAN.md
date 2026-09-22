@@ -1,5 +1,21 @@
 # Build friend duels and personal performance commitments
 
+**Current next work — September 22, 2026 ([D142](DECISIONS.md#d142-first-private-testflight-adds-friends-opens-apple-sign-up-and-ships-goals-first)):**
+the [first private friends TestFlight plan](docs/FRIENDS_TESTFLIGHT_PLAN.md)
+sets the order of new work. It covers:
+
+- friend requests under You, with Home action rows
+- open Apple sign-up on `gametime-p11b`
+- account-mode uploads for every age-confirmed account
+- a goals-only first build: four friend goals plus Personal Steps and Outdoor runs
+- community and links closed on the server
+- testers by email invitation, fewer than ten
+
+Phase 0 is recorded. Later phases start only when the owner starts them.
+Hosted work, TestFlight and recruitment each still need explicit approval. The
+sections below keep the Beta 1 target and its history. Where they describe
+TestFlight entry conditions, D142's finish line governs this first build.
+
 Continue from local `main`, containing reviewed P11 `8e45132` and P8/P9 through
 merge `9652bc9`. Commit completed authorized work and merge it into `main`;
 push remains separately authorized. Work in `/Users/user/Documents/GitHub/GameTime` and read the
@@ -39,8 +55,8 @@ The owner-selected Cron + Edge runtime now has a
 The [bounded hosted installation](outputs/reports/2026-09-20-p11b-hosted-installation.md)
 is complete in the selected separate project, with all jobs/gates/fixtures off.
 The [hosting worksheet](docs/BETA_HOSTED_PREPARATION.md)
-retains operating dependencies; the [next planning prompt](docs/P11B_NEXT_PLANNING_PROMPT.md)
-starts from this installed state. The older
+retains operating dependencies. The dated [P11B planning prompt](docs/P11B_NEXT_PLANNING_PROMPT.md)
+is superseded by the D142 plan above. The older
 [P9 next-chat planning prompt](docs/P9_NEXT_PLANNING_PROMPT.md) is dated context.
 Do not repeat local scheduling or infer deployment authorization. The full
 release matrix remains reserved for P12.
@@ -141,6 +157,8 @@ Implementation must preserve every historical agreement and build a new
 `challenge_*_v1` aggregate rather than widening those contracts. Source work may
 proceed in dependency order, but TestFlight distribution waits for all four
 goal-metric source policies and acceptance of the enabled nine-goal product set.
+For the first private friends TestFlight only, D142 replaces that condition with
+the build-1 scope and finish line in the [friends plan](docs/FRIENDS_TESTFLIGHT_PLAN.md).
 The four friend leaderboards remain a later target under D140. See the dedicated
 plan for the full rules, interfaces, tests, rollout gates and evidence-dependent
 decisions.

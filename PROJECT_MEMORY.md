@@ -1,6 +1,36 @@
 # GameTime project memory
 
-## Current working baseline — September 20, 2026
+## Current working baseline — September 22, 2026
+
+Continue from local `main`. The [working baseline](docs/WORKING_BASELINE.md)
+lists the Phase 0 commits. [D142](DECISIONS.md#d142-first-private-testflight-adds-friends-opens-apple-sign-up-and-ships-goals-first)
+and the [friends TestFlight plan](docs/FRIENDS_TESTFLIGHT_PLAN.md) set the next
+work. The first private TestFlight:
+
+- adds friend requests under You, with Home action rows, keeping
+  `Home · Challenges · You`
+- opens Apple sign-up on `gametime-p11b` for fewer than ten email-invited testers
+- extends disclosed account-mode uploads to every age-confirmed account
+- ships four friend goals plus Personal Steps and Outdoor runs
+- defers the D141 leaderboards to the next build
+- closes community and links on the server
+
+Hosted mutation waits until the owner's scheduled personal goals are final,
+around October 4–6. Hosted mutation, TestFlight and recruitment each need explicit
+approval.
+
+Hosted `gametime-p11b` today:
+
+- The private trial is on for one enrolled account, with device proof off and
+  sign-up closed. Real admission, ingestion and processing are on.
+- `20260922150718` lets that account save personal Steps and Outdoor runs.
+- `20260920162025` is still unapplied.
+- Deployed functions: worker, snapshot, monitor, `attest-device` and
+  `ingest-challenge-health`.
+- The checkout's CLI link and `supabase/staging-project-ref` still point at the
+  historical project, so always pass `--project-ref`.
+
+## September 20 baseline record
 
 Continue from local `main`, containing reviewed P11 `8e45132` and P8/P9 through
 merge `9652bc9`. The owner directs completed authorized work to be committed and

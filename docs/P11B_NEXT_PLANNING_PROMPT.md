@@ -1,5 +1,17 @@
 # Planning prompt after bounded P11B installation
 
+> **Dated, September 20, 2026. Superseded.** Hosted state has moved on since
+> this was written:
+>
+> - The private trial is enabled for one account.
+> - `attest-device` and `ingest-challenge-health` are deployed.
+> - `20260920164443` and `20260922150718` are applied, while `20260920162025`
+>   is not.
+>
+> D142 sets the next work in the [friends TestFlight plan](FRIENDS_TESTFLIGHT_PLAN.md).
+> Keep this prompt as a historical record; do not start a new planning chat
+> from it.
+
 Copy this into a new chat. It plans one next slice and collects owner answers;
 it does not dispatch implementation. Completed authorized changes must be
 committed and merged into `main`, as the owner directed after installation.

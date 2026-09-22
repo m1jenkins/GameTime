@@ -23,6 +23,20 @@ public simulated launch. This document retains D134/D135's product rules and
 D140's working nine-goal Beta scope. D141 adds optional local received-score
 leaderboards, with historical policy and test records intact.
 
+**D142 first private TestFlight (September 22, 2026).** The
+[friends TestFlight plan](FRIENDS_TESTFLIGHT_PLAN.md) selects a narrower first
+build. The Beta 1 contract below stays the later target and is unchanged.
+
+| Beta 1 contract | Build 1 under D142 |
+| --- | --- |
+| Invites | Accepted friends only. People become friends through server-backed friend requests by exact username. |
+| Access | Open Apple sign-up after the 21+ question during account setup, instead of link-granted access. |
+| Uploads | Account-mode uploads for every age-confirmed account, disclosed. |
+| Policies | Four friend goals plus Personal Steps and Outdoor runs, behind a runtime per-policy allowlist. That allowlist is how build 1 implements the per-policy kill switch required below. |
+| Community, links | Closed on the server. |
+| Leaderboards | Received-score leaderboards arrive in a following build. |
+| Shell | `Home · Challenges · You` stays. Friends live under You, with requests as Home action rows. |
+
 D135 and [the remaining-work contract](BETA_REMAINING_WORK_CONTRACT.md) add six
 explicit owner decisions. Their Watch architecture, hardware sequencing,
 community disclosure and workload targets govern remaining work. They do not

@@ -6,6 +6,41 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 22 Phase 0: friends TestFlight scope and landed trial work
+
+[D142](../DECISIONS.md#d142-first-private-testflight-adds-friends-opens-apple-sign-up-and-ships-goals-first)
+and the [friends TestFlight plan](FRIENDS_TESTFLIGHT_PLAN.md) set the next work.
+Phase 0 landed the in-flight work and recorded the scope. It changed nothing on
+hosted and pushed nothing.
+
+- **`2baf7ff`** lands migration `20260922150718` and its
+  [receipt](../outputs/reports/2026-09-22-private-trial-outdoor-runs.md). The
+  migration was already applied to `gametime-p11b` on September 22. The private
+  trial now accepts personal Steps and personal Outdoor runs for its one
+  enrolled account. This supersedes the "steps only" trial note in the
+  September 21 entry below. `20260920162025` is still unapplied on hosted, so
+  the hosted migration list is not the repo list.
+- **`1fbd997`** lands the Personal Outdoor runs and Steps choice and the
+  "Challenge locked in." post-save screen, plus a fix to how one layout test
+  measures text.
+  - Checks on the iPhone 17 Pro iOS 27.0 simulator: 56 of 57 focused unit tests
+    passed, and all 8 `LiveDesignUITests` passed. Controller-backed UI journeys
+    were skipped.
+  - The one unit failure,
+    `testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark`,
+    fails the same way on clean `ca92d25`. It is an existing failure, not caused
+    by this change.
+  - Known limit: a friend lobby also lands on "Challenge locked in." before
+    anyone has agreed. The Phase 1 mocks replace that state.
+  - Not reinstalled on the phone. The September 21 Staging installation remains
+    the last device receipt.
+- **D142 docs change:** records D142, the friends plan, the responsible-engagement
+  review, `docs/COPY.md` glossary rows for friends and the no-device-check
+  disclosure, and updated pointers.
+- **Left untracked:** the owner's real-device QA screenshot in
+  `.lavish/gametime-native-live-2026-09-22/qa/` stays out of this public
+  repository, and `sim-check/` is scratch.
+
 ## September 22 locked mock adoption and native UI rewrite
 
 The owner adopted the September 21 Home, Goal / Rules, Challenges, You and

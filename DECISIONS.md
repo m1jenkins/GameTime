@@ -5050,3 +5050,90 @@ push, deployment, hosted gates, physical Health upload, distribution or recruitm
 The [local contract](docs/RECEIVED_LEADERBOARD_V2.md) and
 [focused check record](outputs/reports/2026-09-20-received-leaderboard-v2.md)
 separate delivered behavior from unperformed operating/release acceptance.
+
+
+### D142. First private TestFlight adds friends, opens Apple sign-up and ships goals first
+
+**Explicit owner direction, September 22, 2026:** after reviewing an audited
+plan and a verified critique of it, the owner chose a narrower first private
+TestFlight. Success means two new people install GameTime, become friends, run a
+challenge and see saved activity and results, with nobody operating it by hand.
+The [friends TestFlight plan](docs/FRIENDS_TESTFLIGHT_PLAN.md) owns the phase
+order, the verified starting state and the open items.
+
+**Access.** External testers join only by TestFlight email invitation. The first
+wave is fewer than ten people the owner knows. On `gametime-p11b`, any Apple
+account may sign up after 21+ confirmation; for this build that replaces D134's
+link-granted access. Email, phone and anonymous sign-in stay off. The
+invitation list is the only distribution gate, and the server keeps no
+allowlist of people. The 21+ question moves into account setup.
+
+**Uploads.** Every age-confirmed account may save activity without device
+verification. This extends the owner's September 20 one-account choice. Each
+request keeps an honest verification-mode record, and agreement copy discloses
+that no device check runs. Authentication, session binding, Health and agreement
+consent, source rules, real clocks, digests and idempotency stay enforced. The
+owner accepts this score-trust risk for a simulated beta. The choice is
+reversible if a score looks fabricated, and must be revisited before any real
+money.
+
+**Friends.** Friend requests become first-class: send by exact username, accept,
+silent decline, cancel, remove, block, unblock and report. Each runs through a
+versioned server command, not a direct table write. Friends live under You.
+Requests and challenge actions appear as Home action rows, and D134's
+`Home · Challenges · You` shell is unchanged. The create flow's Friends step
+picks from accepted friends. Block and report work for any account, not only
+co-participants.
+
+For this cohort, protection is request IDs, expected-state and suspension
+checks, one daily request cap and a lookup rate limit. Decline cooldowns,
+pending caps and friend-list caps are deferred. The owner reads the report
+queue. Whether a declined request may be sent again is an open
+responsible-engagement item that the plan records.
+
+**Build scope.** Build 1 enables the four friend goals and Personal Steps and
+Outdoor runs through a server-reported per-policy allowlist. The four D141
+leaderboards stay off until a following build. Community, reusable links and
+contacts are out, and they are closed on the server, not only hidden. Mocks are
+approved before native work. The owner skips a hosted smoke test for Activity
+minutes and timed runs. The first tester challenges include one of each and are
+observed through their results.
+
+**Finish line.** For this build only, D142 changes the remaining plan's
+`Ready for private TestFlight` line:
+
+- The nine usable goal policies become the build-1 set above.
+- Approved community settings, HTTPS links and hosted capacity no longer apply.
+  A check of backups and project pausing remains.
+- Hosted acceptance of all four goal sources before distribution becomes a real
+  hosted save for Steps and outdoor distance after deployment. The first tester
+  challenges give Activity minutes and timed runs their first hosted saves.
+
+Still required:
+
+- real Apple sign-in
+- account deletion, support, privacy policy and terms
+- physical accessibility
+- the actual signed binary
+- explicit distribution and recruitment approval
+
+This decision does not change human comprehension checks or accepted
+legacy-shell replacement. Both need an owner answer before TestFlight.
+
+**Boundaries.** Amounts stay simulated and nonredeemable, and settlement stays
+off. Unchanged:
+
+- historical agreements
+- Personal's missing-data promise
+- the owner's scheduled personal goals
+- the D134/D140/D141 product rules for later builds
+
+This decision records scope and authorizes its planning records. Later phases
+proceed in order when the owner starts each one. Each of the following needs
+explicit approval:
+
+- hosted mutation, which waits until the owner's scheduled personal goals are
+  final
+- Apple provider changes
+- TestFlight submission
+- recruitment

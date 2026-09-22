@@ -49,18 +49,21 @@ If a new concept genuinely has no plain-English name, add a row to the
 glossary in `docs/COPY.md` rather than inventing a second name for it
 somewhere else.
 
-`GameTimeUITests` currently rejects competitive-social vocabulary on reachable
-Personal screens. That is a Personal regression rule, not a global ban on
-friend, invitation, winner or rematch in new duel screens. When implementing
-new routes, scope those assertions by product and add new-product checks in
-the same commit as the copy. Do not change historical consent strings.
+The legacy `GameTimeUITests` suite rejects competitive-social vocabulary on
+Personal screens. It still expects the retired `Today` shell, and the smoke
+script doesn't run it. That is a Personal regression rule, not a ban on friend,
+invitation, winner or rematch in new screens. Add product-scoped copy checks
+to `ChallengeV1UITests` or `LiveDesignUITests` in the same commit as the copy.
+Do not change historical consent strings.
 
 ## Product boundaries
 
 Future product authority is PROJECT_MEMORY.md, docs/BUSINESS_MODEL.md,
-docs/BETA_IMPLEMENTATION_PLAN.md, PLAN.md and D123/D134/D135/D140. D140 removes
+docs/BETA_IMPLEMENTATION_PLAN.md, PLAN.md and D123/D134/D135/D140/D142. D140 removes
 the all-13-policy Beta distribution gate while preserving deferred leaderboard
-rules. Beta and design documents describing solo-only behavior govern the
+rules. D142 and [the friends TestFlight plan](docs/FRIENDS_TESTFLIGHT_PLAN.md)
+scope the first private TestFlight: friends under You, open Apple sign-up and
+goals first. Beta and design documents describing solo-only behavior govern the
 existing Personal implementation or their dated exploration, not future scope.
 Preserve Personal, Solo and legacy charity agreements and their test-only or
 sandbox restrictions. D134 plans to remove legacy Personal creation, navigation,

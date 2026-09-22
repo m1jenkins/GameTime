@@ -293,6 +293,16 @@ a new term, add a row rather than inventing a second name for something here.
 | pending creation, retry record | draft |
 | protected storage | saved on your phone |
 | handle | username |
+| pending `friendships` row | friend request |
+| accepted friendship | friend |
+| decline | Decline. The request disappears; the sender isn't told. |
+| `blocks` row | Block / Unblock. "Blocked people can't find you or send you requests." |
+| friend or challenge report | Report. "We'll look into it. You can also block them." |
+| `incoming_request_exists` | "[username] already sent you a request. Accept it to become friends." |
+| daily friend-request cap | "You've reached today's limit for friend requests. Try again tomorrow." |
+| username lookup rate limit | "Too many searches. Wait a minute and try again." |
+| account-mode upload (`verification_mode` without device proof) | "Scores come from the Apple Health activity your iPhone sends. We don't run a separate check on the device. If a score looks wrong, ask us to review it." |
+| Watch-origin source requirement | "You need an Apple Watch that records to Apple Health on this iPhone. Activity recorded only by iPhone doesn't count." |
 | surface, route, view | *(never shown)* |
 | Staging, Debug, HealthKit, Supabase | *(never shown; describe the effect)* |
 
@@ -314,7 +324,10 @@ routes are implemented, scope this check and the candidate copy audit to
 Personal screens and add separate duel/commitment assertions. Do not remove
 legacy checks globally. New friend/winner/rematch language is valid in the new
 products; old financial consent remains exact. Changing a string usually means
-changing an assertion; keep them in the same commit.
+changing an assertion; keep them in the same commit. As of September 22 that
+suite still expects the retired `Today` shell, and `scripts/beta-native-smoke.py`
+doesn't run it. Put new product-scoped copy checks in `ChallengeV1UITests` and
+`LiveDesignUITests`.
 
 Payment copy also requires tests for sandbox versus live configuration; all nine
 authoritative sandbox states (`method_saved`, `review_open`, `under_review`,

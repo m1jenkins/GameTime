@@ -162,6 +162,22 @@ from participant data.
 | Public simulated launch — recommendation | Beta demonstrates credible updates/results, usable exits/reviews and manageable support. Fix blockers, select regions and initial enrollment limit, prepare truthful metadata/screenshots/privacy declarations and review access, and obtain App Review plus owner release authorization. |
 | Funded launch — separate future work | Provider, funds flow, jurisdiction/platform clearance, source integrity under stakes and payment/reconciliation controls under PLAN.md Phase 6. Beta/design passes do not satisfy these requirements. |
 
+**D142, September 22, 2026.** For the first private friends TestFlight only,
+[D142](../DECISIONS.md#d142-first-private-testflight-adds-friends-opens-apple-sign-up-and-ships-goals-first)
+changes the `Ready for private TestFlight` row:
+
+- The nine goal policies become the build-1 set.
+- Community settings, HTTPS links and hosted capacity no longer apply. A check
+  of backups and project pausing remains.
+- Hosted acceptance of all four sources becomes real hosted saves for Steps and
+  outdoor distance, with testers' first Activity minutes and timed-run saves
+  observed.
+
+Every other item in that row stays required. Human comprehension checks and
+legacy-shell replacement acceptance await an owner answer. The
+[friends plan](FRIENDS_TESTFLIGHT_PLAN.md) orders that work. The rows above
+remain the Beta 1 finish lines.
+
 Apple's first external TestFlight build requires review; App Store submission
 has its own build/metadata process. Provide review access and a working backend;
 explain the Watch requirement, Health use and simulation accurately. These are
