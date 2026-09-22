@@ -6,6 +6,15 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 22 fixture admission age fix
+
+Migration `20260922181912` restores the 21+ check on the fixture path of
+`app.challenge_admit_v1`, which `20260920010824` had dropped. Everything else
+in the `20260920160248` definition is unchanged. pgTAP `528` covers it. See the
+[receipt](../outputs/reports/2026-09-22-fixture-admission-age.md) for the
+disposable-stack results. Local only: not applied to `gametime-p11b`, where
+fixtures are off, and not pushed.
+
 ## September 22 Phase 0: friends TestFlight scope and landed trial work
 
 [D142](../DECISIONS.md#d142-first-private-testflight-adds-friends-opens-apple-sign-up-and-ships-goals-first)

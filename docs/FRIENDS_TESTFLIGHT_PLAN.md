@@ -289,3 +289,7 @@ earliest success is mid-to-late October.
 - The fixture branch of `app.challenge_admit_v1` lost its age check when
   `20260920010824` rewrote it (lines 720–727; the earlier check was at
   `20260908050901…:36`). It is harmless while fixtures are off on hosted.
+  **Fixed locally:** migration `20260922181912` restores the check, and pgTAP
+  `528` covers it. See the
+  [receipt](../outputs/reports/2026-09-22-fixture-admission-age.md). The
+  migration is not applied to `gametime-p11b`.
