@@ -65,6 +65,7 @@ enum ActivitySyncViewState: Equatable, Sendable {
 final class AppModel {
     let configuration: AppConfiguration
     let challengesV1: ChallengeV1Store
+    let friends: FriendsStore
     let challengeInvitation: ChallengeInvitationIntent
     let duels: DuelStore
     let metricPrototypes: MetricPrototypeStore?
@@ -116,10 +117,14 @@ final class AppModel {
         self.configuration = configuration
         self.services = services
         self.challengeInvitation = challengeInvitation ?? ChallengeInvitationIntent(links: configuration.challengeInvitationLinks)
+        let challengeDirectoryOverride = challengeDirectory
         let challengeDirectory = challengeDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("GameTime/ProductChallengeV1Pending")
         challengesV1 = ChallengeV1Store(auth: services.auth, client: services.challengesV1,
             requests: ChallengeV1RequestStore(directory: challengeDirectory))
+        friends = FriendsStore(auth: services.auth, client: services.friends,
+            journal: challengeDirectoryOverride.map { FriendJournal(directory: $0.appendingPathComponent("Friends")) }
+                ?? .applicationSupport())
         if let dependencies = services.challengeHealthDependencies {
             challengeHealth = ChallengeHealthFlowStore(auth: services.auth, challenges: challengesV1, dependencies: dependencies)
         } else { challengeHealth = nil }
@@ -1215,6 +1220,7 @@ final class AppModel {
 
         challengeHealth?.setActor(nil)
         challengesV1.setActor(nil)
+        friends.setActor(nil)
         // The existing cleaner removes the persisted invitation. End its
         // in-memory visibility immediately, even if disk cleanup needs recovery.
         challengeInvitation.link = ""
@@ -1350,6 +1356,7 @@ final class AppModel {
         services.challengeHealthReadiness?.invalidate()
         challengeHealth?.setActor(userID)
         challengesV1.setActor(userID)
+        friends.setActor(userID)
         duels.setActor(userID)
         performanceCommitments.setActor(userID)
         weekly.setActor(userID)
@@ -1571,6 +1578,7 @@ final class AppModel {
         services.challengeHealthReadiness?.invalidate()
         challengeHealth?.setActor(nil)
         challengesV1.setActor(nil)
+        friends.setActor(nil)
         duels.setActor(nil)
         performanceCommitments.setActor(nil)
         weekly.setActor(nil)

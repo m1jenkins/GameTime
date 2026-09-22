@@ -144,6 +144,27 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
     private struct ServerError: Decodable { let message: String }
 }
 
+/// Friend commands share the challenge session fence: the same signed-in
+/// session, bound to one actor, with no redirects or cached responses.
+extension SupabaseChallengeV1Client: FriendCommandsClient {
+    func friendList(actor: UUID) async throws -> FriendList {
+        let list: FriendList = try decode(await send("friend_list_v1", Data("{}".utf8), actor))
+        try list.validate(actor: actor)
+        return list
+    }
+    func friendLookup(_ username: String, actor: UUID) async throws -> FriendLookup {
+        let result: FriendLookup = try decode(await send("friend_lookup_v1",
+            ChallengeJSON.data(.object(["p_username": .string(username)])), actor))
+        try result.validate()
+        return result
+    }
+    func friendCommand(_ command: FriendCommand) async throws -> FriendReceipt {
+        let receipt: FriendReceipt = try decode(await send(command.rpc, command.body, command.actorId))
+        guard receipt.matches(command.op) else { throw ChallengeV1Error.invalidResponse }
+        return receipt
+    }
+}
+
 actor ChallengeV1RequestStore {
     let directory: URL
     init(directory: URL) { self.directory = directory }
