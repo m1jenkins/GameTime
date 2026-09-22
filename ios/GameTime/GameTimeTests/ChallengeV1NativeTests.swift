@@ -86,7 +86,7 @@ import XCTest
         )
         XCTAssertEqual(
             ChallengeV1Error.server("challenge_private_trial_personal_steps_only").localizedDescription,
-            "This private trial currently supports personal step goals only. Choose a personal step goal to continue."
+            "This private trial currently supports Steps and Outdoor runs. Choose one of those to continue."
         )
     }
     private func sample(_ actor:UUID,_ name:String)->ChallengeV1 {

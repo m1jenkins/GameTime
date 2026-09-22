@@ -147,5 +147,63 @@ select is(public.challenge_real_health_ingest_v1(
  (select receipt from private_progress_receipt),
  'exact progress recovery returns the saved receipt while intake is paused');
 
+select throws_ok(
+ $$select public.challenge_real_health_readiness_v1('d5270000-0000-4000-8000-000000000021',
+   'bf000000-0000-0000-0000-000000000701','apple_workout_outdoor_timed_v1',clock_timestamp()-interval '1 minute',
+   'ba000000-0000-0000-0000-000000000701',clock_timestamp()+interval '1 hour',null,null,
+   extensions.digest('timed fictional body','sha256'),false,5000000)$$,
+ '42501','challenge_private_trial_personal_steps_only',
+ 'the private account path still refuses timed outdoor readiness');
+select lives_ok(
+ $$select public.challenge_real_health_readiness_v1('d5270000-0000-4000-8000-000000000022',
+   'bf000000-0000-0000-0000-000000000701','apple_workout_outdoor_distance_v1',clock_timestamp()-interval '1 minute',
+   'ba000000-0000-0000-0000-000000000701',clock_timestamp()+interval '1 hour',null,null,
+   extensions.digest('distance fictional body','sha256'),false,null)$$,
+ 'the enrolled private account can save outdoor-run distance readiness');
+
+select set_config('app.challenge_write_v1','on',true);
+create temp table private_distance as select
+ 'd5270000-0000-4000-8000-000000000030'::uuid id,
+ 'd5270000-0000-4000-8000-000000000023'::uuid progress_request,
+ clock_timestamp()-interval '1 hour' starts_at,
+ clock_timestamp()+interval '1 day' ends_at;
+insert into app.challenge_lobbies_v1(id,creator_id,policy,config,starts_at,ends_at,
+ status,created_at,minimum,capacity,agreement_version,real_source_policy_version)
+select c.id,p.actor,'personal_distance_goal_v1',
+ jsonb_build_object('starts_at',c.starts_at,'ends_at',c.ends_at),c.starts_at,c.ends_at,
+ 'active',clock_timestamp(),1,1,1,'apple_workout_outdoor_distance_v1'
+from private_distance c cross join private_ids p;
+insert into app.challenge_agreements_v1(challenge_id,version,terms,created_at)
+select id,1,jsonb_build_object('source_policy_version','apple_workout_outdoor_distance_v1',
+ 'config',jsonb_build_object('starts_at',starts_at,'ends_at',ends_at)),clock_timestamp()
+from private_distance;
+insert into app.challenge_members_v1(challenge_id,actor_id,selected,target)
+select c.id,p.actor,true,5000000 from private_distance c cross join private_ids p;
+insert into app.challenge_slots_v1(challenge_id,actor_id,mode,metric,starts_at,ends_at)
+select c.id,p.actor,'personal','distance',c.starts_at,c.ends_at
+from private_distance c cross join private_ids p;
+insert into app.challenge_consents_v1(challenge_id,version,actor_id,digest,recorded_at)
+select a.challenge_id,1,p.actor,a.digest,clock_timestamp()
+from app.challenge_agreements_v1 a cross join private_ids p
+where a.challenge_id=(select id from private_distance);
+create temp table private_distance_payload as
+select jsonb_build_object(
+ 'contract_version',1,'actor_id',p.actor,'challenge_id',c.id,'agreement_version',1,
+ 'terms_digest',a.digest,'source_policy_version','apple_workout_outdoor_distance_v1','metric','distance',
+ 'window_starts_at',c.starts_at,'window_ends_at',c.ends_at,'request_id',c.progress_request,
+ 'revision',1,'previous_revision',null,'state','value','value',5000000,
+ 'observed_at',clock_timestamp(),'queried_through_at',clock_timestamp()) body
+from private_distance c cross join private_ids p
+join app.challenge_agreements_v1 a on a.challenge_id=c.id and a.version=1;
+select lives_ok(
+ $$select public.challenge_real_health_ingest_v1(
+   (select progress_request from private_distance),(select body from private_distance_payload),
+   (select session from private_ids),clock_timestamp()+interval '1 hour',null,null,
+   extensions.digest((select body from private_distance_payload)::text,'sha256'),false)$$,
+ 'the enrolled private account can save an outdoor-run distance update');
+select is((select value from app.challenge_real_health_facts_v1
+ where request_id=(select progress_request from private_distance)),5000000::bigint,
+ 'the consented outdoor distance fact is saved without device proof');
+
 select * from finish();
 rollback;
