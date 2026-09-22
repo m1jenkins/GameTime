@@ -106,8 +106,8 @@ them, because profile photos remain deferred.
   and the list fields: `since`, `you_asked` and `sent_at`. The "accepted your
   request" Home row is derived on the phone from `you_asked` and `since`, and
   dismissing it is remembered there.
-- **The owner still has to decide the re-request rule after a decline.** Until
-  then a declined person can be sent the same request again, up to the daily
-  cap. No mock implies a cooldown.
+- **Decline rule:** on September 22 the owner accepted block as the remedy
+  for re-requests. A declined person can be sent the same request again, up
+  to the daily cap. No mock implies a cooldown.
 - Native Dynamic Type, VoiceOver and physical rendering are not demonstrated.
   `&large=1` is a browser approximation.

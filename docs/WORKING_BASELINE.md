@@ -22,7 +22,7 @@ The owner directed completed authorized work to be committed and merged into
   goal kept its terms and result across the upgrade.
   - Every new setting defaults to current behavior.
   - Nothing was applied to `gametime-p11b` or pushed.
-  - The owner still has to decide the re-request rule after a decline.
+  - The owner accepted block as the remedy for re-requests after a decline.
   See the [receipt](../outputs/reports/2026-09-22-friends-phase-2-server.md).
 
 ## September 22 fixture admission age fix

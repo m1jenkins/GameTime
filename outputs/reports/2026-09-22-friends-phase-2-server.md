@@ -184,13 +184,12 @@ checkout's stack was reset or reused.
 
 ## Open items
 
-- **Decline and re-requesting (owner decision; the plan says it's due before
-  Phase 2 closes).** As planned, decline deletes the request, so the sender can
-  send it again, up to the daily cap. Deleting also removes it from the
-  sender's "Requests you sent" list. Nobody is notified, but a watchful sender
-  can infer a decline. The minimal re-request rule would fix both: keep a
-  declined request hidden from the recipient while the sender keeps seeing it
-  as sent. The other option is to accept block as the remedy for this cohort.
+- **Decline and re-requesting: decided.** Decline deletes the request, so the
+  sender can send it again, up to the daily cap. Deleting also drops it from
+  the sender's "Requests you sent" list, so a watchful sender can infer a
+  decline, though nobody is notified. On September 22 the owner accepted block
+  as the remedy for this cohort over a minimal re-request rule. No code
+  change. Revisit before a wider cohort.
 - **Stale block and unblock.** A block of someone you already blocked, or an
   unblock of someone you haven't, is refused as stale rather than treated as
   success. That follows the plan's expected-state rule.

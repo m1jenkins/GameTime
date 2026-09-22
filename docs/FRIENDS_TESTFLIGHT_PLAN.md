@@ -127,12 +127,13 @@ Reviewed September 22 against [BUSINESS_MODEL.md](BUSINESS_MODEL.md#responsible-
     under You.
   - Analytics stay off, and neither health data nor results feed suggestions
     or targeting.
-- **Open item for the owner.** The 30-day decline cooldown is deferred, so a
-  declined person can be sent the same request again, up to the daily cap.
-  BUSINESS_MODEL rules out "repeated prompting after decline". Before Phase 2
-  closes, the owner either:
-  - accepts block as the remedy for this under-10, invite-only cohort, or
-  - adds a minimal re-request rule for a declined pair.
+- **Decided September 22: block is the remedy.** The 30-day decline cooldown
+  is deferred, so a declined person can be sent the same request again, up to
+  the daily cap. BUSINESS_MODEL rules out "repeated prompting after decline".
+  For this under-10, invite-only cohort the owner accepted block as the remedy
+  over a minimal re-request rule. Decline deletes the request, so it also drops
+  out of the sender's sent list. Nobody is notified. Revisit before a wider
+  cohort.
 
 ## Phases
 
@@ -177,13 +178,13 @@ approval.
 - **Invite mock:** drop contacts and links, matching the native app.
 - **Unchanged:** the locked Goal → Challenge → Friends flow is not reopened.
 
-### Phase 2 — server: implemented locally, one owner decision open
+### Phase 2 — server: complete locally
 
 Migrations `20260922210000` and `20260922210100`, pgTAP `529`–`531` and a
 hosted-order upgrade rehearsal. See the
 [receipt](../outputs/reports/2026-09-22-friends-phase-2-server.md). Not
-applied to hosted. Phase 2 closes when the owner decides the re-request rule in
-the engagement review above.
+applied to hosted. The owner settled the decline rule in the engagement review
+above.
 
 
 - **RPCs:**
@@ -291,7 +292,6 @@ earliest success is mid-to-late October.
 - Who renews the Apple client secret, and when.
 - Confirm that the second scheduled goal is the September 24–30 Steps goal,
   which sets whether hosted work can start October 4 or October 6.
-- The decline re-request rule (see the engagement review).
 - Whether first-tester observation meets the finish line's human comprehension
   check, and whether legacy-shell replacement acceptance applies to this build.
   D142 leaves both unchanged.
