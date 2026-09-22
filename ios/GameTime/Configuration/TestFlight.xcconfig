@@ -1,0 +1,18 @@
+// D142 first private friends TestFlight. See docs/FRIENDS_TESTFLIGHT_PLAN.md.
+// The production bundle on the isolated P11B backend: challenges on, account
+// mode on, no payment provider. Stakes stay simulated and nonredeemable, and
+// the server owns admission, the policy allowlist and settlement.
+#include "PublicClient.xcconfig"
+
+SUPABASE_URL = https:/$()/lyushhqoednheqwzsmxh.supabase.co
+SUPABASE_PUBLISHABLE_KEY = sb_publishable_aGUhHPloZc3VEqaU2gP4iw_41VXfG8L
+
+GAMETIME_ENV = testflight
+// TestFlight App Attest keys are production-only. Account mode doesn't use them.
+APP_ATTEST_ENVIRONMENT = production
+GAMETIME_CONTEST_MUTATIONS_ENABLED = NO
+GAMETIME_CHALLENGE_V1_ENABLED = YES
+GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE = YES
+// No Stripe: legacy Personal creation is off and nothing reaches a provider.
+GAMETIME_PERSONAL_SETTLEMENT_MODE = test_only
+GAMETIME_STRIPE_RETURN_URL =

@@ -6,7 +6,7 @@ import Supabase
 enum LiveServicesFactory {
     static func make(configuration: AppConfiguration) throws -> AppServices {
         let client: SupabaseClient
-        if configuration.environment == .staging {
+        if configuration.usesBackendScopedStorage {
             client = SupabaseClient(
                 supabaseURL: configuration.supabaseURL,
                 supabaseKey: configuration.supabasePublishableKey,

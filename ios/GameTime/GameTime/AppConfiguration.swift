@@ -5,6 +5,9 @@ enum AppEnvironment: String, Equatable, Sendable {
     case debug
     case staging
     case release
+    /// D142 private friends TestFlight: the production bundle on the P11B
+    /// backend, with challenges and account mode on and no payment provider.
+    case testflight
 }
 
 typealias AppAttestEnvironment = MetricUploadAttestationEnvironment
@@ -48,12 +51,18 @@ struct AppConfiguration: Equatable, Sendable {
         #endif
     }
 
-    /// Owner-authorized, account-authenticated activity in the selected private
-    /// trial. The server independently enforces enrollment and this opt-in.
+    /// Account-authenticated activity without a device check, on the P11B
+    /// backend only: the owner's Staging trial and the D142 TestFlight build.
+    /// The server independently enforces its own account-mode setting.
     var privateHealthAccountMode: Bool {
-        privateHealthAccountModeRequested && environment == .staging && challengeV1RuntimeEnabled
-            && backendStorageNamespace == "lyushhqoednheqwzsmxh.supabase.co"
+        privateHealthAccountModeRequested && [.staging, .testflight].contains(environment) && challengeV1RuntimeEnabled
+            && backendStorageNamespace == Self.accountModeBackend
     }
+    static let accountModeBackend = "lyushhqoednheqwzsmxh.supabase.co"
+
+    /// Builds that keep their own sign-in and retry storage per backend, so a
+    /// session from another project is never replayed against this one.
+    var usesBackendScopedStorage: Bool { [.staging, .testflight].contains(environment) }
 
     var weeklyRuntimeEnabled: Bool {
         #if DEBUG || STAGING
@@ -136,7 +145,7 @@ struct AppConfiguration: Equatable, Sendable {
     /// The installed Staging build moved to a distinct backend. Existing Debug
     /// and Release state retains its legacy storage keys.
     var appAttestStorageNamespace: String {
-        environment == .staging ? backendStorageNamespace : "legacy"
+        usesBackendScopedStorage ? backendStorageNamespace : "legacy"
     }
 
     /// Legacy social mutations remain separately locked in Release. The beta
@@ -146,6 +155,8 @@ struct AppConfiguration: Equatable, Sendable {
         if environment == .release {
             return personalSettlementMode == .stripeSandbox
         }
+        // TestFlight creates only the new challenges; legacy Personal stays read-only.
+        if environment == .testflight { return false }
         return contestMutationsEnabled
     }
 
@@ -157,7 +168,7 @@ struct AppConfiguration: Equatable, Sendable {
         guard personalChallengeMutationsEnabled else { return false }
         switch personalSettlementMode {
         case .testOnly:
-            return environment != .release
+            return environment == .debug || environment == .staging
         case .stripeSandbox:
             return true
         }
@@ -167,7 +178,7 @@ struct AppConfiguration: Equatable, Sendable {
     /// reads can leave the phone remains a separate App Attest capability.
     var activitySyncEnabled: Bool {
         switch environment {
-        case .debug, .staging, .release:
+        case .debug, .staging, .release, .testflight:
             true
         }
     }
@@ -193,7 +204,7 @@ struct AppConfiguration: Equatable, Sendable {
             nil
         case .staging:
             .development
-        case .release:
+        case .release, .testflight:
             .production
         }
     }
@@ -344,7 +355,7 @@ struct AppConfiguration: Equatable, Sendable {
                     && forbiddenReleaseMarkers.allSatisfy {
                         !returnScheme.contains($0)
                     }
-            case .debug:
+            case .debug, .testflight:
                 isAllowedReturnScheme = false
             }
 
@@ -360,7 +371,7 @@ struct AppConfiguration: Equatable, Sendable {
             environment: environment,
             supabaseURL: url,
             supabasePublishableKey: key,
-            contestMutationsEnabled: environment == .release
+            contestMutationsEnabled: environment == .release || environment == .testflight
                 ? false
                 : requestedMutations,
             personalSettlementMode: requestedSettlementMode,

@@ -123,7 +123,7 @@ final class GameTimeAppDelegate: NSObject, UIApplicationDelegate {
       processEnvironment["XCTestBundlePath"] == nil
     else { return false }
     switch environment {
-    case .debug, .staging, .release: return true
+    case .debug, .staging, .release, .testflight: return true
     }
   }
 
