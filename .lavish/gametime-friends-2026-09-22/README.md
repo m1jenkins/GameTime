@@ -3,8 +3,9 @@
 September 22, 2026. These are the Phase 1 mocks from the
 [friends TestFlight plan](../../docs/FRIENDS_TESTFLIGHT_PLAN.md), under
 [D142](../../DECISIONS.md#d142-first-private-testflight-adds-friends-opens-apple-sign-up-and-ships-goals-first).
-It is a browser design study for owner approval before Phase 3 native work. It
-changes no native app, backend, agreement or hosted state.
+The owner approved it on September 22 with no changes. It is the reference
+for Phase 3 native work. It changes no native app, backend, agreement or
+hosted state.
 
 Open `index.html` for the board, or with `lavish-axi` to annotate it.
 `phone.html?screen=<name>` opens one phone at full size, and `&large=1` enlarges
@@ -99,8 +100,8 @@ them, because profile photos remain deferred.
 - Fictional people and dates only (snapshot Tuesday, September 22, 9:41 AM).
   Buttons change local state. The mocks make no network request and store
   nothing. There are no notifications, analytics or payment actions.
-- Report reason wording, the Home row order, the three-row limit and the
-  onboarding order are proposals awaiting approval.
+- The owner approved the report reason wording, the Home row order, the
+  three-row limit and the onboarding order along with the rest of the board.
 - The Phase 2 server commands back every state shown here. See
   `outputs/reports/2026-09-22-friends-phase-2-server.md` for the error codes
   and the list fields: `since`, `you_asked` and `sent_at`. The "accepted your

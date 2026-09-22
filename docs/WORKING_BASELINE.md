@@ -8,7 +8,7 @@ The owner directed completed authorized work to be committed and merged into
 
 ## September 22 friends Phase 1 mocks and Phase 2 server
 
-- **Phase 1 mocks, awaiting approval.** The board is in
+- **Phase 1 mocks, approved September 22 with no changes.** The board is in
   [`.lavish/gametime-friends-2026-09-22/`](../.lavish/gametime-friends-2026-09-22/README.md).
   It covers Friends under You, Add a friend, safety, Home action rows, the
   invite picker, the 21+ and Apple Watch onboarding step, and "Challenge

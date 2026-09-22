@@ -154,11 +154,12 @@ Recorded:
 
 The Phase 0 commits are listed in [WORKING_BASELINE.md](WORKING_BASELINE.md).
 
-### Phase 1 — mocks: drafted, awaiting approval
+### Phase 1 — mocks: approved
 
 The board is at [`.lavish/gametime-friends-2026-09-22/`](../.lavish/gametime-friends-2026-09-22/README.md),
-with 19 interactive screens and captures. Native work waits for the owner's
-approval.
+with 19 interactive screens and captures. The owner approved it on
+September 22 with no changes, so it is the reference for Phase 3. Phase 3
+starts when the owner starts it.
 
 
 - **You › Friends:** accepted, incoming and sent lists, with empty, loading and
