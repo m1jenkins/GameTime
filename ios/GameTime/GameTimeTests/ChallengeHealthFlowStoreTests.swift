@@ -59,9 +59,10 @@ import XCTest
                     Text("Activity minutes").font(.largeTitle)
                     Text(ChallengeHealthCopy.source("apple_watch_exercise_credit_v2"))
                     ChallengeHealthStatusView(flow: h.flow, binding: binding, readiness: true)
-                }.padding(SignalTheme.contentInset) }.background(SignalTheme.canvas)
+                }.foregroundStyle(SignalTheme.textPrimary)
+                    .padding(SignalTheme.contentInset) }.background(SignalTheme.canvas)
             }.environment(\.colorScheme, scheme).environment(\.dynamicTypeSize, .accessibility3), name: "p9-health-credit-readiness-\(scheme)")
-            XCTAssertTrue(text.contains("indirectly derived credit may count"))
+            XCTAssertTrue(text.contains("indirectly derived credit may count"), text)
             XCTAssertTrue(text.contains("activity found")); XCTAssertTrue(text.contains("refresh activity check"))
         }
     }
