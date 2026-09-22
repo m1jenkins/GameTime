@@ -203,12 +203,12 @@ final class ChallengeV1UITests:XCTestCase {
         let create = app.buttons["beta.create.open"]
         for _ in 0..<8 where !create.isHittable { app.swipeDown() }
         XCTAssertTrue(create.waitForExistence(timeout: 10)); create.tap()
-        XCTAssertTrue(app.staticTexts["Who’s it for?"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["What’s your goal?"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Who’s it for?"].exists)
         let formCapture = XCTAttachment(screenshot: app.screenshot()); formCapture.name = "Beta creation " + mode; formCapture.lifetime = .keepAlways; add(formCapture)
         do {
             try app.performAccessibilityAudit()
         } catch { XCTFail("Unfiltered accessibility audit failed: \(error)") }
-        tapContinue(app)
         app.buttons["beta.create.dates"].tap()
         let increment = app.buttons["beta.stepper.days-Increment"]
         XCTAssertTrue(increment.isHittable); increment.tap()
@@ -321,15 +321,20 @@ final class ChallengeV1UITests:XCTestCase {
             XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: age)], timeout: 10), .completed)
         }
         app.buttons["beta.create.open"].tap()
-        app.buttons["beta.create.type.leaderboard"].tap(); tapContinue(app)
+        let advanced = app.buttons["beta.create.advanced"]
+        for _ in 0..<15 where !advanced.isHittable { app.swipeUp() }
+        advanced.tap()
+        app.buttons["beta.create.type.leaderboard"].tap()
         for metric in ["steps", "exercise", "distance", "timed"] {
             app.buttons["beta.create.metric." + metric].tap()
             XCTAssertFalse(app.textFields["beta.create.target"].exists)
             capture("leaderboard-create-" + metric)
         }
-        app.buttons["beta.create.back"].tap(); app.buttons["beta.create.type.personal"].tap(); tapContinue(app)
+        let personal = app.buttons["beta.create.type.personal"]
+        for _ in 0..<15 where !personal.isHittable { app.swipeUp() }
+        personal.tap()
         app.buttons["beta.create.metric.steps"].tap()
-        XCTAssertFalse(app.buttons["beta.create.type.leaderboard"].exists)
+        XCTAssertTrue(app.textFields["beta.create.target"].waitForExistence(timeout: 5))
         let target = app.textFields["beta.create.target"]
         bring(target); target.tap(); target.typeText("0"); app.buttons["beta.create.input.done"].tap()
         tapContinue(app)
@@ -483,7 +488,7 @@ final class ChallengeV1UITests:XCTestCase {
         XCTAssertTrue(button.waitForExistence(timeout: 10)); button.tap()
     }
     @MainActor private func advanceFriendCreation(_ app: XCUIApplication) {
-        for _ in 0..<2 { tapContinue(app) }
+        tapContinue(app)
     }
     @MainActor private func closeSavedCreation(_ app: XCUIApplication) {
         XCTAssertTrue(app.staticTexts["beta.create.saved"].waitForExistence(timeout: 15))

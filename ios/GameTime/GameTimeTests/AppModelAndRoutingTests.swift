@@ -506,8 +506,8 @@ final class AppModelAndRoutingTests: XCTestCase {
         router.youPath = [.trustAndPrivacy]
         controller.view.layoutIfNeeded()
         try await Task.sleep(for: .milliseconds(100))
-        XCTAssertFalse(router.todayPath.isEmpty)
-        XCTAssertFalse(router.challengesPath.isEmpty)
+        XCTAssertTrue(router.todayPath.isEmpty, "Personal intents are consumed by the new detail bridge")
+        XCTAssertTrue(router.challengesPath.isEmpty, "The retired navigation stack must not remain wired")
         XCTAssertFalse(router.youPath.isEmpty)
         // Immediate fictional replies let SwiftUI coalesce launching -> signedIn.
         // The actor change still has to reset each retained navigation stack.

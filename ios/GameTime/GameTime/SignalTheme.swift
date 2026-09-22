@@ -21,20 +21,20 @@ enum SignalTheme {
     }
 
     // Native content uses the study's surface, without its desktop surround.
-    static let canvas = adaptive(0xFBFCFE, 0x141A23)
-    static let surface = adaptive(0xFFFFFF, 0x141A23)
-    static let soft = adaptive(0xEFF3F8, 0x1D2632)
-    static let textPrimary = adaptive(0x141C28, 0xF1F5FB)
-    static let textSecondary = adaptive(0x5A6879, 0xA2AFC0,
-                                        highContrastLight: 0x141C28, highContrastDark: 0xF1F5FB)
-    static let accent = adaptive(0x2458ED, 0x86A9FF)
-    static let onAccent = adaptive(0xFFFFFF, 0x0F1C38)
-    static let selection = adaptive(0xE8EFFF, 0x25375C)
-    static let divider = adaptive(0xD8E0EB, 0x303C4D,
+    static let canvas = adaptive(0xFAFBFC, 0xFAFBFC)
+    static let surface = adaptive(0xFFFFFF, 0xFFFFFF)
+    static let soft = adaptive(0xF0F2F5, 0xF0F2F5)
+    static let textPrimary = adaptive(0x111318, 0x111318)
+    static let textSecondary = adaptive(0x606975, 0x606975,
+                                        highContrastLight: 0x111318, highContrastDark: 0x111318)
+    static let accent = adaptive(0x245BFF, 0x245BFF)
+    static let onAccent = adaptive(0xFFFFFF, 0xFFFFFF)
+    static let selection = adaptive(0xF4F7FF, 0xF4F7FF)
+    static let divider = adaptive(0xDCE1E8, 0xDCE1E8,
                                   highContrastLight: 0x758298, highContrastDark: 0x8592A6)
-    static let progressTrack = adaptive(0xD8E0EB, 0x303C4D)
-    static let bar = adaptive(0x6986C0, 0x708CCD)
-    static let danger = adaptive(0xA53636, 0xFFB1B1)
+    static let progressTrack = adaptive(0xDCE1E8, 0xDCE1E8)
+    static let bar = adaptive(0x727B88, 0x727B88)
+    static let danger = adaptive(0x9A6700, 0x9A6700)
     static let contentInset: CGFloat = 24
 
     static func participantColor(for participantID: UUID, participantIDs: [UUID], currentUserID: UUID?) -> Color {

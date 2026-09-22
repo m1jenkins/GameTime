@@ -54,8 +54,10 @@ final class ChallengeHealthSignalUITests: XCTestCase {
             XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: age)], timeout: 10), .completed)
         }
         app.buttons["beta.create.open"].tap()
+        let advanced = app.buttons["beta.create.advanced"]
+        bring(advanced, down: true)
+        advanced.tap()
         app.buttons["beta.create.type.leaderboard"].tap()
-        app.buttons["beta.create.continue"].tap()
         for metric in ["steps", "exercise", "distance", "timed"] {
             app.buttons["beta.create.metric." + metric].tap()
             XCTAssertFalse(app.staticTexts["Leaderboard — Not available yet"].exists)
@@ -63,8 +65,9 @@ final class ChallengeHealthSignalUITests: XCTestCase {
             XCTAssertTrue(app.buttons["beta.create.continue"].exists)
             capture("received-leaderboard-" + metric)
         }
-        app.buttons["beta.create.back"].tap()
-        app.buttons["beta.create.type.personal"].tap(); app.buttons["beta.create.continue"].tap()
+        let personal = app.buttons["beta.create.type.personal"]
+        bring(personal)
+        personal.tap()
         app.buttons["beta.create.metric.steps"].tap()
         let target = app.textFields["beta.create.target"]; bring(target); target.tap(); target.typeText("10000")
         app.buttons["beta.create.input.done"].tap()

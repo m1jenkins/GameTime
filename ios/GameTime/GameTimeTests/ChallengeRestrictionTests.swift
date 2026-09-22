@@ -111,8 +111,8 @@ import XCTest
     private func mounted(detail: Bool, revision: Int) async throws {
         let fixture = RestrictionFixture(); defer { fixture.clean() }
         await fixture.start()
-        let view = detail ? AnyView(NavigationStack { ChallengeV1Detail(store: fixture.store, id: fixture.shared.id) }.environment(\.dynamicTypeSize, .accessibility1)) :
-            AnyView(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}))
+        let view = detail ? AnyView(LiveGoalDetail(store: fixture.store, id: fixture.shared.id, section: .people).environment(\.dynamicTypeSize, .accessibility1)) :
+            AnyView(LiveLibraryView(store: fixture.store, filter: .constant("All"), serviceAvailable: true, create: {}, entry: {}, open: { _ in }))
         let controller = UIHostingController(rootView: view)
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
         let previous = scene.windows.first(where: \.isKeyWindow)
@@ -124,14 +124,14 @@ import XCTest
         try await Task.sleep(for: .milliseconds(300))
         XCTAssertNotNil(controller.view.window)
         XCTAssertEqual(fixture.client.detailCalls, detail ? 1 : 0)
-        let name = "restriction-\(detail ? "detail" : "home")-revision-\(revision)"
+        let name = "restriction-\(detail ? "people" : "library")-revision-\(revision)"
         let before = try await capture(window, controller: controller, name: name + "-before")
         if detail {
             XCTAssertTrue(before.contains("sharedfriend"), "Counterpart must actually be visible before restriction")
-            XCTAssertTrue(before.contains("321 of 2,000 steps"), "Counterpart activity and agreed goal must actually be rendered")
+            XCTAssertTrue(before.contains("321") && before.contains("2,000 steps"), "Counterpart activity and agreed goal must actually be rendered")
         } else {
-            XCTAssertFalse(before.contains("you left this challenge"))
-            XCTAssertTrue(before.contains("507"), "Unrelated activity is the rendered Home control")
+            XCTAssertFalse(before.contains("closed early"))
+            XCTAssertTrue(before.contains("507"), "Unrelated activity is the rendered library control")
         }
         fixture.restrict(revision: revision, failing: [.active])
         await fixture.store.refresh()
@@ -140,13 +140,11 @@ import XCTest
         XCTAssertEqual(fixture.client.detailCalls, detail ? 1 : 0, "No forced detail fetch may repair the mounted view")
         if detail {
             XCTAssertFalse(after.contains("sharedfriend"))
-            XCTAssertFalse(after.contains("321 of 2,000 steps"))
-            // Saved viewport images show "of"; Vision sometimes reads its f as r.
-            // Keep the exact own value, goal and unit, plus every privacy check.
-            XCTAssertNotNil(after.range(of: #"\b100\s+o[fr]\s+1,000 steps\b"#, options: .regularExpression),
-                            "Own activity and agreed goal remain visible")
+            XCTAssertFalse(after.contains("321"))
+            XCTAssertFalse(after.contains("2,000 steps"))
+            XCTAssertTrue(after.contains("100") && after.contains("1,000 steps"), "Own activity and agreed goal remain visible")
         } else {
-            XCTAssertEqual(after.components(separatedBy: "you left this challenge").count - 1, 2, "Both the retained Active card and current History card must render the restriction")
+            XCTAssertEqual(after.components(separatedBy: "closed early").count - 1, 2, "Both the retained Active card and current History card must render the restriction")
             XCTAssertTrue(after.contains("507"), "Unrelated card stays mounted with its original activity")
         }
         XCTAssertEqual(fixture.store.challenges.first { $0.id == fixture.shared.id }, fixture.client.rows[.history]?.first)

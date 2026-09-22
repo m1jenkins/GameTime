@@ -29,7 +29,7 @@ import GameTimeCore
         await reviewed.review(store: fixture.store)
         XCTAssertEqual(reviewed.step, .review)
         let personal = try await capture(ChallengeV1Create(store: fixture.store, draft: reviewed), name: "native-personal-agreement")
-        XCTAssertTrue(personal.contains("complete rules and agree"))
+        XCTAssertTrue(personal.contains("i have read the complete rules") && personal.contains("and agree"), personal)
         XCTAssertFalse(reviewed.consent, "The reviewed agreement still needs explicit consent")
 
         let friend = ChallengeCreationDraft(initialPolicy: .init(rawValue: "friend_distance_goal_v1"), zone: "America/Los_Angeles")

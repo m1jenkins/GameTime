@@ -7,6 +7,7 @@ import Vision
     func testDefaultsDirectEntryAndExplicitDependentResets() {
         let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
         XCTAssertEqual(draft.step, .activity); XCTAssertEqual(draft.progress, 1); XCTAssertEqual(draft.stepCount, 2)
+        XCTAssertFalse(draft.allowsTypeChange)
         XCTAssertEqual(draft.days, "7"); XCTAssertEqual(draft.dollars, "20"); XCTAssertEqual(draft.target, "")
         draft.target = "12345"; draft.days = "13"; draft.dollars = "37"
         draft.step = .review; draft.back()
@@ -18,7 +19,15 @@ import Vision
         XCTAssertEqual(draft.distance, ""); XCTAssertEqual(draft.target, "")
         let restricted = ChallengeCreationDraft(personalStepsOnly: true)
         XCTAssertEqual(restricted.policy.id, "personal_steps_goal_v1"); XCTAssertEqual(restricted.stepCount, 2)
-        XCTAssertEqual(ChallengeCreationDraft().stepCount, 3)
+        XCTAssertFalse(restricted.allowsTypeChange)
+        XCTAssertFalse(ChallengeCreationDraft(initialPolicy: .init(rawValue: "friend_steps_goal_v1")).allowsTypeChange)
+        let standard = ChallengeCreationDraft()
+        XCTAssertEqual(standard.step, .activity)
+        XCTAssertEqual(standard.firstStep, .activity)
+        XCTAssertEqual(standard.progress, 1)
+        XCTAssertEqual(standard.stepCount, 2)
+        XCTAssertEqual(standard.policy.id, "friend_steps_goal_v1")
+        XCTAssertTrue(standard.allowsTypeChange)
     }
     func testCanonicalInputsAndInvalidValuesRemainEditable() {
         let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))

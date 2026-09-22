@@ -44,7 +44,11 @@ struct GameTimeApp: App {
         }
         #endif
         #if DEBUG || STAGING
+        #if DEBUG
+        let fixtureLaunch = arguments.contains("--fixture-mode") || LiveDesignFixtures.enabled
+        #else
         let fixtureLaunch = arguments.contains("--fixture-mode")
+        #endif
         let interactiveDemoLaunch = arguments.contains("--demo-interactive")
             || arguments.contains("--fixture-demo-interactive")
         let usesFixtureModel = fixtureLaunch
@@ -121,7 +125,16 @@ struct GameTimeApp: App {
                         ? .activityFixture
                         : .personalFixture
                 }
+                #if DEBUG
+                if LiveDesignFixtures.enabled {
+                    services = FixtureServicesFactory.make(
+                        arguments: ["--fixture-mode"],
+                        profileClient: LiveDesignFixtures.makeProfileClient(),
+                        challengesV1: LiveDesignFixtures.makeClient())
+                } else { services = FixtureServicesFactory.make() }
+                #else
                 services = FixtureServicesFactory.make()
+                #endif
             } else {
                 #if DEBUG
                 if ChallengeAuthenticatedAppLaunch.enabled {
@@ -234,6 +247,7 @@ struct GameTimeApp: App {
             }
             .tint(SignalTheme.accent)
             .foregroundStyle(SignalTheme.textPrimary)
+            .preferredColorScheme(.light)
         }
     }
 
@@ -268,7 +282,7 @@ struct GameTimeApp: App {
                     .environment(router)
                     .tint(SignalTheme.accent)
                 } else {
-                    ConfigurationFailureView(
+                    LiveConfigurationFailureView(
                         message: configurationFailure
                             ?? "GameTime isn’t set up correctly on this device."
                     )
@@ -364,62 +378,27 @@ struct RootView: View {
     let demoMode: DemoModeAccess
     let pushCoordinator: PushNotificationCoordinator
 
-    private var usesProductShell: Bool {
-        #if DEBUG || STAGING
-        // Historical fixture/demo journeys remain explicit, reproducible regressions.
-        if ProcessInfo.processInfo.arguments.contains("--fixture-product-shell") { return true }
-        if ProcessInfo.processInfo.arguments.contains("--fixture-mode") { return false }
-        #endif
-        return !demoMode.isActive
-    }
-
-    private var isShowingRunningExperiment: Bool {
-        #if DEBUG || STAGING
-        return router.selectedTab == .you && (
-            (model.configuration.duelRuntimeEnabled && router.youPath.contains(.duels))
-            || (model.configuration.performanceCommitmentRuntimeEnabled
-                && router.youPath.contains(.performanceCommitments)))
-        #else
-        return false
-        #endif
-    }
-
     var body: some View {
         @Bindable var router = router
 
         VStack(spacing: 0) {
-            if (!usesProductShell || model.phase != .signedIn) && router.presentedSheet == nil && !isShowingRunningExperiment {
-                EnvironmentDisclosureBanner(
-                    settlementMode:
-                        model.configuration.personalSettlementMode,
-                    isDemo: demoMode.isActive
-                )
-                .background(
-                    SignalTheme.soft.ignoresSafeArea(edges: .top)
-                )
-            }
-
             Group {
                 switch model.phase {
                 case .launching:
-                    LaunchingView(
+                    LiveLaunchingView(
                         errorMessage: model.presentedError,
                         retry: {
                             Task { await model.retryLaunch() }
                         }
                     )
                 case .signedOut:
-                    SignedOutView()
+                    LiveSignInView()
                 case .onboarding:
-                    OnboardingView(
+                    LiveOnboardingView(
                         namePrefill: model.onboardingNamePrefill
                     )
                 case .signedIn:
-                    if usesProductShell {
-                        SignalProductShell()
-                    } else {
-                        AppShellView()
-                    }
+                    SignalProductShell()
                 }
             }
             // SwiftUI can coalesce a fast account switch into signedIn ->
@@ -549,387 +528,5 @@ struct RootView: View {
         // V1. Consume old payloads without surfacing a hidden route or action.
         _ = destination
         pushCoordinator.consumeDestination()
-    }
-}
-
-private struct ConfigurationFailureView: View {
-    let message: String
-
-    var body: some View {
-        VStack(spacing: 18) {
-            Image(systemName: "lock.trianglebadge.exclamationmark")
-                .font(.system(size: 42, weight: .semibold))
-                .foregroundStyle(SignalTheme.textSecondary)
-                .accessibilityHidden(true)
-            Text("GameTime can’t start")
-                .font(.title2.bold())
-            Text(message)
-                .foregroundStyle(SignalTheme.textSecondary)
-                .multilineTextAlignment(.center)
-            PublicSupportLinksView(
-                privacyURL: AppConfiguration.publishedPolicyURL(
-                    Bundle.main.object(
-                        forInfoDictionaryKey: "GAMETIME_PRIVACY_POLICY_URL"
-                    ) as? String
-                ),
-                betaTermsURL: AppConfiguration.publishedPolicyURL(
-                    Bundle.main.object(
-                        forInfoDictionaryKey: "GAMETIME_BETA_TERMS_URL"
-                    ) as? String
-                ),
-                supportMailtoURL: AppConfiguration.supportInbox(
-                    Bundle.main.object(
-                        forInfoDictionaryKey: "GAMETIME_SUPPORT_EMAIL"
-                    ) as? String
-                ).flatMap { URL(string: "mailto:\($0)") }
-            )
-        }
-        .padding(28)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(SignalTheme.canvas)
-    }
-}
-
-private struct SignedOutView: View {
-    @Environment(AppModel.self) private var model
-    @Environment(\.demoMode) private var demoMode
-    @State private var showingAccountDeletionReceipt = false
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                Spacer(minLength: 56)
-
-                Text(GameTimePublicIdentity.name)
-                    .modifier(SignalDisplay(size: 28))
-                    .foregroundStyle(SignalTheme.accent)
-                    .accessibilityLabel(Text(GameTimePublicIdentity.name))
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Choose a goal.\nSet your dates.")
-                        .modifier(SignalDisplay(size: 36))
-                    Text(
-                        "Follow your activity and see how you’re doing."
-                    )
-                    .font(.body)
-                    .foregroundStyle(SignalTheme.textSecondary)
-                }
-
-                VStack(spacing: 10) {
-                    #if DEBUG
-                    if ChallengeAuthenticatedAppLaunch.enabled {
-                        Button("Sign in with local test account") {
-                            Task { await model.signInWithApple(ChallengeAuthenticatedAppLaunch.identity) }
-                        }
-                        .disabled(model.isMutating)
-                        .accessibilityIdentifier("auth.local-substitute")
-                    } else {
-                        NativeAppleSignInButton().disabled(model.isMutating)
-                    }
-                    #else
-                    NativeAppleSignInButton().disabled(model.isMutating)
-                    #endif
-
-                    if model.isMutating {
-                        SignalAsyncStatus(message: "Signing in…")
-                            .accessibilityIdentifier("auth.sign-in.status")
-                    }
-                }
-
-                if let accountDeletionNotice = model.accountDeletionNotice {
-                    Label(
-                        accountDeletionNotice,
-                        systemImage: "checkmark.circle.fill"
-                    )
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(SignalTheme.accent)
-                    .signalSection()
-                    .accessibilityIdentifier("account-deletion.success")
-                }
-
-                if model.accountDeletionReceipt != nil {
-                    Button("Check account deletion") {
-                        showingAccountDeletionReceipt = true
-                    }
-                    .buttonStyle(SignalSecondaryButtonStyle())
-                    .accessibilityIdentifier("account-deletion.receipt")
-                }
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Label(
-                        "Review the full agreement before you start",
-                        systemImage: "checkmark.shield"
-                    )
-                }
-                .font(.subheadline)
-                .foregroundStyle(SignalTheme.textSecondary)
-                .signalSection()
-
-                if demoMode.isAvailable, !demoMode.isActive {
-                    Button("Try demo mode", action: demoMode.enter)
-                        .buttonStyle(SignalSecondaryButtonStyle())
-                        .accessibilityIdentifier("demo.enter")
-                }
-
-                Text(
-                    "Signing in creates your private account. Apple only shares your name the first time, and you can change it on the next screen."
-                )
-                .font(.footnote)
-                .foregroundStyle(SignalTheme.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-                PublicSupportLinksView(
-                    privacyURL: model.configuration.privacyPolicyURL,
-                    betaTermsURL: model.configuration.betaTermsURL,
-                    supportMailtoURL: model.configuration.supportMailtoURL
-                )
-            }
-            .padding(24)
-        }
-        .background(SignalTheme.canvas)
-        .sheet(isPresented: $showingAccountDeletionReceipt) {
-            AccountDeletionReceiptView()
-        }
-        .onChange(of: model.isMutating) { _, isSigningIn in
-            guard isSigningIn else { return }
-            SignalAccessibility.announce("Signing in…")
-        }
-        .onChange(of: model.presentedError) { _, message in
-            guard let message else { return }
-            SignalAccessibility.announce(message)
-        }
-    }
-}
-
-private struct OnboardingView: View {
-    @Environment(AppModel.self) private var model
-    @State private var handle = ""
-    @State private var displayName: String
-    @FocusState private var focusedField: Field?
-
-    private enum Field: Hashable {
-        case name
-        case handle
-    }
-
-    init(namePrefill: String) {
-        _displayName = State(initialValue: namePrefill)
-    }
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Make GameTime yours")
-                            .font(
-                                SignalTheme.displayFont(
-                                    size: 32,
-                                    relativeTo: .largeTitle
-                                )
-                            )
-                        Text(
-                            "Add your name and choose the username you’ll use in GameTime."
-                        )
-                        .font(.subheadline)
-                        .foregroundStyle(
-                            SignalTheme.textSecondary
-                        )
-                    }
-
-                    SignalSectionLabel(text: "Your profile")
-
-                    SignalSection {
-                        VStack(alignment: .leading, spacing: 18) {
-                            onboardingField(
-                                title: "Your name",
-                                text: $displayName,
-                                field: .name,
-                                textContentType: .name,
-                                submitLabel: .next
-                            )
-
-                            Divider().overlay(SignalTheme.divider)
-
-                            onboardingField(
-                                title: "Username",
-                                text: $handle,
-                                field: .handle,
-                                textContentType: .username,
-                                submitLabel: .done
-                            )
-
-                            Text(
-                                "Pick carefully — you can’t change your username yet."
-                            )
-                            .font(.caption)
-                            .foregroundStyle(
-                                SignalTheme.textSecondary
-                            )
-                        }
-                    }
-
-                    if let message = error(for: .general) {
-                        Text(message)
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(
-                                SignalTheme.accent
-                            )
-                            .accessibilityIdentifier(
-                                "onboarding.general.error"
-                            )
-                    }
-
-                    Button {
-                        submitOnboarding()
-                    } label: {
-                        Text(
-                            model.isMutating
-                                ? "Saving profile…"
-                                : "Enter GameTime"
-                        )
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(SignalPrimaryButtonStyle())
-                    .disabled(
-                        model.isMutating
-                            || handle.isEmpty
-                            || displayName.trimmingCharacters(
-                                in: .whitespacesAndNewlines
-                            ).isEmpty
-                    )
-                    .accessibilityIdentifier("onboarding.submit")
-
-                    Button("Use a different Apple account") {
-                        focusedField = nil
-                        Task { await model.signOut() }
-                    }
-                    .buttonStyle(SignalSecondaryButtonStyle())
-                    .disabled(model.isMutating)
-                    .accessibilityIdentifier(
-                        "onboarding.use-different-account"
-                    )
-                }
-                .padding(20)
-            }
-            .scrollDismissesKeyboard(.interactively)
-            .signalScreenChrome()
-            .navigationTitle("Set your profile")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button(focusedField == .name ? "Next" : "Done") {
-                        if focusedField == .name {
-                            focusedField = .handle
-                        } else {
-                            submitOnboarding()
-                        }
-                    }
-                }
-            }
-            .onAppear {
-                focusedField = displayName.isEmpty ? .name : .handle
-            }
-            .onChange(of: displayName) { _, _ in
-                model.clearOnboardingError()
-            }
-            .onChange(of: handle) { _, _ in
-                model.clearOnboardingError()
-            }
-            .onChange(of: model.onboardingError) { _, error in
-                guard let error else { return }
-                switch error.field {
-                case .name:
-                    focusedField = .name
-                case .username:
-                    focusedField = .handle
-                case .general:
-                    break
-                }
-            }
-        }
-
-    }
-
-    private func onboardingField(
-        title: String,
-        text: Binding<String>,
-        field: Field,
-        textContentType: UITextContentType,
-        submitLabel: SubmitLabel
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-
-            TextField(title, text: text)
-                .textContentType(textContentType)
-                .textInputAutocapitalization(field == .handle ? .never : .words)
-                .autocorrectionDisabled(field == .handle)
-                .submitLabel(submitLabel)
-                .focused($focusedField, equals: field)
-                .onSubmit {
-                    if field == .name {
-                        focusedField = .handle
-                    } else {
-                        submitOnboarding()
-                    }
-                }
-                .padding(.horizontal, 14)
-                .frame(minHeight: 50)
-                .background(
-                    SignalTheme.soft,
-                    in: RoundedRectangle(cornerRadius: 8)
-                )
-                .disabled(model.isMutating)
-                .accessibilityLabel(title)
-                .id(field)
-
-            Text(supportingText(for: field))
-                .font(.caption)
-                .foregroundStyle(
-                    error(for: field) == nil
-                        ? SignalTheme.textSecondary
-                        : SignalTheme.accent
-                )
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier(
-                    field == .name
-                        ? "onboarding.name.message"
-                        : "onboarding.username.message"
-                )
-        }
-    }
-
-    private func supportingText(for field: Field) -> String {
-        if let error = error(for: field) {
-            return error
-        }
-        switch field {
-        case .name:
-            return "Name: 1–50 characters"
-        case .handle:
-            return "Username: 3–30 letters, numbers, or underscores; starts with a letter"
-        }
-    }
-
-    private func error(for field: OnboardingErrorField) -> String? {
-        guard model.onboardingError?.field == field else { return nil }
-        return model.onboardingError?.message
-    }
-
-    private func error(for field: Field) -> String? {
-        error(for: field == .name ? .name : .username)
-    }
-
-    private func submitOnboarding() {
-        focusedField = nil
-        Task {
-            await model.completeOnboarding(
-                handle: handle,
-                displayName: displayName
-            )
-        }
     }
 }

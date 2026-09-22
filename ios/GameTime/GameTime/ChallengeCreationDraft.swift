@@ -9,6 +9,7 @@ import GameTimeCore
     let id = UUID()
     let directEntry: Bool
     let personalStepsOnly: Bool
+    let allowsTypeChange: Bool
     var step: Step
     var mode: ChallengeV1Policy.Mode { didSet { if mode != oldValue { target = ""; competition = .goal; changed() } } }
     var metric: ChallengeV1Policy.Metric { didSet { if metric != oldValue { target = ""; distance = ""; changed() } } }
@@ -42,9 +43,10 @@ import GameTimeCore
 
     init(initialPolicy: ChallengeV1Policy? = nil, personalStepsOnly: Bool = false, now: Date = Date(), zone: String = TimeZone.current.identifier) {
         self.personalStepsOnly = personalStepsOnly
+        allowsTypeChange = initialPolicy == nil && !personalStepsOnly
         planningDate = now
-        directEntry = personalStepsOnly || initialPolicy != nil
-        step = directEntry ? .activity : .type
+        directEntry = true
+        step = .activity
         mode = personalStepsOnly ? .personal : initialPolicy?.mode ?? .friend
         metric = personalStepsOnly ? .steps : initialPolicy?.metric ?? .steps
         competition = personalStepsOnly ? .goal : initialPolicy?.competition ?? .goal

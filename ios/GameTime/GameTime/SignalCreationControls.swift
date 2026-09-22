@@ -266,34 +266,51 @@ struct SignalCreationProgress: View {
     private var selected: Int { min(max(current, 0), max(labels.count - 1, 0)) }
 
     var body: some View {
-        let layout = typeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
-            : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
-        layout {
-            ForEach(labels.indices, id: \.self) { index in
-                HStack(spacing: 6) {
-                    Group {
-                        if index < selected {
-                            Image(systemName: "checkmark").font(.system(size: numberSize, weight: .semibold))
-                                .symbolRenderingMode(.monochrome)
-                        } else {
-                            Text(String(index + 1)).font(.system(size: numberSize, weight: .semibold)).monospacedDigit()
+        Group {
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(labels.indices, id: \.self) { index in step(index, singleLine: false) }
+                }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 8) {
+                        ForEach(labels.indices, id: \.self) { index in
+                            step(index, singleLine: true).layoutPriority(1)
+                            if index < labels.count - 1 {
+                                Rectangle().fill(SignalCreationTheme.divider)
+                                    .frame(minWidth: 12, maxWidth: .infinity).frame(height: 1)
+                            }
                         }
                     }
-                    .frame(width: circleSize, height: circleSize)
-                    .foregroundStyle(index == selected ? SignalCreationTheme.onAccent : index < selected ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary)
-                    .background(index == selected ? SignalCreationTheme.accent : index < selected ? SignalCreationTheme.selection : SignalCreationTheme.soft, in: Circle())
-                    Text(labels[index]).font(.system(size: labelSize, weight: index == selected ? .semibold : .medium))
-                        .foregroundStyle(index <= selected ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                if index < labels.count - 1, !typeSize.isAccessibilitySize {
-                    Rectangle().fill(SignalCreationTheme.divider).frame(maxWidth: 25).frame(height: 1)
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(labels.indices, id: \.self) { index in step(index, singleLine: false) }
+                    }.frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: typeSize.isAccessibilitySize ? .leading : .center)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(labels.isEmpty ? "" : "Step \(selected + 1) of \(labels.count), \(labels[selected])")
+    }
+
+    private func step(_ index: Int, singleLine: Bool) -> some View {
+        HStack(spacing: 6) {
+            Group {
+                if index < selected {
+                    Image(systemName: "checkmark").font(.system(size: numberSize, weight: .semibold))
+                        .symbolRenderingMode(.monochrome)
+                } else {
+                    Text(String(index + 1)).font(.system(size: numberSize, weight: .semibold)).monospacedDigit()
+                }
+            }
+            .frame(width: circleSize, height: circleSize)
+            .foregroundStyle(index == selected ? SignalCreationTheme.onAccent : index < selected ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary)
+            .background(index == selected ? SignalCreationTheme.accent : index < selected ? SignalCreationTheme.selection : SignalCreationTheme.soft, in: Circle())
+            Text(labels[index]).font(.system(size: labelSize, weight: index == selected ? .semibold : .medium))
+                .foregroundStyle(index <= selected ? SignalCreationTheme.accent : SignalCreationTheme.textSecondary)
+                .lineLimit(singleLine ? 1 : nil)
+                .fixedSize(horizontal: singleLine, vertical: true)
+        }
     }
 }
 

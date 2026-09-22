@@ -1,0 +1,3727 @@
+{
+  "meaning": "Latest observed result per current test across the initial broad run and focused reruns; not a single clean full-suite run. Earlier failures remain in history. No physical or hosted validation implied.",
+  "counts": {
+    "passed": 595,
+    "skipped": 10
+  },
+  "runs": [
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log",
+      "case_outcomes": {
+        "passed": 563,
+        "failed": 25,
+        "skipped": 10
+      }
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log",
+      "case_outcomes": {
+        "passed": 67,
+        "failed": 1
+      }
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-44-57-656Z_pid24251_482fc65d.log",
+      "case_outcomes": {}
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-47-56-842Z_pid24251_d0b31ca5.log",
+      "case_outcomes": {}
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-48-34-888Z_pid24251_3fe4d5e0.log",
+      "case_outcomes": {
+        "passed": 4
+      }
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log",
+      "case_outcomes": {
+        "passed": 61,
+        "failed": 5
+      }
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-00-55-592Z_pid24251_20e50379.log",
+      "case_outcomes": {
+        "passed": 4,
+        "failed": 1
+      }
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-02-44-591Z_pid24251_8926edda.log",
+      "case_outcomes": {}
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-03-38-432Z_pid24251_aacc060a.log",
+      "case_outcomes": {
+        "passed": 1,
+        "failed": 1
+      }
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-05-36-324Z_pid24251_4e7d1fbf.log",
+      "case_outcomes": {
+        "passed": 1
+      }
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-09-11-972Z_pid24251_b6f3c349.log",
+      "case_outcomes": {
+        "passed": 1
+      }
+    },
+    {
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log",
+      "case_outcomes": {
+        "passed": 23
+      }
+    }
+  ],
+  "superseded_test_names": [
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testChallengeFiltersKeepAttentionAndSeparateGoalGroups",
+      "status": "failed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testHomeHierarchyAtCurrentCompactDarkAndAccessibilitySizes",
+      "status": "failed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    }
+  ],
+  "latest_cases": [
+    {
+      "suite": "AccountDeletionTests",
+      "test": "testAcceptedDeletionClearsNewHealthStateAndSignerOnlyForItsOwner",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "AccountDeletionTests",
+      "test": "testAccountSwitchDuringDeletionCleanupCannotPublishOldNotice",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "AccountDeletionTests",
+      "test": "testDelayedAccountCleanupCannotEraseANewerInvitation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "AccountDeletionTests",
+      "test": "testLateDeletionCompletionCannotClearAReplacementAccount",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "AccountDeletionTests",
+      "test": "testNativeDeletionKeepsTheReceiptForPendingHeldAndCompletedStates",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "AccountDeletionTests",
+      "test": "testReceiptDatesUseFractionalPostgresTimestampsWithoutShowingRawValues",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "AccountDeletionTests",
+      "test": "testReceiptJournalKeepsBothAccountsAndExactSavedRight",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "AccountDeletionTests",
+      "test": "testRejectedReviewClearsOnlyThatPendingRequestAndAllowsAnAppeal",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "AccountDeletionTests",
+      "test": "testServerReviewNoticeAndPendingProviderReceiptDecodeThroughTheNativeClient",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testAccountBCannotSeeSendOrAcknowledgeAccountAsPendingUpload",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testCoordinatorRejectsInactiveUnacceptedAndNonStepChallenges",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testDeniedOrEmptyHealthReadDoesNotClaimDenialOrSend",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testDiagnosticsAreCategoricalAndExcludeRawHealthOrPayloadValues",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testFreshlySignedRejectedProofRetriesWithANewHealthRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testFrozenTimezoneAlignmentAndChallengeWindowBoundariesFilterBuckets",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testLargeStepHistoryIsChunkedAndFullyDelivered",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testLostResponseRelaunchRetriesExactBodyAndAssertionThenAcceptsReplay",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testPendingUploadForDifferentChallengeBlocksWithoutSendingOrQuerying",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testPermanentUploadRejectionDoesNotBlockFutureStepSync",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testProductionDiscardsDevelopmentEvidenceBeforeFreshRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testRejectedProductionProofIsNeverResignedOverOldBytes",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testRepeatedFreshProofRejectionIsNotReportedAsAnOlderRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testRetirementOnlyAbandonsSpecifiedContest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testSavedSignatureRefreshNeverReplacesTheFrozenProof",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testStepSamplePreservesProvenanceMetadataAndBucketsInSteps",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ActivitySyncCoordinatorTests",
+      "test": "testUnavailableHealthAuthorizationIsCategoricalAndDoesNotQuery",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testAccountSwitchCannotAttachAStalePendingChallenge",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testActorCheckRejectsIdentityReadSuspendedAcrossAccountSwitch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testAppleNamePrefillDoesNotCrossAnExternalAccountSwitch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testAuthenticatedUserWithoutProfileEntersOnboarding",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testCancellationRetainsPendingChallengeWithoutAnErrorAlert",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testComebackReactionIsIdempotentInTheModel",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testDelayedAuthSnapshotsCannotReplaceTheNewChallengeActor",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testDifferentRequestIsBlockedWhilePendingChallengeExists",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testDiscardClearsSavedRetryAndUnlocksAReplacementChallenge",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testDiscardRefusesAStaleLoadedActor",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testDuplicateOnboardingUsernameMapsToExactInlineError",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testExactHandleRequestMutatesThenRefreshes",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testFixtureAndLiveFactoriesExposeTheSameClientBoundaries",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testFixtureLaunchFailureRemainsLaunchingAndSupportsExplicitRetry",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testFixtureLaunchRestoresSignedInLiveShape",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testFixtureLoadsFinalRankingsAndOnlyLoserObligation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testFixtureLoadsProvisionalStandingsWithRivalIntegrityRedacted",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testInteractiveDemoAddsDavidAndCreatesChallenge",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testLegacySummaryDecodesBoundedRosterAndCallerTimezone",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testLostResponsePersistsAndRelaunchRetriesTheSameChallenge",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testMountedSignalAccountSwitchResetsRetainedNavigation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testOfflineRefreshSurfacesStateWithoutMutationRetry",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testOldOnboardingCompletionCannotClearReplacementMutation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testOnboardingRejectsBlankAndOverlongNamesInline",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testOnboardingRejectsMalformedUsernamesInline",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testPaymentFactoryUsesSandboxClientForExplicitReleaseAndStaging",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testPersonalV1LaunchDoesNotLoadDormantSocialInventories",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testRecoveredProfileCannotAttachAfterSignOutOrActorSwitch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testReleaseKeepsEveryDormantContestMutationInert",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testRouterOpensAccountSupportAndDismissesCreation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testRouterOpensPersonalChallengeInChallengesTab",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testRouterResetClearsEveryIndependentStackAndSheet",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testSignOutClearsEveryLoadedUserValue",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testSignOutDetachesProtectedRecordAndSameActorRestoresIt",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testSignOutFromOnboardingReturnsToSignedOut",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testSocialPushRegistrationIsDormantInPersonalV1",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testStartNowActivatesImmediatelyAndCountsFromLocalMidnight",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "AppModelAndRoutingTests",
+      "test": "testUnreadablePendingRecordBlocksContestRPC",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "ChallengeAppConfigurationTests",
+      "test": "testAppModelUsesConfiguredInvitationOriginByDefault",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeAppConfigurationTests",
+      "test": "testConfiguredHTTPSUsesTheExistingActorAndExactRequestBytes",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeAppConfigurationTests",
+      "test": "testExpiredSessionPreparationCannotSendOrConsumePendingAction",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeAppConfigurationTests",
+      "test": "testInvitationOriginIsIndependentOfBackendAndTransport",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeAppConfigurationTests",
+      "test": "testMissingOrMalformedInvitationConfigurationStaysClosedInEveryEnvironment",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeAppConfigurationTests",
+      "test": "testOnlyAnHTTPSOriginOrExplicitDevelopmentLoopbackCanSend",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeAppConfigurationTests",
+      "test": "testOrdinaryChallengeTransportRequiresExplicitConfiguration",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeAppConfigurationTests",
+      "test": "testPrivateAccountModeRequiresSelectedStagingBackendAndExplicitFlag",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testAccountSwitchRejectsPreviewAndEditsDiscardConsent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testBackWhilePreviewLoadsCannotJumpToReview",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testCanonicalInputsAndInvalidValuesRemainEditable",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testCombinedGoalDatesReviewAndAmountEditRequireFreshAgreement",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testCreationVisualMatrix",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testDefaultsDirectEntryAndExplicitDependentResets",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testInitializeOnceAndDateBoundsPreserveCalendarDayAcrossZoneChange",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testPendingRecoveryUsesExactRequestAndReceiptPolicy",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testPreviewLoadingAndFailureRetainInput",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testStalePreviewAndFailureCannotRestoreEditedOrClosedDraft",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testTimedDistanceDisclosurePreservesExactUpperBoundary",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationDraftTests",
+      "test": "testWindowUsesFullLocalDaysAcrossDSTAndZoneIDsStayExact",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationFlowTests",
+      "test": "testAccountChangeWhileInvitingCannotAcknowledgeOrEraseTheOldRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationFlowTests",
+      "test": "testConfirmationShowsSavedLobbyFactsWithoutInventingAgreementOrDelivery",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationFlowTests",
+      "test": "testGoalAndAgreementRenderFromTheCreationDraft",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationFlowTests",
+      "test": "testGoalUnitsStayBesideTheirValuesAndContinueStaysVisibleWhileScrolling",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationFlowTests",
+      "test": "testInvitationAcknowledgmentRequiresItsCompleteLobbyReceipt",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationFlowTests",
+      "test": "testInvitationRetryUsesExactRequestAndPreservesNewerEnteredName",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationFlowTests",
+      "test": "testMountedInvitationsRemovePeopleAfterStaleReadsAndAccountChanges",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationFlowTests",
+      "test": "testRetryCannotAcknowledgeAnotherActionOrAnotherChallenge",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationFlowTests",
+      "test": "testSuccessfulFriendCreationOpensInvitationsWithoutClaimingTheyWereSent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeCreationFlowTests",
+      "test": "testUnconfirmedCreationKeepsItsExactRequestAndDoesNotOpenInvitations",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "ChallengeDepartureResponseTests",
+      "test": "testHeldInitialPageCannotUndoEqualRevisionDeparture",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeDepartureResponseTests",
+      "test": "testHeldInitialPageCannotUndoHigherRevisionDeparture",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeDepartureResponseTests",
+      "test": "testHeldInitialPageCannotUndoLowerRevisionDeparture",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeDepartureResponseTests",
+      "test": "testLateActivePageCannotReplaceRedactedFinalHistory",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeDepartureResponseTests",
+      "test": "testMountedDetailKeepsDepartedFieldsHiddenAfterLateInitialPage",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeDepartureResponseTests",
+      "test": "testMountedHomeKeepsPartialProjectionAfterLateInitialPage",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeDepartureResponseTests",
+      "test": "testPageAndDetailReversalsKeepPartialRedaction",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeDepartureResponseTests",
+      "test": "testPartialFenceSurvivesExpiredContent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeDepartureResponseTests",
+      "test": "testUnrelatedAndFutureAuthorizedReadsRemainUsable",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchExerciseLedgerTests",
+      "test": "testARecordVanishingWithoutAnchoredDeletionStaysAnOrdinarySnapshot",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchExerciseLedgerTests",
+      "test": "testAnchoredChangeTruncationIsRetainedAfterDeletesShrinkTheSnapshot",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchExerciseLedgerTests",
+      "test": "testConflictingAnchoredIdentityIsPreservedForTheCoreAdapterToReject",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchExerciseLedgerTests",
+      "test": "testExplicitAnchoredDeletionProducesOnlyADeletionSnapshot",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchExerciseReaderTests",
+      "test": "testAnchoredDeletionAndAnOrdinaryDisappearanceRemainDistinct",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchExerciseReaderTests",
+      "test": "testCancellationAndAccountScopeChangeFenceAWaitingRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchExerciseReaderTests",
+      "test": "testInProgressWindowCapsTheReadButPreservesTheFrozenRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchExerciseReaderTests",
+      "test": "testRawQueryTruncationRemainsIncompleteAfterWorkoutFiltering",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchStepsLedgerTests",
+      "test": "testARecordVanishingWithoutAnchoredDeletionStaysAnOrdinarySnapshot",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchStepsLedgerTests",
+      "test": "testAnchoredChangeTruncationIsRetainedAfterDeletesShrinkTheSnapshot",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchStepsLedgerTests",
+      "test": "testConflictingAnchoredIdentityIsPreservedForTheCoreAdapterToReject",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWatchStepsLedgerTests",
+      "test": "testExplicitAnchoredDeletionProducesOnlyADeletionSnapshot",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWorkoutReaderTests",
+      "test": "testAnchoredDeletionAndAnOrdinaryDisappearanceRemainDistinct",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWorkoutReaderTests",
+      "test": "testCancellationAndAccountScopeChangeFenceAWaitingRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWorkoutReaderTests",
+      "test": "testInProgressWindowCapsTheReadButPreservesTheFrozenRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthAppleWorkoutReaderTests",
+      "test": "testRawQueryTruncationRemainsIncompleteAfterWorkoutFiltering",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testAllSevenReadinessStatesAndPermissionIsNotReadiness",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testCancellationDuringSigningAndActorSwitchCannotPersistOrConsent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testCorruptComparisonAndUnavailableWorkCacheCreateUnresolvedReplacements",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testLaunchRecoversSignedReadinessWithoutListedChallengesOrPendingWork",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testOldLeaderboardCannotReadOrUpload",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testPlanningAndReadinessUseSeparateReadersAndWindows",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testPrivatePersonalStepsCreateHidesUnsupportedChallengeChoices",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testPrivateTimedLeaderboardHasNoGoalTimeCopy",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testReadinessDeliveryFailureUsesSpecificRecoveryMessageAndKeepsSavedRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testReceivedLeaderboardCreationAndHealthCopyAtLargeTextInLightAndDark",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testReceivedLeaderboardFirstScoreAtCutoffAndExactRecoveryAfterCutoff",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testReceivedLeaderboardSavedScoreDeadlineAndRefreshRender",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testReceivedLeaderboardsUseAllFourAdaptersAndKeepMissingScoresUnknown",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testSameActorNewSessionAndExpiryFenceNativeCompletions",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testSimultaneousChallengesRelaunchAndDisappearanceCannotLeakOrKeepPositive",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testSuspensionStopsReadsAndCutoffRecoversWithoutNewFacts",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthFlowStoreTests",
+      "test": "testUnlockOpportunityWorksBeforeSavedHealthConnectionsCanBeReadAndStopsOnSignOut",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthOrdinaryAppTests",
+      "test": "testStepsCorrectionReviewAndFinalHistoryInOrdinaryRoot",
+      "status": "skipped",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthOrdinaryAppTests",
+      "test": "testTResponseLossActorSwitchRelaunchGateOffAndDiagnosticReplay",
+      "status": "skipped",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthOrdinaryAppTests",
+      "test": "testVersionedExerciseThenRunningAndFriendPolicyMatrix",
+      "status": "skipped",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeHealthOrdinaryAppTests",
+      "test": "testZCommunityReadinessDisclosureAndOutcomeMinimum",
+      "status": "skipped",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testAccountChangeCannotAcknowledgeUnconfirmedRedemption",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testExactIssueRetryPresentsRecoveredLinkInMountedIssuer",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testExactRevokeRetryKeepsControlUntilConfirmed",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testIssuedLinkSurvivesStoreRelaunchWithoutCrossingActorOrChallenge",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testMissingOriginStillAllowsRevocationOfSavedIssuedLinks",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testOlderRedemptionCannotClearEditedInvitation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testOlderRedemptionCannotClearNewlyReceivedInvitation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testPendingInvitationsStayWithTheirAccountsAcrossSwitchAndSignOut",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testRecoveredIssuerUsesConfiguredHTTPSFormatter",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testRecreatedIssuerRetainsLinkWithoutAnotherIssuance",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testRemovingAnAccountAlsoRemovesIssuedLinksWithoutAQueuedRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testSavedLinkJournalBindsRequestAndRevokesOnlyConfirmedExactTarget",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testUnchangedInvitationClearsOnlyAfterSuccessfulRedemption",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testUnreadableLinkJournalPreservesExactPendingIssuance",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRecoveryTests",
+      "test": "testUnrelatedOrIncompleteReceiptsDoNotClearInvitation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRoutingTests",
+      "test": "testColdDeliverySurvivesInterruptedSignInAndWaitsForAgeAndDeliberateRedemption",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRoutingTests",
+      "test": "testLateResponseAcrossAccountSwitchCannotClearNewHTTPSIntent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRoutingTests",
+      "test": "testLostResponseRelaunchAndAccountSwitchKeepExactRecoveryWithItsActor",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRoutingTests",
+      "test": "testRootPreservesFixtureAndHistoricalDuelDelivery",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationRoutingTests",
+      "test": "testWarmDeliveryDoesNotFetchOrRedeemAndInvalidDeliveryCannotReplaceIt",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationTests",
+      "test": "testEveryTokenConsumerUsesTheSameExactAlphabetAndLength",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationTests",
+      "test": "testFixtureIntakeRemainsAvailableButGenerationIsExplicit",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationTests",
+      "test": "testHTTPSFormatterRoundTripsOnlyTheConfiguredOrigin",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationTests",
+      "test": "testHTTPSRejectsLookalikesCredentialsAndPorts",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationTests",
+      "test": "testRejectsUnexpectedPathsEncodingQueriesAndFragments",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeInvitationTests",
+      "test": "testSavedHTTPSIntentRequiresTheSameConfiguredOriginOnRelaunch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testConsumedCursorCannotBeRewoundByLateResponse",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testCurrentDetailFailureStillInvalidatesItsCache",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testDetailSupersessionDoesNotSuppressSafetyRestrictions",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testInFlightRefreshPageCannotReplaceNewRestrictedDetail",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testLateSameCursorEqualRevisionCannotRestoreSharing",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testLateSameCursorHigherRevisionCannotRestoreSharing",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testLateSameCursorLowerRevisionCannotRestoreSharing",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testMountedDetailKeepsCorrectedTotalAndRankAfterLateDetail",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-00-55-592Z_pid24251_20e50379.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testMountedDetailKeepsFinalResultAfterLatePreFinalDetail",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-00-55-592Z_pid24251_20e50379.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testMountedDetailKeepsRestrictionAfterLatePageResponse",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testMountedHomeKeepsRestrictionAfterLateSameCursorResponse",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testOldDetailSessionFailureCannotClearReplacementGeneration",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testOverlappingPageAndDetailResponsesCannotUndoRestriction",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testRestrictionFenceSurvivesContentExpiryWithoutRetainingContent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testSupersededDetailBindingExpiryClearsCurrentSession",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testSupersededDetailSessionRejectionClearsCurrentSession",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testSupersededOrdinaryDetailErrorsCannotEraseAcceptedDetail",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testUnrelatedInFlightResponseAndFreshAuthorizedReadRemainUsable",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testUnrestrictedLateDetailCannotRestoreOlderGoalTotal",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testUnrestrictedLateDetailCannotRestoreOlderLeaderboardRank",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeOverlappingResponseTests",
+      "test": "testUnrestrictedLatePreFinalDetailCannotReplaceFinalResult",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengePolicyTests",
+      "test": "testCanonicalUnitsAndStrictInputBounds",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "ChallengePolicyTests",
+      "test": "testInvitationParserRejectsAmbiguousAndHostedLocators",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "ChallengePolicyTests",
+      "test": "testInvitationSurvivesRelaunchWithoutFetchingDetails",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "ChallengePolicyTests",
+      "test": "testOnDeviceSuggestionUsesExactRoundingAndNeverLeaderboards",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "ChallengePresentationTests",
+      "test": "testOnlyCumulativeGoalsHaveProgressAndZeroIsDistinctFromMissing",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengePresentationTests",
+      "test": "testReceivedScoreRanksSavedPartialValuesWithUnknownAndLateUnranked",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengePresentationTests",
+      "test": "testTiesShareRankAndTimedRunsSortLowerFirst",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengePresentationTests",
+      "test": "testUnknownAndDepartedActivityCannotBecomeARankOrProgress",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengePresentationTests",
+      "test": "testVoidResultKeepsServerSavedScoreVisibleWithoutRankingIt",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testActiveReviewFinishedAndExitHaveDistinctCounts",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testCompetitiveRecordUsesOnlyFinalCompetitiveAllocations",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testDuplicatesCountOnceAndUseLatestRevision",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testFailedReadIsStaleAndExpiredRowsDisappear",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testHeldPaginationCannotRestoreAnotherAccountsProfile",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testHiddenFinalOwnResultCanRemainInPrivateRecord",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testInitialPartialReadStaysPartialUntilAggregateCanBeConfirmed",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testNilActorNeverReadsPreviousAccountRows",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testOnlyCompleteEmptyReadsEstablishZero",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testPaginationCannotPresentLoadedCountsAsLifetimeTotals",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testProfileMountedVisualMatrix",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-00-55-592Z_pid24251_20e50379.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testStorePaginationDeduplicatesAndAccountSwitchClearsProfile",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testSuspensionFilteringCannotBecomeACompleteZero",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testUncertainMutationInvalidatesCountsEvenWhenPagesRemainFresh",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeProfileTests",
+      "test": "testUpcomingPersonalGoalUsesChallengeRecords",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeRestrictionTests",
+      "test": "testEqualRevisionHistoryRestrictsEveryCachedCopy",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeRestrictionTests",
+      "test": "testHigherRevisionHistoryRestrictsEveryCachedCopy",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeRestrictionTests",
+      "test": "testMountedDetailEqualRevisionUpdatesWithoutAnotherFetch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeRestrictionTests",
+      "test": "testMountedDetailHigherRevisionUpdatesWithoutAnotherFetch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeRestrictionTests",
+      "test": "testMountedHomeEqualRevisionUpdatesWithoutDetailFetch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeRestrictionTests",
+      "test": "testMountedHomeHigherRevisionUpdatesWithoutDetailFetch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeRestrictionTests",
+      "test": "testRestrictedDetailReconcilesAllSectionsWithoutRenewingThem",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeRestrictionTests",
+      "test": "testRestrictedLaterPageReplacesDuplicateAndDetailCopies",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeRestrictionTests",
+      "test": "testRestrictedResponseCannotCrossAnAccountGeneration",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "ChallengeSectionTests",
+      "test": "testActualWatchdogExpiresContentWhileItsAutomaticRefreshIsHeld",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeSectionTests",
+      "test": "testBackgroundCannotReloadPrivateContentAndServerRevocationClearsIt",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeSectionTests",
+      "test": "testDelayedSuccessfulPageCannotRestartExpiredVisibility",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeSectionTests",
+      "test": "testEmptyHomeRequiresSuccessfulReadsAndDoesNotHideFailureOrExpiry",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeSectionTests",
+      "test": "testHeldRoutineRefreshKeepsFreshLayoutButDoesNotExtendVisibility",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeSectionTests",
+      "test": "testOldRefreshCannotStopNewAccountsLoadingIndicator",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeSectionTests",
+      "test": "testPartialFailurePreservesOnlyStillPermittedSectionsUntilMonotonicExpiry",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeSectionTests",
+      "test": "testSupersededCursorCannotAppendOldSocialRows",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeSectionTests",
+      "test": "testUnreadablePendingRequestCannotLeaveDetailWithoutAnExpiry",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeSmokeTests",
+      "test": "testOrdinaryAppSharedSessionJourney",
+      "status": "skipped",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeSmokeTests",
+      "test": "testOwnedLocalAccountDeletionFixtureLogin",
+      "status": "skipped",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeSmokeTests",
+      "test": "testProductionNativeJourneys",
+      "status": "skipped",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeTests",
+      "test": "testClientRejectsResponseAfterSessionSwitch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeTests",
+      "test": "testCommunityCountsRequireMatureServerSnapshot",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeTests",
+      "test": "testDurableRequestsCannotBeOverwrittenOrReadByAnotherActor",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeTests",
+      "test": "testExpiredAuthClearsPreviouslyVisibleSocialContent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeTests",
+      "test": "testHeldFinalAuthenticationCannotRestoreSupersededSocialContent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeTests",
+      "test": "testHostedAndMalformedURLsCannotSend",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeTests",
+      "test": "testPrivateTrialGuardErrorsTellThePersonWhatToDo",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "ChallengeV1NativeTests",
+      "test": "testQuotaErrorCannotDecodeAsSuccessfulReceipt",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testAtomicChallengeParametersContainTheCompleteCanonicalRoster",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testChallengeValidationRequiresFutureCoherentTerms",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testChallengeValidationRequiresOneToNineteenUniqueFriends",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testConfigurationRejectsMissingAndSecretKeys",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testContestCardDTOUsesBackendEnumNames",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testEveryProductConfigurationSupportsAdaptiveAppearance",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testExactHandleSubmissionDoesNotBecomeFuzzySearch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testExtremeDynamicTypeFontScaling",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testFinalStandingsDecodeResultAndPerLoserObligation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testFriendshipCardDTOAndDirectionDecode",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testHealthReadsAndAttestedUploadAreGatedIndependently",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testInstalledProductContainsValidClientConfiguration",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testInstalledProductUsesTheGameTimePublicIdentity",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testMutationErrorMapping",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testOptionalHelpDestinationsRemainSafeFallbacks",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testProvisionalStandingsDecodeWithRivalIntegrityRedacted",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testReleaseKeepsLegacyContestMutationLockedByDefault",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testSignalTextAndAccentBandsMeetNormalTextContrast",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testStripeSandboxRequiresSupportedReturnURLAndEnablesReleaseBeta",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DomainAndConfigurationTests",
+      "test": "testZeroDropShadowsAndBricolageFontsInSignalTheme",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testActualPostgresParticipantDocumentsDecode",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testAdapterUsesParticipantRPCsAndRejectsLateAccountResponse",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testBlockedContactHidesNoticesAndFinalButKeepsOwnCaseAndExit",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testCorrectionHistoryAndIndependentOwnCases",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testDeadlineUsesServerClockAndDisablesAtBoundaryWithoutMutation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testEveryScorerOutcomeHasPlainLanguageAndRejectsInvalidWinner",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testFinalResultAndReturnAreIndependentOfHistoricalScheduledStatus",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testLostReviewAndExitResponsesRecoverAfterRelaunchAndGateOff",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testNewEnvelopesRetainExactRevisionReasonAndExitKind",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testPostgresMicrosecondsRoundTripAndExclusiveDeadline",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelLifecycleTests",
+      "test": "testStoreDiscardsSuspendedLifecycleResponseAfterAccountChange",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelNativeLocalSmokeTests",
+      "test": "testAuthenticatedTwoAccountAgreementRecoveryAndGateOff",
+      "status": "skipped",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelRematchLinkTests",
+      "test": "testDisabledRuntimeDoesNotSaveOrResolveLinks",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelRematchLinkTests",
+      "test": "testLateResolverReplyCannotNavigateAnotherAccount",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelRematchLinkTests",
+      "test": "testLinkIssueLostResponseAndRevokeDoNotReactivateOrAccept",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelRematchLinkTests",
+      "test": "testNewEnvelopesRoundTripAndBindExactEventAndToken",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelRematchLinkTests",
+      "test": "testPendingLocatorSurvivesLoginWrongAccountAndRelaunchWithoutAccepting",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelRematchLinkTests",
+      "test": "testRematchLostResponseRecoversFreshAgreementAndNeedsInviteeConsent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelRematchLinkTests",
+      "test": "testStrictLocatorParserHasNoPublicProofOrActorFields",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testAccountSwitchDuringSubmissionDiscardsLateRowsAndRetainsOriginalRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testAdapterChecksActorBeforeAndAfterTransportAndUsesOnlyDuelRPCs",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testConfigurationRequiresAnExplicitDisposableLoopbackURL",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testDefiniteRejectionClearsNewRequestAndAllowsSafeExit",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testDeletedActorCannotRecoverAndOpponentRetainsHistory",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testDeletionCleanupRejectsQueuedEnvelopeWrites",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testDisabledAdapterCannotReadOrMutateEvenWithMatchingActor",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testEnvelopeRejectsVersionPayloadAndActorTampering",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testEnvelopeRoundTripEveryVerbAndExactRPCParameters",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testFileEnvelopeSurvivesRelaunchRejectsReplacementAndCorruption",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testLifecycleFailureRefreshesDetailWithoutInventingResult",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testLocalPostgresDocumentDecodesAndPreservesConsentAndCursor",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testLostCommittedResponseRecoversAfterRelaunchAndGateOffWithoutDuplicate",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testOfflineAndAccountSwitchNeverReplayOtherActorsPendingRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testPaginationRetainsActionsForPreviouslyLoadedDuels",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testSQLStateMappingNeverRendersRawReason",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "DuelTests",
+      "test": "testTwoActorsAgreeToIdenticalTermsAndCanCancelWithGateOff",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "HealthKitActivityClientTests",
+      "test": "testBoundaryFilteringKeepsSamplesPairedWithTheirOwnDescriptors",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "HealthKitActivityClientTests",
+      "test": "testInstantaneousSampleAtStartIsIncludedAndAtEndIsExcluded",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "HealthKitActivityClientTests",
+      "test": "testMergedDeviceStatisticAvoidsPhoneAndWatchDoubleCount",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "HealthKitActivityClientTests",
+      "test": "testNonDeviceSamplesCannotProduceAnAdmissibleDeviceBucket",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "HealthKitActivityClientTests",
+      "test": "testPersonalDailyPredicateExcludesOnlyExplicitManualTrue",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "HealthKitActivityClientTests",
+      "test": "testStatisticsPlannerGroupsOnlyContiguousEqualIntervals",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "LiveChallengePresentationTests",
+      "test": "testAgreedTargetLabelsPreserveDistanceAndSecondPrecision",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveChallengePresentationTests",
+      "test": "testGoalsMetRequiresOwnExplicitFinalGoalOutcomeAndContinuedParticipation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveChallengePresentationTests",
+      "test": "testLoadedRecordScopeDoesNotTurnMissingPagesIntoZeroOrACompleteTotal",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveChallengePresentationTests",
+      "test": "testMissingUnconfirmedAndSavedZeroStayDistinct",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveChallengePresentationTests",
+      "test": "testOnlyFinalOwnResultCanBePresentedAsMissed",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveChallengePresentationTests",
+      "test": "testRealPartialOrOldSavedActivityDoesNotEstablishBehind",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveChallengePresentationTests",
+      "test": "testTimedGoalIsStrictAndDoesNotUseDistanceProgress",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveDesignPresentationTests",
+      "test": "testConsentRequiresExactAgreementAndReplaysOnce",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveDesignPresentationTests",
+      "test": "testExitPreservesRecordAndLeavesOtherParticipantsIntact",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveDesignPresentationTests",
+      "test": "testFixturePagesFeedRealStoreAndPreserveUnknownActivity",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveDesignPresentationTests",
+      "test": "testLinkReceiptUsesExistingJournalAndStoppedRequestCannotCreate",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveDesignPresentationTests",
+      "test": "testPersonalCreationRequiresPreviewDigestAndValidAmount",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveDesignPresentationTests",
+      "test": "testReviewUsesNoticeRevisionAndFullWindow",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "LiveDesignUITests",
+      "test": "testChallengeCreationEntryKeepsTheApprovedNativeFlow",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-20-40-885Z_pid24251_79251b65.log"
+    },
+    {
+      "suite": "LiveDesignUITests",
+      "test": "testFourLockedScreensUseTheNewNativeShell",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-48-34-888Z_pid24251_3fe4d5e0.log"
+    },
+    {
+      "suite": "LiveDesignUITests",
+      "test": "testFullRulesAreDisclosedAsIndependentModules",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-48-34-888Z_pid24251_3fe4d5e0.log"
+    },
+    {
+      "suite": "LiveDesignUITests",
+      "test": "testInviteReviewNeedsSeparateConsentAndDeclineUpdatesTheStore",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-48-34-888Z_pid24251_3fe4d5e0.log"
+    },
+    {
+      "suite": "LiveDesignUITests",
+      "test": "testNewSettingsPreserveHealthPrivacyAndAccountDeletionConfirmation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-03-38-432Z_pid24251_aacc060a.log"
+    },
+    {
+      "suite": "LiveDesignUITests",
+      "test": "testOnboardingSavesProfileAndAccountSignOutClearsTheNewShell",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-09-11-972Z_pid24251_b6f3c349.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testAccountBoundaryErasesEveryPrivateCreationAndProofField",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testAccountSwitchDeletionAndCleanupWithGateOff",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testBackwardPhoneClockCannotBlockSafeExit",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testConsentAndProofBindingRejectChangedFrozenTerms",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testCorruptAndCrossActorDiskDataFailClosed",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testDefaultOffAndExplicitConsentRequired",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testDistanceAndTimeConversionNeverRoundsTrackToMile",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testDownwardRevisionsMissingAndExactCutoffNeverCreateResult",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testDurableExactReplaySurvivesGateOffAndCutoff",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testEqualRevisionTimestampRejectedAndReadablePrecisionPreserved",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testExerciseContractHasSevenActualLocalDatesAcrossDSTAndOwnUnit",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testExitFreezesProofsButRecoversSavedRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testExportActualNativeTermsForTypeScriptBridge",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testFullRequestCapacityStillAllowsFirstExitWithGateOff",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "MetricPrototypeTests",
+      "test": "testTimedProofUsesEntireElapsedWindowAndCannotFinishAtClose",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PendingChallengeStoreTests",
+      "test": "testProtectedStoreRoundTripPreservesRequestAndAccountIsolation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PendingChallengeStoreTests",
+      "test": "testStoreRejectsChangedOrRegressedExistingSubmission",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PendingChallengeStoreTests",
+      "test": "testStoreRejectsCopiedCrossAccountRecordAndInvalidAttemptState",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PendingChallengeStoreTests",
+      "test": "testStoreRejectsCorruptionAndUnsupportedEnvelopeVersion",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PendingChallengeStoreTests",
+      "test": "testVersionOneSavedDuelMigratesWithoutChangingItsRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PendingMetricUploadStoreTests",
+      "test": "testDuplicateBodyIsIdempotentAndChangedBodyConflicts",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PendingMetricUploadStoreTests",
+      "test": "testOfflineQueueRestoresExactBytesSigningMaterialAndAttempts",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PendingMetricUploadStoreTests",
+      "test": "testQueueIsAccountIsolatedAndCrossAccountAcknowledgeIsNoOp",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentClientTests",
+      "test": "testChangedOrRevokedSessionRejectsResponseEvenWhenActorMatches",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentClientTests",
+      "test": "testDisabledClientCannotSendWithValidLocalActor",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentClientTests",
+      "test": "testInvalidPayloadAndActorTamperingFailBeforeTransport",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentClientTests",
+      "test": "testMutationSendsCompleteSavedBytesAndPaginationPreservesMicroseconds",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentClientTests",
+      "test": "testPreviewRejectsServerTermsForDifferentDraft",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentClientTests",
+      "test": "testProductionBoundaryRejectsHostedImplicitPortAndURLCredentials",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentClientTests",
+      "test": "testProductionInitializerRejectsServiceSecretAndLegacyKeysBeforeSessionLookup",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentClientTests",
+      "test": "testReviewReceiptIsTypedSeparatelyAndCloseReceiptMustMatchCommitment",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentIntegrationTests",
+      "test": "testEveryPresentationFixtureMatchesStrictModels",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentIntegrationTests",
+      "test": "testNewStoreDoesNotFetchOrSubmitUnlessOptedIn",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentIntegrationTests",
+      "test": "testRuntimeRequiresSeparateOptInAndExplicitLocalEndpoint",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testActorAgreementTermsAndConsentMustStayBound",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testClosureAndWorkerSilenceNeverInventAFinalResult",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testCorrectedNoticesKeepOldReviewAndExactReviewBoundary",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testExactPolicySourceMoneyAndRuleSupportFailsClosed",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testFictionalOwnerWireShapesAndRoundTrips",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testFinalityRemainsSeparateFromOpenAgreementAndSimulation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testMissingNullableFieldsCannotHideFinalityOrClosure",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testPostFinalSupportHasNoEffectOnResultOrSimulation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testPreviewAndWindowValidateExactElapsedUTCInstants",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testReviewsCannotDetachFromNoticesOrSkipFullReviewWindow",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentModelTests",
+      "test": "testUnknownStateAndOutcomeDoNotBecomeBenignDefaults",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentNativeSmokeTests",
+      "test": "testAuthenticatedOwnerRecoveryAndLifecycle",
+      "status": "skipped",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testActorAToBToARejectsSuspendedOldRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testAuthRevocationDetectedWithoutAppEventClearsState",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testBackgroundedMutationKeepsExactRequestAfterSuccessOrRejection",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testBackgroundedReceiptReadKeepsDurableRequestAndRejectsLateContent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testBothDurableSavesMustSucceedBeforeAnySend",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testChangedDraftCannotReuseConsentPreview",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testEditingOrBackgroundingInvalidatesSuspendedPreview",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testFailedListDetailAndLifecycleClearAllOwnerContent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testFileStorageRejectsReplacementTamperingAndDeletionResurrection",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testFinalResultDespiteOpenAgreementPreventsReviewAndSafeExit",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testLatestRefreshWinsOverEarlierSuspendedResponse",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testLostCreateResponseSurvivesRelaunchAndOnlyExplicitRetrySendsExactBytes",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testMismatchedReviewReceiptIsRetainedForExactRecovery",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PerformanceCommitmentStoreTests",
+      "test": "testReviewAndCancellationClockPreservesLastMicrosecondAndClosesAtBoundary",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testAggregateEvidenceDoesNotHideQuarantineBehindCoverageCount",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testChosenLaterHourTravelsExplicitlyAndShortensOnlyTheFirstDay",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testDailyProgressDecodesFractionalServiceStepsWithoutRescoring",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testDailyRemainingUsesInProgressDayInsteadOfFutureTail",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testDefaultStartIsStillTheNextLocalMidnightAndTravelsAsOmitted",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testDiagnosticResponseRejectsStatusReplayMismatch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testDraftDefaultsAndCadenceDefaultsAreLocked",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testDraftRejectsAStartThatHasAlreadyPassed",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testDraftRejectsUnsupportedTargetCommitmentAndTimezone",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testFrozenTermsFormatterDoesNotUseTravelTimezone",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testMissingHealthDataReasonUsesPlainV2Language",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testNewDraftFreezesValidProfileTimezoneInsteadOfTravelZone",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testOpenChallengeBecomesResultPendingAtEvidenceCutoff",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testPersonalStatusDecoderNeverReinterpretsUnknownModelState",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testReleaseDefaultsToLockedPersonalModeUntilSandboxIsSelected",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testRetryRecordWithoutAStartStillDecodesAsTheServerDefault",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testSpringForwardSkippedHourIsNotOffered",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testStartMustBeAWholeFutureLocalHourWithinNinetyDays",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testStartNowAcceptsOnlyTheCurrentMinute",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testStripeTermsSelectV2PolicyWithoutChangingPaymentConsent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityModelTests",
+      "test": "testTodayOffersOnlyTheHoursItHasLeft",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testAccountSwitchDiscardsStaleRefreshResult",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testActivationCancellationFailureStaysOnRecoveryCardWithoutRootAlert",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testActiveTabsExposeOnlyPersonalV1Shell",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testBackgroundUpdateDoesNotReplayRetiredLegacyQueue",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testCancellationRecountsSavedActivityRequests",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testCancelledDetailPromotesOpenListAndRetiresMutableProgress",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testCompletedHealthAuthorizationRetriesBackgroundRegistration",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testCreationFailsClosedAfterAvailabilityRefreshFails",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testCreationStaysFailClosedWhileSavedStateRestores",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testExplicitPullToRefreshPerformsOneNewRefresh",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testGenuineForegroundTransitionPerformsOneNewRefresh",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testLostCancellationResponseRelaunchRetriesExactRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testLostCreateResponseRetriesExactRequestAndClearsPendingRecord",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testLostReviewResponseRetriesTheExactReasonAndShowsUnderReview",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testOfflineServerRefreshStillRunsLocalV2HealthRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testOpenV2PolicyRetiresLegacyPersonalUploads",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testOverlappingSameAccountActivationsRestoreAndListOnce",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testPaymentPreparationFailsClosedAfterAvailabilityRefreshFails",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testPendingCancellationIsIsolatedByOwner",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testRefreshReplacesCachedActiveDetailWithTerminalFrozenSummary",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testRefreshReplacesCachedOpenDetailWithCancellationTruth",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testSameAccountActivationRetriesActivityRecoveryIssue",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testSavedLegacyActivityDoesNotBlockV2CreationAvailability",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testStaleOpenListCannotUndoTerminalDetailPromotion",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testStoreBlocksCreationWhenEligibilityHoldIsActive",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testStripeSetupCompletionAndLostCommitRetryExactFrozenRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testTerminalDetailPromotesOpenListAndFreezesEverySurface",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testUnavailableHealthAuthorizationPresentsAnError",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testUnreadableCancellationRecoveryRemainsFailClosed",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testUnreadableCancellationRecoveryReplaysExactSavedRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testUnreadableLegacyActivityQueueDoesNotBlockV2Creation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalAccountabilityStoreTests",
+      "test": "testV2CreateBypassesActivityThatBecamePendingInLegacyQueue",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testFreshCoverageRejectionPreparesANewProofAndRetriesOnce",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testGracePeriodAllowsFinalManualSync",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testLegacyCoverageAddsDevelopmentMarkerWithoutChangingSignedBytes",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testMetricStillWaitingBlocksSavedCoverageReplay",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testPendingMetricReplaysAfterCutoffWithoutAFreshRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testProductionDoesNotPromoteDevelopmentCoverageAfterCutoff",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testProductionReReadsInsteadOfPromotingDevelopmentCoverage",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testQueuedMetricRetryNeverPublishesCoverage",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testRepeatedFreshCoverageRejectionRemainsACurrentFailure",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testSavedCoverageClearsBeforeAFreshUnreadableMetricPass",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testSavedCoverageReplaysAfterCutoffWithoutReportingFailure",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testSavedCoverageRetryKeepsSignedBytesExactly",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testStalePendingMetricIsFlushedThenFreshlyQueriedBeforeCoverage",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testSyncAfterEvidenceCutoffIsRejectedBeforeMetricRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testUnreadableMetricPassNeverPublishesCoverage",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testV2RetirementDeletesCoverageAndMetricRetries",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalActivitySyncCoordinatorTests",
+      "test": "testWrongCoverageReceiptKeepsTheExactSavedRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalChallengeReceiptPresentationTests",
+      "test": "testAmountProtectionTracksModeAndSelectedAmount",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalChallengeReceiptPresentationTests",
+      "test": "testCumulativeStartNowSandboxReceiptFreezesAmountAndProtection",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalChallengeReceiptPresentationTests",
+      "test": "testDailyDefaultReceiptKeepsThreeGroupsAndTestOnlyProtection",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalChallengeReceiptPresentationTests",
+      "test": "testReceiptCopyDoesNotExposeTechnicalOrInternalLanguage",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalDisplayedProgressResolverV2Tests",
+      "test": "testLiveThenCacheThenServerPrecedenceBeforeCutoff",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalDisplayedProgressResolverV2Tests",
+      "test": "testOpenPostCutoffDoesNotPresentMutableServerSnapshotAsFrozen",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalDisplayedProgressResolverV2Tests",
+      "test": "testOpenV2WithoutSnapshotDoesNotTreatZeroRowsAsFinalProgress",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalDisplayedProgressResolverV2Tests",
+      "test": "testScheduledCustomHourKeepsFirstDayFutureBeforeStart",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalDisplayedProgressResolverV2Tests",
+      "test": "testServerSnapshotWinsAndFreezesAfterCutoff",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalDisplayedProgressResolverV2Tests",
+      "test": "testTerminalIncompleteHealthSnapshotFreezesItsPartialTotals",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalDisplayedProgressResolverV2Tests",
+      "test": "testTerminalMissingHealthSnapshotDoesNotInventZeroHealthProgress",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalDisplayedProgressResolverV2Tests",
+      "test": "testV1CleanDailyRowsDeriveTargetAndVerdictFromFrozenTerms",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalDisplayedProgressResolverV2Tests",
+      "test": "testV1CleanScheduledRowsDeriveFutureStateFromFrozenTerms",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthBackgroundDeliveryTests",
+      "test": "testEnablementRetriesAfterFirstAuthorizationFailure",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthBackgroundDeliveryTests",
+      "test": "testLaunchOrderWakeIsBufferedUntilHandlerIsReady",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthBackgroundDeliveryTests",
+      "test": "testObserverCompletionRunsAfterPersonalSyncHandler",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthBackgroundDeliveryTests",
+      "test": "testObserverErrorCompletesWithoutRunningSyncHandler",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthBackgroundDeliveryTests",
+      "test": "testPhysicalAppEnvironmentsStartHealthObserver",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthBackgroundDeliveryTests",
+      "test": "testPrivateInvestigationAndLocalBetaNeverStartLegacyObserverOnPhysicalLaunchPath",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthBackgroundDeliveryTests",
+      "test": "testSimulatorFixtureAndUITestNeverStartHealthObserver",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthProgressPresentationTests",
+      "test": "testLifecycleStateMatrixUsesDeterministicNow",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthProgressPresentationTests",
+      "test": "testOnlyActiveMissingObservationOffersNoDataRecovery",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthSnapshotPlannerV2Tests",
+      "test": "testPlannerClipsCustomFirstDayToChallengeStart",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthSnapshotPlannerV2Tests",
+      "test": "testPlannerQueriesThroughEndDuringGrace",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthSnapshotPlannerV2Tests",
+      "test": "testPlannerUsesPartialCurrentDayAndZerosFutureDays",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthSnapshotPlannerV2Tests",
+      "test": "testPlannerUsesSevenFrozenLocalDatesAcrossFallDST",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalHealthSnapshotPlannerV2Tests",
+      "test": "testPlannerUsesSevenFrozenLocalDatesAcrossSpringDST",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaceSummaryTests",
+      "test": "testBarCeilingKeepsTheGoalLineInsideTheChart",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaceSummaryTests",
+      "test": "testDailyChallengeLeadsWithTodayNotTheWeekTotal",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaceSummaryTests",
+      "test": "testDaysWeCannotCountStayOutOfThePaceComparison",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaceSummaryTests",
+      "test": "testEachDayExplainsItselfInPlainWords",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaceSummaryTests",
+      "test": "testFinishedDailyChallengeCountsTheDaysYouHit",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaceSummaryTests",
+      "test": "testFinishedWeekSpeaksInThePastTense",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaceSummaryTests",
+      "test": "testScheduledChallengeStatesTheRateWithoutInventingProgress",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaceSummaryTests",
+      "test": "testWeekPaceComparesStepsWithTheDaysThatCount",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaymentStatusStoreTests",
+      "test": "testDetailOpenIsTheOnlyAutomaticStripeStatusRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaymentStatusStoreTests",
+      "test": "testLostReviewResponseIsRecoveredByManualRefresh",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaymentStatusStoreTests",
+      "test": "testManualRefreshAdvancesStateAndFailureRetainsLastConfirmation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaymentStatusStoreTests",
+      "test": "testMutationKillSwitchDoesNotBlockStatusReadButBlocksReview",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaymentStatusStoreTests",
+      "test": "testNewerStatusRefreshRejectsOlderResponse",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaymentStatusStoreTests",
+      "test": "testOwnerResetClearsStatusAndRejectsInFlightResponse",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaymentStatusStoreTests",
+      "test": "testReopeningDetailImmediatelyInvalidatesCachedReviewFreshness",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaymentStatusStoreTests",
+      "test": "testReviewRequiresFreshUnexpiredAuthoritativeState",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaymentStatusStoreTests",
+      "test": "testReviewSuccessPublishesUnderReviewAndInvalidatesOlderRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalPaymentStatusStoreTests",
+      "test": "testTestOnlyDetailNeverReadsPaymentStatus",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalProgressPresentationTests",
+      "test": "testCumulativeFixtureKeepsEveryPrimaryValueOnTheWeek",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalProgressPresentationTests",
+      "test": "testDailyFixtureKeepsPrimaryCopyAndAccessibilityOnToday",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalResultPresentationTests",
+      "test": "testEveryTestOnlyOutcomeClosesWithNoMoneyCharged",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalResultPresentationTests",
+      "test": "testSandboxMetAndMissingResultsPromiseZeroTestCharge",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalResultPresentationTests",
+      "test": "testSandboxMissDoesNotInferReviewOrPaymentState",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalStepProgressStoreV2Tests",
+      "test": "testAuthorizationReturnsBeforeTriggeredRefreshFinishes",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalStepProgressStoreV2Tests",
+      "test": "testOverlappingRefreshesCoalesceToOneTrailingRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalStepProgressStoreV2Tests",
+      "test": "testReconnectRetriesRetainedSnapshotWhenHealthReadFails",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalStepProgressStoreV2Tests",
+      "test": "testResultFromPreviousAccountIsDiscarded",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalStepProgressStoreV2Tests",
+      "test": "testSuccessfulZeroAndDownwardReadReplacesDisplayedProgress",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalStepProgressStoreV2Tests",
+      "test": "testTerminalTransitionRemovesPriorOpenChallengeCache",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalStepProgressStoreV2Tests",
+      "test": "testUploadFailureDoesNotHideLocalProgress",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalStepSnapshotCacheV2Tests",
+      "test": "testCacheRejectsFingerprintMismatchAndCorruption",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "PersonalStepSnapshotCacheV2Tests",
+      "test": "testCacheReplacesWholeSnapshotWithZeroAndDownwardValues",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testAgreementIsCollapsedByDefaultAndPreciseWhenExpanded",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testAllAgreementsKeepLongRulesAndDatesReadable",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testAllMetricsAndCommunityPrivacyRenderFromValidatedRows",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testChallengeFiltersKeepInvitationsAndSeparateLibraryStates",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testCommunityDelayedCountsInDetailAndJoin",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testControlFallbackGeometryAndUnknownValues",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testFinalResultKeepsReviewRecordWithoutObsoleteRefreshPrompt",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testHomeHierarchyAtCurrentCompactSystemDarkAndAccessibilitySizes",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-00-55-592Z_pid24251_20e50379.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testTwoAndSixPeopleReflowWithLongNamesAndSolidControls",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T06-05-36-324Z_pid24251_4e7d1fbf.log"
+    },
+    {
+      "suite": "SignalRenderedTests",
+      "test": "testUnknownCorrectedTiedRedactedAndRecoveryPresentation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-51-10-561Z_pid24251_324de110.log"
+    },
+    {
+      "suite": "SignalThemeAdversarialTests",
+      "test": "testContentThemeDoesNotAddDropShadows",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "SignalThemeAdversarialTests",
+      "test": "testSemanticTextAndControlsMeetContrastInBothAppearances",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "SignalThemeAdversarialTests",
+      "test": "testSystemTypographyScalesAndNoBundledFontsAreRegistered",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-43-33-811Z_pid24251_3d355b45.log"
+    },
+    {
+      "suite": "SourceInvestigationTests",
+      "test": "testLateReadCannotRestoreClearedOrChangedSession",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SourceInvestigationTests",
+      "test": "testNoReadBeforeExplicitOptInAndClearRevokesOptIn",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testAccountSwitchAfterAwaitedAssertionAndHTTPResponseFailsClosed",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testAccountSwitchBeforeWorkFailsWithoutTouchingDeviceOrNetwork",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testBackendNamespaceDoesNotReadTheLegacyAppAttestRecord",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testDebugConstructionFailsClosedWithoutAppAttestUpload",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testEachRequestCarriesTheTokenReadWhenItWasSent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testExpiredKeyRotationStopsOnAccountSwitchWithoutChangingState",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testExpiredPendingRegistrationRotatesKeyBeforeFreshAttestation",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testInactiveAccountIsNotReportedAsASignInProblem",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testLateRefusalAfterSignOutOrAccountSwitchPreservesBothAccountsKeys",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testLegacyDevelopmentUploadSendsOriginalProofWithoutResigning",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testLostInitialRegistrationResponseRelaunchReplaysExactPersistedBody",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testMetricAssertionRefusalIsReportedAsAttestationRejected",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testPendingRegistrationPersistenceIsAccountIsolatedAndRejectsConflict",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testPrepareHashesExactBodyAndPersistsRegisteredKeyByOwner",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testRawResponseTransportErrorBodyAndSourceNeverSurface",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testRefusedTokenIsDistinctFromHavingNoSession",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testRegistrationRefusesAnEnvironmentMismatchInEitherDirection",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testRejectedCurrentKeyIsDurablyInvalidatedAndNextPrepareRegistersNewKey",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testRejectedOlderQueuedKeyDoesNotInvalidateNewerCurrentKey",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testReleaseMigratesTheActualLegacyUserDefaultsRecord",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testReleaseRegistersAndPersistsAProductionAppAttestKey",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testReleaseRejectsADevelopmentSignedQueuedUpload",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testReleaseRotatesLegacyAndDevelopmentKeysBeforeSigning",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testRotatedLocalKeyStillSendsTheOriginalSavedProof",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testSendPreservesExactBodyAndAssertionForFirstWriteAndReplay",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testSendRefusesAMismatchedObservationCount",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testUnexpiredUnauthorizedRegistrationKeepsExactBodyAndKey",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testUnfinishedSessionRefreshIsNotReportedAsASignInProblem",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseMetricUploadClientTests",
+      "test": "testUnverifiableAttestationIsNotReportedAsASignInProblem",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testNonStripeAndDisabledClientsRefuseStatusRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusAcceptsSupportedISODatesAndOptionalDeadline",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusDecodesEveryKnownState",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusMapsRPCFailureWithoutLeakingIt",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusReadDoesNotDependOnMutationSwitch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusRejectsAccountChangeAcrossAwait",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusRejectsChallengeAndEnvironmentMismatch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusRejectsOversizeAndMalformedResponses",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusRejectsUnknownState",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusUsesExpectedRPCAndParameterName",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusValidatesAccountBeforeRequest",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabasePersonalPaymentClientTests",
+      "test": "testPaymentStatusValidatesReviewDeadline",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseProfileClientTests",
+      "test": "testGenericDuplicateIsNotPresentedAsUsernameConflict",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseProfileClientTests",
+      "test": "testGenuineUsernameConflictRemainsUnavailableWithoutRecoveryRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseProfileClientTests",
+      "test": "testLostInsertResponseRetryRecoversCommittedProfile",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseProfileClientTests",
+      "test": "testLostReadResponseRetryReturnsSavedValuesWithoutUpdatingThem",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseProfileClientTests",
+      "test": "testMissingOrWrongActorRecoveryRemainsAnError",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseProfileClientTests",
+      "test": "testNetworkAndPermissionFailuresRemainErrorsOnInsertAndRecoveryRead",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseProfileClientTests",
+      "test": "testNormalCreationInsertsWithoutReturningThenReadsOwnProfile",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseProfileClientTests",
+      "test": "testSuccessfulInsertStillRequiresReadableOwnProfile",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "SupabaseProfileClientTests",
+      "test": "testUnrelatedDuplicateAndNonUniquePrimaryKeyErrorsDoNotRecover",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyHealthSourceProbeTests",
+      "test": "testDefaultProbeCannotReadHealthOrRequestPermission",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeSmokeTests",
+      "test": "testAuthenticatedTwoAndFiveParticipantsCommunityAndExactRecovery",
+      "status": "skipped",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testChangedDraftRejectsDelayedPreviewBeforeConsent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testDefaultOffReleaseAndHostedURLsCannotSend",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testEveryMutationRoundTripsExactBodyAndRejectsForeignActor",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testFailedReadClearsSensitiveRowsAndActorChangeRejectsLateResponse",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testFileRecoveryPreservesExactBytesAndDeletionFencesLateWrites",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testForegroundSocialExpiryRemovesRevokedPrivateCardsAndOffers",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testHeldOptionalStudyDeliveryLeavesSafetyActionsAvailable",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testHeldSharingCannotPublishAfterAccountSwitch",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testHungFollowResponseCannotPublishExpiredPartialSnapshot",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testLateSameActorDifferentSessionResponseRejected",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testLateSharingFailurePreservesOwnContentAndBoundsConcurrency",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testMissingFixtureSourceCannotExposeACompletenessCount",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testMonotonicFreshnessExpiresWithoutTrustingDeviceWallClock",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testOptionalStudyFailureDoesNotOwnOrBlockSafetyRequestQueue",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testPausePreservesExistingReviewAndSupport",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testReviewFinalAndRefundWireStatesDecodeWithoutReinterpretingOldPolicies",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testScheduledExpiryCallbackClearsPrivateSnapshotWithoutUserAction",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testShellLifecycleRefreshesOnceAfterBackground",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testSupersededHeldSharingCannotReplaceNewSnapshot",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testUncertainNoCommitRequestCanBeRetiredWithoutBlockingSafeExit",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testVersionedFixturePreservesMicrosecondsAndAllNamedTargets",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testWeeklyHomePreservesLoadedRowsAcrossInactiveTransition",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyNativeTests",
+      "test": "testWorkerScheduledInvitationStillAcceptsAndBlockOnlySuppressesAcceptance",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyRenderedTests",
+      "test": "testCommunityCommonRulesRenderWithoutFriends",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyRenderedTests",
+      "test": "testFivePersonInvitationAndLargeTextRenderBeforeConsent",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyRenderedTests",
+      "test": "testProvisionalFinalRefundAndRecoveryRender",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklyRenderedTests",
+      "test": "testUnacceptedFinalWeekShowsClosedInvitationAndSupport",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    },
+    {
+      "suite": "WeeklySocialRefreshAuthRaceTests",
+      "test": "testSupersededFinalAuthCheckCannotRestoreRevokedSocialData",
+      "status": "passed",
+      "log": "/Users/user/Library/Developer/XcodeBuildMCP/workspaces/GameTime-7b9ccaa5aefb/logs/test_sim_2026-09-22T05-35-16-757Z_pid24251_41a6c5c6.log"
+    }
+  ]
+}

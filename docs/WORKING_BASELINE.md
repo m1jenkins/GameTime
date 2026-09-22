@@ -6,6 +6,36 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 22 locked mock adoption and native UI rewrite
+
+The owner adopted the September 21 Home, Goal / Rules, Challenges, You and
+create/invite mockups for the actual app and authorized replacing the existing
+UI, then comparing native screenshots with those references and revising them.
+The [current visual contract](design/SIGNAL_UI_MIGRATION.md#locked-mock-adoption-and-native-rewrite--september-22-2026)
+locks background `#FAFBFC`, surface `#F0F2F5`, text `#111318`, accent `#245BFF`,
+warning `#9A6700`, athletic metric typography and light appearance. It supersedes
+the conflicting September 13 cobalt-retirement/type/appearance requirements
+for this exact direction; earlier dated design records remain historical.
+
+Current source routes ordinary signed-in use through `LiveChallengeShell` and
+the new Home, Challenges, You, Goal / Rules and Settings presentation. New
+launch/sign-in/profile-entry views, creation/invitation/community review, consent,
+activity, results, account actions and retained Personal-history presentation
+use the same system. The former tab UI is not a service-unavailable fallback.
+Real `AppModel`, challenge and retained Personal stores continue to own actions;
+the rewrite does not replace live records with the mock's example data.
+Production challenge titles and avatar initials derive from available data;
+named mock records and portraits are explicit DEBUG screenshot fixtures.
+
+The [native implementation record](../.lavish/gametime-native-live-2026-09-22/IMPLEMENTATION.md)
+owns performed validation, screenshots, comparison revisions and remaining
+limits. This entry records adoption and current wiring, not a claim that final
+checks or release acceptance have completed. Existing exact agreement targets,
+stakes, allocations, consent and review rules are preserved; no backend,
+admission or money gate changes with this UI work. No hardware installation is
+performed in this task. The September 21 Staging installation below remains
+the last device receipt until a later installation is recorded.
+
 ## September 20 challenge-creation recovery
 
 The connected iPhone had been overwritten by the ordinary Debug product,

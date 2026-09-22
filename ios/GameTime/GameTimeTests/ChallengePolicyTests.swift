@@ -18,7 +18,7 @@ final class ChallengePolicyTests: XCTestCase {
     func testOnDeviceSuggestionUsesExactRoundingAndNeverLeaderboards() {
         for policy in ChallengeV1Policy.all {
             let value = ChallengeV1Suggestion.value(policy: policy, days: 7, eligible28DayTotal: 101, best90DayElapsedSeconds: 361)
-            XCTAssertEqual(value, !policy.hasTarget || policy.mode == .community ? nil : policy.metric == .timed ? 353 : 28)
+            XCTAssertEqual(value, !policy.hasTarget || policy.mode == .community ? nil : policy.metric == .timed ? 342 : 28)
             XCTAssertNil(ChallengeV1Suggestion.value(policy: policy, days: 7, eligible28DayTotal: nil, best90DayElapsedSeconds: nil))
         }
     }

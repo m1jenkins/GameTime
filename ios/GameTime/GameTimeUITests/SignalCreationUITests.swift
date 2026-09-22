@@ -31,8 +31,9 @@ final class SignalCreationUITests: XCTestCase {
         let upcomingBefore = try upcomingCount(app)
         app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
         app.buttons["beta.create.open"].tap()
-        capture(app, "after-type")
-        app.buttons["beta.create.type.personal"].tap(); next(app)
+        capture(app, "after-goal")
+        showAdvanced(app)
+        app.buttons["beta.create.type.personal"].tap()
         let target = app.textFields["beta.create.target"]
         XCTAssertEqual(target.value as? String, "—", "No target is invented")
         for (metric, value) in [("exercise", "150:30"), ("distance", "12.345678"), ("timed", "25:01"), ("steps", "10000")] {
@@ -130,7 +131,8 @@ final class SignalCreationUITests: XCTestCase {
         let app = try launch(actor: 2)
         app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
         app.buttons["beta.create.open"].tap()
-        app.buttons["beta.create.type.leaderboard"].tap(); next(app)
+        showAdvanced(app)
+        app.buttons["beta.create.type.leaderboard"].tap()
         for metric in ["steps", "exercise", "distance", "timed"] {
             tap(app, "beta.create.metric." + metric)
             XCTAssertFalse(app.textFields["beta.create.target"].exists)
@@ -247,8 +249,7 @@ final class SignalCreationUITests: XCTestCase {
         XCTAssertTrue(done.waitForExistence(timeout: 5)); capture(app, "after-retained-access"); done.tap()
         app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
         app.buttons["beta.create.open"].tap()
-        app.buttons["beta.create.type.friend"].tap()
-        next(app); next(app)
+        next(app)
         let save = app.buttons["beta.create.submit"]; bring(app, save); save.tap()
         XCTAssertTrue(app.staticTexts["beta.invite.heading"].waitForExistence(timeout: 20))
         capture(app, "after-friend-goal-invite")
@@ -316,7 +317,7 @@ final class SignalCreationUITests: XCTestCase {
         continueAfterFailure = false
         let app = try launch(actor: 3)
         app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
-        app.buttons["beta.create.open"].tap(); capture(app, "compact-type")
+        app.buttons["beta.create.open"].tap(); capture(app, "compact-goal")
         let close = app.buttons["beta.create.close"]
         XCTAssertTrue(close.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["beta.create.back"].exists,
@@ -324,9 +325,8 @@ final class SignalCreationUITests: XCTestCase {
         XCTAssertGreaterThanOrEqual(close.frame.width, 44)
         XCTAssertGreaterThanOrEqual(close.frame.height, 44)
         try app.performAccessibilityAudit(for: .hitRegion)
-        app.buttons["beta.create.type.personal"].tap(); next(app)
-        XCTAssertTrue(app.buttons["beta.create.back"].waitForExistence(timeout: 5),
-                      "Later creation steps can return to the preceding choice")
+        showAdvanced(app)
+        app.buttons["beta.create.type.personal"].tap()
         enter(app, app.textFields["beta.create.target"], "12345")
         capture(app, "compact-activity")
         let target = app.textFields["beta.create.target"]
@@ -337,6 +337,8 @@ final class SignalCreationUITests: XCTestCase {
         XCTAssertGreaterThanOrEqual(app.buttons["beta.stepper.days-Increment"].frame.height, 44)
         app.buttons["beta.create.dates.done"].tap()
         preview(app)
+        XCTAssertTrue(app.buttons["beta.create.back"].waitForExistence(timeout: 5),
+                      "Later creation steps can return to the preceding choice")
         tap(app, "beta.create.edit-amount"); capture(app, "compact-amount-editor")
         tap(app, "beta.create.amount.save")
         XCTAssertTrue(app.switches["beta.personal.consent"].waitForExistence(timeout: 20))
@@ -345,6 +347,14 @@ final class SignalCreationUITests: XCTestCase {
         XCTAssertFalse(app.buttons["beta.personal.commit"].isEnabled)
         app.buttons["beta.create.close"].tap()
         XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 5))
+    }
+    @MainActor func showAdvanced(_ app: XCUIApplication) {
+        let personal = app.buttons["beta.create.type.personal"]
+        if personal.exists && personal.isHittable { return }
+        let advanced = app.buttons["beta.create.advanced"]
+        bring(app, advanced)
+        advanced.tap()
+        XCTAssertTrue(personal.waitForExistence(timeout: 5))
     }
     @MainActor func next(_ app: XCUIApplication) { tap(app, "beta.create.continue") }
     @MainActor func preview(_ app: XCUIApplication) { tap(app, "beta.personal.preview") }

@@ -103,6 +103,7 @@ struct ChallengeCreationInviteView: View {
     private func invitation(_ row: ChallengeV1) -> some View {
         VStack(alignment: .leading, spacing: 18) {
             SignalCreationProgress(labels: progressLabels, current: progressLabels.count - 1)
+                .accessibilityIdentifier("beta.create.progress")
                 .padding(.bottom, 1)
             VStack(alignment: .leading, spacing: 10) {
                 Text("Invite friends.").font(.system(size: headingSize, weight: .bold)).tracking(-1.1)

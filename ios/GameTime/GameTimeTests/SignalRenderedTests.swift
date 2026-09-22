@@ -8,44 +8,54 @@ import XCTest
 /// Native, model-backed renders. Fixture responses never report mutation success.
 /// These supplement the authenticated touch journeys; they are not VoiceOver proof.
 @MainActor final class SignalRenderedTests: XCTestCase {
-    func testChallengeFiltersKeepAttentionAndSeparateGoalGroups() async throws {
+    func testChallengeFiltersKeepInvitationsAndSeparateLibraryStates() async throws {
         let fixture = SignalFixture(); defer { fixture.clean() }
         fixture.rows = [fixture.row("personal_steps_goal_v1", status: "scheduled"),
                         fixture.row("personal_distance_goal_v1"),
                         fixture.row("friend_steps_leaderboard_v1"),
                         fixture.row("friend_distance_goal_v1", status: "consent_pending")]
         try await fixture.start()
-        for filter in SignalChallengeFilter.allCases {
+        for filter in ["All", "Invited", "Finished"] {
             for large in [false, true] {
                 try await capture(NavigationStack {
-                    ScrollView {
-                        SignalChallengeBrowse(store: fixture.store, filter: .constant(filter)).padding(24)
-                    }.signalScreenBackground().navigationTitle("Challenges")
+                    LiveLibraryView(store: fixture.store, filter: .constant(filter), serviceAvailable: true,
+                        create: {}, entry: {}, open: { _ in })
                 }.environment(\.dynamicTypeSize, large ? .accessibility3 : .large)
-                    .environment(\.colorScheme, large ? .dark : .light),
-                    name: "browse-\(filter.section.rawValue)-\(large ? "dark-accessibility" : "light")",
+                    .preferredColorScheme(.light),
+                    name: "browse-\(filter)-\(large ? "accessibility" : "light")",
                     width: 375, scrolls: true, contrast: large ? .high : .normal,
-                    required: ["Needs your attention", filter == .finished ? "No finished challenges" : "Just for you"])
+                    required: ["Challenges", "All", "Invited", "Finished"] +
+                        (filter == "Finished" ? ["No finished challenges"] : ["Accept", "Decline"]) +
+                        (filter == "All" ? ["Active", "Upcoming"] : []),
+                    forbidden: filter == "All" ? [] : ["Steps challenge"])
             }
         }
     }
 
-    func testHomeHierarchyAtCurrentCompactDarkAndAccessibilitySizes() async throws {
+    func testHomeHierarchyAtCurrentCompactSystemDarkAndAccessibilitySizes() async throws {
         let fixture = SignalFixture(); defer { fixture.clean() }
         fixture.rows = [fixture.row("personal_exercise_goal_v1"),
-                        fixture.row("friend_steps_leaderboard_v1"),
+                        fixture.row("friend_steps_goal_v1"),
                         fixture.row("personal_distance_goal_v1", status: "scheduled")]
-        try await fixture.start()
-        for (name, width, height, scheme, type) in [
-            ("home", 430.0, 932.0, ColorScheme.light, DynamicTypeSize.large),
+        for (name, width, height, style, type) in [
+            ("home", 390.0, 844.0, UIUserInterfaceStyle.light, DynamicTypeSize.large),
             ("home-compact", 375.0, 812.0, .light, .large),
-            ("home-dark", 430.0, 932.0, .dark, .large),
+            ("home-dark", 390.0, 844.0, .dark, .large),
             ("home-accessibility", 375.0, 812.0, .light, .accessibility3)
         ] {
-            try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {})
-                .environment(\.colorScheme, scheme).environment(\.dynamicTypeSize, type),
-                name: name, width: width, height: height,
-                required: ["GameTime", "Today", "Simulated"])
+            try await fixture.start()
+            // Exercise the actual Home content without making synthetic test
+            // windows drive the shell's privacy/scene lifecycle. Main-tab
+            // navigation is covered by the authenticated UI touch journeys.
+            // A system preference belongs on the window: forcing SwiftUI's
+            // colorScheme environment bypasses the app's light-only preference.
+            try await capture(NavigationStack {
+                LiveHomeView(store: fixture.store, profile: nil, serviceAvailable: true,
+                             viewGoal: { _ in }, showRecord: {}, create: {}, library: {})
+            }.environment(\.dynamicTypeSize, type).preferredColorScheme(.light),
+                name: name, width: width, height: height, scrolls: true, systemStyle: style,
+                required: ["September steps", "Your steps", "38,620", "With you", "Maya", "Jordan", "View goal", "Simulated"],
+                forbidden: ["Today", "Payment test mode"])
         }
     }
 
@@ -54,7 +64,7 @@ import XCTest
         for policy in ChallengeV1Policy.all {
             let row = fixture.row(policy.id)
             fixture.rows = [row]; try await fixture.start()
-            let required = policy.metric == .timed ? ["km"] : [policy.metric == .steps ? "steps" : policy.metric == .exercise ? "min" : "km"]
+            let required = policy.metric == .timed ? ["5 km", "min", "Full rules"] : [policy.metric == .steps ? "steps" : policy.metric == .exercise ? "min" : "km"]
             try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
                               name: policy.id, scrolls: true, required: required,
                               forbidden: policy.mode == .community ? ["Maya", "Jordan", "4 people joined"] : [])
@@ -70,7 +80,7 @@ import XCTest
         let snapshot = ChallengeInstant(date: row.serverTime.date.addingTimeInterval(-900))
         row.counts = .init(joined: 5, state: "available", asOf: snapshot)
         fixture.rows = [row]; try await fixture.start()
-        try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
+        try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id, section: .community) },
                           name: "community-mature-detail", scrolls: true,
                           required: ["5 people joined", "15 minutes ago", "assigned moderator", "Report unsafe behavior"], forbidden: ["Maya", "Jordan"])
         let encoder = JSONEncoder(); encoder.keyEncodingStrategy = .convertToSnakeCase
@@ -78,7 +88,14 @@ import XCTest
         let terms: ChallengeJSON = .object(["common_target": .integer(50000), "config": config, "minimum": .integer(2)])
         let community = ChallengeV1Community(id: UUID(), terms: terms, digest: "fixture", serverTime: row.serverTime, joinedCount: 5, counts: row.counts)
         try await capture(NavigationStack { ChallengeCommunityJoin(store: fixture.store, community: community) },
-                          name: "community-mature-join", scrolls: true, required: ["5 people joined", "Join community challenge", "Before you join", "Complete challenge rules", "48 hours"])
+                          name: "community-mature-join", scrolls: true,
+                          required: ["Join community challenge", "Review before you join", "Full rules", "Just your progress", "I have read the complete rules and agree"],
+                          forbidden: ["5 people joined", "Maya", "Jordan"])
+        try await capture(ScrollView {
+            LiveGoalRules(row: row, actor: fixture.actor, expandedSections: Set(LiveGoalRuleSection.allCases)).padding(24)
+        }.background(SignalTheme.canvas), name: "community-agreement-expanded", scrolls: true,
+            required: ["50,000 steps", "48 hours", "72 hours", "No real money moves", "Other participants cannot see"],
+            forbidden: ["Maya", "Jordan"])
         let joined = ChallengeV1Community(id: row.id, terms: terms, digest: "fixture", serverTime: row.serverTime, joinedCount: 5, counts: row.counts)
         try await capture(NavigationStack { ChallengeCommunityJoin(store: fixture.store, community: joined) },
                           name: "community-already-joined", scrolls: true, required: ["You have joined", "View my progress"], forbidden: ["Join community challenge"])
@@ -87,7 +104,7 @@ import XCTest
                           name: "community-incomplete-agreement", scrolls: true, required: ["complete agreement", "Go back and refresh"], forbidden: ["I have read the complete rules and agree", "Join community challenge"])
         row.counts = .init(joined: nil, state: "threshold", asOf: nil)
         fixture.rows = [row]; try await fixture.start()
-        try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
+        try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id, section: .community) },
                           name: "community-threshold-detail", scrolls: true,
                           required: ["Participant totals stay hidden"], forbidden: ["5 people joined", "Maya", "Jordan"])
     }
@@ -108,7 +125,7 @@ import XCTest
                                 resolveBy: recordedAt, decision: decision)],
                 final: .init(recordedAt: recordedAt, result: allocation))
             fixture.rows = [row]; try await fixture.start()
-            try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
+            try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id, section: .result) },
                 name: "final-result-review-\(decision == nil ? "timed-out" : "decided")", scrolls: true,
                 required: ["Result confirmed", "Your review", "Requested"],
                 forbidden: ["Refresh for the latest result", "Refresh to see your updated result", "We’re checking your result"])
@@ -119,20 +136,25 @@ import XCTest
         let fixture = SignalFixture(); defer { fixture.clean() }
         let row = fixture.row("friend_steps_leaderboard_v1", edge: true)
         fixture.rows = [row]; try await fixture.start()
-        try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) },
+        try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id, section: .people) },
                           name: "leaderboard-unknown-tied-departed", scrolls: true,
                           required: ["No update yet", "Former participant", "Activity hidden"], forbidden: ["Private name"])
         fixture.rows = []; try await fixture.start()
         try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}),
-                          name: "home-empty", required: ["No challenges yet", "Explore challenges"])
+                          name: "home-empty", required: ["Your first challenge", "Create a challenge"])
         fixture.rows = [row]; try await fixture.start()
+        fixture.fail = true; await fixture.store.refresh()
+        try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}),
+                          name: "home-stale-without-pending-action", scrolls: true,
+                          required: ["Last saved view", "refresh before making a choice", "No update yet"])
+        fixture.fail = false; await fixture.store.refresh()
         let request = ChallengeV1Request(actor: fixture.actor, payload: .object(["op": .string("leave"), "id": .string(row.id.uuidString.lowercased()), "revision": .integer(1)]))
         try await fixture.store.requests.save(request)
         await fixture.store.refresh()
         fixture.fail = true; await fixture.store.refresh()
         try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}),
                           name: "home-stale-recovery", scrolls: true,
-                          required: ["Retry saved action", "Last saved view", "No update yet"])
+                          required: ["Retry saved action", "Your action is saved on this phone", "No update yet"])
         fixture.store.setActor(fixture.actor)
         try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}),
                           name: "home-loading", required: ["Loading your challenges"])
@@ -147,12 +169,25 @@ import XCTest
             let row = fixture.row("friend_steps_leaderboard_v1", people: count)
             fixture.rows = [row]; try await fixture.start()
             for accessible in [false, true] {
-                try await capture(NavigationStack { ChallengeV1Detail(store: fixture.store, id: row.id) }
+                // Both lines are fully visible. Vision merges the adjacent rank
+                // with line two, so its global reading order is not the name's
+                // reading order. Require every rendered character in contiguous
+                // line fragments and verify their join is the complete saved name.
+                let nameLines = accessible ? ["alexanderthewe", "ekendrunner"] : ["alexandertheweeke", "ndrunner"]
+                if count == 6 {
+                    let person = try XCTUnwrap(row.members.first { $0.username == "alexandertheweekendrunner" })
+                    XCTAssertEqual(nameLines.joined(), person.username)
+                }
+                try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id, section: .people) }
                     .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large)
-                    .environment(\.colorScheme, accessible ? .dark : .light),
-                    name: "people-\(count)-\(accessible ? "large-dark-solid" : "compact-solid")",
+                    .preferredColorScheme(.light),
+                    name: "people-\(count)-\(accessible ? "large-solid" : "compact-solid")",
                     width: 375, scrolls: true, contrast: .high,
-                    required: ["You", "Maya", "Leave challenge"])
+                    required: ["You", "Maya", "38,620", "Report or block"] + (count == 6 ? nameLines + ["Taylor", "Sam"] : []))
+                try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id) }
+                    .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large),
+                    name: "people-\(count)-safe-exit-\(accessible)", width: 375, scrolls: true,
+                    required: ["Leave challenge", "Full rules"])
             }
         }
     }
@@ -161,25 +196,42 @@ import XCTest
         let fixture = SignalFixture(); defer { fixture.clean() }
         for policy in ChallengeV1Policy.all {
             let row = fixture.row(policy.id, status: "scheduled")
-            try await capture(NavigationStack {
-                ChallengeForm {
-                    SignalChallengeHeader(row: row, actor: fixture.actor)
-                    ChallengeAgreementText(policy: policy, window: row.config, minimum: policy.mode == .personal ? 1 : 2)
-                }.navigationTitle("Your agreement")
-            }, name: "agreement-" + policy.id, width: 375, scrolls: true,
-                required: ["Starts", "Ends, not included", "Central Time", "Chicago", "No real money moves", "48 hours", "72 hours"])
+            try await capture(ScrollView {
+                LiveGoalRules(row: row, actor: fixture.actor, expandedSections: Set(LiveGoalRuleSection.allCases)).padding(24)
+            }.background(SignalTheme.canvas), name: "agreement-" + policy.id, width: 375, scrolls: true,
+                required: ["Starts", "Ends, not included", "Central Time", "Chicago", "No real money moves", "48 hours", "72 hours", "$20.00"])
         }
+    }
+
+    func testAgreementIsCollapsedByDefaultAndPreciseWhenExpanded() async throws {
+        let fixture = SignalFixture(); defer { fixture.clean() }
+        let row = fixture.row("friend_distance_goal_v1", status: "consent_pending", targetOverride: 12_345_678)
+        fixture.rows = [row]; try await fixture.start()
+        try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id) },
+            name: "agreement-exact-distance-summary", scrolls: true,
+            required: ["12.345678 km", "Review and agree", "Full rules", "$20 simulated"],
+            forbidden: ["12.35 km goal", "72 hours"])
+        try await capture(ScrollView { LiveGoalRules(row: row, actor: fixture.actor).padding(24) }.background(SignalTheme.canvas),
+            name: "agreement-default-disclosure", scrolls: true,
+            required: ["12.345678 km", "Activity that counts", "Dates and times", "Your stake", "Ask for review", "48 hours"],
+            forbidden: ["72 hours", "No real money moves"])
+        try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id, section: .agreement) },
+            name: "agreement-explicit-consent", scrolls: true,
+            required: ["12.345678 km", "I have read the complete rules and agree", "Agree to this challenge"])
+        XCTAssertEqual(fixture.store.challenges.first?.own(fixture.actor)?.consented, false,
+                       "Reading an agreement is never an acceptance")
     }
 
     func testControlFallbackGeometryAndUnknownValues() async throws {
         struct Controls: View {
             var body: some View {
                 VStack(spacing: 16) {
-                    Button("Agree to this challenge") {}.buttonStyle(SignalPrimaryButtonStyle())
-                    Button("Leave challenge", role: .destructive) {}.buttonStyle(SignalSecondaryButtonStyle())
-                    Button("Start my personal goal") {}.buttonStyle(SignalPrimaryButtonStyle()).disabled(true)
-                    SignalMetricValue(value: 1_000_000_000, metric: .steps)
-                }.padding(24).modifier(SignalGlassGroup()).background(SignalTheme.canvas)
+                    Button("Agree to this challenge") {}.buttonStyle(LivePrimaryButtonStyle())
+                    Button("Leave challenge", role: .destructive) {}.font(.system(size: 14)).frame(minHeight: 44)
+                    Button("Start my personal goal") {}.buttonStyle(LivePrimaryButtonStyle()).disabled(true)
+                    LiveMetric(value: "1,000,000,000", unit: "steps", size: 56)
+                    LiveRoundButton(symbol: "xmark", label: "Close", action: {})
+                }.padding(24).background(SignalTheme.canvas)
             }
         }
         for solid in [false, true] {
@@ -190,12 +242,14 @@ import XCTest
 
     private func capture<V: View>(_ view: V, name: String, width: CGFloat = 430, height: CGFloat = 932,
                                  scrolls: Bool = false, contrast: UIAccessibilityContrast = .normal,
+                                 systemStyle: UIUserInterfaceStyle = .unspecified,
                                  required: [String] = [], forbidden: [String] = []) async throws {
         let host = UIHostingController(rootView: view.frame(width: width, height: height))
         host.traitOverrides.accessibilityContrast = contrast
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
         let previous = scene.windows.first(where: \.isKeyWindow)
         let window = UIWindow(windowScene: scene)
+        window.overrideUserInterfaceStyle = systemStyle
         window.frame = CGRect(x: 0, y: 0, width: width, height: height)
         window.rootViewController = host; window.makeKeyAndVisible(); host.view.frame = window.bounds
         defer { window.isHidden = true; previous?.makeKeyAndVisible() }
@@ -258,15 +312,15 @@ import XCTest
         for row in rows { try row.validate(actor: actor) }
         store.setActor(actor); await store.refresh(); XCTAssertNil(store.error)
     }
-    func row(_ policy: String, status: String = "active", edge: Bool = false, people: Int = 3) -> ChallengeV1 {
+    func row(_ policy: String, status: String = "active", edge: Bool = false, people: Int = 3, targetOverride: Int? = nil) -> ChallengeV1 {
         let format = ChallengeV1Policy(rawValue: policy)!
         let start = ChallengeInstant(date: Date(timeIntervalSince1970: 1788757200 + (status == "scheduled" ? 7 * 86400 : 0)))
         let end = ChallengeInstant(date: start.date.addingTimeInterval(7 * 86400))
         let values: [Int] = format.metric == .steps ? [42850, 38620, 35400] : format.metric == .exercise ? [120 * 60, 95 * 60, 80 * 60] : format.metric == .distance ? [18_500_000, 15_300_000, 12_200_000] : [1500, 1531, 1600]
-        let target = format.metric == .steps ? 50_000 : format.metric == .exercise ? 150 * 60 : format.metric == .distance ? 20_000_000 : 1800
+        let target = targetOverride ?? (format.metric == .steps ? 50_000 : format.metric == .exercise ? 150 * 60 : format.metric == .distance ? 20_000_000 : 1800)
         var members = zip([maya, actor, jordan], ["Maya", "Fictional You", "Jordan"]).enumerated().map { index, person in
             ChallengeV1.Member(actorId: person.0, username: person.1, target: format.hasTarget ? target : nil,
-                               selected: true, exited: false, consented: true,
+                               selected: true, exited: false, consented: status != "consent_pending",
                                fact: status == "scheduled" ? nil : .init(value: values[index], state: "complete", recordedAt: start, revision: 1))
         }
         if format.mode == .friend {

@@ -457,7 +457,7 @@ import XCTest
         try await fixture.start(allCaches: false, initial: older)
         // Larger text uses the real participant identity without its decorative
         // avatar, keeping the displayed rank/name legible in the OCR evidence.
-        let view = NavigationStack { ChallengeV1Detail(store: fixture.store, id: fixture.id) }
+        let view = LiveGoalDetail(store: fixture.store, id: fixture.id, section: .people)
             .environment(\.dynamicTypeSize, .accessibility1)
         let controller = UIHostingController(rootView: view)
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
@@ -470,11 +470,11 @@ import XCTest
         let before = try await capture(window, controller, name: name + "-before")
         XCTAssertEqual(fixture.client.detailCalls, 2, "The mounted initial read must finish before responses are held")
         XCTAssertTrue(before.contains("sharedfriend"))
-        XCTAssertFalse(before.contains("result confirmed"))
-        if finalized { XCTAssertTrue(before.contains("latest result update")) }
+        XCTAssertFalse(before.contains("result recorded"), "A proposed result is not a final participant outcome")
+        if finalized { XCTAssertTrue(before.contains("321")) }
         else {
             XCTAssertTrue(before.contains("12,000"))
-            XCTAssertNotNil(before.range(of: #"\b1\s+you\b"#, options: .regularExpression))
+            assertMountedOwnRank(before, rank: 1)
         }
         fixture.clock.value = 20; fixture.client.holding = true
         let old = Task { await fixture.store.loadDetail(fixture.id) }
@@ -502,16 +502,26 @@ import XCTest
                                          file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertFalse(text.contains("12,000"), file: file, line: line)
         XCTAssertNotNil(text.range(of: #"\b100\s+steps\b"#, options: .regularExpression), file: file, line: line)
-        XCTAssertNotNil(text.range(of: #"\b2\s+you\b"#, options: .regularExpression), file: file, line: line)
+        assertMountedOwnRank(text, rank: 2, file: file, line: line)
         XCTAssertTrue(text.contains("sharedfriend"), file: file, line: line)
-        XCTAssertEqual(text.contains("result confirmed"), finalized, file: file, line: line)
+        XCTAssertEqual(text.contains("result recorded"), finalized, "The participant outcome appears only after finality", file: file, line: line)
+    }
+
+    private func assertMountedOwnRank(_ text: String, rank: Int,
+                                      file: StaticString = #filePath, line: UInt = #line) {
+        // The rank is vertically centered beside the two-line You / Agreed
+        // label. The saved image displays “1 You”; Vision orders those same
+        // baselines as “you 1 agreed”. Keep the exact numeric rank tied to You.
+        let pattern = #"\b(?:"# + String(rank) + #"\s+you|you\s+"# + String(rank) + #"\s+agreed)\b"#
+        XCTAssertNotNil(text.range(of: pattern, options: .regularExpression),
+                        "Expected your visible rank \(rank): \(text)", file: file, line: line)
     }
 
     private func mounted(detail: Bool, revision: Int) async throws {
         let fixture = OverlapFixture(); defer { fixture.clean() }
         try await fixture.start(allCaches: false)
-        let view = detail ? AnyView(NavigationStack { ChallengeV1Detail(store: fixture.store, id: fixture.id) }.environment(\.dynamicTypeSize, .accessibility1)) :
-            AnyView(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}))
+        let view = detail ? AnyView(LiveGoalDetail(store: fixture.store, id: fixture.id, section: .people).environment(\.dynamicTypeSize, .accessibility1)) :
+            AnyView(LiveLibraryView(store: fixture.store, filter: .constant("All"), serviceAvailable: true, create: {}, entry: {}, open: { _ in }))
         let controller = UIHostingController(rootView: view)
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
         let previous = scene.windows.first(where: \.isKeyWindow)
@@ -519,10 +529,10 @@ import XCTest
         window.rootViewController = controller; window.makeKeyAndVisible(); controller.view.frame = window.bounds
         defer { window.isHidden = true; previous?.makeKeyAndVisible() }
         try await Task.sleep(for: .milliseconds(300))
-        let name = "overlap-\(detail ? "detail" : "home")-old-revision-\(revision)"
+        let name = "overlap-\(detail ? "people" : "library")-old-revision-\(revision)"
         let before = try await capture(window, controller, name: name + "-shared")
-        if detail { XCTAssertTrue(before.contains("sharedfriend")); XCTAssertTrue(before.contains("321 of 2,000 steps")) }
-        else { XCTAssertFalse(before.contains("you left this challenge")); XCTAssertTrue(before.contains("507")) }
+        if detail { XCTAssertTrue(before.contains("sharedfriend")); XCTAssertTrue(before.contains("321")); XCTAssertTrue(before.contains("2,000 steps")) }
+        else { XCTAssertFalse(before.contains("closed early")); XCTAssertTrue(before.contains("507")) }
         fixture.client.holding = true; fixture.clock.value = 20
         let a = Task { await fixture.store.loadMore(.active) }
         let responseA = try await fixture.client.nextPage()
@@ -533,15 +543,15 @@ import XCTest
         let calls = fixture.client.detailCalls
         try await Task.sleep(for: .milliseconds(300))
         let restricted = try await capture(window, controller, name: name + "-restricted")
-        if detail { XCTAssertFalse(restricted.contains("sharedfriend")); XCTAssertFalse(restricted.contains("321 of 2,000 steps")) }
-        else { XCTAssertTrue(restricted.contains("you left this challenge")); XCTAssertTrue(restricted.contains("507")) }
+        if detail { XCTAssertFalse(restricted.contains("sharedfriend")); XCTAssertFalse(restricted.contains("321")); XCTAssertFalse(restricted.contains("2,000 steps")) }
+        else { XCTAssertTrue(restricted.contains("closed early")); XCTAssertTrue(restricted.contains("507")) }
         fixture.clock.value = 40
         responseA.finish(fixture.client.pageValue(.active, rows: [fixture.row(hidden: false, revision: revision)], cursor: nil)); await a.value
         try await Task.sleep(for: .milliseconds(300))
         let late = try await capture(window, controller, name: name + "-after-late-response")
         XCTAssertEqual(fixture.client.detailCalls, calls, "No extra detail fetch or remount can conceal the late response")
-        if detail { XCTAssertFalse(late.contains("sharedfriend")); XCTAssertFalse(late.contains("321 of 2,000 steps")); XCTAssertTrue(late.contains("100 of 1,000 steps")) }
-        else { XCTAssertTrue(late.contains("you left this challenge")); XCTAssertTrue(late.contains("507")) }
+        if detail { XCTAssertFalse(late.contains("sharedfriend")); XCTAssertFalse(late.contains("321")); XCTAssertFalse(late.contains("2,000 steps")); XCTAssertTrue(late.contains("100")); XCTAssertTrue(late.contains("1,000 steps")) }
+        else { XCTAssertTrue(late.contains("closed early")); XCTAssertTrue(late.contains("507")) }
         assertRestricted(fixture)
         XCTAssertNotNil(controller.view.window)
     }

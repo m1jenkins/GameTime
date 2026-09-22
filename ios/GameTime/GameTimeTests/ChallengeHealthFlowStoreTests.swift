@@ -144,7 +144,7 @@ import XCTest
         let id = try h.addActivity(policy: "friend_steps_leaderboard_v2")
         try h.cache.connect(actor: h.actor, source: "apple_watch_steps_v1")
         await h.flow.refresh(id)
-        let text = try await capture(NavigationStack { ChallengeV1Detail(store: h.store, id: id) }, name: "d141-saved-score")
+        let text = try await capture(NavigationStack { LiveGoalDetail(store: h.store, id: id, section: .activity) }, name: "d141-saved-score")
         XCTAssertTrue(text.contains("your saved score"))
         XCTAssertTrue(text.contains("last saved update"))
         XCTAssertTrue(text.contains("save activity by"))

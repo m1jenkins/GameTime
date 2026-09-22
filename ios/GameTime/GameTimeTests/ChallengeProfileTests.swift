@@ -209,6 +209,9 @@ import UIKit
         client.rows = try [row(status: "scheduled"), row(status: "active"), row(status: "final", result: "met"),
             row(policy: "friend_steps_leaderboard_v2", status: "final", result: "winner")]
         await store.refresh()
+        XCTAssertEqual(LiveChallengePresentation.goalsMet(in: store.profileSnapshot), 1,
+                       "A competitive win must not be counted as a personal goal met")
+        XCTAssertEqual(store.profileSnapshot.finished.count, 2)
         for (name, scheme, size, solid) in [
             ("profile-loaded-light", ColorScheme.light, DynamicTypeSize.large, false),
             ("profile-loaded-dark", .dark, .large, false),
@@ -216,19 +219,21 @@ import UIKit
         ] {
             let text = try await captureProfile(store, name: name, scheme: scheme, size: size, solid: solid)
             XCTAssertTrue(text.contains("alex lee"), text)
-            XCTAssertTrue(text.contains("upcoming"), text)
+            XCTAssertTrue(text.contains("your record"), text)
             XCTAssertTrue(text.contains("finished"), text)
-            XCTAssertTrue(text.contains("wins"), text)
+            // Vision reads this small semibold G as C in all three retained
+            // screenshots. Normalize only that observed word, not the count.
+            XCTAssertTrue(text.replacingOccurrences(of: "coals met", with: "goals met").contains("goals met"), text)
+            XCTAssertFalse(text.contains("wins"), "Goal outcomes must not become competitive wins: \(text)")
             XCTAssertFalse(text.contains("all time"), text)
         }
         client.rows = try [row(status: "scheduled")]
         await store.refresh()
         let upcoming = try await captureProfile(store, name: "profile-upcoming-goal")
-        XCTAssertTrue(upcoming.contains("your next goal"), upcoming)
-        XCTAssertTrue(upcoming.contains("50,000"), upcoming)
-        let activity = try await captureProfile(store, name: "profile-personal-activity-unavailable", showActivity: true)
-        XCTAssertTrue(activity.contains("lifetime totals and streaks"), activity)
-        XCTAssertTrue(activity.contains("aren’t available") || activity.contains("aren't available"), activity)
+        XCTAssertTrue(upcoming.contains("no finished challenges yet"), upcoming)
+        XCTAssertFalse(upcoming.contains("50,000"), "An upcoming target cannot be presented as a finished result")
+        XCTAssertFalse(upcoming.contains("streak"), "The private record must not fabricate unavailable lifetime activity")
+        XCTAssertEqual(store.profileSnapshot.finished.count, 0)
         client.paginated = true
         await store.refresh()
         let partial = try await captureProfile(store, name: "profile-partial")
@@ -244,19 +249,15 @@ import UIKit
         client.fail = false; client.paginated = false; client.rows = []
         await store.refresh()
         let empty = try await captureProfile(store, name: "profile-empty")
-        XCTAssertTrue(empty.contains("your goals belong here"), empty)
+        XCTAssertTrue(empty.contains("no finished challenges yet"), empty)
     }
 
     private func captureProfile(_ store: ChallengeV1Store, name: String,
                                 scheme: ColorScheme = .light, size: DynamicTypeSize = .large,
-                                solid: Bool = false, showActivity: Bool = false) async throws -> String {
+                                solid: Bool = false) async throws -> String {
         let profile = UserProfile(id: actor, handle: "alexlee", displayName: "Alex Lee", timezone: "America/Los_Angeles")
-        let view = TabView(selection: .constant(2)) {
-                Text("Home").tabItem { Label("Home", systemImage: "house") }.tag(0)
-                Text("Challenges").tabItem { Label("Challenges", systemImage: "flag") }.tag(1)
-                NavigationStack {
-                    ChallengeProfileView(store: store, profile: profile, accountActor: actor)
-                }.tabItem { Label("You", systemImage: "person") }.tag(2)
+        let view = NavigationStack {
+            LiveRecordView(store: store, profile: profile, accountActor: actor, settings: {})
         }
         .environment(\.colorScheme, scheme)
         .environment(\.dynamicTypeSize, size)
@@ -270,16 +271,6 @@ import UIKit
         window.rootViewController = host; window.makeKeyAndVisible(); host.view.frame = window.bounds
         defer { window.isHidden = true; previous?.makeKeyAndVisible() }
         try await Task.sleep(for: .milliseconds(250))
-        if showActivity {
-            func segmentedControl(in view: UIView) -> UISegmentedControl? {
-                if let control = view as? UISegmentedControl { return control }
-                return view.subviews.lazy.compactMap { segmentedControl(in: $0) }.first
-            }
-            let control = try XCTUnwrap(segmentedControl(in: host.view))
-            control.selectedSegmentIndex = 1
-            control.sendActions(for: .valueChanged)
-            try await Task.sleep(for: .milliseconds(150))
-        }
         return try await captureMountedSignal(window, controller: host, name: name, test: self)
     }
     #endif

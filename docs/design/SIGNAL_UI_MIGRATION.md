@@ -1,10 +1,65 @@
-# Signal UI adoption and cobalt retirement
+# GameTime UI adoption and migration history
+
+## Locked mock adoption and native rewrite — September 22, 2026
+
+The owner adopted the Home, Goal / Rules, Challenges, You and create/invite
+mockups from the September 21 study as the current app presentation, and
+authorized a complete native UI rewrite with screenshot comparison and revision.
+Use the [approved study](../../.lavish/gametime-live-goal-2026-09-21/README.md)
+and the [native implementation record](../../.lavish/gametime-native-live-2026-09-22/IMPLEMENTATION.md)
+for this direction. The implementation record owns the actual captures,
+comparison iterations, validation results and remaining limits; this adoption
+entry does not establish final verification or release acceptance.
+
+The current visual contract is **cool athletic light**: background `#FAFBFC`,
+card surface `#F0F2F5`, text `#111318`, accent `#245BFF` and warning `#9A6700`.
+Use heavy, tightly spaced athletic metrics with secondary units, rounded cards,
+thick progress, thin system symbols and restrained material. The app uses light
+appearance. This expressly supersedes the September 13 cobalt-retirement and
+non-italic/light-and-dark typography instructions below **only where they
+conflict with this exact adopted palette, athletic type and light-only direction**.
+It does not restore the former cobalt UI, its fonts or its compositions. Earlier
+dated migration entries and studies remain historical evidence, not alternative
+themes or authority to replace the approved mockups.
+
+Current source wiring is explicit:
+
+- [GameTimeApp.swift](../../ios/GameTime/GameTime/GameTimeApp.swift) selects the
+  new launch, sign-in and profile-entry views. The `SignalProductShell` adapter
+  in [AppShellView.swift](../../ios/GameTime/GameTime/AppShellView.swift) mounts
+  [LiveChallengeShell](../../ios/GameTime/GameTime/LiveChallengeShell.swift) for
+  ordinary signed-in use, with Home · Challenges · You and secondary Settings.
+- Shared tokens and components live in
+  [SignalTheme.swift](../../ios/GameTime/GameTime/SignalTheme.swift) and
+  [LiveDesignComponents.swift](../../ios/GameTime/GameTime/LiveDesignComponents.swift).
+  Goal details and progressive rules use `LiveGoalDetail` and `LiveGoalRules`;
+  the record uses `LiveRecordView`. Creation, invitations, community entry,
+  consent, activity, review, results and recovery use the new presentation with
+  their existing clients and actions.
+- Account, privacy, support and deletion use `LiveSettingsView` and the new
+  account-entry views. Earlier Personal agreements remain available through
+  `LivePersonalHistoryView` / `LivePersonalDetailView`; retaining their data and
+  actions does not select the former Personal tab UI.
+
+This is presentation work. No backend, admission, source policy, consent version,
+allocation, review window or money gate is changed by the mock adoption. Exact
+agreed targets, stakes and saved agreement rules remain authoritative, including
+historical allocation rules that differ from a design-only example. Production
+titles derive from available challenge dates/activity, and avatars use available
+account names or initials. The named sample challenges, portraits and record
+values belong to the explicitly selected DEBUG screenshot fixtures, not to a
+live account. No physical-device installation is performed in this rewrite
+task; the previously installed Staging receipt remains the device record until
+a separately recorded installation.
+
+## Original Signal adoption — September 13, 2026 (historical)
 
 Owner direction, September 13, 2026: **Signal is GameTime's official UI/UX
 design language. The crisp cobalt look is deprecated and must be fully replaced.**
 This supersedes the September 11 cobalt design selection for future work.
-The adoption below remains the implementation contract. The subsequent local
-execution and its verification are recorded separately here.
+This was the implementation contract for the dated migration below. The
+September 22 adoption above controls the current visual presentation. Subsequent
+local execution and its verification remain recorded separately here.
 
 ## Create and invite visual follow-through — September 21, 2026
 
@@ -108,7 +163,7 @@ and Release simulator products build. These are local presentation results;
 P7 source acceptance, P9 real integration and P12/P13 physical/human/release
 qualification remain separate. No hosted, Health-upload or money gate changed.
 
-## Source and current implementation
+## September 13 source and implementation contract (historical)
 
 Use the existing [Signal design system](../../outputs/design/2026-09-13-clickable-app-alternate/DESIGN.md),
 [clickable study](../../outputs/design/2026-09-13-clickable-app-alternate/index.html)
@@ -132,7 +187,7 @@ If no native Signal candidate exists, implement the missing presentation from
 the adopted study. An unlocated candidate must not block this work indefinitely.
 Class names alone do not prove a visual migration; renaming cobalt is insufficient.
 
-## Required native migration
+## September 13 native migration requirements (historical)
 
 1. **Foundations:** introduce Signal semantic colors for light/dark appearance,
    system typography with tabular metrics, open aligned rows and spacing.
@@ -170,7 +225,7 @@ only authorized available data; missing daily values stay unknown. Do not widen
 Health uploads or friend visibility to reproduce a study timeline. Preserve
 simulation labels, neutral exits and responsible-engagement requirements.
 
-## Scheduling and completion
+## September 13 scheduling and completion (historical)
 
 **P9A — Signal native migration** is independent of P7 physical source acceptance
 and hosted configuration. Implement and verify presentation against existing

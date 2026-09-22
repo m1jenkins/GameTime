@@ -8,6 +8,7 @@ struct ChallengeV1Create: View {
     @State private var draft: ChallengeCreationDraft
     private enum Editor: String, Identifiable { case dates, amount; var id: String { rawValue } }
     @State private var editor: Editor?
+    @State private var showsAdvanced = false
     @State private var focusedInput: String?
     @State private var keyboardVisible = false
     @ScaledMetric(relativeTo: .title3) private var choiceSymbolWidth: CGFloat = 28
@@ -23,7 +24,7 @@ struct ChallengeV1Create: View {
     private var heading: String {
         switch draft.step {
         case .type: "Who’s it for?"
-        case .activity: draft.mode == .personal ? "What’s your goal?" : "Choose your activity."
+        case .activity: "What’s your goal?"
         case .review: draft.mode == .personal ? "Review your goal." : "Make it a\nchallenge."
         }
     }
@@ -129,7 +130,7 @@ struct ChallengeV1Create: View {
     }
     private var progressLabels: [String] {
         let stages = draft.mode == .personal ? ["Goal", "Rules"] : ["Goal", "Challenge", "Friends"]
-        return draft.directEntry ? stages : ["Type"] + stages
+        return draft.step == .type ? ["Type"] + stages : stages
     }
     private var typeStep: some View {
         VStack(spacing: 12) {
@@ -177,6 +178,27 @@ struct ChallengeV1Create: View {
             }
         }
         datesSummary
+        if draft.allowsTypeChange {
+            Button {
+                showsAdvanced.toggle()
+            } label: {
+                HStack(spacing: 8) {
+                    Text("Advanced").font(.subheadline.weight(.semibold))
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.down")
+                        .rotationEffect(.degrees(showsAdvanced ? 180 : 0))
+                        .font(.footnote.weight(.semibold))
+                        .accessibilityHidden(true)
+                }
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(SignalCreationTheme.textPrimary)
+            .accessibilityIdentifier("beta.create.advanced")
+            .accessibilityValue(showsAdvanced ? "Expanded" : "Collapsed")
+            if showsAdvanced { typeStep }
+        }
     }
     private func inputFocus(_ focused: Bool, id: String) {
         if focused { focusedInput = id }
@@ -306,6 +328,15 @@ struct ChallengeV1Create: View {
         SignalCreationAgreementRow(symbol: title == "Activity counted" ? "applewatch" : title == "Whole run distance" ? "figure.run" : "checkmark.shield", title: title, detail: text)
     }
     private var isReviewAction: Bool { draft.step == .activity || draft.step == .review && draft.needsReview }
+    private var primaryTitle: String {
+        if store.pending != nil { return "Retry saved action" }
+        if isReviewAction { return draft.step == .review ? "Refresh review" : "Continue" }
+        if draft.step == .review { return draft.mode == .personal ? "Create personal goal" : "Continue to invite" }
+        return "Continue"
+    }
+    private var showsForwardArrow: Bool {
+        store.pending == nil && (draft.step != .review || draft.mode == .friend && !isReviewAction)
+    }
     private var primaryAction: some View {
         Button {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -316,8 +347,8 @@ struct ChallengeV1Create: View {
             }
         } label: {
             HStack {
-                Text(store.pending != nil ? "Retry saved action" : isReviewAction ? (draft.step == .review ? "Refresh review" : "Continue") : draft.step == .review ? (draft.mode == .personal ? "Create personal goal" : "Create lobby") : "Continue")
-                if draft.step != .review { Image(systemName: "arrow.right").accessibilityHidden(true) }
+                Text(primaryTitle)
+                if showsForwardArrow { Image(systemName: "arrow.right").accessibilityHidden(true) }
             }.font(.headline).frame(maxWidth: .infinity, minHeight: 50)
         }
         .buttonStyle(SignalCreationPrimaryStyle())
