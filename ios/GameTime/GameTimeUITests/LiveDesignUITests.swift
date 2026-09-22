@@ -71,8 +71,7 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertLessThan(progress.frame.height, 40, "Goal, Challenge and Friends stay on one line")
         XCTAssertFalse(app.buttons["beta.create.type.leaderboard"].isHittable)
         XCTAssertFalse(app.textFields["beta.create.target"].exists)
-        saveLiveCapture(app, "create-goal")
-        saveLiveCapture(app, "create")
+        capture(app, name: "create-goal")
         let advanced = app.buttons["beta.create.advanced"]
         XCTAssertTrue(advanced.waitForExistence(timeout: 5))
         bring(app, advanced)
@@ -87,7 +86,7 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "label CONTAINS %@", "Make it a"), object: heading)], timeout: 5), .completed)
         XCTAssertEqual(element(app, "beta.create.progress").label, "Step 2 of 3, Challenge")
-        saveLiveCapture(app, "create-challenge")
+        capture(app, name: "create-challenge")
         let invite = app.buttons["beta.create.submit"]
         bring(app, invite)
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
@@ -97,7 +96,7 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(inviteHeading.waitForExistence(timeout: 10))
         XCTAssertEqual(inviteHeading.label, "Invite friends.")
         XCTAssertEqual(element(app, "beta.create.progress").label, "Step 3 of 3, Friends")
-        saveLiveCapture(app, "create-friends")
+        capture(app, name: "create-friends")
         app.buttons["beta.create.close"].tap()
         XCTAssertTrue(create.waitForExistence(timeout: 5))
     }
@@ -225,16 +224,6 @@ final class LiveDesignUITests: XCTestCase {
             if upward { app.swipeUp() } else { app.swipeDown() }
         }
         XCTAssertTrue(target.isHittable, "Expected an actionable control: \(target)")
-    }
-
-    private func saveLiveCapture(_ app: XCUIApplication, _ name: String) {
-        let url = URL(fileURLWithPath: "/tmp/gametime-live-captures/\(name).png")
-        do {
-            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try app.screenshot().pngRepresentation.write(to: url)
-        } catch {
-            XCTFail("Could not write \(url.path): \(error)")
-        }
     }
 
     private func capture(_ app: XCUIApplication, name: String) {
