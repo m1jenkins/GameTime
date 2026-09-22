@@ -54,3 +54,7 @@ docs/design/challenge-page-concepts/
 /.ua/intermediate/
 /.ua/knowledge-graph.json
 /.ua/meta.json
+
+# Owner device screenshots and simulator scratch stay out of this public repo.
+/.lavish/gametime-native-live-2026-09-22/qa/
+/.lavish/gametime-native-live-2026-09-22/sim-check/
