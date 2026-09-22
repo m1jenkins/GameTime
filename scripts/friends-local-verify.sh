@@ -70,16 +70,24 @@ text = config.read_text()
 text = re.sub(r'^project_id\s*=.*$', f'project_id = "{project}"', text, count=1, flags=re.M)
 for old, offset in ((54320,0),(54321,1),(54322,2),(54323,3),(54324,4),(54329,9)):
     text = text.replace(str(old), str(base + offset))
+# Hosted build 1 is Apple sign-in only. This disposable copy alone lets the
+# driver's admin-created fictional accounts sign in with a password.
+text, count = re.subn(r'(\[auth\.email\]\n(?:#[^\n]*\n)*)enable_signup = false', r'\1enable_signup = true', text, count=1)
+if count != 1:
+    raise SystemExit('Unexpected [auth.email] section in supabase/config.toml')
 config.write_text(text)
 (target / 'input-manifest.json').write_text(json.dumps(
     {'source_head': head, 'project': project, 'port_base': base, 'inputs': manifest}, indent=2) + '\n')
 PY
 
 started=0
+passed=0
 owned_network="supabase_network_${project_name}"
 cleanup() {
   result=$?
   trap - EXIT
+  # Anything that stops before the last line, even with status 0, failed.
+  if (( ! passed && result == 0 )); then result=1; fi
   if (( started && ! keep_stack )); then
     if ! supabase stop --workdir "$verification_root" --no-backup >"$verification_root/stop.log" 2>&1; then
       echo "Disposable stack cleanup failed; inspect $verification_root/stop.log" >&2
@@ -133,4 +141,5 @@ if ! deno run --config supabase/functions/deno.json \
   exit 1
 fi
 tail -n 20 friends.log
+passed=1
 echo "Friends Phase 4 local HTTP verification passed. This does not establish device, human, hosted or TestFlight acceptance."
