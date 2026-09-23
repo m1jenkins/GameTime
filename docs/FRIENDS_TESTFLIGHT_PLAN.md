@@ -248,7 +248,25 @@ was installed, signed, uploaded or applied to hosted.
   check extended rather than loosened.
 - **Candidate check:** rework `scripts/check-beta-candidate.sh`.
 
-### Phase 4 — local verification
+### Phase 4 — local verification: complete locally
+
+Checked on disposable stacks with the settings proposed for Phase 5. See the
+[receipt](../outputs/reports/2026-09-22-friends-phase-4-local.md). Nothing was
+applied to hosted.
+
+- **Fixed:**
+  - A failed freeze no longer names another member's limit (migration
+    `20260922230000`, pgTAP `532`, one new app sentence).
+  - The community list stays empty while community is closed (migration
+    `20260922230100`, pgTAP `533`).
+  - Two small tap targets.
+- **Found, for the owner:**
+  - Text doesn't scale with the text-size setting anywhere in the September 22
+    design.
+  - A real total below the goal shows "Didn't count" rather than a miss.
+- **Not done:** a person using VoiceOver, and anything on a physical device.
+
+The original Phase 4 scope:
 
 - **Friend goals:** all four at 2 and 6 participants, plus the Personal goals,
   with clock control.
@@ -270,10 +288,12 @@ was installed, signed, uploaded or applied to hosted.
 
 - Read back both scheduled goals and the migration list.
 - Deploy with `--project-ref lyushhqoednheqwzsmxh`: dry run first, then with
-  `--include-all`.
+  `--include-all`. The list now includes the Phase 4 fixes `20260922230000`
+  and `20260922230100`.
 - Deploy `delete-account` and record the client secret's renewal date.
 - Add the production bundle to the Apple provider, and open Apple-only sign-up.
-- Grant global support to the owner by name.
+- Grant global support to the owner by name. A grant lasts at most 7 days, so
+  plan its renewal.
 - Close dormant legacy grants.
 - Confirm that Steps and outdoor distance still save.
 - Settle whether the Free plan has a restorable backup and whether the project
@@ -308,6 +328,10 @@ earliest success is mid-to-late October.
 - Whether first-tester observation meets the finish line's human comprehension
   check, and whether legacy-shell replacement acceptance applies to this build.
   D142 leaves both unchanged.
+- From Phase 4: whether TestFlight waits for the app to scale text with the
+  person's text-size setting, or ships with fixed text as a known limit.
+- From Phase 4: whether "Didn't count" is enough when a friend's total is below
+  the goal, since a real Apple Health total can't prove a miss.
 
 ## Logged, not in scope
 
@@ -318,3 +342,7 @@ earliest success is mid-to-late October.
   `528` covers it. See the
   [receipt](../outputs/reports/2026-09-22-fixture-admission-age.md). The
   migration is not applied to `gametime-p11b`.
+- `challenge_issue_link_v1` admits without the real-activity marker, so under
+  the enforced allowlist it refuses links for real-activity lobbies even with
+  `links_enabled` on. Links are off in build 1. Fix it before turning links on.
+  Found in Phase 4; see its [receipt](../outputs/reports/2026-09-22-friends-phase-4-local.md).

@@ -6,6 +6,32 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 22 friends Phase 4 local verification
+
+- **Checked on disposable stacks** set up the way Phase 5 proposes for hosted:
+  the friendship matrix, all four friend goals at 2 and 6 people through final
+  results, Personal Steps and Outdoor runs, the membership limits,
+  cancellation, voids, corrections, and closed links and community.
+  `scripts/friends-local-verify.sh` passed 139 checks, and
+  `scripts/weekly-local-verify.sh` passed with 116 pgTAP files and 5,218
+  assertions.
+- **Fixed locally:**
+  - A failed freeze no longer names another member's limit (migration
+    `20260922230000`).
+  - The community list stays empty while community is closed (migration
+    `20260922230100`).
+  - Two small tap targets.
+- **For the owner:**
+  - Text doesn't scale with the text-size setting anywhere in the
+    September 22 design.
+  - A real total below the goal shows "Didn't count".
+  - Links can't open for real-activity lobbies until `challenge_issue_link_v1`
+    is fixed.
+- **Not done here.** No VoiceOver pass by a person, no physical device, nothing
+  applied to hosted, signed, uploaded or pushed.
+
+See the [receipt](../outputs/reports/2026-09-22-friends-phase-4-local.md).
+
 ## September 22 friends Phase 3 native
 
 - **Friends in the app.**
@@ -24,7 +50,7 @@ The owner directed completed authorized work to be committed and merged into
   bundle, P11B, challenges and account mode on, no payment provider, plus its
   scheme. `scripts/check-beta-candidate.sh --testflight` checks it.
 - **Not done here.** Nothing was installed, signed, uploaded, applied to hosted
-  or pushed. Phase 4 local verification is next.
+  or pushed. Phase 4 followed; see its entry above.
 
 See the [receipt](../outputs/reports/2026-09-22-friends-phase-3-native.md) for
 checks and open items.
