@@ -817,16 +817,6 @@ final class SupabaseContestsClient: ContestsClient {
         }
     }
 
-    func listCharities() async throws -> [Charity] {
-        try await client
-            .from("charities")
-            .select("id,name,slug")
-            .eq("is_active", value: true)
-            .order("name", ascending: true)
-            .execute()
-            .value
-    }
-
     func standings(contestID: UUID) async throws -> ChallengeStandings? {
         let standings: ChallengeStandings? =
             try await client
@@ -882,16 +872,14 @@ final class SupabaseContestsClient: ContestsClient {
     func acceptInvitation(
         contestID: UUID,
         userID: UUID,
-        timezone: String,
-        charityID: UUID
+        timezone: String
     ) async throws {
         try await client
             .from("contest_participants")
             .update(
                 AcceptInvitationUpdate(
                     status: .accepted,
-                    timezone: timezone,
-                    charityID: charityID
+                    timezone: timezone
                 )
             )
             .eq("contest_id", value: contestID.uuidString.lowercased())
@@ -1069,8 +1057,7 @@ struct ChallengeSummaryRow: Decodable {
             participants: acceptedProfiles.map {
                 ContestParticipantCard(
                     userID: $0.id,
-                    status: .accepted,
-                    charityID: nil
+                    status: .accepted
                 )
             }
         )
@@ -1122,7 +1109,6 @@ struct CreateContestWithInvitesParameters: Encodable {
     let startsAt: Date
     let endsAt: Date
     let timezone: String
-    let charityID: UUID
     let inviteeIDs: [UUID]
     let maxParticipants: Int
     let tieBreak: ContestTieBreak
@@ -1138,7 +1124,6 @@ struct CreateContestWithInvitesParameters: Encodable {
         startsAt = terms.startsAt
         endsAt = terms.endsAt
         timezone = terms.timezone
-        charityID = terms.charityID
         inviteeIDs = terms.inviteeIDs
         maxParticipants = terms.maxParticipants
         tieBreak = terms.tieBreak
@@ -1155,7 +1140,6 @@ struct CreateContestWithInvitesParameters: Encodable {
         case startsAt = "p_starts_at"
         case endsAt = "p_ends_at"
         case timezone = "p_timezone"
-        case charityID = "p_charity_id"
         case inviteeIDs = "p_invitee_ids"
         case maxParticipants = "p_max_participants"
         case tieBreak = "p_tie_break"
@@ -1166,13 +1150,6 @@ struct CreateContestWithInvitesParameters: Encodable {
 private struct AcceptInvitationUpdate: Encodable {
     let status: ContestParticipantStatus
     let timezone: String
-    let charityID: UUID
-
-    enum CodingKeys: String, CodingKey {
-        case status
-        case timezone
-        case charityID = "charity_id"
-    }
 }
 
 private struct ParticipantStatusUpdate: Encodable {

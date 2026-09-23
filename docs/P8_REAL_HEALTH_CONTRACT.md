@@ -104,7 +104,8 @@ retry cannot be bypassed by signing a later request.
 Server grants and RLS are explicit together, following the current
 [Supabase API guidance](https://supabase.com/docs/guides/api/securing-your-api).
 Facts and request payloads remain in the private schema. Existing fictional,
-Personal, Solo and charity agreements keep their meaning and consent bytes.
+Personal and Solo agreements keep their meaning and consent bytes; charity
+was removed by D143.
 
 
 ## Results and local capability

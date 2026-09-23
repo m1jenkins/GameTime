@@ -309,7 +309,7 @@ function decodeInput(raw: Record<string, unknown>): IntegrityInput {
     const row = object(value, `input.roster[${index}]`);
     exactKeys(
       row,
-      ["userId", "status", "timezone", "charityId"],
+      ["userId", "status", "timezone"],
       `input.roster[${index}]`,
     );
     return {
@@ -320,9 +320,6 @@ function decodeInput(raw: Record<string, unknown>): IntegrityInput {
         `input.roster[${index}].status`,
       ),
       timezone: string(row.timezone, `input.roster[${index}].timezone`),
-      charityId: row.charityId === null
-        ? null
-        : uuid(row.charityId, `input.roster[${index}].charityId`),
     } as IntegrityInput["roster"][number];
   });
 

@@ -101,7 +101,8 @@ implementation, executed checks and gates that remain unperformed.
 
 The previous 502-line plan is preserved verbatim under its archive header in
 [the pre-pivot plan](docs/archive/2026-09-04_PRE_PIVOT_PLAN.md). Historical
-Personal, Solo and charity agreements retain their original meanings. Old
+Personal and Solo agreements retain their original meanings; D143 removed
+charity. Old
 milestone numbers M0–M12, completed slices of Phases 0–3, and W1–W4 are
 historical implementation context. D134 and the audited Beta plan define the
 new product target; Phase 6 retains the requirements for actual money.
@@ -133,7 +134,7 @@ recruitment and provider contact remain separately gated.
 Keep the existing Personal app usable and its records readable until the
 replacement shell passes its required acceptance and the separately gated
 retirement work begins. Do not widen
-old settlement enums, unfreeze terms, convert charity obligations to prizes,
+old settlement enums, unfreeze terms, reintroduce charity (D143),
 change the Personal step policy, turn on dormant Solo, or copy old social UI
 wholesale. New backend capability must be default-off and separately admitted;
 a client toggle alone is insufficient. “Simulated” means no redeemable balance,
@@ -311,7 +312,7 @@ created with `supabase migration new`; new `supabase/tests/*duel_agreement*`
 and `*duel_agreement_concurrency*`. Read the identity/social migration,
 `20260727030649_m8_1_live_social_loop.sql`,
 `20260803001455_solo_contract_rpc_boundary.sql`, and D81 deletion code for
-patterns. Do not edit applied migrations or expose existing charity RPCs as duels.
+patterns. Do not edit applied migrations or expose legacy contest RPCs as duels.
 
 **Smallest reviewable work:**
 
@@ -354,7 +355,7 @@ patterns. Do not edit applied migrations or expose existing charity RPCs as duel
   enables only fictional local actors within isolated fixtures.
 - Gate-off blocks new creation/acceptance, not authenticated history reads,
   exact committed recovery or safe pre-start cancellation of an existing row.
-- Existing Personal, Solo and charity fixtures/results/obligations remain intact.
+- Existing Personal and Solo fixtures and results remain intact.
 
 **Verification:** focused pgTAP including two real sessions for races, then full
 `./scripts/db-test.sh` (local disposable DB only), schema lint/advisor review
@@ -396,7 +397,7 @@ friend discovery/share-link growth comes after the basic pair works.
 **Acceptance:** pair sees same event, date, timing basis, cutoff, cancellation,
 review rules and “Simulated stakes — no real money moves” at consent. Normal
 Personal paths and history still work. Refresh/offline/ambiguous response and
-account switching cannot duplicate or leak a duel. No hidden legacy charity
+account switching cannot duplicate or leak a duel. No hidden legacy contest
 call, payment setup or unsupported future feature is offered. New route remains
 unavailable in Release and on servers without admission.
 
@@ -437,7 +438,7 @@ permission to use results, an independent reviewer and a support process.
 **Code areas:** new versioned event/proof/result/review tables and RPCs;
 `supabase/functions/_shared/duel_scoring.ts` plus fictional fixtures;
 new worker/handler only after pure evaluation is stable. Extend notification
-outbox and `deliver-push` with explicit new-entity dispatch, not charity event
+outbox and `deliver-push` with explicit new-entity dispatch, not legacy contest event
 aliases. Add duel progress/result/review/rematch views and tests. Reuse
 `210_m8_3c_standings_results_obligations.test.sql` locking/redaction patterns
 without invoking its obligation publisher.
@@ -753,7 +754,7 @@ Deliver new isolated duel policy/agreement/participant/request/enrollment
 records and versioned create, accept, decline, pre-start cancel and list/detail
 RPCs. Use existing durable actors and accepted friendships with block checks.
 Do not reinterpret contests, personal_challenge_terms, solo_contracts, old
-pending requests, scoring or charity obligations. No applied migration edits.
+pending requests or scoring. No applied migration edits.
 
 Use one service-curated fictional outdoor 5K event policy:
 fixture_official_5k_v1, 5,000 metres, common whole-second organizer chip times,

@@ -77,7 +77,6 @@ final class AppModel {
     private(set) var friendshipCards: [FriendshipCard] = []
     private(set) var contests: [ContestCard] = []
     private(set) var challengeSummaries: [UUID: ChallengeRosterSummary] = [:]
-    private(set) var charities: [Charity] = []
     private(set) var standingsByContestID: [UUID: ChallengeStandings] = [:]
     private(set) var standingsLoadStates: [UUID: ScreenLoadState] = [:]
     private(set) var reactedStandingsSnapshotIDs: Set<UUID> = []
@@ -307,7 +306,6 @@ final class AppModel {
             friendshipCards = []
             contests = []
             challengeSummaries = [:]
-            charities = []
             loadState = .empty
             return
         }
@@ -322,7 +320,6 @@ final class AppModel {
                 userID: userID
             )
             let contests = summaries.map(\.contest)
-            let charities = try await services.contests.listCharities()
             guard
                 generation == refreshGeneration,
                 await isCurrentAuthenticatedActor(
@@ -339,7 +336,6 @@ final class AppModel {
                 summaries.map { ($0.id, $0) },
                 uniquingKeysWith: { current, _ in current }
             )
-            self.charities = charities
             loadState =
                 cards.isEmpty && contests.isEmpty
                 ? .empty
@@ -723,7 +719,7 @@ final class AppModel {
         )
     }
 
-    func acceptInvitation(contestID: UUID, charityID: UUID) async {
+    func acceptInvitation(contestID: UUID) async {
         guard configuration.legacySocialRuntimeEnabled else { return }
         guard let userID, let profile else { return }
         guard configuration.contestMutationsEnabled else {
@@ -735,8 +731,7 @@ final class AppModel {
             try await services.contests.acceptInvitation(
                 contestID: contestID,
                 userID: userID,
-                timezone: profile.timezone,
-                charityID: charityID
+                timezone: profile.timezone
             )
         }
     }
@@ -1358,7 +1353,6 @@ final class AppModel {
         friendshipCards = []
         contests = []
         challengeSummaries = [:]
-        charities = []
         standingsByContestID = [:]
         standingsLoadStates = [:]
         reactedStandingsSnapshotIDs = []
@@ -1583,7 +1577,6 @@ final class AppModel {
         friendshipCards = []
         contests = []
         challengeSummaries = [:]
-        charities = []
         standingsByContestID = [:]
         standingsLoadStates = [:]
         reactedStandingsSnapshotIDs = []

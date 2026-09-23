@@ -1,8 +1,9 @@
 -- M7 / M8.3c: trusted scoring snapshots become a phase-redacted participant
--- read surface, and a frozen winner creates exactly one obligation per loser.
+-- read surface, and a frozen result is immutable. Since D143 a result creates
+-- no donation obligation.
 
 begin;
-select plan(48);
+select plan(42);
 
 -- ---------------------------------------------------------------------------
 -- API, privilege, and storage shape
@@ -73,11 +74,6 @@ select ok(
     'authenticated',
     'public.contest_standing_entries',
     'select'
-  )
-  and not has_table_privilege(
-    'authenticated',
-    'public.donation_obligations',
-    'select'
   ),
   'clients cannot bypass phase redaction through base tables'
 );
@@ -88,8 +84,7 @@ select ok(
    where oid in (
      'public.contest_results'::regclass,
      'public.contest_standing_snapshots'::regclass,
-     'public.contest_standing_entries'::regclass,
-     'public.donation_obligations'::regclass
+     'public.contest_standing_entries'::regclass
    )),
   'every new public table has RLS enabled as defense in depth'
 );
@@ -112,25 +107,6 @@ insert into public.profiles (id, handle, display_name) values
   ('94444444-4444-4444-4444-444444444444', 'm83coutside', 'Outside'),
   ('95555555-5555-5555-5555-555555555555', 'm83cinvited', 'Invited');
 
-insert into public.charities (id, name, ein, slug) values
-  (
-    '9c000001-0000-0000-0000-000000000001',
-    'Alice Trail Fund',
-    '91-0000001',
-    'alice-trail-fund'
-  ),
-  (
-    '9c000002-0000-0000-0000-000000000002',
-    'Bob Food Fund',
-    '91-0000002',
-    'bob-food-fund'
-  ),
-  (
-    '9c000003-0000-0000-0000-000000000003',
-    'Carol Arts Fund',
-    '91-0000003',
-    'carol-arts-fund'
-  );
 
 alter table public.contests disable trigger contests_assert_future_window;
 
@@ -220,16 +196,14 @@ insert into public.contest_participants (
   user_id,
   status,
   invited_by,
-  timezone,
-  charity_id
+  timezone
 )
 select
   contest.id,
   '91111111-1111-1111-1111-111111111111'::uuid,
   'accepted',
   null,
-  'UTC',
-  '9c000001-0000-0000-0000-000000000001'::uuid
+  'UTC'
 from public.contests contest
 where contest.id between
   '9a000001-0000-0000-0000-000000000001'::uuid
@@ -258,12 +232,7 @@ where contest.id between
 
 update public.contest_participants
 set status = 'accepted',
-    timezone = 'UTC',
-    charity_id = case user_id
-      when '92222222-2222-2222-2222-222222222222'::uuid
-        then '9c000002-0000-0000-0000-000000000002'::uuid
-      else '9c000003-0000-0000-0000-000000000003'::uuid
-    end
+    timezone = 'UTC'
 where contest_id between
   '9a000001-0000-0000-0000-000000000001'::uuid
   and '9a000005-0000-0000-0000-000000000005'::uuid
@@ -617,7 +586,7 @@ select throws_ok(
 reset role;
 
 -- ---------------------------------------------------------------------------
--- Frozen winner and exactly one obligation per loser
+-- Frozen winner
 -- ---------------------------------------------------------------------------
 
 set local role service_role;
@@ -729,12 +698,10 @@ select lives_ok(
   'a genuinely tied top integrity score freezes an inconclusive result'
 );
 
-select is(
-  (select count(*)
-   from public.donation_obligations
-   where contest_id = '9a000005-0000-0000-0000-000000000005'),
-  0::bigint,
-  'an inconclusive result creates no obligations'
+select ok(
+  to_regclass('public.donation_obligations') is null
+  and to_regclass('public.charities') is null,
+  'the retired charity and obligation tables no longer exist (D143)'
 );
 
 select lives_ok(
@@ -790,36 +757,11 @@ select is(
 );
 
 select is(
-  (select count(*)
-   from public.donation_obligations
+  (select winner_participant_id
+   from public.contest_results
    where contest_id = '9a000002-0000-0000-0000-000000000002'),
-  2::bigint,
-  'a three-person winner result creates exactly two loser obligations'
-);
-
-select set_eq(
-  $$ select debtor_participant_id
-     from public.donation_obligations
-     where contest_id = '9a000002-0000-0000-0000-000000000002' $$,
-  array[
-    '92222222-2222-2222-2222-222222222222'::uuid,
-    '93333333-3333-3333-3333-333333333333'::uuid
-  ],
-  'every accepted loser owes once and the winner never owes'
-);
-
-select ok(
-  (select bool_and(
-     destination_owner_id =
-       '91111111-1111-1111-1111-111111111111'::uuid
-     and amount_cents = 500
-     and charity_name = 'Alice Trail Fund'
-     and kind = 'loser_to_winner_charity'
-     and result_dispute_closes_at = created_at + interval '7 days'
-   )
-   from public.donation_obligations
-   where contest_id = '9a000002-0000-0000-0000-000000000002'),
-  'each loser receives the frozen stake, winner charity snapshot, and dispute boundary'
+  '91111111-1111-1111-1111-111111111111'::uuid,
+  'the immutable result names the frozen winner'
 );
 
 select is(
@@ -855,14 +797,6 @@ select is(
 );
 
 select is(
-  public.get_contest_standings_v1(
-    '9a000002-0000-0000-0000-000000000002'
-  ) #>> '{standings,1,obligation,charity_name}',
-  'Alice Trail Fund',
-  'the losing standing carries its own persisted obligation'
-);
-
-select is(
   (
     select count(*)
     from jsonb_array_elements(
@@ -872,8 +806,8 @@ select is(
     ) standing
     where standing ? 'obligation'
   ),
-  1::bigint,
-  'the final response never discloses another debtor obligation'
+  0::bigint,
+  'the final response carries no obligation for any participant'
 );
 
 select is(
@@ -941,7 +875,8 @@ select throws_ok(
 reset role;
 
 -- ---------------------------------------------------------------------------
--- all_donate uses the complete roster, including a nonqualifier
+-- all_donate uses the complete roster, including a nonqualifier. The label is
+-- historical (D143): it records a shared outcome and creates no obligation.
 -- ---------------------------------------------------------------------------
 
 set local role service_role;
@@ -992,32 +927,11 @@ select lives_ok(
 reset role;
 
 select is(
-  (select count(*)
-   from public.donation_obligations
+  (select kind::text
+   from public.contest_results
    where contest_id = '9a000003-0000-0000-0000-000000000003'),
-  3::bigint,
-  'all-donate creates one self-directed obligation for every accepted participant'
-);
-
-select ok(
-  (select bool_and(
-     debtor_participant_id = destination_owner_id
-     and kind = 'self_directed'
-     and amount_cents = 700
-   )
-   from public.donation_obligations
-   where contest_id = '9a000003-0000-0000-0000-000000000003'),
-  'all-donate preserves each participant nomination and exact accepted exposure'
-);
-
-select is(
-  (select charity_name
-   from public.donation_obligations
-   where contest_id = '9a000003-0000-0000-0000-000000000003'
-     and debtor_participant_id =
-       '93333333-3333-3333-3333-333333333333'),
-  'Carol Arts Fund',
-  'the nonqualifier still receives their self-directed all-donate obligation'
+  'all_donate',
+  'the complete-roster tie outcome is recorded as an immutable result'
 );
 
 -- ---------------------------------------------------------------------------
@@ -1070,14 +984,6 @@ select throws_ok(
   '23001',
   null,
   'results are append-only'
-);
-
-select throws_ok(
-  $$ delete from public.donation_obligations
-     where contest_id = '9a000002-0000-0000-0000-000000000002' $$,
-  '23001',
-  null,
-  'obligations are append-only'
 );
 
 select * from finish();

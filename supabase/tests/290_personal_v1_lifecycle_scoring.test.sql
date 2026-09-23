@@ -46,9 +46,9 @@ begin
   );
 
   insert into public.contest_participants (
-    contest_id, user_id, status, timezone, charity_id
+    contest_id, user_id, status, timezone
   ) values (
-    p_challenge_id, p_user_id, 'accepted', p_timezone, null
+    p_challenge_id, p_user_id, 'accepted', p_timezone
   );
 
   insert into public.personal_challenge_terms (

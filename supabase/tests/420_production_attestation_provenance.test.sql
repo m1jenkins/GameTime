@@ -115,7 +115,6 @@ insert into public.contest_participants (
   user_id,
   status,
   timezone,
-  charity_id,
   accepted_at
 )
 select
@@ -123,7 +122,6 @@ select
   'fa111111-1111-1111-1111-111111111111'::uuid,
   'accepted'::public.contest_participant_status,
   'UTC',
-  null,
   '2026-06-30T00:00:00Z'::timestamptz
 from unnest(array[
   'fa000000-0000-0000-0000-000000000001'::uuid,

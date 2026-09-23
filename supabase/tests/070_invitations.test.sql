@@ -48,8 +48,6 @@ insert into public.group_members (group_id, user_id) values
   ('99999999-9999-9999-9999-999999999999',
    '33333333-3333-3333-3333-333333333333');
 
-insert into public.charities (id, name, ein, slug) values
-  ('c0000001-0000-0000-0000-000000000001', 'Trail Fund', '12-3456789', 'trail-fund');
 
 -- The blocks. Directed, in opposite directions, so both sides of the check get
 -- exercised: alice blocked erin, and frank blocked alice.
@@ -82,14 +80,14 @@ create temporary table t_open as
 select public.create_contest(
   'Open Duel', 'steps', 'cumulative', 10000, 2500,
   now() + interval '1 day', now() + interval '8 days',
-  'UTC', 'c0000001-0000-0000-0000-000000000001', 2::smallint
+  'UTC', 2::smallint
 ) as id;
 
 create temporary table t_crew as
 select public.create_contest(
   'Crew Contest', 'steps', 'cumulative', 10000, 2500,
   now() + interval '1 day', now() + interval '8 days',
-  'UTC', 'c0000001-0000-0000-0000-000000000001',
+  'UTC',
   4::smallint, 'integrity_score', '99999999-9999-9999-9999-999999999999'
 ) as id;
 
@@ -195,11 +193,11 @@ select throws_ok(
 -- accepted would be agreeing on someone else's behalf.
 select throws_ok(
   $$ insert into public.contest_participants
-       (contest_id, user_id, status, invited_by, timezone, charity_id)
+       (contest_id, user_id, status, invited_by, timezone)
      values ((select id from t_crew),
              '22222222-2222-2222-2222-222222222222', 'accepted',
              '11111111-1111-1111-1111-111111111111',
-             'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+             'UTC') $$,
   -- The trigger, not the policy: a BEFORE ROW trigger runs ahead of the RLS
   -- WITH CHECK, so the specific complaint wins over a generic 42501. That is
   -- the better error to surface, and it is asserted here so a later reordering
@@ -330,8 +328,7 @@ select set_config('request.jwt.claims',
   '{"sub":"22222222-2222-2222-2222-222222222222"}', true);
 select lives_ok(
   $$ update public.contest_participants
-     set status = 'accepted', timezone = 'Europe/London',
-         charity_id = 'c0000001-0000-0000-0000-000000000001'
+     set status = 'accepted', timezone = 'Europe/London'
      where contest_id = (select id from t_open)
        and user_id = '22222222-2222-2222-2222-222222222222' $$,
   'the first invitee to answer takes the second place'
@@ -343,8 +340,7 @@ select set_config('request.jwt.claims',
   '{"sub":"77777777-7777-7777-7777-777777777777"}', true);
 select throws_ok(
   $$ update public.contest_participants
-     set status = 'accepted', timezone = 'UTC',
-         charity_id = 'c0000001-0000-0000-0000-000000000001'
+     set status = 'accepted', timezone = 'UTC'
      where contest_id = (select id from t_open)
        and user_id = '77777777-7777-7777-7777-777777777777' $$,
   '23001',

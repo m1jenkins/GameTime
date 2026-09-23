@@ -55,7 +55,6 @@ protocol FriendshipsClient: AnyObject {
 protocol ContestsClient: AnyObject {
     func listChallengeSummaries(userID: UUID) async throws
         -> [ChallengeRosterSummary]
-    func listCharities() async throws -> [Charity]
     func standings(contestID: UUID) async throws -> ChallengeStandings?
     func sendComebackReaction(
         contestID: UUID,
@@ -68,8 +67,7 @@ protocol ContestsClient: AnyObject {
     func acceptInvitation(
         contestID: UUID,
         userID: UUID,
-        timezone: String,
-        charityID: UUID
+        timezone: String
     ) async throws
     func declineInvitation(contestID: UUID, userID: UUID) async throws
 }

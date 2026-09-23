@@ -481,7 +481,7 @@ final class DomainAndConfigurationTests: XCTestCase {
         XCTAssertEqual(standings.standings[1].integrityScore, 94.5)
     }
 
-    func testFinalStandingsDecodeResultAndPerLoserObligation() throws {
+    func testFinalStandingsDecodeResultWithoutObligation() throws {
         let data = Data(
             """
             {
@@ -515,17 +515,7 @@ final class DomainAndConfigurationTests: XCTestCase {
                   "reached_target_at":"2026-07-28T02:00:00Z",
                   "integrity_score":95,
                   "integrity_flags":[],
-                  "rationale":[],
-                  "obligation":{
-                    "id":"14141414-1414-1414-1414-141414141414",
-                    "kind":"loser_to_winner_charity",
-                    "amount_cents":1000,
-                    "charity_id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                    "charity_name":"Fixture Community Fund",
-                    "charity_slug":"fixture-community-fund",
-                    "destination_owner_id":"44444444-4444-4444-4444-444444444444",
-                    "result_dispute_closes_at":"2026-08-04T11:00:00Z"
-                  }
+                  "rationale":[]
                 }
               ]
             }
@@ -535,14 +525,10 @@ final class DomainAndConfigurationTests: XCTestCase {
             ChallengeStandings.self,
             from: data
         )
-        let obligation = try XCTUnwrap(standings.standings.first?.obligation)
-
         XCTAssertEqual(standings.phase, .final)
         XCTAssertEqual(standings.result?.kind, .winner)
         XCTAssertEqual(standings.result?.reason, .earliestToTarget)
-        XCTAssertEqual(obligation.kind, .loserToWinnerCharity)
-        XCTAssertEqual(obligation.amountCents, 1_000)
-        XCTAssertEqual(obligation.charityName, "Fixture Community Fund")
+        XCTAssertEqual(standings.standings.first?.rank, 2)
     }
 
     func testChallengeValidationRequiresFutureCoherentTerms() throws {
@@ -556,7 +542,6 @@ final class DomainAndConfigurationTests: XCTestCase {
             uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
         )!
         draft.inviteeIDs = [firstFriendID, secondFriendID]
-        draft.charityID = UUID()
         draft.startsAt = now.addingTimeInterval(3_600.987_654)
         draft.endsAt = now.addingTimeInterval((2 * 86_400) + 0.765_432)
 
@@ -601,7 +586,6 @@ final class DomainAndConfigurationTests: XCTestCase {
         let now = Date(timeIntervalSince1970: 2_000_000_000)
         var draft = ChallengeDraft()
         draft.title = "Roster bounds"
-        draft.charityID = UUID()
         draft.startsAt = now.addingTimeInterval(3_600)
         draft.endsAt = now.addingTimeInterval(86_400)
 
@@ -653,7 +637,6 @@ final class DomainAndConfigurationTests: XCTestCase {
             startsAt: startsAt,
             endsAt: startsAt.addingTimeInterval(86_400),
             timezone: "America/Chicago",
-            charityID: UUID(),
             tieBreak: .integrityScore
         )
 
@@ -673,6 +656,7 @@ final class DomainAndConfigurationTests: XCTestCase {
             terms.inviteeIDs.map { $0.uuidString.lowercased() }
         )
         XCTAssertEqual(object["p_max_participants"] as? Int, 3)
+        XCTAssertNil(object["p_charity_id"])
         XCTAssertEqual(object["p_request_id"] as? String, terms.requestID.uuidString)
     }
 

@@ -591,6 +591,8 @@ is for the client to send a server-derived timestamp, not to widen the rule.
 
 ### D26. Charity data is curated and read-only, and is not shipped as a data migration
 
+**Superseded by D143.** Charity is removed from GameTime.
+
 **What.** `public.charities` is reference data with an EIN and a donation slug.
 `authenticated` holds SELECT and nothing else — no INSERT, UPDATE, or DELETE
 policy exists. The local list lives in `seed.sql` and is openly fictional:
@@ -629,6 +631,8 @@ users need charities outside it. The second is the likelier and wants a request
 flow, not a bigger seed.
 
 ### D27. Accepting a contest requires naming a charity
+
+**Superseded by D143.** Charity is removed from GameTime.
 
 **Amended by D75.** A declared `both_donate` result has no winner; each accepted
 participant's own nomination is the destination of their self-directed
@@ -5137,3 +5141,43 @@ explicit approval:
 - Apple provider changes
 - TestFlight submission
 - recruitment
+
+### D143. Charity is removed from GameTime
+
+**Explicit owner direction, September 23, 2026:** the owner dropped charity from
+the product and chose to remove it everywhere rather than leave it switched off.
+
+**What.** Migration `20260923070000_retire_charity_v1.sql` drops the curated
+`charities` list, `contest_participants.charity_id`, `donation_obligations` and
+its kind type, and the nomination trigger. It rewrites the functions that read
+or wrote them: legacy contest creation takes no charity, publishing a legacy
+result creates no obligation, and the standings read returns none. The
+`legacy_charity_contest` model is renamed `legacy_social_contest`. Applied
+migrations are unchanged. The iPhone client, fixtures, seed, pgTAP suite and
+edge-function scoring input drop the nomination too.
+
+**Why.** Charity was the settlement of the legacy social contest (D4, D26, D27,
+D75). The production list was never populated, so no legacy contest could be
+accepted in production, and the app keeps the legacy social runtime off. New
+products (D134/D135) never used it.
+
+**Guard.** Donation obligations are recorded promises to pay. The migration
+refuses to run if any exist instead of deleting one.
+
+**Kept on purpose.** The legacy outcome labels `both_donate` (tie-break and
+result reason) and `all_donate` (result kind) stay as historical identifiers:
+removing an enum label means recreating types that typed functions depend on.
+They now record a shared outcome and create no obligation. The frozen
+`raw-evidence-retention-v1` policy keeps its `donation_receipt` row, because that
+policy version is immutable. Historical reports, archived plans and the
+decision text above stay as written.
+
+**Supersedes.** D26 and D27, and the D75 obligation rule for `both_donate`. It
+replaces the rule to preserve legacy charity agreements in `AGENTS.md`,
+`PLAN.md` and `PROJECT_MEMORY.md`. Personal, Solo and historical Personal
+agreements are unaffected.
+
+**Boundaries.** Merging adds the migration to `main` only. Applying it to
+`gametime-p11b` is a hosted mutation that needs the owner's explicit approval,
+and D142 holds hosted mutation until the owner's scheduled personal goals are
+final.

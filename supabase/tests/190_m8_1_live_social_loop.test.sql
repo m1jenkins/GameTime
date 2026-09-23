@@ -34,7 +34,6 @@ select has_function(
     'timestamp with time zone',
     'timestamp with time zone',
     'text',
-    'uuid',
     'uuid[]',
     'smallint',
     'public.contest_tie_break',
@@ -59,7 +58,6 @@ select ok(
         timestamptz,
         timestamptz,
         text,
-        uuid,
         uuid[],
         smallint,
         public.contest_tie_break,
@@ -86,7 +84,6 @@ select ok(
         timestamptz,
         timestamptz,
         text,
-        uuid,
         uuid[],
         smallint,
         public.contest_tie_break,
@@ -107,7 +104,7 @@ select ok(
     'authenticated',
     'public.create_contest_with_invites_v1(
       uuid,text,public.contest_metric,public.contest_cadence,numeric,integer,
-      timestamptz,timestamptz,text,uuid,uuid[],smallint,
+      timestamptz,timestamptz,text,uuid[],smallint,
       public.contest_tie_break,uuid
     )',
     'execute'
@@ -126,7 +123,7 @@ select ok(
     'anon',
     'public.create_contest_with_invites_v1(
       uuid,text,public.contest_metric,public.contest_cadence,numeric,integer,
-      timestamptz,timestamptz,text,uuid,uuid[],smallint,
+      timestamptz,timestamptz,text,uuid[],smallint,
       public.contest_tie_break,uuid
     )',
     'execute'
@@ -135,7 +132,7 @@ select ok(
     'service_role',
     'public.create_contest_with_invites_v1(
       uuid,text,public.contest_metric,public.contest_cadence,numeric,integer,
-      timestamptz,timestamptz,text,uuid,uuid[],smallint,
+      timestamptz,timestamptz,text,uuid[],smallint,
       public.contest_tie_break,uuid
     )',
     'execute'
@@ -362,7 +359,6 @@ select throws_ok(
        '2098-01-01T00:00:00Z',
        '2098-01-03T00:00:00Z',
        'UTC',
-       'c0000001-0000-0000-0000-000000000001',
        array['81111111-1111-1111-1111-111111111111'::uuid]
      ) $$,
   '42501',
@@ -379,12 +375,6 @@ select set_config(
   'request.jwt.claims',
   '{"sub":"81111111-1111-1111-1111-111111111111"}',
   true
-);
-insert into public.charities (id, name, ein, slug) values (
-  'ac000001-0000-0000-0000-000000000001',
-  'M8 Test Charity',
-  '11-1111111',
-  'm8-test-charity'
 );
 insert into auth.users (id) values
   ('a6666666-6666-6666-6666-666666666666');
@@ -420,7 +410,6 @@ select public.create_contest_with_invites_v1(
   '2098-01-01T00:00:00Z',
   '2098-01-03T00:00:00Z',
   'America/Chicago',
-  'ac000001-0000-0000-0000-000000000001',
   array[
     'a6666666-6666-6666-6666-666666666666'::uuid,
     'a4444444-4444-4444-4444-444444444444'::uuid
@@ -465,9 +454,8 @@ select ok(
       and user_id = '81111111-1111-1111-1111-111111111111'
       and status = 'accepted'
       and timezone = 'America/Chicago'
-      and charity_id = 'ac000001-0000-0000-0000-000000000001'
   ),
-  'the author is accepted with their frozen timezone and charity'
+  'the author is accepted with their frozen timezone'
 );
 
 select is(
@@ -515,7 +503,6 @@ select is(
     '2098-01-01T00:00:00+00:00',
     '2098-01-03T00:00:00+00:00',
     'America/Chicago',
-    'ac000001-0000-0000-0000-000000000001',
     array[
       'a4444444-4444-4444-4444-444444444444'::uuid,
       'a6666666-6666-6666-6666-666666666666'::uuid
@@ -586,7 +573,6 @@ select is(
     '2098-01-01T00:00:00Z',
     '2098-01-03T00:00:00Z',
     'America/Chicago',
-    'ac000001-0000-0000-0000-000000000001',
     array[
       'a4444444-4444-4444-4444-444444444444'::uuid,
       'a6666666-6666-6666-6666-666666666666'::uuid
@@ -617,7 +603,6 @@ select throws_ok(
        '2098-01-01T00:00:00Z',
        '2098-01-03T00:00:00Z',
        'America/Chicago',
-       'ac000001-0000-0000-0000-000000000001',
        array[
          'a4444444-4444-4444-4444-444444444444'::uuid,
          'a6666666-6666-6666-6666-666666666666'::uuid
@@ -664,7 +649,6 @@ select throws_ok(
        '2098-02-01T00:00:00Z',
        '2098-02-03T00:00:00Z',
        'America/Chicago',
-       'ac000001-0000-0000-0000-000000000001',
        array['a2222222-2222-2222-2222-222222222222'::uuid],
        2::smallint,
        'integrity_score',
@@ -714,7 +698,6 @@ select throws_ok(
        '2098-03-01T00:00:00Z',
        '2098-03-03T00:00:00Z',
        'America/Chicago',
-       'ac000001-0000-0000-0000-000000000001',
        array[
          'a4444444-4444-4444-4444-444444444444'::uuid,
          'a4444444-4444-4444-4444-444444444444'::uuid
@@ -739,7 +722,6 @@ select throws_ok(
        '2098-04-01T00:00:00Z',
        '2098-04-03T00:00:00Z',
        'America/Chicago',
-       'ac000001-0000-0000-0000-000000000001',
        array['81111111-1111-1111-1111-111111111111'::uuid],
        2::smallint,
        'integrity_score',
@@ -785,12 +767,6 @@ select extensions.dblink_exec(
       '92222222-2222-2222-2222-222222222222',
       '91111111-1111-1111-1111-111111111111',
       'accepted'
-    );
-    insert into public.charities (id, name, ein, slug) values (
-      'bc000001-0000-0000-0000-000000000001',
-      'M8 Race Charity',
-      '22-2222222',
-      'm8-race-charity'
     );
   $setup$
 );
@@ -845,7 +821,6 @@ select ok(
         '2099-01-01T00:00:00Z',
         '2099-01-03T00:00:00Z',
         'UTC',
-        'bc000001-0000-0000-0000-000000000001',
         array['92222222-2222-2222-2222-222222222222'::uuid],
         2::smallint,
         'integrity_score',
@@ -870,7 +845,6 @@ select ok(
         '2099-01-01T00:00:00+00:00',
         '2099-01-03T00:00:00+00:00',
         'UTC',
-        'bc000001-0000-0000-0000-000000000001',
         array['92222222-2222-2222-2222-222222222222'::uuid],
         2::smallint,
         'integrity_score',
@@ -966,8 +940,6 @@ select extensions.dblink_exec(
         '91111111-1111-1111-1111-111111111111',
         '92222222-2222-2222-2222-222222222222'
       );
-    delete from public.charities
-      where id = 'bc000001-0000-0000-0000-000000000001';
     set session_replication_role = origin;
   $cleanup$
 );

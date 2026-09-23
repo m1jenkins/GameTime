@@ -8,7 +8,7 @@
 --     the rest of the group it is scoped to
 
 begin;
-select plan(52);
+select plan(51);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'),  -- alice, the author
@@ -36,9 +36,6 @@ insert into public.group_members (group_id, user_id) values
   ('99999999-9999-9999-9999-999999999999',
    '33333333-3333-3333-3333-333333333333');
 
-insert into public.charities (id, name, ein, slug, is_active) values
-  ('c0000001-0000-0000-0000-000000000001', 'Trail Fund',   '12-3456789', 'trail-fund',  true),
-  ('c0000002-0000-0000-0000-000000000002', 'Retired Fund', '66-3456789', 'retired-fund', false);
 
 -- ---------------------------------------------------------------------------
 -- Shape
@@ -62,7 +59,7 @@ select public.create_contest(
   'Step Duel',
   'steps', 'daily', 10000, 2500,
   now() + interval '1 day', now() + interval '8 days',
-  'America/New_York', 'c0000001-0000-0000-0000-000000000001',
+  'America/New_York',
   2::smallint
 ) as id;
 
@@ -119,7 +116,7 @@ select throws_ok(
   $$ select public.create_contest(
        'Backdated', 'steps', 'cumulative', 10000, 2500,
        now() - interval '1 day', now() + interval '1 day',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   '22023',
   null,
   'a contest window cannot open in the past'
@@ -129,7 +126,7 @@ select throws_ok(
   $$ select public.create_contest(
        'Inverted', 'steps', 'cumulative', 10000, 2500,
        now() + interval '2 days', now() + interval '1 day',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   '23514',
   null,
   'a window must end after it starts'
@@ -139,7 +136,7 @@ select throws_ok(
   $$ select public.create_contest(
        'Forever', 'steps', 'cumulative', 10000, 2500,
        now() + interval '1 day', now() + interval '400 days',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   '23514',
   null,
   'a window is bounded, so a pledge cannot stay open indefinitely'
@@ -150,7 +147,7 @@ select throws_ok(
   $$ select public.create_contest(
        'Too Short For Daily', 'steps', 'daily', 10000, 2500,
        now() + interval '1 day', now() + interval '1 day 4 hours',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   '23514',
   null,
   'a daily-cadence window must span at least one day'
@@ -162,7 +159,7 @@ select lives_ok(
   $$ select public.create_contest(
        'Short Hike', 'distance_meters', 'cumulative', 8000, 2500,
        now() + interval '1 day', now() + interval '1 day 4 hours',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   'a short window is fine for a cumulative goal'
 );
 
@@ -173,19 +170,19 @@ select throws_ok(
   $$ select public.create_contest(
        'Too Cheap', 'steps', 'cumulative', 10000, 99,
        now() + interval '1 day', now() + interval '2 days',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   '23514',
   null,
   'a stake below the floor is refused'
 );
 
--- The ceiling is a fat-finger guard, not a technical limit: this column creates
--- a donation obligation and a stray zero is a plausible and expensive typo.
+-- The ceiling is a fat-finger guard, not a technical limit: this column is
+-- each loser's stake and a stray zero is a plausible and expensive typo.
 select throws_ok(
   $$ select public.create_contest(
        'Too Rich', 'steps', 'cumulative', 10000, 1000001,
        now() + interval '1 day', now() + interval '2 days',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   '23514',
   null,
   'a stake above the ceiling is refused'
@@ -195,7 +192,7 @@ select throws_ok(
   $$ select public.create_contest(
        'No Target', 'steps', 'cumulative', 0, 2500,
        now() + interval '1 day', now() + interval '2 days',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   '23514',
   null,
   'a contest needs a positive target'
@@ -205,19 +202,19 @@ select throws_ok(
   $$ select public.create_contest(
        'Solo', 'steps', 'cumulative', 10000, 2500,
        now() + interval '1 day', now() + interval '2 days',
-       'UTC', 'c0000001-0000-0000-0000-000000000001', 1::smallint) $$,
+       'UTC', 1::smallint) $$,
   '23514',
   null,
   'a contest of one is not a contest'
 );
 
 -- Twenty is the ceiling because a winner-takes-all roster of n produces n-1
--- donation obligations (D4).
+-- losing stakes (D4).
 select throws_ok(
   $$ select public.create_contest(
        'Stadium', 'steps', 'cumulative', 10000, 2500,
        now() + interval '1 day', now() + interval '2 days',
-       'UTC', 'c0000001-0000-0000-0000-000000000001', 21::smallint) $$,
+       'UTC', 21::smallint) $$,
   '23514',
   null,
   'the roster ceiling bounds how many obligations one contest can create'
@@ -227,21 +224,10 @@ select throws_ok(
   $$ select public.create_contest(
        repeat('x', 81), 'steps', 'cumulative', 10000, 2500,
        now() + interval '1 day', now() + interval '2 days',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   '23514',
   null,
   'a title has a length limit'
-);
-
--- A retired charity cannot be nominated afresh.
-select throws_ok(
-  $$ select public.create_contest(
-       'Retired Nomination', 'steps', 'cumulative', 10000, 2500,
-       now() + interval '1 day', now() + interval '2 days',
-       'UTC', 'c0000002-0000-0000-0000-000000000002') $$,
-  '22023',
-  null,
-  'a retired charity cannot be nominated'
 );
 
 -- ---------------------------------------------------------------------------
@@ -252,7 +238,7 @@ select throws_ok(
   $$ select public.create_contest(
        'Anonymous', 'steps', 'cumulative', 10000, 2500,
        now() + interval '1 day', now() + interval '2 days',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   '42501',
   null,
   'creating a contest requires a signed-in caller'
@@ -266,7 +252,7 @@ select throws_ok(
   $$ select public.create_contest(
        'Unonboarded', 'steps', 'cumulative', 10000, 2500,
        now() + interval '1 day', now() + interval '2 days',
-       'UTC', 'c0000001-0000-0000-0000-000000000001') $$,
+       'UTC') $$,
   '42501',
   null,
   'a caller without a profile cannot author a contest'
@@ -280,7 +266,7 @@ select throws_ok(
   $$ select public.create_contest(
        'Not My Group', 'steps', 'cumulative', 10000, 2500,
        now() + interval '1 day', now() + interval '2 days',
-       'UTC', 'c0000001-0000-0000-0000-000000000001',
+       'UTC',
        4::smallint, 'integrity_score',
        '99999999-9999-9999-9999-999999999999') $$,
   '42501',
@@ -295,7 +281,7 @@ create temporary table t_group_contest as
 select public.create_contest(
   'Crew Cumulative', 'steps', 'cumulative', 50000, 5000,
   now() + interval '1 day', now() + interval '10 days',
-  'America/New_York', 'c0000001-0000-0000-0000-000000000001',
+  'America/New_York',
   4::smallint, 'integrity_score',
   '99999999-9999-9999-9999-999999999999'
 ) as id;
@@ -451,7 +437,7 @@ select ok(
 select ok(
   not has_function_privilege('anon',
     'public.create_contest(text,public.contest_metric,public.contest_cadence,'
-    || 'numeric,integer,timestamptz,timestamptz,text,uuid,smallint,'
+    || 'numeric,integer,timestamptz,timestamptz,text,smallint,'
     || 'public.contest_tie_break,uuid)', 'execute'),
   'anon cannot execute create_contest'
 );
@@ -498,7 +484,7 @@ create temporary table t_cancelme as
 select public.create_contest(
   'Cancel Me', 'steps', 'cumulative', 10000, 2500,
   now() + interval '3 days', now() + interval '5 days',
-  'UTC', 'c0000001-0000-0000-0000-000000000001'
+  'UTC'
 ) as id;
 
 insert into public.contest_participants (contest_id, user_id, invited_by)

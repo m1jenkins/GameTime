@@ -375,7 +375,7 @@ preserved requirements and dependency order:
 `GAMETIME_CHALLENGE_V1_ENABLED` stays off in checked-in configuration. All 18
 readiness entries remain false, including money and optional analytics that
 should remain off for simulation. No source, hosted, human or release gate is
-closed by local integration. Preserve Personal/Solo/charity functionality, exact consent
+closed by local integration. Preserve Personal/Solo functionality, exact consent
 and data. Do not restart P4/P5/P6/P9A, P10 preparation, landed S2/P8/P11A repairs,
 or cancelled candidate-gate recovery.
 

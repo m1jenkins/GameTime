@@ -14,16 +14,16 @@
  * those who passed. This is what the cadence enum already says it is:
  * `'daily'` means hit the target on each day of the window, `'cumulative'`
  * means hit it once across the whole window. Neither says "whoever did the
- * most", and the difference matters because the loser's obligation is real
- * money — a participant who did not do the thing they staked a donation on
- * should not collect one from a friend who also did not.
+ * most", and the difference matters because the loser's stake is real
+ * money — a participant who did not do the thing they staked it on should not
+ * collect one from a friend who also did not.
  *
  * So:
  *
  *   1. Every accepted participant either *qualified* or did not.
  *   2. Exactly one qualified  → that participant wins.
  *   3. Several qualified      → a tie, resolved by `contests.tie_break`.
- *   4. Nobody qualified       → void. Nobody donates.
+ *   4. Nobody qualified       → void. Nobody pays.
  *
  * Ties being the *ordinary* case rather than a rare edge is why `tie_break` is
  * declared at contest creation and defaults to something (D22): in a duel where
@@ -125,7 +125,6 @@ export interface RosterEntry {
   readonly status: ParticipantStatus;
   /** IANA zone, frozen at join (D5). */
   readonly timezone: string;
-  readonly charityId: string | null;
 }
 
 /** One row of `contest_evidence` — the current admissible figure for a bucket. */
@@ -244,7 +243,10 @@ export type Outcome =
     readonly userId: string;
     readonly decidedBy: "sole_qualifier" | "earliest_to_target" | "integrity_score";
   }
-  /** `both_donate`: every accepted participant donates to their own nomination. */
+  /**
+   * `both_donate` (a historical label, D143): the outcome covers every
+   * accepted participant rather than naming a winner.
+   */
   | { readonly kind: "all_donate"; readonly userIds: readonly string[] }
   | {
     readonly kind: "void";
@@ -832,9 +834,8 @@ function resolveTie(
       return { kind: "void", reason: "tie_break_void" };
 
     case "both_donate":
-      // D75 makes this the one winner/loser exception: every accepted
-      // participant donates to their own nomination, including a participant
-      // who did not qualify. Otherwise failing the target would erase that
+      // D75 makes this the one winner/loser exception: the outcome covers every
+      // accepted participant, including a participant who did not qualify. Otherwise failing the target would erase that
       // person's accepted exposure in a group tie.
       return { kind: "all_donate", userIds: acceptedRoster };
 

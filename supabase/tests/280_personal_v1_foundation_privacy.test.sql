@@ -14,7 +14,7 @@ select is(
     from pg_catalog.pg_enum value
     where value.enumtypid = 'public.challenge_model'::regtype
   ),
-  '{legacy_charity_contest,personal_accountability,social_accountability}',
+  '{legacy_social_contest,personal_accountability,social_accountability}',
   'the immutable model discriminator preserves legacy and reserves social V2'
 );
 
@@ -32,14 +32,14 @@ select ok(
   not exists (
     select 1
     from public.contests contest
-    where contest.challenge_model <> 'legacy_charity_contest'
+    where contest.challenge_model <> 'legacy_social_contest'
   ),
-  'every pre-existing seeded contest was backfilled as legacy charity history'
+  'every pre-existing seeded contest was backfilled as legacy social history'
 );
 
 select ok(
   (
-    select contest.challenge_model = 'legacy_charity_contest'
+    select contest.challenge_model = 'legacy_social_contest'
        and contest.group_id = 'd4444444-4444-4444-4444-444444444444'
        and contest.created_by = 'a1111111-1111-1111-1111-111111111111'
        and contest.metric = 'steps'
@@ -55,11 +55,10 @@ select ok(
     select count(*) = 3
        and count(*) filter (where status = 'accepted') = 2
        and count(*) filter (where status = 'invited') = 1
-       and count(*) filter (where charity_id is not null) = 2
     from public.contest_participants participant
     where participant.contest_id = 'f6666666-6666-6666-6666-666666666666'
   ),
-  'the discriminator backfill preserves seeded legacy terms, roster states, and charity selections byte-for-value'
+  'the discriminator backfill preserves seeded legacy terms and roster states byte-for-value'
 );
 
 select ok(
@@ -67,7 +66,7 @@ select ok(
     select 1
     from public.contest_results result
     join public.contests contest on contest.id = result.contest_id
-    where contest.challenge_model <> 'legacy_charity_contest'
+    where contest.challenge_model <> 'legacy_social_contest'
   ),
   'pre-existing social results remain attached only to legacy contests'
 );
@@ -219,12 +218,6 @@ insert into public.friendships (user_a, user_b, requested_by, status) values (
   'accepted'
 );
 
-insert into public.charities (id, name, ein, slug) values (
-  'd8c00001-0000-0000-0000-000000000001',
-  'Personal Compatibility Fund',
-  '38-0000001',
-  'personal-compatibility-fund'
-);
 
 set local role authenticated;
 select set_config(
@@ -243,7 +236,6 @@ select public.create_contest(
   '2098-01-01T00:00:00Z',
   '2098-01-08T00:00:00Z',
   'UTC',
-  'd8c00001-0000-0000-0000-000000000001',
   2::smallint
 ) as id;
 
@@ -256,7 +248,7 @@ values (
 
 select is(
   (select challenge_model::text from public.contests where id = (select id from t_legacy)),
-  'legacy_charity_contest',
+  'legacy_social_contest',
   'the unchanged social creation path always creates legacy history'
 );
 
@@ -313,11 +305,10 @@ select ok(
     select count(*) = 1
        and bool_and(user_id = 'd8222222-2222-2222-2222-222222222222')
        and bool_and(status = 'accepted')
-       and bool_and(charity_id is null)
     from public.contest_participants
     where contest_id = (select id from t_personal)
   ),
-  'creation atomically installs one accepted owner and no charity'
+  'creation atomically installs one accepted owner'
 );
 
 select ok(
@@ -497,7 +488,7 @@ select throws_ok(
 select throws_ok(
   format(
     'update public.contests set challenge_model = %L where id = %L',
-    'legacy_charity_contest',
+    'legacy_social_contest',
     (select id from t_personal)
   ),
   '23001',
@@ -543,11 +534,11 @@ insert into public.contests (
 );
 
 insert into public.contest_participants (
-  contest_id, user_id, status, timezone, charity_id
+  contest_id, user_id, status, timezone
 ) values (
   'd8000000-0000-0000-0000-000000000099',
   'd8111111-1111-1111-1111-111111111111',
-  'accepted', 'UTC', null
+  'accepted', 'UTC'
 );
 
 select throws_ok(

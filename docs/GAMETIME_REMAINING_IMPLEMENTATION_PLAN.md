@@ -70,8 +70,8 @@ or external acceptance.
 - Community exact anonymous counts require five joined, active, nonremoved
   members and a server snapshot at least 15 minutes old. Under five, expose no
   exact or differential counts. Five is not the outcome minimum.
-- Amounts remain visibly nonredeemable simulation. Preserve historical Personal,
-  Solo and charity agreements. Legacy Personal access remains until replacement
+- Amounts remain visibly nonredeemable simulation. Preserve historical Personal
+  and Solo agreements; D143 removed charity. Legacy Personal access remains until replacement
   acceptance; deleting old data is not required to replace navigation.
 
 ## Recommended execution order

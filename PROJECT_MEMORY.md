@@ -103,7 +103,7 @@ Exercise admission remains unavailable. Positive observations cannot establish
 complete leaderboards or misses. P9 wiring and delivery coordination with retained writers,
 hosted operation and physical/human/release acceptance remain gated. Simulation
 does not accept a source. Checked-in challenge transport remains off and all 18
-readiness entries remain false. Preserve historical Personal/Solo/charity
+readiness entries remain false. Preserve historical Personal/Solo
 agreements and access until replacement acceptance. D134/D135 and the
 [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) still own
 product requirements; no adopted scope changed.
@@ -481,7 +481,7 @@ This memory supersedes the old **future business scope** that restricted
 GameTime to solo steps or prohibited participant payouts in a future social
 version. Preserve old decisions and historical agreements; document the pivot
 with new decisions and forward-compatible designs. Do not reinterpret old
-charity contests or existing Personal/Solo records as the new products.
+legacy social contests or existing Personal/Solo records as the new products.
 
 The strategic choice does not establish legal or provider approval. Keep live
 money disabled until the selected funds flow has the applicable jurisdiction,
