@@ -396,6 +396,8 @@ final class LiveDesignUITests: XCTestCase {
         defer { app.terminate() }
         let blocked = app.buttons["friends.blocked"]
         XCTAssertTrue(blocked.waitForExistence(timeout: 10))
+        // On iOS 18 this bottom row can sit beneath the floating tab bar.
+        app.swipeUp()
         bring(app, blocked); blocked.tap()
         XCTAssertTrue(app.staticTexts["Blocked people can’t find you or send you requests. They aren’t told."].waitForExistence(timeout: 5))
         app.buttons["Unblock Casey Wu"].tap()

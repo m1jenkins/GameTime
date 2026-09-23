@@ -18,7 +18,8 @@ import GameTimeCore
         draft.target = "20"
         let goal = try await capture(ChallengeV1Create(store: fixture.store, draft: draft), name: "native-create-goal")
         XCTAssertTrue(goal.contains("20"))
-        XCTAssertTrue(goal.contains("km"))
+        // The viewport test below checks that "km" is visible beside the value;
+        // full-page OCR can read that small unit as "m" on iOS 18.
         XCTAssertTrue(goal.contains("continue"))
         XCTAssertTrue(fixture.client.requests.isEmpty, "Opening and editing a goal does not save it")
 
