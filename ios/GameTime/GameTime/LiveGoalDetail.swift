@@ -310,12 +310,12 @@ struct LiveGoalDetail: View {
     @ViewBuilder private func sheetContent(_ page: Section, row: ChallengeV1) -> some View {
         switch page {
         case .rules:
-            LiveGoalRules(row: row, actor: store.actor)
+            LiveGoalRules(row: row, actor: store.actor, accountMode: store.availability?.accountMode == true)
             if row.format.mode == .friend { stateButton("With you", subtitle: "People and activity", symbol: "person.2") { sheet = .people } }
             if row.format.mode == .community { stateButton("Community", subtitle: "People and reporting", symbol: "person.3") { sheet = .community } }
             management(row)
         case .agreement:
-            LiveGoalRules(row: row, actor: store.actor)
+            LiveGoalRules(row: row, actor: store.actor, accountMode: store.availability?.accountMode == true)
             healthContent(row)
             Toggle("I have read the complete rules and agree", isOn: $consent)
                 .font(.system(size: 15, weight: .medium)).tint(SignalTheme.accent)
@@ -350,6 +350,10 @@ struct LiveGoalDetail: View {
             Text(row.sourcePolicyVersion.map { ChallengeHealthCopy.source($0, leaderboard: row.format.usesReceivedScores) }
                  ?? "Source: fictional activity for this local preview. No Apple Health activity is scored.")
                 .font(.system(size: 14)).fixedSize(horizontal: false, vertical: true)
+            if row.sourcePolicyVersion != nil, store.availability?.accountMode == true {
+                Text(ChallengeHealthCopy.accountMode).font(.system(size: 14)).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("live.goal.account-mode")
+            }
         }
         if row.sourcePolicyVersion != nil, !row.format.hasTarget, !row.format.usesReceivedScores {
             LiveGoalFact(label: "Leaderboard — Not available yet", value: "We can’t confirm a complete activity history for a fair ranking. You can still review your records or leave this challenge safely.")
@@ -472,8 +476,11 @@ struct LiveGoalDetail: View {
                 }}.buttonStyle(LivePrimaryButtonStyle()).disabled(!canAct || username.isEmpty)
                     .accessibilityIdentifier("beta.invite.submit")
             }
-            LiveRuleModule(symbol: "link", title: "Invite with a link", subtitle: "Choose when to share") {
-                ChallengeLinkIssuer(store: store, row: row)
+            // Links stay closed unless the server opens them.
+            if store.linksAvailable {
+                LiveRuleModule(symbol: "link", title: "Invite with a link", subtitle: "Choose when to share") {
+                    ChallengeLinkIssuer(store: store, row: row)
+                }
             }
             peopleContent(row)
             Button(row.format.hasTarget ? "Lock in roster and goals" : "Lock in roster") { Task {

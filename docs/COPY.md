@@ -242,6 +242,13 @@ A simulated stake, when there is one, stays a short secondary line. The primary
 action is **Go to Home**. **View goal** is a quiet secondary action. That
 screen does not recap the agreement, timeline, or rules.
 
+An open friend lobby isn't locked in, because nobody has agreed yet. Its screen
+says **Challenge saved.**, lists who was invited with **Nobody has agreed yet**,
+and then gives three factual steps: you invited them, **You pick the roster**,
+and **Everyone agrees before [start date]**. The last step says it locks in when
+everyone on the roster agrees, and that if anyone hasn't by the start, it's
+cancelled and nothing counts. The quiet action is **View challenge**.
+
 When notifications are implemented, each must have a clear user benefit and a
 category the person controls. Ask permission when a person requests a reminder,
 not at launch. Display factual deadlines without fabricated urgency. Muting,
@@ -301,6 +308,7 @@ a new term, add a row rather than inventing a second name for something here.
 | `friend_incoming_request_exists` | "[username] already sent you a request. Accept it to become friends." |
 | daily friend-request cap | "You've reached today's limit for friend requests. Try again tomorrow." |
 | username lookup rate limit | "Too many searches. Wait a minute and try again." |
+| `challenge_member_unavailable` (another picked person can't join when you lock the roster) | "Someone you picked can't join this challenge. Change who's in, then try again." Never say why or who. |
 | account-mode upload (`verification_mode` without device proof) | "Scores come from the Apple Health activity your iPhone sends. We don't run a separate check on the device. If a score looks wrong, ask us to review it." |
 | Watch-origin source requirement | "You need an Apple Watch that records to Apple Health on this iPhone. Activity recorded only by iPhone doesn't count." |
 | surface, route, view | *(never shown)* |
@@ -313,6 +321,9 @@ User-facing strings are Swift literals in the view layer and in the
 `PersonalChallengeDetailView.swift`, `TodayView.swift`, `YouView.swift`,
 `ChallengesView.swift`, `PersonalAccountabilityComponents.swift`,
 `PersonalPaceComponents.swift`, `AppModel.swift`, and `DomainModels.swift`.
+Friends copy lives in `FriendsViews.swift` and `HomeActionRows.swift`. Friend
+error codes map to sentences in `FriendsCopy` (`FriendModels.swift`), which
+shows an unknown code only as `Reference: <code>`.
 `PersonalSyncCoverage.swift`, `SupabaseMetricUploadClient.swift`, and
 `ActivitySyncCoordinator.swift` contain historical/generic error copy only and
 must not feed a Personal-v2 screen.

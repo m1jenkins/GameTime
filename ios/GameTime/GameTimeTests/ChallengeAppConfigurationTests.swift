@@ -3,17 +3,40 @@ import XCTest
 
 @MainActor final class ChallengeAppConfigurationTests: XCTestCase {
     func testPrivateAccountModeRequiresSelectedStagingBackendAndExplicitFlag() throws {
-        for environment in ["debug", "staging", "release"] {
+        for environment in ["debug", "staging", "release", "testflight"] {
             for host in ["lyushhqoednheqwzsmxh.supabase.co", "historical.example.invalid"] {
                 for enabled in ["YES", "NO"] {
                     let config = try AppConfiguration.validated(environmentValue: environment,
                         urlValue: "https://\(host)", keyValue: "sb_publishable_fictional", mutationValue: "NO",
                         challengeV1Value: "YES", privateHealthAccountModeValue: enabled)
                     XCTAssertEqual(config.privateHealthAccountMode,
-                        environment == "staging" && host == "lyushhqoednheqwzsmxh.supabase.co" && enabled == "YES")
+                        ["staging", "testflight"].contains(environment) && host == "lyushhqoednheqwzsmxh.supabase.co" && enabled == "YES")
                 }
             }
         }
+    }
+
+    /// D142: the TestFlight build is production-signed, creates only the new
+    /// challenges, keeps its own backend storage and can't select Stripe.
+    func testTestFlightConfigurationHasNoPaymentProviderOrLegacyCreation() throws {
+        let config = try AppConfiguration.validated(environmentValue: "testflight",
+            urlValue: "https://lyushhqoednheqwzsmxh.supabase.co", keyValue: "sb_publishable_fictional", mutationValue: "YES",
+            settlementModeValue: "test_only", challengeV1Value: "YES", privateHealthAccountModeValue: "YES")
+        XCTAssertTrue(config.challengeV1RuntimeEnabled)
+        XCTAssertTrue(config.privateHealthAccountMode)
+        XCTAssertFalse(config.contestMutationsEnabled)
+        XCTAssertFalse(config.personalChallengeMutationsEnabled)
+        XCTAssertFalse(config.allowsActiveSandboxChallengeCancellation)
+        XCTAssertEqual(config.expectedAppAttestEnvironment, .production)
+        XCTAssertTrue(config.usesBackendScopedStorage)
+        XCTAssertEqual(config.appAttestStorageNamespace, "lyushhqoednheqwzsmxh.supabase.co")
+        XCTAssertThrowsError(try AppConfiguration.validated(environmentValue: "testflight",
+            urlValue: "https://lyushhqoednheqwzsmxh.supabase.co", keyValue: "sb_publishable_fictional", mutationValue: "NO",
+            settlementModeValue: "stripe_sandbox", stripeReturnURLValue: "gametime-beta://stripe-redirect"))
+        let historical = try AppConfiguration.validated(environmentValue: "testflight",
+            urlValue: "https://historical.example.invalid", keyValue: "sb_publishable_fictional", mutationValue: "NO",
+            challengeV1Value: "YES", privateHealthAccountModeValue: "YES")
+        XCTAssertFalse(historical.privateHealthAccountMode, "Account mode stays on the P11B backend")
     }
 
     func testInvitationOriginIsIndependentOfBackendAndTransport() throws {

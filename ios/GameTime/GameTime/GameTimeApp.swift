@@ -158,9 +158,19 @@ struct GameTimeApp: App {
             )
             #endif
 
+            // Fictional design fixtures keep saved requests and friend journals
+            // in a folder of their own, so one launch never inherits another's.
+            #if DEBUG
+            let savedRequestDirectory: URL? = LiveDesignFixtures.enabled
+                ? FileManager.default.temporaryDirectory.appendingPathComponent("GameTimeLiveDesign-" + UUID().uuidString)
+                : nil
+            #else
+            let savedRequestDirectory: URL? = nil
+            #endif
             let initialModel = AppModel(
                 configuration: configuration,
-                services: services
+                services: services,
+                challengeDirectory: savedRequestDirectory
             )
             let initialPersonalStore = PersonalAccountabilityStore(
                 configuration: configuration,

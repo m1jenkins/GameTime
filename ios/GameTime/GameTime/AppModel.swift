@@ -65,6 +65,7 @@ enum ActivitySyncViewState: Equatable, Sendable {
 final class AppModel {
     let configuration: AppConfiguration
     let challengesV1: ChallengeV1Store
+    let friends: FriendsStore
     let challengeInvitation: ChallengeInvitationIntent
     let duels: DuelStore
     let metricPrototypes: MetricPrototypeStore?
@@ -91,6 +92,9 @@ final class AppModel {
     private(set) var accountDeletionStatusError: String?
     private(set) var onboardingNamePrefill = ""
     private(set) var onboardingError: OnboardingPresentationError?
+    /// The account that confirmed 21+ during onboarding, before any profile
+    /// existed. The shell saves it to the server once challenges can accept it.
+    private(set) var onboardingAgeActor: UUID?
     private(set) var pendingChallenge: PendingChallengeSubmission?
     private(set) var hasPendingChallengeRecoveryIssue = false
     private(set) var activityAuthorizationOutcome:
@@ -115,10 +119,14 @@ final class AppModel {
         self.configuration = configuration
         self.services = services
         self.challengeInvitation = challengeInvitation ?? ChallengeInvitationIntent(links: configuration.challengeInvitationLinks)
+        let challengeDirectoryOverride = challengeDirectory
         let challengeDirectory = challengeDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("GameTime/ProductChallengeV1Pending")
         challengesV1 = ChallengeV1Store(auth: services.auth, client: services.challengesV1,
             requests: ChallengeV1RequestStore(directory: challengeDirectory))
+        friends = FriendsStore(auth: services.auth, client: services.friends,
+            journal: challengeDirectoryOverride.map { FriendJournal(directory: $0.appendingPathComponent("Friends")) }
+                ?? .applicationSupport())
         if let dependencies = services.challengeHealthDependencies {
             challengeHealth = ChallengeHealthFlowStore(auth: services.auth, challenges: challengesV1, dependencies: dependencies)
         } else { challengeHealth = nil }
@@ -211,7 +219,7 @@ final class AppModel {
         }
     }
 
-    func completeOnboarding(handle: String, displayName: String) async {
+    func completeOnboarding(handle: String, displayName: String, ageConfirmed: Bool = false) async {
         guard let userID else {
             onboardingError = OnboardingPresentationError(
                 field: .general,
@@ -264,6 +272,7 @@ final class AppModel {
             profile = createdProfile
             onboardingNamePrefill = ""
             onboardingError = nil
+            if ageConfirmed { onboardingAgeActor = userID }
             if configuration.legacySocialRuntimeEnabled {
                 await restorePendingActivityUploads(
                     for: userID,
@@ -887,6 +896,16 @@ final class AppModel {
         }
     }
 
+    /// Saves an onboarding age confirmation once the challenge service can
+    /// accept it. Nothing is sent for an account that didn't confirm.
+    func saveOnboardingAgeConfirmation() async {
+        guard let actor = onboardingAgeActor, actor == userID, challengesV1.actor == actor,
+              let access = challengesV1.access else { return }
+        if access.ageConfirmed { onboardingAgeActor = nil; return }
+        if await challengesV1.submit(op: "confirm_age", fields: ["confirmed": .bool(true)]) != nil,
+           onboardingAgeActor == actor { onboardingAgeActor = nil }
+    }
+
     func signOut() async {
         isPerformingExplicitAuthMutation = true
         isMutating = true
@@ -1210,6 +1229,7 @@ final class AppModel {
 
         challengeHealth?.setActor(nil)
         challengesV1.setActor(nil)
+        friends.setActor(nil)
         // The existing cleaner removes the persisted invitation. End its
         // in-memory visibility immediately, even if disk cleanup needs recovery.
         challengeInvitation.link = ""
@@ -1345,6 +1365,7 @@ final class AppModel {
         services.challengeHealthReadiness?.invalidate()
         challengeHealth?.setActor(userID)
         challengesV1.setActor(userID)
+        friends.setActor(userID)
         duels.setActor(userID)
         performanceCommitments.setActor(userID)
         weekly.setActor(userID)
@@ -1565,6 +1586,8 @@ final class AppModel {
         services.challengeHealthReadiness?.invalidate()
         challengeHealth?.setActor(nil)
         challengesV1.setActor(nil)
+        friends.setActor(nil)
+        onboardingAgeActor = nil
         duels.setActor(nil)
         performanceCommitments.setActor(nil)
         weekly.setActor(nil)

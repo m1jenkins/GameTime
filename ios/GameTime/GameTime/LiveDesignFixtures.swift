@@ -57,6 +57,8 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
     private var links: [UUID: (challenge: UUID, token: String)] = [:]
     private var projection = UUID()
     private let clock: ChallengeInstant
+    private var friendState = LiveDesignFixtures.friendList()
+    private var friendReceipts: [UUID: (command: FriendCommand, receipt: FriendReceipt)] = [:]
 
     init(now: ChallengeInstant = LiveDesignFixtures.now) {
         clock = now
@@ -185,7 +187,8 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
             members = members.map { Self.replacing($0, target: $0.actorId == ownID ? value : $0.target) }
         case "invite":
             guard state == "lobby_open", row.creatorId == ownID, let name = p["username"]?.string,
-                  let friend = Self.people.first(where: { $0.value.lowercased() == name.lowercased() })?.key, friend != ownID
+                  let friend = Self.people.first(where: { $0.value.lowercased() == name.lowercased() })?.key
+                    ?? friendState.friends.first(where: { $0.username.lowercased() == name.lowercased() })?.id, friend != ownID
             else { throw ChallengeV1Error.server("challenge_friend_unavailable") }
             if !members.contains(where: { $0.actorId == friend }) {
                 members.append(Self.member(friend, target: nil, value: nil, selected: false, consented: false, now: clock))
@@ -351,6 +354,102 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
             row(f.closedID, start: "2026-08-10", policy: "personal_steps_goal_v1", status: "cancelled", members: [
                 member(f.actorID, target: 50_000, value: nil, exited: true, now: now)])
         ]
+    }
+}
+
+/// Fictional friends for screenshots and UI tests. Commands replay exactly and
+/// follow the server's expected-state rules; nothing leaves the phone.
+extension LiveDesignFixtureClient: FriendCommandsClient {
+    func friendList(actor: UUID) async throws -> FriendList {
+        guard actor == LiveDesignFixtures.actorID else { throw ChallengeV1Error.accountChanged }
+        if ProcessInfo.processInfo.arguments.contains("--friends-empty") {
+            return FriendList(serverTime: friendState.serverTime, friends: [], incoming: [], outgoing: [], blocked: [])
+        }
+        return friendState
+    }
+    func friendLookup(_ username: String, actor: UUID) async throws -> FriendLookup {
+        guard actor == LiveDesignFixtures.actorID else { throw ChallengeV1Error.accountChanged }
+        if username.lowercased() == "alexlee" {
+            return .init(found: true, id: actor, username: "alexlee", displayName: "Alex Lee", relation: .you)
+        }
+        let everyone = friendState.friends + friendState.incoming + friendState.outgoing + LiveDesignFixtures.strangers
+        guard !friendState.blocked.contains(where: { $0.username.lowercased() == username.lowercased() }),
+              let person = everyone.first(where: { $0.username.lowercased() == username.lowercased() })
+        else { return .init(found: false) }
+        let relation: FriendLookup.Relation = friendState.friends.contains { $0.id == person.id } ? .friends
+            : friendState.incoming.contains { $0.id == person.id } ? .incoming
+            : friendState.outgoing.contains { $0.id == person.id } ? .outgoing : .none
+        return .init(found: true, id: person.id, username: person.username, displayName: person.displayName, relation: relation)
+    }
+    func friendCommand(_ command: FriendCommand) async throws -> FriendReceipt {
+        guard command.actorId == LiveDesignFixtures.actorID else { throw ChallengeV1Error.accountChanged }
+        if let saved = friendReceipts[command.requestId] {
+            guard saved.command == command else { throw ChallengeV1Error.server("friend_request_conflict") }
+            return saved.receipt
+        }
+        var list = friendState
+        func take(_ people: inout [FriendPerson]) -> FriendPerson? {
+            guard let index = people.firstIndex(where: { $0.id == command.subject }) else { return nil }
+            return people.remove(at: index)
+        }
+        let receipt: FriendReceipt
+        switch command.op {
+        case .request:
+            if list.incoming.contains(where: { $0.id == command.subject }) { throw ChallengeV1Error.server("friend_incoming_request_exists") }
+            guard !list.friends.contains(where: { $0.id == command.subject }),
+                  !list.outgoing.contains(where: { $0.id == command.subject }) else { throw ChallengeV1Error.server("friend_state_changed") }
+            var person = command.person; person.sentAt = clock
+            list.outgoing.insert(person, at: 0); receipt = .init(state: "outgoing")
+        case .accept:
+            guard var person = take(&list.incoming) else { throw ChallengeV1Error.server("friend_state_changed") }
+            person.since = clock; person.youAsked = false; person.sentAt = nil
+            list.friends.append(person); receipt = .init(state: "friends")
+        case .decline, .cancel, .remove:
+            let removed: FriendPerson? = switch command.op {
+            case .decline: take(&list.incoming)
+            case .cancel: take(&list.outgoing)
+            default: take(&list.friends)
+            }
+            guard removed != nil else { throw ChallengeV1Error.server("friend_state_changed") }
+            receipt = .init(state: "none")
+        case .block:
+            guard !list.blocked.contains(where: { $0.id == command.subject }) else { throw ChallengeV1Error.server("friend_state_changed") }
+            _ = take(&list.friends); _ = take(&list.incoming); _ = take(&list.outgoing)
+            list.blocked.insert(command.person, at: 0); receipt = .init(state: "blocked")
+        case .unblock:
+            guard take(&list.blocked) != nil else { throw ChallengeV1Error.server("friend_state_changed") }
+            receipt = .init(state: "none")
+        case .report:
+            receipt = .init(saved: true)
+        }
+        friendState = list
+        friendReceipts[command.requestId] = (command, receipt)
+        return receipt
+    }
+}
+
+extension LiveDesignFixtures {
+    static let morganID = UUID(uuidString: "88888888-8888-4888-8888-888888888888")!
+    static let taylorID = UUID(uuidString: "99999999-9999-4999-8999-999999999999")!
+    static let rileyID = UUID(uuidString: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")!
+    static let caseyID = UUID(uuidString: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")!
+    static let drewID = UUID(uuidString: "cccccccc-cccc-4ccc-8ccc-cccccccccccc")!
+    static let strangers = [FriendPerson(id: drewID, username: "drew_p", displayName: "Drew Park")]
+
+    static func friendList() -> FriendList {
+        func at(_ value: String) -> ChallengeInstant { try! ChallengeInstant(value) }
+        return FriendList(serverTime: now, friends: [
+            FriendPerson(id: samID, username: "samr", displayName: "Sam Rivera", since: at("2026-09-12T10:00:00-07:00"), youAsked: false),
+            FriendPerson(id: jordanID, username: "jordanb", displayName: "Jordan Blake", since: at("2026-09-12T11:00:00-07:00"), youAsked: true),
+            FriendPerson(id: priyaID, username: "priya_n", displayName: "Priya Nair", since: at("2026-09-14T09:00:00-07:00"), youAsked: false),
+            FriendPerson(id: morganID, username: "morgand", displayName: "Morgan Diaz", since: at("2026-09-22T08:30:00-07:00"), youAsked: true),
+        ], incoming: [
+            FriendPerson(id: taylorID, username: "taylork", displayName: "Taylor Kim", sentAt: at("2026-09-22T07:50:00-07:00")),
+        ], outgoing: [
+            FriendPerson(id: rileyID, username: "rileyc", displayName: "Riley Chen", sentAt: at("2026-09-22T08:10:00-07:00")),
+        ], blocked: [
+            FriendPerson(id: caseyID, username: "casey_w", displayName: "Casey Wu"),
+        ])
     }
 }
 #endif

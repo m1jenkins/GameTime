@@ -34,6 +34,45 @@ import Vision
         XCTAssertEqual(standard.policy.id, "friend_steps_goal_v1")
         XCTAssertTrue(standard.allowsTypeChange)
     }
+    /// D142: the server's allowlist decides what can be created; the build doesn't.
+    func testServerAllowedPoliciesDecideWhatCanBeCreated() throws {
+        let decoder = JSONDecoder(); decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let reported = try decoder.decode(ChallengeV1Availability.self, from: Data("""
+        {"restricted":true,"admission":true,"account_allowed":true,"verification_mode":"private_account",
+         "policies":[{"policy":"friend_steps_goal_v1","source_policy_version":"apple_watch_steps_v1"},
+                     {"policy":"friend_distance_goal_v1","source_policy_version":"apple_workout_outdoor_distance_v1"},
+                     {"policy":"personal_steps_goal_v1","source_policy_version":"apple_watch_steps_v1"}],
+         "links":false,"community":null}
+        """.utf8))
+        XCTAssertTrue(reported.accountMode)
+        XCTAssertEqual(reported.links, false)
+        XCTAssertNil(reported.community)
+        let allowed = try XCTUnwrap(reported.creatablePolicies)
+        XCTAssertEqual(allowed, ["friend_steps_goal_v1", "friend_distance_goal_v1", "personal_steps_goal_v1"])
+
+        let draft = ChallengeCreationDraft(allowed: allowed)
+        XCTAssertEqual(draft.policy.id, "friend_steps_goal_v1", "Friend goals come first when allowed")
+        XCTAssertTrue(draft.allowsTypeChange)
+        XCTAssertEqual(draft.metrics, [.steps, .distance])
+        XCTAssertTrue(draft.permits(.personal, .goal))
+        XCTAssertFalse(draft.permits(.friend, .leaderboard), "Leaderboards wait for the next build")
+        draft.metric = .distance
+        draft.mode = .personal
+        XCTAssertEqual(draft.metrics, [.steps])
+        XCTAssertEqual(draft.policy.id, "personal_steps_goal_v1", "A disallowed activity moves to an allowed one")
+
+        let unrestricted = try decoder.decode(ChallengeV1Availability.self, from: Data("""
+        {"restricted":false,"admission":false,"account_allowed":true,"verification_mode":"app_attest","policies":[]}
+        """.utf8))
+        XCTAssertNil(unrestricted.creatablePolicies)
+        XCTAssertFalse(unrestricted.accountMode)
+        XCTAssertEqual(ChallengeCreationDraft(allowed: nil).metrics.count, ChallengeV1Policy.Metric.allCases.count)
+
+        let personalOnly = ChallengeCreationDraft(allowed: ChallengeV1Availability.privateTrialPolicies)
+        XCTAssertEqual(personalOnly.mode, .personal)
+        XCTAssertFalse(personalOnly.allowsTypeChange)
+    }
+
     func testCanonicalInputsAndInvalidValuesRemainEditable() {
         let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
         for (metric, input, value) in [(ChallengeV1Policy.Metric.steps,"1000000000",1000000000),(.exercise,"150:01",9001),(.distance,"12.345678",12345678),(.timed,"25:01",1501)] {
@@ -305,6 +344,7 @@ import Vision
             return try JSONDecoder().decode(type, from: Data(#"{"serverTime":"2026-10-01T12:00:00Z","ageConfirmed":true,"betaAccess":true,"suspended":false}"#.utf8))
         }
         if name == "challenge_community_catalog_v1" { return try JSONDecoder().decode(type, from: Data("[]".utf8)) }
+        guard name == "challenge_personal_preview_v1" else { throw ChallengeV1Error.unavailable }
         let agreement = try await withCheckedThrowingContinuation { continuation = $0 }
         return try JSONDecoder().decode(type, from: JSONEncoder().encode(agreement))
     }

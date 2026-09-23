@@ -136,6 +136,28 @@ struct ChallengeV1Receipt: Codable, Equatable, Sendable {
         self.revoked=revoked
     }
 }
+/// What the server allows this account to create, and how its activity is
+/// verified (challenge_availability_v1). The app no longer infers either from
+/// its build. Older servers without the projection leave this nil.
+struct ChallengeV1Availability: Decodable, Equatable, Sendable {
+    struct Pair: Decodable, Equatable, Sendable { let policy: String; let sourcePolicyVersion: String }
+    let restricted: Bool
+    let admission: Bool
+    let accountAllowed: Bool
+    let verificationMode: String
+    let policies: [Pair]
+    var links: Bool? = nil
+    var community: Bool? = nil
+
+    /// The two pairs the owner-only private trial accepted before this
+    /// projection existed. Used only when the server doesn't report one.
+    static let privateTrialPolicies: Set<String> = ["personal_steps_goal_v1", "personal_distance_goal_v1"]
+
+    /// nil means no per-policy restriction applies.
+    var creatablePolicies: Set<String>? { restricted ? Set(policies.map(\.policy)) : nil }
+    var accountMode: Bool { verificationMode == "private_account" }
+}
+
 struct ChallengeV1Access: Decodable, Equatable, Sendable {
     let serverTime: ChallengeInstant?; let ageConfirmed: Bool; let betaAccess: Bool; let suspended: Bool
     var appealFiled: Bool? = nil
@@ -178,6 +200,7 @@ enum ChallengeV1Error: Error, LocalizedError, Equatable {
             case "challenge_private_trial_personal_steps_only": "This private trial currently supports Steps and Outdoor runs. Choose one of those to continue."
             case "challenge_metric_overlap": "You already have a friend challenge for this activity during these dates. Choose different dates."
             case "challenge_unsettled_limit": "Three challenges still need a final result. Wait for one to finish before joining another."
+            case "challenge_member_unavailable": "Someone you picked can’t join this challenge. Change who’s in, then try again."
             case "challenge_friend_unavailable": "We couldn’t find an available friend with that username. Check the exact spelling."
             case "challenge_incomplete_roster": "Select two to six people. For a goal challenge, everyone must choose their own goal before continuing."
             case "challenge_consent_mismatch": "The rules changed or agreement is closed. Refresh to see what happens next."

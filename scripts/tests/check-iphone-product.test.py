@@ -45,7 +45,8 @@ class IPhoneProductTests(unittest.TestCase):
     def test_current_candidate_has_only_iphone_targets_and_healthkit(self):
         result = checker.check_project(ROOT)
         self.assertEqual(result['targets'], ['GameTime', 'GameTimeTests', 'GameTimeUITests'])
-        self.assertEqual(len(result['schemes']), 3)
+        # GameTime, GameTime-Staging, GameTimeBetaLocal and the D142 GameTime-TestFlight.
+        self.assertEqual(len(result['schemes']), 4)
         self.assertGreater(result['source_files'], 100)
 
     def test_debug_only_connectivity_is_rejected(self):

@@ -6,7 +6,7 @@ import Supabase
 enum LiveServicesFactory {
     static func make(configuration: AppConfiguration) throws -> AppServices {
         let client: SupabaseClient
-        if configuration.environment == .staging {
+        if configuration.usesBackendScopedStorage {
             client = SupabaseClient(
                 supabaseURL: configuration.supabaseURL,
                 supabaseKey: configuration.supabasePublishableKey,
@@ -510,6 +510,8 @@ final class AccountLocalStateCleaner: AccountLocalStateCleaning {
                 directory: root.appendingPathComponent("GameTime/ChallengeV1Pending")
             ).removeAll(for: ownerID)
         } catch { failures.append("challenge action") }
+        do { try await FriendJournal.applicationSupport().removeAll(for: ownerID) }
+        catch { failures.append("friend request") }
         do { try await pendingPersonalChallenges.remove(for: ownerID) }
         catch { failures.append("personal challenge retry") }
         do { try await pendingPersonalCancellations.remove(for: ownerID) }

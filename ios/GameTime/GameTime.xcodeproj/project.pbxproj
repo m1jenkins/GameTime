@@ -38,6 +38,8 @@
 		B30000000000000000000006 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		B30000000000000000000007 /* AppInfo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = AppInfo.plist; sourceTree = "<group>"; };
 		B30000000000000000000008 /* PublicClient.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = PublicClient.xcconfig; sourceTree = "<group>"; };
+		B30000000000000000000020 /* TestFlight.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TestFlight.xcconfig; sourceTree = "<group>"; };
+		B30000000000000000000021 /* TestFlightAppInfo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = TestFlightAppInfo.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -114,7 +116,9 @@
 				B30000000000000000000004 /* Debug.xcconfig */,
 				B30000000000000000000005 /* Staging.xcconfig */,
 				B30000000000000000000006 /* Release.xcconfig */,
+				B30000000000000000000020 /* TestFlight.xcconfig */,
 				B30000000000000000000007 /* AppInfo.plist */,
+				B30000000000000000000021 /* TestFlightAppInfo.plist */,
 			);
 			path = Configuration;
 			sourceTree = "<group>";
@@ -285,7 +289,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -eu\n\ncase \"${GAMETIME_ENV:-}\" in\n  debug|staging|release) ;;\n  *)\n    echo \"error: GameTime requires a valid product environment.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${SUPABASE_URL:-}\" in\n  https://*) ;;\n  http://*)\n    if [ \"${GAMETIME_ENV}\" != \"debug\" ]; then\n      echo \"error: Installed GameTime products require a Supabase HTTPS URL.\" >&2\n      exit 1\n    fi\n    ;;\n  *)\n    echo \"error: GameTime requires a configured Supabase URL.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${SUPABASE_PUBLISHABLE_KEY:-}\" in\n  sb_publishable_?*) ;;\n  *)\n    echo \"error: GameTime requires a current Supabase publishable key.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${GAMETIME_ENV}\" in\n  release) expected_bundle_id=\"com.mjenkins.gametime\" ;;\n  *) expected_bundle_id=\"com.mjenkins.gametime.staging\" ;;\nesac\n\nif [ \"${PRODUCT_BUNDLE_IDENTIFIER:-}\" != \"${expected_bundle_id}\" ]; then\n  echo \"error: The Apple bundle ID must match the client ID accepted by Supabase Auth.\" >&2\n  exit 1\nfi\n";
+			shellScript = "set -eu\n\ncase \"${GAMETIME_ENV:-}\" in\n  debug|staging|release|testflight) ;;\n  *)\n    echo \"error: GameTime requires a valid product environment.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${SUPABASE_URL:-}\" in\n  https://*) ;;\n  http://*)\n    if [ \"${GAMETIME_ENV}\" != \"debug\" ]; then\n      echo \"error: Installed GameTime products require a Supabase HTTPS URL.\" >&2\n      exit 1\n    fi\n    ;;\n  *)\n    echo \"error: GameTime requires a configured Supabase URL.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${SUPABASE_PUBLISHABLE_KEY:-}\" in\n  sb_publishable_?*) ;;\n  *)\n    echo \"error: GameTime requires a current Supabase publishable key.\" >&2\n    exit 1\n    ;;\nesac\n\ncase \"${GAMETIME_ENV}\" in\n  release|testflight) expected_bundle_id=\"com.mjenkins.gametime\" ;;\n  *) expected_bundle_id=\"com.mjenkins.gametime.staging\" ;;\nesac\n\nif [ \"${PRODUCT_BUNDLE_IDENTIFIER:-}\" != \"${expected_bundle_id}\" ]; then\n  echo \"error: The Apple bundle ID must match the client ID accepted by Supabase Auth.\" >&2\n  exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -489,6 +493,58 @@
 			};
 			name = Release;
 		};
+		C20000000000000000000013 /* TestFlight */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = TestFlight;
+		};
 		C20000000000000000000004 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = B30000000000000000000004 /* Debug.xcconfig */;
@@ -599,6 +655,43 @@
 			};
 			name = Release;
 		};
+		C20000000000000000000016 /* TestFlight */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B30000000000000000000020 /* TestFlight.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = GameTime/GameTime.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87Z29RTC26;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Configuration/TestFlightAppInfo.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = GameTime;
+				INFOPLIST_KEY_GAMETIME_CONTEST_MUTATIONS_ENABLED = "$(GAMETIME_CONTEST_MUTATIONS_ENABLED)";
+				INFOPLIST_KEY_GAMETIME_ENV = "$(GAMETIME_ENV)";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_SUPABASE_PUBLISHABLE_KEY = "$(SUPABASE_PUBLISHABLE_KEY)";
+				INFOPLIST_KEY_SUPABASE_URL = "$(SUPABASE_URL)";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.8.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = TestFlight;
+		};
 		C20000000000000000000007 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -664,6 +757,27 @@
 			};
 			name = Release;
 		};
+		C20000000000000000000019 /* TestFlight */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GameTime.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GameTime";
+			};
+			name = TestFlight;
+		};
 		C2000000000000000000000A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -711,6 +825,21 @@
 			};
 			name = Release;
 		};
+		C2000000000000000000001C /* TestFlight */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mjenkins.gametime.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = GameTime;
+			};
+			name = TestFlight;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -720,6 +849,7 @@
 				C20000000000000000000001 /* Debug */,
 				C20000000000000000000002 /* Staging */,
 				C20000000000000000000003 /* Release */,
+				C20000000000000000000013 /* TestFlight */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -730,6 +860,7 @@
 				C20000000000000000000004 /* Debug */,
 				C20000000000000000000005 /* Staging */,
 				C20000000000000000000006 /* Release */,
+				C20000000000000000000016 /* TestFlight */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -740,6 +871,7 @@
 				C20000000000000000000007 /* Debug */,
 				C20000000000000000000008 /* Staging */,
 				C20000000000000000000009 /* Release */,
+				C20000000000000000000019 /* TestFlight */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -750,6 +882,7 @@
 				C2000000000000000000000A /* Debug */,
 				C2000000000000000000000B /* Staging */,
 				C2000000000000000000000C /* Release */,
+				C2000000000000000000001C /* TestFlight */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

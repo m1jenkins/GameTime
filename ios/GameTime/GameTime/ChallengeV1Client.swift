@@ -101,7 +101,7 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
         try decode(await send("challenge_stop_command_v1", request.body, request.actorId))
     }
     func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON] = [:], actor: UUID, as type: T.Type) async throws -> T {
-        guard ["challenge_access_status_v1", "challenge_personal_preview_v1", "challenge_community_catalog_v1", "challenge_operator_cases_v1"].contains(name) else { throw ChallengeV1Error.unavailable }
+        guard ["challenge_access_status_v1", "challenge_availability_v1", "challenge_personal_preview_v1", "challenge_community_catalog_v1", "challenge_operator_cases_v1"].contains(name) else { throw ChallengeV1Error.unavailable }
         return try decode(await send(name, ChallengeJSON.data(.object(fields)), actor))
     }
     private func send(_ name: String, _ body: Data, _ actor: UUID) async throws -> Data {
@@ -142,6 +142,27 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
         return UUID(uuidString: value)
     }
     private struct ServerError: Decodable { let message: String }
+}
+
+/// Friend commands share the challenge session fence: the same signed-in
+/// session, bound to one actor, with no redirects or cached responses.
+extension SupabaseChallengeV1Client: FriendCommandsClient {
+    func friendList(actor: UUID) async throws -> FriendList {
+        let list: FriendList = try decode(await send("friend_list_v1", Data("{}".utf8), actor))
+        try list.validate(actor: actor)
+        return list
+    }
+    func friendLookup(_ username: String, actor: UUID) async throws -> FriendLookup {
+        let result: FriendLookup = try decode(await send("friend_lookup_v1",
+            ChallengeJSON.data(.object(["p_username": .string(username)])), actor))
+        try result.validate()
+        return result
+    }
+    func friendCommand(_ command: FriendCommand) async throws -> FriendReceipt {
+        let receipt: FriendReceipt = try decode(await send(command.rpc, command.body, command.actorId))
+        guard receipt.matches(command.op) else { throw ChallengeV1Error.invalidResponse }
+        return receipt
+    }
 }
 
 actor ChallengeV1RequestStore {

@@ -8,12 +8,14 @@ import GameTimeCore
     enum InputSection { case activity, dates, amount }
     let id = UUID()
     let directEntry: Bool
-    let personalStepsOnly: Bool
+    /// The policies the server lets this account create (challenge_availability_v1).
+    /// nil means no per-policy restriction applies.
+    let allowed: Set<String>?
     let allowsTypeChange: Bool
     var step: Step
-    var mode: ChallengeV1Policy.Mode { didSet { if mode != oldValue { target = ""; competition = .goal; changed() } } }
+    var mode: ChallengeV1Policy.Mode { didSet { if mode != oldValue { target = ""; competition = .goal; keepAllowedMetric(); changed() } } }
     var metric: ChallengeV1Policy.Metric { didSet { if metric != oldValue { target = ""; distance = ""; changed() } } }
-    var competition: ChallengeV1Policy.Competition { didSet { if competition != oldValue { changed() } } }
+    var competition: ChallengeV1Policy.Competition { didSet { if competition != oldValue { keepAllowedMetric(); changed() } } }
     var start: Date { didSet { if start != oldValue { changed() } } }
     var days = "7" { didSet { if days != oldValue { changed() } } }
     var dollars = "20" { didSet { if dollars != oldValue { changed() } } }
@@ -41,18 +43,45 @@ import GameTimeCore
     @ObservationIgnored private var health: ChallengeHealthFlowStore?
     @ObservationIgnored private var usesHealth = false
 
-    init(initialPolicy: ChallengeV1Policy? = nil, personalStepsOnly: Bool = false, now: Date = Date(), zone: String = TimeZone.current.identifier) {
-        self.personalStepsOnly = personalStepsOnly
-        allowsTypeChange = initialPolicy == nil && !personalStepsOnly
+    /// `personalStepsOnly` is the private trial's pair list, for callers and
+    /// tests from before the server reported one.
+    init(initialPolicy: ChallengeV1Policy? = nil, allowed: Set<String>? = nil, personalStepsOnly: Bool = false,
+         now: Date = Date(), zone: String = TimeZone.current.identifier) {
+        let allowed = personalStepsOnly ? ChallengeV1Availability.privateTrialPolicies : allowed
+        self.allowed = allowed
+        let types = Self.types(allowed: allowed)
+        allowsTypeChange = initialPolicy == nil && types.count > 1
         planningDate = now
         directEntry = true
         step = .activity
-        mode = personalStepsOnly ? .personal : initialPolicy?.mode ?? .friend
-        metric = personalStepsOnly ? .steps : initialPolicy?.metric ?? .steps
-        competition = personalStepsOnly ? .goal : initialPolicy?.competition ?? .goal
+        let first = types.first ?? (.friend, .goal)
+        mode = initialPolicy?.mode ?? first.0
+        competition = initialPolicy?.competition ?? first.1
+        metric = initialPolicy?.metric ?? Self.metrics(mode: first.0, competition: first.1, allowed: allowed).first ?? .steps
         self.zone = zone
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(identifier: zone) ?? .current
         start = calendar.date(byAdding: .day, value: 2, to: now)!
+    }
+    /// The kinds of challenge this account may create, friend goals first.
+    static func types(allowed: Set<String>?) -> [(ChallengeV1Policy.Mode, ChallengeV1Policy.Competition)] {
+        [(.friend, .goal), (.personal, .goal), (.friend, .leaderboard)].filter { type in
+            !metrics(mode: type.0, competition: type.1, allowed: allowed).isEmpty
+        }
+    }
+    static func metrics(mode: ChallengeV1Policy.Mode, competition: ChallengeV1Policy.Competition,
+                        allowed: Set<String>?) -> [ChallengeV1Policy.Metric] {
+        ChallengeV1Policy.Metric.allCases.filter { metric in
+            guard let allowed else { return true }
+            let prefix = "\(mode.rawValue)_\(metric.rawValue)_\(mode == .personal ? "goal" : competition.rawValue)_"
+            return allowed.contains { $0.hasPrefix(prefix) }
+        }
+    }
+    var metrics: [ChallengeV1Policy.Metric] { Self.metrics(mode: mode, competition: competition, allowed: allowed) }
+    func permits(_ mode: ChallengeV1Policy.Mode, _ competition: ChallengeV1Policy.Competition) -> Bool {
+        !Self.metrics(mode: mode, competition: competition, allowed: allowed).isEmpty
+    }
+    private func keepAllowedMetric() {
+        if !metrics.contains(metric), let first = metrics.first { metric = first }
     }
     var policy: ChallengeV1Policy {
         let version = usesHealth && mode == .friend && competition == .leaderboard ? "v2" : "v1"

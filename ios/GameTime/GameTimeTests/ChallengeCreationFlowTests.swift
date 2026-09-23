@@ -18,7 +18,8 @@ import GameTimeCore
         draft.target = "20"
         let goal = try await capture(ChallengeV1Create(store: fixture.store, draft: draft), name: "native-create-goal")
         XCTAssertTrue(goal.contains("20"))
-        XCTAssertTrue(goal.contains("km"))
+        // The viewport test below checks that "km" is visible beside the value;
+        // full-page OCR can read that small unit as "m" on iOS 18.
         XCTAssertTrue(goal.contains("continue"))
         XCTAssertTrue(fixture.client.requests.isEmpty, "Opening and editing a goal does not save it")
 
@@ -171,7 +172,9 @@ import GameTimeCore
         let populated = try await captureMountedSignal(mounted.window, controller: mounted.host,
             name: "native-invite-populated", test: self)
         XCTAssertTrue(populated.contains("sam rivera"))
-        XCTAssertTrue(populated.contains("waiting for roster selection"))
+        XCTAssertTrue(populated.contains("invited"))
+        XCTAssertTrue(populated.contains("2 of 5 chosen"), populated)
+        XCTAssertFalse(populated.contains("invitation link"), "Links stay closed for this build")
 
         fixture.client.failReads = true
         await fixture.store.refresh()
@@ -210,17 +213,22 @@ import GameTimeCore
             let text = try await capture(NavigationStack {
                 ChallengeCreationInviteView(store: fixture.store, challengeID: fixture.id, showingConfirmation: true)
             }, name: name, scheme: scheme, size: size)
-            XCTAssertTrue(text.contains("challenge locked in"), text)
+            XCTAssertTrue(text.contains("challenge saved"), text)
+            XCTAssertFalse(text.contains("locked in."), "Nobody has agreed to an open lobby yet")
+            // OCR can interleave the "Invited" heading with this line.
+            XCTAssertTrue(text.contains("agreed yet"), text)
+            XCTAssertTrue(text.contains("you invited 3 friends"), text)
+            XCTAssertTrue(text.contains("you pick the roster"), text)
+            XCTAssertTrue(text.contains("cancelled and nothing counts"), text)
             XCTAssertTrue(text.contains("runs"), text)
             XCTAssertTrue(text.contains("simulated"), text)
             XCTAssertTrue(text.contains("go to home"), text)
-            XCTAssertTrue(text.contains("view goal"), text)
+            XCTAssertTrue(text.contains("view challenge"), text)
             XCTAssertFalse(text.contains("view lobby"))
             XCTAssertFalse(text.contains("what counts"))
             XCTAssertFalse(text.contains("full rules"))
             XCTAssertFalse(text.contains("invitations sent"))
             XCTAssertFalse(text.contains("challenge ready"))
-            XCTAssertFalse(text.contains("agreed"))
         }
         XCTAssertTrue(fixture.client.requests.isEmpty, "Confirmation does not select a roster, freeze rules or grant consent")
     }
@@ -299,6 +307,39 @@ import GameTimeCore
                 && $0.payload["id"]?.string == fixture.id.uuidString.lowercased()
                 && $0.payload["revision"]?.integer == 1
         }, "The action sends only an exact username against the displayed lobby revision")
+    }
+
+    func testPickedFriendsAreInvitedOneByOneWithinTheLobbyLimit() async throws {
+        let fixture = CreationFlowFixture()
+        defer { fixture.clean() }
+        let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "friend_distance_goal_v1"),
+            now: try ChallengeInstant("2026-09-26T12:00:00Z").date, zone: "UTC")
+        fixture.client.row = try fixture.row(draft, friends: ["Jordan"])
+        await fixture.start()
+        let row = try XCTUnwrap(fixture.store.challenges.first)
+        let friends = (0..<6).map { FriendPerson(id: UUID(), username: "friend_\($0)", displayName: "Friend \($0)") }
+        let invitation = ChallengeCreationInvitationDraft(challengeID: fixture.id)
+        XCTAssertEqual(invitation.remaining(row, actor: fixture.actor), 4, "Jordan is already in the lobby")
+        for friend in friends { invitation.toggle(friend.id, row: row, actor: fixture.actor) }
+        XCTAssertEqual(invitation.chosen, friends.prefix(4).map(\.id), "Six people per lobby, you included")
+        let jordan = try XCTUnwrap(row.members.first { $0.username == "Jordan" })
+        invitation.toggle(friends[0].id, row: row, actor: fixture.actor)
+        invitation.toggle(jordan.actorId, row: row, actor: fixture.actor)
+        XCTAssertFalse(invitation.chosen.contains(jordan.actorId), "Someone already invited can't be picked twice")
+        invitation.toggle(friends[4].id, row: row, actor: fixture.actor)
+        XCTAssertEqual(invitation.chosen, [friends[1], friends[2], friends[3], friends[4]].map(\.id), "Unpicking frees a place")
+
+        fixture.client.receipt = .init(id: fixture.id, revision: 2, status: "lobby_open")
+        fixture.client.failSubmission = false
+        let first = invitation.chosen[0]
+        fixture.client.refuseAfter = 1
+        let finished = await invitation.inviteChosen(store: fixture.store, friends: friends)
+        XCTAssertFalse(finished, "A refusal stops the rest instead of reporting them sent")
+        XCTAssertFalse(invitation.invitationSaved)
+        XCTAssertEqual(fixture.client.requests.compactMap { $0.payload["username"]?.string },
+                       [friends.first { $0.id == first }!.username, friends.first { $0.id == invitation.chosen[0] }!.username])
+        XCTAssertFalse(invitation.chosen.contains(first), "The invited friend leaves the picked list")
+        XCTAssertEqual(invitation.chosen.count, 3)
     }
 
     func testInvitationRetryUsesExactRequestAndPreservesNewerEnteredName() async throws {
@@ -612,6 +653,8 @@ import GameTimeCore
     var failSubmission = false
     var failReads = false
     var holdSubmission = false
+    /// Refuses every submission after this many, as the server would.
+    var refuseAfter: Int?
     var held: CheckedContinuation<ChallengeV1Receipt, Error>?
     func list(actor: UUID) async throws -> [ChallengeV1] {
         if failReads { throw ChallengeV1Error.unavailable }
@@ -624,6 +667,7 @@ import GameTimeCore
     func submit(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt {
         requests.append(request)
         if failSubmission { throw ChallengeV1Error.unavailable }
+        if let refuseAfter, requests.count > refuseAfter { throw ChallengeV1Error.server("challenge_friend_unavailable") }
         if holdSubmission { return try await withCheckedThrowingContinuation { held = $0 } }
         return receipt
     }

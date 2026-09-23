@@ -14,9 +14,10 @@ struct LiveSettingsView: View {
         if !personalStore.challenges.isEmpty || personalStore.pendingCancellation != nil
             || personalStore.hasPendingCancellationRecoveryIssue || personalStore.pendingCreation != nil
             || personalStore.hasPendingCreationRecoveryIssue { return true }
+        // A failed load doesn't prove there is history, so the row stays hidden.
         switch personalStore.loadState {
-        case .idle, .loading, .failed: return true
-        case .loaded, .empty: return false
+        case .idle, .loading: return true
+        case .loaded, .empty, .failed: return false
         }
     }
 

@@ -60,7 +60,19 @@ EOF
     "SOURCES": {"isa": "PBXFileSystemSynchronizedRootGroup", "path": "GameTime", "sourceTree": "<group>"},
     "CONFIG_LIST": {
       "isa": "XCConfigurationList",
-      "buildConfigurations": ["RELEASE"]
+      "buildConfigurations": ["RELEASE", "TESTFLIGHT"]
+    },
+    "TESTFLIGHT": {
+      "isa": "XCBuildConfiguration",
+      "name": "TestFlight",
+      "buildSettings": {
+        "CODE_SIGN_ENTITLEMENTS": "GameTime/GameTime.entitlements",
+        "PRODUCT_BUNDLE_IDENTIFIER": "${bundle_identifier}",
+        "TARGETED_DEVICE_FAMILY": "${device_family}",
+        "ASSETCATALOG_COMPILER_APPICON_NAME": "${icon_name}",
+        "MARKETING_VERSION": "1.0.0",
+        "CURRENT_PROJECT_VERSION": "42"
+      }
     },
     "RELEASE": {
       "isa": "XCBuildConfiguration",
@@ -196,6 +208,36 @@ ${public_client_include}
 GAMETIME_ENV = release
 GAMETIME_PERSONAL_SETTLEMENT_MODE = stripe_sandbox
 GAMETIME_STRIPE_RETURN_URL = ${scheme}:/$()/stripe-redirect
+EOF
+}
+
+write_testflight_fixture() {
+  local root="$1"
+  local settlement="${2:-test_only}"
+  local backend="${3:-lyushhqoednheqwzsmxh}"
+  local usage="${4:-GameTime reads the steps your Apple Watch records to Apple Health.}"
+
+  cat >"${root}/ios/GameTime/Configuration/TestFlight.xcconfig" <<EOF
+#include "PublicClient.xcconfig"
+SUPABASE_URL = https:/\$()/${backend}.supabase.co
+SUPABASE_PUBLISHABLE_KEY = sb_publishable_fixture_testflight
+GAMETIME_ENV = testflight
+GAMETIME_CHALLENGE_V1_ENABLED = YES
+GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE = YES
+GAMETIME_PERSONAL_SETTLEMENT_MODE = ${settlement}
+GAMETIME_STRIPE_RETURN_URL =
+EOF
+  cat >"${root}/ios/GameTime/Configuration/TestFlightAppInfo.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE</key>
+  <string>\$(GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE)</string>
+  <key>NSHealthShareUsageDescription</key>
+  <string>${usage}</string>
+</dict>
+</plist>
 EOF
 }
 
@@ -426,5 +468,42 @@ if [[ "$disguised_include_status" -ne 1 ]]; then
   fail "disguised include fixture should exit 1"
 fi
 assert_contains "$disguised_include_output" "BLOCKER public-client-secrets"
+
+testflight_root="${fixture_root}/testflight"
+testflight_blocked_root="${fixture_root}/testflight-blocked"
+make_passing_fixture "$testflight_root"
+write_testflight_fixture "$testflight_root"
+make_passing_fixture "$testflight_blocked_root"
+write_testflight_fixture "$testflight_blocked_root" "stripe_sandbox" "jrkzdttophnmkxjoyioo" \
+  "GameTime automatically reads Apple Health step counts."
+
+testflight_output=""
+if ! testflight_output="$(bash "$checker" --root "$testflight_root" --testflight 2>&1)"; then
+  echo "$testflight_output" >&2
+  fail "passing TestFlight fixture was rejected"
+fi
+for check_id in release-environment no-payment-provider challenge-account-mode \
+  testflight-backend testflight-app-info release-bundle-id public-client-binding public-client-secrets
+do
+  assert_contains "$testflight_output" "PASS ${check_id}"
+done
+assert_contains "$testflight_output" "0 blocker(s)"
+assert_not_contains "$testflight_output" "stripe-return-scheme"
+
+set +e
+testflight_blocked_output="$(bash "$checker" --root "$testflight_blocked_root" --testflight 2>&1)"
+testflight_blocked_status=$?
+set -e
+if [[ "$testflight_blocked_status" -ne 1 ]]; then
+  echo "$testflight_blocked_output" >&2
+  fail "blocked TestFlight fixture should exit 1"
+fi
+for blocker_id in no-payment-provider testflight-backend testflight-app-info; do
+  assert_contains "$testflight_blocked_output" "BLOCKER ${blocker_id}"
+done
+
+# The historical Release contract is unchanged by the TestFlight mode.
+release_again="$(bash "$checker" --root "$testflight_root" 2>&1)" || fail "Release contract changed"
+assert_contains "$release_again" "PASS stripe-return-scheme"
 
 echo "PASS: beta candidate preflight fixtures"

@@ -12,7 +12,9 @@ struct ChallengeCreationInviteView: View {
     @State private var draft: ChallengeCreationInvitationDraft
     @State private var showingConfirmation = false
     @State private var loading = false
+    @State private var inviting = false
     @State private var showingLinks = false
+    @Environment(FriendsStore.self) private var friends: FriendsStore?
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .largeTitle) private var headingSize: CGFloat = 30
     @AccessibilityFocusState private var headingFocused: Bool
@@ -114,132 +116,140 @@ struct ChallengeCreationInviteView: View {
                 Text("Invite friends.").font(.system(size: headingSize, weight: .bold)).tracking(-1.1)
                     .accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused)
                     .accessibilityIdentifier("beta.invite.heading")
-                Text("Choose up to 5 friends for the final roster.")
+                Text(row.format.hasTarget
+                     ? "Choose up to 5. They’ll each review the rules and choose their own goal."
+                     : "Choose up to 5. They’ll each review the rules.")
                     .font(.system(.subheadline, design: .default)).foregroundStyle(SignalCreationTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            members(row)
             if row.status == "lobby_open" {
-                VStack(alignment: .leading, spacing: 8) {
-                    let layout = typeSize.isAccessibilitySize
-                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-                        : AnyLayout(HStackLayout(spacing: 6))
-                    layout {
-                        HStack(spacing: 9) {
-                            Image(systemName: "magnifyingglass").font(.body.weight(.regular))
-                                .foregroundStyle(SignalCreationTheme.textSecondary).accessibilityHidden(true)
-                            TextField("Exact friend username", text: $draft.username)
-                                .textInputAutocapitalization(.never).autocorrectionDisabled()
-                                .textContentType(.username).submitLabel(.send)
-                                .font(.subheadline)
-                                .accessibilityIdentifier("beta.invite.input")
-                                .onSubmit { Task { await invite() } }
-                        }.frame(minHeight: 44)
-                        Button { Task { await invite() } } label: {
-                            Text("Invite").font(.subheadline.weight(.semibold))
-                                .frame(minWidth: 44, minHeight: 44)
-                        }
-                        .buttonStyle(.plain).foregroundStyle(SignalCreationTheme.accent)
-                        .disabled(!canInvite || ExactHandleSubmission.normalized(draft.username) == nil)
-                        .accessibilityLabel("Invite friend")
-                        .accessibilityIdentifier("beta.invite.submit")
-                    }
-                    .padding(.horizontal, 13)
-                    .background(SignalCreationTheme.soft, in: RoundedRectangle(cornerRadius: 14))
-                    .disabled(!canInvite)
-                    Text("Use the exact username of an accepted friend.")
+                picker(row)
+                InviteAddFriendRow()
+                if store.linksAvailable { links(row) }
+                if draft.invitationSaved {
+                    Label("Invitations saved. Each friend still needs to review and agree.", systemImage: "checkmark.circle.fill")
                         .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
-                    if draft.invitationSaved {
-                        Label("Invitation saved. Your friend still needs to review and agree.", systemImage: "checkmark.circle.fill")
-                            .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
-                            .accessibilityIdentifier("beta.invite.saved")
-                    }
-                }
-                VStack(alignment: .leading, spacing: 0) {
-                    Divider().overlay(SignalCreationTheme.divider)
-                    DisclosureGroup(isExpanded: $showingLinks) {
-                        VStack(alignment: .leading, spacing: 10) {
-                            ChallengeLinkIssuer(store: store, row: row)
-                        }
-                        .font(.subheadline)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.bottom, 12)
-                    } label: {
-                        Label("Invitation link", systemImage: "link")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(SignalCreationTheme.textPrimary)
-                            .frame(minHeight: 48)
-                    }
-                    .accessibilityIdentifier("beta.invite.links")
+                        .accessibilityIdentifier("beta.invite.saved")
                 }
             } else {
-                Text("Inviting is closed. Open your lobby to review the current rules and status.")
+                Text("Inviting is closed. Open your challenge to review the current rules and status.")
                     .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
             }
-            Text(row.format.hasTarget
-                 ? "Each friend chooses their own goal. You choose the roster, then everyone reviews the rules and agrees."
-                 : "You choose the roster, then everyone reviews the rules and agrees.")
+            Text("You pick the final roster from the friends who accept. Everyone on it agrees before the start.")
                 .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
 
-    private func members(_ row: ChallengeV1) -> some View {
-        let people = row.members.filter { $0.actorId != store.actor && !$0.exited }
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Friends in your lobby").font(.subheadline.weight(.semibold))
-                Spacer(minLength: 12)
-                Text(people.count.formatted()).font(.subheadline.monospacedDigit())
-                    .foregroundStyle(SignalCreationTheme.textSecondary)
-            }
-            if people.isEmpty {
-                HStack(spacing: 12) {
-                    Image(systemName: "person.2").font(.system(size: 21, weight: .regular))
-                        .frame(width: 44, height: 44)
-                        .background(SignalCreationTheme.soft, in: Circle()).accessibilityHidden(true)
-                    Text("Invite a friend to do this with.")
+    /// Accepted friends as checkable rows. People already in the lobby stay
+    /// listed with their status and can't be picked twice.
+    @ViewBuilder private func picker(_ row: ChallengeV1) -> some View {
+        let members = draft.others(row, actor: store.actor)
+        let memberIDs = Set(members.map(\.actorId))
+        let candidates = (friends?.friends ?? []).filter { !memberIDs.contains($0.id) }
+        let remaining = draft.remaining(row, actor: store.actor)
+        if members.isEmpty && candidates.isEmpty {
+            VStack(spacing: 10) {
+                Image(systemName: "person.2").font(.system(size: 24, weight: .regular))
+                    .frame(width: 52, height: 52).background(SignalCreationTheme.soft, in: Circle())
+                    .accessibilityHidden(true)
+                Text(friends?.state == .loading ? "Loading your friends…" : "No friends yet")
+                    .font(.system(size: 17, weight: .semibold))
+                if friends?.state != .loading {
+                    Text("Send a request by username. Once they accept, they’ll show up here and you can invite them. Your challenge is saved while you wait.")
                         .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
-                }.frame(minHeight: 62)
-            } else {
-                ScrollView(.horizontal) {
-                    HStack(alignment: .top, spacing: 18) {
-                        ForEach(people) { person in
-                            VStack(spacing: 7) {
-                                Text(String(person.username.prefix(2)).uppercased())
-                                    .font(.body.weight(.semibold))
-                                    .frame(width: 48, height: 48)
-                                    .background(SignalCreationTheme.soft, in: Circle())
-                                    .padding(4)
-                                    .overlay { Circle().stroke(person.selected ? SignalCreationTheme.accent : SignalCreationTheme.divider, lineWidth: person.selected ? 2 : 1) }
-                                    .accessibilityHidden(true)
-                                Text(person.username).font(.caption.weight(.semibold))
-                                    .lineLimit(2).multilineTextAlignment(.center)
-                                Text(person.consented ? "Agreed" : person.selected ? "On your roster" : "Waiting for roster selection")
-                                    .font(.caption2).foregroundStyle(SignalCreationTheme.textSecondary)
-                                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                            }
-                            .frame(width: typeSize.isAccessibilitySize ? 150 : 88)
-                            .accessibilityElement(children: .combine)
-                        }
-                    }
-                    .padding(.vertical, 2)
-                }.scrollIndicators(.hidden)
+                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                }
             }
-        }.accessibilityIdentifier("beta.invite.members")
+            .frame(maxWidth: .infinity).padding(20)
+            .background(SignalCreationTheme.soft.opacity(0.6), in: RoundedRectangle(cornerRadius: 20))
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("beta.invite.empty")
+        } else {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("Your friends").font(.subheadline.weight(.semibold)).accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("beta.invite.members")
+                    Spacer(minLength: 12)
+                    Text("\(members.count + draft.chosen.count) of \(ChallengeCreationInvitationDraft.othersLimit) chosen")
+                        .font(.subheadline.monospacedDigit()).foregroundStyle(SignalCreationTheme.textSecondary)
+                        .accessibilityIdentifier("beta.invite.count")
+                }
+                FriendsListCard {
+                    ForEach(members) { person in
+                        FriendRow(person: FriendPerson(id: person.actorId, username: person.username,
+                                                       displayName: friends?.friends.first { $0.id == person.actorId }?.displayName ?? person.username),
+                                  detail: person.consented ? "Agreed" : person.selected ? "On your roster" : "Invited") {
+                            Image(systemName: "checkmark.circle.fill").font(.system(size: 22))
+                                .foregroundStyle(SignalCreationTheme.textSecondary).accessibilityHidden(true)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                    ForEach(candidates) { person in
+                        let on = draft.chosen.contains(person.id)
+                        let full = !on && draft.chosen.count >= remaining
+                        Button { draft.toggle(person.id, row: row, actor: store.actor) } label: {
+                            FriendRow(person: person) {
+                                Image(systemName: on ? "checkmark.circle.fill" : "circle").font(.system(size: 22))
+                                    .foregroundStyle(on ? SignalCreationTheme.accent : SignalCreationTheme.divider)
+                                    .accessibilityHidden(true)
+                            }
+                            .opacity(full ? 0.45 : 1)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(full || !canInvite)
+                        .accessibilityAddTraits(on ? [.isSelected] : [])
+                        .accessibilityHint(full ? "You’ve chosen 5 people." : "")
+                        .accessibilityIdentifier("beta.invite.friend." + person.username)
+                    }
+                }
+            }
+        }
+    }
+
+    /// Only when the server has links open. The TestFlight build keeps them closed.
+    private func links(_ row: ChallengeV1) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Divider().overlay(SignalCreationTheme.divider)
+            DisclosureGroup(isExpanded: $showingLinks) {
+                ChallengeLinkIssuer(store: store, row: row)
+                    .font(.subheadline).frame(maxWidth: .infinity, alignment: .leading).padding(.bottom, 12)
+            } label: {
+                Label("Invitation link", systemImage: "link").font(.subheadline.weight(.medium))
+                    .foregroundStyle(SignalCreationTheme.textPrimary).frame(minHeight: 48)
+            }
+            .accessibilityIdentifier("beta.invite.links")
+        }
+    }
+
+    private var footerTitle: String {
+        if !draft.chosen.isEmpty { return "Invite \(draft.chosen.count) \(draft.chosen.count == 1 ? "friend" : "friends")" }
+        if let row = currentRow, !draft.others(row, actor: store.actor).isEmpty { return "Done inviting" }
+        return "Skip for now"
     }
 
     private var footer: some View {
-        Button { showingConfirmation = true } label: {
+        Button { Task { await finish() } } label: {
             HStack(spacing: 12) {
-                Text("Done inviting")
+                Text(footerTitle)
                 Image(systemName: "arrow.right").accessibilityHidden(true)
             }
         }
-        .buttonStyle(SignalCreationPrimaryStyle()).disabled(store.busy || store.pending != nil)
+        .buttonStyle(SignalCreationPrimaryStyle()).disabled(store.busy || store.pending != nil || inviting)
         .accessibilityIdentifier("beta.invite.done")
         .padding(.horizontal, SignalCreationTheme.contentInset)
         .padding(.top, 12).padding(.bottom, 6)
         .background(SignalCreationTheme.canvas)
+    }
+
+    private func finish() async {
+        guard !draft.chosen.isEmpty else { showingConfirmation = true; return }
+        inviting = true
+        defer { inviting = false }
+        if await draft.inviteChosen(store: store, friends: friends?.friends ?? []) {
+            SignalAccessibility.announce("Invitations saved.")
+            showingConfirmation = true
+        }
     }
 
     @ViewBuilder private var recovery: some View {
@@ -263,10 +273,8 @@ struct ChallengeCreationInviteView: View {
         loading = true
         defer { loading = false }
         await store.loadDetail(challengeID)
-    }
-
-    private func invite() async {
-        if await draft.invite(store: store) { SignalAccessibility.announce("Invitation saved.") }
+        // The picker lists only friends the server confirms right now.
+        await friends?.refresh()
     }
 
     private func retry() async {
@@ -300,6 +308,44 @@ struct ChallengeCreationInviteView: View {
         generation = UUID()
         username = ""
         invitationSaved = false
+        chosen = []
+    }
+
+    /// A lobby holds six people: you and up to five others.
+    static let othersLimit = 5
+    /// Accepted friends picked on this screen, in the order they were picked.
+    private(set) var chosen: [UUID] = []
+
+    func others(_ row: ChallengeV1, actor: UUID?) -> [ChallengeV1.Member] {
+        row.members.filter { $0.actorId != actor && !$0.exited }
+    }
+    func remaining(_ row: ChallengeV1, actor: UUID?) -> Int {
+        max(0, Self.othersLimit - others(row, actor: actor).count)
+    }
+    func toggle(_ id: UUID, row: ChallengeV1, actor: UUID?) {
+        if let index = chosen.firstIndex(of: id) { chosen.remove(at: index); return }
+        guard chosen.count < remaining(row, actor: actor),
+              !others(row, actor: actor).contains(where: { $0.actorId == id }) else { return }
+        chosen.append(id)
+    }
+
+    /// Invites each chosen friend with its own saved request, in order. It
+    /// stops at the first refusal so nothing is reported as sent that wasn't.
+    @discardableResult
+    func inviteChosen(store: ChallengeV1Store, friends: [FriendPerson]) async -> Bool {
+        let ticket = generation
+        invitationSaved = false
+        for id in chosen {
+            guard ticket == generation, let actor = store.actor, canInvite(store: store),
+                  let row = currentRow(store: store) else { return false }
+            if others(row, actor: actor).contains(where: { $0.actorId == id }) { continue }
+            guard let friend = friends.first(where: { $0.id == id }) else { return false }
+            let receipt = await store.submit(op: "invite", challenge: row, fields: ["username": .string(friend.username)])
+            guard actor == store.actor, ticket == generation, accepts(receipt) else { return false }
+            chosen.removeAll { $0 == id }
+        }
+        invitationSaved = true
+        return true
     }
 
     @discardableResult

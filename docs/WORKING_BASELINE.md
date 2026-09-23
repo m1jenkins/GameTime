@@ -6,6 +6,83 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 23 Phase 3 iOS 18.6 recheck
+
+- The Phase 3 native implementation was already on `main` at `11c7092`; the
+  app and `GameTimeTests` target compiled on iOS 18.6, so the reported type
+  error did not need a fix.
+- Focused unit tests passed 48/48. Eight affected design UI tests passed in a
+  focused run; the Blocked people test passed on rerun after its bottom row was
+  scrolled above the tab bar. The app's FriendsStore passed against a fresh,
+  disposable local stack with the Phase 2 RPCs and current later migrations.
+- The unsigned TestFlight simulator build passed. The candidate checker has 18
+  passes and three existing owner inputs: privacy policy URL, beta terms URL
+  and monitored support inbox. No hosted, device, signing or upload work was
+  done in this recheck. Phase 4's earlier local completion remains intact.
+
+See the [dated recheck receipt](../outputs/reports/2026-09-23-friends-phase-3-ios18-recheck.md).
+
+## September 23 friends Phase 5 hosted migrations
+
+- **Applied to `gametime-p11b`** with owner approval, overriding the
+  final-goals gate: the six pending migrations, `20260920162025` through
+  `20260922230100`. Hosted now matches the repo's 102 migrations.
+- **Unchanged:** every new setting is at its default, so behavior is the same.
+  The owner's three scheduled goals start September 24 05:00 UTC.
+- **Not done:** the build 1 settings, `delete-account`, Apple sign-up, grants
+  and the rest of Phase 5. Nothing was pushed.
+
+See the [receipt](../outputs/reports/2026-09-23-friends-phase-5-migrations.md).
+
+## September 22 friends Phase 4 local verification
+
+- **Checked on disposable stacks** set up the way Phase 5 proposes for hosted:
+  the friendship matrix, all four friend goals at 2 and 6 people through final
+  results, Personal Steps and Outdoor runs, the membership limits,
+  cancellation, voids, corrections, and closed links and community.
+  `scripts/friends-local-verify.sh` passed 139 checks, and
+  `scripts/weekly-local-verify.sh` passed with 116 pgTAP files and 5,218
+  assertions.
+- **Fixed locally:**
+  - A failed freeze no longer names another member's limit (migration
+    `20260922230000`).
+  - The community list stays empty while community is closed (migration
+    `20260922230100`).
+  - Two small tap targets.
+- **For the owner:**
+  - Text doesn't scale with the text-size setting anywhere in the
+    September 22 design.
+  - A real total below the goal shows "Didn't count".
+  - Links can't open for real-activity lobbies until `challenge_issue_link_v1`
+    is fixed.
+- **Not done here.** No VoiceOver pass by a person, no physical device, nothing
+  applied to hosted, signed, uploaded or pushed.
+
+See the [receipt](../outputs/reports/2026-09-22-friends-phase-4-local.md).
+
+## September 22 friends Phase 3 native
+
+- **Friends in the app.**
+  - Friends under You, Add a friend, safety, Blocked people.
+  - Home action rows.
+  - The invite-step friend picker, and "Challenge saved." for open friend
+    lobbies.
+  - The "Before you start" 21+ and Apple Watch onboarding step.
+  - All follow the approved mocks and are backed by the new `FriendsStore` and
+    the Phase 2 friend RPCs.
+- **Server-reported policies.** Creation follows `challenge_availability_v1`.
+  - A server without it keeps the trial's two pairs for Staging.
+  - Links stay hidden unless the server opens them.
+  - The Earlier challenges row stays hidden after a failed load.
+- **TestFlight build.** A fourth configuration, `TestFlight`: production
+  bundle, P11B, challenges and account mode on, no payment provider, plus its
+  scheme. `scripts/check-beta-candidate.sh --testflight` checks it.
+- **Not done here.** Nothing was installed, signed, uploaded, applied to hosted
+  or pushed. Phase 4 followed; see its entry above.
+
+See the [receipt](../outputs/reports/2026-09-22-friends-phase-3-native.md) for
+checks and open items.
+
 ## September 22 friends Phase 1 mocks and Phase 2 server
 
 - **Phase 1 mocks, approved September 22 with no changes.** The board is in

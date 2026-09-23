@@ -7,7 +7,11 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: ./scripts/check-beta-candidate.sh [--root PATH] [--personal-copy-only]
+Usage: ./scripts/check-beta-candidate.sh [--root PATH] [--personal-copy-only] [--testflight]
+
+--testflight checks the D142 friends TestFlight configuration instead of
+Release: TestFlight.xcconfig and TestFlightAppInfo.plist, the P11B backend,
+challenges and account mode on, and no payment provider.
 
 Checks the GameTime Release source configuration for:
   - Release runtime configuration without a Personal App Attest dependency
@@ -28,6 +32,7 @@ USAGE
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 requested_root="${script_dir}/.."
 personal_copy_only="0"
+candidate="release"
 
 while (( $# > 0 )); do
   case "$1" in
@@ -41,6 +46,10 @@ while (( $# > 0 )); do
       ;;
     --personal-copy-only)
       personal_copy_only="1"
+      shift
+      ;;
+    --testflight)
+      candidate="testflight"
       shift
       ;;
     -h|--help)
@@ -61,9 +70,20 @@ if [[ ! -d "$requested_root" ]]; then
 fi
 
 repo_root="$(cd "$requested_root" && pwd -P)"
-release_config="${repo_root}/ios/GameTime/Configuration/Release.xcconfig"
+# The selected candidate's configuration. Variable names keep "release" for
+# the historical contract; --testflight points them at the D142 inputs.
+if [[ "$candidate" == "testflight" ]]; then
+  configuration_name="TestFlight"
+  expected_environment="testflight"
+  release_config="${repo_root}/ios/GameTime/Configuration/TestFlight.xcconfig"
+  app_info="${repo_root}/ios/GameTime/Configuration/TestFlightAppInfo.plist"
+else
+  configuration_name="Release"
+  expected_environment="release"
+  release_config="${repo_root}/ios/GameTime/Configuration/Release.xcconfig"
+  app_info="${repo_root}/ios/GameTime/Configuration/AppInfo.plist"
+fi
 public_config="${repo_root}/ios/GameTime/Configuration/PublicClient.xcconfig"
-app_info="${repo_root}/ios/GameTime/Configuration/AppInfo.plist"
 project_file="${repo_root}/ios/GameTime/GameTime.xcodeproj/project.pbxproj"
 app_source="${repo_root}/ios/GameTime/GameTime"
 asset_catalog="${app_source}/Assets.xcassets"
@@ -162,23 +182,82 @@ if [[ -f "$release_config" ]]; then
 else
   block_check \
     "release-config" \
-    "Release.xcconfig is missing, so the candidate contract cannot be checked."
+    "${configuration_name}.xcconfig is missing, so the candidate contract cannot be checked."
 fi
 
-if [[ "$release_environment" == "release" ]]; then
+if [[ "$release_environment" == "$expected_environment" ]]; then
   pass_check \
     "release-environment" \
-    "Release uses the distribution runtime environment."
+    "${configuration_name} uses the ${expected_environment} runtime environment."
 else
   block_check \
     "release-environment" \
-    "Release must declare GAMETIME_ENV as release."
+    "${configuration_name} must declare GAMETIME_ENV as ${expected_environment}."
 fi
 
 pass_check \
   "personal-snapshot-auth" \
   "Personal snapshot v2 uses the signed-in account rather than App Attest."
 
+if [[ "$candidate" == "testflight" ]]; then
+  # D142: simulated stakes only. No payment provider, no redirect back from one.
+  if [[ "$settlement_mode" == "test_only" ]] && [[ -z "$stripe_return_url" ]]; then
+    pass_check \
+      "no-payment-provider" \
+      "TestFlight selects no payment provider and no payment redirect."
+  else
+    block_check \
+      "no-payment-provider" \
+      "TestFlight must use test_only settlement with an empty GAMETIME_STRIPE_RETURN_URL."
+  fi
+
+  if [[ "$(xcconfig_value "$release_config" GAMETIME_CHALLENGE_V1_ENABLED)" == "YES" ]] &&
+    [[ "$(xcconfig_value "$release_config" GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE)" == "YES" ]]
+  then
+    pass_check \
+      "challenge-account-mode" \
+      "TestFlight turns on challenges and account-mode activity."
+  else
+    block_check \
+      "challenge-account-mode" \
+      "Set GAMETIME_CHALLENGE_V1_ENABLED and GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE to YES."
+  fi
+
+  testflight_url="$(xcconfig_value "$release_config" SUPABASE_URL)"
+  if [[ "${testflight_url//\$\(\)/}" == "https://lyushhqoednheqwzsmxh.supabase.co" ]]; then
+    pass_check \
+      "testflight-backend" \
+      "TestFlight selects the P11B backend that account mode is limited to."
+  else
+    block_check \
+      "testflight-backend" \
+      "TestFlight must override SUPABASE_URL with the P11B project."
+  fi
+
+  health_usage=""
+  account_mode_key="0"
+  if [[ -f "$app_info" ]] && plutil -lint "$app_info" >/dev/null 2>&1; then
+    health_usage="$(plutil -extract NSHealthShareUsageDescription raw -o - "$app_info" 2>/dev/null || true)"
+    if plutil -extract GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE raw -o - "$app_info" >/dev/null 2>&1; then
+      account_mode_key="1"
+    fi
+  else
+    block_check \
+      "app-info" \
+      "TestFlightAppInfo.plist is missing or is not a valid property list."
+  fi
+  if [[ "$health_usage" == *"Apple Watch"* ]] && [[ "$health_usage" != *"step counts"* ]] &&
+    [[ "$account_mode_key" == "1" ]]
+  then
+    pass_check \
+      "testflight-app-info" \
+      "TestFlightAppInfo.plist carries account mode and describes the Apple Watch activity it reads."
+  else
+    block_check \
+      "testflight-app-info" \
+      "TestFlightAppInfo.plist needs the account-mode key and a Health description naming Apple Watch activity."
+  fi
+else
 if [[ "$settlement_mode" == "stripe_sandbox" ]]; then
   pass_check \
     "settlement-mode" \
@@ -261,6 +340,8 @@ else
     "The app URL scheme must match the final non-staging Stripe return scheme."
 fi
 
+fi
+
 temporary_dir="$(
   mktemp -d "${TMPDIR:-/tmp}/gametime-beta-preflight.XXXXXX"
 )"
@@ -288,11 +369,11 @@ else
   else
     project_snapshot=""
     if ! project_snapshot="$(
-      python3 - "$project_json" <<'PY'
+      python3 - "$project_json" "$configuration_name" <<'PY'
 import json
 import sys
 
-project_path = sys.argv[1]
+project_path, configuration_name = sys.argv[1:3]
 
 with open(project_path, "r", encoding="utf-8") as project_file:
     project = json.load(project_file)
@@ -315,12 +396,12 @@ configuration_list = objects.get(target.get("buildConfigurationList"), {})
 release_configuration = None
 for configuration_id in configuration_list.get("buildConfigurations", []):
     candidate = objects.get(configuration_id, {})
-    if candidate.get("name") == "Release":
+    if candidate.get("name") == configuration_name:
         release_configuration = candidate
         break
 
 if release_configuration is None:
-    raise SystemExit("Release configuration missing")
+    raise SystemExit(configuration_name + " configuration missing")
 
 settings = release_configuration.get("buildSettings", {})
 
@@ -344,7 +425,7 @@ for key, value in values.items():
 PY
     )"; then
       echo \
-        "error: the GameTime target or Release build settings could not be read" \
+        "error: the GameTime target or ${configuration_name} build settings could not be read" \
         >&2
       exit 2
     fi
@@ -379,7 +460,7 @@ if
 then
   pass_check \
     "release-bundle-id" \
-    "Release declares a resolved non-development app identity."
+    "${configuration_name} declares a resolved non-development app identity."
 else
   block_check \
     "release-bundle-id" \
@@ -391,21 +472,21 @@ normalized_device_family="${normalized_device_family// /}"
 if [[ "$normalized_device_family" == "1" ]]; then
   pass_check \
     "iphone-only" \
-    "Release targets iPhone only."
+    "${configuration_name} targets iPhone only."
 else
   block_check \
     "iphone-only" \
-    "Release must target device family 1 only; iPad is deferred."
+    "${configuration_name} must target device family 1 only; iPad is deferred."
 fi
 
 if [[ "$app_icon_name" == "AppIcon" ]]; then
   pass_check \
     "app-icon-setting" \
-    "Release selects the AppIcon asset set."
+    "${configuration_name} selects the AppIcon asset set."
 else
   block_check \
     "app-icon-setting" \
-    "Set the Release app icon asset name to AppIcon."
+    "Set the ${configuration_name} app icon asset name to AppIcon."
 fi
 
 icon_catalog_ready="0"
@@ -500,7 +581,7 @@ if
 then
   pass_check \
     "marketing-version" \
-    "Release has a resolved marketing version."
+    "${configuration_name} has a resolved marketing version."
 else
   block_check \
     "marketing-version" \
@@ -514,7 +595,7 @@ if
 then
   pass_check \
     "build-number" \
-    "Release has a positive resolved build number."
+    "${configuration_name} has a positive resolved build number."
 else
   block_check \
     "build-number" \
@@ -542,6 +623,12 @@ if [[ -f "$public_config" ]]; then
     xcconfig_value "$public_config" SUPABASE_PUBLISHABLE_KEY
   )"
 fi
+if [[ -f "$release_config" ]]; then
+  override_url="$(xcconfig_value "$release_config" SUPABASE_URL)"
+  override_key="$(xcconfig_value "$release_config" SUPABASE_PUBLISHABLE_KEY)"
+  [[ -n "$override_url" ]] && supabase_url="$override_url"
+  [[ -n "$override_key" ]] && supabase_publishable_key="$override_key"
+fi
 normalized_supabase_url="${supabase_url//\$\(\)/}"
 
 if
@@ -550,7 +637,7 @@ if
 then
   pass_check \
     "public-client-config" \
-    "Release has a Supabase HTTPS URL and public publishable key."
+    "${configuration_name} has a Supabase HTTPS URL and public publishable key."
 else
   block_check \
     "public-client-config" \
@@ -579,7 +666,7 @@ normalized_beta_terms_url="${beta_terms_url//\$\(\)/}"
 if [[ "$normalized_privacy_policy_url" =~ ^https://[A-Za-z0-9.-]+[.][A-Za-z]{2,}(/[^[:space:]]*)?$ ]]; then
   pass_check \
     "privacy-policy-url" \
-    "Release points at a published HTTPS privacy policy."
+    "${configuration_name} points at a published HTTPS privacy policy."
 else
   block_check \
     "privacy-policy-url" \
@@ -589,7 +676,7 @@ fi
 if [[ "$normalized_beta_terms_url" =~ ^https://[A-Za-z0-9.-]+[.][A-Za-z]{2,}(/[^[:space:]]*)?$ ]]; then
   pass_check \
     "beta-terms-url" \
-    "Release points at published HTTPS beta terms."
+    "${configuration_name} points at published HTTPS beta terms."
 else
   block_check \
     "beta-terms-url" \
@@ -599,7 +686,7 @@ fi
 if [[ "$support_email" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+[.][A-Za-z]{2,}$ ]]; then
   pass_check \
     "support-contact" \
-    "Release has a support address a tester can write to."
+    "${configuration_name} has a support address a tester can write to."
 else
   block_check \
     "support-contact" \
@@ -621,11 +708,11 @@ fi
 if [[ "$public_client_include_count" == "1" ]]; then
   pass_check \
     "public-client-binding" \
-    "Release includes the public client configuration exactly once."
+    "${configuration_name} includes the public client configuration exactly once."
 else
   block_check \
     "public-client-binding" \
-    "Release must include PublicClient.xcconfig exactly once."
+    "${configuration_name} must include PublicClient.xcconfig exactly once."
 fi
 
 secret_shaped_literal="0"
@@ -667,11 +754,11 @@ fi
 if [[ "$secret_shaped_literal" == "0" ]]; then
   pass_check \
     "public-client-secrets" \
-    "No secret-shaped literal was found in public Release inputs."
+    "No secret-shaped literal was found in public ${configuration_name} inputs."
 else
   block_check \
     "public-client-secrets" \
-    "Remove secret-shaped values or private includes from public Release inputs."
+    "Remove secret-shaped values or private includes from public ${configuration_name} inputs."
 fi
 
 printf '\nBeta candidate source preflight: %d passed, %d blocker(s).\n' \

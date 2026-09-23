@@ -287,6 +287,7 @@ struct AppServices {
     let pendingDuels: any PendingDuelRequestStore
     let metricPrototypes: MetricPrototypeStore?
     let challengesV1: any ChallengeV1Client
+    let friends: any FriendCommandsClient
     let challengeHealthRecoveryWriters: [AnyObject]
     let challengeHealthDependencies: ChallengeHealthFlowDependencies?
     let challengeHealthTransport: ChallengeHealthTransportCoordinator?
@@ -343,9 +344,12 @@ struct AppServices {
         challengeHealthDependencies: ChallengeHealthFlowDependencies? = nil,
         challengeHealthTransport: ChallengeHealthTransportCoordinator? = nil,
         challengeHealthUploads: ChallengeHealthUploadClient? = nil,
-        challengeHealthReadiness: ChallengeHealthReadinessClient? = nil
+        challengeHealthReadiness: ChallengeHealthReadinessClient? = nil,
+        friends: (any FriendCommandsClient)? = nil
     ) {
         self.challengesV1 = challengesV1
+        // A challenge transport that also carries friend commands serves both.
+        self.friends = friends ?? (challengesV1 as? any FriendCommandsClient) ?? UnavailableFriendCommandsClient()
         self.challengeHealthRecoveryWriters = challengeHealthRecoveryWriters
         self.challengeHealthDependencies = challengeHealthDependencies
         self.challengeHealthTransport = challengeHealthTransport

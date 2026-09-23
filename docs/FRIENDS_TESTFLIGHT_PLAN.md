@@ -222,7 +222,23 @@ above.
     `20260920164443` and `20260922150718`, with an in-flight personal goal
     evaluated across it
 
-### Phase 3 — native (after the mocks are approved)
+### Phase 3 — native: complete locally
+
+Native source, tests, the `TestFlight` build configuration and
+`check-beta-candidate.sh --testflight`, following the approved mocks. See the
+[receipt](../outputs/reports/2026-09-22-friends-phase-3-native.md). Nothing
+was installed, signed, uploaded or applied to hosted.
+
+A [September 23 iOS 18.6 recheck](../outputs/reports/2026-09-23-friends-phase-3-ios18-recheck.md)
+compiled the app and tests, ran focused native and local-store checks, and
+stabilized two test assertions. Phase 3 remains complete locally.
+
+- **Server fallback:** a server without `challenge_availability_v1` (hosted
+  until Phase 5) keeps the private trial's two pairs for the Staging build.
+- **Links:** they stay hidden unless the server reports them open or
+  ungoverned.
+- **Owner review:** the TestFlight Health usage description is new text.
+
 
 - **`FriendsStore`,** modeled on `ChallengeV1Store`: actor generation checks, a
   per-account journal, and refresh on show. Idempotent request IDs are enough.
@@ -236,7 +252,25 @@ above.
   check extended rather than loosened.
 - **Candidate check:** rework `scripts/check-beta-candidate.sh`.
 
-### Phase 4 — local verification
+### Phase 4 — local verification: complete locally
+
+Checked on disposable stacks with the settings proposed for Phase 5. See the
+[receipt](../outputs/reports/2026-09-22-friends-phase-4-local.md). Nothing was
+applied to hosted.
+
+- **Fixed:**
+  - A failed freeze no longer names another member's limit (migration
+    `20260922230000`, pgTAP `532`, one new app sentence).
+  - The community list stays empty while community is closed (migration
+    `20260922230100`, pgTAP `533`).
+  - Two small tap targets.
+- **Found, for the owner:**
+  - Text doesn't scale with the text-size setting anywhere in the September 22
+    design.
+  - A real total below the goal shows "Didn't count" rather than a miss.
+- **Not done:** a person using VoiceOver, and anything on a physical device.
+
+The original Phase 4 scope:
 
 - **Friend goals:** all four at 2 and 6 participants, plus the Personal goals,
   with clock control.
@@ -254,14 +288,21 @@ above.
   regressions.
 - **Full gate:** `scripts/weekly-local-verify.sh`.
 
-### Phase 5 — hosted (explicit approval; after both owner goals are final)
+### Phase 5 — hosted: in progress
 
-- Read back both scheduled goals and the migration list.
-- Deploy with `--project-ref lyushhqoednheqwzsmxh`: dry run first, then with
-  `--include-all`.
+The owner overrode the final-goals gate on September 23. Migrations are
+applied; see the [receipt](../outputs/reports/2026-09-23-friends-phase-5-migrations.md).
+The owner has three scheduled goals, all starting September 24, so the new
+functions score them from the start.
+
+- **Done:** read back the goals and the migration list; dry run; applied
+  all six pending migrations, `20260920162025` through `20260922230100`.
+- Apply the build 1 settings (`scripts/fixtures/friends-build1-settings.sql`)
+  together with opening sign-up.
 - Deploy `delete-account` and record the client secret's renewal date.
 - Add the production bundle to the Apple provider, and open Apple-only sign-up.
-- Grant global support to the owner by name.
+- Grant global support to the owner by name. A grant lasts at most 7 days, so
+  plan its renewal.
 - Close dormant legacy grants.
 - Confirm that Steps and outdoor distance still save.
 - Settle whether the Free plan has a restorable backup and whether the project
@@ -291,11 +332,16 @@ earliest success is mid-to-late October.
 - Legal entity, jurisdiction and a monitored support inbox, for the privacy
   policy, terms and feedback email.
 - Who renews the Apple client secret, and when.
-- Confirm that the second scheduled goal is the September 24–30 Steps goal,
-  which sets whether hosted work can start October 4 or October 6.
+- ~~Confirm the second scheduled goal.~~ Answered September 23: the
+  September 22 goals are void, and three goals start September 24. The owner
+  overrode the gate.
 - Whether first-tester observation meets the finish line's human comprehension
   check, and whether legacy-shell replacement acceptance applies to this build.
   D142 leaves both unchanged.
+- From Phase 4: whether TestFlight waits for the app to scale text with the
+  person's text-size setting, or ships with fixed text as a known limit.
+- From Phase 4: whether "Didn't count" is enough when a friend's total is below
+  the goal, since a real Apple Health total can't prove a miss.
 
 ## Logged, not in scope
 
@@ -306,3 +352,7 @@ earliest success is mid-to-late October.
   `528` covers it. See the
   [receipt](../outputs/reports/2026-09-22-fixture-admission-age.md). The
   migration is not applied to `gametime-p11b`.
+- `challenge_issue_link_v1` admits without the real-activity marker, so under
+  the enforced allowlist it refuses links for real-activity lobbies even with
+  `links_enabled` on. Links are off in build 1. Fix it before turning links on.
+  Found in Phase 4; see its [receipt](../outputs/reports/2026-09-22-friends-phase-4-local.md).

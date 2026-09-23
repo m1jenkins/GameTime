@@ -9,8 +9,10 @@ struct LiveRecordView: View {
     let settings: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(FriendsStore.self) private var friends: FriendsStore?
     @State private var loadingMore = false
     @State private var pageRequest = UUID()
+    @State private var openFriends = false
 
     private var snapshot: ChallengeProfileSnapshot {
         guard accountActor != nil, accountActor == store.actor else {
@@ -36,7 +38,10 @@ struct LiveRecordView: View {
                 .padding(.bottom, 13)
 
                 identityHeader
-                summary.padding(.top, 16)
+                if friends != nil {
+                    FriendsEntryRow(challenges: store, username: identity?.handle).padding(.top, 20)
+                }
+                summary.padding(.top, friends != nil ? 24 : 16)
 
                 HStack {
                     Text("Finished").font(.system(size: 16, weight: .bold)).tracking(-0.5)
@@ -89,6 +94,12 @@ struct LiveRecordView: View {
         .foregroundStyle(SignalTheme.textPrimary)
         .toolbar(.hidden, for: .navigationBar)
         .refreshable { await store.refresh() }
+        .navigationDestination(isPresented: $openFriends) { FriendsView(challenges: store, username: identity?.handle) }
+        .onAppear {
+            #if DEBUG
+            if LiveDesignFixtures.enabled, ProcessInfo.processInfo.arguments.contains("--live-screen=friends") { openFriends = true }
+            #endif
+        }
         .onChange(of: accountActor) { _, _ in
             pageRequest = UUID()
             loadingMore = false

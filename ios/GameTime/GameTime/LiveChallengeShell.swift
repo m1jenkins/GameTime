@@ -10,20 +10,22 @@ struct LiveChallengeShell: View {
     var accountActor: UUID? = nil
     var accountContent: AnyView? = nil
     var serviceAvailable = true
-    var personalStepsOnly = false
-    /// Staging’s private trial still opens a personal goal. The live-design
-    /// capture route uses the same personal entry without changing friend create.
-    private var presentsPersonalGoalCreate: Bool {
+    /// What the server lets this account create; nil means no restriction.
+    var allowedPolicies: Set<String>? = nil
+    /// The live-design capture route opens the private trial's personal
+    /// choices without changing the ordinary friend create.
+    private var creatablePolicies: Set<String>? {
         #if DEBUG
         if LiveDesignFixtures.enabled, ProcessInfo.processInfo.arguments.contains("--live-screen=create-personal") {
-            return true
+            return ChallengeV1Availability.privateTrialPolicies
         }
         #endif
-        return personalStepsOnly
+        return allowedPolicies
     }
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.challengeHealthFlow) private var health
     @Environment(\.livePersonalRouteCoordinator) private var personalRouteCoordinator
+    @Environment(FriendsStore.self) private var friends: FriendsStore?
     @State private var selection = 0
     @State private var homePath: [UUID] = []
     @State private var libraryPath: [UUID] = []
@@ -63,7 +65,7 @@ struct LiveChallengeShell: View {
         .preferredColorScheme(.light)
         .fullScreenCover(isPresented: $create, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {
             if serviceAvailable {
-                ChallengeV1Create(store: store, personalStepsOnly: presentsPersonalGoalCreate, onGoHome: {
+                ChallengeV1Create(store: store, allowed: creatablePolicies, onGoHome: {
                     selection = 0
                     homePath = []
                     libraryPath = []
@@ -108,8 +110,8 @@ struct LiveChallengeShell: View {
         .onChange(of: invitation.link) { _, link in if !link.isEmpty { selection = 1; entry = true } }
         .onChange(of: store.access?.suspended) { _, suspended in health?.restrict(suspended == true) }
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { store.hide(); health?.cancelAll() }
-            else { Task { await store.show(); await health?.refresh() } }
+            if phase != .active { store.hide(); friends?.hide(); health?.cancelAll() }
+            else { Task { await store.show(); await friends?.show(); await health?.refresh() } }
         }
         .task(id: store.actor) { await store.watchVisibility() }
         .onChange(of: store.challenges.count) { applyInitialRoute() }
@@ -150,7 +152,7 @@ struct LiveChallengeShell: View {
         initialRouteApplied = true
         let args = ProcessInfo.processInfo.arguments
         if args.contains("--live-screen=challenges") { selection = 1 }
-        if args.contains("--live-screen=you") { selection = 2 }
+        if args.contains("--live-screen=you") || args.contains("--live-screen=friends") { selection = 2 }
         if args.contains("--live-screen=goal") || args.contains("--live-screen=rules") { homePath = [LiveDesignFixtures.activeID] }
         if args.contains("--live-screen=settings") { selection = 2; settings = true }
         if args.contains("--live-screen=create") || args.contains("--live-screen=create-personal") { selection = 1; create = true }
@@ -168,6 +170,7 @@ struct LiveHomeView: View {
     let library: () -> Void
     @Environment(\.challengeHealthFlow) private var health
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(FriendsStore.self) private var friends: FriendsStore?
     @State private var selectedFriend: LiveFriendSelection?
     private var featured: ChallengeV1? {
         let rows = store.profileSnapshot.rows.filter { !$0.isClosed && $0.own(store.actor)?.exited == false }
@@ -179,6 +182,7 @@ struct LiveHomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 if let row = featured {
+                    HomeActionRows(challenges: store, viewGoal: viewGoal).padding(.bottom, homeRowsVisible ? 24 : 0)
                     heading(row)
                     metric(row).padding(.top, 24)
                     let friends = row.members.filter { $0.actorId != store.actor && $0.selected && !$0.exited }
@@ -199,6 +203,7 @@ struct LiveHomeView: View {
                         Spacer()
                         Button(action: showRecord) { LiveAvatar(username: profile?.displayName ?? "You", actorID: store.actor, size: 32).frame(width: 44, height: 44) }.accessibilityLabel("Your record")
                     }
+                    HomeActionRows(challenges: store, viewGoal: viewGoal).padding(.top, homeRowsVisible ? 22 : 0)
                     if store.homeState == .content {
                         let complete = store.profileSnapshot.availability == .complete
                         VStack(alignment: .leading, spacing: 16) {
@@ -216,12 +221,14 @@ struct LiveHomeView: View {
                 }
             }.padding(.horizontal, 24).padding(.top, 20).padding(.bottom, 16)
         }.background(SignalTheme.canvas).toolbar(.hidden, for: .navigationBar)
-            .refreshable { await store.refresh(); await health?.refresh() }
+            .refreshable { await store.refresh(); await friends?.refresh(); await health?.refresh() }
+            .modifier(FriendsNoticeToast(friends: friends))
             .sheet(item: $selectedFriend) { selection in
                 LiveFriendSheet(store: store, challengeID: selection.challengeID, personID: selection.personID)
             }
             .onChange(of: store.actor) { selectedFriend = nil }
     }
+    private var homeRowsVisible: Bool { !HomeActionRows.items(challenges: store, friends: friends).isEmpty }
     private func heading(_ row: ChallengeV1) -> some View {
         HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 9) {
@@ -382,8 +389,10 @@ struct LiveLibraryView: View {
                     Text("No finished challenges yet.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                 }
                 LiveRecoveryView(store: store)
-                Button(action: entry) { Label(store.access?.ageConfirmed == true ? "Use an invitation link" : "Set up challenge access", systemImage: "link").frame(minHeight: 44) }
-                    .font(.system(size: 13, weight: .medium)).foregroundStyle(SignalTheme.accent)
+                if store.access?.ageConfirmed != true || store.linksAvailable || !store.communities.isEmpty {
+                    Button(action: entry) { Label(store.access?.ageConfirmed == true ? "Use an invitation link" : "Set up challenge access", systemImage: store.access?.ageConfirmed == true ? "link" : "person.crop.circle.badge.checkmark").frame(minHeight: 44) }
+                        .font(.system(size: 13, weight: .medium)).foregroundStyle(SignalTheme.accent)
+                }
             }.padding(.horizontal, 24).padding(.top, 13).padding(.bottom, 24)
         }.background(SignalTheme.canvas).toolbar(.hidden, for: .navigationBar)
             .refreshable { await store.refresh(); await health?.refresh() }
