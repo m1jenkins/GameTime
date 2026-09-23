@@ -35,7 +35,8 @@ if [[ ! "$port_base" =~ ^[0-9]{5}$ ]] || (( port_base < 10240 || port_base > 655
   echo "FRIENDS_VERIFY_PORT_BASE must be an integer from 10240 through 65520" >&2
   exit 2
 fi
-verification_root="$(mktemp -d /tmp/gametime-friends-verify.XXXXXXXX)"
+# Resolve /tmp's symlink so Deno's read permission matches the files it opens.
+verification_root="$(cd "$(mktemp -d /tmp/gametime-friends-verify.XXXXXXXX)" && pwd -P)"
 project_name="$(basename "$verification_root" | tr '[:upper:]' '[:lower:]')"
 export DO_NOT_TRACK=1
 
