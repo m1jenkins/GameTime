@@ -6,6 +6,18 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 23 friends Phase 5 hosted migrations
+
+- **Applied to `gametime-p11b`** with owner approval, overriding the
+  final-goals gate: the six pending migrations, `20260920162025` through
+  `20260922230100`. Hosted now matches the repo's 102 migrations.
+- **Unchanged:** every new setting is at its default, so behavior is the same.
+  The owner's three scheduled goals start September 24 05:00 UTC.
+- **Not done:** the build 1 settings, `delete-account`, Apple sign-up, grants
+  and the rest of Phase 5. Nothing was pushed.
+
+See the [receipt](../outputs/reports/2026-09-23-friends-phase-5-migrations.md).
+
 ## September 22 friends Phase 4 local verification
 
 - **Checked on disposable stacks** set up the way Phase 5 proposes for hosted:

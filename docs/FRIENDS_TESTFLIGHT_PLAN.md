@@ -284,12 +284,17 @@ The original Phase 4 scope:
   regressions.
 - **Full gate:** `scripts/weekly-local-verify.sh`.
 
-### Phase 5 — hosted (explicit approval; after both owner goals are final)
+### Phase 5 — hosted: in progress
 
-- Read back both scheduled goals and the migration list.
-- Deploy with `--project-ref lyushhqoednheqwzsmxh`: dry run first, then with
-  `--include-all`. The list now includes the Phase 4 fixes `20260922230000`
-  and `20260922230100`.
+The owner overrode the final-goals gate on September 23. Migrations are
+applied; see the [receipt](../outputs/reports/2026-09-23-friends-phase-5-migrations.md).
+The owner has three scheduled goals, all starting September 24, so the new
+functions score them from the start.
+
+- **Done:** read back the goals and the migration list; dry run; applied
+  all six pending migrations, `20260920162025` through `20260922230100`.
+- Apply the build 1 settings (`scripts/fixtures/friends-build1-settings.sql`)
+  together with opening sign-up.
 - Deploy `delete-account` and record the client secret's renewal date.
 - Add the production bundle to the Apple provider, and open Apple-only sign-up.
 - Grant global support to the owner by name. A grant lasts at most 7 days, so
@@ -323,8 +328,9 @@ earliest success is mid-to-late October.
 - Legal entity, jurisdiction and a monitored support inbox, for the privacy
   policy, terms and feedback email.
 - Who renews the Apple client secret, and when.
-- Confirm that the second scheduled goal is the September 24–30 Steps goal,
-  which sets whether hosted work can start October 4 or October 6.
+- ~~Confirm the second scheduled goal.~~ Answered September 23: the
+  September 22 goals are void, and three goals start September 24. The owner
+  overrode the gate.
 - Whether first-tester observation meets the finish line's human comprehension
   check, and whether legacy-shell replacement acceptance applies to this build.
   D142 leaves both unchanged.
