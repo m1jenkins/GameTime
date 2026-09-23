@@ -229,6 +229,10 @@ Native source, tests, the `TestFlight` build configuration and
 [receipt](../outputs/reports/2026-09-22-friends-phase-3-native.md). Nothing
 was installed, signed, uploaded or applied to hosted.
 
+A [September 23 iOS 18.6 recheck](../outputs/reports/2026-09-23-friends-phase-3-ios18-recheck.md)
+compiled the app and tests, ran focused native and local-store checks, and
+stabilized two test assertions. Phase 3 remains complete locally.
+
 - **Server fallback:** a server without `challenge_availability_v1` (hosted
   until Phase 5) keeps the private trial's two pairs for the Staging build.
 - **Links:** they stay hidden unless the server reports them open or

@@ -6,6 +6,22 @@ through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b
 The owner directed completed authorized work to be committed and merged into
 `main`; push remains separately authorized. This consolidation was not pushed.
 
+## September 23 Phase 3 iOS 18.6 recheck
+
+- The Phase 3 native implementation was already on `main` at `11c7092`; the
+  app and `GameTimeTests` target compiled on iOS 18.6, so the reported type
+  error did not need a fix.
+- Focused unit tests passed 48/48. Eight affected design UI tests passed in a
+  focused run; the Blocked people test passed on rerun after its bottom row was
+  scrolled above the tab bar. The app's FriendsStore passed against a fresh,
+  disposable local stack with the Phase 2 RPCs and current later migrations.
+- The unsigned TestFlight simulator build passed. The candidate checker has 18
+  passes and three existing owner inputs: privacy policy URL, beta terms URL
+  and monitored support inbox. No hosted, device, signing or upload work was
+  done in this recheck. Phase 4's earlier local completion remains intact.
+
+See the [dated recheck receipt](../outputs/reports/2026-09-23-friends-phase-3-ios18-recheck.md).
+
 ## September 23 friends Phase 5 hosted migrations
 
 - **Applied to `gametime-p11b`** with owner approval, overriding the
