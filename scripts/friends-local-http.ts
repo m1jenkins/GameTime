@@ -384,15 +384,9 @@ async function finalResult(lobby: Lobby) {
 
 try {
   // Phase 5 proposed values for gametime-p11b, applied by an operator.
-  await sql(`
-    update app.friend_runtime_v1 set commands_only = true;
-    update app.challenge_policy_runtime_v1 set allowlist_enforced = true, account_mode = true, links_enabled = false;
-    insert into app.challenge_policy_allowlist_v1 values
-      ('friend_steps_goal_v1', 'apple_watch_steps_v1'),
-      ('friend_exercise_goal_v1', 'apple_watch_exercise_credit_v2'),
-      ('friend_distance_goal_v1', 'apple_workout_outdoor_distance_v1'),
-      ('friend_timed_goal_v1', 'apple_workout_outdoor_timed_v1')
-    on conflict do nothing;`);
+  await sql(
+    await Deno.readTextFile(new URL("./fixtures/friends-build1-settings.sql", import.meta.url)),
+  );
   await ok("challenge_real_health_runtime_v1", {
     p_admission_enabled: true,
     p_ingestion_enabled: true,
