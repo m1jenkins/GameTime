@@ -98,6 +98,7 @@ struct HomeActionRows: View {
                 Button { Task { await friends?.dismissAccepted(person) } } label: {
                     Image(systemName: "xmark").font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(SignalTheme.textSecondary).frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain).accessibilityLabel("Dismiss")
             }

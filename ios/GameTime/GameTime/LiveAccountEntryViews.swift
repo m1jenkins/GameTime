@@ -157,9 +157,11 @@ struct LiveOnboardingView: View {
                 }
                 .buttonStyle(LivePrimaryButtonStyle()).disabled(!ageConfirmed)
                 .accessibilityIdentifier("onboarding.age.continue")
-                Button("I’m under 21") { under21 = true }
-                    .font(.system(size: 14, weight: .medium)).foregroundStyle(SignalTheme.textSecondary)
-                    .frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("onboarding.age.under21")
+                Button { under21 = true } label: {
+                    Text("I’m under 21").font(.system(size: 14, weight: .medium)).foregroundStyle(SignalTheme.textSecondary)
+                        .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain).accessibilityIdentifier("onboarding.age.under21")
             }
             .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 6).background(SignalTheme.canvas)
         }

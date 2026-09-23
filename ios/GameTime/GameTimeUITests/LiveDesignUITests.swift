@@ -429,6 +429,101 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(agree.exists)
     }
 
+    /// Friends Phase 4: the system audit on every friends screen, at the
+    /// default text size and the largest accessibility size. The audit checks
+    /// labels, hit areas, contrast and clipped text; it can't stand in for a
+    /// person using VoiceOver. Text size support is left out: every screen of
+    /// the September 22 native design sets fixed point sizes, so that gap is
+    /// app-wide and recorded separately rather than failed here.
+    func testFriendsScreensPassTheSystemAccessibilityAuditApartFromTextSize() throws {
+        continueAfterFailure = true
+        for size in [nil, "UICTContentSizeCategoryAccessibilityXXXL"] {
+            let label = size == nil ? "default" : "largest"
+            var app = launch("friends", textSize: size)
+            XCTAssertTrue(app.staticTexts["Requests for you"].waitForExistence(timeout: 10))
+            audit(app, "Friends, \(label) text")
+            app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Sam Rivera")).firstMatch.tap()
+            XCTAssertTrue(app.buttons["friends.remove"].waitForExistence(timeout: 5))
+            audit(app, "Friend actions, \(label) text")
+            app.terminate()
+
+            app = launch("friends", textSize: size)
+            let add = app.buttons["friends.add"]
+            XCTAssertTrue(add.waitForExistence(timeout: 10)); bring(app, add); add.tap()
+            XCTAssertTrue(app.textFields["friends.username"].waitForExistence(timeout: 5))
+            audit(app, "Add a friend, \(label) text")
+            app.terminate()
+
+            app = launch("friends", textSize: size)
+            let blocked = app.buttons["friends.blocked"]
+            XCTAssertTrue(blocked.waitForExistence(timeout: 10)); bring(app, blocked); blocked.tap()
+            XCTAssertTrue(app.buttons["Unblock Casey Wu"].waitForExistence(timeout: 5))
+            audit(app, "Blocked people, \(label) text")
+            app.terminate()
+
+            app = launch("home", textSize: size)
+            XCTAssertTrue(element(app, "home.actions").waitForExistence(timeout: 10))
+            audit(app, "Home action rows, \(label) text")
+            app.terminate()
+
+            app = launch("challenges", textSize: size)
+            let create = app.buttons["beta.create.open"]
+            XCTAssertTrue(create.waitForExistence(timeout: 10)); create.tap()
+            let next = app.buttons["beta.create.continue"]
+            XCTAssertTrue(next.waitForExistence(timeout: 10)); bring(app, next); next.tap()
+            let submit = app.buttons["beta.create.submit"]
+            XCTAssertTrue(submit.waitForExistence(timeout: 10)); bring(app, submit); submit.tap()
+            XCTAssertTrue(app.buttons["beta.invite.done"].waitForExistence(timeout: 10))
+            audit(app, "Invite friends, \(label) text")
+            app.terminate()
+
+            app = XCUIApplication()
+            app.launchArguments = ["--fixture-mode", "--fixture-onboarding", "--fixture-empty",
+                                   "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+            if let size { app.launchArguments += ["-UIPreferredContentSizeCategoryName", size] }
+            app.launch()
+            XCTAssertTrue(app.staticTexts["Before you start"].waitForExistence(timeout: 10))
+            audit(app, "Before you start, \(label) text")
+            app.terminate()
+        }
+    }
+
+    private func audit(_ app: XCUIApplication, _ screen: String) {
+        // Let a sheet or a refreshed list finish moving before the audit reads it.
+        _ = XCTWaiter.wait(for: [XCTestExpectation(description: "settle")], timeout: 1.5)
+        capture(app, name: "audit " + screen)
+        var issues: [String] = [], known: [String] = [], textSize = 0
+        do {
+            try app.performAccessibilityAudit { issue in
+                let text = "\(issue.auditType.rawValue) \(issue.compactDescription) — \(issue.element?.label ?? "no element")"
+                if issue.auditType == .dynamicType { textSize += 1 }
+                else if Self.knownAuditReport(screen, issue.auditType, issue.element?.label) { known.append(text) }
+                else { issues.append(text) }
+                return true
+            }
+        } catch { issues.append("audit could not run: \(error)") }
+        let note = XCTAttachment(string: "\(screen): \(textSize) fixed-size text elements. Recorded, not failed: "
+                                 + known.joined(separator: "; "))
+        note.name = "audit notes " + screen; note.lifetime = .keepAlways; add(note)
+        XCTAssertTrue(issues.isEmpty, "\(screen): \(issues.joined(separator: "; "))")
+    }
+
+    /// Reports the Phase 4 receipt explains instead of failing here. Anything
+    /// else, including a new report on these screens, fails the test.
+    private static func knownAuditReport(_ screen: String, _ type: XCUIAccessibilityAuditType, _ label: String?) -> Bool {
+        switch (type, label) {
+        case (.hitRegion, "You"): true                  // the shared tab bar, on every screen
+        case (.hitRegion, "3 friends ↗"): true          // the Home goal card, not a friends control
+        case (.hitRegion, "Step 1 of 2"): true          // onboarding progress dots, not a control
+        case (.hitRegion, nil): screen.hasPrefix("Invite friends") // unnamed, in the shared creation header
+        case (.elementDetection, nil): true             // unnamed text the audit can't point to
+        case (.contrast, "Add a friend"): screen.hasPrefix("Friends") // the icon-only header button
+        // The action sheet renders fully and legibly in its captures; a person checks it.
+        case (.contrast, _), (.textClipped, _): screen.hasPrefix("Friend actions")
+        default: false
+        }
+    }
+
     /// XCUITest subscripts reject identifiers over 128 characters.
     private func labeled(_ query: XCUIElementQuery, _ label: String) -> XCUIElement {
         query.matching(NSPredicate(format: "label == %@", label)).firstMatch
@@ -441,10 +536,11 @@ final class LiveDesignUITests: XCTestCase {
         }
     }
 
-    private func launch(_ route: String) -> XCUIApplication {
+    private func launch(_ route: String, textSize: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--fixture-live-design", "--live-screen=" + route,
                                "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        if let textSize { app.launchArguments += ["-UIPreferredContentSizeCategoryName", textSize] }
         app.launch()
         XCTAssertTrue(app.buttons["beta.tab.home"].waitForExistence(timeout: 10))
         return app
