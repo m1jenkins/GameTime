@@ -642,9 +642,9 @@ begin
   );
 
   insert into public.contest_participants (
-    contest_id, user_id, status, timezone, charity_id
+    contest_id, user_id, status, timezone
   )
-  values (v_challenge, p_user_id, 'accepted', 'UTC', null);
+  values (v_challenge, p_user_id, 'accepted', 'UTC');
 
   insert into public.personal_challenge_terms (
     challenge_id,

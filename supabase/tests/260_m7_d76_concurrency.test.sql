@@ -117,12 +117,6 @@ select extensions.dblink_exec(
         'D76 Concurrency Bob'
       );
 
-    insert into public.charities (id, name, ein, slug) values (
-      'c7c00001-0000-0000-0000-000000000001',
-      'D76 Concurrency Fund',
-      '97-0000004',
-      'd76-concurrency-fund'
-    );
 
     alter table public.contests disable trigger contests_assert_future_window;
 
@@ -173,15 +167,13 @@ select extensions.dblink_exec(
       contest_id,
       user_id,
       status,
-      timezone,
-      charity_id
+      timezone
     )
     select
       contest.id,
       'c7111111-1111-1111-1111-111111111111',
       'accepted',
-      'UTC',
-      'c7c00001-0000-0000-0000-000000000001'
+      'UTC'
     from public.contests contest
     where contest.id in (
       'c7000001-0000-0000-0000-000000000001',
@@ -209,8 +201,7 @@ select extensions.dblink_exec(
 
     update public.contest_participants
     set status = 'accepted',
-        timezone = 'UTC',
-        charity_id = 'c7c00001-0000-0000-0000-000000000001'
+        timezone = 'UTC'
     where user_id = 'c7222222-2222-2222-2222-222222222222'
       and contest_id in (
         'c7000001-0000-0000-0000-000000000001',
@@ -1117,11 +1108,6 @@ select ok(
           and result.kind = 'inconclusive'
           and result.reason = 'review_timeout'
           and terminal.resolution = 'review_timeout'
-          and not exists (
-            select 1
-            from public.donation_obligations obligation
-            where obligation.contest_id = contest.id
-          )
         from public.contests contest
         join public.contest_results result
           on result.contest_id = contest.id
@@ -1132,7 +1118,7 @@ select ok(
       $query$
     ) as remote(terminal boolean)
   ),
-  'timeout wins only as inconclusive review_timeout with no obligation'
+  'timeout wins only as inconclusive review_timeout'
 );
 
 -- Every committed fixture and test-only helper is removed after both sessions
@@ -1146,12 +1132,6 @@ select extensions.dblink_exec(
     drop function public.d76c_test_review_result(uuid, boolean);
     drop function public.d76c_test_clear_result(uuid, uuid);
 
-    delete from public.donation_obligations
-    where contest_id in (
-      'c7000001-0000-0000-0000-000000000001',
-      'c7000002-0000-0000-0000-000000000002',
-      'c7000003-0000-0000-0000-000000000003'
-    );
 
     delete from public.contest_standing_entries
     where contest_id in (
@@ -1308,8 +1288,6 @@ select extensions.dblink_exec(
       'c7222222-2222-2222-2222-222222222222'
     );
 
-    delete from public.charities
-    where id = 'c7c00001-0000-0000-0000-000000000001';
 
     set session_replication_role = origin;
   $cleanup$

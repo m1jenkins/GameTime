@@ -92,10 +92,8 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertNotNil(model.profile)
         XCTAssertEqual(friendships.listCallCount, 0)
         XCTAssertEqual(contests.listChallengeSummariesCallCount, 0)
-        XCTAssertEqual(contests.listCharitiesCallCount, 0)
         XCTAssertTrue(model.friendshipCards.isEmpty)
         XCTAssertTrue(model.contests.isEmpty)
-        XCTAssertTrue(model.charities.isEmpty)
     }
 
     func testFixtureLaunchRestoresSignedInLiveShape() async {
@@ -181,7 +179,7 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertNil(rival.rationale)
     }
 
-    func testFixtureLoadsFinalRankingsAndOnlyLoserObligation() async throws {
+    func testFixtureLoadsFinalRankingsWithoutObligations() async throws {
         let model = AppModel(
             configuration: .fixture,
             services: FixtureServicesFactory.make(
@@ -211,9 +209,7 @@ final class AppModelAndRoutingTests: XCTestCase {
         )
         XCTAssertEqual(standings.phase, .final)
         XCTAssertEqual(standings.result?.kind, .winner)
-        XCTAssertNotNil(caller.obligation)
-        XCTAssertEqual(caller.obligation?.amountCents, 1_000)
-        XCTAssertNil(winner.obligation)
+        XCTAssertNotEqual(caller.participantID, winner.participantID)
         XCTAssertTrue(
             standings.standings.allSatisfy { $0.integrityScore != nil }
         )
@@ -466,7 +462,6 @@ final class AppModelAndRoutingTests: XCTestCase {
         XCTAssertNil(model.profile)
         XCTAssertTrue(model.friendshipCards.isEmpty)
         XCTAssertTrue(model.contests.isEmpty)
-        XCTAssertTrue(model.charities.isEmpty)
         XCTAssertTrue(model.standingsByContestID.isEmpty)
         XCTAssertTrue(model.standingsLoadStates.isEmpty)
         XCTAssertNil(model.exactHandleResult)
@@ -663,7 +658,6 @@ final class AppModelAndRoutingTests: XCTestCase {
         var draft = ChallengeDraft()
         draft.title = "Challenge David"
         draft.inviteeIDs = [david.id]
-        draft.charityID = try XCTUnwrap(model.charities.first?.id)
         let terms = try draft.validated()
 
         let createdID = await model.createChallenge(terms)
@@ -798,16 +792,12 @@ final class AppModelAndRoutingTests: XCTestCase {
             startsAt: now.addingTimeInterval(86_400),
             endsAt: now.addingTimeInterval(8 * 86_400),
             timezone: "America/Chicago",
-            charityID: UUID(),
             tieBreak: .integrityScore
         )
 
         let createdID = await model.createChallenge(terms)
         XCTAssertNil(createdID)
-        await model.acceptInvitation(
-            contestID: UUID(),
-            charityID: UUID()
-        )
+        await model.acceptInvitation(contestID: UUID())
         await model.declineInvitation(contestID: UUID())
 
         XCTAssertEqual(contests.createCallCount, 0)
@@ -844,7 +834,6 @@ final class AppModelAndRoutingTests: XCTestCase {
         draft.inviteeIDs = Set(
             firstModel.acceptedFriendships.map(\.otherUserID)
         )
-        draft.charityID = try XCTUnwrap(firstModel.charities.first?.id)
         let terms = try draft.validated()
 
         let firstCreatedID = await firstModel.createChallenge(terms)
@@ -1238,9 +1227,6 @@ final class AppModelAndRoutingTests: XCTestCase {
             startsAt: startsAt,
             endsAt: startsAt.addingTimeInterval(2 * 86_400),
             timezone: "America/Chicago",
-            charityID: UUID(
-                uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-            )!,
             tieBreak: .integrityScore
         )
     }
@@ -1540,7 +1526,6 @@ private final class RecordingContestsClient: ContestsClient {
     private(set) var acceptInvitationCallCount = 0
     private(set) var declineInvitationCallCount = 0
     private(set) var listChallengeSummariesCallCount = 0
-    private(set) var listCharitiesCallCount = 0
     private(set) var submittedTerms: [ChallengeTerms] = []
     private let behavior: Behavior
 
@@ -1553,11 +1538,6 @@ private final class RecordingContestsClient: ContestsClient {
     {
         _ = userID
         listChallengeSummariesCallCount += 1
-        return []
-    }
-
-    func listCharities() async throws -> [Charity] {
-        listCharitiesCallCount += 1
         return []
     }
 
@@ -1589,10 +1569,9 @@ private final class RecordingContestsClient: ContestsClient {
     func acceptInvitation(
         contestID: UUID,
         userID: UUID,
-        timezone: String,
-        charityID: UUID
+        timezone: String
     ) async throws {
-        _ = (contestID, userID, timezone, charityID)
+        _ = (contestID, userID, timezone)
         acceptInvitationCallCount += 1
     }
 

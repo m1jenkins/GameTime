@@ -96,7 +96,7 @@ inbox.
 ## New domain and preserved history
 
 Create a new versioned `challenge_*_v1` aggregate. Do not widen or reinterpret
-legacy Personal, Solo, charity, `duel_*`, `performance_commitment_*`, or
+legacy Personal, Solo, legacy social contest, `duel_*`, `performance_commitment_*`, or
 `weekly_*_v1` agreements. In particular, the locally accepted weekly contract
 remains a 2–5-person, seven-date, steps-only fictional policy even though the
 new Beta 1 friend contract supports 2–6 people and 1–30 days.

@@ -6,12 +6,11 @@
 --   * once the window opens, nothing about the roster moves — which is what
 --     makes blocking your opponent useless as an escape route
 --   * a timezone is frozen at accept, so a day already lost cannot be reopened
---   * accepting means naming a charity, so every pledge has a visible destination
 --   * a contest nobody joined voids itself rather than running with one person
 --   * 'lapsed' means the system closed an invitation, and a client cannot forge it
 
 begin;
-select plan(37);
+select plan(35);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'),  -- alice, author of everything here
@@ -37,10 +36,6 @@ select '11111111-1111-1111-1111-111111111111', p.id,
 from public.profiles p
 where p.id <> '11111111-1111-1111-1111-111111111111';
 
-insert into public.charities (id, name, ein, slug, is_active) values
-  ('c0000001-0000-0000-0000-000000000001', 'Trail Fund',   '12-3456789', 'trail-fund',   true),
-  ('c0000002-0000-0000-0000-000000000002', 'Retired Fund', '66-3456789', 'retired-fund', false),
-  ('c0000003-0000-0000-0000-000000000003', 'River Fund',   '77-3456789', 'river-fund',   true);
 
 set local role authenticated;
 select set_config('request.jwt.claims',
@@ -51,7 +46,7 @@ create temporary table t_answers as
 select public.create_contest(
   'Answer Rules', 'steps', 'cumulative', 10000, 2500,
   now() + interval '1 day', now() + interval '8 days',
-  'America/New_York', 'c0000001-0000-0000-0000-000000000001', 4::smallint
+  'America/New_York', 4::smallint
 ) as id;
 
 -- Nobody joins this one.
@@ -59,7 +54,7 @@ create temporary table t_quorum as
 select public.create_contest(
   'Quorum Of One', 'steps', 'cumulative', 10000, 2500,
   now() + interval '1 day', now() + interval '8 days',
-  'UTC', 'c0000001-0000-0000-0000-000000000001', 2::smallint
+  'UTC', 2::smallint
 ) as id;
 
 -- Reaches a quorum, with one invitation left unanswered at the bell.
@@ -67,7 +62,7 @@ create temporary table t_running as
 select public.create_contest(
   'Lapse And Run', 'steps', 'cumulative', 10000, 2500,
   now() + interval '1 day', now() + interval '8 days',
-  'UTC', 'c0000001-0000-0000-0000-000000000001', 4::smallint
+  'UTC', 4::smallint
 ) as id;
 
 -- Still a month out, so the activation sweep must leave it alone.
@@ -75,7 +70,7 @@ create temporary table t_future as
 select public.create_contest(
   'Not Yet Due', 'steps', 'cumulative', 10000, 2500,
   now() + interval '30 days', now() + interval '40 days',
-  'UTC', 'c0000001-0000-0000-0000-000000000001', 2::smallint
+  'UTC', 2::smallint
 ) as id;
 
 reset role;
@@ -104,22 +99,21 @@ set local role authenticated;
 select set_config('request.jwt.claims',
   '{"sub":"22222222-2222-2222-2222-222222222222"}', true);
 
--- Accepting is agreeing to pledge money, so it cannot be done without naming
--- where that money would go. The constraint is one-directional: it demands both
--- fields of an accepted row and says nothing about the other states.
+-- Accepting fixes the participant's day boundary, so it cannot be done without
+-- a timezone. The constraint is one-directional: it demands the field of an
+-- accepted row and says nothing about the other states.
 select throws_ok(
   $$ update public.contest_participants set status = 'accepted'
      where contest_id = (select id from t_answers)
        and user_id = '22222222-2222-2222-2222-222222222222' $$,
   '23514',
   null,
-  'accepting without a timezone and a charity is refused'
+  'accepting without a timezone is refused'
 );
 
 select throws_ok(
   $$ update public.contest_participants
-     set status = 'accepted', timezone = 'Mars/Olympus',
-         charity_id = 'c0000001-0000-0000-0000-000000000001'
+     set status = 'accepted', timezone = 'Mars/Olympus'
      where contest_id = (select id from t_answers)
        and user_id = '22222222-2222-2222-2222-222222222222' $$,
   '22023',
@@ -129,11 +123,10 @@ select throws_ok(
 
 select lives_ok(
   $$ update public.contest_participants
-     set status = 'accepted', timezone = 'Europe/London',
-         charity_id = 'c0000001-0000-0000-0000-000000000001'
+     set status = 'accepted', timezone = 'Europe/London'
      where contest_id = (select id from t_answers)
        and user_id = '22222222-2222-2222-2222-222222222222' $$,
-  'bob accepts, naming his zone and his charity'
+  'bob accepts, naming his zone'
 );
 
 select ok(
@@ -152,26 +145,6 @@ select throws_ok(
   '23001',
   null,
   'the timezone is frozen at accept and cannot be moved afterwards'
-);
-
--- The charity is a different matter: it is this participant's own nomination,
--- and changing where their winnings would go harms nobody.
-select lives_ok(
-  $$ update public.contest_participants
-     set charity_id = 'c0000003-0000-0000-0000-000000000003'
-     where contest_id = (select id from t_answers)
-       and user_id = '22222222-2222-2222-2222-222222222222' $$,
-  'but the charity may still be changed while the contest is pending'
-);
-
-select throws_ok(
-  $$ update public.contest_participants
-     set charity_id = 'c0000002-0000-0000-0000-000000000002'
-     where contest_id = (select id from t_answers)
-       and user_id = '22222222-2222-2222-2222-222222222222' $$,
-  '22023',
-  null,
-  'though not to a charity that has been retired'
 );
 
 -- ===========================================================================
@@ -208,8 +181,7 @@ select ok(
 
 select throws_ok(
   $$ update public.contest_participants
-     set status = 'accepted', timezone = 'UTC',
-         charity_id = 'c0000001-0000-0000-0000-000000000001'
+     set status = 'accepted', timezone = 'UTC'
      where contest_id = (select id from t_answers)
        and user_id = '33333333-3333-3333-3333-333333333333' $$,
   '23001',
@@ -224,8 +196,7 @@ select set_config('request.jwt.claims',
   '{"sub":"44444444-4444-4444-4444-444444444444"}', true);
 
 update public.contest_participants
-set status = 'accepted', timezone = 'UTC',
-    charity_id = 'c0000001-0000-0000-0000-000000000001'
+set status = 'accepted', timezone = 'UTC'
 where contest_id = (select id from t_answers)
   and user_id = '44444444-4444-4444-4444-444444444444';
 
@@ -239,7 +210,7 @@ select lives_ok(
 -- The terms he agreed to stay on the row. They are the record of what he
 -- accepted, not live configuration.
 select ok(
-  (select timezone is not null and charity_id is not null
+  (select timezone is not null
    from public.contest_participants
    where contest_id = (select id from t_answers)
      and user_id = '44444444-4444-4444-4444-444444444444'),
@@ -248,8 +219,7 @@ select ok(
 
 select throws_ok(
   $$ update public.contest_participants
-     set status = 'accepted', timezone = 'UTC',
-         charity_id = 'c0000001-0000-0000-0000-000000000001'
+     set status = 'accepted', timezone = 'UTC'
      where contest_id = (select id from t_answers)
        and user_id = '44444444-4444-4444-4444-444444444444' $$,
   '23001',
@@ -333,16 +303,14 @@ set local role authenticated;
 select set_config('request.jwt.claims',
   '{"sub":"55555555-5555-5555-5555-555555555555"}', true);
 update public.contest_participants
-set status = 'accepted', timezone = 'UTC',
-    charity_id = 'c0000001-0000-0000-0000-000000000001'
+set status = 'accepted', timezone = 'UTC'
 where contest_id = (select id from t_running)
   and user_id = '55555555-5555-5555-5555-555555555555';
 
 select set_config('request.jwt.claims',
   '{"sub":"77777777-7777-7777-7777-777777777777"}', true);
 update public.contest_participants
-set status = 'accepted', timezone = 'UTC',
-    charity_id = 'c0000001-0000-0000-0000-000000000001'
+set status = 'accepted', timezone = 'UTC'
 where contest_id = (select id from t_running)
   and user_id = '77777777-7777-7777-7777-777777777777';
 
@@ -411,7 +379,7 @@ select throws_ok(
 
 select throws_ok(
   $$ update public.contest_participants
-     set charity_id = 'c0000003-0000-0000-0000-000000000003'
+     set timezone = 'Asia/Tokyo'
      where contest_id = (select id from t_running)
        and user_id = '77777777-7777-7777-7777-777777777777' $$,
   '23001',
@@ -422,7 +390,7 @@ select throws_ok(
 -- This is the one that matters. grace blocks the author mid-contest: the block
 -- takes effect as a block — the friendship is severed — and changes nothing
 -- about the contest. If it ejected her, or hid the counterparty she may owe a
--- donation to, then blocking would be the cheapest way to walk away from a
+-- stake to, then blocking would be the cheapest way to walk away from a
 -- contest you are losing.
 insert into public.blocks (blocker_id, blocked_id)
 values ('77777777-7777-7777-7777-777777777777',

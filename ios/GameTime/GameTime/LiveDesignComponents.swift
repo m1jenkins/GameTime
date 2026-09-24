@@ -1,42 +1,38 @@
 import SwiftUI
 
-/// Keeps the approved point sizes at the default setting while following the
-/// person's text-size preference, including SwiftUI environment overrides.
-private struct LiveFontModifier: ViewModifier {
+/// A mock's point size that grows with the person's text size setting. The
+/// size scales like the nearest system text style.
+struct LiveFont: ViewModifier {
     @ScaledMetric private var size: CGFloat
-    let weight: Font.Weight
-    let design: Font.Design
-    let italic: Bool
-
-    init(size: CGFloat, relativeTo: Font.TextStyle?, weight: Font.Weight,
-         design: Font.Design, italic: Bool) {
-        let defaultStyle: Font.TextStyle = switch size {
-        case ...12: .caption
-        case ...15: .subheadline
-        case ...17: .body
-        case ...20: .title3
-        case ...24: .title2
-        case ...28: .title
-        default: .largeTitle
-        }
-        _size = ScaledMetric(wrappedValue: size, relativeTo: relativeTo ?? defaultStyle)
+    private let weight: Font.Weight
+    private let italic: Bool
+    init(size: CGFloat, weight: Font.Weight, italic: Bool = false) {
+        _size = ScaledMetric(wrappedValue: size, relativeTo: Self.style(for: size))
         self.weight = weight
-        self.design = design
         self.italic = italic
     }
-
     func body(content: Content) -> some View {
-        let font = Font.system(size: size, weight: weight, design: design)
+        let font = Font.system(size: size, weight: weight)
         content.font(italic ? font.italic() : font)
     }
+    static func style(for size: CGFloat) -> Font.TextStyle {
+        switch size {
+        case 34...: .largeTitle
+        case 28..<34: .title
+        case 22..<28: .title2
+        case 20..<22: .title3
+        case 17..<20: .body
+        case 16..<17: .callout
+        case 15..<16: .subheadline
+        case 13..<15: .footnote
+        case 12..<13: .caption
+        default: .caption2
+        }
+    }
 }
-
 extension View {
-    func liveFont(size: CGFloat, relativeTo: Font.TextStyle? = nil,
-                  weight: Font.Weight = .regular, design: Font.Design = .default,
-                  italic: Bool = false) -> some View {
-        modifier(LiveFontModifier(size: size, relativeTo: relativeTo,
-                                  weight: weight, design: design, italic: italic))
+    func liveFont(_ size: CGFloat, weight: Font.Weight = .regular, italic: Bool = false) -> some View {
+        modifier(LiveFont(size: size, weight: weight, italic: italic))
     }
 }
 
@@ -97,7 +93,7 @@ struct LiveStateChip: View {
             if text.localizedCaseInsensitiveContains("met") || text == "Done" {
                 Image(systemName: "checkmark").font(.system(size: 10, weight: .semibold))
             } else if text == "On track" || text == "Behind" { Circle().fill(color).frame(width: 4, height: 4) }
-            Text(text).liveFont(size: 11, weight: .semibold).fixedSize(horizontal: false, vertical: true)
+            Text(text).liveFont(11, weight: .semibold).fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(color).padding(.horizontal, 8).padding(.vertical, 5)
         .background(color.opacity(neutral ? 0.065 : 0.045), in: Capsule())
@@ -110,16 +106,243 @@ struct LivePrimaryButtonStyle: ButtonStyle {
     var radius: CGFloat = 16
     @Environment(\.isEnabled) private var enabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.liveFont(size: 17, weight: .semibold)
+        configuration.label.liveFont(17, weight: .semibold)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(.vertical, 12)
+            .padding(.vertical, typeSize.isAccessibilitySize ? 12 : 0)
             .frame(maxWidth: .infinity, minHeight: height).padding(.horizontal, 16)
             .foregroundStyle(enabled ? Color.white : SignalTheme.textSecondary)
             .background(enabled ? SignalTheme.accent : SignalTheme.soft, in: RoundedRectangle(cornerRadius: radius))
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
             .opacity(configuration.isPressed ? 0.85 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.14), value: configuration.isPressed)
+    }
+}
+
+/// The grey action beside or below a screen's one blue action: refresh, try
+/// again, done and other ways out. A destructive role or `warning` uses the
+/// warning color.
+struct LiveSecondaryButtonStyle: ButtonStyle {
+    var warning = false
+    @Environment(\.isEnabled) private var enabled
+    @Environment(\.dynamicTypeSize) private var typeSize
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.liveFont(16, weight: .semibold)
+            .fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
+            .padding(.vertical, typeSize.isAccessibilitySize ? 12 : 0)
+            .frame(maxWidth: .infinity, minHeight: 50).padding(.horizontal, 16)
+            .foregroundStyle(!enabled ? SignalTheme.textSecondary
+                             : warning || configuration.role == .destructive ? SignalTheme.danger : SignalTheme.textPrimary)
+            .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
+            .opacity(configuration.isPressed ? 0.8 : 1)
+    }
+}
+
+/// A small inline action inside a row, such as Accept, Decline or Cancel.
+struct LivePillButtonStyle: ButtonStyle {
+    enum Kind { case filled, quiet, text }
+    let kind: Kind
+    @Environment(\.isEnabled) private var enabled
+    @Environment(\.dynamicTypeSize) private var typeSize
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.liveFont(14, weight: .semibold)
+            .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
+            .fixedSize(horizontal: !typeSize.isAccessibilitySize, vertical: true)
+            .padding(.horizontal, kind == .text ? 8 : 15).padding(.vertical, 9)
+            .foregroundStyle(!enabled ? SignalTheme.textSecondary : kind == .filled ? .white : kind == .text ? SignalTheme.textSecondary : SignalTheme.textPrimary)
+            .background {
+                if kind != .text {
+                    Capsule().fill(kind == .filled && enabled ? SignalTheme.accent : SignalTheme.soft)
+                }
+            }
+            .padding(.vertical, 4).frame(minHeight: 44)
+            .opacity(configuration.isPressed ? 0.75 : 1)
+            .contentShape(Rectangle())
+    }
+}
+
+/// Keep paired decisions readable at accessibility text sizes.
+struct LiveActionGroup<Content: View>: View {
+    var spacing: CGFloat = 8
+    @ViewBuilder let content: Content
+    @Environment(\.dynamicTypeSize) private var typeSize
+    var body: some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: spacing))
+            : AnyLayout(HStackLayout(spacing: spacing))
+        layout { content }
+    }
+}
+
+/// A pushed page's top bar: round back button, centered title, optional
+/// trailing control. An empty trailing slot keeps the title centered.
+struct LivePageHeader<Trailing: View>: View {
+    let title: String
+    var backLabel = "Back"
+    let back: () -> Void
+    @ViewBuilder let trailing: Trailing
+    @Environment(\.dynamicTypeSize) private var typeSize
+    var body: some View {
+        if typeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    LiveRoundButton(symbol: "chevron.left", label: backLabel, action: back)
+                    Spacer(minLength: 8)
+                    trailing
+                }
+                Text(title).liveFont(18, weight: .bold).tracking(-0.4)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+            }.padding(.bottom, 10)
+        } else {
+        HStack {
+            LiveRoundButton(symbol: "chevron.left", label: backLabel, action: back)
+            Spacer(minLength: 8)
+            Text(title).liveFont(18, weight: .bold).tracking(-0.4)
+                .multilineTextAlignment(.center).accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 8)
+            trailing
+        }
+        .padding(.bottom, 10)
+        }
+    }
+}
+extension LivePageHeader where Trailing == LivePageHeaderSpacer {
+    init(title: String, backLabel: String = "Back", back: @escaping () -> Void) {
+        self.init(title: title, backLabel: backLabel, back: back) { LivePageHeaderSpacer() }
+    }
+}
+struct LivePageHeaderSpacer: View {
+    var body: some View { Color.clear.frame(width: 44, height: 44).accessibilityHidden(true) }
+}
+
+/// The top of a sheet: an optional round back button, the title and a round
+/// close button.
+struct LiveSheetHeader: View {
+    let title: String
+    var back: (() -> Void)? = nil
+    let close: () -> Void
+    var backIdentifier = "sheet.back"
+    var closeIdentifier = "sheet.close"
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        Group {
+        if typeSize.isAccessibilitySize && !title.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    if let back {
+                        LiveRoundButton(symbol: "chevron.left", label: "Back", action: back)
+                            .accessibilityIdentifier(backIdentifier)
+                    }
+                    Spacer(minLength: 8)
+                    LiveRoundButton(symbol: "xmark", label: "Close", action: close)
+                        .accessibilityIdentifier(closeIdentifier)
+                }
+                Text(title).liveFont(18, weight: .bold).tracking(-0.5)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+            }
+        } else {
+        HStack(spacing: 12) {
+            if let back {
+                LiveRoundButton(symbol: "chevron.left", label: "Back", action: back)
+                    .accessibilityIdentifier(backIdentifier)
+            }
+            Text(title).liveFont(18, weight: .bold).tracking(-0.5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader).accessibilityHidden(title.isEmpty)
+            LiveRoundButton(symbol: "xmark", label: "Close", action: close)
+                .accessibilityIdentifier(closeIdentifier)
+        }
+        }
+        }
+        .foregroundStyle(SignalTheme.textPrimary)
+        .padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 6)
+        .background(SignalTheme.canvas)
+    }
+}
+
+struct LiveSectionHeader: View {
+    let title: String
+    var body: some View {
+        Text(title).liveFont(16, weight: .bold).tracking(-0.3)
+            .accessibilityAddTraits(.isHeader)
+            .padding(.top, 20).padding(.bottom, 10)
+    }
+}
+
+struct LiveCaption: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View {
+        Text(text).liveFont(12).foregroundStyle(SignalTheme.textSecondary)
+            .fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4)
+    }
+}
+
+/// A white card of rows with inset dividers between them.
+struct LiveListCard<Content: View>: View {
+    @ViewBuilder let content: Content
+    var body: some View {
+        VStack(spacing: 0) {
+            Group(subviews: content) { rows in
+                ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                    if index > 0 { Divider().overlay(SignalTheme.divider).padding(.leading, 14) }
+                    row
+                }
+            }
+        }
+        .modifier(LiveSurfaceCard())
+    }
+}
+
+/// The white card surface on its own, for a single row or result.
+struct LiveSurfaceCard: ViewModifier {
+    func body(content: Content) -> some View {
+        content.background(SignalTheme.surface, in: RoundedRectangle(cornerRadius: 18))
+            .overlay { RoundedRectangle(cornerRadius: 18).strokeBorder(SignalTheme.divider.opacity(0.7), lineWidth: 0.75) }
+    }
+}
+
+/// A row in a list card: icon tile, title, optional detail and a chevron, or
+/// an arrow when it opens outside the app.
+struct LiveNavRow: View {
+    let symbol: String
+    let title: String
+    var detail: String? = nil
+    var accent = false
+    var chevron = true
+    var external = false
+    var body: some View {
+        HStack(spacing: 13) {
+            LiveIconTile(symbol: symbol, accent: accent)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).liveFont(16, weight: .medium)
+                if let detail {
+                    Text(detail).liveFont(13).foregroundStyle(SignalTheme.textSecondary)
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 4)
+            if chevron || external {
+                Image(systemName: external ? "arrow.up.right" : "chevron.right").font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
+            }
+        }
+        .padding(.horizontal, 14).padding(.vertical, detail == nil ? 0 : 10)
+        .frame(minHeight: detail == nil ? 58 : 66).contentShape(Rectangle())
+    }
+}
+
+struct LiveIconTile: View {
+    let symbol: String
+    var accent = false
+    var body: some View {
+        Image(systemName: symbol).font(.system(size: 17, weight: .regular))
+            .foregroundStyle(accent ? SignalTheme.accent : SignalTheme.textPrimary)
+            .frame(width: 36, height: 36)
+            .background(accent ? SignalTheme.selection : SignalTheme.soft, in: RoundedRectangle(cornerRadius: 10))
+            .accessibilityHidden(true)
     }
 }
 

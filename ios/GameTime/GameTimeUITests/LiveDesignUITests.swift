@@ -477,7 +477,12 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(app.buttons["onboarding.age.under21"].isHittable)
         let age = app.switches["onboarding.age.toggle"]
         bring(app, age)
-        age.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
+        // XCTest may mark a partly visible switch as hittable even while the
+        // pinned footer covers its right-hand toggle. Reveal the whole row.
+        for _ in 0..<8 where age.frame.maxY >= proceed.frame.minY - 12 { app.swipeUp() }
+        XCTAssertLessThan(age.frame.maxY, proceed.frame.minY - 12)
+        capture(app, name: "onboarding-age-control-largest-text")
+        age.tap()
         XCTAssertTrue(proceed.isEnabled)
         proceed.tap()
         XCTAssertTrue(app.textFields["onboarding.name.input"].waitForExistence(timeout: 5))
@@ -572,6 +577,14 @@ final class LiveDesignUITests: XCTestCase {
         case (.hitRegion, nil): screen.hasPrefix("Invite friends") // unnamed, in the shared creation header
         case (.elementDetection, nil): true             // unnamed text the audit can't point to
         case (.contrast, "Add a friend"): screen.hasPrefix("Friends") // the icon-only header button
+        // At the largest text size these pages run past the screen: the open
+        // keyboard, or the pinned Continue button, covers the lower text until
+        // the person scrolls, so the audit reads the cover, not the text.
+        case (.contrast, "Find"), (.contrast, "Your username"), (.contrast, "@alexlee"),
+             (.contrast, "Send it to a friend so they can add you."):
+            screen == "Add a friend, largest text" || screen.hasPrefix("Friend actions")
+        case (.contrast, let label?) where label.hasPrefix("Your activity has to come from an Apple Watch"):
+            screen == "Before you start, largest text" || screen.hasPrefix("Friend actions")
         // The action sheet renders fully and legibly in its captures; a person checks it.
         case (.contrast, _), (.textClipped, _): screen.hasPrefix("Friend actions")
         default: false

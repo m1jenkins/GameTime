@@ -70,8 +70,8 @@ rules. D142 and [the friends TestFlight plan](docs/FRIENDS_TESTFLIGHT_PLAN.md)
 scope the first private TestFlight: friends under You, open Apple sign-up and
 goals first. Beta and design documents describing solo-only behavior govern the
 existing Personal implementation or their dated exploration, not future scope.
-Preserve Personal, Solo and legacy charity agreements and their test-only or
-sandbox restrictions. D134 plans to remove legacy Personal creation, navigation,
+Preserve Personal and Solo agreements and their test-only or sandbox
+restrictions. D143 removed charity everywhere; do not reintroduce it. D134 plans to remove legacy Personal creation, navigation,
 client wiring and visible history only after replacement acceptance; until that
 milestone, keep the current Personal app usable and do not delete or reinterpret
 its data. Any non-production cleanup remains separately approved and guarded.

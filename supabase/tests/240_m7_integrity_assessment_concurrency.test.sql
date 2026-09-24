@@ -86,12 +86,6 @@ select extensions.dblink_exec(
         'M7 Concurrent Bob'
       );
 
-    insert into public.charities (id, name, ein, slug) values (
-      'b7c00001-0000-0000-0000-000000000001',
-      'M7 Concurrency Fund',
-      '97-0000002',
-      'm7-concurrency-fund'
-    );
 
     alter table public.contests disable trigger contests_assert_future_window;
 
@@ -115,13 +109,12 @@ select extensions.dblink_exec(
     alter table public.contests enable trigger contests_assert_future_window;
 
     insert into public.contest_participants (
-      contest_id, user_id, status, timezone, charity_id
+      contest_id, user_id, status, timezone
     ) values (
       'b7000001-0000-0000-0000-000000000001',
       'b7111111-1111-1111-1111-111111111111',
       'accepted',
-      'UTC',
-      'b7c00001-0000-0000-0000-000000000001'
+      'UTC'
     );
 
     insert into public.contest_participants (
@@ -135,8 +128,7 @@ select extensions.dblink_exec(
 
     update public.contest_participants
     set status = 'accepted',
-        timezone = 'UTC',
-        charity_id = 'b7c00001-0000-0000-0000-000000000001'
+        timezone = 'UTC'
     where contest_id = 'b7000001-0000-0000-0000-000000000001'
       and user_id = 'b7222222-2222-2222-2222-222222222222';
 
@@ -431,8 +423,6 @@ select extensions.dblink_exec(
       'b7222222-2222-2222-2222-222222222222'
     );
 
-    delete from public.charities
-    where id = 'b7c00001-0000-0000-0000-000000000001';
 
     set session_replication_role = origin;
   $cleanup$

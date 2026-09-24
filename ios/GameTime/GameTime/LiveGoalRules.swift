@@ -20,7 +20,7 @@ struct LiveGoalRules: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("\(LiveChallengePresentation.title(row)) · \(ChallengePresentation.dates(row))")
-                .liveFont(size: 14).foregroundStyle(SignalTheme.textSecondary)
+                .liveFont(14).foregroundStyle(SignalTheme.textSecondary)
                 .padding(.bottom, 6)
             LiveRuleModule(symbol: "flag", title: row.format.hasTarget ? "Everyone’s goal" : "How results count",
                            subtitle: row.format.hasTarget ? ownGoal : row.format.metric.title, expanded: expandedSections.contains(.goals)) {
@@ -29,9 +29,9 @@ struct LiveGoalRules: View {
                         ForEach(row.members.filter { $0.selected && !$0.exited }) { person in
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(person.actorId == actor ? "You" : person.username)
-                                    .liveFont(size: 12, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+                                    .liveFont(12, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
                                 Text(person.target.map { row.format.metric.display($0) } ?? "Not chosen")
-                                    .liveFont(size: 22, weight: .bold).tracking(-0.7)
+                                    .liveFont(22, weight: .bold).tracking(-0.7)
                                     .minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.7)
                                     .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -108,7 +108,7 @@ struct LiveGoalRules: View {
     private func rule(_ text: String) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Circle().fill(SignalTheme.textSecondary).frame(width: 3, height: 3).padding(.top, 8)
-            Text(text).liveFont(size: 14).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+            Text(text).liveFont(14).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -133,9 +133,9 @@ struct LiveRuleModule<Content: View>: View {
                     Image(systemName: symbol).font(.system(size: 20, weight: .regular))
                         .foregroundStyle(SignalTheme.accent).frame(width: 24)
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(title).liveFont(size: 15, weight: .semibold).foregroundStyle(SignalTheme.textPrimary)
+                        Text(title).liveFont(15, weight: .semibold).foregroundStyle(SignalTheme.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
-                        Text(subtitle).liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
+                        Text(subtitle).liveFont(12).foregroundStyle(SignalTheme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }.frame(maxWidth: .infinity, alignment: .leading)
                     Image(systemName: expanded ? "chevron.up" : "chevron.down")
@@ -155,8 +155,8 @@ struct LiveGoalFact: View {
     let value: String
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
-            Text(value).liveFont(size: 14, weight: .medium).fixedSize(horizontal: false, vertical: true)
+            Text(label).liveFont(12).foregroundStyle(SignalTheme.textSecondary)
+            Text(value).liveFont(14, weight: .medium).fixedSize(horizontal: false, vertical: true)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }

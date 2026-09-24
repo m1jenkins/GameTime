@@ -11,7 +11,7 @@ reports are evidence of their own run, not instructions for the next task.
 The owner selected **friend duels and personal performance commitments** on
 September 4, 2026 ([D123](DECISIONS.md#d123-friend-duels-and-personal-performance-commitments-are-the-adopted-business-model)).
 This supersedes older solo-only future scope, while preserving the rules of
-existing Personal, Solo and charity agreements.
+existing Personal and Solo agreements. D143 removed charity.
 
 - Friends agree to an athletic challenge, follow progress, receive a result
   and may deliberately choose a new challenge or rematch.

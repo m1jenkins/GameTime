@@ -11,6 +11,9 @@ tested source and publication status, not the current branch tip.
 
 ## September 24 Beta text-size support
 
+- Integrated the newer remote work through `c3b45f3`, including PRs #24/#25's
+  shared styling and font scaling. This follow-through retains those components,
+  20pt margins and button choices while closing remaining large-text layout gaps.
 - Current Beta text uses the person's preferred size while retaining the
   approved default typography. Home, Challenges, You, Friends, goal/rules,
   onboarding, Settings and retained Personal presentation reflow where larger
@@ -474,7 +477,7 @@ requirements below; later dated entries above own current implementation status:
 `GAMETIME_CHALLENGE_V1_ENABLED` stays off in checked-in configuration. All 18
 readiness entries remain false, including money and optional analytics that
 should remain off for simulation. No source, hosted, human or release gate is
-closed by local integration. Preserve Personal/Solo/charity functionality, exact consent
+closed by local integration. Preserve Personal/Solo functionality, exact consent
 and data. Do not restart P4/P5/P6/P9A, P10 preparation, landed S2/P8/P11A repairs,
 or cancelled candidate-gate recovery.
 

@@ -170,12 +170,6 @@ insert into public.profiles (id, handle, display_name) values
     'M7 Deleted'
   );
 
-insert into public.charities (id, name, ein, slug) values (
-  'a7c00001-0000-0000-0000-000000000001',
-  'M7 Evidence Fund',
-  '97-0000001',
-  'm7-evidence-fund'
-);
 
 alter table public.contests disable trigger contests_assert_future_window;
 
@@ -238,15 +232,13 @@ insert into public.contest_participants (
   contest_id,
   user_id,
   status,
-  timezone,
-  charity_id
+  timezone
 )
 select
   contest.id,
   'a7111111-1111-1111-1111-111111111111',
   'accepted',
-  'UTC',
-  'a7c00001-0000-0000-0000-000000000001'::uuid
+  'UTC'
 from public.contests contest
 where contest.id in (
   'a7000001-0000-0000-0000-000000000001',
@@ -276,8 +268,7 @@ order by contest.id;
 
 update public.contest_participants
 set status = 'accepted',
-    timezone = 'UTC',
-    charity_id = 'a7c00001-0000-0000-0000-000000000001'
+    timezone = 'UTC'
 where user_id = 'a7222222-2222-2222-2222-222222222222'
   and contest_id in (
     'a7000001-0000-0000-0000-000000000001',

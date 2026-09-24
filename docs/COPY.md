@@ -178,8 +178,8 @@ that distinction next to the action. Never call a custom app link a public race
 page, imply a message was delivered, or reuse a previous consent/return.
 
 Friend, invitation, opponent, result, winner, and rematch are appropriate when
-those concepts actually exist in the new journey. Do not label a charity
-obligation a payout or show a new duel as an old Personal week.
+those concepts actually exist in the new journey. Do not show a new duel as an
+old Personal week. Charity is removed (D143) and never appears on screen.
 
 - Simulated mode: **Simulated stakes — no real money moves.** At review show
   the two simulated amounts, fee $0, the timing rule, deadline and possible

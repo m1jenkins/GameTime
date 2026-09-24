@@ -156,7 +156,6 @@ select extensions.dblink_exec(
       user_id,
       status,
       timezone,
-      charity_id,
       accepted_at
     )
     values (
@@ -164,7 +163,6 @@ select extensions.dblink_exec(
       'fc111111-1111-1111-1111-111111111111',
       'accepted',
       'UTC',
-      null,
       '2026-06-30T00:00:00Z'
     );
 

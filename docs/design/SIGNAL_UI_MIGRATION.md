@@ -1,5 +1,60 @@
 # GameTime UI adoption and migration history
 
+## Friends design follow-through — September 24, 2026
+
+The owner asked for the rest of the app to follow the design language of the
+approved friends screens (D142, Phase 1 mocks). This builds on the September 22
+adoption below; the palette, athletic metrics and light-only direction are
+unchanged. The owner authorized buttons and Settings first, and a plan for the
+remaining pages.
+
+**Implemented in this pass.** The friends pieces now live in
+[LiveDesignComponents.swift](../../ios/GameTime/GameTime/LiveDesignComponents.swift)
+for every screen: `LiveSecondaryButtonStyle` (grey), `LivePillButtonStyle`
+(in-row actions), `LivePageHeader` (round back button, centered title),
+`LiveSectionHeader`, `LiveCaption`, `LiveListCard` / `LiveSurfaceCard` (white
+card with inset dividers), `LiveNavRow` (icon tile, title, optional detail) and
+`LiveIconTile`. Friends, Home action rows and the invite picker use them under
+the new names. Button hierarchy: a screen's one main action stays blue
+(`LivePrimaryButtonStyle`); refresh, try again, load more, done, sign out and
+"stop waiting" actions use the grey secondary button, and in-row actions use
+pills. The retired Signal glass buttons no longer appear on live screens
+(Apple Health check, creation and invite). Settings and its pages use
+`LivePageHeader`, 20pt side margins and white list cards with icon tiles.
+Labels, copy, identifiers and actions are unchanged.
+
+**Owner decisions, September 24.** "Full rules" on goal pages stays the big
+blue button from the September 22 goal mock. Text grows with the phone's text
+size setting on every screen.
+
+**Second pass.** `liveFont(_:weight:)` in `LiveDesignComponents.swift` keeps each
+mock point size and scales it with the nearest system text style; text on
+Home, Challenges, You, Friends, Settings, goal pages, onboarding, invitations
+and creation uses it. Icons keep their size. Pills
+grow with their text instead of a fixed 36pt capsule. `SignalTheme.contentInset`
+and every live page use 20pt side margins. `LiveSheetHeader` (round back, title,
+round close) heads creation, invite, Add a friend, the invitation sheet and the
+"not open yet" sheet; creation keeps its `beta.create.*` identifiers. Creation
+and invite use `LivePrimaryButtonStyle`; `SignalCreationTheme` now reads the
+shared palette, so its selected tint matches (`#F4F7FF`). Goal page state rows
+use the white card with an accent icon tile, and roster Select/Remove are pills.
+At accessibility text sizes the Challenges filters and invitation Accept/Decline
+stack vertically, and a person's report menu moves under their name, so long
+words and names keep the full width.
+
+**Still planned.**
+
+1. *Goal detail sheets.* `LiveGoalSheet` keeps its 26pt title from the goal
+   mock; move it to `LiveSheetHeader` only if the owner wants the mock changed.
+2. *Earlier challenges and the invitation entry panel.* Move cards and rows
+   onto the shared list card.
+3. *Steppers.* Creation's date steppers still use `SignalCircleAction`; it
+   matches `LiveRoundButton`'s glass, so this is cleanup, not a visual change.
+4. *Unreachable pre-revamp screens.* `YouView`, `TodayView`, `ChallengesView`,
+   `ChallengeProfileView`, `SignalChallengeBrowse`, duels, weekly and
+   performance views are no longer mounted by the live shell. Removing them
+   follows D134 and needs separate approval; restyling them isn't planned.
+
 ## Locked mock adoption and native rewrite — September 22, 2026
 
 The owner adopted the Home, Goal / Rules, Challenges, You and create/invite

@@ -191,7 +191,7 @@ needs an explicitly funded source.
 
 The following describes the implemented fictional official-5K simulation. It
 is a lifecycle reference for future formats, not a mandatory future race format.
-It does not amend Personal cancellation, Solo appeals, or charity obligations.
+It does not amend Personal cancellation or Solo appeals.
 
 1. The creator chooses one accepted friend, an approved event within 30 days,
    the event's common start/end instants, timing policy, simulated amount,
@@ -332,9 +332,9 @@ slices summarized above or a fresh hosted audit.
 | `ios/GameTime/GameTime/AppShellView.swift`, `PersonalAccountabilityStore.swift`, `PersonalChallengeFlow.swift` | Keep three-tab shell, loading/error patterns, history and receipt presentation | Shell maps social destinations to unavailable; no reachable running duel/commitment journey |
 | `PersonalHealthStepReader.swift`, `PersonalStepProgressStore.swift`, `PersonalHealthSnapshotUploader.swift`; migration `20260812154757_personal_health_snapshot_v2.sql`; tests `440_*`, `441_*` | Reuse local-first refresh, coherent cache, account cancellation and cutoff patterns | Exactly seven daily step totals; no workout timing, distance-series proof or opponent verification; permissive source policy stays Personal-only |
 | Identity/social migration `20260724203000_identity_social_graph.sql`; `SupabaseClients.swift` friendship clients; tests `010_*`–`040_*` | Reuse Apple identity, durable actors, exact-handle friendship and blocks after access audit | Friend routes dormant; share links, target-bound redemption, followers, reporting/support and new read projections absent |
-| `20260727030649_m8_1_live_social_loop.sql`, `PendingChallengeStore.swift`, `DomainModels.swift`; tests `070_*`, `190_*` | Reuse exact-request and bounded-read patterns | Old invitations require charity/timezone terms; old envelopes must never replay as new duel requests |
+| `20260727030649_m8_1_live_social_loop.sql`, `PendingChallengeStore.swift`, `DomainModels.swift`; tests `070_*`, `190_*` | Reuse exact-request and bounded-read patterns | Old invitations require timezone terms (D143 removed charity); old envelopes must never replay as new duel requests |
 | `_shared/scoring.ts`, `integrity*.ts`, `metric_snapshots` | Reuse pure fixture-driven evaluation approach and reason/version discipline | Scorer sums hourly metrics/pass rates; `distance_meters` is not a fastest-run engine; Garmin bundle allowlist is not Garmin API integration |
-| `20260728231601_m8_3c_standings_results_obligations.sql`; tests `210_*` | Reuse immutable provisional/final publication, locking and redacted reads as patterns | Outcomes create charity obligations; no participant pool, wallet, winner payout or operated new-product dispute queue |
+| `20260728231601_m8_3c_standings_results_obligations.sql`; tests `210_*` | Reuse immutable provisional/final publication, locking and redacted reads as patterns | Outcomes create no obligation since D143; no participant pool, wallet, winner payout or operated new-product dispute queue |
 | `20260803001438_solo_contract_domain.sql`, `20260803001455_solo_contract_rpc_boundary.sql`, `20260803014252_solo_fake_authorization_adapter.sql`; tests `330_*`–`380_*` | Reuse frozen policy digest, exact requests, one-open uniqueness, append-only evaluation/appeal and fake-failure tests | Disabled steps-only 1–7-day aggregate; fake authorization reserves nothing. Hosted tables were previously observed, runtime values not freshly checked |
 | `PersonalPaymentClient.swift`, `SupabasePersonalPaymentClient.swift`; `personal-payment-setup`, `personal-challenge-commit`, `personal-stripe-sandbox-*`; tests `400_*`–`412_*` | Reuse provider isolation, signed events, idempotency, reconciliation and review patterns selectively | Saves a method and simulates one later confirmed-miss charge; no deposits, participant onboarding, funded pools, refunds/payout ledger or approval for prize competitions |
 | `20260806173723_personal_result_worker.sql`, notification outbox, `deliver-push` | Reuse clock-injected workers and durable payload-free notices | New entity dispatch, milestones, correction notices, rematch notifications and operated schedules require additions; local cron is not hosted proof |
@@ -479,8 +479,8 @@ direction to reduce the incentive for GameTime to declare misses), GameTime as
 recipient (direct revenue but conflict of interest), and a named participant
 (adds counterparty/prize considerations). No destination is selected. A real
 agreement must name the recipient, amount, fee, timing, refund/reversal rules,
-and who holds funds before consent. The old charity catalog is not approval
-for a new beneficiary flow. No tax-deductibility or escrow claim is permitted
+and who holds funds before consent. The removed charity catalog (D143) was never
+approval for a new beneficiary flow. No tax-deductibility or escrow claim is permitted
 without the matching arrangement.
 
 Recommended monetization tests are a transparent per-person contest/service

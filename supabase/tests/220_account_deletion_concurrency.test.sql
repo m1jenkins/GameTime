@@ -169,12 +169,6 @@ select extensions.dblink_exec(
         'P0 Ingest Delete First'
       );
 
-    insert into public.charities (id, name, ein, slug) values (
-      'ec000000-0000-0000-0000-000000000001',
-      'P0 Concurrency Fund',
-      '98-7654321',
-      'p0-concurrency-fund'
-    );
 
     alter table public.contests disable trigger contests_assert_future_window;
 
@@ -273,15 +267,13 @@ select extensions.dblink_exec(
       contest_id,
       user_id,
       status,
-      timezone,
-      charity_id
+      timezone
     )
     select
       contest.id,
       'e0000000-0000-0000-0000-000000000001',
       'accepted',
-      'UTC',
-      'ec000000-0000-0000-0000-000000000001'
+      'UTC'
     from public.contests contest
     where contest.id in (
       'f1000000-0000-0000-0000-000000000001',
@@ -338,8 +330,7 @@ select extensions.dblink_exec(
 
     update public.contest_participants participant
     set status = 'accepted',
-        timezone = 'UTC',
-        charity_id = 'ec000000-0000-0000-0000-000000000001'
+        timezone = 'UTC'
     where (participant.contest_id, participant.user_id) in (
       (
         'f1000000-0000-0000-0000-000000000001',
@@ -694,8 +685,7 @@ select is(
     $accept$
       update public.contest_participants
       set status = 'accepted',
-          timezone = 'UTC',
-          charity_id = 'ec000000-0000-0000-0000-000000000001'
+          timezone = 'UTC'
       where contest_id = 'f2000000-0000-0000-0000-000000000001'
         and user_id = 'e2000000-0000-0000-0000-000000000001'
     $accept$
@@ -747,8 +737,6 @@ select ok(
     select
       participant.accepted_at is null
       and participant.timezone = 'UTC'
-      and participant.charity_id =
-          'ec000000-0000-0000-0000-000000000001'
     from public.contest_participants participant
     where participant.contest_id =
           'f2000000-0000-0000-0000-000000000001'
@@ -847,8 +835,7 @@ select ok(
         $statement$
           update public.contest_participants
           set status = 'accepted',
-              timezone = 'UTC',
-              charity_id = 'ec000000-0000-0000-0000-000000000001'
+              timezone = 'UTC'
           where contest_id = 'f2000000-0000-0000-0000-000000000002'
             and user_id = 'e2000000-0000-0000-0000-000000000002'
         $statement$
@@ -894,7 +881,6 @@ select ok(
       participant.status = 'lapsed'
       and participant.accepted_at is null
       and participant.timezone is null
-      and participant.charity_id is null
     from public.contest_participants participant
     where participant.contest_id =
           'f2000000-0000-0000-0000-000000000002'
@@ -1592,8 +1578,6 @@ select extensions.dblink_exec(
       'e3000000-0000-0000-0000-000000000002'
     );
 
-    delete from public.charities
-    where id = 'ec000000-0000-0000-0000-000000000001';
 
     set session_replication_role = origin;
   $cleanup$

@@ -93,10 +93,10 @@ select extensions.dblink_exec(
     alter table public.contest_participants
       disable trigger contest_participants_apply_transition;
     insert into public.contest_participants (
-      contest_id, user_id, status, timezone, charity_id, accepted_at
+      contest_id, user_id, status, timezone, accepted_at
     ) values
-      ('dd000000-0000-0000-0000-000000000001', 'dd111111-1111-1111-1111-111111111111', 'accepted', 'UTC', null, clock_timestamp() - interval '2 days'),
-      ('dd000000-0000-0000-0000-000000000002', 'dd222222-2222-2222-2222-222222222222', 'accepted', 'UTC', null, '2026-06-30T00:00:00Z');
+      ('dd000000-0000-0000-0000-000000000001', 'dd111111-1111-1111-1111-111111111111', 'accepted', 'UTC', clock_timestamp() - interval '2 days'),
+      ('dd000000-0000-0000-0000-000000000002', 'dd222222-2222-2222-2222-222222222222', 'accepted', 'UTC', '2026-06-30T00:00:00Z');
     alter table public.contest_participants
       enable trigger contest_participants_apply_transition;
 

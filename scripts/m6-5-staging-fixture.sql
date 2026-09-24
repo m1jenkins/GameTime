@@ -71,23 +71,6 @@ select exists (
 
 select not exists (
   select 1
-  from public.charities
-  where id = '65000000-0000-4000-8000-000000000004'
-    and (
-      name <> 'GameTime M6.5 Staging Fixture'
-      or slug <> 'gametime-m65-staging'
-      or ein <> '00-0000065'
-    )
-) as charity_identity_is_safe \gset
-
-\if :charity_identity_is_safe
-\else
-\echo 'Reserved fixture charity ID belongs to another row; refusing to overwrite it'
-\quit 3
-\endif
-
-select not exists (
-  select 1
   from public.contests
   where id = '65000000-0000-4000-8000-000000000001'
     and (
@@ -103,25 +86,6 @@ select not exists (
 \endif
 
 begin;
-
--- Obviously synthetic and isolated to staging. This is not a real donation
--- destination and the reserved .test host cannot resolve.
-insert into public.charities (
-  id, name, ein, slug, url, is_active
-) values (
-  '65000000-0000-4000-8000-000000000004',
-  'GameTime M6.5 Staging Fixture',
-  '00-0000065',
-  'gametime-m65-staging',
-  'https://m65.gametime.example.test',
-  true
-)
-on conflict (id) do update
-set name = excluded.name,
-    ein = excluded.ein,
-    slug = excluded.slug,
-    url = excluded.url,
-    is_active = true;
 
 delete from public.contests
 where id = '65000000-0000-4000-8000-000000000001';
@@ -162,14 +126,12 @@ insert into public.contest_participants (
   contest_id,
   user_id,
   status,
-  timezone,
-  charity_id
+  timezone
 ) values (
   '65000000-0000-4000-8000-000000000001',
   :'conformance_user_id'::uuid,
   'accepted',
-  'UTC',
-  '65000000-0000-4000-8000-000000000004'
+  'UTC'
 );
 
 insert into public.contest_geofences (

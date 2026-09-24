@@ -36,7 +36,7 @@ struct LiveChallengeShell: View {
     @State private var filter = "All"
     @State private var initialRouteApplied = false
 
-    var body: some View {
+    private var selectedTab: some View {
         Group {
             switch selection {
             case 0:
@@ -59,6 +59,10 @@ struct LiveChallengeShell: View {
                 }
             }
         }
+    }
+
+    private var presentedShell: some View {
+        selectedTab
         .tint(SignalTheme.accent)
         .safeAreaInset(edge: .bottom, spacing: 0) { tabBar }
         .background(SignalTheme.canvas.ignoresSafeArea())
@@ -80,24 +84,29 @@ struct LiveChallengeShell: View {
                 if let accountContent { accountContent }
                 else {
                     VStack(alignment: .leading, spacing: 20) {
-                        Text("Settings").liveFont(size: 27, weight: .bold)
+                        Text("Settings").liveFont(27, weight: .bold)
                         Text("Simulated stakes · no real money moves").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                        Button("Sign out") { Task { await logout() } }.buttonStyle(LivePrimaryButtonStyle())
-                    }.padding(24).frame(maxHeight: .infinity, alignment: .top).background(SignalTheme.canvas)
+                        Button("Sign out") { Task { await logout() } }.buttonStyle(LiveSecondaryButtonStyle())
+                    }.padding(SignalTheme.contentInset).frame(maxHeight: .infinity, alignment: .top).background(SignalTheme.canvas)
                 }
             }.presentationDragIndicator(.visible).tint(SignalTheme.accent)
         }
         .sheet(isPresented: $entry, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {
             NavigationStack {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        Text("Your invitation").liveFont(size: 27, weight: .bold).tracking(-1)
-                        ChallengeEntryPanel(store: store, invitation: invitation)
-                    }.padding(24)
-                }.background(SignalTheme.canvas)
-                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { entry = false } } }
+                    ChallengeEntryPanel(store: store, invitation: invitation)
+                        .padding(.horizontal, SignalTheme.contentInset).padding(.top, 8).padding(.bottom, 28)
+                }.background(SignalTheme.canvas.ignoresSafeArea())
+                    .toolbar(.hidden, for: .navigationBar)
+                    .safeAreaInset(edge: .top, spacing: 0) {
+                        LiveSheetHeader(title: "Your invitation", close: { entry = false })
+                    }
             }.tint(SignalTheme.accent).presentationDragIndicator(.visible)
         }
+    }
+
+    var body: some View {
+        presentedShell
         .onChange(of: store.actor) { _, _ in
             create = false; settings = false; entry = false; selection = 0
             homePath = []; libraryPath = []; recordPath = []; filter = "All"
@@ -140,7 +149,7 @@ struct LiveChallengeShell: View {
         } label: {
             VStack(spacing: 5) {
                 Image(systemName: selection == index ? selectedIcon : icon).font(.system(size: 23, weight: .regular))
-                Text(label).liveFont(size: 10, weight: selection == index ? .semibold : .regular)
+                Text(label).liveFont(10, weight: selection == index ? .semibold : .regular)
                     .lineLimit(1).minimumScaleFactor(0.65)
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, minHeight: 44)
@@ -193,16 +202,16 @@ struct LiveHomeView: View {
                     else { personalContext(row).padding(.top, 26) }
                     VStack(spacing: 16) {
                         Text("\(LiveChallengePresentation.money(row.config.amountCents)) simulated · fee $0")
-                            .liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
+                            .liveFont(13).foregroundStyle(SignalTheme.textSecondary)
                         Button { viewGoal(row.id) } label: {
                             HStack(spacing: 10) { Text("View goal"); Image(systemName: "arrow.right").font(.system(size: 18)) }
                         }.buttonStyle(LivePrimaryButtonStyle()).accessibilityIdentifier("live.home.goal")
-                        Text(sourceLine(row)).liveFont(size: 11).foregroundStyle(SignalTheme.textSecondary)
+                        Text(sourceLine(row)).liveFont(11).foregroundStyle(SignalTheme.textSecondary)
                     }.padding(.top, 30).frame(maxWidth: .infinity)
                     LiveRecoveryView(store: store).padding(.top, 12)
                 } else {
                     HStack {
-                        Text("Home").liveFont(size: 27, weight: .bold).tracking(-1.15)
+                        Text("Home").liveFont(27, weight: .bold).tracking(-1.15)
                         Spacer()
                         Button(action: showRecord) { LiveAvatar(username: profile?.displayName ?? "You", actorID: store.actor, size: 32).frame(width: 44, height: 44) }.accessibilityLabel("Your record")
                     }
@@ -210,10 +219,10 @@ struct LiveHomeView: View {
                     if store.homeState == .content {
                         let complete = store.profileSnapshot.availability == .complete
                         VStack(alignment: .leading, spacing: 16) {
-                            Text(complete ? "No active challenge" : "Your saved challenges").liveFont(size: 24, weight: .bold).tracking(-0.8)
+                            Text(complete ? "No active challenge" : "Your saved challenges").liveFont(24, weight: .bold).tracking(-0.8)
                             Text(complete ? "Your finished goals are in You." : "Refresh to check your current goals. Your saved records are in You.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                             if complete && serviceAvailable { Button("Create a challenge", action: create).buttonStyle(LivePrimaryButtonStyle()) }
-                            if !complete { Button("Refresh") { Task { await store.refresh() } }.buttonStyle(LivePrimaryButtonStyle()) }
+                            if !complete { Button("Refresh") { Task { await store.refresh() } }.buttonStyle(LiveSecondaryButtonStyle()) }
                             Button("View your record", action: showRecord).font(.subheadline.weight(.semibold))
                                 .foregroundStyle(SignalTheme.accent).frame(minHeight: 44)
                         }.frame(maxWidth: .infinity, alignment: .leading).padding(20).modifier(LiveCardModifier()).padding(.top, 30)
@@ -222,7 +231,7 @@ struct LiveHomeView: View {
                     }
                     LiveRecoveryView(store: store).padding(.top, 18)
                 }
-            }.padding(.horizontal, 24).padding(.top, 20).padding(.bottom, 16)
+            }.padding(.horizontal, SignalTheme.contentInset).padding(.top, 20).padding(.bottom, 16)
         }.background(SignalTheme.canvas).toolbar(.hidden, for: .navigationBar)
             .refreshable { await store.refresh(); await friends?.refresh(); await health?.refresh() }
             .modifier(FriendsNoticeToast(friends: friends))
@@ -235,16 +244,16 @@ struct LiveHomeView: View {
     private func heading(_ row: ChallengeV1) -> some View {
         HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 9) {
-                Text(LiveChallengePresentation.title(row)).liveFont(size: 27, weight: .bold).tracking(-1.15)
+                Text(LiveChallengePresentation.title(row)).liveFont(27, weight: .bold).tracking(-1.15)
                     .fixedSize(horizontal: false, vertical: true)
                 let summaryLayout = typeSize.isAccessibilitySize
                     ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
                     : AnyLayout(HStackLayout(spacing: 10))
                 summaryLayout {
-                    Text(ChallengePresentation.dates(row)).liveFont(size: 14).foregroundStyle(SignalTheme.textSecondary)
+                    Text(ChallengePresentation.dates(row)).liveFont(14).foregroundStyle(SignalTheme.textSecondary)
                     let state = LiveChallengePresentation.state(row, actor: store.actor)
                     HStack(spacing: 5) { Circle().frame(width: 5, height: 5); Text(state) }
-                        .liveFont(size: 13, weight: .semibold)
+                        .liveFont(13, weight: .semibold)
                         .foregroundStyle(state == "Behind" ? SignalTheme.danger : state == "No update yet" ? SignalTheme.textSecondary : SignalTheme.accent)
                 }.fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, alignment: .leading)
@@ -262,7 +271,7 @@ struct LiveHomeView: View {
                     .fontWeight(.medium)
                 if !typeSize.isAccessibilitySize { Spacer() }
                 Text(LiveChallengePresentation.goal(row, actor: store.actor))
-            }.liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
+            }.liveFont(13).foregroundStyle(SignalTheme.textSecondary)
             LiveMetric(value: LiveChallengePresentation.value(row.own(store.actor).flatMap { row.savedScore($0) }, metric: row.format.metric),
                        unit: LiveChallengePresentation.unit(row.format.metric), size: row.format.metric == .steps ? 83 : 114)
                 .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 5).padding(.bottom, 8)
@@ -274,7 +283,7 @@ struct LiveHomeView: View {
                 Text(LiveChallengePresentation.remaining(row, actor: store.actor)).fontWeight(.semibold)
                 if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
                 Text(LiveChallengePresentation.ends(row)).foregroundStyle(SignalTheme.textSecondary)
-            }.liveFont(size: 12).padding(.top, 12)
+            }.liveFont(12).padding(.top, 12)
         }.padding(.horizontal, 20).padding(.top, 21).padding(.bottom, 20).modifier(LiveCardModifier())
             .accessibilityIdentifier("live.home.metric")
     }
@@ -284,10 +293,10 @@ struct LiveHomeView: View {
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
                 : AnyLayout(HStackLayout())
             headingLayout {
-                Text("With you").liveFont(size: 19, weight: .semibold).tracking(-0.4)
+                Text("With you").liveFont(19, weight: .semibold).tracking(-0.4)
                 if !typeSize.isAccessibilitySize { Spacer() }
                 Button { viewGoal(row.id) } label: {
-                    Text("\(friends.count) friends ↗").liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
+                    Text("\(friends.count) friends ↗").liveFont(12).foregroundStyle(SignalTheme.textSecondary)
                         .frame(minHeight: 44).contentShape(Rectangle())
                 }
                 .padding(.vertical, typeSize.isAccessibilitySize ? 0 : -12)
@@ -303,14 +312,14 @@ struct LiveHomeView: View {
                                 }
                                 LiveAvatar(username: friend.username, actorID: friend.actorId, size: 55)
                             }.frame(width: 66, height: 66).padding(3)
-                            Text(friend.username).liveFont(size: 14, weight: .medium).padding(.top, 10)
+                            Text(friend.username).liveFont(14, weight: .medium).padding(.top, 10)
                                 .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
                                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                             let state = LiveChallengePresentation.state(row, member: friend)
                             HStack(spacing: 3) {
                                 if state == "Done" { Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)) }
                                 Text(state)
-                            }.liveFont(size: 13, weight: .semibold).padding(.top, 4)
+                            }.liveFont(13, weight: .semibold).padding(.top, 4)
                                 .foregroundStyle(state == "Behind" ? SignalTheme.danger : state == "No update yet" ? SignalTheme.textSecondary : SignalTheme.accent)
                         }.frame(maxWidth: .infinity)
                     }.buttonStyle(.plain)
@@ -322,8 +331,8 @@ struct LiveHomeView: View {
         HStack(spacing: 12) {
             Image(systemName: "lock").font(.system(size: 20)).foregroundStyle(SignalTheme.accent)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Your goal").liveFont(size: 15, weight: .semibold)
-                Text("Your activity and record stay private.").liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
+                Text("Your goal").liveFont(15, weight: .semibold)
+                Text("Your activity and record stay private.").liveFont(13).foregroundStyle(SignalTheme.textSecondary)
             }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(16).modifier(LiveCardModifier(radius: 17, material: true))
     }
@@ -351,26 +360,26 @@ struct LiveLibraryView: View {
             VStack(alignment: .leading, spacing: 19) {
                 VStack(spacing: 16) {
                     HStack {
-                        Text("Challenges").liveFont(size: 27, weight: .bold).tracking(-1.15)
+                        Text("Challenges").liveFont(27, weight: .bold).tracking(-1.15)
+                            .lineLimit(1).minimumScaleFactor(0.7)
                         Spacer()
                         Button(action: create) {
                             Image(systemName: "plus").font(.system(size: 23)).foregroundStyle(.white)
                                 .frame(width: 44, height: 44).background(SignalTheme.accent, in: Circle())
                         }.accessibilityLabel("Create a challenge").accessibilityIdentifier("beta.create.open")
                     }
-                    let filterLayout = typeSize.isAccessibilitySize
-                        ? AnyLayout(VStackLayout(spacing: 3))
-                        : AnyLayout(HStackLayout(spacing: 3))
-                    filterLayout {
+                    // The three filters share one row until large text needs the full width.
+                    let filters = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 3)) : AnyLayout(HStackLayout(spacing: 3))
+                    filters {
                         ForEach(["All", "Invited", "Finished"], id: \.self) { value in
                             Button { filter = value } label: {
                                 HStack(spacing: 6) {
                                     Text(value)
                                     if value == "Invited", invitationCount > 0 {
-                                        Text(invitationCount.formatted()).liveFont(size: 10, weight: .semibold)
+                                        Text(invitationCount.formatted()).liveFont(10, weight: .semibold)
                                             .padding(.horizontal, 5).padding(.vertical, 2).background(SignalTheme.divider, in: RoundedRectangle(cornerRadius: 6))
                                     }
-                                }.liveFont(size: 12, weight: .semibold).frame(maxWidth: .infinity, minHeight: 44)
+                                }.liveFont(12, weight: .semibold).frame(maxWidth: .infinity, minHeight: 44)
                                     .foregroundStyle(filter == value ? SignalTheme.accent : SignalTheme.textSecondary)
                                     .background(filter == value ? Color.white : Color.clear, in: RoundedRectangle(cornerRadius: 13))
                             }.buttonStyle(.plain).accessibilityIdentifier("live.filter." + value.lowercased())
@@ -389,10 +398,10 @@ struct LiveLibraryView: View {
                                     : AnyLayout(HStackLayout())
                                 sectionLayout {
                                     Text(section == .action && rows.contains(where: { $0.status == "review" }) ? "Needs your attention" : title)
-                                        .liveFont(size: 15, weight: .semibold).tracking(-0.25)
+                                        .liveFont(15, weight: .semibold).tracking(-0.25)
                                     if !typeSize.isAccessibilitySize { Spacer() }
                                     Text("\(rows.count) \(section == .action && rows.allSatisfy(isInvitation) ? (rows.count == 1 ? "invitation" : "invitations") : (rows.count == 1 ? "challenge" : "challenges"))\(state.cursor == nil ? "" : "+")")
-                                        .liveFont(size: 11).foregroundStyle(SignalTheme.textSecondary)
+                                        .liveFont(11).foregroundStyle(SignalTheme.textSecondary)
                                 }
                                 ForEach(rows) { row in
                                     if row.status == "consent_pending", row.own(store.actor)?.consented == false {
@@ -418,9 +427,9 @@ struct LiveLibraryView: View {
                 LiveRecoveryView(store: store)
                 if store.access?.ageConfirmed != true || store.linksAvailable || !store.communities.isEmpty {
                     Button(action: entry) { Label(store.access?.ageConfirmed == true ? "Use an invitation link" : "Set up challenge access", systemImage: store.access?.ageConfirmed == true ? "link" : "person.crop.circle.badge.checkmark").frame(minHeight: 44) }
-                        .liveFont(size: 13, weight: .medium).foregroundStyle(SignalTheme.accent)
+                        .liveFont(13, weight: .medium).foregroundStyle(SignalTheme.accent)
                 }
-            }.padding(.horizontal, 24).padding(.top, 13).padding(.bottom, 24)
+            }.padding(.horizontal, SignalTheme.contentInset).padding(.top, 13).padding(.bottom, 24)
         }.background(SignalTheme.canvas).toolbar(.hidden, for: .navigationBar)
             .refreshable { await store.refresh(); await health?.refresh() }
             .confirmationDialog("Decline this invitation?", isPresented: Binding(get: { declining != nil }, set: { if !$0 { declining = nil } }), titleVisibility: .visible) {
@@ -446,24 +455,22 @@ struct LiveLibraryView: View {
                     ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
                     : AnyLayout(HStackLayout(spacing: 10))
                 titleLayout {
-                    Text(LiveChallengePresentation.title(row)).liveFont(size: 18, weight: .bold).tracking(-0.55)
+                    Text(LiveChallengePresentation.title(row)).liveFont(18, weight: .bold).tracking(-0.55)
                     if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
                     LiveStateChip(text: "Invited", neutral: true)
                 }
                 Text("\(ChallengePresentation.dates(row)) · \(LiveChallengePresentation.goal(row, actor: store.actor).replacingOccurrences(of: " goal", with: "")) over \(row.config.days) days")
-                    .liveFont(size: 11).foregroundStyle(SignalTheme.textSecondary)
+                    .liveFont(11).foregroundStyle(SignalTheme.textSecondary)
             }
             if let person = row.members.first(where: { $0.actorId == row.creatorId }) {
-                HStack(spacing: 8) { LiveAvatar(username: person.username, actorID: person.actorId, size: 27); Text("From \(person.username)").liveFont(size: 11).foregroundStyle(SignalTheme.textSecondary) }
+                HStack(spacing: 8) { LiveAvatar(username: person.username, actorID: person.actorId, size: 27); Text("From \(person.username)").liveFont(11).foregroundStyle(SignalTheme.textSecondary) }
             }
-            let actionLayout = typeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(spacing: 9))
-                : AnyLayout(HStackLayout(spacing: 9))
-            actionLayout {
-                Button { open(row.id) } label: { HStack(spacing: 8) { Text("Accept"); Image(systemName: "arrow.right") }.liveFont(size: 13, weight: .semibold) }
+            let actions = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 9)) : AnyLayout(HStackLayout(spacing: 9))
+            actions {
+                Button { open(row.id) } label: { HStack(spacing: 8) { Text("Accept"); Image(systemName: "arrow.right") }.liveFont(13, weight: .semibold) }
                     .buttonStyle(LivePrimaryButtonStyle(height: 44, radius: 13)).accessibilityLabel("Accept: review invitation")
                 Button("Decline") { declining = row.id }
-                    .liveFont(size: 13, weight: .semibold).frame(maxWidth: .infinity, minHeight: 44)
+                    .liveFont(13, weight: .semibold).frame(maxWidth: .infinity, minHeight: 44)
                     .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 13)).foregroundStyle(SignalTheme.textSecondary)
                     .disabled(!store.isFresh(row) || store.busy || store.pending != nil)
             }
@@ -480,12 +487,12 @@ struct LiveLibraryCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 10) {
-                Text(LiveChallengePresentation.title(row)).liveFont(size: 18, weight: .bold).tracking(-0.55)
+                Text(LiveChallengePresentation.title(row)).liveFont(18, weight: .bold).tracking(-0.55)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
             }
             Text(ChallengePresentation.dates(row) + (isActive ? " · " + LiveChallengePresentation.ends(row) : ""))
-                .liveFont(size: 11).foregroundStyle(SignalTheme.textSecondary).padding(.top, 5)
+                .liveFont(11).foregroundStyle(SignalTheme.textSecondary).padding(.top, 5)
             if isActive {
                 let progressLayout = typeSize.isAccessibilitySize
                     ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
@@ -497,7 +504,7 @@ struct LiveLibraryCard: View {
                     chip
                 }.padding(.top, 10)
                 LiveProgressRail(progress: LiveChallengePresentation.progress(row, actor: actor), height: 12).padding(.top, 10)
-                Text(LiveChallengePresentation.remaining(row, actor: actor)).liveFont(size: 11, weight: .semibold).padding(.top, 7)
+                Text(LiveChallengePresentation.remaining(row, actor: actor)).liveFont(11, weight: .semibold).padding(.top, 7)
             }
             let footerLayout = typeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
@@ -506,7 +513,7 @@ struct LiveLibraryCard: View {
                 if !people.isEmpty { LiveFaceStack(people: people) }
                 else if let own = row.own(actor) { LiveAvatar(username: own.username, actorID: own.actorId, size: 27) }
                 if !typeSize.isAccessibilitySize { Spacer(minLength: 10) }
-                if isActive { Text("\(LiveChallengePresentation.money(row.config.amountCents)) sim · fee $0").liveFont(size: 10).foregroundStyle(SignalTheme.textSecondary) }
+                if isActive { Text("\(LiveChallengePresentation.money(row.config.amountCents)) sim · fee $0").liveFont(10).foregroundStyle(SignalTheme.textSecondary) }
                 else { chip }
             }.padding(.top, 13)
         }.foregroundStyle(SignalTheme.textPrimary).padding(.horizontal, 17).padding(.vertical, 16)
@@ -553,13 +560,13 @@ struct LiveEmptyState: View {
                 ProgressView("Loading your challenges…")
             } else {
                 Text(serviceAvailable && store.homeState == .empty ? "Your first challenge" : "Your challenges")
-                    .liveFont(size: 24, weight: .bold).tracking(-0.8)
+                    .liveFont(24, weight: .bold).tracking(-0.8)
                 Text(!serviceAvailable ? "New challenges aren’t open yet. Refresh to check for updates." : store.homeState == .empty ? "Choose a goal and the dates that work for you." : "We couldn’t load your challenges. Refresh to try again.")
                     .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                 if serviceAvailable && store.homeState == .empty {
                     Button("Create a challenge", action: create).buttonStyle(LivePrimaryButtonStyle())
                 } else {
-                    Button("Refresh") { Task { await store.refresh() } }.buttonStyle(LivePrimaryButtonStyle())
+                    Button("Refresh") { Task { await store.refresh() } }.buttonStyle(LiveSecondaryButtonStyle())
                 }
             }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(20).modifier(LiveCardModifier())
@@ -572,14 +579,15 @@ struct LiveUnavailableSheet: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                HStack { Spacer(); LiveRoundButton(symbol: "xmark", label: "Close", action: { dismiss() }) }
-                Text(title).liveFont(size: 27, weight: .bold).tracking(-1)
-                Text(message).foregroundStyle(SignalTheme.textSecondary)
-                Button("Done") { dismiss() }.buttonStyle(LivePrimaryButtonStyle())
+            VStack(alignment: .leading, spacing: 18) {
+                Text(message).foregroundStyle(SignalTheme.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Button("Done") { dismiss() }.buttonStyle(LiveSecondaryButtonStyle())
                 Spacer()
-            }.padding(24)
-        }.background(SignalTheme.canvas).preferredColorScheme(.light)
+            }.padding(.horizontal, SignalTheme.contentInset).padding(.top, 8)
+        }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .safeAreaInset(edge: .top, spacing: 0) { LiveSheetHeader(title: title, close: { dismiss() }) }
+            .background(SignalTheme.canvas).preferredColorScheme(.light)
     }
 }
 
@@ -611,12 +619,12 @@ private struct LiveFriendSheet: View {
                                 Spacer()
                                 LiveRoundButton(symbol: "xmark", label: "Close", action: { dismiss() })
                             }
-                            Text(person.username).liveFont(size: 27, weight: .bold).tracking(-1)
+                            Text(person.username).liveFont(27, weight: .bold).tracking(-1)
                                 .fixedSize(horizontal: false, vertical: true)
                         } else {
                             HStack {
                                 LiveAvatar(username: person.username, actorID: person.actorId, size: 48)
-                                Text(person.username).liveFont(size: 27, weight: .bold).tracking(-1)
+                                Text(person.username).liveFont(27, weight: .bold).tracking(-1)
                                 Spacer(); LiveRoundButton(symbol: "xmark", label: "Close", action: { dismiss() })
                             }
                         }
@@ -630,7 +638,7 @@ private struct LiveFriendSheet: View {
                             .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                         ChallengePersonSafety(store: store, person: person)
                         Spacer(minLength: 0)
-                    }.padding(24)
+                    }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 24)
                 }
             } else {
                 LiveUnavailableSheet(title: "This update is unavailable", message: "Close this view and refresh your challenges.")

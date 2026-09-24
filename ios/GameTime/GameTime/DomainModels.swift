@@ -183,12 +183,6 @@ enum ContestParticipantStatus: String, Codable, Sendable {
     case lapsed
 }
 
-struct Charity: Codable, Equatable, Identifiable, Sendable {
-    let id: UUID
-    let name: String
-    let slug: String
-}
-
 struct ContestTimeZoneEvent: Codable, Equatable, Sendable {
     let fromTimeZone: String
     let toTimeZone: String
@@ -204,14 +198,12 @@ struct ContestTimeZoneEvent: Codable, Equatable, Sendable {
 struct ContestParticipantCard: Codable, Equatable, Identifiable, Sendable {
     let userID: UUID
     let status: ContestParticipantStatus
-    let charityID: UUID?
 
     var id: UUID { userID }
 
     enum CodingKeys: String, CodingKey {
         case userID = "user_id"
         case status
-        case charityID = "charity_id"
     }
 }
 
@@ -346,11 +338,6 @@ enum ChallengeResultReason: String, Codable, Sendable {
     case reviewTimeout = "review_timeout"
 }
 
-enum ChallengeObligationKind: String, Codable, Sendable {
-    case loserToWinnerCharity = "loser_to_winner_charity"
-    case selfDirected = "self_directed"
-}
-
 struct ChallengeResult: Codable, Equatable, Identifiable, Sendable {
     let id: UUID
     let kind: ChallengeResultKind
@@ -377,33 +364,6 @@ struct ChallengeIntegrityRationale: Codable, Equatable, Identifiable, Sendable {
     var id: String { code }
 }
 
-struct ChallengeObligation: Codable, Equatable, Identifiable, Sendable {
-    let id: UUID
-    let kind: ChallengeObligationKind
-    let amountCents: Int
-    let charityID: UUID
-    let charityName: String
-    let charitySlug: String
-    let destinationOwnerID: UUID
-    let resultDisputeClosesAt: Date
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case kind
-        case amountCents = "amount_cents"
-        case charityID = "charity_id"
-        case charityName = "charity_name"
-        case charitySlug = "charity_slug"
-        case destinationOwnerID = "destination_owner_id"
-        case resultDisputeClosesAt = "result_dispute_closes_at"
-    }
-
-    var amountText: String {
-        (Double(amountCents) / 100)
-            .formatted(.currency(code: "USD"))
-    }
-}
-
 struct ChallengeStanding: Codable, Equatable, Identifiable, Sendable {
     let participantID: UUID
     let displayName: String
@@ -419,7 +379,6 @@ struct ChallengeStanding: Codable, Equatable, Identifiable, Sendable {
     let integrityScore: Double?
     let integrityFlags: [String]?
     let rationale: [ChallengeIntegrityRationale]?
-    let obligation: ChallengeObligation?
 
     enum CodingKeys: String, CodingKey {
         case participantID = "participant_id"
@@ -436,7 +395,6 @@ struct ChallengeStanding: Codable, Equatable, Identifiable, Sendable {
         case integrityScore = "integrity_score"
         case integrityFlags = "integrity_flags"
         case rationale
-        case obligation
     }
 
     var id: UUID { participantID }
@@ -481,7 +439,6 @@ struct ChallengeDraft: Equatable, Sendable {
     var startsAt = Date().addingTimeInterval(86_400)
     var endsAt = Date().addingTimeInterval(3 * 86_400)
     var timezone = TimeZone.current.identifier
-    var charityID: UUID?
     var tieBreak: ContestTieBreak = .integrityScore
 
     func validated(now: Date = Date()) throws -> ChallengeTerms {
@@ -525,9 +482,6 @@ struct ChallengeDraft: Equatable, Sendable {
         guard !timezone.isEmpty, TimeZone(identifier: timezone) != nil else {
             throw ChallengeValidationError.invalidTimezone
         }
-        guard let charityID else {
-            throw ChallengeValidationError.missingCharity
-        }
 
         return ChallengeTerms(
             requestID: UUID(),
@@ -540,7 +494,6 @@ struct ChallengeDraft: Equatable, Sendable {
             startsAt: canonicalStartsAt,
             endsAt: canonicalEndsAt,
             timezone: timezone,
-            charityID: charityID,
             tieBreak: tieBreak
         )
     }
@@ -570,7 +523,6 @@ struct ChallengeTerms: Codable, Equatable, Sendable {
     let startsAt: Date
     let endsAt: Date
     let timezone: String
-    let charityID: UUID
     let tieBreak: ContestTieBreak
 
     var maxParticipants: Int {
@@ -588,7 +540,6 @@ struct ChallengeTerms: Codable, Equatable, Sendable {
         case startsAtBitPattern
         case endsAtBitPattern
         case timezone
-        case charityID
         case tieBreak
     }
 
@@ -603,7 +554,6 @@ struct ChallengeTerms: Codable, Equatable, Sendable {
         startsAt: Date,
         endsAt: Date,
         timezone: String,
-        charityID: UUID,
         tieBreak: ContestTieBreak
     ) {
         self.requestID = requestID
@@ -616,7 +566,6 @@ struct ChallengeTerms: Codable, Equatable, Sendable {
         self.startsAt = startsAt.canonicalizedToMilliseconds()
         self.endsAt = endsAt.canonicalizedToMilliseconds()
         self.timezone = timezone
-        self.charityID = charityID
         self.tieBreak = tieBreak
     }
 
@@ -651,7 +600,6 @@ struct ChallengeTerms: Codable, Equatable, Sendable {
             )
         )
         timezone = try container.decode(String.self, forKey: .timezone)
-        charityID = try container.decode(UUID.self, forKey: .charityID)
         tieBreak = try container.decode(
             ContestTieBreak.self,
             forKey: .tieBreak
@@ -676,7 +624,6 @@ struct ChallengeTerms: Codable, Equatable, Sendable {
             forKey: .endsAtBitPattern
         )
         try container.encode(timezone, forKey: .timezone)
-        try container.encode(charityID, forKey: .charityID)
         try container.encode(tieBreak, forKey: .tieBreak)
     }
 
@@ -698,7 +645,6 @@ enum ChallengeValidationError: LocalizedError, Equatable, Sendable {
     case windowTooLong
     case dailyNeedsFullDay
     case invalidTimezone
-    case missingCharity
 
     var errorDescription: String? {
         switch self {
@@ -713,7 +659,6 @@ enum ChallengeValidationError: LocalizedError, Equatable, Sendable {
         case .windowTooLong: "A challenge cannot run longer than 366 days."
         case .dailyNeedsFullDay: "A daily challenge must include at least one full day."
         case .invalidTimezone: "Choose a valid timezone."
-        case .missingCharity: "Choose a charity before review."
         }
     }
 }

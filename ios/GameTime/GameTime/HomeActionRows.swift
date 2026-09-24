@@ -55,7 +55,7 @@ struct HomeActionRows: View {
                 if all.count > shown.count {
                     Divider().overlay(SignalTheme.divider)
                     Button("Show \(all.count - shown.count) more") { showingAll = true }
-                        .liveFont(size: 14, weight: .semibold).foregroundStyle(SignalTheme.accent)
+                        .liveFont(14, weight: .semibold).foregroundStyle(SignalTheme.accent)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .accessibilityIdentifier("home.actions.more")
                 }
@@ -73,17 +73,17 @@ struct HomeActionRows: View {
         case .agree(let row):
             line(glyph: "calendar", title: "Agree to " + LiveChallengePresentation.title(row),
                  detail: "Before " + Self.deadline(row), urgent: true) {
-                Button("Review") { viewGoal(row.id) }.buttonStyle(FriendsPillStyle(kind: .filled))
+                Button("Review") { viewGoal(row.id) }.buttonStyle(LivePillButtonStyle(kind: .filled))
                     .accessibilityLabel("Review \(LiveChallengePresentation.title(row))")
             }
         case .incoming(let person):
             line(person: person, detail: "Friend request") {
-                FriendsActionGroup(spacing: 6) {
+                LiveActionGroup(spacing: 6) {
                     Button("Decline") { Task { await friends?.perform(.decline, person: person) } }
-                        .buttonStyle(FriendsPillStyle(kind: .quiet))
+                        .buttonStyle(LivePillButtonStyle(kind: .quiet))
                         .accessibilityLabel("Decline \(person.displayName)’s request")
                     Button("Accept") { Task { await friends?.perform(.accept, person: person) } }
-                        .buttonStyle(FriendsPillStyle(kind: .filled))
+                        .buttonStyle(LivePillButtonStyle(kind: .filled))
                         .accessibilityLabel("Accept \(person.displayName)’s request")
                 }.disabled(friends?.canAct != true)
             }
@@ -91,7 +91,7 @@ struct HomeActionRows: View {
             let from = row.members.first { $0.actorId == row.creatorId }?.username
             line(glyph: "envelope", title: LiveChallengePresentation.title(row),
                  detail: (from.map { "From \($0) · " } ?? "") + ChallengePresentation.dates(row)) {
-                Button("Review") { viewGoal(row.id) }.buttonStyle(FriendsPillStyle(kind: .quiet))
+                Button("Review") { viewGoal(row.id) }.buttonStyle(LivePillButtonStyle(kind: .quiet))
                     .accessibilityLabel("Review \(LiveChallengePresentation.title(row))")
             }
         case .accepted(let person):
@@ -108,7 +108,7 @@ struct HomeActionRows: View {
 
     private func line<Trailing: View>(glyph: String, title: String, detail: String, urgent: Bool = false,
                                       @ViewBuilder trailing: () -> Trailing) -> some View {
-        rowLayout {
+        stacked {
             HStack(spacing: 12) {
                 Image(systemName: glyph).font(.system(size: 16)).foregroundStyle(SignalTheme.accent)
                     .frame(width: 40, height: 40).background(SignalTheme.selection, in: Circle())
@@ -117,30 +117,31 @@ struct HomeActionRows: View {
             }
             trailing()
         }
-        .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 8).frame(minHeight: 64)
     }
 
     private func line<Trailing: View>(person: FriendPerson, detail: String, @ViewBuilder trailing: () -> Trailing) -> some View {
-        rowLayout {
+        stacked {
             HStack(spacing: 12) {
                 LiveAvatar(username: person.displayName, size: 40).accessibilityHidden(true)
                 text(person.displayName, detail)
             }
             trailing()
         }
-        .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 8).frame(minHeight: 64)
     }
 
-    private var rowLayout: AnyLayout {
-        typeSize.isAccessibilitySize
+    /// One row, or the actions under the text when large text needs the width.
+    private func stacked<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        let layout = typeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
             : AnyLayout(HStackLayout(spacing: 12))
+        return layout { content() }
+            .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 8).frame(minHeight: 64)
     }
 
     private func text(_ title: String, _ detail: String, urgent: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).liveFont(size: 15, weight: .semibold).lineLimit(typeSize.isAccessibilitySize ? nil : 2)
-            Text(detail).liveFont(size: 13, weight: urgent ? .medium : .regular)
+            Text(title).liveFont(15, weight: .semibold).lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+            Text(detail).liveFont(13, weight: urgent ? .medium : .regular)
                 .foregroundStyle(urgent ? SignalTheme.textPrimary : SignalTheme.textSecondary)
                 .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
         }

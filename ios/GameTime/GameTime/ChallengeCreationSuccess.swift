@@ -75,7 +75,7 @@ struct ChallengeCreationSuccess: View {
                         Image(systemName: "arrow.right").accessibilityHidden(true)
                     }
                 }
-                .buttonStyle(SignalCreationPrimaryStyle())
+                .buttonStyle(LivePrimaryButtonStyle())
                 .accessibilityIdentifier("beta.create.home")
                 Button { showingGoal = true } label: {
                     Text(lobby == nil ? "View goal" : "View challenge").font(.subheadline.weight(.medium))
@@ -135,7 +135,7 @@ struct ChallengeCreationSuccess: View {
                     HStack(alignment: .top, spacing: 12) {
                         Group {
                             if index == 0 && invited.count > 0 { Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)) }
-                            else { Text("\(index + 1)").font(.system(size: 12, weight: .bold)) }
+                            else { Text("\(index + 1)").liveFont(12, weight: .bold) }
                         }
                         .foregroundStyle(index == 0 && invited.count > 0 ? .white : SignalCreationTheme.textSecondary)
                         .frame(width: 24, height: 24)

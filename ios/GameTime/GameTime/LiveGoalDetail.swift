@@ -43,7 +43,7 @@ struct LiveGoalDetail: View {
             if let row {
                 VStack(alignment: .leading, spacing: 18) {
                     if let section {
-                        Text(section.title).liveFont(size: 26, weight: .bold).tracking(-0.8)
+                        Text(section.title).liveFont(26, weight: .bold).tracking(-0.8)
                         sheetContent(section, row: row)
                     } else {
                         header(row)
@@ -54,15 +54,15 @@ struct LiveGoalDetail: View {
                         actions(row)
                     }
                     recovery
-                }.padding(.horizontal, 24).padding(.top, 11).padding(.bottom, 28)
+                }.padding(.horizontal, SignalTheme.contentInset).padding(.top, 11).padding(.bottom, 28)
             } else {
                 VStack(spacing: 20) {
                     HStack { LiveRoundButton(symbol: "chevron.left", label: "Back") { dismiss() }; Spacer() }
                     ContentUnavailableView("Refresh this challenge", systemImage: "arrow.clockwise",
                         description: Text("Sign in to the same account and refresh to see its latest details."))
                     Button("Refresh activity") { Task { await refreshActivity() } }
-                        .buttonStyle(LivePrimaryButtonStyle())
-                }.padding(24)
+                        .buttonStyle(LiveSecondaryButtonStyle())
+                }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 24)
             }
         }
         .background(SignalTheme.canvas)
@@ -119,7 +119,7 @@ struct LiveGoalDetail: View {
                     .minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.8)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(headerSummary(row))
-                    .liveFont(size: 12.5, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+                    .liveFont(12.5, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -144,7 +144,7 @@ struct LiveGoalDetail: View {
                     .frame(height: typeSize.isAccessibilitySize ? nil : 100).layoutPriority(1)
                 VStack(alignment: typeSize.isAccessibilitySize ? .leading : .trailing, spacing: 12) {
                     Text(row.format.hasTarget ? "\(goalValue(row)) goal" : "Saved result")
-                        .liveFont(size: 12, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(12, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
                         .multilineTextAlignment(typeSize.isAccessibilitySize ? .leading : .trailing)
                     LiveStateChip(text: state, warning: state == "Behind" || state == "Missed",
                                   neutral: saved == nil || !["active", "final"].contains(row.status))
@@ -164,9 +164,9 @@ struct LiveGoalDetail: View {
                 : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
             summaryLayout {
                 Text(LiveChallengePresentation.remaining(row, actor: store.actor))
-                    .liveFont(size: 13, weight: .semibold)
+                    .liveFont(13, weight: .semibold)
                 if !typeSize.isAccessibilitySize { Spacer(minLength: 2) }
-                Text(endLabel(row)).liveFont(size: 12, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+                Text(endLabel(row)).liveFont(12, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
             }.fixedSize(horizontal: false, vertical: true)
         }.padding(18).modifier(LiveCardModifier())
             .accessibilityElement(children: .contain).accessibilityIdentifier("live.goal.hero")
@@ -193,8 +193,8 @@ struct LiveGoalDetail: View {
                 .foregroundStyle(SignalTheme.accent).frame(width: 34, height: 34)
                 .background(SignalTheme.accent.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
             VStack(alignment: .leading, spacing: 4) {
-                Text(label).liveFont(size: 12, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
-                Text(value).liveFont(size: 14, weight: .semibold).tracking(-0.25)
+                Text(label).liveFont(12, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+                Text(value).liveFont(14, weight: .semibold).tracking(-0.25)
                     .foregroundStyle(SignalTheme.textPrimary).fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, alignment: .leading)
         }.padding(.horizontal, 14).padding(.vertical, 11)
@@ -220,8 +220,8 @@ struct LiveGoalDetail: View {
                                 .frame(width: 6, height: 6).padding(.top, 10)
                                 .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 5) {
-                                Text(labels[index]).liveFont(size: 10, weight: .semibold)
-                                Text(dates[index]).liveFont(size: 10.5)
+                                Text(labels[index]).liveFont(10, weight: .semibold)
+                                Text(dates[index]).liveFont(10.5)
                             }
                             .fixedSize(horizontal: false, vertical: true)
                             .foregroundStyle(index == current ? SignalTheme.accent : SignalTheme.textSecondary)
@@ -255,8 +255,8 @@ struct LiveGoalDetail: View {
                 HStack(alignment: .top, spacing: 0) {
                     ForEach(0..<4) { index in
                         VStack(spacing: 5) {
-                            Text(labels[index]).liveFont(size: 10, weight: .semibold)
-                            Text(dates[index]).liveFont(size: 10.5)
+                            Text(labels[index]).liveFont(10, weight: .semibold)
+                            Text(dates[index]).liveFont(10.5)
                         }.foregroundStyle(index == current ? SignalTheme.accent : SignalTheme.textSecondary)
                             .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                             .accessibilityElement(children: .combine)
@@ -278,21 +278,15 @@ struct LiveGoalDetail: View {
         }
         if row.socialHidden && row.format.mode == .friend {
             Text("Shared details are hidden. Your own records and safe actions remain available.")
-                .liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
+                .liveFont(13).foregroundStyle(SignalTheme.textSecondary)
         }
     }
 
     private func stateButton(_ title: String, subtitle: String, symbol: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: symbol).foregroundStyle(SignalTheme.accent)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title).liveFont(size: 15, weight: .semibold)
-                    Text(subtitle).liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
-                }.frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
-            }.foregroundStyle(SignalTheme.textPrimary).padding(14)
-        }.buttonStyle(.plain).modifier(LiveCardModifier(radius: 16, material: true))
+            LiveNavRow(symbol: symbol, title: title, detail: subtitle, accent: true)
+                .foregroundStyle(SignalTheme.textPrimary)
+        }.buttonStyle(.plain).modifier(LiveSurfaceCard())
     }
 
     private func actions(_ row: ChallengeV1) -> some View {
@@ -306,17 +300,17 @@ struct LiveGoalDetail: View {
             actionLayout {
                 if !row.isClosed, row.own(store.actor)?.exited == false {
                     Button("Leave challenge") { exitAction = "leave" }
-                        .liveFont(size: 12, weight: .semibold).foregroundStyle(SignalTheme.danger)
+                        .liveFont(12, weight: .semibold).foregroundStyle(SignalTheme.danger)
                         .frame(maxWidth: .infinity, minHeight: 44).disabled(!canAct)
                         .accessibilityIdentifier("beta.leave")
                 } else {
                     Button("With you") { sheet = .people }
-                        .liveFont(size: 12, weight: .semibold).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(12, weight: .semibold).foregroundStyle(SignalTheme.textSecondary)
                         .frame(maxWidth: .infinity, minHeight: 44)
                 }
                 Button { Task { await refreshActivity() } } label: {
                     Label(refreshing ? "Refreshing…" : "Refresh activity", systemImage: "arrow.clockwise")
-                        .liveFont(size: 12, weight: .semibold)
+                        .liveFont(12, weight: .semibold)
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 14))
                 }.foregroundStyle(SignalTheme.accent).disabled(refreshing)
@@ -327,15 +321,15 @@ struct LiveGoalDetail: View {
 
     @ViewBuilder private var recovery: some View {
         if let error = store.error {
-            Text(error).liveFont(size: 13).foregroundStyle(SignalTheme.danger)
+            Text(error).liveFont(13).foregroundStyle(SignalTheme.danger)
                 .fixedSize(horizontal: false, vertical: true)
         }
         if store.pending != nil {
             VStack(alignment: .leading, spacing: 12) {
-                Text("An action is waiting to finish").liveFont(size: 15, weight: .semibold)
+                Text("An action is waiting to finish").liveFont(15, weight: .semibold)
                 Button("Retry saved action") { Task { await store.retry() } }.buttonStyle(LivePrimaryButtonStyle())
                 Button("Stop waiting for this action") { Task { await store.abandon() } }
-                    .frame(minHeight: 44).liveFont(size: 14)
+                    .frame(minHeight: 44).liveFont(14)
             }.padding(16).modifier(LiveCardModifier(radius: 18)).disabled(store.busy)
         }
     }
@@ -351,7 +345,7 @@ struct LiveGoalDetail: View {
             LiveGoalRules(row: row, actor: store.actor, accountMode: store.availability?.accountMode == true)
             healthContent(row)
             Toggle("I have read the complete rules and agree", isOn: $consent)
-                .liveFont(size: 15, weight: .medium).tint(SignalTheme.accent)
+                .liveFont(15, weight: .medium).tint(SignalTheme.accent)
                 .accessibilityIdentifier("beta.consent.toggle")
             Button("Agree to this challenge") { Task {
                 await store.submit(op: "consent", challenge: row,
@@ -382,9 +376,9 @@ struct LiveGoalDetail: View {
         LiveRuleModule(symbol: "applewatch", title: "What counts", subtitle: LiveGoalCopy.sourceTitle(row), expanded: true) {
             Text(row.sourcePolicyVersion.map { ChallengeHealthCopy.source($0, leaderboard: row.format.usesReceivedScores) }
                  ?? "Source: fictional activity for this local preview. No Apple Health activity is scored.")
-                .liveFont(size: 14).fixedSize(horizontal: false, vertical: true)
+                .liveFont(14).fixedSize(horizontal: false, vertical: true)
             if row.sourcePolicyVersion != nil, store.availability?.accountMode == true {
-                Text(ChallengeHealthCopy.accountMode).liveFont(size: 14).fixedSize(horizontal: false, vertical: true)
+                Text(ChallengeHealthCopy.accountMode).liveFont(14).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("live.goal.account-mode")
             }
         }
@@ -398,9 +392,9 @@ struct LiveGoalDetail: View {
                 LiveMetric(value: LiveChallengePresentation.value(saved, metric: row.format.metric),
                            unit: LiveChallengePresentation.unit(row.format.metric), size: 60)
                     .accessibilityIdentifier("beta.leaderboard.saved-score")
-                if saved == nil { Text("Unranked — no valid saved score").liveFont(size: 14) }
+                if saved == nil { Text("Unranked — no valid saved score").liveFont(14) }
                 Text("Save activity by \(row.config.correctionsBy.text(zone: row.config.timezone)). Missing or late activity doesn’t count.")
-                    .liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
+                    .liveFont(13).foregroundStyle(SignalTheme.textSecondary)
             }.padding(16).modifier(LiveCardModifier(radius: 18))
         }
         if let fact = row.own(store.actor)?.fact {
@@ -408,29 +402,33 @@ struct LiveGoalDetail: View {
                          value: "Last saved update \(fact.recordedAt.text(zone: row.config.timezone))")
         }
         healthContent(row)
-        Button("Refresh activity") { Task { await refreshActivity() } }.buttonStyle(LivePrimaryButtonStyle())
+        Button("Refresh activity") { Task { await refreshActivity() } }.buttonStyle(LiveSecondaryButtonStyle())
             .disabled(refreshing).accessibilityIdentifier("beta.leaderboard.refresh")
     }
 
     @ViewBuilder func peopleContent(_ row: ChallengeV1) -> some View {
         ForEach(row.rankedMembers) { person in
             VStack(alignment: .leading, spacing: 12) {
-                let personLayout = typeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
-                    : AnyLayout(HStackLayout())
-                personLayout {
-                    if row.showsRanking {
-                        Text(ChallengePresentation.rank(person, in: row, actor: store.actor).map(String.init) ?? "—")
-                            .liveFont(size: 18, weight: .bold).monospacedDigit().frame(minWidth: 22)
-                            .accessibilityLabel(ChallengePresentation.rank(person, in: row, actor: store.actor).map { "Rank \($0)" } ?? "Not ranked")
+                // At accessibility sizes the report menu moves under the name,
+                // so a long name keeps the full card width.
+                let header = typeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                    : AnyLayout(HStackLayout(spacing: 8))
+                header {
+                    HStack {
+                        if row.showsRanking {
+                            Text(ChallengePresentation.rank(person, in: row, actor: store.actor).map(String.init) ?? "—")
+                                .liveFont(18, weight: .bold).monospacedDigit().frame(minWidth: 22)
+                                .accessibilityLabel(ChallengePresentation.rank(person, in: row, actor: store.actor).map { "Rank \($0)" } ?? "Not ranked")
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(person.actorId == store.actor ? "You" : person.exited ? "Former participant" : person.username)
+                                .liveFont(16, weight: .semibold)
+                            Text(person.exited ? "Left challenge" : person.consented ? "Agreed" : person.selected ? "Reviewing the rules" : "Requested to join")
+                                .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
+                        }
                     }
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(person.actorId == store.actor ? "You" : person.exited ? "Former participant" : person.username)
-                            .liveFont(size: 16, weight: .semibold)
-                        Text(person.exited ? "Left challenge" : person.consented ? "Agreed" : person.selected ? "Reviewing the rules" : "Requested to join")
-                            .liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
-                    }
-                    if !typeSize.isAccessibilitySize { Spacer() }
+                    if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
                     if person.actorId != store.actor { ChallengePersonSafety(store: store, person: person) }
                 }
                 if !person.exited || person.actorId == store.actor {
@@ -438,15 +436,15 @@ struct LiveGoalDetail: View {
                                unit: LiveChallengePresentation.unit(row.format.metric), size: 42)
                     if row.savedScore(person) == nil {
                         Text(person.fact == nil ? "No update yet" : "Activity unavailable")
-                            .liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
+                            .liveFont(13).foregroundStyle(SignalTheme.textSecondary)
                     }
-                    if let target = person.target { Text("Goal: \(row.format.metric.display(target))").liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary) }
+                    if let target = person.target { Text("Goal: \(row.format.metric.display(target))").liveFont(13).foregroundStyle(SignalTheme.textSecondary) }
                     if let fact = person.fact {
                         Text("Updated \(fact.recordedAt.text(zone: row.config.timezone))")
-                            .liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
+                            .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
                     }
                 } else {
-                    Text("Activity hidden").liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
+                    Text("Activity hidden").liveFont(12).foregroundStyle(SignalTheme.textSecondary)
                 }
                 if let outcome = row.final?.result.participants?[person.actorId.uuidString.lowercased()]?.status {
                     LiveStateChip(text: resultText(outcome), warning: outcome == "missed", neutral: !["met", "winner", "missed"].contains(outcome))
@@ -455,7 +453,7 @@ struct LiveGoalDetail: View {
                     Button(person.selected ? "Remove from roster" : "Select for roster") { Task {
                         await store.submit(op: "select", challenge: row,
                             fields: ["actor_id": .string(person.actorId.uuidString.lowercased()), "selected": .bool(!person.selected)])
-                    }}.buttonStyle(LivePrimaryButtonStyle()).disabled(!canAct)
+                    }}.buttonStyle(LivePillButtonStyle(kind: person.selected ? .quiet : .filled)).disabled(!canAct)
                         .accessibilityIdentifier("beta.select.\(person.username)")
                     if !person.selected {
                         Button("Decline request") { Task {
@@ -465,21 +463,21 @@ struct LiveGoalDetail: View {
                 }
             }.padding(16).modifier(LiveCardModifier(radius: 18, material: true))
         }
-        if row.socialHidden { Text("Shared details are hidden. Your own record stays available.").liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary) }
+        if row.socialHidden { Text("Shared details are hidden. Your own record stays available.").liveFont(13).foregroundStyle(SignalTheme.textSecondary) }
     }
 
     @ViewBuilder private func lobbyContent(_ row: ChallengeV1) -> some View {
         if row.format.hasTarget, row.own(store.actor)?.exited == false {
             VStack(alignment: .leading, spacing: 14) {
-                Text("Choose your own goal").liveFont(size: 20, weight: .bold).tracking(-0.5)
+                Text("Choose your own goal").liveFont(20, weight: .bold).tracking(-0.5)
                 Text("\(SignalDateSpan.duration(row.config.days)) · \(SignalTimeZone.name(row.config.timezone))")
-                    .liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
+                    .liveFont(13).foregroundStyle(SignalTheme.textSecondary)
                 TextField(row.format.metric.targetPrompt, text: $target)
-                    .keyboardType(.numbersAndPunctuation).liveFont(size: 30, weight: .bold)
+                    .keyboardType(.numbersAndPunctuation).liveFont(30, weight: .bold)
                     .padding(14).background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 14))
                     .accessibilityLabel(row.format.metric.targetPrompt).accessibilityIdentifier("beta.target.input")
                 if !target.isEmpty, row.format.metric.parse(target) == nil {
-                    Text(row.format.metric.inputHelp).liveFont(size: 13).foregroundStyle(SignalTheme.danger)
+                    Text(row.format.metric.inputHelp).liveFont(13).foregroundStyle(SignalTheme.danger)
                 }
                 if let health, let actor = store.actor, let source = row.sourcePolicyVersion,
                    let planning = try? ChallengeHealthBindingMapper.planning(actor: actor, id: row.id, policy: row.format,
@@ -533,13 +531,13 @@ struct LiveGoalDetail: View {
                 Button("Reopen lobby and ask everyone again") { Task {
                     await store.submit(op: "reopen", challenge: row)
                     if store.pending == nil && store.error == nil { sheet = .lobby }
-                }}.buttonStyle(LivePrimaryButtonStyle()).disabled(!canAct)
+                }}.buttonStyle(LiveSecondaryButtonStyle()).disabled(!canAct)
             }
         }
         if !row.isClosed, row.own(store.actor)?.exited == false,
            row.creatorId == store.actor, row.serverTime < row.config.startsAt {
             Button("Cancel challenge", role: .destructive) { exitAction = "cancel" }
-                .liveFont(size: 14, weight: .semibold).frame(maxWidth: .infinity, minHeight: 44).disabled(!canAct)
+                .liveFont(14, weight: .semibold).frame(maxWidth: .infinity, minHeight: 44).disabled(!canAct)
         }
     }
 
@@ -569,17 +567,17 @@ struct LiveGoalDetail: View {
         }
         ForEach(row.reviews) { review in
             VStack(alignment: .leading, spacing: 10) {
-                Text("Your review").liveFont(size: 16, weight: .semibold)
+                Text("Your review").liveFont(16, weight: .semibold)
                 if row.final == nil {
                     Text(review.decision != nil ? "Review complete. Refresh for the latest result." :
                          row.serverTime >= review.resolveBy ? "Review time has ended. Refresh to see your updated result and simulated return." :
-                         "Your review request is saved. We’re checking your result.").liveFont(size: 14)
+                         "Your review request is saved. We’re checking your result.").liveFont(14)
                 }
                 Text("Requested \(review.filedAt.text(zone: row.config.timezone))")
-                    .liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
+                    .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
             }.padding(16).modifier(LiveCardModifier(radius: 18, material: true))
         }
-        Button("Refresh result") { Task { await refreshActivity() } }.buttonStyle(LivePrimaryButtonStyle()).disabled(refreshing)
+        Button("Refresh result") { Task { await refreshActivity() } }.buttonStyle(LiveSecondaryButtonStyle()).disabled(refreshing)
     }
 
     private func allocation(_ result: ChallengeV1.Allocation, row: ChallengeV1, confirmed: Bool) -> some View {
@@ -592,22 +590,22 @@ struct LiveGoalDetail: View {
             }
             if let cents = result.unallocatedCents { LiveGoalFact(label: "Unallocated simulation", value: challengeMoney(cents)) }
             Text("Nothing can be paid out or redeemed. No real money moved.")
-                .liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
+                .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
         }.padding(16).modifier(LiveCardModifier(radius: 18))
     }
 
     func communityContent(_ row: ChallengeV1) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text((row.counts ?? .init(joined: nil)).text(at: row.serverTime)).liveFont(size: 14)
+            Text((row.counts ?? .init(joined: nil)).text(at: row.serverTime)).liveFont(14)
             Text("Reports about this community go to its assigned moderator.")
-                .liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
+                .liveFont(13).foregroundStyle(SignalTheme.textSecondary)
             Button("Report unsafe behavior in this community") { Task {
                 let actor = store.actor
                 guard !store.busy, store.pending == nil else { return }
                 await store.submit(op: "report_scoped", fields: ["id": .string(row.id.uuidString.lowercased()), "subject": .null, "reason": .string("unsafe_behavior")])
                 if store.actor == actor, store.pending == nil, store.error == nil, store.lastReceipt?.saved == true { communityReportSaved = true }
             }}.buttonStyle(LivePrimaryButtonStyle()).disabled(store.busy || store.pending != nil)
-            if communityReportSaved { Text("Your community report is saved.").liveFont(size: 14) }
+            if communityReportSaved { Text("Your community report is saved.").liveFont(14) }
         }
     }
 
@@ -679,12 +677,12 @@ private struct LiveGoalSheet<Content: View>: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     HStack {
-                        Text(title).liveFont(size: 26, weight: .bold).tracking(-0.8)
+                        Text(title).liveFont(26, weight: .bold).tracking(-0.8)
                         Spacer()
                         LiveRoundButton(symbol: "xmark", label: "Close") { dismiss() }
                     }.padding(.bottom, 2)
                     content()
-                }.padding(24)
+                }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 24)
             }.background(SignalTheme.canvas).foregroundStyle(SignalTheme.textPrimary)
                 .toolbar(.hidden, for: .navigationBar)
                 .scrollDismissesKeyboard(.interactively)

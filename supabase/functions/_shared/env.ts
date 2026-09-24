@@ -246,10 +246,9 @@ export function appAttestAppIds(
  * is the anchor the whole attestation chain hangs from: get its bytes wrong in
  * the harmless direction and every attestation fails, get them wrong in the
  * other and the server accepts a chain Apple never issued. Those bytes are
- * published by Apple and are not something to reproduce from memory, which is
- * the same reasoning D26 applied to charity EINs — a plausible-but-wrong value
- * for a security anchor is worse than an absent one, because absent fails
- * loudly.
+ * published by Apple and are not something to reproduce from memory: a
+ * plausible-but-wrong value for a security anchor is worse than an absent one,
+ * because absent fails loudly.
  *
  * Absent, this throws, so a deployment that cannot verify attestations refuses
  * to serve rather than quietly accepting them. See the owner action in
