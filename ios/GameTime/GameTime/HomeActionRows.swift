@@ -54,7 +54,7 @@ struct HomeActionRows: View {
                 if all.count > shown.count {
                     Divider().overlay(SignalTheme.divider)
                     Button("Show \(all.count - shown.count) more") { showingAll = true }
-                        .font(.system(size: 14, weight: .semibold)).foregroundStyle(SignalTheme.accent)
+                        .liveFont(14, weight: .semibold).foregroundStyle(SignalTheme.accent)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .accessibilityIdentifier("home.actions.more")
                 }
@@ -128,7 +128,7 @@ struct HomeActionRows: View {
 
     private func text(_ title: String, _ detail: String, urgent: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.system(size: 15, weight: .semibold)).lineLimit(2)
+            Text(title).liveFont(15, weight: .semibold).lineLimit(2)
             Text(detail).font(.system(size: 13, weight: urgent ? .medium : .regular))
                 .foregroundStyle(urgent ? SignalTheme.textPrimary : SignalTheme.textSecondary).lineLimit(2)
         }

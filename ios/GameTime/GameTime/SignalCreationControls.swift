@@ -462,7 +462,7 @@ struct SignalAmountEditor: View {
                         save(value)
                         dismiss()
                     } label: { Text("Save amount").font(.headline).frame(maxWidth: .infinity, minHeight: 50) }
-                    .buttonStyle(SignalCreationPrimaryStyle()).accessibilityIdentifier("beta.create.amount.save")
+                    .buttonStyle(LivePrimaryButtonStyle()).accessibilityIdentifier("beta.create.amount.save")
                 }.padding(SignalCreationTheme.contentInset)
             }.background(SignalCreationTheme.canvas).foregroundStyle(SignalCreationTheme.textPrimary)
                 .scrollDismissesKeyboard(.interactively)

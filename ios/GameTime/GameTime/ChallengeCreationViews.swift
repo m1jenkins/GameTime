@@ -367,7 +367,7 @@ struct ChallengeV1Create: View {
                 if showsForwardArrow { Image(systemName: "arrow.right").accessibilityHidden(true) }
             }.font(.headline).frame(maxWidth: .infinity, minHeight: 50)
         }
-        .buttonStyle(SignalCreationPrimaryStyle())
+        .buttonStyle(LivePrimaryButtonStyle())
         .disabled(blocked || (store.pending == nil && draft.step == .review && !draft.needsReview && (store.access?.ageConfirmed != true || draft.mode == .personal && (!draft.consent || !ready))))
         .accessibilityIdentifier(store.pending != nil ? "beta.create.retry" : isReviewAction && draft.mode == .personal ? "beta.personal.preview" : draft.step == .review ? (draft.mode == .personal ? "beta.personal.commit" : "beta.create.submit") : "beta.create.continue")
     }
