@@ -332,6 +332,7 @@ struct LiveLibraryView: View {
     let entry: () -> Void
     let open: (UUID) -> Void
     @Environment(\.challengeHealthFlow) private var health
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var declining: UUID?
     private var grouped: [(String, ChallengeV1Section)] { [("Active", .active), ("Invited", .action), ("Upcoming", .upcoming), ("Finished", .history)] }
     var body: some View {
@@ -340,13 +341,16 @@ struct LiveLibraryView: View {
                 VStack(spacing: 16) {
                     HStack {
                         Text("Challenges").liveFont(27, weight: .bold).tracking(-1.15)
+                            .lineLimit(1).minimumScaleFactor(0.7)
                         Spacer()
                         Button(action: create) {
                             Image(systemName: "plus").font(.system(size: 23)).foregroundStyle(.white)
                                 .frame(width: 44, height: 44).background(SignalTheme.accent, in: Circle())
                         }.accessibilityLabel("Create a challenge").accessibilityIdentifier("beta.create.open")
                     }
-                    HStack(spacing: 3) {
+                    // The three filters share one row until large text needs the full width.
+                    let filters = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 3)) : AnyLayout(HStackLayout(spacing: 3))
+                    filters {
                         ForEach(["All", "Invited", "Finished"], id: \.self) { value in
                             Button { filter = value } label: {
                                 HStack(spacing: 6) {
@@ -434,7 +438,8 @@ struct LiveLibraryView: View {
             if let person = row.members.first(where: { $0.actorId == row.creatorId }) {
                 HStack(spacing: 8) { LiveAvatar(username: person.username, actorID: person.actorId, size: 27); Text("From \(person.username)").liveFont(11).foregroundStyle(SignalTheme.textSecondary) }
             }
-            HStack(spacing: 9) {
+            let actions = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 9)) : AnyLayout(HStackLayout(spacing: 9))
+            actions {
                 Button { open(row.id) } label: { HStack(spacing: 8) { Text("Accept"); Image(systemName: "arrow.right") }.font(.system(size: 13, weight: .semibold)) }
                     .buttonStyle(LivePrimaryButtonStyle(height: 44, radius: 13)).accessibilityLabel("Accept: review invitation")
                 Button("Decline") { declining = row.id }

@@ -376,19 +376,26 @@ struct LiveGoalDetail: View {
     @ViewBuilder func peopleContent(_ row: ChallengeV1) -> some View {
         ForEach(row.rankedMembers) { person in
             VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    if row.showsRanking {
-                        Text(ChallengePresentation.rank(person, in: row, actor: store.actor).map(String.init) ?? "—")
-                            .liveFont(18, weight: .bold).monospacedDigit().frame(minWidth: 22)
-                            .accessibilityLabel(ChallengePresentation.rank(person, in: row, actor: store.actor).map { "Rank \($0)" } ?? "Not ranked")
+                // At accessibility sizes the report menu moves under the name,
+                // so a long name keeps the full card width.
+                let header = typeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                    : AnyLayout(HStackLayout(spacing: 8))
+                header {
+                    HStack {
+                        if row.showsRanking {
+                            Text(ChallengePresentation.rank(person, in: row, actor: store.actor).map(String.init) ?? "—")
+                                .liveFont(18, weight: .bold).monospacedDigit().frame(minWidth: 22)
+                                .accessibilityLabel(ChallengePresentation.rank(person, in: row, actor: store.actor).map { "Rank \($0)" } ?? "Not ranked")
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(person.actorId == store.actor ? "You" : person.exited ? "Former participant" : person.username)
+                                .liveFont(16, weight: .semibold)
+                            Text(person.exited ? "Left challenge" : person.consented ? "Agreed" : person.selected ? "Reviewing the rules" : "Requested to join")
+                                .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
+                        }
                     }
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(person.actorId == store.actor ? "You" : person.exited ? "Former participant" : person.username)
-                            .liveFont(16, weight: .semibold)
-                        Text(person.exited ? "Left challenge" : person.consented ? "Agreed" : person.selected ? "Reviewing the rules" : "Requested to join")
-                            .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
-                    }
-                    Spacer()
+                    if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
                     if person.actorId != store.actor { ChallengePersonSafety(store: store, person: person) }
                 }
                 if !person.exited || person.actorId == store.actor {

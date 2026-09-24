@@ -38,6 +38,9 @@ round close) heads creation, invite, Add a friend, the invitation sheet and the
 and invite use `LivePrimaryButtonStyle`; `SignalCreationTheme` now reads the
 shared palette, so its selected tint matches (`#F4F7FF`). Goal page state rows
 use the white card with an accent icon tile, and roster Select/Remove are pills.
+At accessibility text sizes the Challenges filters and invitation Accept/Decline
+stack vertically, and a person's report menu moves under their name, so long
+words and names keep the full width.
 
 **Still planned.**
 
