@@ -93,7 +93,7 @@ struct ChallengeCreationInviteView: View {
                 ContentUnavailableView("Refresh your challenge", systemImage: "arrow.clockwise",
                     description: Text("We couldn’t load the latest details. Refresh to continue inviting friends."))
                 Button("Refresh") { Task { await refresh() } }
-                    .buttonStyle(SignalSecondaryButtonStyle()).disabled(loading || store.busy)
+                    .buttonStyle(LiveSecondaryButtonStyle()).disabled(loading || store.busy)
                     .accessibilityIdentifier("beta.invite.refresh")
             }
             recovery
@@ -175,7 +175,7 @@ struct ChallengeCreationInviteView: View {
                         .font(.subheadline.monospacedDigit()).foregroundStyle(SignalCreationTheme.textSecondary)
                         .accessibilityIdentifier("beta.invite.count")
                 }
-                FriendsListCard {
+                LiveListCard {
                     ForEach(members) { person in
                         FriendRow(person: FriendPerson(id: person.actorId, username: person.username,
                                                        displayName: friends?.friends.first { $0.id == person.actorId }?.displayName ?? person.username),
@@ -263,7 +263,7 @@ struct ChallengeCreationInviteView: View {
                 Button("Retry saved action") { Task { await retry() } }
                     .buttonStyle(SignalCreationPrimaryStyle()).accessibilityIdentifier("beta.invite.retry")
                 Button("Stop waiting for this action") { Task { await store.abandon() } }
-                    .buttonStyle(SignalSecondaryButtonStyle()).accessibilityIdentifier("beta.invite.abandon")
+                    .buttonStyle(LiveSecondaryButtonStyle()).accessibilityIdentifier("beta.invite.abandon")
             }.disabled(store.busy)
         }
     }

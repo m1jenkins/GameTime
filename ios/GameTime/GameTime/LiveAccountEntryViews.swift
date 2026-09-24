@@ -323,7 +323,7 @@ struct LiveLaunchingView: View {
                             .foregroundStyle(SignalTheme.textSecondary).accessibilityIdentifier("launch.offline")
                     }
                 }
-                Button("Try again", action: retry).buttonStyle(LivePrimaryButtonStyle(height: 48))
+                Button("Try again", action: retry).buttonStyle(LiveSecondaryButtonStyle())
                     .accessibilityIdentifier("launch.retry.button")
             } else {
                 HStack(spacing: 10) {

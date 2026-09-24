@@ -12,7 +12,7 @@ struct FriendsEntryRow: View {
     var body: some View {
         NavigationLink { FriendsView(challenges: challenges, username: username) } label: {
             HStack(spacing: 13) {
-                FriendsIconTile(symbol: "person.2")
+                LiveIconTile(symbol: "person.2")
                 Text("Friends").font(.system(size: 16, weight: .medium))
                 Spacer(minLength: 4)
                 Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold))
@@ -39,7 +39,7 @@ struct FriendsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                FriendsPageHeader(title: "Friends", back: { dismiss() }) {
+                LivePageHeader(title: "Friends", back: { dismiss() }) {
                     Button { adding = true } label: {
                         Image(systemName: "person.badge.plus").font(.system(size: 20, weight: .medium)).frame(width: 44, height: 44)
                     }
@@ -72,7 +72,7 @@ struct FriendsView: View {
                 FriendsBanner(title: "You’re offline", text: "Connect to see your friends and requests.")
                     .padding(.top, 8)
                 Button("Try again") { Task { await friends.refresh() } }
-                    .buttonStyle(FriendsSecondaryButtonStyle()).padding(.top, 22)
+                    .buttonStyle(LiveSecondaryButtonStyle()).padding(.top, 22)
             } else {
                 FriendsUnavailableCard(message: friends.loadError ?? "We couldn’t load your friends. Try again.",
                                        retry: { Task { await friends.refresh() } })
@@ -92,35 +92,35 @@ struct FriendsView: View {
             }
             if friends.state == .offline {
                 Button("Try again") { Task { await friends.refresh() } }
-                    .buttonStyle(FriendsSecondaryButtonStyle()).padding(.top, 22)
+                    .buttonStyle(LiveSecondaryButtonStyle()).padding(.top, 22)
             }
         }
     }
 
     @ViewBuilder private func lists(_ friends: FriendsStore) -> some View {
         if !friends.incoming.isEmpty {
-            FriendsSectionHeader(title: "Requests for you").padding(.top, 8)
-            FriendsListCard {
+            LiveSectionHeader(title: "Requests for you").padding(.top, 8)
+            LiveListCard {
                 ForEach(friends.incoming) { person in
                     FriendRow(person: person) {
                         HStack(spacing: 8) {
                             Button("Decline") { Task { await friends.perform(.decline, person: person) } }
-                                .buttonStyle(FriendsPillStyle(kind: .quiet))
+                                .buttonStyle(LivePillButtonStyle(kind: .quiet))
                                 .accessibilityLabel("Decline \(person.displayName)’s request")
                             Button("Accept") { Task { await friends.perform(.accept, person: person) } }
-                                .buttonStyle(FriendsPillStyle(kind: .filled))
+                                .buttonStyle(LivePillButtonStyle(kind: .filled))
                                 .accessibilityLabel("Accept \(person.displayName)’s request")
                         }.disabled(!friends.canAct)
                     }
                 }
             }
-            FriendsCaption("If you decline, the request goes away. We don’t tell them.").padding(.top, 8)
+            LiveCaption("If you decline, the request goes away. We don’t tell them.").padding(.top, 8)
         }
-        FriendsSectionHeader(title: "Friends")
+        LiveSectionHeader(title: "Friends")
         if friends.friends.isEmpty {
             Text("No friends yet.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
         } else {
-            FriendsListCard {
+            LiveListCard {
                 ForEach(friends.friends) { person in
                     Button { selected = person } label: {
                         FriendRow(person: person) {
@@ -134,29 +134,29 @@ struct FriendsView: View {
             }
         }
         if !friends.outgoing.isEmpty {
-            FriendsSectionHeader(title: "Requests you sent")
-            FriendsListCard {
+            LiveSectionHeader(title: "Requests you sent")
+            LiveListCard {
                 ForEach(friends.outgoing) { person in
                     FriendRow(person: person, detail: "@\(person.username) · " + FriendsDates.sent(person.sentAt, now: friends.list?.serverTime)) {
                         Button("Cancel") { Task { await friends.perform(.cancel, person: person) } }
-                            .buttonStyle(FriendsPillStyle(kind: .text)).disabled(!friends.canAct)
+                            .buttonStyle(LivePillButtonStyle(kind: .text)).disabled(!friends.canAct)
                             .accessibilityLabel("Cancel your request to \(person.displayName)")
                     }
                 }
             }
         }
-        FriendsListCard {
+        LiveListCard {
             Button { adding = true } label: {
-                FriendsNavRow(symbol: "person.badge.plus", title: "Add a friend", accent: true, chevron: false)
+                LiveNavRow(symbol: "person.badge.plus", title: "Add a friend", accent: true, chevron: false)
             }
             .buttonStyle(.plain).disabled(!friends.canAct).accessibilityIdentifier("friends.add.row")
             NavigationLink { BlockedPeopleView() } label: {
-                FriendsNavRow(symbol: "hand.raised", title: "Blocked people")
+                LiveNavRow(symbol: "hand.raised", title: "Blocked people")
             }
             .buttonStyle(.plain).accessibilityIdentifier("friends.blocked")
         }
         .padding(.top, 28)
-        FriendsCaption("Only you see your friends list.").padding(.top, 12)
+        LiveCaption("Only you see your friends list.").padding(.top, 12)
     }
 
     @ViewBuilder private func empty(_ friends: FriendsStore) -> some View {
@@ -178,14 +178,14 @@ struct FriendsView: View {
                 .accessibilityIdentifier("friends.empty.add")
             if let username {
                 ShareLink(item: FriendsShare.sentence(username)) { Label("Share your username", systemImage: "square.and.arrow.up") }
-                    .buttonStyle(FriendsSecondaryButtonStyle())
+                    .buttonStyle(LiveSecondaryButtonStyle())
             }
         }.padding(.top, 22)
-        FriendsCaption("We don’t suggest people or read your contacts.")
+        LiveCaption("We don’t suggest people or read your contacts.")
             .frame(maxWidth: .infinity).multilineTextAlignment(.center).padding(.top, 16)
         if !friends.blocked.isEmpty {
-            FriendsListCard {
-                NavigationLink { BlockedPeopleView() } label: { FriendsNavRow(symbol: "hand.raised", title: "Blocked people") }
+            LiveListCard {
+                NavigationLink { BlockedPeopleView() } label: { LiveNavRow(symbol: "hand.raised", title: "Blocked people") }
                     .buttonStyle(.plain)
             }.padding(.top, 28)
         }
@@ -269,11 +269,11 @@ struct AddFriendView: View {
                             .foregroundStyle(SignalTheme.textSecondary).padding(.horizontal, 14).frame(minHeight: 44)
                     } else {
                         Button("Send request") { Task { await model.send(person, in: friends) } }
-                            .buttonStyle(FriendsPillStyle(kind: .filled)).disabled(!friends.canAct)
+                            .buttonStyle(LivePillButtonStyle(kind: .filled)).disabled(!friends.canAct)
                             .accessibilityIdentifier("friends.add.send")
                     }
                 }
-                .modifier(FriendsWhiteCard())
+                .modifier(LiveSurfaceCard())
                 if model.sent == person.id {
                     FriendsMessage(text: "Request sent. \(person.firstName) will see it in GameTime and can accept or decline.")
                 } else if let error = model.error {
@@ -282,7 +282,7 @@ struct AddFriendView: View {
             }
         case .friends:
             FriendRow(person: person, detail: "@\(person.username) · Already your friend") { EmptyView() }
-                .modifier(FriendsWhiteCard())
+                .modifier(LiveSurfaceCard())
         case .incoming:
             VStack(alignment: .leading, spacing: 12) {
                 FriendRow(person: person) { EmptyView() }
@@ -295,14 +295,14 @@ struct AddFriendView: View {
                         .font(.subheadline).fixedSize(horizontal: false, vertical: true)
                     HStack(spacing: 8) {
                         Button("Decline") { Task { await model.answer(.decline, person, in: friends) } }
-                            .buttonStyle(FriendsPillStyle(kind: .quiet))
+                            .buttonStyle(LivePillButtonStyle(kind: .quiet))
                         Button("Accept") { Task { await model.answer(.accept, person, in: friends) } }
-                            .buttonStyle(FriendsPillStyle(kind: .filled))
+                            .buttonStyle(LivePillButtonStyle(kind: .filled))
                     }.disabled(!friends.canAct)
                     if let error = model.error { FriendsMessage(text: error, warning: true) }
                 }
             }
-            .padding(.bottom, 4).modifier(FriendsWhiteCard())
+            .padding(.bottom, 4).modifier(LiveSurfaceCard())
         case .outgoing:
             FriendsMessage(text: "You already sent @\(person.username) a request. You can cancel it from Friends.")
         case .you:
@@ -346,7 +346,7 @@ struct AddFriendView: View {
             }
             .padding(.leading, 16).padding(.trailing, 10).padding(.vertical, 8)
             .modifier(LiveCardModifier(radius: 18))
-            FriendsCaption(model.copied ? "Username copied." : "Send it to a friend so they can add you.")
+            LiveCaption(model.copied ? "Username copied." : "Send it to a friend so they can add you.")
         }
     }
 }
@@ -413,16 +413,16 @@ struct FriendActionsSheet: View {
             }
             .frame(maxWidth: .infinity).padding(.top, 28).padding(.bottom, 20)
             .accessibilityElement(children: .combine)
-            FriendsListCard {
-                Button { confirming = .remove } label: { FriendsNavRow(symbol: "person.badge.minus", title: "Remove friend", chevron: false) }
+            LiveListCard {
+                Button { confirming = .remove } label: { LiveNavRow(symbol: "person.badge.minus", title: "Remove friend", chevron: false) }
                     .buttonStyle(.plain).accessibilityIdentifier("friends.remove")
-                Button { confirming = .block } label: { FriendsNavRow(symbol: "hand.raised", title: "Block", chevron: false) }
+                Button { confirming = .block } label: { LiveNavRow(symbol: "hand.raised", title: "Block", chevron: false) }
                     .buttonStyle(.plain).accessibilityIdentifier("friends.block")
-                Button { reporting = true } label: { FriendsNavRow(symbol: "flag", title: "Report", chevron: false) }
+                Button { reporting = true } label: { LiveNavRow(symbol: "flag", title: "Report", chevron: false) }
                     .buttonStyle(.plain).accessibilityIdentifier("friends.report")
             }
             .disabled(friends?.canAct != true)
-            FriendsCaption("We don’t send a notice when you remove, block or report someone.")
+            LiveCaption("We don’t send a notice when you remove, block or report someone.")
                 .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 12)
             if let error = friends?.actionError { FriendsMessage(text: error, warning: true).padding(.top, 10) }
             Spacer(minLength: 0)
@@ -514,7 +514,7 @@ struct ReportFriendSheet: View {
             Text("Tell us what’s wrong. We read every report. \(person.firstName) isn’t told.")
                 .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true).padding(.top, 6)
-            FriendsListCard {
+            LiveListCard {
                 ForEach(FriendCommand.Reason.allCases, id: \.self) { value in
                     Button { reason = value } label: {
                         HStack(spacing: 12) {
@@ -553,7 +553,7 @@ struct ReportFriendSheet: View {
             VStack(spacing: 8) {
                 if friends?.blocked.contains(where: { $0.id == person.id }) != true {
                     Button { confirming = .block } label: { Label("Block \(person.firstName)", systemImage: "hand.raised") }
-                        .buttonStyle(FriendsSecondaryButtonStyle()).disabled(friends?.canAct != true)
+                        .buttonStyle(LiveSecondaryButtonStyle()).disabled(friends?.canAct != true)
                 }
                 Button("Done") { dismiss() }.font(.system(size: 15, weight: .medium))
                     .foregroundStyle(SignalTheme.textSecondary).frame(maxWidth: .infinity, minHeight: 44)
@@ -573,7 +573,7 @@ struct BlockedPeopleView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                FriendsPageHeader(title: "Blocked people", back: { dismiss() }) { Color.clear.frame(width: 44, height: 44) }
+                LivePageHeader(title: "Blocked people", back: { dismiss() })
                 Text("Blocked people can’t find you or send you requests. They aren’t told.")
                     .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true).padding(.top, 4)
@@ -586,11 +586,11 @@ struct BlockedPeopleView: View {
                                 .font(.subheadline).foregroundStyle(SignalTheme.textSecondary).multilineTextAlignment(.center)
                         }.frame(maxWidth: .infinity).padding(.top, 40)
                     } else {
-                        FriendsListCard {
+                        LiveListCard {
                             ForEach(friends.blocked) { person in
                                 FriendRow(person: person) {
                                     Button("Unblock") { unblocking = person; confirming = .unblock }
-                                        .buttonStyle(FriendsPillStyle(kind: .quiet)).disabled(!friends.canAct)
+                                        .buttonStyle(LivePillButtonStyle(kind: .quiet)).disabled(!friends.canAct)
                                         .accessibilityLabel("Unblock \(person.displayName)")
                                 }
                             }
@@ -638,87 +638,6 @@ struct FriendRow<Trailing: View>: View {
             trailing
         }
         .padding(.horizontal, 14).padding(.vertical, 10).frame(minHeight: 66).contentShape(Rectangle())
-    }
-}
-
-struct FriendsListCard<Content: View>: View {
-    @ViewBuilder let content: Content
-    var body: some View {
-        VStack(spacing: 0) {
-            Group(subviews: content) { rows in
-                ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-                    if index > 0 { Divider().overlay(SignalTheme.divider).padding(.leading, 14) }
-                    row
-                }
-            }
-        }
-        .background(SignalTheme.surface, in: RoundedRectangle(cornerRadius: 18))
-        .overlay { RoundedRectangle(cornerRadius: 18).strokeBorder(SignalTheme.divider.opacity(0.7), lineWidth: 0.75) }
-    }
-}
-
-struct FriendsNavRow: View {
-    let symbol: String
-    let title: String
-    var accent = false
-    var chevron = true
-    var body: some View {
-        HStack(spacing: 13) {
-            FriendsIconTile(symbol: symbol, accent: accent)
-            Text(title).font(.system(size: 16, weight: .medium))
-            Spacer(minLength: 4)
-            if chevron {
-                Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
-            }
-        }
-        .padding(.horizontal, 14).frame(minHeight: 58).contentShape(Rectangle())
-    }
-}
-
-struct FriendsIconTile: View {
-    let symbol: String
-    var accent = false
-    var body: some View {
-        Image(systemName: symbol).font(.system(size: 17, weight: .regular))
-            .foregroundStyle(accent ? SignalTheme.accent : SignalTheme.textPrimary)
-            .frame(width: 36, height: 36)
-            .background(accent ? SignalTheme.selection : SignalTheme.soft, in: RoundedRectangle(cornerRadius: 10))
-            .accessibilityHidden(true)
-    }
-}
-
-struct FriendsPageHeader<Trailing: View>: View {
-    let title: String
-    let back: () -> Void
-    @ViewBuilder let trailing: Trailing
-    var body: some View {
-        HStack {
-            LiveRoundButton(symbol: "chevron.left", label: "Back", action: back)
-            Spacer(minLength: 8)
-            Text(title).font(.system(size: 18, weight: .bold)).tracking(-0.4).accessibilityAddTraits(.isHeader)
-            Spacer(minLength: 8)
-            trailing
-        }
-        .padding(.bottom, 10)
-    }
-}
-
-struct FriendsSectionHeader: View {
-    let title: String
-    var body: some View {
-        Text(title).font(.system(size: 16, weight: .bold)).tracking(-0.3)
-            .accessibilityAddTraits(.isHeader)
-            .padding(.top, 20).padding(.bottom, 10)
-    }
-}
-
-struct FriendsCaption: View {
-    let text: String
-    init(_ text: String) { self.text = text }
-    var body: some View {
-        Text(text).font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
-            .fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4)
     }
 }
 
@@ -770,8 +689,8 @@ struct FriendsUnavailableCard: View {
 struct FriendsLoadingList: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            FriendsSectionHeader(title: "Friends").padding(.top, -12)
-            FriendsListCard {
+            LiveSectionHeader(title: "Friends").padding(.top, -12)
+            LiveListCard {
                 ForEach(0..<3, id: \.self) { _ in
                     HStack(spacing: 12) {
                         Circle().fill(SignalTheme.soft).frame(width: 44, height: 44)
@@ -868,43 +787,6 @@ struct FriendUsernameField: View {
     }
 }
 
-struct FriendsPillStyle: ButtonStyle {
-    enum Kind { case filled, quiet, text }
-    let kind: Kind
-    @Environment(\.isEnabled) private var enabled
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 14, weight: .semibold)).lineLimit(1)
-            .fixedSize(horizontal: true, vertical: false)
-            .padding(.horizontal, kind == .text ? 8 : 15).frame(minHeight: 44)
-            .foregroundStyle(!enabled ? SignalTheme.textSecondary : kind == .filled ? .white : kind == .text ? SignalTheme.textSecondary : SignalTheme.textPrimary)
-            .background {
-                if kind != .text {
-                    Capsule().fill(kind == .filled && enabled ? SignalTheme.accent : SignalTheme.soft).frame(height: 36)
-                }
-            }
-            .opacity(configuration.isPressed ? 0.75 : 1)
-            .contentShape(Rectangle())
-    }
-}
-
-struct FriendsSecondaryButtonStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var enabled
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 16, weight: .semibold))
-            .frame(maxWidth: .infinity, minHeight: 50)
-            .foregroundStyle(enabled ? SignalTheme.textPrimary : SignalTheme.textSecondary)
-            .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
-            .opacity(configuration.isPressed ? 0.8 : 1)
-    }
-}
-
-struct FriendsWhiteCard: ViewModifier {
-    func body(content: Content) -> some View {
-        content.background(SignalTheme.surface, in: RoundedRectangle(cornerRadius: 18))
-            .overlay { RoundedRectangle(cornerRadius: 18).strokeBorder(SignalTheme.divider.opacity(0.7), lineWidth: 0.75) }
-    }
-}
-
 /// A short confirmation at the bottom of the screen that leaves on its own.
 struct FriendsNoticeToast: ViewModifier {
     let friends: FriendsStore?
@@ -963,7 +845,7 @@ struct InviteAddFriendRow: View {
                     FriendsMessage(text: message.text, warning: message.warning)
                     if case .found(let person, .incoming)? = model.outcome, model.accepted != person.id {
                         Button("Accept") { Task { await model.answer(.accept, person, in: friends) } }
-                            .buttonStyle(FriendsPillStyle(kind: .filled)).disabled(!friends.canAct)
+                            .buttonStyle(LivePillButtonStyle(kind: .filled)).disabled(!friends.canAct)
                             .accessibilityLabel("Accept \(person.displayName)’s request")
                     }
                 }

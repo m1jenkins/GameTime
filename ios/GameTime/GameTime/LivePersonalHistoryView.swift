@@ -45,7 +45,7 @@ struct LivePersonalHistoryView: View {
                     .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
             }
             Button("Refresh") { Task { await store.refresh() } }
-                .buttonStyle(LivePersonalSecondaryStyle())
+                .buttonStyle(LiveSecondaryButtonStyle())
             if let error = store.presentedError {
                 Text(error).font(.footnote).foregroundStyle(SignalTheme.textSecondary)
             }
@@ -76,7 +76,7 @@ private struct LivePersonalCreationRecovery: View {
                             working = false
                         }
                     }
-                    .buttonStyle(LivePersonalSecondaryStyle()).disabled(working || store.isMutating)
+                    .buttonStyle(LiveSecondaryButtonStyle()).disabled(working || store.isMutating)
                     .accessibilityIdentifier("personal.creation.recovery")
                 }
             }
@@ -92,7 +92,7 @@ private struct LivePersonalCreationRecovery: View {
                             Button(store.isVerifyingHealthAccess ? "Connecting…" : "Connect Apple Health") {
                                 Task { _ = await store.verifyHealthAccess(timezone: pending.request.timezone) }
                             }
-                            .buttonStyle(LivePersonalSecondaryStyle())
+                            .buttonStyle(LiveSecondaryButtonStyle())
                             .disabled(store.isVerifyingHealthAccess || !store.configuration.activitySyncEnabled)
                         }
                         Button(working ? "Checking your challenge…" : "Retry saved challenge") {
@@ -105,7 +105,7 @@ private struct LivePersonalCreationRecovery: View {
                     } else {
                         Text("This draft was never submitted. You can remove it without cancelling a challenge.")
                         Button("Remove draft") { confirmRemoval = true }
-                            .buttonStyle(LivePersonalSecondaryStyle(warning: true))
+                            .buttonStyle(LiveSecondaryButtonStyle(warning: true))
                             .disabled(working || store.isMutating || store.hasPendingCreationRecoveryIssue)
                     }
                 }
@@ -181,14 +181,14 @@ struct LivePersonalDetailView: View {
                 LivePersonalCancellationRecovery(challengeID: challengeID)
                 if canCancel(challenge) {
                     Button("Cancel this challenge") { confirmCancellation = true }
-                        .buttonStyle(LivePersonalSecondaryStyle(warning: true))
+                        .buttonStyle(LiveSecondaryButtonStyle(warning: true))
                         .disabled(working || store.isMutating)
                         .accessibilityIdentifier("personal.cancel")
                 }
             } else {
                 ProgressView("Loading your challenge…").frame(maxWidth: .infinity)
                 Button("Try again") { Task { await store.openDetail(challengeID: challengeID) } }
-                    .buttonStyle(LivePersonalSecondaryStyle())
+                    .buttonStyle(LiveSecondaryButtonStyle())
             }
             if let message { Text(message).font(.footnote).foregroundStyle(SignalTheme.textSecondary) }
             if let error = store.presentedError {
@@ -257,12 +257,12 @@ struct LivePersonalDetailView: View {
                 Button(store.isVerifyingHealthAccess ? "Connecting…" : "Connect Apple Health") {
                     Task { _ = await store.verifyHealthAccess(timezone: challenge.terms.timezone) }
                 }
-                .buttonStyle(LivePersonalSecondaryStyle())
+                .buttonStyle(LiveSecondaryButtonStyle())
                 .disabled(store.isVerifyingHealthAccess || !store.configuration.activitySyncEnabled)
                 .accessibilityIdentifier("personal.health.verify")
             }
             Button(working ? "Refreshing…" : "Refresh activity") { Task { await refresh() } }
-                .buttonStyle(LivePersonalSecondaryStyle())
+                .buttonStyle(LiveSecondaryButtonStyle())
                 .disabled(working || store.stepProgress.isRefreshing)
                 .accessibilityIdentifier("personal.challenge.sync-now")
             if presentation.needsNoDataRecovery {
@@ -409,7 +409,7 @@ private struct LivePersonalPaymentCard: View {
             Button(state.isLoading ? "Refreshing…" : "Refresh") {
                 Task { await store.refreshPaymentStatus(challengeID: challenge.id) }
             }
-            .buttonStyle(LivePersonalSecondaryStyle()).disabled(state.isLoading || store.isRequestingReview)
+            .buttonStyle(LiveSecondaryButtonStyle()).disabled(state.isLoading || store.isRequestingReview)
             .accessibilityIdentifier("personal.payment.status.refresh")
             if let url = model.configuration.supportMailtoURL {
                 Link("Contact Support", destination: url).foregroundStyle(SignalTheme.accent)
@@ -503,17 +503,6 @@ private struct LivePersonalCard<Content: View>: View {
         }
         .padding(18).frame(maxWidth: .infinity, alignment: .leading)
         .modifier(LiveCardModifier(radius: 20, material: true))
-    }
-}
-
-private struct LivePersonalSecondaryStyle: ButtonStyle {
-    var warning = false
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 15, weight: .semibold))
-            .frame(maxWidth: .infinity, minHeight: 48).padding(.horizontal, 12)
-            .foregroundStyle(warning ? SignalTheme.danger : SignalTheme.accent)
-            .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 14))
-            .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
 

@@ -86,7 +86,7 @@ struct LiveChallengeShell: View {
                     VStack(alignment: .leading, spacing: 20) {
                         Text("Settings").font(.system(size: 27, weight: .bold))
                         Text("Simulated stakes · no real money moves").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                        Button("Sign out") { Task { await logout() } }.buttonStyle(LivePrimaryButtonStyle())
+                        Button("Sign out") { Task { await logout() } }.buttonStyle(LiveSecondaryButtonStyle())
                     }.padding(24).frame(maxHeight: .infinity, alignment: .top).background(SignalTheme.canvas)
                 }
             }.presentationDragIndicator(.visible).tint(SignalTheme.accent)
@@ -218,7 +218,7 @@ struct LiveHomeView: View {
                             Text(complete ? "No active challenge" : "Your saved challenges").font(.system(size: 24, weight: .bold)).tracking(-0.8)
                             Text(complete ? "Your finished goals are in You." : "Refresh to check your current goals. Your saved records are in You.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                             if complete && serviceAvailable { Button("Create a challenge", action: create).buttonStyle(LivePrimaryButtonStyle()) }
-                            if !complete { Button("Refresh") { Task { await store.refresh() } }.buttonStyle(LivePrimaryButtonStyle()) }
+                            if !complete { Button("Refresh") { Task { await store.refresh() } }.buttonStyle(LiveSecondaryButtonStyle()) }
                             Button("View your record", action: showRecord).font(.subheadline.weight(.semibold))
                                 .foregroundStyle(SignalTheme.accent).frame(minHeight: 44)
                         }.frame(maxWidth: .infinity, alignment: .leading).padding(20).modifier(LiveCardModifier()).padding(.top, 30)
@@ -522,7 +522,7 @@ struct LiveEmptyState: View {
                 if serviceAvailable && store.homeState == .empty {
                     Button("Create a challenge", action: create).buttonStyle(LivePrimaryButtonStyle())
                 } else {
-                    Button("Refresh") { Task { await store.refresh() } }.buttonStyle(LivePrimaryButtonStyle())
+                    Button("Refresh") { Task { await store.refresh() } }.buttonStyle(LiveSecondaryButtonStyle())
                 }
             }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(20).modifier(LiveCardModifier())
@@ -538,7 +538,7 @@ struct LiveUnavailableSheet: View {
             HStack { Spacer(); LiveRoundButton(symbol: "xmark", label: "Close", action: { dismiss() }) }
             Text(title).font(.system(size: 27, weight: .bold)).tracking(-1)
             Text(message).foregroundStyle(SignalTheme.textSecondary)
-            Button("Done") { dismiss() }.buttonStyle(LivePrimaryButtonStyle())
+            Button("Done") { dismiss() }.buttonStyle(LiveSecondaryButtonStyle())
             Spacer()
         }.padding(24).background(SignalTheme.canvas).preferredColorScheme(.light)
     }

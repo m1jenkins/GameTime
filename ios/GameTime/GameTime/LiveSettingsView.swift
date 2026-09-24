@@ -23,41 +23,35 @@ struct LiveSettingsView: View {
 
     var body: some View {
         LiveSettingsPage(title: "Settings") {
-            VStack(spacing: 0) {
+            LiveListCard {
                 NavigationLink { LiveHealthSettingsView(store: store) } label: {
-                    LiveSettingsRow(symbol: "heart", title: "Apple Health", detail: "Activity and permissions")
+                    LiveNavRow(symbol: "heart", title: "Apple Health", detail: "Activity and permissions")
                 }
-                Divider().padding(.leading, 52)
                 NavigationLink { LivePrivacyView() } label: {
-                    LiveSettingsRow(symbol: "lock", title: "Sharing & privacy", detail: "You choose what friends see")
+                    LiveNavRow(symbol: "lock", title: "Sharing & privacy", detail: "You choose what friends see")
                 }
             }
-            .modifier(LiveCardModifier(radius: 20, material: true))
 
-            VStack(spacing: 0) {
+            LiveListCard {
                 NavigationLink { LiveSimulationView() } label: {
-                    LiveSettingsRow(symbol: "dollarsign.circle", title: "Simulated stakes", detail: "Amounts, fees and results")
+                    LiveNavRow(symbol: "dollarsign.circle", title: "Simulated stakes", detail: "Amounts, fees and results")
                 }
-                Divider().padding(.leading, 52)
                 NavigationLink { LiveSupportView() } label: {
-                    LiveSettingsRow(symbol: "questionmark.circle", title: "Help & support", detail: "Get help and read our policies")
+                    LiveNavRow(symbol: "questionmark.circle", title: "Help & support", detail: "Get help and read our policies")
                 }
-                Divider().padding(.leading, 52)
                 NavigationLink { LiveAccountView() } label: {
-                    LiveSettingsRow(symbol: "person.crop.circle", title: "Account", detail: model.profile.map { "@\($0.handle)" } ?? "Sign-in and account deletion")
+                    LiveNavRow(symbol: "person.crop.circle", title: "Account", detail: model.profile.map { "@\($0.handle)" } ?? "Sign-in and account deletion")
                 }
                 if canOpenEarlierChallenges {
-                    Divider().padding(.leading, 52)
                     NavigationLink { LivePersonalHistoryView() } label: {
-                        LiveSettingsRow(symbol: "clock.arrow.circlepath", title: "Earlier challenges", detail: "Your existing Personal agreements")
+                        LiveNavRow(symbol: "clock.arrow.circlepath", title: "Earlier challenges", detail: "Your existing Personal agreements")
                     }
                     .accessibilityIdentifier("settings.personal-history")
                 }
             }
-            .modifier(LiveCardModifier(radius: 20, material: true))
             if demoMode.isActive {
                 Button("Exit demo mode", action: demoMode.exit)
-                    .buttonStyle(LivePrimaryButtonStyle())
+                    .buttonStyle(LiveSecondaryButtonStyle())
                     .accessibilityIdentifier("demo.exit")
             }
         }
@@ -73,45 +67,14 @@ private struct LiveSettingsPage<Content: View>: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                HStack(spacing: 12) {
-                    LiveRoundButton(symbol: "chevron.left", label: "Back") { dismiss() }
-                    Text(title).font(.system(size: 25, weight: .bold)).tracking(-0.9)
-                    Spacer(minLength: 0)
-                }
-                .padding(.bottom, 8)
+                LivePageHeader(title: title, back: { dismiss() })
                 content
             }
-            .padding(.horizontal, 24).padding(.top, 13).padding(.bottom, 24)
+            .padding(.horizontal, 20).padding(.top, 10).padding(.bottom, 28)
         }
         .background(SignalTheme.canvas.ignoresSafeArea())
         .foregroundStyle(SignalTheme.textPrimary)
         .toolbar(.hidden, for: .navigationBar)
-    }
-}
-
-private struct LiveSettingsRow: View {
-    let symbol: String
-    let title: String
-    let detail: String
-    var external = false
-
-    var body: some View {
-        HStack(spacing: 13) {
-            Image(systemName: symbol).font(.system(size: 20, weight: .regular))
-                .foregroundStyle(SignalTheme.textSecondary).frame(width: 24)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.system(size: 15, weight: .semibold))
-                Text(detail).font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
-            }
-            .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 4)
-            Image(systemName: external ? "arrow.up.right" : "chevron.right")
-                .font(.system(size: 12, weight: .medium)).foregroundStyle(SignalTheme.textSecondary)
-                .accessibilityHidden(true)
-        }
-        .padding(16).frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-        .contentShape(Rectangle())
     }
 }
 
@@ -177,7 +140,7 @@ private struct LiveHealthSettingsView: View {
             } label: {
                 Label(working ? "Refreshing…" : "Refresh activity", systemImage: "arrow.clockwise")
             }
-            .buttonStyle(LivePrimaryButtonStyle()).disabled(working || store.refreshing)
+            .buttonStyle(LiveSecondaryButtonStyle()).disabled(working || store.refreshing)
             .accessibilityIdentifier("settings.health.refresh")
             Link("Manage access in Apple Health", destination: URL(string: "https://support.apple.com/en-us/HT204351")!)
                 .font(.subheadline.weight(.semibold)).foregroundStyle(SignalTheme.accent)
@@ -249,28 +212,25 @@ private struct LiveSupportView: View {
     @Environment(AppModel.self) private var model
     var body: some View {
         LiveSettingsPage(title: "Help & support") {
-            VStack(spacing: 0) {
+            LiveListCard {
                 supportLink("Contact support", detail: "Tell us what happened", symbol: "envelope", url: model.configuration.supportMailtoURL)
                     .accessibilityIdentifier("account-support.contact")
-                Divider().padding(.leading, 52)
                 supportLink("Privacy Policy", detail: "How GameTime handles your data", symbol: "hand.raised", url: model.configuration.privacyPolicyURL)
                     .accessibilityIdentifier("account-support.privacy-policy")
-                Divider().padding(.leading, 52)
                 supportLink("Beta Terms", detail: "The terms for this beta release", symbol: "doc.text", url: model.configuration.betaTermsURL)
                     .accessibilityIdentifier("account-support.beta-terms")
             }
-            .modifier(LiveCardModifier(radius: 20, material: true))
             let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
-            Text("Version \(version)").font(.footnote).foregroundStyle(SignalTheme.textSecondary)
+            LiveCaption("Version \(version)")
         }
         .buttonStyle(.plain)
     }
 
     @ViewBuilder private func supportLink(_ title: String, detail: String, symbol: String, url: URL?) -> some View {
         if let url {
-            Link(destination: url) { LiveSettingsRow(symbol: symbol, title: title, detail: detail, external: true) }
+            Link(destination: url) { LiveNavRow(symbol: symbol, title: title, detail: detail, external: true) }
         } else {
-            LiveSettingsRow(symbol: symbol, title: title, detail: "This link isn’t available. Try again later.", external: true)
+            LiveNavRow(symbol: symbol, title: title, detail: "This link isn’t available. Try again later.", chevron: false)
         }
     }
 }
@@ -303,7 +263,7 @@ private struct LiveAccountView: View {
                     SignalAccessibility.announce("Signing out…")
                     Task { await model.signOut() }
                 }
-                .buttonStyle(LivePrimaryButtonStyle()).disabled(model.isMutating)
+                .buttonStyle(LiveSecondaryButtonStyle()).disabled(model.isMutating)
                 .accessibilityIdentifier("account-support.sign-out")
             }
             Button("Delete account") { confirmDeletion = true }
@@ -313,7 +273,7 @@ private struct LiveAccountView: View {
                 .accessibilityIdentifier("account-support.delete")
             if model.accountDeletionReceipt != nil {
                 Button("Check account deletion") { sheet = .receipt }
-                    .buttonStyle(LivePrimaryButtonStyle())
+                    .buttonStyle(LiveSecondaryButtonStyle())
                     .accessibilityIdentifier("account-support.deletion-receipt")
             }
         }
@@ -354,7 +314,7 @@ private struct LiveDeleteAccountView: View {
                 case .failed(let message):
                     LiveInformationCard(title: "Deletion didn’t finish", symbol: "exclamationmark.circle") {
                         Text(message)
-                        Button("Try again") { state = .confirm }.buttonStyle(LivePrimaryButtonStyle())
+                        Button("Try again") { state = .confirm }.buttonStyle(LiveSecondaryButtonStyle())
                         if let url = model.configuration.supportMailtoURL {
                             Link("Contact support", destination: url).foregroundStyle(SignalTheme.accent)
                                 .frame(minHeight: 44)
@@ -427,7 +387,7 @@ struct LiveAccountDeletionReceiptView: View {
                     LiveInformationCard(title: "We couldn’t load your receipt", symbol: "exclamationmark.circle") {
                         Text(error)
                         Button("Try again") { Task { await model.refreshAccountDeletionStatus() } }
-                            .buttonStyle(LivePrimaryButtonStyle())
+                            .buttonStyle(LiveSecondaryButtonStyle())
                     }
                 } else {
                     ProgressView("Checking your account deletion…")

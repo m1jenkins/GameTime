@@ -73,7 +73,7 @@ struct ChallengeV1Create: View {
                     if store.pending != nil {
                         Text("Your last action is saved on this phone. Retry it to check whether it went through.").font(.subheadline)
                         Button("Stop waiting for this action") { Task { await store.abandon(); draft.consent = false } }
-                            .buttonStyle(SignalSecondaryButtonStyle()).disabled(store.busy)
+                            .buttonStyle(LiveSecondaryButtonStyle()).disabled(store.busy)
                     }
                     if draft.reading { ProgressView("Loading your agreement…") }
                     if store.busy { ProgressView("Saving your action…") }
@@ -329,7 +329,7 @@ struct ChallengeV1Create: View {
             }.font(.subheadline.weight(.semibold)).accessibilityIdentifier("beta.create.rules")
             if draft.mode == .personal {
                 if let health, let binding = draft.healthBinding(actor: store.actor) {
-                    ChallengeHealthStatusView(flow: health, binding: binding, readiness: true).buttonStyle(SignalSecondaryButtonStyle())
+                    ChallengeHealthStatusView(flow: health, binding: binding, readiness: true).buttonStyle(LiveSecondaryButtonStyle())
                 }
                 if draft.needsReview {
                     Text("Your goal changed. Refresh the review before you agree.").font(.subheadline)

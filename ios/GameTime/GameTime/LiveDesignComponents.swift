@@ -81,6 +81,154 @@ struct LivePrimaryButtonStyle: ButtonStyle {
     }
 }
 
+/// The grey action beside or below a screen's one blue action: refresh, try
+/// again, done and other ways out. A destructive role or `warning` uses the
+/// warning color.
+struct LiveSecondaryButtonStyle: ButtonStyle {
+    var warning = false
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.font(.system(size: 16, weight: .semibold))
+            .frame(maxWidth: .infinity, minHeight: 50).padding(.horizontal, 16)
+            .foregroundStyle(!enabled ? SignalTheme.textSecondary
+                             : warning || configuration.role == .destructive ? SignalTheme.danger : SignalTheme.textPrimary)
+            .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
+            .opacity(configuration.isPressed ? 0.8 : 1)
+    }
+}
+
+/// A small inline action inside a row, such as Accept, Decline or Cancel.
+struct LivePillButtonStyle: ButtonStyle {
+    enum Kind { case filled, quiet, text }
+    let kind: Kind
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.font(.system(size: 14, weight: .semibold)).lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+            .padding(.horizontal, kind == .text ? 8 : 15).frame(minHeight: 44)
+            .foregroundStyle(!enabled ? SignalTheme.textSecondary : kind == .filled ? .white : kind == .text ? SignalTheme.textSecondary : SignalTheme.textPrimary)
+            .background {
+                if kind != .text {
+                    Capsule().fill(kind == .filled && enabled ? SignalTheme.accent : SignalTheme.soft).frame(height: 36)
+                }
+            }
+            .opacity(configuration.isPressed ? 0.75 : 1)
+            .contentShape(Rectangle())
+    }
+}
+
+/// A pushed page's top bar: round back button, centered title, optional
+/// trailing control. An empty trailing slot keeps the title centered.
+struct LivePageHeader<Trailing: View>: View {
+    let title: String
+    var backLabel = "Back"
+    let back: () -> Void
+    @ViewBuilder let trailing: Trailing
+    var body: some View {
+        HStack {
+            LiveRoundButton(symbol: "chevron.left", label: backLabel, action: back)
+            Spacer(minLength: 8)
+            Text(title).font(.system(size: 18, weight: .bold)).tracking(-0.4)
+                .multilineTextAlignment(.center).accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 8)
+            trailing
+        }
+        .padding(.bottom, 10)
+    }
+}
+extension LivePageHeader where Trailing == LivePageHeaderSpacer {
+    init(title: String, backLabel: String = "Back", back: @escaping () -> Void) {
+        self.init(title: title, backLabel: backLabel, back: back) { LivePageHeaderSpacer() }
+    }
+}
+struct LivePageHeaderSpacer: View {
+    var body: some View { Color.clear.frame(width: 44, height: 44).accessibilityHidden(true) }
+}
+
+struct LiveSectionHeader: View {
+    let title: String
+    var body: some View {
+        Text(title).font(.system(size: 16, weight: .bold)).tracking(-0.3)
+            .accessibilityAddTraits(.isHeader)
+            .padding(.top, 20).padding(.bottom, 10)
+    }
+}
+
+struct LiveCaption: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View {
+        Text(text).font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+            .fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4)
+    }
+}
+
+/// A white card of rows with inset dividers between them.
+struct LiveListCard<Content: View>: View {
+    @ViewBuilder let content: Content
+    var body: some View {
+        VStack(spacing: 0) {
+            Group(subviews: content) { rows in
+                ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                    if index > 0 { Divider().overlay(SignalTheme.divider).padding(.leading, 14) }
+                    row
+                }
+            }
+        }
+        .modifier(LiveSurfaceCard())
+    }
+}
+
+/// The white card surface on its own, for a single row or result.
+struct LiveSurfaceCard: ViewModifier {
+    func body(content: Content) -> some View {
+        content.background(SignalTheme.surface, in: RoundedRectangle(cornerRadius: 18))
+            .overlay { RoundedRectangle(cornerRadius: 18).strokeBorder(SignalTheme.divider.opacity(0.7), lineWidth: 0.75) }
+    }
+}
+
+/// A row in a list card: icon tile, title, optional detail and a chevron, or
+/// an arrow when it opens outside the app.
+struct LiveNavRow: View {
+    let symbol: String
+    let title: String
+    var detail: String? = nil
+    var accent = false
+    var chevron = true
+    var external = false
+    var body: some View {
+        HStack(spacing: 13) {
+            LiveIconTile(symbol: symbol, accent: accent)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.system(size: 16, weight: .medium))
+                if let detail {
+                    Text(detail).font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 4)
+            if chevron || external {
+                Image(systemName: external ? "arrow.up.right" : "chevron.right").font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
+            }
+        }
+        .padding(.horizontal, 14).padding(.vertical, detail == nil ? 0 : 10)
+        .frame(minHeight: detail == nil ? 58 : 66).contentShape(Rectangle())
+    }
+}
+
+struct LiveIconTile: View {
+    let symbol: String
+    var accent = false
+    var body: some View {
+        Image(systemName: symbol).font(.system(size: 17, weight: .regular))
+            .foregroundStyle(accent ? SignalTheme.accent : SignalTheme.textPrimary)
+            .frame(width: 36, height: 36)
+            .background(accent ? SignalTheme.selection : SignalTheme.soft, in: RoundedRectangle(cornerRadius: 10))
+            .accessibilityHidden(true)
+    }
+}
+
 struct LiveRoundButton: View {
     let symbol: String
     let label: String
