@@ -593,13 +593,13 @@ alter table public.contest_participants
   disable trigger contest_participants_apply_transition;
 
 insert into public.contest_participants (
-  contest_id, user_id, status, timezone, charity_id, accepted_at
+  contest_id, user_id, status, timezone, accepted_at
 )
 values
-  ('db000000-0000-0000-0000-000000000002', 'da222222-2222-2222-2222-222222222222', 'accepted', 'UTC', null, '2026-06-30T00:00:00Z'),
-  ('db000000-0000-0000-0000-000000000003', 'da333333-3333-3333-3333-333333333333', 'accepted', 'UTC', null, '2026-06-30T00:00:00Z'),
-  ('db000000-0000-0000-0000-000000000004', 'da444444-4444-4444-4444-444444444444', 'accepted', 'UTC', null, '2026-06-30T00:00:00Z'),
-  ('db000000-0000-0000-0000-000000000005', 'da555555-5555-5555-5555-555555555555', 'accepted', 'UTC', null, '2026-06-30T00:00:00Z');
+  ('db000000-0000-0000-0000-000000000002', 'da222222-2222-2222-2222-222222222222', 'accepted', 'UTC', '2026-06-30T00:00:00Z'),
+  ('db000000-0000-0000-0000-000000000003', 'da333333-3333-3333-3333-333333333333', 'accepted', 'UTC', '2026-06-30T00:00:00Z'),
+  ('db000000-0000-0000-0000-000000000004', 'da444444-4444-4444-4444-444444444444', 'accepted', 'UTC', '2026-06-30T00:00:00Z'),
+  ('db000000-0000-0000-0000-000000000005', 'da555555-5555-5555-5555-555555555555', 'accepted', 'UTC', '2026-06-30T00:00:00Z');
 
 alter table public.contest_participants
   enable trigger contest_participants_apply_transition;

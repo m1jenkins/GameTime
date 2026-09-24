@@ -907,8 +907,7 @@ final class PersonalActivitySyncCoordinator: PersonalActivitySyncing {
             participants: [
                 ContestParticipantCard(
                     userID: ownerID,
-                    status: .accepted,
-                    charityID: nil
+                    status: .accepted
                 )
             ]
         )

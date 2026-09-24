@@ -98,7 +98,7 @@ separate versions and fixture restrictions. The new `challenge_*_v1` domain
 implements the D134/D135 Beta contract; generic distance fields or dormant social
 code are not substitutes for it. [PLAN.md](PLAN.md) preserves the historical
 roadmap. [Dormant subsystem contracts](docs/archive/2026-08-03_DORMANT_SUBSYSTEMS.md)
-cover Solo, charity, legacy social and geofence behavior. Historical Watch source
+cover Solo, legacy social and geofence behavior; D143 removed charity. Historical Watch source
 is inert and remains outside active targets. Cleanup never converts agreements
 or deletes their data.
 

@@ -689,7 +689,6 @@ private final class FixtureStore {
     static let davidTwoID = UUID(
         uuidString: "77777777-7777-7777-7777-777777777777"
     )!
-    static let charityID = UUID(uuidString: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")!
     static let invitationID = UUID(uuidString: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")!
     static let activeContestID = UUID(uuidString: "cccccccc-cccc-cccc-cccc-cccccccccccc")!
 
@@ -697,7 +696,6 @@ private final class FixtureStore {
     var profile: UserProfile?
     var cards: [FriendshipCard]
     var contests: [ContestCard]
-    var charities: [Charity]
     var standingsByContestID: [UUID: ChallengeStandings]
     var challengeRequests: [UUID: FixtureChallengeRequest] = [:]
     let discoverableProfiles: [ProfileCard]
@@ -813,13 +811,11 @@ private final class FixtureStore {
                     participants: [
                         ContestParticipantCard(
                             userID: Self.friendID,
-                            status: .accepted,
-                            charityID: Self.charityID
+                            status: .accepted
                         ),
                         ContestParticipantCard(
                             userID: Self.callerID,
-                            status: .invited,
-                            charityID: nil
+                            status: .invited
                         ),
                     ]
                 ),
@@ -848,24 +844,15 @@ private final class FixtureStore {
                     participants: [
                         ContestParticipantCard(
                             userID: Self.callerID,
-                            status: .accepted,
-                            charityID: Self.charityID
+                            status: .accepted
                         ),
                         ContestParticipantCard(
                             userID: Self.friendID,
-                            status: .accepted,
-                            charityID: Self.charityID
+                            status: .accepted
                         ),
                     ]
                 ),
             ]
-        charities = [
-            Charity(
-                id: Self.charityID,
-                name: "Fixture Community Fund",
-                slug: "fixture-community-fund"
-            )
-        ]
         standingsByContestID =
             scenario.empty
             ? [:]
@@ -895,7 +882,6 @@ private final class FixtureStore {
                 startsAt: now.addingTimeInterval(86_400),
                 endsAt: now.addingTimeInterval(3 * 86_400),
                 timezone: "America/Chicago",
-                charityID: charityID,
                 tieBreak: .integrityScore
             ),
             createdAt: now.addingTimeInterval(-120),
@@ -910,9 +896,6 @@ private final class FixtureStore {
     ) -> ChallengeStandings {
         let resultID = UUID(
             uuidString: "12121212-1212-1212-1212-121212121212"
-        )!
-        let obligationID = UUID(
-            uuidString: "14141414-1414-1414-1414-141414141414"
         )!
         let result =
             final
@@ -970,8 +953,7 @@ private final class FixtureStore {
                         : nil,
                     integrityScore: final ? 97 : nil,
                     integrityFlags: final ? [] : nil,
-                    rationale: final ? winnerRationale : nil,
-                    obligation: nil
+                    rationale: final ? winnerRationale : nil
                 ),
                 ChallengeStanding(
                     participantID: callerID,
@@ -989,21 +971,7 @@ private final class FixtureStore {
                         : nil,
                     integrityScore: final ? 95 : 94.5,
                     integrityFlags: [],
-                    rationale: callerRationale,
-                    obligation: final
-                        ? ChallengeObligation(
-                            id: obligationID,
-                            kind: .loserToWinnerCharity,
-                            amountCents: 1_000,
-                            charityID: charityID,
-                            charityName: "Fixture Community Fund",
-                            charitySlug: "fixture-community-fund",
-                            destinationOwnerID: friendID,
-                            resultDisputeClosesAt: now.addingTimeInterval(
-                                7 * 86_400
-                            )
-                        )
-                        : nil
+                    rationale: callerRationale
                 ),
             ]
         )
@@ -1265,11 +1233,6 @@ private final class FixtureContestsClient: ContestsClient {
         }
     }
 
-    func listCharities() async throws -> [Charity] {
-        try await store.prepareRead()
-        return store.charities
-    }
-
     func standings(contestID: UUID) async throws -> ChallengeStandings? {
         try await store.prepareRead()
         return store.standingsByContestID[contestID]
@@ -1326,14 +1289,12 @@ private final class FixtureContestsClient: ContestsClient {
                 participants: [
                     ContestParticipantCard(
                         userID: expectedUserID,
-                        status: .accepted,
-                        charityID: terms.charityID
+                        status: .accepted
                     ),
                 ] + terms.inviteeIDs.map {
                     ContestParticipantCard(
                         userID: $0,
-                        status: .invited,
-                        charityID: nil
+                        status: .invited
                     )
                 }
             )
@@ -1348,16 +1309,14 @@ private final class FixtureContestsClient: ContestsClient {
     func acceptInvitation(
         contestID: UUID,
         userID: UUID,
-        timezone: String,
-        charityID: UUID
+        timezone: String
     ) async throws {
         guard !store.offline else { throw FixtureFailure.offline }
         update(
             contestID: contestID,
             userID: userID,
             status: .accepted,
-            timezone: timezone,
-            charityID: charityID
+            timezone: timezone
         )
     }
 
@@ -1374,8 +1333,7 @@ private final class FixtureContestsClient: ContestsClient {
         contestID: UUID,
         userID: UUID,
         status: ContestParticipantStatus,
-        timezone: String? = nil,
-        charityID: UUID? = nil
+        timezone: String? = nil
     ) {
         guard let index = store.contests.firstIndex(where: { $0.id == contestID })
         else {
@@ -1404,8 +1362,7 @@ private final class FixtureContestsClient: ContestsClient {
                 guard $0.userID == userID else { return $0 }
                 return ContestParticipantCard(
                     userID: $0.userID,
-                    status: status,
-                    charityID: charityID ?? $0.charityID
+                    status: status
                 )
             }
         )

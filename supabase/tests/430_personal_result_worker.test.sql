@@ -142,7 +142,6 @@ insert into public.contest_participants (
   user_id,
   status,
   timezone,
-  charity_id,
   accepted_at
 )
 select
@@ -150,7 +149,6 @@ select
   owner_id,
   'accepted'::public.contest_participant_status,
   'UTC',
-  null,
   '2026-06-30T00:00:00Z'::timestamptz
 from (
   values
@@ -686,16 +684,6 @@ select ok(
   )
   and not exists (
     select 1
-    from public.donation_obligations obligation
-    where obligation.contest_id in (
-      'fb000000-0000-0000-0000-000000000001',
-      'fb000000-0000-0000-0000-000000000002',
-      'fb000000-0000-0000-0000-000000000003',
-      'fb000000-0000-0000-0000-000000000004'
-    )
-  )
-  and not exists (
-    select 1
     from app.personal_stripe_sandbox_charge_commands command
     where command.challenge_id in (
       'fb000000-0000-0000-0000-000000000001',
@@ -704,7 +692,7 @@ select ok(
       'fb000000-0000-0000-0000-000000000004'
     )
   ),
-  'the worker creates no Social result, donation obligation, or charge command'
+  'the worker creates no Social result or charge command'
 );
 
 set local role authenticated;

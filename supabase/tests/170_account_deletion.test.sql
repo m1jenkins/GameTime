@@ -122,7 +122,7 @@ select is(
         or policy.polname = 'active_actor_only'
       )
   ),
-  20::bigint,
+  19::bigint,
   'every authenticated public table composes a restrictive active-actor policy'
 );
 select ok(
@@ -340,12 +340,6 @@ insert into public.profiles (
     'UTC'
   );
 
-insert into public.charities (id, name, ein, slug) values (
-  'c0000001-0000-0000-0000-000000000001',
-  'D81 Test Fund',
-  '12-3456789',
-  'd81-test-fund'
-);
 
 insert into public.friendships (
   user_a,
@@ -457,23 +451,20 @@ insert into public.contest_participants (
   user_id,
   status,
   invited_by,
-  timezone,
-  charity_id
+  timezone
 ) values
   (
     'a0000001-0000-0000-0000-000000000001',
     '22222222-2222-2222-2222-222222222222',
     'accepted',
     null,
-    'UTC',
-    'c0000001-0000-0000-0000-000000000001'
+    'UTC'
   ),
   (
     'a0000001-0000-0000-0000-000000000001',
     '11111111-1111-1111-1111-111111111111',
     'invited',
     '22222222-2222-2222-2222-222222222222',
-    null,
     null
   ),
   (
@@ -481,15 +472,13 @@ insert into public.contest_participants (
     '11111111-1111-1111-1111-111111111111',
     'accepted',
     null,
-    'America/Los_Angeles',
-    'c0000001-0000-0000-0000-000000000001'
+    'America/Los_Angeles'
   ),
   (
     'a0000001-0000-0000-0000-000000000002',
     '33333333-3333-3333-3333-333333333333',
     'invited',
     '11111111-1111-1111-1111-111111111111',
-    null,
     null
   ),
   (
@@ -497,15 +486,13 @@ insert into public.contest_participants (
     '22222222-2222-2222-2222-222222222222',
     'accepted',
     null,
-    'UTC',
-    'c0000001-0000-0000-0000-000000000001'
+    'UTC'
   ),
   (
     'a0000001-0000-0000-0000-000000000003',
     '11111111-1111-1111-1111-111111111111',
     'invited',
     '22222222-2222-2222-2222-222222222222',
-    null,
     null
   ),
   (
@@ -513,15 +500,13 @@ insert into public.contest_participants (
     '22222222-2222-2222-2222-222222222222',
     'accepted',
     null,
-    'UTC',
-    'c0000001-0000-0000-0000-000000000001'
+    'UTC'
   ),
   (
     'a0000001-0000-0000-0000-000000000004',
     '11111111-1111-1111-1111-111111111111',
     'invited',
     '22222222-2222-2222-2222-222222222222',
-    null,
     null
   ),
   (
@@ -529,15 +514,13 @@ insert into public.contest_participants (
     '22222222-2222-2222-2222-222222222222',
     'accepted',
     null,
-    'UTC',
-    'c0000001-0000-0000-0000-000000000001'
+    'UTC'
   ),
   (
     'a0000001-0000-0000-0000-000000000005',
     '33333333-3333-3333-3333-333333333333',
     'invited',
     '22222222-2222-2222-2222-222222222222',
-    null,
     null
   );
 
@@ -547,8 +530,7 @@ set status = 'accepted',
       when '11111111-1111-1111-1111-111111111111'::uuid
         then 'America/Los_Angeles'
       else 'UTC'
-    end,
-    charity_id = 'c0000001-0000-0000-0000-000000000001'
+    end
 where (contest_id, user_id) in (
   (
     'a0000001-0000-0000-0000-000000000001'::uuid,
@@ -569,8 +551,7 @@ select set_config(
 with updated as (
   update public.contest_participants
   set status = 'accepted',
-      timezone = 'UTC',
-      charity_id = 'c0000001-0000-0000-0000-000000000001'
+      timezone = 'UTC'
   where contest_id = 'a0000001-0000-0000-0000-000000000005'
     and user_id = '33333333-3333-3333-3333-333333333333'
   returning 1

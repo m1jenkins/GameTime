@@ -144,7 +144,7 @@ function day(
 }
 
 function accepted(userId: string, timezone: string) {
-  return { userId, status: "accepted" as const, timezone, charityId: null };
+  return { userId, status: "accepted" as const, timezone };
 }
 
 // ---------------------------------------------------------------------------
@@ -189,7 +189,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
   {
     name: "cumulative/nobody-reaches-the-target",
     why: "The rule that makes this a goal rather than a wager. Bob walked three " +
-      "times what Alice did and still owes nobody a donation, because neither " +
+      "times what Alice did and still owes nobody anything, because neither " +
       "did the thing they staked money on. Changing this to 'highest total " +
       "wins' would make a losing participant pay a winner who also failed.",
     input: {
@@ -579,7 +579,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
     name: "tie/earliest-to-target-cannot-separate",
     why: "An hour is the finest grain the ledger records, so two people crossing " +
       "in the same bucket is ordinary. There is no further evidence to appeal " +
-      "to, and the engine must not reach for user id — settling a donation by " +
+      "to, and the engine must not reach for user id — settling a stake by " +
       "whose UUID sorts lower is indefensible.",
     input: {
       timezoneChanges: [],
@@ -607,7 +607,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
 
   {
     name: "tie/void",
-    why: "The tie-break the participants chose says nobody donates.",
+    why: "The tie-break the participants chose says nobody pays.",
     input: {
       timezoneChanges: [],
       contest: {
@@ -631,8 +631,8 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
   {
     name: "tie/group-all-donate-includes-a-nonqualifier",
     why: "`both_donate` resolves a tie between qualifiers, but D75 preserves the " +
-      "accepted exposure of the complete roster. A nonqualifier still donates " +
-      "to their own nomination.",
+      "accepted exposure of the complete roster. A nonqualifier is still " +
+      "covered by the outcome.",
     input: {
       timezoneChanges: [],
       contest: {
@@ -680,7 +680,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       roster: [
         accepted(ALICE, "UTC"),
         accepted(BOB, "UTC"),
-        { userId: CAROL, status: "withdrawn", timezone: "UTC", charityId: null },
+        { userId: CAROL, status: "withdrawn", timezone: "UTC" },
       ],
       evidence: [
         bucket(ALICE, "2026-01-05", 8, 12000, UTC),
@@ -712,7 +712,7 @@ export const SCORING_FIXTURES: readonly ScoringFixture[] = [
       },
       roster: [
         accepted(ALICE, "UTC"),
-        { userId: BOB, status: "declined", timezone: "UTC", charityId: null },
+        { userId: BOB, status: "declined", timezone: "UTC" },
       ],
       evidence: [bucket(ALICE, "2026-01-05", 8, 99000, UTC)],
     },

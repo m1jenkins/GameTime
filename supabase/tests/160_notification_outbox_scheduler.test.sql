@@ -31,13 +31,6 @@ insert into public.friendships (user_a, user_b, requested_by, status) values
     'accepted'
   );
 
-insert into public.charities (id, name, ein, slug) values
-  (
-    'c0000001-0000-0000-0000-000000000001',
-    'Trail Fund',
-    '12-3456789',
-    'trail-fund'
-  );
 
 -- ---------------------------------------------------------------------------
 -- Generic outbox shape
@@ -243,7 +236,6 @@ select public.create_contest(
   now() + interval '3 days',
   now() + interval '8 days',
   'UTC',
-  'c0000001-0000-0000-0000-000000000001',
   2::smallint
 ) as id;
 
@@ -257,7 +249,6 @@ select public.create_contest(
   now() + interval '1 day',
   now() + interval '8 days',
   'UTC',
-  'c0000001-0000-0000-0000-000000000001',
   3::smallint
 ) as id;
 
@@ -271,7 +262,6 @@ select public.create_contest(
   now() + interval '1 day',
   now() + interval '8 days',
   'UTC',
-  'c0000001-0000-0000-0000-000000000001',
   2::smallint
 ) as id;
 
@@ -364,8 +354,7 @@ select set_config(
 );
 update public.contest_participants
 set status = 'accepted',
-    timezone = 'UTC',
-    charity_id = 'c0000001-0000-0000-0000-000000000001'
+    timezone = 'UTC'
 where contest_id = (select id from t_activate)
   and user_id = '22222222-2222-2222-2222-222222222222';
 

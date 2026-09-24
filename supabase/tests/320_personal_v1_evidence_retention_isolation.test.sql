@@ -153,8 +153,8 @@ begin
   );
 
   insert into public.contest_participants (
-    contest_id, user_id, status, timezone, charity_id
-  ) values (p_challenge_id, p_user_id, 'accepted', 'UTC', null);
+    contest_id, user_id, status, timezone
+  ) values (p_challenge_id, p_user_id, 'accepted', 'UTC');
 
   insert into public.personal_challenge_terms (
     challenge_id, user_id, cadence, target_steps,

@@ -3,8 +3,8 @@
 September 4, 2026 (local date). Implements the native slice from the
 [Phase 1A handoff](DUEL_AGREEMENT_V1_ACCEPTANCE.md#phase-1b-handoff).
 This is a local experiment. Release access, hosted admission, deployments and
-live money remain disabled. Personal, Solo and charity agreements retain their
-existing meanings and request formats.
+live money remain disabled. Personal and Solo agreements retain their
+existing meanings and request formats; D143 removed charity.
 
 ## Implementation
 

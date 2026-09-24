@@ -109,9 +109,6 @@ final class PendingChallengeStoreTests: XCTestCase {
         let requestID = UUID(
             uuidString: "33333333-3333-3333-3333-333333333333"
         )!
-        let charityID = UUID(
-            uuidString: "44444444-4444-4444-4444-444444444444"
-        )!
         let createdAt = Date(
             timeIntervalSinceReferenceDate: 800_000_000.123_456
         )
@@ -131,7 +128,6 @@ final class PendingChallengeStoreTests: XCTestCase {
                 timeIntervalSinceReferenceDate: 800_259_200.654_321
             ),
             timezone: "America/Chicago",
-            charityID: charityID,
             tieBreak: .integrityScore
         )
         let legacyEnvelope = LegacyPendingDuelStoreEnvelope(
@@ -256,7 +252,6 @@ final class PendingChallengeStoreTests: XCTestCase {
             startsAt: original.terms.startsAt,
             endsAt: original.terms.endsAt,
             timezone: original.terms.timezone,
-            charityID: original.terms.charityID,
             tieBreak: original.terms.tieBreak
         )
         await assertConflictingSave(
@@ -314,9 +309,6 @@ final class PendingChallengeStoreTests: XCTestCase {
                 startsAt: startsAt,
                 endsAt: endsAt,
                 timezone: "America/Chicago",
-                charityID: UUID(
-                    uuidString: "cccccccc-cccc-cccc-cccc-cccccccccccc"
-                )!,
                 tieBreak: .earliestToTarget
             ),
             createdAt: createdAt,

@@ -323,7 +323,6 @@ struct LegacyDuelTerms: Codable, Equatable, Sendable {
     let startsAt: Date
     let endsAt: Date
     let timezone: String
-    let charityID: UUID
     let tieBreak: ContestTieBreak
 
     enum CodingKeys: String, CodingKey {
@@ -337,7 +336,6 @@ struct LegacyDuelTerms: Codable, Equatable, Sendable {
         case startsAtBitPattern
         case endsAtBitPattern
         case timezone
-        case charityID
         case tieBreak
     }
 
@@ -352,7 +350,6 @@ struct LegacyDuelTerms: Codable, Equatable, Sendable {
         startsAt: Date,
         endsAt: Date,
         timezone: String,
-        charityID: UUID,
         tieBreak: ContestTieBreak
     ) {
         self.requestID = requestID
@@ -365,7 +362,6 @@ struct LegacyDuelTerms: Codable, Equatable, Sendable {
         self.startsAt = startsAt.canonicalizedToMilliseconds()
         self.endsAt = endsAt.canonicalizedToMilliseconds()
         self.timezone = timezone
-        self.charityID = charityID
         self.tieBreak = tieBreak
     }
 
@@ -398,7 +394,6 @@ struct LegacyDuelTerms: Codable, Equatable, Sendable {
             )
         )
         timezone = try container.decode(String.self, forKey: .timezone)
-        charityID = try container.decode(UUID.self, forKey: .charityID)
         tieBreak = try container.decode(
             ContestTieBreak.self,
             forKey: .tieBreak
@@ -423,7 +418,6 @@ struct LegacyDuelTerms: Codable, Equatable, Sendable {
             forKey: .endsAtBitPattern
         )
         try container.encode(timezone, forKey: .timezone)
-        try container.encode(charityID, forKey: .charityID)
         try container.encode(tieBreak, forKey: .tieBreak)
     }
 
@@ -439,7 +433,6 @@ struct LegacyDuelTerms: Codable, Equatable, Sendable {
             startsAt: startsAt,
             endsAt: endsAt,
             timezone: timezone,
-            charityID: charityID,
             tieBreak: tieBreak
         )
     }

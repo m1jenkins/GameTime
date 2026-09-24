@@ -93,12 +93,6 @@ insert into public.profiles (id, handle, display_name) values
   ('e7111111-1111-1111-1111-111111111111', 'leadalice', 'Alice'),
   ('e7222222-2222-2222-2222-222222222222', 'leadbob', 'Bob');
 
-insert into public.charities (id, name, ein, slug) values (
-  'ac000001-0000-0000-0000-000000000001',
-  'Comeback Fund',
-  '91-7000001',
-  'comeback-fund'
-);
 
 alter table public.contests disable trigger contests_assert_future_window;
 insert into public.contests (
@@ -138,7 +132,6 @@ insert into public.contest_participants (
   status,
   invited_by,
   timezone,
-  charity_id,
   accepted_at
 ) values
   (
@@ -147,7 +140,6 @@ insert into public.contest_participants (
     'accepted',
     null,
     'UTC',
-    'ac000001-0000-0000-0000-000000000001',
     now() - interval '2 days'
   ),
   (
@@ -156,15 +148,13 @@ insert into public.contest_participants (
     'invited',
     'e7111111-1111-1111-1111-111111111111',
     null,
-    null,
     null
   );
 
 update public.contest_participants
 set
   status = 'accepted',
-  timezone = 'UTC',
-  charity_id = 'ac000001-0000-0000-0000-000000000001'
+  timezone = 'UTC'
 where contest_id = 'aa000001-0000-0000-0000-000000000001'
   and user_id = 'e7222222-2222-2222-2222-222222222222';
 

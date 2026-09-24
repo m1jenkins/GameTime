@@ -23,7 +23,7 @@ const BOB = "22222222-2222-2222-2222-222222222222";
 const CAROL = "33333333-3333-3333-3333-333333333333";
 
 function accepted(userId: string, timezone = "UTC"): RosterEntry {
-  return { userId, status: "accepted", timezone, charityId: null };
+  return { userId, status: "accepted", timezone };
 }
 
 function bucket(userId: string, hour: number, value: number | string): EvidenceBucket {
@@ -196,7 +196,7 @@ Deno.test("among equal totals, whoever got there first ranks higher", () => {
 Deno.test("display order is stable but never decides the outcome", () => {
   // Two participants identical in every respect. The ordering has to put one
   // first because a leaderboard is a list, and the outcome must still refuse to
-  // name a winner — otherwise a donation is settled by whose UUID sorts lower.
+  // name a winner — otherwise a stake is settled by whose UUID sorts lower.
   const scoring = scoreContest(input({
     evidence: [bucket(ALICE, 8, 12000), bucket(BOB, 8, 12000)],
   }));

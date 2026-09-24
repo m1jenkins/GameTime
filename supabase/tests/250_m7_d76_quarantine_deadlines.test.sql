@@ -187,12 +187,6 @@ insert into public.profiles (id, handle, display_name) values
     'D76 Outsider'
   );
 
-insert into public.charities (id, name, ein, slug) values (
-  'd7c00001-0000-0000-0000-000000000001',
-  'D76 Review Fund',
-  '97-0000003',
-  'd76-review-fund'
-);
 
 create temporary table t_d76_cases (
   label        text primary key,
@@ -278,15 +272,13 @@ insert into public.contest_participants (
   contest_id,
   user_id,
   status,
-  timezone,
-  charity_id
+  timezone
 )
 select
   fixture.contest_id,
   'd7111111-1111-1111-1111-111111111111',
   'accepted',
-  'UTC',
-  'd7c00001-0000-0000-0000-000000000001'
+  'UTC'
 from t_d76_cases fixture;
 
 insert into public.contest_participants (
@@ -304,8 +296,7 @@ from t_d76_cases fixture;
 
 update public.contest_participants
 set status = 'accepted',
-    timezone = 'UTC',
-    charity_id = 'd7c00001-0000-0000-0000-000000000001'
+    timezone = 'UTC'
 where user_id = 'd7222222-2222-2222-2222-222222222222'
   and contest_id in (select contest_id from t_d76_cases);
 
@@ -949,17 +940,6 @@ select is(
   'void'::public.contest_result_kind,
   'clearance does not fabricate a winner or rewrite the assessment outcome'
 );
-select is(
-  (
-    select count(*)
-    from public.donation_obligations obligation
-    where obligation.contest_id = (
-      select contest_id from t_d76_cases where label = 'cleared'
-    )
-  ),
-  0::bigint,
-  'the cleared void assessment creates no actionable obligation'
-);
 
 -- ---------------------------------------------------------------------------
 -- Peer-deadline and adjudication-deadline boundaries
@@ -1346,23 +1326,6 @@ select is(
   ),
   6::bigint,
   'timeout finality preserves the complete accepted roster'
-);
-select is(
-  (
-    select count(*)
-    from public.donation_obligations obligation
-    where obligation.contest_id in (
-      select contest_id
-      from t_d76_cases
-      where label in (
-        'peer_timeout',
-        'deleted_timeout',
-        'boundary_timeout'
-      )
-    )
-  ),
-  0::bigint,
-  'review_timeout never creates an actionable settlement obligation'
 );
 select is(
   (

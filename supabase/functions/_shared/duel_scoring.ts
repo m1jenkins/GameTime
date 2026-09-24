@@ -6,7 +6,7 @@
  * Reviewers, server receipt times, append-only revisions and durable notices must
  * eventually come from the narrow operator/worker boundary, never a client body.
  * This module checks their consistency; it cannot establish their authenticity.
- * Keep it separate from the legacy charity scoring engine and its obligations.
+ * Keep it separate from the legacy social contest scoring engine.
  */
 
 export const DUEL_SCORING_VERSION = "duel-fixture-official-5k-v1";
