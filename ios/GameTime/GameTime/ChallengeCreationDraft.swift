@@ -30,6 +30,13 @@ import GameTimeCore
     var distance = "" { didSet { if distance != oldValue { changed() } } }
     var target = "" { didSet { if target != oldValue { changed() } } }
     var consent = false
+    /// D144: put a Stripe sandbox commitment on this personal goal.
+    var commits = false { didSet { if commits != oldValue { commitmentRequest = UUID(); commitment = nil; changed() } } }
+    private(set) var commitmentAvailability: ChallengeCommitment.Availability?
+    private(set) var commitment: ChallengeCommitment.Setup?
+    private(set) var savingCard = false
+    @ObservationIgnored private var commitmentRequest = UUID()
+    @ObservationIgnored private var cardAmountCents = 0
     private(set) var preview: ChallengeV1.Agreement?
     private(set) var reading = false
     private(set) var initialized = false
@@ -107,7 +114,13 @@ import GameTimeCore
         if metric == .timed, let value = ChallengeV1Policy.Metric.distance.parse(distance) { fields["distance_mm"] = .integer(value) }
         return .object(fields)
     }
-    var wholeDollars: Int? { Self.integer(dollars, in: 1...500) }
+    var wholeDollars: Int? { Self.integer(dollars, in: commits ? ChallengeCommitment.dollars : 1...500) }
+    /// Only Personal Steps and Outdoor run goals using Apple Health can carry money.
+    var canCommit: Bool {
+        mode == .personal && usesHealth && commitmentAvailability?.available == true
+            && ChallengeCommitment.policies.contains(policy.id)
+    }
+    var commitmentSaved: Bool { commits && commitment?.saved == true }
     var duration: Int? { Self.integer(days, in: 1...30) }
     static func integer(_ text: String, in range: ClosedRange<Int>) -> Int? {
         guard !text.isEmpty, text.allSatisfy(\.isNumber), let value = Int(text), range.contains(value) else { return nil }
@@ -146,10 +159,16 @@ import GameTimeCore
         guard alive, actor == store.actor else { return }
         if let now { planningDate = now }
         if ticket == generation, let now { start = calendar.date(byAdding: .day, value: 2, to: now)! }
+        if usesHealth, let actor {
+            commitmentAvailability = try? await store.client.read("challenge_commitment_availability_v1", fields: [:], actor: actor,
+                                                                  as: ChallengeCommitment.Availability.self)
+        }
         initialized = true
     }
     func changed() {
         generation = UUID(); preview = nil; consent = false; error = nil; reading = false
+        // A saved card is bound to its amount; any other edit keeps it.
+        if commitment != nil, (wholeDollars ?? 0) * 100 != cardAmountCents { commitmentRequest = UUID(); commitment = nil }
         health?.invalidateDraft(id)
     }
     func close() { alive = false; generation = UUID(); health?.cancel(id) }
@@ -163,7 +182,9 @@ import GameTimeCore
             if duration == nil { error = "Choose 1 to 30 full days to continue." }
             else if TimeZone(identifier: zone) == nil { error = "Choose a time zone to continue." }
             else if !allowedDates.contains(calendar.startOfDay(for: start)) { error = "Choose a start date 2 to 30 days from today." }
-        } else if section == .amount, wholeDollars == nil { error = "Enter a whole-dollar amount from $1 to $500." }
+        } else if section == .amount, wholeDollars == nil {
+            error = commits ? "Enter a whole-dollar amount from $1 to $50." : "Enter a whole-dollar amount from $1 to $500."
+        }
         return error == nil
     }
     var needsReview: Bool { mode == .personal && preview == nil }
@@ -186,7 +207,13 @@ import GameTimeCore
         do {
             var fields: [String: ChallengeJSON] = ["p_policy": .string(policy.id), "p_config": config, "p_target": .integer(value)]
             if usesHealth, let source { fields["p_source_policy_version"] = .string(source.identifier) }
-            let result = try await store.client.read("challenge_personal_preview_v1", fields: fields, actor: actor, as: ChallengeV1.Agreement.self)
+            let committed = commits && canCommit
+            if committed {
+                guard let card = commitment, card.saved else { error = ChallengeCommitment.addCard; return false }
+                fields["p_setup_id"] = .string(card.setupId.uuidString.lowercased())
+            }
+            let result = try await store.client.read(committed ? "challenge_commitment_preview_v1" : "challenge_personal_preview_v1",
+                                                     fields: fields, actor: actor, as: ChallengeV1.Agreement.self)
             guard alive, actor == store.actor, ticket == generation, fingerprint == before else { return false }
             guard decodeWindow(result.terms?["config"]) != nil else { throw ChallengeV1Error.invalidResponse }
             preview = result; consent = false
@@ -196,6 +223,28 @@ import GameTimeCore
             let failure = error as? ChallengeV1Error ?? .unavailable
             self.error = failure == .unavailable ? "We couldn’t load your agreement. Check your connection, then tap Review to try again." : failure.localizedDescription
             return false
+        }
+    }
+    /// Starts (or, after Stripe's sheet closes, re-reads) the sandbox card
+    /// setup. Returns the setup while the sheet still needs to be shown.
+    func saveCard(store: ChallengeV1Store) async -> ChallengeCommitment.Setup? {
+        guard commits, canCommit, !savingCard, let actor = store.actor else { return nil }
+        guard let dollars = wholeDollars else { error = "Enter a whole-dollar amount from $1 to $50."; return nil }
+        let request = commitmentRequest
+        savingCard = true; error = nil
+        defer { savingCard = false }
+        do {
+            let setup = try await store.client.commitmentSetup(request: request, amountCents: dollars * 100, actor: actor)
+            guard alive, actor == store.actor, request == commitmentRequest else { return nil }
+            if setup.status == "consumed" { commitmentRequest = UUID(); commitment = nil; return nil }
+            commitment = setup; cardAmountCents = dollars * 100
+            if setup.saved { preview = nil; consent = false; return nil }
+            return setup
+        } catch {
+            guard alive, request == commitmentRequest else { return nil }
+            if case .server(let reason) = error as? ChallengeV1Error { self.error = ChallengeCommitment.refusal(reason) }
+            else { self.error = "We couldn’t reach the payment test service. Check your connection, then try again." }
+            return nil
         }
     }
     func submit(store: ChallengeV1Store) async {
@@ -218,6 +267,10 @@ import GameTimeCore
                 guard consent, let preview, let value = metric.parse(target),
                       !usesHealth || healthBinding(actor: actor).map({ health?.canConsent($0) == true }) == true else { return }
                 fields.merge(["target": .integer(value), "digest": .string(preview.digest), "consent": .bool(true)], uniquingKeysWith: { _, value in value })
+                if commits {
+                    guard canCommit, let card = commitment, card.saved else { error = ChallengeCommitment.addCard; return }
+                    fields["commitment_setup_id"] = .string(card.setupId.uuidString.lowercased())
+                }
             }
             accepted = await store.submit(op: mode == .personal ? "personal_commit" : "create", fields: fields)
         }

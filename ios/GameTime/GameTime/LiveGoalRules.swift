@@ -74,9 +74,14 @@ struct LiveGoalRules: View {
             LiveRuleModule(symbol: "checkmark.shield", title: "Your result", subtitle: row.format.hasTarget ? "Only a confirmed miss counts" : "Saved results decide", expanded: expandedSections.contains(.result)) {
                 rule(row.format.missing)
             }
-            LiveRuleModule(symbol: "dollarsign", title: "Your stake", subtitle: LiveGoalCopy.stake(row), expanded: expandedSections.contains(.stake)) {
-                rule("\(challengeMoney(row.config.amountCents)) simulated per person. Nothing can be paid out or redeemed. No real money moves.")
-                rule(row.format.allocation)
+            LiveRuleModule(symbol: "dollarsign", title: row.hasCommitment ? "Your test commitment" : "Your stake", subtitle: LiveGoalCopy.stake(row), expanded: expandedSections.contains(.stake)) {
+                if row.hasCommitment {
+                    rule("GameTime makes one \(challengeMoney(row.config.amountCents)) test charge, and keeps it, only if your full Apple Health total for this goal falls short after the review window. Meet your goal: $0. Missing or partial activity never counts as a miss.")
+                    rule(ChallengeCommitment.banner)
+                } else {
+                    rule("\(challengeMoney(row.config.amountCents)) simulated per person. Nothing can be paid out or redeemed. No real money moves.")
+                    rule(row.format.allocation)
+                }
             }
             LiveRuleModule(symbol: "checkmark.shield", title: "Ask for review", subtitle: "48 hours from your result notice", expanded: expandedSections.contains(.review)) {
                 rule("You have 48 hours after the actual result notice to ask for a review. Reviewers have 72 hours after your request. A processing delay never shortens those windows.")
@@ -157,7 +162,11 @@ struct LiveGoalFact: View {
 }
 
 enum LiveGoalCopy {
-    static func stake(_ row: ChallengeV1) -> String { "\(LiveChallengePresentation.money(row.config.amountCents)) simulated · fee $0" }
+    static func stake(_ row: ChallengeV1) -> String {
+        row.hasCommitment
+            ? "\(LiveChallengePresentation.money(row.config.amountCents)) test charge only if you miss"
+            : "\(LiveChallengePresentation.money(row.config.amountCents)) simulated · fee $0"
+    }
     static func sourceTitle(_ row: ChallengeV1) -> String {
         guard let source = row.sourcePolicyVersion else { return "Fictional activity" }
         return switch source {

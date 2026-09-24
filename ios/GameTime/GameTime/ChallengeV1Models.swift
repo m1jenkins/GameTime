@@ -205,6 +205,10 @@ enum ChallengeV1Error: Error, LocalizedError, Equatable {
             case "challenge_incomplete_roster": "Select two to six people. For a goal challenge, everyone must choose their own goal before continuing."
             case "challenge_consent_mismatch": "The rules changed or agreement is closed. Refresh to see what happens next."
             case "challenge_review_closed": "This review window has ended. Refresh to see your result or contact support."
+            case "challenge_commitment_limit", "challenge_commitment_unpaid", "challenge_commitment_unavailable": ChallengeCommitment.refusal(reason)
+            case "challenge_commitment_card_required": "Your saved test payment method expired or was already used. Add it again, then review your goal."
+            case "challenge_commitment_amount_mismatch": "Your amount changed after you saved your test payment method. Add it again for the new amount."
+            case "challenge_commitment_policy_unavailable": "You can put money on Steps and Outdoor run goals only."
             default: "We couldn’t complete that action. Refresh the challenge, or retry your saved action."
             }
         }

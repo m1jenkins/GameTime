@@ -171,8 +171,11 @@ struct LiveGoalDetail: View {
                         value: row.format.hasTarget ? "Only a confirmed miss counts" : "Saved results decide")
             }.buttonStyle(.plain)
             Button { sheet = .rules } label: {
-                verdict(symbol: "dollarsign", label: "Your stake", value: LiveGoalCopy.stake(row))
+                verdict(symbol: "dollarsign", label: row.hasCommitment ? "Your test commitment" : "Your stake", value: LiveGoalCopy.stake(row))
             }.buttonStyle(.plain)
+            if row.hasCommitment {
+                ChallengeCommitmentStatusCard(store: store, challengeID: row.id)
+            }
         }
     }
 
