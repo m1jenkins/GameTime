@@ -7,6 +7,7 @@ struct HomeActionRows: View {
     let challenges: ChallengeV1Store
     let viewGoal: (UUID) -> Void
     @Environment(FriendsStore.self) private var friends: FriendsStore?
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var showingAll = false
 
     enum Item: Identifiable {
@@ -107,30 +108,42 @@ struct HomeActionRows: View {
 
     private func line<Trailing: View>(glyph: String, title: String, detail: String, urgent: Bool = false,
                                       @ViewBuilder trailing: () -> Trailing) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: glyph).font(.system(size: 16)).foregroundStyle(SignalTheme.accent)
-                .frame(width: 40, height: 40).background(SignalTheme.selection, in: Circle())
-                .accessibilityHidden(true)
-            text(title, detail, urgent: urgent)
+        stacked {
+            HStack(spacing: 12) {
+                Image(systemName: glyph).font(.system(size: 16)).foregroundStyle(SignalTheme.accent)
+                    .frame(width: 40, height: 40).background(SignalTheme.selection, in: Circle())
+                    .accessibilityHidden(true)
+                text(title, detail, urgent: urgent)
+            }
             trailing()
         }
-        .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 8).frame(minHeight: 64)
     }
 
     private func line<Trailing: View>(person: FriendPerson, detail: String, @ViewBuilder trailing: () -> Trailing) -> some View {
-        HStack(spacing: 12) {
-            LiveAvatar(username: person.displayName, size: 40).accessibilityHidden(true)
-            text(person.displayName, detail)
+        stacked {
+            HStack(spacing: 12) {
+                LiveAvatar(username: person.displayName, size: 40).accessibilityHidden(true)
+                text(person.displayName, detail)
+            }
             trailing()
         }
-        .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 8).frame(minHeight: 64)
+    }
+
+    /// One row, or the actions under the text when large text needs the width.
+    private func stacked<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+            : AnyLayout(HStackLayout(spacing: 12))
+        return layout { content() }
+            .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 8).frame(minHeight: 64)
     }
 
     private func text(_ title: String, _ detail: String, urgent: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).liveFont(15, weight: .semibold).lineLimit(2)
-            Text(detail).font(.system(size: 13, weight: urgent ? .medium : .regular))
-                .foregroundStyle(urgent ? SignalTheme.textPrimary : SignalTheme.textSecondary).lineLimit(2)
+            Text(title).liveFont(15, weight: .semibold).lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+            Text(detail).liveFont(13, weight: urgent ? .medium : .regular)
+                .foregroundStyle(urgent ? SignalTheme.textPrimary : SignalTheme.textSecondary)
+                .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)

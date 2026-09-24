@@ -768,15 +768,22 @@ struct FriendUsernameField: View {
     let action: String
     let enabled: Bool
     let submit: () -> Void
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        HStack(spacing: 6) {
-            Text("@").liveFont(17, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
-                .accessibilityHidden(true)
-            TextField("username", text: $text)
-                .textInputAutocapitalization(.never).autocorrectionDisabled().textContentType(.username)
-                .submitLabel(.search).liveFont(17, weight: .medium)
-                .focused(focused).onSubmit { if enabled { submit() } }
-                .accessibilityLabel("Friend’s username").accessibilityIdentifier("friends.username")
+        // Large text puts the button under the field so the field keeps the width.
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+            : AnyLayout(HStackLayout(spacing: 6))
+        layout {
+            HStack(spacing: 6) {
+                Text("@").liveFont(17, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+                    .accessibilityHidden(true)
+                TextField("username", text: $text)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled().textContentType(.username)
+                    .submitLabel(.search).liveFont(17, weight: .medium)
+                    .focused(focused).onSubmit { if enabled { submit() } }
+                    .accessibilityLabel("Friend’s username").accessibilityIdentifier("friends.username")
+            }.frame(minHeight: 54)
             Button(action, action: submit).liveFont(15, weight: .semibold)
                 .foregroundStyle(enabled ? SignalTheme.accent : SignalTheme.textSecondary)
                 .frame(minWidth: 44, minHeight: 44).disabled(!enabled)
