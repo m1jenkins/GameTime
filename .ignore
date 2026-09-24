@@ -1,0 +1,6 @@
+# Keep dated artifacts out of default ripgrep searches, while retaining them in Git.
+# Search one explicitly when needed: rg --no-ignore 'pattern' outputs/reports/
+/outputs/
+/docs/archive/
+/docs/evidence/
+/.lavish/

@@ -37,5 +37,5 @@ After installation, the owner separately directed completed work to be committed
 and merged into `main`. Receipt commit `4c8183b` and the reviewed P11 branch were
 merged locally as `9652bc9`; its tree exactly matched the completed branch. No
 installation check was repeated and no hosted state changed. This merge was not
-pushed. The [updated planning prompt](../../docs/P11B_NEXT_PLANNING_PROMPT.md)
+pushed. The [updated planning prompt](https://github.com/m1jenkins/GameTime/blob/98b511863275a2c478e2f1523569308116c9e0f9/docs/P11B_NEXT_PLANNING_PROMPT.md)
 starts from `main` and preserves the owner's commit-and-merge workflow.

@@ -1,5 +1,13 @@
 # Beta rollout preparation — no rollout authorized
 
+Current first-build scope and delivery order follow D142 and the
+[friends TestFlight plan](FRIENDS_TESTFLIGHT_PLAN.md). Use the latest
+[working baseline](WORKING_BASELINE.md) for implementation and hosted status.
+The September preparation below preserves the broader Beta requirements and
+its original evidence; it does not describe today's configuration.
+
+## September preparation baseline
+
 [D135's remaining-work contract](BETA_REMAINING_WORK_CONTRACT.md) is current:
 no dedicated GameTime Watch runtime; paired Watch required at launch; authorized
 pre-hardware work may proceed. One private operator cohort, delayed five-person
@@ -11,7 +19,7 @@ nonredeemable simulation; all 18 external gates remain false.
 
 Use the [working baseline](WORKING_BASELINE.md) for current source and status.
 The September 13 [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
-[prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) own current execution:
+[historical prompt pack](archive/README.md#retired-task-prompts) recorded this sequence:
 P10 preparation is complete; P11A implements missing operation/deletion locally,
 P11B performs authorized hosted verification, and P12/P13 qualify the candidate
 and private Beta. Public simulated launch is a later recommendation.

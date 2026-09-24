@@ -16,7 +16,7 @@ The [P9 contract](../../docs/P9_SIGNAL_REAL_ACTIVITY.md) records implemented rul
 D139 records the owner’s separate Exercise credit decision. The
 [interactive report](../../.lavish/p9-signal-real-activity.html) uses Signal’s own
 colors, typography and spacing and includes actual native captures. The
-[next-chat prompt](../../docs/P9_NEXT_PLANNING_PROMPT.md) asks another chat to plan
+[next-chat prompt](https://github.com/m1jenkins/GameTime/blob/98b511863275a2c478e2f1523569308116c9e0f9/docs/P9_NEXT_PLANNING_PROMPT.md) asks another chat to plan
 one next task, answer repository-backed questions and isolate necessary owner decisions.
 
 ## What changed

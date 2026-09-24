@@ -1,10 +1,19 @@
 # GameTime remaining implementation plan
 
+For current delivery, follow [the friends TestFlight plan](FRIENDS_TESTFLIGHT_PLAN.md)
+under D142 and [the working baseline](WORKING_BASELINE.md). The broader Beta
+requirements below remain applicable beyond that first build. The dated
+planning/status record below does not override subsequent implementation or
+hosted receipts.
+
+## September 20 planning baseline
+
 Updated September 20 after [bounded P11B installation](../outputs/reports/2026-09-20-p11b-hosted-installation.md).
 Use local `main`, containing P8/P9 and reviewed P11 `8e45132` through merge
 `9652bc9`. The closed hosted installation is complete; active operation and broader
-acceptance remain. See the [working baseline](WORKING_BASELINE.md) and
-[next planning prompt](P11B_NEXT_PLANNING_PROMPT.md). This does not dispatch later work.
+acceptance remain. The next-chat prompts from this period are now
+[retired historical references](archive/README.md#retired-task-prompts).
+This does not dispatch later work.
 
 September 19 context: the [main consolidation](../outputs/reports/2026-09-19-main-consolidation.md).
 It includes the delivered invitation, administrator recovery, suspended-account
@@ -12,8 +21,7 @@ repair and service monitoring slices. Local weekly acceptance passed; the
 consolidation record lists CI status at merge. P12 owns the full release matrix.
 The September 15 published baseline was `1dacc66`.
 Use the [working baseline](WORKING_BASELINE.md) for exact source and completed
-slices, and the [prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for
-scoped future tasks. P4–P6, Signal/P9A, P7/P10 preparation, local S2/P8/P11A
+slices. P4–P6, Signal/P9A, P7/P10 preparation, local S2/P8/P11A
 repairs, operator/deletion implementation and the bounded P9 shared-session
 connection are landed. Their dated reports retain actual checks and limits.
 
