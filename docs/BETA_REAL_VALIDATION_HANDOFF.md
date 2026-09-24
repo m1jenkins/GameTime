@@ -1,5 +1,10 @@
 # GameTime real-activity handoff
 
+For current work, use the latest [working baseline](WORKING_BASELINE.md) and
+[friends TestFlight plan](FRIENDS_TESTFLIGHT_PLAN.md). The dated continuations
+below preserve their original source checks and limits; their next-task
+instructions are historical.
+
 September 19 update: the owner considers P7 testing passed and directed
 [P8 preparation](P8_REAL_SOURCE_PREPARATION.md). The
 [P7 session](../outputs/reports/2026-09-18-p7-device-session.md) remains the
@@ -21,7 +26,7 @@ hosted/Apple/invitation acceptance are still separate.
 ## Historical continuation — September 12, 2026 UTC
 
 Use [WORKING_BASELINE.md](WORKING_BASELINE.md) and the
-[remaining prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
+[historical prompt contracts](archive/README.md#retired-task-prompts).
 The active checkout is `/Users/user/Documents/GitHub/GameTime` on `main`,
 with Cobalt/P4/P5/P6, P7 checkpoint `1b8fe6a` and P10 through `01f1dd15`
 preserved in one ancestry. P4/P5/P6 are completed locally. P7 is prepared

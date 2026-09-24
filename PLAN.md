@@ -1,70 +1,36 @@
 # Build friend duels and personal performance commitments
 
-**Current next work — September 22, 2026 ([D142](DECISIONS.md#d142-first-private-testflight-adds-friends-opens-apple-sign-up-and-ships-goals-first)):**
-the [first private friends TestFlight plan](docs/FRIENDS_TESTFLIGHT_PLAN.md)
-sets the order of new work. It covers:
+The [first private friends TestFlight plan](docs/FRIENDS_TESTFLIGHT_PLAN.md)
+owns current delivery order under
+[D142](DECISIONS.md#d142-first-private-testflight-adds-friends-opens-apple-sign-up-and-ships-goals-first).
+Read its phase status and the latest entries in
+[WORKING_BASELINE.md](docs/WORKING_BASELINE.md) before selecting work.
 
-- friend requests under You, with Home action rows
-- open Apple sign-up on `gametime-p11b`
-- account-mode uploads for every age-confirmed account
-- a goals-only first build: four friend goals plus Personal Steps and Outdoor runs
-- community and links closed on the server
-- testers by email invitation, fewer than ten
+The first build has friend requests under You, Home action rows, open Apple
+sign-up after 21+ confirmation, disclosed account-mode uploads, four friend
+goals and Personal Steps/Outdoor runs. Community and links stay closed on the
+server; leaderboards follow later. Fewer than ten known testers are invited by
+email. These are adopted requirements, not confirmation that pending hosted or
+release work is complete.
 
-Phase 0 is recorded. Later phases start only when the owner starts them.
-Hosted work, TestFlight and recruitment each still need explicit approval. The
-sections below keep the Beta 1 target and its history. Where they describe
-TestFlight entry conditions, D142's finish line governs this first build.
+The [Beta contract](docs/BETA_IMPLEMENTATION_PLAN.md),
+[remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md) and
+[broader remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md)
+preserve D134/D135/D140/D141's later scope and acceptance requirements. Current
+UI follows the latest adoption in [Signal migration](docs/design/SIGNAL_UI_MIGRATION.md).
+Preserve earlier agreements and retained Personal access until replacement
+acceptance.
 
-Continue from local `main`, containing reviewed P11 `8e45132` and P8/P9 through
-merge `9652bc9`. Commit completed authorized work and merge it into `main`;
-push remains separately authorized. Work in `/Users/user/Documents/GitHub/GameTime` and read the
-[working baseline](docs/WORKING_BASELINE.md),
-[remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
-[one-task prompts](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md).
-Published main at `1dacc66` includes P4–P6, P7/P10 preparation, Signal/P9A,
-S2/P8 privacy/recovery corrections, P11A local worker/operator/deletion work and
-the bounded P9 shared-session connection. Signal is the ordinary native UI;
-[its contract](docs/design/SIGNAL_UI_MIGRATION.md) preserves retained Personal
-access. The September 15 cleanup did not dispatch P7–P13; the owner [started P7
-on a physical iPhone and paired Watch](outputs/reports/2026-09-18-p7-device-session.md)
-on September 18. On September 19 the owner [signed off the P7 test effort and
-requested P8 preparation](DECISIONS.md#d137-owner-signs-off-p7-testing-and-directs-p8-preparation);
-[D138](DECISIONS.md#d138-owner-selects-p8-source-rules-and-whole-run-distance-tolerance)
-now supplies the source and timed-distance decisions. The [P8 contract](docs/P8_REAL_HEALTH_CONTRACT.md)
-records the original real-source implementation. D139 and the [P9 contract](docs/P9_SIGNAL_REAL_ACTIVITY.md) add ordinary Signal orchestration, shared
-exact delivery and separately versioned Apple Exercise credit. Strict Exercise
-v1 stays unavailable. Approved hosted identities/operation and physical/human/release
-acceptance remain.
-All four goal-metric sources remain required for the working nine-goal Beta scope;
-D141 adds optional local [received-score leaderboards](docs/RECEIVED_LEADERBOARD_V2.md),
-which remain outside the required release set under D140. Funded launch remains Phase 6.
-Do not restart completed prompts or follow obsolete checkout instructions.
-
-The September 19 [main consolidation](outputs/reports/2026-09-19-main-consolidation.md)
-includes delivered HTTPS intake, durable administrator recovery, suspended
-account access repair, review/appeal/snapshot monitoring, iOS 18 compatibility
-and the fictional Personal lifecycle preview. Local weekly acceptance passed;
-the consolidation record lists CI status at merge. The [P9 local report](outputs/reports/2026-09-20-p9-signal-real-activity.md) records
-the continuation and focused checks. Nine real goal policies remain D140's required Beta scope. D141 adds new versioned
-leaderboards that rank eligible server-saved activity through the correction
-cutoff; old leaderboards retain their original unavailable/void rules. Source-backed,
-hosted, physical and human release acceptance remain open.
-The owner-selected Cron + Edge runtime now has a
-[bounded local scheduling connection](outputs/reports/2026-09-20-p11-local-scheduling.md).
-The [bounded hosted installation](outputs/reports/2026-09-20-p11b-hosted-installation.md)
-is complete in the selected separate project, with all jobs/gates/fixtures off.
-The [hosting worksheet](docs/BETA_HOSTED_PREPARATION.md)
-retains operating dependencies. The dated [P11B planning prompt](docs/P11B_NEXT_PLANNING_PROMPT.md)
-is superseded by the D142 plan above. The older
-[P9 next-chat planning prompt](docs/P9_NEXT_PLANNING_PROMPT.md) is dated context.
-Do not repeat local scheduling or infer deployment authorization. The full
-release matrix remains reserved for P12.
+Work from local `main` in `/Users/user/Documents/GitHub/GameTime`. Commit and
+merge completed authorized work locally; push remains separately authorized.
+Planning does not dispatch implementation, hosted mutations, device work,
+distribution, recruitment or money. Completed task prompts were
+[retired to Git history](docs/archive/README.md#retired-task-prompts).
 
 ## Historical roadmap
 
 The September 6/9 roadmap and implementation-status statements below are
-historical context. The current remaining plan owns execution order.
+historical context. The friends TestFlight plan above owns current delivery order.
 
 September 9 authority: [D135's remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md)
 adds the iPhone-only runtime with inert historical Watch source, paired Watch as
@@ -735,60 +701,7 @@ and unaccepted. Organizer-event nomination screens remain paused. The
 
 ## Historical Phase 1A implementation prompt — already completed
 
-Retained for provenance. Do not execute this as the next task; use the current
-implementation order above. Its fixed-5K defaults are historical.
-
-
-```text
-Work in /Users/user/Documents/GitHub/GameTime.
-
-Implement only PLAN.md Phase 1A: the local simulated same-event 5K duel
-agreement backend. Friend duels and personal performance commitments are the
-adopted model; do not ask to reconfirm the pivot.
-
-Read AGENTS.md, PROJECT_MEMORY.md, CLAUDE.md, docs/BUSINESS_MODEL.md, PLAN.md,
-and DECISIONS.md D123. Inspect git status and preserve all unrelated changes.
-Follow the repository's forward migration workflow and read its Supabase skill.
-
-Deliver new isolated duel policy/agreement/participant/request/enrollment
-records and versioned create, accept, decline, pre-start cancel and list/detail
-RPCs. Use existing durable actors and accepted friendships with block checks.
-Do not reinterpret contests, personal_challenge_terms, solo_contracts, old
-pending requests or scoring. No applied migration edits.
-
-Use one service-curated fictional outdoor 5K event policy:
-fixture_official_5k_v1, 5,000 metres, common whole-second organizer chip times,
-exact future event window within 30 days, exactly two named friends, simulated
-USD 2,000 cents each and zero fee. Store no proof or provider data in this slice.
-Create records creator consent; the invitee accepts the identical policy
-version and full terms digest. Cutoff is the earlier of creation + 72 hours
-or event start - 1 hour; equality is too late. Both accepted means scheduled.
-Implement clock-controlled expiry without registering a scheduler.
-
-Freeze terms and maintain exact-request idempotency, changed-payload refusal,
-one unsettled new duel per actor, stable locking and atomic rollback. Incoming
-invitations reserve no invitee slot until acceptance. Expiry must release the
-creator slot. Same-actor committed retries can recover after gate/cutoff changes;
-deleted actors cannot recover private access. Cover pre-start deletion while
-preserving tombstoned agreement history and old deletion behavior.
-
-Gate-off blocks new creation/acceptance but preserves safe cancellation,
-authenticated history and exact committed recovery. Subsequent creation must
-atomically expire an overdue creator reservation before claiming a new slot.
-
-The authoritative runtime gate defaults off; the allowlist defaults empty.
-Enable only fictional actors in isolated local tests. The server fixes simulated
-mode and rejects any live mode or arbitrary amount/fee/source. Use explicit RLS,
-minimal grants and guarded service authority; clients cannot write base tables.
-
-Add meaningful pgTAP and two-session concurrency tests for the Phase 1A
-acceptance matrix, including unrelated/anonymous/deleted actors, blocked pairs,
-exact retries, payload conflicts, cutoff equality, acceptance/cancellation/
-expiry/deletion races and slot conflicts. Run focused checks, the full local
-DB suite and relevant lint/advisor checks; record unavailable checks honestly.
-Include a runnable two-actor local example and update implemented-state docs.
-
-No iOS feature, Edge endpoint, workout ingestion, scoring, payment adapter,
-cron registration, hosted mutation, deployment, publication or live money.
-Finish with files changed, verification results and the Phase 1B handoff.
-```
+The original fixed-5K brief is preserved in Git; see
+[archive recovery](docs/archive/README.md#retired-task-prompts). The completed
+Phase 1A implementation and its acceptance remain documented above. Do not use
+that retired prompt to select new work.

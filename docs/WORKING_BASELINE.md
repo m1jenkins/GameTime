@@ -1,10 +1,13 @@
 # GameTime working baseline
 
-Read `git status --short --branch` and `git log -1` first. Continue from local
-`main`, which contains reviewed P11 source `8e45132` and its P8/P9 ancestors
-through merge `9652bc9`. The P11B installation receipt was committed as `4c8183b`.
-The owner directed completed authorized work to be committed and merged into
-`main`; push remains separately authorized. This consolidation was not pushed.
+Read the latest dated entry relevant to the task. Older entries retain their
+original status and limits; the [friends TestFlight plan](FRIENDS_TESTFLIGHT_PLAN.md)
+owns current delivery order. Historical prompts are [recoverable in Git](archive/README.md).
+
+Read `git status --short --branch` and `git log -1` for the actual checkout.
+Continue from local `main`. Commit and merge completed authorized work into
+`main`; push remains separately authorized. Dated receipts below identify their
+tested source and publication status, not the current branch tip.
 
 ## September 23 Phase 3 iOS 18.6 recheck
 
@@ -270,7 +273,8 @@ Auth is closed, private schemas unexposed and no community selected. The single
 readback, one authenticated closed-status monitor request and three unauthenticated
 denials passed. Canonical migrations are unchanged. No broader acceptance ran.
 
-Use the [next planning prompt](P11B_NEXT_PLANNING_PROMPT.md). Existing local P11
+The next planning prompt from this dated receipt is
+[retired to Git history](archive/README.md#retired-task-prompts). Existing local P11
 verification and this bounded installation are established evidence. Active
 operation, app identities/connectivity, remaining operating decisions and release
 acceptance remain separate. Older unfilled hosting worksheets do not reopen the
@@ -318,8 +322,9 @@ All external readiness entries and checked-in gates stay closed.
 
 The sections below preserve the earlier source states and evidence. P7 remains
 owner-closed. Hosting identities, community publication settings, operating
-approval, replacement retirement and P12/P13 remain separate. Start next planning
-with [the current bounded handoff](P11B_NEXT_PLANNING_PROMPT.md).
+approval, replacement retirement and P12/P13 remain separate. The bounded
+handoff from this date is [preserved in Git](archive/README.md#retired-task-prompts);
+the friends TestFlight plan now selects current work.
 
 ## September 19 main consolidation
 
@@ -404,6 +409,9 @@ included in this published baseline.
 
 ## Current work
 
+This is the September 15 inventory. Later dated entries above supersede its
+status; it remains a map to the original implementation receipts.
+
 | Work | Status | Evidence |
 | --- | --- | --- |
 | Foundation / Prompts 0, 0A, 3 | Implemented locally; iPhone-only runtime and closed Health contracts; historical cobalt presentation superseded by P9A | [Health contracts](BETA_HEALTH_CONTRACTS.md) |
@@ -428,9 +436,10 @@ included in this published baseline.
 
 The consolidated main source does not qualify the P12 release matrix or dispatch
 hosted, physical, human or release work.
-Use the [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
-[bounded prompts](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) for their
-preserved requirements and dependency order:
+Use the [friends TestFlight plan](FRIENDS_TESTFLIGHT_PLAN.md) for current delivery
+order. The [remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
+[historical prompts](archive/README.md#retired-task-prompts) preserve the broader
+requirements below; later dated entries above own current implementation status:
 
 - P7: the owner has closed measured testing and D138 supplies explicit source
   and timed-distance rules. Preserve the dated observations; do not restart P7.

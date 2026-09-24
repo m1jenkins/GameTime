@@ -1,80 +1,41 @@
 # GameTime
 
 GameTime is an iPhone app for private friend challenges and personal activity
-commitments. **Signal is the approved native design system:** Home, Challenges
-and You use system typography, adaptive colors, open rows and native controls.
-Existing Personal challenges remain accessible until replacement acceptance.
-All new challenge amounts are nonredeemable simulation.
+commitments. The current app uses the September 22 approved Signal presentation
+with Home, Challenges and You. Existing Personal challenges remain accessible
+until replacement acceptance. All new challenge amounts are nonredeemable
+simulation.
 
-Develop from `main` in `/Users/user/Documents/GitHub/GameTime`, using an isolated
-task branch when needed. Read `git status --short --branch` before changing files.
-[Working baseline](docs/WORKING_BASELINE.md) owns current source and verification
-status; [remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) owns next
-work. This is a local implementation baseline, **not Beta readiness**.
-
-## Current status
-
-D141 adds optional [received-score friend leaderboards v2](docs/RECEIVED_LEADERBOARD_V2.md)
-from D140 `110c470`: rank eligible activity GameTime saved by the correction
-cutoff, with unranked entry returns and a two-score minimum. Signal shows the
-saved score, last update, deadline and Refresh. Historical agreements and strict
-Exercise v1 stay unchanged; new Activity minutes use Exercise credit v2.
-D140's nine-goal Beta requirement and all external gates remain unchanged.
-
-
-The September 19 [main consolidation](outputs/reports/2026-09-19-main-consolidation.md)
-includes configured HTTPS invitations, administrator response recovery,
-review/appeal and snapshot monitoring, repaired suspended-account access,
-iOS 18 compatibility, and the fictional Personal lifecycle preview. It preserves
-the profile-retry and actor-switch fixes. Local weekly acceptance passed; the
-consolidation record lists CI status at merge. The full release matrix remains
-P12 work. Nothing was deployed or released.
-
-Published `main` was verified at `1dacc6644f2100567d85fbaa2970bb7285bbaa35` on
-September 15, 2026. It includes P4–P6, Signal/P9A, P7 and P10 preparation,
-S2/P8 privacy and recovery corrections, local P11A worker/operator/deletion
-implementation, and the bounded P9 shared-session app connection.
-
-Ordinary signed-in Signal can use the existing authenticated challenge client
-when explicitly configured. The internal Staging build now connects to the
-selected private backend; Debug and Release retain the historical configuration
-with challenge transport off. The [private-device receipt](outputs/reports/2026-09-20-private-device-goal.md)
-records successful real Apple account setup and device verification, the single
-approved account, the owner's subsequent choice to keep Apple sign-in while
-skipping device proof in this private trial, and one real, consented personal
-Watch steps goal scheduled for September 22. Actual counting and the result/review
-cycle still await their real deadlines. Local fixtures and disposable HTTP
-checks do not establish those later results or wider Beta readiness.
-
-D138 selects source rules and timed-run tolerance; the [P8 contract](docs/P8_REAL_HEALTH_CONTRACT.md)
-records local adapters, signed ingestion and server processing. Exercise remains
-unavailable because causal activity cannot be established. All-mode app integration,
-four usable sources, approved hosted identities/settings and operating checks,
-candidate qualification, accessibility, human and release acceptance remain required. All 18
-[readiness entries](docs/release/beta/readiness.json) remain false. The baseline
-cleanup does not start those tasks or authorize distribution, hosting or money.
-The owner [started a private P7 device session](outputs/reports/2026-09-18-p7-device-session.md)
-on September 18 and signed off the test effort on September 19. Its partial
-observations remain separate from D138's subsequent decisions and the
-[P8 software checks](outputs/reports/2026-09-19-p8-real-health.md). Checked-in
-Release real transport remains off; the private Staging connection and wider
-release acceptance are separate.
+Develop from local `main` in `/Users/user/Documents/GitHub/GameTime`. Check
+`git status --short --branch` before editing and use a short-lived task branch.
+Completed authorized work is committed and merged locally; pushing is separate.
 
 ## Start here
 
-| Need | Authority |
+Read this page and [project memory](PROJECT_MEMORY.md), then the relevant latest
+entry in [the working baseline](docs/WORKING_BASELINE.md). The
+[friends TestFlight plan](docs/FRIENDS_TESTFLIGHT_PLAN.md) owns the current
+D142 delivery sequence and open gates. Local implementation, hosted changes and
+release acceptance are recorded separately; none should be inferred from a
+historical completion report.
+
+| Need | Reference |
 | --- | --- |
-| Current source, completed work and evidence | [Working baseline](docs/WORKING_BASELINE.md) |
-| Remaining sequence and bounded tasks | [Remaining plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md), [prompt pack](docs/FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md) |
-| Adopted product rules | [Project memory](PROJECT_MEMORY.md), [business model](docs/BUSINESS_MODEL.md), [Beta contract](docs/BETA_IMPLEMENTATION_PLAN.md), [decisions](DECISIONS.md) |
-| UI design and native verification | [Signal contract](docs/design/SIGNAL_UI_MIGRATION.md), [adopted study](outputs/design/2026-09-13-clickable-app-alternate/DESIGN.md) |
-| User-facing language | [Copy contract](docs/COPY.md), required before changing any app string |
-| iPhone, Watch-origin data, community and capacity boundaries | [Remaining-work contract](docs/BETA_REMAINING_WORK_CONTRACT.md) |
-| Source and release gates | [Physical sessions](docs/BETA_PHYSICAL_SESSIONS.md), [acceptance](docs/BETA_REAL_VALIDATION_ACCEPTANCE.md), [handoff](docs/BETA_REAL_VALIDATION_HANDOFF.md) |
-| P8 real-source implementation and limits | [Contract](docs/P8_REAL_HEALTH_CONTRACT.md), [handoff](docs/P8_REAL_SOURCE_PREPARATION.md), [software checks](outputs/reports/2026-09-19-p8-real-health.md) |
-| Local challenge walkthrough | [Preview and ordinary-session guide](docs/BETA_LOCAL_PREVIEW.md) |
-| Local worker, operator and recovery commands | [Operations guide](docs/BETA_OPERATIONS_LOCAL.md) |
-| Checkout recovery and cleanup disposition | [Consolidation record](docs/WORKTREE_CONSOLIDATION_STATUS.md) |
+| Implemented behavior and performed checks | [Working baseline](docs/WORKING_BASELINE.md) |
+| Current next work and first-build scope | [Friends TestFlight plan](docs/FRIENDS_TESTFLIGHT_PLAN.md) |
+| Adopted direction and product rules | [Project memory](PROJECT_MEMORY.md), [business model](docs/BUSINESS_MODEL.md), [Beta contract](docs/BETA_IMPLEMENTATION_PLAN.md), relevant [decisions](DECISIONS.md) |
+| Current UI and approved mocks | Latest adoption in [Signal migration](docs/design/SIGNAL_UI_MIGRATION.md) |
+| App language | [Copy contract](docs/COPY.md), required before changing app text |
+| Source contracts and acceptance | [P8 Health contract](docs/P8_REAL_HEALTH_CONTRACT.md), [P9 app integration](docs/P9_SIGNAL_REAL_ACTIVITY.md), [acceptance](docs/BETA_REAL_VALIDATION_ACCEPTANCE.md) |
+| Local walkthrough and operations | [Preview guide](docs/BETA_LOCAL_PREVIEW.md), [operations guide](docs/BETA_OPERATIONS_LOCAL.md) |
+| Broader roadmap and retained products | [Remaining Beta plan](docs/GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md), [PLAN.md](PLAN.md) |
+| Historical prompts, agent runs and recovery | [Archive index](docs/archive/README.md) |
+
+Search `ios/`, `supabase/` and `scripts/` for implementation first. Default `rg`
+searches omit dated reports, archived docs, evidence captures and Lavish studies
+via `.ignore`. Follow a current contract's link or use `rg --no-ignore` on a
+specific historical directory when checking old evidence. Reusable agent skills
+remain in `.agents/skills/`; retired task prompts live in Git history.
 
 ## Run and check locally
 
@@ -120,7 +81,8 @@ contract, not Beta source or release evidence.
 | `scripts/` | Existing local runners, product guards and operating tools |
 | `docs/` | Operative contracts, acceptance, release decisions and evidence |
 | `outputs/reports/` | Dated performed checks, preserved failures and source identities |
-| `outputs/design/2026-09-13-clickable-app-alternate/` | Approved Signal browser reference; fictional data |
+| `.lavish/gametime-live-goal-2026-09-21/`, `.lavish/gametime-friends-2026-09-22/` | Current approved mocks, linked from the visual contract and friends plan; fictional data |
+| `outputs/design/`, `docs/archive/`, `docs/evidence/` | Dated designs, historical contracts and verification artifacts |
 
 ## Preserved products and data
 

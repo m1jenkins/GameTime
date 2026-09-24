@@ -558,5 +558,5 @@ external TestFlight submission.
     Stripe test-mode configuration, archive upload, TestFlight review
     submission, and tester invitations.
 
-The companion [implementation prompts](BETA_IMPLEMENTATION_PROMPTS.md) divide
+The companion [implementation prompts](archive/README.md#retired-task-prompts) divide
 that sequence into safe, reviewable chats.

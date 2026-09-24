@@ -3,22 +3,27 @@
 Preserve implemented behavior, adopted strategy, proposed defaults, and
 unverified assumptions as distinct records. Existing agreements stay intact.
 
-## Read these first
+## Start with current context
 
-- [PROJECT_MEMORY.md](PROJECT_MEMORY.md) — the owner's adopted business
-  direction: friend duels and personal performance commitments. This controls
-  future product planning where older solo-only scope conflicts with it.
-- [README.md](README.md) — what works today, how to run it, how the evidence
-  ledger works.
-- [docs/BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md),
-  [docs/BETA_IMPLEMENTATION_PLAN.md](docs/BETA_IMPLEMENTATION_PLAN.md), and
-  [PLAN.md](PLAN.md) —
-  adopted products, recommended defaults, implementation order, and open gates.
-- [DECISIONS.md](DECISIONS.md) — why the product is shaped the way it is.
-- [Signal migration](docs/design/SIGNAL_UI_MIGRATION.md) — official UI/UX;
-  native implementation, verification and cobalt retirement status.
-- [docs/COPY.md](docs/COPY.md) — **required before writing or changing any
-  user-facing string.**
+Read [README.md](README.md), [PROJECT_MEMORY.md](PROJECT_MEMORY.md) and the
+latest relevant entries in [WORKING_BASELINE.md](docs/WORKING_BASELINE.md).
+Then load the contract for the task, rather than every historical document:
+
+- Current delivery order: [friends TestFlight plan](docs/FRIENDS_TESTFLIGHT_PLAN.md).
+- Product changes: [business model](docs/BUSINESS_MODEL.md),
+  [Beta contract](docs/BETA_IMPLEMENTATION_PLAN.md), and the relevant decisions
+  in [DECISIONS.md](DECISIONS.md). [PLAN.md](PLAN.md) preserves the broader roadmap.
+- UI: the current adoption at the top of
+  [Signal migration](docs/design/SIGNAL_UI_MIGRATION.md), then its linked mocks.
+- App text: [docs/COPY.md](docs/COPY.md), **required before writing or changing
+  any user-facing string.**
+
+Search active code in `ios/`, `supabase/` and `scripts/` first. Dated artifacts
+are excluded from default `rg` searches by `.ignore`; use `rg --no-ignore` on
+the specific evidence directory when needed. Completed prompt packs and old
+agent runs were retired to Git history; [recovery](docs/archive/README.md)
+explains how to read them. Keep generated builds/caches and new agent scratch
+in ignored directories, not among source or current instructions.
 
 ## User-facing language
 
@@ -82,8 +87,8 @@ paywalls, analytics/experiments and financial admission, apply
 Review what behavior the feature increases and whether greater use could raise
 financial exposure or exercise pressure. Preserve explicit consent and easy
 exits; never use health data or losses for revenue targeting. Keep implemented
-controls distinct from proposed defaults. Use the current order in PLAN.md,
-not the completed fixed-5K implementation prompt, to select new work.
+controls distinct from proposed defaults. Use the current friends TestFlight
+plan and PLAN.md's authority pointers to select new work.
 
 
 ## Reproducing weekly local acceptance

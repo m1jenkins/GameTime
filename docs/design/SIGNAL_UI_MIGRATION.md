@@ -130,7 +130,7 @@ do not establish complete fidelity to every approved journey. The owner's
 current device screen was not independently captured during this inspection.
 
 The [fidelity plan](SIGNAL_UI_FIDELITY_PLAN.md) and
-[implementation prompt](../SIGNAL_UI_FIDELITY_IMPLEMENTATION_PROMPT.md) define
+[historical implementation prompt](../archive/README.md#retired-task-prompts) define
 the proposed native follow-through, shared-route audit and rendered acceptance.
 They are planning artifacts; the planning task did not implement or verify the
 staged flow. Its instruction to preserve in-flight device fixes and later

@@ -25,8 +25,8 @@ pass, preserving useful commit and acceptance provenance. This does not authoriz
 any deployment or acceptance gate. A separate focused branch follows the merge
 for the authorized physical steps-source Debug investigation.
 
-Personal, Solo, legacy charity and historical fictional-5K agreements retain
-their contracts. Organizer-event nomination screens remain paused. Two to five total
+Personal, Solo and historical fictional-5K agreements retain their contracts;
+D143 removed charity. Organizer-event nomination screens remain paused. Two to five total
 friend participants including the creator remains D132's working assumption.
 Community entrants individually pursue one common configured fixture target.
 

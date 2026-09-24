@@ -15,9 +15,8 @@ not authorize hosted mutations, TestFlight distribution, recruitment, data
 deletion, notification delivery, payment-provider activity, or live money.
 
 For current implementation status and the September 13 execution reevaluation,
-use [WORKING_BASELINE.md](WORKING_BASELINE.md), the
-[remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md) and
-[prompt pack](FIRSTMATE_REMAINING_IMPLEMENTATION_PROMPTS.md). They reuse completed
+use [WORKING_BASELINE.md](WORKING_BASELINE.md) and the
+[remaining plan](GAMETIME_REMAINING_IMPLEMENTATION_PLAN.md). They reuse completed
 design/backend work and distinguish local Beta, private TestFlight and a proposed
 public simulated launch. This document retains D134/D135's product rules and
 D140's working nine-goal Beta scope. D141 adds optional local received-score

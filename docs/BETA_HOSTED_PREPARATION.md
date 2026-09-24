@@ -1,12 +1,17 @@
 # P10 hosted operation preparation
 
+Current hosted state and pending work are recorded in the latest
+[working baseline](WORKING_BASELINE.md) and
+[friends TestFlight plan](FRIENDS_TESTFLIGHT_PLAN.md). This worksheet preserves
+the dated P10/P11 preparation and receipts below.
+
 Prepared September 12, 2026 UTC from working baseline `fd193e7`. This continues
 **gametime-beta-release-readiness-b7** (`beta-release-identities-retention`),
 using its existing handoff, rollout, privacy and operator material. It creates
 no duplicate decision/task. The current source and performed checks are in the
 [P10 handoff](../outputs/reports/2026-09-12-p10-completion.md).
 
-## September 20 bounded installation — current hosted state
+## September 20 bounded installation — dated receipt
 
 The owner approved and completed the [bounded P11B installation](../outputs/reports/2026-09-20-p11b-hosted-installation.md)
 from `8e45132`: `gametime-p11b` (`lyushhqoednheqwzsmxh`), Better Bet, `us-west-1`,
@@ -18,7 +23,8 @@ All eight jobs, product gates and fixtures remain off; Auth is closed, only
 `public` is exposed and no community is selected. No schedule or broader
 acceptance was run. These selected values supersede the dated missing-input
 statements and null worksheet fields below; other operating decisions remain open.
-Use the [current planning handoff](P11B_NEXT_PLANNING_PROMPT.md).
+The planning handoff from this receipt is
+[retired to Git history](archive/README.md#retired-task-prompts).
 
 ## September 20 local Cron and Edge continuation
 

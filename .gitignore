@@ -24,6 +24,13 @@ deno.lock.tmp
 build/
 .swiftpm/
 DerivedData/
+ModuleCache/
+ModuleCache.noindex/
+clang-cache/
+*.pcm
+*.swiftmodule
+ios/GameTime/cache/
+ios/GameTime/.tmp/
 *.xcresult
 *.xcarchive
 *.ipa
@@ -45,6 +52,12 @@ xcuserdata/
 /tmp/
 *.log
 /.ua/.trash-*/
+
+# Retired agent runs are scratch; reusable .agents/skills stays versioned.
+/.agents/ORIGINAL_REQUEST.md
+/.agents/sentinel_*/
+/.agents/teamwork_preview_*/
+/.agents/worker_m4_verification_*/
 
 # ---- Historical generated design concepts -------------------------------
 docs/design/challenge-page-concepts/

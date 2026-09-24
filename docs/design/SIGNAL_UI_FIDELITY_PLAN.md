@@ -1,5 +1,9 @@
 # Signal UI fidelity follow-through
 
+Historical plan. The September 20 implementation and later adopted mockups are
+recorded in [Signal migration](SIGNAL_UI_MIGRATION.md); its latest adoption
+controls current UI work. The requirements below preserve this earlier task.
+
 Prepared September 20, 2026. **Proposed implementation plan; no native UI changes
 or new acceptance results are established by this document.** The owner asked
 for a plan and a prompt after the installed Staging personal-goal flow did not
@@ -267,6 +271,8 @@ Local presentation work does not change source policies, outcome/allocation
 rules, consent versions, transport gates, hosted configuration, money, release
 scope or historical data. No new backend migration is expected.
 
-The [new-chat implementation prompt](../SIGNAL_UI_FIDELITY_IMPLEMENTATION_PROMPT.md)
-is ready to copy. This plan records recommendations, not owner acceptance of
-an implementation or permission to interrupt the live phone session.
+The original implementation prompt is
+[preserved in Git](../archive/README.md#retired-task-prompts). This dated plan
+records its recommendations, not permission to repeat completed work or
+interrupt a live phone session. Follow the latest adoption in
+[Signal migration](SIGNAL_UI_MIGRATION.md) for current presentation.

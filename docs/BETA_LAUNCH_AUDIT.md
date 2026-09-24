@@ -102,7 +102,7 @@ is the engineering reference. The older
 
 The August 6 [product and design audit](BETA_PRODUCT_DESIGN_AUDIT.md) confirms
 that these three tabs and the existing Personal loop are enough. Its
-[implementation prompts](BETA_IMPLEMENTATION_PROMPTS.md) divide the remaining
+[implementation prompts](archive/README.md#retired-task-prompts) divide the remaining
 work into bounded, paste-ready chats.
 
 ## The six remaining workstreams
