@@ -58,7 +58,7 @@ struct ChallengeHealthStatusView: View {
             if readiness {
                 Button(state.readiness == .notConnected ? "Connect Apple Health" : "Refresh activity check") {
                     Task { await flow.checkReadiness(binding, connect: state.readiness == .notConnected) }
-                }.buttonStyle(SignalPrimaryButtonStyle())
+                }.buttonStyle(LivePrimaryButtonStyle())
                     .disabled(state.readiness == .checking || state.readiness == .unsupported).accessibilityIdentifier("beta.health.connect")
                 if state.readiness == .ready && !flow.canConsent(binding) {
                     Text("Finish sending this activity check before you agree. Try Refresh.").font(.subheadline)

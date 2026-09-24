@@ -76,13 +76,13 @@ struct LiveRecordView: View {
                     Button(store.refreshing ? "Refreshing…" : "Refresh records") {
                         Task { await store.refresh() }
                     }
-                    .buttonStyle(LivePrimaryButtonStyle())
+                    .buttonStyle(LiveSecondaryButtonStyle())
                     .disabled(store.refreshing)
                     .padding(.top, 12)
                 }
                 if !snapshot.sectionsWithMore.isEmpty, snapshot.availability != .stale {
                     Button(loadingMore ? "Loading…" : "Load more records", action: loadMore)
-                        .buttonStyle(LivePrimaryButtonStyle())
+                        .buttonStyle(LiveSecondaryButtonStyle())
                         .disabled(loadingMore || store.refreshing)
                         .padding(.top, 16)
                         .accessibilityIdentifier("profile.load-more")

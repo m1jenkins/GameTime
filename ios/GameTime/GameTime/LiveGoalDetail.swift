@@ -61,7 +61,7 @@ struct LiveGoalDetail: View {
                     ContentUnavailableView("Refresh this challenge", systemImage: "arrow.clockwise",
                         description: Text("Sign in to the same account and refresh to see its latest details."))
                     Button("Refresh activity") { Task { await refreshActivity() } }
-                        .buttonStyle(LivePrimaryButtonStyle())
+                        .buttonStyle(LiveSecondaryButtonStyle())
                 }.padding(24)
             }
         }
@@ -375,7 +375,7 @@ struct LiveGoalDetail: View {
                          value: "Last saved update \(fact.recordedAt.text(zone: row.config.timezone))")
         }
         healthContent(row)
-        Button("Refresh activity") { Task { await refreshActivity() } }.buttonStyle(LivePrimaryButtonStyle())
+        Button("Refresh activity") { Task { await refreshActivity() } }.buttonStyle(LiveSecondaryButtonStyle())
             .disabled(refreshing).accessibilityIdentifier("beta.leaderboard.refresh")
     }
 
@@ -497,7 +497,7 @@ struct LiveGoalDetail: View {
                 Button("Reopen lobby and ask everyone again") { Task {
                     await store.submit(op: "reopen", challenge: row)
                     if store.pending == nil && store.error == nil { sheet = .lobby }
-                }}.buttonStyle(LivePrimaryButtonStyle()).disabled(!canAct)
+                }}.buttonStyle(LiveSecondaryButtonStyle()).disabled(!canAct)
             }
         }
         if !row.isClosed, row.own(store.actor)?.exited == false,
@@ -543,7 +543,7 @@ struct LiveGoalDetail: View {
                     .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
             }.padding(16).modifier(LiveCardModifier(radius: 18, material: true))
         }
-        Button("Refresh result") { Task { await refreshActivity() } }.buttonStyle(LivePrimaryButtonStyle()).disabled(refreshing)
+        Button("Refresh result") { Task { await refreshActivity() } }.buttonStyle(LiveSecondaryButtonStyle()).disabled(refreshing)
     }
 
     private func allocation(_ result: ChallengeV1.Allocation, row: ChallengeV1, confirmed: Bool) -> some View {

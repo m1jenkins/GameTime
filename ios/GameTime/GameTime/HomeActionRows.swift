@@ -72,17 +72,17 @@ struct HomeActionRows: View {
         case .agree(let row):
             line(glyph: "calendar", title: "Agree to " + LiveChallengePresentation.title(row),
                  detail: "Before " + Self.deadline(row), urgent: true) {
-                Button("Review") { viewGoal(row.id) }.buttonStyle(FriendsPillStyle(kind: .filled))
+                Button("Review") { viewGoal(row.id) }.buttonStyle(LivePillButtonStyle(kind: .filled))
                     .accessibilityLabel("Review \(LiveChallengePresentation.title(row))")
             }
         case .incoming(let person):
             line(person: person, detail: "Friend request") {
                 HStack(spacing: 6) {
                     Button("Decline") { Task { await friends?.perform(.decline, person: person) } }
-                        .buttonStyle(FriendsPillStyle(kind: .quiet))
+                        .buttonStyle(LivePillButtonStyle(kind: .quiet))
                         .accessibilityLabel("Decline \(person.displayName)’s request")
                     Button("Accept") { Task { await friends?.perform(.accept, person: person) } }
-                        .buttonStyle(FriendsPillStyle(kind: .filled))
+                        .buttonStyle(LivePillButtonStyle(kind: .filled))
                         .accessibilityLabel("Accept \(person.displayName)’s request")
                 }.disabled(friends?.canAct != true)
             }
@@ -90,7 +90,7 @@ struct HomeActionRows: View {
             let from = row.members.first { $0.actorId == row.creatorId }?.username
             line(glyph: "envelope", title: LiveChallengePresentation.title(row),
                  detail: (from.map { "From \($0) · " } ?? "") + ChallengePresentation.dates(row)) {
-                Button("Review") { viewGoal(row.id) }.buttonStyle(FriendsPillStyle(kind: .quiet))
+                Button("Review") { viewGoal(row.id) }.buttonStyle(LivePillButtonStyle(kind: .quiet))
                     .accessibilityLabel("Review \(LiveChallengePresentation.title(row))")
             }
         case .accepted(let person):
