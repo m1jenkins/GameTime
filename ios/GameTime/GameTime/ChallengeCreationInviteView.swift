@@ -154,7 +154,7 @@ struct ChallengeCreationInviteView: View {
                     .frame(width: 52, height: 52).background(SignalCreationTheme.soft, in: Circle())
                     .accessibilityHidden(true)
                 Text(friends?.state == .loading ? "Loading your friends…" : "No friends yet")
-                    .font(.system(size: 17, weight: .semibold))
+                    .liveFont(size: 17, weight: .semibold)
                 if friends?.state != .loading {
                     Text("Send a request by username. Once they accept, they’ll show up here and you can invite them. Your challenge is saved while you wait.")
                         .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)

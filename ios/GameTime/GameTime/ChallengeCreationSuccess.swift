@@ -9,8 +9,10 @@ struct ChallengeCreationSuccess: View {
     let onGoHome: () -> Void
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var showingGoal = false
     @ScaledMetric(relativeTo: .largeTitle) private var headingSize: CGFloat = 30
+    @ScaledMetric(relativeTo: .caption) private var inviteeWidth: CGFloat = 72
     @AccessibilityFocusState private var headingFocused: Bool
 
     init(store: ChallengeV1Store, challengeID: UUID, onGoHome: @escaping () -> Void = {}) {
@@ -100,9 +102,12 @@ struct ChallengeCreationSuccess: View {
         return VStack(alignment: .leading, spacing: 18) {
             if !invited.isEmpty {
                 VStack(alignment: .leading, spacing: 14) {
-                    HStack {
+                    let layout = typeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                        : AnyLayout(HStackLayout())
+                    layout {
                         Text("Invited").font(.subheadline.weight(.semibold))
-                        Spacer(minLength: 8)
+                        if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
                         Text(invited.contains(where: \.consented) ? "" : "Nobody has agreed yet")
                             .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
                     }
@@ -111,12 +116,13 @@ struct ChallengeCreationSuccess: View {
                             ForEach(invited) { person in
                                 VStack(spacing: 5) {
                                     LiveAvatar(username: person.username, actorID: person.actorId, size: 44)
-                                    Text(person.username).font(.caption.weight(.semibold)).lineLimit(2)
-                                        .multilineTextAlignment(.center).minimumScaleFactor(0.8)
+                                    Text(person.username).font(.caption.weight(.semibold))
+                                        .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+                                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                                     Text(person.consented ? "Agreed" : "Invited").font(.caption2)
                                         .foregroundStyle(SignalCreationTheme.textSecondary)
                                 }
-                                .frame(width: 72).accessibilityElement(children: .combine)
+                                .frame(width: inviteeWidth).accessibilityElement(children: .combine)
                             }
                         }
                     }.scrollIndicators(.hidden)

@@ -431,12 +431,64 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(agree.exists)
     }
 
+    func testTextGrowsAndFriendActionsRemainReachableAtLargestSize() {
+        continueAfterFailure = false
+        var app = launch("friends", textSize: "UICTContentSizeCategoryL")
+        let heading = app.staticTexts["Requests for you"]
+        XCTAssertTrue(heading.waitForExistence(timeout: 10))
+        let defaultHeight = heading.frame.height
+        capture(app, name: "friends-default-text")
+        app.terminate()
+
+        app = launch("friends", textSize: "UICTContentSizeCategoryAccessibilityXXXL")
+        defer { app.terminate() }
+        let largeHeading = app.staticTexts["Requests for you"]
+        XCTAssertTrue(largeHeading.waitForExistence(timeout: 10))
+        XCTAssertGreaterThan(largeHeading.frame.height, defaultHeight * 1.4,
+                             "The app must actually enlarge text, not only rearrange fixed-size labels")
+        capture(app, name: "friends-largest-text")
+        let accept = app.buttons["Accept Taylor Kim’s request"]
+        bring(app, accept); accept.tap()
+        XCTAssertTrue(app.staticTexts["You and Taylor are now friends."].waitForExistence(timeout: 5))
+        let add = app.buttons["friends.add"]
+        bring(app, add, upward: false); add.tap()
+        let field = app.textFields["friends.username"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        bring(app, field)
+        capture(app, name: "add-friend-largest-text")
+        field.tap(); field.typeText("drew_p\n")
+        let send = app.buttons["friends.add.send"]
+        XCTAssertTrue(send.waitForExistence(timeout: 5)); bring(app, send); send.tap()
+        XCTAssertTrue(app.staticTexts["Request sent. Drew will see it in GameTime and can accept or decline."].waitForExistence(timeout: 5))
+    }
+
+    func testLargestTextKeepsOnboardingConsentAndExitReachable() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["--fixture-mode", "--fixture-onboarding", "--fixture-empty",
+                               "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+                               "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.staticTexts["Before you start"].waitForExistence(timeout: 10))
+        capture(app, name: "onboarding-largest-text")
+        let proceed = app.buttons["onboarding.age.continue"]
+        XCTAssertFalse(proceed.isEnabled)
+        XCTAssertTrue(app.buttons["onboarding.age.under21"].isHittable)
+        let age = app.switches["onboarding.age.toggle"]
+        bring(app, age)
+        age.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
+        XCTAssertTrue(proceed.isEnabled)
+        proceed.tap()
+        XCTAssertTrue(app.textFields["onboarding.name.input"].waitForExistence(timeout: 5))
+        capture(app, name: "profile-largest-text")
+    }
+
     /// Friends Phase 4: the system audit on every friends screen, at the
     /// default text size and the largest accessibility size. The audit checks
     /// labels, hit areas, contrast and clipped text; it can't stand in for a
-    /// person using VoiceOver. Text size support is left out: every screen of
-    /// the September 22 native design sets fixed point sizes, so that gap is
-    /// app-wide and recorded separately rather than failed here.
+    /// person using VoiceOver. This historical audit keeps its exclusions;
+    /// actual font growth is checked by the focused journey above.
     func testFriendsScreensPassTheSystemAccessibilityAuditApartFromTextSize() throws {
         continueAfterFailure = true
         for size in [nil, "UICTContentSizeCategoryAccessibilityXXXL"] {

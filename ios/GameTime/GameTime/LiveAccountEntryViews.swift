@@ -5,23 +5,26 @@ import SwiftUI
 struct LiveSignInView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.demoMode) private var demoMode
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingAccountDeletionReceipt = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                HStack {
+                (dynamicTypeSize.isAccessibilitySize
+                          ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+                          : AnyLayout(HStackLayout())) {
                     Text(GameTimePublicIdentity.name)
-                        .font(.system(size: 28, weight: .bold)).tracking(-1.1)
-                    Spacer()
+                        .liveFont(size: 28, weight: .bold).tracking(-1.1)
+                    if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                     Label("Private account", systemImage: "lock")
-                        .font(.system(size: 11, weight: .medium)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(size: 11, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
                 }.padding(.top, 22)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Sign in").font(.system(size: 32, weight: .bold)).tracking(-1.1)
+                    Text("Sign in").liveFont(size: 32, weight: .bold).tracking(-1.1)
                     Text("Your challenges and your record, in one place.")
-                        .font(.system(size: 15)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(size: 15).foregroundStyle(SignalTheme.textSecondary)
                 }.padding(.top, 14)
 
                 VStack(spacing: 0) {
@@ -49,12 +52,12 @@ struct LiveSignInView: View {
                     if model.isMutating {
                         HStack(spacing: 8) {
                             ProgressView().tint(SignalTheme.accent)
-                            Text("Signing in…").font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
+                            Text("Signing in…").liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
                         }.accessibilityIdentifier("auth.sign-in.status")
                     }
                     if demoMode.isAvailable, !demoMode.isActive {
                         Button("Try demo mode", action: demoMode.enter)
-                            .font(.system(size: 15, weight: .semibold)).foregroundStyle(SignalTheme.accent)
+                            .liveFont(size: 15, weight: .semibold).foregroundStyle(SignalTheme.accent)
                             .frame(maxWidth: .infinity, minHeight: 48)
                             .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
                             .accessibilityIdentifier("demo.enter")
@@ -63,20 +66,20 @@ struct LiveSignInView: View {
 
                 if let notice = model.accountDeletionNotice {
                     Label(notice, systemImage: "checkmark.circle")
-                        .font(.system(size: 14, weight: .medium)).foregroundStyle(SignalTheme.accent)
+                        .liveFont(size: 14, weight: .medium).foregroundStyle(SignalTheme.accent)
                         .padding(16).frame(maxWidth: .infinity, alignment: .leading)
                         .modifier(LiveCardModifier(radius: 18, material: true))
                         .accessibilityIdentifier("account-deletion.success")
                 }
                 if model.accountDeletionReceipt != nil {
                     Button("Check account deletion") { showingAccountDeletionReceipt = true }
-                        .font(.system(size: 14, weight: .semibold)).frame(minHeight: 44)
+                        .liveFont(size: 14, weight: .semibold).frame(minHeight: 44)
                         .foregroundStyle(SignalTheme.accent).accessibilityIdentifier("account-deletion.receipt")
                 }
 
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Signing in creates your private account. Apple only shares your name the first time, and you can change it on the next screen.")
-                        .font(.system(size: 12)).lineSpacing(3).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(size: 12).lineSpacing(3).foregroundStyle(SignalTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     PublicSupportLinksView(privacyURL: model.configuration.privacyPolicyURL,
                         betaTermsURL: model.configuration.betaTermsURL,
@@ -99,8 +102,8 @@ struct LiveSignInView: View {
                 .foregroundStyle(SignalTheme.accent).frame(width: 34, height: 34)
                 .background(SignalTheme.accent.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
             VStack(alignment: .leading, spacing: 5) {
-                Text(title).font(.system(size: 14, weight: .semibold))
-                Text(value).font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                Text(title).liveFont(size: 14, weight: .semibold)
+                Text(value).liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, alignment: .leading)
         }.padding(16)
@@ -112,6 +115,7 @@ struct LiveSignInView: View {
 /// then does the profile step appear.
 struct LiveOnboardingView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var handle = ""
     @State private var displayName: String
     @State private var ageConfirmed = false
@@ -130,9 +134,9 @@ struct LiveOnboardingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 LiveOnboardingSteps(current: 1).padding(.top, 16)
-                Text("Before you start").font(.system(size: 30, weight: .bold)).tracking(-1)
+                Text("Before you start").liveFont(size: 30, weight: .bold).tracking(-1)
                     .accessibilityAddTraits(.isHeader).padding(.top, 22)
-                Text("A couple of things to know about GameTime.").font(.system(size: 15))
+                Text("A couple of things to know about GameTime.").liveFont(size: 15)
                     .foregroundStyle(SignalTheme.textSecondary).padding(.top, 10)
                 VStack(alignment: .leading, spacing: 20) {
                     LiveOnboardingFact(symbol: "applewatch", title: "You need an Apple Watch",
@@ -141,11 +145,13 @@ struct LiveOnboardingView: View {
                         text: "No real money moves. Nothing can be paid out or redeemed.")
                 }.padding(.top, 26)
                 Toggle("I confirm I am 21 or older", isOn: $ageConfirmed)
-                    .font(.system(size: 16, weight: .medium)).tint(SignalTheme.accent)
+                    .liveFont(size: 16, weight: .medium).tint(SignalTheme.accent)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.vertical, dynamicTypeSize.isAccessibilitySize ? 12 : 0)
                     .padding(.horizontal, 16).frame(minHeight: 56)
                     .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
                     .padding(.top, 30).accessibilityIdentifier("onboarding.age.toggle")
-                Text("GameTime is only for people 21 and older.").font(.system(size: 12))
+                Text("GameTime is only for people 21 and older.").liveFont(size: 12)
                     .foregroundStyle(SignalTheme.textSecondary).padding(.top, 10).padding(.horizontal, 4)
             }.padding(.horizontal, 24).padding(.bottom, 24)
         }
@@ -158,7 +164,7 @@ struct LiveOnboardingView: View {
                 .buttonStyle(LivePrimaryButtonStyle()).disabled(!ageConfirmed)
                 .accessibilityIdentifier("onboarding.age.continue")
                 Button { under21 = true } label: {
-                    Text("I’m under 21").font(.system(size: 14, weight: .medium)).foregroundStyle(SignalTheme.textSecondary)
+                    Text("I’m under 21").liveFont(size: 14, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
                         .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain).accessibilityIdentifier("onboarding.age.under21")
@@ -180,23 +186,23 @@ struct LiveOnboardingView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     LiveOnboardingSteps(current: 2).padding(.top, 16).padding(.bottom, -8)
                     HStack {
-                        Text("Your profile").font(.system(size: 28, weight: .bold)).tracking(-1)
+                        Text("Your profile").liveFont(size: 28, weight: .bold).tracking(-1)
                         Spacer()
                         Image(systemName: "person.crop.circle").font(.system(size: 25, weight: .regular))
                             .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
                     }.padding(.top, 16)
                     Text("Add your name and the username friends will use to find you.")
-                        .font(.system(size: 15)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(size: 15).foregroundStyle(SignalTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     VStack(alignment: .leading, spacing: 22) {
                         profileField("Your name", text: $displayName, field: .name)
                         profileField("Username", text: $handle, field: .handle)
                     }
                     Text("Pick carefully — you can’t change your username yet. Friends need it to send you a request.")
-                        .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let message = error(.general) {
-                        Text(message).font(.system(size: 13, weight: .medium)).foregroundStyle(SignalTheme.danger)
+                        Text(message).liveFont(size: 13, weight: .medium).foregroundStyle(SignalTheme.danger)
                             .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("onboarding.general.error")
                     }
                     VStack(spacing: 12) {
@@ -207,7 +213,9 @@ struct LiveOnboardingView: View {
                         Button("Use a different Apple account") {
                             focusedField = nil
                             Task { await model.signOut() }
-                        }.font(.system(size: 14, weight: .medium)).foregroundStyle(SignalTheme.textSecondary)
+                        }.liveFont(size: 14, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity, minHeight: 44).disabled(model.isMutating)
                             .accessibilityIdentifier("onboarding.use-different-account")
                     }
@@ -240,7 +248,7 @@ struct LiveOnboardingView: View {
     private func profileField(_ title: String, text: Binding<String>, field: Field) -> some View {
         let message = error(field == .name ? .name : .username)
         return VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.system(size: 13, weight: .semibold))
+            Text(title).liveFont(size: 13, weight: .semibold)
             HStack(spacing: 8) {
                 if field == .handle { Text("@").foregroundStyle(SignalTheme.textSecondary) }
                 TextField(title, text: text)
@@ -252,11 +260,13 @@ struct LiveOnboardingView: View {
                     .onSubmit { if field == .name { focusedField = .handle } else { submit() } }
                     .disabled(model.isMutating).accessibilityLabel(title)
                     .accessibilityIdentifier(field == .name ? "onboarding.name.input" : "onboarding.username.input")
-            }.font(.system(size: 17, weight: .medium)).padding(.horizontal, 16).frame(minHeight: 56)
+            }.liveFont(size: 17, weight: .medium)
+                .padding(.vertical, dynamicTypeSize.isAccessibilitySize ? 12 : 0)
+                .padding(.horizontal, 16).frame(minHeight: 56)
                 .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
                 .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(message == nil ? SignalTheme.divider.opacity(0.45) : SignalTheme.danger, lineWidth: 1) }
             Text(message ?? (field == .name ? "Name: 1–50 characters" : "Username: 3–30 letters, numbers, or underscores; starts with a letter"))
-                .font(.system(size: 12)).foregroundStyle(message == nil ? SignalTheme.textSecondary : SignalTheme.danger)
+                .liveFont(size: 12).foregroundStyle(message == nil ? SignalTheme.textSecondary : SignalTheme.danger)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier(field == .name ? "onboarding.name.message" : "onboarding.username.message")
         }
@@ -294,8 +304,8 @@ private struct LiveOnboardingFact: View {
                 .frame(width: 40, height: 40).background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 11))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.system(size: 16, weight: .semibold))
-                Text(text).font(.system(size: 14)).foregroundStyle(SignalTheme.textSecondary)
+                Text(title).liveFont(size: 16, weight: .semibold)
+                Text(text).liveFont(size: 14).foregroundStyle(SignalTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -306,20 +316,33 @@ private struct LiveOnboardingFact: View {
 struct LiveLaunchingView: View {
     let errorMessage: String?
     let retry: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var offline: Bool { errorMessage?.localizedCaseInsensitiveContains("offline") == true }
 
     var body: some View {
+        GeometryReader { geometry in
+            ScrollView {
+                launchContent
+                    .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 310)
+                    .padding(24)
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+            }
+        }
+        .background(SignalTheme.canvas).foregroundStyle(SignalTheme.textPrimary)
+    }
+
+    private var launchContent: some View {
         VStack(spacing: 20) {
-            Text(GameTimePublicIdentity.name).font(.system(size: 28, weight: .bold)).tracking(-1.1)
+            Text(GameTimePublicIdentity.name).liveFont(size: 28, weight: .bold).tracking(-1.1)
             if let errorMessage {
                 VStack(spacing: 10) {
-                    Text("Couldn’t load your challenges").font(.system(size: 17, weight: .semibold))
+                    Text("Couldn’t load your challenges").liveFont(size: 17, weight: .semibold)
                         .accessibilityIdentifier("launch.retry")
                     Text(offline ? "Check your connection and try again." : errorMessage)
-                        .font(.system(size: 14)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(size: 14).foregroundStyle(SignalTheme.textSecondary)
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     if offline {
-                        Label("Offline", systemImage: "wifi.slash").font(.system(size: 12))
+                        Label("Offline", systemImage: "wifi.slash").liveFont(size: 12)
                             .foregroundStyle(SignalTheme.textSecondary).accessibilityIdentifier("launch.offline")
                     }
                 }
@@ -328,12 +351,11 @@ struct LiveLaunchingView: View {
             } else {
                 HStack(spacing: 10) {
                     ProgressView().tint(SignalTheme.accent).accessibilityLabel("Loading \(GameTimePublicIdentity.name)")
-                    Text("Loading…").font(.system(size: 14)).foregroundStyle(SignalTheme.textSecondary)
+                    Text("Loading…").liveFont(size: 14).foregroundStyle(SignalTheme.textSecondary)
                 }.accessibilityElement(children: .contain).accessibilityIdentifier("launch.loading")
             }
-        }.frame(maxWidth: 310).padding(24)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(SignalTheme.canvas).foregroundStyle(SignalTheme.textPrimary)
+        }
+        .multilineTextAlignment(.center)
     }
 }
 
@@ -360,7 +382,7 @@ struct LiveConfigurationFailureView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 Text(GameTimePublicIdentity.name)
-                    .font(.system(size: 28, weight: .bold)).tracking(-1.1)
+                    .liveFont(size: 28, weight: .bold).tracking(-1.1)
                     .padding(.top, 22)
 
                 VStack(alignment: .leading, spacing: 16) {
@@ -372,11 +394,11 @@ struct LiveConfigurationFailureView: View {
                             .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 12))
                             .accessibilityHidden(true)
                         Text("GameTime can’t start")
-                            .font(.system(size: 17, weight: .semibold))
+                            .liveFont(size: 17, weight: .semibold)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Text(message)
-                        .font(.system(size: 14)).lineSpacing(3)
+                        .liveFont(size: 14).lineSpacing(3)
                         .foregroundStyle(SignalTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }.padding(20).frame(maxWidth: .infinity, alignment: .leading)

@@ -7,6 +7,7 @@ struct HomeActionRows: View {
     let challenges: ChallengeV1Store
     let viewGoal: (UUID) -> Void
     @Environment(FriendsStore.self) private var friends: FriendsStore?
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var showingAll = false
 
     enum Item: Identifiable {
@@ -54,7 +55,7 @@ struct HomeActionRows: View {
                 if all.count > shown.count {
                     Divider().overlay(SignalTheme.divider)
                     Button("Show \(all.count - shown.count) more") { showingAll = true }
-                        .font(.system(size: 14, weight: .semibold)).foregroundStyle(SignalTheme.accent)
+                        .liveFont(size: 14, weight: .semibold).foregroundStyle(SignalTheme.accent)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .accessibilityIdentifier("home.actions.more")
                 }
@@ -77,7 +78,7 @@ struct HomeActionRows: View {
             }
         case .incoming(let person):
             line(person: person, detail: "Friend request") {
-                HStack(spacing: 6) {
+                FriendsActionGroup(spacing: 6) {
                     Button("Decline") { Task { await friends?.perform(.decline, person: person) } }
                         .buttonStyle(FriendsPillStyle(kind: .quiet))
                         .accessibilityLabel("Decline \(person.displayName)’s request")
@@ -107,31 +108,43 @@ struct HomeActionRows: View {
 
     private func line<Trailing: View>(glyph: String, title: String, detail: String, urgent: Bool = false,
                                       @ViewBuilder trailing: () -> Trailing) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: glyph).font(.system(size: 16)).foregroundStyle(SignalTheme.accent)
-                .frame(width: 40, height: 40).background(SignalTheme.selection, in: Circle())
-                .accessibilityHidden(true)
-            text(title, detail, urgent: urgent)
+        rowLayout {
+            HStack(spacing: 12) {
+                Image(systemName: glyph).font(.system(size: 16)).foregroundStyle(SignalTheme.accent)
+                    .frame(width: 40, height: 40).background(SignalTheme.selection, in: Circle())
+                    .accessibilityHidden(true)
+                text(title, detail, urgent: urgent)
+            }
             trailing()
         }
         .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 8).frame(minHeight: 64)
     }
 
     private func line<Trailing: View>(person: FriendPerson, detail: String, @ViewBuilder trailing: () -> Trailing) -> some View {
-        HStack(spacing: 12) {
-            LiveAvatar(username: person.displayName, size: 40).accessibilityHidden(true)
-            text(person.displayName, detail)
+        rowLayout {
+            HStack(spacing: 12) {
+                LiveAvatar(username: person.displayName, size: 40).accessibilityHidden(true)
+                text(person.displayName, detail)
+            }
             trailing()
         }
         .padding(.leading, 14).padding(.trailing, 10).padding(.vertical, 8).frame(minHeight: 64)
     }
 
+    private var rowLayout: AnyLayout {
+        typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+            : AnyLayout(HStackLayout(spacing: 12))
+    }
+
     private func text(_ title: String, _ detail: String, urgent: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.system(size: 15, weight: .semibold)).lineLimit(2)
-            Text(detail).font(.system(size: 13, weight: urgent ? .medium : .regular))
-                .foregroundStyle(urgent ? SignalTheme.textPrimary : SignalTheme.textSecondary).lineLimit(2)
+            Text(title).liveFont(size: 15, weight: .semibold).lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+            Text(detail).liveFont(size: 13, weight: urgent ? .medium : .regular)
+                .foregroundStyle(urgent ? SignalTheme.textPrimary : SignalTheme.textSecondary)
+                .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
         }
+        .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }

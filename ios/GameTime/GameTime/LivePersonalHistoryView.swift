@@ -18,13 +18,13 @@ struct LivePersonalHistoryView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text(LivePersonalCopy.title(challenge.terms))
-                                .font(.system(size: 19, weight: .bold)).tracking(-0.6)
+                                .liveFont(size: 19, weight: .bold).tracking(-0.6)
                             Spacer(minLength: 8)
                             Image(systemName: "chevron.right").font(.system(size: 12))
                                 .foregroundStyle(SignalTheme.textSecondary)
                         }
                         Text(LivePersonalCopy.dates(challenge.terms))
-                            .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                            .liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
                         LiveStateChip(text: LivePersonalCopy.state(challenge.presentationStatus(at: Date()), outcome: challenge.outcome),
                                       warning: challenge.outcome?.kind == .missedGoal,
                                       neutral: challenge.outcome == nil || challenge.outcome?.kind == .inconclusive)
@@ -154,6 +154,7 @@ struct LivePersonalDetailView: View {
     let challengeID: UUID
     @Environment(PersonalAccountabilityStore.self) private var store
     @Environment(AppModel.self) private var model
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var confirmCancellation = false
     @State private var working = false
     @State private var message: String?
@@ -219,10 +220,12 @@ struct LivePersonalDetailView: View {
     private func hero(_ challenge: PersonalChallengeDetail) -> some View {
         let progress = store.displayedProgress(for: challenge)
         return VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                Text(challenge.terms.targetText).font(.system(size: 14, weight: .medium))
+            (dynamicTypeSize.isAccessibilitySize
+                      ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+                      : AnyLayout(HStackLayout(alignment: .top))) {
+                Text(challenge.terms.targetText).liveFont(size: 14, weight: .medium)
                     .foregroundStyle(SignalTheme.textSecondary)
-                Spacer(minLength: 8)
+                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
                 LiveStateChip(text: LivePersonalCopy.state(challenge.presentationStatus(at: Date()), outcome: challenge.outcome),
                               warning: challenge.outcome?.kind == .missedGoal,
                               neutral: challenge.outcome?.kind == .inconclusive)
@@ -307,12 +310,15 @@ struct LivePersonalDetailView: View {
             DisclosureGroup("Daily steps") {
                 VStack(spacing: 12) {
                     ForEach(progress.days) { day in
-                        HStack {
+                        (dynamicTypeSize.isAccessibilitySize
+                                  ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                                  : AnyLayout(HStackLayout())) {
                             Text(LivePersonalCopy.day(day.localDate))
-                            Spacer()
+                            if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                             Text(day.state == .future ? "—" : day.totalSteps.formatted())
                                 .font(.system(.body, design: .rounded).weight(.bold)).monospacedDigit()
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityElement(children: .combine)
                     }
                 }.padding(.top, 16)
@@ -474,13 +480,16 @@ private struct LivePersonalPage<Content: View>: View {
     let title: String
     @ViewBuilder let content: Content
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                HStack(spacing: 12) {
+                (dynamicTypeSize.isAccessibilitySize
+                          ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+                          : AnyLayout(HStackLayout(spacing: 12))) {
                     LiveRoundButton(symbol: "chevron.left", label: "Back") { dismiss() }
-                    Text(title).font(.system(size: 25, weight: .bold)).tracking(-0.8)
-                    Spacer(minLength: 0)
+                    Text(title).liveFont(size: 25, weight: .bold).tracking(-0.8)
+                    if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 }
                 content
             }
@@ -497,7 +506,8 @@ private struct LivePersonalCard<Content: View>: View {
     @ViewBuilder let content: Content
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(title, systemImage: symbol).font(.system(size: 17, weight: .semibold))
+            Label(title, systemImage: symbol).liveFont(size: 17, weight: .semibold)
+                .fixedSize(horizontal: false, vertical: true)
                 .foregroundStyle(SignalTheme.textPrimary)
             content.font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
         }
@@ -508,8 +518,12 @@ private struct LivePersonalCard<Content: View>: View {
 
 private struct LivePersonalSecondaryStyle: ButtonStyle {
     var warning = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 15, weight: .semibold))
+        configuration.label.liveFont(size: 15, weight: .semibold)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, dynamicTypeSize.isAccessibilitySize ? 12 : 0)
             .frame(maxWidth: .infinity, minHeight: 48).padding(.horizontal, 12)
             .foregroundStyle(warning ? SignalTheme.danger : SignalTheme.accent)
             .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 14))

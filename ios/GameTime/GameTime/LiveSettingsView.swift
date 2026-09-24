@@ -69,14 +69,17 @@ private struct LiveSettingsPage<Content: View>: View {
     let title: String
     @ViewBuilder let content: Content
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                HStack(spacing: 12) {
+                (dynamicTypeSize.isAccessibilitySize
+                          ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+                          : AnyLayout(HStackLayout(spacing: 12))) {
                     LiveRoundButton(symbol: "chevron.left", label: "Back") { dismiss() }
-                    Text(title).font(.system(size: 25, weight: .bold)).tracking(-0.9)
-                    Spacer(minLength: 0)
+                    Text(title).liveFont(size: 25, weight: .bold).tracking(-0.9)
+                    if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 }
                 .padding(.bottom, 8)
                 content
@@ -101,8 +104,8 @@ private struct LiveSettingsRow: View {
                 .foregroundStyle(SignalTheme.textSecondary).frame(width: 24)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.system(size: 15, weight: .semibold))
-                Text(detail).font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                Text(title).liveFont(size: 15, weight: .semibold)
+                Text(detail).liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
             }
             .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 4)
@@ -122,7 +125,8 @@ private struct LiveInformationCard<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(title, systemImage: symbol).font(.system(size: 17, weight: .semibold))
+            Label(title, systemImage: symbol).liveFont(size: 17, weight: .semibold)
+                .fixedSize(horizontal: false, vertical: true)
             content.font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
         }
         .padding(18).frame(maxWidth: .infinity, alignment: .leading)
@@ -134,6 +138,7 @@ private struct LiveHealthSettingsView: View {
     let store: ChallengeV1Store
     @Environment(AppModel.self) private var model
     @Environment(\.challengeHealthFlow) private var health
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var working = false
 
     private var healthRows: [ChallengeV1] {
@@ -147,9 +152,11 @@ private struct LiveHealthSettingsView: View {
             LiveInformationCard(title: "Activity for your goals", symbol: "heart") {
                 Text("Connect the activity needed for each goal. You can change GameTime’s access in Apple Health at any time.")
                 if let profile = model.profile {
-                    HStack {
+                    (dynamicTypeSize.isAccessibilitySize
+                              ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                              : AnyLayout(HStackLayout())) {
                         Text("Time zone")
-                        Spacer()
+                        if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                         Text(SignalTimeZone.name(profile.timezone)).foregroundStyle(SignalTheme.textPrimary)
                     }
                     Text("Existing challenges keep their agreed dates and time zone.").font(.footnote)
@@ -292,7 +299,7 @@ private struct LiveAccountView: View {
                 HStack(spacing: 12) {
                     LiveAvatar(username: profile.handle, actorID: profile.id, size: 48)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(profile.displayName).font(.system(size: 18, weight: .semibold))
+                        Text(profile.displayName).liveFont(size: 18, weight: .semibold)
                         Text("@\(profile.handle)").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                     }
                 }

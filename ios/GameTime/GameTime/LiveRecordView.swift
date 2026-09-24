@@ -30,7 +30,7 @@ struct LiveRecordView: View {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text("You")
-                        .font(.system(size: 27, weight: .bold)).tracking(-1)
+                        .liveFont(size: 27, weight: .bold).tracking(-1)
                     Spacer()
                     LiveRoundButton(symbol: "gearshape", label: "Settings", action: settings)
                         .accessibilityIdentifier("profile.settings")
@@ -43,11 +43,14 @@ struct LiveRecordView: View {
                 }
                 summary.padding(.top, friends != nil ? 24 : 16)
 
-                HStack {
-                    Text("Finished").font(.system(size: 16, weight: .bold)).tracking(-0.5)
-                    Spacer(minLength: 8)
+                let finishedLayout = dynamicTypeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                    : AnyLayout(HStackLayout())
+                finishedLayout {
+                    Text("Finished").liveFont(size: 16, weight: .bold).tracking(-0.5)
+                    if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
                     Text("\(snapshot.countText(snapshot.finished.count)) challenges")
-                        .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
                 }
                 .padding(.top, 18).padding(.bottom, 12)
 
@@ -111,9 +114,9 @@ struct LiveRecordView: View {
             LiveAvatar(username: identity?.handle ?? "", actorID: identity?.id, size: 48)
             VStack(alignment: .leading, spacing: 4) {
                 Text(identity?.displayName ?? "Your profile")
-                    .font(.system(size: 18, weight: .semibold)).tracking(-0.5)
+                    .liveFont(size: 18, weight: .semibold).tracking(-0.5)
                 if let identity {
-                    Text("@\(identity.handle)").font(.system(size: 12))
+                    Text("@\(identity.handle)").liveFont(size: 12)
                         .foregroundStyle(SignalTheme.textSecondary)
                         .accessibilityLabel("Username \(identity.handle)")
                 }
@@ -121,7 +124,7 @@ struct LiveRecordView: View {
             Spacer(minLength: 4)
             if !dynamicTypeSize.isAccessibilitySize {
                 Label("Private", systemImage: "lock")
-                    .font(.system(size: 10)).foregroundStyle(SignalTheme.textSecondary)
+                    .liveFont(size: 10).foregroundStyle(SignalTheme.textSecondary)
             }
         }
         .accessibilityElement(children: .combine)
@@ -135,12 +138,15 @@ struct LiveRecordView: View {
 
     private var summary: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
+            let headingLayout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                : AnyLayout(HStackLayout())
+            headingLayout {
                 Text("Your record")
-                Spacer()
+                if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                 Text(recordPeriod)
             }
-            .font(.system(size: 12, weight: .medium))
+            .liveFont(size: 12, weight: .medium)
             .foregroundStyle(SignalTheme.textSecondary)
 
             if dynamicTypeSize.isAccessibilitySize {
@@ -164,10 +170,13 @@ struct LiveRecordView: View {
     }
 
     private func summaryNumber(_ value: String, label: String, id: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(value).font(.system(size: 46, weight: .black)).italic().tracking(-2.5)
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
+        return layout {
+            Text(value).liveFont(size: 46, weight: .black, italic: true).tracking(-2.5)
                 .minimumScaleFactor(0.65).lineLimit(1)
-            Text(label).font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+            Text(label).liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -183,20 +192,23 @@ struct LiveRecordView: View {
         return VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline) {
                 Text(LiveChallengePresentation.title(row))
-                    .font(.system(size: 19, weight: .bold)).tracking(-0.65)
+                    .liveFont(size: 19, weight: .bold).tracking(-0.65)
                 Spacer(minLength: 8)
                 Image(systemName: "chevron.right").font(.system(size: 12, weight: .medium))
                     .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
             }
-            Text(dateRange(row)).font(.system(size: 12))
+            Text(dateRange(row)).liveFont(size: 12)
                 .foregroundStyle(SignalTheme.textSecondary).padding(.top, 6)
             if noResult {
-                Text(outcome).font(.system(size: 13, weight: .medium))
+                Text(outcome).liveFont(size: 13, weight: .medium)
                     .foregroundStyle(SignalTheme.textSecondary).padding(.top, 12)
             } else {
-                HStack(spacing: 8) {
+                let resultLayout = dynamicTypeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+                    : AnyLayout(HStackLayout(spacing: 8))
+                resultLayout {
                     LiveStateChip(text: outcome, warning: outcome == "Missed", neutral: outcome == "Didn’t count")
-                    Spacer(minLength: 0)
+                    if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                     HStack(spacing: -8) {
                         ForEach(Array(row.members.filter { $0.selected && $0.consented }.prefix(3))) { person in
                             LiveAvatar(username: person.username, actorID: person.actorId, size: 28)
@@ -214,9 +226,9 @@ struct LiveRecordView: View {
                         .padding(.top, 7)
                 } else {
                     Text("Result unavailable")
-                        .font(.system(size: 24, weight: .bold)).tracking(-0.8).padding(.top, 16)
+                        .liveFont(size: 24, weight: .bold).tracking(-0.8).padding(.top, 16)
                 }
-                Text(targetText(row)).font(.system(size: 11))
+                Text(targetText(row)).liveFont(size: 11)
                     .foregroundStyle(SignalTheme.textSecondary).padding(.top, 5)
             }
         }
@@ -228,7 +240,7 @@ struct LiveRecordView: View {
     private var emptyRecord: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(snapshot.availability == .complete ? "No finished challenges yet" : "Your record is loading")
-                .font(.system(size: 20, weight: .bold)).tracking(-0.5)
+                .liveFont(size: 20, weight: .bold).tracking(-0.5)
             Text(snapshot.availability == .complete
                  ? "Your finished challenges will appear here. Find your current goals in Challenges."
                  : "Refresh to see your saved results.")

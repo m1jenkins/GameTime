@@ -109,7 +109,7 @@ struct ChallengeAgreementText: View {
                 }
                 Text("Up to three unfinished challenges at once. Friend challenges for the same activity cannot overlap. One community challenge may overlap your friend steps challenge.")
             }
-        }.font(.system(size: 14)).foregroundStyle(SignalTheme.textPrimary)
+        }.liveFont(size: 14).foregroundStyle(SignalTheme.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
     }
     private var activityTitle: String {
@@ -170,9 +170,9 @@ struct ChallengeEntryPanel: View {
             if store.access?.ageConfirmed != true {
                 VStack(alignment: .leading, spacing: 14) {
                     Label("Before you join", systemImage: "person.crop.circle.badge.checkmark")
-                        .font(.system(size: 16, weight: .semibold)).foregroundStyle(SignalTheme.textPrimary)
+                        .liveFont(size: 16, weight: .semibold).foregroundStyle(SignalTheme.textPrimary)
                     Toggle("I confirm I am 21 or older", isOn: $age)
-                        .font(.system(size: 14)).tint(SignalTheme.accent).accessibilityIdentifier("beta.age.toggle")
+                        .liveFont(size: 14).tint(SignalTheme.accent).accessibilityIdentifier("beta.age.toggle")
                     Button("Save age confirmation") { Task { await store.submit(op: "confirm_age", fields: ["confirmed": .bool(true)]) } }
                         .buttonStyle(LivePrimaryButtonStyle(height: 48))
                         .disabled(!age || store.busy || store.pending != nil).accessibilityIdentifier("beta.age.submit")
@@ -181,18 +181,18 @@ struct ChallengeEntryPanel: View {
             if !store.linksAvailable {
                 if !invitation.link.isEmpty {
                     Text("Invitation links aren’t available yet. Ask your friend to add you by username, then they can invite you.")
-                        .font(.system(size: 14)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(size: 14).foregroundStyle(SignalTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("beta.links.closed")
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Invitation link").font(.system(size: 13, weight: .semibold))
+                    Text("Invitation link").liveFont(size: 13, weight: .semibold)
                     HStack(spacing: 10) {
                         Image(systemName: "link").foregroundStyle(SignalTheme.accent)
                         TextField("Paste your invitation", text: $invitation.link)
                             .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-                            .textContentType(.URL).keyboardType(.URL).font(.system(size: 15))
+                            .textContentType(.URL).keyboardType(.URL).liveFont(size: 15)
                             .accessibilityLabel("Invitation link")
                     }.padding(.horizontal, 16).frame(minHeight: 54)
                         .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
@@ -200,18 +200,18 @@ struct ChallengeEntryPanel: View {
                         .buttonStyle(LivePrimaryButtonStyle(height: 48))
                         .disabled(invitation.links.token(from: invitation.link) == nil || store.actor == nil || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
                     Text("Request a place, then choose whether to agree.")
-                        .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
                 }
                 LiveRuleModule(symbol: "person.2", title: "How invitations work", subtitle: "You agree separately") {
                     Text("An invitation grants beta access and requests a place in the lobby. The creator still chooses the roster. You agree separately. It does not add a friend.")
-                        .font(.system(size: 14))
+                        .liveFont(size: 14)
                 }
             }
             if let error = store.entryError {
-                Text(error).font(.system(size: 13)).foregroundStyle(SignalTheme.danger)
+                Text(error).liveFont(size: 13).foregroundStyle(SignalTheme.danger)
             }
             if !store.communities.isEmpty {
-                Text("Community challenges").font(.system(size: 16, weight: .semibold)).padding(.top, 4)
+                Text("Community challenges").liveFont(size: 16, weight: .semibold).padding(.top, 4)
             }
             ForEach(store.communities) { row in
                 NavigationLink { ChallengeCommunityJoin(store: store, community: row) } label: {
@@ -219,10 +219,10 @@ struct ChallengeEntryPanel: View {
                         Image(systemName: "person.3").font(.system(size: 21, weight: .regular))
                             .foregroundStyle(SignalTheme.accent).frame(width: 36)
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Community steps").font(.system(size: 16, weight: .semibold))
+                            Text("Community steps").liveFont(size: 16, weight: .semibold)
                             if let target = row.terms["common_target"]?.integer {
                                 Text(ChallengeV1Policy.Metric.steps.display(target))
-                                    .font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
+                                    .liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading)
                         Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))

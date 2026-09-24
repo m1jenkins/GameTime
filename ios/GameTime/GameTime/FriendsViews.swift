@@ -13,7 +13,8 @@ struct FriendsEntryRow: View {
         NavigationLink { FriendsView(challenges: challenges, username: username) } label: {
             HStack(spacing: 13) {
                 FriendsIconTile(symbol: "person.2")
-                Text("Friends").font(.system(size: 16, weight: .medium))
+                Text("Friends").liveFont(size: 16, weight: .medium)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 4)
                 Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(SignalTheme.textSecondary).accessibilityHidden(true)
@@ -103,7 +104,7 @@ struct FriendsView: View {
             FriendsListCard {
                 ForEach(friends.incoming) { person in
                     FriendRow(person: person) {
-                        HStack(spacing: 8) {
+                        FriendsActionGroup {
                             Button("Decline") { Task { await friends.perform(.decline, person: person) } }
                                 .buttonStyle(FriendsPillStyle(kind: .quiet))
                                 .accessibilityLabel("Decline \(person.displayName)’s request")
@@ -165,7 +166,7 @@ struct FriendsView: View {
                 .foregroundStyle(SignalTheme.textSecondary)
                 .frame(width: 64, height: 64).background(SignalTheme.soft, in: Circle())
                 .accessibilityHidden(true)
-            Text("Add your first friend").font(.system(size: 21, weight: .bold)).tracking(-0.5)
+            Text("Add your first friend").liveFont(size: 21, weight: .bold).tracking(-0.5)
                 .accessibilityAddTraits(.isHeader)
             Text("Friends can invite each other to challenges. Ask them for their GameTime username, then send a request.")
                 .font(.subheadline).foregroundStyle(SignalTheme.textSecondary).multilineTextAlignment(.center)
@@ -199,6 +200,7 @@ struct AddFriendView: View {
     let username: String?
     @Environment(FriendsStore.self) private var friends: FriendsStore?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var model = AddFriendLookup()
     @State private var ageConfirmed = false
     @FocusState private var focused: Bool
@@ -208,7 +210,7 @@ struct AddFriendView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Enter your friend’s exact username. They’ll need to accept before you can invite them to a challenge.")
-                        .font(.system(size: 15)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(size: 15).foregroundStyle(SignalTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true).padding(.top, 4)
                     if challenges.access?.ageConfirmed == false { ageCard.padding(.top, 18) }
                     FriendUsernameField(text: $model.query, focused: $focused, action: "Find", enabled: canSearch) {
@@ -265,7 +267,7 @@ struct AddFriendView: View {
             VStack(alignment: .leading, spacing: 10) {
                 FriendRow(person: person) {
                     if model.sent == person.id {
-                        Label("Sent", systemImage: "checkmark").font(.system(size: 14, weight: .semibold))
+                        Label("Sent", systemImage: "checkmark").liveFont(size: 14, weight: .semibold)
                             .foregroundStyle(SignalTheme.textSecondary).padding(.horizontal, 14).frame(minHeight: 44)
                     } else {
                         Button("Send request") { Task { await model.send(person, in: friends) } }
@@ -293,7 +295,7 @@ struct AddFriendView: View {
                 } else {
                     Text("\(person.username) already sent you a request. Accept it to become friends.")
                         .font(.subheadline).fixedSize(horizontal: false, vertical: true)
-                    HStack(spacing: 8) {
+                    FriendsActionGroup {
                         Button("Decline") { Task { await model.answer(.decline, person, in: friends) } }
                             .buttonStyle(FriendsPillStyle(kind: .quiet))
                         Button("Accept") { Task { await model.answer(.accept, person, in: friends) } }
@@ -312,7 +314,7 @@ struct AddFriendView: View {
 
     private var ageCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Confirm your age to add friends").font(.system(size: 15, weight: .semibold))
+            Text("Confirm your age to add friends").liveFont(size: 15, weight: .semibold)
             Toggle("I confirm I am 21 or older", isOn: $ageConfirmed).font(.subheadline).tint(SignalTheme.accent)
             Button("Save") { Task { await challenges.submit(op: "confirm_age", fields: ["confirmed": .bool(true)]) } }
                 .buttonStyle(LivePrimaryButtonStyle(height: 46))
@@ -322,27 +324,35 @@ struct AddFriendView: View {
     }
 
     private func yourUsername(_ username: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+            : AnyLayout(HStackLayout(spacing: 10))
+        return VStack(alignment: .leading, spacing: 8) {
             Divider().overlay(SignalTheme.divider).padding(.bottom, 14)
-            Text("Your username").font(.system(size: 13, weight: .medium)).foregroundStyle(SignalTheme.textSecondary)
-            HStack(spacing: 10) {
-                Text("@\(username)").font(.system(size: 20, weight: .bold)).tracking(-0.5)
-                    .lineLimit(1).minimumScaleFactor(0.7).frame(maxWidth: .infinity, alignment: .leading)
+            Text("Your username").liveFont(size: 13, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+            layout {
+                Text("@\(username)").liveFont(size: 20, weight: .bold).tracking(-0.5)
+                    .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
+                    .minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.7)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
-                Button {
-                    UIPasteboard.general.string = "@\(username)"
-                    model.copied = true
-                    SignalAccessibility.announce("Username copied.")
-                } label: {
-                    Image(systemName: model.copied ? "checkmark" : "doc.on.doc").font(.system(size: 17)).frame(width: 44, height: 44)
-                        .background(SignalTheme.soft, in: Circle())
+                HStack(spacing: 10) {
+                    Button {
+                        UIPasteboard.general.string = "@\(username)"
+                        model.copied = true
+                        SignalAccessibility.announce("Username copied.")
+                    } label: {
+                        Image(systemName: model.copied ? "checkmark" : "doc.on.doc").font(.system(size: 17)).frame(width: 44, height: 44)
+                            .background(SignalTheme.soft, in: Circle())
+                    }
+                    .buttonStyle(.plain).accessibilityLabel("Copy username")
+                    ShareLink(item: FriendsShare.sentence(username)) {
+                        Image(systemName: "square.and.arrow.up").font(.system(size: 17)).frame(width: 44, height: 44)
+                            .background(SignalTheme.soft, in: Circle())
+                    }
+                    .buttonStyle(.plain).accessibilityLabel("Share username")
                 }
-                .buttonStyle(.plain).accessibilityLabel("Copy username")
-                ShareLink(item: FriendsShare.sentence(username)) {
-                    Image(systemName: "square.and.arrow.up").font(.system(size: 17)).frame(width: 44, height: 44)
-                        .background(SignalTheme.soft, in: Circle())
-                }
-                .buttonStyle(.plain).accessibilityLabel("Share username")
             }
             .padding(.leading, 16).padding(.trailing, 10).padding(.vertical, 8)
             .modifier(LiveCardModifier(radius: 18))
@@ -400,17 +410,36 @@ struct FriendActionsSheet: View {
     let person: FriendPerson
     @Environment(FriendsStore.self) private var friends: FriendsStore?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var confirming: FriendCommand.Op?
     @State private var reporting = false
 
     var body: some View {
+        ScrollView {
+            content
+        }
+        .background(SignalTheme.canvas.ignoresSafeArea())
+        .foregroundStyle(SignalTheme.textPrimary)
+        .presentationDetents(typeSize.isAccessibilitySize ? [.large] : [.medium, .large])
+        .presentationDragIndicator(.visible)
+        .modifier(FriendConfirmation(person: person, op: $confirming) { op in
+            guard let friends else { return }
+            if await friends.perform(op, person: person) { dismiss() }
+        })
+        .sheet(isPresented: $reporting) { ReportFriendSheet(person: person, onBlocked: { dismiss() }) }
+        .onChange(of: friends?.actor) { dismiss() }
+    }
+
+    private var content: some View {
         VStack(spacing: 0) {
             VStack(spacing: 4) {
                 LiveAvatar(username: person.displayName, size: 72)
-                Text(person.displayName).font(.system(size: 22, weight: .bold)).tracking(-0.6).padding(.top, 12)
+                Text(person.displayName).liveFont(size: 22, weight: .bold).tracking(-0.6).padding(.top, 12)
                 Text("@\(person.username)" + (person.since.map { " · Friends since " + FriendsDates.since($0, now: friends?.list?.serverTime) } ?? ""))
                     .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
             }
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity).padding(.top, 28).padding(.bottom, 20)
             .accessibilityElement(children: .combine)
             FriendsListCard {
@@ -425,18 +454,8 @@ struct FriendActionsSheet: View {
             FriendsCaption("We don’t send a notice when you remove, block or report someone.")
                 .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 12)
             if let error = friends?.actionError { FriendsMessage(text: error, warning: true).padding(.top, 10) }
-            Spacer(minLength: 0)
         }
-        .padding(.horizontal, 20)
-        .background(SignalTheme.canvas.ignoresSafeArea())
-        .foregroundStyle(SignalTheme.textPrimary)
-        .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
-        .modifier(FriendConfirmation(person: person, op: $confirming) { op in
-            guard let friends else { return }
-            if await friends.perform(op, person: person) { dismiss() }
-        })
-        .sheet(isPresented: $reporting) { ReportFriendSheet(person: person, onBlocked: { dismiss() }) }
-        .onChange(of: friends?.actor) { dismiss() }
+        .padding(.horizontal, 20).padding(.bottom, 24)
     }
 }
 
@@ -479,6 +498,7 @@ struct ReportFriendSheet: View {
     var onBlocked: () -> Void = {}
     @Environment(FriendsStore.self) private var friends: FriendsStore?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var reason: FriendCommand.Reason?
     @State private var reported = false
     @State private var confirming: FriendCommand.Op?
@@ -492,14 +512,16 @@ struct ReportFriendSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if reported { thanks } else { form }
-            Spacer(minLength: 0)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                if reported { thanks } else { form }
+            }
+            .padding(.horizontal, 20).padding(.top, 28).padding(.bottom, 24)
         }
-        .padding(.horizontal, 20).padding(.top, 28)
         .background(SignalTheme.canvas.ignoresSafeArea())
         .foregroundStyle(SignalTheme.textPrimary)
-        .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+        .presentationDetents(typeSize.isAccessibilitySize ? [.large] : [.medium, .large])
+        .presentationDragIndicator(.visible)
         .modifier(FriendConfirmation(person: person, op: $confirming) { op in
             guard let friends else { return }
             if await friends.perform(op, person: person) { dismiss(); onBlocked() }
@@ -509,7 +531,7 @@ struct ReportFriendSheet: View {
 
     private var form: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Report \(person.firstName)").font(.system(size: 22, weight: .bold)).tracking(-0.6)
+            Text("Report \(person.firstName)").liveFont(size: 22, weight: .bold).tracking(-0.6)
                 .accessibilityAddTraits(.isHeader)
             Text("Tell us what’s wrong. We read every report. \(person.firstName) isn’t told.")
                 .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
@@ -521,10 +543,12 @@ struct ReportFriendSheet: View {
                             Image(systemName: reason == value ? "largecircle.fill.circle" : "circle")
                                 .font(.system(size: 20)).foregroundStyle(reason == value ? SignalTheme.accent : SignalTheme.divider)
                                 .accessibilityHidden(true)
-                            Text(Self.label(value)).font(.system(size: 15))
+                            Text(Self.label(value)).liveFont(size: 15)
+                                .fixedSize(horizontal: false, vertical: true)
                             Spacer(minLength: 0)
                         }
-                        .padding(.horizontal, 14).frame(minHeight: 54).contentShape(Rectangle())
+                        .padding(.horizontal, 14).padding(.vertical, typeSize.isAccessibilitySize ? 10 : 0)
+                        .frame(minHeight: 54).contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(reason == value ? [.isSelected] : [])
@@ -546,7 +570,7 @@ struct ReportFriendSheet: View {
         VStack(spacing: 10) {
             Image(systemName: "checkmark").font(.system(size: 26, weight: .semibold)).foregroundStyle(SignalTheme.accent)
                 .frame(width: 64, height: 64).background(SignalTheme.selection, in: Circle()).accessibilityHidden(true)
-            Text("Thanks for telling us").font(.system(size: 21, weight: .bold)).tracking(-0.5)
+            Text("Thanks for telling us").liveFont(size: 21, weight: .bold).tracking(-0.5)
                 .accessibilityAddTraits(.isHeader)
             Text("We’ll look into it. You can also block them.").font(.subheadline)
                 .foregroundStyle(SignalTheme.textSecondary).multilineTextAlignment(.center)
@@ -555,7 +579,7 @@ struct ReportFriendSheet: View {
                     Button { confirming = .block } label: { Label("Block \(person.firstName)", systemImage: "hand.raised") }
                         .buttonStyle(FriendsSecondaryButtonStyle()).disabled(friends?.canAct != true)
                 }
-                Button("Done") { dismiss() }.font(.system(size: 15, weight: .medium))
+                Button("Done") { dismiss() }.liveFont(size: 15, weight: .medium)
                     .foregroundStyle(SignalTheme.textSecondary).frame(maxWidth: .infinity, minHeight: 44)
             }.padding(.top, 16)
         }
@@ -581,7 +605,7 @@ struct BlockedPeopleView: View {
                     FriendsActionStatus(friends: friends).padding(.top, 8)
                     if friends.blocked.isEmpty {
                         VStack(spacing: 6) {
-                            Text("No one is blocked").font(.system(size: 17, weight: .semibold))
+                            Text("No one is blocked").liveFont(size: 17, weight: .semibold)
                             Text("You can block someone from their name in Friends, or from a challenge.")
                                 .font(.subheadline).foregroundStyle(SignalTheme.textSecondary).multilineTextAlignment(.center)
                         }.frame(maxWidth: .infinity).padding(.top, 40)
@@ -628,10 +652,12 @@ struct FriendRow<Trailing: View>: View {
             HStack(spacing: 12) {
                 LiveAvatar(username: person.displayName, size: 44).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(person.displayName).font(.system(size: 16, weight: .semibold)).lineLimit(2)
-                    Text(detail ?? "@\(person.username)").font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
-                        .lineLimit(2)
+                    Text(person.displayName).liveFont(size: 16, weight: .semibold)
+                        .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+                    Text(detail ?? "@\(person.username)").liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
+                        .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
                 }
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
                 Spacer(minLength: 0)
             }
@@ -665,7 +691,8 @@ struct FriendsNavRow: View {
     var body: some View {
         HStack(spacing: 13) {
             FriendsIconTile(symbol: symbol, accent: accent)
-            Text(title).font(.system(size: 16, weight: .medium))
+            Text(title).liveFont(size: 16, weight: .medium)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 4)
             if chevron {
                 Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold))
@@ -692,22 +719,41 @@ struct FriendsPageHeader<Trailing: View>: View {
     let title: String
     let back: () -> Void
     @ViewBuilder let trailing: Trailing
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        HStack {
-            LiveRoundButton(symbol: "chevron.left", label: "Back", action: back)
-            Spacer(minLength: 8)
-            Text(title).font(.system(size: 18, weight: .bold)).tracking(-0.4).accessibilityAddTraits(.isHeader)
-            Spacer(minLength: 8)
-            trailing
+        Group {
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        LiveRoundButton(symbol: "chevron.left", label: "Back", action: back)
+                        Spacer(minLength: 8)
+                        trailing
+                    }
+                    heading
+                }
+            } else {
+                HStack {
+                    LiveRoundButton(symbol: "chevron.left", label: "Back", action: back)
+                    Spacer(minLength: 8)
+                    heading
+                    Spacer(minLength: 8)
+                    trailing
+                }
+            }
         }
         .padding(.bottom, 10)
+    }
+
+    private var heading: some View {
+        Text(title).liveFont(size: 18, weight: .bold).tracking(-0.4)
+            .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
     }
 }
 
 struct FriendsSectionHeader: View {
     let title: String
     var body: some View {
-        Text(title).font(.system(size: 16, weight: .bold)).tracking(-0.3)
+        Text(title).liveFont(size: 16, weight: .bold).tracking(-0.3)
             .accessibilityAddTraits(.isHeader)
             .padding(.top, 20).padding(.bottom, 10)
     }
@@ -717,7 +763,7 @@ struct FriendsCaption: View {
     let text: String
     init(_ text: String) { self.text = text }
     var body: some View {
-        Text(text).font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+        Text(text).liveFont(size: 12).foregroundStyle(SignalTheme.textSecondary)
             .fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4)
     }
 }
@@ -741,8 +787,8 @@ struct FriendsBanner: View {
             Image(systemName: "wifi.slash").font(.system(size: 17)).foregroundStyle(SignalTheme.danger)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.system(size: 15, weight: .semibold))
-                Text(text).font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
+                Text(title).liveFont(size: 15, weight: .semibold)
+                Text(text).liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
@@ -757,7 +803,7 @@ struct FriendsUnavailableCard: View {
     let retry: (() -> Void)?
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("We couldn’t load your friends").font(.system(size: 18, weight: .bold)).tracking(-0.4)
+            Text("We couldn’t load your friends").liveFont(size: 18, weight: .bold).tracking(-0.4)
             Text(message).font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let retry { Button("Try again", action: retry).buttonStyle(LivePrimaryButtonStyle(height: 48)) }
@@ -784,7 +830,7 @@ struct FriendsLoadingList: View {
                 }
             }
             HStack(spacing: 8) { ProgressView(); Text("Loading your friends…") }
-                .font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary).padding(.top, 14).padding(.horizontal, 4)
+                .liveFont(size: 13).foregroundStyle(SignalTheme.textSecondary).padding(.top, 14).padding(.horizontal, 4)
         }
         .padding(.top, 8)
         .accessibilityElement(children: .ignore).accessibilityLabel("Loading your friends")
@@ -794,16 +840,19 @@ struct FriendsLoadingList: View {
 /// A change saved on this phone but not confirmed, or a refused change.
 struct FriendsActionStatus: View {
     let friends: FriendsStore
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         if let pending = friends.pending {
             VStack(alignment: .leading, spacing: 10) {
                 Text("We couldn’t confirm your last change").font(.subheadline.weight(.semibold))
                 Text(FriendsStatusCopy.pending(pending)).font(.caption).foregroundStyle(SignalTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
-                HStack {
+                FriendsActionGroup {
                     Button("Retry") { Task { await friends.retry() } }.accessibilityIdentifier("friends.retry")
-                    Spacer()
+                        .frame(minHeight: 44)
+                    if !typeSize.isAccessibilitySize { Spacer() }
                     Button("Stop waiting") { Task { await friends.discardPending() } }
+                        .frame(minHeight: 44)
                 }
                 .font(.caption.weight(.semibold)).frame(minHeight: 44).foregroundStyle(SignalTheme.accent)
                 .disabled(friends.busy)
@@ -849,22 +898,43 @@ struct FriendUsernameField: View {
     let action: String
     let enabled: Bool
     let submit: () -> Void
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        HStack(spacing: 6) {
-            Text("@").font(.system(size: 17, weight: .medium)).foregroundStyle(SignalTheme.textSecondary)
-                .accessibilityHidden(true)
-            TextField("username", text: $text)
-                .textInputAutocapitalization(.never).autocorrectionDisabled().textContentType(.username)
-                .submitLabel(.search).font(.system(size: 17, weight: .medium))
-                .focused(focused).onSubmit { if enabled { submit() } }
-                .accessibilityLabel("Friend’s username").accessibilityIdentifier("friends.username")
-            Button(action, action: submit).font(.system(size: 15, weight: .semibold))
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+            : AnyLayout(HStackLayout(spacing: 6))
+        layout {
+            HStack(spacing: 6) {
+                Text("@").liveFont(size: 17, weight: .medium).foregroundStyle(SignalTheme.textSecondary)
+                    .accessibilityHidden(true)
+                TextField("username", text: $text)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled().textContentType(.username)
+                    .submitLabel(.search).liveFont(size: 17, weight: .medium)
+                    .focused(focused).onSubmit { if enabled { submit() } }
+                    .accessibilityLabel("Friend’s username").accessibilityIdentifier("friends.username")
+            }
+            Button(action, action: submit).liveFont(size: 15, weight: .semibold)
                 .foregroundStyle(enabled ? SignalTheme.accent : SignalTheme.textSecondary)
                 .frame(minWidth: 44, minHeight: 44).disabled(!enabled)
                 .accessibilityIdentifier("friends.username.submit")
         }
-        .padding(.leading, 16).padding(.trailing, 8).frame(minHeight: 54)
+        .padding(.leading, 16).padding(.trailing, 8).padding(.vertical, typeSize.isAccessibilitySize ? 10 : 0)
+        .frame(minHeight: 54)
         .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+/// Keep paired decisions readable when a person's preferred text is large.
+struct FriendsActionGroup<Content: View>: View {
+    var spacing: CGFloat = 8
+    @ViewBuilder let content: Content
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: spacing))
+            : AnyLayout(HStackLayout(spacing: spacing))
+        layout { content }
     }
 }
 
@@ -872,14 +942,18 @@ struct FriendsPillStyle: ButtonStyle {
     enum Kind { case filled, quiet, text }
     let kind: Kind
     @Environment(\.isEnabled) private var enabled
+    @Environment(\.dynamicTypeSize) private var typeSize
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 14, weight: .semibold)).lineLimit(1)
-            .fixedSize(horizontal: true, vertical: false)
-            .padding(.horizontal, kind == .text ? 8 : 15).frame(minHeight: 44)
+        configuration.label.liveFont(size: 14, weight: .semibold)
+            .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
+            .fixedSize(horizontal: !typeSize.isAccessibilitySize, vertical: true)
+            .padding(.horizontal, kind == .text ? 8 : 15)
+            .padding(.vertical, typeSize.isAccessibilitySize ? 8 : 0).frame(minHeight: 44)
             .foregroundStyle(!enabled ? SignalTheme.textSecondary : kind == .filled ? .white : kind == .text ? SignalTheme.textSecondary : SignalTheme.textPrimary)
             .background {
                 if kind != .text {
-                    Capsule().fill(kind == .filled && enabled ? SignalTheme.accent : SignalTheme.soft).frame(height: 36)
+                    Capsule().fill(kind == .filled && enabled ? SignalTheme.accent : SignalTheme.soft)
+                        .frame(height: typeSize.isAccessibilitySize ? nil : 36)
                 }
             }
             .opacity(configuration.isPressed ? 0.75 : 1)
@@ -889,8 +963,12 @@ struct FriendsPillStyle: ButtonStyle {
 
 struct FriendsSecondaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var enabled
+    @Environment(\.dynamicTypeSize) private var typeSize
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 16, weight: .semibold))
+        configuration.label.liveFont(size: 16, weight: .semibold)
+            .fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
+            .padding(.horizontal, typeSize.isAccessibilitySize ? 12 : 0)
+            .padding(.vertical, typeSize.isAccessibilitySize ? 10 : 0)
             .frame(maxWidth: .infinity, minHeight: 50)
             .foregroundStyle(enabled ? SignalTheme.textPrimary : SignalTheme.textSecondary)
             .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
@@ -914,7 +992,7 @@ struct FriendsNoticeToast: ViewModifier {
             if let text = friends?.notice, showsRequestNotice || !text.hasPrefix("Request sent.") {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).accessibilityHidden(true)
-                    Text(text).font(.system(size: 14, weight: .medium)).fixedSize(horizontal: false, vertical: true)
+                    Text(text).liveFont(size: 14, weight: .medium).fixedSize(horizontal: false, vertical: true)
                 }
                 .foregroundStyle(.white).padding(.horizontal, 16).padding(.vertical, 12)
                 .background(SignalTheme.textPrimary.opacity(0.92), in: Capsule())
@@ -947,7 +1025,8 @@ struct InviteAddFriendRow: View {
                 Button { open.toggle(); if open { focused = true } } label: {
                     HStack(spacing: 10) {
                         Image(systemName: "person.badge.plus").font(.system(size: 18)).accessibilityHidden(true)
-                        Text("Add a friend by username").font(.system(size: 15, weight: .semibold))
+                        Text("Add a friend by username").liveFont(size: 15, weight: .semibold)
+                            .fixedSize(horizontal: false, vertical: true)
                         Spacer(minLength: 0)
                     }
                     .foregroundStyle(SignalTheme.accent).frame(minHeight: 48).contentShape(Rectangle())

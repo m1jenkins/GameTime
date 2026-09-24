@@ -270,6 +270,12 @@ applied to hosted.
   - A real total below the goal shows "Didn't count" rather than a miss.
 - **Not done:** a person using VoiceOver, and anything on a physical device.
 
+September 24 follow-through: the current Beta screens now scale text and
+reflow crowded rows at accessibility sizes. See the
+[local text-size receipt](../outputs/reports/2026-09-24-beta-dynamic-type.md).
+This addresses the fixed-text implementation gap; it does not complete the
+human VoiceOver or physical accessibility gate.
+
 The original Phase 4 scope:
 
 - **Friend goals:** all four at 2 and 6 participants, plus the Personal goals,
@@ -338,8 +344,8 @@ earliest success is mid-to-late October.
 - Whether first-tester observation meets the finish line's human comprehension
   check, and whether legacy-shell replacement acceptance applies to this build.
   D142 leaves both unchanged.
-- From Phase 4: whether TestFlight waits for the app to scale text with the
-  person's text-size setting, or ships with fixed text as a known limit.
+- Phase 4's fixed-text implementation gap was addressed locally September 24.
+  Human VoiceOver and physical accessibility acceptance remain required.
 - From Phase 4: whether "Didn't count" is enough when a friend's total is below
   the goal, since a real Apple Health total can't prove a miss.
 

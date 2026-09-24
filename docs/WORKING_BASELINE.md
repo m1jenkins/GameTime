@@ -9,6 +9,19 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 24 Beta text-size support
+
+- Current Beta text uses the person's preferred size while retaining the
+  approved default typography. Home, Challenges, You, Friends, goal/rules,
+  onboarding, Settings and retained Personal presentation reflow where larger
+  text needs more room. Safety sheets scroll and controls grow with their text.
+- Source policies, agreement copy, consent, amounts and hosted settings are
+  unchanged. This closes the local fixed-text implementation gap recorded in
+  Phase 4; human VoiceOver and physical accessibility acceptance remain open.
+
+See the [local receipt](../outputs/reports/2026-09-24-beta-dynamic-type.md) for
+the focused checks and their limits.
+
 ## September 23 Phase 3 iOS 18.6 recheck
 
 - The Phase 3 native implementation was already on `main` at `11c7092`; the

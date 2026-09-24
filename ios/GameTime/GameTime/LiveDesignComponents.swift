@@ -1,5 +1,45 @@
 import SwiftUI
 
+/// Keeps the approved point sizes at the default setting while following the
+/// person's text-size preference, including SwiftUI environment overrides.
+private struct LiveFontModifier: ViewModifier {
+    @ScaledMetric private var size: CGFloat
+    let weight: Font.Weight
+    let design: Font.Design
+    let italic: Bool
+
+    init(size: CGFloat, relativeTo: Font.TextStyle?, weight: Font.Weight,
+         design: Font.Design, italic: Bool) {
+        let defaultStyle: Font.TextStyle = switch size {
+        case ...12: .caption
+        case ...15: .subheadline
+        case ...17: .body
+        case ...20: .title3
+        case ...24: .title2
+        case ...28: .title
+        default: .largeTitle
+        }
+        _size = ScaledMetric(wrappedValue: size, relativeTo: relativeTo ?? defaultStyle)
+        self.weight = weight
+        self.design = design
+        self.italic = italic
+    }
+
+    func body(content: Content) -> some View {
+        let font = Font.system(size: size, weight: weight, design: design)
+        content.font(italic ? font.italic() : font)
+    }
+}
+
+extension View {
+    func liveFont(size: CGFloat, relativeTo: Font.TextStyle? = nil,
+                  weight: Font.Weight = .regular, design: Font.Design = .default,
+                  italic: Bool = false) -> some View {
+        modifier(LiveFontModifier(size: size, relativeTo: relativeTo,
+                                  weight: weight, design: design, italic: italic))
+    }
+}
+
 /// Shared native tokens for the approved Home, agreement, library and record.
 struct LiveCardModifier: ViewModifier {
     var radius: CGFloat = 24
@@ -57,7 +97,7 @@ struct LiveStateChip: View {
             if text.localizedCaseInsensitiveContains("met") || text == "Done" {
                 Image(systemName: "checkmark").font(.system(size: 10, weight: .semibold))
             } else if text == "On track" || text == "Behind" { Circle().fill(color).frame(width: 4, height: 4) }
-            Text(text).font(.system(size: 11, weight: .semibold)).fixedSize(horizontal: false, vertical: true)
+            Text(text).liveFont(size: 11, weight: .semibold).fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(color).padding(.horizontal, 8).padding(.vertical, 5)
         .background(color.opacity(neutral ? 0.065 : 0.045), in: Capsule())
@@ -71,7 +111,9 @@ struct LivePrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var enabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 17, weight: .semibold))
+        configuration.label.liveFont(size: 17, weight: .semibold)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: height).padding(.horizontal, 16)
             .foregroundStyle(enabled ? Color.white : SignalTheme.textSecondary)
             .background(enabled ? SignalTheme.accent : SignalTheme.soft, in: RoundedRectangle(cornerRadius: radius))
