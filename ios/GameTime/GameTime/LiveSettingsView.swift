@@ -85,7 +85,7 @@ private struct LiveInformationCard<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(title, systemImage: symbol).font(.system(size: 17, weight: .semibold))
+            Label(title, systemImage: symbol).liveFont(17, weight: .semibold)
             content.font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
         }
         .padding(18).frame(maxWidth: .infinity, alignment: .leading)
@@ -252,7 +252,7 @@ private struct LiveAccountView: View {
                 HStack(spacing: 12) {
                     LiveAvatar(username: profile.handle, actorID: profile.id, size: 48)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(profile.displayName).font(.system(size: 18, weight: .semibold))
+                        Text(profile.displayName).liveFont(18, weight: .semibold)
                         Text("@\(profile.handle)").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
                     }
                 }

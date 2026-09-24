@@ -23,30 +23,34 @@ pills. The retired Signal glass buttons no longer appear on live screens
 `LivePageHeader`, 20pt side margins and white list cards with icon tiles.
 Labels, copy, identifiers and actions are unchanged.
 
-**Planned, not yet implemented.** Each item is its own reviewable change:
+**Owner decisions, September 24.** "Full rules" on goal pages stays the big
+blue button from the September 22 goal mock. Text grows with the phone's text
+size setting on every screen.
 
-1. *Margins.* Move Home, Challenges, You, goal details, sheets and creation
-   from 24pt to the friends 20pt (`SignalTheme.contentInset` drives creation).
-2. *Headers.* Pushed pages use `LivePageHeader`. Tab roots keep their large
-   left title. Add one sheet header (title plus round close) for
-   `LiveGoalSheet`, the invitation sheet (which still uses the system bar and a
-   "Done" text button) and `LiveUnavailableSheet`. Creation's
-   `SignalCreationChrome` swaps its plain back arrow for `LiveRoundButton`.
-3. *Goal details.* State and section rows (`stateButton`) become a
-   `LiveListCard` of `LiveNavRow`s; roster Select/Remove becomes pills. Keep or
-   restyle the blue "Full rules" row: it is part of the September 22 goal mock,
-   so it needs the owner's call.
-4. *Creation and invite.* Replace `SignalCreationPrimaryStyle` with
-   `LivePrimaryButtonStyle`, retire the duplicate `SignalCreationTheme` palette
-   (its selection tint is `#EBF0FF`, the shared one `#F4F7FF`) and the glass
-   `SignalCircleAction` steppers.
-5. *Earlier challenges and the invitation entry panel.* Move cards and rows
-   onto the shared list card after items 1–2.
-6. *Type scale.* Friends, Home, goal details and Settings use fixed point
-   sizes, while creation and Apple Health text use Dynamic Type styles. The
-   friends accessibility audit records the fixed sizes without failing. Pick
-   one approach before item 4, so creation doesn't lose text scaling.
-7. *Unreachable pre-revamp screens.* `YouView`, `TodayView`, `ChallengesView`,
+**Second pass.** `liveFont(_:weight:)` in `LiveDesignComponents.swift` keeps each
+mock point size and scales it with the nearest system text style; text on
+Home, Challenges, You, Friends, Settings, goal pages, onboarding, invitations
+and creation uses it. Icons keep their size. Pills
+grow with their text instead of a fixed 36pt capsule. `SignalTheme.contentInset`
+and every live page use 20pt side margins. `LiveSheetHeader` (round back, title,
+round close) heads creation, invite, Add a friend, the invitation sheet and the
+"not open yet" sheet; creation keeps its `beta.create.*` identifiers. Creation
+and invite use `LivePrimaryButtonStyle`; `SignalCreationTheme` now reads the
+shared palette, so its selected tint matches (`#F4F7FF`). Goal page state rows
+use the white card with an accent icon tile, and roster Select/Remove are pills.
+At accessibility text sizes the Challenges filters and invitation Accept/Decline
+stack vertically, and a person's report menu moves under their name, so long
+words and names keep the full width.
+
+**Still planned.**
+
+1. *Goal detail sheets.* `LiveGoalSheet` keeps its 26pt title from the goal
+   mock; move it to `LiveSheetHeader` only if the owner wants the mock changed.
+2. *Earlier challenges and the invitation entry panel.* Move cards and rows
+   onto the shared list card.
+3. *Steppers.* Creation's date steppers still use `SignalCircleAction`; it
+   matches `LiveRoundButton`'s glass, so this is cleanup, not a visual change.
+4. *Unreachable pre-revamp screens.* `YouView`, `TodayView`, `ChallengesView`,
    `ChallengeProfileView`, `SignalChallengeBrowse`, duels, weekly and
    performance views are no longer mounted by the live shell. Removing them
    follows D134 and needs separate approval; restyling them isn't planned.

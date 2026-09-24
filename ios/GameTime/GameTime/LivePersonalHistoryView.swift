@@ -18,13 +18,13 @@ struct LivePersonalHistoryView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text(LivePersonalCopy.title(challenge.terms))
-                                .font(.system(size: 19, weight: .bold)).tracking(-0.6)
+                                .liveFont(19, weight: .bold).tracking(-0.6)
                             Spacer(minLength: 8)
                             Image(systemName: "chevron.right").font(.system(size: 12))
                                 .foregroundStyle(SignalTheme.textSecondary)
                         }
                         Text(LivePersonalCopy.dates(challenge.terms))
-                            .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                            .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
                         LiveStateChip(text: LivePersonalCopy.state(challenge.presentationStatus(at: Date()), outcome: challenge.outcome),
                                       warning: challenge.outcome?.kind == .missedGoal,
                                       neutral: challenge.outcome == nil || challenge.outcome?.kind == .inconclusive)
@@ -220,7 +220,7 @@ struct LivePersonalDetailView: View {
         let progress = store.displayedProgress(for: challenge)
         return VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
-                Text(challenge.terms.targetText).font(.system(size: 14, weight: .medium))
+                Text(challenge.terms.targetText).liveFont(14, weight: .medium)
                     .foregroundStyle(SignalTheme.textSecondary)
                 Spacer(minLength: 8)
                 LiveStateChip(text: LivePersonalCopy.state(challenge.presentationStatus(at: Date()), outcome: challenge.outcome),
@@ -479,12 +479,12 @@ private struct LivePersonalPage<Content: View>: View {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(spacing: 12) {
                     LiveRoundButton(symbol: "chevron.left", label: "Back") { dismiss() }
-                    Text(title).font(.system(size: 25, weight: .bold)).tracking(-0.8)
+                    Text(title).liveFont(25, weight: .bold).tracking(-0.8)
                     Spacer(minLength: 0)
                 }
                 content
             }
-            .padding(.horizontal, 24).padding(.top, 13).padding(.bottom, 24)
+            .padding(.horizontal, SignalTheme.contentInset).padding(.top, 13).padding(.bottom, 24)
         }
         .foregroundStyle(SignalTheme.textPrimary).background(SignalTheme.canvas.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
@@ -497,7 +497,7 @@ private struct LivePersonalCard<Content: View>: View {
     @ViewBuilder let content: Content
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(title, systemImage: symbol).font(.system(size: 17, weight: .semibold))
+            Label(title, systemImage: symbol).liveFont(17, weight: .semibold)
                 .foregroundStyle(SignalTheme.textPrimary)
             content.font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
         }

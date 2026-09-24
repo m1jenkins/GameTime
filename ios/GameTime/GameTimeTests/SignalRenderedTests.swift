@@ -169,21 +169,20 @@ import XCTest
             let row = fixture.row("friend_steps_leaderboard_v1", people: count)
             fixture.rows = [row]; try await fixture.start()
             for accessible in [false, true] {
-                // Both lines are fully visible. Vision merges the adjacent rank
-                // with line two, so its global reading order is not the name's
-                // reading order. Require every rendered character in contiguous
-                // line fragments and verify their join is the complete saved name.
-                let nameLines = accessible ? ["alexanderthewe", "ekendrunner"] : ["alexandertheweeke", "ndrunner"]
-                if count == 6 {
-                    let person = try XCTUnwrap(row.members.first { $0.username == "alexandertheweekendrunner" })
-                    XCTAssertEqual(nameLines.joined(), person.username)
-                }
+                // A long name may wrap, and Vision can merge the adjacent rank
+                // with a later line, so its global reading order is not the
+                // name's reading order. Require every character in contiguous
+                // line fragments that join to the complete saved name, wherever
+                // the text size and card width put the line breaks.
+                let longName = "alexandertheweekendrunner"
+                if count == 6 { XCTAssertNotNil(row.members.first { $0.username == longName }) }
                 try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id, section: .people) }
                     .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large)
                     .preferredColorScheme(.light),
                     name: "people-\(count)-\(accessible ? "large-solid" : "compact-solid")",
                     width: 375, scrolls: true, contrast: .high,
-                    required: ["You", "Maya", "38,620", "Report or block"] + (count == 6 ? nameLines + ["Taylor", "Sam"] : []))
+                    required: ["You", "Maya", "38,620", "Report or block"] + (count == 6 ? ["Taylor", "Sam"] : []),
+                    wrapped: count == 6 ? [longName] : [])
                 try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id) }
                     .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large),
                     name: "people-\(count)-safe-exit-\(accessible)", width: 375, scrolls: true,
@@ -243,7 +242,8 @@ import XCTest
     private func capture<V: View>(_ view: V, name: String, width: CGFloat = 430, height: CGFloat = 932,
                                  scrolls: Bool = false, contrast: UIAccessibilityContrast = .normal,
                                  systemStyle: UIUserInterfaceStyle = .unspecified,
-                                 required: [String] = [], forbidden: [String] = []) async throws {
+                                 required: [String] = [], forbidden: [String] = [],
+                                 wrapped: [String] = []) async throws {
         let host = UIHostingController(rootView: view.frame(width: width, height: height))
         host.traitOverrides.accessibilityContrast = contrast
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive })
@@ -291,6 +291,19 @@ import XCTest
         transcription.name = "signal-" + name + "-text"; transcription.lifetime = .keepAlways; add(transcription)
         for value in required { XCTAssertTrue(searchable.contains(value.lowercased().filter { !$0.isWhitespace }), "Missing rendered text in \(name): \(value)") }
         for value in forbidden { XCTAssertFalse(searchable.contains(value.lowercased().filter { !$0.isWhitespace }), "Private text rendered in \(name): \(value)") }
+        for value in wrapped { XCTAssertTrue(Self.rendered(value.lowercased(), inFragmentsOf: searchable), "Missing wrapped text in \(name): \(value)") }
+    }
+
+    /// True when `value` appears whole, or split into at most three contiguous
+    /// fragments of four or more characters that each appear in `text`.
+    private static func rendered(_ value: String, inFragmentsOf text: String, pieces: Int = 3) -> Bool {
+        if text.contains(value) { return true }
+        guard pieces > 1, value.count >= 8 else { return false }
+        for split in 4...(value.count - 4) {
+            let head = String(value.prefix(split))
+            if text.contains(head), rendered(String(value.dropFirst(split)), inFragmentsOf: text, pieces: pieces - 1) { return true }
+        }
+        return false
     }
 
     private func scrollView(in view: UIView) -> UIScrollView? {

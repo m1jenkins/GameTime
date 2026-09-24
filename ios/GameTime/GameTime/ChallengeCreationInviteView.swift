@@ -154,7 +154,7 @@ struct ChallengeCreationInviteView: View {
                     .frame(width: 52, height: 52).background(SignalCreationTheme.soft, in: Circle())
                     .accessibilityHidden(true)
                 Text(friends?.state == .loading ? "Loading your friends…" : "No friends yet")
-                    .font(.system(size: 17, weight: .semibold))
+                    .liveFont(17, weight: .semibold)
                 if friends?.state != .loading {
                     Text("Send a request by username. Once they accept, they’ll show up here and you can invite them. Your challenge is saved while you wait.")
                         .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
@@ -235,7 +235,7 @@ struct ChallengeCreationInviteView: View {
                 Image(systemName: "arrow.right").accessibilityHidden(true)
             }
         }
-        .buttonStyle(SignalCreationPrimaryStyle()).disabled(store.busy || store.pending != nil || inviting)
+        .buttonStyle(LivePrimaryButtonStyle()).disabled(store.busy || store.pending != nil || inviting)
         .accessibilityIdentifier("beta.invite.done")
         .padding(.horizontal, SignalCreationTheme.contentInset)
         .padding(.top, 12).padding(.bottom, 6)
@@ -261,7 +261,7 @@ struct ChallengeCreationInviteView: View {
                 Text("Your last action is saved on this phone. Retry it to check whether it went through.")
                     .font(.subheadline)
                 Button("Retry saved action") { Task { await retry() } }
-                    .buttonStyle(SignalCreationPrimaryStyle()).accessibilityIdentifier("beta.invite.retry")
+                    .buttonStyle(LivePrimaryButtonStyle()).accessibilityIdentifier("beta.invite.retry")
                 Button("Stop waiting for this action") { Task { await store.abandon() } }
                     .buttonStyle(LiveSecondaryButtonStyle()).accessibilityIdentifier("beta.invite.abandon")
             }.disabled(store.busy)

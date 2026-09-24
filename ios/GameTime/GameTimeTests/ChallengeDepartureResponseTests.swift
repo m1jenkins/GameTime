@@ -143,9 +143,9 @@ import XCTest
         try await Task.sleep(for: .milliseconds(300))
         let name = "departure-\(detail ? "people" : "library")-old-revision-\(oldRevision)"
         let before = try await capture(window, controller, name: name + "-shared")
-        XCTAssertTrue(before.contains("100") && before.contains("1,000 steps"))
+        XCTAssertTrue(before.contains("100") && Self.shows("1,000 steps", in: before), "Missing own activity before departure in: \(before)")
         if detail { XCTAssertTrue(before.contains("departedfriend")); XCTAssertTrue(before.contains("321")); XCTAssertTrue(before.contains("2,000 steps")) }
-        else { XCTAssertTrue(before.contains("507")) }
+        else { XCTAssertTrue(before.contains("507"), "Missing unrelated activity before departure in: \(before)") }
         fixture.clock.value = 20; fixture.client.holding = true
         let old = begin(.refresh, fixture); let releaseOld = try await held(.refresh, fixture)
         fixture.clock.value = 30
@@ -164,8 +164,15 @@ import XCTest
         assertRedacted(fixture)
         XCTAssertNotNil(controller.view.window)
     }
+    /// Vision reads the small "/ 1,000 steps" unit on a library card as
+    /// "11.000 steps" or "11000 steps" at some card widths, so a required
+    /// goal ignores digit separators. Hidden values keep exact checks.
+    private static func shows(_ value: String, in text: String) -> Bool {
+        let plain = { (string: String) in string.filter { $0 != "," && $0 != "." } }
+        return plain(text).contains(plain(value))
+    }
     private func assertRendered(_ text: String, detail: Bool, file: StaticString = #filePath, line: UInt = #line) {
-        XCTAssertTrue(text.contains("109") && text.contains("1,000 steps"), file: file, line: line)
+        XCTAssertTrue(text.contains("109") && Self.shows("1,000 steps", in: text), "Missing own activity in: \(text)", file: file, line: line)
         if detail {
             XCTAssertFalse(text.contains("departedfriend"), file: file, line: line)
             XCTAssertFalse(text.contains("321"), file: file, line: line)
@@ -173,7 +180,7 @@ import XCTest
             XCTAssertTrue(text.contains("former participant"), file: file, line: line)
             XCTAssertTrue(text.contains("continuingfriend"), file: file, line: line)
             XCTAssertTrue(text.contains("654") && text.contains("3,000 steps"), file: file, line: line)
-        } else { XCTAssertTrue(text.contains("507"), file: file, line: line) }
+        } else { XCTAssertTrue(text.contains("507"), "Missing unrelated activity in: \(text)", file: file, line: line) }
     }
     private func assertRedacted(_ fixture: DepartureFixture, expected: ChallengeV1? = nil, file: StaticString = #filePath, line: UInt = #line) {
         let expected = expected ?? fixture.redacted

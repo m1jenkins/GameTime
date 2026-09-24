@@ -1,5 +1,36 @@
 import SwiftUI
 
+/// A mock's point size that grows with the person's text size setting. The
+/// size scales like the nearest system text style.
+struct LiveFont: ViewModifier {
+    @ScaledMetric private var size: CGFloat
+    private let weight: Font.Weight
+    init(size: CGFloat, weight: Font.Weight) {
+        _size = ScaledMetric(wrappedValue: size, relativeTo: Self.style(for: size))
+        self.weight = weight
+    }
+    func body(content: Content) -> some View { content.font(.system(size: size, weight: weight)) }
+    static func style(for size: CGFloat) -> Font.TextStyle {
+        switch size {
+        case 34...: .largeTitle
+        case 28..<34: .title
+        case 22..<28: .title2
+        case 20..<22: .title3
+        case 17..<20: .body
+        case 16..<17: .callout
+        case 15..<16: .subheadline
+        case 13..<15: .footnote
+        case 12..<13: .caption
+        default: .caption2
+        }
+    }
+}
+extension View {
+    func liveFont(_ size: CGFloat, weight: Font.Weight = .regular) -> some View {
+        modifier(LiveFont(size: size, weight: weight))
+    }
+}
+
 /// Shared native tokens for the approved Home, agreement, library and record.
 struct LiveCardModifier: ViewModifier {
     var radius: CGFloat = 24
@@ -57,7 +88,7 @@ struct LiveStateChip: View {
             if text.localizedCaseInsensitiveContains("met") || text == "Done" {
                 Image(systemName: "checkmark").font(.system(size: 10, weight: .semibold))
             } else if text == "On track" || text == "Behind" { Circle().fill(color).frame(width: 4, height: 4) }
-            Text(text).font(.system(size: 11, weight: .semibold)).fixedSize(horizontal: false, vertical: true)
+            Text(text).liveFont(11, weight: .semibold).fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(color).padding(.horizontal, 8).padding(.vertical, 5)
         .background(color.opacity(neutral ? 0.065 : 0.045), in: Capsule())
@@ -71,7 +102,7 @@ struct LivePrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var enabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 17, weight: .semibold))
+        configuration.label.liveFont(17, weight: .semibold)
             .frame(maxWidth: .infinity, minHeight: height).padding(.horizontal, 16)
             .foregroundStyle(enabled ? Color.white : SignalTheme.textSecondary)
             .background(enabled ? SignalTheme.accent : SignalTheme.soft, in: RoundedRectangle(cornerRadius: radius))
@@ -88,7 +119,7 @@ struct LiveSecondaryButtonStyle: ButtonStyle {
     var warning = false
     @Environment(\.isEnabled) private var enabled
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 16, weight: .semibold))
+        configuration.label.liveFont(16, weight: .semibold)
             .frame(maxWidth: .infinity, minHeight: 50).padding(.horizontal, 16)
             .foregroundStyle(!enabled ? SignalTheme.textSecondary
                              : warning || configuration.role == .destructive ? SignalTheme.danger : SignalTheme.textPrimary)
@@ -103,15 +134,16 @@ struct LivePillButtonStyle: ButtonStyle {
     let kind: Kind
     @Environment(\.isEnabled) private var enabled
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 14, weight: .semibold)).lineLimit(1)
+        configuration.label.liveFont(14, weight: .semibold).lineLimit(1)
             .fixedSize(horizontal: true, vertical: false)
-            .padding(.horizontal, kind == .text ? 8 : 15).frame(minHeight: 44)
+            .padding(.horizontal, kind == .text ? 8 : 15).padding(.vertical, 9)
             .foregroundStyle(!enabled ? SignalTheme.textSecondary : kind == .filled ? .white : kind == .text ? SignalTheme.textSecondary : SignalTheme.textPrimary)
             .background {
                 if kind != .text {
-                    Capsule().fill(kind == .filled && enabled ? SignalTheme.accent : SignalTheme.soft).frame(height: 36)
+                    Capsule().fill(kind == .filled && enabled ? SignalTheme.accent : SignalTheme.soft)
                 }
             }
+            .padding(.vertical, 4).frame(minHeight: 44)
             .opacity(configuration.isPressed ? 0.75 : 1)
             .contentShape(Rectangle())
     }
@@ -128,7 +160,7 @@ struct LivePageHeader<Trailing: View>: View {
         HStack {
             LiveRoundButton(symbol: "chevron.left", label: backLabel, action: back)
             Spacer(minLength: 8)
-            Text(title).font(.system(size: 18, weight: .bold)).tracking(-0.4)
+            Text(title).liveFont(18, weight: .bold).tracking(-0.4)
                 .multilineTextAlignment(.center).accessibilityAddTraits(.isHeader)
             Spacer(minLength: 8)
             trailing
@@ -145,10 +177,37 @@ struct LivePageHeaderSpacer: View {
     var body: some View { Color.clear.frame(width: 44, height: 44).accessibilityHidden(true) }
 }
 
+/// The top of a sheet: an optional round back button, the title and a round
+/// close button.
+struct LiveSheetHeader: View {
+    let title: String
+    var back: (() -> Void)? = nil
+    let close: () -> Void
+    var backIdentifier = "sheet.back"
+    var closeIdentifier = "sheet.close"
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let back {
+                LiveRoundButton(symbol: "chevron.left", label: "Back", action: back)
+                    .accessibilityIdentifier(backIdentifier)
+            }
+            Text(title).liveFont(18, weight: .bold).tracking(-0.5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader).accessibilityHidden(title.isEmpty)
+            LiveRoundButton(symbol: "xmark", label: "Close", action: close)
+                .accessibilityIdentifier(closeIdentifier)
+        }
+        .foregroundStyle(SignalTheme.textPrimary)
+        .padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 6)
+        .background(SignalTheme.canvas)
+    }
+}
+
 struct LiveSectionHeader: View {
     let title: String
     var body: some View {
-        Text(title).font(.system(size: 16, weight: .bold)).tracking(-0.3)
+        Text(title).liveFont(16, weight: .bold).tracking(-0.3)
             .accessibilityAddTraits(.isHeader)
             .padding(.top, 20).padding(.bottom, 10)
     }
@@ -158,7 +217,7 @@ struct LiveCaption: View {
     let text: String
     init(_ text: String) { self.text = text }
     var body: some View {
-        Text(text).font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+        Text(text).liveFont(12).foregroundStyle(SignalTheme.textSecondary)
             .fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4)
     }
 }
@@ -200,9 +259,9 @@ struct LiveNavRow: View {
         HStack(spacing: 13) {
             LiveIconTile(symbol: symbol, accent: accent)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 16, weight: .medium))
+                Text(title).liveFont(16, weight: .medium)
                 if let detail {
-                    Text(detail).font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
+                    Text(detail).liveFont(13).foregroundStyle(SignalTheme.textSecondary)
                 }
             }
             .fixedSize(horizontal: false, vertical: true)

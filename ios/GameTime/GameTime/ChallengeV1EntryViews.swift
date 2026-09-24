@@ -109,7 +109,7 @@ struct ChallengeAgreementText: View {
                 }
                 Text("Up to three unfinished challenges at once. Friend challenges for the same activity cannot overlap. One community challenge may overlap your friend steps challenge.")
             }
-        }.font(.system(size: 14)).foregroundStyle(SignalTheme.textPrimary)
+        }.liveFont(14).foregroundStyle(SignalTheme.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
     }
     private var activityTitle: String {
@@ -170,9 +170,9 @@ struct ChallengeEntryPanel: View {
             if store.access?.ageConfirmed != true {
                 VStack(alignment: .leading, spacing: 14) {
                     Label("Before you join", systemImage: "person.crop.circle.badge.checkmark")
-                        .font(.system(size: 16, weight: .semibold)).foregroundStyle(SignalTheme.textPrimary)
+                        .liveFont(16, weight: .semibold).foregroundStyle(SignalTheme.textPrimary)
                     Toggle("I confirm I am 21 or older", isOn: $age)
-                        .font(.system(size: 14)).tint(SignalTheme.accent).accessibilityIdentifier("beta.age.toggle")
+                        .liveFont(14).tint(SignalTheme.accent).accessibilityIdentifier("beta.age.toggle")
                     Button("Save age confirmation") { Task { await store.submit(op: "confirm_age", fields: ["confirmed": .bool(true)]) } }
                         .buttonStyle(LivePrimaryButtonStyle(height: 48))
                         .disabled(!age || store.busy || store.pending != nil).accessibilityIdentifier("beta.age.submit")
@@ -181,18 +181,18 @@ struct ChallengeEntryPanel: View {
             if !store.linksAvailable {
                 if !invitation.link.isEmpty {
                     Text("Invitation links aren’t available yet. Ask your friend to add you by username, then they can invite you.")
-                        .font(.system(size: 14)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(14).foregroundStyle(SignalTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("beta.links.closed")
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Invitation link").font(.system(size: 13, weight: .semibold))
+                    Text("Invitation link").liveFont(13, weight: .semibold)
                     HStack(spacing: 10) {
                         Image(systemName: "link").foregroundStyle(SignalTheme.accent)
                         TextField("Paste your invitation", text: $invitation.link)
                             .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-                            .textContentType(.URL).keyboardType(.URL).font(.system(size: 15))
+                            .textContentType(.URL).keyboardType(.URL).liveFont(15)
                             .accessibilityLabel("Invitation link")
                     }.padding(.horizontal, 16).frame(minHeight: 54)
                         .background(SignalTheme.soft, in: RoundedRectangle(cornerRadius: 16))
@@ -200,18 +200,18 @@ struct ChallengeEntryPanel: View {
                         .buttonStyle(LivePrimaryButtonStyle(height: 48))
                         .disabled(invitation.links.token(from: invitation.link) == nil || store.actor == nil || store.access?.ageConfirmed != true || store.busy || store.pending != nil)
                     Text("Request a place, then choose whether to agree.")
-                        .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                        .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
                 }
                 LiveRuleModule(symbol: "person.2", title: "How invitations work", subtitle: "You agree separately") {
                     Text("An invitation grants beta access and requests a place in the lobby. The creator still chooses the roster. You agree separately. It does not add a friend.")
-                        .font(.system(size: 14))
+                        .liveFont(14)
                 }
             }
             if let error = store.entryError {
-                Text(error).font(.system(size: 13)).foregroundStyle(SignalTheme.danger)
+                Text(error).liveFont(13).foregroundStyle(SignalTheme.danger)
             }
             if !store.communities.isEmpty {
-                Text("Community challenges").font(.system(size: 16, weight: .semibold)).padding(.top, 4)
+                Text("Community challenges").liveFont(16, weight: .semibold).padding(.top, 4)
             }
             ForEach(store.communities) { row in
                 NavigationLink { ChallengeCommunityJoin(store: store, community: row) } label: {
@@ -219,10 +219,10 @@ struct ChallengeEntryPanel: View {
                         Image(systemName: "person.3").font(.system(size: 21, weight: .regular))
                             .foregroundStyle(SignalTheme.accent).frame(width: 36)
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Community steps").font(.system(size: 16, weight: .semibold))
+                            Text("Community steps").liveFont(16, weight: .semibold)
                             if let target = row.terms["common_target"]?.integer {
                                 Text(ChallengeV1Policy.Metric.steps.display(target))
-                                    .font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
+                                    .liveFont(13).foregroundStyle(SignalTheme.textSecondary)
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading)
                         Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
@@ -264,24 +264,24 @@ struct ChallengeCommunityJoin: View {
                 HStack(spacing: 12) {
                     LiveRoundButton(symbol: "chevron.left", label: "Back") { dismiss() }
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("Community steps").font(.system(size: 26, weight: .bold)).tracking(-1)
+                        Text("Community steps").liveFont(26, weight: .bold).tracking(-1)
                         Text(savedChallenge == nil ? "Review before you join" : "Your agreement")
-                            .font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
+                            .liveFont(13).foregroundStyle(SignalTheme.textSecondary)
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
                 if let window = decodeWindow(community.terms["config"]) {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Your goal").font(.system(size: 13, weight: .semibold))
+                            Text("Your goal").liveFont(13, weight: .semibold)
                             Spacer()
                             Label("Private progress", systemImage: "lock")
-                                .font(.system(size: 11)).foregroundStyle(SignalTheme.textSecondary)
+                                .liveFont(11).foregroundStyle(SignalTheme.textSecondary)
                         }
                         LiveMetric(value: community.terms["common_target"]?.integer?.formatted() ?? "—", unit: "steps", size: 72)
                         HStack {
-                            Text("\(window.days) \(window.days == 1 ? "day" : "days")").font(.system(size: 13, weight: .semibold))
+                            Text("\(window.days) \(window.days == 1 ? "day" : "days")").liveFont(13, weight: .semibold)
                             Spacer()
-                            Text(dateRange(window)).font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                            Text(dateRange(window)).liveFont(12).foregroundStyle(SignalTheme.textSecondary)
                         }
                     }.padding(18).modifier(LiveCardModifier())
                     VStack(spacing: 8) {
@@ -294,11 +294,11 @@ struct ChallengeCommunityJoin: View {
                     }.buttonStyle(LivePrimaryButtonStyle(height: 48))
                     LiveRuleModule(symbol: "lock", title: "Just your progress", subtitle: "Only your progress and result appear here") {
                         Text((community.counts ?? .init(joined: nil)).text(at: community.serverTime))
-                            .font(.system(size: 14)).foregroundStyle(SignalTheme.textSecondary)
+                            .liveFont(14).foregroundStyle(SignalTheme.textSecondary)
                     }
                     if let savedChallenge {
                         Label(savedChallenge.own(store.actor)?.exited == true ? "You left this challenge." : "You have joined. Find your own progress in Home.", systemImage: "checkmark.circle")
-                            .font(.system(size: 14)).foregroundStyle(SignalTheme.accent)
+                            .liveFont(14).foregroundStyle(SignalTheme.accent)
                         NavigationLink { LiveGoalDetail(store: store, id: community.id) } label: {
                             Text(savedChallenge.own(store.actor)?.exited == true ? "View saved challenge" : "View my progress")
                         }.buttonStyle(LivePrimaryButtonStyle(height: 48))
@@ -310,7 +310,7 @@ struct ChallengeCommunityJoin: View {
                             }
                         }
                         Toggle("I have read the complete rules and agree", isOn: $consent)
-                            .font(.system(size: 14, weight: .medium)).tint(SignalTheme.accent).padding(.vertical, 4)
+                            .liveFont(14, weight: .medium).tint(SignalTheme.accent).padding(.vertical, 4)
                         Button("Join community challenge") { Task {
                             await store.submit(op: "join_community", fields: ["id": .string(community.id.uuidString.lowercased()), "digest": .string(community.digest), "consent": .bool(true)])
                             consent = false
@@ -319,27 +319,27 @@ struct ChallengeCommunityJoin: View {
                     }
                 } else {
                     Text("We couldn’t load the complete agreement. Go back and refresh before joining.")
-                        .font(.system(size: 14)).foregroundStyle(SignalTheme.danger)
+                        .liveFont(14).foregroundStyle(SignalTheme.danger)
                 }
-                if let error = store.error { Text(error).font(.system(size: 13)).foregroundStyle(SignalTheme.danger) }
-            }.padding(24)
+                if let error = store.error { Text(error).liveFont(13).foregroundStyle(SignalTheme.danger) }
+            }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 24)
         }.background(SignalTheme.canvas).foregroundStyle(SignalTheme.textPrimary)
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showingRules) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         HStack {
-                            Text("Full rules").font(.system(size: 26, weight: .bold)).tracking(-0.8)
+                            Text("Full rules").liveFont(26, weight: .bold).tracking(-0.8)
                             Spacer()
                             LiveRoundButton(symbol: "xmark", label: "Close") { showingRules = false }
                         }
                         if let window = decodeWindow(community.terms["config"]) {
                             Text("Community steps · \(dateRange(window))")
-                                .font(.system(size: 13)).foregroundStyle(SignalTheme.textSecondary)
+                                .liveFont(13).foregroundStyle(SignalTheme.textSecondary)
                             ChallengeAgreementText(policy: ChallengeV1Policy(rawValue: "community_steps_goal_v1")!, window: window,
                                 minimum: community.terms["minimum"]?.integer ?? 2, sourcePolicy: community.terms["source_policy_version"]?.string)
                         }
-                    }.padding(24)
+                    }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 24)
                 }.background(SignalTheme.canvas).presentationDetents([.large])
                     .presentationCornerRadius(28).presentationDragIndicator(.visible)
             }
@@ -351,8 +351,8 @@ struct ChallengeCommunityJoin: View {
             Image(systemName: symbol).font(.system(size: 20, weight: .regular)).foregroundStyle(SignalTheme.accent)
                 .frame(width: 34, height: 34).background(SignalTheme.accent.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
             VStack(alignment: .leading, spacing: 4) {
-                Text(label).font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
-                Text(value).font(.system(size: 14, weight: .semibold))
+                Text(label).liveFont(12).foregroundStyle(SignalTheme.textSecondary)
+                Text(value).liveFont(14, weight: .semibold)
             }.frame(maxWidth: .infinity, alignment: .leading)
         }.padding(14).modifier(LiveCardModifier(radius: 18, material: true))
     }
@@ -389,12 +389,12 @@ struct ChallengeLinkIssuer: View {
                     .buttonStyle(LivePrimaryButtonStyle(height: 48)).privacySensitive()
             }
             Text("Expires \(issued.expiresAt.text(zone: row.config.timezone))")
-                .font(.system(size: 12)).foregroundStyle(SignalTheme.textSecondary)
+                .liveFont(12).foregroundStyle(SignalTheme.textSecondary)
             Text("Up to 20 different accounts may request a place while the lobby is open.")
-                .font(.system(size: 14)).fixedSize(horizontal: false, vertical: true)
+                .liveFont(14).fixedSize(horizontal: false, vertical: true)
             Button("Turn off this link", role: .destructive) { Task {
                 await store.submit(op: "revoke_link", fields: ["id": .string(issued.id.uuidString.lowercased())])
-            }}.font(.system(size: 14, weight: .medium)).foregroundStyle(SignalTheme.danger)
+            }}.liveFont(14, weight: .medium).foregroundStyle(SignalTheme.danger)
                 .frame(minHeight: 44).disabled(store.busy || store.pending != nil)
         }
     }

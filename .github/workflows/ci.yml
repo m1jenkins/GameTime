@@ -142,6 +142,22 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             test
 
+      - name: Print unit test failure messages
+        if: failure()
+        run: |
+          # Parallel runs print only "Test case ... failed" for unit tests; the
+          # messages live in the result bundle.
+          bundle=$(ls -td ~/Library/Developer/Xcode/DerivedData/GameTime-*/Logs/Test/*.xcresult | head -1)
+          xcrun xcresulttool get test-results tests --path "$bundle" | python3 -c '
+          import json, sys
+          def walk(node, test=None):
+              kind = node.get("nodeType")
+              if kind == "Test Case": test = node.get("name")
+              if kind == "Failure Message" and test: print(test + ": " + str(node.get("name")))
+              for child in node.get("children", []): walk(child, test)
+          for node in json.load(sys.stdin).get("testNodes", []): walk(node)
+          ' | head -200
+
       - name: Build staging and release products
         run: |
           xcodebuild \

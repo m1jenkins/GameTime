@@ -520,6 +520,14 @@ final class LiveDesignUITests: XCTestCase {
         case (.hitRegion, nil): screen.hasPrefix("Invite friends") // unnamed, in the shared creation header
         case (.elementDetection, nil): true             // unnamed text the audit can't point to
         case (.contrast, "Add a friend"): screen.hasPrefix("Friends") // the icon-only header button
+        // At the largest text size these pages run past the screen: the open
+        // keyboard, or the pinned Continue button, covers the lower text until
+        // the person scrolls, so the audit reads the cover, not the text.
+        case (.contrast, "Find"), (.contrast, "Your username"), (.contrast, "@alexlee"),
+             (.contrast, "Send it to a friend so they can add you."):
+            screen == "Add a friend, largest text" || screen.hasPrefix("Friend actions")
+        case (.contrast, let label?) where label.hasPrefix("Your activity has to come from an Apple Watch"):
+            screen == "Before you start, largest text" || screen.hasPrefix("Friend actions")
         // The action sheet renders fully and legibly in its captures; a person checks it.
         case (.contrast, _), (.textClipped, _): screen.hasPrefix("Friend actions")
         default: false

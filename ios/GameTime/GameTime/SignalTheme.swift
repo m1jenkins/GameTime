@@ -35,7 +35,7 @@ enum SignalTheme {
     static let progressTrack = adaptive(0xDCE1E8, 0xDCE1E8)
     static let bar = adaptive(0x727B88, 0x727B88)
     static let danger = adaptive(0x9A6700, 0x9A6700)
-    static let contentInset: CGFloat = 24
+    static let contentInset: CGFloat = 20
 
     static func participantColor(for participantID: UUID, participantIDs: [UUID], currentUserID: UUID?) -> Color {
         participantID == currentUserID ? accent : bar
