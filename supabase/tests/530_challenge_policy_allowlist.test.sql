@@ -188,7 +188,7 @@ begin
     'terms_digest', a.digest, 'source_policy_version', 'apple_watch_steps_v1', 'metric', 'steps',
     'window_starts_at', c.starts_at, 'window_ends_at', c.ends_at, 'request_id', req,
     'revision', p_revision, 'previous_revision', case when p_revision = 1 then null else p_revision - 1 end,
-    'state', 'value', 'value', p_value, 'observed_at', clock_timestamp(), 'queried_through_at', clock_timestamp())
+    'state', 'value', 'value', p_value, 'observed_at', clock_timestamp(), 'queried_through_at', clock_timestamp() - interval '30 seconds')
   into body from inflight c join app.challenge_agreements_v1 a on a.challenge_id = c.id and a.version = 1;
   return public.challenge_real_health_ingest_v1(req, body, pg_temp.br(1), clock_timestamp() + interval '1 hour',
     null, null, extensions.digest(body::text, 'sha256'), false);
