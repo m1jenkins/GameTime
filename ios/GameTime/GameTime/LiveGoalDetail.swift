@@ -293,9 +293,11 @@ struct LiveGoalDetail: View {
         }
         if store.pending != nil {
             VStack(alignment: .leading, spacing: 12) {
-                Text("An action is waiting to finish").liveFont(15, weight: .semibold)
-                Button("Retry saved action") { Task { await store.retry() } }.buttonStyle(LivePrimaryButtonStyle())
-                Button("Stop waiting for this action") { Task { await store.abandon() } }
+                Text(ChallengePendingCopy.title).liveFont(15, weight: .semibold)
+                Text(ChallengePendingCopy.message).liveFont(13).foregroundStyle(SignalTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button(ChallengePendingCopy.retry) { Task { await store.retry() } }.buttonStyle(LivePrimaryButtonStyle())
+                Button(ChallengePendingCopy.cancel) { Task { await store.abandon() } }
                     .frame(minHeight: 44).liveFont(14)
             }.padding(16).modifier(LiveCardModifier(radius: 18)).disabled(store.busy)
         }

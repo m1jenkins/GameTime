@@ -26,11 +26,16 @@ import Vision
         restricted.metric = .steps
         XCTAssertEqual(restricted.policy.id, "personal_steps_goal_v1")
         XCTAssertFalse(ChallengeCreationDraft(initialPolicy: .init(rawValue: "friend_steps_goal_v1")).allowsTypeChange)
+        // With a real choice, creation asks who it's for first.
         let standard = ChallengeCreationDraft()
-        XCTAssertEqual(standard.step, .activity)
-        XCTAssertEqual(standard.firstStep, .activity)
+        XCTAssertEqual(standard.step, .type)
+        XCTAssertEqual(standard.firstStep, .type)
+        XCTAssertFalse(standard.directEntry)
         XCTAssertEqual(standard.progress, 1)
-        XCTAssertEqual(standard.stepCount, 2)
+        standard.step = .activity
+        XCTAssertEqual(standard.progress, 2)
+        standard.back()
+        XCTAssertEqual(standard.step, .type)
         XCTAssertEqual(standard.policy.id, "friend_steps_goal_v1")
         XCTAssertTrue(standard.allowsTypeChange)
     }
@@ -53,6 +58,7 @@ import Vision
         let draft = ChallengeCreationDraft(allowed: allowed)
         XCTAssertEqual(draft.policy.id, "friend_steps_goal_v1", "Friend goals come first when allowed")
         XCTAssertTrue(draft.allowsTypeChange)
+        XCTAssertEqual(draft.step, .type, "Friends and personal goals are both open, so creation asks which")
         XCTAssertEqual(draft.metrics, [.steps, .distance])
         XCTAssertTrue(draft.permits(.personal, .goal))
         XCTAssertFalse(draft.permits(.friend, .leaderboard), "Leaderboards wait for the next build")
@@ -71,6 +77,7 @@ import Vision
         let personalOnly = ChallengeCreationDraft(allowed: ChallengeV1Availability.privateTrialPolicies)
         XCTAssertEqual(personalOnly.mode, .personal)
         XCTAssertFalse(personalOnly.allowsTypeChange)
+        XCTAssertEqual(personalOnly.step, .activity, "With only personal goals open there is nothing to ask")
     }
 
     func testCanonicalInputsAndInvalidValuesRemainEditable() {
@@ -200,7 +207,7 @@ import Vision
         defer { window.isHidden = true; previous?.makeKeyAndVisible() }
         try await Task.sleep(for: .milliseconds(250))
         let loading = try await captureMountedSignal(window, controller: host, name: "creation-preview-loading", test: self)
-        XCTAssertTrue(loading.contains("loading your agreement"))
+        XCTAssertTrue(loading.contains("loading the rules"))
         h.client.continuation?.resume(throwing: ChallengeV1Error.unavailable); h.client.continuation = nil
         await work.value
         XCTAssertFalse(draft.reading); XCTAssertEqual(draft.target, "12345"); XCTAssertEqual(draft.step, .activity)
@@ -233,7 +240,9 @@ import Vision
         XCTAssertTrue(errorText.contains("whole number of steps"))
         _ = await h.store.submit(op: "personal_commit", fields: ["policy": .string("personal_steps_goal_v1")])
         let pendingText = try await capture(ChallengeV1Create(store: h.store, draft: draft), name: "creation-pending")
-        XCTAssertTrue(pendingText.contains("retry saved action")); XCTAssertTrue(pendingText.contains("stop waiting"))
+        XCTAssertTrue(pendingText.contains("last change didn"), pendingText)
+        XCTAssertTrue(pendingText.contains("try again")); XCTAssertTrue(pendingText.contains("cancel it"))
+        XCTAssertFalse(pendingText.contains("saved action")); XCTAssertFalse(pendingText.contains("stop waiting"))
     }
     private func capture<V: View>(_ view: V, name: String, contrast: UIAccessibilityContrast = .normal,
                                  requireCompleteConsent: Bool = false) async throws -> String {

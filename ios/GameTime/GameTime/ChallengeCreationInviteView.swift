@@ -98,7 +98,7 @@ struct ChallengeCreationInviteView: View {
             }
             recovery
             if loading { ProgressView("Loading your challenge…") }
-            if store.busy { ProgressView("Saving your action…") }
+            if store.busy { ProgressView("Saving…") }
         }
         .padding(.horizontal, SignalCreationTheme.contentInset)
         .padding(.top, 2)
@@ -258,11 +258,11 @@ struct ChallengeCreationInviteView: View {
         }
         if store.pending != nil {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Your last action is saved on this phone. Retry it to check whether it went through.")
-                    .font(.subheadline)
-                Button("Retry saved action") { Task { await retry() } }
+                Text(ChallengePendingCopy.title).font(.subheadline.weight(.semibold))
+                Text(ChallengePendingCopy.message).font(.subheadline)
+                Button(ChallengePendingCopy.retry) { Task { await retry() } }
                     .buttonStyle(LivePrimaryButtonStyle()).accessibilityIdentifier("beta.invite.retry")
-                Button("Stop waiting for this action") { Task { await store.abandon() } }
+                Button(ChallengePendingCopy.cancel) { Task { await store.abandon() } }
                     .buttonStyle(LiveSecondaryButtonStyle()).accessibilityIdentifier("beta.invite.abandon")
             }.disabled(store.busy)
         }

@@ -177,14 +177,24 @@ struct ChallengeV1Request: Codable, Equatable, Sendable {
     } }
 }
 
+/// What a challenge screen says while a change the person made hasn't
+/// finished: we didn't hear back, or the server turned it down. Retry sends
+/// the same change again; cancel asks the server to drop it.
+enum ChallengePendingCopy {
+    static let title = "Your last change didn’t finish"
+    static let message = "Try again, or cancel it to start fresh."
+    static let retry = "Try again"
+    static let cancel = "Cancel it"
+}
+
 enum ChallengeV1Error: Error, LocalizedError, Equatable {
     case unavailable, accountChanged, invalidResponse, storage, server(String)
     var errorDescription: String? {
         switch self {
-        case .unavailable: "We couldn’t connect. Check your connection, then refresh or retry your saved action."
+        case .unavailable: "We couldn’t connect. Check your connection and try again."
         case .accountChanged: "Your account changed or signed out. Sign in again to continue."
         case .invalidResponse: "We couldn’t read this update. Refresh before making another choice."
-        case .storage: "We couldn’t save your action on this phone. Free some space and try again."
+        case .storage: "We couldn’t save that on your phone. Free up some space and try again."
         case .server(let reason):
             switch reason {
             case "challenge_rate_limited": "You’ve tried several times. Wait a minute before trying again; invitation links and reports may need an hour. You can still read, leave or request a review."
@@ -205,7 +215,7 @@ enum ChallengeV1Error: Error, LocalizedError, Equatable {
             case "challenge_incomplete_roster": "Select two to six people. For a goal challenge, everyone must choose their own goal before continuing."
             case "challenge_consent_mismatch": "The rules changed or agreement is closed. Refresh to see what happens next."
             case "challenge_review_closed": "This review window has ended. Refresh to see your result or contact support."
-            default: "We couldn’t complete that action. Refresh the challenge, or retry your saved action."
+            default: "We couldn’t finish that. Refresh and try again."
             }
         }
     }

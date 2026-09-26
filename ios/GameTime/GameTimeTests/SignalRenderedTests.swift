@@ -146,7 +146,7 @@ import XCTest
         fixture.fail = true; await fixture.store.refresh()
         try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}),
                           name: "home-stale-without-pending-action", scrolls: true,
-                          required: ["Last saved view", "refresh before making a choice", "No update yet"])
+                          required: ["might be out of date", "Refresh before you make a choice", "No update yet"])
         fixture.fail = false; await fixture.store.refresh()
         let request = ChallengeV1Request(actor: fixture.actor, payload: .object(["op": .string("leave"), "id": .string(row.id.uuidString.lowercased()), "revision": .integer(1)]))
         try await fixture.store.requests.save(request)
@@ -154,7 +154,7 @@ import XCTest
         fixture.fail = true; await fixture.store.refresh()
         try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}),
                           name: "home-stale-recovery", scrolls: true,
-                          required: ["Retry saved action", "Your action is saved on this phone", "No update yet"])
+                          required: ["Try again", "Your last change didn", "No update yet"])
         fixture.store.setActor(fixture.actor)
         try await capture(ChallengeV1Shell(store: fixture.store, invitation: ChallengeInvitationIntent(), logout: {}),
                           name: "home-loading", required: ["Loading your challenges"])

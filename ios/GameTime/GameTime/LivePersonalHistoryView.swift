@@ -87,7 +87,7 @@ private struct LivePersonalCreationRecovery: View {
                     Text(PersonalCommitmentProtectionPresentation(amountMinor: pending.request.commitmentAmountMinor,
                         settlementMode: store.configuration.personalSettlementMode).text)
                     if pending.attemptCount > 0 {
-                        Text("We haven’t confirmed the challenge you already submitted. Try again with the same saved request.")
+                        Text("We didn’t hear back when you started this challenge. Try again to finish starting it.")
                         if !store.healthReadiness.permitsCreation {
                             Button(store.isVerifyingHealthAccess ? "Connecting…" : "Connect Apple Health") {
                                 Task { _ = await store.verifyHealthAccess(timezone: pending.request.timezone) }
@@ -95,7 +95,7 @@ private struct LivePersonalCreationRecovery: View {
                             .buttonStyle(LiveSecondaryButtonStyle())
                             .disabled(store.isVerifyingHealthAccess || !store.configuration.activitySyncEnabled)
                         }
-                        Button(working ? "Checking your challenge…" : "Retry saved challenge") {
+                        Button(working ? "Checking your challenge…" : "Try again") {
                             retry(pending)
                         }
                         .buttonStyle(LivePrimaryButtonStyle())
@@ -444,11 +444,11 @@ private struct LivePersonalCancellationRecovery: View {
 
     var body: some View {
         if visible {
-            LivePersonalCard(title: "Cancellation saved — still trying.", symbol: "arrow.triangle.2.circlepath") {
+            LivePersonalCard(title: "Still canceling", symbol: "arrow.triangle.2.circlepath") {
                 Text(store.hasPendingCancellationRecoveryIssue && store.pendingCancellation == nil
                      ? "We couldn’t read the cancellation saved on this phone. Try again to check what happened."
-                     : "Your cancellation is saved on this phone. We’ll keep using the same request until it is confirmed.")
-                Button(working ? "Retrying cancellation…" : "Retry Cancellation") {
+                     : "We haven’t confirmed your cancellation yet. Try again to finish it.")
+                Button(working ? "Trying again…" : "Try again") {
                     working = true
                     Task {
                         let succeeded: Bool
@@ -457,7 +457,7 @@ private struct LivePersonalCancellationRecovery: View {
                         } else {
                             succeeded = await store.retryPendingCancellationRecovery()
                         }
-                        PersonalAccessibilityAnnouncements.post(succeeded ? "Cancellation confirmed." : "Cancellation is still saved. We’ll keep trying.")
+                        PersonalAccessibilityAnnouncements.post(succeeded ? "Cancellation confirmed." : "We haven’t confirmed your cancellation yet.")
                         working = false
                     }
                 }

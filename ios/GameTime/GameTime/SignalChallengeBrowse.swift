@@ -91,7 +91,7 @@ struct SignalChallengeBrowse: View {
             Text(message).font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
             Button("Refresh") { Task { await store.refresh() } }.buttonStyle(SignalPillButtonStyle())
         } else if !state.fresh && !state.rows.isEmpty {
-            Text("Last saved view · refresh before making a choice.").font(.subheadline)
+            Text("This might be out of date. Refresh before you make a choice.").font(.subheadline)
                 .foregroundStyle(SignalTheme.textSecondary)
         }
     }

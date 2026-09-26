@@ -9,7 +9,6 @@ struct ChallengeV1Create: View {
     @State private var draft: ChallengeCreationDraft
     private enum Editor: String, Identifiable { case dates, amount; var id: String { rawValue } }
     @State private var editor: Editor?
-    @State private var showsAdvanced = false
     @State private var focusedInput: String?
     @State private var keyboardVisible = false
     @ScaledMetric(relativeTo: .title3) private var choiceSymbolWidth: CGFloat = 28
@@ -71,12 +70,13 @@ struct ChallengeV1Create: View {
                     }
                     if let error = store.error { Text(error).font(.subheadline).foregroundStyle(SignalCreationTheme.danger) }
                     if store.pending != nil {
-                        Text("Your last action is saved on this phone. Retry it to check whether it went through.").font(.subheadline)
-                        Button("Stop waiting for this action") { Task { await store.abandon(); draft.consent = false } }
+                        Text(ChallengePendingCopy.title).font(.subheadline.weight(.semibold))
+                        Text(ChallengePendingCopy.message).font(.subheadline)
+                        Button(ChallengePendingCopy.cancel) { Task { await store.abandon(); draft.consent = false } }
                             .buttonStyle(LiveSecondaryButtonStyle()).disabled(store.busy)
                     }
-                    if draft.reading { ProgressView("Loading your agreement…") }
-                    if store.busy { ProgressView("Saving your action…") }
+                    if draft.reading { ProgressView("Loading the rules…") }
+                    if store.busy { ProgressView("Saving…") }
                     if draft.step == .review && store.access?.ageConfirmed != true {
                         Text("Confirm that you are 21 or older in Challenges before continuing.").font(.subheadline)
                     }
@@ -91,7 +91,7 @@ struct ChallengeV1Create: View {
             .scrollDismissesKeyboard(.interactively)
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top, spacing: 0) {
-                SignalCreationChrome(title: draft.mode == .personal ? "Personal goal" : "Create challenge",
+                SignalCreationChrome(title: draft.step != .type && draft.mode == .personal ? "Personal goal" : "Create challenge",
                                      showsBack: draft.step != draft.firstStep,
                                      back: { if !store.busy { draft.back() } }, close: { dismiss() })
             }
@@ -132,7 +132,7 @@ struct ChallengeV1Create: View {
     }
     private var progressLabels: [String] {
         let stages = draft.mode == .personal ? ["Goal", "Rules"] : ["Goal", "Challenge", "Friends"]
-        return draft.step == .type ? ["Type"] + stages : stages
+        return draft.directEntry ? stages : ["Who"] + stages
     }
     private var typeStep: some View {
         VStack(spacing: 12) {
@@ -191,27 +191,6 @@ struct ChallengeV1Create: View {
             }
         }
         datesSummary
-        if draft.allowsTypeChange {
-            Button {
-                showsAdvanced.toggle()
-            } label: {
-                HStack(spacing: 8) {
-                    Text("Advanced").font(.subheadline.weight(.semibold))
-                    Spacer(minLength: 8)
-                    Image(systemName: "chevron.down")
-                        .rotationEffect(.degrees(showsAdvanced ? 180 : 0))
-                        .font(.footnote.weight(.semibold))
-                        .accessibilityHidden(true)
-                }
-                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(SignalCreationTheme.textPrimary)
-            .accessibilityIdentifier("beta.create.advanced")
-            .accessibilityValue(showsAdvanced ? "Expanded" : "Collapsed")
-            if showsAdvanced { typeStep }
-        }
     }
     private func inputFocus(_ focused: Bool, id: String) {
         if focused { focusedInput = id }
@@ -345,7 +324,7 @@ struct ChallengeV1Create: View {
     }
     private var isReviewAction: Bool { draft.step == .activity || draft.step == .review && draft.needsReview }
     private var primaryTitle: String {
-        if store.pending != nil { return "Retry saved action" }
+        if store.pending != nil { return ChallengePendingCopy.retry }
         if isReviewAction { return draft.step == .review ? "Refresh review" : "Continue" }
         if draft.step == .review { return draft.mode == .personal ? "Create personal goal" : "Continue to invite" }
         return "Continue"
