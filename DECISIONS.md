@@ -5217,6 +5217,11 @@ refuses production. Not part of the D142 TestFlight build. Applying the
 migration or deploying the functions to a hosted project is a hosted mutation
 that needs the owner's explicit approval. With that approval the migration was
 applied to `gametime-p11b` on September 26, 2026, with the switch off and no
-account eligible; the three functions are not deployed there yet. Legacy Personal sandbox payment tables
+account eligible. The owner deployed the three functions there the same day
+(`supabase functions deploy ... --import-map supabase/functions/deno.json`;
+without the import map the bundle cannot resolve `@peculiar/x509`), set the
+Stripe test secrets, and registered a test-mode Stripe webhook. Nothing calls
+`challenge-commitment-charge` on a schedule yet; it runs only when invoked
+with the dispatch secret. Legacy Personal sandbox payment tables
 and their copy are unchanged. Live money still needs the release conditions in
 `docs/BUSINESS_MODEL.md`.

@@ -469,6 +469,8 @@ enabled = true
 # Private staging dispatcher authenticated by a dedicated shared secret.
 verify_jwt = false
 
+# Deploy the challenge-commitment-* functions with
+# --import-map supabase/functions/deno.json so the bundle resolves npm imports.
 [functions.challenge-commitment-setup]
 enabled = true
 # Verifies the caller against the current hosted JWKS in the handler.
