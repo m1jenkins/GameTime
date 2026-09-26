@@ -25,9 +25,11 @@ tested source and publication status, not the current branch tip.
 - **PR #27 checks:** the app and test targets compiled with no fixes. The
   creation unit tests passed 26/26. `LiveDesignUITests` passed 14/15; its one
   failing accessibility audit fails the same way on `e5b283d`, before #27.
-- **Phone:** skipped at the owner's request while they were away from it. A
-  signed Staging build, 0.8.1 (926.26.1) from `b86a006`, waits under `build/`
-  for an in-place install. The phone keeps its earlier Staging 0.8.1 (1).
+- **Phone:** Staging 0.8.1 (926.26.1) from `b86a006` is installed in place on
+  the owner's iPhone. Starting a challenge opens on "Who's it for?" with
+  Personal goal and Goals with friends, and no captured screen said "saved
+  action" or "stop waiting". During the check the owner chose to leave the
+  September 24 Steps goal; the other goal records are unchanged.
 - Hosted records the D144 migration under a different version and lacks the
   D143 charity migration; repair the migration history before the next push.
 

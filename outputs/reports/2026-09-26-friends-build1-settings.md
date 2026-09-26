@@ -54,7 +54,8 @@ Read back at 14:54 UTC before and 15:07 UTC after:
 Since the [Phase 5 migration receipt](2026-09-23-friends-phase-5-migrations.md),
 one of the three September 24 goals was left at 03:43 UTC today and is void,
 and the scheduled September 27 Steps goal was saved a minute later. Neither
-happened in this task.
+happened in this task. Later, during the phone check, the owner left the
+active September 24 Steps goal; see [Phone](#phone).
 
 ## What the owner's account is offered
 
@@ -116,38 +117,47 @@ that is the owner's decision.
 
 ## Phone
 
-**Skipped at the owner's request:** the owner was away from the iPhone. It
-showed as unavailable to this Mac, and one install attempt at about 15:15 UTC
-could not connect and changed nothing. The phone still has GameTime Staging
-0.8.1 (1) from an earlier install.
+Installed at 16:33:31 UTC, once the owner was home with the iPhone unlocked.
+An earlier attempt at about 15:15 UTC, while the owner was away, could not
+reach the phone and changed nothing.
 
-A signed build is ready for an in-place install, kept out of Git at
-`build/friends-build1-staging-20260926-926.26.1/GameTime.app`:
-
-- GameTime Staging 0.8.1 (926.26.1), built from `b86a006` with the
-  `GameTime-Staging` scheme and Staging configuration, not Debug.
-- Bundle `com.mjenkins.gametime.staging`, team `87Z29RTC26`, backend
+- **Build:** GameTime Staging 0.8.1 (926.26.1), built from `b86a006` with the
+  `GameTime-Staging` scheme and Staging configuration, not Debug. Bundle
+  `com.mjenkins.gametime.staging`, team `87Z29RTC26`, backend
   `lyushhqoednheqwzsmxh`, challenges and account mode on, HealthKit and
-  development App Attest entitlements.
-- The iPhone-product guard passed. The executable's SHA-256 is
+  development App Attest entitlements. The iPhone-product guard passed. The
+  executable's SHA-256 is
   `ec92749aa582a7a460f4ca52301cd7c48eb884eb50dd82009224ee261fb9fc96`, and
   Info.plist's is
-  `6861e4b24017ad350ee0d3202e109975dbfa3be8bc8ea25d5fc4c760751a2012`.
+  `6861e4b24017ad350ee0d3202e109975dbfa3be8bc8ea25d5fc4c760751a2012`. A copy
+  stays out of Git at `build/friends-build1-staging-20260926-926.26.1/`.
+- **Install:** in place over GameTime Staging 0.8.1 (1), keeping the app's
+  data. The phone then reported 0.8.1 (926.26.1) for the same bundle.
+- **Launch:** opened with no arguments, signed in, on Home, with Home,
+  Challenges and You along the bottom.
 
-Checked without the phone:
+The owner tapped through while this Mac captured the screen with `devicectl`
+and read each capture with macOS text recognition. The captures show personal
+data and stay outside Git.
 
-- Creation opens on "Who's it for?" when the server allows friend and personal
-  goals (`testServerAllowedPoliciesDecideWhatCanBeCreated`,
-  `testChallengeCreationEntryKeepsTheApprovedNativeFlow`). The owner's account
-  now receives exactly that from the server.
-- "saved action" and "stop waiting" appear nowhere in the app source at
-  `b86a006` outside the tests.
+- Starting a challenge opened on **"Who's it for?"** with **Personal goal**
+  ("Just for you") and **Goals with friends** ("Each person chooses a goal",
+  preselected), and the steps Who, Goal, Challenge, Friends. No leaderboard was
+  offered.
+- The next step, "What's your goal?", offered Steps, Activity minutes, Running
+  distance and Timed run.
+- None of the nine captures (Home, a goal and its full rules, You, Challenges
+  and three creation steps) showed "saved action" or "stop waiting". Neither
+  phrase appears in the app source at `b86a006` outside the tests.
 
-To finish: with the phone unlocked and reachable, install the saved build in
-place with `xcrun devicectl device install app`. Then open Challenges, start a
-challenge and confirm "Who's it for?" offers Goals with friends. An automated
-phone check would need an Apple account in Xcode to sign its test runner;
-none is signed in on this Mac.
+At 16:35:13 UTC, during this session, the owner left the active September 24
+Steps goal from the phone, and it is now void. That was the owner's choice. A
+read at 16:36 UTC found the other five goal records identical to the before
+snapshot, including the active Outdoor runs goal and the Steps goal that
+starts September 27.
+
+An automated phone check would need an Apple account in Xcode to sign its
+test runner; none is signed in on this Mac.
 
 ## Observed, not changed
 
