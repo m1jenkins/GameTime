@@ -117,7 +117,7 @@ struct ChallengeV1Create: View {
                 switch editor {
                 case .dates: datesEditor
                 case .amount:
-                    SignalAmountEditor(value: draft.dollars) { amount in
+                    SignalAmountEditor(value: draft.dollars, committed: draft.commits) { amount in
                         guard amount != draft.dollars else { return }
                         draft.dollars = amount
                         Task { await draft.review(store: store) }
@@ -293,6 +293,9 @@ struct ChallengeV1Create: View {
                 Text("Only people you select can join. Everyone reviews the roster and rules before agreeing.")
                     .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary)
             }
+            if draft.mode == .personal, draft.canCommit {
+                ChallengeCommitmentSection(draft: draft, store: store)
+            }
             VStack(alignment: .leading, spacing: 8) {
                 Text("Your agreement").font(.subheadline.weight(.semibold)).padding(.bottom, 2)
                 reviewFact("Activity counted", text: health == nil ? "Fictional activity for this local preview. No Apple Health activity is scored." : ChallengeHealthCopy.source(draft.source?.identifier ?? ""))
@@ -300,16 +303,18 @@ struct ChallengeV1Create: View {
                     reviewFact("How scores are checked", text: ChallengeHealthCopy.accountMode)
                 }
                 reviewFact("Possible results", text: draft.mode == .personal
-                           ? "Meet your goal and your simulated entry returns. A confirmed miss leaves it unallocated. Missing or unclear activity never proves a miss."
+                           ? (draft.commits
+                              ? "Meet your goal: $0 test charge. If your full Apple Health total falls short, GameTime makes one test charge after the review window and keeps it. Missing or partial activity never counts as a miss."
+                              : "Meet your goal and your simulated entry returns. A confirmed miss leaves it unallocated. Missing or unclear activity never proves a miss.")
                            : draft.policy.allocation)
                 Button { editor = .amount } label: {
                     HStack(spacing: 8) {
-                        SignalCreationAgreementRow(symbol: "dollarsign", title: "Simulated amount",
-                                                   detail: challengeMoney(window.amountCents) + " · Fee $0")
+                        SignalCreationAgreementRow(symbol: "dollarsign", title: draft.commits ? "Test commitment" : "Simulated amount",
+                                                   detail: challengeMoney(window.amountCents) + (draft.commits ? " · charged only if you miss" : " · Fee $0"))
                         Text("Edit").font(.caption.weight(.semibold)).foregroundStyle(SignalCreationTheme.accent).padding(.trailing, 14)
                     }.background(SignalCreationTheme.soft.opacity(0.65), in: RoundedRectangle(cornerRadius: 16))
                 }.buttonStyle(.plain).accessibilityIdentifier("beta.create.edit-amount")
-                Text("No real money moves. Nothing can be paid out or redeemed.")
+                Text(draft.commits ? ChallengeCommitment.banner : "No real money moves. Nothing can be paid out or redeemed.")
                     .font(.caption).foregroundStyle(SignalCreationTheme.textSecondary).padding(.top, 2)
             }
             if draft.metric == .timed, let distance = window.distanceMm {
@@ -333,6 +338,10 @@ struct ChallengeV1Create: View {
                 }
                 if draft.needsReview {
                     Text("Your goal changed. Refresh the review before you agree.").font(.subheadline)
+                }
+                if draft.commits, draft.commitmentSaved {
+                    Text(ChallengeCommitment.consent(amountCents: window.amountCents)).font(.subheadline)
+                        .accessibilityIdentifier("beta.personal.commitment.consent")
                 }
                 Toggle("I have read the complete rules and agree", isOn: $draft.consent)
                     .disabled(draft.needsReview || draft.reading)
@@ -368,7 +377,7 @@ struct ChallengeV1Create: View {
             }.font(.headline).frame(maxWidth: .infinity, minHeight: 50)
         }
         .buttonStyle(LivePrimaryButtonStyle())
-        .disabled(blocked || (store.pending == nil && draft.step == .review && !draft.needsReview && (store.access?.ageConfirmed != true || draft.mode == .personal && (!draft.consent || !ready))))
+        .disabled(blocked || (store.pending == nil && draft.step == .review && !draft.needsReview && (store.access?.ageConfirmed != true || draft.mode == .personal && (!draft.consent || !ready || draft.commits && !draft.commitmentSaved))))
         .accessibilityIdentifier(store.pending != nil ? "beta.create.retry" : isReviewAction && draft.mode == .personal ? "beta.personal.preview" : draft.step == .review ? (draft.mode == .personal ? "beta.personal.commit" : "beta.create.submit") : "beta.create.continue")
     }
 }

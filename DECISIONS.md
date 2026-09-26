@@ -5181,3 +5181,47 @@ agreements are unaffected.
 `gametime-p11b` is a hosted mutation that needs the owner's explicit approval,
 and D142 holds hosted mutation until the owner's scheduled personal goals are
 final.
+
+### D144. Personal goals can carry an optional Stripe sandbox commitment
+
+**Explicit owner direction, September 24, 2026:** the owner chose personal goals
+as the first real-money flow: save a card when the goal starts, then make one
+off-session charge only after a confirmed miss, sandbox first. Money from a miss
+goes to GameTime itself, and the terms say so before anyone commits. A goal
+counts as missed only when Apple Health data for the whole goal period was
+synced and falls short. No data or partial data means no charge.
+
+**What.** Migration `20260925000000_challenge_personal_commitment_v1.sql` adds an
+optional commitment to `challenge_*_v1` personal Steps and Outdoor run goals:
+
+- A saved sandbox card (Stripe SetupIntent, `usage=off_session`) through
+  `challenge-commitment-setup`. Saving charges nothing.
+- A `commitment` block frozen into the agreement terms: amount ($1 to $50 in
+  whole dollars, USD), recipient `gametime`, `one_charge_after_confirmed_miss_v1`,
+  and proof rule `complete_window_v1`.
+- Proof rule `complete_window_v1`, used only by committed agreements: a
+  shortfall is a miss only when the Health fact is a value queried through the
+  goal's end and recorded no later than 48 hours after it. Anything else is
+  void. Uncommitted goals keep the existing evaluator unchanged.
+- Exactly one charge is queued when a committed goal becomes final as a scored
+  miss. `challenge-commitment-charge` makes one off-session PaymentIntent with a
+  fixed idempotency key. Declines are final; only transport ambiguity reuses the
+  key, at most three attempts. `challenge-commitment-webhook` verifies Stripe's
+  signature, re-reads the object, and never changes a succeeded charge.
+- One open commitment per person. A charge that needs attention or failed
+  blocks new commitments.
+
+**Boundaries.** Default off: a runtime switch and per-account eligibility both
+start false. Stripe sandbox only; live objects are refused and the charge worker
+refuses production. Not part of the D142 TestFlight build. Applying the
+migration or deploying the functions to a hosted project is a hosted mutation
+that needs the owner's explicit approval. With that approval the migration was
+applied to `gametime-p11b` on September 26, 2026, with the switch off and no
+account eligible. The owner deployed the three functions there the same day
+(`supabase functions deploy ... --import-map supabase/functions/deno.json`;
+without the import map the bundle cannot resolve `@peculiar/x509`), set the
+Stripe test secrets, and registered a test-mode Stripe webhook. Nothing calls
+`challenge-commitment-charge` on a schedule yet; it runs only when invoked
+with the dispatch secret. Legacy Personal sandbox payment tables
+and their copy are unchanged. Live money still needs the release conditions in
+`docs/BUSINESS_MODEL.md`.

@@ -462,6 +462,11 @@ no cash-equivalent prize, no outside collection, no payment provider calls.
 Use a displayed $20 example per person and fee $0; these are test labels, not
 approved prices or live limits. Retain the old Stripe sandbox path unchanged.
 
+**Personal goal commitment (D144):** an optional Stripe sandbox commitment on
+personal Steps and Outdoor run goals. The card is saved at the start; one test
+charge of $1 to $50 is made only after a confirmed miss on complete Health data,
+and GameTime keeps it. Default off, sandbox only, not in the D142 TestFlight.
+
 | Option | Exact movement and recipient | Decision |
 | --- | --- | --- |
 | Historical simulated race duel | Record two simulated $20 entries; winner receives a simulated $40 outcome, or both entries return for void/tie; no asset exists | Implemented local fixture; preserve its terms |

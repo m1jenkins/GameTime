@@ -112,6 +112,32 @@ Show the saved payment method by brand and last four digits when Stripe provides
 them. Never show a full payment number, Stripe identifier, `SetupIntent`,
 `PaymentIntent`, mandate, webhook, or idempotency language.
 
+### Personal goal commitment copy (D144)
+
+The optional commitment on a personal goal reuses the banner, setup and saved
+method lines above, with these goal-specific lines:
+
+- Toggle: **Put money on it.** Button: **Add test payment method**; the Stripe
+  sheet button reads **Save test payment method**.
+- Consent: **By starting, you agree that GameTime may create one \(amount) test
+  charge, kept by GameTime, only if your full Apple Health total for this goal
+  falls short after the review window. Missing or partial activity never counts
+  as a miss.**
+- Amount row: **Test commitment**, with **charged only if you miss**. Goal
+  stake: **\(amount) test charge only if you miss.**
+- Committed, not yet final: **Your \(amount) test commitment is set. Nothing is
+  charged unless you miss.**
+- Met, void or closed: **No test charge — $0.**
+- One open commitment: **You already have a goal with money on it. You can add
+  money to another goal once that one ends.**
+- Unpaid charge: **A test payment needs your attention first. Open that goal’s
+  payment status to see what happened.**
+- Not available: **Putting money on a goal isn’t available for your account
+  yet.**
+
+Charge processing, complete, attention and unknown states use the Forward
+Stripe sandbox lines above, in the **Payment test status** card.
+
 ### Placement: disclose the environment once, protect each decision
 
 The compact environment banner is the canonical ambient disclosure. Show it

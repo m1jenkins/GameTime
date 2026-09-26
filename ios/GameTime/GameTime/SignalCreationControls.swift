@@ -442,21 +442,27 @@ struct SignalAmountEditor: View {
     @State private var error: String?
     @Environment(\.dismiss) private var dismiss
     let save: (String) -> Void
+    /// A goal with a test payment commitment allows $1–$50 (D144).
+    let committed: Bool
 
-    init(value: String, save: @escaping (String) -> Void) {
+    init(value: String, committed: Bool = false, save: @escaping (String) -> Void) {
         _value = State(initialValue: value)
+        self.committed = committed
         self.save = save
     }
+    private var range: ClosedRange<Int> { committed ? ChallengeCommitment.dollars : 1...500 }
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    SignalNumberEntry(text: $value, title: "Simulated amount", unit: "USD · $1–$500", id: "beta.create.amount", keyboard: .numberPad, prefix: "$")
-                    Text("No real money moves. Nothing can be paid out or redeemed.").font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
+                    SignalNumberEntry(text: $value, title: committed ? "Test commitment" : "Simulated amount",
+                                      unit: "USD · $\(range.lowerBound)–$\(range.upperBound)", id: "beta.create.amount", keyboard: .numberPad, prefix: "$")
+                    Text(committed ? ChallengeCommitment.banner : "No real money moves. Nothing can be paid out or redeemed.")
+                        .font(.subheadline).foregroundStyle(SignalCreationTheme.textSecondary)
                     if let error { Text(error).foregroundStyle(SignalCreationTheme.danger).accessibilityIdentifier("beta.create.amount.error") }
                     Button {
-                        guard ChallengeCreationDraft.integer(value, in: 1...500) != nil else {
-                            error = "Enter a whole-dollar amount from $1 to $500."
+                        guard ChallengeCreationDraft.integer(value, in: range) != nil else {
+                            error = "Enter a whole-dollar amount from $\(range.lowerBound) to $\(range.upperBound)."
                             return
                         }
                         save(value)
