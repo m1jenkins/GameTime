@@ -118,10 +118,13 @@ final class LiveDesignUITests: XCTestCase {
         let create = app.buttons["beta.create.open"]
         XCTAssertTrue(create.waitForExistence(timeout: 10)); create.tap()
         let next = app.buttons["beta.create.continue"]
-        XCTAssertTrue(next.waitForExistence(timeout: 10))
-        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "enabled == true"), object: next)], timeout: 10), .completed)
-        next.tap()
+        // "Who's it for?" (friend goal preselected), then the goal step.
+        for _ in 0..<2 {
+            XCTAssertTrue(next.waitForExistence(timeout: 10))
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "enabled == true"), object: next)], timeout: 10), .completed)
+            next.tap()
+        }
         let invite = app.buttons["beta.create.submit"]
         XCTAssertTrue(invite.waitForExistence(timeout: 10)); bring(app, invite)
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
@@ -476,7 +479,10 @@ final class LiveDesignUITests: XCTestCase {
             let create = app.buttons["beta.create.open"]
             XCTAssertTrue(create.waitForExistence(timeout: 10)); create.tap()
             let next = app.buttons["beta.create.continue"]
-            XCTAssertTrue(next.waitForExistence(timeout: 10)); bring(app, next); next.tap()
+            // "Who's it for?" (friend goal preselected), then the goal step.
+            for _ in 0..<2 {
+                XCTAssertTrue(next.waitForExistence(timeout: 10)); bring(app, next); next.tap()
+            }
             let submit = app.buttons["beta.create.submit"]
             XCTAssertTrue(submit.waitForExistence(timeout: 10)); bring(app, submit); submit.tap()
             XCTAssertTrue(app.buttons["beta.invite.done"].waitForExistence(timeout: 10))
