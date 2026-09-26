@@ -1,5 +1,24 @@
 # GameTime UI adoption and migration history
 
+## Creation asks who it's for — September 26, 2026
+
+The owner found that starting a challenge never asked whether it was with
+friends, and that the "saved action" messages read like a developer tool.
+
+- **Creation starts with "Who’s it for?"** whenever the server allows more than
+  one kind (personal goal, goals with friends, friend leaderboard). The old
+  "Advanced" disclosure on the goal step is gone; Back returns to the choice.
+  The progress row reads Who, Goal, Challenge, Friends (or Who, Goal, Rules).
+  With only personal goals allowed, creation opens on the goal as before. This
+  reopens the locked Goal → Challenge → Friends flow at the owner's request.
+- **Unfinished changes.** Every challenge screen now says **Your last change
+  didn’t finish** with **Try again** and **Cancel it** (`ChallengePendingCopy`),
+  replacing "Retry saved action", "Stop waiting for this action" and "An action
+  is waiting to finish". Nothing about how retry or cancel works changed.
+- The app shows friend challenges only when the server's allowed list includes
+  them, so a server still on the private trial's two personal pairs offers
+  personal goals only.
+
 ## Friends design follow-through — September 24, 2026
 
 The owner asked for the rest of the app to follow the design language of the

@@ -35,7 +35,7 @@ struct ChallengeProfileView: View {
                 if let row = snapshot.featured {
                     VStack(alignment: .leading, spacing: 10) {
                         if snapshot.availability == .stale {
-                            Text("Last saved view").font(.caption).foregroundStyle(SignalTheme.textSecondary)
+                            Text("Might be out of date").font(.caption).foregroundStyle(SignalTheme.textSecondary)
                         }
                         NavigationLink {
                             ChallengeV1Detail(store: store, id: row.id)

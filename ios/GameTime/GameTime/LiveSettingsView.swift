@@ -406,7 +406,7 @@ struct LiveAccountDeletionReceiptView: View {
         LiveInformationCard(title: statusTitle(status), symbol: "checkmark.shield") {
             switch status.state {
             case .pendingProvider:
-                Text("Confirm with Apple again so we can finish account closure. Your saved receipt keeps this as the same request.")
+                Text("Confirm with Apple again so we can finish closing your account.")
                 LiveAccountAppleConfirmation { result in
                     guard case let .success(identity) = result else {
                         message = "We couldn’t get Apple confirmation. Try again."
@@ -452,9 +452,9 @@ struct LiveAccountDeletionReceiptView: View {
             }
         }
         if model.hasPendingAccountDeletionRightsRequest {
-            LiveInformationCard(title: "Your saved request", symbol: "clock") {
-                Text("A saved review or appeal request still needs a response from us.")
-                Button("Retry saved request") {
+            LiveInformationCard(title: "We didn’t hear back", symbol: "clock") {
+                Text("We couldn’t confirm that we got your review or appeal request. Try again to send it.")
+                Button("Try again") {
                     perform {
                         try await model.retryPendingAccountDeletionRightsRequest()
                         message = "We saved your request."

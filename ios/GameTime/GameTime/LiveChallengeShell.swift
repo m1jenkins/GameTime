@@ -532,20 +532,20 @@ struct LiveRecoveryView: View {
         if let error = store.error { Text(error).font(.subheadline).foregroundStyle(SignalTheme.danger).accessibilityIdentifier("beta.error") }
         if store.pending != nil {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Your action is saved on this phone").font(.subheadline.weight(.semibold))
-                Text("Retry to check whether it completed. Stop waiting checks it before preventing a late change.")
+                Text(ChallengePendingCopy.title).font(.subheadline.weight(.semibold))
+                Text(ChallengePendingCopy.message)
                     .font(.caption).foregroundStyle(SignalTheme.textSecondary)
                 let actionLayout = typeSize.isAccessibilitySize
                     ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
                     : AnyLayout(HStackLayout())
                 actionLayout {
-                    Button("Retry saved action") { Task { await store.retry() } }.accessibilityIdentifier("beta.retry")
+                    Button(ChallengePendingCopy.retry) { Task { await store.retry() } }.accessibilityIdentifier("beta.retry")
                     if !typeSize.isAccessibilitySize { Spacer() }
-                    Button("Stop waiting") { Task { await store.abandon() } }.accessibilityIdentifier("beta.abandon")
+                    Button(ChallengePendingCopy.cancel) { Task { await store.abandon() } }.accessibilityIdentifier("beta.abandon")
                 }.font(.caption.weight(.semibold)).frame(minHeight: 44).foregroundStyle(SignalTheme.accent).disabled(store.busy)
             }.padding(16).modifier(LiveCardModifier(radius: 17, material: true))
         } else if !store.fresh && !store.challenges.isEmpty {
-            Text("Last saved view · refresh before making a choice.").font(.caption).foregroundStyle(SignalTheme.textSecondary)
+            Text("This might be out of date. Refresh before you make a choice.").font(.caption).foregroundStyle(SignalTheme.textSecondary)
         }
     }
 }

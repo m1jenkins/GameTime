@@ -324,6 +324,8 @@ a new term, add a row rather than inventing a second name for something here.
 | no successful snapshot | "No step data available yet" plus Apple Health settings help |
 | local day | day |
 | pending creation, retry record | draft |
+| unconfirmed or refused challenge change (`ChallengeV1Store.pending`) | "Your last change didn’t finish." · **Try again** · **Cancel it**. Never "saved action" or "stop waiting". |
+| stale projection, last saved view | "This might be out of date. Refresh before you make a choice." |
 | protected storage | saved on your phone |
 | handle | username |
 | pending `friendships` row | friend request |

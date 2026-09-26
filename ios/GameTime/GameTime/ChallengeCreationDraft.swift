@@ -59,8 +59,9 @@ import GameTimeCore
         let types = Self.types(allowed: allowed)
         allowsTypeChange = initialPolicy == nil && types.count > 1
         planningDate = now
-        directEntry = true
-        step = .activity
+        // Ask who it's for first whenever there's a real choice.
+        directEntry = !allowsTypeChange
+        step = allowsTypeChange ? .type : .activity
         let first = types.first ?? (.friend, .goal)
         mode = initialPolicy?.mode ?? first.0
         competition = initialPolicy?.competition ?? first.1

@@ -747,10 +747,10 @@ struct FriendsActionStatus: View {
                 Text(FriendsStatusCopy.pending(pending)).font(.caption).foregroundStyle(SignalTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 LiveActionGroup {
-                    Button("Retry") { Task { await friends.retry() } }.accessibilityIdentifier("friends.retry")
+                    Button("Try again") { Task { await friends.retry() } }.accessibilityIdentifier("friends.retry")
                         .frame(minHeight: 44)
                     if !typeSize.isAccessibilitySize { Spacer() }
-                    Button("Stop waiting") { Task { await friends.discardPending() } }
+                    Button("Dismiss") { Task { await friends.discardPending() } }
                         .frame(minHeight: 44)
                 }
                 .font(.caption.weight(.semibold)).frame(minHeight: 44).foregroundStyle(SignalTheme.accent)
@@ -775,7 +775,7 @@ enum FriendsStatusCopy {
         case .unblock: "unblock \(command.person.firstName)"
         case .report: "report \(command.person.firstName)"
         }
-        return "You asked to \(action). Retry to check whether it went through, or stop waiting and refresh your list."
+        return "You asked to \(action). Try again, or dismiss this and check your list."
     }
 }
 

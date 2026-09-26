@@ -146,7 +146,8 @@ import GameTimeCore
         let mounted = try mount(ChallengeV1Create(store: fixture.store, draft: draft))
         defer { mounted.close() }
         let pending = try await captureMountedSignal(mounted.window, controller: mounted.host, name: "native-create-pending", test: self)
-        XCTAssertTrue(pending.contains("retry saved action"))
+        XCTAssertTrue(pending.contains("try again"), pending)
+        XCTAssertFalse(pending.contains("saved action"))
         XCTAssertFalse(pending.contains("exact friend username"))
 
         fixture.client.failSubmission = false

@@ -205,8 +205,9 @@ final class ChallengeV1UITests:XCTestCase {
         let create = app.buttons["beta.create.open"]
         for _ in 0..<8 where !create.isHittable { app.swipeDown() }
         XCTAssertTrue(create.waitForExistence(timeout: 10)); create.tap()
+        XCTAssertTrue(app.staticTexts["Who’s it for?"].waitForExistence(timeout: 5))
+        app.buttons["beta.create.continue"].tap()
         XCTAssertTrue(app.staticTexts["What’s your goal?"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["Who’s it for?"].exists)
         let formCapture = XCTAttachment(screenshot: app.screenshot()); formCapture.name = "Beta creation " + mode; formCapture.lifetime = .keepAlways; add(formCapture)
         do {
             try app.performAccessibilityAudit()
@@ -323,18 +324,20 @@ final class ChallengeV1UITests:XCTestCase {
             XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: age)], timeout: 10), .completed)
         }
         app.buttons["beta.create.open"].tap()
-        let advanced = app.buttons["beta.create.advanced"]
-        for _ in 0..<15 where !advanced.isHittable { app.swipeUp() }
-        advanced.tap()
+        // Creation asks who it's for before the goal.
+        XCTAssertTrue(app.buttons["beta.create.type.leaderboard"].waitForExistence(timeout: 5))
         app.buttons["beta.create.type.leaderboard"].tap()
+        app.buttons["beta.create.continue"].tap()
         for metric in ["steps", "exercise", "distance", "timed"] {
             app.buttons["beta.create.metric." + metric].tap()
             XCTAssertFalse(app.textFields["beta.create.target"].exists)
             capture("leaderboard-create-" + metric)
         }
+        app.buttons["beta.create.back"].tap()
         let personal = app.buttons["beta.create.type.personal"]
-        for _ in 0..<15 where !personal.isHittable { app.swipeUp() }
+        XCTAssertTrue(personal.waitForExistence(timeout: 5))
         personal.tap()
+        app.buttons["beta.create.continue"].tap()
         app.buttons["beta.create.metric.steps"].tap()
         XCTAssertTrue(app.textFields["beta.create.target"].waitForExistence(timeout: 5))
         let target = app.textFields["beta.create.target"]

@@ -32,8 +32,7 @@ final class SignalCreationUITests: XCTestCase {
         app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
         app.buttons["beta.create.open"].tap()
         capture(app, "after-goal")
-        showAdvanced(app)
-        app.buttons["beta.create.type.personal"].tap()
+        chooseType(app, "personal")
         let target = app.textFields["beta.create.target"]
         XCTAssertEqual(target.value as? String, "—", "No target is invented")
         for (metric, value) in [("exercise", "150:30"), ("distance", "12.345678"), ("timed", "25:01"), ("steps", "10000")] {
@@ -139,8 +138,7 @@ final class SignalCreationUITests: XCTestCase {
         let app = try launch(actor: 2)
         app.buttons["beta.tab.challenges"].tap(); confirmAge(app)
         app.buttons["beta.create.open"].tap()
-        showAdvanced(app)
-        app.buttons["beta.create.type.leaderboard"].tap()
+        chooseType(app, "leaderboard")
         for metric in ["steps", "exercise", "distance", "timed"] {
             tap(app, "beta.create.metric." + metric)
             XCTAssertFalse(app.textFields["beta.create.target"].exists)
@@ -340,8 +338,7 @@ final class SignalCreationUITests: XCTestCase {
         XCTAssertGreaterThanOrEqual(close.frame.width, 44)
         XCTAssertGreaterThanOrEqual(close.frame.height, 44)
         try app.performAccessibilityAudit(for: .hitRegion)
-        showAdvanced(app)
-        app.buttons["beta.create.type.personal"].tap()
+        chooseType(app, "personal")
         enter(app, app.textFields["beta.create.target"], "12345")
         capture(app, "compact-activity")
         let target = app.textFields["beta.create.target"]
@@ -363,13 +360,13 @@ final class SignalCreationUITests: XCTestCase {
         app.buttons["beta.create.close"].tap()
         XCTAssertTrue(app.buttons["beta.create.open"].waitForExistence(timeout: 5))
     }
-    @MainActor func showAdvanced(_ app: XCUIApplication) {
-        let personal = app.buttons["beta.create.type.personal"]
-        if personal.exists && personal.isHittable { return }
-        let advanced = app.buttons["beta.create.advanced"]
-        bring(app, advanced)
-        advanced.tap()
-        XCTAssertTrue(personal.waitForExistence(timeout: 5))
+    /// Creation asks who it's for first, then moves on to the goal.
+    @MainActor func chooseType(_ app: XCUIApplication, _ id: String) {
+        let choice = app.buttons["beta.create.type." + id]
+        if !choice.waitForExistence(timeout: 2) { tap(app, "beta.create.back") }
+        XCTAssertTrue(choice.waitForExistence(timeout: 5))
+        choice.tap(); next(app)
+        XCTAssertTrue(app.staticTexts["What’s your goal?"].waitForExistence(timeout: 5))
     }
     @MainActor func next(_ app: XCUIApplication) { tap(app, "beta.create.continue") }
     @MainActor func preview(_ app: XCUIApplication) { tap(app, "beta.personal.preview") }
