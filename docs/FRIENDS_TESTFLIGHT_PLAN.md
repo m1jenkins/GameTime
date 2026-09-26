@@ -303,8 +303,11 @@ functions score them from the start.
 
 - **Done:** read back the goals and the migration list; dry run; applied
   all six pending migrations, `20260920162025` through `20260922230100`.
-- Apply the build 1 settings (`scripts/fixtures/friends-build1-settings.sql`)
-  together with opening sign-up.
+- **Done September 26:** applied the build 1 settings
+  (`scripts/fixtures/friends-build1-settings.sql`) ahead of sign-up; see the
+  [receipt](../outputs/reports/2026-09-26-friends-build1-settings.md). The
+  private trial is still on, so only its enrolled account can take part.
+  Turning it off is the owner's decision, alongside opening sign-up.
 - Deploy `delete-account` and record the client secret's renewal date.
 - Add the production bundle to the Apple provider, and open Apple-only sign-up.
 - Grant global support to the owner by name. A grant lasts at most 7 days, so

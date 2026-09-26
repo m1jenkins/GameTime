@@ -9,6 +9,30 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 26 friends build 1 settings and "Who's it for?"
+
+- **Hosted `gametime-p11b`, with owner approval:** applied
+  `scripts/fixtures/friends-build1-settings.sql` and nothing else. Friend
+  requests go through the friend commands only, the allowlist and account mode
+  are on, and the four friend goals sit next to Personal Steps and Outdoor
+  runs. Links stay closed. The private trial, real activity, the commitment
+  switch, the migrations and all six owner goal records read back unchanged.
+- **The owner's account** is now offered the friend goals. A friend who isn't
+  enrolled can be friended and invited but can't create or join a friend goal
+  while the trial is on. This was checked on a disposable stack whose challenge
+  and friend functions match hosted exactly. Turning the trial off and opening
+  Apple sign-up remain owner decisions.
+- **PR #27 checks:** the app and test targets compiled with no fixes. The
+  creation unit tests passed 26/26. `LiveDesignUITests` passed 14/15; its one
+  failing accessibility audit fails the same way on `e5b283d`, before #27.
+- **Phone:** skipped at the owner's request while they were away from it. A
+  signed Staging build, 0.8.1 (926.26.1) from `b86a006`, waits under `build/`
+  for an in-place install. The phone keeps its earlier Staging 0.8.1 (1).
+- Hosted records the D144 migration under a different version and lacks the
+  D143 charity migration; repair the migration history before the next push.
+
+See the [receipt](../outputs/reports/2026-09-26-friends-build1-settings.md).
+
 ## September 24 Beta text-size support
 
 - Integrated the newer remote work through `c3b45f3`, including PRs #24/#25's
