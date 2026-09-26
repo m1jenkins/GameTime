@@ -5215,6 +5215,8 @@ optional commitment to `challenge_*_v1` personal Steps and Outdoor run goals:
 start false. Stripe sandbox only; live objects are refused and the charge worker
 refuses production. Not part of the D142 TestFlight build. Applying the
 migration or deploying the functions to a hosted project is a hosted mutation
-that needs the owner's explicit approval. Legacy Personal sandbox payment tables
+that needs the owner's explicit approval. With that approval the migration was
+applied to `gametime-p11b` on September 26, 2026, with the switch off and no
+account eligible; the three functions are not deployed there yet. Legacy Personal sandbox payment tables
 and their copy are unchanged. Live money still needs the release conditions in
 `docs/BUSINESS_MODEL.md`.
