@@ -5,10 +5,85 @@ service or installation changed. The reference is the user-supplied
 https://claude.ai/artifact/8CfAk9nqDSLvSoEpYnck8r, a browser mock rather than an
 installed-app capture. All people and activity are fictional.
 
-## Current proposal: round 5, three serious directions
+## Current proposal: round 6, the dial with the pot
 
-Open `round-5/index.html` (self-contained; Archivo from Google Fonts). Every
-round now lives in its own folder; there is no top-level page.
+Open `round-6/index.html` (self-contained; Archivo from Google Fonts). Every
+round lives in its own folder; there is no top-level page.
+
+The owner picked the Dial (C) from round 5 and asked for the pot size, so
+people know what's on the line and are motivated to meet their goals. Round 6
+shows the Dial on three phones side by side — Challenge, Home and Invite — with
+shared controls (Daylight/Night, day, 2/4/6 people, Jordan's update, larger
+text); each phone's own buttons navigate within that phone.
+
+- **Challenge.** The pot sits at the center of the dial: "POT", the total in
+  Archivo ($80 for four people) and "$20 each", ringed by one segment per
+  person in their color (who is in the pot, never whose stake is "safe"). The
+  week moves back to the header strip. Under the dial, a white "Your stake"
+  card: "$20 · Comes back when you reach 20 km." ("Goal reached. It comes back
+  when results are final." once you reach it) and "How the pot works", which
+  expands the card with the pot total, "N people × $20", the rules' own split
+  sentences and "Simulated stakes — no real money moves." Tapping the dial's
+  center opens the same explanation and softens the rings.
+- **Home.** Still leads with progress: the small dial shows "$80 pot" in the
+  center; the whole dial opens the challenge.
+- **Invite.** Before the unchanged rules text, a three-part summary: "Your
+  stake $20 · Pot $40 · Fee $0", and the dial's center shows the $40 pot.
+
+Pot = the per-person amount × people still in. The app already has both
+(`ChallengeV1` config `amountCents`; members' selected, consented and exited
+flags); if someone leaves, their stake comes back and the pot shrinks.
+
+The owner's request fits the adopted requirements, which keep amounts
+"accessible and prominent" and say "do not hide maximum loss"
+(`docs/BUSINESS_MODEL.md`). The same requirements and D130 rule out the rest,
+so the design leaves out: projected winnings from a friend's miss ("do not
+optimize for participant failure"), countdowns or last-minute pressure to
+protect a stake ("never prescribe last-minute exercise to protect a stake"),
+money celebrations, and any per-friend "at risk" marking. The pot reads the
+same on Sunday as on Monday, and reaching a goal looks the same at any stake.
+This reverses the warm-up plan's proposed cut list (money only at creation,
+agreement and results); that list was a proposal, not an adopted rule.
+
+### Open decisions for the owner
+
+1. Pot in the center, or the day in the center with the pot in the row below?
+2. Show the pot on Home too, or only inside the challenge?
+3. Is the Dial ready for a native plan (SwiftUI plan first, no code until
+   approved)?
+
+### Performed checks for round 6
+
+Rendered with Playwright/Chromium at 1440px and 390px (2x): Daylight and
+Night; Tuesday, Thursday and Sunday; 2, 4 and 6 people ($40, $80, $120 fit the
+center); Jordan None; a selected person; the pot open from the dial's center;
+larger text; navigation from Home to the invitation inside one phone. No
+console errors or warnings; no horizontal page overflow at 390px. Fixed after
+the first look: the stake card squeezed its text beside the link, and the pot
+explanation opened below the fold (it now expands inside the card and scrolls
+into view within that phone).
+
+These web checks do not establish native Dynamic Type, VoiceOver, data
+correctness, design acceptance or release acceptance.
+
+### Responsible engagement review (round 6)
+
+Behavior this increases: attention to the stake as a reason to reach one's own
+goal. Risk: money becoming the focus, pressure near the deadline, or rooting
+against friends. Controls in the design: the pot is a static fact all week; the
+motivating line is about your own goal; the split is explained with the
+agreement's own wording; no projections, countdowns, money celebrations,
+friend-level money states, notifications or analytics. Whether the stake
+motivates without pressure still needs people to try it, and live money would
+still need the adopted exposure limits and pause controls first.
+
+## Preserved fifth proposal: three serious directions
+
+`round-5/index.html` (committed as `a2516c1`, published at
+https://claude.ai/artifact/Tv4xQNpvY1HNjGJV4RJyqU). The owner's verdict,
+September 27: "I really like the dial design. However, I think we should have
+something about the pot size. People should know what's on the line and have
+it be something to motivate them to meet their goals." Round 6 answers that.
 
 Responding to the round 4 verdict (quoted in the round 4 section below), round 5 keeps round 4's finish and
 the same data, states and controls, and shows three phones side by side. Every
@@ -46,7 +121,7 @@ Priya reached your goals." for mixed finishers, and "Each finish is that
 person's goal" (round 4's "own goal" is a soccer term for scoring against
 yourself).
 
-### Open decisions for the owner
+### Open decisions at the time (answered: the Dial)
 
 1. Track, Board or Dial? Mixing is possible (for example the Track on the
    challenge screen and the Board on Home).
