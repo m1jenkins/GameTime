@@ -1,0 +1,42 @@
+{
+  "errors": [],
+  "widths": {
+    "390": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "1440": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    }
+  },
+  "fonts": [
+    "Barlow 400 loaded",
+    "Barlow 500 loaded",
+    "Barlow 600 loaded",
+    "Barlow 700 loaded",
+    "Barlow Condensed 500 loaded",
+    "Barlow Condensed 600 loaded",
+    "Barlow Condensed 700 loaded",
+    "Barlow Condensed 800 unloaded"
+  ],
+  "states": [
+    {
+      "potSheetClosedByEscape": true
+    },
+    {
+      "rulesFromPotSheet": "Full rules"
+    },
+    {
+      "sundayPot": "$120",
+      "jordanNote": "No update",
+      "homeCheer": "You, Sam, Priya, Maya and Theo reached your goals."
+    },
+    {
+      "phoneBAfterSee": "October runs"
+    },
+    {
+      "previewToast": "Preview only. Nothing is saved."
+    }
+  ]
+}

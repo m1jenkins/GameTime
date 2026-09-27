@@ -5,7 +5,48 @@ service or installation changed. The reference is the user-supplied
 https://claude.ai/artifact/8CfAk9nqDSLvSoEpYnck8r, a browser mock rather than an
 installed-app capture. All people and activity are fictional.
 
-## Current proposal: round 7, Club chronograph
+## Current proposal: round 8, Lit
+
+Open [round eight](round-8/index.html), also published at
+https://claude.ai/artifact/7XdVqyccrRc5u82KrYZ71U. The owner's words on round
+seven: "I think what's missing from Floodlight is a feeling of depth. It's a
+very flat design. I feel like um, some Frutiger Arrow or more 3D elements would
+do well. Similar to what Whoop app looks like. I also think I want to greatly
+cut down on the amount of text on these pages. Use the unslop skill and try to
+use visuals where appropriate instead of walls of text and sentences."
+
+- **Depth, two ways.** A Material control switches all three phones between
+  Floodlit (WHOOP-style slate, floodlight beams, recessed channels, glowing
+  arcs, lit spheres, a smoked-glass pot) and Aero gloss (Frutiger Aero sky,
+  glass plate, gel arcs, glossy orbs, an aqua pot, frosted cards). Layout, data
+  and rules are the same in both.
+- **Fewer words.** Counted the same way for both rounds: Challenge 82 → 43,
+  Home 73 → 46, Invitation 130 → 88. The stake became a coin, a groove and a
+  flag with a return arrow. The pot opens a sheet of pictograms. The invitation
+  rules became three outcome cards and four icon facts, with the complete
+  wording under **Full rules**. The simulation line appears once per screen.
+- **Unslop.** Round seven's slop was in the review-page captions ("The dial has
+  a point of view"). Round eight's visible text has no scanner findings.
+
+[The round record](round-8/DESIGN.md) lists tokens, copy to confirm, checks
+performed (Chromium at 1440px and 390px, a 98-state sweep, sheet focus,
+contrast of key pairs) and what was not checked (native, VoiceOver, Dynamic
+Type, device). Nothing native changed.
+
+### Open decisions for the owner
+
+1. Floodlit, Aero gloss, or somewhere between?
+2. Keep the short freshness line ("3 min ago") on screen?
+3. Is the pictogram summary on the invitation clear enough to sit above Full rules?
+
+### Responsible engagement review (round 8)
+
+More polish and glow could make the stake feel more exciting. The pot looks the
+same all week, outcome pictograms use neutral figures rather than friends'
+colors, and there are no rankings, countdowns, projected winnings or money
+celebrations. No notification, analytics or payment behavior changed.
+
+## Preserved seventh proposal: round 7, Club chronograph
 
 Open [round seven](round-7/index.html). The file embeds its Barlow fonts and
 works offline. The owner liked round six's dial and pot, but asked to remove
