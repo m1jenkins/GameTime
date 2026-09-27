@@ -202,7 +202,7 @@ span.who{min-height:0;pointer-events:none}
 <section class="comparison" aria-label="Round 3 and round 4 side by side">
   <figure class="column">
     <div class="caption-row"><h2>Round 3</h2><span>Daylight lanes, as last reviewed</span></div>
-    <div class="device"><img id="beforeImg" src="captures/round-3-challenge.png" width="794" height="1690" alt="Round 3 challenge screen: four dotted lanes with a colored token for each person and a flag at each finish."></div>
+    <div class="device"><img id="beforeImg" src="../captures/round-3-challenge.png" width="794" height="1690" alt="Round 3 challenge screen: four dotted lanes with a colored token for each person and a flag at each finish."></div>
     <p class="hint">A capture of <code>round-3/index.html</code>. It stays on Tuesday; the controls change only round 4.</p>
   </figure>
   <figure class="column">
@@ -533,7 +533,7 @@ function render(focusTarget){
   settleScene(false);
   refreshWords();
   document.querySelectorAll('[data-screen]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.screen === S.screen)));
-  document.getElementById('beforeImg').src = `captures/round-3-${S.screen}.png`;
+  document.getElementById('beforeImg').src = `../captures/round-3-${S.screen}.png`;
   document.getElementById('beforeImg').alt = {challenge:'Round 3 challenge screen: four dotted lanes with a colored token for each person and a flag at each finish.', home:'Round 3 Home: the same four lanes under September runs, with the invitation and Park runs below.', invite:'Round 3 invitation: October runs with both goals, the simulated stakes line and the rules in text.'}[S.screen];
   document.getElementById('hint').textContent = {challenge:'Tap a name or token for the numbers; tap again, Close or Escape to hide them. Home returns to the Home screen.', home:'The picture and the title open the challenge. See invite opens the invitation preview.', invite:'Reading preview: both tokens wait at the start. Home returns.'}[S.screen];
   if (hadFocus || focusTarget) (phone.querySelector(focusTarget || '.back, .titlelink') || phone).focus?.({preventScroll:true});
