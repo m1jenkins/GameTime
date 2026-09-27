@@ -1,68 +1,573 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GameTime — a shared week</title>
+<title>Floodlight Round 4</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:light;--paper:#f3f3f1;--ink:#0e0e10;--muted:#5c5c60;--line:#deded8;--board:#121214;--amber:#ffb020;--body:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--display:Archivo,var(--body)}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 var(--body);-webkit-font-smoothing:antialiased}button,input,textarea{font:inherit}button{cursor:pointer}button,a,summary{touch-action:manipulation}button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #996100;outline-offset:4px}button{color:inherit}a{color:inherit;text-underline-offset:3px}p,h1,h2,h3{margin:0}p{text-wrap:pretty}button{border:0}svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}[hidden]{display:none!important}
-.wrap{max-width:1160px;margin:auto;padding:42px 32px 72px}.mast{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid var(--line);padding-bottom:18px;font-size:14px}.mast small{font-size:13px;color:var(--muted)}.intro{padding:32px 0 26px;max-width:760px}.intro h1{font-size:40px;font-weight:650;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px}.intro p{font-size:18px;line-height:1.5;color:var(--muted);max-width:660px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-bottom:26px}.seg{display:flex;padding:3px;background:#e4e4df;border-radius:10px;gap:2px}.seg button{min-height:42px;padding:0 18px;border-radius:7px;background:transparent;font-size:14px;font-weight:600}.seg button[aria-pressed=true]{background:white;box-shadow:0 1px 3px #0001}.size-control{font-size:14px;display:flex;align-items:center;gap:9px}.size-control input{width:18px;height:18px;accent-color:var(--ink)}
-.comparison{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:42px;align-items:start;max-width:904px;margin:auto}.column{min-width:0}.caption{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:15px}.caption h2{font-size:17px;letter-spacing:-.3px;font-weight:650}.caption span{font-size:12px;color:var(--muted)}.device{width:100%;max-width:414px;padding:9px;border-radius:44px;background:#18181a;box-shadow:0 2px 4px #0002;margin:auto}.phone{container-type:inline-size;height:844px;border-radius:35px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column;font-family:var(--body);font-size:15px;line-height:1.35;position:relative}.status{height:53px;flex:none;padding:22px 26px 8px 28px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600}.status svg{width:59px;height:15px;stroke-width:1.4}.content{padding:8px 20px 18px;flex:1;min-height:0;overflow:auto;scrollbar-width:none}.content::-webkit-scrollbar{display:none}.tabbar{height:79px;flex:none;display:flex;justify-content:space-around;padding:10px 16px 0;border-top:1px solid #deded8;background:var(--paper);position:relative}.tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;line-height:1.1;color:var(--muted);width:70px}.tab svg{width:24px;height:24px}.tab.active{color:var(--ink);font-weight:600}.tabbar:after{content:"";height:4px;width:126px;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:var(--ink);border-radius:10px}.row{display:flex;gap:10px;align-items:center}.between{justify-content:space-between}.grow{flex:1;min-width:0}.muted{color:var(--muted)}.num{font-family:var(--display);font-variation-settings:"wdth" 125,"wght" 900;font-weight:900;letter-spacing:-.025em;line-height:.95;font-variant-numeric:tabular-nums}.big{font-size:84px;color:var(--amber)}.sm{font-size:19px}.md{font-size:28px}.disp{font-family:var(--display);font-variation-settings:"wdth" 112.5,"wght" 800;font-weight:800;letter-spacing:-.02em;line-height:1.05}.caps{font-family:var(--display);font-variation-settings:"wdth" 112.5,"wght" 700;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase}.avatar{display:grid;place-items:center;border-radius:50%;width:30px;height:30px;flex:none;color:#0e0e10;font-size:11px;font-family:var(--display);font-weight:800}.mint{background:#5eead4}.violet{background:#b79cff}.coral{background:#ff7a59}.lemon{background:#f2d64b}.track{height:10px;background:#2a2a2e;position:relative;overflow:hidden;border-radius:8px;flex:none}.track i{display:block;width:32%;height:100%;background:var(--amber);border-radius:8px}.mini{width:64px;height:6px}.chip{display:inline-flex;gap:6px;align-items:center;font-size:13px;font-weight:600;white-space:nowrap}.dot{height:8px;width:8px;border-radius:50%;background:#4ade80;flex:none}.check{display:grid;place-items:center;background:var(--amber);color:var(--ink);width:16px;height:16px;border-radius:50%;font-size:10px}.pill{background:var(--ink);color:white;border-radius:999px;padding:0 15px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;white-space:nowrap;flex:none}.original .content{display:flex;flex-direction:column;gap:14px;overflow:hidden}.original .headline{font-size:30px}.original .board{border-radius:28px;background:var(--board);color:white;padding:20px;display:flex;flex-direction:column;gap:14px}.original .board .caps{color:#a5a5a7}.original .sub{font-size:14px;color:var(--muted)}.original .board .sub{color:#b8b8b9}.original .metricline{display:flex;gap:8px;align-items:flex-end}.original .unit{font-size:20px;font-weight:600;padding-bottom:6px;color:#a5a5a7}.original hr{border:0;border-top:1px solid #ffffff1a;margin:2px 0}.original .whitecard{background:white;padding:12px 16px;border-radius:20px}.original .whitecard strong{font-weight:600}.original .list{background:white;border-radius:20px;padding:2px 16px}.original .li{padding:13px 0;border-top:1px solid #e3e3df;gap:12px}.original .li:first-child{border-top:0}.original .rightnum{width:52px;text-align:right;flex:none}.original .iconbox{background:#e8e8e4;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;flex:none}.original .iconbox svg{width:18px;height:18px}.original .round{background:#e8e8e4;width:36px;height:36px;border-radius:50%;display:grid;place-items:center}.original .round svg{width:16px;height:16px}.reference-note{font-size:12px;color:var(--muted);margin:14px 0 0;max-width:390px}.reference-note a{white-space:nowrap}
-/* Proposed: the score keeps the display face; supporting content uses system type. */
-.refined{--scale:1}.refined.large{--scale:1.3}.refined .pagehead{display:flex;justify-content:space-between;align-items:baseline;margin:2px 0 21px;gap:12px}.refined h1{font-size:calc(30px * var(--scale));letter-spacing:-.9px;font-weight:700;line-height:1.1}.refined .dateline{font-size:calc(13px * var(--scale));color:var(--muted)}.refined .invite{display:flex;align-items:center;gap:8px;margin-bottom:20px;padding-bottom:19px;border-bottom:1px solid var(--line)}.refined .invite strong{font-size:calc(16px * var(--scale));font-weight:600;display:block}.refined .invite small{font-size:calc(13px * var(--scale));display:block;color:var(--muted);margin-top:4px}.refined .textbutton{font-size:calc(14px * var(--scale));font-weight:600;background:none;padding:0 6px;min-height:44px;text-align:center;flex:none;text-decoration:underline;text-underline-offset:4px}.refined .liveboard{display:block;text-align:left;background:var(--board);color:white;width:100%;border-radius:19px;padding:20px}.refined button.liveboard{transition:opacity .12s ease}.refined button.liveboard:active{opacity:.88}.refined .boardtitle{font-size:calc(20px * var(--scale));font-weight:600;line-height:1.2;letter-spacing:-.3px}.refined .boarddate{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#b8b8bb;font-size:calc(13px * var(--scale));margin-top:5px}.refined .score{display:flex;align-items:baseline;gap:9px;margin:23px 0 9px}.refined .score .num{font-size:calc(82px * min(var(--scale),1.13));font-variation-settings:"wdth" 110,"wght" 820;font-weight:820;letter-spacing:-.04em;color:var(--amber)}.refined .score .unit{color:#b8b8bb;font-size:calc(20px * var(--scale));font-weight:400}.refined .goalmeta{display:flex;justify-content:space-between;gap:10px;font-size:calc(13px * var(--scale));color:#b8b8bb;margin:10px 0 18px}.refined .track{height:4px;border-radius:2px;background:#37373a}.refined .track i{border-radius:2px}.refined .friendsmini{border-top:1px solid #ffffff24;padding-top:5px}.refined .friendmini{min-height:39px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:calc(15px * var(--scale));line-height:1.2}.refined .friendmini small{font-size:calc(12px * var(--scale));color:#b8b8bb}.refined .friendmini strong{font-weight:550;font-variant-numeric:tabular-nums;white-space:nowrap}.refined .achieved{display:inline-block;font-size:calc(12px * var(--scale));color:#b8b8bb;margin-left:5px}.refined .freshness{color:#b8b8bb;font-size:calc(12px * var(--scale));line-height:1.4;border-top:1px solid #ffffff24;padding-top:12px;margin-top:8px}.refined .next{margin-top:23px}.refined .sectiontitle{font-size:calc(14px * var(--scale));font-weight:600;color:var(--muted);margin-bottom:9px}.refined .nextline{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}.refined .nextline b{font-size:calc(16px * var(--scale));font-weight:600}.refined .nextline small{display:block;color:var(--muted);font-size:calc(13px * var(--scale));margin-top:4px}.refined .nextline svg{width:17px;height:17px;color:var(--muted)}.refined .navline{display:flex;justify-content:space-between;align-items:center;min-height:40px;margin-top:-8px;margin-bottom:13px}.refined .back{background:none;display:flex;gap:4px;align-items:center;min-height:44px;padding:0;margin-left:-5px;font-size:calc(15px * var(--scale));font-weight:500}.refined .back svg{width:20px;height:20px}.refined .detailtitle{font-size:calc(27px * var(--scale));font-weight:700;line-height:1.15;letter-spacing:-.65px;margin-bottom:5px}.refined .detaildate{font-size:calc(14px * var(--scale));color:var(--muted);margin-bottom:20px}.refined .detailboard .score{margin:6px 0 11px}.refined .detailboard .goalmeta{margin:11px 0 13px}.refined .detailboard .freshness{margin-top:14px}.refined .boardtop{display:flex;justify-content:space-between;gap:10px;color:#b8b8bb;font-size:calc(13px * var(--scale));margin-bottom:13px}.refined .friends{margin-top:24px}.refined .sectionrow{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:4px}.refined .sectionrow h2{font-size:calc(17px * var(--scale));font-weight:650;letter-spacing:-.2px}.refined .sectionrow span{font-size:calc(12px * var(--scale));color:var(--muted)}.refined .personrow{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:12px;border-bottom:1px solid var(--line)}.refined .personrow .name{font-size:calc(16px * var(--scale));font-weight:600}.refined .personrow small{display:block;color:var(--muted);font-size:calc(13px * var(--scale));margin-top:4px}.refined .personvalue{font-size:calc(21px * var(--scale));font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.5px;white-space:nowrap}.refined .personvalue span{font-size:calc(14px * var(--scale));color:var(--muted);font-weight:400;letter-spacing:0}.refined .personvalue small{text-align:right;color:var(--muted);font-size:calc(12px * var(--scale));font-weight:400;letter-spacing:0}.refined .rules{margin-top:13px}.refined details{border-bottom:1px solid var(--line)}.refined summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;font-size:calc(16px * var(--scale));font-weight:600;min-height:52px;padding:6px 0}.refined summary::-webkit-details-marker{display:none}.refined summary svg{width:17px;height:17px;color:var(--muted)}.refined details[open] summary svg{transform:rotate(90deg)}.refined details p{font-size:calc(15px * var(--scale));line-height:1.5;margin:0 0 14px;color:var(--muted)}.refined details b{color:var(--ink);font-weight:600}.refined .rulesfooter{font-size:calc(12px * var(--scale));color:var(--muted);margin-top:12px;line-height:1.4}.refined.large .sectionrow{flex-wrap:wrap}.refined.large .goalmeta{flex-wrap:wrap}.refined.large .invite{align-items:flex-start;flex-wrap:wrap}.refined.large .freshness{font-size:14px}.refined.large .friendmini{flex-wrap:wrap;padding:7px 0}.refined.large .boarddate{flex-wrap:wrap}.refined .invitedetail p{font-size:calc(15px * var(--scale));line-height:1.5;margin:14px 0;color:var(--muted)}.refined .invitegoals{margin:22px 0;padding:14px 0;border-block:1px solid var(--line)}.refined .invitegoals .row{justify-content:space-between;min-height:40px;font-size:calc(17px * var(--scale))}.refined .mode{font-size:calc(14px * var(--scale));color:var(--muted);margin:14px 0}.refined .mode strong{color:var(--ink);font-weight:600}.refined .notapp{font-size:12px;color:var(--muted);border-top:1px solid var(--line);margin-top:24px;padding-top:14px}
-.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;margin-top:42px;padding-top:24px;border-top:1px solid var(--line)}.notes>div{min-width:0}.notes h3{font-size:16px;font-weight:650;margin-bottom:9px}.notes p{font-size:14px;color:var(--muted);line-height:1.55}.note-number{display:block;font-size:12px;color:var(--muted);margin-bottom:7px;font-variant-numeric:tabular-nums}.feedback{border-top:1px solid var(--line);padding-top:25px;margin-top:32px;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:38px}.feedback h2{font-size:22px;font-weight:650;letter-spacing:-.5px;margin-bottom:9px}.feedback p{font-size:14px;color:var(--muted)}.feedback label{display:flex;gap:10px;align-items:center;font-size:15px;margin-bottom:12px}.feedback input{width:18px;height:18px;accent-color:var(--ink);flex:none}.feedback textarea{display:block;resize:vertical;min-height:80px;width:100%;border:1px solid #b8b8b1;border-radius:8px;background:#fff9;padding:12px;font-size:14px;margin:18px 0 12px}.feedback button{min-height:44px;background:var(--ink);color:white;border-radius:8px;padding:8px 17px;font-size:14px;font-weight:600}.queued{font-size:13px;color:var(--muted);margin:10px 0}.footer{margin-top:26px;color:var(--muted);font-size:12px;max-width:800px;line-height:1.6}
-@media(max-width:820px){.wrap{padding:24px 20px 48px}.comparison{gap:22px}.device{padding:6px;border-radius:30px}.phone{height:790px;border-radius:25px}.phone .content{padding-inline:14px}.phone .big{font-size:clamp(46px,19cqw,84px)}.original .board{padding:16px;gap:12px}.original .caps{font-size:10px}.original .mini{width:40px}.original .rightnum{width:42px}.original .md{font-size:21px}.original .whitecard{padding:12px}.original .li{gap:6px}.original .avatar{width:25px;height:25px;font-size:9px}.original .chip{font-size:11px;gap:4px}.original .pill{font-size:12px;padding-inline:10px}.original .headline{font-size:25px}.refined .liveboard{padding:16px}.refined .score .num{font-size:clamp(55px,21cqw,82px)}.refined .boarddate{flex-wrap:wrap}.refined .goalmeta{flex-wrap:wrap;gap:4px}.notes{gap:18px}.caption{display:block}.caption span{display:block;margin-top:4px}}
-@media(max-width:630px){.intro h1{font-size:33px}.mast{align-items:flex-start}.mast small{max-width:120px;text-align:right}.comparison{grid-template-columns:minmax(0,1fr);gap:30px}.column{max-width:414px;width:100%;margin:auto}.phone{height:844px;border-radius:34px}.device{padding:8px;border-radius:42px}.phone .content{padding-inline:20px}.caption{display:flex}.caption span{margin:0}.notes{grid-template-columns:minmax(0,1fr);gap:24px}.feedback{grid-template-columns:minmax(0,1fr);gap:24px}.original .big{font-size:84px}.original .caps{font-size:12px}.original .mini{width:64px}.original .avatar{width:30px;height:30px;font-size:11px}.original .chip{font-size:13px}.original .headline{font-size:30px}.original .board{padding:20px}.original .md{font-size:28px}.refined .liveboard{padding:20px}.toolbar{gap:14px}.size-control{font-size:13px}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+/* Review page. The phone keeps its own Daylight/Night mood, independent of the page theme. */
+:root{
+  --page:#F3F3F1;--text:#1E211B;--soft:#5D6158;--rule:#DCDCD4;--seg:#E4E5DE;--seg-on:#FFFFFF;--bezel:#18181A;--focus:#996100;
+  --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --num:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--page:#151613;--text:#ECECE6;--soft:#A7ABA0;--rule:#2E302A;--seg:#262822;--seg-on:#3D4038;--bezel:#000;--focus:#FFB020}}
+:root[data-theme="dark"]{color-scheme:dark;--page:#151613;--text:#ECECE6;--soft:#A7ABA0;--rule:#2E302A;--seg:#262822;--seg-on:#3D4038;--bezel:#000;--focus:#FFB020}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font:16px/1.5 var(--sys);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0;touch-action:manipulation}
+button:focus-visible,summary:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+p,h1,h2,h3{margin:0}
+[hidden]{display:none!important}
+.sym{position:absolute;width:0;height:0;overflow:hidden}
+.wrap{max-width:1160px;margin:0 auto;padding:40px 32px 72px}
+.mast{display:flex;justify-content:space-between;align-items:baseline;gap:16px;border-bottom:1px solid var(--rule);padding-bottom:16px;font-size:14px}
+.mast small{font-size:13px;color:var(--soft);text-align:right}
+.intro{padding:30px 0 24px;max-width:760px}
+.intro h1{font-size:40px;font-weight:650;letter-spacing:-1.4px;line-height:1.1;margin-bottom:12px;text-wrap:balance}
+.intro p{font-size:18px;color:var(--soft);max-width:66ch;text-wrap:pretty}
+.toolbar{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;padding-bottom:26px}
+.ctl{display:flex;flex-direction:column;gap:6px}
+.ctl>span{font-size:12px;color:var(--soft);letter-spacing:.02em}
+.seg{display:flex;padding:3px;background:var(--seg);border-radius:10px;gap:2px}
+.seg button{min-height:40px;min-width:40px;padding:0 14px;border-radius:7px;font-size:14px;font-weight:600;color:var(--text)}
+.seg button[aria-pressed=true]{background:var(--seg-on);box-shadow:0 1px 3px #0000001a}
+.seg button:disabled{opacity:.4;cursor:default}
+.seg.days button{padding:0;width:40px}
+.check{display:flex;align-items:center;gap:9px;min-height:46px;font-size:14px}
+.check input{width:18px;height:18px;accent-color:var(--text);margin:0}
+.comparison{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:42px;align-items:start;max-width:904px;margin:0 auto}
+.column{min-width:0;margin:0}
+.caption-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:14px}
+.caption-row h2{font-size:17px;font-weight:650;letter-spacing:-.3px}
+.caption-row span{font-size:12px;color:var(--soft);text-align:right}
+.device{width:100%;max-width:414px;margin:0 auto;padding:9px;border-radius:44px;background:var(--bezel);box-shadow:0 2px 4px #0002}
+.device img{display:block;width:100%;height:auto;border-radius:35px}
+.hint{font-size:12.5px;color:var(--soft);margin:14px auto 0;max-width:414px;min-height:38px}
+.notes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;margin-top:44px;padding-top:24px;border-top:1px solid var(--rule)}
+.notes h3,.calls h2,.facts h3{font-size:16px;font-weight:650;margin-bottom:8px;text-wrap:balance}
+.notes p,.facts p{font-size:14px;color:var(--soft);line-height:1.55;text-wrap:pretty}
+.lower{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;margin-top:36px;padding-top:24px;border-top:1px solid var(--rule)}
+.calls h2{font-size:22px;letter-spacing:-.5px;margin-bottom:12px}
+.calls ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:9px;font-size:15px}
+.calls li::marker{color:var(--soft);font-variant-numeric:tabular-nums}
+.calls p{font-size:14px;color:var(--soft);margin-top:14px}
+.facts{display:flex;flex-direction:column;gap:20px}
+.footer{margin-top:30px;color:var(--soft);font-size:12.5px;max-width:820px;line-height:1.6}
+
+/* Phone */
+.phone{--scale:1;position:relative;height:844px;border-radius:35px;overflow:hidden;display:flex;flex-direction:column;background:var(--sky);color:var(--ink);font:15px/1.35 var(--sys);transition:background-color .25s ease,color .25s ease}
+.phone.large{--scale:1.3}
+.phone[data-mood=day]{--sky:#F3F3F1;--sky2:#F6EEDD;--ground:#E9E5DB;--ink:#23271F;--muted:#585D52;--stone:#D6D1C4;--stone-side:#C3BDAE;--divider:#D3CEC1;--sun:#FFB020;--ray:#FFBF55;--glow:#FFB020;--glow-a:.34;--hover:rgba(35,39,31,.06);--shadow:.13}
+.phone[data-mood=night]{--sky:#2B2140;--sky2:#4B3161;--ground:#1D172A;--ink:#F4F0E8;--muted:#B9B0C8;--stone:#3B3151;--stone-side:#2A2240;--divider:#382E4C;--sun:#FFB020;--ray:#FF9F3A;--glow:#FF8A3D;--glow-a:.5;--hover:rgba(244,240,232,.08);--shadow:.4}
+.phone button:focus-visible,.phone summary:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.status{height:53px;flex:none;padding:22px 26px 8px 28px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600}
+.status svg{width:59px;height:15px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.content{flex:1;min-height:0;overflow:auto;scrollbar-width:none;display:flex;flex-direction:column}
+.content::-webkit-scrollbar{display:none}
+.top{padding:0 20px 4px;flex:none}
+.nav{display:flex;justify-content:space-between;align-items:center;min-height:44px;font-size:calc(14px*var(--scale));color:var(--muted);gap:10px}
+.back{display:inline-flex;align-items:center;gap:2px;min-height:44px;margin-left:-6px;padding-right:8px;color:var(--ink);font-size:calc(15px*var(--scale))}
+.back svg,.chev{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.title{font-size:calc(28px*var(--scale));font-weight:680;letter-spacing:-.8px;line-height:1.13;text-wrap:balance}
+.titlelink{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;text-align:left;color:var(--ink)}
+.titlelink .chev{margin-left:auto;color:var(--muted)}
+.when{display:flex;align-items:flex-end;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;margin-top:4px;font-size:calc(14px*var(--scale));color:var(--muted)}
+.week{display:flex;gap:6px}
+.week i{display:flex;flex-direction:column;align-items:center;gap:3px;font-style:normal;font-size:calc(10px*var(--scale));line-height:1;color:var(--muted);width:14px}
+.week i::after{content:"";width:13px;height:6px;border-radius:50%;background:var(--stone);box-shadow:0 1.5px 0 var(--stone-side)}
+.week i.past::after{background:var(--muted);box-shadow:none}
+.week i.today{color:var(--ink);font-weight:700}
+.week i.today::after{background:var(--sun);box-shadow:0 1.5px 0 #B47400}
+.scene{position:relative;display:block;width:100%;flex:none;text-align:left;margin-top:-2px;background:linear-gradient(to bottom,transparent 70%,var(--ground) 70%)}
+.scene svg{display:block;width:100%;height:auto;overflow:visible}
+.who{position:absolute;transform:translateX(-50%);min-width:44px;min-height:44px;padding:3px 6px 4px;display:flex;flex-direction:column;align-items:center;border-radius:10px;color:var(--ink);font-size:calc(14px*var(--scale));font-weight:500;line-height:1.2;white-space:nowrap;transition:background-color .12s ease}
+@media (hover:hover){.who:hover{background:var(--hover)}}
+.who[aria-pressed=true]{font-weight:700}
+.who small{font-size:calc(11px*var(--scale));font-weight:400;color:var(--muted);margin-top:2px}
+.who small:empty{display:none}
+span.who{min-height:0;pointer-events:none}
+.tight .who{font-size:calc(13px*var(--scale));padding-inline:3px}
+.sky-top{stop-color:var(--sky)}.sky-bot{stop-color:var(--sky2)}
+.glow-in{stop-color:var(--glow);stop-opacity:var(--glow-a)}.glow-mid{stop-color:var(--glow);stop-opacity:calc(var(--glow-a)*.35)}.glow-out{stop-color:var(--glow);stop-opacity:0}
+.sun{fill:var(--sun)}.ray{fill:var(--ray)}.ground{fill:var(--ground)}.crest{fill:none;stroke:var(--divider);stroke-width:1.2}
+.st-top{fill:var(--stone);transition:fill .25s ease}.st-side{fill:var(--stone-side);transition:fill .25s ease}
+.stone.done .st-top{fill:var(--p)}.stone.done .st-side{fill:var(--pi)}
+.lane,.tok{transition:opacity .2s ease}
+.lane.dim{opacity:.26}.tok.dim{opacity:.38}
+.tok{cursor:pointer}
+.tok-shadow{fill:#000;opacity:var(--shadow)}
+.tok-halo{fill:var(--ground)}
+.tok-body{fill:var(--p);stroke:var(--pi);stroke-width:1}
+.tok-text{font-family:var(--num);font-weight:750;font-variation-settings:"wdth" 112;fill:#23271F;text-anchor:middle;letter-spacing:.2px}
+.tok-ring{fill:none;stroke:var(--ink);stroke-width:2;opacity:0;transition:opacity .15s ease}
+.tok.on .tok-ring{opacity:1}
+.tok-badge circle{fill:var(--ground)}
+.tok-check path{fill:none;stroke:var(--ink);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tok-clock circle{stroke:var(--muted);stroke-width:1.2}.tok-clock path{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-linecap:round}
+.spark{stroke:var(--pi);stroke-width:2.2;stroke-linecap:round}
+.phone[data-mood=night] .spark{stroke:var(--p)}
+.tok:not(.met) .tok-check,.tok:not(.met) .tok-sparks,.tok:not(.late) .tok-clock{display:none}
+.wait-body{fill:var(--ground);stroke:var(--muted);stroke-width:1.4;stroke-dasharray:3 3}
+.wait .tok-text{fill:var(--muted)}
+.groundpanel{background:var(--ground);flex:1 0 auto;padding:0 20px 22px;display:flex;flex-direction:column;transition:background-color .25s ease}
+.detail{min-height:86px;display:flex;align-items:flex-start;border-bottom:1px solid var(--divider);padding:12px 0 16px}
+.large .detail{min-height:104px}
+.say{display:flex;align-items:center;gap:12px}
+.say strong{display:block;font-size:calc(17px*var(--scale));font-weight:650;letter-spacing:-.3px;line-height:1.3}
+.say small{display:block;font-size:calc(13px*var(--scale));color:var(--muted);margin-top:3px}
+.marks{display:flex;flex:none}
+.marks .mk+.mk{margin-left:-12px}.marks .mk:first-child{z-index:3}.marks .mk:nth-child(2){z-index:2}
+.mk{position:relative;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--p);color:#23271F;border:2px solid var(--ground);font:750 13px/1 var(--num);font-variation-settings:"wdth" 112}
+.mk.met::after{content:"";position:absolute;right:-5px;bottom:-4px;width:17px;height:17px;border-radius:50%;background:var(--ground) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.4 8.2 6.9 10.6 11.6 5.6' fill='none' stroke='%2323271F' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/15px no-repeat}
+.phone[data-mood=night] .mk.met::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.4 8.2 6.9 10.6 11.6 5.6' fill='none' stroke='%23F4F0E8' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.mk.sm{width:26px;height:26px;font-size:9.5px;border-width:0}
+.sel{width:100%;display:flex;flex-direction:column;gap:3px}
+.sel-head{display:flex;align-items:center;gap:9px;font-size:calc(15px*var(--scale));font-weight:650;min-height:32px}
+.close{margin-left:auto;min-width:44px;min-height:44px;margin-block:-8px;color:var(--muted);font-size:calc(13px*var(--scale));text-decoration:underline;text-underline-offset:3px}
+.sel-num{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.sel-num b{font:800 calc(38px*var(--scale))/1.05 var(--num);font-variation-settings:"wdth" 125;letter-spacing:-.02em}
+.sel-num b.none{font:650 calc(22px*var(--scale))/1.2 var(--sys);font-variation-settings:normal;letter-spacing:-.3px}
+.sel-num span{font-size:calc(15px*var(--scale));color:var(--muted)}
+.sel-stones{display:flex;gap:4px;margin:3px 0 4px}
+.sel-stones i{width:17px;height:7px;border-radius:50%;background:var(--stone);box-shadow:0 1.5px 0 var(--stone-side)}
+.sel-stones i.done{background:var(--p);box-shadow:0 1.5px 0 var(--pi)}
+.sel-extra{font-size:calc(13px*var(--scale));color:var(--muted);line-height:1.45}
+.rules details{border-bottom:1px solid var(--divider)}
+.rules summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:52px;cursor:pointer;font-size:calc(16px*var(--scale));font-weight:600}
+.rules summary::-webkit-details-marker{display:none}
+.rules summary .chev{width:17px;height:17px;color:var(--muted);transition:transform .15s ease}
+.rules details[open] summary .chev{transform:rotate(90deg)}
+.rules p,.inv p{font-size:calc(15px*var(--scale));line-height:1.5;margin:0 0 14px;color:var(--muted);text-wrap:pretty}
+.rules p b{color:var(--ink);font-weight:600}
+.rulesfoot{font-size:calc(12px*var(--scale));color:var(--muted);margin-top:12px;line-height:1.4}
+.row{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--divider);padding:12px 0}
+.row .grow{flex:1;min-width:0}
+.row strong{display:block;font-size:calc(15px*var(--scale));font-weight:600}
+.row small{display:block;font-size:calc(13px*var(--scale));color:var(--muted);margin-top:2px}
+.textbutton{min-height:44px;padding:0 4px;font-size:calc(14px*var(--scale));font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:4px;flex:none}
+.next{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;font-size:calc(14px*var(--scale));color:var(--muted)}
+.next .chev{width:16px;height:16px}
+.large .row{flex-wrap:wrap}
+.large .row .grow{flex-basis:170px}
+.inv .kicker{font-size:calc(14px*var(--scale));color:var(--muted);margin-top:2px}
+.inv .dates{font-size:calc(14px*var(--scale));color:var(--muted);margin-top:4px}
+.goals{display:flex;flex-direction:column;padding:4px 0 10px;border-bottom:1px solid var(--divider);margin-bottom:14px}
+.goals div{display:flex;justify-content:space-between;align-items:center;min-height:40px;font-size:calc(17px*var(--scale))}
+.goals b{font:800 calc(18px*var(--scale))/1 var(--num);font-variation-settings:"wdth" 118;font-variant-numeric:tabular-nums}
+.inv h2{font-size:calc(20px*var(--scale));font-weight:650;letter-spacing:-.4px;margin:18px 0 10px}
+.inv .mode{font-size:calc(14px*var(--scale));color:var(--muted);margin-bottom:6px}
+.inv .mode strong{color:var(--ink);font-weight:600}
+.notapp{font-size:12px;color:var(--muted);border-top:1px solid var(--divider);margin-top:10px;padding-top:12px}
+.tabbar{height:79px;flex:none;display:flex;justify-content:space-around;padding:10px 16px 0;border-top:1px solid var(--divider);background:var(--ground);position:relative;transition:background-color .25s ease}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;line-height:1.1;color:var(--muted);width:70px}
+.tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab.active{color:var(--ink);font-weight:600}
+.tabbar::after{content:"";height:4px;width:126px;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:var(--ink);border-radius:10px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+@media (max-width:980px){.notes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:820px){.wrap{padding:24px 20px 48px}.comparison{gap:22px}.device{padding:6px;border-radius:30px}.device img,.phone{border-radius:25px}.phone{height:800px}.lower{grid-template-columns:minmax(0,1fr);gap:28px}}
+@media (max-width:640px){.intro h1{font-size:32px}.intro p{font-size:16px}.comparison{grid-template-columns:minmax(0,1fr);gap:34px}.column{max-width:414px;width:100%;margin:0 auto}.device{padding:8px;border-radius:40px}.device img,.phone{border-radius:32px}.phone{height:844px}.notes{grid-template-columns:minmax(0,1fr);gap:22px}.mast{flex-direction:column;gap:4px}.mast small{text-align:left}.comparison .column:last-child{order:-1}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
 </style>
-<link rel="stylesheet" href="social-board.css">
-</head>
-<body>
-<svg style="display:none" aria-hidden="true"><defs>
-<symbol id="home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9"/></symbol>
-<symbol id="flag" viewBox="0 0 24 24"><path d="M5 22V3m0 1c4-4 9 4 15 0v10c-6 4-11-4-15 0"/></symbol>
-<symbol id="person" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2Z"/></symbol>
-<symbol id="chev" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
-<symbol id="back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
-<symbol id="more" viewBox="0 0 24 24"><circle cx="5" cy="12" r=".7"/><circle cx="12" cy="12" r=".7"/><circle cx="19" cy="12" r=".7"/></symbol>
-<symbol id="calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v5m10-5v5M3 11h18"/></symbol>
-<symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.3"/></symbol>
-<symbol id="status" viewBox="0 0 62 16"><path d="M2 13v-3m4 3V8m4 5V5m4 8V2" stroke-width="2.7"/><path d="M20 5q7-7 14 0m-11 3q4-4 8 0m-5 3q1-1 2 0" stroke-width="2"/><rect x="41" y="3" width="17" height="10" rx="2"/><path d="M60 6v4M44 6h11v4H44Z"/></symbol>
+
+<svg class="sym" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 22V3m0 1c4-4 9 4 15 0v10c-6 4-11-4-15 0"/></symbol>
+<symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2Z"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+<symbol id="i-status" viewBox="0 0 62 16"><path d="M2 13v-3m4 3V8m4 5V5m4 8V2" stroke-width="2.7"/><path d="M20 5q7-7 14 0m-11 3q4-4 8 0m-5 3q1-1 2 0" stroke-width="2"/><rect x="41" y="3" width="17" height="10" rx="2"/><path d="M60 6v4M44 6h11v4H44Z"/></symbol>
 </defs></svg>
+
 <main class="wrap">
-<div class="mast"><strong>GameTime / Design review</strong><small>Proposal · fictional activity</small></div>
-<header class="intro"><h1>A shared week.</h1><p>A little more room to breathe. A shared path for each friend, with the numbers one tap away.</p></header>
-<div class="toolbar"><div class="tone-controls"><div class="seg" role="group" aria-label="Screen to compare"><button type="button" data-screen="home" aria-pressed="true">Home</button><button type="button" data-screen="challenge" aria-pressed="false">Challenge</button></div><div class="seg" role="group" aria-label="Proposed color mood"><button type="button" data-tone-choice="daylight" aria-pressed="true">Daylight</button><button type="button" data-tone-choice="night" aria-pressed="false">Night</button></div></div><div class="preview-controls"><label class="size-control"><input type="checkbox" id="missingUpdate"> Show a missing update</label><label class="size-control"><input type="checkbox" id="largeText"> Larger text</label></div></div>
-<section class="comparison" aria-label="Before and after comparison">
-<div class="column"><div class="caption"><h2>Your reference</h2><span>Recreated from Floodlight</span></div><div class="device"><div class="phone original" id="before"></div></div><p class="reference-note">The <a href="https://claude.ai/artifact/8CfAk9nqDSLvSoEpYnck8r" target="_blank" rel="noopener">linked mock</a>, not a native app capture. Original copy is retained here for comparison.</p></div>
-<div class="column"><div class="caption"><h2>Proposed refinement</h2><span id="previewRound">Round 3 · daylight</span></div><div class="device"><div class="phone refined" id="after"></div></div><p class="reference-note" id="interactionHint">Interactive: the live board, Home, invitation preview and rule summary. Tabs and Park runs are shown for context.</p></div>
+<div class="mast"><strong>GameTime / Design review</strong><small>Floodlight round 4 · September 27, 2026 · proposal with fictional people and activity</small></div>
+
+<header class="intro">
+<h1>A path for each friend.</h1>
+<p>Round 3’s lanes become the picture on your app icon: stepping stones toward a rising sun. Each friend walks their own path, and how far along it they stand is how much of their own goal they’ve done. Tap a name for the numbers. The controls preview other days, group sizes and a late or missing update.</p>
+</header>
+
+<div class="toolbar" aria-label="Preview controls">
+  <div class="ctl"><span id="lbl-screen">Screen</span><div class="seg" role="group" aria-labelledby="lbl-screen"><button type="button" id="scr-challenge" data-screen="challenge" aria-pressed="true">Challenge</button><button type="button" id="scr-home" data-screen="home" aria-pressed="false">Home</button><button type="button" id="scr-invite" data-screen="invite" aria-pressed="false">Invite</button></div></div>
+  <div class="ctl"><span id="lbl-mood">Mood</span><div class="seg" role="group" aria-labelledby="lbl-mood"><button type="button" id="mood-day" data-mood="day" aria-pressed="true">Daylight</button><button type="button" id="mood-night" data-mood="night" aria-pressed="false">Night</button></div></div>
+  <div class="ctl"><span id="lbl-day">Day of the week</span><div class="seg days" role="group" aria-labelledby="lbl-day" id="dayControl"></div></div>
+  <div class="ctl"><span id="lbl-count">People</span><div class="seg" role="group" aria-labelledby="lbl-count"><button type="button" id="count-2" data-count="2" aria-pressed="false">2</button><button type="button" id="count-4" data-count="4" aria-pressed="true">4</button><button type="button" id="count-6" data-count="6" aria-pressed="false">6</button></div></div>
+  <div class="ctl"><span id="lbl-jordan">Jordan’s latest update</span><div class="seg" role="group" aria-labelledby="lbl-jordan"><button type="button" id="jordan-recent" data-jordan="recent" aria-pressed="true">Recent</button><button type="button" id="jordan-late" data-jordan="late" aria-pressed="false">Late</button><button type="button" id="jordan-none" data-jordan="none" aria-pressed="false">None</button></div></div>
+  <label class="check"><input type="checkbox" id="largeText"> Larger text</label>
+</div>
+
+<section class="comparison" aria-label="Round 3 and round 4 side by side">
+  <figure class="column">
+    <div class="caption-row"><h2>Round 3</h2><span>Daylight lanes, as last reviewed</span></div>
+    <div class="device"><img id="beforeImg" src="captures/round-3-challenge.png" width="794" height="1690" alt="Round 3 challenge screen: four dotted lanes with a colored token for each person and a flag at each finish."></div>
+    <p class="hint">A capture of <code>round-3/index.html</code>. It stays on Tuesday; the controls change only round 4.</p>
+  </figure>
+  <figure class="column">
+    <div class="caption-row"><h2>Round 4</h2><span id="afterLabel">Stepping stones · Daylight · Tuesday</span></div>
+    <div class="device"><div class="phone" id="phone" data-mood="day"></div></div>
+    <p class="hint" id="hint"></p>
+  </figure>
 </section>
-<section class="notes" aria-label="What changed"><div><span class="note-number">01 / The story</span><h3>Friends share the picture.</h3><p>Four people, four places along the way. Color identifies a person. Each finish belongs to that person’s own goal; the order never becomes a ranking.</p></div><div><span class="note-number">02 / The interaction</span><h3>Numbers come when you ask.</h3><p>Tap a name or token for the exact activity and goal. The overview stays visual. The check means a goal was reached, not that results or simulated returns are final.</p></div><div><span class="note-number">03 / The unknown</span><h3>No update has its own place.</h3><p>Try “Show a missing update.” Jordan waits beside the course with no position or score. Unknown activity never looks like zero progress or a missed goal.</p></div></section>
-<section class="feedback"><div><h2>Does this feel closer?</h2><p>This choice is feedback on the mock. It does not adopt a new app design or start a native implementation.</p></div><form id="feedbackForm" data-lavish-question="floodlight-refinement"><label><input type="radio" name="direction" value="Continue refining the shared visual progress direction"> Yes, the group feels more present</label><label><input type="radio" name="direction" value="Make the shared visual progress direction more playful"> Go further with the visual playfulness</label><label><input type="radio" name="direction" value="Try a different visual metaphor for the friends and their progress"> Try a different visual metaphor</label><textarea name="note" aria-label="What should change" placeholder="What feels right, or still feels off?"></textarea><button type="submit">Queue design feedback</button><div class="queued" id="queueStatus" role="status">Your selection stays here until you queue it.</div></form></section>
-<p class="footer">Design source: your Floodlight palette, revised in response to your request for more community, fun and visual storytelling. The shared progress lanes are a new proposal. The earlier rounds are preserved in round-1.html and round-2/. Daylight is the proposed default; Night is an alternate mood for review. All positions are fictional saved activity divided by each person’s own target. The missing-update toggle is an alternate fictional state. A native version needs accessible value announcements and must retain the last saved position when an update is merely late. The expanded rules are a summary. A native implementation must retain the full agreement and its exact deadlines, refresh, leave and report actions. No native code or account data changed. Larger-text behavior here is a web preview; native Dynamic Type and VoiceOver still need validation. Archivo loads from Google Fonts, with a system fallback.</p>
+
+<section class="notes" aria-label="What changed">
+  <div><h3>From your app icon</h3><p>The challenge screen borrows the icon’s stepping stones and rising sun, so the app’s first picture becomes its main one. Floodlight amber is the sun. Each person’s color fills the stones they’ve crossed.</p></div>
+  <div><h3>Every finish is that person’s own goal</h3><p>All paths are the same length and end at the sun, so Priya’s 10 km and your 20 km both finish there. Positions use one even scale; the stones shrink toward the horizon for depth only. There are no ranks, pace lines or “behind” labels.</p></div>
+  <div><h3>Late and missing updates</h3><p>Set Jordan’s update to Late: the token keeps the last saved place and gets a small clock. Set it to None: Jordan waits at the start with no position. Missing activity never looks like zero progress or a miss.</p></div>
+  <div><h3>Movement</h3><p>Change the day. Tokens walk forward only when a new saved total arrives, and nothing replays from zero when the screen opens. With Reduce Motion on, they move straight to the new place.</p></div>
+</section>
+
+<section class="lower">
+  <div class="calls">
+    <h2>Your call</h2>
+    <ol>
+      <li>Keep the sunrise paths, or go back to round 3’s lanes?</li>
+      <li>At night, use the icon’s plum sky instead of round 3’s moss green?</li>
+      <li>Show the small picture on Home, or keep Home to rows?</li>
+      <li>Keep numbers behind a tap, or show each total under the name?</li>
+    </ol>
+    <p>Answer by number in the chat. Nothing here is adopted until you say so.</p>
+  </div>
+  <div class="facts">
+    <div><h3>What the app already has</h3><p>The picture uses only what the app already receives for each person: username, own goal, latest saved total and when it was saved. Colors would come from the account ID on the phone, as Floodlight proposed. Today the app keeps friends in the With you sheet during a live challenge; this puts them on the challenge screen itself.</p></div>
+    <div><h3>Engagement check</h3><p>Intended benefit: seeing the group’s progress at a glance and feeling part of a small, private group. Risk: watching friends move could make comparison feel like pressure. So the picture has no ranks, pace lines, catch-up prompts, streaks or money, and it adds no notifications, analytics or reactions. Whether it feels friendly rather than pressuring still needs real people to try it.</p></div>
+  </div>
+</section>
+
+<p class="footer">Proposal only. Nothing is adopted, and no app code, account or service changed. All people and activity are fictional; days other than Tuesday are made up to show movement. “Goal reached” follows the app’s live wording, and “Goal met” stays for results. The rules summary is shortened; a native version keeps the full agreement, exact deadlines, and the refresh, leave and report actions. Larger text here is a browser preview; Dynamic Type and VoiceOver still need checking on a phone. Archivo loads from Google Fonts with a system fallback. Earlier rounds: <code>round-1.html</code>, <code>round-2/</code> and <code>round-3/</code>.</p>
 </main>
+
 <script>
-const icon = (id, cls='') => `<svg class="${cls}" aria-hidden="true"><use href="#${id}"></use></svg>`;
-const status = () => `<div class="status" aria-hidden="true"><span>9:41</span>${icon('status')}</div>`;
-const tabs = () => `<div class="tabbar" aria-label="App navigation shown for context"><span class="tab active">${icon('home')}Home</span><span class="tab">${icon('flag')}Challenges</span><span class="tab">${icon('person')}You</span></div>`;
-const avatar=(letters,color)=>`<span class="avatar ${color}">${letters}</span>`;
-const tape=(amount=32,mini=false)=>`<div class="track ${mini?'mini':''}" aria-hidden="true"><i style="width:${amount}%"></i></div>`;
-const oldState=(text='On track',dark=true)=>`<span class="chip">${text==='Goal met'?'<span class="check">✓</span>':`<span class="dot" style="background:${text==='Behind'?'#c2412b':dark?'#4ade80':'#14783c'}"></span>`}${text}</span>`;
-const oldMetric=()=>`<div class="metricline"><span class="num big">6.4</span><span class="unit">km</span></div>`;
-function oldHome(){return `${status()}<div class="content"><div class="row between" style="margin-top:4px"><div><div class="caps muted">Tuesday, Sep 22</div><div class="disp headline">Hi, Alex</div></div>${avatar('AL','lemon')}</div><div class="whitecard row">${avatar('JB','violet')}<span class="grow"><strong>Jordan invited you to October runs</strong><br><span class="sub">Agree by Sun, Sep 28</span></span><span class="pill">See invite</span></div><div class="board"><div class="row between"><span class="caps">September runs</span><span class="caps">Ends Sunday</span></div>${oldMetric()}<div class="row between"><span class="sub">of 20 · 13.6 to go</span>${oldState()}</div>${tape()}<hr><div class="row">${avatar('SR','mint')}<span class="grow">Sam</span>${tape(39,true)}<span class="num sm rightnum">7.8</span></div><div class="row">${avatar('JB','violet')}<span class="grow">Jordan</span>${tape(8,true)}<span class="num sm rightnum">1.2</span></div><div class="row">${avatar('PN','coral')}<span class="grow">Priya</span>${oldState('Goal met')}<span class="num sm rightnum">10.0</span></div><div class="caps" style="font-size:11px;opacity:.5">Updated 3 min ago</div></div><div class="whitecard row"><span class="iconbox">${icon('calendar')}</span><span class="grow"><strong>Park runs</strong><br><span class="sub">Starts Oct 5 with Sam</span></span>${icon('chev')}</div></div>${tabs()}`;}
-function oldChallenge(){return `${status()}<div class="content"><div class="row between"><span class="round">${icon('back')}</span><span class="round">${icon('more')}</span></div><div><div class="disp headline">September runs</div><div class="sub">Sep 21–27 · 20 km each · ends Sunday</div></div><div class="board"><div class="row between"><span class="caps">You</span><span class="caps">13.6 to go</span></div>${oldMetric()}${tape()}<div class="row between"><span class="sub">Updated 3 min ago</span>${oldState()}</div></div><div class="list">${[['Sam','SR','mint','Updated 2 h ago','On track','7.8'],['Jordan','JB','violet','Goal 15 km','Behind','1.2'],['Priya','PN','coral','Goal 10 km','Goal met','10.0']].map(([name,initials,color,sub,state,num])=>`<div class="li row">${avatar(initials,color)}<span class="grow"><strong>${name}</strong><br><span class="sub">${sub}</span></span>${oldState(state,false)}<span class="num md">${num}</span></div>`).join('')}</div><div class="list"><div class="li row"><span class="iconbox">${icon('info')}</span><span class="grow"><strong>How it works</strong><br><span class="sub">$20 each · hit your goal to keep it</span></span>${icon('chev')}</div><div class="li row"><span class="iconbox">${icon('calendar')}</span><strong>Results by Tue, Sep 30</strong></div></div></div>${tabs()}`;}
-function newHome(){return `${status()}<div class="content"><header class="pagehead"><h1>Home</h1><span class="dateline">Tue, Sep 22</span></header><div class="invite"><div class="grow"><strong>October runs</strong><small>Jordan invited you · Sep 28–Oct 4</small></div><button class="textbutton" data-action="invite">See invite</button></div><button class="liveboard" data-action="challenge" aria-label="Open September runs"><div class="boardtitle">September runs</div><div class="boarddate"><span>Sep 21–27</span><span>Ends Sunday</span></div><div class="score"><span class="num">6.4</span><span class="unit">km</span></div>${tape()}<div class="goalmeta"><span>of your 20 km goal</span><span>13.6 km to go</span></div><div class="friendsmini"><div class="friendmini"><span>Sam</span><strong>7.8 <small>/ 20 km</small></strong></div><div class="friendmini"><span>Jordan</span><strong>1.2 <small>/ 15 km</small></strong></div><div class="friendmini"><span>Priya <span class="achieved">✓ Goal met</span></span><strong>10.0 <small>/ 10 km</small></strong></div></div><div class="freshness">On track · Updated from Apple Health 3 min ago</div></button><div class="next"><div class="sectiontitle">Up next</div><div class="nextline"><span><b>Park runs</b><small>Starts Oct 5 with Sam</small></span>${icon('chev')}</div></div></div>${tabs()}`;}
-function newChallenge(){return `${status()}<div class="content"><div class="navline"><button class="back" data-action="home">${icon('back')}Home</button></div><h1 class="detailtitle">September runs</h1><div class="detaildate">Sep 21–27 · Ends Sunday</div><div class="liveboard detailboard"><div class="boardtop"><span>Your distance</span><span>On track</span></div><div class="score"><span class="num">6.4</span><span class="unit">km</span></div>${tape()}<div class="goalmeta"><span>of your 20 km goal</span><span>13.6 km to go</span></div><div class="freshness">Updated from Apple Health 3 min ago</div></div><div class="friends"><div class="sectionrow"><h2>With you</h2><span>Everyone has their own goal</span></div>${[['Sam','On track','7.8','20'],['Jordan','Behind','1.2','15'],['Priya','✓ Goal met','10.0','10']].map(([name,state,value,goal])=>`<div class="personrow"><span><span class="name">${name}</span><small>${state}</small></span><span class="personvalue">${value}<span> / ${goal} km</span></span></div>`).join('')}</div><div class="rules"><details><summary>How it works${icon('chev')}</summary><p><b>Everyone’s goal</b><br>You and Sam: 20 km each. Jordan: 15 km. Priya: 10 km.</p><p><b>Activity that counts</b><br>Outdoor runs recorded by Apple’s Workout app on Apple Watch count. Each whole run must fit within Sep 21–27.</p><p><b>Dates and times</b><br>Starts Sep 21, 12:00 AM. Ends Sep 28, 12:00 AM, not included. Pacific time. Results follow the saved update and correction deadlines, your result notice and any review.</p><p><b>Simulated stakes — no real money moves.</b><br>$20 per person. Nothing can be paid out or redeemed. Meet your goal and your simulated stake comes back. People who meet their goals share the simulated stakes from confirmed misses. If everyone misses, nobody gets their simulated stake back.</p><p>Missing or partial activity never counts as a miss.</p><p><b>Ask for a review</b><br>You have 48 hours after your actual result notice to ask for a review. Reviewers have 72 hours after your request. A processing delay never shortens those windows.</p><p><b>Leave the challenge</b><br>You can leave before your result is final. Your simulated stake comes back. The challenge continues if at least two people remain.</p><p><b>Sharing</b><br>Only the selected friends can see your username, agreed goal, challenge activity and results. Your activity outside this challenge stays private.</p><p><b>About your score</b><br>Scores come from the Apple Health activity your iPhone sends. We don’t run a separate check on the device. If a score looks wrong, ask us to review it.</p></details><div class="rulesfooter">Simulated stakes — no real money moves.</div></div></div>${tabs()}`;}
-function newInvite(){return `${status()}<div class="content invitedetail"><div class="navline"><button class="back" data-action="home">${icon('back')}Home</button></div><div class="detaildate">Jordan invited you</div><h1 class="detailtitle">October runs</h1><div class="detaildate">Sep 28–Oct 4 · Pacific time</div><div class="invitegoals"><div class="row"><span>You</span><strong>20 km</strong></div><div class="row"><span>Jordan</span><strong>20 km</strong></div></div><div class="mode"><strong>Simulated stakes — no real money moves.</strong><br>$20 per person.</div><h2 style="font-size:20px;letter-spacing:-.4px;margin-top:24px">You both agree to these rules.</h2><p>Outdoor runs recorded by Apple’s Workout app on Apple Watch count. Meet your goal and your simulated stake comes back. If only one of you meets the goal, that person receives both simulated stakes after results are final. If both miss, neither simulated stake comes back.</p><p>Missing or partial activity never counts as a miss. You have 48 hours after your result notice to ask for a review. You can leave before your result is final.</p><div class="notapp">Reading preview only. Joining and declining are outside this two-screen design study.</div></div>${tabs()}`;}
-let currentScreen='home';
-function render(screen){currentScreen=screen;document.getElementById('before').innerHTML=screen==='challenge'?oldChallenge():oldHome();document.getElementById('after').innerHTML=screen==='invite'?newInvite():screen==='challenge'?newChallenge():newHome();document.querySelectorAll('[data-screen]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.screen===(screen==='invite'?'home':screen))));document.getElementById('after').classList.toggle('large',document.getElementById('largeText').checked);document.getElementById('interactionHint').textContent=screen==='invite'?'Invitation typography preview. Use Home to return; no account action is available.':'Interactive: the live board, Home, invitation preview and rule summary. Tabs and Park runs are shown for context.';}
-document.addEventListener('click',event=>{const control=event.target.closest('[data-screen],[data-action]');if(!control)return;render(control.dataset.screen||control.dataset.action);});
-document.getElementById('largeText').addEventListener('change',e=>document.getElementById('after').classList.toggle('large',e.target.checked));
-document.getElementById('feedbackForm').addEventListener('submit',event=>{event.preventDefault();const data=new FormData(event.currentTarget);const direction=data.get('direction');const note=String(data.get('note')||'').trim();const out=document.getElementById('queueStatus');if(!direction&&!note){out.textContent='Choose a direction or add a note first.';return;}const prompt=`Design feedback on the Floodlight refinement mock: ${direction||'See note'}.${note?' '+note:''} Continue the design review; this feedback does not authorize native implementation.`;if(window.lavish?.queuePrompt){window.lavish.queuePrompt(prompt,{tag:'design-feedback',queueKey:'floodlight-refinement',text:direction||note,element:event.currentTarget,data:{direction,note,screen:currentScreen}});out.textContent='Queued. Use Send to Agent in the review bar to send it.';}else{out.textContent='Feedback is selected locally. Open this file in Lavish to queue it, or send your note in the chat.';}});
-render('home');
+(() => {
+'use strict';
+const PEOPLE = [
+  {id:'you',    name:'You',    ini:'AL', t:20, p:'#F5C451', pi:'#8A6A1F', upd:'Updated from Apple Health 3 min ago', v:[0,6.4,6.4,12.1,12.1,18.5,20.3]},
+  {id:'sam',    name:'Sam',    ini:'SR', t:20, p:'#99CBBF', pi:'#3F6F60', upd:'Updated 2 h ago',    v:[4.1,7.8,11.0,11.0,15.2,15.2,20.4]},
+  {id:'jordan', name:'Jordan', ini:'JB', t:15, p:'#C2B5DC', pi:'#6B5A88', upd:'Updated 25 min ago', v:[0,1.2,1.2,5.0,8.1,11.9,13.0]},
+  {id:'priya',  name:'Priya',  ini:'PN', t:10, p:'#E4AD9D', pi:'#9C5F4A', upd:'Updated 40 min ago', v:[5.2,10.0,10.0,13.4,13.4,16.9,16.9]},
+  {id:'maya',   name:'Maya',   ini:'MD', t:25, p:'#A9CBE3', pi:'#4A6F8C', upd:'Updated 1 h ago',    v:[6.0,9.5,14.2,14.2,19.0,25.3,25.3]},
+  {id:'theo',   name:'Theo',   ini:'TK', t:12, p:'#D9C6A5', pi:'#7D6844', upd:'Updated 5 h ago',    v:[0,3.0,3.0,6.3,6.3,9.9,12.0]}
+];
+const GROUPS = {2:['you','sam'], 4:['you','sam','jordan','priya'], 6:['you','sam','jordan','priya','maya','theo']};
+const DAYS = [['M','Monday','Mon, Sep 21'],['T','Tuesday','Tue, Sep 22'],['W','Wednesday','Wed, Sep 23'],['T','Thursday','Thu, Sep 24'],['F','Friday','Fri, Sep 25'],['S','Saturday','Sat, Sep 26'],['S','Sunday','Sun, Sep 27']];
+const STONES = 10;
+const KINDS = {
+  full:    {W:390, sunY:92, sunR:30, glowR:175, peak:100, drop:30, startY:304, lift:17, r:17, rx:[12.5,6.5], thick:[3.4,1.6], sway:30, rays:[40,54,63], labelY:316, text:12},
+  compact: {W:390, sunY:60, sunR:22, glowR:125, peak:67, drop:22, startY:182, lift:14, r:14, rx:[9.5,5], thick:[2.6,1.2], sway:22, rays:[30,40,47], labelY:192, text:10.5}
+};
+const SPAN_START = {2:170, 3:230, 4:276, 5:300, 6:312};
+const SPAN_END = {2:66, 3:92, 4:132, 5:170, 6:210};
+
+const S = {screen:'challenge', mood:'day', day:1, count:4, jordan:'recent', large:false, selected:null};
+const phone = document.getElementById('phone');
+const byId = id => PEOPLE.find(p => p.id === id);
+const group = () => GROUPS[S.count].map(byId);
+const lerp = (a, b, t) => a + (b - a) * t;
+const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const icon = (id, cls = '') => `<svg class="${cls}" aria-hidden="true" focusable="false"><use href="#${id}"></use></svg>`;
+const km = n => n.toFixed(1);
+const listNames = names => names.length < 3 ? names.join(' and ') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+
+function info(p){
+  if (p.id === 'jordan' && S.jordan === 'none') return {missing:true};
+  if (p.id === 'jordan' && S.jordan === 'late') return {value:p.v[Math.max(0, S.day - 1)], late:true, upd:S.day ? 'Updated yesterday at 6:10 PM' : 'Updated 9 h ago'};
+  return {value:p.v[S.day], upd:p.upd};
+}
+const frac = p => { const i = info(p); return i.missing ? null : Math.min(1, i.value / p.t); };
+
+/* Geometry: one cubic path per person from the ground to the crest under the sun. */
+function bezier(a, b, c, d, t){ const m = 1 - t; return {x:m*m*m*a.x + 3*m*m*t*b.x + 3*m*t*t*c.x + t*t*t*d.x, y:m*m*m*a.y + 3*m*m*t*b.y + 3*m*t*t*c.y + t*t*t*d.y}; }
+function measured(a, b, c, d){
+  const N = 180, pts = [], len = [0];
+  for (let i = 0; i <= N; i++){ pts.push(bezier(a, b, c, d, i / N)); if (i) len.push(len[i-1] + Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y)); }
+  const L = len[N];
+  return {at(f){
+    const dist = Math.max(0, Math.min(1, f)) * L; let lo = 0, hi = N;
+    while (hi - lo > 1){ const mid = (lo + hi) >> 1; if (len[mid] < dist) lo = mid; else hi = mid; }
+    const k = (dist - len[lo]) / ((len[hi] - len[lo]) || 1);
+    return {x:lerp(pts[lo].x, pts[hi].x, k), y:lerp(pts[lo].y, pts[hi].y, k)};
+  }};
+}
+function geometry(kindName, n){
+  const k = KINDS[kindName], cx = k.W / 2;
+  const crest = x => k.peak + k.drop * ((x - cx) / 205) ** 2;
+  const ss = SPAN_START[n], se = SPAN_END[n];
+  const lanes = [];
+  for (let i = 0; i < n; i++){
+    const xs = cx - ss / 2 + i * ss / (n - 1), xe = cx - se / 2 + i * se / (n - 1);
+    const ys = k.startY, ye = crest(xe) + 3, dy = ys - ye;
+    const path = measured({x:xs, y:ys}, {x:xs + k.sway, y:ys - dy * .36}, {x:xe - k.sway * .8, y:ye + dy * .4}, {x:xe, y:ye});
+    const stones = [];
+    for (let j = 0; j < STONES; j++){ const u = (j + .5) / STONES; stones.push({...path.at(u), u}); }
+    lanes.push({xs, ys, path, stones});
+  }
+  return {k, crest, lanes, cx};
+}
+
+function sunArt(k, cx, id, H){
+  const rays = [];
+  for (let i = 0; i < 11; i++){
+    const a = (-168 + i * 15.6) * Math.PI / 180, spread = .052, r1 = k.rays[0], r2 = i % 2 ? k.rays[1] : k.rays[2];
+    const p = (ang, r) => `${(cx + Math.cos(ang) * r).toFixed(1)} ${(k.sunY + Math.sin(ang) * r).toFixed(1)}`;
+    rays.push(`<path class="ray" d="M${p(a - spread, r1)} L${p(a, r2)} L${p(a + spread, r1)}Z"/>`);
+  }
+  const y0 = k.peak + k.drop * (cx / 205) ** 2, qy = 2 * k.peak - y0;
+  return `<defs><linearGradient id="sky-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="sky-top"/><stop offset="1" class="sky-bot"/></linearGradient>
+    <radialGradient id="glow-${id}"><stop offset="0" class="glow-in"/><stop offset=".55" class="glow-mid"/><stop offset="1" class="glow-out"/></radialGradient></defs>
+    <rect width="${k.W}" height="${(y0 + 2).toFixed(1)}" fill="url(#sky-${id})"/>
+    <circle cx="${cx}" cy="${k.sunY}" r="${k.glowR}" fill="url(#glow-${id})"/>
+    <g>${rays.join('')}</g><circle class="sun" cx="${cx}" cy="${k.sunY}" r="${k.sunR}"/>
+    <path class="ground" d="M0 ${y0.toFixed(1)} Q${cx} ${qy.toFixed(1)} ${k.W} ${y0.toFixed(1)} L${k.W} ${H + 8} L0 ${H + 8}Z"/>
+    <path class="crest" d="M0 ${y0.toFixed(1)} Q${cx} ${qy.toFixed(1)} ${k.W} ${y0.toFixed(1)}"/>`;
+}
+function laneArt(person, lane, k){
+  return `<g class="lane" data-lane="${person.id}" style="--p:${person.p};--pi:${person.pi}">${lane.stones.map(s => {
+    const rx = lerp(k.rx[0], k.rx[1], s.u), ry = rx * .44, th = lerp(k.thick[0], k.thick[1], s.u);
+    return `<g class="stone" transform="translate(${s.x.toFixed(1)} ${s.y.toFixed(1)})"><ellipse class="st-side" cy="${th.toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}"/><ellipse class="st-top" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}"/></g>`;
+  }).join('')}</g>`;
+}
+function tokenArt(person, k, pickable){
+  const r = k.r, b = (r * .74).toFixed(1);
+  const sparks = [-152, -121, -90, -59, -28].map(d => { const a = d * Math.PI / 180; const x1 = Math.cos(a) * (r + 6), y1 = Math.sin(a) * (r + 6), x2 = Math.cos(a) * (r + 11), y2 = Math.sin(a) * (r + 11); return `<path class="spark" d="M${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}"/>`; }).join('');
+  return `<g class="tok" ${pickable ? `data-person="${person.id}"` : ''} data-tok="${person.id}" style="--p:${person.p};--pi:${person.pi}">
+    <ellipse class="tok-shadow" cx="0" cy="${k.lift}" rx="${(r * .62).toFixed(1)}" ry="${(r * .2).toFixed(1)}"/>
+    <g class="tok-sparks">${sparks}</g>
+    <circle class="tok-ring" r="${r + 5}"/><circle class="tok-halo" r="${r + 2.5}"/><circle class="tok-body" r="${r}"/>
+    <text class="tok-text" y="${(k.text * .36).toFixed(1)}" font-size="${k.text}">${person.ini}</text>
+    <g class="tok-badge tok-check" transform="translate(${b} ${b})"><circle r="7.5"/><path d="M-3.4 .2-1 2.6 3.6-2.4"/></g>
+    <g class="tok-badge tok-clock" transform="translate(${-b} ${b})"><circle r="7"/><path d="M0-3.6V0l2.4 1.6"/></g>
+  </g>`;
+}
+function waitArt(person, lane, k, pickable){
+  return `<g class="tok wait" ${pickable ? `data-person="${person.id}"` : ''} data-wait="${person.id}" transform="translate(${lane.xs.toFixed(1)} ${(lane.ys - k.lift).toFixed(1)})" style="--p:${person.p};--pi:${person.pi}">
+    <circle class="tok-ring" r="${k.r + 5}"/><circle class="wait-body" r="${k.r}"/><text class="tok-text" y="${(k.text * .36).toFixed(1)}" font-size="${k.text}">${person.ini}</text></g>`;
+}
+
+/* Scene state lives here so tokens can walk between renders. */
+let G = null, shown = {}, raf = 0;
+function sceneHTML(kindName, people, mode){
+  const n = people.length; G = geometry(kindName, n); G.kind = kindName; G.people = people; G.mode = mode;
+  const {k, lanes, cx} = G, pickable = mode === 'pick', tight = n >= 5;
+  const H = k.labelY + (tight ? 19 : 0) + 30;
+  const art = `<svg viewBox="0 0 ${k.W} ${H}" aria-hidden="true" focusable="false">${sunArt(k, cx, kindName, H)}
+    ${people.map((p, i) => laneArt(p, lanes[i], k)).join('')}
+    ${people.map((p, i) => waitArt(p, lanes[i], k, pickable)).join('')}
+    ${people.map(p => tokenArt(p, k, pickable)).join('')}</svg>`;
+  const labels = people.map((p, i) => {
+    const style = `left:${(lanes[i].xs / k.W * 100).toFixed(2)}%;top:${((k.labelY + (tight && i % 2 ? 19 : 0)) / H * 100).toFixed(2)}%`;
+    return pickable
+      ? `<button type="button" class="who" data-person="${p.id}" aria-pressed="false" aria-controls="detail" style="${style}">${p.name}<small></small></button>`
+      : `<span class="who" style="${style}">${p.name}<small></small></span>`;
+  }).join('');
+  if (mode === 'link') return `<button type="button" class="scene${tight ? ' tight' : ''}" data-go="challenge" id="sceneLink">${art}${labels}</button>`;
+  return `<div class="scene${tight ? ' tight' : ''}"${pickable ? ' role="group" aria-label="Progress toward each person’s own goal"' : ''}>${art}${labels}</div>`;
+}
+function placeToken(id, f){
+  const i = G.people.findIndex(p => p.id === id); if (i < 0) return;
+  const tok = phone.querySelector(`[data-tok="${id}"]`), wait = phone.querySelector(`[data-wait="${id}"]`);
+  const stones = phone.querySelectorAll(`[data-lane="${id}"] .stone`);
+  if (f == null){ tok.style.display = 'none'; wait.style.display = ''; stones.forEach(s => s.classList.remove('done')); return; }
+  tok.style.display = ''; wait.style.display = 'none';
+  const pt = G.lanes[i].path.at(f);
+  tok.setAttribute('transform', `translate(${pt.x.toFixed(2)} ${(pt.y - G.k.lift).toFixed(2)})`);
+  stones.forEach((s, j) => s.classList.toggle('done', (j + .5) / STONES <= f + 1e-6));
+  tok.classList.toggle('met', f >= .9999);
+}
+function settleScene(animate){
+  if (!G) return;
+  cancelAnimationFrame(raf);
+  const target = {};
+  G.people.forEach(p => { target[p.id] = G.mode === 'still' ? 0 : frac(p); const tok = phone.querySelector(`[data-tok="${p.id}"]`); tok.classList.toggle('late', G.mode !== 'still' && !!info(p).late); });
+  const from = {...shown}, ids = Object.keys(target);
+  const finish = () => { ids.forEach(id => placeToken(id, target[id])); shown = target; };
+  if (!animate || reduceMotion()) return finish();
+  const t0 = performance.now(), dur = 800;
+  const step = now => {
+    const x = Math.min(1, (now - t0) / dur), e = x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+    ids.forEach((id, i) => {
+      const b = target[id], a = from[id];
+      if (b == null || a == null) return placeToken(id, b);
+      const lag = Math.min(1, Math.max(0, (e * 1.12) - i * .03));
+      placeToken(id, a + (b - a) * lag);
+    });
+    if (x < 1) raf = requestAnimationFrame(step); else finish();
+  };
+  raf = requestAnimationFrame(step);
+}
+
+/* Words on the phone */
+function metLine(people){
+  const met = people.filter(p => { const f = frac(p); return f != null && f >= 1; });
+  if (!met.length) return {met, text:''};
+  if (met.length === people.length) return {met, text:'Everyone reached their goal.'};
+  const you = met.some(p => p.id === 'you'), others = met.filter(p => p.id !== 'you').map(p => p.name);
+  if (you) return {met, text: others.length ? `You and ${listNames(others)} reached your goals.` : 'You reached your goal.'};
+  return {met, text:`${listNames(others)} reached their goal${others.length > 1 ? 's' : ''}.`};
+}
+function marksHTML(met){
+  return met.slice(0, 3).map(p => `<span class="mk met" style="--p:${p.p}">${p.ini}</span>`).join('');
+}
+function stoneStrip(f){
+  return Array.from({length:STONES}, (_, j) => `<i class="${(j + .5) / STONES <= f + 1e-6 ? 'done' : ''}"></i>`).join('');
+}
+function detailHTML(){
+  const people = group();
+  if (!S.selected){
+    const {met, text} = metLine(people);
+    return text
+      ? `<div class="say"><span class="marks" aria-hidden="true">${marksHTML(met)}</span><span><strong>${text}</strong><small>Tap a name to see their numbers.</small></span></div>`
+      : `<div class="say"><span><strong>Tap a name to see their numbers.</strong><small>Each path ends at that person’s own goal.</small></span></div>`;
+  }
+  const p = byId(S.selected), i = info(p);
+  const head = `<div class="sel-head"><span class="mk sm" style="--p:${p.p}" aria-hidden="true">${p.ini}</span>${p.name}<button type="button" class="close" data-clear aria-label="Close ${p.id === 'you' ? 'your' : p.name + '’s'} numbers">Close</button></div>`;
+  if (i.missing) return `<div class="sel">${head}<div class="sel-num"><b class="none">No update yet</b></div><div class="sel-extra">${p.name}’s activity hasn’t arrived yet. Missing or partial activity never counts as a miss.</div></div>`;
+  const f = Math.min(1, i.value / p.t), met = i.value >= p.t;
+  return `<div class="sel" style="--p:${p.p};--pi:${p.pi}">${head}<div class="sel-num"><b>${km(i.value)}</b><span>of ${p.t} km</span></div><div class="sel-stones" aria-hidden="true">${stoneStrip(f)}</div><div class="sel-extra">${met ? 'Goal reached' : `${km(p.t - i.value)} km to go`} · ${i.upd}</div></div>`;
+}
+function spoken(p){
+  const i = info(p), own = p.id === 'you' ? 'your' : 'their';
+  if (i.missing) return `${p.name}, no update yet.`;
+  const pct = Math.round(Math.min(1, i.value / p.t) * 100);
+  return `${p.name}, ${km(i.value)} of ${p.t} kilometres, ${pct} percent of ${own} own goal${i.value >= p.t ? ', goal reached' : ''}${i.late ? `, ${i.upd.toLowerCase()}` : ''}.`;
+}
+function weekHTML(){
+  return `<span class="week" role="img" aria-label="${DAYS[S.day][1]}, day ${S.day + 1} of 7">${DAYS.map((d, i) => `<i class="${i < S.day ? 'past' : i === S.day ? 'today' : ''}">${d[0]}</i>`).join('')}</span>`;
+}
+const endsText = () => S.day === 6 ? 'Ends at midnight' : 'Ends Sunday';
+
+/* Screens */
+const status = () => `<div class="status" aria-hidden="true"><span>9:41</span><svg viewBox="0 0 62 16"><use href="#i-status"></use></svg></div>`;
+const tabs = () => `<div class="tabbar" aria-label="App navigation, shown for context"><span class="tab active">${icon('i-home')}Home</span><span class="tab">${icon('i-flag')}Challenges</span><span class="tab">${icon('i-person')}You</span></div>`;
+const RULES = `<details><summary>How it works${icon('i-chev', 'chev')}</summary>
+<p><b>Everyone’s goal</b><br>You and Sam: 20 km each. Jordan: 15 km. Priya: 10 km.</p>
+<p><b>Activity that counts</b><br>Outdoor runs recorded by Apple’s Workout app on Apple Watch count. Each whole run must fit within Sep 21–27.</p>
+<p><b>Dates and times</b><br>Starts Sep 21, 12:00 AM. Ends Sep 28, 12:00 AM, not included. Pacific time. Results follow the saved update and correction deadlines, your result notice and any review.</p>
+<p><b>Simulated stakes — no real money moves.</b><br>$20 per person. Nothing can be paid out or redeemed. Meet your goal and your simulated stake comes back. People who meet their goals share the simulated stakes from confirmed misses. If everyone misses, nobody gets their simulated stake back.</p>
+<p>Missing or partial activity never counts as a miss.</p>
+<p><b>Ask for a review</b><br>You have 48 hours after your actual result notice to ask for a review. Reviewers have 72 hours after your request. A processing delay never shortens those windows.</p>
+<p><b>Leave the challenge</b><br>You can leave before your result is final. Your simulated stake comes back. The challenge continues if at least two people remain.</p>
+<p><b>Sharing</b><br>Only the selected friends can see your username, agreed goal, challenge activity and results. Your activity outside this challenge stays private.</p>
+<p><b>About your score</b><br>Scores come from the Apple Health activity your iPhone sends. We don’t run a separate check on the device. If a score looks wrong, ask us to review it.</p>
+</details>`;
+function goalsLine(){
+  const people = group(), by = {};
+  people.forEach(p => { (by[p.t] = by[p.t] || []).push(p.name); });
+  return Object.entries(by).sort((a, b) => b[0] - a[0]).map(([t, names]) => `${listNames(names)}: ${t} km${names.length > 1 ? ' each' : ''}.`).join(' ');
+}
+function challengeScreen(){
+  return `${status()}<div class="content">
+    <div class="top"><div class="nav"><button type="button" class="back" data-go="home">${icon('i-back')}Home</button><span>With friends</span></div>
+      <h1 class="title">September runs</h1>
+      <div class="when"><span id="endsText">Sep 21–27 · ${endsText()}</span>${weekHTML()}</div></div>
+    ${sceneHTML('full', group(), 'pick')}
+    <div class="groundpanel"><div class="detail" id="detail">${detailHTML()}</div>
+      <div class="sr-only" id="announce" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div class="rules">${RULES.replace(/You and Sam: 20 km each\. Jordan: 15 km\. Priya: 10 km\./, goalsLine())}<div class="rulesfoot">Simulated stakes — no real money moves.</div></div>
+    </div></div>${tabs()}`;
+}
+function homeScreen(){
+  const {met, text} = metLine(group());
+  return `${status()}<div class="content">
+    <div class="top"><div class="nav"><span>Home</span><span>${DAYS[S.day][2]}</span></div>
+      <button type="button" class="titlelink" data-go="challenge" aria-label="Open September runs"><span class="title">September runs</span>${icon('i-chev', 'chev')}</button>
+      <div class="when"><span>Sep 21–27 · ${endsText()}</span>${weekHTML()}</div></div>
+    ${sceneHTML('compact', group(), 'link')}
+    <div class="groundpanel">
+      ${text ? `<div class="say" style="padding:14px 0 12px;border-bottom:1px solid var(--divider)"><span class="marks" aria-hidden="true">${marksHTML(met)}</span><span><strong>${text}</strong><small>Open the challenge for everyone’s numbers.</small></span></div>` : ''}
+      <div class="row"><span class="mk sm" style="--p:#C2B5DC;width:34px;height:34px;font-size:11px" aria-hidden="true">JB</span><span class="grow"><strong>Jordan invited you</strong><small>October runs · Sep 28–Oct 4</small></span><button type="button" class="textbutton" data-go="invite">See invite</button></div>
+      <div class="next"><span>Park runs · Oct 5 with Sam</span>${icon('i-chev', 'chev')}</div>
+    </div></div>${tabs()}`;
+}
+function inviteScreen(){
+  const pair = [byId('you'), byId('jordan')];
+  return `${status()}<div class="content inv">
+    <div class="top"><div class="nav"><button type="button" class="back" data-go="home">${icon('i-back')}Home</button></div>
+      <div class="kicker">Jordan invited you</div><h1 class="title">October runs</h1><div class="dates">Sep 28–Oct 4 · Pacific time</div></div>
+    ${sceneHTML('compact', pair, 'still')}
+    <div class="groundpanel">
+      <div class="goals"><div><span>You</span><b>20 km</b></div><div><span>Jordan</span><b>20 km</b></div></div>
+      <div class="mode"><strong>Simulated stakes — no real money moves.</strong><br>$20 per person.</div>
+      <h2>You both agree to these rules.</h2>
+      <p>Outdoor runs recorded by Apple’s Workout app on Apple Watch count. Meet your goal and your simulated stake comes back. If only one of you meets the goal, that person receives both simulated stakes after results are final. If both miss, neither simulated stake comes back.</p>
+      <p>Missing or partial activity never counts as a miss. You have 48 hours after your result notice to ask for a review. You can leave before your result is final.</p>
+      <div class="notapp">Reading preview only. Joining and declining are outside this design study.</div>
+    </div></div>${tabs()}`;
+}
+
+/* Updating without rebuilding */
+function refreshWords(){
+  const people = group();
+  phone.querySelectorAll('.who').forEach(el => {
+    const id = el.dataset.person || null;
+    const p = id ? byId(id) : people.find(q => el.textContent.startsWith(q.name));
+    if (!p) return;
+    const note = el.querySelector('small');
+    if (G && G.mode !== 'still') note.textContent = info(p).missing ? 'No update yet' : '';
+    if (id){ el.setAttribute('aria-label', `${spoken(p)} ${S.selected === id ? 'Showing details.' : 'Show details.'}`); el.setAttribute('aria-pressed', String(S.selected === id)); }
+  });
+  const link = document.getElementById('sceneLink');
+  if (link) link.setAttribute('aria-label', `Open September runs. ${people.map(spoken).join(' ')}`);
+  phone.querySelectorAll('.week').forEach(w => { w.outerHTML = weekHTML(); });
+  const ends = document.getElementById('endsText'); if (ends) ends.textContent = `Sep 21–27 · ${endsText()}`;
+  const detail = document.getElementById('detail'); if (detail) detail.innerHTML = detailHTML();
+  phone.querySelectorAll('[data-tok]').forEach(t => {
+    const on = S.selected === t.dataset.tok;
+    t.classList.toggle('on', on); t.classList.toggle('dim', !!S.selected && !on);
+  });
+  phone.querySelectorAll('[data-wait]').forEach(t => {
+    const on = S.selected === t.dataset.wait;
+    t.classList.toggle('on', on); t.classList.toggle('dim', !!S.selected && !on);
+  });
+  phone.querySelectorAll('[data-lane]').forEach(l => l.classList.toggle('dim', !!S.selected && S.selected !== l.dataset.lane));
+  document.getElementById('afterLabel').textContent = `Stepping stones · ${S.mood === 'day' ? 'Daylight' : 'Night'} · ${DAYS[S.day][1]}`;
+}
+function render(focusTarget){
+  const hadFocus = phone.contains(document.activeElement);
+  cancelAnimationFrame(raf); shown = {}; G = null;
+  if (S.screen === 'home') phone.innerHTML = homeScreen();
+  else if (S.screen === 'invite') phone.innerHTML = inviteScreen();
+  else phone.innerHTML = challengeScreen();
+  phone.classList.toggle('large', S.large);
+  settleScene(false);
+  refreshWords();
+  document.querySelectorAll('[data-screen]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.screen === S.screen)));
+  document.getElementById('beforeImg').src = `captures/round-3-${S.screen}.png`;
+  document.getElementById('beforeImg').alt = {challenge:'Round 3 challenge screen: four dotted lanes with a colored token for each person and a flag at each finish.', home:'Round 3 Home: the same four lanes under September runs, with the invitation and Park runs below.', invite:'Round 3 invitation: October runs with both goals, the simulated stakes line and the rules in text.'}[S.screen];
+  document.getElementById('hint').textContent = {challenge:'Tap a name or token for the numbers; tap again, Close or Escape to hide them. Home returns to the Home screen.', home:'The picture and the title open the challenge. See invite opens the invitation preview.', invite:'Reading preview: both tokens wait at the start. Home returns.'}[S.screen];
+  if (hadFocus || focusTarget) (phone.querySelector(focusTarget || '.back, .titlelink') || phone).focus?.({preventScroll:true});
+}
+function select(id){
+  S.selected = S.selected === id ? null : id;
+  refreshWords();
+  const p = S.selected && byId(S.selected);
+  const announce = document.getElementById('announce');
+  if (announce) announce.textContent = p ? (info(p).missing ? `${p.name}. No update yet. Missing or partial activity never counts as a miss.` : `${spoken(p)} ${info(p).upd}.`) : 'Numbers closed.';
+}
+function clearSelection(){
+  const was = S.selected; if (!was) return;
+  select(was);
+  phone.querySelector(`.who[data-person="${was}"]`)?.focus({preventScroll:true});
+}
+function setPressed(attr, value){ document.querySelectorAll(`[data-${attr}]`).forEach(b => { if (!phone.contains(b)) b.setAttribute('aria-pressed', String(b.dataset[attr] === String(value))); }); }
+
+document.getElementById('dayControl').innerHTML = DAYS.map((d, i) => `<button type="button" id="day-${i}" data-day="${i}" aria-pressed="${i === S.day}" aria-label="${d[1]}">${d[0]}</button>`).join('');
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button, [data-person]'); if (!t) return;
+  if (t.dataset.screen){ S.screen = t.dataset.screen; S.selected = null; render(); return; }
+  if (t.dataset.mood){ S.mood = t.dataset.mood; phone.dataset.mood = S.mood; setPressed('mood', S.mood); refreshWords(); return; }
+  if (t.dataset.day){ S.day = +t.dataset.day; setPressed('day', S.day); refreshWords(); settleScene(true); return; }
+  if (t.dataset.count){ S.count = +t.dataset.count; setPressed('count', S.count); if (S.selected && !GROUPS[S.count].includes(S.selected)) S.selected = null; document.querySelectorAll('[data-jordan]').forEach(b => { b.disabled = S.count === 2; }); render(); return; }
+  if (t.dataset.jordan){ S.jordan = t.dataset.jordan; setPressed('jordan', S.jordan); refreshWords(); settleScene(true); return; }
+  if (!phone.contains(t)) return;
+  if (t.dataset.go){ const from = S.screen; S.screen = t.dataset.go; S.selected = null; render(t.dataset.go === 'home' ? (from === 'invite' ? '[data-go=invite]' : '.titlelink') : '.back'); return; }
+  if (t.hasAttribute('data-clear')){ clearSelection(); return; }
+  if (t.dataset.person && S.screen === 'challenge') select(t.dataset.person);
+});
+phone.addEventListener('keydown', e => { if (e.key === 'Escape' && S.selected){ e.preventDefault(); clearSelection(); } });
+document.getElementById('largeText').addEventListener('change', e => { S.large = e.target.checked; phone.classList.toggle('large', S.large); });
+render();
+})();
 </script>
-<script src="social-board.js"></script>
-</body></html>
