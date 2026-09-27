@@ -1,6 +1,7 @@
 #if DEBUG
 import CryptoKit
 import Foundation
+import GameTimeCore
 
 /// Explicit, in-memory screenshot data. Nothing in this file selects a hosted
 /// client, changes admission, or substitutes a fictional record in ordinary use.
@@ -18,6 +19,9 @@ enum LiveDesignFixtures {
     static let stepsID = UUID(uuidString: "a1000000-0000-4000-8000-000000000004")!
     static let runsID = UUID(uuidString: "a1000000-0000-4000-8000-000000000005")!
     static let closedID = UUID(uuidString: "a1000000-0000-4000-8000-000000000006")!
+    static let notSavedID = UUID(uuidString: "a1000000-0000-4000-8000-000000000007")!
+    /// Adds a steps goal past its deadline whose saved update the server will never take.
+    static var healthNotSaved: Bool { enabled && ProcessInfo.processInfo.arguments.contains("--fixture-health-not-saved") }
     static let now = try! ChallengeInstant("2026-09-22T09:41:00-07:00")
     static let profile = UserProfile(id: actorID, handle: "alexlee", displayName: "Alex Lee", timezone: "America/Los_Angeles")
 
@@ -25,7 +29,7 @@ enum LiveDesignFixtures {
     static func makeProfileClient() -> any ProfileClient { LiveDesignFixtureProfileClient() }
     static func displayTitle(for id: UUID) -> String? {
         [activeID: "September runs", invitationID: "October runs", upcomingID: "Park runs",
-         stepsID: "September steps", runsID: "A week outside", closedID: "Midday steps"][id]
+         stepsID: "September steps", runsID: "A week outside", closedID: "Midday steps", notSavedID: "Weekday steps"][id]
     }
     static func portraitName(for actor: UUID) -> String? {
         [actorID: "alex", samID: "sam", jordanID: "jordan", priyaID: "priya"][actor]
@@ -353,8 +357,55 @@ final class LiveDesignFixtureClient: ChallengeV1Client {
                 member(f.actorID, target: 12_000_000, value: 12_800_000, now: try! .init("2026-08-31T00:00:00-07:00"))], finalAt: "2026-09-05T09:00:00-07:00"),
             row(f.closedID, start: "2026-08-10", policy: "personal_steps_goal_v1", status: "cancelled", members: [
                 member(f.actorID, target: 50_000, value: nil, exited: true, now: now)])
-        ]
+        ] + (LiveDesignFixtures.healthNotSaved ? [
+            row(f.notSavedID, start: "2026-09-12", policy: "personal_steps_goal_v1", status: "syncing", members: [
+                member(f.actorID, target: 50_000, value: nil, now: now)])
+        ] : [])
     }
+    static func seedRow(_ id: UUID) -> ChallengeV1? { seedRows(now: LiveDesignFixtures.now).first { $0.id == id } }
+}
+
+extension LiveDesignFixtures {
+    /// Stub Health clients for `--fixture-health-not-saved` only. Nothing reads
+    /// Apple Health, signs or leaves the phone: one update saved before the
+    /// deadline is refused the way the server refuses what it will never save.
+    static func healthDependencies() -> ChallengeHealthFlowDependencies? {
+        guard healthNotSaved, let row = LiveDesignFixtureClient.seedRow(notSavedID) else { return nil }
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("live-design-health-" + UUID().uuidString)
+        let session = WeeklyClientSession(actorID: actorID, identity: "live-design")
+        let coordinator = ChallengeHealthTransportCoordinator(uploadStore: .init(directory: folder.appendingPathComponent("upload")),
+            readinessStore: .init(directory: folder.appendingPathComponent("readiness")))
+        let uploads = ChallengeHealthUploadClient(environment: .development, privateAccountMode: true, coordinator: coordinator,
+            binding: { session }, sign: { _, _ in throw ChallengeV1Error.unavailable },
+            send: { _, _ in throw ChallengeHealthUploadClientError.permanentlyRefused(reason: "revision_not_accepted") })
+        let readiness = ChallengeHealthReadinessClient(environment: .development, privateAccountMode: true, coordinator: coordinator,
+            binding: { session }, sign: { _, _ in throw ChallengeV1Error.unavailable },
+            send: { _, _ in throw ChallengeHealthReadinessClientError.unavailable })
+        let cache = ChallengeHealthComparisonCache(directory: folder.appendingPathComponent("comparison"))
+        do {
+            let binding = try ChallengeHealthBindingMapper.agreement(row, actor: actorID)
+            let observed = ChallengeHealthFlowStore.microseconds(row.config.endsAt.date.addingTimeInterval(-3600))
+            let saved = try ChallengeHealthUploadRequest(binding: binding, requestID: UUID(), revision: 1, previousRevision: nil,
+                replacement: .value(ChallengeHealthValue(metric: .steps, integerValue: 51_200)),
+                observedAtMicroseconds: observed, queriedThroughMicroseconds: observed)
+            var journal = ChallengeHealthUploadJournal(actorID: actorID)
+            try journal.enqueue(ChallengeHealthSignedUpload(privateAccountRequest: saved))
+            try coordinator.uploadStore.save(journal)
+            try cache.connect(actor: actorID, source: "apple_watch_steps_v1")
+        } catch { return nil }
+        return ChallengeHealthFlowDependencies(coordinator: coordinator, uploads: uploads, readiness: readiness, cache: cache,
+            permission: LiveDesignHealthPermission(), reader: { _, _ in LiveDesignHealthReader() },
+            adapter: ChallengeHealthBindingMapper.adapter, now: { now.date })
+    }
+}
+
+@MainActor private final class LiveDesignHealthPermission: ChallengeHealthPermissionService {
+    var supported: Bool { true }
+    func connect(_ metric: ChallengeHealthMetric) async throws {}
+}
+
+private struct LiveDesignHealthReader: ChallengeHealthStore {
+    func read(_ request: ChallengeHealthReadRequest) async -> ChallengeHealthStoreOutcome { .unavailable(.queryFailed) }
 }
 
 /// Fictional friends for screenshots and UI tests. Commands replay exactly and

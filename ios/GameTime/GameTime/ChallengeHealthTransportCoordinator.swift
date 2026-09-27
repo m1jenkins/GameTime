@@ -113,6 +113,9 @@ final class ChallengeHealthTransportCoordinator {
 
   /// Reload journals under the lease. Included signed requests recover in
   /// counter order per key; independent account-only requests need no counter.
+  /// A failed account-only request stays saved without holding back the others;
+  /// only a sign-in change, cancellation or lost connection ends the pass.
+  /// Returns what was sent.
   @discardableResult
   func recover(actor: UUID, includingDeviceVerifiedRequests: Bool = true) async throws -> [Pending] {
     try check(actor: actor)
@@ -163,13 +166,24 @@ final class ChallengeHealthTransportCoordinator {
       recovered.append(record)
     }
     // Included signed records finish recovery first. Private-account records are
-    // deliberately unsigned, so they have no counter to decode or advance.
+    // deliberately unsigned, so they have no counter to decode or advance, and
+    // no order to keep: one challenge's refused or unsent update must never
+    // block another challenge or an activity check.
     for record in privateAccount {
       try check(actor: actor)
-      try await record.deliver()
+      do { try await record.deliver() }
+      catch where !Self.endsRecovery(error) { try check(actor: actor); continue }
       try check(actor: actor)
       recovered.append(record)
     }
     return recovered
+  }
+
+  /// Every later request would fail the same way, so stop instead of holding
+  /// the lease through one timeout after another.
+  private static func endsRecovery(_ error: any Error) -> Bool {
+    error is CancellationError || error is URLError || error as? Failure == .accountChanged
+      || error as? ChallengeHealthUploadClientError == .accountChanged
+      || error as? ChallengeHealthReadinessClientError == .accountChanged
   }
 }

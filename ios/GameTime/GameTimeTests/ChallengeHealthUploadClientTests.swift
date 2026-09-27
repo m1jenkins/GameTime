@@ -122,6 +122,114 @@ struct ChallengeHealthUploadClientTests {
     #expect(try store.load(actor: actor).pending.map(\.exactBody) == [saved.exactBody])
   }
 
+  @Test("a refused account-mode upload does not block another challenge's upload")
+  func refusedAccountUploadDoesNotBlockAnotherChallenge() async throws {
+    let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }
+    let stuck = try request(), next = try request()
+    #expect(stuck.challengeID != next.challengeID)
+    let session = WeeklyClientSession(actorID: actor, identity: "fictional-session")
+    var sent: [Data] = []
+    let client = ChallengeHealthUploadClient(enabled: true, environment: .development, privateAccountMode: true,
+      coordinator: coordinator(store), binding: { session },
+      sign: { _, _ in Issue.record("account mode must not sign"); return material() },
+      send: { upload, _ in
+        sent.append(upload.exactBody)
+        // The transport reports an HTTP 422 this way.
+        if upload.exactBody == stuck.exactBytes { throw ChallengeHealthUploadClientError.refused }
+        return try receipt(next)
+      })
+    await #expect(throws: ChallengeHealthUploadClientError.refused) { try await client.submit(stuck) }
+    try await client.submit(next)
+    #expect(sent.contains(next.exactBytes))
+    #expect(try store.load(actor: actor).pending.map(\.exactBody) == [stuck.exactBytes])
+  }
+
+  @Test("only a 422 with a known reason is permanent; every other refusal stays for a retry")
+  func refusalMapping() throws {
+    func body(_ reason: String?) throws -> Data {
+      try JSONSerialization.data(withJSONObject: ["error": "rejected", "message": "Not saved.", "reason": reason as Any])
+    }
+    for reason in ["challenge_closed", "revision_not_accepted", "request_conflict"] {
+      #expect(ChallengeHealthUploadClientError.refusal(status: 422, body: try body(reason)) == .permanentlyRefused(reason: reason))
+    }
+    #expect(ChallengeHealthUploadClientError.refusal(status: 422, body: try body(nil)) == .refused)
+    #expect(ChallengeHealthUploadClientError.refusal(status: 422, body: try body("somewhere_new")) == .refused)
+    #expect(ChallengeHealthUploadClientError.refusal(status: 422, body: Data("not json".utf8)) == .refused)
+    for status in [400, 401, 403, 409, 500, 503] {
+      #expect(ChallengeHealthUploadClientError.refusal(status: status, body: try body("revision_not_accepted")) == .refused)
+    }
+  }
+
+  @Test("an account-mode update the server will never take is retired and frees its challenge")
+  func permanentlyRefusedAccountUploadIsRetired() async throws {
+    let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }
+    let stuck = try request(), session = WeeklyClientSession(actorID: actor, identity: "fictional-session")
+    var refuse = false
+    let client = ChallengeHealthUploadClient(enabled: true, environment: .development, privateAccountMode: true,
+      coordinator: coordinator(store), binding: { session },
+      sign: { _, _ in Issue.record("account mode must not sign"); return material() },
+      send: { upload, _ in
+        if refuse { throw ChallengeHealthUploadClientError.permanentlyRefused(reason: "challenge_closed") }
+        throw ChallengeHealthUploadClientError.unavailable
+      })
+    await #expect(throws: ChallengeHealthUploadClientError.unavailable) { try await client.submit(stuck) }
+    refuse = true
+    try await client.retry(actor: actor)
+    let journal = try store.load(actor: actor)
+    #expect(journal.pending.isEmpty)
+    #expect(journal.retired.map(\.exactBody) == [stuck.exactBytes])
+    #expect(journal.retired.map(\.reason) == ["challenge_closed"])
+    #expect(try client.waitingChallenges(actor: actor).isEmpty)
+    #expect(try client.refusedRevision(actor: actor, challenge: stuck.challengeID) == 1)
+  }
+
+  @Test("a signed update the server will never take still blocks new signing, as adopted")
+  func permanentlyRefusedSignedUploadKeepsItsPlace() async throws {
+    let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }
+    let first = try request(), second = try request()
+    let session = WeeklyClientSession(actorID: actor, identity: "fictional-session")
+    var signCount = 0
+    let client = ChallengeHealthUploadClient(enabled: true, environment: .development, coordinator: coordinator(store),
+      binding: { session }, sign: { _, _ in signCount += 1; return material() },
+      send: { _, _ in throw ChallengeHealthUploadClientError.permanentlyRefused(reason: "revision_not_accepted") })
+    await #expect(throws: ChallengeHealthUploadClientError.permanentlyRefused(reason: "revision_not_accepted")) {
+      try await client.submit(first)
+    }
+    await #expect(throws: ChallengeHealthUploadClientError.permanentlyRefused(reason: "revision_not_accepted")) {
+      try await client.submit(second)
+    }
+    #expect(signCount == 1)
+    #expect(try store.load(actor: actor).pending.map(\.exactBody) == [first.exactBytes])
+    #expect(try store.load(actor: actor).retired.isEmpty)
+  }
+
+  @Test("a sign-in change while a refusal arrives leaves the update saved for its account")
+  func refusalFence() async throws {
+    let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }
+    let request = try request()
+    var session = WeeklyClientSession(actorID: actor, identity: "fictional-session")
+    let client = ChallengeHealthUploadClient(enabled: true, environment: .development, privateAccountMode: true,
+      coordinator: coordinator(store), binding: { session }, sign: { _, _ in material() }, send: { _, _ in
+        session = WeeklyClientSession(actorID: UUID(), identity: "another-session")
+        throw ChallengeHealthUploadClientError.permanentlyRefused(reason: "challenge_closed")
+      })
+    await #expect(throws: ChallengeHealthUploadClientError.accountChanged) { try await client.submit(request) }
+    #expect(try store.load(actor: actor).pending.map(\.exactBody) == [request.exactBytes])
+    #expect(try store.load(actor: actor).retired.isEmpty)
+  }
+
+  @Test("resubmitting a saved update reports that update's own recovery result")
+  func resubmittedUpdateReportsItsOwnResult() async throws {
+    let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }
+    let request = try request(), session = WeeklyClientSession(actorID: actor, identity: "fictional-session")
+    let client = ChallengeHealthUploadClient(enabled: true, environment: .development, privateAccountMode: true,
+      coordinator: coordinator(store), binding: { session }, sign: { _, _ in material() },
+      send: { _, _ in throw ChallengeHealthUploadClientError.refused })
+    await #expect(throws: ChallengeHealthUploadClientError.refused) { try await client.submit(request) }
+    await #expect(throws: ChallengeHealthUploadClientError.refused) { try await client.submit(request) }
+    #expect(try client.waitingChallenges(actor: actor) == [request.challengeID])
+  }
+
   @Test("switch away and back during signing cannot persist or send")
   func signingFence() async throws {
     let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }

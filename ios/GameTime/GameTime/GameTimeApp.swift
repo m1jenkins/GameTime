@@ -130,7 +130,8 @@ struct GameTimeApp: App {
                     services = FixtureServicesFactory.make(
                         arguments: ["--fixture-mode"],
                         profileClient: LiveDesignFixtures.makeProfileClient(),
-                        challengesV1: LiveDesignFixtures.makeClient())
+                        challengesV1: LiveDesignFixtures.makeClient(),
+                        challengeHealthDependencies: LiveDesignFixtures.healthDependencies())
                 } else { services = FixtureServicesFactory.make() }
                 #else
                 services = FixtureServicesFactory.make()

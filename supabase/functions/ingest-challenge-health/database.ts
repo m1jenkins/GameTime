@@ -3,6 +3,22 @@ import type { PostgrestConfig } from "../_shared/database.ts";
 import { HttpFailure } from "../_shared/http.ts";
 import type { RealHealthIngestArgs, RealHealthReadinessArgs } from "./handler.ts";
 
+/**
+ * Refusals the RPCs raise only after their exact replay found no saved
+ * response. For an update built while its challenge was scheduled, active or
+ * syncing, as the app requires, none can reverse: the frozen terms, status or
+ * membership no longer take it, the revision is taken or past its cutoff, or
+ * the request ID holds other bytes. (Only a community lobby still open past its
+ * start can later begin taking updates.) The client may stop retrying these;
+ * every other refusal, including an early clock or a serialization failure,
+ * carries no reason and stays retryable.
+ */
+const PERMANENT_REFUSALS: Readonly<Record<string, string>> = {
+  challenge_real_health_binding_invalid: "challenge_closed",
+  challenge_invalid_real_health_revision: "revision_not_accepted",
+  challenge_request_conflict: "request_conflict",
+};
+
 /** No raw database messages or submitted health values reach logs or errors. */
 export function realHealthDatabase(config: PostgrestConfig) {
   return async (args: RealHealthIngestArgs): Promise<unknown> => {
@@ -79,14 +95,26 @@ async function call(
     throw new HttpFailure("internal", "We couldn’t confirm this update. Try again in a moment.");
   }
   if (!response.ok) {
-    const code = (result as { code?: string } | null)?.code;
+    const { code, message } = (result ?? {}) as { code?: unknown; message?: unknown };
     if (code === "42501" || code === "28000") {
       throw new HttpFailure(
         "forbidden",
         "We couldn’t accept this update. Sign in again and try again.",
       );
     }
-    if (code && ["22023", "23514", "23505", "23001", "40001"].includes(code)) {
+    const reason = code === "22023" && typeof message === "string" &&
+        Object.hasOwn(PERMANENT_REFUSALS, message)
+      ? PERMANENT_REFUSALS[message]
+      : undefined;
+    if (reason) {
+      throw new HttpFailure(
+        "rejected",
+        "This challenge can’t take this activity update. Refresh your challenge to see what we saved.",
+        undefined,
+        reason,
+      );
+    }
+    if (typeof code === "string" && ["22023", "23514", "23505", "23001", "40001"].includes(code)) {
       throw new HttpFailure(
         "rejected",
         "This activity update couldn’t be saved. Refresh your challenge and try again.",

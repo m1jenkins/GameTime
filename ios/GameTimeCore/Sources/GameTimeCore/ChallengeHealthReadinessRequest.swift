@@ -1,7 +1,7 @@
 import Foundation
 
 public enum ChallengeHealthReadinessRequestError: Error, Equatable, Sendable {
-    case invalidRequest, wrongAccount, requestConflict, invalidSignature, invalidReceipt, corruptJournal
+    case invalidRequest, wrongAccount, requestConflict, invalidSignature, invalidReceipt, corruptJournal, queueFull
 }
 
 /// The minimal readiness receipt request. It deliberately excludes
@@ -264,6 +264,8 @@ public struct ChallengeHealthReadinessJournal: Codable, Sendable {
             guard existing == signed else { throw ChallengeHealthReadinessRequestError.requestConflict }
             return
         }
+        // Restoring refuses more, so saving one more would lock every writer out.
+        guard pending.count < 16 else { throw ChallengeHealthReadinessRequestError.queueFull }
         pending.append(signed)
     }
 

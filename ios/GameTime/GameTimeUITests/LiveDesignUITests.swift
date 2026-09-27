@@ -328,6 +328,25 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["@alexlee"].exists)
     }
 
+    func testAnUpdateWeCanNeverSaveSaysWhyWithoutRefreshAdvice() {
+        continueAfterFailure = false
+        let app = launch("you", extra: ["--fixture-health-not-saved"])
+        defer { app.terminate() }
+        let settings = app.buttons["profile.settings"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 10)); settings.tap()
+        let health = settingsLink(app, "Apple Health")
+        XCTAssertTrue(health.waitForExistence(timeout: 5)); health.tap()
+        let refresh = app.buttons["settings.health.refresh"]
+        XCTAssertTrue(refresh.waitForExistence(timeout: 5)); bring(app, refresh); refresh.tap()
+        let title = app.staticTexts["Last update not saved"]
+        XCTAssertTrue(title.waitForExistence(timeout: 10))
+        bring(app, title, upward: false)
+        XCTAssertTrue(labeled(app.staticTexts, "We couldn’t save this update because this challenge had stopped taking activity. "
+            + "If your saved score is wrong when results arrive, ask us to review it before the review deadline.").exists)
+        XCTAssertFalse(labeled(app.staticTexts, "We couldn’t send your saved activity. Try Refresh when you’re connected.").exists)
+        capture(app, name: "health-update-not-saved")
+    }
+
     // MARK: D142 friends
 
     func testFriendsListAnswersRequestsAndStatesEverySafetyConsequence() {
@@ -613,10 +632,10 @@ final class LiveDesignUITests: XCTestCase {
         }
     }
 
-    private func launch(_ route: String, textSize: String? = nil) -> XCUIApplication {
+    private func launch(_ route: String, textSize: String? = nil, extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--fixture-live-design", "--live-screen=" + route,
-                               "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+                               "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
         if let textSize { app.launchArguments += ["-UIPreferredContentSizeCategoryName", textSize] }
         app.launch()
         XCTAssertTrue(app.buttons["beta.tab.home"].waitForExistence(timeout: 10))

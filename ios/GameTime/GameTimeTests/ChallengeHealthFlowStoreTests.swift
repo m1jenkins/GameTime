@@ -347,6 +347,138 @@ import XCTest
         XCTAssertEqual(h.client.rows[id]?.own(h.actor)?.fact?.state, "unresolved")
     }
 
+    func testRefusedAccountUploadDoesNotBlockOtherChallengesOrReadiness() async throws {
+        let h = try FlowHarness(privateAccount: true); defer { h.remove() }
+        let stuck = try h.addActivity(), other = try h.addActivity()
+        try h.cache.connect(actor: h.actor, source: "apple_watch_steps_v1")
+        h.refusedChallenges = [stuck]
+        await h.flow.refresh(stuck)
+        XCTAssertEqual(try h.coordinator.uploadStore.load(actor: h.actor).pending.count, 1, "The refused update stays saved")
+        XCTAssertNil(h.client.rows[stuck]?.own(h.actor)?.fact)
+
+        // (a) Another challenge still saves its activity.
+        await h.flow.refresh(other)
+        XCTAssertEqual(h.client.rows[other]?.own(h.actor)?.fact?.state, "value")
+        XCTAssertFalse(h.flow.states[other]?.pendingDelivery ?? true)
+        XCTAssertNil(h.flow.states[other]?.message)
+
+        // (b) An activity check for a new goal still completes.
+        let binding = try h.binding()
+        await h.flow.checkReadiness(binding, connect: true)
+        XCTAssertEqual(h.flow.state(for: binding).readiness, .ready)
+        XCTAssertTrue(h.flow.canConsent(binding))
+        XCTAssertEqual(h.signed, 0, "Account mode never asks for a device signature")
+    }
+
+    func testUpdateRefusedAfterTheDeadlineLeavesRetryAndSaysWhy() async throws {
+        let h = try FlowHarness(privateAccount: true); defer { h.remove() }
+        let stuck = try h.addActivity()
+        try h.cache.connect(actor: h.actor, source: "apple_watch_steps_v1")
+        h.refusedChallenges = [stuck]
+        await h.flow.refresh(stuck)
+        XCTAssertEqual(h.flow.states[stuck]?.message, ChallengeHealthCopy.unconfirmed)
+        XCTAssertTrue(h.flow.states[stuck]?.pendingDelivery ?? false)
+        let saved = try XCTUnwrap(h.uploads.first)
+        let binding = try ChallengeHealthBindingMapper.agreement(XCTUnwrap(h.client.rows[stuck]), actor: h.actor)
+
+        // Relaunched while it still can't go through: the goal says so.
+        let relaunched = try FlowHarness(actor: h.actor, directory: h.directory, privateAccount: true)
+        relaunched.client.rows = h.client.rows; relaunched.refusedChallenges = [stuck]
+        await relaunched.flow.refresh()
+        XCTAssertTrue(relaunched.flow.state(for: binding).pendingDelivery)
+        XCTAssertEqual(relaunched.flow.state(for: binding).message, ChallengeHealthCopy.unconfirmed)
+
+        // The phone comes back after the deadline to save activity has passed.
+        let later = try FlowHarness(actor: h.actor, directory: h.directory, privateAccount: true)
+        later.client.rows = h.client.rows; later.serverRules = true
+        later.now = h.now.addingTimeInterval(4 * 86400); later.client.now = later.now
+        await later.flow.refresh()
+        let journal = try later.coordinator.uploadStore.load(actor: h.actor)
+        XCTAssertTrue(journal.pending.isEmpty, "The server will never take it, so it leaves the retry path")
+        XCTAssertEqual(journal.retired.map(\.reason), ["revision_not_accepted"])
+        XCTAssertEqual(journal.retired.first?.exactBody, saved.exactBytes, "Its exact bytes stay on the phone")
+        XCTAssertNil(later.client.rows[stuck]?.own(h.actor)?.fact, "Nothing replaces the missing update")
+        XCTAssertTrue(later.requests.isEmpty, "After the cutoff we read no new activity")
+
+        XCTAssertTrue(later.flow.state(for: binding).notSaved, "Visible on the first refresh after relaunch")
+        XCTAssertEqual(later.flow.state(for: binding).message, ChallengeHealthCopy.notSaved)
+        XCTAssertFalse(later.flow.state(for: binding).pendingDelivery)
+        let sent = later.uploads.count
+        await later.flow.refresh()
+        XCTAssertEqual(later.uploads.count, sent, "A retired update is never sent again")
+        XCTAssertTrue(later.flow.state(for: binding).notSaved)
+
+        let text = try await capture(NavigationStack { ScrollView {
+            ChallengeHealthStatusView(flow: later.flow, binding: binding).padding(SignalTheme.contentInset)
+        }.background(SignalTheme.canvas) }, name: "health-update-not-saved")
+        XCTAssertTrue(text.contains("last update not saved"), text)
+        XCTAssertTrue(text.contains("stopped taking activity"), text)
+        XCTAssertTrue(text.contains("review deadline"), text)
+        for misleading in ["try refresh", "connected", "connect apple health", "waiting to send"] {
+            XCTAssertFalse(text.contains(misleading), "\(misleading): \(text)")
+        }
+    }
+
+    func testRevisionTakenElsewhereIsReconciledAndSentAgainWhileOpen() async throws {
+        let h = try FlowHarness(privateAccount: true); defer { h.remove() }
+        let id = try h.addActivity()
+        try h.cache.connect(actor: h.actor, source: "apple_watch_steps_v1")
+        await h.flow.refresh(id)
+        XCTAssertEqual(h.client.rows[id]?.own(h.actor)?.fact?.revision, 1)
+        h.refusedChallenges = [id]
+        await h.flow.refresh(id)
+        let stuck = try XCTUnwrap(h.uploads.last)
+        XCTAssertEqual(stuck.revision, 2)
+
+        // Another install saves revision 2 first.
+        let row = try XCTUnwrap(h.client.rows[id])
+        let other = try ChallengeHealthUploadRequest(binding: ChallengeHealthBindingMapper.activity(row, actor: h.actor).binding,
+            requestID: UUID(), revision: 2, previousRevision: 1, replacement: .value(ChallengeHealthValue(metric: .steps, integerValue: 9000)),
+            observedAtMicroseconds: ChallengeHealthFlowStore.microseconds(h.now), queriedThroughMicroseconds: ChallengeHealthFlowStore.microseconds(h.now))
+        try h.client.apply(other)
+        h.refusedChallenges = []; h.serverRules = true
+        await h.flow.refresh(id)
+
+        let journal = try h.coordinator.uploadStore.load(actor: h.actor)
+        XCTAssertTrue(journal.pending.isEmpty)
+        XCTAssertEqual(journal.retired.map(\.exactBody), [stuck.exactBytes], "The stuck bytes were never changed or sent as another revision")
+        let fact = try XCTUnwrap(h.client.rows[id]?.own(h.actor)?.fact)
+        XCTAssertEqual(fact.revision, 3, "A fresh update follows the server's latest revision")
+        XCTAssertEqual(fact.value, 10001)
+        XCTAssertEqual(h.uploads.last?.previousRevision, 2)
+        XCTAssertNil(h.flow.states[id]?.message)
+        XCTAssertFalse(h.flow.states[id]?.pendingDelivery ?? true)
+    }
+
+    func testANewUpdateRefusedByARaceIsRebuiltInOneMoreBoundedPass() async throws {
+        let h = try FlowHarness(privateAccount: true); defer { h.remove() }
+        let id = try h.addActivity()
+        try h.cache.connect(actor: h.actor, source: "apple_watch_steps_v1")
+        h.serverRules = true
+        await h.flow.refresh(id)
+        XCTAssertEqual(h.client.rows[id]?.own(h.actor)?.fact?.revision, 1)
+
+        // Another install saves revision 2 just before this phone's revision 2 arrives.
+        var raced: ChallengeHealthUploadRequest?
+        h.beforeUpload = { [unowned h] wire in
+            guard raced == nil, wire.revision == 2 else { return }
+            let row = try XCTUnwrap(h.client.rows[id])
+            let other = try ChallengeHealthUploadRequest(binding: ChallengeHealthBindingMapper.activity(row, actor: h.actor).binding,
+                requestID: UUID(), revision: 2, previousRevision: 1, replacement: .value(ChallengeHealthValue(metric: .steps, integerValue: 9000)),
+                observedAtMicroseconds: ChallengeHealthFlowStore.microseconds(h.now), queriedThroughMicroseconds: ChallengeHealthFlowStore.microseconds(h.now))
+            try h.client.apply(other); raced = wire
+        }
+        await h.flow.refresh(id)
+
+        let lost = try XCTUnwrap(raced)
+        XCTAssertEqual(try h.coordinator.uploadStore.load(actor: h.actor).retired.map(\.exactBody), [lost.exactBytes])
+        XCTAssertEqual(h.client.rows[id]?.own(h.actor)?.fact?.revision, 3, "Rebuilt from the latest saved revision")
+        XCTAssertEqual(h.uploads.last?.previousRevision, 2)
+        XCTAssertTrue(try h.coordinator.uploadStore.load(actor: h.actor).pending.isEmpty)
+        XCTAssertNil(h.flow.states[id]?.message)
+        XCTAssertFalse(h.flow.states[id]?.notSaved ?? true)
+    }
+
     func testSuspensionStopsReadsAndCutoffRecoversWithoutNewFacts() async throws {
         let h = try FlowHarness(); defer { h.remove() }
         let id = try h.addActivity()
@@ -377,8 +509,15 @@ import XCTest
     var readers: [FlowReader] = [], requests: [ChallengeHealthReadRequest] = [], uploads: [ChallengeHealthUploadRequest] = []
     var signed = 0, readinessSent = 0, loseReadinessResponse = false, loseUploadResponse = false
     var readinessFailure: ChallengeHealthReadinessClientError?
+    /// Uploads for these challenges come back as an HTTP 422.
+    var refusedChallenges: Set<UUID> = []
+    /// Like the ingest RPC: replay a saved request first, then permanently
+    /// refuse a revision out of order or past its cutoff.
+    var serverRules = false
+    /// Runs as an upload arrives, before the server's rules.
+    var beforeUpload: ((ChallengeHealthUploadRequest) throws -> Void)?
     var sessionIdentity: String? = "initial-session"
-    init(actor: UUID = UUID(), directory: URL? = nil) throws {
+    init(actor: UUID = UUID(), directory: URL? = nil, privateAccount: Bool = false) throws {
         self.actor = actor; self.directory = directory ?? FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         auth = FlowAuth(actor)
         cache = .init(directory: self.directory.appendingPathComponent("cache"))
@@ -389,13 +528,23 @@ import XCTest
             if self.holdSign { self.holdSign = false; await withCheckedContinuation { self.heldSign = $0 } }
             return .init(keyID: Data(repeating: 7, count: 32).base64EncodedString(), assertion: nextP9TestAssertion(), environment: .development)
         }
-        let uploads = ChallengeHealthUploadClient(enabled: true, environment: .development, coordinator: coordinator, binding: session, sign: sign) { [unowned self] signed, _ in
+        let uploads = ChallengeHealthUploadClient(enabled: true, environment: .development, privateAccountMode: privateAccount,
+                                                  coordinator: coordinator, binding: session, sign: sign) { [unowned self] signed, _ in
             let wire = try ChallengeHealthUploadRequest(restoring: signed.exactBody); self.uploads.append(wire)
+            if self.refusedChallenges.contains(wire.challengeID) { throw ChallengeHealthUploadClientError.refused }
+            try self.beforeUpload?(wire)
+            if self.serverRules, !self.client.appliedRequests.contains(wire.requestID), let row = self.client.rows[wire.challengeID] {
+                let cutoff = wire.revision == 1 && !row.format.usesReceivedScores ? row.config.syncBy : row.config.correctionsBy
+                if wire.previousRevision != row.own(self.actor)?.fact?.revision || self.client.now > cutoff.date {
+                    throw ChallengeHealthUploadClientError.permanentlyRefused(reason: "revision_not_accepted")
+                }
+            }
             try self.client.apply(wire)
             if self.loseUploadResponse { self.loseUploadResponse = false; throw URLError(.networkConnectionLost) }
             return try JSONSerialization.data(withJSONObject: ["version": "challenge_real_health_receipt_v1", "request_id": wire.requestID.uuidString.lowercased(), "challenge_id": wire.challengeID.uuidString.lowercased(), "revision": wire.revision, "accepted_at": "2027-01-15T08:00:00+00:00"])
         }
-        let readiness = ChallengeHealthReadinessClient(enabled: true, environment: .development, coordinator: coordinator, binding: session, sign: sign) { [unowned self] signed, _ in
+        let readiness = ChallengeHealthReadinessClient(enabled: true, environment: .development, privateAccountMode: privateAccount,
+                                                       coordinator: coordinator, binding: session, sign: sign) { [unowned self] signed, _ in
             let wire = try ChallengeHealthReadinessRequest(restoring: signed.exactBody); self.readinessSent += 1
             if self.loseReadinessResponse { self.loseReadinessResponse = false; throw URLError(.networkConnectionLost) }
             if let failure = self.readinessFailure { throw failure }

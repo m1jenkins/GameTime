@@ -113,6 +113,67 @@ struct ChallengeHealthTransportCoordinatorTests {
         #expect(signedAttempts == 1)
     }
 
+    @Test func oneFailedAccountOnlyRecordDoesNotStopTheOthers() async throws {
+        let coordinator = coordinator(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        let actor = UUID()
+        var delivered: [String] = []
+        coordinator.register(.upload) { _ in
+            [.init(kind: .upload, id: UUID(), keyID: "", assertion: Data(), body: Data([1]), requiresDeviceVerification: false) {
+                delivered.append("refused upload"); throw ChallengeHealthUploadClientError.refused
+            }, .init(kind: .upload, id: UUID(), keyID: "", assertion: Data(), body: Data([2]), requiresDeviceVerification: false) {
+                delivered.append("upload")
+            }]
+        }
+        coordinator.register(.readiness) { _ in
+            [.init(kind: .readiness, id: UUID(), keyID: "", assertion: Data(), body: Data([3]), requiresDeviceVerification: false) {
+                delivered.append("readiness")
+            }]
+        }
+        try await coordinator.begin(actor: actor)
+        defer { coordinator.release(actor: actor) }
+        let recovered = try await coordinator.recover(actor: actor, includingDeviceVerifiedRequests: false)
+        #expect(delivered == ["refused upload", "upload", "readiness"])
+        #expect(recovered.map(\.body) == [Data([2]), Data([3])])
+    }
+
+    @Test func aLostConnectionEndsAccountOnlyRecoveryInsteadOfWaitingOnEachRequest() async throws {
+        let coordinator = coordinator(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        let actor = UUID()
+        var attempts = 0
+        coordinator.register(.upload) { _ in
+            (1...3).map { index in
+                .init(kind: .upload, id: UUID(), keyID: "", assertion: Data(), body: Data([UInt8(index)]), requiresDeviceVerification: false) {
+                    attempts += 1; throw URLError(.timedOut)
+                }
+            }
+        }
+        try await coordinator.begin(actor: actor)
+        defer { coordinator.release(actor: actor) }
+        await #expect(throws: URLError.self) {
+            try await coordinator.recover(actor: actor, includingDeviceVerifiedRequests: false)
+        }
+        #expect(attempts == 1)
+    }
+
+    @Test func aSignInChangeStillEndsAccountOnlyRecovery() async throws {
+        let coordinator = coordinator(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        let actor = UUID()
+        var delivered = 0
+        coordinator.register(.upload) { _ in
+            [.init(kind: .upload, id: UUID(), keyID: "", assertion: Data(), body: Data([1]), requiresDeviceVerification: false) {
+                throw ChallengeHealthUploadClientError.accountChanged
+            }, .init(kind: .upload, id: UUID(), keyID: "", assertion: Data(), body: Data([2]), requiresDeviceVerification: false) {
+                delivered += 1
+            }]
+        }
+        try await coordinator.begin(actor: actor)
+        defer { coordinator.release(actor: actor) }
+        await #expect(throws: ChallengeHealthUploadClientError.accountChanged) {
+            try await coordinator.recover(actor: actor, includingDeviceVerifiedRequests: false)
+        }
+        #expect(delivered == 0)
+    }
+
     @Test func failureStopsLaterCountersAndActorChangeStopsAcknowledgement() async throws {
         let actor = UUID()
         var session: WeeklyClientSession? = .init(actorID: actor, identity: "first")

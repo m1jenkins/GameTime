@@ -176,20 +176,34 @@ public struct ChallengeHealthSignedUpload: Equatable, Codable, Sendable {
     }
 }
 
+/// A saved update the server said it will never accept. It leaves the retry
+/// path but keeps its exact bytes on this phone as a record for support.
+public struct ChallengeHealthRetiredUpload: Codable, Equatable, Sendable {
+    public let exactBody: Data
+    public let reason: String
+    public let retiredAt: Date
+}
+
 /// Pure journal; the iPhone store persists this atomically with file protection.
 /// A signed body survives response loss and relaunch without fresh timestamps,
 /// request IDs, assertions or revision numbers. Tokens never enter the journal.
 public struct ChallengeHealthUploadJournal: Codable, Sendable {
+    public static let retiredLimit = 32
     public let actorID: UUID
     public private(set) var pending: [ChallengeHealthSignedUpload] = []
     private var heads: [String: Int] = [:]
+    // Journals saved before retirement existed have no key for it.
+    private var retiredRecords: [ChallengeHealthRetiredUpload]?
+    public var retired: [ChallengeHealthRetiredUpload] { retiredRecords ?? [] }
+    private enum CodingKeys: String, CodingKey { case actorID, pending, heads, retiredRecords = "retired" }
     public init(actorID: UUID) { self.actorID = actorID }
 
     public init(restoring bytes: Data, actorID: UUID) throws {
         do {
             let saved = try JSONDecoder().decode(Self.self, from: bytes)
             guard saved.actorID == actorID, saved.pending.count <= 64, saved.heads.count <= 4096,
-                  saved.heads.values.allSatisfy({ $0 > 0 }) else { throw ChallengeHealthUploadError.corruptJournal }
+                  saved.heads.values.allSatisfy({ $0 > 0 }), saved.retired.count <= Self.retiredLimit
+            else { throw ChallengeHealthUploadError.corruptJournal }
             var ids: Set<UUID> = [], scopes: Set<String> = []
             for entry in saved.pending {
                 let request = try ChallengeHealthUploadRequest(restoring: entry.exactBody)
@@ -198,6 +212,11 @@ public struct ChallengeHealthUploadJournal: Codable, Sendable {
                 guard valid == entry, request.actorID == actorID, ids.insert(request.requestID).inserted,
                       scopes.insert(request.scope).inserted,
                       request.previousRevision == saved.heads[request.scope] else { throw ChallengeHealthUploadError.corruptJournal }
+            }
+            for entry in saved.retired {
+                let request = try ChallengeHealthUploadRequest(restoring: entry.exactBody)
+                guard request.actorID == actorID, !ids.contains(request.requestID), Self.isReason(entry.reason)
+                else { throw ChallengeHealthUploadError.corruptJournal }
             }
             self = saved
         } catch { throw ChallengeHealthUploadError.corruptJournal }
@@ -230,6 +249,9 @@ public struct ChallengeHealthUploadJournal: Codable, Sendable {
             }
             guard existing.scope != request.scope else { throw ChallengeHealthUploadError.revisionConflict }
         }
+        // A retired update never re-enters the retry path.
+        guard !retired.contains(where: { (try? ChallengeHealthUploadRequest(restoring: $0.exactBody).requestID) == request.requestID })
+        else { throw ChallengeHealthUploadError.requestConflict }
         guard pending.count < 64, heads.count < 4096 || heads[request.scope] != nil else { throw ChallengeHealthUploadError.queueFull }
         guard request.previousRevision == heads[request.scope] else { throw ChallengeHealthUploadError.revisionConflict }
         pending.append(upload)
@@ -246,5 +268,22 @@ public struct ChallengeHealthUploadJournal: Codable, Sendable {
               json["revision"] as? Int == request.revision, json["accepted_at"] is String
         else { throw ChallengeHealthUploadError.invalidReceipt }
         pending.remove(at: index); heads[request.scope] = request.revision
+    }
+
+    /// Only for a server refusal that no retry of these exact bytes can change.
+    /// The head is unchanged, so the challenge can take a replacement that
+    /// follows the server's latest saved revision. Older records roll off.
+    public mutating func retire(_ request: ChallengeHealthUploadRequest, reason: String, at date: Date) throws {
+        guard request.actorID == actorID else { throw ChallengeHealthUploadError.wrongAccount }
+        guard Self.isReason(reason), let index = pending.firstIndex(where: { $0.exactBody == request.exactBytes }) else {
+            throw ChallengeHealthUploadError.requestConflict
+        }
+        pending.remove(at: index)
+        retiredRecords = Array((retired + [ChallengeHealthRetiredUpload(exactBody: request.exactBytes, reason: reason,
+                                                                         retiredAt: date)]).suffix(Self.retiredLimit))
+    }
+
+    private static func isReason(_ reason: String) -> Bool {
+        (1...64).contains(reason.utf8.count) && reason.utf8.allSatisfy { (97...122).contains($0) || $0 == 95 }
     }
 }

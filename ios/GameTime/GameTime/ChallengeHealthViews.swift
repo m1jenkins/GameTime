@@ -4,6 +4,15 @@ import GameTimeCore
 enum ChallengeHealthCopy {
     /// COPY.md: account-mode uploads carry no device proof, and we say so.
     static let accountMode = "Scores come from the Apple Health activity your iPhone sends. We don’t run a separate check on the device. If a score looks wrong, ask us to review it."
+    /// COPY.md "Pending/failed upload": a saved update that may still go through.
+    static let unconfirmed = "We haven’t confirmed this update. Refresh to recover it. If your saved score is still wrong when results arrive, ask us to review it before the review deadline."
+    /// COPY.md "Update we can never save": nothing newer is saved, and the
+    /// challenge can't take a replacement. Refreshing can't change it.
+    static let notSaved = "We couldn’t save this update because this challenge had stopped taking activity. If your saved score is wrong when results arrive, ask us to review it before the review deadline."
+    static let notSavedTitle = "Last update not saved"
+    static func title(_ state: ChallengeHealthFlowStore.State) -> String {
+        state.notSaved ? notSavedTitle : title(state.readiness)
+    }
     static func source(_ identifier: String, leaderboard: Bool = false) -> String {
         switch identifier {
         case "apple_watch_steps_v1": "We count eligible steps recorded by Apple Watch in Apple Health. Entries marked as manual and records from unsupported apps or devices don’t count."
@@ -48,11 +57,13 @@ struct ChallengeHealthStatusView: View {
     private var state: ChallengeHealthFlowStore.State { flow.state(for: binding) }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(ChallengeHealthCopy.title(state.readiness), systemImage: state.readiness == .ready ? "checkmark.circle" : "heart.text.clipboard")
+            Label(ChallengeHealthCopy.title(state), systemImage: state.readiness == .ready ? "checkmark.circle" : "heart.text.clipboard")
                 .font(.headline).accessibilityIdentifier("beta.health.state")
-            if receivedScores && !readiness {
+            // A saved update that can never go through gets its own message
+            // below; refresh or connection advice here would mislead.
+            if receivedScores && !readiness && !state.notSaved {
                 Text("Only your score saved by GameTime counts. Missing or late activity doesn’t count. Refresh to send an update and check what we saved.").font(.subheadline)
-            } else {
+            } else if !state.notSaved {
                 Text(ChallengeHealthCopy.explanation(state.readiness, timed: binding.metric == .timedRunElapsedSeconds, readiness: readiness)).font(.subheadline)
             }
             if readiness {
@@ -64,7 +75,7 @@ struct ChallengeHealthStatusView: View {
                     Text("Finish sending this activity check before you agree. Try Refresh.").font(.subheadline)
                 }
             } else {
-                if state.readiness == .notConnected {
+                if state.readiness == .notConnected && !state.notSaved {
                     Button("Connect Apple Health") {
                         Task {
                             await flow.checkReadiness(binding, connect: true)
