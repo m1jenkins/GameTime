@@ -5,7 +5,7 @@ service or installation changed. The reference is the user-supplied
 https://claude.ai/artifact/8CfAk9nqDSLvSoEpYnck8r, a browser mock rather than an
 installed-app capture. All people and activity are fictional.
 
-## Current proposal: a shared week
+## Current proposal: daylight and shared progress
 
 After the first refinement, the owner said it still felt like a template:
 “Where is the community/fun aspect of it? It's too written and not enough
@@ -13,16 +13,28 @@ visual.” They asked whether a visual could replace the numerical presentation
 of being behind or ahead. That is feedback on the design study, not approval
 for native implementation or a new public-community product.
 
-`index.html`, `social-board.css` and `social-board.js` now explore a shared
-board of four people progressing toward their individual goals. It uses the
-reference's chalk/ink palette and amber identity, plus subdued participant
-colors. Hand-authored SVG lanes replace the dominant score and numeric list.
+The owner then said the shared visual direction was better and asked for
+further polish, particularly questioning the amount of black. Round 3 keeps
+the shared progress idea and proposes Daylight as the default: an open chalk
+canvas, muted green-gray text, subtle dotted paths and individual colored
+markers. Night offers a dark moss alternative in the review controls. Neither
+mood is adopted for native implementation.
+
+`index.html`, `social-board.css` and `social-board.js` contain this current
+proposal. It derives from the reference's chalk background and amber identity,
+then follows the owner's feedback toward a lighter, more social composition.
+Hand-authored SVG lanes replace the dominant score and numeric list.
 
 - Token position = saved activity / that person's own target, capped at the
   finish. Member order stays fixed. This is goal completion, not a ranking,
   raw distance comparison or a prediction about pace or results.
 - Names stay visible. Tapping a lane reveals its total, target and the fixture's
   update time where provided. Accessible labels include the values.
+- Selecting a person updates only the detail region. Expanded rules, focus
+  and scroll context stay intact. A second tap, Close or Escape dismisses the
+  detail. Close/Escape restore focus to the selected person.
+- Daylight/Night changes only this preview. It also applies to the invitation
+  reading screen. Navigation restores focus to the destination/return control.
 - Goal met is an athletic milestone, not finality or a simulated return.
 - The missing-update toggle explores a separate fictional state: Jordan has
   no saved score and appears without a progress position. A later native
@@ -49,14 +61,33 @@ comfort is a hypothesis; comprehension and pressure still require human review.
 
 ### Performed checks for this revision
 
-Viewed default and phone-width renders. Checked selection of Sam and Priya,
-exact numbers appearing only after selection, Jordan's separate missing-data
-state, Home-to-challenge navigation, and expanded rule text. At 390px browser
-width with larger text, the document and phone content had no horizontal
-overflow. Fixed the lower panel's flex sizing and rechecked that expanded
-content stays within its light background. The browser warning/error log was
-empty at completion. These web checks do not establish native Dynamic Type,
-VoiceOver, data correctness or release acceptance.
+Viewed Daylight and Night, including a selected person, at desktop width.
+At 390px browser width with larger text, checked person selection, the separate
+missing-activity state and invitation navigation; document and phone content
+had no horizontal overflow. Verified Sam's 7.8/20 km, 12.2 km remaining and
+fixture update time; Priya's goal-met state; Jordan without a score or progress
+SVG when missing activity is selected. The overview fits within the default
+phone composition, with room reserved for ordinary selected-person details;
+larger text and longer messages scroll naturally.
+
+Verified open rules survive person selection and the missing-state toggle.
+Verified second-tap dismissal, Close/Escape focus return, invitation/back focus,
+persistent spoken-status text with explicit sentence spacing, and consistent
+night styling through navigation. Removed overlapping finish/check marks.
+Calculated secondary-text contrast is 5.07:1 for Daylight and 8.18:1 for Night;
+the Daylight track is 3.15:1 against its canvas. Browser warning/error output
+was empty. The external JavaScript passed Node's syntax check.
+
+These web checks do not establish native Dynamic Type, VoiceOver, data
+correctness, design acceptance or release acceptance. No native tests apply
+to this artifact-only revision.
+
+## Preserved second proposal
+
+`round-2/` preserves the dark shared-progress board, committed as `0aadbd5`.
+That round introduced the fixed-order personal-goal lanes and selectable
+activity details. The owner liked the direction and requested the current
+refinement; that feedback did not adopt the proposal.
 
 ## Preserved first refinement
 
