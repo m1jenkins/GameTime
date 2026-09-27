@@ -1,0 +1,64 @@
+{
+  "facts": {
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": [
+      {
+        "family": "Barlow",
+        "status": "loaded"
+      },
+      {
+        "family": "Barlow",
+        "status": "loaded"
+      },
+      {
+        "family": "Barlow",
+        "status": "loaded"
+      },
+      {
+        "family": "Barlow",
+        "status": "loaded"
+      },
+      {
+        "family": "Barlow Condensed",
+        "status": "unloaded"
+      },
+      {
+        "family": "Barlow Condensed",
+        "status": "loaded"
+      },
+      {
+        "family": "Barlow Condensed",
+        "status": "loaded"
+      },
+      {
+        "family": "Barlow Condensed",
+        "status": "unloaded"
+      }
+    ]
+  },
+  "errors": [],
+  "overflow": [
+    {
+      "id": "phone-a",
+      "width": 346,
+      "scroll": 346,
+      "contentWidth": 346,
+      "contentScroll": 346
+    },
+    {
+      "id": "phone-b",
+      "width": 346,
+      "scroll": 346,
+      "contentWidth": 346,
+      "contentScroll": 346
+    },
+    {
+      "id": "phone-c",
+      "width": 346,
+      "scroll": 346,
+      "contentWidth": 346,
+      "contentScroll": 346
+    }
+  ]
+}

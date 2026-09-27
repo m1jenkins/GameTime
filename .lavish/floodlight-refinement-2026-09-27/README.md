@@ -5,7 +5,56 @@ service or installation changed. The reference is the user-supplied
 https://claude.ai/artifact/8CfAk9nqDSLvSoEpYnck8r, a browser mock rather than an
 installed-app capture. All people and activity are fictional.
 
-## Current proposal: round 6, the dial with the pot
+## Current proposal: round 7, Club chronograph
+
+Open [round seven](round-7/index.html). The file embeds its Barlow fonts and
+works offline. The owner liked round six's dial and pot, but asked to remove
+the generic cream look and improve the typography using Mobbin references.
+This is a new proposal, not a native adoption or implementation authorization.
+
+- **Preserved:** the 270° group dial, center pot, fictional activity and people,
+  $20 simulated stake, 2/4/6-person controls, per-person goals, late/missing
+  update states, independent phone navigation and existing rules paragraphs.
+- **Changed:** white phone backgrounds, Barlow Condensed display lettering,
+  Barlow reading text, flat markers and arcs, one solid pot hub and open ruled
+  rows. Home pairs personal distance with a compact dial on steel blue.
+  After-dark colors use lighter member hues for contrast.
+- **Clarity:** You is selected initially; the saved total and update time are
+  visible. Simulation is disclosed near amounts. The stake explanation retains
+  final-result timing. The invitation is explicitly not started and has no
+  implied activity markers. Fixed member order is never a ranking.
+- **References actually viewed:** [Nike Run Club's distance typography](https://mobbin.com/screens/3b656c09-f15a-4bab-8339-a40afd3cf5f9)
+  and [WHOOP's active arc/track separation](https://mobbin.com/screens/aac78ccc-35b7-459d-abe3-5256ba4dfd6b)
+  through the Mobbin plugin. The composition remains GameTime's group dial/pot.
+
+[The scoped design record](round-7/DESIGN.md) records proposed tokens and actual
+prototype behavior. [Desktop](round-7/captures/screens.png) and
+[phone-width](round-7/captures/mobile-phone.png) captures preserve the rendering.
+
+### Performed checks for round 7
+
+Local Chromium at 1440px and 390px: used fonts loaded, no JavaScript errors,
+Tuesday and Sunday activity, $40/$80/$120 pots, pot explanation, missing Jordan
+activity, independent Home/Challenge/Invitation navigation, light/dark appearance,
+1.3× browser text and horizontal overflow. The first pass found narrow-screen
+track sizing and Home metric spacing; corrected. Embedded fonts resolved a
+font-loading limitation in Lavish's sandboxed preview. A fresh visual review
+found low dark-surface arc contrast; brighter same-hue colors corrected it.
+The reviewer passed the design for review, with native and complete accessibility
+validation still unperformed. The Impeccable detector ran in degraded regex mode;
+its empty findings are not a full accessibility audit.
+
+### Responsible engagement review (round 7)
+
+Intended benefit: clearer personal progress, group participation and understood
+simulated amounts. Possible risk: stronger sports styling increases comparison
+pressure. The pot stays static across the week, member order stays fixed, missing
+activity never implies a miss, and there are no rankings, financial celebrations,
+catch-up instructions or new notification/analytics behavior. Whether the style
+feels motivating without pressure is still a user-research question. No native,
+account, hosted, real-money or current adopted-theme changes were made.
+
+## Preserved sixth proposal: the dial with the pot
 
 Open `round-6/index.html` (self-contained; Archivo from Google Fonts). Every
 round lives in its own folder; there is no top-level page.
