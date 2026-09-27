@@ -1,8 +1,10 @@
 # Floodlight 09 — Toned
 
-Design-only proposal, September 27, 2026. [Open the prototype](index.html).
-Rounds seven and eight stay preserved. Nothing here changes the native app, its
-adopted theme, accounts, services or product rules.
+September 27, 2026. [Open the prototype](index.html). **Adopted by the owner
+the same day at the Toned level with Aero gloss** (see the top entry of
+[the UI adoption history](../../../docs/design/SIGNAL_UI_MIGRATION.md)).
+Rounds seven and eight stay preserved. Nothing here has changed the native app,
+accounts, services or product rules yet.
 
 ## The request
 

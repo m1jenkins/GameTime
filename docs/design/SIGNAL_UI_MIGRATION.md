@@ -1,5 +1,43 @@
 # GameTime UI adoption and migration history
 
+## Floodlight Toned adopted — September 27, 2026
+
+The owner, on the round nine review: "Toned looks great -- I'd like to move
+forward with that design."
+
+**Adopted design.** Floodlight round nine at the **Toned** depth level with the
+**Aero gloss** material, light only. The reference is the
+[prototype](../../.lavish/floodlight-refinement-2026-09-27/round-9/index.html)
+with its [values](../../.lavish/floodlight-refinement-2026-09-27/round-9/DESIGN.md);
+layout, copy and states come from
+[round eight's record](../../.lavish/floodlight-refinement-2026-09-27/round-8/DESIGN.md).
+It covers the friend challenge page, Home and the invitation:
+
+- a 270° group dial with one recessed track per person, each ending at that
+  person's own goal, in fixed member order, with the pot (stake × people still
+  in) at its center;
+- people as soft spheres with badges, a detail card for the selected person,
+  a stake rail, a pot sheet with outcome pictures, and invitation outcome cards
+  and icon facts above **Full rules**;
+- one "Simulated stakes — no real money moves." banner per screen, and far
+  fewer words (Challenge 82 → 43, Home 73 → 46, Invitation 130 → 88 in the mock);
+- Barlow Condensed and Barlow type, a sky gradient, a glass dial face, frosted
+  cards, soft glow and shadows.
+
+Floodlit, the Round 8 and Quiet levels and the depth picker are review tools,
+not part of the adoption.
+
+**Not built yet.** Nothing native has changed. The September 22 presentation
+below stays the shipping app until a separately approved SwiftUI plan lands.
+That plan decides how far the look extends beyond these three screens and
+covers bundling Barlow (OFL) with `liveFont` scaling, goal formats other than
+distance, timed runs and leaderboards, late, missing and exited members,
+VoiceOver, Dynamic Type and blur performance. Two copy changes need rows in
+[COPY.md](../COPY.md) in the same change as the code: the short freshness line
+("3 min ago", with VoiceOver keeping "Updated from Apple Health 3 min ago") and
+the invitation's picture summary of the rules. Agreement text, rules, stakes and
+product behavior are unchanged, and the Personal app stays as it is (D134).
+
 ## Creation asks who it's for — September 26, 2026
 
 The owner found that starting a challenge never asked whether it was with

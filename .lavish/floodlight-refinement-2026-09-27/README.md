@@ -5,7 +5,12 @@ service or installation changed. The reference is the user-supplied
 https://claude.ai/artifact/8CfAk9nqDSLvSoEpYnck8r, a browser mock rather than an
 installed-app capture. All people and activity are fictional.
 
-## Current proposal: round 9, Toned
+## Adopted: round 9, Toned
+
+On September 27 the owner chose Toned: "Toned looks great -- I'd like to move
+forward with that design." The adoption record is the top entry of
+[the UI adoption history](../../docs/design/SIGNAL_UI_MIGRATION.md); nothing
+native is built yet.
 
 Open [round nine](round-9/index.html), also published at
 https://claude.ai/artifact/MtmK6izNJXDyu4CD5152Df. The owner's words on round

@@ -82,6 +82,7 @@ contract, not Beta source or release evidence.
 | `docs/` | Operative contracts, acceptance, release decisions and evidence |
 | `outputs/reports/` | Dated performed checks, preserved failures and source identities |
 | `.lavish/gametime-live-goal-2026-09-21/`, `.lavish/gametime-friends-2026-09-22/` | Current approved mocks, linked from the visual contract and friends plan; fictional data |
+| `.lavish/floodlight-refinement-2026-09-27/round-9/` | Floodlight Toned, adopted September 27 and not yet built natively; fictional data |
 | `outputs/design/`, `docs/archive/`, `docs/evidence/` | Dated designs, historical contracts and verification artifacts |
 
 ## Preserved products and data
