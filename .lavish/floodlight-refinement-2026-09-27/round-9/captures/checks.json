@@ -1,0 +1,46 @@
+{
+  "errors": [],
+  "widths": {
+    "390": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "pickerShows": 28
+    },
+    "1440": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    }
+  },
+  "fonts": [
+    "Barlow 400 loaded",
+    "Barlow 500 loaded",
+    "Barlow 600 loaded",
+    "Barlow 700 loaded",
+    "Barlow Condensed 500 unloaded",
+    "Barlow Condensed 600 loaded",
+    "Barlow Condensed 700 loaded",
+    "Barlow Condensed 800 unloaded"
+  ],
+  "states": [
+    {
+      "defaultLevel": "toned",
+      "phoneDepth": "toned"
+    },
+    {
+      "afterPickingQuiet": {
+        "phones": [
+          "quiet",
+          "quiet",
+          "quiet"
+        ],
+        "focused": "depth-quiet"
+      }
+    },
+    {
+      "potSheetFocus": "Close"
+    },
+    {
+      "focusAfterEscape": "potbtn"
+    }
+  ]
+}

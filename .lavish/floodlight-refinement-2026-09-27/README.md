@@ -5,7 +5,36 @@ service or installation changed. The reference is the user-supplied
 https://claude.ai/artifact/8CfAk9nqDSLvSoEpYnck8r, a browser mock rather than an
 installed-app capture. All people and activity are fictional.
 
-## Current proposal: round 8, Lit
+## Current proposal: round 9, Toned
+
+Open [round nine](round-9/index.html), also published at
+https://claude.ai/artifact/MtmK6izNJXDyu4CD5152Df. The owner's words on round
+eight: "I like this a lot. I think it's a huge step in the right direction.
+Especially aero gloss. However, it might be a step a little bit too far into 3D
+and Frutiger Arrow. Is there a way we could dial some of this back a tad? While
+retaining the depth and overall vibe?"
+
+- **A depth picker.** Round 8, Toned and Quiet restyle all three phones from
+  one set of paint. Toned is the default and the recommendation. Aero gloss is
+  now the default material; Floodlit steps down the same way.
+- **What Toned removes:** gloss caps on people, the gel edge on arcs, the
+  glossy pot dome, split-gloss buttons, the gloss band on cards, and the
+  lens-flare ghosts. **What it keeps:** the sky, the glass dial face, recessed
+  tracks, a soft glow, frosted cards and shadows.
+- **Part by part.** A table on the page shows each element at all three
+  levels, so a mix can be named directly.
+
+Copy, fixtures and rules are unchanged from round eight. [The round
+record](round-9/DESIGN.md) lists the values per level and the checks (a
+294-state sweep, focus, contrast). Nothing native changed.
+
+### Open decisions for the owner
+
+1. Toned, a step closer to Round 8, Quiet, or a mix?
+2. Still open from round eight: the short freshness line and the pictogram
+   rules summary.
+
+## Preserved eighth proposal: round 8, Lit
 
 Open [round eight](round-8/index.html), also published at
 https://claude.ai/artifact/7XdVqyccrRc5u82KrYZ71U. The owner's words on round
@@ -33,7 +62,7 @@ performed (Chromium at 1440px and 390px, a 98-state sweep, sheet focus,
 contrast of key pairs) and what was not checked (native, VoiceOver, Dynamic
 Type, device). Nothing native changed.
 
-### Open decisions for the owner
+### Open decisions at the time (the owner chose Aero gloss, dialed back)
 
 1. Floodlit, Aero gloss, or somewhere between?
 2. Keep the short freshness line ("3 min ago") on screen?
