@@ -5225,3 +5225,13 @@ Stripe test secrets, and registered a test-mode Stripe webhook. Nothing calls
 with the dispatch secret. Legacy Personal sandbox payment tables
 and their copy are unchanged. Live money still needs the release conditions in
 `docs/BUSINESS_MODEL.md`.
+
+**Correction, September 27, 2026.** "With the switch off and no account
+eligible" describes the moment the migration was applied, not what followed. A
+read-only check found the switch turned on at 03:27 UTC on September 26 and the
+owner's account made eligible at 03:32. A $20 sandbox card was saved at 03:44,
+and the owner's Personal Steps goal for September 27 to October 4 carries a $20
+commitment. It is active with no charge. Nothing sends a queued charge yet, so a
+confirmed miss at finality (about October 8) would leave a pending charge that
+blocks new commitments until it is sent. See the
+[hosted state receipt](outputs/reports/2026-09-27-d144-hosted-state.md).

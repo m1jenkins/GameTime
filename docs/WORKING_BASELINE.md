@@ -9,6 +9,23 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 27 D144 hosted state (read-only)
+
+- **`gametime-p11b`:** the commitment switch has been on since 03:27 UTC on
+  September 26, and the owner's account has been eligible since 03:32. One
+  $20 sandbox card was saved and used. The owner's Steps goal for
+  September 27 to October 4 carries a $20 commitment. It is active and has no
+  charge.
+- **Unresolved:** nothing calls `challenge-commitment-charge`. A confirmed
+  miss at finality (about October 8, 05:00 UTC) would queue a charge that stays
+  pending and blocks new commitments. Switching off doesn't stop a miss from
+  queuing it. What to do before then is the owner's call.
+- The migration history and Edge Functions are as on September 26:
+  `delete-account` is not deployed. D144's Boundaries paragraph now carries a
+  dated correction. Nothing on hosted was changed.
+
+See the [receipt](../outputs/reports/2026-09-27-d144-hosted-state.md).
+
 ## September 26 friends build 1 settings and "Who's it for?"
 
 - **Hosted `gametime-p11b`, with owner approval:** applied
