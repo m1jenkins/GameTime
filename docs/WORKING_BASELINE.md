@@ -23,9 +23,11 @@ tested source and publication status, not the current branch tip.
   are never changed. Signed App Attest records keep the adopted counter rule.
   The P9 contract and COPY.md record the rule and the new **Last update not
   saved** text.
-- **Not done:** the `ingest-challenge-health` deploy to `gametime-p11b` needs
-  separate approval. Until then stuck requests stay retried, but they no longer
-  block anything else.
+- **Hosted:** version 8 of `ingest-challenge-health` went live on
+  `gametime-p11b` at 22:23 UTC. It is byte-identical to `main` at `dff4be9`.
+  Since September 26 16:35 UTC every upload from the enrolled phone has been
+  refused as `binding_invalid`, so that phone saves no activity until it runs a
+  build with this change.
 
 See the [receipt](../outputs/reports/2026-09-27-health-refused-upload.md).
 

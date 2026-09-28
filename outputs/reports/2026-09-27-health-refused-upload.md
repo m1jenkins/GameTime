@@ -1,8 +1,9 @@
 # One refused Health upload no longer stops Health saving
 
-Local change on `claude/health-refused-upload`, from `3d868c7`, September 27,
-2026. Nothing hosted changed and nothing was pushed. Hosted refusals carry the
-new reason only after a separately approved deploy of `ingest-challenge-health`.
+Change on `claude/health-refused-upload`, from `3d868c7`, September 27, 2026,
+merged into `main` as `dff4be9`. Nothing was pushed. The Edge Function change is
+live on `gametime-p11b`; see [Hosted state](#hosted-state-september-27).
+No other hosted setting changed.
 
 ## Reproduced before any change
 
@@ -97,12 +98,32 @@ It also found three smaller points, all addressed:
 | `GameTime-Staging` and `GameTime-TestFlight` simulator builds | Both succeeded on the final code. `scripts/check-iphone-product.py` passed on both apps |
 | pgTAP 518/520 | Not run, because no SQL changed. CI pgTAP passed on `b86a006` with identical SQL |
 
+## Hosted state, September 27
+
+- **Version 8 of `ingest-challenge-health`** went live on `gametime-p11b`
+  (`lyushhqoednheqwzsmxh`) at 22:23:14 UTC. It was deployed outside the session
+  that wrote this change, nine minutes after `c687dde`, and was already live
+  when the owner's deploy request was checked.
+- **Same code as `main`:** all 12 deployed files are byte-identical to
+  `c687dde` and to `main` at `dff4be9`. `verify_jwt` stays off, as in
+  `config.toml`.
+- **Boots cleanly:** the function logs show an unauthenticated POST refused
+  with 401 six seconds after the deploy.
+- **Already needed:** since 16:35:14 UTC on September 26, every upload from the
+  one enrolled account's phone has been refused as
+  `challenge_real_health_binding_invalid`. That is more than 90 attempts,
+  including seven after the deploy. The last accepted upload was three seconds
+  earlier. Version 8 answers these with `challenge_closed`.
+- **Not fixed on the phone yet:** the installed build ignores `reason`, so the
+  phone stays blocked until it runs a build with this change.
+- The other seven functions are at the versions the
+  [D144 receipt](2026-09-27-d144-hosted-state.md) recorded earlier that day.
+  Migrations and settings weren't rechecked.
+
 ## Not done
 
-- Deploying `ingest-challenge-health` to `gametime-p11b` needs separate
-  approval. Until then hosted 422s have no reason: stuck account-mode requests
-  stay saved and retried, but they no longer block other challenges or activity
-  checks.
+- Installing a build with this change on the owner's phone is a separate
+  device action.
 - Signed App Attest records still block on a permanent refusal, as adopted. No
   current build uses that path for challenge Health. Extending retirement to
   them is an owner decision.
