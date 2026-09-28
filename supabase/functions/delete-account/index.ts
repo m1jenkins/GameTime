@@ -25,9 +25,12 @@ const stripe: StripeCustomerDeleter = (() => {
 
 export const handler = createDeleteAccountHandler({
   database: postgrestAccountDeletionDatabase(dataApi),
+  // Not the Auth provider's SUPABASE_AUTH_EXTERNAL_APPLE_* names: hosted
+  // Supabase reserves the SUPABASE_ prefix, and the provider's client ID is a
+  // comma-separated list that Apple would refuse as one client_id.
   apple: createAppleTokenRevoker({
-    clientId: requireEnv("SUPABASE_AUTH_EXTERNAL_APPLE_CLIENT_ID"),
-    clientSecret: requireEnv("SUPABASE_AUTH_EXTERNAL_APPLE_SECRET"),
+    clientId: requireEnv("GAMETIME_APPLE_CLIENT_ID"),
+    clientSecret: requireEnv("GAMETIME_APPLE_CLIENT_SECRET"),
   }),
   stripe,
   verifyToken: createAccessTokenVerifier(accessTokenVerification()),
