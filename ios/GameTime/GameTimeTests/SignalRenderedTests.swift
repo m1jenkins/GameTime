@@ -54,7 +54,10 @@ import XCTest
                              viewGoal: { _ in }, showRecord: {}, create: {}, library: {})
             }.environment(\.dynamicTypeSize, type).preferredColorScheme(.light),
                 name: name, width: width, height: height, scrolls: true, systemStyle: style,
-                required: ["September steps", "Your steps", "38,620", "With you", "Maya", "Jordan", "View goal", "Simulated"],
+                // Floodlight 9.3 Home: the lit card holds the title, your number
+                // against your goal and when it was updated; friends are the
+                // dial and the faces, and "simulated" is in the card's VoiceOver label.
+                required: ["GameTime", "September steps", "38,620", "50,000 steps", "Ends"],
                 forbidden: ["Today", "Payment test mode"])
         }
     }
@@ -208,7 +211,10 @@ import XCTest
         fixture.rows = [row]; try await fixture.start()
         try await capture(NavigationStack { LiveGoalDetail(store: fixture.store, id: row.id) },
             name: "agreement-exact-distance-summary", scrolls: true,
-            required: ["12.345678 km", "Review and agree", "Full rules", "$20 simulated"],
+            // Floodlight 11.1 invitation: "$20 each" as terms, a pot that counts
+            // only people who agreed, and the simulated-stakes line once.
+            required: ["12.345678 km", "Review and agree", "Full rules", "$20", "each", "Simulated stakes", "in the pot", "Your seat fills when you agree",
+                       "You all agree to these rules", "not a miss", "Decline"],
             forbidden: ["12.35 km goal", "72 hours"])
         try await capture(ScrollView { LiveGoalRules(row: row, actor: fixture.actor).padding(24) }.background(SignalTheme.canvas),
             name: "agreement-default-disclosure", scrolls: true,

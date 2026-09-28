@@ -17,10 +17,11 @@ struct LiveGoalDetail: View {
     @State private var reviewReason = "wrong_total"
     @State private var communityReportSaved = false
     @State private var refreshing = false
+    @State private var declining = false
     @ScaledMetric(relativeTo: .title2) private var headingSize = 25.0
 
     enum Section: String, Identifiable {
-        case rules, agreement, activity, people, lobby, result, community
+        case rules, agreement, activity, people, lobby, result, community, pot
         var id: String { rawValue }
         var title: String {
             switch self {
@@ -31,6 +32,7 @@ struct LiveGoalDetail: View {
             case .lobby: "Set up your challenge"
             case .result: "Your result"
             case .community: "Community"
+            case .pot: "The pot"
             }
         }
     }
@@ -39,6 +41,86 @@ struct LiveGoalDetail: View {
     private var canAct: Bool { row.map { store.isFresh($0) } == true && !store.busy && store.pending == nil }
 
     var body: some View {
+        page
+        .foregroundStyle(SignalTheme.textPrimary)
+        .toolbar(.hidden, for: .navigationBar)
+        // The page draws one back control. Leaving the system button visible stacks a second one.
+        .navigationBarBackButtonHidden(section == nil)
+        .scrollDismissesKeyboard(.interactively)
+        .refreshable { await refreshActivity() }
+        .task(id: id) {
+            await refreshActivity()
+            #if DEBUG
+            let args = ProcessInfo.processInfo.arguments
+            if LiveDesignFixtures.enabled, args.contains("--live-screen=rules"),
+               id == LiveDesignFixtures.activeID { sheet = .rules }
+            if LiveDesignFixtures.enabled, args.contains("--live-screen=pot") || args.contains("--live-screen=invitation-pot"),
+               [LiveDesignFixtures.activeID, LiveDesignFixtures.invitationID].contains(id) { sheet = .pot }
+            #endif
+        }
+        .onDisappear { health?.cancel(id) }
+        .onChange(of: row?.revision) { consent = false }
+        .onChange(of: store.actor) {
+            consent = false; target = ""; username = ""; exitAction = nil; declining = false
+            reviewReason = "wrong_total"; communityReportSaved = false; sheet = nil
+        }
+        .sheet(item: $sheet) { page in
+            if page == .pot, let row {
+                FloodlightPotSheet(row: row, actor: store.actor, rules: { sheet = .rules })
+            } else {
+                LiveGoalSheet(title: page.title) {
+                    if let row {
+                        sheetContent(page, row: row)
+                        recovery
+                    } else {
+                        Text("Sign in to the same account and refresh to see this challenge.")
+                    }
+                }
+            }
+        }
+        .confirmationDialog("Leave safely?", isPresented: Binding(
+            get: { exitAction != nil }, set: { if !$0 { exitAction = nil } }), titleVisibility: .visible) {
+                Button(exitAction == "cancel" ? "Cancel challenge" : "Leave challenge", role: .destructive) {
+                    if let row, let action = exitAction { Task { await store.submit(op: action, challenge: row) } }
+                    exitAction = nil
+                }
+            } message: {
+                Text("Your simulated entry is returned. A shared challenge continues only if its agreed minimum remains. No real money moves.")
+            }
+        // The Challenges list's decline, for an invitation opened on its own page.
+        .confirmationDialog("Decline this invitation?", isPresented: $declining, titleVisibility: .visible) {
+            Button("Decline invitation", role: .destructive) {
+                if let row, store.isFresh(row), needsConsent(row) {
+                    Task {
+                        await store.submit(op: "leave", challenge: row)
+                        if store.pending == nil && store.error == nil { dismiss() }
+                    }
+                }
+                declining = false
+            }
+            Button("Keep invitation", role: .cancel) { declining = false }
+        } message: { Text("You won’t join this challenge. Your existing agreements stay unchanged.") }
+    }
+
+    /// Friend goals in progress and invitations use the Floodlight pages; every
+    /// other challenge and every sheet keeps the current layout.
+    @ViewBuilder private var page: some View {
+        if section == nil, let row, FloodlightChallengeFacts.layout(row, actor: store.actor) == .challenge {
+            FloodlightChallengePage(row: row, actor: store.actor, refreshing: refreshing, canAct: canAct,
+                                    health: healthAttention(row), recovery: AnyView(recovery),
+                                    back: { dismiss() }, pot: { sheet = .pot }, rules: { sheet = .rules },
+                                    activity: { sheet = .activity }, refresh: { Task { await refreshActivity() } },
+                                    leave: { exitAction = "leave" })
+        } else if section == nil, let row, FloodlightChallengeFacts.layout(row, actor: store.actor) == .invitation {
+            FloodlightInvitationPage(row: row, actor: store.actor, canAct: canAct, recovery: AnyView(recovery),
+                                     back: { dismiss() }, pot: { sheet = .pot }, rules: { sheet = .rules },
+                                     agree: { sheet = .agreement }, decline: { declining = true })
+        } else {
+            legacyPage.background(SignalTheme.canvas)
+        }
+    }
+
+    private var legacyPage: some View {
         ScrollView {
             if let row {
                 VStack(alignment: .leading, spacing: 18) {
@@ -65,45 +147,19 @@ struct LiveGoalDetail: View {
                 }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 24)
             }
         }
-        .background(SignalTheme.canvas)
-        .foregroundStyle(SignalTheme.textPrimary)
-        .toolbar(.hidden, for: .navigationBar)
-        // The page draws one back control. Leaving the system button visible stacks a second one.
-        .navigationBarBackButtonHidden(section == nil)
-        .scrollDismissesKeyboard(.interactively)
-        .refreshable { await refreshActivity() }
-        .task(id: id) {
-            await refreshActivity()
-            #if DEBUG
-            if LiveDesignFixtures.enabled, ProcessInfo.processInfo.arguments.contains("--live-screen=rules"),
-               id == LiveDesignFixtures.activeID { sheet = .rules }
-            #endif
-        }
-        .onDisappear { health?.cancel(id) }
-        .onChange(of: row?.revision) { consent = false }
-        .onChange(of: store.actor) {
-            consent = false; target = ""; username = ""; exitAction = nil
-            reviewReason = "wrong_total"; communityReportSaved = false; sheet = nil
-        }
-        .sheet(item: $sheet) { page in
-            LiveGoalSheet(title: page.title) {
-                if let row {
-                    sheetContent(page, row: row)
-                    recovery
-                } else {
-                    Text("Sign in to the same account and refresh to see this challenge.")
-                }
-            }
-        }
-        .confirmationDialog("Leave safely?", isPresented: Binding(
-            get: { exitAction != nil }, set: { if !$0 { exitAction = nil } }), titleVisibility: .visible) {
-                Button(exitAction == "cancel" ? "Cancel challenge" : "Leave challenge", role: .destructive) {
-                    if let row, let action = exitAction { Task { await store.submit(op: action, challenge: row) } }
-                    exitAction = nil
-                }
-            } message: {
-                Text("Your simulated entry is returned. A shared challenge continues only if its agreed minimum remains. No real money moves.")
-            }
+    }
+
+    /// Apple Health needs the person's attention: not connected, nothing
+    /// found, or an update that didn't go through. Nothing to say otherwise.
+    private func healthAttention(_ row: ChallengeV1) -> AnyView? {
+        guard let health, let actor = store.actor,
+              let binding = try? ChallengeHealthBindingMapper.agreement(row, actor: actor),
+              !row.isClosed, row.own(actor)?.exited == false else { return nil }
+        let state = health.state(for: binding)
+        guard state.notSaved || state.pendingDelivery || state.message != nil
+                || ![.ready, .checking].contains(state.readiness) else { return nil }
+        return AnyView(FloodlightHealthCard(flow: health, binding: binding, refreshing: refreshing,
+                                            refresh: { Task { await refreshActivity() } }))
     }
 
     private func header(_ row: ChallengeV1) -> some View {
@@ -364,6 +420,7 @@ struct LiveGoalDetail: View {
         case .lobby: lobbyContent(row)
         case .result: resultContent(row)
         case .community: communityContent(row)
+        case .pot: EmptyView()
         }
     }
 

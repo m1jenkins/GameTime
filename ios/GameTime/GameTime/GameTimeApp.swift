@@ -234,9 +234,9 @@ struct GameTimeApp: App {
             Group {
                 #if DEBUG
                 if SourceInvestigationLaunch.enabled {
-                    SourceInvestigationView()
+                    SourceInvestigationView().preferredColorScheme(.light)
                 } else if ChallengeLocalLaunch.enabled {
-                    ChallengeLocalLaunchView()
+                    ChallengeLocalLaunchView().preferredColorScheme(.light)
                 } else {
                     productRoot
                 }
@@ -258,7 +258,8 @@ struct GameTimeApp: App {
             }
             .tint(SignalTheme.accent)
             .foregroundStyle(SignalTheme.textPrimary)
-            .preferredColorScheme(.light)
+            // The signed-in shell follows the phone's appearance (Floodlight
+            // 9.3). Screens without a dark design keep asking for light.
         }
     }
 
@@ -297,6 +298,7 @@ struct GameTimeApp: App {
                         message: configurationFailure
                             ?? "GameTime isn’t set up correctly on this device."
                     )
+                    .preferredColorScheme(.light)
                 }
     }
 
@@ -402,12 +404,14 @@ struct RootView: View {
                             Task { await model.retryLaunch() }
                         }
                     )
+                    .preferredColorScheme(.light)
                 case .signedOut:
-                    LiveSignInView()
+                    LiveSignInView().preferredColorScheme(.light)
                 case .onboarding:
                     LiveOnboardingView(
                         namePrefill: model.onboardingNamePrefill
                     )
+                    .preferredColorScheme(.light)
                 case .signedIn:
                     SignalProductShell()
                 }

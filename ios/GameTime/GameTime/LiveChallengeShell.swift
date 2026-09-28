@@ -70,18 +70,22 @@ struct LiveChallengeShell: View {
             tabBar
         }
         .background(SignalTheme.canvas.ignoresSafeArea())
-        .preferredColorScheme(.light)
+        // The shell follows the phone's appearance. Creation, Settings (with
+        // Personal history) and the invitation-link sheet have no dark design
+        // yet, so each presentation keeps asking for light.
         .fullScreenCover(isPresented: $create, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {
-            if serviceAvailable {
-                ChallengeV1Create(store: store, allowed: creatablePolicies, onGoHome: {
-                    selection = 0
-                    homePath = []
-                    libraryPath = []
-                    recordPath = []
-                })
-            } else {
-                LiveUnavailableSheet(title: "New challenges aren’t open yet", message: "You can refresh your saved challenges or return later.")
-            }
+            Group {
+                if serviceAvailable {
+                    ChallengeV1Create(store: store, allowed: creatablePolicies, onGoHome: {
+                        selection = 0
+                        homePath = []
+                        libraryPath = []
+                        recordPath = []
+                    })
+                } else {
+                    LiveUnavailableSheet(title: "New challenges aren’t open yet", message: "You can refresh your saved challenges or return later.")
+                }
+            }.preferredColorScheme(.light)
         }
         .sheet(isPresented: $settings, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {
             NavigationStack {
@@ -93,7 +97,7 @@ struct LiveChallengeShell: View {
                         Button("Sign out") { Task { await logout() } }.buttonStyle(LiveSecondaryButtonStyle())
                     }.padding(SignalTheme.contentInset).frame(maxHeight: .infinity, alignment: .top).background(SignalTheme.canvas)
                 }
-            }.presentationDragIndicator(.visible).tint(SignalTheme.accent)
+            }.presentationDragIndicator(.visible).tint(SignalTheme.accent).preferredColorScheme(.light)
         }
         .sheet(isPresented: $entry, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {
             NavigationStack {
@@ -105,7 +109,7 @@ struct LiveChallengeShell: View {
                     .safeAreaInset(edge: .top, spacing: 0) {
                         LiveSheetHeader(title: "Your invitation", close: { entry = false })
                     }
-            }.tint(SignalTheme.accent).presentationDragIndicator(.visible)
+            }.tint(SignalTheme.accent).presentationDragIndicator(.visible).preferredColorScheme(.light)
         }
     }
 
@@ -139,9 +143,11 @@ struct LiveChallengeShell: View {
             tab(2, "You", "person", "person")
         }
         .padding(.horizontal, 11).padding(.top, 3).padding(.bottom, 4)
-        .background(Color(red: 247/255, green: 248/255, blue: 250/255).ignoresSafeArea(edges: .bottom))
-        .overlay(alignment: .top) { Rectangle().fill(SignalTheme.divider).frame(height: 0.75) }
+        .background(Floodlight.bar.ignoresSafeArea(edges: .bottom))
+        .overlay(alignment: .top) { Rectangle().fill(Floodlight.barEdge).frame(height: 1) }
     }
+    /// Floodlight's tab bar: the active tab's icon in the accent and its label in
+    /// ink, the others in Faint.
     private func tab(_ index: Int, _ label: String, _ icon: String, _ selectedIcon: String) -> some View {
         Button {
             if selection == index {
@@ -153,11 +159,12 @@ struct LiveChallengeShell: View {
         } label: {
             VStack(spacing: 5) {
                 Image(systemName: selection == index ? selectedIcon : icon).font(.system(size: 23, weight: .regular))
-                Text(label).liveFont(10, weight: selection == index ? .semibold : .regular)
+                    .foregroundStyle(selection == index ? Floodlight.accent : Floodlight.faint)
+                Text(label).floodlightFont(10, weight: .semibold)
+                    .foregroundStyle(selection == index ? Floodlight.ink : Floodlight.faint)
                     .lineLimit(1).minimumScaleFactor(0.65)
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, minHeight: 44)
-                .foregroundStyle(selection == index ? SignalTheme.accent : SignalTheme.textSecondary)
                 .contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityIdentifier("beta.tab." + label.lowercased())
             .accessibilityAddTraits(selection == index ? .isSelected : [])
@@ -169,7 +176,12 @@ struct LiveChallengeShell: View {
         let args = ProcessInfo.processInfo.arguments
         if args.contains("--live-screen=challenges") { selection = 1 }
         if args.contains("--live-screen=you") || args.contains("--live-screen=friends") { selection = 2 }
-        if args.contains("--live-screen=goal") || args.contains("--live-screen=rules") { homePath = [LiveDesignFixtures.activeID] }
+        if args.contains("--live-screen=goal") || args.contains("--live-screen=rules") || args.contains("--live-screen=pot") {
+            homePath = [LiveDesignFixtures.activeID]
+        }
+        if args.contains("--live-screen=invitation") || args.contains("--live-screen=invitation-pot") {
+            homePath = [LiveDesignFixtures.invitationID]
+        }
         if args.contains("--live-screen=settings") { selection = 2; settings = true }
         if args.contains("--live-screen=create") || args.contains("--live-screen=create-personal") { selection = 1; create = true }
         #endif
@@ -187,7 +199,7 @@ struct LiveHomeView: View {
     @Environment(\.challengeHealthFlow) private var health
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(FriendsStore.self) private var friends: FriendsStore?
-    @State private var selectedFriend: LiveFriendSelection?
+    @State private var scrolled = false
     private var featured: ChallengeV1? {
         let rows = store.profileSnapshot.rows.filter { !$0.isClosed && $0.own(store.actor)?.exited == false }
         return rows.first { $0.status == "active" && $0.format.mode == .friend }
@@ -195,156 +207,188 @@ struct LiveHomeView: View {
             ?? rows.filter { $0.status == "scheduled" }.min { $0.config.startsAt < $1.config.startsAt } ?? rows.first
     }
     var body: some View {
-        ScrollView {
+        // Floodlight 9.3 Home: the wordmark and the active challenge's lit card
+        // sit on the sky; everything else is on the ground below it.
+        FloodlightScrollPage(scrolled: $scrolled) { topInset in
             VStack(alignment: .leading, spacing: 0) {
-                if let row = featured {
-                    HomeActionRows(challenges: store, viewGoal: viewGoal).padding(.bottom, homeRowsVisible ? 24 : 0)
-                    heading(row)
-                    metric(row).padding(.top, 24)
-                    let friends = row.members.filter { $0.actorId != store.actor && $0.selected && !$0.exited }
-                    if !row.socialHidden, !friends.isEmpty { withYou(row, friends: friends).padding(.top, 28) }
-                    else { personalContext(row).padding(.top, 26) }
-                    VStack(spacing: 16) {
-                        Text("\(LiveChallengePresentation.money(row.config.amountCents)) simulated · fee $0")
-                            .liveFont(13).foregroundStyle(SignalTheme.textSecondary)
-                        Button { viewGoal(row.id) } label: {
-                            HStack(spacing: 10) { Text("View goal"); Image(systemName: "arrow.right").font(.system(size: 18)) }
-                        }.buttonStyle(LivePrimaryButtonStyle()).accessibilityIdentifier("live.home.goal")
-                        Text(sourceLine(row)).liveFont(11).foregroundStyle(SignalTheme.textSecondary)
-                    }.padding(.top, 30).frame(maxWidth: .infinity)
-                    LiveRecoveryView(store: store).padding(.top, 12)
-                } else {
-                    HStack {
-                        Text("Home").liveFont(27, weight: .bold).tracking(-1.15)
-                        Spacer()
-                        Button(action: showRecord) { LiveAvatar(username: profile?.displayName ?? "You", actorID: store.actor, size: 32).frame(width: 44, height: 44) }.accessibilityLabel("Your record")
-                    }
-                    HomeActionRows(challenges: store, viewGoal: viewGoal).padding(.top, homeRowsVisible ? 22 : 0)
-                    if store.homeState == .content {
-                        let complete = store.profileSnapshot.availability == .complete
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text(complete ? "No active challenge" : "Your saved challenges").liveFont(24, weight: .bold).tracking(-0.8)
-                            Text(complete ? "Your finished goals are in You." : "Refresh to check your current goals. Your saved records are in You.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                            if complete && serviceAvailable { Button("Create a challenge", action: create).buttonStyle(LivePrimaryButtonStyle()) }
-                            if !complete { Button("Refresh") { Task { await store.refresh() } }.buttonStyle(LiveSecondaryButtonStyle()) }
-                            Button("View your record", action: showRecord).font(.subheadline.weight(.semibold))
-                                .foregroundStyle(SignalTheme.accent).frame(minHeight: 44)
-                        }.frame(maxWidth: .infinity, alignment: .leading).padding(20).modifier(LiveCardModifier()).padding(.top, 30)
+                VStack(alignment: .leading, spacing: 0) {
+                    header.padding(.horizontal, 20).padding(.top, topInset + 8)
+                    if let row = featured { heroCard(row).padding(.horizontal, 16).padding(.top, 12) }
+                }
+                .padding(.bottom, 18)
+                .background(alignment: .top) { FloodlightSky() }
+                VStack(alignment: .leading, spacing: 12) {
+                    if let row = featured {
+                        cheer(row)
+                        HomeActionRows(challenges: store, viewGoal: viewGoal)
                     } else {
-                        LiveEmptyState(store: store, serviceAvailable: serviceAvailable, create: create).padding(.top, 30)
+                        HomeActionRows(challenges: store, viewGoal: viewGoal)
+                        if store.homeState == .content {
+                            let complete = store.profileSnapshot.availability == .complete
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text(complete ? "No active challenge" : "Your saved challenges").liveFont(24, weight: .bold).tracking(-0.8)
+                                Text(complete ? "Your finished goals are in You." : "Refresh to check your current goals. Your saved records are in You.").font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
+                                if complete && serviceAvailable { Button("Create a challenge", action: create).buttonStyle(LivePrimaryButtonStyle()) }
+                                if !complete { Button("Refresh") { Task { await store.refresh() } }.buttonStyle(LiveSecondaryButtonStyle()) }
+                                Button("View your record", action: showRecord).font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(SignalTheme.accent).frame(minHeight: 44)
+                            }.frame(maxWidth: .infinity, alignment: .leading).padding(20).modifier(LiveCardModifier())
+                        } else {
+                            LiveEmptyState(store: store, serviceAvailable: serviceAvailable, create: create)
+                        }
                     }
-                    LiveRecoveryView(store: store).padding(.top, 18)
-                }
-            }.padding(.horizontal, SignalTheme.contentInset).padding(.top, 20).padding(.bottom, 16)
-        }.background(SignalTheme.canvas).toolbar(.hidden, for: .navigationBar)
-            .refreshable { await store.refresh(); await friends?.refresh(); await health?.refresh() }
-            .modifier(FriendsNoticeToast(friends: friends))
-            .sheet(item: $selectedFriend) { selection in
-                LiveFriendSheet(store: store, challengeID: selection.challengeID, personID: selection.personID)
-            }
-            .onChange(of: store.actor) { selectedFriend = nil }
-    }
-    private var homeRowsVisible: Bool { !HomeActionRows.items(challenges: store, friends: friends).isEmpty }
-    private func heading(_ row: ChallengeV1) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            VStack(alignment: .leading, spacing: 9) {
-                Text(LiveChallengePresentation.title(row)).liveFont(27, weight: .bold).tracking(-1.15)
-                    .fixedSize(horizontal: false, vertical: true)
-                let summaryLayout = typeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
-                    : AnyLayout(HStackLayout(spacing: 10))
-                summaryLayout {
-                    Text(ChallengePresentation.dates(row)).liveFont(14).foregroundStyle(SignalTheme.textSecondary)
-                    let state = LiveChallengePresentation.state(row, actor: store.actor)
-                    HStack(spacing: 5) { Circle().frame(width: 5, height: 5); Text(state) }
-                        .liveFont(13, weight: .semibold)
-                        .foregroundStyle(state == "Behind" ? SignalTheme.danger : state == "No update yet" ? SignalTheme.textSecondary : SignalTheme.accent)
-                }.fixedSize(horizontal: false, vertical: true)
-            }.frame(maxWidth: .infinity, alignment: .leading)
-            Button(action: showRecord) { LiveAvatar(username: profile?.displayName ?? "You", actorID: store.actor, size: 32).frame(width: 44, height: 44) }
-                .buttonStyle(.plain).accessibilityLabel("Your record").padding(.top, -5)
-        }
-    }
-    private func metric(_ row: ChallengeV1) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            let targetLayout = typeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
-                : AnyLayout(HStackLayout())
-            targetLayout {
-                Text(row.format.metric == .distance ? "Your distance" : row.format.metric == .steps ? "Your steps" : "Your activity")
-                    .fontWeight(.medium)
-                if !typeSize.isAccessibilitySize { Spacer() }
-                Text(LiveChallengePresentation.goal(row, actor: store.actor))
-            }.liveFont(13).foregroundStyle(SignalTheme.textSecondary)
-            LiveMetric(value: LiveChallengePresentation.value(row.own(store.actor).flatMap { row.savedScore($0) }, metric: row.format.metric),
-                       unit: LiveChallengePresentation.unit(row.format.metric), size: row.format.metric == .steps ? 83 : 114)
-                .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 5).padding(.bottom, 8)
-            LiveProgressRail(progress: LiveChallengePresentation.progress(row, actor: store.actor))
-            let progressLayout = typeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
-                : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
-            progressLayout {
-                Text(LiveChallengePresentation.remaining(row, actor: store.actor)).fontWeight(.semibold)
-                if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
-                Text(LiveChallengePresentation.ends(row)).foregroundStyle(SignalTheme.textSecondary)
-            }.liveFont(12).padding(.top, 12)
-        }.padding(.horizontal, 20).padding(.top, 21).padding(.bottom, 20).modifier(LiveCardModifier())
-            .accessibilityIdentifier("live.home.metric")
-    }
-    private func withYou(_ row: ChallengeV1, friends: [ChallengeV1.Member]) -> some View {
-        VStack(alignment: .leading, spacing: 19) {
-            let headingLayout = typeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
-                : AnyLayout(HStackLayout())
-            headingLayout {
-                Text("With you").liveFont(19, weight: .semibold).tracking(-0.4)
-                if !typeSize.isAccessibilitySize { Spacer() }
-                Button { viewGoal(row.id) } label: {
-                    Text("\(friends.count) friends ↗").liveFont(12).foregroundStyle(SignalTheme.textSecondary)
-                        .frame(minHeight: 44).contentShape(Rectangle())
-                }
-                .padding(.vertical, typeSize.isAccessibilitySize ? 0 : -12)
-            }
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: typeSize.isAccessibilitySize ? 1 : min(3, friends.count)), spacing: 18) {
-                ForEach(friends.prefix(6)) { friend in
-                    Button { selectedFriend = .init(challengeID: row.id, personID: friend.actorId) } label: {
-                        VStack(spacing: 0) {
-                            ZStack {
-                                Circle().stroke(SignalTheme.progressTrack, lineWidth: 4)
-                                if let progress = LiveChallengePresentation.progress(row, actor: friend.actorId) {
-                                    Circle().trim(from: 0, to: progress).stroke(SignalTheme.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round)).rotationEffect(.degrees(-90))
-                                }
-                                LiveAvatar(username: friend.username, actorID: friend.actorId, size: 55)
-                            }.frame(width: 66, height: 66).padding(3)
-                            Text(friend.username).liveFont(14, weight: .medium).padding(.top, 10)
-                                .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
-                                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                            let state = LiveChallengePresentation.state(row, member: friend)
-                            HStack(spacing: 3) {
-                                if state == "Done" { Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)) }
-                                Text(state)
-                            }.liveFont(13, weight: .semibold).padding(.top, 4)
-                                .foregroundStyle(state == "Behind" ? SignalTheme.danger : state == "No update yet" ? SignalTheme.textSecondary : SignalTheme.accent)
-                        }.frame(maxWidth: .infinity)
-                    }.buttonStyle(.plain)
-                }
+                    LiveRecoveryView(store: store)
+                }.padding(.horizontal, 16).padding(.bottom, 24)
             }
         }
+        .toolbar(.hidden, for: .navigationBar)
+        .refreshable { await store.refresh(); await friends?.refresh(); await health?.refresh() }
+        .modifier(FriendsNoticeToast(friends: friends))
     }
-    private func personalContext(_ row: ChallengeV1) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: "lock").font(.system(size: 20)).foregroundStyle(SignalTheme.accent)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Your goal").liveFont(15, weight: .semibold)
-                Text("Your activity and record stay private.").liveFont(13).foregroundStyle(SignalTheme.textSecondary)
+
+    /// The GameTime mark and the date; the date moves under the mark at
+    /// accessibility text sizes so neither is cut off.
+    private var header: some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(alignment: .center, spacing: 10))
+        return layout {
+            HStack(spacing: 8) {
+                FloodlightBrandMark().fill(Floodlight.brand).frame(width: 24, height: 24).accessibilityHidden(true)
+                FloodlightTitle(GameTimePublicIdentity.name, size: 34, maxScale: 1.4, spacing: -0.02).foregroundStyle(Floodlight.ink)
+                    .lineLimit(1).fixedSize()
+                    .accessibilityAddTraits(.isHeader)
             }
-        }.frame(maxWidth: .infinity, alignment: .leading).padding(16).modifier(LiveCardModifier(radius: 17, material: true))
+            if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
+            FloodlightLabel(today, color: Floodlight.heroMuted).fixedSize(horizontal: false, vertical: true)
+        }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
     }
-    private func sourceLine(_ row: ChallengeV1) -> String {
-        guard let fact = row.own(store.actor)?.fact else { return "Waiting for activity · Refresh after your Watch syncs" }
-        guard row.sourcePolicyVersion != nil else { return "Last saved challenge update" }
-        let minutes = max(0, Int(row.serverTime.date.timeIntervalSince(fact.recordedAt.date) / 60))
-        return "From Apple Health · " + (minutes < 1 ? "just now" : minutes < 60 ? "\(minutes) min ago" : "last saved update")
+    /// The server's today in the featured challenge's time zone, or the phone's.
+    private var today: String {
+        let format = DateFormatter()
+        format.timeZone = featured.flatMap { TimeZone(identifier: $0.config.timezone) } ?? .current
+        format.setLocalizedDateFormatFromTemplate("EEEMMMd")
+        return format.string(from: featured?.serverTime.date ?? Date())
+    }
+
+    /// The lit card: the challenge, your number and the group dial with the pot.
+    private func heroCard(_ row: ChallengeV1) -> some View {
+        let actor = store.actor
+        let own = row.own(actor)
+        let group = row.format.mode == .friend && !row.socialHidden
+        let people = group ? FloodlightChallengeFacts.people(row, actor: actor) : own.map { [$0] } ?? []
+        let slots = FloodlightChallengeFacts.slots(row, actor: actor)
+        let pot = group && row.format.hasTarget ? FloodlightChallengeFacts.potCents(row) : nil
+        let sync = own.flatMap { FloodlightChallengeFacts.syncTime(row, $0, actor: actor) }
+        let title = LiveChallengePresentation.title(row)
+        let spoken = (["Open \(title)."] + (pot.map { ["Pot: \(LiveChallengePresentation.money($0)) in simulated stakes."] } ?? [])
+            + people.map { FloodlightChallengeFacts.spoken(row, $0, actor: actor) } + (sync.map { [$0.spoken + "."] } ?? [])).joined(separator: " ")
+        return Button { viewGoal(row.id) } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        FloodlightTitle(title, size: 28).foregroundStyle(Floodlight.ink).fixedSize(horizontal: false, vertical: true)
+                        Text("\(ChallengePresentation.dates(row)) · \(LiveChallengePresentation.ends(row))")
+                            .floodlightFont(12.5, weight: .medium).foregroundStyle(Floodlight.muted).fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right").font(.system(size: 15, weight: .semibold)).foregroundStyle(Floodlight.muted).padding(.top, 4)
+                }
+                if typeSize.isAccessibilitySize {
+                    // Larger text: the dial on its own row, then the number.
+                    VStack(alignment: .leading, spacing: 8) {
+                        if row.format.hasTarget, !people.isEmpty { dial(row, people: people, pot: pot) }
+                        measure(row, own: own)
+                    }
+                } else {
+                    // The page's 0.8fr / 1.2fr split: number left, dial right.
+                    HStack(alignment: .center, spacing: 4) {
+                        measure(row, own: own).frame(maxWidth: .infinity, alignment: .leading)
+                        if row.format.hasTarget, !people.isEmpty {
+                            dial(row, people: people, pot: pot)
+                                .containerRelativeFrame(.horizontal) { width, _ in max(120, (width - 64) * 0.6) }
+                        }
+                    }
+                }
+                let foot = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 10))
+                foot {
+                    FloodlightFaceStack(people: people.map { person in
+                        (slot: slots[person.actorId] ?? 0, initials: FloodlightChallengeFacts.initials(person, actor: actor, profile: profile),
+                         badge: FloodlightChallengeFacts.met(row, person) ? FloodlightOrb.Badge.met : .none, waiting: row.savedScore(person) == nil)
+                    })
+                    if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
+                    if let sync { FloodlightSyncTime(short: sync.short, spoken: sync.spoken, late: sync.late) }
+                }
+                .padding(.top, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .overlay(alignment: .top) { Rectangle().fill(Floodlight.line).frame(height: 1) }
+            }
+            .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .floodlightHero()
+            .contentShape(RoundedRectangle(cornerRadius: 22))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(spoken)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityIdentifier("live.home.goal")
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("live.home.metric")
+    }
+
+    private func measure(_ row: ChallengeV1, own: ChallengeV1.Member?) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(own.map { FloodlightChallengeFacts.value(row, $0) } ?? "—")
+                .floodlightFont(70, weight: .semibold, condensed: true, maxScale: 1.3).tracking(-1.75).monospacedDigit()
+                .lineLimit(1).minimumScaleFactor(0.5).foregroundStyle(Floodlight.ink)
+            if let target = own?.target {
+                Text("/ " + FloodlightChallengeFacts.goal(row, target)).floodlightFont(15, weight: .medium).foregroundStyle(Floodlight.muted)
+            } else {
+                Text(LiveChallengePresentation.unit(row.format.metric)).floodlightFont(15, weight: .medium).foregroundStyle(Floodlight.muted)
+            }
+            if let own, row.savedScore(own) == nil {
+                Text("No update yet").floodlightFont(13, weight: .semibold).foregroundStyle(Floodlight.muted).padding(.top, 4)
+            } else if let own, FloodlightChallengeFacts.met(row, own) {
+                Label("Goal reached", systemImage: "checkmark").floodlightFont(13, weight: .semibold).foregroundStyle(Floodlight.ink).padding(.top, 4)
+            }
+        }
+    }
+
+    private func dial(_ row: ChallengeV1, people: [ChallengeV1.Member], pot: Int?) -> some View {
+        let lanes = FloodlightChallengeFacts.lanes(row, actor: store.actor, profile: profile).filter { lane in people.contains { $0.actorId == lane.id } }
+        return FloodlightDial(kind: .compact, lanes: lanes, potCents: pot)
+    }
+
+    /// "Priya reached their goal." under the card, with who reached it.
+    @ViewBuilder private func cheer(_ row: ChallengeV1) -> some View {
+        if row.format.mode == .friend, !row.socialHidden, let line = FloodlightChallengeFacts.metLine(row, actor: store.actor) {
+            let slots = FloodlightChallengeFacts.slots(row, actor: store.actor)
+            let met = FloodlightChallengeFacts.people(row, actor: store.actor).filter { FloodlightChallengeFacts.met(row, $0) }.prefix(3)
+            HStack(spacing: 12) {
+                FloodlightFaceStack(people: met.map { person in
+                    (slot: slots[person.actorId] ?? 0, initials: FloodlightChallengeFacts.initials(person, actor: store.actor, profile: profile),
+                     badge: FloodlightOrb.Badge.met, waiting: false)
+                }, size: 32)
+                Text(line).floodlightFont(15, weight: .semibold).foregroundStyle(Floodlight.ink).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 14).padding(.vertical, 12)
+            .floodlightCard()
+            .accessibilityElement(children: .combine)
+        }
+    }
+}
+
+/// The GameTime mark from the Floodlight page.
+struct FloodlightBrandMark: Shape {
+    func path(in rect: CGRect) -> Path {
+        let s = min(rect.width, rect.height) / 24
+        var path = Path()
+        path.addLines([(4, 21), (4, 10), (11, 3), (11, 10), (20, 3), (20, 14), (11, 21), (11, 14)].map {
+            CGPoint(x: rect.minX + $0.0 * s, y: rect.minY + $0.1 * s)
+        })
+        path.closeSubpath()
+        return path
     }
 }
 
@@ -368,8 +412,8 @@ struct LiveLibraryView: View {
                             .lineLimit(1).minimumScaleFactor(0.7)
                         Spacer()
                         Button(action: create) {
-                            Image(systemName: "plus").font(.system(size: 23)).foregroundStyle(.white)
-                                .frame(width: 44, height: 44).background(SignalTheme.accent, in: Circle())
+                            Image(systemName: "plus").font(.system(size: 23)).foregroundStyle(SignalTheme.onAccent)
+                                .frame(width: 44, height: 44).background(SignalTheme.accentFill, in: Circle())
                         }.accessibilityLabel("Create a challenge").accessibilityIdentifier("beta.create.open")
                     }
                     // The three filters share one row until large text needs the full width.
@@ -385,7 +429,7 @@ struct LiveLibraryView: View {
                                     }
                                 }.liveFont(12, weight: .semibold).frame(maxWidth: .infinity, minHeight: 44)
                                     .foregroundStyle(filter == value ? SignalTheme.accent : SignalTheme.textSecondary)
-                                    .background(filter == value ? Color.white : Color.clear, in: RoundedRectangle(cornerRadius: 13))
+                                    .background(filter == value ? SignalTheme.surface : Color.clear, in: RoundedRectangle(cornerRadius: 13))
                             }.buttonStyle(.plain).accessibilityIdentifier("live.filter." + value.lowercased())
                                 .accessibilityAddTraits(filter == value ? .isSelected : [])
                         }
@@ -591,62 +635,6 @@ struct LiveUnavailableSheet: View {
         }
             .frame(maxWidth: .infinity, alignment: .leading)
             .safeAreaInset(edge: .top, spacing: 0) { LiveSheetHeader(title: title, close: { dismiss() }) }
-            .background(SignalTheme.canvas).preferredColorScheme(.light)
-    }
-}
-
-private struct LiveFriendSelection: Identifiable {
-    let challengeID: UUID
-    let personID: UUID
-    var id: UUID { personID }
-}
-
-private struct LiveFriendSheet: View {
-    @Bindable var store: ChallengeV1Store
-    let challengeID: UUID
-    let personID: UUID
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var typeSize
-    private var current: ChallengeV1? {
-        guard let row = store.challenges.first(where: { $0.id == challengeID }),
-              store.isFresh(row), !row.socialHidden else { return nil }
-        return row
-    }
-    var body: some View {
-        Group {
-            if let row = current, let person = row.members.first(where: { $0.actorId == personID && !$0.exited }) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        if typeSize.isAccessibilitySize {
-                            HStack {
-                                LiveAvatar(username: person.username, actorID: person.actorId, size: 48)
-                                Spacer()
-                                LiveRoundButton(symbol: "xmark", label: "Close", action: { dismiss() })
-                            }
-                            Text(person.username).liveFont(27, weight: .bold).tracking(-1)
-                                .fixedSize(horizontal: false, vertical: true)
-                        } else {
-                            HStack {
-                                LiveAvatar(username: person.username, actorID: person.actorId, size: 48)
-                                Text(person.username).liveFont(27, weight: .bold).tracking(-1)
-                                Spacer(); LiveRoundButton(symbol: "xmark", label: "Close", action: { dismiss() })
-                            }
-                        }
-                        Text(LiveChallengePresentation.title(row)).font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                        VStack(alignment: .leading, spacing: 14) {
-                            LiveMetric(value: LiveChallengePresentation.value(row.savedScore(person), metric: row.format.metric), unit: LiveChallengePresentation.unit(row.format.metric), size: 88)
-                            LiveProgressRail(progress: LiveChallengePresentation.progress(row, actor: person.actorId))
-                            Text(LiveChallengePresentation.goal(row, actor: person.actorId)).font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                        }.padding(20).modifier(LiveCardModifier())
-                        Text("This is their last saved activity. Missing activity isn’t a missed goal.")
-                            .font(.subheadline).foregroundStyle(SignalTheme.textSecondary)
-                        ChallengePersonSafety(store: store, person: person)
-                        Spacer(minLength: 0)
-                    }.padding(.horizontal, SignalTheme.contentInset).padding(.vertical, 24)
-                }
-            } else {
-                LiveUnavailableSheet(title: "This update is unavailable", message: "Close this view and refresh your challenges.")
-            }
-        }.background(SignalTheme.canvas).presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+            .background(SignalTheme.canvas)
     }
 }

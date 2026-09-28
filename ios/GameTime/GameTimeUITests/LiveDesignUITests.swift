@@ -347,6 +347,112 @@ final class LiveDesignUITests: XCTestCase {
         capture(app, name: "health-update-not-saved")
     }
 
+    // MARK: Floodlight 9.3 and 11.1
+
+    /// COPY.md "Friend-goal pot and Floodlight screens" on the friend challenge,
+    /// its pot sheet, the invitation and Home. Runs in whichever appearance the
+    /// simulator uses; the captures are the design review's screenshots.
+    func testFloodlightChallengePotInvitationAndHomeShowTheAdoptedCopy() {
+        continueAfterFailure = false
+        var app = launch("goal")
+        XCTAssertTrue(element(app, "live.goal.hero").waitForExistence(timeout: 10))
+        XCTAssertEqual(app.buttons["live.goal.pot"].label, "Pot: $80 in simulated stakes, $20 each. Show how the pot works.")
+        XCTAssertTrue(app.buttons["Sam, 7.8 of 20 kilometres, 39 percent of their goal."].exists)
+        XCTAssertTrue(app.buttons["Priya, 10 of 10 kilometres, 100 percent of their goal, goal reached."].exists)
+        for text in ["Tuesday, day 2 of 7. Ends Sunday.", "6.4", "/ 20 km", "13.6 km to go", "Updated from Apple Health 1 min ago"] {
+            XCTAssertTrue(shows(app, text), text)
+        }
+        capture(app, name: "floodlight-challenge")
+        let stake = app.buttons["live.goal.stake"]
+        bring(app, stake)
+        XCTAssertEqual(stake.label, "Your simulated stake, $20. Reach 20 kilometres and it comes back after results are final. Show how the pot works.")
+        bring(app, app.buttons["beta.leave"])
+        XCTAssertTrue(app.buttons["live.goal.rules"].exists)
+        XCTAssertTrue(shows(app, "What counts"))
+        capture(app, name: "floodlight-challenge-panel")
+        bring(app, stake, upward: false)
+        stake.tap()
+        XCTAssertTrue(waitToShow(app, "Everyone reaches it"))
+        for text in ["Everyone gets their stake back after results are final.",
+                     "They get their stakes back and split missed stakes evenly. Cents that don’t split evenly go to no one.",
+                     "No stakes come back. No one collects the pot.",
+                     "If we can’t confirm someone’s result from Apple Health, their stake comes back. It doesn’t count as a miss.",
+                     "Pot: $80 in simulated stakes, $20 each."] {
+            XCTAssertTrue(shows(app, text), text)
+        }
+        capture(app, name: "floodlight-pot-sheet")
+        let sheetRules = app.buttons["live.pot.rules"]
+        bring(app, sheetRules)
+        XCTAssertTrue(shows(app, "Simulated stakes — no real money moves."))
+        capture(app, name: "floodlight-pot-sheet-end")
+        sheetRules.tap()
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Dates and times")).firstMatch.waitForExistence(timeout: 5))
+        capture(app, name: "floodlight-full-rules")
+        app.terminate()
+
+        app = launch("invitation")
+        XCTAssertTrue(element(app, "live.goal.hero").waitForExistence(timeout: 10))
+        XCTAssertEqual(app.buttons["live.goal.pot"].label, "Pot: $20 in simulated stakes so far. Show how the pot works.")
+        for text in ["Jordan invited you", "$20 in the pot", "Jordan agreed. Your seat fills when you agree.", "You and Jordan: 20 km each."] {
+            XCTAssertTrue(shows(app, text), text)
+        }
+        XCTAssertFalse(shows(app, "$40"), "The invitation pot counts only people who agreed")
+        capture(app, name: "floodlight-invitation")
+        let agree = app.buttons["live.goal.agree"]
+        bring(app, agree)
+        XCTAssertEqual(agree.label, "Review and agree")
+        for text in ["Stake", "$20", "each", "Fee", "$0", "Simulated stakes — no real money moves.", "Both reach it", "Both stakes back",
+                     "One reaches it", "They get both stakes", "Both miss", "No one collects", "Couldn’t confirm",
+                     "Stakes back · Challenge won’t count", "Outdoor runs on Apple Watch",
+                     "Missing or partial activity never counts as a miss.", "48 h to ask for a review", "Leave before your result is final"] {
+            XCTAssertTrue(shows(app, text), text)
+        }
+        XCTAssertFalse(shows(app, "Stake back, not a miss"), "Two people get the pair wording")
+        capture(app, name: "floodlight-invitation-rules")
+        let decline = app.buttons["live.goal.decline"]
+        bring(app, decline)
+        capture(app, name: "floodlight-invitation-end")
+        decline.tap()
+        XCTAssertTrue(waitToShow(app, "You won’t join this challenge. Your existing agreements stay unchanged."))
+        capture(app, name: "floodlight-invitation-decline")
+        // iOS 26 shows a dialog's cancel action only as a tap outside it.
+        let keep = app.buttons["Keep invitation"]
+        if keep.exists { keep.tap() } else { app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12)).tap() }
+        XCTAssertTrue(decline.waitForExistence(timeout: 5), "Keeping the invitation leaves it open")
+        let pot = app.buttons["live.goal.pot"]
+        bring(app, pot, upward: false)
+        pot.tap()
+        XCTAssertTrue(waitToShow(app, "If we can’t confirm a result from Apple Health, both stakes come back and the challenge won’t count."))
+        XCTAssertTrue(shows(app, "You each get your stake back after results are final."))
+        capture(app, name: "floodlight-invitation-pot-sheet")
+        app.buttons["sheet.close"].firstMatch.tap()
+        bring(app, agree)
+        agree.tap()
+        XCTAssertTrue(app.switches["beta.consent.toggle"].waitForExistence(timeout: 5))
+        capture(app, name: "floodlight-invitation-agree-sheet")
+        app.terminate()
+
+        app = launch("home")
+        let card = app.buttons["live.home.goal"]
+        XCTAssertTrue(card.waitForExistence(timeout: 10))
+        XCTAssertTrue(card.label.hasPrefix("Open September runs. Pot: $80 in simulated stakes."), card.label)
+        XCTAssertTrue(element(app, "live.home.metric").exists)
+        XCTAssertTrue(shows(app, "Priya reached their goal."))
+        capture(app, name: "floodlight-home")
+        card.tap()
+        XCTAssertTrue(element(app, "live.goal.hero").waitForExistence(timeout: 10))
+        app.terminate()
+    }
+
+    /// Any element whose label contains the text, so combined VoiceOver
+    /// elements (one stop per outcome card) still count.
+    private func shows(_ app: XCUIApplication, _ text: String) -> Bool {
+        app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch.exists
+    }
+    private func waitToShow(_ app: XCUIApplication, _ text: String) -> Bool {
+        app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch.waitForExistence(timeout: 5)
+    }
+
     // MARK: D142 friends
 
     func testFriendsListAnswersRequestsAndStatesEverySafetyConsequence() {

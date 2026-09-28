@@ -345,9 +345,13 @@ a new term, add a row rather than inventing a second name for something here.
 ## Friend-goal pot and Floodlight screens
 
 Copy for the adopted Floodlight 9.3 screens (Challenge, Home, Invitation and
-the pot sheet), with the 9.4 outcome wording. Nothing here is in the native app
-yet; add these strings and their `ChallengeV1UITests` or `LiveDesignUITests`
-assertions in the same change. The rule behind the pot is
+the pot sheet), with the 9.4 outcome wording. Since September 28, 2026 the
+native first slice uses the rows from "all members meet their goals" through
+"challenge header", Home's card label, "sync time, just updated" and "Apple
+Health access on a challenge's Health card" (`LiveGoalFloodlight.swift`,
+`LiveHomeView`). The other rows are designed, not built. Add new strings and
+their `ChallengeV1UITests` or `LiveDesignUITests` assertions in the same
+change. The rule behind the pot is
 `ChallengeV1Policy.allocation` and `.missing`: people who meet their goals get
 their stakes back and split confirmed misses evenly; any remainder and an
 all-miss pot go to no one; a result we can't confirm returns that person's
@@ -364,20 +368,20 @@ figures, never a friend's color, and never rank people.
 | some members meet, confirmed misses split | 2: **One reaches it** · "They get both stakes". 3+: **Some reach it** · "They split missed stakes". Pot sheet: "They get their stake back plus the missed one." / "They get their stakes back and split missed stakes evenly. Cents that don't split evenly go to no one." |
 | all-miss pool, unallocated | 2: **Both miss** · "No one collects". 3+: **Everyone misses** · "No one collects". Pot sheet: "Neither stake comes back. No one collects the pot." / "No stakes come back. No one collects the pot." Never "forfeit" or "lost". |
 | missing or unclear result, entry returned | 2: **Couldn't confirm** · "Stakes back · Challenge won't count". Pot sheet: "If we can't confirm a result from Apple Health, both stakes come back and the challenge won't count." 3+: **Couldn't confirm** · "Stake back, not a miss". Pot sheet: "If we can't confirm someone's result from Apple Health, their stake comes back. It doesn't count as a miss." Shown in blue with a "?" badge, never with the miss badge or a dimmed coin. The two-person picture shows both people, each getting their own coin back. |
-| pot total (stake × people who agreed and are still in) | **POT** over the amount, such as **$60**. Before the start it counts only people who agreed, on the invitation and in the lobby alike. Pot sheet: **The pot**, the amount and "3 × $20". VoiceOver: "Pot: $60 in simulated stakes, $20 each." |
-| invitation terms (Floodlight 11.1) | **Stake** "$20 each" · **Fee** "$0", then "Simulated stakes — no real money moves." once. No Pot term and no total that counts people who haven't agreed. The header's pot is the lobby pot: "$20 in the pot", then on screen "Jordan agreed. Your seat fills when you agree." VoiceOver on the pot: "Pot: $20 in simulated stakes so far. Show how the pot works." |
+| pot total (stake × people who agreed and are still in) | **POT** over the amount, such as **$60**. Before the start it counts only people who agreed, on the invitation and in the lobby alike. Pot sheet: **The pot**, the amount and "3 × $20". VoiceOver: "Pot: $60 in simulated stakes, $20 each." The dial's pot button adds "Show how the pot works." |
+| invitation terms (Floodlight 11.1) | **Stake** "$20 each" · **Fee** "$0", then "Simulated stakes — no real money moves." once. No Pot term and no total that counts people who haven't agreed. The header's pot is the lobby pot: "$20 in the pot", then on screen "Jordan agreed. Your seat fills when you agree." ("Jordan and Sam agreed. …" for more than one). Before anyone agrees: "$0 in the pot" and "Your seat fills when you agree." VoiceOver on the pot: "Pot: $20 in simulated stakes so far. Show how the pot works." |
 | agreement heading | 2: **You both agree to these rules.** 3+: **You all agree to these rules.** |
-| invitation facts | "Outdoor runs on Apple Watch" · "Missing or partial activity never counts as a miss." · "48 h to ask for a review" · "Leave before your result is final" |
+| invitation facts | "Outdoor runs on Apple Watch" (or "Steps on Apple Watch", "Activity minutes on Apple Watch") · "Missing or partial activity never counts as a miss." · "48 h to ask for a review" · "Leave before your result is final" |
 | invitation status and sender | **Not started** · "[username] invited you" |
-| invitation goal header | "20 km each" with the dates, such as "Sep 28–Oct 4 · Pacific time". VoiceOver starts with the names: "You and Jordan: 20 km each." |
-| invitation actions | **Review and agree** · **Decline** · **Full rules** |
-| your stake card | **Your stake** with the coin, the progress groove and a flag at your goal ("20 km"). After you reach it: "Comes back when results are final." VoiceOver: "Reach 20 kilometres and it comes back after results are final. Show how the pot works." |
-| snapshot observation/update time, short | "3 min ago" beside a sync icon on Home and the detail card; "Yesterday, 6:10 PM" with a clock icon when late. VoiceOver keeps the full line: "Updated from Apple Health 3 min ago" or "Updated yesterday at 6:10 PM". |
+| invitation goal header | "20 km each" with the dates, such as "Sep 28–Oct 4 · Pacific time". VoiceOver starts with the names: "You and Jordan: 20 km each." When goals differ, your own goal with "your goal" in place of "each" (VoiceOver: "Your goal: 20 km."). |
+| invitation actions | **Review and agree** · **Decline** · **Full rules**. Decline asks first with the Challenges list's words: **Decline this invitation?** · "You won’t join this challenge. Your existing agreements stay unchanged." · **Decline invitation** · **Keep invitation**. |
+| your stake card | **Your stake** with the coin, the progress groove and a flag at your goal ("20 km"). After you reach it: "Comes back when results are final." VoiceOver: "Your simulated stake, $20. Reach 20 kilometres and it comes back after results are final. Show how the pot works." After you reach it: "Your simulated stake, $20. Goal reached. It comes back when results are final. Show how the pot works." |
+| snapshot observation/update time, short | "3 min ago" beside a sync icon on Home and the detail card ("2 h ago" after an hour the same day); "Yesterday, 6:10 PM" with a clock icon when late, or the date ("Sep 20, 6:10 PM") before that. VoiceOver keeps the full line: "Updated from Apple Health 3 min ago" for your own update, "Updated 2 h ago" for a friend's, or "Updated yesterday at 6:10 PM". |
 | member with no saved update | Name chip: "No update". Detail card: **No update yet** and "Missing or partial activity never counts as a miss." |
-| member progress (detail card) | "6.4 / 20 km" · "13.6 km to go", or **Goal reached** with a check. VoiceOver: "Sam, 7.8 of 20 kilometres, 39 percent of their goal." |
+| member progress (detail card) | "6.4 / 20 km" · "13.6 km to go", or **Goal reached** with a check. VoiceOver: "Sam, 7.8 of 20 kilometres, 39 percent of their goal." Yours: "You, 6.4 of 20 kilometres, 32 percent of your goal." A goal met adds ", goal reached". With no saved update: "Sam, no update yet." The card's close button: "Close your numbers" or "Close Sam’s numbers". |
 | goals met so far (live) | "Everyone reached their goal." · "You and Sam reached your goals." · "Priya reached their goal." With nobody met and nobody selected: "Tap a name to see their numbers." Never a ranking. |
-| challenge header | Challenge name, dates ("Sep 21–27") and seven day pips. VoiceOver: "Tuesday, day 2 of 7. Ends Sunday." |
-| Home | **Next up** rows: date tile, "[username] invited you" or the challenge name, "with Sam", and **See**. The active card opens with "Open September runs. Pot: $80 in simulated stakes." |
+| challenge header | Challenge name, dates ("Sep 21–27") and seven day pips. VoiceOver: "Tuesday, day 2 of 7. Ends Sunday." The dial as a whole: "Progress toward each person’s goal". |
+| Home | **Next up** rows: date tile, "[username] invited you" or the challenge name, "with Sam", and **See**. The active card opens with "Open September runs. Pot: $80 in simulated stakes." The native card reads its people and update time after that, as in the member progress and update time rows. The card itself shows the title, "Sep 21–27 · Ends Sunday", your number over "/ 20 km", "No update yet" or **Goal reached** under it, and the goals-met line in a card below. **Next up** rows aren't built yet; Home keeps its existing action rows. |
 | personal goal met, entry returned (Floodlight 10.1 personal Rules) | **You reach it** · "Stake back". |
 | personal goal missed, entry unallocated | **You miss it** · "No one collects it". Never "forfeit" or "lost". |
 | personal goal, result we can't confirm | **Couldn't confirm** · "Stake back, not a miss", as in the group rows. |
@@ -407,7 +411,9 @@ User-facing strings are Swift literals in the view layer and in the
 `PersonalChallengeDetailView.swift`, `TodayView.swift`, `YouView.swift`,
 `ChallengesView.swift`, `PersonalAccountabilityComponents.swift`,
 `PersonalPaceComponents.swift`, `AppModel.swift`, and `DomainModels.swift`.
-Friends copy lives in `FriendsViews.swift` and `HomeActionRows.swift`. Friend
+Floodlight friend-goal copy lives in `LiveGoalFloodlight.swift`
+(`FloodlightChallengeFacts`) and `LiveHomeView`. Friends copy lives in
+`FriendsViews.swift` and `HomeActionRows.swift`. Friend
 error codes map to sentences in `FriendsCopy` (`FriendModels.swift`), which
 shows an unknown code only as `Reference: <code>`.
 `PersonalSyncCoverage.swift`, `SupabaseMetricUploadClient.swift`, and
