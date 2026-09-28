@@ -55,10 +55,12 @@ glossary in `docs/COPY.md` rather than inventing a second name for it
 somewhere else.
 
 The legacy `GameTimeUITests` suite rejects competitive-social vocabulary on
-Personal screens. It still expects the retired `Today` shell, and the smoke
-script doesn't run it. That is a Personal regression rule, not a ban on friend,
-invitation, winner or rematch in new screens. Add product-scoped copy checks
-to `ChallengeV1UITests` or `LiveDesignUITests` in the same commit as the copy.
+Personal screens. It still expects the retired `Today` shell, so its tests are
+skipped by name in `RetiredShellSkips.swift` (owner-approved September 27)
+until repaired, and the smoke script doesn't run it. That is a Personal
+regression rule, not a ban on friend, invitation, winner or rematch in new
+screens. Add product-scoped copy checks to `ChallengeV1UITests` or
+`LiveDesignUITests` in the same commit as the copy.
 Do not change historical consent strings.
 
 ## Product boundaries

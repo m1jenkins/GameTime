@@ -25,7 +25,8 @@ final class GameTimeUITests: XCTestCase {
     private let deletionWarning =
         "Deleting your GameTime account ends normal access to this Beta and your existing Personal account. We’ll stop new participation and sharing right away. We’ll remove account details and unneeded Beta drafts within seven days, while keeping what we need to finish results, reviews, and appeals. You can check a saved account-deletion receipt after signing out. This can’t be undone."
 
-    override func setUp() {
+    override func setUpWithError() throws {
+        try RetiredShellSkips.skipIfListed(self)
         continueAfterFailure = false
     }
 

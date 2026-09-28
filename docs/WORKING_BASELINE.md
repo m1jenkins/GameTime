@@ -9,6 +9,35 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 27 legacy UI suites skipped (owner-approved)
+
+- **Skipped:** all 51 legacy UI tests: `GameTimeUITests` (32), `DuelUITests`
+  (11) and `PerformanceCommitmentUITests` (8). Game Time Dev approved this
+  under Mason's September 27 autonomy mandate for finishing the TestFlight
+  beta. `RetiredShellSkips.swift` names each test and its reason, and each
+  suite's `setUpWithError()` throws `XCTSkip` before the app launches. Tests
+  not on the list still run, and nothing else is skipped.
+- **Why:** they drive the Personal Today, Challenges and You tabs, the old
+  creation flow and the old You entries for Friend duels and Running goals.
+  `add54cf` replaced those with `LiveChallengeShell`, so each test failed at
+  its first navigation step.
+- **Next:** repair the 13 Personal-detail tests against
+  `LivePersonalDetailView`, removing each entry as its test passes. The 17
+  retired-flow tests stay skipped until replacement flows exist. The 2 sign-in
+  and account tests need rewriting for the new shell. Duels and running goals
+  need their You entries restored behind the Debug/Staging and launch-argument
+  gates, or new coverage.
+- **Checked locally** with Xcode 27 on iOS 26.5: in CI's full `test` run,
+  51 of 51 skipped and `LiveDesignUITests` passed 16 of 16. The Staging and
+  Release builds succeeded, and the conformance harness passed 10 of 10.
+- **Found:** one unit test can fail by chance.
+  `testMountedDetailEqualRevisionUpdatesWithoutAnotherFetch` failed once
+  locally. It checks that "321" is gone from the page, and the "Updated"
+  time's microseconds happened to contain it. It passed on rerun and isn't
+  changed here. That line shows microseconds on screen too.
+
+See the [receipt](../outputs/reports/2026-09-27-legacy-uitest-skip.md).
+
 ## September 27 iOS CI: tab bar, friends audit, flaky test, conformance build
 
 - **Still red:** 51 legacy UI tests, in `GameTimeUITests` (32), `DuelUITests`

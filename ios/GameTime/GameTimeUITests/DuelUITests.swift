@@ -2,7 +2,10 @@ import XCTest
 
 @MainActor
 final class DuelUITests: XCTestCase {
-    override func setUp() { continueAfterFailure = false }
+    override func setUpWithError() throws {
+        try RetiredShellSkips.skipIfListed(self)
+        continueAfterFailure = false
+    }
 
     func testSummaryAndFullRulesDoNotAcceptInvitation() {
         let app = launch("--fixture-duel-incoming")

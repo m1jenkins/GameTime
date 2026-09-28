@@ -2,7 +2,10 @@ import XCTest
 
 @MainActor
 final class PerformanceCommitmentUITests: XCTestCase {
-    override func setUp() { continueAfterFailure = false }
+    override func setUpWithError() throws {
+        try RetiredShellSkips.skipIfListed(self)
+        continueAfterFailure = false
+    }
 
     func testSummaryKeepsAmountAndFullRulesBeforeConsent() {
         let app = launch()
