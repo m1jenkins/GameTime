@@ -35,7 +35,7 @@ what the step required; each item is resolved as noted.
    `[LEGAL ENTITY]`, `[JURISDICTION]` and `[SUPPORT EMAIL]` in the privacy
    policy. They are open owner inputs in the
    [friends TestFlight plan](FRIENDS_TESTFLIGHT_PLAN.md#open-owner-inputs).
-   *Done:* Mason Jenkins; State of Texas, United States;
+   *Done:* Squirrel Labs, Inc. (owner, Sep 27); State of Texas, United States;
    `gametime-support@agentmail.to`.
 2. **Revise the privacy policy for the TestFlight build.** Its own scope note
    says it describes only the Personal steps app. The TestFlight build is

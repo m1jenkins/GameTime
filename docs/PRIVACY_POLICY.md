@@ -6,8 +6,8 @@ GameTime lets you set activity goals, run challenges with friends, and see how
 you did. This policy explains what we collect, why, who else handles it, and
 how to delete it.
 
-GameTime is operated by Mason Jenkins, an individual in the State of Texas,
-United States. "We" and "us" in this policy mean Mason Jenkins. This version of
+GameTime is operated by Squirrel Labs, Inc., based in the State of Texas,
+United States. "We" and "us" in this policy mean Squirrel Labs, Inc. This version of
 GameTime is a small, invite-only beta distributed through Apple's TestFlight to
 people we know. It is not on the App Store.
 
@@ -185,6 +185,6 @@ change takes effect, and we will update the date at the top.
 
 ## Contact
 
-Mason Jenkins, State of Texas, United States
+Squirrel Labs, Inc., State of Texas, United States
 
 gametime-support@agentmail.to

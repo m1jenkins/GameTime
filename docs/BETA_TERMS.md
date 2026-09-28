@@ -3,8 +3,8 @@
 **Last updated:** September 27, 2026
 
 These terms apply when you use the GameTime beta. GameTime is operated by
-Mason Jenkins, an individual in the State of Texas, United States. "We" and
-"us" mean Mason Jenkins; "you" means the person using the beta. By installing
+Squirrel Labs, Inc., based in the State of Texas, United States. "We" and
+"us" mean Squirrel Labs, Inc.; "you" means the person using the beta. By installing
 or using the beta, you agree to these terms and to the
 [GameTime Privacy Policy](https://m1jenkins.github.io/GameTime/privacy.html).
 If you don't agree, please don't use the beta.
@@ -119,6 +119,6 @@ unless the law where you live gives you a different right.
 
 ## Contact
 
-Mason Jenkins, State of Texas, United States
+Squirrel Labs, Inc., State of Texas, United States
 
 gametime-support@agentmail.to
