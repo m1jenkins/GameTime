@@ -252,7 +252,7 @@ import XCTest
         window.overrideUserInterfaceStyle = systemStyle
         window.frame = CGRect(x: 0, y: 0, width: width, height: height)
         window.rootViewController = host; window.makeKeyAndVisible(); host.view.frame = window.bounds
-        defer { window.isHidden = true; previous?.makeKeyAndVisible() }
+        defer { window.rootViewController = nil; window.isHidden = true; previous?.makeKeyAndVisible() }
         try await Task.sleep(for: .milliseconds(300))
         host.view.setNeedsLayout(); host.view.layoutIfNeeded()
         var lines: [String] = []
@@ -285,6 +285,10 @@ import XCTest
             host.view.layoutIfNeeded()
             XCTAssertLessThan(page, 39, "The complete route must fit the bounded scroll capture")
         }
+        // The test may replace the fixture's rows as soon as this returns. Give
+        // any load the page already queued a turn while the rows still match;
+        // the defer then unmounts the view so nothing it started runs later.
+        try await Task.sleep(for: .milliseconds(100))
         let text = lines.joined(separator: " ").lowercased()
         let searchable = text.filter { !$0.isWhitespace }
         let transcription = XCTAttachment(string: text)

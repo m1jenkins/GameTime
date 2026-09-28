@@ -62,9 +62,13 @@ struct LiveChallengeShell: View {
     }
 
     private var presentedShell: some View {
-        selectedTab
-        .tint(SignalTheme.accent)
-        .safeAreaInset(edge: .bottom, spacing: 0) { tabBar }
+        // The opaque bar sits below the content rather than over it. Overlaid,
+        // rows scrolled beneath it still answered accessibility hit tests
+        // where the bar was drawn, so a tap meant for a hidden row hit a tab.
+        VStack(spacing: 0) {
+            selectedTab.tint(SignalTheme.accent)
+            tabBar
+        }
         .background(SignalTheme.canvas.ignoresSafeArea())
         .preferredColorScheme(.light)
         .fullScreenCover(isPresented: $create, onDismiss: { personalRouteCoordinator?.allowPresentation() }) {

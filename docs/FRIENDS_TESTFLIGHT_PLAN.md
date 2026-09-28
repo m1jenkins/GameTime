@@ -386,6 +386,12 @@ October.
   D142 leaves both unchanged.
 - Phase 4's fixed-text implementation gap was addressed locally September 24.
   Human VoiceOver and physical accessibility acceptance remain required.
+- Whether to repair or retire the legacy UI suites. `GameTimeUITests` (32
+  tests), `DuelUITests` (11) and `PerformanceCommitmentUITests` (8) drive the
+  Personal Today, Challenges and You screens that `add54cf` stopped showing, so
+  they fail on every run and keep the iOS CI job red. The
+  [September 27 receipt](../outputs/reports/2026-09-27-ios-ci.md#the-legacy-suites-not-changed)
+  sorts which tests could be repaired.
 - From Phase 4: whether "Didn't count" is enough when a friend's total is below
   the goal, since a real Apple Health total can't prove a miss.
 

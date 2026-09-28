@@ -9,6 +9,33 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 27 iOS CI: tab bar, friends audit, flaky test, conformance build
+
+- **Still red:** 51 legacy UI tests, in `GameTimeUITests` (32), `DuelUITests`
+  (11) and `PerformanceCommitmentUITests` (8), drive the Personal Today,
+  Challenges and You screens that `add54cf` stopped showing. Looking tabs up by
+  `beta.tab.*` would only move each failure one step. Repairing or retiring
+  them is an open owner input, so they still fail and keep the iOS job red.
+- **Fixed:** rows scrolled under the custom tab bar still answered
+  accessibility hit tests there, so the friends audit's taps opened Home and
+  Challenges, and it read text hidden by the bar as low contrast. The opaque
+  bar now sits below the content, with pixel-identical captures, and the audit
+  records contrast reports for text running into the bar. `LiveDesignUITests`
+  passed 16/16 on iOS 26.5.
+- **Precaution:** `SignalRenderedTests` failed intermittently on CI when a
+  captured goal page read the fixture after the test had replaced its rows. The
+  capture helper now lets the page's load finish and unmounts it before
+  returning. The failure didn't reproduce locally.
+- **Fixed:** the conformance harness hasn't compiled since `cbfaf25`: its
+  `GameTimeCore.AssertionCounterDecoder` alias resolves to the `GameTimeCore`
+  enum, not the module. It now uses the decoder by its plain name, and its 10
+  tests pass. CI skips this step, and the Staging and Release builds, while its
+  product tests fail.
+- Locally with Xcode 27, no unit test failed, and the Staging and Release
+  builds succeeded.
+
+See the [receipt](../outputs/reports/2026-09-27-ios-ci.md).
+
 ## September 27 legal pages prepared (not published)
 
 - `docs/legal-site/` holds draft privacy and beta-terms pages, built by

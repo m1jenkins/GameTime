@@ -1,4 +1,5 @@
 import Foundation
+import GameTimeCore
 import XCTest
 @testable import GameTimeConformance
 

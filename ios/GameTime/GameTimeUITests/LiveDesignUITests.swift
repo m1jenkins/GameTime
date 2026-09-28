@@ -580,12 +580,16 @@ final class LiveDesignUITests: XCTestCase {
         // Let a sheet or a refreshed list finish moving before the audit reads it.
         _ = XCTWaiter.wait(for: [XCTestExpectation(description: "settle")], timeout: 1.5)
         capture(app, name: "audit " + screen)
+        let homeTab = app.buttons["beta.tab.home"]
+        let tabBarTop = homeTab.exists && homeTab.isHittable ? homeTab.frame.minY : nil
         var issues: [String] = [], known: [String] = [], textSize = 0
         do {
             try app.performAccessibilityAudit { issue in
                 let text = "\(issue.auditType.rawValue) \(issue.compactDescription) — \(issue.element?.label ?? "no element")"
                 if issue.auditType == .dynamicType { textSize += 1 }
                 else if Self.knownAuditReport(screen, issue.auditType, issue.element?.label) { known.append(text) }
+                else if issue.auditType == .contrast, let tabBarTop, let element = issue.element,
+                        Self.cutOffByTabBar(element, tabBarTop: tabBarTop) { known.append(text) }
                 else { issues.append(text) }
                 return true
             }
@@ -618,6 +622,13 @@ final class LiveDesignUITests: XCTestCase {
         case (.contrast, _), (.textClipped, _): screen.hasPrefix("Friend actions")
         default: false
         }
+    }
+
+    /// A tab's scrolling area ends at the tab bar. Text that runs into the bar
+    /// is cut off or hidden, so the audit reads the bar, not the text. The tab
+    /// labels themselves still count, and a sheet over the bar turns this off.
+    private static func cutOffByTabBar(_ element: XCUIElement, tabBarTop: CGFloat) -> Bool {
+        !["Home", "Challenges", "You"].contains(element.label) && element.frame.maxY > tabBarTop
     }
 
     /// XCUITest subscripts reject identifiers over 128 characters.
