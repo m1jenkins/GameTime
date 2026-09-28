@@ -1,5 +1,46 @@
 # GameTime UI adoption and migration history
 
+## Floodlight 9.3 adopted, light and dark — September 27, 2026
+
+The owner, Mason, adopted Floodlight round 9.3 as the visual direction on
+September 27, 2026. It replaces the light-only round nine entry below as the
+reference; that entry's scope and "not built yet" list still apply.
+
+**Adopted design.** [Round 9.3](../../.lavish/floodlight-refinement-2026-09-27/round-9-3/index.html)
+with its [record](../../.lavish/floodlight-refinement-2026-09-27/round-9-3/DESIGN.md)
+and, for everything that record doesn't change,
+[round 9.2's record](../../.lavish/floodlight-refinement-2026-09-27/round-9-2/DESIGN.md):
+
+- **Light mode is Aero Toned. Dark mode is Floodlit, at Toned depth.** Both are
+  painted from one shared token set: the `--gt-*` tokens in round 9.3, each
+  with a light and a dark value and a SwiftUI asset name (71 rows).
+- **Native follows the system appearance.** The native plan drops the forced
+  `.light` color scheme, so the app is light or dark with the phone.
+- **Barlow Condensed and Barlow are bundled** under the OFL (license files in
+  `round-9-3/assets/`), with the same Dynamic Type scaling `liveFont` uses.
+- **The shared pot is the confirmed rule for friend goals.** People who meet
+  their goals get their stakes back and share confirmed misses evenly. Any
+  remainder and an all-miss pot stay unallocated. A result we can't confirm
+  returns that person's stake and is never a miss (`ChallengeV1Policy`
+  `allocation` and `missing`).
+
+The review page's Appearance control, specimens and token table are review
+tools, not product UI.
+
+**Outcome wording.** [Round 9.4](../../.lavish/floodlight-refinement-2026-09-27/round-9-4/index.html)
+proposes the pot's outcome copy for two people and for three or more, with a
+fourth "Couldn't confirm" outcome. Its rows are in [COPY.md](../COPY.md) under
+"Friend-goal pot and Floodlight screens". The 9.4 visuals are otherwise 9.3.
+
+**Not built yet.** Nothing native has changed. The September 22 presentation
+below stays the shipping app until a separately approved SwiftUI plan lands,
+with the open items listed in the round nine entry below (goal formats other
+than distance, late, missing and exited members, VoiceOver, Dynamic Type, blur
+performance). 9.3 records two light values that pass with little margin
+(`faint` 4.50 and the pot bar top 4.52); the native build re-measures them.
+Agreement text, rules, stakes and product behavior are unchanged, and the
+Personal app stays as it is (D134).
+
 ## Floodlight Toned adopted — September 27, 2026
 
 The owner, on the round nine review: "Toned looks great -- I'd like to move

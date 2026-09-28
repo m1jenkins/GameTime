@@ -1,0 +1,662 @@
+{
+ "tool": "Chromium 153.0.8010.12 through Playwright 1.63",
+ "errors": [],
+ "widths": {
+  "1440 side by side, light system": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "both",
+   "visiblePhones": 26
+  },
+  "1440 side by side, dark system": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "both",
+   "visiblePhones": 26
+  },
+  "1440 #light": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "light",
+   "visiblePhones": 13
+  },
+  "1440 #dark": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "dark",
+   "visiblePhones": 13
+  },
+  "390 light system": {
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "appearance": "light",
+   "visiblePhones": 13
+  },
+  "390 dark system": {
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "appearance": "dark",
+   "visiblePhones": 13
+  }
+ },
+ "phoneOverflow": {
+  "1440 side by side, light system": [],
+  "1440 side by side, dark system": [],
+  "1440 #light": [],
+  "1440 #dark": [],
+  "390 light system": [],
+  "390 dark system": []
+ },
+ "restraint": {
+  "ph-fgoal-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-fgoal-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-fchal-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-fchal-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-finv-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-finv-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-finv0-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-finv0-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-pgoal-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-pgoal-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-prules-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-prules-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-saved-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-saved-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-lib-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-lib-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-libdone-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-libdone-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-you-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-you-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-friends-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-friends-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-add-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-add-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-report-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-report-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  }
+ },
+ "symbols": {
+  "used": [
+   "#i-status",
+   "#sf-applewatch",
+   "#sf-arrow.right",
+   "#sf-arrow.turn.up.left",
+   "#sf-calendar",
+   "#sf-checkmark",
+   "#sf-chevron.left",
+   "#sf-chevron.right",
+   "#sf-clock",
+   "#sf-doc.on.doc",
+   "#sf-figure.run",
+   "#sf-flag",
+   "#sf-gearshape",
+   "#sf-hand.raised",
+   "#sf-house",
+   "#sf-lock",
+   "#sf-magnifyingglass.check",
+   "#sf-pencil",
+   "#sf-person",
+   "#sf-person.2",
+   "#sf-person.badge.minus",
+   "#sf-person.badge.plus",
+   "#sf-plus",
+   "#sf-shoeprints.fill",
+   "#sf-square.and.arrow.up",
+   "#sf-stopwatch",
+   "#sf-xmark"
+  ],
+  "missing": []
+ },
+ "copy": {
+  "ph-fgoal-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-fchal-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-finv-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-finv0-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-pgoal-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-prules-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-saved-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-lib-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-you-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-friends-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-add-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-report-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "forbiddenOnScreen": []
+ },
+ "interactions": {
+  "timedRunShowsEntry": true,
+  "timedRunFocusStays": true,
+  "pickEndDay": true,
+  "moveStartKeepsLength": true,
+  "beforeEarliestDisabled": true,
+  "noSteppers": true,
+  "goalToChallengeShowsTimedRun": true,
+  "pickFour": true,
+  "pickNoneSkips": true,
+  "ownUsername": true,
+  "createDisabledUntilAgree": true,
+  "agreeEnablesCreate": true,
+  "stepsPill": true,
+  "rulesSheetFocus": true,
+  "rulesSheetInert": true,
+  "escapeReturnsFocus": true,
+  "invitedFilter": true,
+  "declineDialog": true,
+  "briefFilters": "Active · Upcoming · Finished",
+  "briefKeepsAttention": true,
+  "friendRows": true,
+  "friendSheet": true,
+  "reportSendDisabledFirst": true,
+  "reportThanksOffersBlock": true,
+  "reportClosesToList": true,
+  "findNotFound": true,
+  "sendRequest": true,
+  "sideBySideStaysInStep": true
+ },
+ "largeText": {
+  "light": [],
+  "dark": []
+ },
+ "contrast": {
+  "default": {
+   "runs": 840,
+   "failures": [
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 3.13,
+     "p05": 3.13
+    },
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 3.09,
+     "p05": 3.09
+    },
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 3.09,
+     "p05": 3.09
+    },
+    {
+     "phone": "ph-prules-d",
+     "text": "$",
+     "large": false,
+     "worst": 2.94,
+     "p05": 2.94
+    }
+   ],
+   "lowestNormal": [
+    {
+     "phone": "ph-prules-d",
+     "text": "$",
+     "large": false,
+     "worst": 2.94,
+     "p05": 2.94
+    },
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 3.09,
+     "p05": 3.09
+    },
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 3.09,
+     "p05": 3.09
+    },
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 3.13,
+     "p05": 3.13
+    },
+    {
+     "phone": "ph-lib-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-lib-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-libdone-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-libdone-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    }
+   ],
+   "lowestLarge": [
+    {
+     "phone": "ph-you-l",
+     "text": "?",
+     "large": true,
+     "worst": 4.75,
+     "p05": 4.75
+    },
+    {
+     "phone": "ph-fchal-l",
+     "text": "$20",
+     "large": true,
+     "worst": 5.12,
+     "p05": 5.19
+    },
+    {
+     "phone": "ph-you-d",
+     "text": "9",
+     "large": true,
+     "worst": 5.95,
+     "p05": 6.04
+    },
+    {
+     "phone": "ph-you-d",
+     "text": "7",
+     "large": true,
+     "worst": 6.19,
+     "p05": 6.22
+    }
+   ]
+  },
+  "alternate": {
+   "runs": 782,
+   "failures": [
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 2.99,
+     "p05": 2.99
+    },
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 2.99,
+     "p05": 2.99
+    },
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 2.99,
+     "p05": 2.99
+    },
+    {
+     "phone": "ph-prules-d",
+     "text": "$",
+     "large": false,
+     "worst": 2.94,
+     "p05": 2.94
+    }
+   ],
+   "lowestNormal": [
+    {
+     "phone": "ph-prules-d",
+     "text": "$",
+     "large": false,
+     "worst": 2.94,
+     "p05": 2.94
+    },
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 2.99,
+     "p05": 2.99
+    },
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 2.99,
+     "p05": 2.99
+    },
+    {
+     "phone": "ph-fchal-d",
+     "text": "$",
+     "large": false,
+     "worst": 2.99,
+     "p05": 2.99
+    },
+    {
+     "phone": "ph-lib-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-lib-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-libdone-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-libdone-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    }
+   ],
+   "lowestLarge": [
+    {
+     "phone": "ph-you-l",
+     "text": "?",
+     "large": true,
+     "worst": 4.75,
+     "p05": 4.75
+    },
+    {
+     "phone": "ph-fchal-l",
+     "text": "$20",
+     "large": true,
+     "worst": 5.12,
+     "p05": 5.19
+    },
+    {
+     "phone": "ph-you-d",
+     "text": "9",
+     "large": true,
+     "worst": 5.95,
+     "p05": 6.04
+    },
+    {
+     "phone": "ph-you-d",
+     "text": "7",
+     "large": true,
+     "worst": 6.19,
+     "p05": 6.22
+    }
+   ]
+  }
+ },
+ "words": {
+  "fgoal": 84,
+  "fchal": 130,
+  "finv": 82,
+  "finv0": 80,
+  "pgoal": 77,
+  "prules": 82,
+  "saved": 18,
+  "lib": 134,
+  "libdone": 44,
+  "you": 86,
+  "friends": 57,
+  "add": 99,
+  "report": 81
+ }
+}

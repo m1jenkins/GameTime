@@ -1,0 +1,762 @@
+{
+ "tool": "Chromium 153.0.8010.12 through Playwright 1.63",
+ "errors": [],
+ "widths": {
+  "1440 side by side, light system": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "both",
+   "visiblePhones": 36
+  },
+  "1440 side by side, dark system": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "both",
+   "visiblePhones": 36
+  },
+  "1440 #light": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "light",
+   "visiblePhones": 18
+  },
+  "1440 #dark": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "dark",
+   "visiblePhones": 18
+  },
+  "390 light system": {
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "appearance": "light",
+   "visiblePhones": 18
+  },
+  "390 dark system": {
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "appearance": "dark",
+   "visiblePhones": 18
+  }
+ },
+ "phoneOverflow": {
+  "1440 side by side, light system": [],
+  "1440 side by side, dark system": [],
+  "1440 #light": [],
+  "1440 #dark": [],
+  "390 light system": [],
+  "390 dark system": []
+ },
+ "largeText": {
+  "light": [],
+  "dark": []
+ },
+ "restraint": {
+  "ph-fgoal-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-fgoal-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-fgoaltime-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-fgoaltime-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-fchal-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-fchal-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-finv-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-finv-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-finvxl-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-finvxl-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-finv0-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-finv0-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-fsaved-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-fsaved-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-pgoal-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-pgoal-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-prules-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-prules-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-prulesm-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-prulesm-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-saved-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-saved-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-lib-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-lib-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-libdone-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-libdone-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-you-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-you-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-friends-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-friends-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-add-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-add-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-report-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-report-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-block-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  },
+  "ph-block-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "gradientButtons": 0,
+   "gradientAvatars": 0
+  }
+ },
+ "symbols": {
+  "used": [
+   "#i-brand",
+   "#i-status",
+   "#sf-applewatch",
+   "#sf-arrow.right",
+   "#sf-arrow.turn.up.left",
+   "#sf-checkmark",
+   "#sf-checkmark.circle",
+   "#sf-chevron.left",
+   "#sf-chevron.right",
+   "#sf-clock",
+   "#sf-doc.on.doc",
+   "#sf-envelope",
+   "#sf-figure.run",
+   "#sf-flag",
+   "#sf-gearshape",
+   "#sf-globe",
+   "#sf-hand.raised",
+   "#sf-heart.text.clipboard",
+   "#sf-house",
+   "#sf-lock",
+   "#sf-magnifyingglass.check",
+   "#sf-pencil",
+   "#sf-person",
+   "#sf-person.2",
+   "#sf-person.badge.minus",
+   "#sf-person.badge.plus",
+   "#sf-plus",
+   "#sf-shoeprints.fill",
+   "#sf-square.and.arrow.up",
+   "#sf-stopwatch",
+   "#sf-xmark"
+  ],
+  "missing": []
+ },
+ "copy": {
+  "ph-fgoal-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-fgoaltime-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-fchal-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-finv-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-finvxl-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-finv0-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-fsaved-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-pgoal-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-prules-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-prulesm-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-saved-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-lib-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-libdone-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-you-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-friends-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-add-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-report-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-block-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "forbiddenOnScreen": []
+ },
+ "interactions": {
+  "goalDefaultIsRunningDistance": true,
+  "goalDefaultHasNoDistanceHero": true,
+  "timedIsTimeTarget": true,
+  "timedChipShowsTimeTarget": true,
+  "calendarFoldedByDefault": true,
+  "startsUnfoldsCalendar": true,
+  "dayCellsAtLeast44": true,
+  "beforeEarliestDisabled": true,
+  "pickStartMovesToEnd": true,
+  "moveStartKeepsLength": true,
+  "pickEndFoldsCalendar": true,
+  "tapAgainFolds": true,
+  "noSteppers": true,
+  "timeZoneRowAtLeast44": true,
+  "timeZoneSheetOpens": true,
+  "timeZonePicked": true,
+  "goalToChallenge": true,
+  "challengePotJustYou": true,
+  "lobbyPendingSeats": true,
+  "lobbyPotHoldsOnlyYours": true,
+  "pickFour": true,
+  "pickNoneSkips": true,
+  "largeTextPhoneUsesRows": true,
+  "largeTextToggleMakesRows": true,
+  "largeTextOffSpheres": true,
+  "inviteOpensChallengeSaved": true,
+  "savedInvitedArePending": true,
+  "createDisabledFirst": true,
+  "agreeAloneNotEnough": true,
+  "healthReadyShowsFound": true,
+  "agreeAndHealthEnableCreate": true,
+  "moneyOnShowsBanner": true,
+  "moneyOnNeedsCard": true,
+  "cardSavedEnablesCreate": true,
+  "moneyOffRestores": true,
+  "rulesSheetFocus": true,
+  "rulesSheetInert": true,
+  "escapeReturnsFocus": true,
+  "stepsPill": true,
+  "attentionAboveLive": true,
+  "sectionHeadings": "Needs your attention · Active · Upcoming · Finished",
+  "onlyLiveHasMiniDial": true,
+  "finishedFlatRings": true,
+  "filtersAsBuilt": "All · Invited1 · Finished",
+  "noToolbarFilterSwitch": true,
+  "invitedFilter": true,
+  "declineDialog": true,
+  "declineIsCalm": true,
+  "youChipNotConfirmed": true,
+  "friendRows": true,
+  "friendSheet": true,
+  "reportSendDisabledFirst": true,
+  "reportThanksOffersBlock": true,
+  "blockIsSystemAlert": true,
+  "alertInBothModes": true,
+  "alertFocusCancel": true,
+  "escapeClosesAlertKeepsSheet": true,
+  "blockConfirmCloses": true,
+  "removeUsesAlert": true,
+  "blockPhoneShowsAlert": true,
+  "findNotFound": true,
+  "sendRequest": true,
+  "sideBySideStaysInStep": true
+ },
+ "contrast": {
+  "default": {
+   "runs": 998,
+   "failures": [],
+   "lowestNormal": [
+    {
+     "phone": "ph-lib-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-lib-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-libdone-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-libdone-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-you-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-you-l",
+     "text": "Challenges",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    }
+   ],
+   "lowestLarge": [
+    {
+     "phone": "ph-you-l",
+     "text": "?",
+     "large": true,
+     "worst": 4.75,
+     "p05": 4.75
+    },
+    {
+     "phone": "ph-finv-l",
+     "text": "$20",
+     "large": true,
+     "worst": 4.58,
+     "p05": 5.06
+    },
+    {
+     "phone": "ph-finvxl-l",
+     "text": "$20",
+     "large": true,
+     "worst": 4.58,
+     "p05": 5.06
+    },
+    {
+     "phone": "ph-finv0-l",
+     "text": "$20",
+     "large": true,
+     "worst": 4.58,
+     "p05": 5.06
+    },
+    {
+     "phone": "ph-fchal-l",
+     "text": "$20",
+     "large": true,
+     "worst": 4.93,
+     "p05": 5.12
+    },
+    {
+     "phone": "ph-finvxl-d",
+     "text": "Invite 2 friends",
+     "large": true,
+     "worst": 5.33,
+     "p05": 5.33
+    }
+   ]
+  },
+  "alternate": {
+   "runs": 840,
+   "failures": [],
+   "lowestNormal": [
+    {
+     "phone": "ph-lib-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-lib-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-libdone-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-libdone-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-you-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-you-l",
+     "text": "Challenges",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    }
+   ],
+   "lowestLarge": [
+    {
+     "phone": "ph-finv-l",
+     "text": "$20",
+     "large": true,
+     "worst": 4.58,
+     "p05": 5.06
+    },
+    {
+     "phone": "ph-finvxl-l",
+     "text": "$20",
+     "large": true,
+     "worst": 4.58,
+     "p05": 5.06
+    },
+    {
+     "phone": "ph-finv0-l",
+     "text": "$20",
+     "large": true,
+     "worst": 4.58,
+     "p05": 5.06
+    },
+    {
+     "phone": "ph-finvxl-d",
+     "text": "Invite 2 friends",
+     "large": true,
+     "worst": 5.33,
+     "p05": 5.33
+    },
+    {
+     "phone": "ph-finvxl-l",
+     "text": "Invite 2 friends",
+     "large": true,
+     "worst": 6.03,
+     "p05": 6.03
+    },
+    {
+     "phone": "ph-lib-d",
+     "text": "Challenges",
+     "large": true,
+     "worst": 6.37,
+     "p05": 6.78
+    }
+   ]
+  }
+ },
+ "words": {
+  "fgoal": 56,
+  "fgoaltime": 63,
+  "fchal": 127,
+  "finv": 98,
+  "finvxl": 102,
+  "finv0": 95,
+  "fsaved": 83,
+  "pgoal": 50,
+  "prules": 109,
+  "prulesm": 125,
+  "saved": 21,
+  "lib": 145,
+  "libdone": 50,
+  "you": 90,
+  "friends": 58,
+  "add": 101,
+  "report": 83,
+  "block": 125
+ }
+}

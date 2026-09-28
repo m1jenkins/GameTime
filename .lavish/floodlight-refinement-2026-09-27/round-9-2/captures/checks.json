@@ -1,0 +1,854 @@
+{
+  "errors": [],
+  "widths": {
+    "390": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "1440": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    },
+    "1440 dark": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    },
+    "390 light": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "390 side by side": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  },
+  "appearance": {
+    "1440 light system": {
+      "appearance": "both",
+      "theme": null,
+      "visiblePhones": [
+        "phone-al",
+        "phone-ad",
+        "phone-bl",
+        "phone-bd",
+        "phone-cl",
+        "phone-cd"
+      ]
+    },
+    "1440 after tapping Dark": {
+      "appearance": "dark",
+      "theme": "dark",
+      "visiblePhones": [
+        "phone-ad",
+        "phone-bd",
+        "phone-cd"
+      ]
+    },
+    "1440 after tapping Light": {
+      "appearance": "light",
+      "theme": "light",
+      "visiblePhones": [
+        "phone-al",
+        "phone-bl",
+        "phone-cl"
+      ]
+    },
+    "1440 dark system": {
+      "appearance": "both",
+      "theme": null,
+      "visiblePhones": [
+        "phone-al",
+        "phone-ad",
+        "phone-bl",
+        "phone-bd",
+        "phone-cl",
+        "phone-cd"
+      ]
+    },
+    "1440 dark system #single": {
+      "appearance": "dark",
+      "theme": "dark",
+      "visiblePhones": [
+        "phone-ad",
+        "phone-bd",
+        "phone-cd"
+      ]
+    },
+    "1440 #single after system turns light": {
+      "appearance": "light",
+      "theme": "light",
+      "visiblePhones": [
+        "phone-al",
+        "phone-bl",
+        "phone-cl"
+      ]
+    },
+    "390 light system": {
+      "appearance": "light",
+      "theme": "light",
+      "visiblePhones": [
+        "phone-al",
+        "phone-bl",
+        "phone-cl"
+      ]
+    },
+    "390 dark system": {
+      "appearance": "dark",
+      "theme": "dark",
+      "visiblePhones": [
+        "phone-ad",
+        "phone-bd",
+        "phone-cd"
+      ]
+    }
+  },
+  "states": [
+    {
+      "darkPotSheetFocus": "Close",
+      "footnote": "Simulated stakes — no real money moves."
+    },
+    {
+      "focusAfterEscape": "potbtn"
+    },
+    {
+      "darkInvitationScrolled": true,
+      "statusBg": "rgba(14, 22, 26, 0.94)"
+    },
+    {
+      "largeTextDarkInvHeadOverflow": false
+    }
+  ],
+  "contrast": {
+    "dark": {
+      "potAmountOnPotTop": {
+        "fg": "#FFFFFF",
+        "bg": "#3A5561",
+        "ratio": 7.92,
+        "min": 4.5,
+        "pass": true
+      },
+      "potAmountOnPotMid": {
+        "fg": "#FFFFFF",
+        "bg": "#22363F",
+        "ratio": 12.59,
+        "min": 4.5,
+        "pass": true
+      },
+      "potAmountOnPotBottom": {
+        "fg": "#FFFFFF",
+        "bg": "#111D22",
+        "ratio": 17.18,
+        "min": 4.5,
+        "pass": true
+      },
+      "potLabelOnPotTop": {
+        "fg": "#BFD5E0",
+        "bg": "#3A5561",
+        "ratio": 5.22,
+        "min": 4.5,
+        "pass": true
+      },
+      "potBarAmountOnTop": {
+        "fg": "#FFFFFF",
+        "bg": "#2A424D",
+        "ratio": 10.58,
+        "min": 4.5,
+        "pass": true
+      },
+      "potBarAmountOnBottom": {
+        "fg": "#FFFFFF",
+        "bg": "#14222A",
+        "ratio": 16.25,
+        "min": 4.5,
+        "pass": true
+      },
+      "buttonLabel": {
+        "fg": "#FFFFFF",
+        "bg": "#1D6CBE",
+        "ratio": 5.33,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_ground": {
+        "fg": "#EEF4F7",
+        "bg": "#0E161A",
+        "ratio": 16.47,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_card": {
+        "fg": "#EEF4F7",
+        "bg": "#172227",
+        "ratio": 14.61,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_hero-top": {
+        "fg": "#EEF4F7",
+        "bg": "#22343D",
+        "ratio": 11.63,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_hero-bottom": {
+        "fg": "#EEF4F7",
+        "bg": "#18252B",
+        "ratio": 14.14,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_sheet": {
+        "fg": "#EEF4F7",
+        "bg": "#162026",
+        "ratio": 14.91,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_bar": {
+        "fg": "#EEF4F7",
+        "bg": "#121B20",
+        "ratio": 15.72,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_ground": {
+        "fg": "#9FB2BB",
+        "bg": "#0E161A",
+        "ratio": 8.32,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_card": {
+        "fg": "#9FB2BB",
+        "bg": "#172227",
+        "ratio": 7.38,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_well": {
+        "fg": "#9FB2BB",
+        "bg": "#213038",
+        "ratio": 6.19,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_hero-top": {
+        "fg": "#9FB2BB",
+        "bg": "#22343D",
+        "ratio": 5.88,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_hero-bottom": {
+        "fg": "#9FB2BB",
+        "bg": "#18252B",
+        "ratio": 7.14,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_sheet": {
+        "fg": "#9FB2BB",
+        "bg": "#162026",
+        "ratio": 7.54,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOnBackdropBrightestPoint": {
+        "fg": "#EEF4F7",
+        "bg": "#4A6877",
+        "ratio": 5.36,
+        "min": 0,
+        "pass": true,
+        "note": "Informational. Only the status bar sits at this point; text in the hero zone is measured in measuredHeroLabels."
+      },
+      "heroMutedOnBackdropBrightestPoint": {
+        "fg": "#D2DDE2",
+        "bg": "#4A6877",
+        "ratio": 4.3,
+        "min": 0,
+        "pass": true,
+        "note": "Informational. Only the status bar sits at this point; text in the hero zone is measured in measuredHeroLabels."
+      },
+      "faintTabLabelOnBar": {
+        "fg": "#8FA3AD",
+        "bg": "#121B20",
+        "ratio": 6.66,
+        "min": 4.5,
+        "pass": true
+      },
+      "accentIconOnWell": {
+        "fg": "#BFEBFF",
+        "bg": "#213038",
+        "ratio": 10.71,
+        "min": 3,
+        "pass": true
+      },
+      "arcsOnTrack": {
+        "you": {
+          "member": "#FF8B5E",
+          "track": "#050A0D",
+          "headOnTrack": 8.63,
+          "tail": "#B66749",
+          "tailOnTrack": 4.77,
+          "min": 3,
+          "initials": 8.14
+        },
+        "sam": {
+          "member": "#55B2F7",
+          "track": "#050A0D",
+          "headOnTrack": 8.62,
+          "tail": "#3F83B4",
+          "tailOnTrack": 4.83,
+          "min": 3,
+          "initials": 8.13
+        },
+        "jordan": {
+          "member": "#5DC580",
+          "track": "#050A0D",
+          "headOnTrack": 9.25,
+          "tail": "#449061",
+          "tailOnTrack": 5.12,
+          "min": 3,
+          "initials": 8.73
+        },
+        "priya": {
+          "member": "#AE81F8",
+          "track": "#050A0D",
+          "headOnTrack": 6.91,
+          "tail": "#7D60B5",
+          "tailOnTrack": 4,
+          "min": 3,
+          "initials": 6.52
+        },
+        "maya": {
+          "member": "#F5B849",
+          "track": "#050A0D",
+          "headOnTrack": 11.21,
+          "tail": "#AF873A",
+          "tailOnTrack": 6,
+          "min": 3,
+          "initials": 10.58
+        },
+        "theo": {
+          "member": "#F577AE",
+          "track": "#050A0D",
+          "headOnTrack": 7.7,
+          "tail": "#AF5981",
+          "tailOnTrack": 4.33,
+          "min": 3,
+          "initials": 7.27
+        }
+      }
+    },
+    "light": {
+      "potAmountOnPotTop": {
+        "fg": "#FFFFFF",
+        "bg": "#1A76CB",
+        "ratio": 4.67,
+        "min": 4.5,
+        "pass": true
+      },
+      "potAmountOnPotMid": {
+        "fg": "#FFFFFF",
+        "bg": "#1569BD",
+        "ratio": 5.54,
+        "min": 4.5,
+        "pass": true
+      },
+      "potAmountOnPotBottom": {
+        "fg": "#FFFFFF",
+        "bg": "#0A4F99",
+        "ratio": 8.1,
+        "min": 4.5,
+        "pass": true
+      },
+      "potLabelOnPotTop": {
+        "fg": "#EDF4FB",
+        "bg": "#1A76CB",
+        "ratio": 4.21,
+        "min": 4.5,
+        "pass": false
+      },
+      "potBarAmountOnTop": {
+        "fg": "#FFFFFF",
+        "bg": "#1F84D8",
+        "ratio": 3.92,
+        "min": 4.5,
+        "pass": false
+      },
+      "potBarAmountOnBottom": {
+        "fg": "#FFFFFF",
+        "bg": "#0A55A6",
+        "ratio": 7.34,
+        "min": 4.5,
+        "pass": true
+      },
+      "buttonLabel": {
+        "fg": "#FFFFFF",
+        "bg": "#0F63B6",
+        "ratio": 6.03,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_ground": {
+        "fg": "#0A2D44",
+        "bg": "#F6F8FB",
+        "ratio": 13.41,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_card": {
+        "fg": "#0A2D44",
+        "bg": "#FFFFFF",
+        "ratio": 14.27,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_hero-top": {
+        "fg": "#0A2D44",
+        "bg": "#FEFEFE",
+        "ratio": 14.15,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_hero-bottom": {
+        "fg": "#0A2D44",
+        "bg": "#FBFCFD",
+        "ratio": 13.85,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_sheet": {
+        "fg": "#0A2D44",
+        "bg": "#FFFFFF",
+        "ratio": 14.27,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_bar": {
+        "fg": "#0A2D44",
+        "bg": "#FFFFFF",
+        "ratio": 14.27,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_ground": {
+        "fg": "#3E6278",
+        "bg": "#F6F8FB",
+        "ratio": 6.12,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_card": {
+        "fg": "#3E6278",
+        "bg": "#FFFFFF",
+        "ratio": 6.52,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_well": {
+        "fg": "#3E6278",
+        "bg": "#EEF3F7",
+        "ratio": 5.83,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_hero-top": {
+        "fg": "#3E6278",
+        "bg": "#FEFEFE",
+        "ratio": 6.46,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_hero-bottom": {
+        "fg": "#3E6278",
+        "bg": "#FBFCFD",
+        "ratio": 6.33,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_sheet": {
+        "fg": "#3E6278",
+        "bg": "#FFFFFF",
+        "ratio": 6.52,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOnBackdropBrightestPoint": {
+        "fg": "#0A2D44",
+        "bg": "#7AC8F4",
+        "ratio": 7.74,
+        "min": 0,
+        "pass": true,
+        "note": "Informational. Only the status bar sits at this point; text in the hero zone is measured in measuredHeroLabels."
+      },
+      "heroMutedOnBackdropBrightestPoint": {
+        "fg": "#365A70",
+        "bg": "#7AC8F4",
+        "ratio": 3.99,
+        "min": 0,
+        "pass": true,
+        "note": "Informational. Only the status bar sits at this point; text in the hero zone is measured in measuredHeroLabels."
+      },
+      "faintTabLabelOnBar": {
+        "fg": "#5E7F93",
+        "bg": "#FFFFFF",
+        "ratio": 4.26,
+        "min": 4.5,
+        "pass": false
+      },
+      "accentIconOnWell": {
+        "fg": "#0E86E0",
+        "bg": "#EEF3F7",
+        "ratio": 3.41,
+        "min": 3,
+        "pass": true
+      },
+      "arcsOnTrack": {
+        "you": {
+          "member": "#FF6428",
+          "track": "#FCFEFF",
+          "headOnTrack": 2.92,
+          "tail": "#FF8F64",
+          "tailOnTrack": 2.21,
+          "min": 3,
+          "initials": null
+        },
+        "sam": {
+          "member": "#1C98F4",
+          "track": "#FCFEFF",
+          "headOnTrack": 3.03,
+          "tail": "#5CB5F7",
+          "tailOnTrack": 2.21,
+          "min": 3,
+          "initials": null
+        },
+        "jordan": {
+          "member": "#27B155",
+          "track": "#FCFEFF",
+          "headOnTrack": 2.76,
+          "tail": "#63C785",
+          "tailOnTrack": 2.07,
+          "min": 3,
+          "initials": null
+        },
+        "priya": {
+          "member": "#9357F6",
+          "track": "#FCFEFF",
+          "headOnTrack": 4.2,
+          "tail": "#B186F9",
+          "tailOnTrack": 2.71,
+          "min": 3,
+          "initials": null
+        },
+        "maya": {
+          "member": "#F2A00C",
+          "track": "#FCFEFF",
+          "headOnTrack": 2.11,
+          "tail": "#F6BB50",
+          "tailOnTrack": 1.72,
+          "min": 3,
+          "initials": null
+        },
+        "theo": {
+          "member": "#F24A93",
+          "track": "#FCFEFF",
+          "headOnTrack": 3.36,
+          "tail": "#F67DB1",
+          "tailOnTrack": 2.45,
+          "min": 3,
+          "initials": null
+        }
+      }
+    },
+    "measuredHeroLabels": {
+      "dark.challengeDates": {
+        "text": "rgb(210, 221, 226)",
+        "worstRatio": 7.35,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.homeDate": {
+        "text": "rgb(210, 221, 226)",
+        "worstRatio": 6.07,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.invitedBy": {
+        "text": "rgb(210, 221, 226)",
+        "worstRatio": 6.74,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.notStartedPill": {
+        "text": "rgb(210, 221, 226)",
+        "worstRatio": 5.31,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.homeCardUpdated": {
+        "text": "rgb(159, 178, 187)",
+        "worstRatio": 6.89,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.inviteDates": {
+        "text": "rgb(159, 178, 187)",
+        "worstRatio": 6.63,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.challengeDates": {
+        "text": "rgb(54, 90, 112)",
+        "worstRatio": 4.97,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.homeDate": {
+        "text": "rgb(54, 90, 112)",
+        "worstRatio": 5,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.invitedBy": {
+        "text": "rgb(54, 90, 112)",
+        "worstRatio": 5.32,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.notStartedPill": {
+        "text": "rgb(54, 90, 112)",
+        "worstRatio": 6.31,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.homeCardUpdated": {
+        "text": "rgb(62, 98, 120)",
+        "worstRatio": 6.22,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.inviteDates": {
+        "text": "rgb(62, 98, 120)",
+        "worstRatio": 6.21,
+        "min": 4.5,
+        "pass": true
+      }
+    }
+  },
+  "members": {
+    "you": {
+      "light": "#FF6428",
+      "dark": "#FF8B5E",
+      "lightOklch": {
+        "L": 0.695,
+        "C": 0.201,
+        "h": 39.3
+      },
+      "darkOklch": {
+        "L": 0.755,
+        "C": 0.153,
+        "h": 41.5
+      },
+      "hueShiftDeg": 2.2,
+      "lighterInDark": true
+    },
+    "sam": {
+      "light": "#1C98F4",
+      "dark": "#55B2F7",
+      "lightOklch": {
+        "L": 0.662,
+        "C": 0.169,
+        "h": 247.8
+      },
+      "darkOklch": {
+        "L": 0.736,
+        "C": 0.134,
+        "h": 243.5
+      },
+      "hueShiftDeg": 4.3,
+      "lighterInDark": true
+    },
+    "jordan": {
+      "light": "#27B155",
+      "dark": "#5DC580",
+      "lightOklch": {
+        "L": 0.669,
+        "C": 0.174,
+        "h": 149.3
+      },
+      "darkOklch": {
+        "L": 0.744,
+        "C": 0.14,
+        "h": 152.5
+      },
+      "hueShiftDeg": 3.2,
+      "lighterInDark": true
+    },
+    "priya": {
+      "light": "#9357F6",
+      "dark": "#AE81F8",
+      "lightOklch": {
+        "L": 0.606,
+        "C": 0.226,
+        "h": 296.4
+      },
+      "darkOklch": {
+        "L": 0.697,
+        "C": 0.173,
+        "h": 299.4
+      },
+      "hueShiftDeg": 3,
+      "lighterInDark": true
+    },
+    "maya": {
+      "light": "#F2A00C",
+      "dark": "#F5B849",
+      "lightOklch": {
+        "L": 0.769,
+        "C": 0.162,
+        "h": 72.2
+      },
+      "darkOklch": {
+        "L": 0.819,
+        "C": 0.143,
+        "h": 79.1
+      },
+      "hueShiftDeg": 6.9,
+      "lighterInDark": true
+    },
+    "theo": {
+      "light": "#F24A93",
+      "dark": "#F577AE",
+      "lightOklch": {
+        "L": 0.665,
+        "C": 0.212,
+        "h": 358.1
+      },
+      "darkOklch": {
+        "L": 0.731,
+        "C": 0.165,
+        "h": 354.5
+      },
+      "hueShiftDeg": 3.6,
+      "lighterInDark": true
+    }
+  },
+  "rendered": {
+    "tokenCard": "#172227",
+    "stakeCardRendered": "rgb(23, 34, 39)",
+    "tokenGround": "#0E161A",
+    "groundRendered": "rgb(14, 22, 26)",
+    "tokenButton": "#1D6CBE",
+    "buttonRendered": "linear-gradient(rgb(29, 108, 190), rgb(29, 108, 190))",
+    "tokenRows": 64
+  },
+  "structure": {
+    "phone-al": {
+      "mode": "light",
+      "visible": true,
+      "litSurfaces": [
+        "dial plate"
+      ],
+      "blurred": [],
+      "orbsFlat": true,
+      "button": null,
+      "ground": "rgb(246, 248, 251)",
+      "quietCard": {
+        "bg": "rgb(255, 255, 255)",
+        "shadow": "rgba(255, 255, 255, 0) 0px 1px 0px 0px inset, rgba(10, 45, 68, 0.05) 0px 1px 2px 0px, rgba(18, 72, 120, 0.32) 0px 8px 18px -14px"
+      },
+      "stakesPill": 0
+    },
+    "phone-ad": {
+      "mode": "dark",
+      "visible": true,
+      "litSurfaces": [
+        "dial plate"
+      ],
+      "blurred": [],
+      "orbsFlat": true,
+      "button": null,
+      "ground": "rgb(14, 22, 26)",
+      "quietCard": {
+        "bg": "rgb(23, 34, 39)",
+        "shadow": "rgba(255, 255, 255, 0.07) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.3) 0px 1px 2px 0px, rgba(0, 0, 0, 0.7) 0px 10px 20px -14px"
+      },
+      "stakesPill": 0
+    },
+    "phone-bl": {
+      "mode": "light",
+      "visible": true,
+      "litSurfaces": [
+        "hero-card card hero-glass"
+      ],
+      "blurred": [
+        "hero-card card hero-glass"
+      ],
+      "orbsFlat": true,
+      "button": "linear-gradient(rgb(15, 99, 182), rgb(15, 99, 182))",
+      "ground": "rgb(246, 248, 251)",
+      "quietCard": {
+        "bg": "rgb(255, 255, 255)",
+        "shadow": "rgba(255, 255, 255, 0) 0px 1px 0px 0px inset, rgba(10, 45, 68, 0.05) 0px 1px 2px 0px, rgba(18, 72, 120, 0.32) 0px 8px 18px -14px"
+      },
+      "stakesPill": 0
+    },
+    "phone-bd": {
+      "mode": "dark",
+      "visible": true,
+      "litSurfaces": [
+        "hero-card card hero-glass"
+      ],
+      "blurred": [],
+      "orbsFlat": true,
+      "button": "linear-gradient(rgb(29, 108, 190), rgb(29, 108, 190))",
+      "ground": "rgb(14, 22, 26)",
+      "quietCard": {
+        "bg": "rgb(23, 34, 39)",
+        "shadow": "rgba(255, 255, 255, 0.07) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.3) 0px 1px 2px 0px, rgba(0, 0, 0, 0.7) 0px 10px 20px -14px"
+      },
+      "stakesPill": 0
+    },
+    "phone-cl": {
+      "mode": "light",
+      "visible": true,
+      "litSurfaces": [
+        "inv-head card hero-glass"
+      ],
+      "blurred": [
+        "inv-head card hero-glass"
+      ],
+      "orbsFlat": true,
+      "button": "linear-gradient(rgb(15, 99, 182), rgb(15, 99, 182))",
+      "ground": "rgb(246, 248, 251)",
+      "quietCard": {
+        "bg": "rgb(255, 255, 255)",
+        "shadow": "rgba(255, 255, 255, 0) 0px 1px 0px 0px inset, rgba(10, 45, 68, 0.05) 0px 1px 2px 0px, rgba(18, 72, 120, 0.32) 0px 8px 18px -14px"
+      },
+      "stakesPill": 0
+    },
+    "phone-cd": {
+      "mode": "dark",
+      "visible": true,
+      "litSurfaces": [
+        "inv-head card hero-glass"
+      ],
+      "blurred": [],
+      "orbsFlat": true,
+      "button": "linear-gradient(rgb(29, 108, 190), rgb(29, 108, 190))",
+      "ground": "rgb(14, 22, 26)",
+      "quietCard": {
+        "bg": "rgb(23, 34, 39)",
+        "shadow": "rgba(255, 255, 255, 0.07) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.3) 0px 1px 2px 0px, rgba(0, 0, 0, 0.7) 0px 10px 20px -14px"
+      },
+      "stakesPill": 0
+    }
+  },
+  "sweep": {
+    "combinations": 49,
+    "phonesEach": 6,
+    "problems": []
+  },
+  "browser": "Chromium 153.0.8010.12"
+}

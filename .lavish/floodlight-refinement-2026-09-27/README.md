@@ -1,11 +1,243 @@
 # Floodlight design review — September 27, 2026
 
-Proposals only. No new visual contract is adopted and no native app, account,
-service or installation changed. The reference is the user-supplied
+Round 9.3 is the adopted visual direction. No native app, account, service or
+installation changed. The reference is the user-supplied
 https://claude.ai/artifact/8CfAk9nqDSLvSoEpYnck8r, a browser mock rather than an
 installed-app capture. All people and activity are fictional.
 
-## Adopted: round 9, Toned
+## Proposed: round 11.1, the owner's decisions on round 11
+
+Round 11 with the ten decisions the owner approved on September 27. Open
+[round 11.1](round-11-1/index.html). Round 11 stays as it was.
+
+1. **Two-person Couldn't confirm** reads "Stakes back · Challenge won't
+   count". Its sheet sentence is "If we can't confirm a result from Apple
+   Health, both stakes come back and the challenge won't count." Groups keep
+   "Stake back, not a miss".
+2. **Reviews end** in "Result updated" or "Result stands", with one line for
+   each of the app's three reasons.
+3. **The invitation** shows "$20 each" as terms. Its pot counts only people
+   who agreed, the same as the lobby.
+4. **A decline** reopens the seat without a name or "Declined".
+5. **Manage access in Apple Health** sits on the challenge's Health card.
+6. **The goal detail** shows the result on the page.
+7. **Timed runs** show the best run so far.
+8. **One blue action** per screen. Apple Health buttons stay neutral.
+9. **Put money on it** reads "$20 test charge only if you miss." Its outcome
+   lines are COPY.md rows.
+10. **The leaderboard** uses the app's "Winners split the remaining simulated
+    pool evenly." (still a later-build proposal). Timed goals are labeled
+    "Time target".
+
+Four polish edits the owner approved later the same day are made in place. The
+two-person Couldn't confirm picture shows each person getting their own coin
+back. The invitation shows "Jordan agreed. Your seat fills when you agree." on
+screen. Review cards drop the "You asked: …" line. A met goal's bar uses the
+member's own color, not the button blue.
+
+COPY.md changed only inside its Floodlight section. Round 9.3's footer now says
+Adopted. All 64 phones pass the restraint checks, 80 interaction and policy
+checks pass, and the contrast sweep finds zero misses across 3,042 text runs.
+[The round record](round-11-1/DESIGN.md) lists the changes, departures, the one
+remaining question and the checks. Nothing native changed.
+
+## Proposed: round 11, edge states
+
+This round draws the states the P0 screens hit when things aren't normal. It
+uses the round 10.1 look, with the same tokens, light and dark, the Appearance
+control and the restraint rules. Open [round 11](round-11/index.html). Round
+10.1 stays as it was.
+
+- **Empty** Home, Challenges and You use the app's words. The art is an empty
+  dial with no pot.
+- **Apple Health:** refreshing keeps the last saved number. Stale data turns
+  the time into a clock. A denied or partial permission looks exactly like "No
+  matching activity yet", because the app can't tell them apart.
+- **The pot shrinks** only when someone who agreed leaves: $80 becomes $60 and
+  their track leaves the dial. A decline in the lobby just reopens the seat,
+  and nobody is named. Down to one person, the challenge doesn't count and
+  every stake comes back.
+- **Results** for all four outcomes show the amounts the server computes, for
+  2 people and for 3 or more (for example $26.66 each and 2¢ to no one). The
+  two-person Couldn't confirm case voids, which the 9.4 card doesn't say.
+- **Goal detail** for a missed or unconfirmed result. **Ask us to review** (your
+  own result only, three reasons). **Challenge cancelled.**
+- **Formats:** a timed run fits the dial as yes or no. The leaderboard
+  departs from the dial on purpose: it's a plain list, and a proposal for a
+  later build.
+- **AX5** Home and Invitation at 53pt body text.
+
+New strings are rows at the end of COPY.md's Floodlight table. The checks find
+zero contrast misses across 2,336 text runs, and all 50 phones pass the
+restraint checks. [The round record](round-11/DESIGN.md) has each state's
+source, decisions, departures, eight open questions and the checks. Nothing
+native changed.
+
+## Proposed: round 10.1, the owner's fixes to round 10
+
+Round 10 with the fixes and answers the owner approved on September 27. Open
+[round 10.1](round-10-1/index.html). Round 10 stays as it was.
+
+- **Goal** starts on Running distance, with no distance number as the hero.
+  Timed run has its own phone and reads as a time target: a gray "MM:SS" over
+  a small Whole run row. The calendar stays folded until you tap Starts or
+  Ends. Days are 44pt, and the time zone is a small row in the dates card.
+- **Challenges** uses the app's All · Invited · Finished, with Active and
+  Upcoming as section headings. Needs your attention is at the very top. Only
+  the live card has a mini dial, and finished cards get a flat ring with your
+  number.
+- **The pot** counts only people who agreed. Invited friends wait in dashed
+  seats with a small avatar. The creator has no agree switch.
+- **New mocks:** Challenge saved (the friend lobby's save screen), Friends as
+  rows at larger text, Apple Health readiness and Put money on it on the
+  personal Rules screen, and the Block confirm as the iOS system alert in light
+  and dark.
+- **Copy:** the Decline confirm is calm, and the You chip for a missing score
+  says "Not confirmed". COPY.md has new rows for "You reach it", "You miss it",
+  "No one collects it" and that chip.
+- **Contrast:** the pictogram coins drop their 7px "$". The sweep finds zero
+  misses across 1,838 text runs.
+
+[The round record](round-10-1/DESIGN.md) lists each change, five open
+questions and the checks. The round 9.3 page header now says "Adopted".
+Nothing native changed.
+
+## Proposed: round 10, the P0 screens
+
+The adopted 9.4 look on the screens the friends TestFlight needs first. Open
+[round 10](round-10/index.html). It has the same Appearance control (Light |
+Dark | Side by side) and the 9.1 restraint rules. Words and behavior come
+from the Swift sources named on each screen, and all people are fictional.
+
+- **Create with friends:** Goal (activity chips, a Barlow number entry for
+  Timed run, dates picked on a calendar without steppers), Challenge (one
+  stake set by you and a new pot preview holding only your $20), and Friends
+  (spheres to tap, plus the No friends yet state).
+- **Personal goal:** Goal, then Rules. Outdoor runs | Steps, a one-person
+  dial with no pot, and the app's agree switch.
+- **Challenge locked in.** A check, the goal and dates, one stake line, Go to
+  Home, a gray View goal and one X.
+- **Challenges:** mini dials and pots on every card, Needs your attention
+  with Accept and Decline. A toolbar switch compares the app's filters (All ·
+  Invited · Finished) with the brief's (Active · Upcoming · Finished).
+- **You and Friends:** results as rings and pips. Result unavailable is blue
+  and dashed, never a loss. Also a friends list (spheres or rows), add by
+  username, and a calm report and block sheet.
+
+The app differs from the brief in three places, and round 10 follows the app
+in each: the library filters, the missing consent switch in friend creation
+(everyone agrees in the lobby), and friend creation having no goal number
+except for Timed run. One new token, `--gt-link`, keeps light links at
+4.5:1. [The round record](round-10/DESIGN.md) has each screen's source, the
+decisions, the open questions and the checks. Nothing native changed.
+
+## Proposed: round 9.4, four pot outcomes
+
+A copy proposal on the adopted 9.3 look. Open [round 9.4](round-9-4/index.html).
+It is 9.3 with two changes, and nothing else moves:
+
+- The Invitation's outcome cards and the pot sheet's list now show four
+  outcomes, worded for two people or for three or more. The pictograms follow
+  the head count. The wording matches `ChallengeV1Policy.allocation` and
+  `.missing`.
+
+  | Outcome | 2 people | 3 or more |
+  | --- | --- | --- |
+  | Everyone reaches it | Both reach it · Both stakes back | Everyone reaches it · All stakes back |
+  | Some reach it | One reaches it · They get both stakes | Some reach it · They split missed stakes |
+  | Everyone misses | Both miss · No one collects | Everyone misses · No one collects |
+  | No result | Couldn't confirm · Stake back, not a miss | Couldn't confirm · Stake back, not a miss |
+
+  "They get both" and "Neither back" are gone. "Couldn't confirm" gets a
+  dashed blue card, a blue "?" badge and a full-strength coin returning to the
+  person, so it never borrows the slate miss badge or the dimmed coin.
+- The People control adds 3, and the Invitation now follows it (9.3's
+  Invitation was always two people).
+
+[The round record](round-9-4/DESIGN.md) has the copy, the three new tokens and
+the checks. The rows are in [COPY.md](../../docs/COPY.md). Nothing native changed.
+
+## Adopted: round 9.3, light contrast and a blue dark pot
+
+On September 27 the owner adopted 9.3: Aero Toned in light, Floodlit (toned)
+in dark, one shared token set, native following the system appearance, Barlow
+bundled under the OFL, and the shared pot as the rule for friend goals. The
+adoption record is the top entry of
+[the UI adoption history](../../docs/design/SIGNAL_UI_MIGRATION.md); nothing
+native is built yet. Open [round 9.3](round-9-3/index.html). It is 9.2 with
+the same tokens, layout, shared pot and Appearance control, plus three fixes:
+
+- Light text now reaches 4.5:1, measured on the pixels behind each glyph. The
+  "POT" caption is white on a slightly darker pot top with a weaker crescent,
+  so its worst pixel is 4.52 (was 3.93). The pot bar top measures 4.52 (was
+  3.92) and inactive tab labels 4.50 (was 4.26).
+- Light arcs read at 3:1 or better on their tracks, including dimmed lanes.
+  The track fill is opaque white. Each person has a deeper arc color with a
+  less washed-out start (six new `arc-*` tokens), and dimmed lanes use 88%
+  opacity. Maya's arc turns deep amber, which is the cost of 3:1 for a yellow.
+  Avatars keep their colors.
+- The dark pot and the sheet's pot bar are a smoked deep blue in the light
+  pot's hue, with a thin crescent. The dark pot is now the focal point, as in
+  light. White on it measures 6.8:1 or better.
+
+[The round record](round-9-3/DESIGN.md) has before-and-after values, the
+contrast sweep and the checks. Nothing native changed.
+
+## Proposed: round 9.2, Toned, light and dark
+
+A proposal, not adopted. Round 9 Toned stays the adopted direction, and 9.1 is
+unchanged. Open [round 9.2](round-9-2/index.html). The owner decided that
+Floodlit (WHOOP-style slate) becomes dark mode and that 9.1's Aero Toned is
+light mode. 9.2 builds that pair:
+
+- Dark mode is toned down the way 9.1 toned light. Floodlight beams sit only
+  behind each screen's hero and fade into a plain slate ground. Each screen
+  has one lit surface: the dial plate, Home's top card or the Invitation
+  header. Everything else is a quiet dark card. People and buttons are flat.
+  The dial, the tracks, the arcs' soft bloom and a smoked-glass pot stay at
+  Toned depth.
+- Each light part maps to one dark part: sky to beams, glass dial face to
+  lit slate plate, Aero pot to smoked-glass pot, frosted card to top-highlight
+  card, near-white ground to slate ground.
+- There is one set of 64 semantic tokens (`--gt-*`), each with a light and a
+  dark value and a SwiftUI asset name. Dark member colors are lighter tints
+  of the same hue, within 7°.
+- An Appearance control offers Light, Dark and Side by side, with Side by
+  side as the default. The single-mode view follows prefers-color-scheme.
+- Every dark text pair reaches 4.5:1, and every arc reaches 4:1 on its track.
+  One new token, `hero-muted`, keeps secondary text on the sky and beams
+  above 4.5:1 in both modes.
+- The shared pot is the confirmed rule and is unchanged.
+
+[The round record](round-9-2/DESIGN.md) has the token table, the part
+mapping, the depth steps and the checks, including three light-mode contrast
+misses carried over from 9.1. Nothing native changed.
+
+## Proposed: round 9.1, Toned refined
+
+A proposal, not adopted. Round 9 Toned stays the adopted direction. Open
+[round 9.1](round-9-1/index.html). It applies a design critique to round 9
+Toned and keeps the Aero gloss, Barlow type, layout, fixtures and states:
+
+- The sky sits only behind each screen's hero, then fades to a near-white
+  ground (`#F6F8FB`).
+- The hero card is the only frosted surface on each screen. Lists, tiles,
+  outcome cards and the You card use the Quiet card.
+- People are flat (Quiet), and so are primary buttons. The dial, arcs and
+  pot stay Toned.
+- The Invitation's empty dial became a compact header with a smaller pot,
+  "20 km each" and the dates. The rules start 172px higher.
+- The simulated-stakes pill left the top of every phone. It appears once
+  under the Invitation's stake tiles and in the pot sheet, and screen readers
+  still hear it.
+- The shared pot is the confirmed rule and is unchanged. There is no Stakes
+  toggle.
+
+[The round record](round-9-1/DESIGN.md) has before and after for each fix,
+two places where 9.1 differs from the brief, and the checks. Nothing native
+changed.
+
+## Adopted, then superseded by 9.3: round 9, Toned
 
 On September 27 the owner chose Toned: "Toned looks great -- I'd like to move
 forward with that design." The adoption record is the top entry of

@@ -1,0 +1,1132 @@
+{
+  "errors": [],
+  "widths": {
+    "390": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "1440": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    },
+    "1440 dark": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    },
+    "1440 light": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    },
+    "390 dark": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "390 side by side": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  },
+  "appearance": {
+    "1440 light system": {
+      "appearance": "both",
+      "theme": null,
+      "visiblePhones": [
+        "phone-al",
+        "phone-ad",
+        "phone-bl",
+        "phone-bd",
+        "phone-cl",
+        "phone-cd"
+      ]
+    },
+    "1440 after tapping Dark": {
+      "appearance": "dark",
+      "theme": "dark",
+      "visiblePhones": [
+        "phone-ad",
+        "phone-bd",
+        "phone-cd"
+      ]
+    },
+    "1440 after tapping Light": {
+      "appearance": "light",
+      "theme": "light",
+      "visiblePhones": [
+        "phone-al",
+        "phone-bl",
+        "phone-cl"
+      ]
+    },
+    "1440 dark system": {
+      "appearance": "both",
+      "theme": null,
+      "visiblePhones": [
+        "phone-al",
+        "phone-ad",
+        "phone-bl",
+        "phone-bd",
+        "phone-cl",
+        "phone-cd"
+      ]
+    },
+    "1440 dark system #single": {
+      "appearance": "dark",
+      "theme": "dark",
+      "visiblePhones": [
+        "phone-ad",
+        "phone-bd",
+        "phone-cd"
+      ]
+    },
+    "1440 #single after system turns light": {
+      "appearance": "light",
+      "theme": "light",
+      "visiblePhones": [
+        "phone-al",
+        "phone-bl",
+        "phone-cl"
+      ]
+    },
+    "390 light system": {
+      "appearance": "light",
+      "theme": "light",
+      "visiblePhones": [
+        "phone-al",
+        "phone-bl",
+        "phone-cl"
+      ]
+    },
+    "390 dark system": {
+      "appearance": "dark",
+      "theme": "dark",
+      "visiblePhones": [
+        "phone-ad",
+        "phone-bd",
+        "phone-cd"
+      ]
+    }
+  },
+  "states": [
+    {
+      "lightPotSheetFocus": "Close",
+      "footnote": "Simulated stakes — no real money moves."
+    },
+    {
+      "lightFocusAfterEscape": "potbtn"
+    },
+    {
+      "darkPotSheetFocus": "Close",
+      "footnote": "Simulated stakes — no real money moves."
+    },
+    {
+      "darkFocusAfterEscape": "potbtn"
+    },
+    {
+      "largeTextInvHeadOverflow": [
+        false,
+        false
+      ]
+    }
+  ],
+  "contrast": {
+    "light": {
+      "potAmountOnPotTop": {
+        "fg": "#FFFFFF",
+        "bg": "#1770C4",
+        "ratio": 5.06,
+        "min": 4.5,
+        "pass": true
+      },
+      "potAmountOnPotMid": {
+        "fg": "#FFFFFF",
+        "bg": "#1569BD",
+        "ratio": 5.54,
+        "min": 4.5,
+        "pass": true
+      },
+      "potAmountOnPotBottom": {
+        "fg": "#FFFFFF",
+        "bg": "#0A4F99",
+        "ratio": 8.1,
+        "min": 4.5,
+        "pass": true
+      },
+      "potLabelOnPotTop": {
+        "fg": "#FFFFFF",
+        "bg": "#1770C4",
+        "ratio": 5.06,
+        "min": 4.5,
+        "pass": true
+      },
+      "potBarAmountOnTop": {
+        "fg": "#FFFFFF",
+        "bg": "#1A79CC",
+        "ratio": 4.52,
+        "min": 4.5,
+        "pass": true
+      },
+      "potBarAmountOnBottom": {
+        "fg": "#FFFFFF",
+        "bg": "#0A55A6",
+        "ratio": 7.34,
+        "min": 4.5,
+        "pass": true
+      },
+      "buttonLabel": {
+        "fg": "#FFFFFF",
+        "bg": "#0F63B6",
+        "ratio": 6.03,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_ground": {
+        "fg": "#0A2D44",
+        "bg": "#F6F8FB",
+        "ratio": 13.41,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_card": {
+        "fg": "#0A2D44",
+        "bg": "#FFFFFF",
+        "ratio": 14.27,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_hero-top": {
+        "fg": "#0A2D44",
+        "bg": "#FEFEFE",
+        "ratio": 14.15,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_hero-bottom": {
+        "fg": "#0A2D44",
+        "bg": "#FBFCFD",
+        "ratio": 13.85,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_sheet": {
+        "fg": "#0A2D44",
+        "bg": "#FFFFFF",
+        "ratio": 14.27,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_bar": {
+        "fg": "#0A2D44",
+        "bg": "#FFFFFF",
+        "ratio": 14.27,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_ground": {
+        "fg": "#3E6278",
+        "bg": "#F6F8FB",
+        "ratio": 6.12,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_card": {
+        "fg": "#3E6278",
+        "bg": "#FFFFFF",
+        "ratio": 6.52,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_well": {
+        "fg": "#3E6278",
+        "bg": "#EEF3F7",
+        "ratio": 5.83,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_hero-top": {
+        "fg": "#3E6278",
+        "bg": "#FEFEFE",
+        "ratio": 6.46,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_hero-bottom": {
+        "fg": "#3E6278",
+        "bg": "#FBFCFD",
+        "ratio": 6.33,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_sheet": {
+        "fg": "#3E6278",
+        "bg": "#FFFFFF",
+        "ratio": 6.52,
+        "min": 4.5,
+        "pass": true
+      },
+      "faintTabLabelOnBar": {
+        "fg": "#5A7B8F",
+        "bg": "#FFFFFF",
+        "ratio": 4.5,
+        "min": 4.5,
+        "pass": true
+      },
+      "accentIconOnWell": {
+        "fg": "#0E86E0",
+        "bg": "#EEF3F7",
+        "ratio": 3.41,
+        "min": 3,
+        "pass": true
+      }
+    },
+    "dark": {
+      "potAmountOnPotTop": {
+        "fg": "#FFFFFF",
+        "bg": "#215D99",
+        "ratio": 6.8,
+        "min": 4.5,
+        "pass": true
+      },
+      "potAmountOnPotMid": {
+        "fg": "#FFFFFF",
+        "bg": "#164477",
+        "ratio": 9.87,
+        "min": 4.5,
+        "pass": true
+      },
+      "potAmountOnPotBottom": {
+        "fg": "#FFFFFF",
+        "bg": "#072549",
+        "ratio": 15.33,
+        "min": 4.5,
+        "pass": true
+      },
+      "potLabelOnPotTop": {
+        "fg": "#CDDEF1",
+        "bg": "#215D99",
+        "ratio": 4.95,
+        "min": 4.5,
+        "pass": true
+      },
+      "potBarAmountOnTop": {
+        "fg": "#FFFFFF",
+        "bg": "#1E5790",
+        "ratio": 7.44,
+        "min": 4.5,
+        "pass": true
+      },
+      "potBarAmountOnBottom": {
+        "fg": "#FFFFFF",
+        "bg": "#08284F",
+        "ratio": 14.72,
+        "min": 4.5,
+        "pass": true
+      },
+      "buttonLabel": {
+        "fg": "#FFFFFF",
+        "bg": "#1D6CBE",
+        "ratio": 5.33,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_ground": {
+        "fg": "#EEF4F7",
+        "bg": "#0E161A",
+        "ratio": 16.47,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_card": {
+        "fg": "#EEF4F7",
+        "bg": "#172227",
+        "ratio": 14.61,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_hero-top": {
+        "fg": "#EEF4F7",
+        "bg": "#22343D",
+        "ratio": 11.63,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_hero-bottom": {
+        "fg": "#EEF4F7",
+        "bg": "#18252B",
+        "ratio": 14.14,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_sheet": {
+        "fg": "#EEF4F7",
+        "bg": "#162026",
+        "ratio": 14.91,
+        "min": 4.5,
+        "pass": true
+      },
+      "inkOn_bar": {
+        "fg": "#EEF4F7",
+        "bg": "#121B20",
+        "ratio": 15.72,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_ground": {
+        "fg": "#9FB2BB",
+        "bg": "#0E161A",
+        "ratio": 8.32,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_card": {
+        "fg": "#9FB2BB",
+        "bg": "#172227",
+        "ratio": 7.38,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_well": {
+        "fg": "#9FB2BB",
+        "bg": "#213038",
+        "ratio": 6.19,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_hero-top": {
+        "fg": "#9FB2BB",
+        "bg": "#22343D",
+        "ratio": 5.88,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_hero-bottom": {
+        "fg": "#9FB2BB",
+        "bg": "#18252B",
+        "ratio": 7.14,
+        "min": 4.5,
+        "pass": true
+      },
+      "mutedOn_sheet": {
+        "fg": "#9FB2BB",
+        "bg": "#162026",
+        "ratio": 7.54,
+        "min": 4.5,
+        "pass": true
+      },
+      "faintTabLabelOnBar": {
+        "fg": "#8FA3AD",
+        "bg": "#121B20",
+        "ratio": 6.66,
+        "min": 4.5,
+        "pass": true
+      },
+      "accentIconOnWell": {
+        "fg": "#BFEBFF",
+        "bg": "#213038",
+        "ratio": 10.71,
+        "min": 3,
+        "pass": true
+      }
+    },
+    "arcsOnTrack": {
+      "six people, You selected (others dimmed)": {
+        "light": {
+          "you": {
+            "track": "#FFFFFF",
+            "trackBorrowed": false,
+            "frac": 0.32,
+            "dimNow": false,
+            "renderedTail": "#DF5E28",
+            "renderedTailOnTrack": 3.64,
+            "headOnTrack": 4.48,
+            "tailOnTrack": 3.62,
+            "headDimmedOnTrack": 3.84,
+            "tailDimmedOnTrack": 3.11,
+            "min": 3,
+            "pass": true
+          },
+          "sam": {
+            "track": "#FFFFFF",
+            "trackBorrowed": false,
+            "frac": 0.39,
+            "dimNow": true,
+            "renderedTail": "#358FD4",
+            "renderedTailOnTrack": 3.5,
+            "headOnTrack": 4.79,
+            "tailOnTrack": 3.69,
+            "headDimmedOnTrack": 3.94,
+            "tailDimmedOnTrack": 3.11,
+            "min": 3,
+            "pass": true
+          },
+          "jordan": {
+            "track": "#FFFFFF",
+            "trackBorrowed": false,
+            "frac": 0.08,
+            "dimNow": true,
+            "renderedTail": "#319A51",
+            "renderedTailOnTrack": 3.59,
+            "headOnTrack": 4.85,
+            "tailOnTrack": 3.69,
+            "headDimmedOnTrack": 3.97,
+            "tailDimmedOnTrack": 3.11,
+            "min": 3,
+            "pass": true
+          },
+          "priya": {
+            "track": "#FFFFFF",
+            "trackBorrowed": true,
+            "frac": 1,
+            "dimNow": true,
+            "renderedTail": "#9F70E9",
+            "renderedTailOnTrack": 3.52,
+            "headOnTrack": 4.9,
+            "tailOnTrack": 3.71,
+            "headDimmedOnTrack": 3.99,
+            "tailDimmedOnTrack": 3.11,
+            "min": 3,
+            "pass": true
+          },
+          "maya": {
+            "track": "#FFFFFF",
+            "trackBorrowed": false,
+            "frac": 0.38,
+            "dimNow": true,
+            "renderedTail": "#B97D34",
+            "renderedTailOnTrack": 3.48,
+            "headOnTrack": 4.98,
+            "tailOnTrack": 3.73,
+            "headDimmedOnTrack": 4.01,
+            "tailDimmedOnTrack": 3.11,
+            "min": 3,
+            "pass": true
+          },
+          "theo": {
+            "track": "#FFFFFF",
+            "trackBorrowed": false,
+            "frac": 0.25,
+            "dimNow": true,
+            "renderedTail": "#DD5997",
+            "renderedTailOnTrack": 3.52,
+            "headOnTrack": 4.44,
+            "tailOnTrack": 3.62,
+            "headDimmedOnTrack": 3.83,
+            "tailDimmedOnTrack": 3.12,
+            "min": 3,
+            "pass": true
+          }
+        },
+        "dark": {
+          "you": {
+            "track": "#000D0D",
+            "trackBorrowed": false,
+            "frac": 0.32,
+            "dimNow": false,
+            "renderedTail": "#B9684A",
+            "renderedTailOnTrack": 4.84,
+            "headOnTrack": 8.56,
+            "tailOnTrack": 4.73,
+            "headDimmedOnTrack": 6.76,
+            "tailDimmedOnTrack": 3.87,
+            "min": 3,
+            "pass": true
+          },
+          "sam": {
+            "track": "#000D0D",
+            "trackBorrowed": false,
+            "frac": 0.39,
+            "dimNow": true,
+            "renderedTail": "#3977A3",
+            "renderedTailOnTrack": 4.09,
+            "headOnTrack": 8.56,
+            "tailOnTrack": 4.81,
+            "headDimmedOnTrack": 6.79,
+            "tailDimmedOnTrack": 3.96,
+            "min": 3,
+            "pass": true
+          },
+          "jordan": {
+            "track": "#000D0D",
+            "trackBorrowed": false,
+            "frac": 0.08,
+            "dimNow": true,
+            "renderedTail": "#40885C",
+            "renderedTailOnTrack": 4.61,
+            "headOnTrack": 9.18,
+            "tailOnTrack": 5.09,
+            "headDimmedOnTrack": 7.27,
+            "tailDimmedOnTrack": 4.17,
+            "min": 3,
+            "pass": true
+          },
+          "priya": {
+            "track": "#000D0D",
+            "trackBorrowed": true,
+            "frac": 1,
+            "dimNow": true,
+            "renderedTail": "#6F57A2",
+            "renderedTailOnTrack": 3.34,
+            "headOnTrack": 6.86,
+            "tailOnTrack": 3.96,
+            "headDimmedOnTrack": 5.5,
+            "tailDimmedOnTrack": 3.3,
+            "min": 3,
+            "pass": true
+          },
+          "maya": {
+            "track": "#000D0D",
+            "trackBorrowed": false,
+            "frac": 0.38,
+            "dimNow": true,
+            "renderedTail": "#9D7B35",
+            "renderedTailOnTrack": 5,
+            "headOnTrack": 11.13,
+            "tailOnTrack": 5.97,
+            "headDimmedOnTrack": 8.71,
+            "tailDimmedOnTrack": 4.82,
+            "min": 3,
+            "pass": true
+          },
+          "theo": {
+            "track": "#000D0D",
+            "trackBorrowed": false,
+            "frac": 0.25,
+            "dimNow": true,
+            "renderedTail": "#9F5276",
+            "renderedTailOnTrack": 3.71,
+            "headOnTrack": 7.65,
+            "tailOnTrack": 4.3,
+            "headDimmedOnTrack": 6.07,
+            "tailDimmedOnTrack": 3.54,
+            "min": 3,
+            "pass": true
+          }
+        }
+      },
+      "six people, nobody selected (dim lanes: 0)": {
+        "light": {
+          "you": {
+            "track": "#FFFFFF",
+            "trackBorrowed": false,
+            "frac": 0.32,
+            "dimNow": false,
+            "renderedTail": "#DF5E28",
+            "renderedTailOnTrack": 3.64,
+            "headOnTrack": 4.48,
+            "tailOnTrack": 3.62,
+            "headDimmedOnTrack": 3.84,
+            "tailDimmedOnTrack": 3.11,
+            "min": 3,
+            "pass": true
+          },
+          "sam": {
+            "track": "#FFFFFF",
+            "trackBorrowed": false,
+            "frac": 0.39,
+            "dimNow": false,
+            "renderedTail": "#2889D5",
+            "renderedTailOnTrack": 3.72,
+            "headOnTrack": 4.79,
+            "tailOnTrack": 3.69,
+            "headDimmedOnTrack": 3.94,
+            "tailDimmedOnTrack": 3.11,
+            "min": 3,
+            "pass": true
+          },
+          "jordan": {
+            "track": "#FFFFFF",
+            "trackBorrowed": false,
+            "frac": 0.08,
+            "dimNow": false,
+            "renderedTail": "#239546",
+            "renderedTailOnTrack": 3.84,
+            "headOnTrack": 4.85,
+            "tailOnTrack": 3.69,
+            "headDimmedOnTrack": 3.97,
+            "tailDimmedOnTrack": 3.11,
+            "min": 3,
+            "pass": true
+          },
+          "priya": {
+            "track": "#FFFFFF",
+            "trackBorrowed": true,
+            "frac": 1,
+            "dimNow": false,
+            "renderedTail": "#9C69ED",
+            "renderedTailOnTrack": 3.71,
+            "headOnTrack": 4.9,
+            "tailOnTrack": 3.71,
+            "headDimmedOnTrack": 3.99,
+            "tailDimmedOnTrack": 3.11,
+            "min": 3,
+            "pass": true
+          },
+          "maya": {
+            "track": "#FFFFFF",
+            "trackBorrowed": false,
+            "frac": 0.38,
+            "dimNow": false,
+            "renderedTail": "#B67528",
+            "renderedTailOnTrack": 3.76,
+            "headOnTrack": 4.98,
+            "tailOnTrack": 3.73,
+            "headDimmedOnTrack": 4.01,
+            "tailDimmedOnTrack": 3.11,
+            "min": 3,
+            "pass": true
+          },
+          "theo": {
+            "track": "#FFFFFF",
+            "trackBorrowed": false,
+            "frac": 0.25,
+            "dimNow": false,
+            "renderedTail": "#E05093",
+            "renderedTailOnTrack": 3.67,
+            "headOnTrack": 4.44,
+            "tailOnTrack": 3.62,
+            "headDimmedOnTrack": 3.83,
+            "tailDimmedOnTrack": 3.12,
+            "min": 3,
+            "pass": true
+          }
+        },
+        "dark": {
+          "you": {
+            "track": "#000D0D",
+            "trackBorrowed": false,
+            "frac": 0.32,
+            "dimNow": false,
+            "renderedTail": "#B7684A",
+            "renderedTailOnTrack": 4.8,
+            "headOnTrack": 8.56,
+            "tailOnTrack": 4.73,
+            "headDimmedOnTrack": 6.76,
+            "tailDimmedOnTrack": 3.87,
+            "min": 3,
+            "pass": true
+          },
+          "sam": {
+            "track": "#000D0D",
+            "trackBorrowed": false,
+            "frac": 0.39,
+            "dimNow": false,
+            "renderedTail": "#3F84B5",
+            "renderedTailOnTrack": 4.88,
+            "headOnTrack": 8.56,
+            "tailOnTrack": 4.81,
+            "headDimmedOnTrack": 6.79,
+            "tailDimmedOnTrack": 3.96,
+            "min": 3,
+            "pass": true
+          },
+          "jordan": {
+            "track": "#000D0D",
+            "trackBorrowed": false,
+            "frac": 0.08,
+            "dimNow": false,
+            "renderedTail": "#489766",
+            "renderedTailOnTrack": 5.51,
+            "headOnTrack": 9.18,
+            "tailOnTrack": 5.09,
+            "headDimmedOnTrack": 7.27,
+            "tailDimmedOnTrack": 4.17,
+            "min": 3,
+            "pass": true
+          },
+          "priya": {
+            "track": "#000D0D",
+            "trackBorrowed": true,
+            "frac": 1,
+            "dimNow": false,
+            "renderedTail": "#7D60B3",
+            "renderedTailOnTrack": 3.95,
+            "headOnTrack": 6.86,
+            "tailOnTrack": 3.96,
+            "headDimmedOnTrack": 5.5,
+            "tailDimmedOnTrack": 3.3,
+            "min": 3,
+            "pass": true
+          },
+          "maya": {
+            "track": "#000D0D",
+            "trackBorrowed": false,
+            "frac": 0.38,
+            "dimNow": false,
+            "renderedTail": "#B1883B",
+            "renderedTailOnTrack": 6.06,
+            "headOnTrack": 11.13,
+            "tailOnTrack": 5.97,
+            "headDimmedOnTrack": 8.71,
+            "tailDimmedOnTrack": 4.82,
+            "min": 3,
+            "pass": true
+          },
+          "theo": {
+            "track": "#000D0D",
+            "trackBorrowed": false,
+            "frac": 0.25,
+            "dimNow": false,
+            "renderedTail": "#B35B84",
+            "renderedTailOnTrack": 4.46,
+            "headOnTrack": 7.65,
+            "tailOnTrack": 4.3,
+            "headDimmedOnTrack": 6.07,
+            "tailDimmedOnTrack": 3.54,
+            "min": 3,
+            "pass": true
+          }
+        }
+      }
+    },
+    "measured": {
+      "light.potCaption.phone-al.0": {
+        "text": "#FFFFFF",
+        "glyphPixels": 183,
+        "worstBg": "#2076C6",
+        "worstRatio": 4.7,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.potAmount.phone-al.0": {
+        "text": "#FFFFFF",
+        "glyphPixels": 2144,
+        "worstBg": "#176EC2",
+        "worstRatio": 5.19,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.inactiveTab.phone-al.0": {
+        "text": "#5A7B8F",
+        "glyphPixels": 1236,
+        "worstBg": "#FFFFFF",
+        "worstRatio": 4.5,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.inactiveTab.phone-al.1": {
+        "text": "#5A7B8F",
+        "glyphPixels": 783,
+        "worstBg": "#FFFFFF",
+        "worstRatio": 4.5,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.potCaption.phone-ad.0": {
+        "text": "rgba(220,233,249,.92)",
+        "glyphPixels": 182,
+        "worstBg": "#275F98",
+        "worstRatio": 4.83,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.potAmount.phone-ad.0": {
+        "text": "#FFFFFF",
+        "glyphPixels": 2156,
+        "worstBg": "#1F5892",
+        "worstRatio": 7.32,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.inactiveTab.phone-ad.0": {
+        "text": "#8FA3AD",
+        "glyphPixels": 1233,
+        "worstBg": "#121B20",
+        "worstRatio": 6.66,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.inactiveTab.phone-ad.1": {
+        "text": "#8FA3AD",
+        "glyphPixels": 782,
+        "worstBg": "#121B20",
+        "worstRatio": 6.66,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.potCaption.phone-bl.0": {
+        "text": "#FFFFFF",
+        "glyphPixels": 66,
+        "worstBg": "#2779C7",
+        "worstRatio": 4.52,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.potAmount.phone-bl.0": {
+        "text": "#FFFFFF",
+        "glyphPixels": 353,
+        "worstBg": "#176EC2",
+        "worstRatio": 5.19,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.inactiveTab.phone-bl.0": {
+        "text": "#5A7B8F",
+        "glyphPixels": 1236,
+        "worstBg": "#FFFFFF",
+        "worstRatio": 4.5,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.inactiveTab.phone-bl.1": {
+        "text": "#5A7B8F",
+        "glyphPixels": 783,
+        "worstBg": "#FFFFFF",
+        "worstRatio": 4.5,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.potCaption.phone-bd.0": {
+        "text": "rgba(220,233,249,.92)",
+        "glyphPixels": 66,
+        "worstBg": "#2B6299",
+        "worstRatio": 4.64,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.potAmount.phone-bd.0": {
+        "text": "#FFFFFF",
+        "glyphPixels": 355,
+        "worstBg": "#1E5690",
+        "worstRatio": 7.53,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.inactiveTab.phone-bd.0": {
+        "text": "#8FA3AD",
+        "glyphPixels": 1233,
+        "worstBg": "#121B20",
+        "worstRatio": 6.66,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.inactiveTab.phone-bd.1": {
+        "text": "#8FA3AD",
+        "glyphPixels": 782,
+        "worstBg": "#121B20",
+        "worstRatio": 6.66,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.potCaption.phone-cl.0": {
+        "text": "#FFFFFF",
+        "glyphPixels": 149,
+        "worstBg": "#2477C6",
+        "worstRatio": 4.64,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.potAmount.phone-cl.0": {
+        "text": "#FFFFFF",
+        "glyphPixels": 1021,
+        "worstBg": "#176EC2",
+        "worstRatio": 5.19,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.inactiveTab.phone-cl.0": {
+        "text": "#5A7B8F",
+        "glyphPixels": 1236,
+        "worstBg": "#FFFFFF",
+        "worstRatio": 4.5,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.inactiveTab.phone-cl.1": {
+        "text": "#5A7B8F",
+        "glyphPixels": 783,
+        "worstBg": "#FFFFFF",
+        "worstRatio": 4.5,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.potCaption.phone-cd.0": {
+        "text": "rgba(220,233,249,.92)",
+        "glyphPixels": 149,
+        "worstBg": "#296099",
+        "worstRatio": 4.75,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.potAmount.phone-cd.0": {
+        "text": "#FFFFFF",
+        "glyphPixels": 1028,
+        "worstBg": "#1E5790",
+        "worstRatio": 7.44,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.inactiveTab.phone-cd.0": {
+        "text": "#8FA3AD",
+        "glyphPixels": 1233,
+        "worstBg": "#121B20",
+        "worstRatio": 6.66,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.inactiveTab.phone-cd.1": {
+        "text": "#8FA3AD",
+        "glyphPixels": 782,
+        "worstBg": "#121B20",
+        "worstRatio": 6.66,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.potBarAmount": {
+        "text": "#FFFFFF",
+        "glyphPixels": 3809,
+        "worstBg": "#1670C3",
+        "worstRatio": 5.07,
+        "min": 4.5,
+        "pass": true
+      },
+      "light.potBarSubline": {
+        "text": "#FFFFFF",
+        "glyphPixels": 740,
+        "worstBg": "#146BBD",
+        "worstRatio": 5.43,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.potBarAmount": {
+        "text": "#FFFFFF",
+        "glyphPixels": 3544,
+        "worstBg": "#194C80",
+        "worstRatio": 8.8,
+        "min": 4.5,
+        "pass": true
+      },
+      "dark.potBarSubline": {
+        "text": "#FFFFFF",
+        "glyphPixels": 753,
+        "worstBg": "#154576",
+        "worstRatio": 9.79,
+        "min": 4.5,
+        "pass": true
+      }
+    }
+  },
+  "rendered": {
+    "tokenRows": 71,
+    "tokensDefined": 71,
+    "potStops": {
+      "light": [
+        "#1770C4",
+        "#1569BD",
+        "#0A4F99"
+      ],
+      "dark": [
+        "#215D99",
+        "#164477",
+        "#072549"
+      ]
+    },
+    "potBar": {
+      "light": "linear-gradient(rgb(26, 121, 204), rgb(10, 85, 166))",
+      "dark": "linear-gradient(rgb(30, 87, 144), rgb(8, 40, 79))"
+    },
+    "arcStops": {
+      "al": {
+        "you": [
+          "#df5f29",
+          "#D94000"
+        ],
+        "sam": [
+          "#298ad5",
+          "#0074CD"
+        ],
+        "jordan": [
+          "#29984b",
+          "#008429"
+        ],
+        "priya": [
+          "#9c69ed",
+          "#894CEA"
+        ]
+      },
+      "ad": {
+        "you": [
+          "#b66749",
+          "#FF8B5E"
+        ],
+        "sam": [
+          "#3f83b4",
+          "#55B2F7"
+        ],
+        "jordan": [
+          "#449061",
+          "#5DC580"
+        ],
+        "priya": [
+          "#7d60b5",
+          "#AE81F8"
+        ]
+      }
+    }
+  },
+  "structure": {
+    "phone-al": {
+      "mode": "light",
+      "litSurfaces": [
+        "dial plate"
+      ],
+      "blurred": [],
+      "orbsFlat": true,
+      "phoneOverflow": false
+    },
+    "phone-ad": {
+      "mode": "dark",
+      "litSurfaces": [
+        "dial plate"
+      ],
+      "blurred": [],
+      "orbsFlat": true,
+      "phoneOverflow": false
+    },
+    "phone-bl": {
+      "mode": "light",
+      "litSurfaces": [
+        "hero-card card hero-glass"
+      ],
+      "blurred": [
+        "hero-card card hero-glass"
+      ],
+      "orbsFlat": true,
+      "phoneOverflow": false
+    },
+    "phone-bd": {
+      "mode": "dark",
+      "litSurfaces": [
+        "hero-card card hero-glass"
+      ],
+      "blurred": [],
+      "orbsFlat": true,
+      "phoneOverflow": false
+    },
+    "phone-cl": {
+      "mode": "light",
+      "litSurfaces": [
+        "inv-head card hero-glass"
+      ],
+      "blurred": [
+        "inv-head card hero-glass"
+      ],
+      "orbsFlat": true,
+      "phoneOverflow": false
+    },
+    "phone-cd": {
+      "mode": "dark",
+      "litSurfaces": [
+        "inv-head card hero-glass"
+      ],
+      "blurred": [],
+      "orbsFlat": true,
+      "phoneOverflow": false
+    }
+  },
+  "sweep": {
+    "combinations": 49,
+    "phonesEach": 6,
+    "problems": []
+  },
+  "browser": "Chromium 153.0.8010.12",
+  "contrastFailures": []
+}

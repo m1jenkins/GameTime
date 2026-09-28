@@ -1,0 +1,511 @@
+{
+ "errors": [],
+ "widths": {
+  "1440": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440
+  },
+  "1440 dark system": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440
+  },
+  "1440 light": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440
+  },
+  "1440 dark": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440
+  },
+  "390 light": {
+   "scrollWidth": 390,
+   "clientWidth": 390
+  },
+  "390 dark": {
+   "scrollWidth": 390,
+   "clientWidth": 390
+  }
+ },
+ "copy": {
+  "2 people light": {
+   "cards": [
+    "Both reach it · Both stakes back",
+    "One reaches it · They get both stakes",
+    "Both miss · No one collects",
+    "Couldn’t confirm · Stake back, not a miss"
+   ],
+   "agree": "You both agree to these rules.",
+   "pot": "$40",
+   "match": true,
+   "unconfCardMarked": true,
+   "forbiddenFound": [],
+   "pairWordsInGroup": []
+  },
+  "2 people dark": {
+   "cards": [
+    "Both reach it · Both stakes back",
+    "One reaches it · They get both stakes",
+    "Both miss · No one collects",
+    "Couldn’t confirm · Stake back, not a miss"
+   ],
+   "agree": "You both agree to these rules.",
+   "pot": "$40",
+   "match": true,
+   "unconfCardMarked": true,
+   "forbiddenFound": [],
+   "pairWordsInGroup": []
+  },
+  "2 people pot sheet": {
+   "items": [
+    "Both reach it — You each get your stake back after results are final.",
+    "One reaches it — They get their stake back plus the missed one.",
+    "Both miss — Neither stake comes back. No one collects the pot.",
+    "Couldn’t confirm — If we can’t confirm someone’s result from Apple Health, their stake comes back. It doesn’t count as a miss."
+   ],
+   "bar": "$402 × $20",
+   "match": true
+  },
+  "3 people light": {
+   "cards": [
+    "Everyone reaches it · All stakes back",
+    "Some reach it · They split missed stakes",
+    "Everyone misses · No one collects",
+    "Couldn’t confirm · Stake back, not a miss"
+   ],
+   "agree": "You all agree to these rules.",
+   "pot": "$60",
+   "match": true,
+   "unconfCardMarked": true,
+   "forbiddenFound": [],
+   "pairWordsInGroup": []
+  },
+  "3 people dark": {
+   "cards": [
+    "Everyone reaches it · All stakes back",
+    "Some reach it · They split missed stakes",
+    "Everyone misses · No one collects",
+    "Couldn’t confirm · Stake back, not a miss"
+   ],
+   "agree": "You all agree to these rules.",
+   "pot": "$60",
+   "match": true,
+   "unconfCardMarked": true,
+   "forbiddenFound": [],
+   "pairWordsInGroup": []
+  },
+  "3 people pot sheet": {
+   "items": [
+    "Everyone reaches it — Everyone gets their stake back after results are final.",
+    "Some reach it — They get their stakes back and split missed stakes evenly. Cents that don’t split evenly go to no one.",
+    "Everyone misses — No stakes come back. No one collects the pot.",
+    "Couldn’t confirm — If we can’t confirm someone’s result from Apple Health, their stake comes back. It doesn’t count as a miss."
+   ],
+   "bar": "$603 × $20",
+   "match": true
+  },
+  "4 people light": {
+   "cards": [
+    "Everyone reaches it · All stakes back",
+    "Some reach it · They split missed stakes",
+    "Everyone misses · No one collects",
+    "Couldn’t confirm · Stake back, not a miss"
+   ],
+   "agree": "You all agree to these rules.",
+   "pot": "$80",
+   "match": true,
+   "unconfCardMarked": true,
+   "forbiddenFound": [],
+   "pairWordsInGroup": []
+  },
+  "4 people dark": {
+   "cards": [
+    "Everyone reaches it · All stakes back",
+    "Some reach it · They split missed stakes",
+    "Everyone misses · No one collects",
+    "Couldn’t confirm · Stake back, not a miss"
+   ],
+   "agree": "You all agree to these rules.",
+   "pot": "$80",
+   "match": true,
+   "unconfCardMarked": true,
+   "forbiddenFound": [],
+   "pairWordsInGroup": []
+  },
+  "4 people pot sheet": {
+   "items": [
+    "Everyone reaches it — Everyone gets their stake back after results are final.",
+    "Some reach it — They get their stakes back and split missed stakes evenly. Cents that don’t split evenly go to no one.",
+    "Everyone misses — No stakes come back. No one collects the pot.",
+    "Couldn’t confirm — If we can’t confirm someone’s result from Apple Health, their stake comes back. It doesn’t count as a miss."
+   ],
+   "bar": "$804 × $20",
+   "match": true
+  },
+  "6 people light": {
+   "cards": [
+    "Everyone reaches it · All stakes back",
+    "Some reach it · They split missed stakes",
+    "Everyone misses · No one collects",
+    "Couldn’t confirm · Stake back, not a miss"
+   ],
+   "agree": "You all agree to these rules.",
+   "pot": "$120",
+   "match": true,
+   "unconfCardMarked": true,
+   "forbiddenFound": [],
+   "pairWordsInGroup": []
+  },
+  "6 people dark": {
+   "cards": [
+    "Everyone reaches it · All stakes back",
+    "Some reach it · They split missed stakes",
+    "Everyone misses · No one collects",
+    "Couldn’t confirm · Stake back, not a miss"
+   ],
+   "agree": "You all agree to these rules.",
+   "pot": "$120",
+   "match": true,
+   "unconfCardMarked": true,
+   "forbiddenFound": [],
+   "pairWordsInGroup": []
+  },
+  "6 people pot sheet": {
+   "items": [
+    "Everyone reaches it — Everyone gets their stake back after results are final.",
+    "Some reach it — They get their stakes back and split missed stakes evenly. Cents that don’t split evenly go to no one.",
+    "Everyone misses — No stakes come back. No one collects the pot.",
+    "Couldn’t confirm — If we can’t confirm someone’s result from Apple Health, their stake comes back. It doesn’t count as a miss."
+   ],
+   "bar": "$1206 × $20",
+   "match": true
+  }
+ },
+ "states": [
+  {
+   "mode": "light",
+   "potSheetFocus": "Close",
+   "footnote": "Simulated stakes — no real money moves.",
+   "focusAfterEscape": "stake"
+  },
+  {
+   "mode": "dark",
+   "potSheetFocus": "Close",
+   "footnote": "Simulated stakes — no real money moves.",
+   "focusAfterEscape": "stake"
+  }
+ ],
+ "sweep": {
+  "combinations": 70,
+  "problems": []
+ },
+ "contrast": {
+  "light all card title": {
+   "fg": "#0A2D44",
+   "bg": "#FFFFFF",
+   "ratio": 14.27,
+   "min": 4.5,
+   "pass": true
+  },
+  "light all card line": {
+   "fg": "#3E6278",
+   "bg": "#FFFFFF",
+   "ratio": 6.52,
+   "min": 4.5,
+   "pass": true
+  },
+  "light some card title": {
+   "fg": "#0A2D44",
+   "bg": "#FFFFFF",
+   "ratio": 14.27,
+   "min": 4.5,
+   "pass": true
+  },
+  "light some card line": {
+   "fg": "#3E6278",
+   "bg": "#FFFFFF",
+   "ratio": 6.52,
+   "min": 4.5,
+   "pass": true
+  },
+  "light none card title": {
+   "fg": "#0A2D44",
+   "bg": "#FFFFFF",
+   "ratio": 14.27,
+   "min": 4.5,
+   "pass": true
+  },
+  "light none card line": {
+   "fg": "#3E6278",
+   "bg": "#FFFFFF",
+   "ratio": 6.52,
+   "min": 4.5,
+   "pass": true
+  },
+  "light miss badge on card": {
+   "fg": "#6E93AA",
+   "bg": "#FFFFFF",
+   "ratio": 3.27,
+   "min": 3,
+   "pass": true
+  },
+  "light unconf card title": {
+   "fg": "#0A2D44",
+   "bg": "#EEF6FD",
+   "ratio": 13.07,
+   "min": 4.5,
+   "pass": true
+  },
+  "light unconf card line": {
+   "fg": "#3E6278",
+   "bg": "#EEF6FD",
+   "ratio": 5.97,
+   "min": 4.5,
+   "pass": true
+  },
+  "light unconf \"?\" on badge": {
+   "fg": "#FFFFFF",
+   "bg": "#0E6FC0",
+   "ratio": 5.18,
+   "min": 4.5,
+   "pass": true
+  },
+  "light unconf badge on card": {
+   "fg": "#0E6FC0",
+   "bg": "#EEF6FD",
+   "ratio": 4.75,
+   "min": 3,
+   "pass": true
+  },
+  "light unconf ring on card": {
+   "fg": "#0E6FC0",
+   "bg": "#EEF6FD",
+   "ratio": 4.75,
+   "min": 3,
+   "pass": true
+  },
+  "light unconf card edge on ground": {
+   "fg": "#0E6FC0",
+   "bg": "#F6F8FB",
+   "ratio": 4.87,
+   "min": 3,
+   "pass": true
+  },
+  "light unconf card style": {
+   "background": "rgb(238, 246, 253)",
+   "borderStyle": "dashed",
+   "pass": true
+  },
+  "dark all card title": {
+   "fg": "#EEF4F7",
+   "bg": "#172227",
+   "ratio": 14.61,
+   "min": 4.5,
+   "pass": true
+  },
+  "dark all card line": {
+   "fg": "#9FB2BB",
+   "bg": "#172227",
+   "ratio": 7.38,
+   "min": 4.5,
+   "pass": true
+  },
+  "dark some card title": {
+   "fg": "#EEF4F7",
+   "bg": "#172227",
+   "ratio": 14.61,
+   "min": 4.5,
+   "pass": true
+  },
+  "dark some card line": {
+   "fg": "#9FB2BB",
+   "bg": "#172227",
+   "ratio": 7.38,
+   "min": 4.5,
+   "pass": true
+  },
+  "dark none card title": {
+   "fg": "#EEF4F7",
+   "bg": "#172227",
+   "ratio": 14.61,
+   "min": 4.5,
+   "pass": true
+  },
+  "dark none card line": {
+   "fg": "#9FB2BB",
+   "bg": "#172227",
+   "ratio": 7.38,
+   "min": 4.5,
+   "pass": true
+  },
+  "dark miss badge on card": {
+   "fg": "#58707B",
+   "bg": "#172227",
+   "ratio": 3.1,
+   "min": 3,
+   "pass": true
+  },
+  "dark unconf card title": {
+   "fg": "#EEF4F7",
+   "bg": "#15262F",
+   "ratio": 14.01,
+   "min": 4.5,
+   "pass": true
+  },
+  "dark unconf card line": {
+   "fg": "#9FB2BB",
+   "bg": "#15262F",
+   "ratio": 7.08,
+   "min": 4.5,
+   "pass": true
+  },
+  "dark unconf \"?\" on badge": {
+   "fg": "#0B1A22",
+   "bg": "#8CCBF2",
+   "ratio": 10.07,
+   "min": 4.5,
+   "pass": true
+  },
+  "dark unconf badge on card": {
+   "fg": "#8CCBF2",
+   "bg": "#15262F",
+   "ratio": 8.84,
+   "min": 3,
+   "pass": true
+  },
+  "dark unconf ring on card": {
+   "fg": "#8CCBF2",
+   "bg": "#15262F",
+   "ratio": 8.84,
+   "min": 3,
+   "pass": true
+  },
+  "dark unconf card edge on ground": {
+   "fg": "#8CCBF2",
+   "bg": "#0E161A",
+   "ratio": 10.4,
+   "min": 3,
+   "pass": true
+  },
+  "dark unconf card style": {
+   "background": "rgb(21, 38, 47)",
+   "borderStyle": "dashed",
+   "pass": true
+  },
+  "pot sheet light": {
+   "all title": {
+    "ratio": 14.27,
+    "pass": true
+   },
+   "all line": {
+    "ratio": 6.52,
+    "pass": true
+   },
+   "some title": {
+    "ratio": 14.27,
+    "pass": true
+   },
+   "some line": {
+    "ratio": 6.52,
+    "pass": true
+   },
+   "none title": {
+    "ratio": 14.27,
+    "pass": true
+   },
+   "none line": {
+    "ratio": 6.52,
+    "pass": true
+   },
+   "unconf title": {
+    "ratio": 13.07,
+    "pass": true
+   },
+   "unconf line": {
+    "ratio": 5.97,
+    "pass": true
+   }
+  },
+  "pot sheet dark": {
+   "all title": {
+    "ratio": 14.91,
+    "pass": true
+   },
+   "all line": {
+    "ratio": 7.54,
+    "pass": true
+   },
+   "some title": {
+    "ratio": 14.91,
+    "pass": true
+   },
+   "some line": {
+    "ratio": 7.54,
+    "pass": true
+   },
+   "none title": {
+    "ratio": 14.91,
+    "pass": true
+   },
+   "none line": {
+    "ratio": 7.54,
+    "pass": true
+   },
+   "unconf title": {
+    "ratio": 14.01,
+    "pass": true
+   },
+   "unconf line": {
+    "ratio": 7.08,
+    "pass": true
+   }
+  }
+ },
+ "largeText": {
+  "2 people": [
+   {
+    "headOverflow": false,
+    "cardOverflow": false,
+    "contentOverflow": false
+   },
+   {
+    "headOverflow": false,
+    "cardOverflow": false,
+    "contentOverflow": false
+   }
+  ],
+  "3 people": [
+   {
+    "headOverflow": false,
+    "cardOverflow": false,
+    "contentOverflow": false
+   },
+   {
+    "headOverflow": false,
+    "cardOverflow": false,
+    "contentOverflow": false
+   }
+  ],
+  "6 people": [
+   {
+    "headOverflow": false,
+    "cardOverflow": false,
+    "contentOverflow": false
+   },
+   {
+    "headOverflow": false,
+    "cardOverflow": false,
+    "contentOverflow": false
+   }
+  ]
+ },
+ "captures": [
+  "invitation-rules.png",
+  "invitation-rules-2-people.png",
+  "pot-sheet.png",
+  "pot-sheet-dark.png",
+  "pot-sheet-2-people.png"
+ ],
+ "browser": "Chromium 153.0.8010.12 through Playwright 1.63 (playwright-core)",
+ "contrastFailures": [],
+ "overflow": []
+}
