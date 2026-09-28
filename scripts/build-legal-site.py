@@ -29,7 +29,7 @@ OUTPUT = Path('docs/legal-site')
 PAGES = (
     (Path('docs/PRIVACY_POLICY.md'), 'privacy.html', 'Privacy policy',
      'What GameTime collects, why, and how to delete it.'),
-    (Path('docs/BETA_PRIVACY_TERMS_DRAFT.md'), 'beta-terms.html', 'Beta terms',
+    (Path('docs/BETA_TERMS.md'), 'beta-terms.html', 'Beta terms',
      'The terms for testing the GameTime beta.'),
 )
 

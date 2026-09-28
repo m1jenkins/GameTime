@@ -41,13 +41,13 @@ class LegalSiteTests(unittest.TestCase):
 
     def write(self, privacy, terms):
         (self.root / 'docs/PRIVACY_POLICY.md').write_text(privacy, encoding='utf-8')
-        (self.root / 'docs/BETA_PRIVACY_TERMS_DRAFT.md').write_text(terms, encoding='utf-8')
+        (self.root / 'docs/BETA_TERMS.md').write_text(terms, encoding='utf-8')
 
     def site(self, name):
         return (self.root / legal_site.OUTPUT / name).read_text(encoding='utf-8')
 
-    def test_committed_site_matches_its_sources(self):
-        status, err = run('--root', str(ROOT), '--check')
+    def test_committed_site_is_final_and_matches_its_sources(self):
+        status, err = run('--root', str(ROOT), '--final', '--check')
         self.assertEqual(status, 0, err)
 
     def test_draft_build_is_bannered_and_unindexed(self):
@@ -63,7 +63,7 @@ class LegalSiteTests(unittest.TestCase):
         status, err = run('--root', str(self.root), '--final')
         self.assertEqual(status, 1)
         self.assertIn('PRIVACY_POLICY.md:3: unfilled placeholder "[LEGAL ENTITY]"', err)
-        self.assertIn('BETA_PRIVACY_TERMS_DRAFT.md:1: draft note "unpublished"', err)
+        self.assertIn('BETA_TERMS.md:1: draft note "unpublished"', err)
         self.assertFalse((self.root / legal_site.OUTPUT).exists())
 
     def test_final_build_drops_the_banner(self):

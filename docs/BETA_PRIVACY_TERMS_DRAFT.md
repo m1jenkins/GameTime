@@ -1,5 +1,9 @@
 # New Beta privacy and terms — unpublished implementation draft
 
+The tester-facing text for the friends TestFlight is
+[BETA_TERMS.md](BETA_TERMS.md) and [PRIVACY_POLICY.md](PRIVACY_POLICY.md);
+`scripts/build-legal-site.py` publishes those, not this record.
+
 This document covers the separate `challenge_*_v1` product. It does not replace
 historical agreements or the older Personal-only `PRIVACY_POLICY.md`. The local
 native **You → Privacy and terms** screen describes the implemented preview.

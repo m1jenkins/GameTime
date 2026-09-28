@@ -1,185 +1,190 @@
 # GameTime — Privacy Policy
 
-> **Editorial scope — September 4, 2026.** This unpublished draft describes
-> the current Personal steps/sandbox app only. The adopted products in
-> [BUSINESS_MODEL.md](BUSINESS_MODEL.md) are planned, so their data collection
-> is not represented as already occurring here. Before a new pilot, revise and
-> review consent, event/workout proof, followers, sharing, operators, providers,
-> retention and deletion against the implemented flow. Do not publish this
-> unchanged draft as the new products' privacy policy.
+**Last updated:** September 27, 2026
 
-**Draft for review. This is not legal advice.** It describes what the app in
-this repository actually does, verified against the code, the schema, and
-`PrivacyInfo.xcprivacy`. Have someone qualified read it before you publish it.
+GameTime lets you set activity goals, run challenges with friends, and see how
+you did. This policy explains what we collect, why, who else handles it, and
+how to delete it.
 
-## Before you publish
-
-Three things in this document are not derivable from the codebase, and nobody
-should guess them:
-
-- `[SUPPORT EMAIL]` — the monitored inbox. It appears in the app as well.
-- `[LEGAL ENTITY]` — whoever is accountable for the data. A personal name is
-  fine for a ten-tester beta; it has to be someone real.
-- `[JURISDICTION]` — where that entity is. It decides which law applies and
-  which rights section below is accurate.
-
-Publish the result at a stable URL, then put that URL in App Store Connect and
-in `GAMETIME_PRIVACY_POLICY_URL`. Apple requires the URL before a build can go
-to external testers.
-
----
-
-**Last updated:** August 7, 2026
-
-GameTime lets you set a step goal for a week, put money behind it, and see
-how you did. This policy explains what we collect, why, and how to get rid of
-it.
-
-GameTime is operated by [LEGAL ENTITY] in [JURISDICTION]. This version of the
-app is an invite-only beta for a small number of testers.
+GameTime is operated by Mason Jenkins, an individual in the State of Texas,
+United States. "We" and "us" in this policy mean Mason Jenkins. This version of
+GameTime is a small, invite-only beta distributed through Apple's TestFlight to
+people we know. It is not on the App Store.
 
 ## The short version
 
-- We read the step count Apple Health combines from your available Health
-  sources. Nothing else in Apple Health is ever read.
-- We never sell your data, never share it for advertising, and there are no
-  advertising or analytics trackers in the app.
-- No money moves. Payments in this beta run entirely in Stripe's test mode.
-- You can delete your account from inside the app, and most of what we hold
-  goes with it.
+- You sign in with Apple. We don't ask Apple for your email address.
+- With your permission, we read the Apple Health activity a goal needs: steps,
+  Activity (exercise) minutes, or outdoor runs. We send the totals a challenge
+  is scored on, not your raw Health records, routes, or locations.
+- Friends you add can see your name, username, and the goal, activity, and
+  result of challenges you share with them. Your personal goals stay private.
+- There are no payments in this beta. Stakes are simulated, no real money
+  moves, and nothing can be paid out or redeemed.
+- We never sell your data or share it for advertising. There are no
+  advertising or analytics tools in the app, and we send no push
+  notifications.
+- You can delete your account from inside the app.
 
 ## What we collect
 
 **Your account.** When you sign in with Apple, Apple gives us an account
-identifier. If you choose to share your name at that moment, we store it. We do
-not ask Apple for your email address and we never receive it. You also pick a
-username and a time zone.
+identifier. If you choose to share your name at that moment, we use it to
+fill in your name, and you can change it. We do not ask Apple for your email
+address. You also choose a username, and we store your time zone so goals
+start and end on your local days.
 
-**Your steps.** With your permission, we read step counts from Apple Health —
-only step counts. Apple Health combines compatible sources such as your iPhone,
-Apple Watch, and other Health writers. We exclude a step entry only when Apple
-marks it as manually entered. If another writer fails to supply that marker,
-the app cannot distinguish that entry from automatic data. Nothing else in
-Apple Health is read.
+**Your age confirmation.** GameTime is for people 21 and older. We store that
+you confirmed you are 21 or older and when. We do not ask for or store your
+date of birth.
 
-While a challenge is open, the app keeps one protected seven-day snapshot on
-your phone and sends the same seven daily totals to our server through your
-signed-in account. A newer complete snapshot replaces the prior one, including
-when an Apple Health correction lowers a total. The server keeps that mutable
-snapshot only until the challenge result is finalized.
+**Your activity.** GameTime needs an Apple Watch that records to Apple Health
+on your iPhone. When you connect a goal or challenge, we ask Apple Health for
+permission to read only the kind of activity that goal needs:
 
-**Your challenges.** The goal you set, the amount you committed, when it runs,
-your progress, and how it turned out.
+- **Steps** — your step count.
+- **Activity minutes** — your Apple Exercise minutes.
+- **Outdoor runs and timed runs** — your workouts. We use outdoor running
+  workouts only. For each run the app looks at its start and end time,
+  duration, total distance, whether it was indoors or entered by hand, and
+  which app and device recorded it, so it can tell which runs count.
 
-**Historical device checks.** Older challenge and dormant feature records may
-include an Apple App Attest key identifier, counter, and sealed receipt. New
-Personal Apple Health snapshots do not use App Attest. We preserve old audit
-records only so historical results do not change.
+We ask for each kind of access only when you choose to connect it, and you can
+change GameTime's access in Apple Health at any time. We never write to Apple
+Health, and we don't read heart rate, routes, location, or any other Health
+data.
 
-**Payments.** Every payment in this beta is a Stripe test-mode transaction. No
-real card is ever charged and no real money moves. Stripe holds the test
-payment details; we keep only a reference to them, the brand and last four
-digits of the test card, and the status of a test charge. We never see or store
-a full card number.
+Those checks happen on your phone. For each challenge, we send our server only
+what the challenge is scored on: your total for the challenge's days (steps,
+Activity minutes, or outdoor running distance), or, for a timed run, the time
+and distance of your qualifying run. Each update also records when it was read
+and which version of the challenge's rules it was read under. If Apple Health
+changes later, for example after a correction, the app sends a newer total that
+replaces the old one until the challenge's correction deadline.
 
-**Support messages.** If you email us, we have your message and your email
-address.
+Your phone keeps a small copy of updates that haven't been sent yet, so an
+interrupted upload can finish. That copy is protected by iOS data protection
+and excluded from iCloud and device backups.
 
-**What we do not collect.** No location. No contacts. No photos. No browsing or
-advertising identifiers. No third-party analytics or advertising software of
-any kind is in the app.
+**Your friends and challenges.** Friend requests you send, receive, accept,
+decline, or cancel; the people you add, remove, or block; and any report you
+file about another account, including the reason you give. For challenges: the
+goal and rules you agree to, the friends in it, each person's consent, the
+simulated amount, progress, corrections, results, and any review or appeal you
+ask for.
 
-## Why we hold it
+**Support messages and TestFlight feedback.** If you email us, we have your
+message and your email address. If you send feedback, screenshots, or crash
+reports through TestFlight, Apple passes them to us along with the details
+Apple includes, such as your device model and iOS version.
 
-Only to run the product: to show current progress, score and freeze your week,
-show your history, run the test payment when a challenge is confirmed missed,
-and answer you when you write to us.
+**What we do not collect.** No location or routes. No contacts. No photos. No
+advertising identifiers. No payment cards. No third-party analytics or
+advertising software of any kind is in the app.
 
-We do not use your data for advertising, we do not sell it, and we do not share
-it with anyone for their own purposes.
+## What your friends can see
 
-## Who else touches it
+Your personal goals are private to you. When you add a friend, they can see
+your name and username. When you share a challenge with friends, the people in
+that challenge can see your username, your agreed goal, and your activity and
+result for that challenge. They can't see your other challenges, your raw
+Health records, or your routes.
 
-- **Apple** — Sign in with Apple, Apple Health, and App Attest only for retained
-  historical or unrelated device-check paths. Apple's own privacy policy covers
-  what Apple does.
-- **Stripe** — test-mode payment processing. Stripe holds the test payment
-  details.
+Friends are added only by exact username. We don't suggest people, import
+contacts, or send requests for you. If you decline a request, the sender is
+not told. You can remove or block someone at any time.
+
+## Why we use it
+
+Only to run GameTime: to create your account, connect you with friends, show
+your progress, score challenges under the rules everyone agreed to, handle
+reviews, reports, and appeals, keep the beta safe, and answer you when you
+write to us.
+
+We do not use your data for advertising, we do not sell it, and we do not
+share it with anyone for their own purposes. We never use your health data or
+your results to target you with offers.
+
+## Payments
+
+There are none in this beta. The TestFlight build has payments turned off: you
+can't add a card, no one is charged, and every amount in a challenge is
+simulated and can't be paid out or redeemed. If we ever add real payments, we
+will update this policy and ask for your agreement before any money moves.
+
+## Who else handles it
+
+- **Apple** — Sign in with Apple, Apple Health on your phone, and TestFlight.
+  Apple's own privacy policy covers what Apple does.
 - **Supabase** — the hosting and database provider that stores the data above
   on our behalf.
+- **AgentMail** — hosts our support inbox, so it holds the messages you send
+  us.
+- **GitHub** — hosts these web pages. GitHub may log the address of anyone who
+  visits them.
 
-These are service providers acting on our instructions. Nobody else gets your
-data unless the law requires it.
+These providers act on our instructions and may process data in the United
+States or other countries. Nobody else gets your data unless the law requires
+it or it's needed to protect someone's safety.
 
 ## How long we keep it
 
-Your account, challenges, and results are kept while your account exists.
-
-Raw material we no longer need is removed on a schedule, automatically:
-
-- The mutable seven-day server snapshot is removed when the result freezes. The
-  seven daily totals copied into that result and the record that the week
-  happened remain with challenge history.
-- Historical raw metric material, device registrations, and sealed App Attest
-  receipts follow their existing 90-day policy after workflow finality. New
-  Personal snapshots do not create that material.
-- If exact location is ever recorded by a future feature, it is removed after
-  30 days. The current app does not record location.
-
-For historical retention work, we keep a digest — a one-way fingerprint, not
-the removed data — and the deletion time. Snapshot-v2 history keeps the frozen
-daily totals used for the published result.
+We keep your account, friends, challenges, and results while your account
+exists. Updated activity totals replace older ones until a challenge's
+correction deadline, and then the challenge keeps the totals it was scored on.
 
 ## Deleting your account
 
-You can delete your account inside the app, under **You → Account & Support →
-Delete Account**. We ask you to sign in again first, so nobody who picks up
-your unlocked phone can do it for you.
+You can delete your account inside the app: open **You**, tap **Settings**, then
+**Account**, then **Delete account**. Apple asks you to confirm first, so nobody
+who picks up your unlocked phone can do it for you. You can also email us at
+gametime-support@agentmail.to and we'll do it for you.
 
-When you delete:
+When you delete your account:
 
-- Your sign-in is revoked with Apple and your login is removed. You cannot sign
-  back into the same account.
-- Your name, username, and profile are replaced with an anonymous placeholder.
-- Your device registrations are revoked.
-- Your test payment customer record and saved test payment method are deleted
-  at Stripe.
-- Your step data stops being readable and is removed on the schedule above.
+- Normal access ends right away. You can't take part in new challenges, and
+  friends stop seeing what you shared. Your sign-in with Apple is revoked.
+- Within seven days we remove your name, username, profile, and account
+  access, along with unfinished drafts and invitations you no longer need.
+- Challenge facts and review or report details needed to finish a result are
+  kept until 30 days after that result and any related review or case is
+  closed.
+- A minimal record of challenge agreements, consent, results, and actions we
+  took, with no name or username attached, is kept for 180 days after a
+  challenge is final or a case is closed, whichever is later. That keeps
+  results fair to everyone else who took part.
+- The app saves a deletion receipt you can check after signing out. We keep it
+  for 90 days after all the steps above finish.
 
-What stays is a small amount of anonymous history: that a challenge existed and
-how it was scored, with no name, username, or profile attached to it. We keep
-that because a result someone was charged for — even a test charge — has to
-remain auditable after the fact. It cannot be traced back to you from the
-outside.
-
-If you would rather email us than use the app, write to [SUPPORT EMAIL] and we
-will do it for you.
+Copies in backups held by our hosting provider are removed as those backups
+expire.
 
 ## Your rights
 
-Depending on where you live, you may have the right to see what we hold about
-you, correct it, delete it, or get a copy. Email [SUPPORT EMAIL] and we will
-answer. Deletion is available directly in the app, described above.
+Wherever you live, you can ask to see what we hold about you, correct it,
+delete it, or get a copy. Email gametime-support@agentmail.to and we will
+answer. Deletion is also available directly in the app, described above.
 
-## Children
+## Age
 
-GameTime is not for anyone under 18. We do not knowingly collect data from
-children. If you believe a child has an account, email [SUPPORT EMAIL] and we
-will remove it.
+GameTime is only for people 21 and older. We do not knowingly collect data from
+anyone younger. If you believe someone under 21 has an account, email
+gametime-support@agentmail.to and we will remove it.
 
 ## Security
 
-Data in transit is encrypted. Step totals are cryptographically signed by your
-device before they reach us, so we can tell if they were altered on the way.
-Access to production data is limited to the people who operate the service. No
-system is perfect, and we will tell affected testers promptly if something goes
-wrong.
+Data travels between the app and our servers over encrypted connections.
+Access to the service's data is limited to the people who operate it. No
+system is perfect, and we will tell affected testers promptly if something
+goes wrong.
 
 ## Changes
 
-If this policy changes in a way that matters, we will tell beta testers by
-email before the change takes effect.
+If this policy changes in a way that matters, we will tell testers before the
+change takes effect, and we will update the date at the top.
 
 ## Contact
 
-[SUPPORT EMAIL]
+Mason Jenkins, State of Texas, United States
+
+gametime-support@agentmail.to
