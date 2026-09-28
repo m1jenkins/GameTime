@@ -35,6 +35,14 @@ tested source and publication status, not the current branch tip.
   controller-owned ones. The 13 passed 39 of 39 over three more runs. On
   iOS 27.0 all 13 passed, one on a rerun after an app launch hung. The
   Staging, Release and TestFlight builds succeeded.
+- **CI green on the third attempt:** run
+  [36445045002](https://github.com/m1jenkins/GameTime/actions/runs/36445045002)
+  at `e77b490`. The 13 and `LiveDesignUITests` passed with Xcode 26.2 in all
+  three attempts. The first two failed on one unit test,
+  `testMountedSignalAccountSwitchResetsRetainedNavigation`, which gives each
+  account change 2 seconds; one ran out each time (the test took 3.9 and 7.9
+  seconds). It passed in 0.5 seconds on the third. No link to this change was
+  found. The test is unchanged; watch it.
 
 See the [receipt](../outputs/reports/2026-09-28-personal-detail-uitest-repair.md).
 

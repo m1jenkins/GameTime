@@ -1,7 +1,8 @@
 # Personal-detail UI tests repaired
 
-Change on `claude/personal-detail-uitest-repair`, from `5561746`, September 28,
-2026, fast-forwarded into `main` and pushed. Nothing hosted was touched.
+Change `e77b490` on `claude/personal-detail-uitest-repair`, from `5561746`,
+September 28, 2026, fast-forwarded into `main` and pushed. Nothing hosted was
+touched. CI passed on the third attempt; see [CI after the push](#ci-after-the-push).
 
 ## The decision
 
@@ -139,6 +140,47 @@ which another session was streaming logs from, wasn't used.
 
 A throwaway probe test dumped the sheet's accessibility tree for each fixture
 before the rewrite; it was deleted and isn't in the commit.
+
+## CI after the push
+
+Run [36445045002](https://github.com/m1jenkins/GameTime/actions/runs/36445045002)
+at `e77b490`, with Xcode 26.2 and iOS 26.2. The Database, Edge Functions and
+Client Core jobs passed the first time. The iOS job took three attempts:
+
+| Attempt | iOS job |
+| --- | --- |
+| 1 | UI: 86 tests, 29 passed (these 13 and all 16 of `LiveDesignUITests`), 57 skipped, none failed. The first of the 13 to launch the app took 48 seconds on the cold simulator, and passed. One unit test failed after 3.9 seconds: `AppModelAndRoutingTests.testMountedSignalAccountSwitchResetsRetainedNavigation`, "Expected actor transition did not complete". CI then skipped the builds and the conformance harness |
+| 2, rerun | The same: every UI test passed, and the same unit test failed, after 7.9 seconds. This runner was slow; `LiveDesignUITests` took 1,204 seconds, against 578 |
+| 3, rerun | Passed. UI as before. Unit tests: 648 passed, 11 skipped; that test passed in 0.5 seconds. The Staging and Release builds passed, and the conformance harness passed 10 of 10 |
+
+### The unit test that failed twice
+
+`testMountedSignalAccountSwitchResetsRetainedNavigation` mounts the whole app
+in a window and waits up to 2 seconds, three times, for an account change to
+land. Its failure names the helper's line (434), not which wait ran out.
+
+| CI run | Commit | Its time | Its time over the median of the mounted `ChallengeRestrictionTests` in the same run |
+| --- | --- | --- | --- |
+| 36380467263 | `6653b41` | 1.26 s | 0.33 |
+| 36403528844 | `737e3e2` | 0.98 s | 0.26 |
+| 36411122178 | `dd84f87` | 0.64 s | 0.13 |
+| 36421738020 | `5561746` | 2.50 s | 0.54 |
+| 36445045002, attempt 1 | `e77b490` | 3.91 s, failed | 1.24 |
+| The same, attempt 2 | `e77b490` | 7.90 s, failed | 1.69 |
+| The same, attempt 3 | `e77b490` | 0.48 s | 0.07 |
+
+No cause in this change was found. Its only product line that renders in that
+test is the detail page's identifier, on a sheet that opens after the first
+wait. On this Mac, with and without this change's product lines, the test took
+a median of 0.27–0.28 seconds over 20 runs each, with and without CPU load, and
+never failed. On CI the unit tests run after the UI tests, not beside them. The
+UI tests leave nothing in the app's container but UIKit's saved scene state,
+as `LiveDesignUITests` did before, and the simulator's accessibility settings
+are at their defaults afterwards, so the unit tests' simulator clones inherit
+nothing new. Still, two failures on this commit after none in the four runs
+before are worth watching. A fix, outside this approval: pass `file` and
+`line` through `waitForActorState` so a failure names its wait, and allow it
+longer than 2 seconds.
 
 ## Remaining skips
 
