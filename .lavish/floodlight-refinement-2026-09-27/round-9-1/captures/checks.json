@@ -1,0 +1,83 @@
+{
+  "errors": [],
+  "widths": {
+    "390": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "1440": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    }
+  },
+  "states": [
+    {
+      "potSheetFocus": "Close",
+      "potSheetFootnote": "Simulated stakes — no real money moves."
+    },
+    {
+      "focusAfterEscape": "potbtn"
+    },
+    {
+      "invitationScrolledClass": true
+    },
+    {
+      "largeTextInvHeadOverflow": false
+    }
+  ],
+  "contrast": {
+    "whiteOnButton": {
+      "bg": "#0F63B6",
+      "ratio": 6.03
+    },
+    "whiteOnPotMiddle": {
+      "bg": "#1569BD",
+      "ratio": 5.54
+    },
+    "whiteOnPotLight": {
+      "bg": "#1A76CB",
+      "ratio": 4.67
+    },
+    "whiteOnPotBarMiddle": {
+      "bg": "#1470C2",
+      "ratio": 5.09
+    },
+    "mutedOnGround": {
+      "pair": "#3E6278 on #F6F8FB",
+      "ratio": 6.12
+    }
+  },
+  "structure": {
+    "envPills": 0,
+    "visibleSimLines": [
+      0,
+      0,
+      1
+    ],
+    "srDisclosures": [
+      1,
+      1,
+      0
+    ],
+    "frostedPerPhone": [
+      [],
+      [
+        "hero-card card hero-glass"
+      ],
+      [
+        "inv-head card hero-glass"
+      ]
+    ],
+    "invitationDial": "removed",
+    "invitationHead": true,
+    "stakesToggle": false,
+    "groundColor": "rgb(246, 248, 251)",
+    "orbBackground": "none",
+    "orbHighlight": "none",
+    "buttonBackground": "linear-gradient(rgb(15, 99, 182), rgb(15, 99, 182))"
+  },
+  "sweep": {
+    "combinations": 28,
+    "problems": []
+  }
+}

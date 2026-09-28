@@ -1,0 +1,1105 @@
+{
+ "tool": "Chromium 153.0.8010.12 through Playwright 1.63",
+ "errors": [],
+ "widths": {
+  "1440 side by side, light system": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "both",
+   "visiblePhones": 50
+  },
+  "1440 side by side, dark system": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "both",
+   "visiblePhones": 50
+  },
+  "1440 #light": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "light",
+   "visiblePhones": 25
+  },
+  "1440 #dark": {
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "appearance": "dark",
+   "visiblePhones": 25
+  },
+  "390 light system": {
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "appearance": "light",
+   "visiblePhones": 25
+  },
+  "390 dark system": {
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "appearance": "dark",
+   "visiblePhones": 25
+  }
+ },
+ "phoneOverflow": {
+  "1440 side by side, light system": [],
+  "1440 side by side, dark system": [],
+  "1440 #light": [],
+  "1440 #dark": [],
+  "390 light system": [],
+  "390 dark system": [],
+  "1440 side by side, two people and alternate states": []
+ },
+ "restraint": {
+  "ph-home0-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-home0-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-homeidle-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-homeidle-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-lib0-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-lib0-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-you0-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-you0-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-sync-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-sync-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-stale-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-stale-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-hnone-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-hnone-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-hpartial-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-hpartial-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-decline-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-decline-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-leave-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-leave-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-left-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-left-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-void-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-void-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-r-all-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-r-all-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-r-some-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-r-some-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-r-none-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-r-none-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-r-unconf-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-r-unconf-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-gd-miss-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-gd-miss-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-gd-unconf-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-gd-unconf-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-review-ask-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-review-ask-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-review-saved-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-review-saved-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-cancelled-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-cancelled-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-timed-l": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-timed-d": {
+   "litSurfaces": 0,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-board-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-board-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-home-ax5-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-home-ax5-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-inv-ax5-l": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  },
+  "ph-inv-ax5-d": {
+   "litSurfaces": 1,
+   "litOutsideSky": 0,
+   "blurOutsideHero": 0,
+   "skies": 1,
+   "skyIsFirst": true,
+   "beamsOutsideSky": 0,
+   "gradientButtons": 0,
+   "gradientAvatars": 0,
+   "gradientCards": 0,
+   "rasterImages": 0,
+   "dialPlusGlass": 0
+  }
+ },
+ "symbols": {
+  "used": [
+   "#i-brand",
+   "#i-status",
+   "#sf-applewatch",
+   "#sf-arrow.triangle.2.circlepath",
+   "#sf-arrow.turn.up.left",
+   "#sf-checkmark",
+   "#sf-checkmark.shield",
+   "#sf-chevron.left",
+   "#sf-chevron.right",
+   "#sf-circle.dashed",
+   "#sf-clock",
+   "#sf-exclamationmark.circle",
+   "#sf-flag",
+   "#sf-gearshape",
+   "#sf-heart.text.clipboard",
+   "#sf-house",
+   "#sf-lock",
+   "#sf-magnifyingglass.check",
+   "#sf-person",
+   "#sf-person.2",
+   "#sf-person.badge.plus",
+   "#sf-plus",
+   "#sf-xmark",
+   "#sf-xmark.circle"
+  ],
+  "missing": []
+ },
+ "copy": {
+  "ph-home0-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-homeidle-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-lib0-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-you0-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-sync-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-stale-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-hnone-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-hpartial-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-decline-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-leave-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-left-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-void-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-r-all-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-r-some-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-r-none-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-r-unconf-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-gd-miss-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-gd-unconf-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-review-ask-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-review-saved-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-cancelled-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-timed-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-board-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-home-ax5-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "ph-inv-ax5-l": {
+   "missing": [],
+   "darkMatchesLight": true
+  },
+  "forbiddenOnScreen": [],
+  "chipSaysDidntCount": []
+ },
+ "interactions": {
+  "homeEmptyOneAction": true,
+  "emptyDialHasNoPot": true,
+  "libInvitedEmpty": true,
+  "libFinishedEmpty": true,
+  "libAllBack": true,
+  "youZeroMuted": true,
+  "syncKeepsSavedNumber": true,
+  "syncWaitingMarkerForNoUpdate": true,
+  "syncButtonWaits": true,
+  "syncRefreshSaves": true,
+  "staleClock": true,
+  "staleRefreshClears": true,
+  "noActivityNoMissLanguage": true,
+  "agreeBlockedWithoutActivity": true,
+  "agreeStillBlockedAfterSwitch": true,
+  "declinePotOnlyAgreed": true,
+  "leftPotDrops": true,
+  "voidHasNoPot": true,
+  "leaveSheetShown": true,
+  "leaveCancelBelow": true,
+  "leaveCancelCloses": true,
+  "leaveReopensFocusCancel": true,
+  "leaveEscapeCloses": true,
+  "leaveButtonCalm": true,
+  "groupAll": true,
+  "groupSome": true,
+  "groupNone": true,
+  "groupUnconf": true,
+  "rosterOrderNotRanked": true,
+  "twoAll": true,
+  "twoSome": true,
+  "twoNone": true,
+  "twoUnconfVoids": true,
+  "twoVoidHasNoPotHub": true,
+  "twoDarkMatches": true,
+  "unconfirmedNeverMissBadge": true,
+  "missChipSlateNotRed": true,
+  "unconfDashed": true,
+  "reviewReasonPick": true,
+  "reviewNoFreeText": true,
+  "reviewSaved": true,
+  "reviewEscapeCloses": true,
+  "cancelledNamesNobody": true,
+  "timedBinaryLanes": true,
+  "boardHasNoDial": true,
+  "boardNoTrophies": true,
+  "boardUnrankedLast": true,
+  "ax5BodyAt53": true,
+  "ax5InviteBodyAt53": true,
+  "ax5OneColumn": true,
+  "ax5DialAboveNumber": true,
+  "ax5TargetsAtLeast44": true,
+  "appearanceDarkOnly": true,
+  "appearanceLightOnly": true
+ },
+ "contrast": {
+  "default": {
+   "runs": 1166,
+   "failures": [],
+   "lowestNormal": [
+    {
+     "phone": "ph-home0-l",
+     "text": "Challenges",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-home0-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-homeidle-l",
+     "text": "Challenges",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-homeidle-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-lib0-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-lib0-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    }
+   ],
+   "lowestLarge": [
+    {
+     "phone": "ph-home-ax5-l",
+     "text": "Sun, Sep 27",
+     "large": true,
+     "worst": 4.31,
+     "p05": 4.32
+    },
+    {
+     "phone": "ph-inv-ax5-l",
+     "text": "jordan.b invited you",
+     "large": true,
+     "worst": 4.42,
+     "p05": 4.51
+    },
+    {
+     "phone": "ph-decline-l",
+     "text": "$40",
+     "large": true,
+     "worst": 4.93,
+     "p05": 5.12
+    },
+    {
+     "phone": "ph-sync-l",
+     "text": "$80",
+     "large": true,
+     "worst": 5.06,
+     "p05": 5.13
+    },
+    {
+     "phone": "ph-r-some-l",
+     "text": "$80",
+     "large": true,
+     "worst": 5.06,
+     "p05": 5.13
+    },
+    {
+     "phone": "ph-inv-ax5-l",
+     "text": "$60",
+     "large": true,
+     "worst": 5.06,
+     "p05": 5.13
+    }
+   ]
+  },
+  "alternate": {
+   "runs": 1170,
+   "failures": [],
+   "lowestNormal": [
+    {
+     "phone": "ph-home0-l",
+     "text": "Challenges",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-home0-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-homeidle-l",
+     "text": "Challenges",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-homeidle-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-lib0-l",
+     "text": "Home",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    },
+    {
+     "phone": "ph-lib0-l",
+     "text": "You",
+     "large": false,
+     "worst": 4.5,
+     "p05": 4.5
+    }
+   ],
+   "lowestLarge": [
+    {
+     "phone": "ph-home-ax5-l",
+     "text": "Sun, Sep 27",
+     "large": true,
+     "worst": 4.27,
+     "p05": 4.32
+    },
+    {
+     "phone": "ph-inv-ax5-l",
+     "text": "jordan.b invited you",
+     "large": true,
+     "worst": 4.42,
+     "p05": 4.51
+    },
+    {
+     "phone": "ph-decline-l",
+     "text": "$40",
+     "large": true,
+     "worst": 4.93,
+     "p05": 5.12
+    },
+    {
+     "phone": "ph-sync-l",
+     "text": "$80",
+     "large": true,
+     "worst": 5.06,
+     "p05": 5.13
+    },
+    {
+     "phone": "ph-hnone-l",
+     "text": "$80",
+     "large": true,
+     "worst": 5.06,
+     "p05": 5.13
+    },
+    {
+     "phone": "ph-hpartial-l",
+     "text": "$60",
+     "large": true,
+     "worst": 5.06,
+     "p05": 5.13
+    }
+   ]
+  }
+ },
+ "words": {
+  "home0": 24,
+  "homeidle": 33,
+  "lib0": 28,
+  "you0": 43,
+  "sync": 64,
+  "stale": 61,
+  "hnone": 64,
+  "hpartial": 76,
+  "decline": 68,
+  "leave": 56,
+  "left": 54,
+  "void": 48,
+  "r-all": 68,
+  "r-some": 93,
+  "r-none": 74,
+  "r-unconf": 78,
+  "gd-miss": 67,
+  "gd-unconf": 68,
+  "review-ask": 83,
+  "review-saved": 100,
+  "cancelled": 40,
+  "timed": 64,
+  "board": 93,
+  "home-ax5": 38,
+  "inv-ax5": 103
+ }
+}
