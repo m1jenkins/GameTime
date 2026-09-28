@@ -155,6 +155,57 @@ for (
 }
 
 for (
+  const [message, reason] of [
+    ["challenge_real_health_binding_invalid", "challenge_closed"],
+    ["challenge_invalid_real_health_revision", "revision_not_accepted"],
+    ["challenge_request_conflict", "request_conflict"],
+  ] as const
+) {
+  Deno.test(`refusal ${message} tells the client the exact bytes can never be saved`, async () => {
+    const mock = stub(globalThis, "fetch", () =>
+      Promise.resolve(Response.json({
+        code: "22023",
+        message,
+        details: args.payload,
+      }, { status: 400 })));
+    try {
+      const error = await assertRejects(() => realHealthDatabase(config)(args), HttpFailure);
+      assertEquals([error.kind, error.reason], ["rejected", reason]);
+      assertEquals(error.message.includes(message), false);
+      assertEquals(error.detail, undefined);
+    } finally {
+      mock.restore();
+    }
+  });
+}
+
+for (
+  const [code, message] of [
+    // An early device clock clears once server time passes it.
+    ["22023", "challenge_invalid_real_health_request"],
+    ["40001", "challenge_invalid_real_health_revision"],
+    ["23505", "challenge_real_health_binding_invalid"],
+    ["22023", "constructor"],
+    ["22023", "private values 12345"],
+    ["22023", undefined],
+  ] as const
+) {
+  Deno.test(`refusal ${code} ${message} stays retryable without a reason`, async () => {
+    const mock = stub(
+      globalThis,
+      "fetch",
+      () => Promise.resolve(Response.json({ code, message }, { status: 400 })),
+    );
+    try {
+      const error = await assertRejects(() => realHealthDatabase(config)(args), HttpFailure);
+      assertEquals([error.kind, error.reason], ["rejected", undefined]);
+    } finally {
+      mock.restore();
+    }
+  });
+}
+
+for (
   const [code, expected] of [["42501", "forbidden"], ["22023", "rejected"], ["XX000", "internal"]]
 ) {
   Deno.test(`P8 strips private database error content for ${code}`, async () => {

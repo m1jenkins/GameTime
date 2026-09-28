@@ -4,6 +4,8 @@ import Supabase
 
 enum ChallengeHealthUploadClientError: LocalizedError, Equatable {
   case unavailable, accountChanged, busy, storage, refused
+  /// The server has no saved copy of these exact bytes and never will.
+  case permanentlyRefused(reason: String)
   var errorDescription: String? {
     switch self {
     case .unavailable: "We couldn’t update your activity. Try again in a moment."
@@ -11,7 +13,17 @@ enum ChallengeHealthUploadClientError: LocalizedError, Equatable {
     case .busy: "We’re already updating your activity. Check your challenge in a moment."
     case .storage: "We couldn’t save this update on your phone. Unlock your phone and try again."
     case .refused: "We couldn’t accept this update. Refresh your challenge and try again."
+    case .permanentlyRefused: "We couldn’t save this update. Refresh your challenge to see what we saved."
     }
+  }
+
+  /// `ingest-challenge-health` names a reason on a 422 only when no retry of
+  /// the exact bytes can succeed. Any other refusal stays saved for a retry.
+  static func refusal(status: Int, body: Data) -> Self {
+    struct Refusal: Decodable { let reason: String? }
+    guard status == 422, let reason = (try? JSONDecoder().decode(Refusal.self, from: body))?.reason,
+          ["challenge_closed", "revision_not_accepted", "request_conflict"].contains(reason) else { return .refused }
+    return .permanentlyRefused(reason: reason)
   }
 }
 
@@ -80,6 +92,8 @@ final class ChallengeHealthUploadClient {
   private let privateAccountMode: Bool
   private var generation = UUID()
   private var busy = false
+  // Recovery keeps going past a failed account-only update; each keeps its own result.
+  private var recoveryFailures: [UUID: any Error] = [:]
 
   init(enabled: Bool = false, environment: AppAttestEnvironment,
        privateAccountMode: Bool = false,
@@ -102,7 +116,8 @@ final class ChallengeHealthUploadClient {
             let epoch = self.generation
             guard let session = self.binding(), session.actorID == actor else { throw ChallengeHealthUploadClientError.accountChanged }
             var journal = try self.store.load(actor: actor)
-            try await self.transmit(signed, request: request, journal: &journal, epoch: epoch, session: session)
+            do { try await self.transmit(signed, request: request, journal: &journal, epoch: epoch, session: session) }
+            catch { self.recoveryFailures[request.requestID] = error; throw error }
           }
       }
     }
@@ -146,7 +161,7 @@ final class ChallengeHealthUploadClient {
       }
       let (data, response) = try await transport.data(for: request)
       guard let http = response as? HTTPURLResponse, data.count <= 4096 else { throw ChallengeHealthUploadClientError.unavailable }
-      guard http.statusCode == 200 else { throw ChallengeHealthUploadClientError.refused }
+      guard http.statusCode == 200 else { throw ChallengeHealthUploadClientError.refusal(status: http.statusCode, body: data) }
       return data
     })
   }
@@ -176,10 +191,14 @@ final class ChallengeHealthUploadClient {
       guard saved.exactBody == request.exactBytes else { throw ChallengeHealthUploadError.requestConflict }
       guard !privateAccountMode || saved.isPrivateAccount else { throw ChallengeHealthUploadClientError.refused }
     }
+    recoveryFailures = [:]
     try await coordinator.recover(actor: request.actorID, includingDeviceVerifiedRequests: !privateAccountMode)
     try check(epoch, session)
     journal = try store.load(actor: request.actorID)
-    if matchingSaved != nil { return }
+    if matchingSaved != nil {
+      if let failure = recoveryFailures[request.requestID] { throw failure }
+      return
+    }
     if let confirmedServerRevision { try journal.reconcileServerHead(for: request, revision: confirmedServerRevision) }
     guard permitsNewUploads else { throw ChallengeHealthUploadClientError.unavailable }
     try validate()
@@ -215,6 +234,17 @@ final class ChallengeHealthUploadClient {
     try check(epoch, session)
   }
 
+  /// Challenges whose saved update is still waiting to be sent.
+  func waitingChallenges(actor: UUID) throws -> Set<UUID> {
+    Set(try store.load(actor: actor).pending.map { try ChallengeHealthUploadRequest(restoring: $0.exactBody).challengeID })
+  }
+
+  /// The newest revision of this challenge that the server will never accept.
+  func refusedRevision(actor: UUID, challenge: UUID) throws -> Int? {
+    try store.load(actor: actor).retired.compactMap { try? ChallengeHealthUploadRequest(restoring: $0.exactBody) }
+      .filter { $0.challengeID == challenge }.map(\.revision).max()
+  }
+
   private func transmit(_ upload: ChallengeHealthSignedUpload, request: ChallengeHealthUploadRequest,
                         journal: inout ChallengeHealthUploadJournal, epoch: UUID,
                         session: WeeklyClientSession) async throws {
@@ -222,7 +252,17 @@ final class ChallengeHealthUploadClient {
     guard upload.isPrivateAccount ? privateAccountMode : upload.environment == environment.rawValue else {
       throw ChallengeHealthUploadError.invalidSignature
     }
-    let receipt = try await send(upload, session)
+    let receipt: Data
+    do { receipt = try await send(upload, session) }
+    catch ChallengeHealthUploadClientError.permanentlyRefused(let reason) where upload.isPrivateAccount {
+      // The server checked for a saved copy first, so none exists. With no
+      // device counter to protect, the update leaves the retry path and its
+      // challenge can take a replacement. A signed update keeps its place.
+      try check(epoch, session)
+      try journal.retire(request, reason: reason, at: Date())
+      try store.save(journal)
+      throw ChallengeHealthUploadClientError.permanentlyRefused(reason: reason)
+    }
     try check(epoch, session)
     try journal.acknowledge(request, receipt: receipt)
     try store.save(journal)

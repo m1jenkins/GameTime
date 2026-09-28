@@ -74,6 +74,8 @@ final class ChallengeHealthReadinessClient {
   private let privateAccountMode: Bool
   private var generation = UUID()
   private var busy = false
+  // Recovery keeps going past a failed account-only request; each keeps its own result.
+  private var recoveryFailures: [UUID: any Error] = [:]
 
   init(enabled: Bool = false, environment: AppAttestEnvironment,
        privateAccountMode: Bool = false,
@@ -96,7 +98,8 @@ final class ChallengeHealthReadinessClient {
             let epoch = self.generation
             guard let session = self.binding(), session.actorID == actor else { throw ChallengeHealthReadinessClientError.accountChanged }
             var journal = try self.store.load(actor: actor)
-            try await self.transmit(signed, request: request, journal: &journal, epoch: epoch, session: session)
+            do { try await self.transmit(signed, request: request, journal: &journal, epoch: epoch, session: session) }
+            catch { self.recoveryFailures[request.requestID] = error; throw error }
           }
       }
     }
@@ -170,10 +173,17 @@ final class ChallengeHealthReadinessClient {
       guard saved.exactBody == request.exactBytes else { throw ChallengeHealthReadinessRequestError.requestConflict }
       guard !privateAccountMode || saved.isPrivateAccount else { throw ChallengeHealthReadinessClientError.refused }
     }
+    recoveryFailures = [:]
     try await coordinator.recover(actor: request.actorID, includingDeviceVerifiedRequests: !privateAccountMode)
     try check(epoch, session)
     journal = try store.load(actor: request.actorID)
-    if matchingSaved != nil { return }
+    if matchingSaved != nil {
+      if let failure = recoveryFailures[request.requestID] { throw failure }
+      return
+    }
+    // An upload never holds back an activity check, but a check that is still
+    // waiting goes before a new one, so unsent checks can't pile up.
+    if let failure = recoveryFailures.values.first { throw failure }
     guard permitsNewRequests else { throw ChallengeHealthReadinessClientError.unavailable }
     try validate()
     let signed: ChallengeHealthSignedReadinessRequest

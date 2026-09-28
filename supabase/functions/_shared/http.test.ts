@@ -68,6 +68,25 @@ Deno.test("expected refusals log only the handler label and failure kind", async
   }
 });
 
+Deno.test("a refusal reason reaches the response body, not the logs", async () => {
+  const consoleCapture = captureConsole();
+  try {
+    const response = await respond("ingest-challenge-health", () =>
+      Promise.reject(
+        new HttpFailure("rejected", "public message", "private detail", "challenge_closed"),
+      ));
+    assertEquals(response.status, 422);
+    assertEquals(await response.json(), {
+      error: "rejected",
+      message: "public message",
+      reason: "challenge_closed",
+    });
+    assertEquals(consoleCapture.warnings, ["ingest-challenge-health: rejected"]);
+  } finally {
+    consoleCapture.restore();
+  }
+});
+
 Deno.test("unexpected throws cannot place their values or an unsafe label in logs", async () => {
   const consoleCapture = captureConsole();
   const privateValues = [

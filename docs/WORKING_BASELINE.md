@@ -9,6 +9,26 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 27 one refused Health upload no longer blocks the phone
+
+- **Reproduced first:** a saved account-mode upload refused with a 422 blocked
+  every later upload, every retry and every activity check on that phone. Only
+  account deletion cleared it.
+- **Local fix:** account-mode requests now recover independently. A lost
+  connection still ends the pass, and a waiting activity check still goes before
+  a new one. The Edge Function names a `reason` on the three refusals that can't
+  reverse for an update the app builds. A request refused that way leaves the
+  retry path but keeps a bounded local record. While the window is open, its
+  challenge takes a fresh update from the server's latest revision. Saved bytes
+  are never changed. Signed App Attest records keep the adopted counter rule.
+  The P9 contract and COPY.md record the rule and the new **Last update not
+  saved** text.
+- **Not done:** the `ingest-challenge-health` deploy to `gametime-p11b` needs
+  separate approval. Until then stuck requests stay retried, but they no longer
+  block anything else.
+
+See the [receipt](../outputs/reports/2026-09-27-health-refused-upload.md).
+
 ## September 27 D144 hosted state (read-only)
 
 - **`gametime-p11b`:** the commitment switch has been on since 03:27 UTC on

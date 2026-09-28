@@ -36,6 +36,31 @@ committed response; it does not authorize a new fact. Existing terminal key
 rejection behavior remains endpoint-specific. Sign-out keeps owner-scoped files;
 only the owning account’s valid session may resume them.
 
+**Account-mode refusals, September 27.** Account-mode requests carry no device
+counter, so each one recovers on its own. One that fails stays saved and never
+blocks another challenge’s update or an activity check. A sign-in change,
+cancellation or lost connection ends the pass. A waiting activity check still
+goes before a new one, so unsent checks can’t pile up.
+
+`ingest-challenge-health` adds a `reason` to a 422 only for refusals raised
+after the exact replay found no saved response:
+
+- `challenge_closed`: status, membership or frozen terms.
+- `revision_not_accepted`: the revision is taken or past its cutoff.
+- `request_conflict`.
+
+The app builds an update only while its challenge is scheduled, active or
+syncing, so none of these can reverse for it. Only a community lobby still open
+past its start could begin taking updates later.
+
+An account-mode request refused with one of these reasons leaves the retry path.
+Its exact bytes stay in a bounded local record for support, and the
+acknowledged head is unchanged. While the window is open, the challenge takes a
+fresh replacement that follows the server’s latest revision. Saved bytes are
+never changed or signed again. Signed requests keep the counter-ordered rule
+above, even after a permanent refusal. Any other refusal stays saved for an
+exact retry, including a 422 without a reason from an older Edge Function.
+
 ## Health ownership and lifecycle
 
 AppModel owns `ChallengeHealthFlowStore`, separate from ChallengeV1Store. A typed

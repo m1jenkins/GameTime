@@ -180,6 +180,34 @@ struct ChallengeHealthReadinessClientTests {
     #expect(try store.load(actor: actor).pending == [oldSigned!])
   }
 
+  @Test("refused account-mode checks don't pile up, and a refused upload never blocks one")
+  func accountModeChecksStayBounded() async throws {
+    let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }
+    let coordinator = coordinator(store)
+    let session = WeeklyClientSession(actorID: actor, identity: "fictional-session")
+    var accept = false
+    let readiness = ChallengeHealthReadinessClient(enabled: true, environment: .development, privateAccountMode: true,
+      coordinator: coordinator, binding: { session },
+      sign: { _, _ in Issue.record("account mode must not sign"); return material() },
+      send: { signed, _ in
+        guard accept else { throw ChallengeHealthReadinessClientError.refused }
+        return try receipt(ChallengeHealthReadinessRequest(restoring: signed.exactBody))
+      })
+    let uploads = ChallengeHealthUploadClient(enabled: true, environment: .development, privateAccountMode: true,
+      coordinator: coordinator, binding: { session },
+      sign: { _, _ in Issue.record("account mode must not sign"); return material() },
+      send: { _, _ in throw ChallengeHealthUploadClientError.refused })
+    await #expect(throws: ChallengeHealthUploadClientError.refused) { try await uploads.submit(uploadRequest()) }
+    for _ in 0..<20 {
+      await #expect(throws: ChallengeHealthReadinessClientError.refused) { try await readiness.submit(request()) }
+    }
+    #expect(try store.load(actor: actor).pending.count == 1, "A waiting check goes before a new one")
+    accept = true
+    try await readiness.submit(request())
+    #expect(try store.load(actor: actor).pending.isEmpty)
+    #expect(try coordinator.uploadStore.load(actor: actor).pending.count == 1, "The refused upload waits on its own")
+  }
+
   @Test("a new readiness request drains an earlier durable assertion before signing")
   func newReadinessDrainsEarlierPendingRequestAfterRelaunch() async throws {
     let store = store(); defer { try? FileManager.default.removeItem(at: store.directory) }

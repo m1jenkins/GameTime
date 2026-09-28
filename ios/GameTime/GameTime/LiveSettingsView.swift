@@ -155,11 +155,13 @@ private struct LiveHealthSettingsView: View {
     private func activityCard(_ row: ChallengeV1, binding: ChallengeHealthBinding, health: ChallengeHealthFlowStore) -> some View {
         let state = health.state(for: binding)
         return LiveInformationCard(title: LiveChallengePresentation.title(row), symbol: row.format.metric.symbol) {
-            Text(ChallengeHealthCopy.title(state.readiness))
+            Text(ChallengeHealthCopy.title(state))
                 .font(.subheadline.weight(.semibold)).foregroundStyle(SignalTheme.textPrimary)
-            Text(ChallengeHealthCopy.explanation(state.readiness, timed: row.format.metric == .timed, readiness: false))
+            if !state.notSaved {
+                Text(ChallengeHealthCopy.explanation(state.readiness, timed: row.format.metric == .timed, readiness: false))
+            }
             if let message = state.message { Text(message).font(.footnote) }
-            if state.readiness == .notConnected {
+            if state.readiness == .notConnected && !state.notSaved {
                 Button("Connect Apple Health") {
                     working = true
                     Task {

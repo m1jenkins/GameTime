@@ -1,4 +1,5 @@
 import { assertEquals } from "@std/assert";
+import { HttpFailure } from "../_shared/http.ts";
 import { createAccessTokenVerifier } from "../_shared/jwt.ts";
 import { sha256, toHex, utf8 } from "../_shared/bytes.ts";
 import { buildAssertion, makeDevice } from "../_test/appattest_fixtures.ts";
@@ -155,6 +156,41 @@ Deno.test("P8 signs and hashes the exact normalized bytes, binding live session 
   assertEquals(call.tokenExpiresAt, "2026-09-19T12:05:00.000Z");
   assertEquals(call.signCount, 7);
   assertEquals(call.recoveryOnly, false);
+});
+
+Deno.test("a permanent refusal reaches the client as a 422 with its reason", async () => {
+  const token = await mintAccessToken(actor, {
+    claims: {
+      sub: actor,
+      role: "authenticated",
+      session_id: session,
+      exp: at.getTime() / 1000 + 300,
+    },
+  });
+  const handler = createIngestChallengeHealthHandler({
+    enabled: true,
+    appId,
+    verifyToken: createAccessTokenVerifier(TEST_JWT_SECRET),
+    now: () => at,
+    publicKeyFor: () => Promise.resolve(undefined),
+    ingest: () =>
+      Promise.reject(
+        new HttpFailure("rejected", "Not saved.", undefined, "revision_not_accepted"),
+      ),
+  });
+  const response = await handler(
+    new Request("https://local.test/ingest-challenge-health", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}` },
+      body: JSON.stringify(base),
+    }),
+  );
+  assertEquals(response.status, 422);
+  assertEquals(await response.json(), {
+    error: "rejected",
+    message: "Not saved.",
+    reason: "revision_not_accepted",
+  });
 });
 
 Deno.test("P8 closed Edge gate delegates only exact committed recovery", async () => {

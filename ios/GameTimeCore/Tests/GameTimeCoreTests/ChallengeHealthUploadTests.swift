@@ -112,6 +112,49 @@ struct ChallengeHealthUploadTests {
         #expect(journal.pending.count == 1)
     }
 
+    @Test("a retired update leaves the retry path, keeps its bytes and frees its challenge")
+    func retirement() throws {
+        let first = try request(value: 1000), second = try request(revision: 2, value: 1200)
+        var journal = ChallengeHealthUploadJournal(actorID: actor)
+        try journal.enqueue(signed(first)); try journal.acknowledge(first, receipt: receipt(first))
+        try journal.enqueue(ChallengeHealthSignedUpload(privateAccountRequest: second))
+        let at = Date(timeIntervalSince1970: 1_800_200_000)
+        #expect(throws: ChallengeHealthUploadError.requestConflict) { try journal.retire(second, reason: "Revision Closed", at: at) }
+        #expect(throws: ChallengeHealthUploadError.requestConflict) { try journal.retire(request(revision: 2), reason: "revision_not_accepted", at: at) }
+        #expect(throws: ChallengeHealthUploadError.wrongAccount) { try journal.retire(request(actor: UUID()), reason: "revision_not_accepted", at: at) }
+        #expect(journal.pending.count == 1)
+        try journal.retire(second, reason: "revision_not_accepted", at: at)
+        var restored = try ChallengeHealthUploadJournal(restoring: journal.encoded(), actorID: actor)
+        #expect(restored.pending.isEmpty)
+        #expect(restored.retired == [ChallengeHealthRetiredUpload(exactBody: second.exactBytes, reason: "revision_not_accepted", retiredAt: at)])
+        #expect(throws: ChallengeHealthUploadError.requestConflict) {
+            try restored.enqueue(ChallengeHealthSignedUpload(privateAccountRequest: second))
+        }
+        // The acknowledged head is unchanged: a replacement follows revision 1,
+        // or a later server revision once the caller reconciles with it.
+        try restored.enqueue(signed(request(revision: 2, value: 1300)))
+        #expect(restored.pending.count == 1)
+    }
+
+    @Test("journals saved before retirement restore, and the retired record stays bounded")
+    func retirementCompatibility() throws {
+        var journal = ChallengeHealthUploadJournal(actorID: actor)
+        try journal.enqueue(signed(request()))
+        var older = try #require(JSONSerialization.jsonObject(with: journal.encoded()) as? [String: Any])
+        #expect(older["retired"] == nil)
+        older.removeValue(forKey: "retired")
+        #expect(try ChallengeHealthUploadJournal(restoring: JSONSerialization.data(withJSONObject: older), actorID: actor).retired.isEmpty)
+        var bounded = ChallengeHealthUploadJournal(actorID: actor)
+        for index in 0..<(ChallengeHealthUploadJournal.retiredLimit + 3) {
+            let update = try request(revision: 1, value: Int64(index + 1))
+            try bounded.enqueue(ChallengeHealthSignedUpload(privateAccountRequest: update))
+            try bounded.retire(update, reason: "challenge_closed", at: Date(timeIntervalSince1970: Double(index)))
+        }
+        let restored = try ChallengeHealthUploadJournal(restoring: bounded.encoded(), actorID: actor)
+        #expect(restored.retired.count == ChallengeHealthUploadJournal.retiredLimit)
+        #expect(restored.retired.first?.retiredAt == Date(timeIntervalSince1970: 3))
+    }
+
     @Test("wrong receipt and invalid initial revision preserve the exact pending update")
     func receiptIsolation() throws {
         let first = try request(); var journal = ChallengeHealthUploadJournal(actorID: actor)

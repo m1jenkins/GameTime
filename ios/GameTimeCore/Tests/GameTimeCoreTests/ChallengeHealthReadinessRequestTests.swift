@@ -151,6 +151,21 @@ struct ChallengeHealthReadinessRequestTests {
         #expect(journal.pending.isEmpty)
     }
 
+    @Test("a full journal refuses another request instead of saving one it can't restore")
+    func journalBound() throws {
+        let (snapshot, evaluation) = try accepted()
+        let binding = try binding()
+        var journal = ChallengeHealthReadinessJournal(actorID: binding.actorID)
+        for _ in 0..<16 {
+            try journal.enqueue(ChallengeHealthSignedReadinessRequest(privateAccountRequest: ChallengeHealthReadinessRequest(
+                binding: binding, snapshot: snapshot, evaluation: evaluation, requestID: UUID())))
+        }
+        let extra = try ChallengeHealthSignedReadinessRequest(privateAccountRequest: ChallengeHealthReadinessRequest(
+            binding: binding, snapshot: snapshot, evaluation: evaluation, requestID: UUID()))
+        #expect(throws: ChallengeHealthReadinessRequestError.queueFull) { try journal.enqueue(extra) }
+        #expect(try ChallengeHealthReadinessJournal(restoring: journal.encoded(), actorID: binding.actorID).pending.count == 16)
+    }
+
     @Test("cumulative outdoor-running readiness keeps the five-field receipt shape")
     func cumulativeRunningCanonicalBody() throws {
         let binding = try workoutBinding(metric: .runningMillimeters,

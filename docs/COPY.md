@@ -457,6 +457,7 @@ Strict v1 screens explain their unavailable source. Never rewrite consent.
 | Server-confirmed score | Your saved score · Last saved update · Save activity by [deadline] · Refresh |
 | No valid saved score | Unranked — your simulated entry returns. Fewer than two valid scores means the challenge doesn’t count and all entries return. |
 | Pending/failed upload | We haven’t confirmed this update. Refresh to recover it. If your saved score is still wrong when results arrive, ask us to review it before the review deadline. |
+| Upload the server will never accept (`reason` on a 422), when the challenge can't take a replacement | **Last update not saved** · We couldn’t save this update because this challenge had stopped taking activity. If your saved score is wrong when results arrive, ask us to review it before the review deadline. Refreshing can't change this, so don't suggest Refresh or a connection check. |
 
 For new v2 leaderboards, disclose that a partial saved total still ranks at that
 total and a missing run cannot improve a saved time. Do not promise complete

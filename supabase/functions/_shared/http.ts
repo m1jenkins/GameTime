@@ -39,11 +39,17 @@ export class HttpFailure extends Error {
    * client and `respond` never emits it to automatic logs.
    */
   readonly detail: string | undefined;
+  /**
+   * A fixed, machine-readable code the client may act on. Set only when
+   * retrying the identical request can never succeed.
+   */
+  readonly reason: string | undefined;
 
-  constructor(kind: FailureKind, message: string, detail?: string) {
+  constructor(kind: FailureKind, message: string, detail?: string, reason?: string) {
     super(message);
     this.kind = kind;
     this.detail = detail;
+    this.reason = reason;
   }
 }
 
@@ -63,6 +69,7 @@ export function failureResponse(failure: HttpFailure): Response {
   return jsonResponse(STATUS[failure.kind], {
     error: failure.kind,
     message: failure.message,
+    ...(failure.reason === undefined ? {} : { reason: failure.reason }),
   });
 }
 
