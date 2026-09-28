@@ -79,8 +79,11 @@ These facts come from source and receipts, and they shape each phase.
   tab, and `scripts/beta-native-smoke.py` does not run that suite. Put
   product-scoped copy checks in `ChallengeV1UITests` and `LiveDesignUITests`,
   and decide separately whether to repair or retire the old suite.
-- **Hosted `gametime-p11b`** (updated September 27; see Phase 5 for the
+- **Hosted `gametime-p11b`** (updated September 28; see Phase 5 for the
   current state)
+  - Migrations match the repo's 105 as of September 28. The history repair,
+    D143 and the legacy-grant closure are applied
+    ([receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.md)).
   - On September 22, `20260920162025` (the leaderboard migration) was
     unapplied, while the later
     `20260920164443` and `20260922150718` are applied.
@@ -92,13 +95,15 @@ These facts come from source and receipts, and they shape each phase.
     rest of Phase 5's migrations.
   - The checkout's CLI link and `supabase/staging-project-ref` point at the
     historical `jrkzdttophnmkxjoyioo`, so always pass the project ref explicitly.
-  - Deployed functions, as of September 27: worker, snapshot and monitor
+  - Deployed functions, as of September 28: worker, snapshot and monitor
     (version 5), `attest-device` (4), `ingest-challenge-health` (8), and the
     three D144 functions `challenge-commitment-setup`, `-charge` and
     `-webhook` (3).
   - `delete-account` is not deployed. It needs the Apple client ID and a
-    pre-generated client secret (`supabase/functions/delete-account/index.ts:28–31`),
-    which Apple caps at 6 months.
+    pre-generated client secret, `GAMETIME_APPLE_CLIENT_ID` and
+    `GAMETIME_APPLE_CLIENT_SECRET`
+    (`supabase/functions/delete-account/index.ts:29–35`). Apple caps the
+    secret at 6 months.
 - **Owner goals.** A September 21 readback found two scheduled
   `personal_steps_goal_v1` records on hosted.
   - The documented one, 4,703 steps over September 22–28: corrections close
@@ -316,33 +321,31 @@ functions score them from the start.
   private trial is still on, so only its enrolled account can take part.
   D142 keeps no per-person allowlist, so the trial goes off. Only the timing
   is the owner's call.
-- **Remaining work** has an approval-ready
+- **Done September 28:** backed up hosted with `supabase db dump`, repaired
+  the migration history (D144 is now recorded as `20260925000000`), and applied
+  D143 and `20260927120000_close_legacy_social_grants_v1`
+  ([inventory](../outputs/reports/2026-09-27-friends-phase-5-legacy-grants.md)).
+  Hosted matches the repo's 105 migrations, and the owner's goals were
+  unchanged. The `delete-account` code blocker is fixed in `ca76092`. See the
+  [receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.md).
+- **Remaining work** follows the approval-ready
   [runbook](FRIENDS_PHASE5_HOSTED_RUNBOOK.md). Each step lists its commands or
-  SQL, preconditions, readback, rollback and approval. Nothing in it has been
-  run. In order:
-  1. Back up with `supabase db dump`. Supabase documents scheduled backups
-     only for paid plans.
-  2. Repair the migration history. Hosted records D144 as `20260926024624`, not
-     `20260925000000`, and lacks D143. Diff hosted D144 against the file
-     (read-only) first. Then mark `20260926024624` reverted and
-     `20260925000000` applied. Then push D143 and
-     `20260927120000_close_legacy_social_grants_v1`
-     ([receipt](../outputs/reports/2026-09-27-friends-phase-5-legacy-grants.md)).
-     Never follow the CLI's suggestion of revert plus `--include-all`: it
-     re-runs D144.
-  3. Deploy `delete-account` with one Apple client ID,
+  SQL, preconditions, readback, rollback and approval. In order:
+  1. Deploy `delete-account` with one Apple client ID,
      `com.mjenkins.gametime`, and its own secret, and record the renewal date.
-     **Blocked by a code change:** the function reads `SUPABASE_`-prefixed
-     settings, which hosted secrets can't use.
-  4. Add the production bundle to the Apple provider, and open Apple-only
+     **Blocked on the Sign in with Apple key,** which wasn't on the owner's
+     Mac on September 28.
+  2. Add the production bundle to the Apple provider, and open Apple-only
      sign-up.
-  5. Turn off the private trial, in the same sitting and only while the
+  3. Turn off the private trial, in the same sitting and only while the
      allowlist is enforced.
-  6. Grant the owner weekly global support through
+  4. Grant the owner weekly global support through
      `challenge_admin_request_v2`, and read reports in the owner's session.
-  7. Confirm that Steps and outdoor distance still save. This needs the
-     phone on a build from `dff4be9` or later.
-  8. Record the Free plan's backup and pause findings.
+  5. Confirm that Steps and outdoor distance still save. This needs the
+     phone on a build from `dff4be9` or later; on September 28 its uploads
+     were still refused.
+  6. The owner's backup decision. Recorded September 28: the Free plan lists
+     no scheduled backups, so the step 6a dump is the only backup.
 
 ### Phase 6 — TestFlight (explicit approval)
 
@@ -373,9 +376,15 @@ October.
   policy, terms and feedback email. The
   [legal pages runbook](LEGAL_PAGES_PUBLISH_RUNBOOK.md) covers the rest:
   the text revisions, the GitHub Pages publish, and the configuration lines.
+- The Sign in with Apple key for `delete-account`: the `.p8` of a key with
+  Sign in with Apple enabled for `com.mjenkins.gametime` (team `87Z29RTC26`),
+  and its key ID, saved outside Git. It wasn't on the owner's Mac on
+  September 28 ([receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.md#step-2-blocked-on-the-apple-key)).
 - Who renews the Apple client secret, and when. The
   [runbook](FRIENDS_PHASE5_HOSTED_RUNBOOK.md#21-preconditions) records the
   dates once the secret is issued.
+- Backups on the Free plan: a dump before each hosted write and a weekly dump
+  during the test, or a move to Pro, which is a paid change.
 - A second support person. Only someone other than the suspender can decide a
   suspension appeal, so the owner alone can't reinstate anyone.
 - ~~Confirm the second scheduled goal.~~ Answered September 23: the

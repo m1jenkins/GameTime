@@ -1,7 +1,9 @@
 # Friends Phase 5: hosted runbook
 
-Written September 27, 2026, from source and receipts only. No step below has
-been run. Every step is a hosted read or write on `gametime-p11b`
+Written September 27, 2026, from source and receipts only. Steps 6a and 1 ran
+on September 28 ([receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.md));
+step 2 waits for the Sign in with Apple key, and nothing after it has run.
+Every step is a hosted read or write on `gametime-p11b`
 (`lyushhqoednheqwzsmxh`), and each one needs the approval named in it. Approval
 for one step doesn't cover the next. This runbook is a plan: it doesn't
 authorize a push, a deployment, an Apple change or TestFlight.
@@ -11,18 +13,17 @@ and the D142 finish line (`DECISIONS.md`, D142 **Finish line**).
 
 ## Before you start
 
-**One blocker needs a code change first.** `delete-account` reads its Apple
-settings from `SUPABASE_AUTH_EXTERNAL_APPLE_CLIENT_ID` and
-`SUPABASE_AUTH_EXTERNAL_APPLE_SECRET`
-(`supabase/functions/delete-account/index.ts:29-30`). Hosted Supabase reserves
-the `SUPABASE_` prefix (`supabase/functions/_shared/env.ts:76`), and
+**The code blocker is fixed** in `ca76092` (September 28). `delete-account`
+read its Apple settings from `SUPABASE_AUTH_EXTERNAL_APPLE_CLIENT_ID` and
+`SUPABASE_AUTH_EXTERNAL_APPLE_SECRET`. Hosted Supabase reserves the
+`SUPABASE_` prefix (`supabase/functions/_shared/env.ts:76`), and
 `supabase secrets set` in CLI 2.109.1 skips those names with "Env name cannot
 start with SUPABASE_, skipping". Hosted doesn't inject them either, so the
-function would fail at startup on `requireEnv`. The proposed fix, for separate
-approval and local tests: read `GAMETIME_APPLE_CLIENT_ID` and
-`GAMETIME_APPLE_CLIENT_SECRET` in `index.ts:29-30`, and add both to
-`.env.example`. Leave `config.toml:330-332` alone, because it configures local
-Auth, not the function. Step 2 assumes this change is merged.
+function would have failed at startup on `requireEnv`. It now reads
+`GAMETIME_APPLE_CLIENT_ID` and `GAMETIME_APPLE_CLIENT_SECRET`
+(`supabase/functions/delete-account/index.ts:29-35`), and `.env.example` lists
+both. `config.toml:330-332` is unchanged, because it configures local Auth,
+not the function.
 
 **Order.** 6a (backup) → 1 (migrations) → 2 (`delete-account`) → 3 (Apple and
 sign-up) → 4 (trial off) → 5 (support) → 7 (saves check) → 6b (record). Steps 3
@@ -331,7 +332,9 @@ Also run the goal fingerprint (migrations +2, otherwise unchanged) and
 **Rollback.**
 - Grants: re-grant exactly what `$PRIV/pre-push-acl.json` recorded, for
   example `grant execute on function public.find_profile_by_handle(text) to
-  authenticated;`, for each entry that the push removed.
+  authenticated;`, for each entry that the push removed. The table ACL doesn't
+  show column grants; hosted also had `grant update (name) on public.groups to
+  authenticated;`.
 - D143 has no down migration. The preconditions proved that the dropped tables
   held nothing, so rolling back means writing a new forward migration from
   `$PRIV/schema.sql`. No data needs restoring. That needs its own approval.
@@ -373,7 +376,10 @@ the whole string to Apple as `client_id`, and Apple refuses it.
    test keys are set.
 3. **Generate the secret on the Mac.** You need the Sign in with Apple key
    (`.p8`, outside Git), its key ID and team `87Z29RTC26`. Apple caps the
-   lifetime at 6 months; this uses 180 days.
+   lifetime at 6 months; this uses 180 days. On September 28 the key wasn't
+   on the owner's Mac (receipt, "Step 2"). It must be a key with Sign in with
+   Apple enabled: an App Store Connect API key has the same file name and
+   gets `invalid_client`.
 
    ```sh
    APPLE_P8=/path/outside/git/AuthKey_XXXX.p8 APPLE_KEY_ID=XXXX python3 - <<'PY' > "$PRIV/apple-secret.jwt"
@@ -412,8 +418,8 @@ grep -c , <(head -1 "$PRIV/apple.env")    # must print 0
 supabase secrets set --env-file "$PRIV/apple.env" --project-ref "$P11B"
 rm "$PRIV/apple.env"
 
-supabase functions deploy delete-account --project-ref "$P11B" \
-  --workdir "$SCRATCH" --import-map "$SCRATCH/supabase/functions/deno.json" --no-verify-jwt
+supabase functions deploy delete-account --project-ref "$P11B" --workdir "$SCRATCH" \
+  --use-api --import-map "$SCRATCH/supabase/functions/deno.json" --no-verify-jwt
 ```
 
 `--no-verify-jwt` matches `config.toml` (`[functions.delete-account]

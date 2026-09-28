@@ -9,6 +9,24 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 28 Friends Phase 5: backup and migrations on gametime-p11b (owner-approved)
+
+- **Applied** from `ca76092` under Mason's September 27 standing approval for
+  `gametime-p11b`: runbook steps 6a and 1. Hosted was dumped to the owner's
+  private folder. The migration history was repaired (D144 is now
+  `20260925000000`), and D143 and the legacy-grant closure were pushed. Hosted
+  matches the repo's 105 migrations. The owner's goals and settings were
+  unchanged.
+- **Code:** `ca76092` makes `delete-account` read `GAMETIME_APPLE_CLIENT_ID`
+  and `GAMETIME_APPLE_CLIENT_SECRET`. `scripts/weekly-local-verify.sh` passed
+  at `ca76092`.
+- **Stopped** before step 2. The Sign in with Apple key isn't on the owner's
+  Mac, so there's no client secret and no `delete-account` deploy. Sign-up,
+  the trial and support access wait for it. The saves check still needs the
+  phone on a build from `dff4be9` or later.
+
+See the [receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.md).
+
 ## September 28 LiveDesignUITests flakes fixed (owner-approved)
 
 - **Fixed:** the add-friend steps that turned CI red after the legacy skip.
