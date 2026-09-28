@@ -796,6 +796,8 @@ struct FriendUsernameField: View {
     var focused: FocusState<Bool>.Binding
     let action: String
     let enabled: Bool
+    /// Return always calls this. `enabled` can lag the typed text by a render,
+    /// so `submit` checks the current text and state itself.
     let submit: () -> Void
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
@@ -810,7 +812,7 @@ struct FriendUsernameField: View {
                 TextField("username", text: $text)
                     .textInputAutocapitalization(.never).autocorrectionDisabled().textContentType(.username)
                     .submitLabel(.search).liveFont(17, weight: .medium)
-                    .focused(focused).onSubmit { if enabled { submit() } }
+                    .focused(focused).onSubmit(submit)
                     .accessibilityLabel("Friend’s username").accessibilityIdentifier("friends.username")
             }.frame(minHeight: 54)
             Button(action, action: submit).liveFont(15, weight: .semibold)
@@ -877,7 +879,7 @@ struct InviteAddFriendRow: View {
                 .accessibilityIdentifier("beta.invite.add-friend")
                 if open {
                     FriendUsernameField(text: $model.query, focused: $focused, action: "Send request",
-                                        enabled: friends.canAct && !model.searching && ExactHandleSubmission.normalized(model.query) != nil) {
+                                        enabled: canSend(friends)) {
                         Task { await send(friends) }
                     }
                     FriendsMessage(text: message.text, warning: message.warning)
@@ -891,7 +893,12 @@ struct InviteAddFriendRow: View {
         }
     }
 
+    private func canSend(_ friends: FriendsStore) -> Bool {
+        friends.canAct && !model.searching && ExactHandleSubmission.normalized(model.query) != nil
+    }
+
     private func send(_ friends: FriendsStore) async {
+        guard canSend(friends) else { return }
         focused = false
         await model.find(in: friends)
         if case .found(let person, .none)? = model.outcome { await model.send(person, in: friends) }

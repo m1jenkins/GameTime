@@ -395,20 +395,23 @@ final class LiveDesignUITests: XCTestCase {
         defer { app.terminate() }
         let add = app.buttons["friends.add"]
         XCTAssertTrue(add.waitForExistence(timeout: 10))
+        // The button waits for the friends list; a tap before then does nothing.
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "enabled == true"), object: add)], timeout: 10), .completed)
         add.tap()
         let field = app.textFields["friends.username"]
-        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertTrue(field.waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["Enter your friend’s exact username. They’ll need to accept before you can invite them to a challenge."].exists)
         XCTAssertTrue(app.staticTexts["@alexlee"].exists)
         XCTAssertTrue(app.buttons["Share username"].exists)
 
-        field.typeText("nobody_here\n")
+        submitUsername(app, field, "nobody_here")
         XCTAssertTrue(labeled(app.staticTexts, "We couldn’t find @nobody_here. Usernames need to match exactly — check the spelling with your friend.").waitForExistence(timeout: 5))
 
-        clear(field); field.typeText("taylork\n")
+        clear(field); submitUsername(app, field, "taylork")
         XCTAssertTrue(app.staticTexts["taylork already sent you a request. Accept it to become friends."].waitForExistence(timeout: 5))
 
-        clear(field); field.typeText("drew_p\n")
+        clear(field); submitUsername(app, field, "drew_p")
         let send = app.buttons["friends.add.send"]
         XCTAssertTrue(send.waitForExistence(timeout: 5))
         send.tap()
@@ -482,7 +485,7 @@ final class LiveDesignUITests: XCTestCase {
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         bring(app, field)
         capture(app, name: "add-friend-largest-text")
-        field.tap(); field.typeText("drew_p\n")
+        field.tap(); submitUsername(app, field, "drew_p")
         let send = app.buttons["friends.add.send"]
         XCTAssertTrue(send.waitForExistence(timeout: 5)); bring(app, send); send.tap()
         XCTAssertTrue(app.staticTexts["Request sent. Drew will see it in GameTime and can accept or decline."].waitForExistence(timeout: 5))
@@ -534,7 +537,10 @@ final class LiveDesignUITests: XCTestCase {
 
             app = launch("friends", textSize: size)
             let add = app.buttons["friends.add"]
-            XCTAssertTrue(add.waitForExistence(timeout: 10)); bring(app, add); add.tap()
+            XCTAssertTrue(add.waitForExistence(timeout: 10)); bring(app, add)
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "enabled == true"), object: add)], timeout: 10), .completed)
+            add.tap()
             XCTAssertTrue(app.textFields["friends.username"].waitForExistence(timeout: 5))
             audit(app, "Add a friend, \(label) text")
             app.terminate()
@@ -590,7 +596,8 @@ final class LiveDesignUITests: XCTestCase {
                 else if Self.knownAuditReport(screen, issue.auditType, issue.element?.label) { known.append(text) }
                 else if issue.auditType == .contrast, let tabBarTop, let element = issue.element,
                         Self.cutOffByTabBar(element, tabBarTop: tabBarTop) { known.append(text) }
-                else { issues.append(text) }
+                // Friends uses "Friends" for its title and a section header; the frame says which.
+                else { issues.append(text + (issue.element.map { " at \($0.frame.integral)" } ?? "")) }
                 return true
             }
         } catch { issues.append("audit could not run: \(error)") }
@@ -641,6 +648,16 @@ final class LiveDesignUITests: XCTestCase {
         if let text = field.value as? String, !text.isEmpty {
             field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: text.count))
         }
+    }
+
+    /// Types a username and presses return once Find is enabled, so the field
+    /// has redrawn with the whole name. A name and return typed in one burst
+    /// can arrive before that on a slow simulator.
+    private func submitUsername(_ app: XCUIApplication, _ field: XCUIElement, _ name: String) {
+        field.typeText(name)
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "enabled == true"), object: app.buttons["friends.username.submit"])], timeout: 10), .completed)
+        field.typeText("\n")
     }
 
     private func launch(_ route: String, textSize: String? = nil, extra: [String] = []) -> XCUIApplication {

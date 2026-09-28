@@ -9,6 +9,28 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 28 LiveDesignUITests flakes fixed (owner-approved)
+
+- **Fixed:** the add-friend steps that turned CI red after the legacy skip.
+  The tests typed a username and return in one burst, and
+  `FriendUsernameField`'s return read `enabled` from the last render, so on a
+  slow simulator return could do nothing. They also tapped Add a friend before
+  the friends list had loaded, while it's disabled. The tests now wait for
+  Find, and for Add a friend, to be enabled. Return now always calls `submit`,
+  which checks the current name and state itself; buttons and copy are
+  unchanged.
+- **Not fixed:** the friends audit's one-off contrast report for "Friends" at
+  the largest text, in 1 of 6 CI runs. Its cause is unknown; most likely the
+  page title, covered or changing as the audit read it. The failure message
+  now includes the element's frame. Rerun the job if it recurs.
+- **Checked locally** with Xcode 27 on iOS 26.5: `LiveDesignUITests` 16 of 16
+  from an erased simulator, the two add-friend tests 10 of 10 over five
+  repeats, and the friends audit 2 of 2. The Staging, Release and TestFlight
+  builds succeeded.
+- **CI:** recorded after the push.
+
+See the [receipt](../outputs/reports/2026-09-28-livedesign-uitest-flake.md).
+
 ## September 27 legacy UI suites skipped (owner-approved)
 
 - **Skipped:** all 51 legacy UI tests: `GameTimeUITests` (32), `DuelUITests`
