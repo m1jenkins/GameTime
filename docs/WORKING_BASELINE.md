@@ -27,7 +27,12 @@ tested source and publication status, not the current branch tip.
   from an erased simulator, the two add-friend tests 10 of 10 over five
   repeats, and the friends audit 2 of 2. The Staging, Release and TestFlight
   builds succeeded.
-- **CI:** recorded after the push.
+- **CI is green:** run
+  [36403528844](https://github.com/m1jenkins/GameTime/actions/runs/36403528844)
+  at `737e3e2`. The iOS job passed with `LiveDesignUITests` 16 of 16, the
+  add-friend test first. Its Database job failed once in `supabase start`
+  (port 54322 already in use on the runner, before any test) and passed when
+  rerun.
 
 See the [receipt](../outputs/reports/2026-09-28-livedesign-uitest-flake.md).
 

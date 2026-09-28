@@ -1,7 +1,8 @@
 # LiveDesignUITests flakes after the legacy skip
 
-Change on `claude/livedesign-uitest-flake`, from `b89aa82`, September 28, 2026,
-fast-forwarded into `main` and pushed. Nothing hosted was touched.
+Change `737e3e2` on `claude/livedesign-uitest-flake`, from `b89aa82`,
+September 28, 2026, fast-forwarded into `main` and pushed. Nothing hosted was
+touched.
 
 ## The decision
 
@@ -116,7 +117,20 @@ The full scheme `test` wasn't run here; CI runs it.
 
 ## CI after the push
 
-Recorded after the run.
+Run [36403528844](https://github.com/m1jenkins/GameTime/actions/runs/36403528844)
+at `737e3e2` is green, on its second attempt:
+
+| Job | Result |
+| --- | --- |
+| iOS, Xcode 26.2 | Passed in 66 minutes. UI: 86 tests, 16 passed (all of `LiveDesignUITests`) and 70 skipped (the 51 and the 19 controller-owned tests), none failed. The unit tests, the Staging and Release builds and the conformance harness passed |
+| Edge Functions and Client Core | Passed |
+| Database, attempt 1 | Failed before any test: `supabase start` couldn't bind port 54322, "address already in use". That port is in Linux's range for outgoing connections, so one can hold it on the runner. This change touches nothing in `supabase/` |
+| Database, attempt 2 | Rerun on its own; passed |
+
+The add-friend test ran first, on a new simulator where the app took about a
+minute to show Friends. Add a friend was enabled when first checked, the field
+appeared within about a second, and Find was enabled at the first check after
+each name.
 
 ## Limits
 
