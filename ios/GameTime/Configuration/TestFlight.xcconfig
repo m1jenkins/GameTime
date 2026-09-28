@@ -1,7 +1,9 @@
 // D142 first private friends TestFlight. See docs/FRIENDS_TESTFLIGHT_PLAN.md.
 // The production bundle on the isolated P11B backend: challenges on, account
-// mode on, no payment provider. Stakes stay simulated and nonredeemable, and
-// the server owns admission, the policy allowlist and settlement.
+// mode on. Stakes stay simulated and nonredeemable, and the server owns
+// admission, the policy allowlist and settlement. The Stripe SDK is still
+// linked, and P11B has D144's commitment switch on, so this build turns
+// commitments off itself (GAMETIME_CHALLENGE_COMMITMENTS_ENABLED below).
 #include "PublicClient.xcconfig"
 
 SUPABASE_URL = https:/$()/lyushhqoednheqwzsmxh.supabase.co
@@ -13,6 +15,9 @@ APP_ATTEST_ENVIRONMENT = production
 GAMETIME_CONTEST_MUTATIONS_ENABLED = NO
 GAMETIME_CHALLENGE_V1_ENABLED = YES
 GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE = YES
-// No Stripe: legacy Personal creation is off and nothing reaches a provider.
+// Legacy Personal creation is off, so it selects no payment provider.
 GAMETIME_PERSONAL_SETTLEMENT_MODE = test_only
 GAMETIME_STRIPE_RETURN_URL =
+// D144 is not part of this build: no "Put money on it", no card setup, no
+// commitment in any request. check-beta-candidate.sh --testflight requires NO.
+GAMETIME_CHALLENGE_COMMITMENTS_ENABLED = NO

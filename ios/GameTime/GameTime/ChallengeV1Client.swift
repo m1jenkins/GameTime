@@ -11,6 +11,10 @@ import Supabase
     /// D144 sandbox card setup. The same request id starts the setup and, after
     /// Stripe's card sheet closes, re-reads it; nothing is charged.
     func commitmentSetup(request: UUID, amountCents: Int, actor: UUID) async throws -> ChallengeCommitment.Setup
+    /// Whether this build offers D144 commitments at all. The server's own
+    /// switch is still required; this only keeps them out of builds that must
+    /// never show them.
+    var commitmentsEnabled: Bool { get }
 }
 extension ChallengeV1Client {
     func page(_ section: ChallengeV1Section, cursor: ChallengeJSON?, actor: UUID) async throws -> ChallengeV1Page {
@@ -20,6 +24,7 @@ extension ChallengeV1Client {
     }
     func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON] = [:], actor: UUID, as type: T.Type) async throws -> T { throw ChallengeV1Error.unavailable }
     func commitmentSetup(request: UUID, amountCents: Int, actor: UUID) async throws -> ChallengeCommitment.Setup { throw ChallengeV1Error.unavailable }
+    var commitmentsEnabled: Bool { false }
 }
 private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
@@ -28,6 +33,7 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
 
 @MainActor final class SupabaseChallengeV1Client: ChallengeV1Client {
     private let enabled: Bool
+    let commitmentsEnabled: Bool
     private let binding: @MainActor () -> WeeklyClientSession?
     private let rpc: @MainActor (String, Data) async throws -> Data
     private let prepareSession: @MainActor (UUID) async throws -> Void
@@ -39,12 +45,12 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
             && (url.path.isEmpty || url.path == "/") && (url.port == nil || url.port == 443)
     }
 
-    convenience init(sdk: SupabaseClient, url: URL, key: String, permitsHTTPS: Bool = false) {
+    convenience init(sdk: SupabaseClient, url: URL, key: String, permitsHTTPS: Bool = false, commitments: Bool = false) {
         let config = URLSessionConfiguration.ephemeral
         config.urlCache = nil
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
         let transport = URLSession(configuration: config, delegate: ChallengeNoRedirect(), delegateQueue: nil)
-        self.init(url: url, enabled: key.hasPrefix("sb_publishable_"), permitsHTTPS: permitsHTTPS, prepareSession: { actor in
+        self.init(url: url, enabled: key.hasPrefix("sb_publishable_"), permitsHTTPS: permitsHTTPS, commitments: commitments, prepareSession: { actor in
             guard let stored = sdk.auth.currentSession, stored.user.id == actor,
                   let sessionID = Self.sessionID(stored.accessToken) else { throw ChallengeV1Error.accountChanged }
             guard let renewed = try await sdk.validSession(), renewed.user.id == actor,
@@ -86,7 +92,7 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
             return data
         })
     }
-    init(url: URL, enabled: Bool = true, permitsHTTPS: Bool = false,
+    init(url: URL, enabled: Bool = true, permitsHTTPS: Bool = false, commitments: Bool = false,
          prepareSession: @escaping @MainActor (UUID) async throws -> Void = { _ in },
          binding: @escaping @MainActor () -> WeeklyClientSession?,
          rpc: @escaping @MainActor (String, Data) async throws -> Data,
@@ -96,6 +102,7 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
         #else
         self.enabled = enabled && permitsHTTPS && Self.isHTTPSOrigin(url)
         #endif
+        self.commitmentsEnabled = commitments
         self.binding = binding; self.rpc = rpc; self.prepareSession = prepareSession; self.function = function
     }
     func page(_ section: ChallengeV1Section, cursor: ChallengeJSON?, actor: UUID) async throws -> ChallengeV1Page {
@@ -116,7 +123,8 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
         guard row.id == id else { throw ChallengeV1Error.invalidResponse }; try row.validate(actor: actor); return row
     }
     func submit(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt {
-        try decode(await send("challenge_command_v1", request.body, request.actorId))
+        guard commitmentsEnabled || request.payload["commitment_setup_id"] == nil else { throw ChallengeV1Error.unavailable }
+        return try decode(await send("challenge_command_v1", request.body, request.actorId))
     }
     func abandon(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt {
         try decode(await send("challenge_stop_command_v1", request.body, request.actorId))
@@ -124,10 +132,12 @@ private final class ChallengeNoRedirect: NSObject, URLSessionTaskDelegate {
     func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON] = [:], actor: UUID, as type: T.Type) async throws -> T {
         guard ["challenge_access_status_v1", "challenge_availability_v1", "challenge_personal_preview_v1", "challenge_community_catalog_v1", "challenge_operator_cases_v1",
                "challenge_commitment_availability_v1", "challenge_commitment_preview_v1", "challenge_commitment_status_v1"].contains(name) else { throw ChallengeV1Error.unavailable }
+        // Status stays readable so a goal that already carries a commitment still shows it.
+        if !commitmentsEnabled, ["challenge_commitment_availability_v1", "challenge_commitment_preview_v1"].contains(name) { throw ChallengeV1Error.unavailable }
         return try decode(await send(name, ChallengeJSON.data(.object(fields)), actor))
     }
     func commitmentSetup(request: UUID, amountCents: Int, actor: UUID) async throws -> ChallengeCommitment.Setup {
-        guard enabled, ChallengeCommitment.dollars.contains(amountCents / 100), amountCents % 100 == 0 else { throw ChallengeV1Error.unavailable }
+        guard enabled, commitmentsEnabled, ChallengeCommitment.dollars.contains(amountCents / 100), amountCents % 100 == 0 else { throw ChallengeV1Error.unavailable }
         do { try await prepareSession(actor) }
         catch { throw (error as? ChallengeV1Error) ?? .unavailable }
         guard let before = binding(), before.actorID == actor else { throw ChallengeV1Error.accountChanged }

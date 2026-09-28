@@ -24,6 +24,9 @@ GAMETIME_SUPPORT_EMAIL = UNCONFIGURED
 // Do not select the historical hosted project above as a Beta target by default.
 GAMETIME_CHALLENGE_V1_ENABLED = NO
 GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE = NO
+// D144 "Put money on it" (Stripe sandbox commitments). Off unless a build turns
+// it on; the app also refuses it outside Debug and Staging.
+GAMETIME_CHALLENGE_COMMITMENTS_ENABLED = NO
 
 // HTTPS invitation intake/generation is independent of backend transport.
 // No domain is selected. See docs/BETA_INVITATION_LINKS_LOCAL.md for templates.

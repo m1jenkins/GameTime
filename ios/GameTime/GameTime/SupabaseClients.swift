@@ -213,7 +213,8 @@ enum LiveServicesFactory {
     static func makeChallenges(configuration: AppConfiguration, client: SupabaseClient) -> any ChallengeV1Client {
         guard configuration.challengeV1RuntimeEnabled else { return UnavailableChallengeV1Client() }
         return SupabaseChallengeV1Client(sdk: client, url: configuration.supabaseURL,
-            key: configuration.supabasePublishableKey, permitsHTTPS: true)
+            key: configuration.supabasePublishableKey, permitsHTTPS: true,
+            commitments: configuration.challengeCommitmentsEnabled)
     }
 }
 

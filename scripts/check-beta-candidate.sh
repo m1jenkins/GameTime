@@ -211,6 +211,18 @@ if [[ "$candidate" == "testflight" ]]; then
       "TestFlight must use test_only settlement with an empty GAMETIME_STRIPE_RETURN_URL."
   fi
 
+  # D144: P11B's commitment switch is on and Staging shares it, so only the
+  # build keeps "Put money on it" and card setup out of TestFlight.
+  if [[ "$(xcconfig_value "$release_config" GAMETIME_CHALLENGE_COMMITMENTS_ENABLED)" == "NO" ]]; then
+    pass_check \
+      "no-commitments" \
+      "TestFlight turns off sandbox commitments and card setup."
+  else
+    block_check \
+      "no-commitments" \
+      "Set GAMETIME_CHALLENGE_COMMITMENTS_ENABLED = NO in TestFlight.xcconfig."
+  fi
+
   if [[ "$(xcconfig_value "$release_config" GAMETIME_CHALLENGE_V1_ENABLED)" == "YES" ]] &&
     [[ "$(xcconfig_value "$release_config" GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE)" == "YES" ]]
   then

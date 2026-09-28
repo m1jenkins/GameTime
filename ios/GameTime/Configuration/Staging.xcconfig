@@ -18,4 +18,6 @@ GAMETIME_CHALLENGE_V1_ENABLED = YES
 GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE = YES
 GAMETIME_PERSONAL_SETTLEMENT_MODE = stripe_sandbox
 GAMETIME_STRIPE_RETURN_URL = gametime-staging:/$()/stripe-redirect
+// D144 sandbox commitments stay testable here. The server's switch still applies.
+GAMETIME_CHALLENGE_COMMITMENTS_ENABLED = YES
 APS_ENVIRONMENT = development

@@ -33,6 +33,8 @@ import GameTimeCore
     /// D144: put a Stripe sandbox commitment on this personal goal.
     var commits = false { didSet { if commits != oldValue { commitmentRequest = UUID(); commitment = nil; changed() } } }
     private(set) var commitmentAvailability: ChallengeCommitment.Availability?
+    /// The build's switch, captured from the client. Off means no offer, whatever the server says.
+    private(set) var commitmentsEnabled = false
     private(set) var commitment: ChallengeCommitment.Setup?
     private(set) var savingCard = false
     @ObservationIgnored private var commitmentRequest = UUID()
@@ -118,7 +120,7 @@ import GameTimeCore
     var wholeDollars: Int? { Self.integer(dollars, in: commits ? ChallengeCommitment.dollars : 1...500) }
     /// Only Personal Steps and Outdoor run goals using Apple Health can carry money.
     var canCommit: Bool {
-        mode == .personal && usesHealth && commitmentAvailability?.available == true
+        commitmentsEnabled && mode == .personal && usesHealth && commitmentAvailability?.available == true
             && ChallengeCommitment.policies.contains(policy.id)
     }
     var commitmentSaved: Bool { commits && commitment?.saved == true }
@@ -160,7 +162,8 @@ import GameTimeCore
         guard alive, actor == store.actor else { return }
         if let now { planningDate = now }
         if ticket == generation, let now { start = calendar.date(byAdding: .day, value: 2, to: now)! }
-        if usesHealth, let actor {
+        commitmentsEnabled = store.client.commitmentsEnabled
+        if commitmentsEnabled, usesHealth, let actor {
             commitmentAvailability = try? await store.client.read("challenge_commitment_availability_v1", fields: [:], actor: actor,
                                                                   as: ChallengeCommitment.Availability.self)
         }

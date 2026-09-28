@@ -1,6 +1,7 @@
 import XCTest
 import SwiftUI
 import Vision
+import GameTimeCore
 @testable import GameTime
 
 @MainActor final class ChallengeCreationDraftTests: XCTestCase {
@@ -321,6 +322,27 @@ import Vision
         draft.dollars = "21"
         XCTAssertNil(draft.preview); XCTAssertFalse(draft.consent)
     }
+    /// D144 stays out of builds whose switch is off, even when the server
+    /// (P11B, shared by Staging and TestFlight) says commitments are available.
+    func testBuildSwitchOffHidesCommitmentsWhateverTheServerSays() async throws {
+        for enabled in [false, true] {
+            let h = Harness(); defer { h.remove() }
+            h.client.commitmentsEnabled = enabled
+            await h.store.refresh()
+            let draft = ChallengeCreationDraft(initialPolicy: .init(rawValue: "personal_steps_goal_v1"))
+            await draft.initialize(store: h.store, health: try h.healthFlow())
+            XCTAssertEqual(draft.canCommit, enabled)
+            XCTAssertEqual(h.client.reads.contains("challenge_commitment_availability_v1"), enabled,
+                           "no availability read when the build switch is off")
+            guard !enabled else { continue }
+            draft.commits = true
+            XCTAssertFalse(draft.canCommit)
+            let setup = await draft.saveCard(store: h.store)
+            XCTAssertNil(setup)
+            XCTAssertFalse(h.client.reads.contains { $0.hasPrefix("challenge_commitment") })
+            XCTAssertEqual(h.client.setups, 0, "no card setup call")
+        }
+    }
 }
 @MainActor private final class Harness {
     let actor = UUID(), client = PreviewClient()
@@ -330,6 +352,26 @@ import Vision
         result.setActor(actor); return result
     }()
     func remove() { try? FileManager.default.removeItem(at: directory) }
+    func healthFlow() throws -> ChallengeHealthFlowStore {
+        let coordinator = ChallengeHealthTransportCoordinator(
+            uploadStore: .init(directory: directory.appendingPathComponent("uploads")),
+            readinessStore: .init(directory: directory.appendingPathComponent("readiness")))
+        let session: @MainActor () -> WeeklyClientSession? = { [actor] in .init(actorID: actor, identity: "fictional-draft") }
+        let sign: @MainActor (UUID, Data) async throws -> MetricSignedMaterial = { _, _ in throw ChallengeV1Error.unavailable }
+        let uploads = ChallengeHealthUploadClient(environment: .development, coordinator: coordinator, binding: session, sign: sign) { _, _ in
+            throw ChallengeV1Error.unavailable
+        }
+        let readiness = ChallengeHealthReadinessClient(environment: .development, coordinator: coordinator, binding: session, sign: sign) { _, _ in
+            throw ChallengeV1Error.unavailable
+        }
+        let now = try ChallengeInstant("2026-10-01T12:00:00Z").date
+        let dependencies = ChallengeHealthFlowDependencies(coordinator: coordinator, uploads: uploads, readiness: readiness,
+            cache: .init(directory: directory.appendingPathComponent("health-cache")), permission: DraftHealthPermission(),
+            reader: { _, _ in DraftHealthReader() }, adapter: ChallengeHealthBindingMapper.adapter, now: { now })
+        let flow = ChallengeHealthFlowStore(auth: PreviewAuth(actor), challenges: store, dependencies: dependencies)
+        flow.setActor(actor)
+        return flow
+    }
     func agreement(_ draft: ChallengeCreationDraft) throws -> ChallengeV1.Agreement {
         let encoder = JSONEncoder(); encoder.keyEncodingStrategy = .convertToSnakeCase
         let json = try JSONDecoder().decode(ChallengeJSON.self, from: encoder.encode(XCTUnwrap(draft.window)))
@@ -340,6 +382,12 @@ import Vision
     var submitResult: ChallengeV1Receipt?
     var requests: [ChallengeV1Request] = []
     var continuation: CheckedContinuation<ChallengeV1.Agreement, Error>?
+    var commitmentsEnabled = false
+    var reads: [String] = []
+    var setups = 0
+    func commitmentSetup(request: UUID, amountCents: Int, actor: UUID) async throws -> ChallengeCommitment.Setup {
+        setups += 1; throw ChallengeV1Error.unavailable
+    }
     func list(actor: UUID) async throws -> [ChallengeV1] { [] }
     func detail(_ id: UUID, actor: UUID) async throws -> ChallengeV1 { throw ChallengeV1Error.unavailable }
     func submit(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt {
@@ -349,6 +397,11 @@ import Vision
     }
     func abandon(_ request: ChallengeV1Request) async throws -> ChallengeV1Receipt { throw ChallengeV1Error.unavailable }
     func read<T: Decodable>(_ name: String, fields: [String: ChallengeJSON], actor: UUID, as type: T.Type) async throws -> T {
+        reads.append(name)
+        // The server reports commitments available, as P11B does.
+        if name == "challenge_commitment_availability_v1" {
+            return try JSONDecoder().decode(type, from: Data(#"{"available":true,"reason":null}"#.utf8))
+        }
         if name == "challenge_access_status_v1" {
             return try JSONDecoder().decode(type, from: Data(#"{"serverTime":"2026-10-01T12:00:00Z","ageConfirmed":true,"betaAccess":true,"suspended":false}"#.utf8))
         }
@@ -365,4 +418,11 @@ import Vision
     func authStateChanges() async -> AsyncStream<AuthSnapshot> { AsyncStream { $0.finish() } }
     func signInWithApple(_ identity: AppleIdentity) async throws -> UUID { actor }
     func signOut() async throws {}
+}
+@MainActor private final class DraftHealthPermission: ChallengeHealthPermissionService {
+    let supported = true
+    func connect(_ metric: ChallengeHealthMetric) async throws {}
+}
+@MainActor private final class DraftHealthReader: ChallengeHealthStore {
+    func read(_ request: ChallengeHealthReadRequest) async -> ChallengeHealthStoreOutcome { .unavailable(.protectedDataUnavailable) }
 }

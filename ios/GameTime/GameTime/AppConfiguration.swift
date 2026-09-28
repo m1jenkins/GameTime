@@ -36,6 +36,7 @@ struct AppConfiguration: Equatable, Sendable {
     let weeklyRequested: Bool
     let challengeV1Requested: Bool
     let privateHealthAccountModeRequested: Bool
+    let challengeCommitmentsRequested: Bool
     /// Independent of transport/admission. An origin alone never enables either.
     let challengeInvitationLinks: ChallengeInvitation
 
@@ -59,6 +60,13 @@ struct AppConfiguration: Equatable, Sendable {
             && backendStorageNamespace == Self.accountModeBackend
     }
     static let accountModeBackend = "lyushhqoednheqwzsmxh.supabase.co"
+
+    /// D144 sandbox commitments ("Put money on it"). Staging and TestFlight
+    /// share the P11B backend, so the server's switch can't tell them apart;
+    /// the build decides. TestFlight and Release never offer them.
+    var challengeCommitmentsEnabled: Bool {
+        challengeCommitmentsRequested && [.debug, .staging].contains(environment) && challengeV1RuntimeEnabled
+    }
 
     /// Builds that keep their own sign-in and retry storage per backend, so a
     /// session from another project is never replayed against this one.
@@ -108,6 +116,7 @@ struct AppConfiguration: Equatable, Sendable {
         weeklyRequested: Bool = false,
         challengeV1Requested: Bool = false,
         privateHealthAccountModeRequested: Bool = false,
+        challengeCommitmentsRequested: Bool = false,
         invitationHTTPSOrigin: String? = nil
     ) {
         self.environment = environment
@@ -125,6 +134,7 @@ struct AppConfiguration: Equatable, Sendable {
         self.weeklyRequested = weeklyRequested
         self.challengeV1Requested = challengeV1Requested
         self.privateHealthAccountModeRequested = privateHealthAccountModeRequested
+        self.challengeCommitmentsRequested = challengeCommitmentsRequested
         self.challengeInvitationLinks = ChallengeInvitation(httpsOrigin: invitationHTTPSOrigin)
     }
 
@@ -253,6 +263,7 @@ struct AppConfiguration: Equatable, Sendable {
             weeklyRequested: ProcessInfo.processInfo.arguments.contains("--weekly"),
             challengeV1Value: bundle.object(forInfoDictionaryKey: "GAMETIME_CHALLENGE_V1_ENABLED") as? String,
             privateHealthAccountModeValue: bundle.object(forInfoDictionaryKey: "GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE") as? String,
+            challengeCommitmentsValue: bundle.object(forInfoDictionaryKey: "GAMETIME_CHALLENGE_COMMITMENTS_ENABLED") as? String,
             invitationHTTPSOriginValue: bundle.object(forInfoDictionaryKey: "GAMETIME_INVITATION_HTTPS_ORIGIN") as? String
         )
     }
@@ -272,6 +283,7 @@ struct AppConfiguration: Equatable, Sendable {
         weeklyRequested: Bool = false,
         challengeV1Value: String? = nil,
         privateHealthAccountModeValue: String? = nil,
+        challengeCommitmentsValue: String? = nil,
         invitationHTTPSOriginValue: String? = nil
     ) throws -> AppConfiguration {
         guard let environment = AppEnvironment(
@@ -384,6 +396,7 @@ struct AppConfiguration: Equatable, Sendable {
             weeklyRequested: weeklyRequested,
             challengeV1Requested: ["yes", "true", "1"].contains(challengeV1Value?.lowercased() ?? ""),
             privateHealthAccountModeRequested: ["yes", "true", "1"].contains(privateHealthAccountModeValue?.lowercased() ?? ""),
+            challengeCommitmentsRequested: ["yes", "true", "1"].contains(challengeCommitmentsValue?.lowercased() ?? ""),
             invitationHTTPSOrigin: invitationHTTPSOriginValue
         )
     }

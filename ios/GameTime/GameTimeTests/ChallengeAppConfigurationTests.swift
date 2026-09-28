@@ -39,6 +39,26 @@ import XCTest
         XCTAssertFalse(historical.privateHealthAccountMode, "Account mode stays on the P11B backend")
     }
 
+    /// D144 commitments are a build decision: Staging keeps them for sandbox
+    /// testing, TestFlight and Release never offer them, even when asked.
+    func testCommitmentsAreOnForStagingAndOffForTestFlightAndRelease() throws {
+        func config(_ environment: String, _ value: String?) throws -> AppConfiguration {
+            try AppConfiguration.validated(environmentValue: environment,
+                urlValue: "https://lyushhqoednheqwzsmxh.supabase.co", keyValue: "sb_publishable_fictional", mutationValue: "NO",
+                challengeV1Value: "YES", privateHealthAccountModeValue: "YES", challengeCommitmentsValue: value)
+        }
+        XCTAssertTrue(try config("staging", "YES").challengeCommitmentsEnabled)
+        XCTAssertFalse(try config("staging", "NO").challengeCommitmentsEnabled)
+        XCTAssertFalse(try config("staging", nil).challengeCommitmentsEnabled)
+        XCTAssertFalse(try config("testflight", "NO").challengeCommitmentsEnabled)
+        XCTAssertFalse(try config("testflight", "YES").challengeCommitmentsEnabled, "TestFlight refuses commitments even if asked")
+        XCTAssertFalse(try config("release", "YES").challengeCommitmentsEnabled)
+        let noTransport = try AppConfiguration.validated(environmentValue: "staging",
+            urlValue: "https://lyushhqoednheqwzsmxh.supabase.co", keyValue: "sb_publishable_fictional", mutationValue: "NO",
+            challengeV1Value: "NO", challengeCommitmentsValue: "YES")
+        XCTAssertFalse(noTransport.challengeCommitmentsEnabled, "no commitments without challenge transport")
+    }
+
     func testInvitationOriginIsIndependentOfBackendAndTransport() throws {
         for environment in ["debug", "staging", "release"] {
             let config = try AppConfiguration.validated(environmentValue: environment,
@@ -125,6 +145,38 @@ import XCTest
         do { _ = try await client.list(actor: UUID()); XCTFail("Wrong actor must not send") }
         catch { XCTAssertEqual(error as? ChallengeV1Error, .accountChanged) }
         XCTAssertEqual(calls, 2)
+    }
+
+    /// With the build switch off the client never reaches card setup or the
+    /// commitment offer, but can still show a goal's existing commitment.
+    func testClientWithoutCommitmentsNeverCallsSetupOrOffer() async throws {
+        let actor = UUID()
+        var rpcs: [String] = [], functions: [String] = []
+        let client = SupabaseChallengeV1Client(url: URL(string: "https://beta.example.invalid")!, permitsHTTPS: true,
+            binding: { .init(actorID: actor, identity: "token") },
+            rpc: { name, _ in rpcs.append(name); return Data(#"{"challenge_id":"\#(UUID().uuidString)","amount_cents":2000,"state":"committed"}"#.utf8) },
+            function: { name, _ in functions.append(name); throw ChallengeV1Error.unavailable })
+        XCTAssertFalse(client.commitmentsEnabled)
+        do { _ = try await client.commitmentSetup(request: UUID(), amountCents: 2_000, actor: actor); XCTFail("setup must not send") }
+        catch { XCTAssertEqual(error as? ChallengeV1Error, .unavailable) }
+        for name in ["challenge_commitment_availability_v1", "challenge_commitment_preview_v1"] {
+            do { _ = try await client.read(name, fields: [:], actor: actor, as: ChallengeCommitment.Availability.self); XCTFail("\(name) must not send") }
+            catch { XCTAssertEqual(error as? ChallengeV1Error, .unavailable) }
+        }
+        let committed = ChallengeV1Request(actor: actor, payload: .object(["op": .string("personal_commit"),
+            "commitment_setup_id": .string(UUID().uuidString.lowercased())]))
+        do { _ = try await client.submit(committed); XCTFail("a commitment must not be sent") }
+        catch { XCTAssertEqual(error as? ChallengeV1Error, .unavailable) }
+        XCTAssertEqual(functions, []); XCTAssertEqual(rpcs, [])
+        let status = try await client.read("challenge_commitment_status_v1", fields: [:], actor: actor, as: ChallengeCommitment.Status.self)
+        XCTAssertEqual(status.state, "committed")
+        XCTAssertEqual(rpcs, ["challenge_commitment_status_v1"])
+
+        let staging = SupabaseChallengeV1Client(url: URL(string: "https://beta.example.invalid")!, permitsHTTPS: true, commitments: true,
+            binding: { .init(actorID: actor, identity: "token") }, rpc: { _, _ in Data() },
+            function: { name, _ in functions.append(name); throw ChallengeV1Error.unavailable })
+        _ = try? await staging.commitmentSetup(request: UUID(), amountCents: 2_000, actor: actor)
+        XCTAssertEqual(functions, ["challenge-commitment-setup"])
     }
 
     func testExpiredSessionPreparationCannotSendOrConsumePendingAction() async throws {

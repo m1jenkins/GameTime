@@ -7,3 +7,5 @@ APP_ATTEST_ENVIRONMENT = production
 GAMETIME_CONTEST_MUTATIONS_ENABLED = NO
 GAMETIME_PERSONAL_SETTLEMENT_MODE = stripe_sandbox
 GAMETIME_STRIPE_RETURN_URL = gametime-beta:/$()/stripe-redirect
+// D144 sandbox commitments are not part of Release.
+GAMETIME_CHALLENGE_COMMITMENTS_ENABLED = NO

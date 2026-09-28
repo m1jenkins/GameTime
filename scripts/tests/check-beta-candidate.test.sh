@@ -216,6 +216,7 @@ write_testflight_fixture() {
   local settlement="${2:-test_only}"
   local backend="${3:-lyushhqoednheqwzsmxh}"
   local usage="${4:-GameTime reads the steps your Apple Watch records to Apple Health.}"
+  local commitments="${5:-NO}"
 
   cat >"${root}/ios/GameTime/Configuration/TestFlight.xcconfig" <<EOF
 #include "PublicClient.xcconfig"
@@ -226,6 +227,7 @@ GAMETIME_CHALLENGE_V1_ENABLED = YES
 GAMETIME_PRIVATE_HEALTH_ACCOUNT_MODE = YES
 GAMETIME_PERSONAL_SETTLEMENT_MODE = ${settlement}
 GAMETIME_STRIPE_RETURN_URL =
+GAMETIME_CHALLENGE_COMMITMENTS_ENABLED = ${commitments}
 EOF
   cat >"${root}/ios/GameTime/Configuration/TestFlightAppInfo.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -482,7 +484,7 @@ if ! testflight_output="$(bash "$checker" --root "$testflight_root" --testflight
   echo "$testflight_output" >&2
   fail "passing TestFlight fixture was rejected"
 fi
-for check_id in release-environment no-payment-provider challenge-account-mode \
+for check_id in release-environment no-payment-provider no-commitments challenge-account-mode \
   testflight-backend testflight-app-info release-bundle-id public-client-binding public-client-secrets
 do
   assert_contains "$testflight_output" "PASS ${check_id}"
@@ -500,6 +502,27 @@ if [[ "$testflight_blocked_status" -ne 1 ]]; then
 fi
 for blocker_id in no-payment-provider testflight-backend testflight-app-info; do
   assert_contains "$testflight_blocked_output" "BLOCKER ${blocker_id}"
+done
+
+# D144 commitments block TestFlight on their own, and so does a missing switch.
+for commitments in YES ""; do
+  commitments_root="${fixture_root}/testflight-commitments-${commitments:-missing}"
+  make_passing_fixture "$commitments_root"
+  write_testflight_fixture "$commitments_root" "test_only" "lyushhqoednheqwzsmxh" \
+    "GameTime reads the steps your Apple Watch records to Apple Health." "$commitments"
+  if [[ -z "$commitments" ]]; then
+    sed -i '' '/GAMETIME_CHALLENGE_COMMITMENTS_ENABLED/d' "${commitments_root}/ios/GameTime/Configuration/TestFlight.xcconfig"
+  fi
+  set +e
+  commitments_output="$(bash "$checker" --root "$commitments_root" --testflight 2>&1)"
+  commitments_status=$?
+  set -e
+  if [[ "$commitments_status" -ne 1 ]]; then
+    echo "$commitments_output" >&2
+    fail "TestFlight fixture with commitments '${commitments:-missing}' should exit 1"
+  fi
+  assert_contains "$commitments_output" "BLOCKER no-commitments"
+  assert_contains "$commitments_output" "1 blocker(s)"
 done
 
 # The historical Release contract is unchanged by the TestFlight mode.
