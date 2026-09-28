@@ -218,6 +218,21 @@ fixed in `036d1bc`, and the unit tests passed: 647 passed, 11 skipped. CI then
 skipped the Staging and Release builds and the conformance harness, as it does
 whenever the product tests fail.
 
+## CI after the push
+
+Run [36380467263](https://github.com/m1jenkins/GameTime/actions/runs/36380467263)
+at `6653b41` passed all four jobs: Database, Edge Functions, Client Core and
+iOS. It's the first green `main` run since `f47890c` on August 4. The iOS job
+took 56 minutes with Xcode 26.2 and iOS 26.2:
+
+| Step | Result |
+| --- | --- |
+| Script checks, before the Xcode steps | Passed |
+| Test product app, UI | 86 tests: 16 passed (all of `LiveDesignUITests`), 70 skipped, none failed. The log prints the reason for each of the 51, and the skipped set equals the list |
+| Test product app, unit | 647 passed, 11 skipped, none failed. All four `ChallengeRestrictionTests` mounted tests passed |
+| Build staging and release products | Passed. No `main` run had reached this step since August 4 |
+| Test conformance harness | 10 of 10 passed. No `main` run had reached this step since August 4 |
+
 ## A false failure in a unit test
 
 In the full local run,

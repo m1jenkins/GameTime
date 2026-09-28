@@ -30,6 +30,13 @@ tested source and publication status, not the current branch tip.
 - **Checked locally** with Xcode 27 on iOS 26.5: in CI's full `test` run,
   51 of 51 skipped and `LiveDesignUITests` passed 16 of 16. The Staging and
   Release builds succeeded, and the conformance harness passed 10 of 10.
+- **CI is green:** run
+  [36380467263](https://github.com/m1jenkins/GameTime/actions/runs/36380467263)
+  at `6653b41` passed all four jobs, the first green `main` since `f47890c`
+  on August 4. With Xcode 26.2, the 51 were skipped, `LiveDesignUITests`
+  passed 16 of 16, and 647 unit tests passed. The Staging and Release builds
+  and the conformance harness passed. No `main` run had reached them since
+  August 4.
 - **Found:** one unit test can fail by chance.
   `testMountedDetailEqualRevisionUpdatesWithoutAnotherFetch` failed once
   locally. It checks that "321" is gone from the page, and the "Updated"
