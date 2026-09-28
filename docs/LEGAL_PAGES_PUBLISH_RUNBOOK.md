@@ -4,13 +4,12 @@ Clears three `scripts/check-beta-candidate.sh --testflight` blockers:
 `privacy-policy-url`, `beta-terms-url` and `support-contact`. Prepared
 September 27, 2026.
 
-**Status, September 27.** Step 1 is done: the owner named the operator
-(Mason Jenkins), jurisdiction (State of Texas, United States) and support
-inbox (`gametime-support@agentmail.to`), and the final pages are committed to
-`main`. The owner has authorized publishing on GitHub Pages and the support
-inbox. Steps 2–4 (publish, inbox check, configuration) are left for the
-driver and have not been run. `PublicClient.xcconfig` stays `UNCONFIGURED`
-until step 4.
+**Status, September 27.** Steps 1–4 are done. GitHub Pages serves
+`docs/legal-site/` from the `gh-pages` branch at
+`https://m1jenkins.github.io/GameTime/` (privacy.html, beta-terms.html).
+Support inbox `gametime-support@agentmail.to` exists in Agentmail.
+`PublicClient.xcconfig` points at those three values. Re-publish later with
+the subtree-split steps below after rebuilding `--final` on `main`.
 
 ## What exists
 
@@ -71,7 +70,7 @@ what the step required; each item is resolved as noted.
 
    Commit the final pages to `main`. *Done:* all three pass.
 
-## Step 2: publish on GitHub Pages (needs approval)
+## Step 2: publish on GitHub Pages — done September 27
 
 **Host: GitHub Pages on `m1jenkins/GameTime`.** The repository is already
 public, `gh` is already signed in on this Mac, and nothing new needs an account
@@ -125,7 +124,7 @@ rather than leave testers with a dead link.
 The URL is compiled into every build. If a custom domain is ever wanted,
 choose it before the first TestFlight upload.
 
-## Step 3: support inbox
+## Step 3: support inbox — done September 27
 
 The owner named `gametime-support@agentmail.to` and authorized it. It
 appears in the app, in the privacy policy and terms, and as the TestFlight
@@ -133,7 +132,7 @@ feedback email. Per `BETA_PRIVACY_TERMS_DRAFT.md`, send a real test message and 
 the reply only after the owner authorizes it. Staffing and coverage are in
 [support preparation](BETA_SUPPORT_RETENTION_PREPARATION.md).
 
-## Step 4: set the configuration (after steps 2 and 3)
+## Step 4: set the configuration — done September 27
 
 In `ios/GameTime/Configuration/PublicClient.xcconfig`, replace the three
 `UNCONFIGURED` lines. An xcconfig treats `//` as a comment, so each URL uses

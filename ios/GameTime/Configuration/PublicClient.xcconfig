@@ -11,13 +11,12 @@ SUPABASE_PUBLISHABLE_KEY = sb_publishable_lJS21udjGgBWmlGnvsFCDA_Hu8yWhYy
 // Apple requires reachable policy/terms URLs before a build reaches external
 // testers, and rejects an app whose support contact goes nowhere.
 //
-// These are UNCONFIGURED until someone publishes the pages and opens the inbox.
-// The app treats UNCONFIGURED as "no link" and still runs;
-// ./scripts/check-beta-candidate.sh is what blocks the candidate.
-// docs/PRIVACY_POLICY.md is the text to publish.
-GAMETIME_PRIVACY_POLICY_URL = UNCONFIGURED
-GAMETIME_BETA_TERMS_URL = UNCONFIGURED
-GAMETIME_SUPPORT_EMAIL = UNCONFIGURED
+// Published September 27, 2026 on GitHub Pages (m1jenkins.github.io/GameTime).
+// Support inbox: gametime-support@agentmail.to (Agentmail).
+// docs/PRIVACY_POLICY.md and docs/BETA_TERMS.md are the source texts.
+GAMETIME_PRIVACY_POLICY_URL = https:/$()/m1jenkins.github.io/GameTime/privacy.html
+GAMETIME_BETA_TERMS_URL = https:/$()/m1jenkins.github.io/GameTime/beta-terms.html
+GAMETIME_SUPPORT_EMAIL = gametime-support@agentmail.to
 
 // Ordinary challenge transport is opt-in for an explicitly selected Beta target.
 // This does not enable server admission, real activity, or fixture policies.
