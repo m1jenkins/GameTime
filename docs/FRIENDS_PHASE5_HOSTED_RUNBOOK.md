@@ -1,8 +1,11 @@
 # Friends Phase 5: hosted runbook
 
 Written September 27, 2026, from source and receipts only. Steps 6a and 1 ran
-on September 28 ([receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.md));
-step 2 waits for the Sign in with Apple key, and nothing after it has run.
+on September 28 ([receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.md)).
+Steps 2, 4 and 5 ran that evening
+([receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md)). Step 3 waits
+for a Management API token or a dashboard change, so sign-up is still closed.
+Step 7 waits for a phone build.
 Every step is a hosted read or write on `gametime-p11b`
 (`lyushhqoednheqwzsmxh`), and each one needs the approval named in it. Approval
 for one step doesn't cover the next. This runbook is a plan: it doesn't
@@ -397,7 +400,7 @@ the whole string to Apple as `client_id`, and Apple refuses it.
 
    ```sh
    curl -sS https://appleid.apple.com/auth/token -d client_id=com.mjenkins.gametime \
-     -d client_secret="$(cat "$PRIV/apple-secret.jwt")" -d code=not-a-real-code \
+     --data-urlencode "client_secret@$PRIV/apple-secret.jwt" -d code=not-a-real-code \
      -d grant_type=authorization_code
    ```
 
@@ -438,9 +441,10 @@ curl -sS -w '\n%{http_code}\n' -X POST -H 'content-type: application/json' -d '{
 
 Expect:
 - Both new secret names are listed.
-- `delete-account` is `ACTIVE`. The other eight functions keep their versions:
-  worker, snapshot and monitor 5, `attest-device` 4, `ingest-challenge-health`
-  8, the three commitment functions 3.
+- `delete-account` is `ACTIVE`. The other eight functions keep their code:
+  `secrets set` restarts every function and bumps its version by one (seen
+  September 28), so compare `ezbr_sha256` and `updated_at` in
+  `functions list -o json` before and after, not the version.
 - The GET returns 400 with "GET is not supported here". This shows the module
   loaded: the Apple settings were found and the Stripe setup passed.
 - The empty POST returns 401 with "sign in again", before any database call.
@@ -504,8 +508,12 @@ curl -sS -X PATCH -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
 ```
 
 Here a comma-separated list is correct: this is the Auth provider, which
-accepts several client IDs. Don't touch the provider's secret field. Native
-sign-in with an ID token doesn't use it, and it isn't the function secret.
+accepts several client IDs. Native sign-in with an ID token doesn't use the
+provider's secret field. On September 28 the owner asked for it to be set to
+the same client secret anyway, so the OAuth flow is complete. Add
+`external_apple_secret` to the patch from the file
+(`jq --rawfile s "$PRIV/apple-secret.jwt"`), never on the command line, and
+renew it together with the function secret.
 
 **Readback.** Run the GET again. The result is the patch values, with both
 bundle IDs in the list. On the phone, the Staging app still signs in.
@@ -566,7 +574,8 @@ changed. Then check what the owner is offered through the owner's live session,
 as on September 26. The IDs come from step 5.1.
 
 ```sql
-begin read only;
+-- Not read only: challenge_session_v1 locks the session row FOR SHARE.
+begin;
 select set_config('request.jwt.claims', json_build_object('sub', '<OWNER_ID>',
   'role', 'authenticated', 'session_id', '<SESSION_ID>')::text, true);
 set local role authenticated;

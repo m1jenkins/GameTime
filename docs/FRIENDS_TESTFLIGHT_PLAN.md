@@ -95,15 +95,16 @@ These facts come from source and receipts, and they shape each phase.
     rest of Phase 5's migrations.
   - The checkout's CLI link and `supabase/staging-project-ref` point at the
     historical `jrkzdttophnmkxjoyioo`, so always pass the project ref explicitly.
-  - Deployed functions, as of September 28: worker, snapshot and monitor
-    (version 5), `attest-device` (4), `ingest-challenge-health` (8), and the
-    three D144 functions `challenge-commitment-setup`, `-charge` and
-    `-webhook` (3).
-  - `delete-account` is not deployed. It needs the Apple client ID and a
-    pre-generated client secret, `GAMETIME_APPLE_CLIENT_ID` and
+  - Deployed functions, as of the evening of September 28: worker, snapshot
+    and monitor (version 6), `attest-device` (5), `ingest-challenge-health`
+    (9), the three D144 functions `challenge-commitment-setup`, `-charge` and
+    `-webhook` (4), and `delete-account` (1). The secret update restarted the
+    first eight functions without changing their code.
+  - `delete-account` reads `GAMETIME_APPLE_CLIENT_ID` and
     `GAMETIME_APPLE_CLIENT_SECRET`
-    (`supabase/functions/delete-account/index.ts:29–35`). Apple caps the
-    secret at 6 months.
+    (`supabase/functions/delete-account/index.ts:29–35`). The client secret
+    expires 2027-03-27; renew it by 2027-03-13
+    ([receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md)).
 - **Owner goals.** A September 21 readback found two scheduled
   `personal_steps_goal_v1` records on hosted.
   - The documented one, 4,703 steps over September 22–28: corrections close
@@ -328,19 +329,20 @@ functions score them from the start.
   Hosted matches the repo's 105 migrations, and the owner's goals were
   unchanged. The `delete-account` code blocker is fixed in `ca76092`. See the
   [receipt](../outputs/reports/2026-09-28-friends-phase-5-hosted.md).
+- **Done September 28, evening:** deployed `delete-account` with its Apple
+  secrets, turned off the private trial, granted the owner weekly support
+  (renew by October 4) and read the report queue. Goals unchanged. Step 3
+  (Apple provider and sign-up) is blocked: no Management API token in the
+  session. See the [receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md).
 - **Remaining work** follows the approval-ready
   [runbook](FRIENDS_PHASE5_HOSTED_RUNBOOK.md). Each step lists its commands or
   SQL, preconditions, readback, rollback and approval. In order:
-  1. Deploy `delete-account` with one Apple client ID,
-     `com.mjenkins.gametime`, and its own secret, and record the renewal date.
-     **Blocked on the Sign in with Apple key,** which wasn't on the owner's
-     Mac on September 28.
-  2. Add the production bundle to the Apple provider, and open Apple-only
-     sign-up.
-  3. Turn off the private trial, in the same sitting and only while the
-     allowlist is enforced.
-  4. Grant the owner weekly global support through
-     `challenge_admin_request_v2`, and read reports in the owner's session.
+  1. ~~Deploy `delete-account`~~ done.
+  2. Add the production bundle to the Apple provider, set its secret, and
+     open Apple-only sign-up. **Needs Mason:** the dashboard change or a
+     token in the environment ([receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md), "Step 3").
+  3. ~~Turn off the private trial~~ done.
+  4. ~~Grant the owner weekly global support~~ done; renew weekly.
   5. Confirm that Steps and outdoor distance still save. This needs the
      phone on a build from `dff4be9` or later; on September 28 its uploads
      were still refused.

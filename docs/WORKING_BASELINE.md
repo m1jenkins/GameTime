@@ -9,6 +9,23 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 28 Friends Phase 5: steps 2, 4 and 5 on gametime-p11b (owner-approved)
+
+- **Applied** under Mason's standing approval, from `7ff24d7`, after a fresh
+  private dump:
+  - `delete-account` deployed with `GAMETIME_APPLE_CLIENT_ID` and
+    `GAMETIME_APPLE_CLIENT_SECRET`. Apple accepted the client secret.
+  - Private trial off.
+  - Weekly owner support grant (renew by October 4), and one report-queue
+    read.
+  - The goal fingerprint was unchanged throughout.
+- **Blocked:** step 3 (Apple provider IDs and secret, open sign-up). There's no
+  Management API token in the session, so sign-up stays closed until Mason
+  makes the dashboard change or provides a token.
+- **Renew** the Apple client secret by 2027-03-13 (it expires 2027-03-27).
+
+See the [receipt](../outputs/reports/2026-09-28-phase5-steps2-5.md).
+
 ## September 28 Personal-detail UI tests repaired (owner-approved)
 
 - **Repaired and unskipped:** the 13 Personal-detail tests in

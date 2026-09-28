@@ -10,6 +10,8 @@ link (`jrkzdttophnmkxjoyioo`) was not used.
 
 **Stopped after step 1.** Step 2 needs the Sign in with Apple key, and it
 isn't on the owner's Mac. Steps 3–5 wait for step 2's readback.
+**Update, same evening:** the key arrived. Steps 2, 4 and 5 are done and step 3
+is blocked on a Management API token; see the [later receipt](2026-09-28-phase5-steps2-5.md).
 
 | Step | Result | Time (UTC) |
 | --- | --- | --- |
@@ -19,10 +21,10 @@ isn't on the owner's Mac. Steps 3–5 wait for step 2's readback.
 | 1.2 D144 diff | passed | 12:07–12:10 |
 | 1.3 history repair | done | 12:11:08–12:11:51 |
 | 1.4 D143 and legacy grants | applied | 12:13:18–12:13:27 |
-| 2 `delete-account` | **blocked**: no Apple key | — |
-| 3 Apple provider and sign-up | not started | — |
-| 4 private trial off | not started | — |
-| 5 support access | not started | — |
+| 2 `delete-account` | blocked here; done 20:41 ([later receipt](2026-09-28-phase5-steps2-5.md)) | — |
+| 3 Apple provider and sign-up | not started; still blocked ([later receipt](2026-09-28-phase5-steps2-5.md)) | — |
+| 4 private trial off | not started; done 20:42 ([later receipt](2026-09-28-phase5-steps2-5.md)) | — |
+| 5 support access | not started; done 20:44 ([later receipt](2026-09-28-phase5-steps2-5.md)) | — |
 | 7 saves check | precondition not met; read only | 12:20 |
 | 6b backup and pause | recorded, read only | 12:18 |
 
