@@ -21,20 +21,26 @@ enum SignalTheme {
     }
 
     // Native content uses the study's surface, without its desktop surround.
-    static let canvas = adaptive(0xFAFBFC, 0xFAFBFC)
-    static let surface = adaptive(0xFFFFFF, 0xFFFFFF)
-    static let soft = adaptive(0xF0F2F5, 0xF0F2F5)
-    static let textPrimary = adaptive(0x111318, 0x111318)
-    static let textSecondary = adaptive(0x606975, 0x606975,
-                                        highContrastLight: 0x111318, highContrastDark: 0x111318)
-    static let accent = adaptive(0x245BFF, 0x245BFF)
+    // Light values are the September 22 palette. Dark values are Floodlight
+    // 9.3's dark tokens (ground, card, well, ink, muted), so screens that
+    // follow the system appearance stay legible before their Floodlight pass.
+    static let canvas = adaptive(0xFAFBFC, 0x0E161A)
+    static let surface = adaptive(0xFFFFFF, 0x172227)
+    static let soft = adaptive(0xF0F2F5, 0x213038)
+    static let textPrimary = adaptive(0x111318, 0xEEF4F7)
+    static let textSecondary = adaptive(0x606975, 0x9FB2BB,
+                                        highContrastLight: 0x111318, highContrastDark: 0xD2DDE2)
+    /// Blue for text, icons and progress. In dark it's Floodlight's accent.
+    static let accent = adaptive(0x245BFF, 0xBFEBFF)
+    /// Blue behind white text, such as a primary button. In dark it's Floodlight's button.
+    static let accentFill = adaptive(0x245BFF, 0x1D6CBE)
     static let onAccent = adaptive(0xFFFFFF, 0xFFFFFF)
-    static let selection = adaptive(0xF4F7FF, 0xF4F7FF)
-    static let divider = adaptive(0xDCE1E8, 0xDCE1E8,
+    static let selection = adaptive(0xF4F7FF, 0x213038)
+    static let divider = adaptive(0xDCE1E8, 0x2A3438,
                                   highContrastLight: 0x758298, highContrastDark: 0x8592A6)
-    static let progressTrack = adaptive(0xDCE1E8, 0xDCE1E8)
-    static let bar = adaptive(0x727B88, 0x727B88)
-    static let danger = adaptive(0x9A6700, 0x9A6700)
+    static let progressTrack = adaptive(0xDCE1E8, 0x050A0D)
+    static let bar = adaptive(0x727B88, 0x8FA3AD)
+    static let danger = adaptive(0x9A6700, 0xD99A3C)
     static let contentInset: CGFloat = 20
 
     static func participantColor(for participantID: UUID, participantIDs: [UUID], currentUserID: UUID?) -> Color {
@@ -157,15 +163,15 @@ struct SignalControlMaterial: ViewModifier {
         if #available(iOS 26, *), !reduceTransparency, contrast != .increased {
             content.glassEffect(
                 interactive
-                    ? .regular.tint(primary ? SignalTheme.accent : .clear).interactive()
+                    ? .regular.tint(primary ? SignalTheme.accentFill : .clear).interactive()
                     : .regular,
                 in: RoundedRectangle(cornerRadius: cornerRadius))
         } else {
-            content.background(primary ? SignalTheme.accent : SignalTheme.soft,
+            content.background(primary ? SignalTheme.accentFill : SignalTheme.soft,
                                in: RoundedRectangle(cornerRadius: cornerRadius))
                 .overlay {
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(primary ? SignalTheme.accent : SignalTheme.divider, lineWidth: 1)
+                        .stroke(primary ? SignalTheme.accentFill : SignalTheme.divider, lineWidth: 1)
                 }
         }
     }

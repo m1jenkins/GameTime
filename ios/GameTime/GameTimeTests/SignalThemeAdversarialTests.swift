@@ -15,19 +15,25 @@ final class SignalThemeAdversarialTests: XCTestCase {
                     XCTAssertGreaterThanOrEqual(calculateContrastRatio(UIColor(foreground), UIColor(surface), style: style), 4.5)
                 }
             }
-            XCTAssertGreaterThanOrEqual(calculateContrastRatio(UIColor(SignalTheme.onAccent), UIColor(SignalTheme.accent), style: style), 4.5)
+            // White labels sit on the fill blue; the text blue is for text and icons.
+            XCTAssertGreaterThanOrEqual(calculateContrastRatio(UIColor(SignalTheme.onAccent), UIColor(SignalTheme.accentFill), style: style), 4.5)
             for foreground in [SignalTheme.accent, SignalTheme.textPrimary] {
                 XCTAssertGreaterThanOrEqual(calculateContrastRatio(UIColor(foreground), UIColor(SignalTheme.canvas), style: style), 4.5)
             }
         }
     }
 
-    func testSystemTypographyScalesAndNoBundledFontsAreRegistered() throws {
+    /// Floodlight 9.3 bundles Barlow and Barlow Condensed under the OFL, and
+    /// nothing else. They register at first use, not through Info.plist.
+    func testSystemTypographyScalesAndOnlyTheOFLBarlowFacesAreBundled() throws {
         let font = UIFont.systemFont(ofSize: 48, weight: .medium)
         XCTAssertFalse(font.fontDescriptor.symbolicTraits.contains(.traitItalic))
         XCTAssertFalse(font.fontDescriptor.symbolicTraits.contains(.traitCondensed))
         XCTAssertNil(Bundle.main.object(forInfoDictionaryKey: "UIAppFonts"))
-        XCTAssertTrue(Bundle.main.urls(forResourcesWithExtension: "ttf", subdirectory: nil)?.isEmpty ?? true)
+        let bundled = Set((Bundle.main.urls(forResourcesWithExtension: "ttf", subdirectory: nil) ?? []).map { $0.deletingPathExtension().lastPathComponent })
+        XCTAssertEqual(bundled, Set(FloodlightFonts.faces))
+        XCTAssertNotNil(Bundle.main.url(forResource: "barlow-OFL", withExtension: "txt"))
+        XCTAssertNotNil(Bundle.main.url(forResource: "barlowcondensed-OFL", withExtension: "txt"))
         let metrics = UIFontMetrics(forTextStyle: .largeTitle)
         let regular = metrics.scaledFont(for: font, compatibleWith: UITraitCollection(preferredContentSizeCategory: .large))
         let accessible = metrics.scaledFont(for: font, compatibleWith: UITraitCollection(preferredContentSizeCategory: .accessibilityExtraExtraExtraLarge))

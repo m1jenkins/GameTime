@@ -22,7 +22,7 @@ private struct SignalSolidCapsuleStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.padding(.horizontal, 16).padding(.vertical, 8)
             .foregroundStyle(enabled ? (primary ? SignalTheme.onAccent : SignalTheme.textPrimary) : SignalTheme.textSecondary)
-            .background(enabled && primary ? SignalTheme.accent : SignalTheme.soft, in: Capsule())
+            .background(enabled && primary ? SignalTheme.accentFill : SignalTheme.soft, in: Capsule())
             .overlay(Capsule().stroke(enabled && primary ? SignalTheme.accent : SignalTheme.divider))
             .opacity(enabled && configuration.isPressed ? 0.8 : 1)
     }

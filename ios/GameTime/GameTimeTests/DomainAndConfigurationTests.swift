@@ -40,7 +40,8 @@ final class DomainAndConfigurationTests: XCTestCase {
                     XCTAssertGreaterThanOrEqual(contrastRatio(UIColor(text), UIColor(surface), style: style), 4.5)
                 }
             }
-            XCTAssertGreaterThanOrEqual(contrastRatio(UIColor(SignalTheme.onAccent), UIColor(SignalTheme.accent), style: style), 4.5)
+            // White labels sit on the fill blue; the text blue is for text and icons.
+            XCTAssertGreaterThanOrEqual(contrastRatio(UIColor(SignalTheme.onAccent), UIColor(SignalTheme.accentFill), style: style), 4.5)
         }
     }
 

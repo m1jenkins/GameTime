@@ -41,19 +41,26 @@ struct LiveCardModifier: ViewModifier {
     var radius: CGFloat = 24
     var material = false
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var scheme
     func body(content: Content) -> some View {
         content.background {
-            RoundedRectangle(cornerRadius: radius)
-                .fill(LinearGradient(colors: material && !reduceTransparency
-                    ? [.white.opacity(0.85), SignalTheme.soft.opacity(0.72)]
-                    : [Color(red: 244/255, green: 246/255, blue: 248/255), SignalTheme.soft],
-                    startPoint: .topLeading, endPoint: .bottomTrailing))
-                .background {
-                    if material && !reduceTransparency {
-                        RoundedRectangle(cornerRadius: radius).fill(.ultraThinMaterial)
+            if scheme == .dark {
+                // Floodlight's quiet dark card: solid, no blur, a faint edge.
+                RoundedRectangle(cornerRadius: radius).fill(Floodlight.card)
+                    .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(Floodlight.cardEdge, lineWidth: 1) }
+            } else {
+                RoundedRectangle(cornerRadius: radius)
+                    .fill(LinearGradient(colors: material && !reduceTransparency
+                        ? [.white.opacity(0.85), SignalTheme.soft.opacity(0.72)]
+                        : [Color(red: 244/255, green: 246/255, blue: 248/255), SignalTheme.soft],
+                        startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .background {
+                        if material && !reduceTransparency {
+                            RoundedRectangle(cornerRadius: radius).fill(.ultraThinMaterial)
+                        }
                     }
-                }
-                .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(SignalTheme.divider.opacity(material ? 0.6 : 0.3), lineWidth: 0.75) }
+                    .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(SignalTheme.divider.opacity(material ? 0.6 : 0.3), lineWidth: 0.75) }
+            }
         }
     }
 }
@@ -112,8 +119,8 @@ struct LivePrimaryButtonStyle: ButtonStyle {
             .fixedSize(horizontal: false, vertical: true)
             .padding(.vertical, typeSize.isAccessibilitySize ? 12 : 0)
             .frame(maxWidth: .infinity, minHeight: height).padding(.horizontal, 16)
-            .foregroundStyle(enabled ? Color.white : SignalTheme.textSecondary)
-            .background(enabled ? SignalTheme.accent : SignalTheme.soft, in: RoundedRectangle(cornerRadius: radius))
+            .foregroundStyle(enabled ? SignalTheme.onAccent : SignalTheme.textSecondary)
+            .background(enabled ? SignalTheme.accentFill : SignalTheme.soft, in: RoundedRectangle(cornerRadius: radius))
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
             .opacity(configuration.isPressed ? 0.85 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.14), value: configuration.isPressed)
@@ -150,10 +157,10 @@ struct LivePillButtonStyle: ButtonStyle {
             .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
             .fixedSize(horizontal: !typeSize.isAccessibilitySize, vertical: true)
             .padding(.horizontal, kind == .text ? 8 : 15).padding(.vertical, 9)
-            .foregroundStyle(!enabled ? SignalTheme.textSecondary : kind == .filled ? .white : kind == .text ? SignalTheme.textSecondary : SignalTheme.textPrimary)
+            .foregroundStyle(!enabled ? SignalTheme.textSecondary : kind == .filled ? SignalTheme.onAccent : kind == .text ? SignalTheme.textSecondary : SignalTheme.textPrimary)
             .background {
                 if kind != .text {
-                    Capsule().fill(kind == .filled && enabled ? SignalTheme.accent : SignalTheme.soft)
+                    Capsule().fill(kind == .filled && enabled ? SignalTheme.accentFill : SignalTheme.soft)
                 }
             }
             .padding(.vertical, 4).frame(minHeight: 44)

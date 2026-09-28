@@ -837,7 +837,7 @@ struct FriendsNoticeToast: ViewModifier {
                     Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).accessibilityHidden(true)
                     Text(text).liveFont(14, weight: .medium).fixedSize(horizontal: false, vertical: true)
                 }
-                .foregroundStyle(.white).padding(.horizontal, 16).padding(.vertical, 12)
+                .foregroundStyle(SignalTheme.canvas).padding(.horizontal, 16).padding(.vertical, 12)
                 .background(SignalTheme.textPrimary.opacity(0.92), in: Capsule())
                 .padding(.horizontal, 20).padding(.bottom, 16)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
