@@ -11,6 +11,7 @@
 
 begin;
 select plan(35);
+\ir fixtures/legacy-social-grants.inc
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'),  -- alice, author of everything here

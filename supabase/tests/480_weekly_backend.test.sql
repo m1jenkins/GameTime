@@ -1,5 +1,6 @@
 begin;
 select no_plan();
+\ir fixtures/legacy-social-grants.inc
 \ir fixtures/weekly-fixture.inc
 select ok(not has_table_privilege('authenticated','app.weekly_agreements','select'),'no direct agreement table reads');
 select ok(not has_table_privilege('service_role','app.weekly_revisions','insert'),'service writes need guarded RPC');

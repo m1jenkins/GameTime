@@ -1370,6 +1370,8 @@ select ok(
 -- Stale JWTs lose every table and RPC authorization path
 -- ---------------------------------------------------------------------------
 
+\ir fixtures/legacy-social-grants.inc
+
 set local role authenticated;
 select set_config(
   'request.jwt.claims',

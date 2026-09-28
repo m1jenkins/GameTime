@@ -153,9 +153,11 @@ select ok(
   'anon cannot select friendships'
 );
 select ok(
-  has_table_privilege('authenticated', 'public.friendships', 'delete'),
-  'authenticated may delete friendships, which is how declining works'
+  not has_table_privilege('authenticated', 'public.friendships', 'delete'),
+  'authenticated can no longer delete friendships; friend commands decline'
 );
+
+\ir fixtures/legacy-social-grants.inc
 
 -- ---------------------------------------------------------------------------
 -- RLS: the state machine

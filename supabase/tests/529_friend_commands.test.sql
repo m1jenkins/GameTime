@@ -240,8 +240,11 @@ select is(pg_temp.call(42, 'select public.friend_lookup_v1(''friendtest41'')'),
   'the 31st lookup in a minute returns an error body instead of raising');
 select is(current_setting('response.status', true), '429', 'and it answers with status 429');
 
--- commands_only closes direct writes and keeps every command path
+-- commands_only closes direct writes and keeps every command path. Clients
+-- also lost the direct grants in 20260927120000 (535); restore them here so
+-- the guard behind them stays proven.
 update app.friend_runtime_v1 set commands_only = true;
+\ir fixtures/legacy-social-grants.inc
 select throws_ok($$select pg_temp.call(41, 'insert into public.friendships(user_a,user_b,requested_by)
   select least(''' || pg_temp.ba(41) || '''::uuid,''' || pg_temp.ba(45) || '''::uuid),
          greatest(''' || pg_temp.ba(41) || '''::uuid,''' || pg_temp.ba(45) || '''::uuid),

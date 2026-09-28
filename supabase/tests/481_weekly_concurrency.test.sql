@@ -105,8 +105,10 @@ insert into outcomes select 'cancel_accept',r.* from ids cross join lateral pg_t
  format('select pg_temp.call(1,%L)',format('select pg_temp.exit(pg_temp.req(403),%L,''cancel'',''2026-08-31T12:00:00Z'')',id)),
  format('select pg_temp.call(2,%L)',format('select pg_temp.accept(pg_temp.req(404),%L)',id))) r where ids.name='friend1';
 select is((select second_result from outcomes where name='cancel_accept'),'55000','cancel wins over waiting accept');
+-- Clients lost direct block writes in 20260927120000; the owner's raw block
+-- still has to win over the waiting accept.
 insert into outcomes select 'block_accept',r.* from ids cross join lateral pg_temp.race(
- $$select pg_temp.call(3,'insert into public.blocks(blocker_id,blocked_id) values(pg_temp.actor(3),pg_temp.actor(4)) returning blocker_id')$$,
+ $$select pg_temp.call(0,'insert into public.blocks(blocker_id,blocked_id) values(pg_temp.actor(3),pg_temp.actor(4)) returning blocker_id')$$,
  format('select pg_temp.call(4,%L)',format('select pg_temp.accept(pg_temp.req(405),%L)',id))) r where ids.name='friend3';
 select is((select second_result from outcomes where name='block_accept'),'42501','block wins over waiting accept');
 insert into outcomes select 'delete_accept',r.* from ids cross join lateral pg_temp.race(

@@ -49,6 +49,8 @@ select ok(
   'anon cannot select blocks'
 );
 
+\ir fixtures/legacy-social-grants.inc
+
 -- Directed, so both directions can coexist and each is its own row.
 insert into public.blocks (blocker_id, blocked_id) values
   ('11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333'),

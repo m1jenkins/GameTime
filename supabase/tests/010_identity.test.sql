@@ -196,9 +196,10 @@ select ok(
   'anon cannot execute find_profile_by_handle'
 );
 select ok(
-  has_function_privilege('authenticated', 'public.find_profile_by_handle(text)', 'execute'),
-  'authenticated can execute find_profile_by_handle'
+  not has_function_privilege('authenticated', 'public.find_profile_by_handle(text)', 'execute'),
+  'authenticated can no longer execute find_profile_by_handle'
 );
+\ir fixtures/legacy-social-grants.inc
 
 -- ---------------------------------------------------------------------------
 -- RLS: profile visibility

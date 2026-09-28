@@ -113,8 +113,8 @@ select ok(
   'authenticated cannot UPDATE membership, so joined_at cannot be rewritten'
 );
 select ok(
-  has_table_privilege('authenticated', 'public.group_members', 'delete'),
-  'authenticated may DELETE membership, which is how leaving works'
+  not has_table_privilege('authenticated', 'public.group_members', 'delete'),
+  'authenticated can no longer DELETE membership; groups are closed to clients'
 );
 select ok(
   not has_table_privilege('anon', 'public.groups', 'select'),
@@ -124,6 +124,8 @@ select ok(
   not has_function_privilege('anon', 'public.join_group_by_code(text)', 'execute'),
   'anon cannot execute join_group_by_code'
 );
+
+\ir fixtures/legacy-social-grants.inc
 
 -- ---------------------------------------------------------------------------
 -- Joining

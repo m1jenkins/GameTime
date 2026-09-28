@@ -514,7 +514,10 @@ try {
     "a cancelled request leaves the other list",
   );
 
-  // Direct table writes are closed once commands_only is on.
+  // Direct table writes are closed: clients hold no friendship grant since
+  // 20260927120000, and commands_only guards the table behind that.
+  const closed = (r: Reply) =>
+    r.status >= 400 && (r.body?.code === "42501" || r.body?.message === "friend_command_required");
   const direct = await http("POST", "/rest/v1/friendships", {
     user_a: [ana.id, cal.id].sort()[0],
     user_b: [ana.id, cal.id].sort()[1],
@@ -522,7 +525,7 @@ try {
     status: "pending",
   }, { ...as(cal), prefer: "return=minimal" });
   check(
-    direct.status >= 400 && direct.body?.message === "friend_command_required",
+    closed(direct),
     "a direct friendship insert is refused",
   );
   const directDelete = await http(
@@ -534,9 +537,12 @@ try {
     { ...as(ben), prefer: "return=minimal" },
   );
   check(
-    directDelete.status >= 400 && directDelete.body?.message === "friend_command_required" &&
-      ids((await list(ana)).friends).includes(ben.id),
+    closed(directDelete) && ids((await list(ana)).friends).includes(ben.id),
     "a direct friendship delete is refused and the friendship stays",
+  );
+  check(
+    closed(await http("POST", "/rest/v1/rpc/find_profile_by_handle", { p_handle: "ana" }, as(cal))),
+    "the legacy handle lookup without a rate limit is closed",
   );
 
   // Remove, block, unblock, report.

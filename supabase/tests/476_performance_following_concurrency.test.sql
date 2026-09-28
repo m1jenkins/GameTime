@@ -158,8 +158,10 @@ insert into public.friendships(user_a,user_b,requested_by,status) values('ea1000
 $unblock$);
 select is((select x.r from extensions.dblink('pf_setup',pg_temp.read_follow()) x(r text)),'false','re-friending cannot restore an ended follow');
 select pg_temp.fresh_follow(49);
+-- Clients lost direct friendship writes in 20260927120000; the table owner's
+-- raw delete still has to serialize with and revoke the follow.
 insert into outcomes select 'unfriend then shared read',* from pg_temp.race(
- pg_temp.query(2,format('with d as (delete from public.friendships where user_a=%L and user_b=%L returning user_a) select count(*)::text from d',pg_temp.actor(1),pg_temp.actor(2))),pg_temp.read_follow(1));
+ format('with d as (delete from public.friendships where user_a=%L and user_b=%L returning user_a) select count(*)::text from d',pg_temp.actor(1),pg_temp.actor(2)),pg_temp.read_follow(1));
 select is((select second_result from outcomes where name='unfriend then shared read'),'false','raw legacy unfriend also serializes and revokes follow');
 select extensions.dblink_exec('pf_setup',$refriend$
 insert into public.friendships(user_a,user_b,requested_by,status) values('ea100000-0000-0000-0000-000000000001','ea100000-0000-0000-0000-000000000002','ea100000-0000-0000-0000-000000000001','accepted');

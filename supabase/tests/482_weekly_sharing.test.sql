@@ -1,6 +1,7 @@
 begin;
 select no_plan();
 \ir fixtures/weekly-fixture.inc
+\ir fixtures/legacy-social-grants.inc
 -- Exercise the historical agreement with its explicit fictional clock. The
 -- public endpoints correctly use wall time and this September week has ended.
 create function pg_temp.share(r uuid,c uuid,f uuid,e boolean) returns uuid

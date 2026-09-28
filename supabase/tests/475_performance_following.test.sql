@@ -1,5 +1,6 @@
 begin;
 select no_plan();
+\ir fixtures/legacy-social-grants.inc
 set local timezone='UTC';
 create function pg_temp.actor(n integer) returns uuid language sql immutable as $$
  select ('e9100000-0000-0000-0000-'||lpad(n::text,12,'0'))::uuid $$;
