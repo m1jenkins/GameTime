@@ -9,6 +9,19 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 27 Phase 5 hosted runbook (documentation only)
+
+- [FRIENDS_PHASE5_HOSTED_RUNBOOK.md](FRIENDS_PHASE5_HOSTED_RUNBOOK.md)
+  covers the rest of Phase 5 on `gametime-p11b`: backup, migration-history
+  repair and push, `delete-account`, the Apple provider and sign-up, the trial,
+  support, and the saves check. Each step has its commands or SQL, a readback,
+  a rollback and the approval it needs. Nothing hosted was run.
+- **Found:** `delete-account` can't be configured on hosted as written. It
+  reads `SUPABASE_`-prefixed Apple settings, which the CLI refuses to set, so a
+  small rename has to come first. Once the owner suspends someone, only another
+  support person can decide the appeal. Account deletion leaves D144
+  commitment rows behind.
+
 ## September 27 one refused Health upload no longer blocks the phone
 
 - **Reproduced first:** a saved account-mode upload refused with a 422 blocked

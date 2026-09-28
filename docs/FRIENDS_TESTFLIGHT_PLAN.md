@@ -79,18 +79,23 @@ These facts come from source and receipts, and they shape each phase.
   tab, and `scripts/beta-native-smoke.py` does not run that suite. Put
   product-scoped copy checks in `ChallengeV1UITests` and `LiveDesignUITests`,
   and decide separately whether to repair or retire the old suite.
-- **Hosted `gametime-p11b`**
-  - `20260920162025` (the leaderboard migration) is unapplied, while the later
+- **Hosted `gametime-p11b`** (updated September 27; see Phase 5 for the
+  current state)
+  - On September 22, `20260920162025` (the leaderboard migration) was
+    unapplied, while the later
     `20260920164443` and `20260922150718` are applied.
   - Its ingest markers don't overlap with 164443's, so applying it late is
     safe for markers. It does rewrite `challenge_real_health_evaluate_v1`,
     `challenge_evaluate_policy_v1`, `challenge_policy_v1` and
     `challenge_mutate_unmetered_v1`.
-  - Pushing it needs `--include-all`.
+  - Pushing it needs `--include-all`. It was applied September 23 with the
+    rest of Phase 5's migrations.
   - The checkout's CLI link and `supabase/staging-project-ref` point at the
     historical `jrkzdttophnmkxjoyioo`, so always pass the project ref explicitly.
-  - Deployed functions: worker, snapshot, monitor, `attest-device` and
-    `ingest-challenge-health`.
+  - Deployed functions, as of September 27: worker, snapshot and monitor
+    (version 5), `attest-device` (4), `ingest-challenge-health` (8), and the
+    three D144 functions `challenge-commitment-setup`, `-charge` and
+    `-webhook` (3).
   - `delete-account` is not deployed. It needs the Apple client ID and a
     pre-generated client secret (`supabase/functions/delete-account/index.ts:28–31`),
     which Apple caps at 6 months.
@@ -179,12 +184,14 @@ starts when the owner starts it.
 - **Invite mock:** drop contacts and links, matching the native app.
 - **Unchanged:** the locked Goal → Challenge → Friends flow is not reopened.
 
-### Phase 2 — server: complete locally
+### Phase 2 — server: applied to hosted
 
 Migrations `20260922210000` and `20260922210100`, pgTAP `529`–`531` and a
 hosted-order upgrade rehearsal. See the
-[receipt](../outputs/reports/2026-09-22-friends-phase-2-server.md). Not
-applied to hosted. The owner settled the decline rule in the engagement review
+[receipt](../outputs/reports/2026-09-22-friends-phase-2-server.md). Both
+migrations were applied to `gametime-p11b` on September 23; see the
+[Phase 5 migration receipt](../outputs/reports/2026-09-23-friends-phase-5-migrations.md).
+The owner settled the decline rule in the engagement review
 above.
 
 
@@ -307,18 +314,35 @@ functions score them from the start.
   (`scripts/fixtures/friends-build1-settings.sql`) ahead of sign-up; see the
   [receipt](../outputs/reports/2026-09-26-friends-build1-settings.md). The
   private trial is still on, so only its enrolled account can take part.
-  Turning it off is the owner's decision, alongside opening sign-up.
-- Deploy `delete-account` and record the client secret's renewal date.
-- Add the production bundle to the Apple provider, and open Apple-only sign-up.
-- Grant global support to the owner by name. A grant lasts at most 7 days, so
-  plan its renewal.
-- Close dormant legacy grants. **Written and verified locally September 27**
-  as `20260927120000_close_legacy_social_grants_v1`; see the
-  [receipt](../outputs/reports/2026-09-27-friends-phase-5-legacy-grants.md).
-  Not applied: hosted migration history needs repair first.
-- Confirm that Steps and outdoor distance still save.
-- Settle whether the Free plan has a restorable backup and whether the project
-  can pause.
+  D142 keeps no per-person allowlist, so the trial goes off. Only the timing
+  is the owner's call.
+- **Remaining work** has an approval-ready
+  [runbook](FRIENDS_PHASE5_HOSTED_RUNBOOK.md). Each step lists its commands or
+  SQL, preconditions, readback, rollback and approval. Nothing in it has been
+  run. In order:
+  1. Back up with `supabase db dump`. Supabase documents scheduled backups
+     only for paid plans.
+  2. Repair the migration history. Hosted records D144 as `20260926024624`, not
+     `20260925000000`, and lacks D143. Diff hosted D144 against the file
+     (read-only) first. Then mark `20260926024624` reverted and
+     `20260925000000` applied. Then push D143 and
+     `20260927120000_close_legacy_social_grants_v1`
+     ([receipt](../outputs/reports/2026-09-27-friends-phase-5-legacy-grants.md)).
+     Never follow the CLI's suggestion of revert plus `--include-all`: it
+     re-runs D144.
+  3. Deploy `delete-account` with one Apple client ID,
+     `com.mjenkins.gametime`, and its own secret, and record the renewal date.
+     **Blocked by a code change:** the function reads `SUPABASE_`-prefixed
+     settings, which hosted secrets can't use.
+  4. Add the production bundle to the Apple provider, and open Apple-only
+     sign-up.
+  5. Turn off the private trial, in the same sitting and only while the
+     allowlist is enforced.
+  6. Grant the owner weekly global support through
+     `challenge_admin_request_v2`, and read reports in the owner's session.
+  7. Confirm that Steps and outdoor distance still save. This needs the
+     phone on a build from `dff4be9` or later.
+  8. Record the Free plan's backup and pause findings.
 
 ### Phase 6 — TestFlight (explicit approval)
 
@@ -336,14 +360,22 @@ functions score them from the start.
 
 A friend challenge needs about 8 days from creation to final (2-day lead,
 1-day window, +48h corrections, provisional within +72h, +48h review).
-Hosted work waits until both owner goals are final, around October 4–6, so the
-earliest success is mid-to-late October.
+The plan held hosted work until both owner goals were final, around
+October 4–6. The owner overrode that wait on September 23. The owner's
+committed Steps goal for September 27 to October 4 settles around October 9
+(final no earlier than October 8, 05:00 UTC). The owner moves to TestFlight
+only after that (Phase 6), so the earliest success is still mid-to-late
+October.
 
 ## Open owner inputs
 
 - Legal entity, jurisdiction and a monitored support inbox, for the privacy
   policy, terms and feedback email.
-- Who renews the Apple client secret, and when.
+- Who renews the Apple client secret, and when. The
+  [runbook](FRIENDS_PHASE5_HOSTED_RUNBOOK.md#21-preconditions) records the
+  dates once the secret is issued.
+- A second support person. Only someone other than the suspender can decide a
+  suspension appeal, so the owner alone can't reinstate anyone.
 - ~~Confirm the second scheduled goal.~~ Answered September 23: the
   September 22 goals are void, and three goals start September 24. The owner
   overrode the gate.
@@ -363,7 +395,8 @@ earliest success is mid-to-late October.
   **Fixed locally:** migration `20260922181912` restores the check, and pgTAP
   `528` covers it. See the
   [receipt](../outputs/reports/2026-09-22-fixture-admission-age.md). The
-  migration is not applied to `gametime-p11b`.
+  migration was applied to `gametime-p11b` on September 23; see the
+  [Phase 5 migration receipt](../outputs/reports/2026-09-23-friends-phase-5-migrations.md).
 - `challenge_issue_link_v1` admits without the real-activity marker, so under
   the enforced allowlist it refuses links for real-activity lobbies even with
   `links_enabled` on. Links are off in build 1. Fix it before turning links on.
