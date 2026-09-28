@@ -233,6 +233,50 @@ took 56 minutes with Xcode 26.2 and iOS 26.2:
 | Build staging and release products | Passed. No `main` run had reached this step since August 4 |
 | Test conformance harness | 10 of 10 passed. No `main` run had reached this step since August 4 |
 
+### The next commit failed on flaky `LiveDesignUITests`
+
+The next commit, `6c3cde9`, only recorded the result above in these docs. Its
+run, [36384721914](https://github.com/m1jenkins/GameTime/actions/runs/36384721914),
+failed all three attempts: the first run and two reruns, on the same code and
+runner image. Each attempt failed one `LiveDesignUITests` test. The 51 were
+skipped, every other UI test and all 647 unit tests passed, and the later
+steps didn't run.
+
+| Attempt | Failed test | Where it stopped |
+| --- | --- | --- |
+| 1 | `testAddAFriendUsesAnExactUsernameAndPlainShareText` | Line 406. After `typeText("nobody_here\n")`, "We couldn’t find @nobody_here…" didn't appear within 5 seconds. The app took 54 seconds to show its tabs |
+| 2 | The same | The same line. The app took 35 seconds to show its tabs |
+| 3 | `testFriendsScreensPassTheSystemAccessibilityAuditApartFromTextSize` | Line 600: "Friends, largest text: 1 Contrast failed — Friends". The add-friend test passed; the app took 14 seconds to show its tabs |
+
+**The add-friend test** isn't new to failing. It failed at the same
+assertion at `c3b45f3` on September 24, and passed at `b86a006`, `8b947c9`,
+`036d1bc` and `6653b41`. The likely cause is in `FriendUsernameField`
+(`FriendsViews.swift:813`): `.onSubmit { if enabled { submit() } }` uses
+`enabled` from the last render. When a slow app takes the typed keys and the
+return in one batch, before it redraws with the text, `enabled` is still false
+and the return does nothing. That's likely, not confirmed: CI keeps no result
+bundle. A person can't type that fast, so the test is the part to change.
+Type the name, wait for Find to be enabled, then press return. The test
+submits three names this way.
+
+Whether the skip makes this more likely isn't clear. It's the first test in
+`LiveDesignUITests`, and with the 51 skipped it's now the first UI test in the
+run to launch the app, on a simulator that has just started; more than 40
+legacy launches used to run first. Here it failed after the app took 54 and 35
+seconds to show its tabs, and passed after 20 and 14. But at `c3b45f3` it
+failed after 8.
+
+**The friends audit** reported low contrast for text labeled "Friends" at the
+largest size. It had passed in every run since `036d1bc` fixed it: that run,
+`6653b41`, and attempts 1 and 2 here. The cause isn't known.
+The Friends screen uses "Friends" as its header and as a section header. The
+audit excuses contrast reports for text under the tab bar only when the Home
+tab is hittable at that moment. A section header under the bar would fail if
+that check or the layout were caught mid-change.
+
+Neither test is changed here. This change's approval covers the 51 legacy
+tests only.
+
 ## A false failure in a unit test
 
 In the full local run,
