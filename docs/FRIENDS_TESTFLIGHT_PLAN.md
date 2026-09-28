@@ -370,7 +370,9 @@ October.
 ## Open owner inputs
 
 - Legal entity, jurisdiction and a monitored support inbox, for the privacy
-  policy, terms and feedback email.
+  policy, terms and feedback email. The
+  [legal pages runbook](LEGAL_PAGES_PUBLISH_RUNBOOK.md) covers the rest:
+  the text revisions, the GitHub Pages publish, and the configuration lines.
 - Who renews the Apple client secret, and when. The
   [runbook](FRIENDS_PHASE5_HOSTED_RUNBOOK.md#21-preconditions) records the
   dates once the secret is issued.

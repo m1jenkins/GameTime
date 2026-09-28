@@ -117,6 +117,9 @@ jobs:
       - name: Test beta candidate preflight fixtures
         run: bash scripts/tests/check-beta-candidate.test.sh
 
+      - name: Test legal site generator
+        run: python3 scripts/tests/build-legal-site.test.py
+
       - name: Audit Personal automatic-flow copy
         run: bash scripts/check-beta-candidate.sh --personal-copy-only
 

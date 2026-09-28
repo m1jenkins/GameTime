@@ -525,6 +525,46 @@ for commitments in YES ""; do
   assert_contains "$commitments_output" "1 blocker(s)"
 done
 
+# The shipped UNCONFIGURED placeholders block TestFlight. The escaped
+# https:/$()/ form, which an xcconfig needs because // starts a comment, passes.
+legal_unconfigured_root="${fixture_root}/testflight-legal-unconfigured"
+legal_escaped_root="${fixture_root}/testflight-legal-escaped"
+for legal_root in "$legal_unconfigured_root" "$legal_escaped_root"; do
+  make_passing_fixture "$legal_root"
+  write_testflight_fixture "$legal_root"
+done
+sed -i '' -E 's#^(GAMETIME_(PRIVACY_POLICY_URL|BETA_TERMS_URL|SUPPORT_EMAIL)) = .*#\1 = UNCONFIGURED#' \
+  "${legal_unconfigured_root}/ios/GameTime/Configuration/PublicClient.xcconfig"
+sed -i '' \
+  -e 's#^GAMETIME_PRIVACY_POLICY_URL = .*#GAMETIME_PRIVACY_POLICY_URL = https:/$()/legal.example.com/GameTime/privacy.html#' \
+  -e 's#^GAMETIME_BETA_TERMS_URL = .*#GAMETIME_BETA_TERMS_URL = https:/$()/legal.example.com/GameTime/beta-terms.html#' \
+  "${legal_escaped_root}/ios/GameTime/Configuration/PublicClient.xcconfig"
+[[ "$(grep -c -F 'https:/$()/legal.example.com' \
+  "${legal_escaped_root}/ios/GameTime/Configuration/PublicClient.xcconfig")" == 2 ]] ||
+  fail "escaped legal URL fixture was not written"
+
+set +e
+legal_unconfigured_output="$(bash "$checker" --root "$legal_unconfigured_root" --testflight 2>&1)"
+legal_unconfigured_status=$?
+set -e
+if [[ "$legal_unconfigured_status" -ne 1 ]]; then
+  echo "$legal_unconfigured_output" >&2
+  fail "UNCONFIGURED legal and support settings should block TestFlight"
+fi
+for blocker_id in privacy-policy-url beta-terms-url support-contact; do
+  assert_contains "$legal_unconfigured_output" "BLOCKER ${blocker_id}"
+done
+assert_contains "$legal_unconfigured_output" "3 blocker(s)"
+
+legal_escaped_output=""
+if ! legal_escaped_output="$(bash "$checker" --root "$legal_escaped_root" --testflight 2>&1)"; then
+  echo "$legal_escaped_output" >&2
+  fail "escaped https:/\$()/ legal URLs were rejected"
+fi
+assert_contains "$legal_escaped_output" "PASS privacy-policy-url"
+assert_contains "$legal_escaped_output" "PASS beta-terms-url"
+assert_contains "$legal_escaped_output" "0 blocker(s)"
+
 # The historical Release contract is unchanged by the TestFlight mode.
 release_again="$(bash "$checker" --root "$testflight_root" 2>&1)" || fail "Release contract changed"
 assert_contains "$release_again" "PASS stripe-return-scheme"

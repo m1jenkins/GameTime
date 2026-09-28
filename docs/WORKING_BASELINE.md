@@ -9,6 +9,19 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 27 legal pages prepared (not published)
+
+- `docs/legal-site/` holds draft privacy and beta-terms pages, built by
+  `scripts/build-legal-site.py`.
+  [LEGAL_PAGES_PUBLISH_RUNBOOK.md](LEGAL_PAGES_PUBLISH_RUNBOOK.md) proposes
+  GitHub Pages at `https://m1jenkins.github.io/GameTime/` and gives the exact
+  `PublicClient.xcconfig` lines. Those settings stay `UNCONFIGURED`, so
+  `--testflight` still reports the same three blockers.
+- **Found:** neither text can be published as written. The privacy draft
+  covers only Personal: it says "only step counts" and describes Stripe. The
+  terms draft describes a local preview. `--final` refuses both until the owner
+  names the entity, jurisdiction and inbox and the texts are revised.
+
 ## September 27 Phase 5 hosted runbook (documentation only)
 
 - [FRIENDS_PHASE5_HOSTED_RUNBOOK.md](FRIENDS_PHASE5_HOSTED_RUNBOOK.md)
