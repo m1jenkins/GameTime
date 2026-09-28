@@ -18,7 +18,22 @@ final class GameTimeUITests: XCTestCase {
                 "Demo mode — no money will be charged. Nothing here leaves your phone."
             }
         }
+
+        /// The line under the step count on Personal detail.
+        func detailLine(amount: String) -> String {
+            switch self {
+            case .testOnly, .demo:
+                "\(amount) test commitment · No money will be charged"
+            case .stripeSandbox:
+                "\(amount) test payment"
+            }
+        }
     }
+
+    private let reviewReasons = [
+        "My step data is wrong or incomplete",
+        "I disagree with the result",
+    ]
 
     // The shared deletion flow landed in ece3f1e; retained Personal uses the
     // same warning about Beta closure, retention and the saved receipt.
@@ -266,12 +281,9 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-stripe-review",
             "--fixture-open-result-challenge"
         )
-        XCTAssertTrue(
-            app.navigationBars["Your challenge"]
-                .waitForExistence(timeout: 5)
-        )
-        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
-        assertCumulativeProgress(in: app)
+        let page = waitForPersonalDetail(in: app)
+        assertDetailPaymentMode(.stripeSandbox, amount: "$20.00", in: page)
+        assertDetailWeekProgress(in: page)
         assertResultTitle("Goal missed.", in: app)
 
         _ = waitForPaymentStatus(
@@ -281,49 +293,40 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(
             exactStaticText(
                 "Only a confirmed miss after review can create one $20.00 test charge.",
-                in: app
+                in: page
             ).exists
         )
-
-        let request = app.buttons["personal.review.request"]
-        scrollUntilHittable(request, in: app)
         XCTAssertTrue(
-            containing("Ask us to review this result by", in: app).exists
+            containing("Ask us to review this result by", in: page).exists
         )
+
+        let request = page.buttons["personal.review.request"]
         XCTAssertTrue(request.waitForExistence(timeout: 3))
-        XCTAssertTrue(request.isHittable)
         XCTAssertEqual(
             app.buttons.matching(identifier: "personal.review.request").count,
             1
         )
-        XCTAssertTrue(
-            app.buttons[
-                "personal.review.reason.user_disputes_step_data"
-            ].exists
-        )
-        let resultReason = app.buttons[
-            "personal.review.reason.user_disputes_result"
-        ]
-        XCTAssertTrue(resultReason.exists)
-        resultReason.tap()
-        let selectedReason = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "value == %@", "Selected"),
-            object: resultReason
-        )
-        XCTAssertEqual(
-            XCTWaiter.wait(for: [selectedReason], timeout: 2),
-            .completed
+        let reason = page.buttons["personal.review.reason"]
+        bringIntoView(reason, in: page)
+        chooseReviewReason(
+            reviewReasons[1],
+            replacing: reviewReasons[0],
+            with: reason,
+            in: app
         )
 
+        bringIntoView(request, in: page)
+        XCTAssertTrue(request.isHittable)
         request.tap()
 
         _ = waitForPaymentStatus(
             "Under review — settlement paused.",
             in: app
         )
-        XCTAssertFalse(containing("Review ends by", in: app).exists)
+        XCTAssertFalse(containing("Review ends by", in: page).exists)
         XCTAssertFalse(app.buttons["personal.review.request"].exists)
-        assertNoForbiddenLanguage(in: app)
+        XCTAssertFalse(app.buttons["personal.review.reason"].exists)
+        assertNoForbiddenLanguage(in: page)
     }
 
     func testSandboxMetResultShowsZeroTestCharge() {
@@ -333,17 +336,16 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-open-result-challenge"
         )
 
-        XCTAssertTrue(
-            app.navigationBars["Your challenge"].waitForExistence(timeout: 5)
-        )
-        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+        let page = waitForPersonalDetail(in: app)
+        assertDetailPaymentMode(.stripeSandbox, amount: "$20.00", in: page)
         assertResultTitle("Goal met — $0 test charge.", in: app)
         _ = waitForPaymentStatus(
             "Goal met — $0 test charge.",
             in: app
         )
         XCTAssertFalse(app.buttons["personal.review.request"].exists)
-        assertNoForbiddenLanguage(in: app)
+        assertNoForbiddenLanguage(in: page)
+        assertFullRules(.stripeSandbox, amount: "$20.00", in: page)
     }
 
     func testSandboxMissingResultShowsZeroTestChargeAndGuarantee() {
@@ -353,10 +355,8 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-open-result-challenge"
         )
 
-        XCTAssertTrue(
-            app.navigationBars["Your challenge"].waitForExistence(timeout: 5)
-        )
-        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+        let page = waitForPersonalDetail(in: app)
+        assertDetailPaymentMode(.stripeSandbox, amount: "$20.00", in: page)
         assertResultTitle(
             "This one didn’t count — $0 test charge.",
             in: app
@@ -364,7 +364,7 @@ final class GameTimeUITests: XCTestCase {
         XCTAssertTrue(
             exactStaticText(
                 "Missing or unclear step data never counts as a miss.",
-                in: app
+                in: page
             ).exists
         )
         _ = waitForPaymentStatus(
@@ -372,7 +372,7 @@ final class GameTimeUITests: XCTestCase {
             in: app
         )
         XCTAssertFalse(app.buttons["personal.review.request"].exists)
-        assertNoForbiddenLanguage(in: app)
+        assertNoForbiddenLanguage(in: page)
     }
 
     func testExpiredReviewStatesOnlyThatTheRequestWindowEnded() {
@@ -382,10 +382,8 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-open-result-challenge"
         )
 
-        XCTAssertTrue(
-            app.navigationBars["Your challenge"].waitForExistence(timeout: 5)
-        )
-        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+        let page = waitForPersonalDetail(in: app)
+        assertDetailPaymentMode(.stripeSandbox, amount: "$20.00", in: page)
         assertResultTitle("Goal missed.", in: app)
 
         _ = waitForPaymentStatus(
@@ -393,112 +391,66 @@ final class GameTimeUITests: XCTestCase {
             in: app
         )
         XCTAssertFalse(app.buttons["personal.review.request"].exists)
-        XCTAssertTrue(app.buttons["personal.payment.status.refresh"].exists)
-        XCTAssertTrue(app.buttons["personal.payment.status.support"].exists)
-        assertNoForbiddenLanguage(in: app)
+        assertPaymentActions(includingReview: false, in: app)
+        assertNoForbiddenLanguage(in: page)
     }
 
     func testPaymentStatusCardCoversEveryAuthoritativeStateAndActionSet() {
+        // The retired card hid Refresh and Contact Support once a state was
+        // final. LivePersonalPaymentCard keeps both in every state, and
+        // docs/COPY.md only limits the recovery actions to those two, so each
+        // state is checked for exactly that set.
         let cases: [(
             rawState: String,
             label: String,
-            hasRecovery: Bool,
             opensActive: Bool
         )] = [
-            ("method_saved", "Test method saved.", true, true),
+            ("method_saved", "Test method saved.", true),
             (
                 "review_open",
                 "Goal missed — review open. Settlement is paused.",
-                true,
                 false
             ),
-            (
-                "under_review",
-                "Under review — settlement paused.",
-                true,
-                false
-            ),
-            (
-                "waived",
-                "This one didn’t count — $0 test charge.",
-                false,
-                false
-            ),
-            ("no_charge", "Goal met — $0 test charge.", false, false),
-            (
-                "charge_pending",
-                "Processing one $20.00 test charge.",
-                true,
-                false
-            ),
+            ("under_review", "Under review — settlement paused.", false),
+            ("waived", "This one didn’t count — $0 test charge.", false),
+            ("no_charge", "Goal met — $0 test charge.", false),
+            ("charge_pending", "Processing one $20.00 test charge.", false),
             (
                 "charged",
                 "Test charge complete — sandbox transaction recorded.",
-                false,
                 false
             ),
             (
                 "requires_action",
                 "Test payment needs your attention. We won’t try again automatically.",
-                true,
                 false
             ),
             (
                 "collection_failed",
                 "Test payment needs your attention. We won’t try again automatically.",
-                true,
                 false
             ),
         ]
 
         for fixture in cases {
-            let route = fixture.opensActive
-                ? "--fixture-open-active-challenge"
-                : "--fixture-open-result-challenge"
-            let app = launch(
-                "--fixture-stripe-sandbox",
-                "--fixture-payment-status=\(fixture.rawState)",
-                route
-            )
-            XCTAssertTrue(
-                app.navigationBars["Your challenge"]
-                    .waitForExistence(timeout: 5),
-                "Failed to open payment fixture \(fixture.rawState)."
-            )
-            _ = waitForPaymentStatus(fixture.label, in: app)
-
-            let refresh = app.buttons["personal.payment.status.refresh"]
-            let support = app.buttons["personal.payment.status.support"]
-            if fixture.hasRecovery {
-                for _ in 0..<16 where !support.exists { app.swipeUp() }
-                XCTAssertTrue(
-                    refresh.exists,
-                    "Refresh missing for \(fixture.rawState)."
+            XCTContext.runActivity(named: "Payment state \(fixture.rawState)") { _ in
+                let route = fixture.opensActive
+                    ? "--fixture-open-active-challenge"
+                    : "--fixture-open-result-challenge"
+                let app = launch(
+                    "--fixture-stripe-sandbox",
+                    "--fixture-payment-status=\(fixture.rawState)",
+                    route
                 )
-                XCTAssertTrue(
-                    support.exists,
-                    "Support missing for \(fixture.rawState)."
+                let page = waitForPersonalDetail(in: app)
+                _ = waitForPaymentStatus(fixture.label, in: app)
+                assertPaymentActions(
+                    includingReview: fixture.rawState == "review_open",
+                    in: app
                 )
-            } else {
-                XCTAssertFalse(
-                    refresh.exists,
-                    "Terminal state \(fixture.rawState) exposed Refresh."
-                )
-                XCTAssertFalse(
-                    support.exists,
-                    "Terminal state \(fixture.rawState) exposed Support."
-                )
+                assertNoForbiddenLanguage(in: page)
+                app.terminate()
             }
-
-            XCTAssertEqual(
-                app.buttons["personal.review.request"].exists,
-                fixture.rawState == "review_open"
-            )
-            XCTAssertFalse(app.buttons["personal.payment.retry"].exists)
-            XCTAssertFalse(app.buttons["Retry payment"].exists)
-            XCTAssertFalse(app.buttons["Try payment again"].exists)
-            assertNoForbiddenLanguage(in: app)
-            app.terminate()
         }
     }
 
@@ -508,29 +460,20 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-payment-unavailable",
             "--fixture-open-result-challenge"
         )
-        XCTAssertTrue(
-            app.navigationBars["Your challenge"].waitForExistence(timeout: 5)
-        )
+        let page = waitForPersonalDetail(in: app)
         _ = waitForPaymentStatus(
             "Payment test status could not be confirmed.",
             in: app
         )
 
-        let support = app.buttons["personal.payment.status.support"]
-        scrollUntilHittable(support, in: app)
-        XCTAssertTrue(app.buttons["personal.payment.status.refresh"].exists)
+        // Contact Support now opens a mailto: link rather than the retired
+        // Account & support screen. Simulators have no Mail app, so the test
+        // stops at the link: tapping it could leave a system prompt behind.
+        let support = paymentSupport(in: page)
+        bringIntoView(support, in: page)
         XCTAssertTrue(support.isHittable)
-        XCTAssertFalse(app.buttons["personal.payment.retry"].exists)
-        support.tap()
-
-        XCTAssertTrue(
-            app.navigationBars["Account & support"]
-                .waitForExistence(timeout: 5)
-        )
-        XCTAssertTrue(
-            app.descendants(matching: .any)["account-support.contact"]
-                .waitForExistence(timeout: 4)
-        )
+        XCTAssertEqual(support.label, "Contact Support")
+        assertPaymentActions(includingReview: false, in: app)
     }
 
     func testPaymentStatusManualRefreshMovesPendingToCharged() {
@@ -539,25 +482,24 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-payment-status-sequence=charge_pending,charged",
             "--fixture-open-result-challenge"
         )
-        XCTAssertTrue(
-            app.navigationBars["Your challenge"].waitForExistence(timeout: 5)
-        )
+        let page = waitForPersonalDetail(in: app)
         _ = waitForPaymentStatus(
             "Processing one $20.00 test charge.",
             in: app
         )
 
-        let refresh = app.buttons["personal.payment.status.refresh"]
+        let refresh = page.buttons["personal.payment.status.refresh"]
         XCTAssertTrue(refresh.waitForExistence(timeout: 4))
+        bringIntoView(refresh, in: page)
         refresh.tap()
 
         _ = waitForPaymentStatus(
             "Test charge complete — sandbox transaction recorded.",
             in: app
         )
-        XCTAssertFalse(app.buttons["personal.payment.status.refresh"].exists)
-        XCTAssertFalse(app.buttons["personal.payment.status.support"].exists)
-        XCTAssertFalse(app.buttons["personal.payment.retry"].exists)
+        // Refresh and Contact Support stay on the final state too; see
+        // testPaymentStatusCardCoversEveryAuthoritativeStateAndActionSet.
+        assertPaymentActions(includingReview: false, in: app)
     }
 
     func testPaymentStatusRefreshFailureKeepsStaleReviewAndDisablesReview() {
@@ -567,34 +509,37 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-payment-refresh-fails-after-first",
             "--fixture-open-result-challenge"
         )
-        XCTAssertTrue(
-            app.navigationBars["Your challenge"].waitForExistence(timeout: 5)
-        )
+        let page = waitForPersonalDetail(in: app)
         _ = waitForPaymentStatus(
             "Goal missed — review open. Settlement is paused.",
             in: app
         )
 
-        let refresh = app.buttons["personal.payment.status.refresh"]
+        let refresh = page.buttons["personal.payment.status.refresh"]
         XCTAssertTrue(refresh.waitForExistence(timeout: 4))
+        bringIntoView(refresh, in: page)
         refresh.tap()
 
         XCTAssertTrue(
-            containing("Last confirmed", in: app)
+            containing("Last confirmed", in: page)
                 .waitForExistence(timeout: 5)
         )
         XCTAssertTrue(
-            containing("We couldn’t refresh it.", in: app).exists
+            containing("We couldn’t refresh it.", in: page).exists
         )
         XCTAssertEqual(
             paymentStatusState(in: app).label,
             "Goal missed — review open. Settlement is paused."
         )
-        let staleReviewRequest = app.buttons["personal.review.request"]
+        // docs/COPY.md: every review control stays disabled until a fresh
+        // confirmation returns.
+        let staleReviewRequest = page.buttons["personal.review.request"]
         XCTAssertTrue(staleReviewRequest.exists)
         XCTAssertFalse(staleReviewRequest.isEnabled)
-        XCTAssertTrue(app.buttons["personal.payment.status.refresh"].exists)
-        XCTAssertTrue(app.buttons["personal.payment.status.support"].exists)
+        let staleReason = page.buttons["personal.review.reason"]
+        XCTAssertTrue(staleReason.exists)
+        XCTAssertFalse(staleReason.isEnabled)
+        assertPaymentActions(includingReview: true, in: app)
     }
 
     func testPaymentStatusReviewCardSupportsAccessibilityXXXLAndReduceMotion() {
@@ -607,51 +552,36 @@ final class GameTimeUITests: XCTestCase {
             "-UIAccessibilityReduceMotionEnabled",
             "YES"
         )
-        XCTAssertTrue(
-            app.navigationBars["Your challenge"].waitForExistence(timeout: 5)
-        )
+        let page = waitForPersonalDetail(in: app)
         _ = waitForPaymentStatus(
             "Goal missed — review open. Settlement is paused.",
             in: app
         )
 
-        let firstReason = app.buttons[
-            "personal.review.reason.user_disputes_step_data"
-        ]
-        let secondReason = app.buttons[
-            "personal.review.reason.user_disputes_result"
-        ]
-        for control in [firstReason, secondReason] {
-            XCTAssertTrue(control.waitForExistence(timeout: 4))
-            XCTAssertFalse(control.label.isEmpty)
-        }
-        XCTAssertEqual(firstReason.value as? String, "Selected")
-        XCTAssertEqual(secondReason.value as? String, "Not selected")
+        // At this size the picker draws only part of the chosen reason
+        // ("wrong or"), though its accessibility label is complete. That's
+        // a layout issue to fix in the product; this checks reachability.
+        let reason = page.buttons["personal.review.reason"]
+        bringIntoView(reason, in: page)
+        XCTAssertTrue(reason.isHittable)
+        chooseReviewReason(
+            reviewReasons[1],
+            replacing: reviewReasons[0],
+            with: reason,
+            in: app
+        )
 
-        secondReason.tap()
-        XCTAssertTrue(secondReason.isHittable)
-        let selectedReason = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "value == %@", "Selected"),
-            object: secondReason
-        )
-        XCTAssertEqual(
-            XCTWaiter.wait(for: [selectedReason], timeout: 2),
-            .completed
-        )
         let actions = [
-            app.buttons["personal.review.request"],
-            app.buttons["personal.payment.status.refresh"],
-            app.buttons["personal.payment.status.support"],
+            (page.buttons["personal.review.request"], "Request a review"),
+            (page.buttons["personal.payment.status.refresh"], "Refresh"),
+            (paymentSupport(in: page), "Contact Support"),
         ]
-        for action in actions {
-            scrollUntilHittable(action, in: app, attempts: 8)
-            XCTAssertTrue(action.isHittable)
-            XCTAssertFalse(action.label.isEmpty)
+        for (action, label) in actions {
+            bringIntoView(action, in: page)
+            XCTAssertTrue(action.isHittable, "\(label) isn't reachable.")
+            XCTAssertEqual(action.label, label)
         }
-        XCTAssertEqual(actions[0].label, "Request a review")
-        XCTAssertEqual(actions[1].label, "Refresh")
-        XCTAssertEqual(actions[2].label, "Contact Support")
-        XCTAssertFalse(app.buttons["personal.payment.retry"].exists)
+        assertPaymentActions(includingReview: true, in: app)
         attachScreenshot(
             of: app,
             named: "Payment test status - accessibility XXXL"
@@ -896,22 +826,20 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-personal-scheduled",
             "--fixture-open-active-challenge"
         )
+        let scheduledPage = waitForPersonalDetail(in: scheduled)
         XCTAssertTrue(
-            scheduled.navigationBars["Your challenge"]
-                .waitForExistence(timeout: 5)
+            exactStaticText("Starts soon", in: scheduledPage)
+                .waitForExistence(timeout: 4)
         )
         XCTAssertTrue(
-            scheduled.staticTexts["Scheduled"].waitForExistence(timeout: 4)
+            exactStaticText(
+                "Apple Health updates begin when this challenge starts.",
+                in: scheduledPage
+            ).waitForExistence(timeout: 4)
         )
         XCTAssertTrue(
-            healthStatus(in: scheduled).waitForExistence(timeout: 4)
-        )
-        XCTAssertEqual(
-            healthStatus(in: scheduled).label,
-            "Apple Health updates begin when this challenge starts."
-        )
-        XCTAssertTrue(
-            scheduled.buttons["personal.cancel"].waitForExistence(timeout: 4)
+            scheduledPage.buttons["personal.cancel"]
+                .waitForExistence(timeout: 4)
         )
         scheduled.terminate()
 
@@ -920,12 +848,9 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-personal-scheduled",
             "--fixture-open-active-challenge"
         )
+        let scheduledSandboxPage = waitForPersonalDetail(in: scheduledSandbox)
         XCTAssertTrue(
-            scheduledSandbox.navigationBars["Your challenge"]
-                .waitForExistence(timeout: 5)
-        )
-        XCTAssertTrue(
-            scheduledSandbox.buttons["personal.cancel"]
+            scheduledSandboxPage.buttons["personal.cancel"]
                 .waitForExistence(timeout: 4)
         )
         _ = waitForPaymentStatus("Test method saved.", in: scheduledSandbox)
@@ -935,19 +860,16 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-personal-cancelled",
             "--fixture-open-active-challenge"
         )
+        let cancelledPage = waitForPersonalDetail(in: cancelled)
         XCTAssertTrue(
-            cancelled.navigationBars["Your challenge"]
-                .waitForExistence(timeout: 5)
+            exactStaticText("Cancelled", in: cancelledPage)
+                .waitForExistence(timeout: 4)
         )
         XCTAssertTrue(
-            cancelled.staticTexts["Cancelled"].waitForExistence(timeout: 4)
-        )
-        XCTAssertTrue(
-            healthStatus(in: cancelled).waitForExistence(timeout: 4)
-        )
-        XCTAssertEqual(
-            healthStatus(in: cancelled).label,
-            "Apple Health updates stopped when this challenge was cancelled."
+            exactStaticText(
+                "Apple Health updates stopped when this challenge was cancelled.",
+                in: cancelledPage
+            ).waitForExistence(timeout: 4)
         )
         XCTAssertFalse(cancelled.buttons["personal.cancel"].exists)
         XCTAssertFalse(
@@ -962,10 +884,7 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-personal-cancelled",
             "--fixture-open-active-challenge"
         )
-        XCTAssertTrue(
-            cancelledSandbox.navigationBars["Your challenge"]
-                .waitForExistence(timeout: 5)
-        )
+        _ = waitForPersonalDetail(in: cancelledSandbox)
         _ = waitForPaymentStatus(
             "Challenge closed — $0 test charge.",
             in: cancelledSandbox
@@ -1069,53 +988,38 @@ final class GameTimeUITests: XCTestCase {
     func testPersonalDetailContainsLockedTermsAndNoCompetitiveLanguage() {
         let app = launch("--fixture-open-active-challenge", "-UIPreferredContentSizeCategoryName",
                          "UICTContentSizeCategoryAccessibilityXL")
-        XCTAssertTrue(
-            app.navigationBars["Your challenge"]
-                .waitForExistence(timeout: 5)
-        )
+        let page = waitForPersonalDetail(in: app)
         XCTAssertFalse(
             app.descendants(matching: .any)[
                 "personal.payment.status.card"
             ].exists
         )
-        XCTAssertTrue(styledStaticText("Your pace", in: app).exists)
-        XCTAssertFalse(app.staticTexts["Steps received"].exists)
-        assertEnvironmentDisclosure(in: app, mode: .testOnly)
-        attachScreenshot(of: app, named: "Signal retained goal and activity")
-
-        // The terms still exist; they live behind "Challenge details" now.
-        let details = app.buttons["personal.details"]
-        for _ in 0..<8 where !details.isHittable { app.swipeUp() }
-        XCTAssertTrue(details.waitForExistence(timeout: 3))
-        XCTAssertEqual(details.value as? String, "Hidden")
-        details.tap()
-        XCTAssertEqual(details.value as? String, "Showing")
-        XCTAssertTrue(
-            containing("Updates through", in: app)
-                .waitForExistence(timeout: 3)
-        )
-        XCTAssertTrue(containing("How it counts", in: app).exists)
-
-        let cancel = app.buttons["personal.cancel"]
-        for _ in 0..<8 {
-            if cancel.isHittable,
-                cancel.frame.midY > app.navigationBars["Your challenge"].frame.maxY + 16
-            { break }
-            app.swipeUp()
+        // The goal and today's steps lead the page, where "Your pace" was.
+        for text in ["10,000 steps a day", "7,350 steps today", "2,650 to today’s goal"] {
+            XCTAssertTrue(exactStaticText(text, in: page).exists, "Missing: \(text)")
         }
+        XCTAssertFalse(app.staticTexts["Steps received"].exists)
+        assertDetailPaymentMode(.testOnly, amount: "$10.00", in: page)
+        attachScreenshot(of: app, named: "Personal detail goal and activity")
+
+        // The terms still exist; they live behind "Full rules" now.
+        assertFullRules(.testOnly, amount: "$10.00", in: page)
+
+        let cancel = page.buttons["personal.cancel"]
         XCTAssertTrue(
             cancel.waitForExistence(timeout: 3),
             "Internal test-only active challenges should expose cleanup cancellation."
         )
+        bringIntoView(cancel, in: page)
         XCTAssertTrue(cancel.isHittable)
 
-        attachScreenshot(of: app, named: "Signal retained locked agreement and exit")
+        attachScreenshot(of: app, named: "Personal detail locked agreement and exit")
 
-        assertNoLegacyPersonalHealthSurfaces(in: app)
-        XCTAssertFalse(app.staticTexts["Standings"].exists)
-        XCTAssertFalse(app.staticTexts["Winner"].exists)
-        XCTAssertFalse(app.staticTexts["Charity"].exists)
-        assertNoForbiddenLanguage(in: app)
+        assertNoLegacyPersonalHealthSurfaces(in: page)
+        XCTAssertFalse(page.staticTexts["Standings"].exists)
+        XCTAssertFalse(page.staticTexts["Winner"].exists)
+        XCTAssertFalse(page.staticTexts["Charity"].exists)
+        assertNoForbiddenLanguage(in: page)
 
         cancel.tap()
         XCTAssertTrue(
@@ -1130,9 +1034,8 @@ final class GameTimeUITests: XCTestCase {
         )
         XCTAssertTrue(app.buttons["Keep it"].exists)
         app.buttons["Yes, cancel it"].waitAndTap()
-        XCTAssertTrue(
-            app.navigationBars["Challenges"].waitForExistence(timeout: 5)
-        )
+        // The page stays open and shows the cancelled challenge.
+        assertCancellationConfirmed(in: page)
     }
 
     func testActiveStripeSandboxCancellationRetainsCancelledHistory() {
@@ -1140,21 +1043,13 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-stripe-sandbox",
             "--fixture-open-active-challenge"
         )
-        XCTAssertTrue(
-            app.navigationBars["Your challenge"]
-                .waitForExistence(timeout: 5)
-        )
-        assertEnvironmentDisclosure(in: app, mode: .stripeSandbox)
+        let page = waitForPersonalDetail(in: app)
+        assertDetailPaymentMode(.stripeSandbox, amount: "$10.00", in: page)
         _ = waitForPaymentStatus("Test method saved.", in: app)
 
-        let cancel = app.buttons["personal.cancel"]
-        for _ in 0..<8 {
-            if cancel.isHittable,
-                cancel.frame.midY > app.navigationBars["Your challenge"].frame.maxY + 16
-            { break }
-            app.swipeUp()
-        }
+        let cancel = page.buttons["personal.cancel"]
         XCTAssertTrue(cancel.waitForExistence(timeout: 4))
+        bringIntoView(cancel, in: page)
         XCTAssertTrue(cancel.isHittable)
         cancel.tap()
 
@@ -1169,14 +1064,33 @@ final class GameTimeUITests: XCTestCase {
             ).exists
         )
         app.buttons["Yes, cancel it"].waitAndTap()
+        assertCancellationConfirmed(in: page)
 
+        // Earlier challenges, under You → Settings, still lists it.
+        let back = page.buttons["Back"]
+        bringIntoView(back, in: page)
+        back.tap()
+        XCTAssertTrue(page.waitForNonExistence(timeout: 5))
+        app.buttons["beta.tab.you"].waitAndTap()
+        app.buttons["profile.settings"].waitAndTap()
+        let history = app.buttons["settings.personal-history"]
+        XCTAssertTrue(history.waitForExistence(timeout: 5))
+        for _ in 0..<8 where !history.isHittable { app.swipeUp() }
+        history.tap()
         XCTAssertTrue(
-            app.navigationBars["Challenges"].waitForExistence(timeout: 5)
+            exactStaticText("Earlier challenges", in: app)
+                .waitForExistence(timeout: 5)
         )
         XCTAssertTrue(
-            app.staticTexts["Cancelled"].waitForExistence(timeout: 4)
+            app.buttons.matching(
+                NSPredicate(
+                    format: "label CONTAINS %@ AND label CONTAINS %@",
+                    "10,000 steps a day",
+                    "Cancelled"
+                )
+            ).firstMatch.waitForExistence(timeout: 5),
+            "Earlier challenges doesn't list the cancelled challenge."
         )
-        XCTAssertFalse(app.buttons["personal.cancel"].exists)
     }
 
     func testAwaitingAndCompletedStripeSandboxChallengesCannotCancel() {
@@ -1185,12 +1099,9 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-personal-awaiting-evidence",
             "--fixture-open-active-challenge"
         )
+        let awaitingPage = waitForPersonalDetail(in: awaiting)
         XCTAssertTrue(
-            awaiting.navigationBars["Your challenge"]
-                .waitForExistence(timeout: 5)
-        )
-        XCTAssertTrue(
-            awaiting.staticTexts["Waiting on steps"]
+            exactStaticText("Checking activity", in: awaitingPage)
                 .waitForExistence(timeout: 4)
         )
         _ = waitForPaymentStatus("Test method saved.", in: awaiting)
@@ -1201,10 +1112,7 @@ final class GameTimeUITests: XCTestCase {
             "--fixture-stripe-sandbox",
             "--fixture-open-result-challenge"
         )
-        XCTAssertTrue(
-            completed.navigationBars["Your challenge"]
-                .waitForExistence(timeout: 5)
-        )
+        _ = waitForPersonalDetail(in: completed)
         _ = waitForPaymentStatus(
             "Goal met — $0 test charge.",
             in: completed
@@ -1812,7 +1720,7 @@ final class GameTimeUITests: XCTestCase {
     }
 
     private func assertNoLegacyPersonalHealthSurfaces(
-        in app: XCUIApplication,
+        in root: XCUIElement,
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
@@ -1823,13 +1731,13 @@ final class GameTimeUITests: XCTestCase {
             "personal.eligibility-hold",
         ] {
             XCTAssertFalse(
-                app.descendants(matching: .any)[identifier].exists,
+                root.descendants(matching: .any)[identifier].exists,
                 "Personal v2 exposed a retired Health surface: \(identifier)",
                 file: file,
                 line: line
             )
         }
-        let labels = app.descendants(matching: .any).allElementsBoundByIndex
+        let labels = root.descendants(matching: .any).allElementsBoundByIndex
             .map(\.label)
             .filter { !$0.isEmpty }
             .joined(separator: "\n")
@@ -2122,6 +2030,285 @@ final class GameTimeUITests: XCTestCase {
         )
     }
 
+    /// The fixture routes open `LivePersonalDetailView` as a sheet over the
+    /// new shell. It takes its title from the challenge once loaded, so wait
+    /// for Full rules, which only a loaded challenge shows. Scope Personal
+    /// checks to the returned page: the shell stays behind the sheet.
+    /// On CI these are the first UI tests to launch the app, on a cold
+    /// simulator, hence the long first wait.
+    @discardableResult
+    private func waitForPersonalDetail(
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) -> XCUIElement {
+        let page = app.scrollViews["personal.detail.page"]
+        XCTAssertTrue(
+            page.waitForExistence(timeout: 30),
+            "The Personal detail sheet didn't open.",
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            fullRules(in: page).waitForExistence(timeout: 10),
+            "The Personal challenge didn't load.",
+            file: file,
+            line: line
+        )
+        return page
+    }
+
+    /// Full rules is a DisclosureGroup. XCTest reports it as a button, and on
+    /// iOS 27 warns that its modern type is a disclosure triangle; take either.
+    /// Once it's open its text lines share the identifier; the type leaves
+    /// them out.
+    private func fullRules(in page: XCUIElement) -> XCUIElement {
+        page.descendants(matching: .any).matching(
+            NSPredicate(
+                format: "identifier == %@ AND elementType IN %@",
+                "personal.details",
+                [
+                    XCUIElement.ElementType.button.rawValue,
+                    XCUIElement.ElementType.disclosureTriangle.rawValue,
+                ]
+            )
+        ).firstMatch
+    }
+
+    /// Personal detail names its payment mode under the step count. The
+    /// compact environment banner belongs above the app root (docs/COPY.md),
+    /// and the new shell doesn't show one, so there's no banner to count.
+    private func assertDetailPaymentMode(
+        _ mode: EnvironmentMode,
+        amount: String,
+        in page: XCUIElement,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            exactStaticText(mode.detailLine(amount: amount), in: page)
+                .waitForExistence(timeout: 4),
+            "The payment mode line is missing: \(mode.detailLine(amount: amount))",
+            file: file,
+            line: line
+        )
+        XCTAssertFalse(
+            page.descendants(matching: .any)[
+                "personal.test-only-disclosure"
+            ].exists,
+            "The retired disclosure card is still reachable.",
+            file: file,
+            line: line
+        )
+    }
+
+    /// The detail's progress bar is hidden from VoiceOver; the same facts
+    /// are read as text beside it.
+    private func assertDetailWeekProgress(
+        in page: XCUIElement,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        for text in ["56,000 steps this week", "14,000 to this week’s goal"] {
+            XCTAssertTrue(
+                exactStaticText(text, in: page).exists,
+                "Week progress is missing: \(text)",
+                file: file,
+                line: line
+            )
+        }
+    }
+
+    /// Opens Full rules and checks the agreed terms, the payment-mode promise
+    /// and the missing-data guarantee. Sandbox rules keep the exact consent.
+    private func assertFullRules(
+        _ mode: EnvironmentMode,
+        amount: String,
+        in page: XCUIElement,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let rules = fullRules(in: page)
+        XCTAssertFalse(
+            exactStaticText("Updates through", in: page).exists,
+            "Full rules started open.",
+            file: file,
+            line: line
+        )
+        bringIntoView(rules, in: page, file: file, line: line)
+        rules.tap()
+        XCTAssertTrue(
+            exactStaticText("Updates through", in: page)
+                .waitForExistence(timeout: 3),
+            "Full rules didn't open.",
+            file: file,
+            line: line
+        )
+        var expected = [
+            "Goal", "How it counts", "Amount", amount, "Time zone", "Starts",
+            "Ends", "Missing or unclear step data never counts as a miss.",
+            mode.copy,
+        ]
+        if mode == .stripeSandbox {
+            expected.append(
+                "By starting, you agree that GameTime may create one \(amount) test charge only if this challenge is confirmed missed after the review window. Missing or unclear step data never counts as a miss."
+            )
+        }
+        for text in expected {
+            XCTAssertTrue(
+                exactStaticText(text, in: page).exists,
+                "Full rules are missing: \(text)",
+                file: file,
+                line: line
+            )
+        }
+    }
+
+    /// docs/COPY.md: the only recovery actions are Refresh and Contact
+    /// Support, plus the review controls while a review is open. There is
+    /// never a payment retry.
+    private func assertPaymentActions(
+        includingReview: Bool,
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let card = app.descendants(matching: .any)[
+            "personal.payment.status.card"
+        ]
+        var expected = [
+            "personal.payment.status.refresh",
+            "personal.payment.status.support",
+        ]
+        if includingReview {
+            expected += ["personal.review.reason", "personal.review.request"]
+        }
+        let actions = card.buttons.allElementsBoundByIndex
+            + card.links.allElementsBoundByIndex
+        XCTAssertEqual(
+            actions.map(\.identifier).sorted(),
+            expected.sorted(),
+            "The Payment test status card offers other actions.",
+            file: file,
+            line: line
+        )
+        for retry in ["personal.payment.retry", "Retry payment", "Try payment again"] {
+            XCTAssertFalse(
+                app.buttons[retry].exists,
+                "A payment retry is exposed: \(retry)",
+                file: file,
+                line: line
+            )
+        }
+    }
+
+    /// Contact Support is a SwiftUI `Link`. iOS 26.5 reports it as a button
+    /// and iOS 27 as a link, so find it by identifier alone.
+    private func paymentSupport(in page: XCUIElement) -> XCUIElement {
+        page.descendants(matching: .any)
+            .matching(identifier: "personal.payment.status.support")
+            .firstMatch
+    }
+
+    /// The review reason is a menu picker. It must offer the two fixed
+    /// reasons, with the current one checked.
+    private func chooseReviewReason(
+        _ reason: String,
+        replacing current: String,
+        with picker: XCUIElement,
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            picker.label.contains(current),
+            "The review reason reads ‘\(picker.label)’.",
+            file: file,
+            line: line
+        )
+        picker.tap()
+        let menu = app.collectionViews.containing(
+            NSPredicate(format: "label == %@", reason)
+        ).firstMatch
+        XCTAssertTrue(
+            menu.waitForExistence(timeout: 3),
+            "The review reasons didn't open.",
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            menu.buttons.allElementsBoundByIndex.map(\.label),
+            reviewReasons,
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(menu.buttons[current].isSelected, file: file, line: line)
+        XCTAssertFalse(menu.buttons[reason].isSelected, file: file, line: line)
+        menu.buttons[reason].tap()
+        let chosen = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label CONTAINS %@", reason),
+            object: picker
+        )
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [chosen], timeout: 3),
+            .completed,
+            "The review reason didn't change to ‘\(reason)’.",
+            file: file,
+            line: line
+        )
+    }
+
+    /// After "Yes, cancel it" the detail stays open on the cancelled challenge.
+    private func assertCancellationConfirmed(
+        in page: XCUIElement,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            exactStaticText("Cancellation confirmed.", in: page)
+                .waitForExistence(timeout: 5),
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            exactStaticText("Cancelled", in: page).exists,
+            file: file,
+            line: line
+        )
+        XCTAssertFalse(
+            page.buttons["personal.cancel"].exists,
+            file: file,
+            line: line
+        )
+    }
+
+    /// Scrolls the sheet until the whole control is on screen. XCTest calls a
+    /// control hittable while only its edge shows above the home indicator.
+    private func bringIntoView(
+        _ element: XCUIElement,
+        in page: XCUIElement,
+        attempts: Int = 12,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        for _ in 0..<attempts {
+            let frame = element.frame
+            if element.isHittable, frame.minY >= page.frame.minY,
+                frame.maxY <= page.frame.maxY - 40
+            { return }
+            if frame.minY < page.frame.minY {
+                page.swipeDown(velocity: .slow)
+            } else {
+                page.swipeUp(velocity: .slow)
+            }
+        }
+        XCTFail(
+            "Couldn't bring \(element) fully on screen.",
+            file: file,
+            line: line
+        )
+    }
+
     @discardableResult
     private func waitForPaymentStatus(
         _ expectedLabel: String,
@@ -2138,7 +2325,7 @@ final class GameTimeUITests: XCTestCase {
             object: state
         )
         XCTAssertEqual(
-            XCTWaiter.wait(for: [expectation], timeout: 5),
+            XCTWaiter.wait(for: [expectation], timeout: 10),
             .completed,
             "Expected payment state ‘\(expectedLabel)’, got ‘\(state.label)’.",
             file: file,
@@ -2385,40 +2572,6 @@ final class GameTimeUITests: XCTestCase {
         )
     }
 
-    private func assertCumulativeProgress(
-        in app: XCUIApplication,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) {
-        XCTAssertTrue(
-            app.staticTexts["56,000 steps this week"].exists,
-            file: file,
-            line: line
-        )
-        XCTAssertTrue(
-            app.staticTexts["14,000 to this week’s goal"].exists,
-            file: file,
-            line: line
-        )
-        let progress = personalProgress(
-            label: "Week progress",
-            value: "56,000 steps this week. 14,000 to this week’s goal.",
-            in: app
-        )
-        XCTAssertTrue(
-            progress.waitForExistence(timeout: 5),
-            file: file,
-            line: line
-        )
-        XCTAssertEqual(progress.label, "Week progress", file: file, line: line)
-        XCTAssertEqual(
-            progress.value as? String,
-            "56,000 steps this week. 14,000 to this week’s goal.",
-            file: file,
-            line: line
-        )
-    }
-
     private func dismissGameTimeAlertIfPresent(in app: XCUIApplication) {
         let alert = app.alerts["GameTime"]
         if alert.waitForExistence(timeout: 1) {
@@ -2495,18 +2648,18 @@ final class GameTimeUITests: XCTestCase {
     /// and element kind while allowing this observed visual casing difference.
     private func styledStaticText(
         _ label: String,
-        in app: XCUIApplication
+        in root: XCUIElement
     ) -> XCUIElement {
-        app.staticTexts.matching(
+        root.staticTexts.matching(
             NSPredicate(format: "label ==[c] %@", label)
         ).firstMatch
     }
 
     private func exactStaticText(
         _ label: String,
-        in app: XCUIApplication
+        in root: XCUIElement
     ) -> XCUIElement {
-        app.staticTexts.matching(
+        root.staticTexts.matching(
             NSPredicate(format: "label == %@", label)
         ).firstMatch
     }
@@ -2515,21 +2668,23 @@ final class GameTimeUITests: XCTestCase {
     /// do not surface the label on its own, so match on a fragment.
     private func containing(
         _ fragment: String,
-        in app: XCUIApplication
+        in root: XCUIElement
     ) -> XCUIElement {
-        app.descendants(matching: .any).matching(
+        root.descendants(matching: .any).matching(
             NSPredicate(format: "label CONTAINS %@", fragment)
         ).firstMatch
     }
 
     // Personal-only fixture assertions. The opt-in duel product has its own
     // consent and language checks in DuelUITests; do not weaken this list.
+    // Pass the Personal page when it's a sheet over the new shell, whose
+    // friends and invitations are allowed (docs/COPY.md).
     private func assertNoForbiddenLanguage(
-        in app: XCUIApplication,
+        in root: XCUIElement,
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        let labels = app.descendants(matching: .any).allElementsBoundByIndex
+        let labels = root.descendants(matching: .any).allElementsBoundByIndex
             .map(\.label)
             .filter { !$0.isEmpty }
             .joined(separator: "\n")

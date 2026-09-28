@@ -201,6 +201,7 @@ struct LivePersonalDetailView: View {
                     .frame(maxWidth: .infinity, minHeight: 44)
             }
         }
+        .accessibilityIdentifier("personal.detail.page")
         .task(id: challengeID) { await store.openDetail(challengeID: challengeID) }
         .refreshable { await refresh() }
         .alert("Cancel this challenge?", isPresented: $confirmCancellation) {
@@ -399,6 +400,7 @@ private struct LivePersonalPaymentCard: View {
                 }
                 .pickerStyle(.menu)
                 .disabled(freshDeadline != deadline || store.isRequestingReview)
+                .accessibilityIdentifier("personal.review.reason")
                 Button(store.isRequestingReview ? "Requesting review…" : "Request a review") {
                     Task {
                         let succeeded = await store.requestReview(challengeID: challenge.id, reason: reason)
@@ -423,6 +425,8 @@ private struct LivePersonalPaymentCard: View {
                     .accessibilityIdentifier("personal.payment.status.support")
             }
         }
+        // Without a container, the card's identifier replaces each control's own.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("personal.payment.status.card")
     }
 

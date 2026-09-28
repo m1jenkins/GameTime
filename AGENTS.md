@@ -55,9 +55,11 @@ glossary in `docs/COPY.md` rather than inventing a second name for it
 somewhere else.
 
 The legacy `GameTimeUITests` suite rejects competitive-social vocabulary on
-Personal screens. It still expects the retired `Today` shell, so its tests are
-skipped by name in `RetiredShellSkips.swift` (owner-approved September 27)
-until repaired, and the smoke script doesn't run it. That is a Personal
+Personal screens. Its 13 Personal-detail tests run against
+`LivePersonalDetailView` and scope that check to the sheet. The rest still
+expect the retired `Today` shell, so they're skipped by name in
+`RetiredShellSkips.swift` (owner-approved September 27) until repaired, and
+the smoke script doesn't run the suite. That is a Personal
 regression rule, not a ban on friend, invitation, winner or rematch in new
 screens. Add product-scoped copy checks to `ChallengeV1UITests` or
 `LiveDesignUITests` in the same commit as the copy.

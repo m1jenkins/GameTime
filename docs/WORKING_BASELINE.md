@@ -9,6 +9,35 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 28 Personal-detail UI tests repaired (owner-approved)
+
+- **Repaired and unskipped:** the 13 Personal-detail tests in
+  `GameTimeUITests`, against the `LivePersonalDetailView` sheet their fixture
+  routes open. They wait for the sheet and run the Personal wording checks on
+  it, not on the new shell behind it. `RetiredShellSkips.swift` now lists 38;
+  the other skips are unchanged.
+- **Product fix, accessibility only:** the state line, Request a review,
+  Refresh and Contact Support on the Payment test status card reported the
+  card's identifier instead of their own. The card is now an accessibility
+  container. The review reason picker and the detail page got identifiers. No
+  copy, layout or behavior changed.
+- **Expectations that moved with the new sheet:** the payment mode is named
+  under the step count and in Full rules, not in a banner. Refresh and Contact
+  Support stay on final payment states. The review reason is a menu. After
+  cancelling, the sheet stays open, and Earlier challenges lists the challenge.
+- **Found, not changed:** at the largest text the review reason picker shows
+  only "wrong or". The new shell shows no environment banner, which
+  docs/COPY.md asks for. The cancellation card hides `personal.cancellation.retry`
+  the way the payment card hid its controls.
+- **Checked locally** with Xcode 27 on iOS 26.5: CI's full `test` command
+  passed on an erased simulator, with the 13, `LiveDesignUITests` 16 of 16
+  and 648 unit tests; the skipped tests were exactly the 38 listed and the 19
+  controller-owned ones. The 13 passed 39 of 39 over three more runs. On
+  iOS 27.0 all 13 passed, one on a rerun after an app launch hung. The
+  Staging, Release and TestFlight builds succeeded.
+
+See the [receipt](../outputs/reports/2026-09-28-personal-detail-uitest-repair.md).
+
 ## September 28 Friends Phase 5: backup and migrations on gametime-p11b (owner-approved)
 
 - **Applied** from `ca76092` under Mason's September 27 standing approval for

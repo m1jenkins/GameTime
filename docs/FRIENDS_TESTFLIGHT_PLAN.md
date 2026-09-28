@@ -402,7 +402,9 @@ October.
   Challenges and You screens that `add54cf` stopped showing. Each is skipped
   by name in `RetiredShellSkips.swift` until it's repaired, starting with the
   13 Personal-detail tests; see the
-  [skip receipt](../outputs/reports/2026-09-27-legacy-uitest-skip.md).
+  [skip receipt](../outputs/reports/2026-09-27-legacy-uitest-skip.md). Those
+  13 were repaired and unskipped September 28, leaving 38; see the
+  [repair receipt](../outputs/reports/2026-09-28-personal-detail-uitest-repair.md).
 - From Phase 4: whether "Didn't count" is enough when a friend's total is below
   the goal, since a real Apple Health total can't prove a miss.
 

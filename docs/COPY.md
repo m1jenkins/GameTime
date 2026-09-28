@@ -424,10 +424,11 @@ products; old financial consent remains exact. Changing a string usually means
 changing an assertion; keep them in the same commit. As of September 22 that
 suite still expects the retired `Today` shell, and `scripts/beta-native-smoke.py`
 doesn't run it. Since September 27 its tests are skipped by name, with the
-owner's approval, in `RetiredShellSkips.swift`, so `assertNoForbiddenLanguage`
-doesn't run until they're repaired. Remove a test's entry when it passes
-again. Put new product-scoped copy checks in `ChallengeV1UITests` and
-`LiveDesignUITests`.
+owner's approval, in `RetiredShellSkips.swift`. Since September 28 the 13
+Personal-detail tests run again against `LivePersonalDetailView`, with
+`assertNoForbiddenLanguage` scoped to that sheet, not the new shell behind it.
+Remove a test's entry when it passes again. Put new product-scoped copy
+checks in `ChallengeV1UITests` and `LiveDesignUITests`.
 
 Payment copy also requires tests for sandbox versus live configuration; all nine
 authoritative sandbox states (`method_saved`, `review_open`, `under_review`,
