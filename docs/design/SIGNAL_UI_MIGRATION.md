@@ -1,5 +1,49 @@
 # GameTime UI adoption and migration history
 
+## Floodlight native, first slice — September 28, 2026
+
+Game Time Dev approved native Floodlight work under Mason's September 27–28
+autonomy mandate. This first slice builds the adopted 9.3 look, with round
+11.1's approved decisions where the app already supports the state. The
+[receipt](../../outputs/reports/2026-09-28-floodlight-native-wiring.md) lists
+commits, screenshots and checks.
+
+**Built.**
+
+- **Tokens.** `FloodlightTheme.swift` holds 9.3's 63 color and 4 number
+  tokens with light and dark values, plus 9.4's three `unconfirmed` colors and
+  round 10's `link`. `FloodlightThemeTests` reads the 9.3 and 11.1 CSS back, so
+  the values can't drift, and re-measures contrast natively: `faint` on the tab
+  bar is 4.50 and the pot bar top 4.52, both passing.
+- **Type.** Barlow and Barlow Condensed ship under the OFL (`Fonts/`, with
+  both license files) and scale with the text size setting the way `liveFont`
+  does.
+- **Appearance.** The signed-in shell follows the phone's light or dark
+  setting. `SignalTheme` has dark values from the Floodlight dark tokens, so
+  Challenges, You and Friends stay legible in dark before their own Floodlight
+  pass. Sign-in, onboarding, creation, Settings (with Personal history), the
+  invitation-link sheet and the Personal detail sheet still ask for light.
+- **Screens.** The friend challenge page (active and syncing friend goals,
+  not timed runs), its pot sheet, the invitation you still need to agree to,
+  Home's card and the tab bar.
+
+**Choices made in native, for design review.** People get colors by roster
+slot: you are always slot 0 (orange) and friends follow the saved roster, so
+colors don't shift when someone leaves, but a friend can have a different color
+in another challenge. The people row shows "No update" only, as 9.3 does, not
+11.1's per-person numbers. The page keeps a "What counts" row, which opens the
+activity and Apple Health sheet. Refresh activity and Leave challenge are
+neutral gray buttons, and the Apple Health card appears only when Apple Health
+needs attention (11.1 decisions 5 and 8). Home keeps its existing action rows
+under the card.
+
+**Not built yet.** Results, reviews, void, cancelled and member-exit states,
+the lobby, waiting for the group, timed runs, leaderboards, personal Rules and
+Put money on it keep their current pages. Also not built: Home's Next up rows
+and empty-state dial, the Floodlight look for Challenges, You, Friends, creation
+and Settings, VoiceOver and phone-display checks. Agreement text, rules, stakes
+and product behavior are unchanged, and the Personal app stays as it is (D134).
+
 ## Floodlight 9.3 adopted, light and dark — September 27, 2026
 
 The owner, Mason, adopted Floodlight round 9.3 as the visual direction on

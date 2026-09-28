@@ -9,6 +9,27 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 28 Floodlight native, first slice (owner-approved)
+
+- **Built** under Mason's September 27–28 mandate (Game Time Dev approved):
+  9.3's `--gt-*` tokens in light and dark (`FloodlightTheme.swift`, checked
+  against the adopted CSS by `FloodlightThemeTests`), Barlow and Barlow
+  Condensed under the OFL with `liveFont`'s text-size scaling, and Floodlight
+  pages for the friend challenge (dial, pot, people, stake, pot sheet), the
+  invitation (11.1: "$20 each", a pot of people who agreed, the seat line,
+  pair or group outcomes) and Home's card. The tab bar uses the Floodlight
+  colors.
+- **Appearance:** the signed-in shell follows the phone's light or dark
+  setting; `SignalTheme` gained dark values from the Floodlight dark tokens.
+  Sign-in, onboarding, creation, Settings (with Personal history), the
+  invitation-link sheet and the Personal sheet still ask for light.
+- **Unchanged:** agreements, rules, stakes, requests and Personal behavior.
+  Results, reviews, the lobby, timed runs, leaderboards and the Challenges and
+  You tabs keep their current layouts (in Floodlight colors when dark).
+  `docs/design/SIGNAL_UI_MIGRATION.md` has the full built and not-built lists.
+
+See the [receipt](../outputs/reports/2026-09-28-floodlight-native-wiring.md).
+
 ## September 28 Friends Phase 5: steps 2, 4 and 5 on gametime-p11b (owner-approved)
 
 - **Applied** under Mason's standing approval, from `7ff24d7`, after a fresh
