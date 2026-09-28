@@ -312,7 +312,10 @@ functions score them from the start.
 - Add the production bundle to the Apple provider, and open Apple-only sign-up.
 - Grant global support to the owner by name. A grant lasts at most 7 days, so
   plan its renewal.
-- Close dormant legacy grants.
+- Close dormant legacy grants. **Written and verified locally September 27**
+  as `20260927120000_close_legacy_social_grants_v1`; see the
+  [receipt](../outputs/reports/2026-09-27-friends-phase-5-legacy-grants.md).
+  Not applied: hosted migration history needs repair first.
 - Confirm that Steps and outdoor distance still save.
 - Settle whether the Free plan has a restorable backup and whether the project
   can pause.
