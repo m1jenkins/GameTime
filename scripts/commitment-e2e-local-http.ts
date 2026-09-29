@@ -275,7 +275,9 @@ function stripeEmulator() {
       objects.set(intentId, intent);
       return reply(200, intent);
     }
-    if ((match = /^\/v1\/setup_intents\/([A-Za-z0-9_]+)\/confirm$/.exec(path)) && method === "POST") {
+    if (
+      (match = /^\/v1\/setup_intents\/([A-Za-z0-9_]+)\/confirm$/.exec(path)) && method === "POST"
+    ) {
       const intent = objects.get(match[1]!);
       if (intent?.object !== "setup_intent") return invalid("No such setup intent");
       const test = form.get("payment_method");
@@ -289,9 +291,14 @@ function stripeEmulator() {
       intent.status = "succeeded";
       return reply(200, intent);
     }
-    if ((match = /^\/v1\/(setup_intents|payment_intents)\/([A-Za-z0-9_]+)$/.exec(path)) && method === "GET") {
+    if (
+      (match = /^\/v1\/(setup_intents|payment_intents)\/([A-Za-z0-9_]+)$/.exec(path)) &&
+      method === "GET"
+    ) {
       const object = objects.get(match[2]!);
-      return object === undefined ? reply(404, { error: { type: "invalid_request_error" } }) : reply(200, object);
+      return object === undefined
+        ? reply(404, { error: { type: "invalid_request_error" } })
+        : reply(200, object);
     }
     if (method === "POST" && path === "/v1/payment_intents") return paymentIntent(form);
     if (method === "GET" && path === "/v1/payment_intents") {
@@ -304,32 +311,39 @@ function stripeEmulator() {
     return reply(404, { error: { type: "invalid_request_error", message: "not emulated" } });
   }
 
-  const server = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen: () => {} }, async (request) => {
-    const url = new URL(request.url);
-    const body = await request.text();
-    const form = request.method === "GET" ? url.searchParams : new URLSearchParams(body);
-    const key = request.headers.get("idempotency-key");
-    if (request.method === "POST" && key !== null) {
-      const seen = replays.get(key);
-      if (seen !== undefined) {
-        if (seen.body !== url.pathname + "?" + body) {
-          return reply(400, {
-            error: { type: "idempotency_error", message: "Keys are for one request only" },
+  const server = Deno.serve(
+    { hostname: "127.0.0.1", port: 0, onListen: () => {} },
+    async (request) => {
+      const url = new URL(request.url);
+      const body = await request.text();
+      const form = request.method === "GET" ? url.searchParams : new URLSearchParams(body);
+      const key = request.headers.get("idempotency-key");
+      if (request.method === "POST" && key !== null) {
+        const seen = replays.get(key);
+        if (seen !== undefined) {
+          if (seen.body !== url.pathname + "?" + body) {
+            return reply(400, {
+              error: { type: "idempotency_error", message: "Keys are for one request only" },
+            });
+          }
+          counts.idempotentReplays += 1;
+          return new Response(seen.response, {
+            status: seen.status,
+            headers: { "content-type": "application/json", "idempotent-replayed": "true" },
           });
         }
-        counts.idempotentReplays += 1;
-        return new Response(seen.response, {
-          status: seen.status,
-          headers: { "content-type": "application/json", "idempotent-replayed": "true" },
+        const response = route(request.method, url.pathname, form);
+        const text = await response.text();
+        replays.set(key, {
+          body: url.pathname + "?" + body,
+          status: response.status,
+          response: text,
         });
+        return new Response(text, { status: response.status, headers: response.headers });
       }
-      const response = route(request.method, url.pathname, form);
-      const text = await response.text();
-      replays.set(key, { body: url.pathname + "?" + body, status: response.status, response: text });
-      return new Response(text, { status: response.status, headers: response.headers });
-    }
-    return route(request.method, url.pathname, form);
-  });
+      return route(request.method, url.pathname, form);
+    },
+  );
   return { server, counts, port: (server.addr as Deno.NetAddr).port };
 }
 
@@ -352,7 +366,10 @@ const webhookSecret = "whsec_" + crypto.randomUUID().replaceAll("-", "");
 const dispatchSecret = crypto.randomUUID() + crypto.randomUUID();
 
 /** What the card sheet does after the first setup call: confirm with a test card. */
-async function confirmCard(clientSecret: string, testCard: "pm_card_visa" | "pm_card_chargeCustomerFail") {
+async function confirmCard(
+  clientSecret: string,
+  testCard: "pm_card_visa" | "pm_card_chargeCustomerFail",
+) {
   const setupIntentId = clientSecret.slice(0, clientSecret.indexOf("_secret_"));
   const confirmed = await stripe.setupIntents.confirm(setupIntentId, {
     payment_method: testCard,
@@ -572,7 +589,11 @@ async function saveCard(
 }
 
 /** Preview and commit a one-day $1 Personal Steps goal with the saved card. */
-async function commit(actor: Actor, card: { setupId: string; customerId: string }, startDate: string) {
+async function commit(
+  actor: Actor,
+  card: { setupId: string; customerId: string },
+  startDate: string,
+) {
   const cfg = { start_date: startDate, days: 1, timezone: "UTC", amount_cents: 100 };
   const preview = await ok("challenge_commitment_preview_v1", {
     p_policy: "personal_steps_goal_v1",
@@ -638,7 +659,14 @@ try {
     refused = true;
   }
   check(refused, "the charge worker refuses to start in production");
-  const labels = ["met", "no data", "partial window", "shortfall", "shortfall, lost reply", "decline"];
+  const labels = [
+    "met",
+    "no data",
+    "partial window",
+    "shortfall",
+    "shortfall, lost reply",
+    "decline",
+  ];
   const people: Record<string, Actor> = {};
   for (const label of labels) people[label] = await account(label);
   const offSetup = await setup(people["met"]!, crypto.randomUUID());
@@ -653,7 +681,11 @@ try {
     "an account must also be eligible",
   );
   for (const actor of Object.values(people)) {
-    await ok("challenge_commitment_set_eligibility_v1", { p_actor: actor.id, p_eligible: true }, null);
+    await ok(
+      "challenge_commitment_set_eligibility_v1",
+      { p_actor: actor.id, p_eligible: true },
+      null,
+    );
   }
   const availability = await ok("challenge_commitment_availability_v1", {}, people["met"]!);
   check(
@@ -878,7 +910,8 @@ try {
   );
   const lost = await chargeRow(goals["shortfall, lost reply"]!);
   check(
-    lost.status === "processing" && lost.attempt_count === 1 && lost.stripe_payment_intent_id === null,
+    lost.status === "processing" && lost.attempt_count === 1 &&
+      lost.stripe_payment_intent_id === null,
     "lost reply: the charge waits to be retried with the same key",
   );
   const second = await dispatch();
@@ -887,7 +920,8 @@ try {
   check(
     second.status === 200 && second.body.claimed === 1 && second.body.succeeded === 1 &&
       recovered.status === "succeeded" && recovered.attempt_count === 2 &&
-      recoveredIntents.length === 1 && recoveredIntents[0]!.id === recovered.stripe_payment_intent_id,
+      recoveredIntents.length === 1 &&
+      recoveredIntents[0]!.id === recovered.stripe_payment_intent_id,
     "lost reply: the retry reuses the idempotency key and Stripe returns the same payment, not a second one",
   );
   const third = await dispatch();
@@ -905,7 +939,9 @@ try {
     challengeId: goals["shortfall"]!.id,
     amountCents: 100,
     currency: "usd",
-    idempotencyKey: `gt:challenge-commitment:v1:${goals["shortfall"]!.id}:${people["shortfall"]!.id}`,
+    idempotencyKey: `gt:challenge-commitment:v1:${goals["shortfall"]!.id}:${
+      people["shortfall"]!.id
+    }`,
     stripeCustomerId: goals["shortfall"]!.customerId,
     stripePaymentMethodId: await sql(
       `select stripe_payment_method_id from app.challenge_commitment_agreements_v1 where challenge_id=${
@@ -927,7 +963,11 @@ try {
 
   // ======================================================= decline blocks
   const unpaid = await setup(people["decline"]!, crypto.randomUUID());
-  const unpaidAvailability = await ok("challenge_commitment_availability_v1", {}, people["decline"]!);
+  const unpaidAvailability = await ok(
+    "challenge_commitment_availability_v1",
+    {},
+    people["decline"]!,
+  );
   check(
     unpaid.status === 422 && unpaid.body?.message === "challenge_commitment_unpaid" &&
       unpaidAvailability.reason === "challenge_commitment_unpaid",
@@ -958,9 +998,14 @@ try {
       afterFailedWebhook.status === "failed" && afterFailedWebhook.attempt_count === 1,
     "payment_intent.payment_failed: applied once, the charge stays failed, no retry; the duplicate is ignored",
   );
-  const forged = await webhook(event("payment_intent.succeeded", paid.stripe_payment_intent_id), "whsec_" + "0".repeat(32));
+  const forged = await webhook(
+    event("payment_intent.succeeded", paid.stripe_payment_intent_id),
+    "whsec_" + "0".repeat(32),
+  );
   check(forged.status === 401, "a webhook with a bad signature is refused");
-  const live = await webhook(event("payment_intent.succeeded", paid.stripe_payment_intent_id, true));
+  const live = await webhook(
+    event("payment_intent.succeeded", paid.stripe_payment_intent_id, true),
+  );
   check(live.status === 403, "a live-mode webhook event is refused");
   const receipts = JSON.parse(
     await sql(`select json_object_agg(disposition, n) from (select disposition, count(*) n
@@ -978,7 +1023,9 @@ try {
     "shortfall: the owner reads the goal as charged",
   );
   let allIntents = 0;
-  for (const goal of Object.values(goals)) allIntents += (await paymentIntentsFor(goal.customerId)).length;
+  for (const goal of Object.values(goals)) {
+    allIntents += (await paymentIntentsFor(goal.customerId)).length;
+  }
   check(
     allIntents === 3 && await chargeCount() === 3,
     "in total: three Stripe test payments for three confirmed misses, none for met or void goals",
