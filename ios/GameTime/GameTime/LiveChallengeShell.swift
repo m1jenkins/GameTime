@@ -254,8 +254,11 @@ struct LiveHomeView: View {
         let pot = group && row.format.hasTarget ? FloodlightChallengeFacts.potCents(row) : nil
         let sync = own.flatMap { FloodlightChallengeFacts.syncTime(row, $0, actor: actor) }
         let title = LiveChallengePresentation.title(row)
-        let spoken = (["Open \(title)."] + (pot.map { ["Pot: \(LiveChallengePresentation.money($0)) in simulated stakes."] } ?? [])
-            + people.map { FloodlightChallengeFacts.spoken(row, $0, actor: actor) } + (sync.map { [$0.spoken + "."] } ?? [])).joined(separator: " ")
+        var parts = ["Open \(title)."]
+        if let pot { parts.append("Pot: \(LiveChallengePresentation.money(pot)) in simulated stakes.") }
+        parts += people.map { FloodlightChallengeFacts.spoken(row, $0, actor: actor) }
+        if let sync { parts.append(sync.spoken + ".") }
+        let spoken = parts.joined(separator: " ")
         return Button { viewGoal(row.id) } label: {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .top, spacing: 10) {
