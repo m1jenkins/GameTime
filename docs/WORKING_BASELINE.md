@@ -25,6 +25,11 @@ tested source and publication status, not the current branch tip.
   663 passed and 11 skipped), and so did the conformance harness and the
   Staging, Release and TestFlight builds. With the sync time made faint for
   one run, the audit test failed at "measured 3.9:1 on screen".
+- **CI green:** run 36528661491 at `b93c729`, all four jobs; the iOS job
+  took 70.5 minutes. CI's Xcode 27.0 audit still flagged the hero-muted sync
+  time, and the measured check passed it, so the measurement, not the
+  toolchain move, cleared the audit. Since `f26d62b` the log prints the
+  measured ratio in the capture's name.
 
 See the [receipt](../outputs/reports/ci-contrast-measure-2026-09-28/README.md).
 

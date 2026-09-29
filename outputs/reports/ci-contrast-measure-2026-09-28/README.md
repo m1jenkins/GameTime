@@ -135,5 +135,37 @@ This Mac: Xcode 27.0 (27A5237l) and an iPhone 17 Pro on iOS 27.0
 
 ## CI after the change
 
-Recorded after the push in a `[skip ci]` commit, so that the receipt doesn't
-cancel the run it describes.
+Run [36528661491](https://github.com/m1jenkins/GameTime/actions/runs/36528661491)
+at `b93c729`: **green**, all four jobs.
+
+- Edge Functions, Client Core and Database passed.
+- "iOS product and conformance (Xcode 27.0)" passed in 70.5 minutes on
+  `xcode-27-arm64` 20260921.0210.1 with Xcode 27.0 (27A266a). A runner took
+  the job within a minute, and the job created the iPhone 17 Pro on iOS
+  27.0. "Test product app" took 54 minutes (about 30 on the old image), with
+  no failures. UI tests: 32 passed, 57 skipped. Unit tests: 663 passed (the
+  parallel output cuts one of their log lines short) and 11 skipped. The
+  Staging and Release builds took 12 minutes, and the conformance harness
+  passed 10 of 10.
+- **The measured check fired on CI.** Xcode 27.0's audit on the runner still
+  flagged the hero-muted "1 min ago" on "Home action rows, default text".
+  The log shows `Added attachment named 'audit measured Home action rows,
+  default text, 1 min ago'`, and the test passed, so the element's own
+  pixels measured at least 4.5:1. Moving to Xcode 27 didn't change the
+  audit's verdict on the runner; the measurement is what cleared it. CI
+  uploads the audit notes only on failure, so this run's exact ratio wasn't
+  kept.
+
+## Follow-up: the ratio in CI's log (`f26d62b`)
+
+The measured capture's name now ends with the ratio, for example "6.4 to 1"
+(artifact file names can't contain colons). The log prints every
+attachment's name, so each CI run now shows the measurement, pass or fail.
+
+- Locally (iPhone 17 Pro, iOS 27.0): `LiveDesignUITests` passed 19 of 19.
+  With the sync time made faint for one run (not committed), the log showed
+  `Added attachment named 'audit measured Home action rows, default text,
+  1 min ago, 3.9 to 1'`, and the test failed at "measured 3.9:1 on screen".
+- The workflow's toolchain comment no longer says Xcode 26.2 failed "an
+  audit" the Mac passed, because CI's Xcode 27.0 audit flags the same text.
+- CI: recorded after the run finishes.
