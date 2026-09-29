@@ -33,6 +33,11 @@ tested source and publication status, not the current branch tip.
   skipped by the existing lists; unit tests 663 passed and 11 skipped). The
   screenshot tests passed in dark, three shell and friends tests passed on
   iOS 18.6, and the Staging, Release and TestFlight builds succeeded.
+- **CI red, not from these changes:** Xcode 26.2 can't type-check the
+  VoiceOver label of Home's challenge card (`LiveChallengeShell.swift`,
+  from the first slice), so CI hasn't built the app since that slice; run
+  36506681827's other jobs passed. The receipt has the one-expression fix,
+  which needs its own approval.
 
 See the [receipt](../outputs/reports/2026-09-28-floodlight-qa-fixes.md).
 

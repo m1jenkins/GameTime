@@ -165,6 +165,31 @@ otherwise.
   `GameTime-TestFlight` (TestFlight) built for the simulator without signing,
   as CI builds the first two. CI never builds the TestFlight configuration.
 
+## CI after the push
+
+Run [36506681827](https://github.com/m1jenkins/GameTime/actions/runs/36506681827)
+at `e6457f0`: Edge Functions, Client Core and Database passed. **The iOS job
+failed to build, so no iOS tests ran there.** Xcode 26.2 stops at
+`LiveChallengeShell.swift:257:13`: "the compiler is unable to type-check this
+expression in reasonable time". That's the VoiceOver label of Home's
+challenge card (`spoken` in `heroCard`), from the first slice (`9d02a01`),
+not from these changes. `410c9aa`'s run
+([36492546719](https://github.com/m1jenkins/GameTime/actions/runs/36492546719))
+failed on the same expression, then at line 283, and the two runs before it
+were cancelled by later pushes. So CI hasn't built the app since the first
+slice. It's the only error in the log. Xcode 27, the only Xcode on this Mac,
+compiles it. The task allowed code changes only for the QA fixes and failures
+they caused, so it isn't changed here. The fix splits the expression and
+keeps the same words:
+
+```swift
+var parts = ["Open \(title)."]
+if let pot { parts.append("Pot: \(LiveChallengePresentation.money(pot)) in simulated stakes.") }
+parts += people.map { FloodlightChallengeFacts.spoken(row, $0, actor: actor) }
+if let sync { parts.append(sync.spoken + ".") }
+let spoken = parts.joined(separator: " ")
+```
+
 ## Caveats and follow-ups
 
 - **The friends audit changed, in the test only.** With the floating bar the
