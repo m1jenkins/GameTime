@@ -569,4 +569,32 @@ assert_contains "$legal_escaped_output" "0 blocker(s)"
 release_again="$(bash "$checker" --root "$testflight_root" 2>&1)" || fail "Release contract changed"
 assert_contains "$release_again" "PASS stripe-return-scheme"
 
+# A boot-time call needs its required-reason declaration.
+uptime_root="${fixture_root}/uptime"
+make_passing_fixture "$uptime_root"
+write_testflight_fixture "$uptime_root"
+printf 'let now = ProcessInfo.processInfo.systemUptime\n' \
+  >"${uptime_root}/ios/GameTime/GameTime/Uptime.swift"
+set +e
+uptime_output="$(bash "$checker" --root "$uptime_root" --testflight 2>&1)"
+uptime_status=$?
+set -e
+[[ "$uptime_status" -eq 1 ]] || fail "undeclared systemUptime should block TestFlight"
+assert_contains "$uptime_output" "BLOCKER privacy-required-reasons"
+python3 - "${uptime_root}/ios/GameTime/GameTime/PrivacyInfo.xcprivacy" <<'PY'
+import plistlib, sys
+path = sys.argv[1]
+with open(path, "rb") as f:
+    manifest = plistlib.load(f)
+manifest["NSPrivacyAccessedAPITypes"] = [{
+    "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+    "NSPrivacyAccessedAPITypeReasons": ["35F9.1"],
+}]
+with open(path, "wb") as f:
+    plistlib.dump(manifest, f)
+PY
+uptime_declared="$(bash "$checker" --root "$uptime_root" --testflight 2>&1)" ||
+  fail "declared systemUptime was rejected"
+assert_contains "$uptime_declared" "PASS privacy-required-reasons"
+
 echo "PASS: beta candidate preflight fixtures"

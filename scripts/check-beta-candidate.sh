@@ -586,6 +586,20 @@ else
     "Add and validate the main app PrivacyInfo.xcprivacy file."
 fi
 
+# App Store Connect refuses uploads that call a required-reason API without
+# declaring it. systemUptime is the boot-time API the app's stores use.
+if ! grep -R -q --include='*.swift' 'systemUptime' "$app_source" ||
+  grep -q 'NSPrivacyAccessedAPICategorySystemBootTime' "$privacy_manifest" 2>/dev/null
+then
+  pass_check \
+    "privacy-required-reasons" \
+    "The privacy manifest declares the boot-time API the app calls."
+else
+  block_check \
+    "privacy-required-reasons" \
+    "Declare NSPrivacyAccessedAPICategorySystemBootTime (35F9.1) for systemUptime."
+fi
+
 if
   [[ -n "$marketing_version" ]] &&
     [[ "$marketing_version" != *'$('* ]] &&
