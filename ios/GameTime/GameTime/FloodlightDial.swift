@@ -414,35 +414,57 @@ struct FloodlightLobbyPot: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        Canvas { context, size in
-            let scale = size.width / 200
-            context.scaleBy(x: scale, y: scale)
-            let muted = FloodlightToken.muted.rgba(scheme)
-            let (cx, cy, orbit): (CGFloat, CGFloat, CGFloat) = (100, 96, 76)
-            context.stroke(Path(ellipseIn: CGRect(x: cx - orbit, y: cy - orbit, width: orbit * 2, height: orbit * 2)),
-                           with: .color(muted.opacity(0.35).color), style: StrokeStyle(lineWidth: 1.2, dash: [2, 5]))
-            FloodlightPotPainter(center: CGPoint(x: cx, y: cy), radius: 44, rim: 3, amountSize: potCents >= 10_000 ? 28 : 34,
-                                 cents: potCents, caption: nil, scheme: scheme).paint(&context)
-            let count = max(seats.count, 1)
-            for (index, seat) in seats.enumerated() {
-                let angle = (-90 + Double(index) * 360 / Double(count)) * .pi / 180
-                var spot = context
-                spot.translateBy(x: cx + CGFloat(cos(angle)) * orbit, y: cy + CGFloat(sin(angle)) * orbit)
-                let member = FloodlightToken.member(seat.slot).rgba(scheme)
-                if seat.agreed {
-                    spot.fill(Path(ellipseIn: CGRect(x: -17, y: -17, width: 34, height: 34)), with: .color(member.color))
-                    let text = spot.resolve(Text(seat.initials).font(.custom(FloodlightFonts.face(.bold, condensed: false), fixedSize: 12))
-                        .foregroundColor(FloodlightMaterial.initialsInk(member, scheme).color))
-                    spot.draw(text, at: .zero, anchor: .center)
-                } else {
-                    spot.fill(Path(ellipseIn: CGRect(x: -17, y: -17, width: 34, height: 34)), with: .color(FloodlightToken.ground.rgba(scheme).opacity(0.5).color))
-                    spot.stroke(Path(ellipseIn: CGRect(x: -17, y: -17, width: 34, height: 34)), with: .color(muted.color),
-                                style: StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
-                    spot.fill(Path(ellipseIn: CGRect(x: -10, y: -10, width: 20, height: 20)), with: .color(member.color))
-                }
-            }
+        Canvas { context, size in paint(&context, size: size) }
+            .aspectRatio(200 / 192, contentMode: .fit)
+            .accessibilityHidden(true)
+    }
+
+    // Xcode 26.2 can't type-check this drawing inside the Canvas closure in
+    // `body`, so it lives in plain methods made of short, typed statements.
+    private func paint(_ context: inout GraphicsContext, size: CGSize) {
+        let scale: CGFloat = size.width / 200
+        context.scaleBy(x: scale, y: scale)
+        let muted: FloodlightRGBA = FloodlightToken.muted.rgba(scheme)
+        let (cx, cy, orbit): (CGFloat, CGFloat, CGFloat) = (100, 96, 76)
+        let ring = CGRect(x: cx - orbit, y: cy - orbit, width: orbit * 2, height: orbit * 2)
+        context.stroke(Path(ellipseIn: ring), with: .color(muted.opacity(0.35).color), style: StrokeStyle(lineWidth: 1.2, dash: [2, 5]))
+        let amountSize: CGFloat = potCents >= 10_000 ? 28 : 34
+        let pot = FloodlightPotPainter(center: CGPoint(x: cx, y: cy), radius: 44, rim: 3, amountSize: amountSize,
+                                       cents: potCents, caption: nil, scheme: scheme)
+        pot.paint(&context)
+        let count: Int = max(seats.count, 1)
+        for (index, seat) in seats.enumerated() {
+            let turn: Double = Double(index) * 360 / Double(count)
+            let degrees: Double = -90 + turn
+            let angle: Double = degrees * .pi / 180
+            let x: CGFloat = cx + CGFloat(cos(angle)) * orbit
+            let y: CGFloat = cy + CGFloat(sin(angle)) * orbit
+            var spot = context
+            spot.translateBy(x: x, y: y)
+            paintSeat(&spot, seat, muted: muted)
         }
-        .aspectRatio(200 / 192, contentMode: .fit)
-        .accessibilityHidden(true)
+    }
+
+    /// One seat centered on the context's origin: filled with initials once the
+    /// person agreed, dashed around their color while they decide.
+    private func paintSeat(_ context: inout GraphicsContext, _ seat: Seat, muted: FloodlightRGBA) {
+        let member: FloodlightRGBA = FloodlightToken.member(seat.slot).rgba(scheme)
+        let chip = Path(ellipseIn: CGRect(x: -17, y: -17, width: 34, height: 34))
+        if seat.agreed {
+            context.fill(chip, with: .color(member.color))
+            paintInitials(&context, seat.initials, member: member)
+        } else {
+            let ground: FloodlightRGBA = FloodlightToken.ground.rgba(scheme)
+            context.fill(chip, with: .color(ground.opacity(0.5).color))
+            context.stroke(chip, with: .color(muted.color), style: StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
+            context.fill(Path(ellipseIn: CGRect(x: -10, y: -10, width: 20, height: 20)), with: .color(member.color))
+        }
+    }
+
+    private func paintInitials(_ context: inout GraphicsContext, _ initials: String, member: FloodlightRGBA) {
+        let font: Font = .custom(FloodlightFonts.face(.bold, condensed: false), fixedSize: 12)
+        let ink: Color = FloodlightMaterial.initialsInk(member, scheme).color
+        let text = context.resolve(Text(initials).font(font).foregroundColor(ink))
+        context.draw(text, at: .zero, anchor: .center)
     }
 }

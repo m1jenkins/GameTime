@@ -32,4 +32,7 @@ This Mac has Xcode 27.0 only, so the local build can't reproduce the 26.2 timeou
 
 ## CI after the fix
 
-See the CI section below; it is updated when the run finishes.
+Run [36508999960](https://github.com/m1jenkins/GameTime/actions/runs/36508999960)
+at `7724a32`: this error is gone. The iOS job then stopped at a different
+expression, `FloodlightDial.swift:416:25` (the lobby pot's `body`). That fix
+has [its own receipt](../ci-typecheck-floodlight-dial-2026-09-28/README.md).
