@@ -168,4 +168,16 @@ attachment's name, so each CI run now shows the measurement, pass or fail.
   1 min ago, 3.9 to 1'`, and the test failed at "measured 3.9:1 on screen".
 - The workflow's toolchain comment no longer says Xcode 26.2 failed "an
   audit" the Mac passed, because CI's Xcode 27.0 audit flags the same text.
-- CI: recorded after the run finishes.
+- CI: run [36536557436](https://github.com/m1jenkins/GameTime/actions/runs/36536557436)
+  at `43cc9b1` was **green**, all four jobs; the iOS job took 75.7 minutes
+  ("Test product app" 60). The audit flagged the sync time again, and the
+  log shows the measurement:
+
+  ```
+  Added attachment named 'audit measured Home action rows, default text, 1 min ago, 6.4 to 1'
+  ```
+
+  That's the value this Mac measures, so CI draws the hero-muted text
+  exactly as the Mac does and only the audit's verdict differs. UI tests: 32
+  passed and 57 skipped. Unit tests: 663 passed and 11 skipped. Conformance:
+  10 of 10.

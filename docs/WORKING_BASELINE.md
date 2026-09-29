@@ -29,7 +29,8 @@ tested source and publication status, not the current branch tip.
   took 70.5 minutes. CI's Xcode 27.0 audit still flagged the hero-muted sync
   time, and the measured check passed it, so the measurement, not the
   toolchain move, cleared the audit. Since `f26d62b` the log prints the
-  measured ratio in the capture's name.
+  measured ratio in the capture's name: 6.4 to 1 in run 36536557436 at
+  `43cc9b1` (green), the same as on this Mac.
 
 See the [receipt](../outputs/reports/ci-contrast-measure-2026-09-28/README.md).
 
