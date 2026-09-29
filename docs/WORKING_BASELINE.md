@@ -9,6 +9,33 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 28 Floodlight QA fixes
+
+- **Built** from the Floodlight QA task on the first slice's screenshots:
+  Home's action rows in 9.3's Next up type, with the agree row's Review the
+  only blue pill and "Agree by Sun, Sep 27"; the update time on the
+  challenge's person card as its refresh control; Leave challenge as plain
+  muted text; the not-connected Apple Health card's new words and **Connect**;
+  the system tab bar (Liquid Glass on iOS 26, the solid bar on iOS 18); and
+  "won't count" kept on one line on the invitation.
+- **Fixed on the way:** the system tab bar keeps Home alive behind other
+  tabs, and its hidden copy of the friends confirmation cleared it after
+  half a second. The confirmation now shows only on the page on screen, and
+  creation's invite step, which confirms inline, clears it. The friends audit
+  now also counts text in the fade above the floating bar as covered.
+- **Fixture, not the app:** the Health card that said "not connected" beside
+  your 6.4 km came from `--fixture-health-not-saved`. The new
+  `--fixture-health-not-connected` shows **No update yet**.
+- **Kept:** creation still opens on "Who's it for?", shipped at the owner's
+  request on September 26. The receipt says why it wasn't removed.
+- **Checked locally** with Xcode 27 on an iPhone 17 Pro with iOS 26.5: CI's
+  full `test` command passed at the committed tree (UI tests 31 passed and 57
+  skipped by the existing lists; unit tests 663 passed and 11 skipped). The
+  screenshot tests passed in dark, three shell and friends tests passed on
+  iOS 18.6, and the Staging, Release and TestFlight builds succeeded.
+
+See the [receipt](../outputs/reports/2026-09-28-floodlight-qa-fixes.md).
+
 ## September 28 Floodlight native, first slice (owner-approved)
 
 - **Built** under Mason's September 27–28 mandate (Game Time Dev approved):

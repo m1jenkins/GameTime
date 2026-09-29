@@ -1,5 +1,35 @@
 # GameTime UI adoption and migration history
 
+## Floodlight QA fixes — September 28, 2026
+
+A design QA pass over the first slice's screenshots (below) asked for seven
+fixes, built the same day. The [receipt](../../outputs/reports/2026-09-28-floodlight-qa-fixes.md)
+has the commits, checks and screenshots.
+
+- **Home action rows** use Next up's type: titles in Barlow SemiBold 17,
+  details in Barlow Regular 15, muted. The agree row's **Review** is the only
+  blue pill; **Accept** and **Decline** are gray. The agree row says "Agree by
+  Sun, Sep 27" and adds the time only when it matters.
+- **Challenge page.** The update time on your card ("1 min ago") refreshes,
+  with a spinner while it syncs; the Refresh activity pill is gone. **Leave
+  challenge** is plain muted text at the end of the list.
+- **Apple Health card** before you connect: "Apple Health isn't connected",
+  "Connect to check your runs. You can keep browsing without it.",
+  **Connect** and the Manage access link. The screenshot that showed 6.4 km
+  and "1 min ago" beside it came from a fixture; the new
+  `--fixture-health-not-connected` state has no saved update of yours.
+- **Tab bar.** The system `TabView`: Liquid Glass floating over the content
+  on iOS 26, the solid bar `SignalAppearance` sets up on iOS 18. It keeps
+  other tabs' pages alive, so a friends confirmation now shows only on the
+  page you're looking at; a hidden copy on Home was clearing it at once.
+- **Invitation.** "won't count" no longer splits across lines.
+- **Create** still starts with "Who's it for?". It's shipped behavior the
+  owner asked for on September 26 (entry below), so it stays until the owner
+  decides otherwise.
+
+These replace the first slice's gray Refresh and Leave buttons, its blue
+Accept on Home, and its Floodlight tab bar.
+
 ## Floodlight native, first slice — September 28, 2026
 
 Game Time Dev approved native Floodlight work under Mason's September 27–28
