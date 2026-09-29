@@ -106,10 +106,9 @@ jobs:
 
   # Product and conformance targets use the development Mac's toolchain:
   # Xcode 27.0 and an iPhone 17 Pro on iOS 27.0. Xcode 26.2 here failed builds
-  # and an audit that the Mac's Xcode 27 passed. Only GitHub's `xcode-27`
-  # image (a preview) has Xcode 27; macos-26 stops at 26.6. Selecting Xcode
-  # explicitly prevents an image update from silently changing the compiler
-  # or SDK.
+  # that the Mac's Xcode 27 passed. Only GitHub's `xcode-27` image (a preview)
+  # has Xcode 27; macos-26 stops at 26.6. Selecting Xcode explicitly prevents
+  # an image update from silently changing the compiler or SDK.
   ios:
     name: iOS product and conformance (Xcode 27.0)
     runs-on: xcode-27
