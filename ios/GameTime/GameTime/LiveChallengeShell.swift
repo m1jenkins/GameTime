@@ -293,9 +293,10 @@ struct LiveHomeView: View {
                          badge: FloodlightChallengeFacts.met(row, person) ? FloodlightOrb.Badge.met : .none, waiting: row.savedScore(person) == nil)
                     })
                     if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
-                    // Ink, not hero-muted: this footer sits where the frost is thinnest,
-                    // and CI's renderer failed the audit on both muted tokens there.
-                    if let sync { FloodlightSyncTime(short: sync.short, spoken: sync.spoken, late: sync.late, color: Floodlight.ink) }
+                    // Hero-muted, like the card's other secondary text. CI's audit flagged
+                    // this line even in ink, which measured 12.4:1 in CI's own screenshot,
+                    // so LiveDesignUITests measures its pixels instead.
+                    if let sync { FloodlightSyncTime(short: sync.short, spoken: sync.spoken, late: sync.late, color: Floodlight.heroMuted) }
                 }
                 .padding(.top, 10)
                 .frame(maxWidth: .infinity, alignment: .leading)
