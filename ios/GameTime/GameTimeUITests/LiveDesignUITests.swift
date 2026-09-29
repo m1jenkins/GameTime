@@ -832,14 +832,18 @@ final class LiveDesignUITests: XCTestCase {
             && label.range(of: #"^(Just now|\d+ (min|h) ago)$"#, options: .regularExpression) != nil
     }
 
-    /// Screenshots the element, keeps the picture with the audit captures and
-    /// measures it.
+    /// Screenshots the element, measures it and keeps the picture with the
+    /// audit captures. The name carries the ratio, so CI's log shows it when
+    /// the test passes and the captures aren't uploaded.
     private func measuredContrast(_ element: XCUIElement, _ screen: String) -> Double? {
         guard element.exists else { return nil }
         let shot = element.screenshot()
+        let measured = shot.image.cgImage.flatMap(Self.textContrast)
         let attachment = XCTAttachment(screenshot: shot)
-        attachment.name = "audit measured \(screen), \(element.label)"; attachment.lifetime = .keepAlways; add(attachment)
-        return shot.image.cgImage.flatMap(Self.textContrast)
+        attachment.name = "audit measured \(screen), \(element.label), "
+            + (measured.map { String(format: "%.1f to 1", $0) } ?? "not measured")
+        attachment.lifetime = .keepAlways; add(attachment)
+        return measured
     }
 
     /// WCAG contrast between text and its background in an opaque picture of
