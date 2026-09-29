@@ -9,6 +9,25 @@ Continue from local `main`. Commit and merge completed authorized work into
 `main`; push remains separately authorized. Dated receipts below identify their
 tested source and publication status, not the current branch tip.
 
+## September 29 iOS CI on Xcode 27; Home sync time measured (owner-approved)
+
+- **CI toolchain:** the iOS job runs on GitHub's `xcode-27` preview image
+  with Xcode 27.0 and an iPhone 17 Pro on iOS 27.0 (the job creates it),
+  matching this Mac. It's now "iOS product and conformance (Xcode 27.0)". CI
+  no longer compiles with Xcode 26.2.
+- **Home sync time:** hero-muted again. CI's Xcode 26.2 audit flagged "1 min
+  ago" in muted, hero-muted and ink at one frame, and CI's own screenshot
+  showed ink at 12.4:1. For that text only, `LiveDesignUITests` now measures
+  the element's pixels when the audit flags it: 4.5:1 or more is recorded,
+  less still fails.
+- **Checked locally** with Xcode 27 on an iPhone 17 Pro with iOS 27.0: CI's
+  full `test` command passed (UI tests 32 passed and 57 skipped; unit tests
+  663 passed and 11 skipped), and so did the conformance harness and the
+  Staging, Release and TestFlight builds. With the sync time made faint for
+  one run, the audit test failed at "measured 3.9:1 on screen".
+
+See the [receipt](../outputs/reports/ci-contrast-measure-2026-09-28/README.md).
+
 ## September 28 Floodlight QA fixes
 
 - **Built** from the Floodlight QA task on the first slice's screenshots:

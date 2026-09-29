@@ -1,5 +1,10 @@
 # Home hero contrast fix, September 28
 
+> **Correction, September 29:** CI does not draw the frost darker. Its own
+> screenshot shows the same card as a Mac, with ink at 12.4:1. See
+> [What CI's screenshot showed](#what-cis-screenshot-showed). The render
+> theories below are kept as they were written.
+
 ## Failure
 
 CI run [36513016376](https://github.com/m1jenkins/GameTime/actions/runs/36513016376)
@@ -69,3 +74,31 @@ card's bottom edge much darker or greyer than any local simulator does.
   7 days, so the next failure comes with the rendered pixels. The collect script
   was dry-run against a local result bundle: 28 files.
 - Focused test on iPhone 17 Pro, iOS 26.2 runtime, Xcode 27: passed (147 s).
+
+## What CI's screenshot showed
+
+Ink failed too. CI run
+[36520964738](https://github.com/m1jenkins/GameTime/actions/runs/36520964738)
+(7e93b6f) failed the same audit at the same frame, and this time it uploaded
+the screen it audited. In that screenshot, "1 min ago" is ink #0A2D44 on
+#EAF0F4: 12.4:1, the same frost this Mac's simulators draw. CI renders the
+card like a Mac. Only its audit's verdict on this one text differs.
+
+Three runs, three colors, one frame, (319, 351, 51, 16):
+
+| Run | Commit | Sync time | Audit |
+| --- | --- | --- | --- |
+| [36513016376](https://github.com/m1jenkins/GameTime/actions/runs/36513016376) | bb1660a | muted #3E6278 | Contrast failed |
+| [36518284371](https://github.com/m1jenkins/GameTime/actions/runs/36518284371) | 13caa28 | hero-muted #365A70 | Contrast failed |
+| [36520964738](https://github.com/m1jenkins/GameTime/actions/runs/36520964738) | 7e93b6f | ink #0A2D44 | Contrast failed |
+
+Follow-up, owner-approved
+([receipt](../ci-contrast-measure-2026-09-28/README.md)):
+
+- The sync time is hero-muted again, like the rest of the card's secondary
+  text and the mock.
+- For this text only, `LiveDesignUITests` measures the element's own
+  screenshot when the audit flags it. 4.5:1 or more is recorded in the audit
+  notes; anything less still fails.
+- CI's iOS job runs on Xcode 27.0 with an iPhone 17 Pro on iOS 27.0, like
+  this Mac.
